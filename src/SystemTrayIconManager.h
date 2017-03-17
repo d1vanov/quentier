@@ -52,6 +52,9 @@ public:
     void show();
     void hide();
 
+    bool shouldCloseToSystemTray() const;
+    bool shouldMinimizeToSystemTray() const;
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 

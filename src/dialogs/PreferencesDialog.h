@@ -27,8 +27,11 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onShowSystemTrayIconCheckboxToggled(bool checked);
+    void onCloseToSystemTrayCheckboxToggled(bool checked);
+    void onMinimizeToSystemTrayCheckboxToggled(bool checked);
 
 private:
+    void setupCurrentSettingsState();
     void createConnections();
 
 private:

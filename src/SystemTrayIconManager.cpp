@@ -19,6 +19,7 @@
 #include "SystemTrayIconManager.h"
 #include "AccountManager.h"
 #include "SettingsNames.h"
+#include "DefaultSettings.h"
 #include "MainWindow.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -27,16 +28,6 @@
 #include <QActionGroup>
 #include <QWidget>
 #include <QStringList>
-
-#define SHOW_SYSTEM_TRAY_ICON_KEY QStringLiteral("ShowIconInSystemTray")
-#define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY QStringLiteral("OverrideSystemTrayAvailability")
-#define TRAY_ICON_KIND_KEY QStringLiteral("TrayIconKind")
-
-#ifdef Q_WS_MAC
-#define DEFAULT_TRAY_ICON_KIND QStringLiteral("dark")
-#else
-#define DEFAULT_TRAY_ICON_KIND QStringLiteral("colored")
-#endif
 
 namespace quentier {
 
@@ -62,7 +53,7 @@ bool SystemTrayIconManager::isSystemTrayAvailable() const
     {
         Account currentAccount = m_pAccountManager->currentAccount();
         ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-        appSettings.beginGroup(QStringLiteral("SystemTray"));
+        appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
         QVariant overrideSystemTrayAvailability = appSettings.value(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY);
         appSettings.endGroup();
 
@@ -119,6 +110,90 @@ void SystemTrayIconManager::hide()
 
     m_pSystemTrayIcon->hide();
     persistTrayIconState();
+}
+
+bool SystemTrayIconManager::shouldCloseToSystemTray() const
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::shouldCloseToSystemTray"));
+
+    if (!isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("The system tray is not available, can't close the app to tray"));
+        return false;
+    }
+
+    if (!isShown()) {
+        QNDEBUG(QStringLiteral("No system tray icon is shown, can't close the app to tray"));
+        return false;
+    }
+
+    if (Q_UNLIKELY(m_pAccountManager.isNull())) {
+        QNWARNING(QStringLiteral("Can't determine if should close to system tray: the account manager is null"));
+        return DEFAULT_CLOSE_TO_SYSTEM_TRAY;
+    }
+
+    bool result = DEFAULT_CLOSE_TO_SYSTEM_TRAY;
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant resultData = appSettings.value(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    if (resultData.isValid())
+    {
+        result = resultData.toBool();
+        QNTRACE(QStringLiteral("Value from settings for the current account: ")
+                << (result ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+    else
+    {
+        QNTRACE(QStringLiteral("Found no stored setting, will use the default value: ")
+                << (result ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+
+    return result;
+}
+
+bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::shouldMinimizeToSystemTray"));
+
+    if (!isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("The system tray is not available, can't minimize the app to tray"));
+        return false;
+    }
+
+    if (!isShown()) {
+        QNDEBUG(QStringLiteral("No system tray icon is shown, can't minimize the app to tray"));
+        return false;
+    }
+
+    if (Q_UNLIKELY(m_pAccountManager.isNull())) {
+        QNWARNING(QStringLiteral("Can't determine if should minimize to system tray: the account manager is null"));
+        return DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
+    }
+
+    bool result = DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant resultData = appSettings.value(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    if (resultData.isValid())
+    {
+        result = resultData.toBool();
+        QNTRACE(QStringLiteral("Value from settings for the current account: ")
+                << (result ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+    else
+    {
+        QNTRACE(QStringLiteral("Found no stored setting, will use the default value: ")
+                << (result ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+
+    return result;
 }
 
 void SystemTrayIconManager::onAccountSwitched(Account account)
@@ -234,8 +309,8 @@ void SystemTrayIconManager::onSwitchTrayIconContextMenuAction(bool checked)
 
     Account currentAccount = m_pAccountManager->currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("SystemTray"));
-    appSettings.setValue(TRAY_ICON_KIND_KEY, pAction->data().toString());
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SYSTEM_TRAY_ICON_KIND_KEY, pAction->data().toString());
     appSettings.endGroup();
 
     setupSystemTrayIcon();
@@ -297,8 +372,8 @@ void SystemTrayIconManager::setupSystemTrayIcon()
     {
         Account currentAccount = m_pAccountManager->currentAccount();
         ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-        appSettings.beginGroup(QStringLiteral("SystemTray"));
-        trayIconKind = appSettings.value(TRAY_ICON_KIND_KEY).toString();
+        appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+        trayIconKind = appSettings.value(SYSTEM_TRAY_ICON_KIND_KEY).toString();
         appSettings.endGroup();
 
         if (trayIconKind.isEmpty()) {
@@ -505,8 +580,8 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
     {
         Account currentAccount = m_pAccountManager->currentAccount();
         ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-        appSettings.beginGroup(QStringLiteral("SystemTray"));
-        currentTrayIconKind = appSettings.value(TRAY_ICON_KIND_KEY).toString();
+        appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+        currentTrayIconKind = appSettings.value(SYSTEM_TRAY_ICON_KIND_KEY).toString();
         appSettings.endGroup();
 
         if ( (currentTrayIconKind != QStringLiteral("dark")) &&
@@ -669,8 +744,8 @@ void SystemTrayIconManager::persistTrayIconState()
     Account currentAccount = m_pAccountManager->currentAccount();
 
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("SystemTray"));
-    appSettings.setValue(SHOW_SYSTEM_TRAY_ICON_KEY, QVariant(isShown()));
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY, QVariant(isShown()));
     appSettings.endGroup();
 }
 
@@ -686,11 +761,11 @@ void SystemTrayIconManager::restoreTrayIconState()
     Account currentAccount = m_pAccountManager->currentAccount();
 
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("SystemTray"));
-    QVariant data = appSettings.value(SHOW_SYSTEM_TRAY_ICON_KEY);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant data = appSettings.value(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY);
     appSettings.endGroup();
 
-    bool shouldShow = true;
+    bool shouldShow = DEFAULT_SHOW_SYSTEM_TRAY_ICON;
     if (data.isValid()) {
         shouldShow = data.toBool();
     }

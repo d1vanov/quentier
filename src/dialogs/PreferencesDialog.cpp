@@ -2,10 +2,9 @@
 #include "ui_PreferencesDialog.h"
 #include "../AccountManager.h"
 #include "../SettingsNames.h"
+#include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-
-#define SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY QStringLiteral("ShowSystemTrayIcon")
 
 namespace quentier {
 
@@ -26,6 +25,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_pUi->minimizeToTrayCheckBox->setHidden(true);
 #endif
 
+    setupCurrentSettingsState();
     createConnections();
 }
 
@@ -43,7 +43,7 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
     {
         Account currentAccount = m_pAccountManager->currentAccount();
         ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-        appSettings.beginGroup(QStringLiteral("SystemTray"));
+        appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
         appSettings.setValue(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY, checked);
         appSettings.endGroup();
     }
@@ -56,12 +56,89 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
     emit showSystemTrayIconOptionChanged(checked);
 }
 
+void PreferencesDialog::onCloseToSystemTrayCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onCloseToSystemTrayCheckboxToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (Q_UNLIKELY(m_pAccountManager.isNull())) {
+        QNWARNING(QStringLiteral("Can't persist the close to system tray icon option: "
+                                 "the account manager is null"));
+        return;
+    }
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.setValue(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    appSettings.endGroup();
+}
+
+void PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (Q_UNLIKELY(m_pAccountManager.isNull())) {
+        QNWARNING(QStringLiteral("Can't persist the minimize to system tray icon option: "
+                                 "the account manager is null"));
+        return;
+    }
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.setValue(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    appSettings.endGroup();
+}
+
+void PreferencesDialog::setupCurrentSettingsState()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
+
+    // NOTE: since this method is only to be called from the constructor and the constructor is passed
+    // AccountManager by reference, assume that by this moment the weak link to AccountManager won't expire
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+
+    bool shouldShowSystemTrayIcon = DEFAULT_SHOW_SYSTEM_TRAY_ICON;
+    QVariant shouldShowSystemTrayIconData = appSettings.value(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY);
+    if (shouldShowSystemTrayIconData.isValid()) {
+        shouldShowSystemTrayIcon = shouldShowSystemTrayIconData.toBool();
+    }
+
+    bool shouldCloseToTray = DEFAULT_CLOSE_TO_SYSTEM_TRAY;
+    QVariant shouldCloseToTrayData = appSettings.value(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+    if (shouldCloseToTrayData.isValid()) {
+        shouldCloseToTray = shouldCloseToTrayData.toBool();
+    }
+
+    bool shouldMinimizeToTray = DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
+    QVariant shouldMinimizeToTrayData = appSettings.value(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+    if (shouldMinimizeToTrayData.isValid()) {
+        shouldMinimizeToTray = shouldMinimizeToTrayData.toBool();
+    }
+
+    appSettings.endGroup();
+
+    m_pUi->showSystemTrayIconCheckBox->setChecked(shouldShowSystemTrayIcon);
+    m_pUi->closeToTrayCheckBox->setChecked(shouldCloseToTray);
+    m_pUi->minimizeToTrayCheckBox->setChecked(shouldMinimizeToTray);
+}
+
 void PreferencesDialog::createConnections()
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::createConnections"));
 
     QObject::connect(m_pUi->showSystemTrayIconCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onShowSystemTrayIconCheckboxToggled,bool));
+    QObject::connect(m_pUi->closeToTrayCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onCloseToSystemTrayCheckboxToggled,bool));
+    QObject::connect(m_pUi->minimizeToTrayCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onMinimizeToSystemTrayCheckboxToggled,bool));
 
     // TODO: continue
 }

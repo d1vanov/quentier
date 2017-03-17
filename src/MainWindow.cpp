@@ -2823,6 +2823,13 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
 {
     QNDEBUG(QStringLiteral("MainWindow::closeEvent"));
 
+    if (pEvent && m_pSystemTrayIconManager->shouldCloseToSystemTray()) {
+        QNDEBUG(QStringLiteral("Hiding to system tray instead of closing"));
+        pEvent->ignore();
+        hide();
+        return;
+    }
+
     if (m_pNoteEditorTabsAndWindowsCoordinator) {
         m_pNoteEditorTabsAndWindowsCoordinator->clear();
     }
@@ -2892,15 +2899,8 @@ void MainWindow::hideEvent(QHideEvent * pHideEvent)
 {
     QNDEBUG("MainWindow::hideEvent");
 
-    bool wasMinimized = false;
-    Qt::WindowStates state = windowState();
-    wasMinimized = (state & Qt::WindowMinimized);
-
     QMainWindow::hideEvent(pHideEvent);
-
-    if (!wasMinimized) {
-        emit hidden();
-    }
+    emit hidden();
 }
 
 void MainWindow::changeEvent(QEvent * pEvent)
@@ -2926,6 +2926,21 @@ void MainWindow::changeEvent(QEvent * pEvent)
         else if (minimized)
         {
             QNDEBUG(QStringLiteral("MainWindow became minimized"));
+
+            if (m_pSystemTrayIconManager->shouldMinimizeToSystemTray())
+            {
+                QNDEBUG(QStringLiteral("Should minimize to system tray instead of the conventional minimization"));
+
+                // 1) Undo the already changed window state
+                state = state & (~Qt::WindowMinimized);
+                setWindowState(state);
+
+                // 2) hide instead of minimizing
+                hide();
+
+                return;
+            }
+
             emit hidden();
         }
     }
