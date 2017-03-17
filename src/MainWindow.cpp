@@ -39,6 +39,7 @@
 #include "dialogs/AddOrEditNotebookDialog.h"
 #include "dialogs/AddOrEditTagDialog.h"
 #include "dialogs/AddOrEditSavedSearchDialog.h"
+#include "dialogs/PreferencesDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
 #include "views/DeletedNoteItemView.h"
@@ -293,6 +294,8 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
     QObject::connect(m_pUI->ActionQuit, QNSIGNAL(QAction,triggered),
                      QApplication::instance(), QNSLOT(QCoreApplication,quit));
+    QObject::connect(m_pUI->ActionPreferences, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onShowSettingsDialogAction));
 
     // Undo/redo actions
     QObject::connect(m_pUI->ActionUndo, QNSIGNAL(QAction,triggered),
@@ -1937,6 +1940,15 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
     appSettings.endGroup();
 }
 
+void MainWindow::onShowSettingsDialogAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowSettingsDialogAction"));
+
+    QScopedPointer<PreferencesDialog> pPreferencesDialog(new PreferencesDialog(*m_pAccountManager, this));
+    pPreferencesDialog->setWindowModality(Qt::WindowModal);
+    Q_UNUSED(pPreferencesDialog->exec());
+}
+
 void MainWindow::onNoteSortingModeChanged(int index)
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteSortingModeChanged: index = ") << index);
@@ -2131,6 +2143,7 @@ void MainWindow::onSaveNoteSearchQueryButtonPressed()
     }
 
     QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
+    pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
     pAddSavedSearchDialog->setQuery(noteSearchQuery);
     Q_UNUSED(pAddSavedSearchDialog->exec())
 }

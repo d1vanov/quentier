@@ -76,6 +76,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/AddOrEditSavedSearchDialog.h
     src/dialogs/EditNoteDialog.h
     src/dialogs/ManageAccountsDialog.h
+    src/dialogs/PreferencesDialog.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
@@ -153,6 +154,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/AddOrEditSavedSearchDialog.cpp
     src/dialogs/EditNoteDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
+    src/dialogs/PreferencesDialog.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
@@ -214,6 +216,7 @@ set(FORMS
     src/dialogs/AddOrEditSavedSearchDialog.ui
     src/dialogs/EditNoteDialog.ui
     src/dialogs/ManageAccountsDialog.ui
+    src/dialogs/PreferencesDialog.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
     src/widgets/ListItemWidget.ui
