@@ -292,12 +292,13 @@ void SystemTrayIconManager::setupSystemTrayIcon()
         m_pSystemTrayIcon = new QSystemTrayIcon(this);
     }
 
+    QString trayIconKind;
     if (!m_pAccountManager.isNull())
     {
         Account currentAccount = m_pAccountManager->currentAccount();
         ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
         appSettings.beginGroup(QStringLiteral("SystemTray"));
-        QString trayIconKind = appSettings.value(TRAY_ICON_KIND_KEY).toString();
+        trayIconKind = appSettings.value(TRAY_ICON_KIND_KEY).toString();
         appSettings.endGroup();
 
         if (trayIconKind.isEmpty()) {
@@ -325,10 +326,10 @@ void SystemTrayIconManager::setupSystemTrayIcon()
     }
 
     QString whichIcon;
-    if (DEFAULT_TRAY_ICON_KIND == QStringLiteral("dark")) {
+    if (trayIconKind == QStringLiteral("dark")) {
         whichIcon = QStringLiteral("_simple_dark");
     }
-    else if (DEFAULT_TRAY_ICON_KIND == QStringLiteral("light")) {
+    else if (trayIconKind == QStringLiteral("light")) {
         whichIcon = QStringLiteral("_simple_light");
     }
 
@@ -513,8 +514,8 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
              (currentTrayIconKind != QStringLiteral("colored")) )
         {
             QNDEBUG(QStringLiteral("Wrong/unrecognized value of current tray icon kind setting: ")
-                    << currentTrayIconKind << QStringLiteral(", fallback to dark"));
-            currentTrayIconKind = QStringLiteral("dark");
+                    << currentTrayIconKind << QStringLiteral(", fallback to default"));
+            currentTrayIconKind = DEFAULT_TRAY_ICON_KIND;
         }
     }
 
