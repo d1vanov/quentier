@@ -23,7 +23,6 @@
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/Macros.h>
 #include <QObject>
-#include <QPointer>
 #include <QSystemTrayIcon>
 
 QT_FORWARD_DECLARE_CLASS(QMenu)
@@ -100,7 +99,7 @@ private:
     void restoreTrayIconState();
 
 private:
-    QPointer<AccountManager>    m_pAccountManager;
+    AccountManager &            m_accountManager;
     QSystemTrayIcon *           m_pSystemTrayIcon;
     QMenu *                     m_pTrayIconContextMenu;
     QMenu *                     m_pAccountsTrayIconSubMenu;
