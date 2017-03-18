@@ -29,10 +29,13 @@ private Q_SLOTS:
     void onShowSystemTrayIconCheckboxToggled(bool checked);
     void onCloseToSystemTrayCheckboxToggled(bool checked);
     void onMinimizeToSystemTrayCheckboxToggled(bool checked);
+    void onStartMinimizedToSystemTrayCheckboxToggled(bool checked);
 
 private:
     void setupCurrentSettingsState();
     void createConnections();
+
+    void showError(const QString & error);
 
 private:
     Ui::PreferencesDialog *         m_pUi;

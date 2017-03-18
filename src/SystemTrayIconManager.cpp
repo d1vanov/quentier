@@ -169,7 +169,8 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
     }
 
     if (Q_UNLIKELY(m_pAccountManager.isNull())) {
-        QNWARNING(QStringLiteral("Can't determine if should minimize to system tray: the account manager is null"));
+        QNWARNING(QStringLiteral("Can't determine if should minimize to system tray: "
+                                 "the account manager is null"));
         return DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
     }
 
@@ -179,6 +180,51 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
     QVariant resultData = appSettings.value(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    if (resultData.isValid())
+    {
+        result = resultData.toBool();
+        QNTRACE(QStringLiteral("Value from settings for the current account: ")
+                << (result ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+    else
+    {
+        QNTRACE(QStringLiteral("Found no stored setting, will use the default value: ")
+                << (result ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+
+    return result;
+}
+
+bool SystemTrayIconManager::shouldStartMinimizedToSystemTray() const
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::shouldStartMinimizedToSystemTray"));
+
+    if (!isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("The system tray is not available, can't start "
+                               "the app minimized to system tray"));
+        return false;
+    }
+
+    if (!isShown()) {
+        QNDEBUG(QStringLiteral("No system tray icon is shown, can't start the app "
+                               "minimized to system tray"));
+        return false;
+    }
+
+    if (Q_UNLIKELY(m_pAccountManager.isNull())) {
+        QNWARNING(QStringLiteral("Can't determine if should start the app minimized "
+                                 "to system tray: the account manager is null"));
+        return DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY;
+    }
+
+    bool result = DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY;
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant resultData = appSettings.value(START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY);
     appSettings.endGroup();
 
     if (resultData.isValid())

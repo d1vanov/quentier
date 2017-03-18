@@ -7,6 +7,8 @@
 #define DEFAULT_CLOSE_TO_SYSTEM_TRAY (true)
 #define DEFAULT_MINIMIZE_TO_SYSTEM_TRAY (false)
 
+#define DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY (false)
+
 #ifdef Q_WS_MAC
 #define DEFAULT_TRAY_ICON_KIND QStringLiteral("dark")
 #else

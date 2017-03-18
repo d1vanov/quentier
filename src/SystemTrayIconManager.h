@@ -54,6 +54,7 @@ public:
 
     bool shouldCloseToSystemTray() const;
     bool shouldMinimizeToSystemTray() const;
+    bool shouldStartMinimizedToSystemTray() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);

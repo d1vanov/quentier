@@ -20,6 +20,7 @@
 #include "LoadDependencies.h"
 #include "SetupApplicationIcon.h"
 #include "CommandLineParser.h"
+#include "SystemTrayIconManager.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/Utility.h>
@@ -61,8 +62,16 @@ int main(int argc, char *argv[])
     quentier::initializeLibquentier();
     quentier::setupApplicationIcon(app);
 
-    MainWindow w;
-    w.show();
+    MainWindow mainWindow;
+
+    const SystemTrayIconManager & systemTrayIconManager = mainWindow.systemTrayIconManager();
+    if (!systemTrayIconManager.shouldStartMinimizedToSystemTray()) {
+        mainWindow.show();
+    }
+    else {
+        QNDEBUG(QStringLiteral("Not showing the main window on startup because the start "
+                               "minimized to system tray was requested"));
+    }
 
     return app.exec();
 }

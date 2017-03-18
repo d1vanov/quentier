@@ -7,9 +7,12 @@
 
 // System tray related settings keys
 #define SYSTEM_TRAY_SETTINGS_GROUP_NAME QStringLiteral("SystemTray")
+
 #define SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY QStringLiteral("ShowSystemTrayIcon")
 #define CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY QStringLiteral("CloseToSystemTray")
 #define MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY QStringLiteral("MinimizeToSystemTray")
+#define START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY QStringLiteral("StartMinimizedToSystemTray")
+
 #define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY QStringLiteral("OverrideSystemTrayAvailability")
 #define SYSTEM_TRAY_ICON_KIND_KEY QStringLiteral("TrayIconKind")
 

@@ -280,6 +280,11 @@ void MainWindow::show()
     }
 }
 
+const SystemTrayIconManager & MainWindow::systemTrayIconManager() const
+{
+    return *m_pSystemTrayIconManager;
+}
+
 void MainWindow::connectActionsToSlots()
 {
     QNDEBUG(QStringLiteral("MainWindow::connectActionsToSlots"));

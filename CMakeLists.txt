@@ -59,6 +59,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/CommandLineParser.h
+    src/DefaultSettings.h
     src/LoadDependencies.h
     src/SetupApplicationIcon.h
     src/SystemTrayIconManager.h

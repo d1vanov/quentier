@@ -76,6 +76,8 @@ public:
 
     void show();
 
+    const SystemTrayIconManager & systemTrayIconManager() const;
+
 public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
 
