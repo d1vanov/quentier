@@ -8,16 +8,19 @@ namespace Ui {
 class PreferencesDialog;
 }
 
+QT_FORWARD_DECLARE_CLASS(QStringListModel)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
+QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
 
 class PreferencesDialog: public QDialog
 {
     Q_OBJECT
-
 public:
     explicit PreferencesDialog(AccountManager & accountManager,
+                               SystemTrayIconManager & systemTrayIconManager,
                                QWidget * parent = Q_NULLPTR);
     virtual ~PreferencesDialog();
 
@@ -30,6 +33,10 @@ private Q_SLOTS:
     void onMinimizeToSystemTrayCheckboxToggled(bool checked);
     void onStartMinimizedToSystemTrayCheckboxToggled(bool checked);
 
+    void onSingleClickTrayActionChanged(int action);
+    void onMiddleClickTrayActionChanged(int action);
+    void onDoubleClickTrayActionChanged(int action);
+
 private:
     void setupCurrentSettingsState();
     void createConnections();
@@ -37,6 +44,8 @@ private:
 private:
     Ui::PreferencesDialog *         m_pUi;
     AccountManager &                m_accountManager;
+    SystemTrayIconManager &         m_systemTrayIconManager;
+    QStringListModel *              m_pTrayActionsModel;
 };
 
 } // namespace quentier

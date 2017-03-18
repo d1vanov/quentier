@@ -55,6 +55,18 @@ public:
     bool shouldMinimizeToSystemTray() const;
     bool shouldStartMinimizedToSystemTray() const;
 
+    enum TrayAction
+    {
+        TrayActionDoNothing = 0,
+        TrayActionShowHide,
+        TrayActionNewTextNote,
+        TrayActionShowContextMenu
+    };
+
+    TrayAction singleClickTrayAction() const;
+    TrayAction middleClickTrayAction() const;
+    TrayAction doubleClickTrayAction() const;
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
@@ -67,6 +79,8 @@ Q_SIGNALS:
     void switchAccount(Account account);
 
 private Q_SLOTS:
+    void onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+
     // Slots for AccountManager signals
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);

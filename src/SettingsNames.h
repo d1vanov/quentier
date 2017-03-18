@@ -16,4 +16,8 @@
 #define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY QStringLiteral("OverrideSystemTrayAvailability")
 #define SYSTEM_TRAY_ICON_KIND_KEY QStringLiteral("TrayIconKind")
 
+#define SINGLE_CLICK_TRAY_ACTION_SETTINGS_KEY QStringLiteral("SingleClickTrayAction")
+#define MIDDLE_CLICK_TRAY_ACTION_SETTINGS_KEY QStringLiteral("MiddleClickTrayAction")
+#define DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY QStringLiteral("DoubleClickTrayAction")
+
 #endif // QUENTIER_SETTINGS_NAMES_H

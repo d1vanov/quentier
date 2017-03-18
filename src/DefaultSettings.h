@@ -1,6 +1,7 @@
 #ifndef QUENTIER_DEFAULT_SETTINGS_H
 #define QUENTIER_DEFAULT_SETTINGS_H
 
+#include "SystemTrayIconManager.h"
 #include <QtGlobal>
 
 #define DEFAULT_SHOW_SYSTEM_TRAY_ICON (true)
@@ -14,5 +15,9 @@
 #else
 #define DEFAULT_TRAY_ICON_KIND QStringLiteral("colored")
 #endif
+
+#define DEFAULT_SINGLE_CLICK_TRAY_ACTION (SystemTrayIconManager::TrayActionShowContextMenu)
+#define DEFAULT_MIDDLE_CLICK_TRAY_ACTION (SystemTrayIconManager::TrayActionShowHide)
+#define DEFAULT_DOUBLE_CLICK_TRAY_ACTION (SystemTrayIconManager::TrayActionDoNothing)
 
 #endif // QUENTIER_DEFAULT_SETTINGS_H

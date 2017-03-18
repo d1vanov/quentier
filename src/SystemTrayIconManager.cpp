@@ -222,6 +222,224 @@ bool SystemTrayIconManager::shouldStartMinimizedToSystemTray() const
     return result;
 }
 
+SystemTrayIconManager::TrayAction SystemTrayIconManager::singleClickTrayAction() const
+{
+    TrayAction action = DEFAULT_SINGLE_CLICK_TRAY_ACTION;
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant actionData = appSettings.value(SINGLE_CLICK_TRAY_ACTION_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    if (actionData.isValid())
+    {
+        bool conversionResult = false;
+        action = static_cast<TrayAction>(actionData.toInt(&conversionResult));
+        if (Q_UNLIKELY(!conversionResult))
+        {
+            QNWARNING(QStringLiteral("Can't read the left mouse button tray action: "
+                                     "failed to convert the value read from settings to int: ")
+                      << actionData);
+            action = DEFAULT_SINGLE_CLICK_TRAY_ACTION;
+        }
+        else
+        {
+            QNDEBUG(QStringLiteral("Action read from settings: ") << action);
+        }
+    }
+
+    return action;
+}
+
+SystemTrayIconManager::TrayAction SystemTrayIconManager::middleClickTrayAction() const
+{
+    TrayAction action = DEFAULT_MIDDLE_CLICK_TRAY_ACTION;
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant actionData = appSettings.value(MIDDLE_CLICK_TRAY_ACTION_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    if (actionData.isValid())
+    {
+        bool conversionResult = false;
+        action = static_cast<TrayAction>(actionData.toInt(&conversionResult));
+        if (Q_UNLIKELY(!conversionResult))
+        {
+            QNWARNING(QStringLiteral("Can't read the middle mouse button tray action: "
+                                     "failed to convert the value read from settings to int: ")
+                      << actionData);
+            action = DEFAULT_MIDDLE_CLICK_TRAY_ACTION;
+        }
+        else
+        {
+            QNDEBUG(QStringLiteral("Action read from settings: ") << action);
+        }
+    }
+
+    return action;
+}
+
+SystemTrayIconManager::TrayAction SystemTrayIconManager::doubleClickTrayAction() const
+{
+    TrayAction action = DEFAULT_DOUBLE_CLICK_TRAY_ACTION;
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant actionData = appSettings.value(DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    if (actionData.isValid())
+    {
+        bool conversionResult = false;
+        action = static_cast<TrayAction>(actionData.toInt(&conversionResult));
+        if (Q_UNLIKELY(!conversionResult))
+        {
+            QNWARNING(QStringLiteral("Can't read the right mouse button tray action: "
+                                     "failed to convert the value read from settings to int: ")
+                      << actionData);
+            action = DEFAULT_DOUBLE_CLICK_TRAY_ACTION;
+        }
+        else
+        {
+            QNDEBUG(QStringLiteral("Action read from settings: ") << action);
+        }
+    }
+
+    return action;
+}
+
+void SystemTrayIconManager::onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onSystemTrayIconActivated: reason = ")
+            << reason);
+
+    QString settingKey;
+    TrayAction defaultAction;
+    bool shouldShowContextMenu = false;
+
+    switch(reason)
+    {
+    case QSystemTrayIcon::Trigger:
+        settingKey = SINGLE_CLICK_TRAY_ACTION_SETTINGS_KEY;
+        defaultAction = DEFAULT_SINGLE_CLICK_TRAY_ACTION;
+        break;
+    case QSystemTrayIcon::MiddleClick:
+        settingKey = MIDDLE_CLICK_TRAY_ACTION_SETTINGS_KEY;
+        defaultAction = DEFAULT_MIDDLE_CLICK_TRAY_ACTION;
+        break;
+    case QSystemTrayIcon::DoubleClick:
+        settingKey = DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY;
+        defaultAction = DEFAULT_DOUBLE_CLICK_TRAY_ACTION;
+        break;
+    case QSystemTrayIcon::Context:
+        shouldShowContextMenu = true;
+        break;
+    default:
+    {
+        QNINFO(QStringLiteral("Unidentified activation reason for the system tray icon: ")
+               << reason);
+        return;
+    }
+    }
+
+    if (shouldShowContextMenu)
+    {
+        if (Q_UNLIKELY(!m_pTrayIconContextMenu)) {
+            QNWARNING(QStringLiteral("Can't show the tray icon context menu: context menu is null"));
+            return;
+        }
+
+        m_pTrayIconContextMenu->exec(QCursor::pos());
+        return;
+    }
+
+    TrayAction action = defaultAction;
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    QVariant actionData = appSettings.value(settingKey);
+    appSettings.endGroup();
+
+    if (actionData.isValid())
+    {
+        bool conversionResult = false;
+        action = static_cast<TrayAction>(actionData.toInt(&conversionResult));
+        if (Q_UNLIKELY(!conversionResult)) {
+            QNWARNING(QStringLiteral("Can't read the tray action setting per activation reason: "
+                                     "failed to convert the value read from settings to int: ")
+                      << actionData);
+            action = defaultAction;
+        }
+        else {
+            QNDEBUG(QStringLiteral("Action for setting ") << settingKey
+                    << QStringLiteral(": ") << action);
+        }
+    }
+
+    switch(action)
+    {
+    case TrayActionDoNothing:
+    {
+        QNDEBUG(QStringLiteral("The action is \"do nothing\", obeying"));
+        return;
+    }
+    case TrayActionShowHide:
+    {
+        MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
+        if (Q_UNLIKELY(!pMainWindow)) {
+            QNWARNING(QStringLiteral("Can't show/hide the main window from system tray: "
+                                     "can't cast the parent of SystemTrayIconManager to MainWindow"));
+            return;
+        }
+
+        if (pMainWindow->isHidden()) {
+            pMainWindow->show();
+        }
+        else {
+            pMainWindow->hide();
+        }
+
+        break;
+    }
+    case TrayActionNewTextNote:
+    {
+        MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
+        if (Q_UNLIKELY(!pMainWindow)) {
+            QNWARNING(QStringLiteral("Can't ensure the main window is shown on request "
+                                     "to create a new text note from system tray: "
+                                     "can't cast the parent of SystemTrayIconManager to MainWindow"));
+        }
+        else if (pMainWindow->isHidden())
+        {
+            pMainWindow->show();
+        }
+
+        emit newTextNoteAdditionRequested();
+        break;
+    }
+    case TrayActionShowContextMenu:
+    {
+        if (Q_UNLIKELY(!m_pTrayIconContextMenu)) {
+            QNWARNING(QStringLiteral("Can't show the tray icon context menu: context menu is null"));
+            return;
+        }
+
+        m_pTrayIconContextMenu->exec(QCursor::pos());
+        break;
+    }
+    default:
+    {
+        QNWARNING(QStringLiteral("Detected unrecognized tray action: ") << action);
+        break;
+    }
+    }
+}
+
 void SystemTrayIconManager::onAccountSwitched(Account account)
 {
     QNDEBUG(QStringLiteral("SystemTrayIconManager::onAccountSwitched: ") << account);
@@ -382,8 +600,16 @@ void SystemTrayIconManager::createConnections()
 
 void SystemTrayIconManager::setupSystemTrayIcon()
 {
-    if (!m_pSystemTrayIcon) {
+    if (!m_pSystemTrayIcon)
+    {
         m_pSystemTrayIcon = new QSystemTrayIcon(this);
+
+        QObject::connect(m_pSystemTrayIcon,
+                         QNSIGNAL(QSystemTrayIcon,activated,
+                                  QSystemTrayIcon::ActivationReason),
+                         this,
+                         QNSLOT(SystemTrayIconManager,onSystemTrayIconActivated,
+                                QSystemTrayIcon::ActivationReason));
     }
 
     Account currentAccount = m_accountManager.currentAccount();

@@ -1,18 +1,25 @@
 #include "PreferencesDialog.h"
 #include "ui_PreferencesDialog.h"
 #include "../AccountManager.h"
+#include "../SystemTrayIconManager.h"
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <QStringListModel>
 
 namespace quentier {
 
+QString trayActionToString(SystemTrayIconManager::TrayAction action);
+
 PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
+                                     SystemTrayIconManager & systemTrayIconManager,
                                      QWidget *parent) :
     QDialog(parent),
     m_pUi(new Ui::PreferencesDialog),
-    m_accountManager(accountManager)
+    m_accountManager(accountManager),
+    m_systemTrayIconManager(systemTrayIconManager),
+    m_pTrayActionsModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
 
@@ -84,6 +91,39 @@ void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(bool checked
     appSettings.endGroup();
 }
 
+void PreferencesDialog::onSingleClickTrayActionChanged(int action)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onSingleClickTrayActionChanged: ") << action);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SINGLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    appSettings.endGroup();
+}
+
+void PreferencesDialog::onMiddleClickTrayActionChanged(int action)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onMiddleClickTrayActionChanged: ") << action);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.setValue(MIDDLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    appSettings.endGroup();
+}
+
+void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onDoubleClickTrayActionChanged: ") << action);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.setValue(DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    appSettings.endGroup();
+}
+
 void PreferencesDialog::setupCurrentSettingsState()
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
@@ -122,6 +162,27 @@ void PreferencesDialog::setupCurrentSettingsState()
     m_pUi->closeToTrayCheckBox->setChecked(shouldCloseToTray);
     m_pUi->minimizeToTrayCheckBox->setChecked(shouldMinimizeToTray);
     m_pUi->startFromTrayCheckBox->setChecked(shouldStartMinimizedToTray);
+
+    QStringList trayActions;
+    trayActions.reserve(4);
+    trayActions.push_back(trayActionToString(SystemTrayIconManager::TrayActionDoNothing));
+    trayActions.push_back(trayActionToString(SystemTrayIconManager::TrayActionShowHide));
+    trayActions.push_back(trayActionToString(SystemTrayIconManager::TrayActionNewTextNote));
+    trayActions.push_back(trayActionToString(SystemTrayIconManager::TrayActionShowContextMenu));
+    m_pTrayActionsModel->setStringList(trayActions);
+
+    m_pUi->traySingleClickActionComboBox->setModel(m_pTrayActionsModel);
+    m_pUi->trayMiddleClickActionComboBox->setModel(m_pTrayActionsModel);
+    m_pUi->trayDoubleClickActionComboBox->setModel(m_pTrayActionsModel);
+
+    SystemTrayIconManager::TrayAction singleClickTrayAction = m_systemTrayIconManager.singleClickTrayAction();
+    m_pUi->traySingleClickActionComboBox->setCurrentIndex(singleClickTrayAction);
+
+    SystemTrayIconManager::TrayAction middleClickTrayAction = m_systemTrayIconManager.middleClickTrayAction();
+    m_pUi->trayMiddleClickActionComboBox->setCurrentIndex(middleClickTrayAction);
+
+    SystemTrayIconManager::TrayAction doubleClickTrayAction = m_systemTrayIconManager.doubleClickTrayAction();
+    m_pUi->trayDoubleClickActionComboBox->setCurrentIndex(doubleClickTrayAction);
 }
 
 void PreferencesDialog::createConnections()
@@ -140,7 +201,31 @@ void PreferencesDialog::createConnections()
     QObject::connect(m_pUi->startFromTrayCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onStartMinimizedToSystemTrayCheckboxToggled,bool));
 
+    QObject::connect(m_pUi->traySingleClickActionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onSingleClickTrayActionChanged(int)));
+    QObject::connect(m_pUi->trayMiddleClickActionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onMiddleClickTrayActionChanged(int)));
+    QObject::connect(m_pUi->trayDoubleClickActionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onDoubleClickTrayActionChanged(int)));
+
     // TODO: continue
+}
+
+QString trayActionToString(SystemTrayIconManager::TrayAction action)
+{
+    switch(action)
+    {
+    case SystemTrayIconManager::TrayActionDoNothing:
+        return PreferencesDialog::tr("Do nothing");
+    case SystemTrayIconManager::TrayActionNewTextNote:
+        return PreferencesDialog::tr("Create new text note");
+    case SystemTrayIconManager::TrayActionShowContextMenu:
+        return PreferencesDialog::tr("Show context menu");
+    case SystemTrayIconManager::TrayActionShowHide:
+        return PreferencesDialog::tr("Show/hide Quentier");
+    default:
+        return QString();
+    }
 }
 
 } // namespace quentier

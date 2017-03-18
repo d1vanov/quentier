@@ -73,9 +73,9 @@
        <item>
         <layout class="QGridLayout" name="trayMouseButtonsClickActionsGridLayout">
          <item row="0" column="0">
-          <widget class="QLabel" name="trayLeftMouseButtonClickActionLabel">
+          <widget class="QLabel" name="traySingleClickActionLabel">
            <property name="text">
-            <string>Tray left click action:</string>
+            <string>Tray single click action:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -83,7 +83,7 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QComboBox" name="trayLeftMouseButtonClickActionComboBox">
+          <widget class="QComboBox" name="traySingleClickActionComboBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -99,7 +99,7 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="trayMiddleMouseButtonClickActionLabel">
+          <widget class="QLabel" name="trayMiddleClickActionLabel">
            <property name="text">
             <string>Tray middle click action:</string>
            </property>
@@ -109,7 +109,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QComboBox" name="trayMiddleMouseButtonClickActionComboBox">
+          <widget class="QComboBox" name="trayMiddleClickActionComboBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -125,9 +125,9 @@
           </widget>
          </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="trayRightMouseButtonClickActionLabel">
+          <widget class="QLabel" name="trayDoubleClickActionLabel">
            <property name="text">
-            <string>Tray right click action:</string>
+            <string>Tray double click action:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -135,7 +135,7 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QComboBox" name="trayRightMouseButtonClickComboBox">
+          <widget class="QComboBox" name="trayDoubleClickActionComboBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
