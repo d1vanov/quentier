@@ -3,7 +3,6 @@
 
 #include <quentier/utility/Macros.h>
 #include <QDialog>
-#include <QPointer>
 
 namespace Ui {
 class PreferencesDialog;
@@ -35,11 +34,9 @@ private:
     void setupCurrentSettingsState();
     void createConnections();
 
-    void showError(const QString & error);
-
 private:
     Ui::PreferencesDialog *         m_pUi;
-    QPointer<AccountManager>        m_pAccountManager;
+    AccountManager &                m_accountManager;
 };
 
 } // namespace quentier
