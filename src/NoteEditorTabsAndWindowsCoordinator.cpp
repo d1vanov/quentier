@@ -18,6 +18,7 @@
 
 #include "NoteEditorTabsAndWindowsCoordinator.h"
 #include "SettingsNames.h"
+#include "DefaultSettings.h"
 #include "models/TagModel.h"
 #include "widgets/NoteEditorWidget.h"
 #include "widgets/TabWidget.h"
@@ -25,6 +26,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/utility/FileIOThreadWorker.h>
+#include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/note_editor/SpellChecker.h>
 #include <quentier/note_editor/NoteEditor.h>
 #include <QUndoStack>
@@ -36,6 +38,7 @@
 #include <QKeyEvent>
 #include <QEvent>
 #include <QTimerEvent>
+#include <QTimer>
 #include <algorithm>
 
 #define DEFAULT_MAX_NUM_NOTES_IN_TABS (5)
@@ -77,7 +80,10 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_noteEditorWindowsByNoteLocalUid(),
     m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap(),
     m_noteEditorModeByCreateNoteRequestIds(),
+    m_expungeNoteRequestIds(),
     m_pTabBarContextMenu(Q_NULLPTR),
+    m_localUidOfNoteToBeExpunged(),
+    m_pExpungeNoteDeadlineTimer(Q_NULLPTR),
     m_trackingCurrentTab(true)
 {
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
@@ -233,6 +239,9 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
     m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.clear();
 
     m_noteEditorModeByCreateNoteRequestIds.clear();
+    m_expungeNoteRequestIds.clear();
+
+    m_localUidOfNoteToBeExpunged.clear();
 }
 
 void NoteEditorTabsAndWindowsCoordinator::switchAccount(const Account & account, TagModel & tagModel)
@@ -440,6 +449,8 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
                 clearPersistedNoteEditorWindowGeometry(noteLocalUid);
             }
 
+            bool shouldExpungeNote = false;
+
             auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
             if (it != m_noteEditorWindowsByNoteLocalUid.end())
             {
@@ -452,9 +463,73 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
                     QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
                             << QStringLiteral(", error description: ") << errorDescription);
                 }
+                else if (!pNoteEditorWidget->hasBeenModified())
+                {
+                    QNDEBUG(QStringLiteral("The note within the editor has not been "
+                                           "edited while being loaded into the note editor, "
+                                           "at least this time"));
+
+                    const Note * pNote = pNoteEditorWidget->currentNote();
+                    if (pNote)
+                    {
+                        bool emptyTitle = (!pNote->hasTitle() || pNote->title().isEmpty());
+
+                        // TODO: think of a better criteria to find out if the note's content is actually empty
+                        ErrorString conversionError;
+                        bool emptyContent = (!pNote->hasContent() ||
+                                             pNote->content().isEmpty() ||
+                                             (pNote->plainText(&conversionError).isEmpty() &&
+                                              conversionError.isEmpty()));
+                        bool emptyTags = (!pNote->hasTagLocalUids() && !pNote->hasTagGuids());
+
+                        if (emptyTitle && emptyContent && emptyTags &&
+                            !pNote->hasResources() && !pNote->hasGuid())
+                        {
+                            QNDEBUG(QStringLiteral("The note within the editor has no title, "
+                                                   "no content, no tag local uids, no tag guids, "
+                                                   "no resources and no guid. It must be the newly "
+                                                   "created empty note: ") << *pNote);
+
+                            ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+                            appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+                            QVariant removeEmptyNotesData = appSettings.value(REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY);
+                            appSettings.endGroup();
+
+                            bool removeEmptyNotes = DEFAULT_REMOVE_EMPTY_UNEDITED_NOTES;
+                            if (removeEmptyNotesData.isValid()) {
+                                removeEmptyNotes = removeEmptyNotesData.toBool();
+                                QNDEBUG(QStringLiteral("Remove empty notes setting: ")
+                                        << (removeEmptyNotes ? QStringLiteral("true") : QStringLiteral("false")));
+                            }
+
+                            if (removeEmptyNotes) {
+                                shouldExpungeNote = true;
+                                QNDEBUG(QStringLiteral("Will remove empty unedited note with local uid ")
+                                        << noteLocalUid);
+                            }
+                            else {
+                                QNDEBUG(QStringLiteral("Won't remove the empty note due to setting"));
+                            }
+                        }
+                        else
+                        {
+                            QNDEBUG(QStringLiteral("The note within the editor has something set "
+                                                   "which suggests it is not a new note created "
+                                                   "but not touched, won't remove it: ") << *pNote);
+                        }
+                    }
+                    else
+                    {
+                        QNDEBUG(QStringLiteral("There is no note within the editor"));
+                    }
+                }
 
                 Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
                 persistLocalUidsOfNotesInEditorWindows();
+
+                if (shouldExpungeNote) {
+                    expungeNoteSynchronously(noteLocalUid);
+                }
             }
         }
     }
@@ -747,6 +822,41 @@ void NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed(Note note, ErrorString
                                      QStringLiteral(": ") + errorDescription.localizedString()))
 }
 
+void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete(Note note, QUuid requestId)
+{
+    auto it = m_expungeNoteRequestIds.find(requestId);
+    if (it == m_expungeNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete: request id = ")
+            << requestId << QStringLiteral(", note: ") << note);
+
+    Q_UNUSED(m_expungeNoteRequestIds.erase(it))
+    disconnectFromLocalStorage();
+
+    emit noteExpungedFromLocalStorage();
+}
+
+void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteFailed(Note note,
+                                                              ErrorString errorDescription,
+                                                              QUuid requestId)
+{
+    auto it = m_expungeNoteRequestIds.find(requestId);
+    if (it == m_expungeNoteRequestIds.end()) {
+        return;
+    }
+
+    QNWARNING(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onExpungeNoteFailed: request id = ")
+              << requestId << QStringLiteral(", error description = ") << errorDescription
+              << QStringLiteral(", note: ") << note);
+
+    Q_UNUSED(m_expungeNoteRequestIds.erase(it))
+    disconnectFromLocalStorage();
+
+    emit noteExpungeFromLocalStorageFailed();
+}
+
 void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged: ") << currentIndex);
@@ -995,6 +1105,30 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
     }
 
     moveNoteEditorTabToWindow(noteLocalUid);
+}
+
+void NoteEditorTabsAndWindowsCoordinator::expungeNoteFromLocalStorage()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::expungeNoteFromLocalStorage"));
+
+    if (Q_UNLIKELY(m_localUidOfNoteToBeExpunged.isEmpty())) {
+        QNWARNING(QStringLiteral("The local uid of note to be expunged is empty"));
+        emit noteExpungeFromLocalStorageFailed();
+        return;
+    }
+
+    connectToLocalStorage();
+
+    Note dummyNote;
+    dummyNote.setLocalUid(m_localUidOfNoteToBeExpunged);
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_expungeNoteRequestIds.insert(requestId))
+    QNTRACE(QStringLiteral("Emitting the request to expunge note: request id = ")
+            << requestId << QStringLiteral(", note local uid = ") << m_localUidOfNoteToBeExpunged);
+    emit requestExpungeNote(dummyNote, requestId);
+
+    m_localUidOfNoteToBeExpunged.clear();
 }
 
 void NoteEditorTabsAndWindowsCoordinator::timerEvent(QTimerEvent * pTimerEvent)
@@ -1338,10 +1472,17 @@ void NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage()
 
     QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestAddNote,Note,QUuid),
                      &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestExpungeNote,Note,QUuid),
+                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeNoteRequest,Note,QUuid));
+
     QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteComplete,Note,QUuid));
     QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteFailed,Note,ErrorString,QUuid));
+    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteComplete,Note,QUuid));
+    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteFailed,Note,ErrorString,QUuid));
 }
 
 void NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage()
@@ -1350,10 +1491,17 @@ void NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage()
 
     QObject::disconnect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestAddNote,Note,QUuid),
                         &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
+    QObject::disconnect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestExpungeNote,Note,QUuid),
+                        &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeNoteRequest,Note,QUuid));
+
     QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteComplete,Note,QUuid));
     QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteFailed,Note,ErrorString,QUuid));
+    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+                        this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteComplete,Note,QUuid));
+    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,ErrorString,QUuid),
+                        this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteFailed,Note,ErrorString,QUuid));
 }
 
 void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
@@ -1551,6 +1699,60 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
     }
 
     return;
+}
+
+void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(const QString & noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously: ")
+            << noteLocalUid);
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    QVariant expungeNoteTimeoutData = appSettings.value(EXPUNGE_NOTE_TIMEOUT_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    bool conversionResult = false;
+    int expungeNoteTimeout = expungeNoteTimeoutData.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNDEBUG(QStringLiteral("Can't read the timeout for note expunging from local storage, "
+                               "fallback to the default value of ") << DEFAULT_EXPUNGE_NOTE_TIMEOUT
+                << QStringLiteral(" milliseconds"));
+        expungeNoteTimeout = DEFAULT_EXPUNGE_NOTE_TIMEOUT;
+    }
+    else {
+        expungeNoteTimeout = std::max(expungeNoteTimeout, 100);
+    }
+
+    if (m_pExpungeNoteDeadlineTimer) {
+        m_pExpungeNoteDeadlineTimer->deleteLater();
+    }
+
+    m_pExpungeNoteDeadlineTimer = new QTimer(this);
+    m_pExpungeNoteDeadlineTimer->setSingleShot(true);
+
+    EventLoopWithExitStatus eventLoop;
+    QObject::connect(m_pExpungeNoteDeadlineTimer, QNSIGNAL(QTimer,timeout),
+                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+    QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,noteExpungedFromLocalStorage),
+                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+    QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,noteExpungeFromLocalStorageFailed),
+                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+
+    m_pExpungeNoteDeadlineTimer->start(expungeNoteTimeout);
+
+    m_localUidOfNoteToBeExpunged = noteLocalUid;
+    QTimer::singleShot(0, this, SLOT(expungeNoteFromLocalStorage()));
+
+    int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
+    if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QNWARNING(QStringLiteral("Failed to expunge the empty unedited note from local storage"));
+    }
+    else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QNWARNING(QStringLiteral("The expunging of note from local storage took too much time to finish"));
+    }
+    else {
+        QNDEBUG(QStringLiteral("Successfully expunged the note from local storage"));
+    }
 }
 
 } // namespace quentier

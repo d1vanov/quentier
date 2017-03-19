@@ -18,6 +18,7 @@
 
 #include "NoteEditorWidget.h"
 #include "../SettingsNames.h"
+#include "../DefaultSettings.h"
 #include "../models/TagModel.h"
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
@@ -59,10 +60,6 @@ using quentier::NoteTagsWidget;
         return; \
     }
 
-#define DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT (500)
-
-#define LAST_EXPORT_NOTE_TO_PDF_PATH_KEY QStringLiteral("LastExportNoteToPdfPath")
-
 namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
@@ -94,6 +91,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_lastActualFontSize(-1),
     m_pendingEditorSpellChecker(false),
     m_currentNoteWasExpunged(false),
+    m_noteHasBeenModified(false),
     m_noteTitleIsEdited(false)
 {
     m_pUi->setupUi(this);
@@ -253,6 +251,11 @@ bool NoteEditorWidget::isModified() const
     return !m_pCurrentNote.isNull() && m_pUi->noteEditor->isModified();
 }
 
+bool NoteEditorWidget::hasBeenModified() const
+{
+    return m_noteHasBeenModified;
+}
+
 QString NoteEditorWidget::titleOrPreview() const
 {
     if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
@@ -270,6 +273,11 @@ QString NoteEditorWidget::titleOrPreview() const
     }
 
     return QString();
+}
+
+const Note * NoteEditorWidget::currentNote() const
+{
+    return m_pCurrentNote.data();
 }
 
 bool NoteEditorWidget::isNoteSourceShown() const
@@ -342,13 +350,13 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
     if (noteContentModified || noteTitleUpdated)
     {
         ApplicationSettings appSettings;
-        appSettings.beginGroup(QStringLiteral("NoteEditor"));
-        QVariant editorConvertToNoteTimeoutData = appSettings.value(QStringLiteral("ConvertToNoteTimeout"));
+        appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+        QVariant editorConvertToNoteTimeoutData = appSettings.value(CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY);
         appSettings.endGroup();
 
         bool conversionResult = false;
         int editorConvertToNoteTimeout = editorConvertToNoteTimeoutData.toInt(&conversionResult);
-        if (!conversionResult) {
+        if (Q_UNLIKELY(!conversionResult)) {
             QNDEBUG(QStringLiteral("Can't read the timeout for note editor to note conversion from the application settings, "
                                    "fallback to the default value of ") << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
                     << QStringLiteral(" milliseconds"));
@@ -481,8 +489,8 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
     QNDEBUG(QStringLiteral("NoteEditorWidget::exportNoteToPdf"));
 
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("NoteEditor"));
-    QString lastExportNoteToPdfPath = appSettings.value(LAST_EXPORT_NOTE_TO_PDF_PATH_KEY).toString();
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    QString lastExportNoteToPdfPath = appSettings.value(LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
     if (lastExportNoteToPdfPath.isEmpty()) {
@@ -515,8 +523,8 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
 
         lastExportNoteToPdfPath = pFileDialog->directory().absolutePath();
         if (!lastExportNoteToPdfPath.isEmpty()) {
-            appSettings.beginGroup(QStringLiteral("NoteEditor"));
-            appSettings.setValue(LAST_EXPORT_NOTE_TO_PDF_PATH_KEY, lastExportNoteToPdfPath);
+            appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+            appSettings.setValue(LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY, lastExportNoteToPdfPath);
             appSettings.endGroup();
         }
 
@@ -1095,6 +1103,8 @@ void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
 void NoteEditorWidget::onNoteEditorModified()
 {
     QNTRACE(QStringLiteral("NoteEditorWidget::onNoteEditorModified"));
+
+    m_noteHasBeenModified = true;
 
     if (!m_pUi->noteEditor->isNoteLoaded()) {
         QNTRACE(QStringLiteral("The note is still being loaded"));
@@ -1863,6 +1873,7 @@ void NoteEditorWidget::clear()
 
     m_pendingEditorSpellChecker = false;
     m_currentNoteWasExpunged = false;
+    m_noteHasBeenModified = false;
 }
 
 void NoteEditorWidget::updateNoteSourceView(const QString & html)

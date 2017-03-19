@@ -95,9 +95,27 @@ public:
     bool isModified() const;
 
     /**
+     * @return true if the note loaded into the editor within the widget has been modified at least once,
+     * false otherwise.
+     *
+     * This method can be useful if e.g. a new note was created, opened in the editor
+     * but then the editor was closed without making a single edit. Such note
+     * should be removed from the account in order to prevent its cluttering.
+     * This method can tell whether the note has been touched at all and thus tell
+     * whether it can be considered for emptiness check and removal.
+     */
+    bool hasBeenModified() const;
+
+    /**
      * @return title or preview text of the note managed by the editor, if any; empty string otherwise
      */
     QString titleOrPreview() const;
+
+    /**
+     * @brief currentNote
+     * @return the pointer to the current note loaded into the editor, if any
+     */
+    const Note * currentNote() const;
 
     /**
      * @brief isNoteSourceShown
@@ -411,6 +429,8 @@ private:
 
     bool                        m_pendingEditorSpellChecker;
     bool                        m_currentNoteWasExpunged;
+
+    bool                        m_noteHasBeenModified;
 
     bool                        m_noteTitleIsEdited;
 };

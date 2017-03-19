@@ -88,8 +88,6 @@ public:
     void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid,
                        const NoteEditorMode::type noteEditorMode);
 
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
-
 Q_SIGNALS:
     void notifyError(ErrorString error);
 
@@ -97,6 +95,10 @@ Q_SIGNALS:
 
     // private signals
     void requestAddNote(Note note, QUuid requestId);
+    void requestExpungeNote(Note note, QUuid requestId);
+
+    void noteExpungedFromLocalStorage();
+    void noteExpungeFromLocalStorageFailed();
 
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();
@@ -110,6 +112,9 @@ private Q_SLOTS:
     void onAddNoteComplete(Note note, QUuid requestId);
     void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
+    void onExpungeNoteComplete(Note note, QUuid requestId);
+    void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
+
     void onCurrentTabChanged(int currentIndex);
 
     void onTabContextMenuRequested(const QPoint & pos);
@@ -117,7 +122,10 @@ private Q_SLOTS:
     void onTabContextMenuSaveNoteAction();
     void onTabContextMenuMoveToWindowAction();
 
+    void expungeNoteFromLocalStorage();
+
 private:
+    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void timerEvent(QTimerEvent * pTimerEvent) Q_DECL_OVERRIDE;
 
 private:
@@ -149,6 +157,8 @@ private:
     void persistLastCurrentTabNoteLocalUid();
     void restoreLastOpenNotes();
 
+    void expungeNoteSynchronously(const QString & noteLocalUid);
+
 private:
     Account                             m_currentAccount;
     LocalStorageManagerThreadWorker &   m_localStorageWorker;
@@ -176,8 +186,12 @@ private:
     NoteLocalUidToTimerIdBimap          m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap;
 
     QHash<QUuid, NoteEditorMode::type>  m_noteEditorModeByCreateNoteRequestIds;
+    QSet<QUuid>                         m_expungeNoteRequestIds;
 
     QMenu *                             m_pTabBarContextMenu;
+
+    QString                             m_localUidOfNoteToBeExpunged;
+    QTimer *                            m_pExpungeNoteDeadlineTimer;
 
     bool                                m_trackingCurrentTab;
 };
