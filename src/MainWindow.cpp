@@ -2053,7 +2053,9 @@ void MainWindow::onNewNoteButtonPressed()
         return;
     }
 
-    m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(pNotebookItem->localUid(), pNotebookItem->guid());
+    m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(pNotebookItem->localUid(),
+                                                          pNotebookItem->guid(),
+                                                          NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
 void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)

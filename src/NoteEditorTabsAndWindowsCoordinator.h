@@ -27,6 +27,7 @@
 #include <quentier/types/Note.h>
 #include <QTabWidget>
 #include <QSet>
+#include <QHash>
 #include <QMap>
 #include <QPointer>
 #include <QUuid>
@@ -84,7 +85,8 @@ public:
 
     void addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any);
 
-    void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid);
+    void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid,
+                       const NoteEditorMode::type noteEditorMode);
 
     virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
 
@@ -173,7 +175,7 @@ private:
     typedef boost::bimap<QString, int> NoteLocalUidToTimerIdBimap;
     NoteLocalUidToTimerIdBimap          m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap;
 
-    QSet<QUuid>                         m_createNoteRequestIds;
+    QHash<QUuid, NoteEditorMode::type>  m_noteEditorModeByCreateNoteRequestIds;
 
     QMenu *                             m_pTabBarContextMenu;
 

@@ -76,7 +76,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_lastCurrentTabNoteLocalUid(),
     m_noteEditorWindowsByNoteLocalUid(),
     m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap(),
-    m_createNoteRequestIds(),
+    m_noteEditorModeByCreateNoteRequestIds(),
     m_pTabBarContextMenu(Q_NULLPTR),
     m_trackingCurrentTab(true)
 {
@@ -232,7 +232,7 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
 
     m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.clear();
 
-    m_createNoteRequestIds.clear();
+    m_noteEditorModeByCreateNoteRequestIds.clear();
 }
 
 void NoteEditorTabsAndWindowsCoordinator::switchAccount(const Account & account, TagModel & tagModel)
@@ -381,10 +381,13 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
     insertNoteEditorWidget(pNoteEditorWidget, noteEditorMode);
 }
 
-void NoteEditorTabsAndWindowsCoordinator::createNewNote(const QString & notebookLocalUid, const QString & notebookGuid)
+void NoteEditorTabsAndWindowsCoordinator::createNewNote(const QString & notebookLocalUid,
+                                                        const QString & notebookGuid,
+                                                        const NoteEditorMode::type noteEditorMode)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::createNewNote: notebook local uid = ")
-            << notebookLocalUid << QStringLiteral(", notebook guid = ") << notebookGuid);
+            << notebookLocalUid << QStringLiteral(", notebook guid = ") << notebookGuid
+            << QStringLiteral(", node editor mode = ") << noteEditorMode);
 
     Note newNote;
     newNote.setNotebookLocalUid(notebookLocalUid);
@@ -412,9 +415,11 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(const QString & notebook
     connectToLocalStorage();
 
     QUuid requestId = QUuid::createUuid();
-    Q_UNUSED(m_createNoteRequestIds.insert(requestId))
+    m_noteEditorModeByCreateNoteRequestIds[requestId] = noteEditorMode;
+
     QNTRACE(QStringLiteral("Emitting the request to add a new note to the local storage: request id = ")
-            << requestId << QStringLiteral(", note = ") << newNote);
+            << requestId << QStringLiteral(", note editor mode: ") << noteEditorMode
+            << QStringLiteral(", note = ") << newNote);
     emit requestAddNote(newNote, requestId);
 }
 
@@ -707,25 +712,26 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(ErrorString errorDes
 
 void NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete(Note note, QUuid requestId)
 {
-    auto it = m_createNoteRequestIds.find(requestId);
-    if (it == m_createNoteRequestIds.end()) {
+    auto it = m_noteEditorModeByCreateNoteRequestIds.find(requestId);
+    if (it == m_noteEditorModeByCreateNoteRequestIds.end()) {
         return;
     }
 
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete: request id = ")
             << requestId << QStringLiteral(", note: ") << note);
 
-    Q_UNUSED(m_createNoteRequestIds.erase(it))
+    NoteEditorMode::type noteEditorMode = it.value();
+    Q_UNUSED(m_noteEditorModeByCreateNoteRequestIds.erase(it))
     disconnectFromLocalStorage();
 
     m_noteCache.put(note.localUid(), note);
-    addNote(note.localUid());
+    addNote(note.localUid(), noteEditorMode);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
 {
-    auto it = m_createNoteRequestIds.find(requestId);
-    if (it == m_createNoteRequestIds.end()) {
+    auto it = m_noteEditorModeByCreateNoteRequestIds.find(requestId);
+    if (it == m_noteEditorModeByCreateNoteRequestIds.end()) {
         return;
     }
 
@@ -733,7 +739,7 @@ void NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed(Note note, ErrorString
               << requestId << QStringLiteral(", note: ") << note << QStringLiteral("\nError description: ")
               << errorDescription);
 
-    Q_UNUSED(m_createNoteRequestIds.erase(it))
+    Q_UNUSED(m_noteEditorModeByCreateNoteRequestIds.erase(it))
     disconnectFromLocalStorage();
 
     Q_UNUSED(internalErrorMessageBox(m_pTabWidget,
