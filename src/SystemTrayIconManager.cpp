@@ -49,7 +49,7 @@ SystemTrayIconManager::SystemTrayIconManager(AccountManager & accountManager,
 
 bool SystemTrayIconManager::isSystemTrayAvailable() const
 {
-    QByteArray overrideSystemTrayAvailability = qgetenv("QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY");
+    QByteArray overrideSystemTrayAvailability = qgetenv(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR);
     if (!overrideSystemTrayAvailability.isEmpty())
     {
         bool overrideValue = (overrideSystemTrayAvailability != QByteArray("0"));

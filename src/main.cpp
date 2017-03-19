@@ -21,9 +21,11 @@
 #include "SetupApplicationIcon.h"
 #include "CommandLineParser.h"
 #include "SystemTrayIconManager.h"
+#include "SettingsNames.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/Utility.h>
+#include <quentier/utility/DesktopServices.h>
 #include <iostream>
 
 int main(int argc, char *argv[])
@@ -46,7 +48,7 @@ int main(int argc, char *argv[])
     CmdOptions::const_iterator storageDirIt = cmdOptions.find(QStringLiteral("storageDir"));
     if (storageDirIt != cmdOptions.constEnd()) {
         QString storageDir = storageDirIt.value().toString();
-        qputenv("QUENTIER_PERSISTENCE_STORAGE_PATH", storageDir.toLocal8Bit());
+        qputenv(LIBQUENTIER_PERSISTENCE_STORAGE_PATH, storageDir.toLocal8Bit());
     }
 
     CmdOptions::const_iterator overrideSystemTrayAvailabilityIt =
@@ -54,7 +56,7 @@ int main(int argc, char *argv[])
     if (overrideSystemTrayAvailabilityIt != cmdOptions.constEnd())
     {
         bool overrideSystemTrayAvailability = overrideSystemTrayAvailabilityIt.value().toBool();
-        qputenv("QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY",
+        qputenv(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR,
                 (overrideSystemTrayAvailability ? QByteArray("1") : QByteArray("0")));
     }
 
