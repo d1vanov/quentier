@@ -42,7 +42,8 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
         desc.add_options()
             ("help,h", "show help message")
             ("version,v", "show version info")
-            ("storageDir", po::value<QString>(), "set directory with the app's persistence");
+            ("storageDir", po::value<QString>(), "set directory with the app's persistence")
+            ("overrideSystemTrayAvailability", po::value<bool>(), "override the availability of the system tray");
 
         po::variables_map varsMap;
         po::store(po::parse_command_line(argc, argv, desc), varsMap);
@@ -79,6 +80,9 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
             }
             else if (valueType == typeid(int)) {
                 m_parsedArgs[key] = QVariant(boost::any_cast<int>(value));
+            }
+            else if (valueType == typeid(bool)) {
+                m_parsedArgs[key] = QVariant(boost::any_cast<bool>(value));
             }
         }
     }

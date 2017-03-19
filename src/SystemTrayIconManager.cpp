@@ -49,15 +49,10 @@ SystemTrayIconManager::SystemTrayIconManager(AccountManager & accountManager,
 
 bool SystemTrayIconManager::isSystemTrayAvailable() const
 {
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    QVariant overrideSystemTrayAvailability = appSettings.value(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY);
-    appSettings.endGroup();
-
-    if (overrideSystemTrayAvailability.isValid())
+    QByteArray overrideSystemTrayAvailability = qgetenv("QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY");
+    if (!overrideSystemTrayAvailability.isEmpty())
     {
-        bool overrideValue = overrideSystemTrayAvailability.toBool();
+        bool overrideValue = (overrideSystemTrayAvailability == QByteArray("1"));
         QNDEBUG(QStringLiteral("Using overridden system tray availability: ")
                 << (overrideValue ? QStringLiteral("true") : QStringLiteral("false")));
         return overrideValue;
@@ -988,6 +983,12 @@ void SystemTrayIconManager::persistTrayIconState()
 void SystemTrayIconManager::restoreTrayIconState()
 {
     QNDEBUG(QStringLiteral("SystemTrayIconManager::restoreTrayIconState"));
+
+    if (!isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("The system tray is not available, won't show the system tray icon"));
+        hide();
+        return;
+    }
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);

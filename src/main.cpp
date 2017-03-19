@@ -49,6 +49,15 @@ int main(int argc, char *argv[])
         qputenv("QUENTIER_PERSISTENCE_STORAGE_PATH", storageDir.toLocal8Bit());
     }
 
+    CmdOptions::const_iterator overrideSystemTrayAvailabilityIt =
+            cmdOptions.find(QStringLiteral("overrideSystemTrayAvailability"));
+    if (overrideSystemTrayAvailabilityIt != cmdOptions.constEnd())
+    {
+        bool overrideSystemTrayAvailability = overrideSystemTrayAvailabilityIt.value().toBool();
+        qputenv("QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY",
+                (overrideSystemTrayAvailability ? QByteArray("1") : QByteArray("0")));
+    }
+
     quentier::QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
