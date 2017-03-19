@@ -46,19 +46,47 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
     QNDEBUG(QStringLiteral("PreferencesDialog::onShowSystemTrayIconCheckboxToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
+    if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("Ignoring the change of show system tray icon checkbox: "
+                               "the system tray is not available"));
+        return;
+    }
+
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
     appSettings.setValue(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY, checked);
     appSettings.endGroup();
 
-    emit showSystemTrayIconOptionChanged(checked);
+    // Change the enabled/disabled status of all the tray actions but the one to show/hide
+    // the system tray icon
+    m_pUi->closeToTrayCheckBox->setEnabled(checked);
+    m_pUi->minimizeToTrayCheckBox->setEnabled(checked);
+    m_pUi->startFromTrayCheckBox->setEnabled(checked);
+
+    m_pUi->traySingleClickActionComboBox->setEnabled(checked);
+    m_pUi->trayMiddleClickActionComboBox->setEnabled(checked);
+    m_pUi->trayDoubleClickActionComboBox->setEnabled(checked);
+
+    bool shown = m_systemTrayIconManager.isShown();
+    if (checked && !shown) {
+        m_systemTrayIconManager.show();
+    }
+    else if (!checked && shown) {
+        m_systemTrayIconManager.hide();
+    }
 }
 
 void PreferencesDialog::onCloseToSystemTrayCheckboxToggled(bool checked)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onCloseToSystemTrayCheckboxToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("Ignoring the change of close to system tray checkbox: "
+                               "the system tray is not available"));
+        return;
+    }
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -72,6 +100,12 @@ void PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled(bool checked)
     QNDEBUG(QStringLiteral("PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
+    if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("Ignoring the change of minimize to system tray checkbox: "
+                               "the system tray is not available"));
+        return;
+    }
+
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
@@ -84,6 +118,12 @@ void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(bool checked
     QNDEBUG(QStringLiteral("PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
+    if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("Ignoring the change of start minimized to system "
+                               "tray checkbox: the system tray is not available"));
+        return;
+    }
+
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
@@ -94,6 +134,12 @@ void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(bool checked
 void PreferencesDialog::onSingleClickTrayActionChanged(int action)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onSingleClickTrayActionChanged: ") << action);
+
+    if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("Ignoring the change of single click tray action: "
+                               "the system tray is not available"));
+        return;
+    }
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -106,6 +152,12 @@ void PreferencesDialog::onMiddleClickTrayActionChanged(int action)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onMiddleClickTrayActionChanged: ") << action);
 
+    if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("Ignoring the change of middle click tray action: "
+                               "the system tray is not available"));
+        return;
+    }
+
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
@@ -117,6 +169,12 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onDoubleClickTrayActionChanged: ") << action);
 
+    if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
+        QNDEBUG(QStringLiteral("Ignoring the change of double click tray action: "
+                               "the system tray is not available"));
+        return;
+    }
+
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
@@ -127,6 +185,31 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
 void PreferencesDialog::setupCurrentSettingsState()
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
+
+    if (!m_systemTrayIconManager.isSystemTrayAvailable())
+    {
+        QNDEBUG(QStringLiteral("The system tray is not available, setting up "
+                               "the blank system tray settings"));
+
+        m_pUi->showSystemTrayIconCheckBox->setChecked(false);
+        m_pUi->showSystemTrayIconCheckBox->setDisabled(true);
+
+        m_pUi->closeToTrayCheckBox->setChecked(false);
+        m_pUi->closeToTrayCheckBox->setDisabled(true);
+
+        m_pUi->minimizeToTrayCheckBox->setChecked(false);
+        m_pUi->minimizeToTrayCheckBox->setDisabled(true);
+
+        m_pUi->startFromTrayCheckBox->setChecked(false);
+        m_pUi->startFromTrayCheckBox->setDisabled(true);
+
+        m_pTrayActionsModel->setStringList(QStringList());
+        m_pUi->traySingleClickActionComboBox->setModel(m_pTrayActionsModel);
+        m_pUi->trayMiddleClickActionComboBox->setModel(m_pTrayActionsModel);
+        m_pUi->trayDoubleClickActionComboBox->setModel(m_pTrayActionsModel);
+
+        return;
+    }
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -183,6 +266,19 @@ void PreferencesDialog::setupCurrentSettingsState()
 
     SystemTrayIconManager::TrayAction doubleClickTrayAction = m_systemTrayIconManager.doubleClickTrayAction();
     m_pUi->trayDoubleClickActionComboBox->setCurrentIndex(doubleClickTrayAction);
+
+    // If the tray icon is now shown, disable all the tray actions but the one to show/hide
+    // the system tray icon
+    if (!m_systemTrayIconManager.isShown())
+    {
+        m_pUi->closeToTrayCheckBox->setDisabled(true);
+        m_pUi->minimizeToTrayCheckBox->setDisabled(true);
+        m_pUi->startFromTrayCheckBox->setDisabled(true);
+
+        m_pUi->traySingleClickActionComboBox->setDisabled(true);
+        m_pUi->trayMiddleClickActionComboBox->setDisabled(true);
+        m_pUi->trayDoubleClickActionComboBox->setDisabled(true);
+    }
 }
 
 void PreferencesDialog::createConnections()

@@ -24,9 +24,6 @@ public:
                                QWidget * parent = Q_NULLPTR);
     virtual ~PreferencesDialog();
 
-Q_SIGNALS:
-    void showSystemTrayIconOptionChanged(bool shouldShow);
-
 private Q_SLOTS:
     void onShowSystemTrayIconCheckboxToggled(bool checked);
     void onCloseToSystemTrayCheckboxToggled(bool checked);
