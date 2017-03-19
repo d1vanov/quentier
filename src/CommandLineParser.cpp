@@ -43,7 +43,9 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
             ("help,h", "show help message")
             ("version,v", "show version info")
             ("storageDir", po::value<QString>(), "set directory with the app's persistence")
-            ("overrideSystemTrayAvailability", po::value<bool>(), "override the availability of the system tray");
+            ("overrideSystemTrayAvailability", po::value<bool>(),
+             "override the availability of the system tray\n(0 - override to false,\n"
+             "any other value - override to true)");
 
         po::variables_map varsMap;
         po::store(po::parse_command_line(argc, argv, desc), varsMap);

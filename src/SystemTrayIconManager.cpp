@@ -52,7 +52,7 @@ bool SystemTrayIconManager::isSystemTrayAvailable() const
     QByteArray overrideSystemTrayAvailability = qgetenv("QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY");
     if (!overrideSystemTrayAvailability.isEmpty())
     {
-        bool overrideValue = (overrideSystemTrayAvailability == QByteArray("1"));
+        bool overrideValue = (overrideSystemTrayAvailability != QByteArray("0"));
         QNDEBUG(QStringLiteral("Using overridden system tray availability: ")
                 << (overrideValue ? QStringLiteral("true") : QStringLiteral("false")));
         return overrideValue;
