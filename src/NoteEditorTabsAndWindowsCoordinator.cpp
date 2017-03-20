@@ -449,12 +449,12 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
                 clearPersistedNoteEditorWindowGeometry(noteLocalUid);
             }
 
-            bool shouldExpungeNote = false;
-
             auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
             if (it != m_noteEditorWindowsByNoteLocalUid.end())
             {
                 QNTRACE(QStringLiteral("Intercepted close of note editor window, note local uid = ") << noteLocalUid);
+
+                bool expungeFlag = false;
 
                 if (pNoteEditorWidget->isModified())
                 {
@@ -463,71 +463,15 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
                     QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
                             << QStringLiteral(", error description: ") << errorDescription);
                 }
-                else if (!pNoteEditorWidget->hasBeenModified())
+                else
                 {
-                    QNDEBUG(QStringLiteral("The note within the editor has not been "
-                                           "edited while being loaded into the note editor, "
-                                           "at least this time"));
-
-                    const Note * pNote = pNoteEditorWidget->currentNote();
-                    if (pNote)
-                    {
-                        bool emptyTitle = (!pNote->hasTitle() || pNote->title().isEmpty());
-
-                        // TODO: think of a better criteria to find out if the note's content is actually empty
-                        ErrorString conversionError;
-                        bool emptyContent = (!pNote->hasContent() ||
-                                             pNote->content().isEmpty() ||
-                                             (pNote->plainText(&conversionError).isEmpty() &&
-                                              conversionError.isEmpty()));
-                        bool emptyTags = (!pNote->hasTagLocalUids() && !pNote->hasTagGuids());
-
-                        if (emptyTitle && emptyContent && emptyTags &&
-                            !pNote->hasResources() && !pNote->hasGuid())
-                        {
-                            QNDEBUG(QStringLiteral("The note within the editor has no title, "
-                                                   "no content, no tag local uids, no tag guids, "
-                                                   "no resources and no guid. It must be the newly "
-                                                   "created empty note: ") << *pNote);
-
-                            ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-                            appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-                            QVariant removeEmptyNotesData = appSettings.value(REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY);
-                            appSettings.endGroup();
-
-                            bool removeEmptyNotes = DEFAULT_REMOVE_EMPTY_UNEDITED_NOTES;
-                            if (removeEmptyNotesData.isValid()) {
-                                removeEmptyNotes = removeEmptyNotesData.toBool();
-                                QNDEBUG(QStringLiteral("Remove empty notes setting: ")
-                                        << (removeEmptyNotes ? QStringLiteral("true") : QStringLiteral("false")));
-                            }
-
-                            if (removeEmptyNotes) {
-                                shouldExpungeNote = true;
-                                QNDEBUG(QStringLiteral("Will remove empty unedited note with local uid ")
-                                        << noteLocalUid);
-                            }
-                            else {
-                                QNDEBUG(QStringLiteral("Won't remove the empty note due to setting"));
-                            }
-                        }
-                        else
-                        {
-                            QNDEBUG(QStringLiteral("The note within the editor has something set "
-                                                   "which suggests it is not a new note created "
-                                                   "but not touched, won't remove it: ") << *pNote);
-                        }
-                    }
-                    else
-                    {
-                        QNDEBUG(QStringLiteral("There is no note within the editor"));
-                    }
+                    expungeFlag = shouldExpungeNote(*pNoteEditorWidget);
                 }
 
                 Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
                 persistLocalUidsOfNotesInEditorWindows();
 
-                if (shouldExpungeNote) {
+                if (expungeFlag) {
                     expungeNoteSynchronously(noteLocalUid);
                 }
             }
@@ -1699,6 +1643,68 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
     }
 
     return;
+}
+
+bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(const NoteEditorWidget & noteEditorWidget) const
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote"));
+
+    if (noteEditorWidget.hasBeenModified()) {
+        QNDEBUG(QStringLiteral("The note within the editor was modified while "
+                               "having been loaded into the editor"));
+        return false;
+    }
+
+    const Note * pNote = noteEditorWidget.currentNote();
+    if (!pNote) {
+        QNDEBUG(QStringLiteral("There is no note within the editor"));
+        return false;
+    }
+
+    bool emptyTitle = (!pNote->hasTitle() || pNote->title().isEmpty());
+
+    // TODO: think of a better criteria to find out if the note's content is actually empty
+    ErrorString conversionError;
+    bool emptyContent = (!pNote->hasContent() ||
+                         pNote->content().isEmpty() ||
+                         (pNote->plainText(&conversionError).isEmpty() &&
+                          conversionError.isEmpty()));
+    bool emptyTags = (!pNote->hasTagLocalUids() && !pNote->hasTagGuids());
+
+    if (!emptyTitle || !emptyContent || !emptyTags ||
+        pNote->hasResources() || pNote->hasGuid())
+    {
+        QNDEBUG(QStringLiteral("The note within the editor has something set "
+                               "which suggests it is not a new note created "
+                               "but not touched, won't remove it: ") << *pNote);
+        return false;
+    }
+
+    QNDEBUG(QStringLiteral("The note within the editor has no title, "
+                           "no content, no tag local uids, no tag guids, "
+                           "no resources and no guid. It must be the newly "
+                           "created empty note: ") << *pNote);
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    QVariant removeEmptyNotesData = appSettings.value(REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    bool removeEmptyNotes = DEFAULT_REMOVE_EMPTY_UNEDITED_NOTES;
+    if (removeEmptyNotesData.isValid()) {
+        removeEmptyNotes = removeEmptyNotesData.toBool();
+        QNDEBUG(QStringLiteral("Remove empty notes setting: ")
+                << (removeEmptyNotes ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+
+    if (removeEmptyNotes) {
+        QNDEBUG(QStringLiteral("Will remove empty unedited note with local uid ")
+                << pNote->localUid());
+        return true;
+    }
+
+    QNDEBUG(QStringLiteral("Won't remove the empty note due to setting"));
+    return false;
 }
 
 void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(const QString & noteLocalUid)

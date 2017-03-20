@@ -157,6 +157,7 @@ private:
     void persistLastCurrentTabNoteLocalUid();
     void restoreLastOpenNotes();
 
+    bool shouldExpungeNote(const NoteEditorWidget & noteEditorWidget) const;
     void expungeNoteSynchronously(const QString & noteLocalUid);
 
 private:
