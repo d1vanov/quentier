@@ -248,12 +248,13 @@ bool NoteEditorWidget::isResolved() const
 
 bool NoteEditorWidget::isModified() const
 {
-    return !m_pCurrentNote.isNull() && m_pUi->noteEditor->isModified();
+    return !m_pCurrentNote.isNull() &&
+            (m_pUi->noteEditor->isModified() || m_noteTitleIsEdited);
 }
 
 bool NoteEditorWidget::hasBeenModified() const
 {
-    return m_noteHasBeenModified;
+    return m_noteHasBeenModified || m_noteTitleIsEdited;
 }
 
 QString NoteEditorWidget::titleOrPreview() const
