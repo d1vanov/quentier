@@ -20,6 +20,7 @@
 #define QUENTIER_MAINWINDOW_H
 
 #include "AccountManager.h"
+#include "NoteEditorTabsAndWindowsCoordinator.h"
 #include "models/NotebookCache.h"
 #include "models/TagCache.h"
 #include "models/SavedSearchCache.h"
@@ -58,7 +59,6 @@ QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
-QT_FORWARD_DECLARE_CLASS(NoteEditorTabsAndWindowsCoordinator)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
@@ -284,6 +284,7 @@ private:
     void setWindowTitleForAccount(const Account & account);
 
     NoteEditorWidget * currentNoteEditorTab();
+    void createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::type noteEditorMode);
 
     void connectSynchronizationManager();
     void disconnectSynchronizationManager();

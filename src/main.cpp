@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
     quentier::QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
+    app.setQuitOnLastWindowClosed(false);
 
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);

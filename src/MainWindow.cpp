@@ -20,7 +20,6 @@
 #include "SettingsNames.h"
 #include "SystemTrayIconManager.h"
 #include "EditNoteDialogsManager.h"
-#include "NoteEditorTabsAndWindowsCoordinator.h"
 #include "NoteFiltersManager.h"
 #include "models/NoteFilterModel.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
@@ -662,6 +661,59 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
     }
 
     return noteEditorWidget;
+}
+
+void MainWindow::createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::type noteEditorMode)
+{
+    QNDEBUG(QStringLiteral("MainWindow::createNewNote: note editor mode = ") << noteEditorMode);
+
+    if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
+        QNDEBUG(QStringLiteral("No note editor tab widget manager, probably the button was pressed too quickly on startup, skipping"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNoteModel)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: note model is unexpectedly null")))
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNotebookModel)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: notebook model is unexpectedly null")))
+        return;
+    }
+
+    QModelIndex currentNotebookIndex = m_pUI->notebooksTreeView->currentlySelectedItemIndex();
+    if (Q_UNLIKELY(!currentNotebookIndex.isValid())) {
+        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
+                                       tr("Please select the notebook in which you want to create the note; "
+                                          "if you don't have any notebooks yet, create one")))
+        return;
+    }
+
+    const NotebookModelItem * pNotebookModelItem = m_pNotebookModel->itemForIndex(currentNotebookIndex);
+    if (Q_UNLIKELY(!pNotebookModelItem)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: can't find the notebook model item "
+                                                  "corresponding to the currently selected notebook")))
+        return;
+    }
+
+    if (Q_UNLIKELY(pNotebookModelItem->type() != NotebookModelItem::Type::Notebook)) {
+        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
+                                       tr("Please select the notebook in which you want to create the note (currently "
+                                          "the notebook stack seems to be selected)")))
+        return;
+    }
+
+    const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
+    if (Q_UNLIKELY(!pNotebookItem)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: the notebook model item has notebook type "
+                                                  "but null pointer to the actual notebook item")))
+        return;
+    }
+
+    m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(pNotebookItem->localUid(),
+                                                          pNotebookItem->guid(),
+                                                          noteEditorMode);
 }
 
 void MainWindow::connectSynchronizationManager()
@@ -2008,54 +2060,7 @@ void MainWindow::onNoteSortingModeChanged(int index)
 void MainWindow::onNewNoteButtonPressed()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNewNoteButtonPressed"));
-
-    if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
-        QNDEBUG(QStringLiteral("No note editor tab widget manager, probably the button was pressed too quickly on startup, skipping"));
-        return;
-    }
-
-    if (Q_UNLIKELY(!m_pNoteModel)) {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: note model is unexpectedly null")))
-        return;
-    }
-
-    if (Q_UNLIKELY(!m_pNotebookModel)) {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: notebook model is unexpectedly null")))
-        return;
-    }
-
-    QModelIndex currentNotebookIndex = m_pUI->notebooksTreeView->currentlySelectedItemIndex();
-    if (Q_UNLIKELY(!currentNotebookIndex.isValid())) {
-        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
-                                       tr("Please select the notebook in which you want to create the note; "
-                                          "if you don't have any notebooks yet, create one")))
-        return;
-    }
-
-    const NotebookModelItem * pNotebookModelItem = m_pNotebookModel->itemForIndex(currentNotebookIndex);
-    if (Q_UNLIKELY(!pNotebookModelItem)) {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: can't find the notebook model item "
-                                                  "corresponding to the currently selected notebook")))
-        return;
-    }
-
-    if (Q_UNLIKELY(pNotebookModelItem->type() != NotebookModelItem::Type::Notebook)) {
-        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
-                                       tr("Please select the notebook in which you want to create the note (currently "
-                                          "the notebook stack seems to be selected)")))
-        return;
-    }
-
-    const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
-    if (Q_UNLIKELY(!pNotebookItem)) {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: the notebook model item has notebook type "
-                                                  "but null pointer to the actual notebook item")))
-        return;
-    }
-
-    m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(pNotebookItem->localUid(),
-                                                          pNotebookItem->guid(),
-                                                          NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
+    createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
 void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
@@ -2160,7 +2165,15 @@ void MainWindow::onSaveNoteSearchQueryButtonPressed()
 void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNewNoteRequestedFromSystemTrayIcon"));
-    onNewNoteButtonPressed();
+
+    Qt::WindowStates state = windowState();
+    bool isMinimized = (state & Qt::WindowMinimized);
+
+    bool shown = !isMinimized && !isHidden();
+
+    createNewNote(shown
+                  ? NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any
+                  : NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Window);
 }
 
 void MainWindow::onQuitRequestedFromSystemTrayIcon()
