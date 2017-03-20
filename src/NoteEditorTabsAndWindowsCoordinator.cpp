@@ -1188,10 +1188,19 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex, cons
         return;
     }
 
-    ErrorString errorDescription;
-    NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
-    QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
-            << QStringLiteral(", error description: ") << errorDescription);
+    bool expungeFlag = false;
+
+    if (pNoteEditorWidget->isModified())
+    {
+        ErrorString errorDescription;
+        NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+        QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+                << QStringLiteral(", error description: ") << errorDescription);
+    }
+    else
+    {
+        expungeFlag = shouldExpungeNote(*pNoteEditorWidget);
+    }
 
     QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
 
@@ -1214,6 +1223,10 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex, cons
 
         QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
         emit currentNoteChanged(QString());
+    }
+
+    if (expungeFlag) {
+        expungeNoteSynchronously(noteLocalUid);
     }
 
     if (m_pTabWidget->count() == 1)
