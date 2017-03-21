@@ -92,7 +92,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_pendingEditorSpellChecker(false),
     m_currentNoteWasExpunged(false),
     m_noteHasBeenModified(false),
-    m_noteTitleIsEdited(false)
+    m_noteTitleIsEdited(false),
+    m_noteTitleHasBeenEdited(false)
 {
     m_pUi->setupUi(this);
 
@@ -254,7 +255,7 @@ bool NoteEditorWidget::isModified() const
 
 bool NoteEditorWidget::hasBeenModified() const
 {
-    return m_noteHasBeenModified || m_noteTitleIsEdited;
+    return m_noteHasBeenModified || m_noteTitleHasBeenEdited;
 }
 
 QString NoteEditorWidget::titleOrPreview() const
@@ -344,8 +345,10 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
     }
 
     if (noteTitleUpdated) {
+        // NOTE: indicating early that the note's title has been changed manually
+        // and not generated automatically
         qevercloud::NoteAttributes & attributes = m_pCurrentNote->noteAttributes();
-        attributes.noteTitleQuality.clear();    // indicate learly that the note's title has been changed manually and not generated automatically
+        attributes.noteTitleQuality.clear();
     }
 
     if (noteContentModified || noteTitleUpdated)
@@ -390,7 +393,7 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
             QTimer::singleShot(0, m_pUi->noteEditor, SLOT(convertToNote()));
         }
         else {
-            QTimer::singleShot(0, this, SLOT(updateNoteInLocalStorage));
+            QTimer::singleShot(0, this, SLOT(updateNoteInLocalStorage()));
         }
 
         int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
@@ -848,6 +851,11 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         backupTagGuids = m_pCurrentNote->tagGuids();
     }
 
+    QString backupTitle;
+    if (m_noteTitleIsEdited) {
+        backupTitle = m_pCurrentNote->title();
+    }
+
     *m_pCurrentNote = note;
 
     if (!updateResources) {
@@ -857,6 +865,10 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
     if (!updateTags) {
         m_pCurrentNote->setTagLocalUids(backupTagLocalUids);
         m_pCurrentNote->setTagGuids(backupTagGuids);
+    }
+
+    if (m_noteTitleIsEdited) {
+        m_pCurrentNote->setTitle(backupTitle);
     }
 
     if (note.hasDeletionTimestamp()) {
@@ -1099,6 +1111,7 @@ void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
 {
     QNTRACE(QStringLiteral("NoteEditorWidget::onNoteTitleEdited: ") << noteTitle);
     m_noteTitleIsEdited = true;
+    m_noteTitleHasBeenEdited = true;
 }
 
 void NoteEditorWidget::onNoteEditorModified()
@@ -1125,6 +1138,7 @@ void NoteEditorWidget::onNoteTitleUpdated()
     QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteTitleUpdated: ") << noteTitle);
 
     m_noteTitleIsEdited = false;
+    m_noteTitleHasBeenEdited = true;
 
     if (Q_UNLIKELY(!m_pCurrentNote)) {
         // That shouldn't really happen in normal circumstances but it could in theory be some old event
@@ -1152,8 +1166,10 @@ void NoteEditorWidget::onNoteTitleUpdated()
 
     m_pCurrentNote->setTitle(noteTitle);
 
+    // NOTE: indicate early that the note's title has been changed manually
+    // and not generated automatically
     qevercloud::NoteAttributes & attributes = m_pCurrentNote->noteAttributes();
-    attributes.noteTitleQuality.clear();    // indicate learly that the note's title has been changed manually and not generated automatically
+    attributes.noteTitleQuality.clear();
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))

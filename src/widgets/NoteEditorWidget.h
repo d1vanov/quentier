@@ -433,6 +433,7 @@ private:
     bool                        m_noteHasBeenModified;
 
     bool                        m_noteTitleIsEdited;
+    bool                        m_noteTitleHasBeenEdited;
 };
 
 } // namespace quentier
