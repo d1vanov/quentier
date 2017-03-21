@@ -297,11 +297,10 @@ int NoteEditorTabsAndWindowsCoordinator::numNotesInTabs() const
     }
 
     if (m_pBlankNoteEditor) {
-        return std::max(m_pTabWidget->count() - 1, 0);
+        return 0;
     }
-    else {
-        return m_pTabWidget->count();
-    }
+
+    return m_pTabWidget->count();
 }
 
 void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode)
@@ -1190,16 +1189,21 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex, cons
 
     bool expungeFlag = false;
 
-    if (pNoteEditorWidget->isModified())
+    const Note * pNote = pNoteEditorWidget->currentNote();
+    bool deleted = (pNote && pNote->hasDeletionTimestamp());
+    if (!deleted)
     {
-        ErrorString errorDescription;
-        NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
-        QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
-                << QStringLiteral(", error description: ") << errorDescription);
-    }
-    else
-    {
-        expungeFlag = shouldExpungeNote(*pNoteEditorWidget);
+        if (pNoteEditorWidget->isModified())
+        {
+            ErrorString errorDescription;
+            NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+            QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+                    << QStringLiteral(", error description: ") << errorDescription);
+        }
+        else
+        {
+            expungeFlag = shouldExpungeNote(*pNoteEditorWidget);
+        }
     }
 
     QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
@@ -1231,14 +1235,16 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex, cons
 
     if (m_pTabWidget->count() == 1)
     {
-        if (m_pBlankNoteEditor) {
-            m_pBlankNoteEditor->close();
+        if (m_pBlankNoteEditor && (m_pBlankNoteEditor != pNoteEditorWidget)) {
+            m_pBlankNoteEditor->hide();
+            m_pBlankNoteEditor->deleteLater();
             m_pBlankNoteEditor = Q_NULLPTR;
         }
 
         // That should remove the note from the editor (if any)
         pNoteEditorWidget->setNoteLocalUid(QString());
         m_pBlankNoteEditor = pNoteEditorWidget;
+
         m_pTabWidget->setTabText(0, BLANK_NOTE_KEY);
         m_pTabWidget->tabBar()->hide();
         m_pTabWidget->setTabsClosable(false);
@@ -1249,7 +1255,9 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex, cons
     m_pTabWidget->removeTab(tabIndex);
 
     if (closeEditor) {
-        Q_UNUSED(pNoteEditorWidget->close());
+        pNoteEditorWidget->hide();
+        pNoteEditorWidget->deleteLater();
+        pNoteEditorWidget = Q_NULLPTR;
     }
 
     if (m_pTabWidget->count() == 1) {
