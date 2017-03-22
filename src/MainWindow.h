@@ -88,6 +88,7 @@ Q_SIGNALS:
     // private signals
     void localStorageSwitchUserRequest(Account account, bool startFromScratch, QUuid requestId);
     void authenticate();
+    void noteInfoDialogRequested(QString noteLocalUid);
 
 private Q_SLOTS:
     void onUndoAction();

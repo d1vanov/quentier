@@ -49,6 +49,8 @@ EditNoteDialog::EditNoteDialog(const Note & note,
 {
     m_pUi->setupUi(this);
 
+    setWindowTitle(tr("Note"));
+
     fillNotebookNames();
     m_pUi->notebookComboBox->setModel(m_pNotebookNamesModel);
 

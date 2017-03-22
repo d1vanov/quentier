@@ -63,6 +63,7 @@ using quentier::FilterBySavedSearchWidget;
 #include "widgets/NotebookModelItemInfoWidget.h"
 #include "widgets/TagModelItemInfoWidget.h"
 #include "widgets/SavedSearchModelItemInfoWidget.h"
+#include "dialogs/EditNoteDialog.h"
 
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -1896,7 +1897,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     switch(pItem->type())
     {
     case FavoritesModelItem::Type::Note:
-        // TODO: show note info widget when it's done
+        emit noteInfoDialogRequested(pItem->localUid());
         break;
     case FavoritesModelItem::Type::Notebook:
         {
@@ -3332,6 +3333,8 @@ void MainWindow::setupViews()
         QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
                          m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
         QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+        QObject::connect(this, QNSIGNAL(MainWindow,noteInfoDialogRequested,QString),
                          m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
         QObject::connect(pDeletedNotesTableView, QNSIGNAL(DeletedNoteItemView,deletedNoteInfoRequested,QString),
                          m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
