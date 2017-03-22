@@ -905,8 +905,15 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
         return;
     }
 
-    m_allNotesListed = true;
-    emit notifyAllNotesListed();
+    if (m_findTagRequestForTagLocalUid.empty()) {
+        QNDEBUG(QStringLiteral("All notes listed and all tags found - notifying of all notes listed"));
+        m_allNotesListed = true;
+        emit notifyAllNotesListed();
+    }
+    else {
+        QNDEBUG(QStringLiteral("Still waiting for ") << m_findTagRequestForTagLocalUid.size()
+                << QStringLiteral(" find tag requests"));
+    }
 }
 
 void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
@@ -1073,6 +1080,12 @@ void NoteModel::onFindTagComplete(Tag tag, QUuid requestId)
     Q_UNUSED(m_findTagRequestForTagLocalUid.right.erase(it))
 
     updateTagData(tag);
+
+    if (!m_allNotesListed && m_findTagRequestForTagLocalUid.empty()) {
+        QNDEBUG(QStringLiteral("That was the last find tag request, notifying of all notes listed event"));
+        m_allNotesListed = true;
+        emit notifyAllNotesListed();
+    }
 }
 
 void NoteModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -1088,6 +1101,12 @@ void NoteModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid req
     Q_UNUSED(m_findTagRequestForTagLocalUid.right.erase(it))
 
     emit notifyError(errorDescription);
+
+    if (!m_allNotesListed && m_findTagRequestForTagLocalUid.empty()) {
+        QNDEBUG(QStringLiteral("That was the last find tag request, notifying of all notes listed event"));
+        m_allNotesListed = true;
+        emit notifyAllNotesListed();
+    }
 }
 
 void NoteModel::onAddTagComplete(Tag tag, QUuid requestId)
@@ -1173,6 +1192,8 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNotebook,Notebook,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteModel,findTag,Tag,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindTagRequest,Tag,QUuid));
 
     // localStorageManagerThreadWorker's signals to local slots
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
@@ -1987,9 +2008,24 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
 
     item.setThumbnail(note.thumbnail());
 
-    if (note.hasTagLocalUids()) {
+    if (note.hasTagLocalUids())
+    {
         const QStringList & tagLocalUids = note.tagLocalUids();
         item.setTagLocalUids(tagLocalUids);
+
+        QStringList tagNames;
+        tagNames.reserve(tagLocalUids.size());
+
+        for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it)
+        {
+            auto tagIt = m_tagDataByTagLocalUid.find(*it);
+            if (tagIt != m_tagDataByTagLocalUid.end()) {
+                const TagData & tagData = tagIt.value();
+                tagNames << tagData.m_name;
+            }
+        }
+
+        item.setTagNameList(tagNames);
     }
 
     if (note.hasTagGuids()) {
