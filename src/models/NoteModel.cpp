@@ -1446,6 +1446,9 @@ void NoteModel::removeItemByLocalUid(const QString & localUid)
 
 void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
 {
+    QNDEBUG(QStringLiteral("NoteModel::updateItemRowWithRespectToSorting: item local uid = ")
+            << item.localUid());
+
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto localUidIt = localUidIndex.find(item.localUid());
     if (Q_UNLIKELY(localUidIt == localUidIndex.end())) {
@@ -1940,6 +1943,8 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
             QModelIndex modelIndexTo = createIndex(row, Columns::Dirty);
             Q_UNUSED(localUidIndex.replace(it, item))
             emit dataChanged(modelIndexFrom, modelIndexTo);
+
+            updateItemRowWithRespectToSorting(item);
         }
     }
 }
