@@ -283,6 +283,8 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         return;
     }
 
+    pNewItemLineEdit->clear();
+
     if (Q_UNLIKELY(m_account.isEmpty())) {
         QNDEBUG(QStringLiteral("Current account is empty, won't do anything"));
         return;
