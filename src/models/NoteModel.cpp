@@ -2121,14 +2121,34 @@ bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const Note
         break;
     case Columns::Title:
         {
-            int compareResult = lhs.title().localeAwareCompare(rhs.title());
+            QString leftTitleOrPreview = lhs.title();
+            if (leftTitleOrPreview.isEmpty()) {
+                leftTitleOrPreview = lhs.previewText();
+            }
+
+            QString rightTitleOrPreview = rhs.title();
+            if (rightTitleOrPreview.isEmpty()) {
+                rightTitleOrPreview = rhs.previewText();
+            }
+
+            int compareResult = leftTitleOrPreview.localeAwareCompare(rightTitleOrPreview);
             less = (compareResult < 0);
             greater = (compareResult > 0);
             break;
         }
     case Columns::PreviewText:
         {
-            int compareResult = lhs.previewText().localeAwareCompare(rhs.previewText());
+            QString leftTitleOrPreview = lhs.title();
+            if (leftTitleOrPreview.isEmpty()) {
+                leftTitleOrPreview = lhs.previewText();
+            }
+
+            QString rightTitleOrPreview = rhs.title();
+            if (rightTitleOrPreview.isEmpty()) {
+                rightTitleOrPreview = rhs.previewText();
+            }
+
+            int compareResult = leftTitleOrPreview.localeAwareCompare(rightTitleOrPreview);
             less = (compareResult < 0);
             greater = (compareResult > 0);
             break;
