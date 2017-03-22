@@ -167,15 +167,15 @@ private Q_SLOTS:
     void onSwitchPanelStyleToDarker();
 
     // View buttons slots
-    void onCreateNotebookButtonPressed();
+    void onNewNotebookCreationRequested();
     void onRemoveNotebookButtonPressed();
     void onNotebookInfoButtonPressed();
 
-    void onCreateTagButtonPressed();
+    void onNewTagCreationRequested();
     void onRemoveTagButtonPressed();
     void onTagInfoButtonPressed();
 
-    void onCreateSavedSearchButtonPressed();
+    void onNewSavedSearchCreationRequested();
     void onRemoveSavedSearchButtonPressed();
     void onSavedSearchInfoButtonPressed();
 
@@ -194,13 +194,13 @@ private Q_SLOTS:
 
     // Various note-related slots
     void onNoteSortingModeChanged(int index);
-    void onNewNoteButtonPressed();
+    void onNewNoteCreationRequested();
 
     void onCurrentNoteInListChanged(QString noteLocalUid);
     void onOpenNoteInSeparateWindow(QString noteLocalUid);
 
-    void onPrintNoteButtonPressed();
-    void onExportNoteToPdfButtonPressed();
+    void onCurrentNotePrintRequested();
+    void onCurrentNotePdfExportRequested();
 
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);

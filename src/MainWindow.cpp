@@ -289,6 +289,21 @@ void MainWindow::connectActionsToSlots()
 {
     QNDEBUG(QStringLiteral("MainWindow::connectActionsToSlots"));
 
+    // File menu actions
+    QObject::connect(m_pUI->ActionNewNote, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNewNoteCreationRequested));
+    QObject::connect(m_pUI->ActionNewNotebook, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNewNotebookCreationRequested));
+    QObject::connect(m_pUI->ActionNewTag, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNewTagCreationRequested));
+    QObject::connect(m_pUI->ActionNewSavedSearch, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNewSavedSearchCreationRequested));
+    QObject::connect(m_pUI->ActionPrint, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onCurrentNotePrintRequested));
+    QObject::connect(m_pUI->ActionQuit, QNSIGNAL(QAction,triggered),
+                     QApplication::instance(), QNSLOT(QCoreApplication,quit));
+
+    // Edit menu actions
     QObject::connect(m_pUI->ActionFindInsideNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onFindInsideNoteAction));
     QObject::connect(m_pUI->ActionFindNext, QNSIGNAL(QAction,triggered),
@@ -297,8 +312,6 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onFindPreviousInsideNoteAction));
     QObject::connect(m_pUI->ActionReplaceInNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
-    QObject::connect(m_pUI->ActionQuit, QNSIGNAL(QAction,triggered),
-                     QApplication::instance(), QNSLOT(QCoreApplication,quit));
     QObject::connect(m_pUI->ActionPreferences, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onShowSettingsDialogAction));
 
@@ -403,21 +416,21 @@ void MainWindow::connectViewButtonsToSlots()
     QNDEBUG(QStringLiteral("MainWindow::connectViewButtonsToSlots"));
 
     QObject::connect(m_pUI->addNotebookButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(MainWindow,onCreateNotebookButtonPressed));
+                     this, QNSLOT(MainWindow,onNewNotebookCreationRequested));
     QObject::connect(m_pUI->removeNotebookButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onRemoveNotebookButtonPressed));
     QObject::connect(m_pUI->notebookInfoButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onNotebookInfoButtonPressed));
 
     QObject::connect(m_pUI->addTagButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(MainWindow,onCreateTagButtonPressed));
+                     this, QNSLOT(MainWindow,onNewTagCreationRequested));
     QObject::connect(m_pUI->removeTagButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onRemoveTagButtonPressed));
     QObject::connect(m_pUI->tagInfoButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onTagInfoButtonPressed));
 
     QObject::connect(m_pUI->addSavedSearchButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
+                     this, QNSLOT(MainWindow,onNewSavedSearchCreationRequested));
     QObject::connect(m_pUI->removeSavedSearchButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onRemoveSavedSearchButtonPressed));
     QObject::connect(m_pUI->savedSearchInfoButton, QNSIGNAL(QPushButton,clicked),
@@ -456,11 +469,11 @@ void MainWindow::connectToolbarButtonsToSlots()
     QNDEBUG(QStringLiteral("MainWindow::connectToolbarButtonsToSlots"));
 
     QObject::connect(m_pUI->addNotePushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(MainWindow,onNewNoteButtonPressed));
+                     this, QNSLOT(MainWindow,onNewNoteCreationRequested));
     QObject::connect(m_pUI->printNotePushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(MainWindow,onPrintNoteButtonPressed));
+                     this, QNSLOT(MainWindow,onCurrentNotePrintRequested));
     QObject::connect(m_pUI->exportNoteToPdfPushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(MainWindow,onExportNoteToPdfButtonPressed));
+                     this, QNSLOT(MainWindow,onCurrentNotePdfExportRequested));
 }
 
 void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
@@ -1770,9 +1783,9 @@ void MainWindow::onSaveNoteAction()
     pNoteEditorWidget->onSaveNoteAction();
 }
 
-void MainWindow::onCreateNotebookButtonPressed()
+void MainWindow::onNewNotebookCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCreateNotebookButtonPressed"));
+    QNDEBUG(QStringLiteral("MainWindow::onNewNotebookCreationRequested"));
 
     if (Q_UNLIKELY(!m_pNotebookModel)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new notebook: no notebook model is set up"));
@@ -1801,9 +1814,9 @@ void MainWindow::onNotebookInfoButtonPressed()
     showInfoWidget(pNotebookModelItemInfoWidget);
 }
 
-void MainWindow::onCreateTagButtonPressed()
+void MainWindow::onNewTagCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCreateTagButtonPressed"));
+    QNDEBUG(QStringLiteral("MainWindow::onNewTagCreationRequested"));
 
     if (Q_UNLIKELY(!m_pTagModel)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new tag: no tag model is set up"));
@@ -1832,9 +1845,9 @@ void MainWindow::onTagInfoButtonPressed()
     showInfoWidget(pTagModelItemInfoWidget);
 }
 
-void MainWindow::onCreateSavedSearchButtonPressed()
+void MainWindow::onNewSavedSearchCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCreateSavedSearchButtonPressed"));
+    QNDEBUG(QStringLiteral("MainWindow::onNewSavedSearchCreationRequested"));
 
     if (Q_UNLIKELY(!m_pSavedSearchModel)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new saved search: no saved search model is set up"));
@@ -2058,9 +2071,9 @@ void MainWindow::onNoteSortingModeChanged(int index)
     }
 }
 
-void MainWindow::onNewNoteButtonPressed()
+void MainWindow::onNewNoteCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNewNoteButtonPressed"));
+    QNDEBUG(QStringLiteral("MainWindow::onNewNoteCreationRequested"));
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
@@ -2076,9 +2089,9 @@ void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
     m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid, NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Window);
 }
 
-void MainWindow::onPrintNoteButtonPressed()
+void MainWindow::onCurrentNotePrintRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onPrintNoteButtonPressed"));
+    QNDEBUG(QStringLiteral("MainWindow::onCurrentNotePrintRequested"));
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
@@ -2098,9 +2111,9 @@ void MainWindow::onPrintNoteButtonPressed()
     }
 }
 
-void MainWindow::onExportNoteToPdfButtonPressed()
+void MainWindow::onCurrentNotePdfExportRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onExportNoteToPdfButtonPressed"));
+    QNDEBUG(QStringLiteral("MainWindow::onCurrentNotePdfExportRequested"));
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
@@ -3207,7 +3220,7 @@ void MainWindow::setupViews()
 #endif
 
     QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,newNotebookCreationRequested),
-                     this, QNSLOT(MainWindow,onCreateNotebookButtonPressed));
+                     this, QNSLOT(MainWindow,onNewNotebookCreationRequested));
     QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,notebookInfoRequested),
                      this, QNSLOT(MainWindow,onNotebookInfoButtonPressed));
     QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,notifyError,ErrorString),
@@ -3242,7 +3255,7 @@ void MainWindow::setupViews()
 #endif
 
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,newTagCreationRequested),
-                     this, QNSLOT(MainWindow,onCreateTagButtonPressed));
+                     this, QNSLOT(MainWindow,onNewTagCreationRequested));
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,tagInfoRequested),
                      this, QNSLOT(MainWindow,onTagInfoButtonPressed));
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,notifyError,ErrorString),
@@ -3266,7 +3279,7 @@ void MainWindow::setupViews()
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,savedSearchInfoRequested),
                      this, QNSLOT(MainWindow,onSavedSearchInfoButtonPressed));
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,newSavedSearchCreationRequested),
-                     this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
+                     this, QNSLOT(MainWindow,onNewSavedSearchCreationRequested));
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,notifyError,ErrorString),
                      this, QNSLOT(MainWindow,onModelViewError,ErrorString));
 
