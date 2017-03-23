@@ -21,6 +21,9 @@
 
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/types/Tag.h>
+#include <quentier/types/Notebook.h>
+#include <quentier/types/SavedSearch.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <QObject>
 #include <QUuid>
@@ -33,6 +36,7 @@ QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
 QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
+QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 class NoteFiltersManager: public QObject
@@ -80,6 +84,17 @@ private Q_SLOTS:
                                                   ErrorString errorDescription,
                                                   QUuid requestId);
 
+    // NOTE: don't care of notebook updates because the filtering by notebook
+    // is done by its local uid anyway
+
+    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+
+    void onUpdateTagComplete(Tag tag, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QUuid requestId);
+
+    void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
+
 private:
     void createConnections();
     void evaluate();
@@ -89,6 +104,8 @@ private:
     void setFilterByNotebooks();
     void setFilterByTags();
 
+    QStringList tagNamesFromLocalUids(const TagModel & tagModel) const;
+
 private:
     FilterByTagWidget &                 m_filterByTagWidget;
     FilterByNotebookWidget &            m_filterByNotebookWidget;
@@ -96,6 +113,9 @@ private:
     FilterBySavedSearchWidget &         m_filterBySavedSearchWidget;
     QLineEdit &                         m_searchLineEdit;
     LocalStorageManagerThreadWorker &   m_localStorageManager;
+
+    QSet<QString>                       m_filteredTagLocalUids;
+    QString                             m_filteredSavedSearchLocalUid;
 
     QUuid                               m_findNoteLocalUidsForSearchStringRequestId;
     QUuid                               m_findNoteLocalUidsForSavedSearchQueryRequestId;
