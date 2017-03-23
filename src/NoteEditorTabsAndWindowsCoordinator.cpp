@@ -303,10 +303,12 @@ int NoteEditorTabsAndWindowsCoordinator::numNotesInTabs() const
     return m_pTabWidget->count();
 }
 
-void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode)
+void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode,
+                                                  const bool isNewNote)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::addNote: ") << noteLocalUid
-            << QStringLiteral(", note editor mode = ") << noteEditorMode);
+            << QStringLiteral(", note editor mode = ") << noteEditorMode << QStringLiteral(", is new note = ")
+            << (isNewNote ? QStringLiteral("true") : QStringLiteral("false")));
 
     // First, check if this note is already open in some existing tab/window
 
@@ -363,7 +365,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
         NoteEditorWidget * pNoteEditorWidget = m_pBlankNoteEditor;
         m_pBlankNoteEditor = Q_NULLPTR;
 
-        pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
+        pNoteEditorWidget->setNoteLocalUid(noteLocalUid, isNewNote);
         insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Tab);
 
         if (m_trackingCurrentTab)
@@ -385,7 +387,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
                                                                 m_noteCache, m_notebookCache, m_tagCache,
                                                                 *m_pTagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
-    pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
+    pNoteEditorWidget->setNoteLocalUid(noteLocalUid, isNewNote);
     insertNoteEditorWidget(pNoteEditorWidget, noteEditorMode);
 }
 
@@ -751,7 +753,7 @@ void NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete(Note note, QUuid req
     }
 
     m_noteCache.put(note.localUid(), note);
-    addNote(note.localUid(), noteEditorMode);
+    addNote(note.localUid(), noteEditorMode, /* is new note = */ true);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
@@ -1203,21 +1205,16 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex, cons
 
     bool expungeFlag = false;
 
-    const Note * pNote = pNoteEditorWidget->currentNote();
-    bool deleted = (pNote && pNote->hasDeletionTimestamp());
-    if (!deleted)
+    if (pNoteEditorWidget->isModified())
     {
-        if (pNoteEditorWidget->isModified())
-        {
-            ErrorString errorDescription;
-            NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
-            QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
-                    << QStringLiteral(", error description: ") << errorDescription);
-        }
-        else
-        {
-            expungeFlag = shouldExpungeNote(*pNoteEditorWidget);
-        }
+        ErrorString errorDescription;
+        NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+        QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+                << QStringLiteral(", error description: ") << errorDescription);
+    }
+    else
+    {
+        expungeFlag = shouldExpungeNote(*pNoteEditorWidget);
     }
 
     QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
@@ -1683,6 +1680,11 @@ bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(const NoteEditorWidg
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote"));
 
+    if (!noteEditorWidget.isNewNote()) {
+        QNDEBUG(QStringLiteral("The note within the editor was not a new one, should not expunge it"));
+        return false;
+    }
+
     if (noteEditorWidget.hasBeenModified()) {
         QNDEBUG(QStringLiteral("The note within the editor was modified while "
                                "having been loaded into the editor"));
@@ -1694,30 +1696,6 @@ bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(const NoteEditorWidg
         QNDEBUG(QStringLiteral("There is no note within the editor"));
         return false;
     }
-
-    bool emptyTitle = (!pNote->hasTitle() || pNote->title().isEmpty());
-
-    // TODO: think of a better criteria to find out if the note's content is actually empty
-    ErrorString conversionError;
-    bool emptyContent = (!pNote->hasContent() ||
-                         pNote->content().isEmpty() ||
-                         (pNote->plainText(&conversionError).isEmpty() &&
-                          conversionError.isEmpty()));
-    bool emptyTags = (!pNote->hasTagLocalUids() && !pNote->hasTagGuids());
-
-    if (!emptyTitle || !emptyContent || !emptyTags ||
-        pNote->hasResources() || pNote->hasGuid())
-    {
-        QNDEBUG(QStringLiteral("The note within the editor has something set "
-                               "which suggests it is not a new note created "
-                               "but not touched, won't remove it: ") << *pNote);
-        return false;
-    }
-
-    QNDEBUG(QStringLiteral("The note within the editor has no title, "
-                           "no content, no tag local uids, no tag guids, "
-                           "no resources and no guid. It must be the newly "
-                           "created empty note: ") << *pNote);
 
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);

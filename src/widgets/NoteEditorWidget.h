@@ -73,13 +73,23 @@ public:
     QString noteLocalUid() const;
 
     /**
+     * @return true if the note was created right before opening it in the note editor, false otherwise
+     */
+    bool isNewNote() const;
+
+    /**
      * @brief setNoteLocalUid - setter for the local uid of the editor's note
      * @param noteLocalUid - the local uid of the note to be set to the editor;
      * the editor finds the note (either within the note cache or within the local storage
      * database) and loads it; setting the empty string removes the note from the editor
      * if it was set there before
+     * @param isNewNote - true if the note has been created right before opening it in the note editor, false otherwise.
+     * If the note was new and if the note editor widget is closed before the note is edited in any way - title or text
+     * or whatever else - it would automatically expunge the empty new note from the local storage. Once the note is saved
+     * to the local storage at least once after being loaded into the editor, it is no longer considered new and won't
+     * be expunged automatically.
      */
-    void setNoteLocalUid(const QString & noteLocalUid);
+    void setNoteLocalUid(const QString & noteLocalUid, const bool isNewNote = false);
 
     /**
      * @return true if the widget currently has the full note & notebook object with all the required stuff: note's resources,
@@ -434,6 +444,8 @@ private:
 
     bool                        m_noteTitleIsEdited;
     bool                        m_noteTitleHasBeenEdited;
+
+    bool                        m_isNewNote;
 };
 
 } // namespace quentier

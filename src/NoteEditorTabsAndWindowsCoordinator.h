@@ -83,7 +83,8 @@ public:
         };
     };
 
-    void addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any);
+    void addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any,
+                 const bool isNewNote = false);
 
     void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid,
                        const NoteEditorMode::type noteEditorMode);

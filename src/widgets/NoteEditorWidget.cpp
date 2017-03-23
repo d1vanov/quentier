@@ -93,7 +93,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_currentNoteWasExpunged(false),
     m_noteHasBeenModified(false),
     m_noteTitleIsEdited(false),
-    m_noteTitleHasBeenEdited(false)
+    m_noteTitleHasBeenEdited(false),
+    m_isNewNote(false)
 {
     m_pUi->setupUi(this);
 
@@ -149,9 +150,15 @@ QString NoteEditorWidget::noteLocalUid() const
     return m_noteLocalUid;
 }
 
-void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
+bool NoteEditorWidget::isNewNote() const
 {
-    QNDEBUG(QStringLiteral("NoteEditorWidget::setNoteLocalUid: ") << noteLocalUid);
+    return m_isNewNote;
+}
+
+void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool isNewNote)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setNoteLocalUid: ") << noteLocalUid
+            << QStringLiteral(", is new note = ") << (isNewNote ? QStringLiteral("true") : QStringLiteral("false")));
 
     m_noteLocalUid = noteLocalUid;
 
@@ -166,6 +173,8 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
         setupBlankEditor();
         return;
     }
+
+    m_isNewNote = isNewNote;
 
     const Note * pCachedNote = m_noteCache.get(noteLocalUid);
 
@@ -309,6 +318,12 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
 
     if (m_pCurrentNote.isNull()) {
         QNDEBUG(QStringLiteral("No note is set to the editor"));
+        return NoteSaveStatus::Ok;
+    }
+
+    if (m_pCurrentNote->hasDeletionTimestamp()) {
+        QNDEBUG(QStringLiteral("The note is deleted which means it just got deleted and the editor is closing => "
+                               "there is no need to save whatever is left in the editor for this note"));
         return NoteSaveStatus::Ok;
     }
 
@@ -1171,6 +1186,8 @@ void NoteEditorWidget::onNoteTitleUpdated()
     qevercloud::NoteAttributes & attributes = m_pCurrentNote->noteAttributes();
     attributes.noteTitleQuality.clear();
 
+    m_isNewNote = false;
+
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to update note due to note title update: request id = ") << requestId
@@ -1678,6 +1695,8 @@ void NoteEditorWidget::updateNoteInLocalStorage()
 
     qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
     m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
+
+    m_isNewNote = false;
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
