@@ -379,6 +379,16 @@ void NoteFiltersManager::onExpungeSavedSearchComplete(SavedSearch search, QUuid 
     }
 }
 
+void NoteFiltersManager::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NoteFiltersManager::onUpdateNoteComplete: note = ") << note
+            << QStringLiteral(", update resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", request id = ") << requestId);
+
+    m_noteFilterModel.invalidate();
+}
+
 void NoteFiltersManager::createConnections()
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::createConnections"));
@@ -427,6 +437,8 @@ void NoteFiltersManager::createConnections()
                      this, QNSLOT(NoteFiltersManager,onUpdateSavedSearchComplete,SavedSearch,QUuid));
     QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeSavedSearchComplete,SavedSearch,QUuid));
+    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+                     this, QNSLOT(NoteFiltersManager,onUpdateNoteComplete,Note,bool,bool,QUuid));
 }
 
 void NoteFiltersManager::evaluate()

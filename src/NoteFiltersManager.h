@@ -24,6 +24,7 @@
 #include <quentier/types/Tag.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SavedSearch.h>
+#include <quentier/types/Note.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <QObject>
 #include <QUuid>
@@ -94,6 +95,8 @@ private Q_SLOTS:
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
+
+    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
 
 private:
     void createConnections();

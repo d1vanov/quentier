@@ -91,6 +91,8 @@ void NoteListView::dataChanged(const QModelIndex & topLeft, const QModelIndex & 
 
 void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end)
 {
+    QNDEBUG(QStringLiteral("NoteListView::rowsAboutToBeRemoved: start = ") << start << QStringLiteral(", end = ") << end);
+
     QModelIndex current = currentIndex();
     if (current.isValid())
     {
