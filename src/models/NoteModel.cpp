@@ -552,7 +552,11 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     bool dirtyFlagChanged = (item.isDirty() != dirty);
     item.setDirty(dirty);
 
-    item.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    if ( (m_includedNotes != IncludedNotes::NonDeleted) ||
+         ((column != Columns::DeletionTimestamp) && (column != Columns::CreationTimestamp)) )
+    {
+        item.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    }
 
     index.replace(index.begin() + row, item);
 
