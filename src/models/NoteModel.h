@@ -305,6 +305,8 @@ private:
 
     void moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const Notebook & notebook);
 
+    void checkAndNotifyAllNotesListed();
+
 private:
     Account                 m_account;
     IncludedNotes::type     m_includedNotes;

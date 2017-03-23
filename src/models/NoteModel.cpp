@@ -905,15 +905,7 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
         return;
     }
 
-    if (m_findTagRequestForTagLocalUid.empty()) {
-        QNDEBUG(QStringLiteral("All notes listed and all tags found - notifying of all notes listed"));
-        m_allNotesListed = true;
-        emit notifyAllNotesListed();
-    }
-    else {
-        QNDEBUG(QStringLiteral("Still waiting for ") << m_findTagRequestForTagLocalUid.size()
-                << QStringLiteral(" find tag requests"));
-    }
+    checkAndNotifyAllNotesListed();
 }
 
 void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
@@ -988,6 +980,7 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
     {
         Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.right.erase(fit))
         updateNotebookData(notebook);
+        checkAndNotifyAllNotesListed();
     }
     else if (mit != m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap.right.end())
     {
@@ -1025,6 +1018,7 @@ void NoteModel::onFindNotebookFailed(Notebook notebook, ErrorString errorDescrip
     if (fit != m_findNotebookRequestForNotebookLocalUid.right.end())
     {
         Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.right.erase(fit))
+        checkAndNotifyAllNotesListed();
     }
     else if (mit != m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap.right.end())
     {
@@ -1080,12 +1074,7 @@ void NoteModel::onFindTagComplete(Tag tag, QUuid requestId)
     Q_UNUSED(m_findTagRequestForTagLocalUid.right.erase(it))
 
     updateTagData(tag);
-
-    if (!m_allNotesListed && m_findTagRequestForTagLocalUid.empty()) {
-        QNDEBUG(QStringLiteral("That was the last find tag request, notifying of all notes listed event"));
-        m_allNotesListed = true;
-        emit notifyAllNotesListed();
-    }
+    checkAndNotifyAllNotesListed();
 }
 
 void NoteModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -1099,14 +1088,8 @@ void NoteModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid req
               << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_findTagRequestForTagLocalUid.right.erase(it))
-
     emit notifyError(errorDescription);
-
-    if (!m_allNotesListed && m_findTagRequestForTagLocalUid.empty()) {
-        QNDEBUG(QStringLiteral("That was the last find tag request, notifying of all notes listed event"));
-        m_allNotesListed = true;
-        emit notifyAllNotesListed();
-    }
+    checkAndNotifyAllNotesListed();
 }
 
 void NoteModel::onAddTagComplete(Tag tag, QUuid requestId)
@@ -1983,6 +1966,37 @@ void NoteModel::moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const No
 
     updateItemRowWithRespectToSorting(*it);
     updateNoteInLocalStorage(item);
+}
+
+void NoteModel::checkAndNotifyAllNotesListed()
+{
+    QNDEBUG(QStringLiteral("NoteModel::checkAndNotifyAllNotesListed"));
+
+    if (m_allNotesListed) {
+        QNDEBUG(QStringLiteral("All notes are already listed"));
+        return;
+    }
+
+    if (!m_listNotesRequestId.isNull()) {
+        QNDEBUG(QStringLiteral("Not all notes have been listed yet"));
+        return;
+    }
+
+    if (!m_findNotebookRequestForNotebookLocalUid.empty()) {
+        QNDEBUG(QStringLiteral("Not all notebooks for notes have been found yet, currently waiting for ")
+                << m_findNotebookRequestForNotebookLocalUid.size() << QStringLiteral(" notebooks to be found"));
+        return;
+    }
+
+    if (!m_findTagRequestForTagLocalUid.empty()) {
+        QNDEBUG(QStringLiteral("Not all tags for notes have been found yet, currently waiting for ")
+                << m_findTagRequestForTagLocalUid.size() << QStringLiteral(" tags to be found"));
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("All the necessary data items were listed"));
+    m_allNotesListed = true;
+    emit notifyAllNotesListed();
 }
 
 void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
