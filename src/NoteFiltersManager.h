@@ -96,7 +96,9 @@ private Q_SLOTS:
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
 
+    void onAddNoteComplete(Note note, QUuid requestId);
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void onExpungeNoteComplete(Note note, QUuid requestId);
 
 private:
     void createConnections();

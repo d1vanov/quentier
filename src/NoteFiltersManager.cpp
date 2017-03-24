@@ -379,12 +379,28 @@ void NoteFiltersManager::onExpungeSavedSearchComplete(SavedSearch search, QUuid 
     }
 }
 
+void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NoteFiltersManager::onAddNoteComplete: note = ") << note
+            << QStringLiteral("\nRequest id = ") << requestId);
+
+    m_noteFilterModel.invalidate();
+}
+
 void NoteFiltersManager::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::onUpdateNoteComplete: note = ") << note
-            << QStringLiteral(", update resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral("\nUpdate resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", request id = ") << requestId);
+
+    m_noteFilterModel.invalidate();
+}
+
+void NoteFiltersManager::onExpungeNoteComplete(Note note, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NoteFiltersManager::onExpungeNoteComplete: note = ") << note
+            << QStringLiteral("\nRequest id = ") << requestId);
 
     m_noteFilterModel.invalidate();
 }
@@ -437,8 +453,12 @@ void NoteFiltersManager::createConnections()
                      this, QNSLOT(NoteFiltersManager,onUpdateSavedSearchComplete,SavedSearch,QUuid));
     QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeSavedSearchComplete,SavedSearch,QUuid));
+    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteFiltersManager,onAddNoteComplete,Note,QUuid));
     QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteFiltersManager,onUpdateNoteComplete,Note,bool,bool,QUuid));
+    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteFiltersManager,onExpungeNoteComplete,Note,QUuid));
 }
 
 void NoteFiltersManager::evaluate()
