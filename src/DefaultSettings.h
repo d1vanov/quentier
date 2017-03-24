@@ -16,7 +16,12 @@
 #define DEFAULT_TRAY_ICON_KIND QStringLiteral("colored")
 #endif
 
+#ifdef Q_WS_MAC
+#define DEFAULT_SINGLE_CLICK_TRAY_ACTION (SystemTrayIconManager::TrayActionDoNothing)
+#else
 #define DEFAULT_SINGLE_CLICK_TRAY_ACTION (SystemTrayIconManager::TrayActionShowContextMenu)
+#endif
+
 #define DEFAULT_MIDDLE_CLICK_TRAY_ACTION (SystemTrayIconManager::TrayActionShowHide)
 #define DEFAULT_DOUBLE_CLICK_TRAY_ACTION (SystemTrayIconManager::TrayActionDoNothing)
 
