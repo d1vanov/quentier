@@ -1186,6 +1186,9 @@ void NoteEditorWidget::onNoteTitleUpdated()
     qevercloud::NoteAttributes & attributes = m_pCurrentNote->noteAttributes();
     attributes.noteTitleQuality.clear();
 
+    qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
+    m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
+
     m_isNewNote = false;
 
     QUuid requestId = QUuid::createUuid();
