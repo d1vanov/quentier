@@ -1652,6 +1652,10 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
 
     // 2) Insert the replacement row
     beginInsertRows(parentItemIndex, row, row);
+
+    int numNotesPerTag = it->numNotesPerTag();
+    itemCopy.setNumNotesPerTag(numNotesPerTag);
+
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     Q_UNUSED(localUidIndex.replace(it, itemCopy))
     pParentItem->insertChild(row, pItem);

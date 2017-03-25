@@ -2827,6 +2827,9 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
         return;
     }
 
+    int numNotesPerNotebook = it->numNotesPerNotebook();
+    notebookItemCopy.setNumNotesPerNotebook(numNotesPerNotebook);
+
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     localUidIndex.replace(it, notebookItemCopy);
 
