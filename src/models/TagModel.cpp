@@ -1325,7 +1325,8 @@ void TagModel::onUpdateNoteComplete(Note note, bool updateResources, bool update
             << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", request id = ") << requestId);
 
-    requestTagsPerNote(note);
+    // Tags might have been removed from the note so need to re-request the note count for all tags
+    requestNoteCountForAllTags();
 }
 
 void TagModel::onExpungeNoteComplete(Note note, QUuid requestId)
