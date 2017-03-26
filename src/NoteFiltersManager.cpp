@@ -163,19 +163,14 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted(QStringList
             << noteLocalUids.join(QStringLiteral(", ")) << QStringLiteral(", note search query: ")
             << noteSearchQuery << QStringLiteral("\nRequest id = ") << requestId);
 
-    if (isRequestForSearchString)
-    {
-        m_noteFilterModel.setNoteLocalUids(noteLocalUids);
+    if (Q_UNLIKELY(!isRequestForSearchString && !m_filterBySavedSearchWidget.isEnabled())) {
+        QNDEBUG(QStringLiteral("Ignoring the update with note local uids for saved search because the filter "
+                               "by saved search widget is disabled which means filtering by saved search is overridden "
+                               "by filtering via search string"));
+        return;
     }
-    else // isRequestForSavedSearch
-    {
-        if (Q_UNLIKELY(!m_filterBySavedSearchWidget.isEnabled())) {
-            QNDEBUG(QStringLiteral("Ignoring the update with note local uids for saved search because the filter "
-                                   "by saved search widget is disabled which means filtering by saved search is overridden "
-                                   "by filtering via search string"));
-            return;
-        }
-    }
+
+    m_noteFilterModel.setNoteLocalUids(noteLocalUids);
 }
 
 void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuery noteSearchQuery,
