@@ -62,9 +62,13 @@ void FilterBySavedSearchWidget::switchAccount(const Account & account, SavedSear
     }
 
     m_pSavedSearchModel = pSavedSearchModel;
+
     if (!m_pSavedSearchModel.isNull() && !m_pSavedSearchModel->allSavedSearchesListed()) {
         QObject::connect(m_pSavedSearchModel.data(), QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
                          this, QNSLOT(FilterBySavedSearchWidget,onAllSavedSearchesListed));
+    }
+    else {
+        connectoToSavedSearchModel();
     }
 
     if (m_account == account) {
@@ -105,6 +109,7 @@ void FilterBySavedSearchWidget::onAllSavedSearchesListed()
 
     QObject::disconnect(m_pSavedSearchModel.data(), QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
                         this, QNSLOT(FilterBySavedSearchWidget,onAllSavedSearchesListed));
+    connectoToSavedSearchModel();
     restoreSelectedSavedSearch();
 }
 
@@ -257,6 +262,24 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
     m_availableSavedSearchesModel.setStringList(savedSearchNames);
     setCurrentIndex(index);
     m_settingCurrentIndex = false;
+}
+
+void FilterBySavedSearchWidget::connectoToSavedSearchModel()
+{
+    QNDEBUG(QStringLiteral("FilterBySavedSearchWidget::connectoToSavedSearchModel"));
+
+    QObject::connect(m_pSavedSearchModel.data(), QNSIGNAL(SavedSearchModel,rowsInserted,const QModelIndex&,int,int),
+                     this, QNSLOT(FilterBySavedSearchWidget,onModelRowsInserted,const QModelIndex&,int,int));
+    QObject::connect(m_pSavedSearchModel.data(), QNSIGNAL(SavedSearchModel,rowsRemoved,const QModelIndex&,int,int),
+                     this, QNSLOT(FilterBySavedSearchWidget,onModelRowsRemoved,const QModelIndex&,int,int));
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    QObject::connect(m_pSavedSearchModel.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                     this, SLOT(onModelDataChanged(QModelIndex,QModelIndex)));
+#else
+    QObject::connect(m_pSavedSearchModel.data(), &SavedSearchModel::dataChanged,
+                     this, &FilterBySavedSearchWidget::onModelDataChanged);
+#endif
 }
 
 } // namespace quentier

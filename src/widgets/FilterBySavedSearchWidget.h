@@ -61,6 +61,7 @@ private Q_SLOTS:
 
 private:
     void updateSavedSearchesInComboBox();
+    void connectoToSavedSearchModel();
 
 private:
     Account                     m_account;
