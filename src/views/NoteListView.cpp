@@ -339,6 +339,8 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
+    const NotebookModel * pNotebookModel = qobject_cast<const NotebookModel*>(m_pNotebookItemView->model());
+
     delete m_pNoteItemContextMenu;
     m_pNoteItemContextMenu = new QMenu(this);
 
@@ -351,10 +353,18 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
         menu->addAction(pAction); \
     }
 
-    const NotebookItem * pCurrentNotebookItem = currentNotebookItem();
+    const NotebookItem * pNotebookItem = Q_NULLPTR;
+    if (pNotebookModel)
+    {
+        QModelIndex notebookIndex = pNotebookModel->indexForLocalUid(pItem->notebookLocalUid());
+        const NotebookModelItem * pNotebookModelItem = pNotebookModel->itemForIndex(notebookIndex);
+        if (pNotebookModelItem && (pNotebookModelItem->type() == NotebookModelItem::Type::Notebook)) {
+            pNotebookItem = pNotebookModelItem->notebookItem();
+        }
+    }
 
-    bool canCreateNote = (pCurrentNotebookItem
-                          ? pCurrentNotebookItem->canCreateNotes()
+    bool canCreateNote = (pNotebookItem
+                          ? pNotebookItem->canCreateNotes()
                           : false);
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new note"), m_pNoteItemContextMenu,
@@ -369,24 +379,22 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
                             onDeleteNoteAction, pItem->localUid(),
                             !pItem->isSynchronizable());
 
-    bool canUpdateNote = (pCurrentNotebookItem
-                          ? pCurrentNotebookItem->canUpdateNotes()
+    bool canUpdateNote = (pNotebookItem
+                          ? pNotebookItem->canUpdateNotes()
                           : false);
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNoteItemContextMenu, onEditNoteAction,
                             pItem->localUid(), canUpdateNote);
 
-    if (pCurrentNotebookItem)
+    if (pNotebookItem)
     {
         QStringList otherNotebookNames;
-        const NotebookModel * pNotebookModel = qobject_cast<const NotebookModel*>(m_pNotebookItemView->model());
         if (pNotebookModel)
         {
             otherNotebookNames = pNotebookModel->notebookNames(NotebookModel::NotebookFilters(NotebookModel::NotebookFilter::CanCreateNotes));
-            const QString & currentNotebookName = pCurrentNotebookItem->name();
-            auto it = std::lower_bound(otherNotebookNames.constBegin(), otherNotebookNames.constEnd(),
-                                       currentNotebookName);
-            if ((it != otherNotebookNames.constEnd()) && (*it == currentNotebookName)) {
+            const QString & notebookName = pNotebookItem->name();
+            auto it = std::lower_bound(otherNotebookNames.constBegin(), otherNotebookNames.constEnd(), notebookName);
+            if ((it != otherNotebookNames.constEnd()) && (*it == notebookName)) {
                 int offset = static_cast<int>(std::distance(otherNotebookNames.constBegin(), it));
                 QStringList::iterator nit = otherNotebookNames.begin() + offset;
                 Q_UNUSED(otherNotebookNames.erase(nit))
