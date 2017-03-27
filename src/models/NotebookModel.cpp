@@ -17,6 +17,7 @@
  */
 
 #include "NotebookModel.h"
+#include "NoteModel.h"
 #include "NewItemNameGenerator.hpp"
 #include <quentier/logging/QuentierLogger.h>
 #include <QMimeData>
@@ -33,7 +34,8 @@ namespace quentier {
     QNWARNING(errorDescription << "" __VA_ARGS__ ); \
     emit notifyError(errorDescription)
 
-NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+NotebookModel::NotebookModel(const Account & account, const NoteModel & noteModel,
+                             LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                              NotebookCache & cache, QObject * parent) :
     ItemModel(parent),
     m_account(account),
@@ -55,12 +57,19 @@ NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadW
     m_findNotebookToRestoreFailedUpdateRequestIds(),
     m_findNotebookToPerformUpdateRequestIds(),
     m_noteCountPerNotebookRequestIds(),
+    m_notebookLocalUidByNoteLocalUid(),
+    m_receivedNotebookLocalUidsForAllNotes(false),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
     m_lastNewNotebookNameCounter(0),
     m_allNotebooksListed(false)
 {
-    createConnections(localStorageManagerThreadWorker);
+    createConnections(noteModel, localStorageManagerThreadWorker);
+
+    if (noteModel.allNotesListed()) {
+        buildNotebookLocalUidByNoteLocalUidsHash(noteModel);
+    }
+
     requestNotebooksList();
 }
 
@@ -1889,6 +1898,25 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
     return true;
 }
 
+void NotebookModel::onAllNotesListed()
+{
+    QNDEBUG(QStringLiteral("NotebookModel::onAllNotesListed"));
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(sender());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: received all notes listed event from some sender "
+                                                       "which is not an instance of NoteModel"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QObject::disconnect(pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
+                        this, QNSLOT(NotebookModel,onAllNotesListed));
+
+    buildNotebookLocalUidByNoteLocalUidsHash(*pNoteModel);
+}
+
 void NotebookModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NotebookModel::onAddNotebookComplete: notebook = ") << notebook << QStringLiteral("\nRequest id = ")
@@ -2157,6 +2185,10 @@ void NotebookModel::onAddNoteComplete(Note note, QUuid requestId)
 
     if (note.hasNotebookLocalUid())
     {
+        if (m_receivedNotebookLocalUidsForAllNotes) {
+            m_notebookLocalUidByNoteLocalUid[note.localUid()] = note.notebookLocalUid();
+        }
+
         bool res = onAddNoteWithNotebookLocalUid(note.notebookLocalUid());
         if (res) {
             return;
@@ -2176,11 +2208,7 @@ void NotebookModel::onAddNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QUuid noteCountPerNotebookRequestId = QUuid::createUuid();
-    Q_UNUSED(m_noteCountPerNotebookRequestIds.insert(noteCountPerNotebookRequestId))
-    QNTRACE(QStringLiteral("Emitting the request to get the note count per notebook: ") << notebook
-            << "\nRequest id = " << noteCountPerNotebookRequestId);
-    emit requestNoteCountPerNotebook(notebook, noteCountPerNotebookRequestId);
+    requestNoteCountForNotebook(notebook);
 }
 
 void NotebookModel::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -2190,11 +2218,51 @@ void NotebookModel::onUpdateNoteComplete(Note note, bool updateResources, bool u
             << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", request id = ") << requestId);
 
-    // FIXME: it is crappy but can't find a better solution... It is very unlikely that the update of note was moving it
-    // to another notebook but there is currently no way to find out for sure. So re-requesting the entire set of
-    // note counts per all notebooks to know for sure
+    if (!m_receivedNotebookLocalUidsForAllNotes || !note.hasNotebookLocalUid()) {
+        // It's quite unlikely the note update was about moving it to another notebook but as long as there's no way to
+        // check it at this point, will re-request the note count for all notebooks
+        requestNoteCountForAllNotebooks();
+        return;
+    }
 
-    requestNoteCountForAllNotebooks();
+    const QString & newNotebookLocalUid = note.notebookLocalUid();
+
+    QString oldNotebookLocalUid;
+    auto it = m_notebookLocalUidByNoteLocalUid.find(note.localUid());
+    if (it != m_notebookLocalUidByNoteLocalUid.end()) {
+        oldNotebookLocalUid = it.value();
+    }
+
+    if (oldNotebookLocalUid == newNotebookLocalUid) {
+        QNDEBUG(QStringLiteral("The note's notebook local uid hasn't changed: ") << oldNotebookLocalUid);
+        return;
+    }
+
+    // Update the note local uid to notebook local uid hash at this point because we might need to return early further
+    if (it != m_notebookLocalUidByNoteLocalUid.end()) {
+        it.value() = newNotebookLocalUid;
+    }
+    else {
+        m_notebookLocalUidByNoteLocalUid[note.localUid()] = newNotebookLocalUid;
+    }
+
+    if (oldNotebookLocalUid.isEmpty()) {
+        QNDEBUG(QStringLiteral("Can't determine the previous notebook of this note, fallback to re-requesting the note counts "
+                               "for all notebooks"));
+        requestNoteCountForAllNotebooks();
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("The note's notebook local uid has changed: was ") << oldNotebookLocalUid
+            << QStringLiteral(", now ") << newNotebookLocalUid);
+
+    Notebook oldNotebook;
+    oldNotebook.setLocalUid(oldNotebookLocalUid);
+    requestNoteCountForNotebook(oldNotebook);
+
+    Notebook newNotebook;
+    newNotebook.setLocalUid(newNotebookLocalUid);
+    requestNoteCountForNotebook(newNotebook);
 }
 
 void NotebookModel::onExpungeNoteComplete(Note note, QUuid requestId)
@@ -2202,7 +2270,21 @@ void NotebookModel::onExpungeNoteComplete(Note note, QUuid requestId)
     QNDEBUG(QStringLiteral("NotebookModel::onExpungeNoteComplete: note = ") << note
             << QStringLiteral("\nRequest id = ") << requestId);
 
+    QString notebookLocalUid;
     if (note.hasNotebookLocalUid())
+    {
+        notebookLocalUid = note.notebookLocalUid();
+    }
+    else if (m_receivedNotebookLocalUidsForAllNotes)
+    {
+        auto it = m_notebookLocalUidByNoteLocalUid.find(note.localUid());
+        if (it != m_notebookLocalUidByNoteLocalUid.end()) {
+            notebookLocalUid = it.value();
+            Q_UNUSED(m_notebookLocalUidByNoteLocalUid.erase(it))
+        }
+    }
+
+    if (!notebookLocalUid.isEmpty())
     {
         bool res = onExpungeNoteWithNotebookLocalUid(note.notebookLocalUid());
         if (res) {
@@ -2211,8 +2293,8 @@ void NotebookModel::onExpungeNoteComplete(Note note, QUuid requestId)
     }
 
     Notebook notebook;
-    if (note.hasNotebookLocalUid()) {
-        notebook.setLocalUid(note.notebookLocalUid());
+    if (!notebookLocalUid.isEmpty()) {
+        notebook.setLocalUid(notebookLocalUid);
     }
     else if (note.hasNotebookGuid()) {
         notebook.setGuid(note.notebookGuid());
@@ -2223,16 +2305,17 @@ void NotebookModel::onExpungeNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QUuid noteCountPerNotebookRequestId = QUuid::createUuid();
-    Q_UNUSED(m_noteCountPerNotebookRequestIds.insert(noteCountPerNotebookRequestId))
-    QNTRACE(QStringLiteral("Emitting the request to get the note count per notebook: ") << notebook
-            << "\nRequest id = " << noteCountPerNotebookRequestId);
-    emit requestNoteCountPerNotebook(notebook, noteCountPerNotebookRequestId);
+    requestNoteCountForNotebook(notebook);
 }
 
-void NotebookModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
+void NotebookModel::createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
 {
     QNDEBUG(QStringLiteral("NotebookModel::createConnections"));
+
+    if (!noteModel.allNotesListed()) {
+        QObject::connect(&noteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
+                         this, QNSLOT(NotebookModel,onAllNotesListed));
+    }
 
     // Local signals to localStorageManagerThreadWorker's slots
     QObject::connect(this, QNSIGNAL(NotebookModel,addNotebook,Notebook,QUuid),
@@ -3291,6 +3374,37 @@ void NotebookModel::beginRemoveNotebooks()
 void NotebookModel::endRemoveNotebooks()
 {
     emit removedNotebooks();
+}
+
+void NotebookModel::buildNotebookLocalUidByNoteLocalUidsHash(const NoteModel & noteModel)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::buildNotebookLocalUidByNoteLocalUidsHash"));
+
+    m_notebookLocalUidByNoteLocalUid.clear();
+
+    int numNotes = noteModel.rowCount(QModelIndex());
+    for(int i = 0; i < numNotes; ++i)
+    {
+        const NoteModelItem * pNoteModelItem = noteModel.itemAtRow(i);
+        if (Q_UNLIKELY(!pNoteModelItem)) {
+            QNWARNING(QStringLiteral("Can't find note model item at row ") << i << QStringLiteral(" even though there are ")
+                      << numNotes << QStringLiteral(" rows within the model"));
+            continue;
+        }
+
+        const QString & notebookLocalUid = pNoteModelItem->notebookLocalUid();
+        if (Q_UNLIKELY(notebookLocalUid.isEmpty())) {
+            QNWARNING(QStringLiteral("Found note model item without notebook local uid: ") << *pNoteModelItem);
+            continue;
+        }
+
+        QNTRACE(QStringLiteral("Notebook local uid for note local uid ") << pNoteModelItem->localUid()
+                << QStringLiteral(": ") << notebookLocalUid);
+
+        m_notebookLocalUidByNoteLocalUid[pNoteModelItem->localUid()] = notebookLocalUid;
+    }
+
+    m_receivedNotebookLocalUidsForAllNotes = true;
 }
 
 const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const

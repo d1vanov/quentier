@@ -28,6 +28,7 @@
 #include <QUuid>
 #include <QSet>
 #include <QMap>
+#include <QHash>
 #include <QFlags>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
@@ -43,11 +44,13 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(NoteModel)
+
 class NotebookModel: public ItemModel
 {
     Q_OBJECT
 public:
-    explicit NotebookModel(const Account & account,
+    explicit NotebookModel(const Account & account, const NoteModel & noteModel,
                            LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                            NotebookCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~NotebookModel();
@@ -284,6 +287,8 @@ Q_SIGNALS:
     void requestNoteCountPerNotebook(Notebook notebook, QUuid requestId);
 
 private Q_SLOTS:
+    void onAllNotesListed();
+
     // Slots for response to events from local storage
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
     void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
@@ -313,7 +318,7 @@ private Q_SLOTS:
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
 private:
-    void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestNotebooksList();
     void requestNoteCountForNotebook(const Notebook & notebook);
     void requestNoteCountForAllNotebooks();
@@ -355,6 +360,8 @@ private:
 
     void beginRemoveNotebooks();
     void endRemoveNotebooks();
+
+    void buildNotebookLocalUidByNoteLocalUidsHash(const NoteModel & noteModel);
 
 private:
     struct ByLocalUid{};
@@ -475,6 +482,9 @@ private:
     QSet<QUuid>             m_findNotebookToPerformUpdateRequestIds;
 
     QSet<QUuid>             m_noteCountPerNotebookRequestIds;
+
+    QHash<QString, QString> m_notebookLocalUidByNoteLocalUid;
+    bool                    m_receivedNotebookLocalUidsForAllNotes;
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
