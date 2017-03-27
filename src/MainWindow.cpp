@@ -3055,15 +3055,15 @@ void MainWindow::setupModels()
 
     clearModels();
 
+    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
+                                 m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
     m_pFavoritesModel = new FavoritesModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
                                            m_notebookCache, m_tagCache, m_savedSearchCache, this);
     m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager,
                                          m_notebookCache, this);
-    m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManager, m_tagCache, this);
+    m_pTagModel = new TagModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManager, m_tagCache, this);
     m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager,
                                                m_savedSearchCache, this);
-    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
-                                 m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
     m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
                                          m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
 

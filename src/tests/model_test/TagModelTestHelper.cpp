@@ -18,6 +18,7 @@
 
 #include "TagModelTestHelper.h"
 #include "../../models/TagModel.h"
+#include "../../models/NoteModel.h"
 #include "modeltest.h"
 #include "TestMacros.h"
 #include <quentier/utility/SysInfo.h>
@@ -159,7 +160,11 @@ void TagModelTestHelper::test()
         TagCache cache(20);
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        TagModel * model = new TagModel(account, *m_pLocalStorageManagerThreadWorker, cache, this);
+        NoteCache noteCache(10);
+        NotebookCache notebookCache(5);
+        NoteModel noteModel(account, *m_pLocalStorageManagerThreadWorker, noteCache, notebookCache);
+
+        TagModel * model = new TagModel(account, noteModel, *m_pLocalStorageManagerThreadWorker, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

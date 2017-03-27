@@ -30,6 +30,8 @@
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
+#include <QHash>
+#include <QStringList>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -44,11 +46,14 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(NoteModel)
+
 class TagModel: public ItemModel
 {
     Q_OBJECT
 public:
-    explicit TagModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit TagModel(const Account & account, const NoteModel & noteModel,
+                      LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                       TagCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~TagModel();
 
@@ -240,6 +245,9 @@ Q_SIGNALS:
                             QUuid requestId);
 
 private Q_SLOTS:
+    // Slot for NoteModel's notifyAllNotesListed signal
+    void onAllNotesListed();
+
     // Slots for response to events from local storage
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
@@ -286,7 +294,7 @@ private Q_SLOTS:
                                     ErrorString errorDescription, QUuid requestId);
 
 private:
-    void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestTagsList();
     void requestNoteCountForTag(const Tag & tag);
     void requestTagsPerNote(const Note & note);
@@ -318,6 +326,8 @@ private:
 
     void beginRemoveTags();
     void endRemoveTags();
+
+    void buildTagLocalUidsByNoteLocalUidsHash(const NoteModel & noteModel);
 
 private:
     struct ByLocalUid{};
@@ -418,6 +428,9 @@ private:
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
+
+    QHash<QString, QStringList>     m_tagLocalUidsByNoteLocalUid;
+    bool                            m_receivedTagLocalUidsForAllNotes;
 
     struct Restrictions
     {
