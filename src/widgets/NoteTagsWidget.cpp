@@ -619,61 +619,18 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
     }
 }
 
-void NoteTagsWidget::onExpungeTagComplete(Tag tag, QUuid requestId)
+void NoteTagsWidget::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
+    QNDEBUG(QStringLiteral("NoteTagsWidget::onExpungeTagComplete: tag = ") << tag
+            << QStringLiteral("\nRequest id = ") << requestId);
+
     Q_UNUSED(requestId)
 
-    int tagIndex = m_lastDisplayedTagLocalUids.indexOf(tag.localUid());
-    if (tagIndex < 0) {
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onExpungeTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ") << requestId);
-
-    m_lastDisplayedTagLocalUids.removeAt(tagIndex);
-
-    QString tagName;
-
-    auto it = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
-    if (Q_UNLIKELY(it == m_currentNoteTagLocalUidToNameBimap.left.end()))
-    {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Detected the expunge of a tag, however, its name cannot be found"));
-        QNWARNING(errorDescription << QStringLiteral(", tag = ") << tag);
-
-        if (!tag.hasName()) {
-            emit notifyError(errorDescription);
-            return;
-        }
-
-        tagName = tag.name();
-    }
-    else
-    {
-        tagName = it->second;
-    }
-
-    // Need to find the note tag widget responsible for this tag and remove it from the layout
-    int numItems = m_pLayout->count();
-    for(int i = 0; i < numItems; ++i)
-    {
-        QLayoutItem * pItem = m_pLayout->itemAt(i);
-        if (Q_UNLIKELY(!pItem)) {
-            continue;
-        }
-
-        ListItemWidget * pNoteTagWidget = qobject_cast<ListItemWidget*>(pItem->widget());
-        if (!pNoteTagWidget) {
-            continue;
-        }
-
-        if (pNoteTagWidget->name() != tagName) {
-            continue;
-        }
-
-        pItem = m_pLayout->takeAt(i);
-        pItem->widget()->hide();
-        pItem->widget()->deleteLater();
-        break;
+    QStringList expungedTagLocalUids;
+    expungedTagLocalUids << tag.localUid();
+    expungedTagLocalUids << expungedChildTagLocalUids;
+    for(auto it = expungedTagLocalUids.constBegin(), end = expungedTagLocalUids.constEnd(); it != end; ++it) {
+        removeTagWidgetFromLayout(*it);
     }
 }
 
@@ -886,6 +843,55 @@ void NoteTagsWidget::removeNewTagWidgetFromLayout()
     }
 }
 
+void NoteTagsWidget::removeTagWidgetFromLayout(const QString & tagLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteTagsWidget::removeTagWidgetFromLayout: tag local uid = ") << tagLocalUid);
+
+    int tagIndex = m_lastDisplayedTagLocalUids.indexOf(tagLocalUid);
+    if (tagIndex < 0) {
+        QNDEBUG(QStringLiteral("This tag local uid is not listed within the ones displayed"));
+        return;
+    }
+
+    m_lastDisplayedTagLocalUids.removeAt(tagIndex);
+
+    QString tagName;
+
+    auto it = m_currentNoteTagLocalUidToNameBimap.left.find(tagLocalUid);
+    if (Q_UNLIKELY(it == m_currentNoteTagLocalUidToNameBimap.left.end())) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Detected the expunge of a tag, however, its name cannot be found"));
+        QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    tagName = it->second;
+
+    // Need to find the note tag widget responsible for this tag and remove it from the layout
+    int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        ListItemWidget * pNoteTagWidget = qobject_cast<ListItemWidget*>(pItem->widget());
+        if (!pNoteTagWidget) {
+            continue;
+        }
+
+        if (pNoteTagWidget->name() != tagName) {
+            continue;
+        }
+
+        pItem = m_pLayout->takeAt(i);
+        pItem->widget()->hide();
+        pItem->widget()->deleteLater();
+        break;
+    }
+}
+
 void NoteTagsWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
 {
     QNDEBUG(QStringLiteral("NoteTagsWidget::createConnections"));
@@ -903,8 +909,8 @@ void NoteTagsWidget::createConnections(LocalStorageManagerThreadWorker & localSt
                      this, QNSLOT(NoteTagsWidget,onExpungeNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
-                     this, QNSLOT(NoteTagsWidget,onExpungeTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onExpungeTagComplete,Tag,QStringList,QUuid));
 
     // Connect local signals to local storage slots
     QObject::connect(this, QNSIGNAL(NoteTagsWidget,updateNote,Note,bool,bool,QUuid),

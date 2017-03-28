@@ -91,7 +91,7 @@ private Q_SLOTS:
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);

@@ -214,7 +214,7 @@ private Q_SLOTS:
                           LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection,
                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
     // For saved searches:
     void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
@@ -411,9 +411,6 @@ private:
 
     QHash<QString, QStringList>     m_tagLocalUidsByNoteLocalUid;
     bool                            m_receivedTagLocalUidsForAllNotes;
-
-    QHash<QString, QStringList>     m_tagLocalUidToChildLocalUids;
-    QHash<QString, QString>         m_tagLocalUidToParentLocalUid;
 
     LocalUidToRequestIdBimap        m_notebookLocalUidToNoteCountRequestIdBimap;
     LocalUidToRequestIdBimap        m_tagLocalUidToNoteCountRequestIdBimap;

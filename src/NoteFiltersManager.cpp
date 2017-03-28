@@ -280,38 +280,50 @@ void NoteFiltersManager::onUpdateTagComplete(Tag tag, QUuid requestId)
     }
 }
 
-void NoteFiltersManager::onExpungeTagComplete(Tag tag, QUuid requestId)
+void NoteFiltersManager::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::onExpungeTagComplete: tag = ") << tag
-            << QStringLiteral("\nRequest id = ") << requestId);
+            << QStringLiteral("\nExpunged child tag local uids: ") << expungedChildTagLocalUids.join(QStringLiteral(", "))
+            << QStringLiteral(", request id = ") << requestId);
 
-    auto it = m_filteredTagLocalUids.find(tag.localUid());
-    if (it != m_filteredTagLocalUids.end())
+    QStringList expungedTagLocalUids;
+    expungedTagLocalUids << tag.localUid();
+    expungedTagLocalUids << expungedChildTagLocalUids;
+
+    bool filteredTagsChanged = false;
+    for(auto it = expungedTagLocalUids.constBegin(), end = expungedTagLocalUids.constEnd(); it != end; ++it)
     {
-        QNDEBUG(QStringLiteral("One of tags within the filter was expunged"));
-
-        Q_UNUSED(m_filteredTagLocalUids.erase(it))
-
-        if (!m_filterByTagWidget.isEnabled()) {
-            QNDEBUG(QStringLiteral("The filter by tags is overridden by either search string or filter by saved search"));
-            return;
+        auto tagIt = m_filteredTagLocalUids.find(*it);
+        if (tagIt != m_filteredTagLocalUids.end()) {
+            Q_UNUSED(m_filteredTagLocalUids.erase(tagIt))
+            filteredTagsChanged = true;
         }
-
-        const TagModel * pTagModel = m_filterByTagWidget.tagModel();
-        if (Q_UNLIKELY(!pTagModel)) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't update the filter by tags: no tag model within FilterByTagWidget"));
-            QNWARNING(error);
-            emit notifyError(error);
-            m_noteFilterModel.setTagNames(QStringList());
-            return;
-        }
-
-        QStringList tagNames = tagNamesFromLocalUids(*pTagModel);
-        QNTRACE(QStringLiteral("Tag names to be used for filtering: ")
-                << tagNames.join(QStringLiteral(", ")));
-
-        m_noteFilterModel.setTagNames(tagNames);
     }
+
+    if (!filteredTagsChanged) {
+        QNDEBUG(QStringLiteral("None of expunged tags seem to appear within the list of filtered tags"));
+        return;
+    }
+
+    if (!m_filterByTagWidget.isEnabled()) {
+        QNDEBUG(QStringLiteral("The filter by tags is overridden by either search string or filter by saved search"));
+        return;
+    }
+
+    const TagModel * pTagModel = m_filterByTagWidget.tagModel();
+    if (Q_UNLIKELY(!pTagModel)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't update the filter by tags: no tag model within FilterByTagWidget"));
+        QNWARNING(error);
+        emit notifyError(error);
+        m_noteFilterModel.setTagNames(QStringList());
+        return;
+    }
+
+    QStringList tagNames = tagNamesFromLocalUids(*pTagModel);
+    QNTRACE(QStringLiteral("Tag names to be used for filtering: ")
+            << tagNames.join(QStringLiteral(", ")));
+
+    m_noteFilterModel.setTagNames(tagNames);
 }
 
 void NoteFiltersManager::onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId)
@@ -442,8 +454,8 @@ void NoteFiltersManager::createConnections()
                      this, QNSLOT(NoteFiltersManager,onExpungeNotebookComplete,Notebook,QUuid));
     QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteFiltersManager,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onExpungeTagComplete,Tag,QUuid));
+    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+                     this, QNSLOT(NoteFiltersManager,onExpungeTagComplete,Tag,QStringList,QUuid));
     QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(NoteFiltersManager,onUpdateSavedSearchComplete,SavedSearch,QUuid));
     QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),

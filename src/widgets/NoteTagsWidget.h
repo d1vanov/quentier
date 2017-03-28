@@ -97,7 +97,7 @@ private Q_SLOTS:
 
     // Slots for tag events: updating and expunging
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
 private:
     void clearLayout(const bool skipNewTagWidget = false);
@@ -106,6 +106,7 @@ private:
     void addTagIconToLayout();
     void addNewTagWidgetToLayout();
     void removeNewTagWidgetFromLayout();
+    void removeTagWidgetFromLayout(const QString & tagLocalUid);
 
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
 

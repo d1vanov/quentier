@@ -42,7 +42,7 @@ public:
 
 private Q_SLOTS:
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
-    void onExpungeTagCompleted(Tag tag, QUuid requestId);
+    void onExpungeTagCompleted(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
     void onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId);
 
 private:

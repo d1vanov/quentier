@@ -1144,9 +1144,11 @@ void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
     emit notifyError(errorDescription);
 }
 
-void TagModel::onExpungeTagComplete(Tag tag, QUuid requestId)
+void TagModel::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("TagModel::onExpungeTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("TagModel::onExpungeTagComplete: tag = ") << tag
+            << QStringLiteral("\nExpunged child tag local uids: ") << expungedChildTagLocalUids.join(QStringLiteral(", "))
+            << QStringLiteral(", request id = ") << requestId);
 
     auto it = m_expungeTagRequestIds.find(requestId);
     if (it != m_expungeTagRequestIds.end()) {
@@ -1155,7 +1157,7 @@ void TagModel::onExpungeTagComplete(Tag tag, QUuid requestId)
     }
 
     emit aboutToRemoveTags();
-    removeItemByLocalUid(tag.localUid());
+    removeItemByLocalUid(tag.localUid());   // NOTE: all child items would be removed from the model automatically
     emit removedTags();
 }
 
@@ -1594,8 +1596,8 @@ void TagModel::createConnections(const NoteModel & noteModel, LocalStorageManage
                                                                 QString,ErrorString,QUuid),
                      this, QNSLOT(TagModel,onListTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                   LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
-                     this, QNSLOT(TagModel,onExpungeTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+                     this, QNSLOT(TagModel,onExpungeTagComplete,Tag,QStringList,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(TagModel,onExpungeTagFailed,Tag,ErrorString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagComplete,int,Tag,QUuid),

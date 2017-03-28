@@ -265,7 +265,7 @@ private Q_SLOTS:
                           LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection,
                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
     void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
     void onNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);

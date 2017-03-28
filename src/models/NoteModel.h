@@ -214,7 +214,7 @@ private Q_SLOTS:
     void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
@@ -223,6 +223,7 @@ private:
     QVariant dataImpl(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
+    void processTagExpunging(const QString & tagLocalUid);
     void removeItemByLocalUid(const QString & localUid);
     void updateItemRowWithRespectToSorting(const NoteModelItem & item);
     void updateNoteInLocalStorage(const NoteModelItem & item, const bool updateTags = false);
@@ -303,6 +304,8 @@ private:
     void checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid, const NotebookData & notebookData);
     void addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & notebookData);
 
+    void findTagNamesForItem(NoteModelItem & item);
+
     void moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const Notebook & notebook);
 
     void checkAndNotifyAllNotesListed();
@@ -338,6 +341,7 @@ private:
     LocalUidToRequestIdBimap            m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap;
 
     QHash<QString, TagData>             m_tagDataByTagLocalUid;
+
     LocalUidToRequestIdBimap            m_findTagRequestForTagLocalUid;
     QMultiHash<QString, QString>        m_tagLocalUidToNoteLocalUid;
 
