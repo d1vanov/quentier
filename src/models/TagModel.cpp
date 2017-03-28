@@ -2895,7 +2895,11 @@ void TagModel::updateTagInLocalStorage(const TagModelItem & item)
     {
         Q_UNUSED(m_updateTagRequestIds.insert(requestId));
 
-        QNTRACE(QStringLiteral("Emitting the request to update the tag in the local storage: id = ") << requestId
+        // While the tag is being updated in the local storage,
+        // remove its stale copy from the cache
+        Q_UNUSED(m_cache.remove(tag.localUid()))
+
+        QNTRACE(QStringLiteral("Emitting the request to update tag in the local storage: id = ") << requestId
                 << QStringLiteral(", tag: ") << tag);
         emit updateTag(tag, requestId);
     }

@@ -792,10 +792,23 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
         Q_UNUSED(m_updateNoteRequestIds.erase(it))
+        m_cache.put(note.localUid(), note);
         return;
     }
 
-    if (!shouldRemoveNoteFromModel) {
+    if (!shouldRemoveNoteFromModel)
+    {
+        if (!updateTags)
+        {
+            const NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+            auto noteItemIt = localUidIndex.find(note.localUid());
+            if (noteItemIt != localUidIndex.end()) {
+                const NoteModelItem & item = *noteItemIt;
+                note.setTagGuids(item.tagGuids());
+                note.setTagLocalUids(item.tagLocalUids());
+            }
+        }
+
         onNoteAddedOrUpdated(note);
     }
 }
@@ -1145,9 +1158,9 @@ void NoteModel::onExpungeTagComplete(Tag tag, QUuid requestId)
         }
 
         NoteModelItem item = *noteItemIt;
-
         item.removeTagGuid(tagGuid);
         item.removeTagName(tagName);
+        item.removeTagLocalUid(tag.localUid());
 
         Q_UNUSED(localUidIndex.replace(noteItemIt, item))
         ++noteIt;
@@ -1155,6 +1168,8 @@ void NoteModel::onExpungeTagComplete(Tag tag, QUuid requestId)
         QModelIndex modelIndex = indexForLocalUid(item.localUid());
         modelIndex = createIndex(modelIndex.row(), Columns::TagNameList);
         emit dataChanged(modelIndex, modelIndex);
+
+        updateNoteInLocalStorage(item, /* update tags = */ true);
     }
 }
 
@@ -1482,9 +1497,11 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
     endInsertRows();
 }
 
-void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
+void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item, const bool updateTags)
 {
-    QNDEBUG(QStringLiteral("NoteModel::updateNoteInLocalStorage: local uid = ") << item.localUid());
+    QNDEBUG(QStringLiteral("NoteModel::updateNoteInLocalStorage: local uid = ")
+            << item.localUid() << QStringLiteral(", update tags = ")
+            << (updateTags ? QStringLiteral("true") : QStringLiteral("false")));
 
     Note note;
 
@@ -1538,9 +1555,13 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
     {
         Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
 
+        // While the note is being updated in the local storage,
+        // remove its stale copy from the cache
+        Q_UNUSED(m_cache.remove(note.localUid()))
+
         QNTRACE(QStringLiteral("Emitting the request to update the note in local storage: id = ") << requestId
                 << QStringLiteral(", note: ") << note);
-        emit updateNote(note, /* update resources = */ false, /* update tags = */ false, requestId);
+        emit updateNote(note, /* update resources = */ false, /* update tags = */ updateTags, requestId);
     }
 }
 
@@ -1740,9 +1761,10 @@ void NoteModel::checkAddedNoteItemsPendingNotebookData(const QString & notebookL
 
 void NoteModel::onNoteAddedOrUpdated(const Note & note)
 {
-    m_cache.put(note.localUid(), note);
+    QNDEBUG(QStringLiteral("NoteModel::onNoteAddedOrUpdated: note local uid = ")
+            << note.localUid());
 
-    QNDEBUG(QStringLiteral("NoteModel::onNoteAddedOrUpdated: note local uid = ") << note.localUid());
+    m_cache.put(note.localUid(), note);
 
     if (!note.hasNotebookLocalUid()) {
         QNWARNING(QStringLiteral("Skipping the note not having the notebook local uid: ") << note);

@@ -18,6 +18,7 @@
 
 #include "FavoritesModelTestHelper.h"
 #include "../../models/FavoritesModel.h"
+#include "../../models/NoteModel.h"
 #include "modeltest.h"
 #include "TestMacros.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -270,8 +271,10 @@ void FavoritesModelTestHelper::launchTest()
 
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        FavoritesModel * model = new FavoritesModel(account, *m_pLocalStorageManagerThreadWorker, noteCache,
-                                                    notebookCache, tagCache, savedSearchCache, this);
+        NoteModel noteModel(account, *m_pLocalStorageManagerThreadWorker, noteCache, notebookCache);
+
+        FavoritesModel * model = new FavoritesModel(account, noteModel, *m_pLocalStorageManagerThreadWorker,
+                                                    noteCache, notebookCache, tagCache, savedSearchCache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

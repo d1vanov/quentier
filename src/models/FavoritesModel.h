@@ -48,11 +48,14 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(NoteModel)
+
 class FavoritesModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit FavoritesModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit FavoritesModel(const Account & account, const NoteModel & noteModel,
+                            LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                             NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                             SavedSearchCache & savedSearchCache, QObject * parent = Q_NULLPTR);
     virtual ~FavoritesModel();
@@ -155,6 +158,8 @@ Q_SIGNALS:
     void noteCountPerTag(Tag tag, QUuid requestId);
 
 private Q_SLOTS:
+    void onAllNotesListed();
+
     // Slots for response to events from local storage
 
     // For notes:
@@ -236,7 +241,7 @@ private Q_SLOTS:
     void onNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
 
 private:
-    void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestNotesList();
     void requestNotebooksList();
     void requestTagsList();
@@ -299,6 +304,9 @@ private:
     void updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column);
 
     void checkAllItemsListed();
+
+    void buildTagLocalUidsByNoteLocalUidsHash(const NoteModel & noteModel);
+    void buildNotebookLocalUidByNoteLocalUidsHash(const NoteModel & noteModel);
 
 private:
     struct ByLocalUid{};
@@ -397,9 +405,13 @@ private:
 
     QHash<QString, QString> m_tagLocalUidToLinkedNotebookGuid;
     QHash<QString, QString> m_notebookLocalUidToGuid;
-    QHash<QString, QString> m_noteLocalUidToNotebookLocalUid;
 
-    QHash<QString, QStringList>     m_noteLocalUidToTagLocalUids;
+    QHash<QString, QString> m_notebookLocalUidByNoteLocalUid;
+    bool                    m_receivedNotebookLocalUidsForAllNotes;
+
+    QHash<QString, QStringList>     m_tagLocalUidsByNoteLocalUid;
+    bool                            m_receivedTagLocalUidsForAllNotes;
+
     QHash<QString, QStringList>     m_tagLocalUidToChildLocalUids;
     QHash<QString, QString>         m_tagLocalUidToParentLocalUid;
 

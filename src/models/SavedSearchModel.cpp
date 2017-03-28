@@ -1247,6 +1247,11 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
     else
     {
         Q_UNUSED(m_updateSavedSearchRequestIds.insert(requestId));
+
+        // While the saved search is being updated in the local storage,
+        // remove its stale copy from the cache
+        Q_UNUSED(m_cache.remove(savedSearch.localUid()))
+
         emit updateSavedSearch(savedSearch, requestId);
 
         QNTRACE(QStringLiteral("Emitted the request to update the saved search in the local storage: id = ") << requestId

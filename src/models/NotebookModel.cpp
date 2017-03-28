@@ -2663,20 +2663,24 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     if (notYetSavedItemIt != m_notebookItemsNotYetInLocalStorageUids.end())
     {
         Q_UNUSED(m_addNotebookRequestIds.insert(requestId))
-        emit addNotebook(notebook, requestId);
 
-        QNTRACE(QStringLiteral("Emitted the request to add the notebook to local storage: id = ") << requestId
-                << QStringLiteral(", notebook = ") << notebook);
+        QNTRACE(QStringLiteral("Emitting the request to add the notebook to local storage: id = ")
+                << requestId << QStringLiteral(", notebook = ") << notebook);
+        emit addNotebook(notebook, requestId);
 
         Q_UNUSED(m_notebookItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
     }
     else
     {
         Q_UNUSED(m_updateNotebookRequestIds.insert(requestId))
-        emit updateNotebook(notebook, requestId);
 
-        QNTRACE(QStringLiteral("Emitted the request to update the notebook in the local storage: id = ") << requestId
-                << QStringLiteral(", notebook = ") << notebook);
+        // While the notebook is being updated in the local storage,
+        // remove its stale copy from the cache
+        Q_UNUSED(m_cache.remove(notebook.localUid()))
+
+        QNTRACE(QStringLiteral("Emitting the request to update notebook in the local storage: id = ")
+                << requestId << QStringLiteral(", notebook = ") << notebook);
+        emit updateNotebook(notebook, requestId);
     }
 }
 
