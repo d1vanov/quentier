@@ -402,6 +402,7 @@ private:
     ColumnChangeRerouter *  m_pNotebookModelColumnChangeRerouter;
     ColumnChangeRerouter *  m_pTagModelColumnChangeRerouter;
     ColumnChangeRerouter *  m_pNoteModelColumnChangeRerouter;
+    ColumnChangeRerouter *  m_pFavoritesModelColumnChangeRerouter;
 
     NoteModel *             m_pDeletedNotesModel;
     FavoritesModel *        m_pFavoritesModel;

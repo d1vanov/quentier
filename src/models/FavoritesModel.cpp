@@ -2942,6 +2942,8 @@ void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, con
         if (Q_LIKELY(itemIndexIt != rowIndex.end())) {
             int row = static_cast<int>(std::distance(rowIndex.begin(), itemIndexIt));
             QModelIndex modelIndex = createIndex(row, column);
+            QNTRACE(QStringLiteral("Emitting dataChanged signal for row ") << row
+                    << QStringLiteral(" and column ") << column);
             emit dataChanged(modelIndex, modelIndex);
             return;
         }

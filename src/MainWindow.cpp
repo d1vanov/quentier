@@ -155,6 +155,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                                                              TagModel::Columns::Name, this)),
     m_pNoteModelColumnChangeRerouter(new ColumnChangeRerouter(NoteModel::Columns::PreviewText,
                                                               NoteModel::Columns::Title, this)),
+    m_pFavoritesModelColumnChangeRerouter(new ColumnChangeRerouter(FavoritesModel::Columns::NumNotesTargeted,
+                                                                   FavoritesModel::Columns::DisplayName, this)),
     m_pDeletedNotesModel(Q_NULLPTR),
     m_pFavoritesModel(Q_NULLPTR),
     m_blankModel(),
@@ -3087,6 +3089,7 @@ void MainWindow::setupModels()
     m_pNotebookModelColumnChangeRerouter->setModel(m_pNotebookModel);
     m_pTagModelColumnChangeRerouter->setModel(m_pTagModel);
     m_pNoteModelColumnChangeRerouter->setModel(m_pNoteFilterModel);
+    m_pFavoritesModelColumnChangeRerouter->setModel(m_pFavoritesModel);
 
     if (m_pEditNoteDialogsManager) {
         m_pEditNoteDialogsManager->setNotebookModel(m_pNotebookModel);
@@ -3181,8 +3184,12 @@ void MainWindow::setupViews()
     pFavoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    QObject::connect(m_pFavoritesModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
+                     pFavoritesTableView, &FavoriteItemView::dataChanged);
     pFavoritesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 #else
+    QObject::connect(m_pFavoritesModelColumnChangeRerouter, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                     pFavoritesTableView, SLOT(dataChanged(QModelIndex,QModelIndex)));
     pFavoritesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
 
