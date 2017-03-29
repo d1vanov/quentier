@@ -1733,7 +1733,8 @@ void NoteModel::updateTagData(const Tag & tag)
     {
         auto noteItemIt = localUidIndex.find(*it);
         if (Q_UNLIKELY(noteItemIt == localUidIndex.end())) {
-            QNDEBUG(QStringLiteral("Can't find the note pointed to by a tag by local uid: note local uid = ") << noteIt.value());
+            QNDEBUG(QStringLiteral("Can't find the note pointed to by a tag by local uid: "
+                                   "note local uid = ") << *it);
             continue;
         }
 
