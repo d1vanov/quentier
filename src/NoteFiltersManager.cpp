@@ -547,14 +547,14 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     QString currentSavedSearchName = m_filterBySavedSearchWidget.currentText();
     if (currentSavedSearchName.isEmpty()) {
         QNDEBUG(QStringLiteral("No saved search name is set to the filter"));
-        m_noteFilterModel.setNoteLocalUids(QStringList());
+        m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
 
     const SavedSearchModel * pSavedSearchModel = m_filterBySavedSearchWidget.savedSearchModel();
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         QNDEBUG(QStringLiteral("Saved search model in the filter by saved search widget is null"));
-        m_noteFilterModel.setNoteLocalUids(QStringList());
+        m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
 
@@ -564,7 +564,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
                                             "returned invalid model index for the given saved search name"));
         QNWARNING(error);
         emit notifyError(error);
-        m_noteFilterModel.setNoteLocalUids(QStringList());
+        m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
 
@@ -574,7 +574,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
                                             "returned null item for the given valid model index"));
         QNWARNING(error);
         emit notifyError(error);
-        m_noteFilterModel.setNoteLocalUids(QStringList());
+        m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
 
@@ -582,7 +582,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the filter by saved search: saved search's query is empty"));
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
         emit notifyError(error);
-        m_noteFilterModel.setNoteLocalUids(QStringList());
+        m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
 
@@ -597,7 +597,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         error.details() = errorDescription.details();
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
         emit notifyError(error);
-        m_noteFilterModel.setNoteLocalUids(QStringList());
+        m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
 

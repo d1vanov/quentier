@@ -41,6 +41,7 @@ public:
 
     const QStringList & noteLocalUids() const { return m_noteLocalUids; }
     void setNoteLocalUids(const QStringList & noteLocalUids);
+    void clearNoteLocalUids();
 
     void beginUpdateFilter();
     void endUpdateFilter();
@@ -57,6 +58,7 @@ private:
     QStringList m_notebookLocalUids;
     QStringList m_tagNames;
     QStringList m_noteLocalUids;
+    bool        m_usingNoteLocalUidsFilter;
     bool        m_pendingFilterUpdate;
     bool        m_modifiedWhilePendingFilterUpdate;
 };

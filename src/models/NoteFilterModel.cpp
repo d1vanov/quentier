@@ -27,6 +27,7 @@ NoteFilterModel::NoteFilterModel(QObject * parent) :
     m_notebookLocalUids(),
     m_tagNames(),
     m_noteLocalUids(),
+    m_usingNoteLocalUidsFilter(false),
     m_pendingFilterUpdate(false),
     m_modifiedWhilePendingFilterUpdate(false)
 {}
@@ -35,7 +36,7 @@ void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids
 {
     QNDEBUG(QStringLiteral("NoteFilterModel::setNotebookLocalUids: ") << notebookLocalUids.join(QStringLiteral(", ")));
 
-    if (m_noteLocalUids.isEmpty() && (m_notebookLocalUids.size() == notebookLocalUids.size()))
+    if (!m_usingNoteLocalUidsFilter && (m_notebookLocalUids.size() == notebookLocalUids.size()))
     {
         bool foundDifference = false;
         for(auto it = m_notebookLocalUids.constBegin(), end = m_notebookLocalUids.constEnd(); it != end; ++it)
@@ -54,6 +55,7 @@ void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids
 
     m_notebookLocalUids = notebookLocalUids;
     m_noteLocalUids.clear();
+    m_usingNoteLocalUidsFilter = false;
 
     if (!m_pendingFilterUpdate) {
         QSortFilterProxyModel::invalidateFilter();
@@ -67,7 +69,7 @@ void NoteFilterModel::setTagNames(const QStringList & tagNames)
 {
     QNDEBUG(QStringLiteral("NoteFilterModel::setTagNames: ") << tagNames.join(QStringLiteral(", ")));
 
-    if (m_noteLocalUids.isEmpty() && (m_tagNames.size() == tagNames.size()))
+    if (!m_usingNoteLocalUidsFilter && (m_tagNames.size() == tagNames.size()))
     {
         bool foundDifference = false;
         for(auto it = m_tagNames.constBegin(), end = m_tagNames.constEnd(); it != end; ++it)
@@ -86,6 +88,7 @@ void NoteFilterModel::setTagNames(const QStringList & tagNames)
 
     m_tagNames = tagNames;
     m_noteLocalUids.clear();
+    m_usingNoteLocalUidsFilter = false;
 
     if (!m_pendingFilterUpdate) {
         QSortFilterProxyModel::invalidateFilter();
@@ -99,7 +102,10 @@ void NoteFilterModel::setNoteLocalUids(const QStringList & noteLocalUids)
 {
     QNDEBUG(QStringLiteral("NoteFilterModel::setNoteLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
 
-    if (m_noteLocalUids.size() == noteLocalUids.size())
+    bool wasUsingNoteLocalUidsFilter = m_usingNoteLocalUidsFilter;
+    m_usingNoteLocalUidsFilter = true;
+
+    if (wasUsingNoteLocalUidsFilter && (m_noteLocalUids.size() == noteLocalUids.size()))
     {
         bool foundDifference = false;
         for(auto it = m_noteLocalUids.constBegin(), end = m_noteLocalUids.constEnd(); it != end; ++it)
@@ -117,6 +123,21 @@ void NoteFilterModel::setNoteLocalUids(const QStringList & noteLocalUids)
     }
 
     m_noteLocalUids = noteLocalUids;
+
+    if (!m_pendingFilterUpdate) {
+        QSortFilterProxyModel::invalidateFilter();
+    }
+    else {
+        m_modifiedWhilePendingFilterUpdate = true;
+    }
+}
+
+void NoteFilterModel::clearNoteLocalUids()
+{
+    QNDEBUG(QStringLiteral("NoteFilterModel::clearNoteLocalUids"));
+
+    m_noteLocalUids.clear();
+    m_usingNoteLocalUidsFilter = false;
 
     if (!m_pendingFilterUpdate) {
         QSortFilterProxyModel::invalidateFilter();
@@ -157,6 +178,8 @@ QTextStream & NoteFilterModel::print(QTextStream & strm) const
     strm << QStringLiteral("    note local uids: ")
          << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_noteLocalUids.join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
+    strm << QStringLiteral("    using note local uids filter: ")
+         << (m_usingNoteLocalUidsFilter ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
     strm << QStringLiteral("    pending filter update: ") << (m_pendingFilterUpdate ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    modified while pending filter update: ")
@@ -188,7 +211,7 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
     }
 
     // NOTE: filtering by note local uids overrides filtering by notebooks and tags
-    if (!m_noteLocalUids.isEmpty()) {
+    if (m_usingNoteLocalUidsFilter) {
         return m_noteLocalUids.contains(pItem->localUid());
     }
 
