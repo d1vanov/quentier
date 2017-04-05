@@ -515,9 +515,10 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
         {
             Qt::KeyboardModifiers modifiers = pKeyEvent->modifiers();
             if (modifiers.testFlag(Qt::ControlModifier) ||
-                modifiers.testFlag(Qt::AltModifier))
+                modifiers.testFlag(Qt::AltModifier) ||
+                modifiers.testFlag(Qt::MetaModifier) )
             {
-                QNTRACE(QStringLiteral("Detected key press event with Ctrl and/or Alt "
+                QNTRACE(QStringLiteral("Detected key press event with Ctrl and/or Alt and/or Meta "
                                        "modifiers, rejecting the event"));
 
                 QObject * pTarget = parent();
