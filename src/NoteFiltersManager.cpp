@@ -47,6 +47,7 @@ NoteFiltersManager::NoteFiltersManager(FilterByTagWidget & filterByTagWidget,
     m_localStorageManager(localStorageManager),
     m_filteredTagLocalUids(),
     m_filteredSavedSearchLocalUid(),
+    m_lastSearchString(),
     m_findNoteLocalUidsForSearchStringRequestId(),
     m_findNoteLocalUidsForSavedSearchQueryRequestId()
 {
@@ -141,9 +142,25 @@ void NoteFiltersManager::onSavedSearchFilterChanged(const QString & savedSearchN
     m_noteFilterModel.endUpdateFilter();
 }
 
+void NoteFiltersManager::onSearchStringEdited(const QString & text)
+{
+    QNDEBUG(QStringLiteral("NoteFiltersManager::onSearchStringEdited: ") << text);
+
+    bool wasEmpty = m_lastSearchString.isEmpty();
+    m_lastSearchString = text;
+    if (!wasEmpty && m_lastSearchString.isEmpty()) {
+        evaluate();
+    }
+}
+
 void NoteFiltersManager::onSearchStringChanged()
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::onSearchStringChanged"));
+
+    if (m_lastSearchString.isEmpty() && m_searchLineEdit.text().isEmpty()) {
+        QNDEBUG(QStringLiteral("Skipping the evaluation as the search string is empty => evaluation should have already occurred"));
+        return;
+    }
 
     evaluate();
 }
@@ -437,6 +454,8 @@ void NoteFiltersManager::createConnections()
     QObject::connect(&m_filterBySavedSearchWidget, SIGNAL(currentIndexChanged(QString)),
                      this, SLOT(onSavedSearchFilterChanged(QString)));
 
+    QObject::connect(&m_searchLineEdit, QNSIGNAL(QLineEdit,textEdited,QString),
+                     this, QNSLOT(NoteFiltersManager,onSearchStringEdited,QString));
     QObject::connect(&m_searchLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(NoteFiltersManager,onSearchStringChanged));
 

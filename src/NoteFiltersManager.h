@@ -75,6 +75,7 @@ private Q_SLOTS:
     void onSavedSearchFilterChanged(const QString & savedSearchName);
 
     // Slots for the search line edit
+    void onSearchStringEdited(const QString & text);
     void onSearchStringChanged();
 
     // Slots for events from local storage
@@ -121,6 +122,8 @@ private:
 
     QSet<QString>                       m_filteredTagLocalUids;
     QString                             m_filteredSavedSearchLocalUid;
+
+    QString                             m_lastSearchString;
 
     QUuid                               m_findNoteLocalUidsForSearchStringRequestId;
     QUuid                               m_findNoteLocalUidsForSavedSearchQueryRequestId;
