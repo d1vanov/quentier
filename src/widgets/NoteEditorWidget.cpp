@@ -103,12 +103,11 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_pUi->printNotePushButton->setHidden(true);
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
 
-    m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker);
+    m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker, m_currentAccount);
     m_pUi->saveNotePushButton->setEnabled(false);
 
     m_pUi->noteNameLineEdit->installEventFilter(this);
 
-    m_pUi->noteEditor->setAccount(m_currentAccount);
     m_pUi->noteEditor->setUndoStack(m_pUndoStack.data());
 
     setupBlankEditor();

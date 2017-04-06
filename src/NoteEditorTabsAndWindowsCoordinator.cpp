@@ -1501,7 +1501,7 @@ void NoteEditorTabsAndWindowsCoordinator::setupSpellChecker()
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::setupSpellChecker"));
 
     if (!m_pSpellChecker) {
-        m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, this);
+        m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, m_currentAccount, this);
     }
 }
 
