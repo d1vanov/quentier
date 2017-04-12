@@ -102,6 +102,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     // they are for the separate-window mode only
     m_pUi->printNotePushButton->setHidden(true);
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
+    m_pUi->exportNoteToEnexPushButton->setHidden(true);
 
     m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker, m_currentAccount);
     m_pUi->saveNotePushButton->setEnabled(false);
@@ -449,6 +450,7 @@ bool NoteEditorWidget::makeSeparateWindow()
 
     m_pUi->printNotePushButton->setHidden(false);
     m_pUi->exportNoteToPdfPushButton->setHidden(false);
+    m_pUi->exportNoteToEnexPushButton->setHidden(false);
     return true;
 }
 
@@ -465,6 +467,7 @@ bool NoteEditorWidget::makeNonWindow()
 
     m_pUi->printNotePushButton->setHidden(true);
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
+    m_pUi->exportNoteToEnexPushButton->setHidden(false);
     return true;
 }
 
@@ -547,6 +550,60 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         }
 
         return m_pUi->noteEditor->exportToPdf(selectedFiles[0], errorDescription);
+    }
+
+    QNTRACE(QStringLiteral("Exporting the note to pdf has been cancelled"));
+    return false;
+}
+
+bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::exportNoteToEnex"));
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    QString lastExportNoteToEnexPath = appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY).toString();
+    appSettings.endGroup();
+
+    if (lastExportNoteToEnexPath.isEmpty()) {
+        lastExportNoteToEnexPath = documentsPath();
+    }
+
+    // TODO: develop a subclass of QFileDialog including the checkbox specifying
+    // whether enex should include tags or not
+    QScopedPointer<QFileDialog> pFileDialog(new QFileDialog(this,
+                                                            tr("Please select the output enex file"),
+                                                            lastExportNoteToPdfPath));
+    pFileDialog->setWindowModality(Qt::WindowModal);
+    pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
+    pFileDialog->setFileMode(QFileDialog::AnyFile);
+    pFileDialog->setDefaultSuffix(QStringLiteral("enex"));
+
+    if (pFileDialog->exec() == QDialog::Accepted)
+    {
+        QStringList selectedFiles = pFileDialog->selectedFiles();
+        int numSelectedFiles = selectedFiles.size();
+
+        if (numSelectedFiles == 0) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "No enex file was selected to export the note into");
+            return false;
+        }
+
+        if (numSelectedFiles > 1) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "More than one file were selected as output enex files");
+            errorDescription.details() = selectedFiles.join(QStringLiteral(", "));
+            return false;
+        }
+
+        lastExportNoteToEnexPath = pFileDialog->directory().absolutePath();
+        if (!lastExportNoteToEnexPath.isEmpty()) {
+            appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+            appSettings.setValue(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY, lastExportNoteToEnexPath);
+            appSettings.endGroup();
+        }
+
+        // TODO: call the m_pUi->noteEditor's method when it's implemented
+        return false;
     }
 
     QNTRACE(QStringLiteral("Exporting the note to pdf has been cancelled"));
@@ -1729,6 +1786,17 @@ void NoteEditorWidget::onExportNoteToPdfButtonPressed()
     }
 }
 
+void NoteEditorWidget::onExportNoteToEnexButtonPressed()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onExportNoteToEnexButtonPressed"));
+
+    ErrorString errorDescription;
+    bool res = exportNoteToEnex(errorDescription);
+    if (!res) {
+        emit notifyError(errorDescription);
+    }
+}
+
 void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::createConnections"));
@@ -1877,6 +1945,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onPrintNoteButtonPressed));
     QObject::connect(m_pUi->exportNoteToPdfPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onExportNoteToPdfButtonPressed));
+    QObject::connect(m_pUi->exportNoteToEnexPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(NoteEditorWidget,onExportNoteToEnexButtonPressed));
 
     // Connect toolbar button actions to editor slots
     QObject::connect(m_pUi->copyPushButton, QNSIGNAL(QPushButton,clicked),
@@ -1957,6 +2027,7 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
 
     m_pUi->printNotePushButton->setDisabled(false);
     m_pUi->exportNoteToPdfPushButton->setDisabled(false);
+    m_pUi->exportNoteToEnexPushButton->setDisabled(false);
 }
 
 QString NoteEditorWidget::blankPageHtml() const
@@ -2008,6 +2079,7 @@ void NoteEditorWidget::setupBlankEditor()
 
     m_pUi->printNotePushButton->setDisabled(true);
     m_pUi->exportNoteToPdfPushButton->setDisabled(true);
+    m_pUi->exportNoteToEnexPushButton->setDisabled(true);
 
     m_pUi->noteNameLineEdit->hide();
     m_pUi->tagNameLabelsContainer->hide();

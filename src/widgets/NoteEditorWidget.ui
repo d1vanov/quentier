@@ -894,7 +894,8 @@
                <enum>Qt::NoFocus</enum>
               </property>
               <property name="icon">
-               <iconset theme="document-print"/>
+               <iconset theme="document-print">
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -913,13 +914,24 @@
                <enum>Qt::NoFocus</enum>
               </property>
               <property name="icon">
-               <iconset theme="application-pdf"/>
+               <iconset theme="application-pdf">
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
                 <width>16</width>
                 <height>16</height>
                </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="exportNoteToEnexPushButton">
+              <property name="icon">
+               <iconset theme="document-save-as"/>
               </property>
               <property name="flat">
                <bool>true</bool>

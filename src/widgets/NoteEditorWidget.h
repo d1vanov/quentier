@@ -226,6 +226,15 @@ public:
      */
     bool exportNoteToPdf(ErrorString & errorDescription);
 
+    /**
+     * @brief exportNoteToEnex - attempts to export the note within the editor (if any)
+     * to a enex file
+     * @param errorDescription - the textual description of the error if the note
+     * could not be exported to enex
+     * @return true if the note was exported to pdf successfully, false otherwise
+     */
+    bool exportNoteToEnex(ErrorString & errorDescription);
+
 Q_SIGNALS:
     void notifyError(ErrorString error);
 
@@ -381,9 +390,10 @@ private Q_SLOTS:
     // Helper slot called from QTimer::singleShot
     void updateNoteInLocalStorage();
 
-    // Slots for print/export to pdf buttons
+    // Slots for print/export buttons
     void onPrintNoteButtonPressed();
     void onExportNoteToPdfButtonPressed();
+    void onExportNoteToEnexButtonPressed();
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
