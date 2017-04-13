@@ -573,7 +573,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
     // whether enex should include tags or not
     QScopedPointer<QFileDialog> pFileDialog(new QFileDialog(this,
                                                             tr("Please select the output enex file"),
-                                                            lastExportNoteToPdfPath));
+                                                            lastExportNoteToEnexPath));
     pFileDialog->setWindowModality(Qt::WindowModal);
     pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
     pFileDialog->setFileMode(QFileDialog::AnyFile);

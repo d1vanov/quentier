@@ -74,6 +74,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/AddOrEditTagDialog.h
     src/dialogs/AddOrEditSavedSearchDialog.h
     src/dialogs/EditNoteDialog.h
+    src/dialogs/EnexExportDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/dialogs/PreferencesDialog.h
     src/models/ColumnChangeRerouter.h
@@ -152,6 +153,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/AddOrEditTagDialog.cpp
     src/dialogs/AddOrEditSavedSearchDialog.cpp
     src/dialogs/EditNoteDialog.cpp
+    src/dialogs/EnexExportDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/dialogs/PreferencesDialog.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
@@ -214,6 +216,7 @@ set(FORMS
     src/dialogs/AddOrEditTagDialog.ui
     src/dialogs/AddOrEditSavedSearchDialog.ui
     src/dialogs/EditNoteDialog.ui
+    src/dialogs/EnexExportDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/dialogs/PreferencesDialog.ui
     src/insert-table-tool-button/TableSettingsDialog.ui

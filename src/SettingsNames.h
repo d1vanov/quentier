@@ -27,8 +27,13 @@
 
 #define REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY QStringLiteral("RemoveEmptyUneditedNotes")
 #define LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY QStringLiteral("LastExportNoteToPdfPath")
-#define LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY QStringLiteral("LastExportNoteToEnexPath")
 #define CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY QStringLiteral("ConvertToNoteTimeout")
 #define EXPUNGE_NOTE_TIMEOUT_SETTINGS_KEY QStringLiteral("ExpungeNoteTimeout")
+
+// ENEX export/import related settings keys
+#define ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME QStringLiteral("EnexExportImport")
+
+#define LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY QStringLiteral("LastExportNotesToEnexPath")
+#define LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY QStringLiteral("LastExportNotesToEnexExportTags")
 
 #endif // QUENTIER_SETTINGS_NAMES_H
