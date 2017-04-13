@@ -2,6 +2,7 @@
 #include "ui_EnexExportDialog.h"
 #include "../SettingsNames.h"
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QFileInfo>
 #include <QScopedPointer>
@@ -26,6 +27,10 @@ EnexExportDialog::EnexExportDialog(const Account & account,
                        ? appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY).toBool()
                        : true);
     appSettings.endGroup();
+
+    if (lastEnexExportPath.isEmpty()) {
+        lastEnexExportPath = documentsPath();
+    }
 
     QFileInfo lastEnexExportPathInfo(lastEnexExportPath);
     if (lastEnexExportPathInfo.exists() && lastEnexExportPathInfo.isDir() && lastEnexExportPathInfo.isWritable()) {
