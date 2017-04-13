@@ -68,6 +68,11 @@ public:
 
     bool isActive() const;
 
+    /**
+     * @brief tagNames - returns the list of current note's tag names
+     */
+    QStringList tagNames() const;
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
     void canUpdateNoteRestrictionChanged(bool canUpdateNote);

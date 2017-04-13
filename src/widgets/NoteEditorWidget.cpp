@@ -20,6 +20,7 @@
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
 #include "../models/TagModel.h"
+#include "../dialogs/EnexExportDialog.h"
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
 // is deeply disappointing
@@ -53,6 +54,7 @@ using quentier::NoteTagsWidget;
 #include <QToolTip>
 #include <QPrintDialog>
 #include <QFileDialog>
+#include <QFileInfo>
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
@@ -102,7 +104,6 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     // they are for the separate-window mode only
     m_pUi->printNotePushButton->setHidden(true);
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
-    m_pUi->exportNoteToEnexPushButton->setHidden(true);
 
     m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker, m_currentAccount);
     m_pUi->saveNotePushButton->setEnabled(false);
@@ -450,7 +451,6 @@ bool NoteEditorWidget::makeSeparateWindow()
 
     m_pUi->printNotePushButton->setHidden(false);
     m_pUi->exportNoteToPdfPushButton->setHidden(false);
-    m_pUi->exportNoteToEnexPushButton->setHidden(false);
     return true;
 }
 
@@ -467,7 +467,6 @@ bool NoteEditorWidget::makeNonWindow()
 
     m_pUi->printNotePushButton->setHidden(true);
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
-    m_pUi->exportNoteToEnexPushButton->setHidden(false);
     return true;
 }
 
@@ -569,41 +568,61 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         lastExportNoteToEnexPath = documentsPath();
     }
 
-    // TODO: develop a subclass of QFileDialog including the checkbox specifying
-    // whether enex should include tags or not
-    QScopedPointer<QFileDialog> pFileDialog(new QFileDialog(this,
-                                                            tr("Please select the output enex file"),
-                                                            lastExportNoteToEnexPath));
-    pFileDialog->setWindowModality(Qt::WindowModal);
-    pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
-    pFileDialog->setFileMode(QFileDialog::AnyFile);
-    pFileDialog->setDefaultSuffix(QStringLiteral("enex"));
+    QScopedPointer<EnexExportDialog> pExportEnexDialog(new EnexExportDialog(m_currentAccount, this, titleOrPreview()));
+    pExportEnexDialog->setWindowModality(Qt::WindowModal);
 
-    if (pFileDialog->exec() == QDialog::Accepted)
+    if (pExportEnexDialog->exec() == QDialog::Accepted)
     {
-        QStringList selectedFiles = pFileDialog->selectedFiles();
-        int numSelectedFiles = selectedFiles.size();
+        QString enexFilePath = pExportEnexDialog->exportEnexFilePath();
 
-        if (numSelectedFiles == 0) {
-            errorDescription.base() = QT_TRANSLATE_NOOP("", "No enex file was selected to export the note into");
+        QFileInfo enexFileInfo(enexFilePath);
+        if (enexFileInfo.exists())
+        {
+            if (!enexFileInfo.isWritable()) {
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export note to ENEX: the selected file already exists and is not writable");
+                QNWARNING(errorDescription);
+                return false;
+            }
+
+            QNDEBUG(QStringLiteral("The file selected for ENEX export already exists"));
+
+            int res = questionMessageBox(this, tr("Enex file already exists"), tr("The file selected for ENEX export already exists"),
+                                         tr("Do you wish to overwrite the existing file?"));
+            if (res != QDialog::Accepted) {
+                QNDEBUG(QStringLiteral("Cancelled overwriting the existing ENEX file"));
+                return true;
+            }
+        }
+
+        QStringList tagNames = (pExportEnexDialog->exportTags() ? m_pUi->tagNameLabelsContainer->tagNames() : QStringList());
+
+        QString enex;
+        bool res = m_pUi->noteEditor->exportToEnex(tagNames, enex, errorDescription);
+        if (!res) {
             return false;
         }
 
-        if (numSelectedFiles > 1) {
-            errorDescription.base() = QT_TRANSLATE_NOOP("", "More than one file were selected as output enex files");
-            errorDescription.details() = selectedFiles.join(QStringLiteral(", "));
+        QFile enexFile(enexFilePath);
+        res = enexFile.open(QIODevice::WriteOnly);
+        if (!res) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export note to ENEX: can't open the target ENEX file for writing");
+            QNWARNING(errorDescription);
             return false;
         }
 
-        lastExportNoteToEnexPath = pFileDialog->directory().absolutePath();
-        if (!lastExportNoteToEnexPath.isEmpty()) {
-            appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-            appSettings.setValue(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY, lastExportNoteToEnexPath);
-            appSettings.endGroup();
+        QByteArray rawEnexData = enex.toLocal8Bit();
+        qint64 bytes = enexFile.write(rawEnexData);
+        enexFile.close();
+
+        if (Q_UNLIKELY(bytes != rawEnexData.size())) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Writing the ENEX to a file was not completed successfully");
+            errorDescription.details() = QStringLiteral("Bytes written = ") + QString::number(bytes) +
+                                         QStringLiteral(" while expected ") + QString::number(rawEnexData.size());
+            QNWARNING(errorDescription);
+            return false;
         }
 
-        // TODO: call the m_pUi->noteEditor's method when it's implemented
-        return false;
+        return true;
     }
 
     QNTRACE(QStringLiteral("Exporting the note to pdf has been cancelled"));

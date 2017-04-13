@@ -943,4 +943,26 @@ bool NoteTagsWidget::isActive() const
     return !m_currentNote.localUid().isEmpty();
 }
 
+QStringList NoteTagsWidget::tagNames() const
+{
+    QNDEBUG(QStringLiteral("NoteTagsWidget::tagNames"));
+
+    if (!isActive()) {
+        QNDEBUG(QStringLiteral("NoteTagsWidget is not active"));
+        return QStringList();
+    }
+
+    QStringList result;
+    result.reserve(static_cast<int>(m_currentNoteTagLocalUidToNameBimap.size()));
+
+    for(auto it = m_currentNoteTagLocalUidToNameBimap.right.begin(),
+        end = m_currentNoteTagLocalUidToNameBimap.right.end(); it != end; ++it)
+    {
+        result << it->first;
+        QNTRACE(QStringLiteral("Added tag name ") << result.back());
+    }
+
+    return result;
+}
+
 } // namespace quentier
