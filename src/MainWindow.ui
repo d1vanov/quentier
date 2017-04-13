@@ -312,7 +312,8 @@ padding-right: 2px;
        <item>
         <widget class="QPushButton" name="exportNoteToPdfPushButton">
          <property name="icon">
-          <iconset theme="application-pdf"/>
+          <iconset theme="application-pdf">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -2738,11 +2739,15 @@ padding-left: 2px;
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="contextMenuPolicy">
+               <enum>Qt::NoContextMenu</enum>
+              </property>
               <property name="styleSheet">
                <string notr="true">#noteListView {
 border: 1px solid black;
 border-left: none;
 border-right: none;
+background-color: rgba(255, 255, 255, 0);
 }</string>
               </property>
               <property name="frameShape">
@@ -2753,6 +2758,9 @@ border-right: none;
               </property>
               <property name="horizontalScrollBarPolicy">
                <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
               </property>
              </widget>
             </item>
@@ -2827,7 +2835,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">

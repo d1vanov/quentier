@@ -89,8 +89,12 @@ protected Q_SLOTS:
 protected:
     virtual void currentChanged(const QModelIndex & current,
                                 const QModelIndex & previous) Q_DECL_OVERRIDE;
+    virtual void mousePressEvent(QMouseEvent * pEvent) Q_DECL_OVERRIDE;
 
     const NotebookItem * currentNotebookItem();
+
+protected:
+    void showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos);
 
 protected:
     QMenu *             m_pNoteItemContextMenu;

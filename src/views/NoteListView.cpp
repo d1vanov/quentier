@@ -25,6 +25,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QContextMenuEvent>
 #include <QMenu>
+#include <QMouseEvent>
 #include <iterator>
 
 #define REPORT_ERROR(error) \
@@ -302,6 +303,11 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
+    showContextMenuAtPoint(pEvent->pos(), pEvent->globalPos());
+}
+
+void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos)
+{
     const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: wrong model connected to the note list view"));
@@ -315,7 +321,9 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    QModelIndex clickedFilterModelItemIndex = indexAt(pEvent->pos());
+    // TODO: see if the only one item is selected or multiple ones
+
+    QModelIndex clickedFilterModelItemIndex = indexAt(pos);
     if (Q_UNLIKELY(!clickedFilterModelItemIndex.isValid())) {
         QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
         return;
@@ -431,7 +439,7 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
                             onShowNoteInfoAction, pItem->localUid(), true);
 
     m_pNoteItemContextMenu->show();
-    m_pNoteItemContextMenu->exec(pEvent->globalPos());
+    m_pNoteItemContextMenu->exec(globalPos);
 }
 
 void NoteListView::currentChanged(const QModelIndex & current,
@@ -466,6 +474,24 @@ void NoteListView::currentChanged(const QModelIndex & current,
     }
 
     emit currentNoteChanged(pItem->localUid());
+}
+
+void NoteListView::mousePressEvent(QMouseEvent * pEvent)
+{
+    if (pEvent &&
+        (pEvent->buttons() & Qt::RightButton) &&
+        !(pEvent->buttons() & Qt::LeftButton) &&
+        !(pEvent->buttons() & Qt::MidButton) )
+    {
+        showContextMenuAtPoint(pEvent->pos(), pEvent->globalPos());
+        return;
+    }
+
+    QListView::mousePressEvent(pEvent);
+
+    if (m_pNoteItemContextMenu && !m_pNoteItemContextMenu->isHidden()) {
+        m_pNoteItemContextMenu->hide();
+    }
 }
 
 const NotebookItem * NoteListView::currentNotebookItem()
