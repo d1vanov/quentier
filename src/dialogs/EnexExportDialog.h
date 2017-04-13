@@ -35,6 +35,8 @@ private:
     void createConnections();
     void persistExportFolderSetting();
 
+    void checkConditionsAndEnableDisableOkButton();
+
     void setStatusText(const QString & text);
     void clearAndHideStatus();
 

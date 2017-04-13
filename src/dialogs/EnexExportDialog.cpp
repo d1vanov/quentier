@@ -38,6 +38,7 @@ EnexExportDialog::EnexExportDialog(const Account & account,
     m_pUi->statusTextLabel->setHidden(true);
 
     createConnections();
+    checkConditionsAndEnableDisableOkButton();
 }
 
 EnexExportDialog::~EnexExportDialog()
@@ -172,18 +173,21 @@ void EnexExportDialog::onBrowseFolderButtonPressed()
 
     m_pUi->folderLineEdit->setText(QDir::toNativeSeparators(dirInfo.absoluteFilePath()));
     persistExportFolderSetting();
+    checkConditionsAndEnableDisableOkButton();
 }
 
 void EnexExportDialog::onFileNameEdited(const QString & name)
 {
     QNDEBUG(QStringLiteral("EnexExportDialog::onFileNameEdited: ") << name);
     clearAndHideStatus();
+    checkConditionsAndEnableDisableOkButton();
 }
 
 void EnexExportDialog::onFolderEdited(const QString & name)
 {
     QNDEBUG(QStringLiteral("EnexExportDialog::onFolderEdited: ") << name);
     clearAndHideStatus();
+    checkConditionsAndEnableDisableOkButton();
 }
 
 void EnexExportDialog::createConnections()
@@ -212,6 +216,56 @@ void EnexExportDialog::persistExportFolderSetting()
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
     appSettings.setValue(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY, convertedPath);
     appSettings.endGroup();
+}
+
+void EnexExportDialog::checkConditionsAndEnableDisableOkButton()
+{
+    QNDEBUG(QStringLiteral("EnexExportDialog::checkConditionsAndEnableDisableOkButton"));
+
+    QString fullFilePath = exportEnexFilePath();
+    if (!fullFilePath.isEmpty()) {
+        QNDEBUG(QStringLiteral("Full file path is not empty which means it has been "
+                               "validated already, enabling the ok button"));
+        m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+        clearAndHideStatus();
+        return;
+    }
+
+    m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+
+    QString fileName = m_pUi->fileNameLineEdit->text();
+    if (fileName.isEmpty()) {
+        QNDEBUG(QStringLiteral("The file name is not set"));
+        return;
+    }
+
+    QString folderPath = m_pUi->folderLineEdit->text();
+    if (folderPath.isEmpty()) {
+        QNDEBUG(QStringLiteral("The folder is not set"));
+        return;
+    }
+
+    // If both are non-empty, they don't form a valid writable file path
+    folderPath = QDir::fromNativeSeparators(folderPath);
+
+    QFileInfo dirInfo(folderPath);
+    if (!dirInfo.exists()) {
+        QNDEBUG(QStringLiteral("Dir doesn't exist"));
+        setStatusText(tr("The selected directory doens't exist"));
+        return;
+    }
+
+    if (!dirInfo.isDir()) {
+        QNDEBUG(QStringLiteral("Non-dir selected"));
+        setStatusText(tr("The selected directory path is not a directory"));
+        return;
+    }
+
+    if (!dirInfo.isWritable()) {
+        QNDEBUG(QStringLiteral("Non-writable dir selected"));
+        setStatusText(tr("The selected directory is not writable"));
+        return;
+    }
 }
 
 void EnexExportDialog::setStatusText(const QString & text)
