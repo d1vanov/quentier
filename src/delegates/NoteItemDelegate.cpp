@@ -185,7 +185,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     if (title.isEmpty())
     {
         if (option.state & QStyle::State_Selected) {
-            painter->setPen(option.palette.color(QPalette::Active, QPalette::Base));
+            painter->setPen(option.palette.color(QPalette::Active, QPalette::HighlightedText));
         }
         else {
             painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
@@ -195,7 +195,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     }
     else if (option.state & QStyle::State_Selected)
     {
-        painter->setPen(option.palette.base().color());
+        painter->setPen(option.palette.highlightedText().color());
     }
     else
     {
@@ -262,7 +262,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     painter->setFont(smallerFont);
 
     if (option.state & QStyle::State_Selected) {
-        painter->setPen(option.palette.color(QPalette::Active, QPalette::Base));
+        painter->setPen(option.palette.color(QPalette::Active, QPalette::HighlightedText));
     }
     else {
         painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
@@ -310,7 +310,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     painter->setFont(originalFont);
 
     if (option.state & QStyle::State_Selected) {
-        painter->setPen(option.palette.highlightedText().color());
+        painter->setPen(option.palette.base().color());
     }
     else {
         painter->setPen(option.palette.windowText().color());
@@ -323,7 +323,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
         QPen pen = painter->pen();
         if (option.state & QStyle::State_Selected) {
-            pen.setColor(option.palette.base().color());
+            pen.setColor(option.palette.highlightedText().color());
         }
         else {
             pen.setColor(option.palette.highlight().color());
