@@ -23,6 +23,7 @@
 #include <QPainter>
 #include <QDateTime>
 #include <QTextOption>
+#include <QListView>
 #include <cmath>
 
 #define MSEC_PER_DAY (864e5)
@@ -80,26 +81,54 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-    painter->fillRect(option.rect, option.palette.window());
-    painter->setPen(option.palette.windowText().color());
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+        painter->setPen(option.palette.highlightedText().color());
+    }
+    else {
+        painter->fillRect(option.rect, option.palette.window());
+        painter->setPen(option.palette.windowText().color());
+    }
 
     bool isLast = (index.row() == pNoteFilterModel->rowCount(QModelIndex()) - 1);
 
-    if (option.state & QStyle::State_Selected)
+    int leftMargin = m_leftMargin;
+    int rightMargin = m_rightMargin;
+    int topMargin = m_topMargin;
+    int bottomMargin = m_bottomMargin;
+
+    QListView * pView = qobject_cast<QListView*>(parent());
+    if (pView)
     {
-        QPen originalPen = painter->pen();
-        QPen pen = originalPen;
-        pen.setWidth(1);
-        pen.setColor(option.palette.highlight().color());
-        painter->setPen(pen);
+        QModelIndex currentIndex = pView->currentIndex();
+        if (currentIndex.isValid() && (sourceIndex.row() == currentIndex.row()))
+        {
+            QPen originalPen = painter->pen();
+            QPen pen = originalPen;
+            pen.setWidth(2);
 
-        int dx1 = 1;
-        int dy1 = 1;
-        int dx2 = -1;
-        int dy2 = (isLast ? -1 : -2);
+            if (option.state & QStyle::State_Selected) {
+                pen.setColor(option.palette.highlightedText().color());
+            }
+            else {
+                pen.setColor(option.palette.highlight().color());
+            }
 
-        painter->drawRoundedRect(QRectF(option.rect.adjusted(dx1, dy1, dx2, dy2)), 2, 2);
-        painter->setPen(originalPen);
+            painter->setPen(pen);
+
+            int dx1 = 1;
+            int dy1 = 1;
+            int dx2 = -1;
+            int dy2 = (isLast ? -2 : -3);
+            painter->drawRoundedRect(QRectF(option.rect.adjusted(dx1, dy1, dx2, dy2)), 2, 2);
+
+            painter->setPen(originalPen);
+
+            leftMargin += 2;
+            rightMargin += 2;
+            topMargin += 2;
+            bottomMargin += (isLast ? 3 : 2);
+        }
     }
 
     // Draw the bottom border line for all notes but the last (lowest) one
@@ -108,7 +137,14 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         QPen originalPen = painter->pen();
         QPen pen = originalPen;
         pen.setWidth(1);
-        pen.setColor(option.palette.windowText().color());
+
+        if (option.state & QStyle::State_Selected) {
+            pen.setColor(option.palette.highlightedText().color());
+        }
+        else {
+            pen.setColor(option.palette.windowText().color());
+        }
+
         painter->setPen(pen);
 
         QLine bottomBoundaryLine(option.rect.bottomLeft(), option.rect.bottomRight());
@@ -127,8 +163,8 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     const QImage & thumbnail = pItem->thumbnail();
 
-    int left = option.rect.left() + m_leftMargin;
-    int width = option.rect.width() - m_leftMargin - m_rightMargin;
+    int left = option.rect.left() + leftMargin;
+    int width = option.rect.width() - leftMargin - rightMargin;
     if (!thumbnail.isNull()) {
         width -= 120;
     }
@@ -137,7 +173,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     QFont originalFont = painter->font();
     painter->setFont(boldFont);
 
-    QRect titleRect(left, option.rect.top() + m_topMargin, width, boldFontMetrics.height());
+    QRect titleRect(left, option.rect.top() + topMargin, width, boldFontMetrics.height());
 
     QString title = pItem->title();
     if (title.isEmpty()) {
@@ -146,11 +182,23 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     title = title.simplified();
 
-    if (title.isEmpty()) {
-        painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
+    if (title.isEmpty())
+    {
+        if (option.state & QStyle::State_Selected) {
+            painter->setPen(option.palette.color(QPalette::Active, QPalette::Base));
+        }
+        else {
+            painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
+        }
+
         title = tr("Empty note");
     }
-    else {
+    else if (option.state & QStyle::State_Selected)
+    {
+        painter->setPen(option.palette.base().color());
+    }
+    else
+    {
         painter->setPen(option.palette.windowText().color());
     }
 
@@ -177,7 +225,9 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     QString displayText;
     if (createdDisplayText.isEmpty() && modifiedDisplayText.isEmpty())
     {
-        displayText = QStringLiteral("(") + tr("No creation or modification datetime") + QStringLiteral(")");
+        displayText = QStringLiteral("(") +
+                      tr("No creation or modification datetime") +
+                      QStringLiteral(")");
     }
     else
     {
@@ -189,7 +239,8 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         {
             QString modificationTextPrefix = tr("modified") + QStringLiteral(": ");
             if (createdDisplayText.isEmpty()) {
-                modificationTextPrefix = modificationTextPrefix.at(0).toUpper() + modificationTextPrefix.mid(1);
+                modificationTextPrefix = modificationTextPrefix.at(0).toUpper() +
+                                         modificationTextPrefix.mid(1);
             }
 
             modifiedDisplayText.prepend(modificationTextPrefix);
@@ -203,16 +254,25 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         displayText += modifiedDisplayText;
     }
 
-    QRect dateTimeRect(left, titleRect.bottom() + m_bottomMargin + m_topMargin, width, smallerFontMetrics.height());
-    displayText = smallerFontMetrics.elidedText(displayText, Qt::ElideRight, dateTimeRect.width());
+    QRect dateTimeRect(left, titleRect.bottom() + bottomMargin + topMargin,
+                       width, smallerFontMetrics.height());
+    displayText = smallerFontMetrics.elidedText(displayText, Qt::ElideRight,
+                                                dateTimeRect.width());
 
     painter->setFont(smallerFont);
-    painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
+
+    if (option.state & QStyle::State_Selected) {
+        painter->setPen(option.palette.color(QPalette::Active, QPalette::Base));
+    }
+    else {
+        painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
+    }
+
     painter->drawText(QRectF(dateTimeRect), displayText, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     // 3) Painting the preview text
-    int previewTextTop = dateTimeRect.bottom() + m_bottomMargin + m_topMargin;
-    QRect previewTextRect(left, previewTextTop, width, option.rect.bottom() - previewTextTop);
+    int previewTextTop = dateTimeRect.bottom() + topMargin;
+    QRect previewTextRect(left, previewTextTop, width, option.rect.bottom() - bottomMargin - previewTextTop);
 
     QNTRACE(QStringLiteral("Preview text rect: top = ") << previewTextRect.top() << QStringLiteral(", bottom = ")
             << previewTextRect.bottom() << QStringLiteral(", left = ") << previewTextRect.left()
@@ -236,7 +296,8 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         int textSize = text.size();
         int newTextSize = static_cast<int>(textSize / multiple);
         int redundantSize = textSize - newTextSize - 3;
-        if (redundantSize > 0) {
+        if (redundantSize > 0)
+        {
             QNTRACE(QStringLiteral("Chopping ") << redundantSize << QStringLiteral(" off the text: original size = ")
                     << textSize << QStringLiteral(", more appropriate text size = ") << newTextSize
                     << QStringLiteral(", lines for text without eliding = ") << linesForText
@@ -247,7 +308,13 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     }
 
     painter->setFont(originalFont);
-    painter->setPen(option.palette.windowText().color());
+
+    if (option.state & QStyle::State_Selected) {
+        painter->setPen(option.palette.highlightedText().color());
+    }
+    else {
+        painter->setPen(option.palette.windowText().color());
+    }
 
     bool textIsEmpty = text.isEmpty();
     if (textIsEmpty)
@@ -255,7 +322,12 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         text = QStringLiteral("(") + tr("Note without content") + QStringLiteral(")");
 
         QPen pen = painter->pen();
-        pen.setColor(option.palette.highlight().color());
+        if (option.state & QStyle::State_Selected) {
+            pen.setColor(option.palette.base().color());
+        }
+        else {
+            pen.setColor(option.palette.highlight().color());
+        }
         painter->setPen(pen);
     }
 
@@ -267,14 +339,21 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     // 4) Painting the thumbnail (if any)
     if (!thumbnail.isNull())
     {
-        int top = option.rect.top() + m_topMargin;
-        int bottom = option.rect.bottom() - m_bottomMargin;
+        int top = option.rect.top() + topMargin;
+        int bottom = option.rect.bottom() - bottomMargin;
         QRect thumbnailRect(option.rect.width() - 110, top, 100, bottom);
 
         QNTRACE(QStringLiteral("Thumbnail rect: top = ") << thumbnailRect.top() << QStringLiteral(", bottom = ")
                 << thumbnailRect.bottom() << QStringLiteral(", left = ") << thumbnailRect.left()
                 << QStringLiteral(", right = ") << thumbnailRect.right());
-        painter->setPen(option.palette.windowText().color());
+
+        if (option.state & QStyle::State_Selected) {
+            painter->setPen(option.palette.highlightedText().color());
+        }
+        else {
+            painter->setPen(option.palette.windowText().color());
+        }
+
         painter->drawImage(thumbnailRect, thumbnail, thumbnail.rect());
     }
 
