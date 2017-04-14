@@ -24,6 +24,7 @@
 #include "../models/NotebookItem.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QContextMenuEvent>
+#include <QItemSelectionModel>
 #include <QMenu>
 #include <QMouseEvent>
 #include <iterator>
@@ -284,12 +285,56 @@ void NoteListView::onShowNoteInfoAction()
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show note info: internal error, the local uid "
-                                       "of the note to be edited is empty"));
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show note info: internal error, "
+                                       "the local uid of the note to be edited is empty"));
         return;
     }
 
     emit noteInfoDialogRequested(noteLocalUid);
+}
+
+void NoteListView::onExportSingleNoteToEnexAction()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onExportSingleNoteToEnexAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: internal error, "
+                                       "can't cast the slot invoker to QAction"));
+        return;
+    }
+
+    QString noteLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: internal error, "
+                                       "the local uid of the note to be exported is empty"));
+        return;
+    }
+
+    QStringList noteLocalUids;
+    noteLocalUids << noteLocalUid;
+    emit enexExportRequested(noteLocalUids);
+}
+
+void NoteListView::onExportSeveralNotesToEnexAction()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onExportSeveralNotesToEnexAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
+                                       "can't cast the slot invoker to QAction"));
+        return;
+    }
+
+    QStringList noteLocalUids = pAction->data().toStringList();
+    if (Q_UNLIKELY(noteLocalUids.isEmpty())) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: internal error, "
+                                       "the list of local uids of notes to be exported is empty"));
+        return;
+    }
+
+    emit enexExportRequested(noteLocalUids);
 }
 
 void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
@@ -308,6 +353,8 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
 
 void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos)
 {
+    QNDEBUG(QStringLiteral("NoteListView::showContextMenuAtPoint"));
+
     const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: wrong model connected to the note list view"));
@@ -321,7 +368,54 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & glo
         return;
     }
 
-    // TODO: see if the only one item is selected or multiple ones
+    QItemSelectionModel * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: can't get the selection model from the view"));
+        return;
+    }
+
+    QModelIndexList selectedRowIndexes = pSelectionModel->selectedIndexes();
+    selectedRowIndexes << currentIndex();
+
+    QStringList noteLocalUids;
+    noteLocalUids.reserve(selectedRowIndexes.size());
+
+    for(auto it = selectedRowIndexes.constBegin(), end = selectedRowIndexes.constEnd(); it != end; ++it)
+    {
+        const QModelIndex & proxyModelIndex = *it;
+        QNTRACE(QStringLiteral("Inspecting proxy model index at row ") << proxyModelIndex.row());
+
+        QModelIndex modelIndex = pNoteFilterModel->mapToSource(proxyModelIndex);
+        const NoteModelItem * pNoteModelItem = pNoteModel->itemForIndex(modelIndex);
+        if (Q_UNLIKELY(!pNoteModelItem)) {
+            QNWARNING(QStringLiteral("Detected selected model index for which no model item was found"));
+            continue;
+        }
+
+        noteLocalUids << pNoteModelItem->localUid();
+        QNTRACE(QStringLiteral("Included note local uid ") << pNoteModelItem->localUid());
+    }
+
+    Q_UNUSED(noteLocalUids.removeDuplicates())
+    QNTRACE(QStringLiteral("Selected note local uids: ") << noteLocalUids.join(QStringLiteral(", ")));
+
+    if (Q_UNLIKELY(noteLocalUids.isEmpty())) {
+        QNDEBUG(QStringLiteral("Won't show the context menu: no notes are selected"));
+        return;
+    }
+
+    if (noteLocalUids.size() == 1) {
+        showSingleNoteContextMenu(pos, globalPos, *pNoteFilterModel, *pNoteModel);
+    }
+    else {
+        showMultipleNotesContextMenu(globalPos, noteLocalUids);
+    }
+}
+
+void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & globalPos,
+                                             const NoteFilterModel & noteFilterModel, const NoteModel & noteModel)
+{
+    QNDEBUG(QStringLiteral("NoteListView::showSingleNoteContextMenu"));
 
     QModelIndex clickedFilterModelItemIndex = indexAt(pos);
     if (Q_UNLIKELY(!clickedFilterModelItemIndex.isValid())) {
@@ -329,13 +423,13 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & glo
         return;
     }
 
-    QModelIndex clickedItemIndex = pNoteFilterModel->mapToSource(clickedFilterModelItemIndex);
+    QModelIndex clickedItemIndex = noteFilterModel.mapToSource(clickedFilterModelItemIndex);
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: note item index mapped from the proxy index of note filter model is invalid"));
         return;
     }
 
-    const NoteModelItem * pItem = pNoteModel->itemForIndex(clickedItemIndex);
+    const NoteModelItem * pItem = noteModel.itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pItem)) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: no item corresponding to the clicked item's index"));
         return;
@@ -435,8 +529,25 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & glo
 
     m_pNoteItemContextMenu->addSeparator();
 
+    ADD_CONTEXT_MENU_ACTION(tr("Export to enex") + QStringLiteral("..."), m_pNoteItemContextMenu,
+                            onExportSingleNoteToEnexAction, pItem->localUid(), true);
+
     ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pNoteItemContextMenu,
                             onShowNoteInfoAction, pItem->localUid(), true);
+
+    m_pNoteItemContextMenu->show();
+    m_pNoteItemContextMenu->exec(globalPos);
+}
+
+void NoteListView::showMultipleNotesContextMenu(const QPoint & globalPos, const QStringList & noteLocalUids)
+{
+    QNDEBUG(QStringLiteral("NoteListView::showMultipleNotesContextMenu"));
+
+    delete m_pNoteItemContextMenu;
+    m_pNoteItemContextMenu = new QMenu(this);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Export to enex") + QStringLiteral("..."), m_pNoteItemContextMenu,
+                            onExportSeveralNotesToEnexAction, noteLocalUids, true);
 
     m_pNoteItemContextMenu->show();
     m_pNoteItemContextMenu->exec(globalPos);

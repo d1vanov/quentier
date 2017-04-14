@@ -29,6 +29,8 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookItemView)
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
+QT_FORWARD_DECLARE_CLASS(NoteModel)
+QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 
 /**
  * @brief The NoteListView is a simple subclass of QListView which adds some bits of functionality specific to note list
@@ -50,6 +52,8 @@ Q_SIGNALS:
     void editNoteDialogRequested(QString noteLocalUid);
     void noteInfoDialogRequested(QString noteLocalUid);
     void openNoteInSeparateWindowRequested(QString noteLocalUid);
+
+    void enexExportRequested(QStringList noteLocalUids);
 
 public Q_SLOTS:
     /**
@@ -84,6 +88,9 @@ protected Q_SLOTS:
 
     void onShowNoteInfoAction();
 
+    void onExportSingleNoteToEnexAction();
+    void onExportSeveralNotesToEnexAction();
+
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
 protected:
@@ -95,6 +102,9 @@ protected:
 
 protected:
     void showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos);
+    void showSingleNoteContextMenu(const QPoint & pos, const QPoint & globalPos,
+                                   const NoteFilterModel & noteFilterModel, const NoteModel & noteModel);
+    void showMultipleNotesContextMenu(const QPoint & globalPos, const QStringList & noteLocalUids);
 
 protected:
     QMenu *             m_pNoteItemContextMenu;
