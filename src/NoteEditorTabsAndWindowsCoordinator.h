@@ -72,6 +72,7 @@ public:
     void setMaxNumNotesInTabs(const int maxNumNotesInTabs);
 
     int numNotesInTabs() const;
+    NoteEditorWidget * noteEditorWidgetForNoteLocalUid(const QString & noteLocalUid);
 
     struct NoteEditorMode
     {

@@ -303,6 +303,47 @@ int NoteEditorTabsAndWindowsCoordinator::numNotesInTabs() const
     return m_pTabWidget->count();
 }
 
+NoteEditorWidget * NoteEditorTabsAndWindowsCoordinator::noteEditorWidgetForNoteLocalUid(const QString & noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::noteEditorWidgetForNoteLocalUid: ") << noteLocalUid);
+
+    for(int i = 0; i < m_pTabWidget->count(); ++i)
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(i));
+        if (Q_UNLIKELY(!pNoteEditorWidget)) {
+            continue;
+        }
+
+        if (pNoteEditorWidget->noteLocalUid() != noteLocalUid) {
+            continue;
+        }
+
+        QNDEBUG(QStringLiteral("Found existing editor tab"));
+        return pNoteEditorWidget;
+    }
+
+    for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(), end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
+    {
+        QNTRACE(QStringLiteral("Examining window editor's note local uid = ") << it.key());
+
+        const QPointer<NoteEditorWidget> & pNoteEditorWidget = it.value();
+        if (Q_UNLIKELY(pNoteEditorWidget.isNull())) {
+            QNTRACE(QStringLiteral("The note editor widget is gone, skipping"));
+            continue;
+        }
+
+        const QString & existingNoteLocalUid = it.key();
+        if (existingNoteLocalUid != noteLocalUid) {
+            continue;
+        }
+
+        QNDEBUG(QStringLiteral("Found existing editor window"));
+        return pNoteEditorWidget.data();
+    }
+
+    return Q_NULLPTR;
+}
+
 void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode,
                                                   const bool isNewNote)
 {
