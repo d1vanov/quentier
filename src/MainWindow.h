@@ -46,6 +46,7 @@
 #include <QTextListFormat>
 #include <QMap>
 #include <QStandardItemModel>
+#include <QStringList>
 
 namespace Ui {
 class MainWindow;
@@ -201,6 +202,10 @@ private Q_SLOTS:
 
     void onCurrentNotePrintRequested();
     void onCurrentNotePdfExportRequested();
+
+    void onExportNotesToEnexRequested(QStringList noteLocalUids);
+    void onExportedNotesToEnex(QString enex);
+    void onExportNotesToEnexFailed(ErrorString errorDescription);
 
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);

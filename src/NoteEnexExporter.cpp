@@ -180,6 +180,7 @@ void NoteEnexExporter::clear()
 {
     QNDEBUG(QStringLiteral("NoteEnexExporter::clear"));
 
+    m_targetEnexFilePath.clear();
     m_noteLocalUids.clear();
     m_findNoteRequestIds.clear();
     m_notesByLocalUid.clear();

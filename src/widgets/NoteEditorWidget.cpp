@@ -568,7 +568,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         lastExportNoteToEnexPath = documentsPath();
     }
 
-    QScopedPointer<EnexExportDialog> pExportEnexDialog(new EnexExportDialog(m_currentAccount, this, titleOrPreview()));
+    QScopedPointer<EnexExportDialog> pExportEnexDialog(new EnexExportDialog(m_currentAccount,
+                                                                            this, titleOrPreview()));
     pExportEnexDialog->setWindowModality(Qt::WindowModal);
 
     if (pExportEnexDialog->exec() == QDialog::Accepted)
@@ -579,7 +580,9 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         if (enexFileInfo.exists())
         {
             if (!enexFileInfo.isWritable()) {
-                errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export note to ENEX: the selected file already exists and is not writable");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export note to ENEX: "
+                                                            "the selected file already exists "
+                                                            "and is not writable");
                 QNWARNING(errorDescription);
                 return false;
             }
@@ -591,6 +594,20 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
             if (res != QDialog::Accepted) {
                 QNDEBUG(QStringLiteral("Cancelled overwriting the existing ENEX file"));
                 return true;
+            }
+        }
+        else
+        {
+            QDir enexFileDir = enexFileInfo.absoluteDir();
+            if (!enexFileDir.exists())
+            {
+                bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
+                if (!res) {
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export note to ENEX: failed "
+                                                                "to create folder for the selected file");
+                    QNWARNING(errorDescription);
+                    return false;
+                }
             }
         }
 

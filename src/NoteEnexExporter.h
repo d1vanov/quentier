@@ -25,6 +25,9 @@ public:
                               NoteEditorTabsAndWindowsCoordinator & coordinator,
                               TagModel & tagModel, QObject * parent = Q_NULLPTR);
 
+    const QString & targetEnexFilePath() const { return m_targetEnexFilePath; }
+    void setTargetEnexFilePath(const QString & path) { m_targetEnexFilePath = path; }
+
     const QStringList & noteLocalUids() const { return m_noteLocalUids; }
     void setNoteLocalUids(const QStringList & noteLocalUids);
 
@@ -61,6 +64,7 @@ private:
     LocalStorageManagerThreadWorker &       m_localStorageWorker;
     NoteEditorTabsAndWindowsCoordinator &   m_noteEditorTabsAndWindowsCoordinator;
     QPointer<TagModel>                      m_pTagModel;
+    QString                                 m_targetEnexFilePath;
     QStringList                             m_noteLocalUids;
     QSet<QUuid>                             m_findNoteRequestIds;
     QHash<QString, Note>                    m_notesByLocalUid;

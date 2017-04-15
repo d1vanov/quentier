@@ -21,6 +21,7 @@
 #include "SystemTrayIconManager.h"
 #include "EditNoteDialogsManager.h"
 #include "NoteFiltersManager.h"
+#include "NoteEnexExporter.h"
 #include "models/NoteFilterModel.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
@@ -38,6 +39,7 @@
 #include "dialogs/AddOrEditNotebookDialog.h"
 #include "dialogs/AddOrEditTagDialog.h"
 #include "dialogs/AddOrEditSavedSearchDialog.h"
+#include "dialogs/EnexExportDialog.h"
 #include "dialogs/PreferencesDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
@@ -684,7 +686,8 @@ void MainWindow::createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMo
     QNDEBUG(QStringLiteral("MainWindow::createNewNote: note editor mode = ") << noteEditorMode);
 
     if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
-        QNDEBUG(QStringLiteral("No note editor tab widget manager, probably the button was pressed too quickly on startup, skipping"));
+        QNDEBUG(QStringLiteral("No note editor tabs and windows coordinator, probably "
+                               "the button was pressed too quickly on startup, skipping"));
         return;
     }
 
@@ -2133,6 +2136,143 @@ void MainWindow::onCurrentNotePdfExportRequested()
 
         onSetStatusBarText(errorDescription.localizedString(), 300);
     }
+}
+
+void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onExportNotesToEnexRequested: ")
+            << noteLocalUids.join(QStringLiteral(", ")));
+
+    if (Q_UNLIKELY(noteLocalUids.isEmpty())) {
+        QNDEBUG(QStringLiteral("The list of note local uids to export is empty"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG(QStringLiteral("No current account, skipping"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pLocalStorageManager)) {
+        QNDEBUG(QStringLiteral("No local storage manager thread worker, skipping"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
+        QNDEBUG(QStringLiteral("No note editor tabs and windows coordinator, skipping"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pTagModel)) {
+        QNDEBUG(QStringLiteral("No tag model, skipping"));
+        return;
+    }
+
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    QString lastExportNoteToEnexPath = appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY).toString();
+    appSettings.endGroup();
+
+    if (lastExportNoteToEnexPath.isEmpty()) {
+        lastExportNoteToEnexPath = documentsPath();
+    }
+
+    QScopedPointer<EnexExportDialog> pExportEnexDialog(new EnexExportDialog(*m_pAccount, this));
+    pExportEnexDialog->setWindowModality(Qt::WindowModal);
+    if (pExportEnexDialog->exec() != QDialog::Accepted) {
+        QNDEBUG(QStringLiteral("Enex export was not confirmed"));
+        return;
+    }
+
+    QString enexFilePath = pExportEnexDialog->exportEnexFilePath();
+
+    QFileInfo enexFileInfo(enexFilePath);
+    if (enexFileInfo.exists())
+    {
+        if (!enexFileInfo.isWritable()) {
+            QNINFO(QStringLiteral("Chosen ENEX export file is not writable: ") << enexFilePath);
+            onSetStatusBarText(tr("The file selected for ENEX export is not writable") +
+                               QStringLiteral(": ") + enexFilePath);
+            return;
+        }
+    }
+    else
+    {
+        QDir enexFileDir = enexFileInfo.absoluteDir();
+        if (!enexFileDir.exists())
+        {
+            bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
+            if (!res) {
+                QNDEBUG(QStringLiteral("Failed to create folder for the selected ENEX file"));
+                onSetStatusBarText(tr("Could not create folder for the selected ENEX file") +
+                                   QStringLiteral(": ") + enexFilePath);
+                return;
+            }
+        }
+    }
+
+    NoteEnexExporter * pExporter = new NoteEnexExporter(*m_pLocalStorageManager,
+                                                        *m_pNoteEditorTabsAndWindowsCoordinator,
+                                                        *m_pTagModel, this);
+    pExporter->setTargetEnexFilePath(enexFilePath);
+    pExporter->setIncludeTags(pExportEnexDialog->exportTags());
+    pExporter->setNoteLocalUids(noteLocalUids);
+
+    QObject::connect(pExporter, QNSIGNAL(NoteEnexExporter,notesExportedToEnex,QString),
+                     this, QNSLOT(MainWindow,onExportedNotesToEnex));
+    QObject::connect(pExporter, QNSIGNAL(NoteEnexExporter,failedToExportNotesToEnex,ErrorString),
+                     this, QNSLOT(MainWindow,onExportNotesToEnexFailed,ErrorString));
+    pExporter->start();
+}
+
+void MainWindow::onExportedNotesToEnex(QString enex)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onExportedNotesToEnex"));
+
+    NoteEnexExporter * pExporter = qobject_cast<NoteEnexExporter*>(sender());
+    if (Q_UNLIKELY(!pExporter)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
+                                            "can't cast the slot invoker to NoteEnexExporter"));
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QString enexFilePath = pExporter->targetEnexFilePath();
+    if (Q_UNLIKELY(enexFilePath.isEmpty())) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
+                                            "the selected ENEX file path was lost"));
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    // TODO: remake this to do file IO asynchronously later, when I'm not distracted constantly >:-[
+    QFile enexFile(enexFilePath);
+    if (!enexFile.open(QIODevice::WriteOnly)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: can't open the file for writing"));
+        error.details() = enexFilePath;
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    // TODO: check for the number of bytes written
+    QByteArray enexRawData = enex.toLocal8Bit();
+    Q_UNUSED(enexFile.write(enexRawData))
+}
+
+void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onExportNotesToEnexFailed: ") << errorDescription);
+
+    NoteEnexExporter * pExporter = qobject_cast<NoteEnexExporter*>(sender());
+    if (pExporter) {
+        pExporter->clear();
+        pExporter->deleteLater();
+    }
+
+    onSetStatusBarText(errorDescription.localizedString());
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
