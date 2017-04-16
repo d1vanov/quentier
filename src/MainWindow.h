@@ -207,6 +207,10 @@ private Q_SLOTS:
     void onExportedNotesToEnex(QString enex);
     void onExportNotesToEnexFailed(ErrorString errorDescription);
 
+    void onEnexFileWrittenSuccessfully(QString filePath);
+    void onEnexFileWriteFailed(ErrorString errorDescription);
+    void onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal);
+
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();

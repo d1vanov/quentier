@@ -18,6 +18,7 @@
 
 #include "MainWindow.h"
 #include "SettingsNames.h"
+#include "AsyncFileWriter.h"
 #include "SystemTrayIconManager.h"
 #include "EditNoteDialogsManager.h"
 #include "NoteFiltersManager.h"
@@ -102,6 +103,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <QTimerEvent>
 #include <QFocusEvent>
 #include <QMenu>
+#include <QThreadPool>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -2219,7 +2221,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
     pExporter->setNoteLocalUids(noteLocalUids);
 
     QObject::connect(pExporter, QNSIGNAL(NoteEnexExporter,notesExportedToEnex,QString),
-                     this, QNSLOT(MainWindow,onExportedNotesToEnex));
+                     this, QNSLOT(MainWindow,onExportedNotesToEnex,QString));
     QObject::connect(pExporter, QNSIGNAL(NoteEnexExporter,failedToExportNotesToEnex,ErrorString),
                      this, QNSLOT(MainWindow,onExportNotesToEnexFailed,ErrorString));
     pExporter->start();
@@ -2247,19 +2249,16 @@ void MainWindow::onExportedNotesToEnex(QString enex)
         return;
     }
 
-    // TODO: remake this to do file IO asynchronously later, when I'm not distracted constantly >:-[
-    QFile enexFile(enexFilePath);
-    if (!enexFile.open(QIODevice::WriteOnly)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: can't open the file for writing"));
-        error.details() = enexFilePath;
-        QNWARNING(error);
-        onSetStatusBarText(error.localizedString());
-        return;
-    }
-
-    // TODO: check for the number of bytes written
     QByteArray enexRawData = enex.toLocal8Bit();
-    Q_UNUSED(enexFile.write(enexRawData))
+
+    AsyncFileWriter * pAsyncFileWriter = new AsyncFileWriter(enexFilePath, enexRawData);
+    QObject::connect(pAsyncFileWriter, QNSIGNAL(AsyncFileWriter,fileSuccessfullyWritten,QString),
+                     this, QNSLOT(MainWindow,onEnexFileWrittenSuccessfully,QString));
+    QObject::connect(pAsyncFileWriter, QNSIGNAL(AsyncFileWriter,fileWriteFailed,ErrorString),
+                     this, QNSLOT(MainWindow,onEnexFileWriteFailed));
+    QObject::connect(pAsyncFileWriter, QNSIGNAL(AsyncFileWriter,fileWriteIncomplete,qint64,qint64),
+                     this, QNSLOT(MainWindow,onEnexFileWriteIncomplete,qint64,qint64));
+    QThreadPool::globalInstance()->start(pAsyncFileWriter);
 }
 
 void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
@@ -2273,6 +2272,35 @@ void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
     }
 
     onSetStatusBarText(errorDescription.localizedString());
+}
+
+void MainWindow::onEnexFileWrittenSuccessfully(QString filePath)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onEnexFileWrittenSuccessfully: ") << filePath);
+    onSetStatusBarText(tr("Successfully exported note(s) to ENEX: ") + QDir::toNativeSeparators(filePath), 5000);
+}
+
+void MainWindow::onEnexFileWriteFailed(ErrorString errorDescription)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onEnexFileWriteFailed: ") << errorDescription);
+    onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file") +
+                       QStringLiteral(": ") + errorDescription.localizedString());
+}
+
+void MainWindow::onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onEnexFileWriteIncomplete: bytes written = ")
+            << bytesWritten << QStringLiteral(", bytes total = ") << bytesTotal);
+
+
+    if (bytesWritten == 0) {
+        onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file"));
+    }
+    else {
+        onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file, "
+                              "only a portion of data has been written") + QStringLiteral(": ") +
+                           QString::number(bytesWritten) + QStringLiteral("/") + QString::number(bytesTotal));
+    }
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
@@ -3445,6 +3473,8 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onCurrentNoteInListChanged,QString));
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,openNoteInSeparateWindowRequested,QString),
                      this, QNSLOT(MainWindow,onOpenNoteInSeparateWindow,QString));
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,enexExportRequested,QStringList),
+                     this, QNSLOT(MainWindow,onExportNotesToEnexRequested,QStringList));
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);

@@ -25,13 +25,17 @@ void AsyncFileWriter::run()
         emit
     }
 
+    qint64 dataSize = static_cast<qint64>(m_dataToWrite.size());
     qint64 bytesWritten = file.write(m_dataToWrite);
-    if (bytesWritten != m_dataToWrite.size()) {
-        emit fileWriteIncomplete(bytesWritten, m_dataToWrite.size());
-        return;
+    if (bytesWritten != dataSize) {
+        QNDEBUG(QStringLiteral("Couldn't write the entire file: expected ")
+                << dataSize << QStringLiteral(", got only ") << bytesWritten);
+        emit fileWriteIncomplete(bytesWritten, dataSize);
     }
-
-    emit fileSuccessfullyWritten(m_filePath);
+    else {
+        QNDEBUG(QStringLiteral("Successfully written the file"));
+        emit fileSuccessfullyWritten(m_filePath);
+    }
 }
 
 } // namespace quentier
