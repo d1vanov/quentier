@@ -25,7 +25,7 @@ NoteEnexExporter::NoteEnexExporter(LocalStorageManagerThreadWorker & localStorag
     m_connectedToLocalStorage(false)
 {
     if (!tagModel.allTagsListed()) {
-        QObject::connect(&tagModel, QNSIGNAL(TagModel,allTagsListed),
+        QObject::connect(&tagModel, QNSIGNAL(TagModel,notifyAllTagsListed),
                          this, QNSLOT(NoteEnexExporter,onAllTagsListed));
     }
 }
@@ -266,7 +266,7 @@ void NoteEnexExporter::onAllTagsListed()
 {
     QNDEBUG(QStringLiteral("NoteEnexExporter::onAllTagsListed"));
 
-    QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,allTagsListed),
+    QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
                         this, QNSLOT(NoteEnexExporter,onAllTagsListed));
 
     if (m_noteLocalUids.isEmpty()) {

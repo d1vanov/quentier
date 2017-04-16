@@ -65,6 +65,7 @@ set(${PROJECT_NAME}_HEADERS
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
     src/EditNoteDialogsManager.h
+    src/EnexImporter.h
     src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
     src/NoteEnexExporter.h
@@ -147,6 +148,7 @@ set(${PROJECT_NAME}_SOURCES
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
     src/EditNoteDialogsManager.cpp
+    src/EnexImporter.cpp
     src/NoteEditorTabsAndWindowsCoordinator.cpp
     src/NoteFiltersManager.cpp
     src/NoteEnexExporter.cpp
