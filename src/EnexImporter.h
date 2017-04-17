@@ -9,6 +9,11 @@
 #include <QUuid>
 #include <QHash>
 
+// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
+#ifndef Q_MOC_RUN
+#include <boost/bimap.hpp>
+#endif
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
@@ -33,10 +38,15 @@ Q_SIGNALS:
 
 // private signals:
     void addTag(Tag tag, QUuid requestId);
+    void addNote(Note note, QUuid requestId);
 
 private Q_SLOTS:
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+
+    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
     void onAllTagsListed();
 
@@ -44,12 +54,27 @@ private:
     void connectToLocalStorage();
     void disconnectFromLocalStorage();
 
+    void processNotesPendingTagAddition();
+    void addNoteToLocalStorage(const Note & note);
+
 private:
     LocalStorageManagerThreadWorker &       m_localStorageWorker;
     TagModel &                              m_tagModel;
     QString                                 m_enexFilePath;
-    QSet<QUuid>                             m_addTagRequestIds;
-    QHash<QString, Tag>                     m_tagsByName;
+
+    QHash<QString, QStringList>             m_tagNamesByImportedNoteLocalUid;
+
+    typedef boost::bimap<QString, QString> TagNameByLocalUidBimap;
+    TagNameByLocalUidBimap                  m_tagNameByLocalUidBimap;
+
+    typedef boost::bimap<QString, QUuid> AddTagRequestIdByTagNameBimap;
+    AddTagRequestIdByTagNameBimap           m_addTagRequestIdByTagNameBimap;
+
+    QSet<QString>                           m_expungedTagLocalUids;
+
+    QVector<Note>                           m_notesPendingTagAddition;
+    QSet<QUuid>                             m_addNoteRequestIds;
+
     bool                                    m_connectedToLocalStorage;
 };
 
