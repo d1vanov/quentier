@@ -16,7 +16,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
 class EnexImporter: public QObject
@@ -24,7 +24,7 @@ class EnexImporter: public QObject
     Q_OBJECT
 public:
     explicit EnexImporter(const QString & enexFilePath,
-                          LocalStorageManagerThreadWorker & localStorageWorker,
+                          LocalStorageManagerAsync & localStorageManagerAsync,
                           TagModel & tagModel, QObject * parent = Q_NULLPTR);
 
     bool isInProgress() const;
@@ -60,7 +60,7 @@ private:
     void addTagToLocalStorage(const QString & tagName);
 
 private:
-    LocalStorageManagerThreadWorker &       m_localStorageWorker;
+    LocalStorageManagerAsync &              m_localStorageManagerAsync;
     TagModel &                              m_tagModel;
     QString                                 m_enexFilePath;
 

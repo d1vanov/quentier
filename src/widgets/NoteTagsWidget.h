@@ -19,7 +19,7 @@
 #ifndef QUENTIER_WIDGETS_NOTE_TAGS_WIDGET_H
 #define QUENTIER_WIDGETS_NOTE_TAGS_WIDGET_H
 
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/StringUtils.h>
 #include <QWidget>
 #include <QPointer>
@@ -51,7 +51,7 @@ class NoteTagsWidget: public QWidget
 public:
     explicit NoteTagsWidget(QWidget * parent = Q_NULLPTR);
 
-    void setLocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker & localStorageWorker);
+    void setLocalStorageManagerThreadWorker(LocalStorageManagerAsync & localStorageManagerAsync);
 
     void setTagModel(TagModel * pTagModel);
 
@@ -113,7 +113,7 @@ private:
     void removeNewTagWidgetFromLayout();
     void removeTagWidgetFromLayout(const QString & tagLocalUid);
 
-    void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
 
     NewListItemLineEdit * findNewItemWidget();
 

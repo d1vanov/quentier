@@ -25,7 +25,7 @@
 #include <quentier/types/Tag.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Account.h>
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
 #include <QUuid>
@@ -53,7 +53,7 @@ class TagModel: public ItemModel
     Q_OBJECT
 public:
     explicit TagModel(const Account & account, const NoteModel & noteModel,
-                      LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+                      LocalStorageManagerAsync & localStorageManagerAsync,
                       TagCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~TagModel();
 
@@ -294,7 +294,7 @@ private Q_SLOTS:
                                     ErrorString errorDescription, QUuid requestId);
 
 private:
-    void createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
     void requestTagsList();
     void requestNoteCountForTag(const Tag & tag);
     void requestTagsPerNote(const Note & note);

@@ -19,7 +19,7 @@
 #ifndef QUENTIER_SRC_TESTS_MODEL_TEST_MODEL_TESTER_H
 #define QUENTIER_SRC_TESTS_MODEL_TEST_MODEL_TESTER_H
 
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <QObject>
 
 class ModelTester: public QObject
@@ -38,7 +38,7 @@ private Q_SLOTS:
     void testTagModelItemSerialization();
 
 private:
-    quentier::LocalStorageManagerThreadWorker  * m_pLocalStorageWorker;
+    quentier::LocalStorageManagerAsync *    m_pLocalStorageManagerAsync;
 };
 
 #endif // QUENTIER_SRC_TESTS_MODEL_TEST_MODEL_TESTER_H

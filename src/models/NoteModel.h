@@ -25,7 +25,7 @@
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
 #include <quentier/types/Account.h>
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
 #include <QUuid>
@@ -58,7 +58,7 @@ public:
         };
     };
 
-    explicit NoteModel(const Account & account,  LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit NoteModel(const Account & account,  LocalStorageManagerAsync & localStorageManagerAsync,
                        NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
                        const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
     virtual ~NoteModel();
@@ -217,7 +217,7 @@ private Q_SLOTS:
     void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
 private:
-    void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void requestNotesList();
 
     QVariant dataImpl(const int row, const Columns::type column) const;

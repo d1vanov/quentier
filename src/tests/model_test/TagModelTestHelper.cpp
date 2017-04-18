@@ -28,26 +28,26 @@
 
 namespace quentier {
 
-TagModelTestHelper::TagModelTestHelper(LocalStorageManagerThreadWorker * pLocalStorageManagerThreadWorker,
+TagModelTestHelper::TagModelTestHelper(LocalStorageManagerAsync * pLocalStorageManagerAsync,
                                        QObject * parent) :
     QObject(parent),
-    m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker)
+    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
 {
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(TagModelTestHelper,onAddTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(TagModelTestHelper,onUpdateTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(TagModelTestHelper,onFindTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,
-                                                                LocalStorageManager::ListObjectsOptions,
-                                                                size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,
-                                                                QString,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsFailed,
+                                                         LocalStorageManager::ListObjectsOptions,
+                                                         size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,
+                                                         QString,ErrorString,QUuid),
                      this, QNSLOT(TagModelTestHelper,onListTagsFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListTagsOrder::type,
                                   LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(TagModelTestHelper,onExpungeTagFailed,Tag,ErrorString,QUuid));
 }
 
@@ -138,7 +138,7 @@ void TagModelTestHelper::test()
         twelveth.setParentLocalUid(tenth.localUid());
 
 #define ADD_TAG(tag) \
-        m_pLocalStorageManagerThreadWorker->onAddTagRequest(tag, QUuid())
+        m_pLocalStorageManagerAsync->onAddTagRequest(tag, QUuid())
 
         // NOTE: exploiting the direct connection used in the current test environment:
         // after the following lines the local storage would be filled with the test objects
@@ -162,9 +162,9 @@ void TagModelTestHelper::test()
 
         NoteCache noteCache(10);
         NotebookCache notebookCache(5);
-        NoteModel noteModel(account, *m_pLocalStorageManagerThreadWorker, noteCache, notebookCache);
+        NoteModel noteModel(account, *m_pLocalStorageManagerAsync, noteCache, notebookCache);
 
-        TagModel * model = new TagModel(account, noteModel, *m_pLocalStorageManagerThreadWorker, cache, this);
+        TagModel * model = new TagModel(account, noteModel, *m_pLocalStorageManagerAsync, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 
@@ -455,7 +455,7 @@ void TagModelTestHelper::test()
         }
 
         // After expunging the tag being the parent for other tags, the child tags should not be present within the model as well as the parent one
-        m_pLocalStorageManagerThreadWorker->onExpungeTagRequest(tenth, QUuid());
+        m_pLocalStorageManagerAsync->onExpungeTagRequest(tenth, QUuid());
 
         QModelIndex tenthIndex = model->indexForLocalUid(tenth.localUid());
         if (tenthIndex.isValid()) {

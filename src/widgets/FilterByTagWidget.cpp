@@ -18,7 +18,7 @@
 
 #include "FilterByTagWidget.h"
 #include "../models/TagModel.h"
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 
 namespace quentier {
@@ -28,15 +28,15 @@ FilterByTagWidget::FilterByTagWidget(QWidget * parent) :
     m_pLocalStorageManager()
 {}
 
-void FilterByTagWidget::setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager)
+void FilterByTagWidget::setLocalStorageManager(LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    m_pLocalStorageManager = &localStorageManager;
+    m_pLocalStorageManager = &localStorageManagerAsync;
 
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(FilterByTagWidget,onUpdateTagCompleted,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(FilterByTagWidget,onExpungeTagCompleted,Tag,QStringList,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotelessTagsFromLinkedNotebooksComplete,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,expungeNotelessTagsFromLinkedNotebooksComplete,QUuid),
                      this, QNSLOT(FilterByTagWidget,onExpungeNotelessTagsFromLinkedNotebooksCompleted,QUuid));
 }
 

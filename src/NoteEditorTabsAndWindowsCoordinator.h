@@ -45,7 +45,7 @@ QT_FORWARD_DECLARE_CLASS(QMenu)
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(NoteEditorWidget)
 QT_FORWARD_DECLARE_CLASS(TabWidget)
@@ -56,7 +56,7 @@ class NoteEditorTabsAndWindowsCoordinator: public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteEditorTabsAndWindowsCoordinator(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+    explicit NoteEditorTabsAndWindowsCoordinator(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                                                  NoteCache & noteCache, NotebookCache & notebookCache,
                                                  TagCache & tagCache, TagModel & tagModel,
                                                  TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
@@ -164,7 +164,7 @@ private:
 
 private:
     Account                             m_currentAccount;
-    LocalStorageManagerThreadWorker &   m_localStorageWorker;
+    LocalStorageManagerAsync &          m_localStorageManagerAsync;
     NoteCache &                         m_noteCache;
     NotebookCache &                     m_notebookCache;
     TagCache &                          m_tagCache;

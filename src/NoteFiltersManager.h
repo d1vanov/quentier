@@ -38,7 +38,7 @@ QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
 QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
 class NoteFiltersManager: public QObject
 {
@@ -49,7 +49,7 @@ public:
                                 NoteFilterModel & noteFilterModel,
                                 FilterBySavedSearchWidget & filterBySavedSearchWidget,
                                 QLineEdit & searchLineEdit,
-                                LocalStorageManagerThreadWorker & localStorageManager,
+                                LocalStorageManagerAsync & localStorageManagerAsync,
                                 QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
@@ -118,7 +118,7 @@ private:
     NoteFilterModel &                   m_noteFilterModel;
     FilterBySavedSearchWidget &         m_filterBySavedSearchWidget;
     QLineEdit &                         m_searchLineEdit;
-    LocalStorageManagerThreadWorker &   m_localStorageManager;
+    LocalStorageManagerAsync &          m_localStorageManagerAsync;
 
     QSet<QString>                       m_filteredTagLocalUids;
     QString                             m_filteredSavedSearchLocalUid;

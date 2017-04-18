@@ -25,7 +25,7 @@
 
 ModelTester::ModelTester(QObject * parent) :
     QObject(parent),
-    m_pLocalStorageWorker(Q_NULLPTR)
+    m_pLocalStorageManagerAsync(Q_NULLPTR)
 {}
 
 ModelTester::~ModelTester()
@@ -41,13 +41,13 @@ void ModelTester::testSavedSearchModel()
         timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageWorker;
+        delete m_pLocalStorageManagerAsync;
         Account account(QStringLiteral("ModelTester_saved_search_model_test_fake_user"), Account::Type::Evernote, 300);
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
-                                                                              /* override lock = */ false, this);
-        m_pLocalStorageWorker->init();
+        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(account, /* start from scratch = */ true,
+                                                                             /* override lock = */ false, this);
+        m_pLocalStorageManagerAsync->init();
 
-        SavedSearchModelTestHelper savedSearchModelTestHelper(m_pLocalStorageWorker);
+        SavedSearchModelTestHelper savedSearchModelTestHelper(m_pLocalStorageManagerAsync);
 
         EventLoopWithExitStatus loop;
         loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
@@ -84,13 +84,13 @@ void ModelTester::testTagModel()
         timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageWorker;
+        delete m_pLocalStorageManagerAsync;
         Account account(QStringLiteral("ModelTester_tag_model_test_fake_user"), Account::Type::Evernote, 400);
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
-                                                                              /* override lock = */ false, this);
-        m_pLocalStorageWorker->init();
+        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(account, /* start from scratch = */ true,
+                                                                             /* override lock = */ false, this);
+        m_pLocalStorageManagerAsync->init();
 
-        TagModelTestHelper tagModelTestHelper(m_pLocalStorageWorker);
+        TagModelTestHelper tagModelTestHelper(m_pLocalStorageManagerAsync);
 
         EventLoopWithExitStatus loop;
         loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
@@ -127,13 +127,13 @@ void ModelTester::testNotebookModel()
         timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageWorker;
+        delete m_pLocalStorageManagerAsync;
         Account account(QStringLiteral("ModelTester_notebook_model_test_fake_user"), Account::Type::Evernote, 500);
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
-                                                                              /* override lock = */ false, this);
-        m_pLocalStorageWorker->init();
+        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(account, /* start from scratch = */ true,
+                                                                             /* override lock = */ false, this);
+        m_pLocalStorageManagerAsync->init();
 
-        NotebookModelTestHelper notebookModelTestHelper(m_pLocalStorageWorker);
+        NotebookModelTestHelper notebookModelTestHelper(m_pLocalStorageManagerAsync);
 
         EventLoopWithExitStatus loop;
         loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
@@ -170,13 +170,13 @@ void ModelTester::testNoteModel()
         timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageWorker;
+        delete m_pLocalStorageManagerAsync;
         Account account(QStringLiteral("ModelTester_note_model_test_fake_user"), Account::Type::Evernote, 700);
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
-                                                                              /* override lock = */ false, this);
-        m_pLocalStorageWorker->init();
+        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(account, /* start from scratch = */ true,
+                                                                             /* override lock = */ false, this);
+        m_pLocalStorageManagerAsync->init();
 
-        NoteModelTestHelper noteModelTestHelper(m_pLocalStorageWorker);
+        NoteModelTestHelper noteModelTestHelper(m_pLocalStorageManagerAsync);
 
         EventLoopWithExitStatus loop;
         QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
@@ -213,13 +213,13 @@ void ModelTester::testFavoritesModel()
         timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageWorker;
+        delete m_pLocalStorageManagerAsync;
         Account account("ModelTester_favorites_model_test_fake_user", Account::Type::Evernote, 800);
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
-                                                                              /* override lock = */ false, this);
-        m_pLocalStorageWorker->init();
+        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(account, /* start from scratch = */ true,
+                                                                             /* override lock = */ false, this);
+        m_pLocalStorageManagerAsync->init();
 
-        FavoritesModelTestHelper favoritesModelTestHelper(m_pLocalStorageWorker);
+        FavoritesModelTestHelper favoritesModelTestHelper(m_pLocalStorageManagerAsync);
 
         EventLoopWithExitStatus loop;
         QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));

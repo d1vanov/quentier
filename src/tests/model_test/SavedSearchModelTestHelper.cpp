@@ -26,25 +26,25 @@
 
 namespace quentier {
 
-SavedSearchModelTestHelper::SavedSearchModelTestHelper(LocalStorageManagerThreadWorker * pLocalStorageManagerThreadWorker,
+SavedSearchModelTestHelper::SavedSearchModelTestHelper(LocalStorageManagerAsync * pLocalStorageManagerAsync,
                                                        QObject * parent) :
     QObject(parent),
-    m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker)
+    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
 {
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onAddSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onUpdateSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onFindSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
-                                                                LocalStorageManager::ListObjectsOptions,
-                                                                size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesFailed,
+                                                         LocalStorageManager::ListObjectsOptions,
+                                                         size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
                                   ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onExpungeSavedSearchFailed,SavedSearch,ErrorString,QUuid));
 }
 
@@ -79,15 +79,15 @@ void SavedSearchModelTestHelper::test()
 
         // NOTE: exploiting the direct connection used in the current test environment:
         // after the following lines the local storage would be filled with the test objects
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(first, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(second, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(third, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(fourth, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(first, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(second, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(third, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(fourth, QUuid());
 
         SavedSearchCache cache(20);
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        SavedSearchModel * model = new SavedSearchModel(account, *m_pLocalStorageManagerThreadWorker, cache, this);
+        SavedSearchModel * model = new SavedSearchModel(account, *m_pLocalStorageManagerAsync, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

@@ -29,7 +29,7 @@
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
 #include <quentier/types/SavedSearch.h>
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
 #include <QUuid>
@@ -55,7 +55,7 @@ class FavoritesModel: public QAbstractItemModel
     Q_OBJECT
 public:
     explicit FavoritesModel(const Account & account, const NoteModel & noteModel,
-                            LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+                            LocalStorageManagerAsync & localStorageManagerAsync,
                             NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                             SavedSearchCache & savedSearchCache, QObject * parent = Q_NULLPTR);
     virtual ~FavoritesModel();
@@ -241,7 +241,7 @@ private Q_SLOTS:
     void onNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
 
 private:
-    void createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
     void requestNotesList();
     void requestNotebooksList();
     void requestTagsList();

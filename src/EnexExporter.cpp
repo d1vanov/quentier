@@ -2,7 +2,7 @@
 #include "NoteEditorTabsAndWindowsCoordinator.h"
 #include "widgets/NoteEditorWidget.h"
 #include "models/TagModel.h"
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QVector>
@@ -11,11 +11,11 @@
 
 namespace quentier {
 
-EnexExporter::EnexExporter(LocalStorageManagerThreadWorker & localStorageWorker,
+EnexExporter::EnexExporter(LocalStorageManagerAsync & localStorageManagerAsync,
                            NoteEditorTabsAndWindowsCoordinator & coordinator,
                            TagModel & tagModel, QObject * parent) :
     QObject(parent),
-    m_localStorageWorker(localStorageWorker),
+    m_localStorageManagerAsync(localStorageManagerAsync),
     m_noteEditorTabsAndWindowsCoordinator(coordinator),
     m_pTagModel(&tagModel),
     m_noteLocalUids(),
@@ -378,10 +378,10 @@ void EnexExporter::connectToLocalStorage()
     }
 
     QObject::connect(this, QNSIGNAL(EnexExporter,findNote,Note,bool,QUuid),
-                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(EnexExporter,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
                      this, QNSLOT(EnexExporter,onFindNoteFailed,Note,bool,ErrorString,QUuid));
 
     m_connectedToLocalStorage = true;
@@ -397,10 +397,10 @@ void EnexExporter::disconnectFromLocalStorage()
     }
 
     QObject::disconnect(this, QNSIGNAL(EnexExporter,findNote,Note,bool,QUuid),
-                        &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
+                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
                         this, QNSLOT(EnexExporter,onFindNoteComplete,Note,bool,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
                         this, QNSLOT(EnexExporter,onFindNoteFailed,Note,bool,ErrorString,QUuid));
 
     m_connectedToLocalStorage = false;

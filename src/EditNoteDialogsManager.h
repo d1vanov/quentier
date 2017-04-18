@@ -31,7 +31,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
 class EditNoteDialogsManager: public QObject
@@ -39,7 +39,7 @@ class EditNoteDialogsManager: public QObject
     Q_OBJECT
 public:
     // NOTE: as dialogs need a widget to be their parent, this class' parent must be a QWidget instance
-    explicit EditNoteDialogsManager(LocalStorageManagerThreadWorker & localStorageWorker,
+    explicit EditNoteDialogsManager(LocalStorageManagerAsync & localStorageManagerAsync,
                                     NoteCache & noteCache, NotebookModel * pNotebookModel,
                                     QWidget * parent = Q_NULLPTR);
 
@@ -72,7 +72,7 @@ private:
     Q_DISABLE_COPY(EditNoteDialogsManager)
 
 private:
-    LocalStorageManagerThreadWorker &   m_localStorageWorker;
+    LocalStorageManagerAsync &          m_localStorageManagerAsync;
     NoteCache &                         m_noteCache;
 
     // NOTE: the bool value in this hash is a "read only" flag for the dialog

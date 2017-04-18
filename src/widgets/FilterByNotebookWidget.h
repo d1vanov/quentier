@@ -27,7 +27,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
 class FilterByNotebookWidget: public AbstractFilterByModelItemWidget
@@ -36,7 +36,7 @@ class FilterByNotebookWidget: public AbstractFilterByModelItemWidget
 public:
     explicit FilterByNotebookWidget(QWidget * parent = Q_NULLPTR);
 
-    void setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager);
+    void setLocalStorageManager(LocalStorageManagerAsync & localStorageManagerAsync);
 
     const NotebookModel * notebookModel() const;
 
@@ -45,7 +45,7 @@ private Q_SLOTS:
     void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
 
 private:
-    QPointer<LocalStorageManagerThreadWorker>   m_pLocalStorageManager;
+    QPointer<LocalStorageManagerAsync>   m_pLocalStorageManager;
 };
 
 } // namespace quentier

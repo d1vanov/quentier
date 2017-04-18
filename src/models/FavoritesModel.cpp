@@ -31,7 +31,7 @@
 namespace quentier {
 
 FavoritesModel::FavoritesModel(const Account & account, const NoteModel & noteModel,
-                               LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+                               LocalStorageManagerAsync & localStorageManagerAsync,
                                NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                                SavedSearchCache & savedSearchCache, QObject * parent) :
     QAbstractItemModel(parent),
@@ -80,7 +80,7 @@ FavoritesModel::FavoritesModel(const Account & account, const NoteModel & noteMo
     m_sortOrder(Qt::AscendingOrder),
     m_allItemsListed(false)
 {
-    createConnections(noteModel, localStorageManagerThreadWorker);
+    createConnections(noteModel, localStorageManagerAsync);
 
     if (noteModel.allNotesListed()) {
         buildTagLocalUidsByNoteLocalUidsHash(noteModel);
@@ -1429,7 +1429,7 @@ void FavoritesModel::onNoteCountPerTagFailed(ErrorString errorDescription, Tag t
     emit notifyError(errorDescription);
 }
 
-void FavoritesModel::createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
+void FavoritesModel::createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNDEBUG(QStringLiteral("FavoritesModel::createConnections"));
 
@@ -1438,157 +1438,157 @@ void FavoritesModel::createConnections(const NoteModel & noteModel, LocalStorage
                          this, QNSLOT(FavoritesModel,onAllNotesListed));
     }
 
-    // Local signals to localStorageManagerThreadWorker's slots
+    // Local signals to localStorageManagerAsync's slots
     QObject::connect(this, QNSIGNAL(FavoritesModel,updateNote,Note,bool,bool,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,bool,bool,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,findNote,Note,bool,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                     LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListNotesRequest,
-                                                              LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                                              LocalStorageManager::ListNotesOrder::type,
-                                                              LocalStorageManager::OrderDirection::type,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
+                                                       LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                                       LocalStorageManager::ListNotesOrder::type,
+                                                       LocalStorageManager::OrderDirection::type,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,updateNotebook,Notebook,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNotebookRequest,Notebook,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,findNotebook,Notebook,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,listNotebooks,LocalStorageManager::ListObjectsOptions,
                                     size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
                                     LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListNotebooksRequest,
-                                                              LocalStorageManager::ListObjectsOptions,
-                                                              size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                              LocalStorageManager::OrderDirection::type,QString,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListNotebooksRequest,
+                                                       LocalStorageManager::ListObjectsOptions,
+                                                       size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
+                                                       LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,updateTag,Tag,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateTagRequest,Tag,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateTagRequest,Tag,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,findTag,Tag,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindTagRequest,Tag,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,listTags,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                     LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListTagsRequest,LocalStorageManager::ListObjectsOptions,
-                                                              size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                                                              LocalStorageManager::OrderDirection::type,QString,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListTagsRequest,LocalStorageManager::ListObjectsOptions,
+                                                       size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                                       LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,updateSavedSearch,SavedSearch,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateSavedSearchRequest,SavedSearch,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateSavedSearchRequest,SavedSearch,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,findSavedSearch,SavedSearch,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindSavedSearchRequest,SavedSearch,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindSavedSearchRequest,SavedSearch,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,listSavedSearches,LocalStorageManager::ListObjectsOptions,
                                     size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                     LocalStorageManager::OrderDirection::type,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListSavedSearchesRequest,
-                                                              LocalStorageManager::ListObjectsOptions,
-                                                              size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                              LocalStorageManager::OrderDirection::type,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListSavedSearchesRequest,
+                                                       LocalStorageManager::ListObjectsOptions,
+                                                       size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
+                                                       LocalStorageManager::OrderDirection::type,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,noteCountPerNotebook,Notebook,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onNoteCountPerNotebookRequest,Notebook,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onNoteCountPerNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,noteCountPerTag,Tag,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onNoteCountPerTagRequest,Tag,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onNoteCountPerTagRequest,Tag,QUuid));
 
-    // localStorageManagerThreadWorker's signals to local slots
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+    // localStorageManagerAsync's signals to local slots
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(FavoritesModel,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(FavoritesModel,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onFindNoteFailed,Note,bool,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                                                 LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
                                                                 QList<Note>,QUuid),
                      this, QNSLOT(FavoritesModel,onListNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                   LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                                                 LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                   LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(FavoritesModel,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FavoritesModel,onAddNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FavoritesModel,onFindNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksComplete,
-                                                                LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                LocalStorageManager::ListNotebooksOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,QString,
-                                                                QList<Notebook>,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotebooksComplete,
+                                                         LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                         LocalStorageManager::ListNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,QString,
+                                                         QList<Notebook>,QUuid),
                      this, QNSLOT(FavoritesModel,onListNotebooksComplete,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
                                   LocalStorageManager::OrderDirection::type,QString,QList<Notebook>,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,
-                                                                LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                LocalStorageManager::ListNotebooksOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,
-                                                                QString,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotebooksFailed,
+                                                         LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                         LocalStorageManager::ListNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,
+                                                         QString,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onListNotebooksFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
                                   LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FavoritesModel,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
                      this, QNSLOT(FavoritesModel,onAddTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagComplete,Tag,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findTagComplete,Tag,QUuid),
                      this, QNSLOT(FavoritesModel,onFindTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onFindTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listTagsComplete,LocalStorageManager::ListObjectsOptions,
-                                                                size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
-                                                                QString,QList<Tag>,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsComplete,LocalStorageManager::ListObjectsOptions,
+                                                         size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
+                                                         QString,QList<Tag>,QUuid),
                      this, QNSLOT(FavoritesModel,onListTagsComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                   LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Tag>,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,LocalStorageManager::ListObjectsOptions,
-                                                                size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
-                                                                QString,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsFailed,LocalStorageManager::ListObjectsOptions,
+                                                         size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
+                                                         QString,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onListTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                   LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(FavoritesModel,onExpungeTagComplete,Tag,QStringList,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addSavedSearchComplete,SavedSearch,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(FavoritesModel,onAddSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onUpdateSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchComplete,SavedSearch,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(FavoritesModel,onFindSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onFindSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
-                                                                size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
+                                                         size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid),
                      this, QNSLOT(FavoritesModel,onListSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type, LocalStorageManager::OrderDirection::type,
                                   QList<SavedSearch>,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
-                                                                LocalStorageManager::ListObjectsOptions,
-                                                                size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesFailed,
+                                                         LocalStorageManager::ListObjectsOptions,
+                                                         size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModel,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
                                   ErrorString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(FavoritesModel,onExpungeSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerNotebookComplete,int,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerNotebookComplete,int,Notebook,QUuid),
                      this, QNSLOT(FavoritesModel,onNoteCountPerNotebookComplete,int,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerNotebookFailed,ErrorString,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerNotebookFailed,ErrorString,Notebook,QUuid),
                      this, QNSLOT(FavoritesModel,onNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagComplete,int,Tag,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerTagComplete,int,Tag,QUuid),
                      this, QNSLOT(FavoritesModel,onNoteCountPerTagComplete,int,Tag,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagFailed,ErrorString,Tag,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerTagFailed,ErrorString,Tag,QUuid),
                      this, QNSLOT(FavoritesModel,onNoteCountPerTagFailed,ErrorString,Tag,QUuid));
 }
 

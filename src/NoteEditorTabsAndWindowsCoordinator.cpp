@@ -58,13 +58,13 @@
 
 namespace quentier {
 
-NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                                                                          NoteCache & noteCache, NotebookCache & notebookCache,
                                                                          TagCache & tagCache, TagModel & tagModel,
                                                                          TabWidget * tabWidget, QObject * parent) :
     QObject(parent),
     m_currentAccount(account),
-    m_localStorageWorker(localStorageWorker),
+    m_localStorageManagerAsync(localStorageManagerAsync),
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
@@ -110,7 +110,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     setupSpellChecker();
 
     QUndoStack * pUndoStack = new QUndoStack;
-    m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
+    m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount, m_localStorageManagerAsync,
                                               *m_pFileIOThreadWorker, *m_pSpellChecker,
                                               m_noteCache, m_notebookCache, m_tagCache,
                                               *m_pTagModel, pUndoStack, m_pTabWidget);
@@ -423,7 +423,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
     }
 
     QUndoStack * pUndoStack = new QUndoStack;
-    NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
+    NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(m_currentAccount, m_localStorageManagerAsync,
                                                                 *m_pFileIOThreadWorker, *m_pSpellChecker,
                                                                 m_noteCache, m_notebookCache, m_tagCache,
                                                                 *m_pTagModel, pUndoStack, m_pTabWidget);
@@ -1488,17 +1488,17 @@ void NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage()
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage"));
 
     QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestAddNote,Note,QUuid),
-                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestExpungeNote,Note,QUuid),
-                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeNoteRequest,Note,QUuid));
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeNoteRequest,Note,QUuid));
 
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteFailed,Note,ErrorString,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,ErrorString,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteFailed,Note,ErrorString,QUuid));
 }
 
@@ -1507,17 +1507,17 @@ void NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage()
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage"));
 
     QObject::disconnect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestAddNote,Note,QUuid),
-                        &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
+                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
     QObject::disconnect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestExpungeNote,Note,QUuid),
-                        &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeNoteRequest,Note,QUuid));
+                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeNoteRequest,Note,QUuid));
 
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteComplete,Note,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteFailed,Note,ErrorString,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteComplete,Note,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,ErrorString,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,Note,ErrorString,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteFailed,Note,ErrorString,QUuid));
 }
 

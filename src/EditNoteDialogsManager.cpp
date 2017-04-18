@@ -1,16 +1,16 @@
 #include "EditNoteDialogsManager.h"
 #include "dialogs/EditNoteDialog.h"
 #include "models/NotebookModel.h"
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QScopedPointer>
 
 namespace quentier {
 
-EditNoteDialogsManager::EditNoteDialogsManager(LocalStorageManagerThreadWorker & localStorageWorker,
+EditNoteDialogsManager::EditNoteDialogsManager(LocalStorageManagerAsync & localStorageManagerAsync,
                                                NoteCache & noteCache, NotebookModel * pNotebookModel, QWidget * parent) :
     QObject(parent),
-    m_localStorageWorker(localStorageWorker),
+    m_localStorageManagerAsync(localStorageManagerAsync),
     m_noteCache(noteCache),
     m_findNoteRequestIds(),
     m_updateNoteRequestIds(),
@@ -128,13 +128,13 @@ void EditNoteDialogsManager::createConnections()
     QNDEBUG(QStringLiteral("EditNoteDialogsManager::createConnections"));
 
     QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,findNote,Note,bool,QUuid),
-                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,updateNote,Note,bool,bool,QUuid),
-                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,bool,bool,QUuid));
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
 
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(EditNoteDialogsManager,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
                      this, QNSLOT(EditNoteDialogsManager,onFindNoteFailed,Note,bool,ErrorString,QUuid));
 }
 

@@ -22,7 +22,7 @@
 #include "ItemModel.h"
 #include "NotebookModelItem.h"
 #include "NotebookCache.h"
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
 #include <QAbstractItemModel>
 #include <QUuid>
@@ -51,7 +51,7 @@ class NotebookModel: public ItemModel
     Q_OBJECT
 public:
     explicit NotebookModel(const Account & account, const NoteModel & noteModel,
-                           LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+                           LocalStorageManagerAsync & localStorageManagerAsync,
                            NotebookCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~NotebookModel();
 
@@ -318,7 +318,7 @@ private Q_SLOTS:
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
 private:
-    void createConnections(const NoteModel & noteModel, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
     void requestNotebooksList();
     void requestNoteCountForNotebook(const Notebook & notebook);
     void requestNoteCountForAllNotebooks();

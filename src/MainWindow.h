@@ -32,7 +32,7 @@
 #include "models/FavoritesModel.h"
 #include "widgets/NoteEditorWidget.h"
 #include <quentier/utility/ShortcutManager.h>
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/synchronization/SynchronizationManager.h>
 
 #include <QtCore>
@@ -395,7 +395,7 @@ private:
     SystemTrayIconManager *     m_pSystemTrayIconManager;
 
     QThread *                   m_pLocalStorageManagerThread;
-    LocalStorageManagerThreadWorker *   m_pLocalStorageManager;
+    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
 
     QUuid                       m_lastLocalStorageSwitchUserRequest;
 

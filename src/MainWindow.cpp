@@ -141,7 +141,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pAccount(),
     m_pSystemTrayIconManager(Q_NULLPTR),
     m_pLocalStorageManagerThread(Q_NULLPTR),
-    m_pLocalStorageManager(Q_NULLPTR),
+    m_pLocalStorageManagerAsync(Q_NULLPTR),
     m_lastLocalStorageSwitchUserRequest(),
     m_pSynchronizationManagerThread(Q_NULLPTR),
     m_pSynchronizationManager(Q_NULLPTR),
@@ -1616,8 +1616,8 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    if (Q_UNLIKELY(!m_pLocalStorageManager)) {
-        QNDEBUG(QStringLiteral("No local storage manager thread worker, skipping"));
+    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
+        QNDEBUG(QStringLiteral("No local storage manager, skipping"));
         return;
     }
 
@@ -1687,9 +1687,7 @@ void MainWindow::onImportEnexAction()
         appSettings.endGroup();
     }
 
-    EnexImporter * pImporter = new EnexImporter(selectedFiles[0],
-                                                *m_pLocalStorageManager,
-                                                *m_pTagModel, this);
+    EnexImporter * pImporter = new EnexImporter(selectedFiles[0], *m_pLocalStorageManagerAsync, *m_pTagModel, this);
     QObject::connect(pImporter, QNSIGNAL(EnexImporter,enexImportedSuccessfully,QString),
                      this, QNSLOT(MainWindow,onEnexImportCompletedSuccessfully,QString));
     QObject::connect(pImporter, QNSIGNAL(EnexImporter,enexImportFailed,ErrorString),
@@ -2248,8 +2246,8 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
         return;
     }
 
-    if (Q_UNLIKELY(!m_pLocalStorageManager)) {
-        QNDEBUG(QStringLiteral("No local storage manager thread worker, skipping"));
+    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
+        QNDEBUG(QStringLiteral("No local storage manager, skipping"));
         return;
     }
 
@@ -2306,7 +2304,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
         }
     }
 
-    EnexExporter * pExporter = new EnexExporter(*m_pLocalStorageManager,
+    EnexExporter * pExporter = new EnexExporter(*m_pLocalStorageManagerAsync,
                                                 *m_pNoteEditorTabsAndWindowsCoordinator,
                                                 *m_pTagModel, this);
     pExporter->setTargetEnexFilePath(enexFilePath);
@@ -3326,16 +3324,16 @@ void MainWindow::setupLocalStorageManager()
                      m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
     m_pLocalStorageManagerThread->start();
 
-    m_pLocalStorageManager = new LocalStorageManagerThreadWorker(*m_pAccount, /* start from scratch = */ false,
-                                                                 /* override lock = */ false);
-    m_pLocalStorageManager->init();
-    m_pLocalStorageManager->moveToThread(m_pLocalStorageManagerThread);
+    m_pLocalStorageManagerAsync = new LocalStorageManagerAsync(*m_pAccount, /* start from scratch = */ false,
+                                                               /* override lock = */ false);
+    m_pLocalStorageManagerAsync->init();
+    m_pLocalStorageManagerAsync->moveToThread(m_pLocalStorageManagerThread);
 
     QObject::connect(this, QNSIGNAL(MainWindow,localStorageSwitchUserRequest,Account,bool,QUuid),
-                     m_pLocalStorageManager, QNSLOT(LocalStorageManagerThreadWorker,onSwitchUserRequest,Account,bool,QUuid));
-    QObject::connect(m_pLocalStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,switchUserComplete,Account,QUuid),
+                     m_pLocalStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onSwitchUserRequest,Account,bool,QUuid));
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,switchUserComplete,Account,QUuid),
                      this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestComplete,Account,QUuid));
-    QObject::connect(m_pLocalStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,switchUserFailed,Account,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,switchUserFailed,Account,ErrorString,QUuid),
                      this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,Account,ErrorString,QUuid));
 }
 
@@ -3345,16 +3343,16 @@ void MainWindow::setupModels()
 
     clearModels();
 
-    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
+    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManagerAsync, m_noteCache,
                                  m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
-    m_pFavoritesModel = new FavoritesModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManager, m_noteCache,
+    m_pFavoritesModel = new FavoritesModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManagerAsync, m_noteCache,
                                            m_notebookCache, m_tagCache, m_savedSearchCache, this);
-    m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManager,
+    m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManagerAsync,
                                          m_notebookCache, this);
-    m_pTagModel = new TagModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManager, m_tagCache, this);
-    m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager,
+    m_pTagModel = new TagModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManagerAsync, m_tagCache, this);
+    m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManagerAsync,
                                                m_savedSearchCache, this);
-    m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
+    m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManagerAsync, m_noteCache,
                                          m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
 
     m_pNoteFilterModel = new NoteFilterModel(this);
@@ -3365,7 +3363,7 @@ void MainWindow::setupModels()
                                                    *m_pNoteFilterModel,
                                                    *m_pUI->filterBySavedSearchComboBox,
                                                    *m_pUI->searchQueryLineEdit,
-                                                   *m_pLocalStorageManager, this);
+                                                   *m_pLocalStorageManagerAsync, this);
 
     m_pUI->favoritesTableView->setModel(m_pFavoritesModel);
     m_pUI->notebooksTreeView->setModel(m_pNotebookModel);
@@ -3639,7 +3637,7 @@ void MainWindow::setupViews()
 
     if (!m_pEditNoteDialogsManager)
     {
-        m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManager, m_noteCache, m_pNotebookModel, this);
+        m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManagerAsync, m_noteCache, m_pNotebookModel, this);
         QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
                          m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
         QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
@@ -3677,8 +3675,8 @@ void MainWindow::setupNoteFilters()
 
     m_pUI->filterFrameBottomBoundary->hide();
 
-    m_pUI->filterByNotebooksWidget->setLocalStorageManager(*m_pLocalStorageManager);
-    m_pUI->filterByTagsWidget->setLocalStorageManager(*m_pLocalStorageManager);
+    m_pUI->filterByNotebooksWidget->setLocalStorageManager(*m_pLocalStorageManagerAsync);
+    m_pUI->filterByTagsWidget->setLocalStorageManager(*m_pLocalStorageManagerAsync);
 
     m_pUI->filterByNotebooksWidget->switchAccount(*m_pAccount, m_pNotebookModel);
     m_pUI->filterByTagsWidget->switchAccount(*m_pAccount, m_pTagModel);
@@ -3706,7 +3704,7 @@ void MainWindow::setupNoteEditorTabWidgetManager()
     QNDEBUG(QStringLiteral("MainWindow::setupNoteEditorTabWidgetManager"));
 
     delete m_pNoteEditorTabsAndWindowsCoordinator;
-    m_pNoteEditorTabsAndWindowsCoordinator = new NoteEditorTabsAndWindowsCoordinator(*m_pAccount, *m_pLocalStorageManager,
+    m_pNoteEditorTabsAndWindowsCoordinator = new NoteEditorTabsAndWindowsCoordinator(*m_pAccount, *m_pLocalStorageManagerAsync,
                                                                                      m_noteCache, m_notebookCache,
                                                                                      m_tagCache, *m_pTagModel,
                                                                                      m_pUI->noteEditorsTabWidget, this);
@@ -3747,7 +3745,7 @@ void MainWindow::setupSynchronizationManager()
 
     m_pSynchronizationManager = new SynchronizationManager(consumerKey, consumerSecret,
                                                            m_synchronizationManagerHost,
-                                                           *m_pLocalStorageManager);
+                                                           *m_pLocalStorageManagerAsync);
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
     connectSynchronizationManager();
 }

@@ -24,7 +24,7 @@
 #include "SavedSearchCache.h"
 #include <quentier/types/SavedSearch.h>
 #include <quentier/types/Account.h>
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
 #include <QUuid>
@@ -45,7 +45,7 @@ class SavedSearchModel: public ItemModel
 {
     Q_OBJECT
 public:
-    explicit SavedSearchModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit SavedSearchModel(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                               SavedSearchCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~SavedSearchModel();
 
@@ -190,7 +190,7 @@ private Q_SLOTS:
     void onExpungeSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
 private:
-    void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void requestSavedSearchesList();
 
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);

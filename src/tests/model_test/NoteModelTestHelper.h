@@ -19,7 +19,7 @@
 #ifndef QUENTIER_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
 #define QUENTIER_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
 
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 
 namespace quentier {
 
@@ -30,7 +30,7 @@ class NoteModelTestHelper: public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteModelTestHelper(LocalStorageManagerThreadWorker * pLocalStorageManagerThreadWorker,
+    explicit NoteModelTestHelper(LocalStorageManagerAsync * pLocalStorageManagerAsync,
                                  QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
@@ -154,7 +154,7 @@ private:
     };
 
 private:
-    LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
+    LocalStorageManagerAsync *          m_pLocalStorageManagerAsync;
     NoteModel *                         m_model;
     Notebook                            m_firstNotebook;
     QString                             m_noteToExpungeLocalUid;

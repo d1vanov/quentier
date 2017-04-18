@@ -46,7 +46,7 @@ QT_FORWARD_DECLARE_CLASS(QTimer)
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
@@ -59,7 +59,7 @@ class NoteEditorWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit NoteEditorWidget(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+    explicit NoteEditorWidget(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                               FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker,
                               NoteCache & noteCache, NotebookCache & notebookCache,
                               TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
@@ -396,7 +396,7 @@ private Q_SLOTS:
     void onExportNoteToEnexButtonPressed();
 
 private:
-    void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
 
     void updateNoteSourceView(const QString & html);

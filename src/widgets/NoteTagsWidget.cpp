@@ -45,9 +45,9 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     setLayout(m_pLayout);
 }
 
-void NoteTagsWidget::setLocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker & localStorageWorker)
+void NoteTagsWidget::setLocalStorageManagerThreadWorker(LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    createConnections(localStorageWorker);
+    createConnections(localStorageManagerAsync);
 }
 
 void NoteTagsWidget::setTagModel(TagModel * pTagModel)
@@ -892,29 +892,29 @@ void NoteTagsWidget::removeTagWidgetFromLayout(const QString & tagLocalUid)
     }
 }
 
-void NoteTagsWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
+void NoteTagsWidget::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNDEBUG(QStringLiteral("NoteTagsWidget::createConnections"));
 
     // Connect local storage signals to local slots
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeTagComplete,Tag,QStringList,QUuid));
 
     // Connect local signals to local storage slots
     QObject::connect(this, QNSIGNAL(NoteTagsWidget,updateNote,Note,bool,bool,QUuid),
-                     &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,bool,bool,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
 }
 
 NewListItemLineEdit * NoteTagsWidget::findNewItemWidget()

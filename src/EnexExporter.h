@@ -13,7 +13,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(NoteEditorTabsAndWindowsCoordinator)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
@@ -21,7 +21,7 @@ class EnexExporter: public QObject
 {
     Q_OBJECT
 public:
-    explicit EnexExporter(LocalStorageManagerThreadWorker & localStorageWorker,
+    explicit EnexExporter(LocalStorageManagerAsync & localStorageManagerAsync,
                           NoteEditorTabsAndWindowsCoordinator & coordinator,
                           TagModel & tagModel, QObject * parent = Q_NULLPTR);
 
@@ -61,7 +61,7 @@ private:
     void disconnectFromLocalStorage();
 
 private:
-    LocalStorageManagerThreadWorker &       m_localStorageWorker;
+    LocalStorageManagerAsync &              m_localStorageManagerAsync;
     NoteEditorTabsAndWindowsCoordinator &   m_noteEditorTabsAndWindowsCoordinator;
     QPointer<TagModel>                      m_pTagModel;
     QString                                 m_targetEnexFilePath;

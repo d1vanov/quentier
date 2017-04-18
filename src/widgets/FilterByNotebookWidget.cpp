@@ -18,7 +18,7 @@
 
 #include "FilterByNotebookWidget.h"
 #include "../models/NotebookModel.h"
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 
 namespace quentier {
@@ -28,13 +28,13 @@ FilterByNotebookWidget::FilterByNotebookWidget(QWidget * parent) :
     m_pLocalStorageManager()
 {}
 
-void FilterByNotebookWidget::setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager)
+void FilterByNotebookWidget::setLocalStorageManager(LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    m_pLocalStorageManager = &localStorageManager;
+    m_pLocalStorageManager = &localStorageManagerAsync;
 
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FilterByNotebookWidget,onUpdateNotebookCompleted,Notebook,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FilterByNotebookWidget,onExpungeNotebookCompleted,Notebook,QUuid));
 }
 

@@ -37,7 +37,7 @@ using quentier::NoteEditor;
 using quentier::NoteTagsWidget;
 #include "ui_NoteEditorWidget.h"
 
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Resource.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
@@ -64,7 +64,7 @@ using quentier::NoteTagsWidget;
 
 namespace quentier {
 
-NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                                    FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker,
                                    NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                                    TagModel & tagModel, QUndoStack * pUndoStack, QWidget * parent) :
@@ -126,8 +126,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     Q_UNUSED(highlighter);
 
     m_pUi->tagNameLabelsContainer->setTagModel(&tagModel);
-    m_pUi->tagNameLabelsContainer->setLocalStorageManagerThreadWorker(localStorageWorker);
-    createConnections(localStorageWorker);
+    m_pUi->tagNameLabelsContainer->setLocalStorageManagerThreadWorker(localStorageManagerAsync);
+    createConnections(localStorageManagerAsync);
 
     QWidget::setAttribute(Qt::WA_DeleteOnClose, /* on = */ true);
 }
@@ -1833,36 +1833,36 @@ void NoteEditorWidget::onExportNoteToEnexButtonPressed()
     }
 }
 
-void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
+void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::createConnections"));
 
-    // Local signals to localStorageWorker's slots
+    // Local signals to localStorageManagerAsync's slots
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,updateNote,Note,bool,bool,QUuid),
-                     &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,bool,bool,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNote,Note,bool,QUuid),
-                     &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNotebook,Notebook,QUuid),
-                     &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,Notebook,QUuid));
 
-    // localStorageWorker's signals to local slots
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+    // localStorageManagerAsync's signals to local slots
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNoteFailed,Note,bool,ErrorString,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNotebookComplete,Notebook,QUuid));
 
     // Connect to note tags widget's signals

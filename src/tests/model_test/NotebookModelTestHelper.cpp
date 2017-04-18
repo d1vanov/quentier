@@ -28,26 +28,26 @@
 
 namespace quentier {
 
-NotebookModelTestHelper::NotebookModelTestHelper(LocalStorageManagerThreadWorker * pLocalStorageManagerThreadWorker,
+NotebookModelTestHelper::NotebookModelTestHelper(LocalStorageManagerAsync * pLocalStorageManagerAsync,
                                                  QObject * parent) :
     QObject(parent),
-    m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker)
+    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
 {
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(NotebookModelTestHelper,onAddNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(NotebookModelTestHelper,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(NotebookModelTestHelper,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,
-                                                                LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                LocalStorageManager::ListNotebooksOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,
-                                                                QString,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotebooksFailed,
+                                                         LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                         LocalStorageManager::ListNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,
+                                                         QString,ErrorString,QUuid),
                      this, QNSLOT(NotebookModelTestHelper,onListNotebooksFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
                                   LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(NotebookModelTestHelper,onExpungeNotebookFailed,Notebook,ErrorString,QUuid));
 }
 
@@ -124,7 +124,7 @@ void NotebookModelTestHelper::test()
         tenth.setStack(QStringLiteral("Stack 2"));
 
 #define ADD_NOTEBOOK(notebook) \
-        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(notebook, QUuid())
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(notebook, QUuid())
 
         // NOTE: exploiting the direct connection used in the current test environment:
         // after the following lines the local storage would be filled with the test objects
@@ -145,9 +145,9 @@ void NotebookModelTestHelper::test()
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
         NoteCache noteCache(10);
-        NoteModel noteModel(account, *m_pLocalStorageManagerThreadWorker, noteCache, cache);
+        NoteModel noteModel(account, *m_pLocalStorageManagerAsync, noteCache, cache);
 
-        NotebookModel * model = new NotebookModel(account, noteModel, *m_pLocalStorageManagerThreadWorker, cache, this);
+        NotebookModel * model = new NotebookModel(account, noteModel, *m_pLocalStorageManagerAsync, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

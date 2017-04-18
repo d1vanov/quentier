@@ -27,10 +27,10 @@
 
 namespace quentier {
 
-FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerThreadWorker * pLocalStorageManagerThreadWorker,
+FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerAsync * pLocalStorageManagerAsync,
                                                    QObject * parent) :
     QObject(parent),
-    m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker),
+    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync),
     m_model(Q_NULLPTR),
     m_firstNotebook(),
     m_secondNotebook(),
@@ -58,57 +58,57 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerThreadWork
     m_expectingTagUnfavoriteFromLocalStorage(false),
     m_expectingSavedSearchUnfavoriteFromLocalStorage(false)
 {
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onFindNoteFailed,Note,bool,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,
-                                                                  LocalStorageManager::ListObjectsOptions,bool,
-                                                                  size_t,size_t,LocalStorageManager::ListNotesOrder::type,
-                                                                  LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
+                                                           LocalStorageManager::ListObjectsOptions,bool,
+                                                           size_t,size_t,LocalStorageManager::ListNotesOrder::type,
+                                                           LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,
                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
                                   ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,
-                                                                  LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                  LocalStorageManager::ListNotebooksOrder::type,
-                                                                  LocalStorageManager::OrderDirection::type,
-                                                                  QString,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotebooksFailed,
+                                                           LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                           LocalStorageManager::ListNotebooksOrder::type,
+                                                           LocalStorageManager::OrderDirection::type,
+                                                           QString,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListNotebooksFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
                                   LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onFindTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,
-                                                                  LocalStorageManager::ListObjectsOptions,
-                                                                  size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                                                                  LocalStorageManager::OrderDirection::type,
-                                                                  QString,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsFailed,
+                                                           LocalStorageManager::ListObjectsOptions,
+                                                           size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                                           LocalStorageManager::OrderDirection::type,
+                                                           QString,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListTagsFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListTagsOrder::type,
                                   LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onFindSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
-                                                                  LocalStorageManager::ListObjectsOptions,
-                                                                  size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                  LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesFailed,
+                                                           LocalStorageManager::ListObjectsOptions,
+                                                           size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
+                                                           LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
                                   ErrorString,QUuid));
@@ -135,9 +135,9 @@ void FavoritesModelTestHelper::launchTest()
         m_thirdNotebook.setDirty(true);
         m_thirdNotebook.setFavorited(true);
 
-        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(m_firstNotebook, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(m_secondNotebook, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(m_thirdNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(m_firstNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(m_secondNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(m_thirdNotebook, QUuid());
 
         m_firstSavedSearch.setName(QStringLiteral("First saved search"));
         m_firstSavedSearch.setLocal(false);
@@ -160,10 +160,10 @@ void FavoritesModelTestHelper::launchTest()
         m_fourthSavedSearch.setDirty(true);
         m_fourthSavedSearch.setFavorited(true);
 
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_firstSavedSearch, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_secondSavedSearch, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_thirdSavedSearch, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_fourthSavedSearch, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(m_firstSavedSearch, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(m_secondSavedSearch, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(m_thirdSavedSearch, QUuid());
+        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(m_fourthSavedSearch, QUuid());
 
         m_firstTag.setName(QStringLiteral("First tag"));
         m_firstTag.setLocal(true);
@@ -187,10 +187,10 @@ void FavoritesModelTestHelper::launchTest()
         m_fourthTag.setDirty(true);
         m_fourthTag.setFavorited(true);
 
-        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_firstTag, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_secondTag, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_thirdTag, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_fourthTag, QUuid());
+        m_pLocalStorageManagerAsync->onAddTagRequest(m_firstTag, QUuid());
+        m_pLocalStorageManagerAsync->onAddTagRequest(m_secondTag, QUuid());
+        m_pLocalStorageManagerAsync->onAddTagRequest(m_thirdTag, QUuid());
+        m_pLocalStorageManagerAsync->onAddTagRequest(m_fourthTag, QUuid());
 
         m_firstNote.setTitle(QStringLiteral("First note"));
         m_firstNote.setContent(QStringLiteral("<en-note><h1>First note</h1></en-note>"));
@@ -257,12 +257,12 @@ void FavoritesModelTestHelper::launchTest()
         m_sixthNote.setTagLocalUids(QStringList() << m_fourthTag.localUid());
         m_sixthNote.setFavorited(true);
 
-        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_firstNote, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_secondNote, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_thirdNote, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_fourthNote, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_fifthNote, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_sixthNote, QUuid());
+        m_pLocalStorageManagerAsync->onAddNoteRequest(m_firstNote, QUuid());
+        m_pLocalStorageManagerAsync->onAddNoteRequest(m_secondNote, QUuid());
+        m_pLocalStorageManagerAsync->onAddNoteRequest(m_thirdNote, QUuid());
+        m_pLocalStorageManagerAsync->onAddNoteRequest(m_fourthNote, QUuid());
+        m_pLocalStorageManagerAsync->onAddNoteRequest(m_fifthNote, QUuid());
+        m_pLocalStorageManagerAsync->onAddNoteRequest(m_sixthNote, QUuid());
 
         NoteCache noteCache(10);
         NotebookCache notebookCache(3);
@@ -271,9 +271,9 @@ void FavoritesModelTestHelper::launchTest()
 
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        NoteModel noteModel(account, *m_pLocalStorageManagerThreadWorker, noteCache, notebookCache);
+        NoteModel noteModel(account, *m_pLocalStorageManagerAsync, noteCache, notebookCache);
 
-        FavoritesModel * model = new FavoritesModel(account, noteModel, *m_pLocalStorageManagerThreadWorker,
+        FavoritesModel * model = new FavoritesModel(account, noteModel, *m_pLocalStorageManagerAsync,
                                                     noteCache, notebookCache, tagCache, savedSearchCache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
@@ -395,7 +395,7 @@ void FavoritesModelTestHelper::launchTest()
 
         // Favoriting some previously non-favorited item should make it appear in the favorites model
         m_firstNotebook.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateNotebookRequest(m_firstNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(m_firstNotebook, QUuid());
 
         firstNotebookIndex = model->indexForLocalUid(m_firstNotebook.localUid());
         if (!firstNotebookIndex.isValid()) {
@@ -403,7 +403,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_secondSavedSearch.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateSavedSearchRequest(m_secondSavedSearch, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateSavedSearchRequest(m_secondSavedSearch, QUuid());
 
         secondSavedSearchIndex = model->indexForLocalUid(m_secondSavedSearch.localUid());
         if (!secondSavedSearchIndex.isValid()) {
@@ -411,7 +411,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_firstTag.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_firstTag, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateTagRequest(m_firstTag, QUuid());
 
         firstTagIndex = model->indexForLocalUid(m_firstTag.localUid());
         if (!firstTagIndex.isValid()) {
@@ -419,7 +419,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_fourthNote.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_fourthNote, /* update resources = */ false,
+        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_fourthNote, /* update resources = */ false,
                                                                 /* update tags = */ false, QUuid());
         fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
         if (!fourthNoteIndex.isValid()) {
@@ -427,7 +427,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         // After expunging the parent tag its child tags should should not be present within the model
-        m_pLocalStorageManagerThreadWorker->onExpungeTagRequest(m_secondTag, QUuid());
+        m_pLocalStorageManagerAsync->onExpungeTagRequest(m_secondTag, QUuid());
 
         thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
         if (thirdTagIndex.isValid()) {
@@ -436,20 +436,20 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         // After the tag's promotion expunging the tag previously being the parent should not trigger the removal of its ex-child
-        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_secondTag, QUuid());
-        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_thirdTag, QUuid());
+        m_pLocalStorageManagerAsync->onAddTagRequest(m_secondTag, QUuid());
+        m_pLocalStorageManagerAsync->onAddTagRequest(m_thirdTag, QUuid());
 
         m_thirdTag.setParentGuid(QString());
         m_thirdTag.setParentLocalUid(QString());
 
-        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_thirdTag, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateTagRequest(m_thirdTag, QUuid());
 
         thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
         if (!thirdTagIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid model index for the favorites model item corresponding to just added and updated tag"));
         }
 
-        m_pLocalStorageManagerThreadWorker->onExpungeTagRequest(m_secondTag, QUuid());
+        m_pLocalStorageManagerAsync->onExpungeTagRequest(m_secondTag, QUuid());
 
         thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
         if (!thirdTagIndex.isValid()) {
@@ -464,7 +464,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_thirdNotebook.setFavorited(false);
-        m_pLocalStorageManagerThreadWorker->onUpdateNotebookRequest(m_thirdNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(m_thirdNotebook, QUuid());
 
         thirdNotebookIndex = model->indexForLocalUid(m_thirdNotebook.localUid());
         if (thirdNotebookIndex.isValid()) {
@@ -478,7 +478,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_thirdSavedSearch.setFavorited(false);
-        m_pLocalStorageManagerThreadWorker->onUpdateSavedSearchRequest(m_thirdSavedSearch, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateSavedSearchRequest(m_thirdSavedSearch, QUuid());
 
         thirdSavedSearchIndex = model->indexForLocalUid(m_thirdSavedSearch.localUid());
         if (thirdSavedSearchIndex.isValid()) {
@@ -491,7 +491,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_thirdTag.setFavorited(false);
-        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_thirdTag, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateTagRequest(m_thirdTag, QUuid());
 
         thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
         if (thirdTagIndex.isValid()) {
@@ -504,8 +504,8 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_thirdNote.setFavorited(false);
-        m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false,
-                                                                /* update tags = */ false, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false,
+                                                         /* update tags = */ false, QUuid());
 
         thirdNoteIndex = model->indexForLocalUid(m_thirdNote.localUid());
         if (thirdNoteIndex.isValid()) {
@@ -516,16 +516,16 @@ void FavoritesModelTestHelper::launchTest()
 
         // First restore the favorited status of some items unfavorited just above
         m_thirdNotebook.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateNotebookRequest(m_thirdNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(m_thirdNotebook, QUuid());
 
         m_thirdSavedSearch.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateSavedSearchRequest(m_thirdSavedSearch, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateSavedSearchRequest(m_thirdSavedSearch, QUuid());
 
         m_thirdTag.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_thirdTag, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateTagRequest(m_thirdTag, QUuid());
 
         m_thirdNote.setFavorited(true);
-        m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false, /* update tags = */ false, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false, /* update tags = */ false, QUuid());
 
         thirdNotebookIndex = model->indexForLocalUid(m_thirdNotebook.localUid());
         if (!thirdNotebookIndex.isValid()) {

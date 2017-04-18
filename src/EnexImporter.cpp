@@ -1,6 +1,6 @@
 #include "EnexImporter.h"
 #include "models/TagModel.h"
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QFile>
@@ -8,10 +8,10 @@
 namespace quentier {
 
 EnexImporter::EnexImporter(const QString & enexFilePath,
-                           LocalStorageManagerThreadWorker & localStorageWorker,
+                           LocalStorageManagerAsync & localStorageManagerAsync,
                            TagModel & tagModel, QObject * parent) :
     QObject(parent),
-    m_localStorageWorker(localStorageWorker),
+    m_localStorageManagerAsync(localStorageManagerAsync),
     m_tagModel(tagModel),
     m_enexFilePath(enexFilePath),
     m_tagNamesByImportedNoteLocalUid(),
@@ -356,19 +356,19 @@ void EnexImporter::connectToLocalStorage()
     }
 
     QObject::connect(this, QNSIGNAL(EnexImporter,addTag,Tag,QUuid),
-                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddTagRequest,Tag,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddTagRequest,Tag,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
                      this, QNSLOT(EnexImporter,onAddTagComplete,Tag,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,ErrorString,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(EnexImporter,onAddTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(EnexImporter,onExpungeTagComplete,Tag,QStringList,QUuid));
 
     QObject::connect(this, QNSIGNAL(EnexImporter,addNote,Note,QUuid),
-                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(EnexImporter,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(EnexImporter,onAddNoteFailed,Note,ErrorString,QUuid));
 
     m_connectedToLocalStorage = true;
@@ -384,19 +384,19 @@ void EnexImporter::disconnectFromLocalStorage()
     }
 
     QObject::disconnect(this, QNSIGNAL(EnexImporter,addTag,Tag,QUuid),
-                        &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddTagRequest,Tag,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
+                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddTagRequest,Tag,QUuid));
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
                         this, QNSLOT(EnexImporter,onAddTagComplete,Tag,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,ErrorString,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addTagFailed,Tag,ErrorString,QUuid),
                         this, QNSLOT(EnexImporter,onAddTagFailed,Tag,ErrorString,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                         this, QNSLOT(EnexImporter,onExpungeTagComplete,Tag,QStringList,QUuid));
 
     QObject::disconnect(this, QNSIGNAL(EnexImporter,addNote,Note,QUuid),
-                        &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                         this, QNSLOT(EnexImporter,onAddNoteComplete,Note,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                         this, QNSLOT(EnexImporter,onAddNoteFailed,Note,ErrorString,QUuid));
 
     m_connectedToLocalStorage = false;

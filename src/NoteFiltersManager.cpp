@@ -25,7 +25,7 @@
 #include "models/NotebookModel.h"
 #include "models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <QComboBox>
 #include <QLineEdit>
 
@@ -36,7 +36,7 @@ NoteFiltersManager::NoteFiltersManager(FilterByTagWidget & filterByTagWidget,
                                        NoteFilterModel & noteFilterModel,
                                        FilterBySavedSearchWidget & filterBySavedSearchWidget,
                                        QLineEdit & searchLineEdit,
-                                       LocalStorageManagerThreadWorker & localStorageManager,
+                                       LocalStorageManagerAsync & localStorageManagerAsync,
                                        QObject * parent) :
     QObject(parent),
     m_filterByTagWidget(filterByTagWidget),
@@ -44,7 +44,7 @@ NoteFiltersManager::NoteFiltersManager(FilterByTagWidget & filterByTagWidget,
     m_noteFilterModel(noteFilterModel),
     m_filterBySavedSearchWidget(filterBySavedSearchWidget),
     m_searchLineEdit(searchLineEdit),
-    m_localStorageManager(localStorageManager),
+    m_localStorageManagerAsync(localStorageManagerAsync),
     m_filteredTagLocalUids(),
     m_filteredSavedSearchLocalUid(),
     m_lastSearchString(),
@@ -460,30 +460,30 @@ void NoteFiltersManager::createConnections()
                      this, QNSLOT(NoteFiltersManager,onSearchStringChanged));
 
     QObject::connect(this, QNSIGNAL(NoteFiltersManager,findNoteLocalUidsForNoteSearchQuery,NoteSearchQuery,QUuid),
-                     &m_localStorageManager,
-                     QNSLOT(LocalStorageManagerThreadWorker,onFindNoteLocalUidsWithSearchQuery,NoteSearchQuery,QUuid));
-    QObject::connect(&m_localStorageManager,
-                     QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryComplete,QStringList,NoteSearchQuery,QUuid),
+                     &m_localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindNoteLocalUidsWithSearchQuery,NoteSearchQuery,QUuid));
+    QObject::connect(&m_localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNoteLocalUidsWithSearchQueryComplete,QStringList,NoteSearchQuery,QUuid),
                      this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryCompleted,QStringList,NoteSearchQuery,QUuid));
-    QObject::connect(&m_localStorageManager,
-                     QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid),
+    QObject::connect(&m_localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid),
                      this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid));
 
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteFiltersManager,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QStringList,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeTagComplete,Tag,QStringList,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(NoteFiltersManager,onUpdateSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteFiltersManager,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteFiltersManager,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeNoteComplete,Note,QUuid));
 }
 
