@@ -22,7 +22,7 @@
 #include "SystemTrayIconManager.h"
 #include "EditNoteDialogsManager.h"
 #include "NoteFiltersManager.h"
-#include "NoteEnexExporter.h"
+#include "EnexExporter.h"
 #include "models/NoteFilterModel.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
@@ -2213,16 +2213,16 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
         }
     }
 
-    NoteEnexExporter * pExporter = new NoteEnexExporter(*m_pLocalStorageManager,
-                                                        *m_pNoteEditorTabsAndWindowsCoordinator,
-                                                        *m_pTagModel, this);
+    EnexExporter * pExporter = new EnexExporter(*m_pLocalStorageManager,
+                                                *m_pNoteEditorTabsAndWindowsCoordinator,
+                                                *m_pTagModel, this);
     pExporter->setTargetEnexFilePath(enexFilePath);
     pExporter->setIncludeTags(pExportEnexDialog->exportTags());
     pExporter->setNoteLocalUids(noteLocalUids);
 
-    QObject::connect(pExporter, QNSIGNAL(NoteEnexExporter,notesExportedToEnex,QString),
+    QObject::connect(pExporter, QNSIGNAL(EnexExporter,notesExportedToEnex,QString),
                      this, QNSLOT(MainWindow,onExportedNotesToEnex,QString));
-    QObject::connect(pExporter, QNSIGNAL(NoteEnexExporter,failedToExportNotesToEnex,ErrorString),
+    QObject::connect(pExporter, QNSIGNAL(EnexExporter,failedToExportNotesToEnex,ErrorString),
                      this, QNSLOT(MainWindow,onExportNotesToEnexFailed,ErrorString));
     pExporter->start();
 }
@@ -2231,10 +2231,10 @@ void MainWindow::onExportedNotesToEnex(QString enex)
 {
     QNDEBUG(QStringLiteral("MainWindow::onExportedNotesToEnex"));
 
-    NoteEnexExporter * pExporter = qobject_cast<NoteEnexExporter*>(sender());
+    EnexExporter * pExporter = qobject_cast<EnexExporter*>(sender());
     if (Q_UNLIKELY(!pExporter)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                            "can't cast the slot invoker to NoteEnexExporter"));
+                                            "can't cast the slot invoker to EnexExporter"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2265,7 +2265,7 @@ void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onExportNotesToEnexFailed: ") << errorDescription);
 
-    NoteEnexExporter * pExporter = qobject_cast<NoteEnexExporter*>(sender());
+    EnexExporter * pExporter = qobject_cast<EnexExporter*>(sender());
     if (pExporter) {
         pExporter->clear();
         pExporter->deleteLater();

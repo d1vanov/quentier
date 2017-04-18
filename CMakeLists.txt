@@ -68,7 +68,7 @@ set(${PROJECT_NAME}_HEADERS
     src/EnexImporter.h
     src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
-    src/NoteEnexExporter.h
+    src/EnexExporter.h
     src/SettingsNames.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
@@ -151,7 +151,7 @@ set(${PROJECT_NAME}_SOURCES
     src/EnexImporter.cpp
     src/NoteEditorTabsAndWindowsCoordinator.cpp
     src/NoteFiltersManager.cpp
-    src/NoteEnexExporter.cpp
+    src/EnexExporter.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/dialogs/AddAccountDialog.cpp

@@ -1,5 +1,5 @@
-#ifndef QUENTIER_NOTE_ENEX_EXPORTER_H
-#define QUENTIER_NOTE_ENEX_EXPORTER_H
+#ifndef QUENTIER_ENEX_EXPORTER_H
+#define QUENTIER_ENEX_EXPORTER_H
 
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
@@ -17,13 +17,13 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 QT_FORWARD_DECLARE_CLASS(NoteEditorTabsAndWindowsCoordinator)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class NoteEnexExporter: public QObject
+class EnexExporter: public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteEnexExporter(LocalStorageManagerThreadWorker & localStorageWorker,
-                              NoteEditorTabsAndWindowsCoordinator & coordinator,
-                              TagModel & tagModel, QObject * parent = Q_NULLPTR);
+    explicit EnexExporter(LocalStorageManagerThreadWorker & localStorageWorker,
+                          NoteEditorTabsAndWindowsCoordinator & coordinator,
+                          TagModel & tagModel, QObject * parent = Q_NULLPTR);
 
     const QString & targetEnexFilePath() const { return m_targetEnexFilePath; }
     void setTargetEnexFilePath(const QString & path) { m_targetEnexFilePath = path; }
@@ -74,4 +74,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_NOTE_ENEX_EXPORTER_H
+#endif // QUENTIER_ENEX_EXPORTER_H
