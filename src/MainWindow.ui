@@ -2835,7 +2835,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -2853,6 +2853,8 @@ border-bottom: 1px solid black;</string>
     <addaction name="ActionNewNotebook"/>
     <addaction name="ActionNewTag"/>
     <addaction name="ActionNewSavedSearch"/>
+    <addaction name="separator"/>
+    <addaction name="ActionImportENEX"/>
     <addaction name="separator"/>
     <addaction name="ActionPrint"/>
     <addaction name="separator"/>
@@ -4402,6 +4404,11 @@ border-bottom: 1px solid black;</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionImportENEX">
+   <property name="text">
+    <string>&amp;Import ENEX...</string>
    </property>
   </action>
  </widget>

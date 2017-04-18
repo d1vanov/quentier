@@ -35,5 +35,6 @@
 
 #define LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY QStringLiteral("LastExportNotesToEnexPath")
 #define LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY QStringLiteral("LastExportNotesToEnexExportTags")
+#define LAST_IMPORT_ENEX_PATH_SETTINGS_KEY QStringLiteral("LastImportEnexPath")
 
 #endif // QUENTIER_SETTINGS_NAMES_H

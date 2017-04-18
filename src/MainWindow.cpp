@@ -23,6 +23,7 @@
 #include "EditNoteDialogsManager.h"
 #include "NoteFiltersManager.h"
 #include "EnexExporter.h"
+#include "EnexImporter.h"
 #include "models/NoteFilterModel.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
@@ -304,6 +305,8 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onNewTagCreationRequested));
     QObject::connect(m_pUI->ActionNewSavedSearch, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onNewSavedSearchCreationRequested));
+    QObject::connect(m_pUI->ActionImportENEX, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onImportEnexAction));
     QObject::connect(m_pUI->ActionPrint, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onCurrentNotePrintRequested));
     QObject::connect(m_pUI->ActionQuit, QNSIGNAL(QAction,triggered),
@@ -1604,6 +1607,96 @@ DISPATCH_TO_NOTE_EDITOR(onReplaceInsideNoteAction, onReplaceInsideNoteAction)
 
 #undef DISPATCH_TO_NOTE_EDITOR
 
+void MainWindow::onImportEnexAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onImportEnexAction"));
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG(QStringLiteral("No current account, skipping"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pLocalStorageManager)) {
+        QNDEBUG(QStringLiteral("No local storage manager thread worker, skipping"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pTagModel)) {
+        QNDEBUG(QStringLiteral("No tag model, skipping"));
+        return;
+    }
+
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_AUXILIARY_SETTINGS);
+    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    QString lastEnexImportPath = appSettings.value(LAST_IMPORT_ENEX_PATH_SETTINGS_KEY).toString();
+    appSettings.endGroup();
+
+    if (lastEnexImportPath.isEmpty()) {
+        lastEnexImportPath = documentsPath();
+    }
+
+    QScopedPointer<QFileDialog> pEnexFileDialog(new QFileDialog(this,
+                                                                tr("Please select the ENEX file to import"),
+                                                                lastEnexImportPath));
+    pEnexFileDialog->setWindowModality(Qt::WindowModal);
+    pEnexFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
+    pEnexFileDialog->setFileMode(QFileDialog::ExistingFile);
+    pEnexFileDialog->setDefaultSuffix(QStringLiteral("enex"));
+
+    if (pEnexFileDialog->exec() != QDialog::Accepted) {
+        QNDEBUG(QStringLiteral("The import of ENEX was cancelled"));
+        return;
+    }
+
+    QStringList selectedFiles = pEnexFileDialog->selectedFiles();
+    int numSelectedFiles = selectedFiles.size();
+
+    if (numSelectedFiles == 0) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "No ENEX file was selected"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    if (numSelectedFiles > 1) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "More than one file were selected as input ENEX files"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QFileInfo enexFileInfo(selectedFiles[0]);
+    if (!enexFileInfo.exists()) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "The selected ENEX file does not exist"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    if (!enexFileInfo.isReadable()) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "The selected ENEX file is not readable"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    lastEnexImportPath = pEnexFileDialog->directory().absolutePath();
+    if (!lastEnexImportPath.isEmpty()) {
+        appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+        appSettings.setValue(LAST_IMPORT_ENEX_PATH_SETTINGS_KEY, lastEnexImportPath);
+        appSettings.endGroup();
+    }
+
+    EnexImporter * pImporter = new EnexImporter(selectedFiles[0],
+                                                *m_pLocalStorageManager,
+                                                *m_pTagModel, this);
+    QObject::connect(pImporter, QNSIGNAL(EnexImporter,enexImportedSuccessfully,QString),
+                     this, QNSLOT(MainWindow,onEnexImportCompletedSuccessfully,QString));
+    QObject::connect(pImporter, QNSIGNAL(EnexImporter,enexImportFailed,ErrorString),
+                     this, QNSLOT(MainWindow,onEnexImportFailed,ErrorString));
+    pImporter->start();
+}
+
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
@@ -2300,6 +2393,33 @@ void MainWindow::onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTota
         onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file, "
                               "only a portion of data has been written") + QStringLiteral(": ") +
                            QString::number(bytesWritten) + QStringLiteral("/") + QString::number(bytesTotal));
+    }
+}
+
+void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onEnexImportCompletedSuccessfully: ") << enexFilePath);
+
+    onSetStatusBarText(tr("Successfully importes note(s) from ENEX file") +
+                       QStringLiteral(": ") + QDir::toNativeSeparators(enexFilePath));
+
+    EnexImporter * pImporter = qobject_cast<EnexImporter*>(sender());
+    if (pImporter) {
+        pImporter->clear();
+        pImporter->deleteLater();
+    }
+}
+
+void MainWindow::onEnexImportFailed(ErrorString errorDescription)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onEnexImportFailed: ") << errorDescription);
+
+    onSetStatusBarText(errorDescription.localizedString());
+
+    EnexImporter * pImporter = qobject_cast<EnexImporter*>(sender());
+    if (pImporter) {
+        pImporter->clear();
+        pImporter->deleteLater();
     }
 }
 

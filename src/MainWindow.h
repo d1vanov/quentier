@@ -127,6 +127,8 @@ private Q_SLOTS:
     void onFindPreviousInsideNoteAction();
     void onReplaceInsideNoteAction();
 
+    void onImportEnexAction();
+
     // Synchronization manager slots
     void onSynchronizationManagerFailure(ErrorString errorDescription);
     void onSynchronizationFinished(Account account);
@@ -210,6 +212,9 @@ private Q_SLOTS:
     void onEnexFileWrittenSuccessfully(QString filePath);
     void onEnexFileWriteFailed(ErrorString errorDescription);
     void onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal);
+
+    void onEnexImportCompletedSuccessfully(QString enexFilePath);
+    void onEnexImportFailed(ErrorString errorDescription);
 
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
