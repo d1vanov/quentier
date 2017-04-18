@@ -55,7 +55,9 @@ private:
     void disconnectFromLocalStorage();
 
     void processNotesPendingTagAddition();
+
     void addNoteToLocalStorage(const Note & note);
+    void addTagToLocalStorage(const QString & tagName);
 
 private:
     LocalStorageManagerThreadWorker &       m_localStorageWorker;
@@ -63,9 +65,6 @@ private:
     QString                                 m_enexFilePath;
 
     QHash<QString, QStringList>             m_tagNamesByImportedNoteLocalUid;
-
-    typedef boost::bimap<QString, QString> TagNameByLocalUidBimap;
-    TagNameByLocalUidBimap                  m_tagNameByLocalUidBimap;
 
     typedef boost::bimap<QString, QUuid> AddTagRequestIdByTagNameBimap;
     AddTagRequestIdByTagNameBimap           m_addTagRequestIdByTagNameBimap;
