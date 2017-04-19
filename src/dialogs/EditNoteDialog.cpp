@@ -21,6 +21,7 @@
 #include "../models/NotebookModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QStringListModel>
+#include <QCompleter>
 #include <QModelIndex>
 #include <QToolTip>
 #include <QDateTime>
@@ -53,6 +54,11 @@ EditNoteDialog::EditNoteDialog(const Note & note,
 
     fillNotebookNames();
     m_pUi->notebookComboBox->setModel(m_pNotebookNamesModel);
+
+    QCompleter * pCompleter = m_pUi->notebookComboBox->completer();
+    if (pCompleter) {
+        pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    }
 
     fillDialogContent();
 
