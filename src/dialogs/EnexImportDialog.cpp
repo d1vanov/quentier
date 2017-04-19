@@ -255,6 +255,20 @@ void EnexImportDialog::rowsAboutToBeRemoved(const QModelIndex & parent, int star
     m_pNotebookNamesModel->setStringList(currentNotebookNames);
 }
 
+void EnexImportDialog::accept()
+{
+    QNDEBUG(QStringLiteral("EnexImportDialog::accept"));
+
+    QString notebookName = m_pUi->notebookNameComboBox->currentText();
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    appSettings.setValue(LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY, notebookName);
+    appSettings.endGroup();
+
+    QDialog::accept();
+}
+
 void EnexImportDialog::createConnections()
 {
     QNDEBUG(QStringLiteral("EnexImportDialog::createConnections"));
@@ -314,6 +328,7 @@ void EnexImportDialog::fillDialogContents()
     m_pUi->notebookNameComboBox->setCurrentText(lastImportEnexNotebookName);
 
     m_pUi->statusTextLabel->setHidden(true);
+    m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
 }
 
 void EnexImportDialog::setStatusText(const QString & text)
