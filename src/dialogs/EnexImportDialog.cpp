@@ -325,7 +325,16 @@ void EnexImportDialog::fillDialogContents()
         lastImportEnexNotebookName = tr("Imported notes");
     }
 
-    m_pUi->notebookNameComboBox->setCurrentText(lastImportEnexNotebookName);
+    QStringList notebookNames = m_pNotebookNamesModel->stringList();
+    auto it = std::lower_bound(notebookNames.constBegin(), notebookNames.constEnd(),
+                               lastImportEnexNotebookName);
+    if ((it != notebookNames.constEnd()) && (*it == lastImportEnexNotebookName)) {
+        int notebookNameIndex = static_cast<int>(std::distance(notebookNames.constBegin(), it));
+        m_pUi->notebookNameComboBox->setCurrentIndex(notebookNameIndex);
+    }
+    else {
+        m_pUi->notebookNameComboBox->setEditText(lastImportEnexNotebookName);
+    }
 
     m_pUi->statusTextLabel->setHidden(true);
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);

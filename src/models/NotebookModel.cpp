@@ -664,8 +664,8 @@ QString NotebookModel::localUidForItemName(const QString & itemName) const
 
     const NotebookItem * pNotebookItem = pModelItem->notebookItem();
     if (Q_UNLIKELY(!pNotebookItem)) {
-        QNWARNING(QStringLiteral("Found notebook model item of notebook type but "
-                                 "with null pointer to the actual notebook item: ") << *pModelItem);
+        QNDEBUG(QStringLiteral("Found notebook model item of notebook type but "
+                               "with null pointer to the actual notebook item: ") << *pModelItem);
         return QString();
     }
 

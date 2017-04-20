@@ -42,6 +42,7 @@
 #include "dialogs/AddOrEditTagDialog.h"
 #include "dialogs/AddOrEditSavedSearchDialog.h"
 #include "dialogs/EnexExportDialog.h"
+#include "dialogs/EnexImportDialog.h"
 #include "dialogs/PreferencesDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
@@ -1626,68 +1627,46 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_AUXILIARY_SETTINGS);
-    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
-    QString lastEnexImportPath = appSettings.value(LAST_IMPORT_ENEX_PATH_SETTINGS_KEY).toString();
-    appSettings.endGroup();
-
-    if (lastEnexImportPath.isEmpty()) {
-        lastEnexImportPath = documentsPath();
+    if (Q_UNLIKELY(!m_pNotebookModel)) {
+        QNDEBUG(QStringLiteral("No notebook model, skipping"));
+        return;
     }
 
-    QScopedPointer<QFileDialog> pEnexFileDialog(new QFileDialog(this,
-                                                                tr("Please select the ENEX file to import"),
-                                                                lastEnexImportPath));
-    pEnexFileDialog->setWindowModality(Qt::WindowModal);
-    pEnexFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-    pEnexFileDialog->setFileMode(QFileDialog::ExistingFile);
-    pEnexFileDialog->setDefaultSuffix(QStringLiteral("enex"));
-
-    if (pEnexFileDialog->exec() != QDialog::Accepted) {
+    QScopedPointer<EnexImportDialog> pEnexImportDialog(new EnexImportDialog(*m_pAccount, *m_pNotebookModel, this));
+    pEnexImportDialog->setWindowModality(Qt::WindowModal);
+    if (pEnexImportDialog->exec() != QDialog::Accepted) {
         QNDEBUG(QStringLiteral("The import of ENEX was cancelled"));
         return;
     }
 
-    QStringList selectedFiles = pEnexFileDialog->selectedFiles();
-    int numSelectedFiles = selectedFiles.size();
+    ErrorString errorDescription;
 
-    if (numSelectedFiles == 0) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "No ENEX file was selected"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+    QString enexFilePath = pEnexImportDialog->importEnexFilePath(&errorDescription);
+    if (enexFilePath.isEmpty())
+    {
+        if (errorDescription.isEmpty()) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve ENEX file path");
+        }
+
+        QNDEBUG(QStringLiteral("Bad ENEX file path: ") << errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
         return;
     }
 
-    if (numSelectedFiles > 1) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "More than one file were selected as input ENEX files"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+    QString notebookName = pEnexImportDialog->notebookName(&errorDescription);
+    if (notebookName.isEmpty())
+    {
+        if (errorDescription.isEmpty()) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve notebook name");
+        }
+
+        QNDEBUG(QStringLiteral("Bad notebook name: ") << errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
         return;
     }
 
-    QFileInfo enexFileInfo(selectedFiles[0]);
-    if (!enexFileInfo.exists()) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "The selected ENEX file does not exist"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
-        return;
-    }
-
-    if (!enexFileInfo.isReadable()) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "The selected ENEX file is not readable"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
-        return;
-    }
-
-    lastEnexImportPath = pEnexFileDialog->directory().absolutePath();
-    if (!lastEnexImportPath.isEmpty()) {
-        appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
-        appSettings.setValue(LAST_IMPORT_ENEX_PATH_SETTINGS_KEY, lastEnexImportPath);
-        appSettings.endGroup();
-    }
-
-    EnexImporter * pImporter = new EnexImporter(selectedFiles[0], *m_pLocalStorageManagerAsync, *m_pTagModel, this);
+    EnexImporter * pImporter = new EnexImporter(enexFilePath, notebookName, *m_pLocalStorageManagerAsync,
+                                                *m_pTagModel, *m_pNotebookModel, this);
     QObject::connect(pImporter, QNSIGNAL(EnexImporter,enexImportedSuccessfully,QString),
                      this, QNSLOT(MainWindow,onEnexImportCompletedSuccessfully,QString));
     QObject::connect(pImporter, QNSIGNAL(EnexImporter,enexImportFailed,ErrorString),
