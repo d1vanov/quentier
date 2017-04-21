@@ -918,11 +918,6 @@ void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
         return;
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, useLimitedFonts);
-    appSettings.endGroup();
-
     QString currentFontFamily = (useLimitedFonts
                                  ? m_pUi->limitedFontComboBox->currentText()
                                  : m_pUi->fontComboBox->currentFont().family());

@@ -182,6 +182,20 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
     appSettings.endGroup();
 }
 
+void PreferencesDialog::onNoteEditorUseLimitedFontsOptionChanged(bool enabled)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorUseLimitedFontsOptionChanged: ")
+            << (enabled ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, enabled);
+    appSettings.endGroup();
+
+    emit noteEditorUseLimitedFontsOptionChanged(enabled);
+}
+
 void PreferencesDialog::setupCurrentSettingsState()
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
@@ -303,6 +317,9 @@ void PreferencesDialog::createConnections()
                      this, SLOT(onMiddleClickTrayActionChanged(int)));
     QObject::connect(m_pUi->trayDoubleClickActionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onDoubleClickTrayActionChanged(int)));
+
+    QObject::connect(m_pUi->limitedFontsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorUseLimitedFontsOptionChanged,bool));
 
     // TODO: continue
 }

@@ -24,6 +24,9 @@ public:
                                QWidget * parent = Q_NULLPTR);
     virtual ~PreferencesDialog();
 
+Q_SIGNALS:
+    void noteEditorUseLimitedFontsOptionChanged(bool enabled);
+
 private Q_SLOTS:
     void onShowSystemTrayIconCheckboxToggled(bool checked);
     void onCloseToSystemTrayCheckboxToggled(bool checked);
@@ -33,6 +36,8 @@ private Q_SLOTS:
     void onSingleClickTrayActionChanged(int action);
     void onMiddleClickTrayActionChanged(int action);
     void onDoubleClickTrayActionChanged(int action);
+
+    void onNoteEditorUseLimitedFontsOptionChanged(bool enabled);
 
 private:
     void setupCurrentSettingsState();

@@ -32,7 +32,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -232,6 +232,24 @@
          <width>300</width>
          <height>0</height>
         </size>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="noteEditorTab">
+      <attribute name="title">
+       <string>Note editor</string>
+      </attribute>
+      <widget class="QCheckBox" name="limitedFontsCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>10</y>
+         <width>321</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Use only fonts compatible with Evernote web client</string>
        </property>
       </widget>
      </widget>
