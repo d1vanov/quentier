@@ -47,7 +47,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(FileIOProcessorAsync)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 /**
@@ -60,7 +60,7 @@ class NoteEditorWidget: public QWidget
     Q_OBJECT
 public:
     explicit NoteEditorWidget(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
-                              FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker,
+                              FileIOProcessorAsync & fileIOProcessorAsync, SpellChecker & spellChecker,
                               NoteCache & noteCache, NotebookCache & notebookCache,
                               TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
                               QWidget * parent = Q_NULLPTR);
@@ -414,7 +414,7 @@ private:
     NotebookCache &             m_notebookCache;
     TagCache &                  m_tagCache;
 
-    FileIOThreadWorker &        m_fileIOThreadWorker;
+    FileIOProcessorAsync &      m_fileIOProcessorAsync;
     SpellChecker &              m_spellChecker;
 
     // This data piece separate from m_pCurrentNote is needed in order to handle

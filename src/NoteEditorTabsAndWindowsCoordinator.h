@@ -49,7 +49,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(NoteEditorWidget)
 QT_FORWARD_DECLARE_CLASS(TabWidget)
-QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(FileIOProcessorAsync)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 class NoteEditorTabsAndWindowsCoordinator: public QObject
@@ -174,7 +174,7 @@ private:
     NoteEditorWidget *                  m_pBlankNoteEditor;
 
     QThread *                           m_pIOThread;
-    FileIOThreadWorker *                m_pFileIOThreadWorker;
+    FileIOProcessorAsync *              m_pFileIOProcessorAsync;
     SpellChecker *                      m_pSpellChecker;
 
     int                                 m_maxNumNotesInTabs;

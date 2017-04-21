@@ -42,7 +42,7 @@ using quentier::NoteTagsWidget;
 #include <quentier/types/Resource.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/FileIOThreadWorker.h>
+#include <quentier/utility/FileIOProcessorAsync.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/note_editor/SpellChecker.h>
 #include <QDateTime>
@@ -65,7 +65,7 @@ using quentier::NoteTagsWidget;
 namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
-                                   FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker,
+                                   FileIOProcessorAsync & fileIOProcessorAsync, SpellChecker & spellChecker,
                                    NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                                    TagModel & tagModel, QUndoStack * pUndoStack, QWidget * parent) :
     QWidget(parent),
@@ -73,7 +73,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
-    m_fileIOThreadWorker(fileIOThreadWorker),
+    m_fileIOProcessorAsync(fileIOProcessorAsync),
     m_spellChecker(spellChecker),
     m_noteLocalUid(),
     m_pCurrentNote(),
@@ -105,7 +105,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_pUi->printNotePushButton->setHidden(true);
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
 
-    m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker, m_currentAccount);
+    m_pUi->noteEditor->initialize(m_fileIOProcessorAsync, m_spellChecker, m_currentAccount);
     m_pUi->saveNotePushButton->setEnabled(false);
 
     m_pUi->noteNameLineEdit->installEventFilter(this);

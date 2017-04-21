@@ -25,7 +25,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
-#include <quentier/utility/FileIOThreadWorker.h>
+#include <quentier/utility/FileIOProcessorAsync.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/note_editor/SpellChecker.h>
 #include <quentier/note_editor/NoteEditor.h>
@@ -72,7 +72,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_pTabWidget(tabWidget),
     m_pBlankNoteEditor(Q_NULLPTR),
     m_pIOThread(Q_NULLPTR),
-    m_pFileIOThreadWorker(Q_NULLPTR),
+    m_pFileIOProcessorAsync(Q_NULLPTR),
     m_pSpellChecker(Q_NULLPTR),
     m_maxNumNotesInTabs(-1),
     m_localUidsOfNotesInTabbedEditors(),
@@ -111,7 +111,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
 
     QUndoStack * pUndoStack = new QUndoStack;
     m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount, m_localStorageManagerAsync,
-                                              *m_pFileIOThreadWorker, *m_pSpellChecker,
+                                              *m_pFileIOProcessorAsync, *m_pSpellChecker,
                                               m_noteCache, m_notebookCache, m_tagCache,
                                               *m_pTagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(m_pBlankNoteEditor);
@@ -424,7 +424,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
 
     QUndoStack * pUndoStack = new QUndoStack;
     NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(m_currentAccount, m_localStorageManagerAsync,
-                                                                *m_pFileIOThreadWorker, *m_pSpellChecker,
+                                                                *m_pFileIOProcessorAsync, *m_pSpellChecker,
                                                                 m_noteCache, m_notebookCache, m_tagCache,
                                                                 *m_pTagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
@@ -1531,9 +1531,9 @@ void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
         m_pIOThread->start(QThread::LowPriority);
     }
 
-    if (!m_pFileIOThreadWorker) {
-        m_pFileIOThreadWorker = new FileIOThreadWorker;
-        m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+    if (!m_pFileIOProcessorAsync) {
+        m_pFileIOProcessorAsync = new FileIOProcessorAsync;
+        m_pFileIOProcessorAsync->moveToThread(m_pIOThread);
     }
 }
 
@@ -1542,7 +1542,7 @@ void NoteEditorTabsAndWindowsCoordinator::setupSpellChecker()
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::setupSpellChecker"));
 
     if (!m_pSpellChecker) {
-        m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, m_currentAccount, this);
+        m_pSpellChecker = new SpellChecker(m_pFileIOProcessorAsync, m_currentAccount, this);
     }
 }
 
