@@ -55,6 +55,7 @@ using quentier::NoteTagsWidget;
 #include <QPrintDialog>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QStringListModel>
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
@@ -75,6 +76,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_tagCache(tagCache),
     m_fileIOProcessorAsync(fileIOProcessorAsync),
     m_spellChecker(spellChecker),
+    m_pLimitedFontsListModel(Q_NULLPTR),
     m_noteLocalUid(),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
@@ -99,6 +101,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_isNewNote(false)
 {
     m_pUi->setupUi(this);
+
+    setupFontsComboBox();
 
     // Originally the NoteEditorWidget is not a window, so hide these two buttons,
     // they are for the separate-window mode only
@@ -902,6 +906,56 @@ void NoteEditorWidget::onSaveNoteAction()
     m_pUi->noteEditor->convertToNote();
 }
 
+void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onSetUseLimitedFonts: ")
+            << (useLimitedFonts ? QStringLiteral("true") : QStringLiteral("false")));
+
+    bool currentlyUsingLimitedFonts = !(m_pUi->limitedFontComboBox->isHidden());
+
+    if (currentlyUsingLimitedFonts == useLimitedFonts) {
+        QNDEBUG(QStringLiteral("The setting has not changed, nothing to do"));
+        return;
+    }
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, useLimitedFonts);
+    appSettings.endGroup();
+
+    QString currentFontFamily = (useLimitedFonts
+                                 ? m_pUi->limitedFontComboBox->currentText()
+                                 : m_pUi->fontComboBox->currentFont().family());
+
+    if (useLimitedFonts)
+    {
+        QObject::disconnect(m_pUi->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
+                            this, QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
+        m_pUi->fontComboBox->setHidden(true);
+        m_pUi->fontComboBox->setDisabled(true);
+
+        setupLimitedFontsComboBox(currentFontFamily);
+        m_pUi->limitedFontComboBox->setHidden(false);
+        m_pUi->limitedFontComboBox->setDisabled(false);
+    }
+    else
+    {
+        QObject::disconnect(m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(QString)),
+                            this, SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
+        m_pUi->limitedFontComboBox->setHidden(true);
+        m_pUi->limitedFontComboBox->setDisabled(true);
+
+        QFont font;
+        font.setFamily(currentFontFamily);
+        m_pUi->fontComboBox->setFont(font);
+
+        m_pUi->fontComboBox->setHidden(false);
+        m_pUi->fontComboBox->setDisabled(false);
+        QObject::connect(m_pUi->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
+                         this, QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
+    }
+}
+
 void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem"));
@@ -919,6 +973,48 @@ void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
     }
 
     setFocusToEditor();
+}
+
+void NoteEditorWidget::onFontComboBoxFontChanged(const QFont & font)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFontComboBoxFontChanged: font family = ")
+            << font.family());
+
+    if (m_lastFontComboBoxFontFamily == font.family()) {
+        QNTRACE(QStringLiteral("Font family didn't change"));
+        return;
+    }
+
+    m_lastFontComboBoxFontFamily = font.family();
+
+    if (!m_pCurrentNote) {
+        QNTRACE(QStringLiteral("No note is set to the editor, nothing to do"));
+        return;
+    }
+
+    m_pUi->noteEditor->setFont(font);
+}
+
+void NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged(QString fontFamily)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged: ")
+            << fontFamily);
+
+    if (m_lastFontComboBoxFontFamily == fontFamily) {
+        QNTRACE(QStringLiteral("Font family didn't change"));
+        return;
+    }
+
+    m_lastFontComboBoxFontFamily = fontFamily;
+
+    if (!m_pCurrentNote) {
+        QNTRACE(QStringLiteral("No note is set to the editor, nothing to do"));
+        return;
+    }
+
+    QFont font;
+    font.setFamily(fontFamily);
+    m_pUi->noteEditor->setFont(font);
 }
 
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -1457,9 +1553,61 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
     m_lastFontComboBoxFontFamily = fontFamily;
 
     QFont currentFont(fontFamily);
-    m_pUi->fontComboBox->setCurrentFont(currentFont);
-    QNTRACE(QStringLiteral("Font family from combo box: ") << m_pUi->fontComboBox->currentFont().family()
-            << QStringLiteral(", font family set by QFont's constructor from it: ") << currentFont.family());
+
+    bool useLimitedFonts = !(m_pUi->limitedFontComboBox->isHidden());
+    if (useLimitedFonts)
+    {
+        if (Q_UNLIKELY(!m_pLimitedFontsListModel)) {
+            ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't process the change of font: "
+                                                           "internal error, no limited fonts "
+                                                           "list model is set up"));
+            QNWARNING(errorDescription);
+            emit notifyError(errorDescription);
+            return;
+        }
+
+        QStringList fontNames = m_pLimitedFontsListModel->stringList();
+        int index = fontNames.indexOf(fontFamily);
+        if (index < 0)
+        {
+            QNDEBUG(QStringLiteral("Could not find font name ") << fontFamily
+                    << QStringLiteral(" within available font names: ") << fontNames.join(QStringLiteral(", ")));
+
+            fontNames << fontFamily;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+            fontNames.sort(Qt::CaseInsensitive);
+#else
+            fontNames.sort();
+#endif
+
+            auto it = std::lower_bound(fontNames.constBegin(), fontNames.constEnd(), fontFamily);
+            if ((it != fontNames.constEnd()) && (*it == fontFamily)) {
+                index = static_cast<int>(std::distance(fontNames.constBegin(), it));
+            }
+            else {
+                index = fontNames.indexOf(fontFamily);
+            }
+
+            if (Q_UNLIKELY(index < 0)) {
+                QNWARNING(QStringLiteral("Something is weird: can't find the just added font ") << fontFamily
+                          << QStringLiteral(" within the list of available fonts where it should have been just added: ")
+                          << fontNames.join(QStringLiteral(", ")));
+                index = 0;
+            }
+
+            m_pLimitedFontsListModel->setStringList(fontNames);
+        }
+
+        m_pUi->limitedFontComboBox->setCurrentIndex(index);
+        QNTRACE(QStringLiteral("Set limited font combo box index to ") << index
+                << QStringLiteral(" corresponding to font family ") << fontFamily);
+    }
+    else
+    {
+        m_pUi->fontComboBox->setCurrentFont(currentFont);
+        QNTRACE(QStringLiteral("Font family from combo box: ") << m_pUi->fontComboBox->currentFont().family()
+                << QStringLiteral(", font family set by QFont's constructor from it: ") << currentFont.family());
+    }
 
     QFontDatabase fontDatabase;
     QList<int> fontSizes = fontDatabase.pointSizes(currentFont.family(), currentFont.styleName());
@@ -2018,6 +2166,70 @@ void NoteEditorWidget::clear()
     m_pendingEditorSpellChecker = false;
     m_currentNoteWasExpunged = false;
     m_noteHasBeenModified = false;
+}
+
+void NoteEditorWidget::setupFontsComboBox()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setupFontsComboBox"));
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+
+    bool useLimitedFonts = false;
+    if (appSettings.contains(USE_LIMITED_SET_OF_FONTS)) {
+        useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+        QNDEBUG(QStringLiteral("Use limited fonts setting from settings: ")
+                << (useLimitedFonts ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+    else {
+        useLimitedFonts = (m_currentAccount.type() == Account::Type::Evernote);
+    }
+
+    appSettings.endGroup();
+
+    if (useLimitedFonts) {
+        m_pUi->fontComboBox->setHidden(true);
+        m_pUi->fontComboBox->setDisabled(true);
+        setupLimitedFontsComboBox();
+    }
+    else {
+        m_pUi->limitedFontComboBox->setHidden(true);
+        m_pUi->limitedFontComboBox->setDisabled(true);
+        QObject::connect(m_pUi->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
+                         this, QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
+    }
+}
+
+void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setupLimitedFontsComboBox: startup font = ")
+            << startupFont);
+
+    QStringList limitedFontNames;
+    limitedFontNames.reserve(8);
+    limitedFontNames << QStringLiteral("Courier New");
+    limitedFontNames << QStringLiteral("Georgia");
+    limitedFontNames << QStringLiteral("Gotham");
+    limitedFontNames << QStringLiteral("Helvetica");
+    limitedFontNames << QStringLiteral("Trebuchet");
+    limitedFontNames << QStringLiteral("Times");
+    limitedFontNames << QStringLiteral("Times New Roman");
+    limitedFontNames << QStringLiteral("Verdana");
+
+    delete m_pLimitedFontsListModel;
+    m_pLimitedFontsListModel = new QStringListModel(this);
+    m_pLimitedFontsListModel->setStringList(limitedFontNames);
+    m_pUi->limitedFontComboBox->setModel(m_pLimitedFontsListModel);
+
+    int currentIndex = limitedFontNames.indexOf(startupFont);
+    if (currentIndex < 0) {
+        currentIndex = 0;
+    }
+
+    m_pUi->limitedFontComboBox->setCurrentIndex(currentIndex);
+
+    QObject::connect(m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(QString)),
+                     this, SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
 }
 
 void NoteEditorWidget::updateNoteSourceView(const QString & html)

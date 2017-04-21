@@ -42,6 +42,7 @@ class NoteEditorWidget;
 }
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
+QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
@@ -318,6 +319,8 @@ public Q_SLOTS:
 
     void onSaveNoteAction();
 
+    void onSetUseLimitedFonts(bool useLimitedFonts);
+
     // Slots for find and replace actions
     void onFindInsideNoteAction();
     void onFindPreviousInsideNoteAction();
@@ -325,6 +328,9 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onNewTagLineEditReceivedFocusFromWindowSystem();
+
+    void onFontComboBoxFontChanged(const QFont & font);
+    void onLimitedFontsComboBoxCurrentIndexChanged(QString fontFamily);
 
     // Slots for events from local storage
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
@@ -399,6 +405,9 @@ private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
 
+    void setupFontsComboBox();
+    void setupLimitedFontsComboBox(const QString & startupFont = QString());
+
     void updateNoteSourceView(const QString & html);
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
@@ -416,6 +425,8 @@ private:
 
     FileIOProcessorAsync &      m_fileIOProcessorAsync;
     SpellChecker &              m_spellChecker;
+
+    QStringListModel *          m_pLimitedFontsListModel;
 
     // This data piece separate from m_pCurrentNote is needed in order to handle
     // the cases when the note is being loaded from the local storage while

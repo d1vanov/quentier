@@ -25,6 +25,7 @@
 // Note editor related settings keys
 #define NOTE_EDITOR_SETTINGS_GROUP_NAME QStringLiteral("NoteEditor")
 
+#define USE_LIMITED_SET_OF_FONTS QStringLiteral("UseLimitedSetOfFonts")
 #define REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY QStringLiteral("RemoveEmptyUneditedNotes")
 #define LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY QStringLiteral("LastExportNoteToPdfPath")
 #define CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY QStringLiteral("ConvertToNoteTimeout")
