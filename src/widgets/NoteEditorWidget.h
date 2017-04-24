@@ -332,6 +332,8 @@ private Q_SLOTS:
     void onFontComboBoxFontChanged(const QFont & font);
     void onLimitedFontsComboBoxCurrentIndexChanged(QString fontFamily);
 
+    void onFontSizesComboBoxCurrentIndexChanged(int index);
+
     // Slots for events from local storage
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,

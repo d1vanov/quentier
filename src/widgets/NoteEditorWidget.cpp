@@ -1012,6 +1012,41 @@ void NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged(QString fontFam
     m_pUi->noteEditor->setFont(font);
 }
 
+void NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged(int index)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged: index = ") << index);
+
+    if (index == m_lastFontSizeComboBoxIndex) {
+        QNTRACE(QStringLiteral("Font size hasn't changed"));
+        return;
+    }
+
+    m_lastFontSizeComboBoxIndex = index;
+
+    if (!m_pCurrentNote) {
+        QNTRACE(QStringLiteral("No note is set to the editor, nothing to do"));
+        return;
+    }
+
+    if (m_lastFontSizeComboBoxIndex < 0) {
+        QNTRACE(QStringLiteral("Font size combo box index is negative, won't do anything"));
+        return;
+    }
+
+    bool conversionResult = false;
+    QVariant data = m_pUi->fontSizeComboBox->itemData(index);
+    int fontSize = data.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the change of font size combo box index: "
+                                            "can't convert combo box item data to int"));
+        QNWARNING(error << QStringLiteral(": ") << data);
+        emit notifyError(error);
+        return;
+    }
+
+    m_pUi->noteEditor->setFontHeight(fontSize);
+}
+
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
     if (!m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())) {
@@ -1614,6 +1649,24 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
         fontSizes = fontDatabase.standardSizes();
     }
 
+    QList<int> currentFontSizes;
+    int currentCount = m_pUi->fontSizeComboBox->count();
+    currentFontSizes.reserve(currentCount);
+    for(int i = 0; i < currentCount; ++i)
+    {
+        bool conversionResult = false;
+        QVariant data = m_pUi->fontSizeComboBox->itemData(i);
+        int fontSize = data.toInt(&conversionResult);
+        if (conversionResult) {
+            currentFontSizes << fontSize;
+        }
+    }
+
+    if (currentFontSizes == fontSizes) {
+        QNDEBUG(QStringLiteral("No need to update the items within font sizes combo box: none of them have changed"));
+        return;
+    }
+
     m_lastFontSizeComboBoxIndex = 0;    // NOTE: clearing out font sizes combo box causes unwanted update of its index to 0, workarounding it
     m_pUi->fontSizeComboBox->clear();
     int numFontSizes = fontSizes.size();
@@ -2007,6 +2060,10 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
                      this, QNSLOT(NoteEditorWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNotebookComplete,Notebook,QUuid));
+
+    // Connect to font sizes combobox signals
+    QObject::connect(m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onFontSizesComboBoxCurrentIndexChanged(int)));
 
     // Connect to note tags widget's signals
     QObject::connect(m_pUi->tagNameLabelsContainer, QNSIGNAL(NoteTagsWidget,newTagLineEditReceivedFocusFromWindowSystem),
