@@ -216,6 +216,8 @@ private Q_SLOTS:
     void onEnexImportCompletedSuccessfully(QString enexFilePath);
     void onEnexImportFailed(ErrorString errorDescription);
 
+    void onUseLimitedFontsPreferenceChanged(bool flag);
+
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();

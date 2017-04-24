@@ -293,6 +293,12 @@ void PreferencesDialog::setupCurrentSettingsState()
         m_pUi->trayMiddleClickActionComboBox->setDisabled(true);
         m_pUi->trayDoubleClickActionComboBox->setDisabled(true);
     }
+
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+    appSettings.endGroup();
+
+    m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 }
 
 void PreferencesDialog::createConnections()

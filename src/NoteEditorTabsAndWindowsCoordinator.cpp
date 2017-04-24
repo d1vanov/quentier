@@ -474,6 +474,36 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(const QString & notebook
     emit requestAddNote(newNote, requestId);
 }
 
+void NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts(const bool flag)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts: ")
+            << (flag ? QStringLiteral("true") : QStringLiteral("false")));
+
+
+    for(int i = 0; i < m_pTabWidget->count(); ++i)
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(i));
+        if (Q_UNLIKELY(!pNoteEditorWidget)) {
+            continue;
+        }
+
+        pNoteEditorWidget->onSetUseLimitedFonts(flag);
+    }
+
+    for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(), end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
+    {
+        QNTRACE(QStringLiteral("Examining window editor's note local uid = ") << it.key());
+
+        const QPointer<NoteEditorWidget> & pNoteEditorWidget = it.value();
+        if (Q_UNLIKELY(pNoteEditorWidget.isNull())) {
+            QNTRACE(QStringLiteral("The note editor widget is gone, skipping"));
+            continue;
+        }
+
+        pNoteEditorWidget->onSetUseLimitedFonts(flag);
+    }
+}
+
 bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {

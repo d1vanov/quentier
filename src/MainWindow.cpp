@@ -2096,6 +2096,9 @@ void MainWindow::onShowSettingsDialogAction()
                                                                                *m_pSystemTrayIconManager,
                                                                                this));
     pPreferencesDialog->setWindowModality(Qt::WindowModal);
+
+    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,noteEditorUseLimitedFontsOptionChanged,bool),
+                     this, QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
     Q_UNUSED(pPreferencesDialog->exec());
 }
 
@@ -2397,6 +2400,15 @@ void MainWindow::onEnexImportFailed(ErrorString errorDescription)
     if (pImporter) {
         pImporter->clear();
         pImporter->deleteLater();
+    }
+}
+
+void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onUseLimitedFontsPreferenceChanged: flag = ") << flag);
+
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        m_pNoteEditorTabsAndWindowsCoordinator->setUseLimitedFonts(flag);
     }
 }
 

@@ -419,6 +419,8 @@ private:
 
     bool checkNoteTitle(const QString & title, ErrorString & errorDescription);
 
+    void removeSurrondingApostrophes(QString & str) const;
+
 private:
     Ui::NoteEditorWidget *      m_pUi;
     NoteCache &                 m_noteCache;

@@ -995,6 +995,13 @@ void NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged(QString fontFam
     QNDEBUG(QStringLiteral("NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged: ")
             << fontFamily);
 
+    if (fontFamily.trimmed().isEmpty()) {
+        QNTRACE(QStringLiteral("Font family is empty, ignoring this update"));
+        return;
+    }
+
+    removeSurrondingApostrophes(fontFamily);
+
     if (m_lastFontComboBoxFontFamily == fontFamily) {
         QNTRACE(QStringLiteral("Font family didn't change"));
         return;
@@ -1574,6 +1581,8 @@ void NoteEditorWidget::onEditorTextInsideTableStateChanged(bool state)
 void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
 {
     QNTRACE(QStringLiteral("NoteEditorWidget::onEditorTextFontFamilyChanged: ") << fontFamily);
+
+    removeSurrondingApostrophes(fontFamily);
 
     if (m_lastFontComboBoxFontFamily == fontFamily) {
         QNTRACE(QStringLiteral("Font family didn't change"));
@@ -2398,6 +2407,14 @@ bool NoteEditorWidget::checkNoteTitle(const QString & title, ErrorString & error
     }
 
     return Note::validateTitle(title, &errorDescription);
+}
+
+void NoteEditorWidget::removeSurrondingApostrophes(QString & str) const
+{
+    if (str.startsWith(QChar('\'')) && str.endsWith(QChar('\'')) && (str.size() > 1)) {
+        str = str.mid(1, str.size() - 2);
+        QNTRACE(QStringLiteral("Removed apostrophes: ") << str);
+    }
 }
 
 } // namespace quentier

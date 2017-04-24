@@ -90,6 +90,8 @@ public:
     void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid,
                        const NoteEditorMode::type noteEditorMode);
 
+    void setUseLimitedFonts(const bool flag);
+
 Q_SIGNALS:
     void notifyError(ErrorString error);
 
