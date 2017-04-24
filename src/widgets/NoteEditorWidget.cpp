@@ -21,6 +21,7 @@
 #include "../DefaultSettings.h"
 #include "../models/TagModel.h"
 #include "../dialogs/EnexExportDialog.h"
+#include "../delegates/LimitedFontsDelegate.h"
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
 // is deeply disappointing
@@ -2288,6 +2289,20 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
     }
 
     m_pUi->limitedFontComboBox->setCurrentIndex(currentIndex);
+
+    LimitedFontsDelegate * pDelegate = qobject_cast<LimitedFontsDelegate*>(m_pUi->limitedFontComboBox->itemDelegate());
+    if (!pDelegate) {
+        pDelegate = new LimitedFontsDelegate(m_pUi->limitedFontComboBox);
+        m_pUi->limitedFontComboBox->setItemDelegate(pDelegate);
+    }
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    // NOTE: without this the combobox looks pretty ugly in Qt4
+    QLineEdit * pLineEdit = m_pUi->limitedFontComboBox->lineEdit();
+    if (pLineEdit) {
+        pLineEdit->setStyleSheet(QStringLiteral("padding-left: 2px;"));
+    }
+#endif
 
     QObject::connect(m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(QString)),
                      this, SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));

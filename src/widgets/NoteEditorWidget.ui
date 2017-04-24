@@ -607,12 +607,6 @@
                 <height>26</height>
                </size>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>26</height>
-               </size>
-              </property>
              </widget>
             </item>
             <item>

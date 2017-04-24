@@ -102,6 +102,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/FavoritesModel.h
     src/models/FavoritesModelItem.h
     src/delegates/AbstractStyledItemDelegate.h
+    src/delegates/LimitedFontsDelegate.h
     src/delegates/NoteItemDelegate.h
     src/delegates/NotebookItemDelegate.h
     src/delegates/DeletedNoteItemDelegate.h
@@ -185,6 +186,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
     src/delegates/AbstractStyledItemDelegate.cpp
+    src/delegates/LimitedFontsDelegate.cpp
     src/delegates/NoteItemDelegate.cpp
     src/delegates/NotebookItemDelegate.cpp
     src/delegates/DeletedNoteItemDelegate.cpp
