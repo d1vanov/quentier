@@ -43,6 +43,12 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
             ("help,h", "show help message")
             ("version,v", "show version info")
             ("storageDir", po::value<QString>(), "set directory with the app's persistence")
+            ("account", po::value<QString>(), "set the account to use by default:\n"
+                                              "local_<Name>\n"
+                                              "evernote_<id>_<Name>\n"
+                                              "evernotesandbox_<id>_<Name>\n"
+                                              "yinxiangbiji_<id>_<Name>\n"
+                                              "where <id> is user ID and <Name> is the account name")
             ("overrideSystemTrayAvailability", po::value<bool>(),
              "override the availability of the system tray\n(0 - override to false,\n"
              "any other value - override to true)");

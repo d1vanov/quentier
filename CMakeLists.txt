@@ -69,6 +69,7 @@ set(${PROJECT_NAME}_HEADERS
     src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
     src/EnexExporter.h
+    src/ParseStartupAccount.h
     src/SettingsNames.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
@@ -154,6 +155,7 @@ set(${PROJECT_NAME}_SOURCES
     src/NoteEditorTabsAndWindowsCoordinator.cpp
     src/NoteFiltersManager.cpp
     src/EnexExporter.cpp
+    src/ParseStartupAccount.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/dialogs/AddAccountDialog.cpp

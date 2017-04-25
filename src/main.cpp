@@ -22,8 +22,10 @@
 #include "CommandLineParser.h"
 #include "SystemTrayIconManager.h"
 #include "SettingsNames.h"
+#include "ParseStartupAccount.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierApplication.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/exception/DatabaseLockedException.h>
@@ -55,6 +57,74 @@ int main(int argc, char *argv[])
     if (storageDirIt != cmdOptions.constEnd()) {
         QString storageDir = storageDirIt.value().toString();
         qputenv(LIBQUENTIER_PERSISTENCE_STORAGE_PATH, storageDir.toLocal8Bit());
+    }
+
+    CmdOptions::const_iterator accountIt = cmdOptions.find(QStringLiteral("account"));
+    if (accountIt != cmdOptions.constEnd())
+    {
+        QString accountStr = accountIt.value().toString();
+
+        bool isLocal = false;
+        qevercloud::UserID userId = -1;
+        QString evernoteHost;
+        QString accountName;
+
+        ErrorString errorDescription;
+        bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost, accountName, errorDescription);
+        if (!res) {
+            criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+                               QObject::tr("Unable to parse the startup account"),
+                               errorDescription.localizedString());
+            return 1;
+        }
+
+        bool foundAccount = false;
+        Account::EvernoteAccountType::type evernoteAccountType = Account::EvernoteAccountType::Free;
+
+        AccountManager accountManager;
+        const QVector<Account> & availableAccounts = accountManager.availableAccounts();
+        for(int i = 0, numAvailableAccounts = availableAccounts.size(); i < numAvailableAccounts; ++i)
+        {
+            const Account & availableAccount = availableAccounts.at(i);
+            if (isLocal != (availableAccount.type() == Account::Type::Local)) {
+                continue;
+            }
+
+            if (availableAccount.name() != accountName) {
+                continue;
+            }
+
+            if (!isLocal && (availableAccount.evernoteHost() != evernoteHost)) {
+                continue;
+            }
+
+            if (!isLocal && (availableAccount.id() != userId)) {
+                continue;
+            }
+
+            foundAccount = true;
+            if (!isLocal) {
+                evernoteAccountType = availableAccount.evernoteAccountType();
+            }
+            break;
+        }
+
+        if (!foundAccount) {
+            criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+                               QObject::tr("Wrong startup account"),
+                               QObject::tr("The startup account specified on the command line does not correspond "
+                                           "to any already existing account"));
+            return 1;
+        }
+
+        ApplicationSettings appSettings;
+        appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+        appSettings.setValue(LAST_USED_ACCOUNT_NAME, accountName);
+        appSettings.setValue(LAST_USED_ACCOUNT_TYPE, isLocal);
+        appSettings.setValue(LAST_USED_ACCOUNT_ID, userId);
+        appSettings.setValue(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE, evernoteAccountType);
+        appSettings.setValue(LAST_USED_ACCOUNT_EVERNOTE_HOST, evernoteHost);
+        appSettings.endGroup();
     }
 
     CmdOptions::const_iterator overrideSystemTrayAvailabilityIt =

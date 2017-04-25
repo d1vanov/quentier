@@ -39,4 +39,13 @@
 #define LAST_IMPORT_ENEX_PATH_SETTINGS_KEY QStringLiteral("LastImportEnexPath")
 #define LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY QStringLiteral("LastImportEnexNotebookName")
 
+// Account-related settings keys
+#define ACCOUNT_SETTINGS_GROUP QStringLiteral("AccountSettings")
+
+#define LAST_USED_ACCOUNT_NAME QStringLiteral("LastUsedAccountName")
+#define LAST_USED_ACCOUNT_TYPE QStringLiteral("LastUsedAccountType")
+#define LAST_USED_ACCOUNT_ID QStringLiteral("LastUsedAccountId")
+#define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE QStringLiteral("LastUsedAccountEvernoteAccountType")
+#define LAST_USED_ACCOUNT_EVERNOTE_HOST QStringLiteral("LastUsedAccountEvernoteHost")
+
 #endif // QUENTIER_SETTINGS_NAMES_H

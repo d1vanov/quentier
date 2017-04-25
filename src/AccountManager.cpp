@@ -17,6 +17,7 @@
  */
 
 #include "AccountManager.h"
+#include "SettingsNames.h"
 #include "dialogs/AddAccountDialog.h"
 #include "dialogs/ManageAccountsDialog.h"
 #include <quentier/utility/ApplicationSettings.h>
@@ -28,13 +29,6 @@
 #ifndef Q_MOC_RUN
 #include <boost/scope_exit.hpp>
 #endif
-
-#define ACCOUNT_SETTINGS_GROUP QStringLiteral("AccountSettings")
-#define LAST_USED_ACCOUNT_NAME QStringLiteral("LastUsedAccountName")
-#define LAST_USED_ACCOUNT_TYPE QStringLiteral("LastUsedAccountType")
-#define LAST_USED_ACCOUNT_ID QStringLiteral("LastUsedAccountId")
-#define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE QStringLiteral("LastUsedAccountEvernoteAccountType")
-#define LAST_USED_ACCOUNT_EVERNOTE_HOST QStringLiteral("LastUsedAccountEvernoteHost")
 
 namespace quentier {
 
