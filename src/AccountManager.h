@@ -91,9 +91,18 @@ private:
 
     QDir accountStorageDir(const QString & name, const bool isLocal, const qevercloud::UserID id, const QString & evernoteHost) const;
 
+    // Tries to find the account corresponding to the specified environment variables
+    // specifying the details of the account; in case of success returns
+    // non-null pointer to the account, null otherwise
+    QSharedPointer<Account> accountFromEnvVarHints() const;
+
     // Tries to restore the last used account from the app settings;
     // in case of success returns non-null pointer to account, null otherwise
     QSharedPointer<Account> lastUsedAccount() const;
+
+    QSharedPointer<Account> findAccount(const bool isLocal, const QString & accountName,
+                                        const qevercloud::UserID id, const Account::EvernoteAccountType::type type,
+                                        const QString & evernoteHost) const;
 
     void updateLastUsedAccount(const Account & account);
 

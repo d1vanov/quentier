@@ -43,6 +43,11 @@ Account AccountManager::currentAccount()
 {
     QNDEBUG(QStringLiteral("AccountManager::currentAccount"));
 
+    QSharedPointer<Account> pManuallySpecifiedAccount = accountFromEnvVarHints();
+    if (!pManuallySpecifiedAccount.isNull()) {
+        return *pManuallySpecifiedAccount;
+    }
+
     QSharedPointer<Account> pLastUsedAccount = lastUsedAccount();
     if (pLastUsedAccount.isNull())
     {
@@ -604,6 +609,77 @@ QDir AccountManager::accountStorageDir(const QString & name, const bool isLocal,
     return QDir(accountPersistentStoragePath);
 }
 
+QSharedPointer<Account> AccountManager::accountFromEnvVarHints() const
+{
+    QNDEBUG(QStringLiteral("AccountManager::accountFromEnvVarHints"));
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 1, 0)
+#define qEnvironmentVariableIsEmpty(x) qgetenv(x).isEmpty()
+#endif
+
+    if (qEnvironmentVariableIsEmpty(ACCOUNT_NAME_ENV_VAR)) {
+        QNDEBUG(QStringLiteral("Account name environment variable is not set or is empty"));
+        return QSharedPointer<Account>();
+    }
+
+    if (qEnvironmentVariableIsEmpty(ACCOUNT_TYPE_ENV_VAR)) {
+        QNDEBUG(QStringLiteral("Account type environment variable is not set or is empty"));
+        return QSharedPointer<Account>();
+    }
+
+    QByteArray accountType = qgetenv(ACCOUNT_TYPE_ENV_VAR);
+    bool isLocal = (accountType == QByteArray("1"));
+
+    if (!isLocal)
+    {
+        if (qEnvironmentVariableIsEmpty(ACCOUNT_ID_ENV_VAR)) {
+            QNDEBUG(QStringLiteral("Account id environment variable is not set or is empty"));
+            return QSharedPointer<Account>();
+        }
+
+        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR)) {
+            QNDEBUG(QStringLiteral("Evernote account type environment variable is not set or is empty"));
+            return QSharedPointer<Account>();
+        }
+
+        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_HOST_ENV_VAR)) {
+            QNDEBUG(QStringLiteral("Evernote host environment variable is not set or is empty"));
+            return QSharedPointer<Account>();
+        }
+    }
+
+    QString accountName = QString::fromLocal8Bit(qgetenv(ACCOUNT_NAME_ENV_VAR));
+
+    qevercloud::UserID id = -1;
+    Account::EvernoteAccountType::type evernoteAccountType = Account::EvernoteAccountType::Free;
+    QString evernoteHost;
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 5, 0)
+#define qEnvironmentVariableIntValue(x, ok) qgetenv(x).toInt(ok)
+#endif
+
+    if (!isLocal)
+    {
+        bool conversionResult = false;
+        id = static_cast<qevercloud::UserID>(qEnvironmentVariableIntValue(ACCOUNT_ID_ENV_VAR, &conversionResult));
+        if (!conversionResult) {
+            QNDEBUG(QStringLiteral("Could not convert the account id to integer"));
+            return QSharedPointer<Account>();
+        }
+
+        conversionResult = false;
+        evernoteAccountType = static_cast<Account::EvernoteAccountType::type>(qEnvironmentVariableIntValue(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR, &conversionResult));
+        if (!conversionResult) {
+            QNDEBUG(QStringLiteral("Could not convert the Evernote account type to integer"));
+            return QSharedPointer<Account>();
+        }
+
+        evernoteHost = QString::fromLocal8Bit(qgetenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR));
+    }
+
+    return findAccount(isLocal, accountName, id, evernoteAccountType, evernoteHost);
+}
+
 QSharedPointer<Account> AccountManager::lastUsedAccount() const
 {
     QNDEBUG(QStringLiteral("AccountManager::lastUsedAccount"));
@@ -678,7 +754,19 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
         }
     }
 
-    // Now need to check whether such an account exists
+    return findAccount(isLocal, accountName, id, evernoteAccountType, evernoteHost);
+}
+
+QSharedPointer<Account> AccountManager::findAccount(const bool isLocal,
+                                                    const QString & accountName,
+                                                    const qevercloud::UserID id,
+                                                    const Account::EvernoteAccountType::type evernoteAccountType,
+                                                    const QString & evernoteHost) const
+{
+    QNDEBUG(QStringLiteral("AccountManager::findAccount"));
+
+    QSharedPointer<Account> result;
+
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
     QString accountDirName = (isLocal
                               ? (QStringLiteral("LocalAccounts/") + accountName)

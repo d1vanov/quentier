@@ -50,6 +50,20 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    quentier::QuentierApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("quentier.org"));
+    app.setApplicationName(QStringLiteral("Quentier"));
+    app.setQuitOnLastWindowClosed(false);
+
+    QUENTIER_INITIALIZE_LOGGING();
+    QUENTIER_SET_MIN_LOG_LEVEL(Trace);
+    QUENTIER_ADD_STDOUT_LOG_DESTINATION();
+
+    loadDependencies();
+
+    quentier::initializeLibquentier();
+    quentier::setupApplicationIcon(app);
+
     typedef CommandLineParser::CommandLineOptions CmdOptions;
     CmdOptions cmdOptions = cmdParser.options();
 
@@ -117,14 +131,11 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        ApplicationSettings appSettings;
-        appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
-        appSettings.setValue(LAST_USED_ACCOUNT_NAME, accountName);
-        appSettings.setValue(LAST_USED_ACCOUNT_TYPE, isLocal);
-        appSettings.setValue(LAST_USED_ACCOUNT_ID, userId);
-        appSettings.setValue(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE, evernoteAccountType);
-        appSettings.setValue(LAST_USED_ACCOUNT_EVERNOTE_HOST, evernoteHost);
-        appSettings.endGroup();
+        qputenv(ACCOUNT_NAME_ENV_VAR, accountName.toLocal8Bit());
+        qputenv(ACCOUNT_TYPE_ENV_VAR, (isLocal ? QByteArray("1") : QByteArray("0")));
+        qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(userId));
+        qputenv(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR, QByteArray::number(evernoteAccountType));
+        qputenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR, evernoteHost.toLocal8Bit());
     }
 
     CmdOptions::const_iterator overrideSystemTrayAvailabilityIt =
@@ -135,20 +146,6 @@ int main(int argc, char *argv[])
         qputenv(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR,
                 (overrideSystemTrayAvailability ? QByteArray("1") : QByteArray("0")));
     }
-
-    quentier::QuentierApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("quentier.org"));
-    app.setApplicationName(QStringLiteral("Quentier"));
-    app.setQuitOnLastWindowClosed(false);
-
-    QUENTIER_INITIALIZE_LOGGING();
-    QUENTIER_SET_MIN_LOG_LEVEL(Trace);
-    QUENTIER_ADD_STDOUT_LOG_DESTINATION();
-
-    loadDependencies();
-
-    quentier::initializeLibquentier();
-    quentier::setupApplicationIcon(app);
 
     QScopedPointer<MainWindow> pMainWindow;
 
