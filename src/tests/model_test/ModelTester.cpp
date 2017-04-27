@@ -23,6 +23,8 @@
 // 10 minutes, the timeout for async stuff to complete
 #define MAX_ALLOWED_MILLISECONDS 600000
 
+#define qnPrintable(string) QString::fromUtf8(string).toLocal8Bit().constData()
+
 ModelTester::ModelTester(QObject * parent) :
     QObject(parent),
     m_pLocalStorageManagerAsync(Q_NULLPTR)
@@ -214,7 +216,7 @@ void ModelTester::testFavoritesModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageManagerAsync;
-        Account account("ModelTester_favorites_model_test_fake_user", Account::Type::Evernote, 800);
+        Account account(QStringLiteral("ModelTester_favorites_model_test_fake_user"), Account::Type::Evernote, 800);
         m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(account, /* start from scratch = */ true,
                                                                              /* override lock = */ false, this);
         m_pLocalStorageManagerAsync->init();
@@ -254,7 +256,7 @@ void ModelTester::testTagModelItemSerialization()
 
     TagModelItem item;
     item.setLocalUid(UidGenerator::Generate());
-    item.setName("Test item");
+    item.setName(QStringLiteral("Test item"));
     item.setGuid(UidGenerator::Generate());
     item.setLinkedNotebookGuid(UidGenerator::Generate());
     item.setDirty(true);
@@ -272,14 +274,14 @@ void ModelTester::testTagModelItemSerialization()
     TagModelItem restoredItem;
     in >> restoredItem;
 
-    QVERIFY2(restoredItem.localUid() == item.localUid(), qPrintable("Local uids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.guid() == item.guid(), qPrintable("Guids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.linkedNotebookGuid() == item.linkedNotebookGuid(), qPrintable("Linked notebook guids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.name() == item.name(), qPrintable("Names of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.parentGuid() == item.parentGuid(), qPrintable("Parent guids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.parentLocalUid() == item.parentLocalUid(), qPrintable("Parent local uids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.isSynchronizable() == item.isSynchronizable(), qPrintable("Synchronizable flags of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.isDirty() == item.isDirty(), qPrintable("Dirty flags of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.localUid() == item.localUid(), qnPrintable("Local uids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.guid() == item.guid(), qnPrintable("Guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.linkedNotebookGuid() == item.linkedNotebookGuid(), qnPrintable("Linked notebook guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.name() == item.name(), qnPrintable("Names of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.parentGuid() == item.parentGuid(), qnPrintable("Parent guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.parentLocalUid() == item.parentLocalUid(), qnPrintable("Parent local uids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.isSynchronizable() == item.isSynchronizable(), qnPrintable("Synchronizable flags of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.isDirty() == item.isDirty(), qnPrintable("Dirty flags of original and deserialized items don't match"));
 }
 
 int main(int argc, char *argv[])

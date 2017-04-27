@@ -39,7 +39,7 @@
 #include <boost/bimap.hpp>
 #endif
 
-#define NOTEBOOK_MODEL_MIME_TYPE "application/x-com.quentier.notebookmodeldatalist"
+#define NOTEBOOK_MODEL_MIME_TYPE QStringLiteral("application/x-com.quentier.notebookmodeldatalist")
 #define NOTEBOOK_MODEL_MIME_DATA_MAX_COMPRESSION (9)
 
 namespace quentier {

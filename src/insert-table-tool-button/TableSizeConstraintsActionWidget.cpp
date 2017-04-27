@@ -38,8 +38,8 @@ TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(QWidget * par
     widthSpinBox->setValue(m_currentWidth);
 
     QComboBox * widthTypeComboBox = new QComboBox(layoutContainer);
-    widthTypeComboBox->addItem("pixels");
-    widthTypeComboBox->addItem("%");
+    widthTypeComboBox->addItem(tr("pixels"));
+    widthTypeComboBox->addItem(QStringLiteral("%"));
     widthTypeComboBox->setCurrentIndex(m_currentWidthTypeIsRelative ? 1 : 0);
 
     layout->addWidget(widthSpinBox);

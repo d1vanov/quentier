@@ -30,11 +30,11 @@
     catch(const IQuentierException & exception) { \
         SysInfo sysInfo; \
         QNWARNING(QStringLiteral("Caught Quentier exception: ") + exception.nonLocalizedErrorMessage() + \
-                  QStringLiteral(", what: ") + QString(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.stackTrace()); \
+                  QStringLiteral(", what: ") + QString::fromUtf8(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.stackTrace()); \
     } \
     catch(const std::exception & exception) { \
         SysInfo sysInfo; \
-        QNWARNING(QStringLiteral("Caught std::exception: ") + QString(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.stackTrace()); \
+        QNWARNING(QStringLiteral("Caught std::exception: ") + QString::fromUtf8(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.stackTrace()); \
     } \
     catch(...) { \
         SysInfo sysInfo; \

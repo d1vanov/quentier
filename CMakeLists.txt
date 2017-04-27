@@ -281,6 +281,11 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
 
 target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
 
+add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
+if(USE_QT5)
+  add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
+endif()
+
 # Set up the model tests
 set(MODEL_TEST_HEADERS
     src/tests/model_test/modeltest.h

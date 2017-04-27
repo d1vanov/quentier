@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     }
     catch(const std::exception & exception)
     {
-        internalErrorMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start, exception occurred: ") + exception.what());
+        internalErrorMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start, exception occurred: ") + QString::fromUtf8(exception.what()));
         qWarning() << QStringLiteral("Caught IQuentierException: ") << exception.what();
         return 1;
     }

@@ -93,8 +93,8 @@ QString EnexExportDialog::exportEnexFilePath() const
         return QString();
     }
 
-    if (!convertedFolderPath.endsWith(QChar('/'))) {
-        convertedFolderPath += QChar('/');
+    if (!convertedFolderPath.endsWith(QStringLiteral("/"))) {
+        convertedFolderPath += QStringLiteral("/");
     }
 
     if (!fileName.endsWith(QStringLiteral(".enex"), Qt::CaseInsensitive)) {

@@ -182,7 +182,7 @@ void FavoritesModelTestHelper::launchTest()
         m_thirdTag.setParentGuid(m_secondTag.guid());
         m_thirdTag.setFavorited(true);
 
-        m_fourthTag.setName("Fourth tag");
+        m_fourthTag.setName(QStringLiteral("Fourth tag"));
         m_fourthTag.setLocal(true);
         m_fourthTag.setDirty(true);
         m_fourthTag.setFavorited(true);
@@ -389,7 +389,7 @@ void FavoritesModelTestHelper::launchTest()
             FAIL(QStringLiteral("Null data was returned by the favorites model while expected to get the display name of the item"));
         }
 
-        if (data.toString() != m_secondNotebook.name() + "_modified") {
+        if (data.toString() != m_secondNotebook.name() + QStringLiteral("_modified")) {
             FAIL(QStringLiteral("The name of the item appears to have not changed after setData in favorites model even though the method returned true"));
         }
 

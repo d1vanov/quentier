@@ -75,10 +75,10 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinary
 
     ErrorString error;
     if (readOnlyFlag) {
-        error.base() = QT_TRANSLATE_NOOP("", "Can't edit note: the note to be edited was not found");
+        error.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't edit note: the note to be edited was not found"));
     }
     else {
-        error.base() = QT_TRANSLATE_NOOP("", "Can't show the note info: the note to be edited was not found");
+        error.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't show the note info: the note to be edited was not found"));
     }
 
     error.additionalBases().append(errorDescription.base());

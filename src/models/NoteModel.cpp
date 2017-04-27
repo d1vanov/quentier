@@ -1368,7 +1368,7 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
                 accessibleText += tr("tag list is empty");
             }
             else {
-                accessibleText += tr("has tags") + colon + space + tagNameList.join(", ");
+                accessibleText += tr("has tags") + colon + space + tagNameList.join(QStringLiteral(", "));
             }
             break;
         }
@@ -1432,7 +1432,7 @@ void NoteModel::processTagExpunging(const QString & tagLocalUid)
 
     Q_UNUSED(m_tagLocalUidToNoteLocalUid.remove(tagLocalUid))
 
-    QNDEBUG("Affected notes local uids: " << affectedNotesLocalUids.join(", "));
+    QNDEBUG("Affected notes local uids: " << affectedNotesLocalUids.join(QStringLiteral(", ")));
     for(auto it = affectedNotesLocalUids.constBegin(), end = affectedNotesLocalUids.constEnd(); it != end; ++it)
     {
         auto noteItemIt = localUidIndex.find(*it);
@@ -1728,7 +1728,7 @@ void NoteModel::updateTagData(const Tag & tag)
         ++noteIt;
     }
 
-    QNDEBUG("Affected notes local uids: " << affectedNotesLocalUids.join(", "));
+    QNDEBUG("Affected notes local uids: " << affectedNotesLocalUids.join(QStringLiteral(", ")));
     for(auto it = affectedNotesLocalUids.constBegin(), end = affectedNotesLocalUids.constEnd(); it != end; ++it)
     {
         auto noteItemIt = localUidIndex.find(*it);

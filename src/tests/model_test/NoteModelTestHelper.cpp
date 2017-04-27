@@ -133,8 +133,8 @@ void NoteModelTestHelper::launchTest()
         firstNote.setDirty(false);
 
         Note secondNote;
-        secondNote.setTitle("Second note");
-        secondNote.setContent("<en-note><h1>Second note</h1></en-note>");
+        secondNote.setTitle(QStringLiteral("Second note"));
+        secondNote.setContent(QStringLiteral("<en-note><h1>Second note</h1></en-note>"));
         secondNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
         secondNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
         secondNote.setNotebookLocalUid(firstNotebook.localUid());
@@ -468,7 +468,7 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
             FAIL(QStringLiteral("Can't find the valid model index for the note item's title column"));
         }
 
-        QString title = "Modified title";
+        QString title = QStringLiteral("Modified title");
         bool res = m_model->setData(itemIndex, title, Qt::EditRole);
         if (!res) {
             FAIL(QStringLiteral("Can't update the note item model's title"));

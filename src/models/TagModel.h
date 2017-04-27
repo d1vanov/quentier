@@ -41,7 +41,7 @@
 #include <boost/bimap.hpp>
 #endif
 
-#define TAG_MODEL_MIME_TYPE "application/x-com.quentier.tagmodeldatalist"
+#define TAG_MODEL_MIME_TYPE QStringLiteral("application/x-com.quentier.tagmodeldatalist")
 #define TAG_MODEL_MIME_DATA_MAX_COMPRESSION (9)
 
 namespace quentier {

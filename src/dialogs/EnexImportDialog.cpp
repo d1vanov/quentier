@@ -62,7 +62,7 @@ QString EnexImportDialog::importEnexFilePath(ErrorString * pErrorDescription) co
     {
         QNDEBUG(QStringLiteral("ENEX file at specified path doesn't exist"));
         if (pErrorDescription) {
-            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "ENEX file at specified path doesn't exist");
+            pErrorDescription->base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "ENEX file at specified path doesn't exist"));
         }
 
         return QString();
@@ -72,7 +72,7 @@ QString EnexImportDialog::importEnexFilePath(ErrorString * pErrorDescription) co
     {
         QNDEBUG(QStringLiteral("The specified path is not a file"));
         if (pErrorDescription) {
-            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "The specified path is not a file");
+            pErrorDescription->base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "The specified path is not a file"));
         }
 
         return QString();
@@ -82,7 +82,7 @@ QString EnexImportDialog::importEnexFilePath(ErrorString * pErrorDescription) co
     {
         QNDEBUG(QStringLiteral("The specified file is not readable"));
         if (pErrorDescription) {
-            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "The specified file is not readable");
+            pErrorDescription->base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "The specified file is not readable"));
         }
 
         return QString();
@@ -155,7 +155,7 @@ void EnexImportDialog::onBrowsePushButtonClicked()
 
     if (!enexFileInfo.isReadable()) {
         QNDEBUG(QStringLiteral("The selected ENEX file is not readable"));
-        setStatusText("The selected ENEX file is not readable");
+        setStatusText(tr("The selected ENEX file is not readable"));
         return;
     }
 

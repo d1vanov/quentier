@@ -108,7 +108,7 @@ QString ManualTestingHelper::noteContentWithResources()
 {
     QFile file(QStringLiteral(":/test_notes/enml_with_resources.xml"));
     file.open(QIODevice::ReadOnly);
-    QString result = file.readAll();
+    QString result = QString::fromUtf8(file.readAll());
     file.close();
 
     return result;

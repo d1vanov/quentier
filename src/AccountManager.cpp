@@ -277,7 +277,7 @@ void AccountManager::detectAvailableAccounts()
 
         // The account dir for Evernote accounts is encoded as "<account_name>_<host>_<user_id>"
         int accountNameSize = accountName.size();
-        int lastUnderlineIndex = accountName.lastIndexOf('_');
+        int lastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"));
         if ((lastUnderlineIndex < 0) || (lastUnderlineIndex >= accountNameSize)) {
             QNTRACE(QStringLiteral("Dir ") << accountName
                     << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
@@ -298,7 +298,7 @@ void AccountManager::detectAvailableAccounts()
             continue;
         }
 
-        int preLastUnderlineIndex = accountName.lastIndexOf('_', lastUnderlineIndex);
+        int preLastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"), lastUnderlineIndex);
         if ((preLastUnderlineIndex < 0) || (preLastUnderlineIndex >= lastUnderlineIndex)) {
             QNTRACE(QStringLiteral("Dir ") << accountName
                     << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
@@ -396,7 +396,7 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
     {
         bool res = accountPersistentStorageDir.mkpath(accountPersistentStorageDir.absolutePath());
         if (Q_UNLIKELY(!res)) {
-            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't create a directory for the account storage");
+            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't create a directory for the account storage"));
             errorDescription.details() = accountPersistentStorageDir.absolutePath();
             QNWARNING(errorDescription);
             return false;
@@ -408,7 +408,7 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't open the new account info file for writing");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't open the new account info file for writing"));
         errorDescription.details() = accountInfo.fileName();
 
         QString errorString = accountInfo.errorString();

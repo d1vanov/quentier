@@ -126,6 +126,9 @@ using quentier::FilterBySavedSearchWidget;
 #define MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT QStringLiteral("SavedSearchesViewHeight")
 #define MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT QStringLiteral("DeletedNotesViewHeight")
 
+#define DARKER_PANEL_STYLE_NAME QStringLiteral("Darker")
+#define LIGHTER_PANEL_STYLE_NAME QStringLiteral("Lighter")
+
 #define PERSIST_GEOMETRY_AND_STATE_DELAY (3000)
 
 using namespace quentier;
@@ -977,8 +980,8 @@ void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
     QNDEBUG(QStringLiteral("MainWindow::persistChosenIconTheme: ") << iconThemeName);
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("LookAndFeel"));
-    appSettings.setValue(QStringLiteral("iconTheme"), iconThemeName);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(ICON_THEME_SETTINGS_KEY, iconThemeName);
     appSettings.endGroup();
 }
 
@@ -1090,8 +1093,8 @@ void MainWindow::setupPanelOverlayStyleSheets()
     QNDEBUG(QStringLiteral("MainWindow::setupPanelOverlayStyleSheets"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("LookAndFeel"));
-    QString panelStyle = appSettings.value(QStringLiteral("panelStyle")).toString();
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QString panelStyle = appSettings.value(PANELS_STYLE_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
     if (panelStyle.isEmpty()) {
@@ -1119,7 +1122,7 @@ void MainWindow::getPanelStyleSheetProperties(const QString & panelStyleOption,
     QString backgroundColorName, colorName, backgroundColorButtonHoverName,
             backgroundColorButtonPressedName;
 
-    if (panelStyleOption == QStringLiteral("Lighter"))
+    if (panelStyleOption == LIGHTER_PANEL_STYLE_NAME)
     {
         QColor backgroundColor = palette().color(QPalette::Light);
         backgroundColorName = backgroundColor.name();
@@ -1133,7 +1136,7 @@ void MainWindow::getPanelStyleSheetProperties(const QString & panelStyleOption,
         QColor backgroundColorButtonPressed = backgroundColor.lighter(150);
         backgroundColorButtonPressedName = backgroundColorButtonPressed.name();
     }
-    else if (panelStyleOption == QStringLiteral("Darker"))
+    else if (panelStyleOption == DARKER_PANEL_STYLE_NAME)
     {
         QColor backgroundColor = palette().color(QPalette::Dark);
         backgroundColorName = backgroundColor.name();
@@ -1388,7 +1391,7 @@ void MainWindow::fixupQt4StyleSheets()
 {
     QNDEBUG(QStringLiteral("MainWindow::fixupQt4StyleSheets"));
 
-    QString alternateCentralWidgetStylesheet(
+    QString alternateCentralWidgetStylesheet = QString::fromUtf8(
                 "QSplitter::handle {"
                 "   background-color: black;"
                 "}"
@@ -1403,13 +1406,13 @@ void MainWindow::fixupQt4StyleSheets()
                 "}");
     m_pUI->centralWidget->setStyleSheet(alternateCentralWidgetStylesheet);
 
-    QString alternateNoteListFrameStylesheet(
+    QString alternateNoteListFrameStylesheet = QString::fromUtf8(
                 "#notesListAndFiltersFrame {"
                 "   border: none;"
                 "}");
     m_pUI->notesListAndFiltersFrame->setStyleSheet(alternateNoteListFrameStylesheet);
 
-    QString alternateFilterBodyFrameStylesheet(
+    QString alternateFilterBodyFrameStylesheet = QString::fromUtf8(
                 "#filterBodyFrame {"
                 "padding: 0px;"
                 "margin: 0px;"
@@ -1418,34 +1421,34 @@ void MainWindow::fixupQt4StyleSheets()
                 "}");
     m_pUI->filterBodyFrame->setStyleSheet(alternateFilterBodyFrameStylesheet);
 
-    QString alternateViewStylesheetBase(
+    QString alternateViewStylesheetBase = QString::fromUtf8(
                 "{"
                 "   border: none;"
                 "   margin-top: 1px;"
                 "   background-color: transparent;"
                 "}");
 
-    QString alternateFavoritesTableViewStylesheet = QString("#favoritesTableView ") +
+    QString alternateFavoritesTableViewStylesheet = QString::fromUtf8("#favoritesTableView ") +
                                                     alternateViewStylesheetBase;
     m_pUI->favoritesTableView->setStyleSheet(alternateFavoritesTableViewStylesheet);
 
-    QString alternateNotebooksTreeViewStylesheet = QString("#notebooksTreeView ") +
+    QString alternateNotebooksTreeViewStylesheet = QString::fromUtf8("#notebooksTreeView ") +
                                                     alternateViewStylesheetBase;
     m_pUI->notebooksTreeView->setStyleSheet(alternateNotebooksTreeViewStylesheet);
 
-    QString alternateTagsTreeViewStylesheet = QString("#tagsTreeView ") +
+    QString alternateTagsTreeViewStylesheet = QString::fromUtf8("#tagsTreeView ") +
                                                    alternateViewStylesheetBase;
     m_pUI->tagsTreeView->setStyleSheet(alternateTagsTreeViewStylesheet);
 
-    QString alternateSavedSearchTableViewStylesheet = QString("#savedSearchesTableView ") +
+    QString alternateSavedSearchTableViewStylesheet = QString::fromUtf8("#savedSearchesTableView ") +
                                                       alternateViewStylesheetBase;
     m_pUI->savedSearchesTableView->setStyleSheet(alternateSavedSearchTableViewStylesheet);
 
-    QString alternateDeletedNotesTableViewStylesheet = QString("#deletedNotesTableView ") +
+    QString alternateDeletedNotesTableViewStylesheet = QString::fromUtf8("#deletedNotesTableView ") +
                                                        alternateViewStylesheetBase;
     m_pUI->deletedNotesTableView->setStyleSheet(alternateDeletedNotesTableViewStylesheet);
 
-    QString alternateSidePanelSplitterStylesheet(
+    QString alternateSidePanelSplitterStylesheet = QString::fromUtf8(
                 "QFrame {"
                 "   border: none;"
                 "}"
@@ -1455,21 +1458,21 @@ void MainWindow::fixupQt4StyleSheets()
     m_pUI->sidePanelSplitter->setStyleSheet(alternateSidePanelSplitterStylesheet);
 
     QString alternateNoteListWidgetHeaderPanelStylesheet = m_pUI->noteListWidgetHeaderPanel->styleSheet();
-    int index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf("QLabel");
+    int index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(QStringLiteral("QLabel"));
     if (Q_UNLIKELY(index < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget header panel: "
                                "no QLabel within the stylesheet"));
         return;
     }
 
-    index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf("border-right", index);
+    index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(QStringLiteral("border-right"), index);
     if (Q_UNLIKELY(index < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget header panel: "
                                "no border-right property for QLabel within the stylesheet"));
         return;
     }
 
-    int propertyEndIndex = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(";", index);
+    int propertyEndIndex = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(QStringLiteral(";"), index);
     if (Q_UNLIKELY(propertyEndIndex < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget header panel: "
                                "no closing \";\" for border-right property for QLabel "
@@ -1484,61 +1487,61 @@ void MainWindow::fixupQt4StyleSheets()
 
     // Add bottom border to the header panel widgets
     QString alternativeFavoritesHeaderPanelStylesheet = m_pUI->favoritesHeaderPanel->styleSheet();
-    index = alternativeFavoritesHeaderPanelStylesheet.indexOf("}");
+    index = alternativeFavoritesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of favorites header panel: no first closing curly brace "
                                "found within the stylesheet"));
         return;
     }
-    alternativeFavoritesHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    alternativeFavoritesHeaderPanelStylesheet.insert(index, QStringLiteral("border-bottom: 1px solid black;"));
     m_pUI->favoritesHeaderPanel->setStyleSheet(alternativeFavoritesHeaderPanelStylesheet);
     m_pUI->favoritesHeaderPanel->setMinimumHeight(23);
     m_pUI->favoritesHeaderPanel->setMaximumHeight(23);
 
     QString alternativeNotebooksHeaderPanelStylesheet = m_pUI->notebooksHeaderPanel->styleSheet();
-    index = alternativeNotebooksHeaderPanelStylesheet.indexOf("}");
+    index = alternativeNotebooksHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of notebooks header panel: no first closing curly brace "
                                "found within the stylesheet"));
         return;
     }
-    alternativeNotebooksHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    alternativeNotebooksHeaderPanelStylesheet.insert(index, QStringLiteral("border-bottom: 1px solid black;"));
     m_pUI->notebooksHeaderPanel->setStyleSheet(alternativeNotebooksHeaderPanelStylesheet);
     m_pUI->notebooksHeaderPanel->setMinimumHeight(23);
     m_pUI->notebooksHeaderPanel->setMaximumHeight(23);
 
     QString alternativeTagsHeaderPanelStylesheet = m_pUI->tagsHeaderPanel->styleSheet();
-    index = alternativeTagsHeaderPanelStylesheet.indexOf("}");
+    index = alternativeTagsHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of tags header panel: no first closing curly brace "
                                "found within the stylesheet"));
         return;
     }
-    alternativeTagsHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    alternativeTagsHeaderPanelStylesheet.insert(index, QStringLiteral("border-bottom: 1px solid black;"));
     m_pUI->tagsHeaderPanel->setStyleSheet(alternativeTagsHeaderPanelStylesheet);
     m_pUI->tagsHeaderPanel->setMinimumHeight(23);
     m_pUI->tagsHeaderPanel->setMaximumHeight(23);
 
     QString alternativeSavedSearchesHeaderPanelStylesheet = m_pUI->savedSearchesHeaderPanel->styleSheet();
-    index = alternativeSavedSearchesHeaderPanelStylesheet.indexOf("}");
+    index = alternativeSavedSearchesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of saved searches header panel: no first closing curly brace "
                                "found within the stylesheet"));
         return;
     }
-    alternativeSavedSearchesHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    alternativeSavedSearchesHeaderPanelStylesheet.insert(index, QStringLiteral("border-bottom: 1px solid black;"));
     m_pUI->savedSearchesHeaderPanel->setStyleSheet(alternativeSavedSearchesHeaderPanelStylesheet);
     m_pUI->savedSearchesHeaderPanel->setMinimumHeight(23);
     m_pUI->savedSearchesHeaderPanel->setMaximumHeight(23);
 
     QString alternativeDeletedNotesHeaderPanelStylesheet = m_pUI->deletedNotesHeaderPanel->styleSheet();
-    index = alternativeDeletedNotesHeaderPanelStylesheet.indexOf("}");
+    index = alternativeDeletedNotesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
         QNDEBUG(QStringLiteral("Can't fixup the stylesheet of deleted notes header panel: no first closing curly brace "
                                "found within the stylesheet"));
         return;
     }
-    alternativeDeletedNotesHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    alternativeDeletedNotesHeaderPanelStylesheet.insert(index, QStringLiteral("border-bottom: 1px solid black;"));
     m_pUI->deletedNotesHeaderPanel->setStyleSheet(alternativeDeletedNotesHeaderPanelStylesheet);
     m_pUI->deletedNotesHeaderPanel->setMinimumHeight(23);
     m_pUI->deletedNotesHeaderPanel->setMaximumHeight(23);
@@ -1645,7 +1648,7 @@ void MainWindow::onImportEnexAction()
     if (enexFilePath.isEmpty())
     {
         if (errorDescription.isEmpty()) {
-            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve ENEX file path");
+            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve ENEX file path"));
         }
 
         QNDEBUG(QStringLiteral("Bad ENEX file path: ") << errorDescription);
@@ -1657,7 +1660,7 @@ void MainWindow::onImportEnexAction()
     if (notebookName.isEmpty())
     {
         if (errorDescription.isEmpty()) {
-            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve notebook name");
+            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve notebook name"));
         }
 
         QNDEBUG(QStringLiteral("Bad notebook name: ") << errorDescription);
@@ -2612,7 +2615,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
     QAction * action = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!action)) {
-        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Internal error: account switching action is unexpectedly null"));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Internal error: account switching action is unexpectedly null")));
         return;
     }
 
@@ -2620,8 +2623,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     bool conversionResult = false;
     int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't get identification data "
-                                       "from the account switching action"));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Internal error: can't get identification data "
+                                                         "from the account switching action")));
         return;
     }
 
@@ -2629,8 +2632,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     const int numAvailableAccounts = availableAccounts.size();
 
     if ((index < 0) || (index >= numAvailableAccounts)) {
-        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Internal error: wrong index into available accounts "
-                                       "in account switching action"));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Internal error: wrong index into available accounts "
+                                                         "in account switching action")));
         return;
     }
 
@@ -2931,8 +2934,8 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     m_currentPanelStyle.clear();
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup("LookAndFeel");
-    appSettings.remove(QStringLiteral("panelStyle"));
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.remove(PANELS_STYLE_SETTINGS_KEY);
     appSettings.endGroup();
 
     setPanelsOverlayStyleSheet(StyleSheetProperties());
@@ -2942,18 +2945,18 @@ void MainWindow::onSwitchPanelStyleToLighter()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToLighter"));
 
-    if (m_currentPanelStyle == QStringLiteral("Lighter")) {
+    if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using the lighter panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
     }
 
-    m_currentPanelStyle = QStringLiteral("Lighter");
+    m_currentPanelStyle = LIGHTER_PANEL_STYLE_NAME;
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup("LookAndFeel");
-    appSettings.setValue(QStringLiteral("panelStyle"), m_currentPanelStyle);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
 
     StyleSheetProperties properties;
@@ -2965,18 +2968,18 @@ void MainWindow::onSwitchPanelStyleToDarker()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToDarker"));
 
-    if (m_currentPanelStyle == QStringLiteral("Darker")) {
+    if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using the darker panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
     }
 
-    m_currentPanelStyle = QStringLiteral("Darker");
+    m_currentPanelStyle = DARKER_PANEL_STYLE_NAME;
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup("LookAndFeel");
-    appSettings.setValue(QStringLiteral("panelStyle"), m_currentPanelStyle);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
 
     StyleSheetProperties properties;
@@ -2993,7 +2996,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
     if (!expected) {
-        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Local storage user was switched without explicit user action"));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Local storage user was switched without explicit user action")));
         // Trying to undo it
         m_pAccountManager->switchAccount(*m_pAccount); // This should trigger the switch in local storage as well
         return;
@@ -3275,8 +3278,8 @@ void MainWindow::setupThemeIcons()
     }
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("LookAndFeel"));
-    QString iconThemeName = appSettings.value(QStringLiteral("iconTheme")).toString();
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QString iconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
     if (!iconThemeName.isEmpty()) {
@@ -3432,15 +3435,15 @@ void MainWindow::setupShowHideStartupSettings()
         m_pUI->Action##action->setChecked(showSetting.toBool()); \
     }
 
-    CHECK_AND_SET_SHOW_SETTING("ShowSidePanel", ShowSidePanel, sidePanelSplitter)
-    CHECK_AND_SET_SHOW_SETTING("ShowFavorites", ShowFavorites, favoritesWidget)
-    CHECK_AND_SET_SHOW_SETTING("ShowNotebooks", ShowNotebooks, notebooksWidget)
-    CHECK_AND_SET_SHOW_SETTING("ShowTags", ShowTags, tagsWidget)
-    CHECK_AND_SET_SHOW_SETTING("ShowSavedSearches", ShowSavedSearches, savedSearchesWidget)
-    CHECK_AND_SET_SHOW_SETTING("ShowDeletedNotes", ShowDeletedNotes, deletedNotesWidget)
-    CHECK_AND_SET_SHOW_SETTING("ShowNotesList", ShowNotesList, notesListAndFiltersFrame)
-    CHECK_AND_SET_SHOW_SETTING("ShowToolbar", ShowToolbar, upperBarPanel)
-    CHECK_AND_SET_SHOW_SETTING("ShowStatusBar", ShowStatusBar, upperBarPanel)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowSidePanel"), ShowSidePanel, sidePanelSplitter)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowFavorites"), ShowFavorites, favoritesWidget)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowNotebooks"), ShowNotebooks, notebooksWidget)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowTags"), ShowTags, tagsWidget)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowSavedSearches"), ShowSavedSearches, savedSearchesWidget)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowDeletedNotes"), ShowDeletedNotes, deletedNotesWidget)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowNotesList"), ShowNotesList, notesListAndFiltersFrame)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowToolbar"), ShowToolbar, upperBarPanel)
+    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowStatusBar"), ShowStatusBar, upperBarPanel)
 
 #undef CHECK_AND_SET_SHOW_SETTING
 
@@ -3768,7 +3771,7 @@ void MainWindow::setupDefaultShortcuts()
     { \
         QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
         if (shortcut.isEmpty()) { \
-            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
+            QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
             m_shortcutManager.setDefaultShortcut(key, shortcut, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
@@ -3779,10 +3782,10 @@ void MainWindow::setupDefaultShortcuts()
     { \
         QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
         if (shortcut.isEmpty()) { \
-            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
+            QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
-            m_shortcutManager.setNonStandardDefaultShortcut(#action, shortcut, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
+            m_shortcutManager.setNonStandardDefaultShortcut(QString::fromUtf8(#action), shortcut, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
         } \
     }
 
@@ -3800,7 +3803,7 @@ void MainWindow::setupUserShortcuts()
     { \
         QKeySequence shortcut = m_shortcutManager.shortcut(key, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
-            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
+            QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
             m_pUI->Action##action->setShortcut(shortcut); \
@@ -3810,9 +3813,9 @@ void MainWindow::setupUserShortcuts()
 
 #define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
     { \
-        QKeySequence shortcut = m_shortcutManager.shortcut(#action, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
+        QKeySequence shortcut = m_shortcutManager.shortcut(QStringLiteral(#action), *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
-            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
+            QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
             m_pUI->Action##action->setShortcut(shortcut); \

@@ -477,35 +477,35 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
             << notebookName << QStringLiteral(", notebook stack = ") << notebookStack);
 
     if (notebookName.isEmpty()) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Notebook name is empty");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Notebook name is empty"));
         return QModelIndex();
     }
 
     int notebookNameSize = notebookName.size();
 
     if (notebookNameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Notebook name size is below the minimal acceptable length");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Notebook name size is below the minimal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (notebookNameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Notebook name size is above the maximal acceptable length");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Notebook name size is above the maximal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX);
         return QModelIndex();
     }
 
     QModelIndex existingItemIndex = indexForNotebookName(notebookName);
     if (existingItemIndex.isValid()) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Notebook with such name already exists");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Notebook with such name already exists"));
         return QModelIndex();
     }
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingNotebooks = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingNotebooks + 1 >= m_account.notebookCountMax())) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't create a new notebook: the account can "
-                                                    "contain a limited number of notebooks");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't create a new notebook: the account can "
+                                                                      "contain a limited number of notebooks"));
         errorDescription.details() = QString::number(m_account.notebookCountMax());
         return QModelIndex();
     }
@@ -539,9 +539,9 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
         }
 
         if (it == m_modelItemsByStack.end()) {
-            errorDescription.base() = QT_TRANSLATE_NOOP("", "Internal error: no notebook model item "
-                                                        "while it's expected to be there; failed "
-                                                        "to auto-fix the problem");
+            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Internal error: no notebook model item "
+                                                                          "while it's expected to be there; failed "
+                                                                          "to auto-fix the problem"));
             emit addedNotebook(QModelIndex());
             return QModelIndex();
         }

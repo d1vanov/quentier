@@ -312,13 +312,13 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
     QNDEBUG(QStringLiteral("EnexExporter::convertNotesToEnex"));
 
     if (m_notesByLocalUid.isEmpty()) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: no notes were specified or found");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: no notes were specified or found"));
         QNWARNING(errorDescription);
         return QString();
     }
 
     if (m_includeTags && m_pTagModel.isNull()) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: the tag model has expired");
+        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: the tag model has expired"));
         QNWARNING(errorDescription);
         return QString();
     }
@@ -338,9 +338,9 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
             {
                 const TagModelItem * pTagItem = m_pTagModel->itemForLocalUid(*tagIt);
                 if (Q_UNLIKELY(!pTagItem)) {
-                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                                                "detected note with tag local uid for which no tag "
-                                                                "model item was found");
+                    errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
+                                                                                  "detected note with tag local uid for which no tag "
+                                                                                  "model item was found"));
                     QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << *tagIt
                               << QStringLiteral(", note: ") << currentNote);
                     return QString();
