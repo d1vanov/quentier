@@ -35,6 +35,13 @@
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/synchronization/SynchronizationManager.h>
 
+#include <quentier/utility/VersionInfo.h>
+#ifndef LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
+#error "Quentier needs libquentier built with authentication manager"
+#endif
+
+#include <quentier/synchronization/AuthenticationManager.h>
+
 #include <QtCore>
 
 #if QT_VERSION >= 0x050000
@@ -402,6 +409,7 @@ private:
     QUuid                       m_lastLocalStorageSwitchUserRequest;
 
     QThread *                   m_pSynchronizationManagerThread;
+    AuthenticationManager *     m_pAuthenticationManager;
     SynchronizationManager *    m_pSynchronizationManager;
     QString                     m_synchronizationManagerHost;
 

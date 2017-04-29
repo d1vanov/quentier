@@ -148,6 +148,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pLocalStorageManagerAsync(Q_NULLPTR),
     m_lastLocalStorageSwitchUserRequest(),
     m_pSynchronizationManagerThread(Q_NULLPTR),
+    m_pAuthenticationManager(Q_NULLPTR),
     m_pSynchronizationManager(Q_NULLPTR),
     m_synchronizationManagerHost(),
     m_notebookCache(),
@@ -3737,9 +3738,12 @@ void MainWindow::setupSynchronizationManager()
                      m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
     m_pSynchronizationManagerThread->start();
 
+    m_pAuthenticationManager = new AuthenticationManager(consumerKey, consumerSecret,
+                                                         m_synchronizationManagerHost, this);
     m_pSynchronizationManager = new SynchronizationManager(consumerKey, consumerSecret,
                                                            m_synchronizationManagerHost,
-                                                           *m_pLocalStorageManagerAsync);
+                                                           *m_pLocalStorageManagerAsync,
+                                                           *m_pAuthenticationManager);
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
     connectSynchronizationManager();
 }
@@ -3758,6 +3762,11 @@ void MainWindow::clearSynchronizationManager()
     if (m_pSynchronizationManagerThread) {
         m_pSynchronizationManagerThread->quit();    // The thread would delete itself after it's finished
         m_pSynchronizationManagerThread = Q_NULLPTR;
+    }
+
+    if (m_pAuthenticationManager) {
+        m_pAuthenticationManager->deleteLater();
+        m_pAuthenticationManager = Q_NULLPTR;
     }
 }
 
