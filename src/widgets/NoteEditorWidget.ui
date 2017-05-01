@@ -941,7 +941,7 @@
             <item>
              <widget class="QPushButton" name="exportNoteToEnexPushButton">
               <property name="icon">
-               <iconset theme="document-save-as">
+               <iconset theme="application-enex">
                 <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="flat">

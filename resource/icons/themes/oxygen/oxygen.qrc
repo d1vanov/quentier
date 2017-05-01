@@ -436,6 +436,7 @@
     <file>22x22/mimetypes/text-calendar.png</file>
     <file>22x22/mimetypes/application-x-arj.png</file>
     <file>22x22/mimetypes/application-x-zerosize.png</file>
+    <file>22x22/mimetypes/application-enex.png</file>
     <file>22x22/mimetypes/video-x-mng.png</file>
     <file>22x22/mimetypes/application-x-plasma.png</file>
     <file>22x22/mimetypes/application-x-lha.png</file>
@@ -1708,6 +1709,7 @@
     <file>16x16/mimetypes/text-calendar.png</file>
     <file>16x16/mimetypes/application-x-arj.png</file>
     <file>16x16/mimetypes/application-x-zerosize.png</file>
+    <file>16x16/mimetypes/application-enex.png</file>
     <file>16x16/mimetypes/video-x-mng.png</file>
     <file>16x16/mimetypes/application-x-plasma.png</file>
     <file>16x16/mimetypes/application-x-lha.png</file>
@@ -2967,6 +2969,7 @@
     <file>32x32/mimetypes/text-calendar.png</file>
     <file>32x32/mimetypes/application-x-arj.png</file>
     <file>32x32/mimetypes/application-x-zerosize.png</file>
+    <file>32x32/mimetypes/application-enex.png</file>
     <file>32x32/mimetypes/video-x-mng.png</file>
     <file>32x32/mimetypes/application-x-plasma.png</file>
     <file>32x32/mimetypes/application-x-lha.png</file>

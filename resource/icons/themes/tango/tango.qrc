@@ -2,6 +2,7 @@
     <qresource prefix="/icons/tango">
         <file alias="index.theme">index.theme</file>
         <file alias="16x16/text-x-generic.png">16x16/mimetypes/text-x-generic.png</file>
+        <file alias="16x16/application-enex.png">16x16/mimetypes/application-enex.png</file>
         <file alias="16x16/x-office-document-template.png">16x16/mimetypes/x-office-document-template.png</file>
         <file alias="16x16/x-office-spreadsheet-template.png">16x16/mimetypes/x-office-spreadsheet-template.png</file>
         <file alias="16x16/x-office-drawing.png">16x16/mimetypes/x-office-drawing.png</file>
@@ -228,6 +229,7 @@
         <file alias="16x16/weather-severe-alert.png">16x16/status/weather-severe-alert.png</file>
         <file alias="16x16/process-working.png">16x16/animations/process-working.png</file>
         <file alias="22x22/text-x-generic.png">22x22/mimetypes/text-x-generic.png</file>
+        <file alias="22x22/application-enex.png">22x22/mimetypes/application-enex.png</file>
         <file alias="22x22/x-office-document-template.png">22x22/mimetypes/x-office-document-template.png</file>
         <file alias="22x22/x-office-spreadsheet-template.png">22x22/mimetypes/x-office-spreadsheet-template.png</file>
         <file alias="22x22/x-office-drawing.png">22x22/mimetypes/x-office-drawing.png</file>
@@ -454,6 +456,7 @@
         <file alias="22x22/weather-severe-alert.png">22x22/status/weather-severe-alert.png</file>
         <file alias="22x22/process-working.png">22x22/animations/process-working.png</file>
         <file alias="32x32/text-x-generic.png">32x32/mimetypes/text-x-generic.png</file>
+        <file alias="32x32/application-enex.png">32x32/mimetypes/application-enex.png</file>
         <file alias="32x32/x-office-document-template.png">32x32/mimetypes/x-office-document-template.png</file>
         <file alias="32x32/x-office-spreadsheet-template.png">32x32/mimetypes/x-office-spreadsheet-template.png</file>
         <file alias="32x32/x-office-drawing.png">32x32/mimetypes/x-office-drawing.png</file>

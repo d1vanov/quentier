@@ -236,6 +236,8 @@ public:
      */
     bool exportNoteToEnex(ErrorString & errorDescription);
 
+    void refreshSpecialIcons();
+
 Q_SIGNALS:
     void notifyError(ErrorString error);
 
@@ -407,6 +409,7 @@ private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
 
+    void setupSpecialIcons();
     void setupFontsComboBox();
     void setupLimitedFontsComboBox(const QString & startupFont = QString());
 

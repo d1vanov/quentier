@@ -103,6 +103,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
 {
     m_pUi->setupUi(this);
 
+    setupSpecialIcons();
     setupFontsComboBox();
 
     // Originally the NoteEditorWidget is not a window, so hide these two buttons,
@@ -650,6 +651,12 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
 
     QNTRACE(QStringLiteral("Exporting the note to pdf has been cancelled"));
     return false;
+}
+
+void NoteEditorWidget::refreshSpecialIcons()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::refreshSpecialIcons, note local uid = ") << m_noteLocalUid);
+    setupSpecialIcons();
 }
 
 void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
@@ -2229,6 +2236,25 @@ void NoteEditorWidget::clear()
     m_pendingEditorSpellChecker = false;
     m_currentNoteWasExpunged = false;
     m_noteHasBeenModified = false;
+}
+
+void NoteEditorWidget::setupSpecialIcons()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setupSpecialIcons"));
+
+    QString enexIconName = QStringLiteral("application-enex");
+
+    if (!QIcon::hasThemeIcon(enexIconName)) {
+        QIcon fallbackIcon = QIcon::fromTheme(enexIconName);    // NOTE: it is necessary for the icon to have a name in order to ensure the logic of icon switching works properly
+        fallbackIcon.addFile(QStringLiteral(":/icons/oxygen/16x16/mimetypes/application-enex.png"), QSize(16, 16), QIcon::Normal, QIcon::Off);
+        fallbackIcon.addFile(QStringLiteral(":/icons/oxygen/22x22/mimetypes/application-enex.png"), QSize(22, 22), QIcon::Normal, QIcon::Off);
+        fallbackIcon.addFile(QStringLiteral(":/icons/oxygen/32x32/mimetypes/application-enex.png"), QSize(32, 32), QIcon::Normal, QIcon::Off);
+        m_pUi->exportNoteToEnexPushButton->setIcon(fallbackIcon);
+    }
+    else {
+        QIcon themeIcon = QIcon::fromTheme(enexIconName);
+        m_pUi->exportNoteToEnexPushButton->setIcon(themeIcon);
+    }
 }
 
 void NoteEditorWidget::setupFontsComboBox()

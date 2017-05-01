@@ -92,6 +92,8 @@ public:
 
     void setUseLimitedFonts(const bool flag);
 
+    void refreshNoteEditorWidgetsSpecialIcons();
+
 Q_SIGNALS:
     void notifyError(ErrorString error);
 

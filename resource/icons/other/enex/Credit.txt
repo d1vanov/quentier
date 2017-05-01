@@ -1,5 +1,0 @@
-Enex icon by Dmitry Ivanov. 
-
-License: GPL v.3
-
-Based on text-x-generic-template icon from tango icon set: 

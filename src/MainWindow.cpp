@@ -995,6 +995,17 @@ void MainWindow::refreshChildWidgetsThemeIcons()
     refreshThemeIcons<QCheckBox>();
     refreshThemeIcons<ColorPickerToolButton>();
     refreshThemeIcons<InsertTableToolButton>();
+
+    refreshNoteEditorWidgetsSpecialIcons();
+}
+
+void MainWindow::refreshNoteEditorWidgetsSpecialIcons()
+{
+    QNDEBUG(QStringLiteral("MainWindow::refreshNoteEditorWidgetsSpecialIcons"));
+
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        m_pNoteEditorTabsAndWindowsCoordinator->refreshNoteEditorWidgetsSpecialIcons();
+    }
 }
 
 void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type accountType)
@@ -4266,6 +4277,7 @@ void MainWindow::refreshThemeIcons()
         else {
             newIcon.addFile(QStringLiteral("."), QSize(), QIcon::Normal, QIcon::Off);
         }
+
         object->setIcon(newIcon);
     }
 }

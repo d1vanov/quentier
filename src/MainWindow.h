@@ -321,6 +321,7 @@ private:
 
     void persistChosenIconTheme(const QString & iconThemeName);
     void refreshChildWidgetsThemeIcons();
+    void refreshNoteEditorWidgetsSpecialIcons();
 
     void persistChosenNoteSortingMode(int index);
     void restoreNoteSortingMode();
