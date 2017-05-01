@@ -197,6 +197,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupThemeIcons();
 
     m_pUI->setupUi(this);
+    setupAccountSpecificUiElements();
 
     if (m_nativeIconThemeName.isEmpty()) {
         m_pUI->ActionIconsNative->setVisible(false);
@@ -223,7 +224,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupViews();
     setupNoteFilters();
 
-    setupNoteEditorTabWidgetManager();
+    setupNoteEditorTabWidgetsCoordinator();
 
     setupShowHideStartupSettings();
 
@@ -484,6 +485,10 @@ void MainWindow::connectToolbarButtonsToSlots()
 
     QObject::connect(m_pUI->addNotePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onNewNoteCreationRequested));
+    QObject::connect(m_pUI->deleteNotePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onDeleteCurrentNoteButtonPressed));
+    QObject::connect(m_pUI->infoButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onCurrentNoteInfoRequested));
     QObject::connect(m_pUI->printNotePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onCurrentNotePrintRequested));
     QObject::connect(m_pUI->exportNoteToPdfPushButton, QNSIGNAL(QPushButton,clicked),
@@ -1019,7 +1024,7 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook, isLocal);
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
 
-    ItemView * tagsTreeView = m_pUI->tagsTreeView;
+    TagItemView * tagsTreeView = m_pUI->tagsTreeView;
     tagsTreeView->setColumnHidden(TagModel::Columns::FromLinkedNotebook, isLocal);
     tagsTreeView->setColumnHidden(TagModel::Columns::Dirty, isLocal);
 
@@ -2184,13 +2189,63 @@ void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
     m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid, NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Window);
 }
 
+void MainWindow::onDeleteCurrentNoteButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onDeleteCurrentNoteButtonPressed"));
+
+    if (Q_UNLIKELY(!m_pNoteModel)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
+                                                       "internal error, no note model"));
+        QNDEBUG(errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
+        return;
+    }
+
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
+    if (!pNoteEditorWidget) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
+                                                       "no note editor tabs"));
+        QNDEBUG(errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
+        return;
+    }
+
+    bool res = m_pNoteModel->deleteNote(pNoteEditorWidget->noteLocalUid());
+    if (Q_UNLIKELY(!res)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
+                                                       "can't find the note to be deleted"));
+        QNDEBUG(errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
+        return;
+    }
+}
+
+void MainWindow::onCurrentNoteInfoRequested()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteInfoRequested"));
+
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
+    if (!pNoteEditorWidget) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't show note info: "
+                                                       "no note editor tabs"));
+        QNDEBUG(errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
+        return;
+    }
+
+    emit noteInfoDialogRequested(pNoteEditorWidget->noteLocalUid());
+}
+
 void MainWindow::onCurrentNotePrintRequested()
 {
     QNDEBUG(QStringLiteral("MainWindow::onCurrentNotePrintRequested"));
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
-        onSetStatusBarText(tr("Can't print note: no note editor tabs"));
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't print note: "
+                                                       "no note editor tabs"));
+        QNDEBUG(errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
         return;
     }
 
@@ -2202,6 +2257,7 @@ void MainWindow::onCurrentNotePrintRequested()
             return;
         }
 
+        QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), 300);
     }
 }
@@ -2212,7 +2268,10 @@ void MainWindow::onCurrentNotePdfExportRequested()
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
-        onSetStatusBarText(tr("Can't export note to pdf: no note editor tabs"));
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't export note to pdf: "
+                                                       "no note editor tabs"));
+        QNDEBUG(errorDescription);
+        onSetStatusBarText(errorDescription.localizedString());
         return;
     }
 
@@ -2224,6 +2283,7 @@ void MainWindow::onCurrentNotePdfExportRequested()
             return;
         }
 
+        QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), 300);
     }
 }
@@ -3059,6 +3119,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     m_pUI->filterBySavedSearchComboBox->switchAccount(*m_pAccount, m_pSavedSearchModel);
 
     setupViews();
+    setupAccountSpecificUiElements();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId)
@@ -3675,6 +3736,36 @@ void MainWindow::clearViews()
     m_pUI->deletedNotesTableView->setModel(&m_blankModel);
 }
 
+void MainWindow::setupAccountSpecificUiElements()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupAccountSpecificUiElements"));
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG(QStringLiteral("No account"));
+        return;
+    }
+
+    bool isLocal = (m_pAccount->type() == Account::Type::Local);
+
+    m_pUI->sendNotePushButton->setHidden(isLocal);
+    m_pUI->sendNotePushButton->setDisabled(isLocal);
+
+    m_pUI->removeNotebookButton->setHidden(!isLocal);
+    m_pUI->removeNotebookButton->setDisabled(!isLocal);
+
+    m_pUI->removeTagButton->setHidden(!isLocal);
+    m_pUI->removeTagButton->setDisabled(!isLocal);
+
+    m_pUI->removeSavedSearchButton->setHidden(!isLocal);
+    m_pUI->removeSavedSearchButton->setDisabled(!isLocal);
+
+    m_pUI->eraseDeletedNoteButton->setHidden(!isLocal);
+    m_pUI->eraseDeletedNoteButton->setDisabled(!isLocal);
+
+    m_pUI->syncPushButton->setHidden(isLocal);
+    m_pUI->syncPushButton->setDisabled(isLocal);
+}
+
 void MainWindow::setupNoteFilters()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupNoteFilters"));
@@ -3705,9 +3796,9 @@ void MainWindow::setupNoteFilters()
     // the widget is shown just silently fail for unknown reason.
 }
 
-void MainWindow::setupNoteEditorTabWidgetManager()
+void MainWindow::setupNoteEditorTabWidgetsCoordinator()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupNoteEditorTabWidgetManager"));
+    QNDEBUG(QStringLiteral("MainWindow::setupNoteEditorTabWidgetsCoordinator"));
 
     delete m_pNoteEditorTabsAndWindowsCoordinator;
     m_pNoteEditorTabsAndWindowsCoordinator = new NoteEditorTabsAndWindowsCoordinator(*m_pAccount, *m_pLocalStorageManagerAsync,

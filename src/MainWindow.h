@@ -209,6 +209,8 @@ private Q_SLOTS:
     void onCurrentNoteInListChanged(QString noteLocalUid);
     void onOpenNoteInSeparateWindow(QString noteLocalUid);
 
+    void onDeleteCurrentNoteButtonPressed();
+    void onCurrentNoteInfoRequested();
     void onCurrentNotePrintRequested();
     void onCurrentNotePdfExportRequested();
 
@@ -282,9 +284,11 @@ private:
     void setupViews();
     void clearViews();
 
+    void setupAccountSpecificUiElements();
+
     void setupNoteFilters();
 
-    void setupNoteEditorTabWidgetManager();
+    void setupNoteEditorTabWidgetsCoordinator();
 
     void setupSynchronizationManager();
     void clearSynchronizationManager();

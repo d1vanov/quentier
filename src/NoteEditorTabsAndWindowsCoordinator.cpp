@@ -1613,7 +1613,7 @@ QString NoteEditorTabsAndWindowsCoordinator::shortenEditorName(const QString & n
         return name;
     }
 
-    QString result = name;
+    QString result = name.simplified();
     result.truncate(std::max(maxSize - 3, 0));
     result += QStringLiteral("...");
     return result;

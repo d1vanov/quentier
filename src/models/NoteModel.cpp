@@ -498,7 +498,8 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
                 timestamp = value.toLongLong(&conversionResult);
 
                 if (!conversionResult) {
-                    REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't change the note's deleted state of the note: wrong deletion timestamp value"));
+                    REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't change the note's deleted state: "
+                                                   "wrong deletion timestamp value"));
                     return false;
                 }
             }
