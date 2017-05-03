@@ -36,7 +36,7 @@
 #include <quentier/synchronization/SynchronizationManager.h>
 
 #include <quentier/utility/VersionInfo.h>
-#ifndef LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
+#if !LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
 #error "Quentier needs libquentier built with authentication manager"
 #endif
 
