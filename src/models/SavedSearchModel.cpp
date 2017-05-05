@@ -138,35 +138,35 @@ QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName,
             << QStringLiteral(", search query = ") << searchQuery);
 
     if (savedSearchName.isEmpty()) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Saved search name is empty"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search name is empty"));
         return QModelIndex();
     }
 
     int savedSearchNameSize = savedSearchName.size();
 
     if (savedSearchNameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Saved search name size is below the minimal acceptable length"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search name size is below the minimal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (savedSearchNameSize > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Saved search name size is above the maximal acceptable length"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search name size is above the maximal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX);
         return QModelIndex();
     }
 
     QModelIndex existingItemIndex = indexForSavedSearchName(savedSearchName);
     if (existingItemIndex.isValid()) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Saved search with such name already exists"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search with such name already exists"));
         return QModelIndex();
     }
 
     SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingSavedSearches = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingSavedSearches + 1 >= m_account.savedSearchCountMax())) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't create a new saved search: the account can "
-                                                                      "contain a limited number of saved searches"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't create a new saved search: the account can "
+                                                   "contain a limited number of saved searches"));
         errorDescription.details() = QString::number(m_account.savedSearchCountMax());
         return QModelIndex();
     }
@@ -445,8 +445,8 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
             ErrorString errorDescription;
             if (!SavedSearch::validateName(name, &errorDescription)) {
                 ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the saved search"));
-                error.additionalBases().append(errorDescription.base());
-                error.additionalBases().append(errorDescription.additionalBases());
+                error.appendBase(errorDescription.base());
+                error.appendBase(errorDescription.additionalBases());
                 error.details() = errorDescription.details();
                 QNINFO(error << QStringLiteral("; suggested new name = ") << name);
                 emit notifyError(error);

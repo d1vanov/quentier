@@ -1665,7 +1665,7 @@ void MainWindow::onImportEnexAction()
     if (enexFilePath.isEmpty())
     {
         if (errorDescription.isEmpty()) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve ENEX file path"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve ENEX file path"));
         }
 
         QNDEBUG(QStringLiteral("Bad ENEX file path: ") << errorDescription);
@@ -1677,7 +1677,7 @@ void MainWindow::onImportEnexAction()
     if (notebookName.isEmpty())
     {
         if (errorDescription.isEmpty()) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve notebook name"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve notebook name"));
         }
 
         QNDEBUG(QStringLiteral("Bad notebook name: ") << errorDescription);

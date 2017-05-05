@@ -75,14 +75,14 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinary
 
     ErrorString error;
     if (readOnlyFlag) {
-        error.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't edit note: the note to be edited was not found"));
+        error.setBase(QT_TRANSLATE_NOOP("", "Can't edit note: the note to be edited was not found"));
     }
     else {
-        error.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't show the note info: the note to be edited was not found"));
+        error.setBase(QT_TRANSLATE_NOOP("", "Can't show the note info: the note to be edited was not found"));
     }
 
-    error.additionalBases().append(errorDescription.base());
-    error.additionalBases().append(errorDescription.additionalBases());
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
     QNWARNING(error);
     emit notifyError(error);
@@ -117,8 +117,8 @@ void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources,
               << QStringLiteral(", error: ") << errorDescription << QStringLiteral("; note: ") << note);
 
     ErrorString error(QT_TRANSLATE_NOOP("", "Note update has failed"));
-    error.additionalBases().append(errorDescription.base());
-    error.additionalBases().append(errorDescription.additionalBases());
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
     emit notifyError(error);
 }

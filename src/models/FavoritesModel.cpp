@@ -368,8 +368,8 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
                     ErrorString errorDescription;
                     if (!Notebook::validateName(newDisplayName, &errorDescription)) {
                         ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the notebook"));
-                        error.additionalBases().append(errorDescription.base());
-                        error.additionalBases().append(errorDescription.additionalBases());
+                        error.appendBase(errorDescription.base());
+                        error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
                         QNINFO(error << QStringLiteral(", suggested new name = ") << newDisplayName);
                         emit notifyError(error);
@@ -400,8 +400,8 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
                     ErrorString errorDescription;
                     if (!Tag::validateName(newDisplayName, &errorDescription)) {
                         ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the tag"));
-                        error.additionalBases().append(errorDescription.base());
-                        error.additionalBases().append(errorDescription.additionalBases());
+                        error.appendBase(errorDescription.base());
+                        error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
                         QNINFO(error << QStringLiteral(", suggested new name = ") << newDisplayName);
                         emit notifyError(error);
@@ -432,8 +432,8 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
                     ErrorString errorDescription;
                     if (!SavedSearch::validateName(newDisplayName, &errorDescription)) {
                         ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the saved search"));
-                        error.additionalBases().append(errorDescription.base());
-                        error.additionalBases().append(errorDescription.additionalBases());
+                        error.appendBase(errorDescription.base());
+                        error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
                         QNINFO(error << QStringLiteral(", suggested new name = ") << newDisplayName);
                         emit notifyError(error);

@@ -816,8 +816,8 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(ErrorString errorDes
     }
 
     ErrorString error(QT_TRANSLATE_NOOP("", "Note editor error"));
-    error.additionalBases().append(errorDescription.base());
-    error.additionalBases().append(errorDescription.additionalBases());
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
 
     QString titleOrPreview = pNoteEditorWidget->titleOrPreview();
@@ -1122,8 +1122,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
         if (Q_UNLIKELY(res != NoteEditorWidget::NoteSaveStatus::Ok))
         {
             ErrorString error(QT_TRANSLATE_NOOP("", "Couldn't save the note"));
-            error.additionalBases().append(errorDescription.base());
-            error.additionalBases().append(errorDescription.additionalBases());
+            error.appendBase(errorDescription.base());
+            error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
             QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
             emit notifyError(error);

@@ -436,8 +436,8 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
             ErrorString errorDescription;
             if (!Tag::validateName(newName, &errorDescription)) {
                 ErrorString error(QT_TRANSLATE_NOOP("", "Can't change tag name"));
-                error.additionalBases().append(errorDescription.base());
-                error.additionalBases().append(errorDescription.additionalBases());
+                error.appendBase(errorDescription.base());
+                error.appendBase(errorDescription.additionalBases());
                 error.details() = errorDescription.details();
                 QNINFO(error << QStringLiteral("; suggested name = ") << newName);
                 emit notifyError(error);
@@ -2285,11 +2285,11 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     {
         ErrorString error;
         if (itemLinkedNotebookGuid.isEmpty() != siblingItemLinkedNotebookGuid.isEmpty()) {
-            error.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't mix tags from linked notebooks "
-                                                               "with tags from the current account"));
+            error.setBase(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't mix tags from linked notebooks "
+                                            "with tags from the current account"));
         }
         else {
-            error.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't mix tags from different linked notebooks"));
+            error.setBase(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't mix tags from different linked notebooks"));
         }
 
         QNINFO(error << QStringLiteral(", item attempted to be demoted: ") << *pItem
@@ -2518,35 +2518,35 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
             << parentTagName);
 
     if (tagName.isEmpty()) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Tag name is empty"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag name is empty"));
         return QModelIndex();
     }
 
     int tagNameSize = tagName.size();
 
     if (tagNameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Tag name size is below the minimal acceptable length"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag name size is below the minimal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_TAG_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (tagNameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Tag name size is above the maximal acceptable length"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag name size is above the maximal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_TAG_NAME_LEN_MAX);
         return QModelIndex();
     }
 
     QModelIndex existingItemIndex = indexForTagName(tagName);
     if (existingItemIndex.isValid()) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Tag with such name already exists"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag with such name already exists"));
         return QModelIndex();
     }
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingTags = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingTags + 1 >= m_account.tagCountMax())) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't create a new tag: the account can "
-                                                                      "contain a limited number of tags"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't create a new tag: the account can "
+                                                   "contain a limited number of tags"));
         errorDescription.details() = QString::number(m_account.tagCountMax());
         return QModelIndex();
     }
@@ -2562,7 +2562,7 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
         const TagDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
         auto it = nameIndex.find(parentTagName.toUpper());
         if (Q_UNLIKELY(it == nameIndex.end())) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't create a new tag: the parent tag was not found within the model"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't create a new tag: the parent tag was not found within the model"));
             errorDescription.details() = parentTagName;
             return QModelIndex();
         }

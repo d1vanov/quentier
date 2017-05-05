@@ -208,8 +208,8 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
     if (isRequestForSearchString)
     {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the search string to note filter"));
-        error.additionalBases().append(errorDescription.base());
-        error.additionalBases().append(errorDescription.additionalBases());
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNDEBUG(error);
         emit notifyError(error);
@@ -226,8 +226,8 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
         m_filteredSavedSearchLocalUid.clear();
 
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the saved search to note filter"));
-        error.additionalBases().append(errorDescription.base());
-        error.additionalBases().append(errorDescription.additionalBases());
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNDEBUG(error);
         emit notifyError(error);
@@ -611,8 +611,8 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     if (Q_UNLIKELY(!res)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't set the filter by saved search: failed to parse "
                                             "the saved search query"));
-        error.additionalBases().append(errorDescription.base());
-        error.additionalBases().append(errorDescription.additionalBases());
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
         emit notifyError(error);

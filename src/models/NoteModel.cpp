@@ -1064,8 +1064,8 @@ void NoteModel::onFindNotebookFailed(Notebook notebook, ErrorString errorDescrip
         Q_UNUSED(m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap.right.erase(mit))
 
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't move the note to another notebook: failed to find the target notebook"));
-        error.additionalBases().append(errorDescription.base());
-        error.additionalBases().append(errorDescription.additionalBases());
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNDEBUG(error);
         emit notifyError(error);

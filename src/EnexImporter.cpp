@@ -93,8 +93,8 @@ void EnexImporter::start()
         ErrorString notebookNameError;
         if (Q_UNLIKELY(!Notebook::validateName(m_notebookName, &notebookNameError))) {
             ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't import ENEX: the notebook name is invalid"));
-            errorDescription.additionalBases().append(notebookNameError.base());
-            errorDescription.additionalBases().append(notebookNameError.additionalBases());
+            errorDescription.appendBase(notebookNameError.base());
+            errorDescription.appendBase(notebookNameError.additionalBases());
             errorDescription.details() = notebookNameError.details();
             QNWARNING(errorDescription);
             emit enexImportFailed(errorDescription);
@@ -302,8 +302,8 @@ void EnexImporter::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid r
     Q_UNUSED(m_addTagRequestIdByTagNameBimap.right.erase(it))
 
     ErrorString error(QT_TRANSLATE_NOOP("", "Can't import ENEX"));
-    error.additionalBases().append(errorDescription.base());
-    error.additionalBases().append(errorDescription.additionalBases());
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
     emit enexImportFailed(error);
 }
@@ -376,8 +376,8 @@ void EnexImporter::onAddNotebookFailed(Notebook notebook, ErrorString errorDescr
     m_addNotebookRequestId = QUuid();
 
     ErrorString error(QT_TRANSLATE_NOOP("", "Can't import ENEX"));
-    error.additionalBases().append(errorDescription.base());
-    error.additionalBases().append(errorDescription.additionalBases());
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
     emit enexImportFailed(error);
 }
@@ -436,8 +436,8 @@ void EnexImporter::onAddNoteFailed(Note note, ErrorString errorDescription, QUui
     Q_UNUSED(m_addNoteRequestIds.erase(it))
 
     ErrorString error(QT_TRANSLATE_NOOP("", "Can't import ENEX"));
-    error.additionalBases().append(errorDescription.base());
-    error.additionalBases().append(errorDescription.additionalBases());
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
     emit enexImportFailed(error);
 }

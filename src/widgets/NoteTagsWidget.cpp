@@ -239,8 +239,8 @@ void NoteTagsWidget::onNewTagNameEntered()
         tagIndex = m_pTagModel->createTag(newTagName, QString(), errorDescription);
         if (Q_UNLIKELY(!tagIndex.isValid())) {
             ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the addition of a new tag"));
-            error.additionalBases().append(errorDescription.base());
-            error.additionalBases().append(errorDescription.additionalBases());
+            error.appendBase(errorDescription.base());
+            error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
             QNWARNING(error);
             emit notifyError(error);

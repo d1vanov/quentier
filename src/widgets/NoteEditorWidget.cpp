@@ -421,13 +421,13 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
         int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
 
         if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Failed to convert the editor contents to note"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Failed to convert the editor contents to note"));
             QNWARNING(errorDescription);
             return NoteSaveStatus::Failed;
         }
         else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "The conversion of note editor contents "
-                                                                          "to note failed to finish in time"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "The conversion of note editor contents "
+                                                       "to note failed to finish in time"));
             QNWARNING(errorDescription);
             return NoteSaveStatus::Timeout;
         }
@@ -487,7 +487,7 @@ bool NoteEditorWidget::printNote(ErrorString & errorDescription)
     QNDEBUG(QStringLiteral("NoteEditorWidget::printNote"));
 
     if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't print note: no note is set to the editor"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't print note: no note is set to the editor"));
         QNDEBUG(errorDescription);
         return false;
     }
@@ -537,12 +537,12 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         int numSelectedFiles = selectedFiles.size();
 
         if (numSelectedFiles == 0) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "No pdf file was selected to export the note into"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "No pdf file was selected to export the note into"));
             return false;
         }
 
         if (numSelectedFiles > 1) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "More than one file were selected as output pdf files"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "More than one file were selected as output pdf files"));
             errorDescription.details() = selectedFiles.join(QStringLiteral(", "));
             return false;
         }
@@ -586,9 +586,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         if (enexFileInfo.exists())
         {
             if (!enexFileInfo.isWritable()) {
-                errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: "
-                                                                              "the selected file already exists "
-                                                                              "and is not writable"));
+                errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: the selected file "
+                                                           "already exists and is not writable"));
                 QNWARNING(errorDescription);
                 return false;
             }
@@ -609,8 +608,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
             {
                 bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
                 if (!res) {
-                    errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: failed "
-                                                                                  "to create folder for the selected file"));
+                    errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: failed "
+                                                               "to create folder for the selected file"));
                     QNWARNING(errorDescription);
                     return false;
                 }
@@ -628,8 +627,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         QFile enexFile(enexFilePath);
         res = enexFile.open(QIODevice::WriteOnly);
         if (!res) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: can't open "
-                                                                          "the target ENEX file for writing"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: can't open "
+                                                       "the target ENEX file for writing"));
             QNWARNING(errorDescription);
             return false;
         }
@@ -639,7 +638,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         enexFile.close();
 
         if (Q_UNLIKELY(bytes != rawEnexData.size())) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Writing the ENEX to a file was not completed successfully"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Writing the ENEX to a file was not completed successfully"));
             errorDescription.details() = QStringLiteral("Bytes written = ") + QString::number(bytes) +
                                          QStringLiteral(" while expected ") + QString::number(rawEnexData.size());
             QNWARNING(errorDescription);
@@ -1198,8 +1197,8 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
     m_pUi->saveNotePushButton->setEnabled(true);
 
     ErrorString error(QT_TRANSLATE_NOOP("", "Failed to save the updated note"));
-    error.additionalBases().append(errorDescription.base());
-    error.additionalBases().append(errorDescription.additionalBases());
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
     emit notifyError(error);
     // NOTE: not clearing out the unsaved stuff because it may be of value to the user

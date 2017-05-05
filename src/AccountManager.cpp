@@ -55,8 +55,8 @@ Account AccountManager::currentAccount()
         pLastUsedAccount = createDefaultAccount(errorDescription);
         if (Q_UNLIKELY(pLastUsedAccount.isNull())) {
             ErrorString error(QT_TRANSLATE_NOOP("", "Can't initialize the default account"));
-            error.additionalBases().append(errorDescription.base());
-            error.additionalBases().append(errorDescription.additionalBases());
+            error.appendBase(errorDescription.base());
+            error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
             throw AccountInitializationException(error);
         }
@@ -181,8 +181,8 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
     QSharedPointer<Account> pNewAccount = createLocalAccount(name, fullName, errorDescription);
     if (Q_UNLIKELY(pNewAccount.isNull())) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new local account"));
-        error.additionalBases().append(errorDescription.base());
-        error.additionalBases().append(errorDescription.additionalBases());
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNWARNING(error);
         emit notifyError(error);
@@ -214,8 +214,8 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
                                 account.evernoteHost(), errorDescription);
     if (Q_UNLIKELY(!res)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't save the changed account display name"));
-        error.additionalBases().append(errorDescription.base());
-        error.additionalBases().append(errorDescription.additionalBases());
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNWARNING(error);
         emit notifyError(error);
@@ -396,7 +396,7 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
     {
         bool res = accountPersistentStorageDir.mkpath(accountPersistentStorageDir.absolutePath());
         if (Q_UNLIKELY(!res)) {
-            errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't create a directory for the account storage"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't create a directory for the account storage"));
             errorDescription.details() = accountPersistentStorageDir.absolutePath();
             QNWARNING(errorDescription);
             return false;
@@ -408,7 +408,7 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
-        errorDescription.base() = QString::fromUtf8(QT_TRANSLATE_NOOP("", "Can't open the new account info file for writing"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't open the new account info file for writing"));
         errorDescription.details() = accountInfo.fileName();
 
         QString errorString = accountInfo.errorString();
