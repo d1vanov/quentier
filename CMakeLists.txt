@@ -26,6 +26,7 @@ include(QuentierCompilerSettings)
 include(QuentierAdditionalCompilerWarnings)
 include(QuentierLinkerSettings)
 include(QuentierSetupQt)
+include(QuentierUpdateTranslations)
 include(QuentierFindQEverCloud)
 include(QuentierFindLibquentier)
 include(QuentierFindBoost)
@@ -252,6 +253,16 @@ set(RESOURCES
 
 qt_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 
+set(${PROJECT_NAME}_TR_SOURCES
+    ${${PROJECT_NAME}_HEADERS}
+    ${${PROJECT_NAME}_SOURCES})
+
+set(${PROJECT_NAME}_TR_FILES
+    translations/quentier_ru.ts)
+
+set(${PROJECT_NAME}_QM_FILES "")
+update_translation("${${PROJECT_NAME}_TR_SOURCES}" "${FORMS}" "${${PROJECT_NAME}_TR_FILES}")
+
 set(THIRDPARTY_LIBS ${QT_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${LIBQUENTIER_LIBRARIES})
@@ -362,11 +373,25 @@ if(NOT CMAKE_INSTALL_BINDIR)
   set(CMAKE_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin")
 endif()
 
+if(NOT CMAKE_INSTALL_TRANSLATIONSDIR)
+  set(CMAKE_INSTALL_TRANSLATIONSDIR "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/translations")
+endif()
+
 install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         BUNDLE DESTINATION .)
+
+# install translations
+foreach(QM_FILE ${${PROJECT_NAME}_QM_FILES})
+  install(CODE "set(QM_FILE \"${QM_FILE})\")
+                if(EXISTS \"${QM_FILE}\")
+                  set(CMAKE_INSTALL_TRANSLATIONSDIR \"${CMAKE_INSTALL_TRANSLATIONSDIR}\")
+                  message(STATUS \"Installing: ${QM_FILE}\")
+                  file(COPY ${QM_FILE} DESTINATION ${CMAKE_INSTALL_TRANSLATIONSDIR})
+                endif()")
+endforeach()
 
 # install application bundle
 include(QuentierCreateBundle)
