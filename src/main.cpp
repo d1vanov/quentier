@@ -22,6 +22,7 @@
 #include "CommandLineParser.h"
 #include "SystemTrayIconManager.h"
 #include "SettingsNames.h"
+#include "SetupTranslations.h"
 #include "ParseStartupAccount.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierApplication.h>
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
 
     quentier::initializeLibquentier();
     quentier::setupApplicationIcon(app);
+    quentier::setupTranslations(app);
 
     typedef CommandLineParser::CommandLineOptions CmdOptions;
     CmdOptions cmdOptions = cmdParser.options();

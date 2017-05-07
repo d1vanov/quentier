@@ -72,6 +72,7 @@ set(${PROJECT_NAME}_HEADERS
     src/EnexExporter.h
     src/ParseStartupAccount.h
     src/SettingsNames.h
+    src/SetupTranslations.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/dialogs/AddAccountDialog.h
@@ -157,6 +158,7 @@ set(${PROJECT_NAME}_SOURCES
     src/NoteFiltersManager.cpp
     src/EnexExporter.cpp
     src/ParseStartupAccount.cpp
+    src/SetupTranslations.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/dialogs/AddAccountDialog.cpp
