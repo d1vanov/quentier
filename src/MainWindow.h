@@ -417,6 +417,8 @@ private:
     AuthenticationManager *     m_pAuthenticationManager;
     SynchronizationManager *    m_pSynchronizationManager;
     QString                     m_synchronizationManagerHost;
+    bool                        m_pendingNewEvernoteAccountAuthentication;
+    bool                        m_pendingSwitchToNewEvernoteAccount;
 
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;

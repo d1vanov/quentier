@@ -151,6 +151,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pAuthenticationManager(Q_NULLPTR),
     m_pSynchronizationManager(Q_NULLPTR),
     m_synchronizationManagerHost(),
+    m_pendingNewEvernoteAccountAuthentication(false),
+    m_pendingSwitchToNewEvernoteAccount(false),
     m_notebookCache(),
     m_tagCache(),
     m_savedSearchCache(),
@@ -1720,10 +1722,17 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
             << QStringLiteral(", error description = ") << errorDescription
             << QStringLiteral(", account = ") << account);
 
+    bool wasPendingNewEvernoteAccountAuthentication = m_pendingNewEvernoteAccountAuthentication;
+    m_pendingNewEvernoteAccountAuthentication = false;
+
     if (!success) {
         onSetStatusBarText(tr("Couldn't authenticate the Evernote user") + QStringLiteral(": ") +
                            errorDescription.localizedString());
         return;
+    }
+
+    if (wasPendingNewEvernoteAccountAuthentication) {
+        m_pendingSwitchToNewEvernoteAccount = true;
     }
 
     m_pAccountManager->switchAccount(account);
@@ -1831,6 +1840,7 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(QString host)
         setupSynchronizationManager();
     }
 
+    m_pendingNewEvernoteAccountAuthentication = true;
     emit authenticate();
 }
 
@@ -3067,6 +3077,9 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
+    bool wasPendingSwitchToNewEvernoteAccount = m_pendingSwitchToNewEvernoteAccount;
+    m_pendingSwitchToNewEvernoteAccount = false;
+
     if (!expected) {
         NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Local storage user was switched without explicit user action")));
         // Trying to undo it
@@ -3120,6 +3133,16 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
     setupViews();
     setupAccountSpecificUiElements();
+
+    if (m_pAccount->type() == Account::Type::Evernote)
+    {
+        // TODO: should also start the sync if the corresponding setting is set
+        // to sync stuff when one switches to the Evernote account
+        if (wasPendingSwitchToNewEvernoteAccount) {
+            onSetStatusBarText(tr("Starting the synchronization"));
+            m_pSynchronizationManager->synchronize();
+        }
+    }
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId)
