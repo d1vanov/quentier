@@ -2480,7 +2480,7 @@
     <message>
         <location filename="../src/widgets/ListItemWidget.ui" line="32"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -2488,208 +2488,208 @@
     <message>
         <location filename="../src/MainWindow.ui" line="20"/>
         <source>Quentier</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="167"/>
         <source>Move focus to the previous widget</source>
-        <translation type="unfinished"></translation>
+        <translation>Передать фокус предыдущему виджету</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="199"/>
         <source>Move focus to the next widget</source>
-        <translation type="unfinished"></translation>
+        <translation>Передать фокус следующему виджету</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="231"/>
         <source>Synchronize the account with the remote Evernote storage</source>
-        <translation type="unfinished"></translation>
+        <translation>Синхронизировать данные аккаунта с Everote</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="263"/>
         <source>Information about the currently viewed or edited note</source>
-        <translation type="unfinished"></translation>
+        <translation>Информация о текущей заметке</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="295"/>
         <source>Print the currently viewed or edited note</source>
-        <translation type="unfinished"></translation>
+        <translation>Печать текущей заметки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="341"/>
         <source>E-mail the currently viewed or edited note</source>
-        <translation type="unfinished"></translation>
+        <translation>Отправка текущей заметки по e-mail</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="373"/>
         <source>Delete the currently viewed or edited note</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить текущую заметку</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="405"/>
         <source>Create a new note</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать новую заметку</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="441"/>
         <source>Search note:</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск заметки:</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="720"/>
         <source>F&amp;avorites</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Ярлыки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="986"/>
         <source>&amp;Notebooks</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Блокноты</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="1301"/>
         <location filename="../src/MainWindow.ui" line="3507"/>
         <source>&amp;Tags</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Метки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="1616"/>
         <source>Saved sea&amp;rches</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранённые &amp;запросы</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="1898"/>
         <source>De&amp;leted notes</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Удалённые заметки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="1929"/>
         <source>Restore deleted note</source>
-        <translation type="unfinished"></translation>
+        <translation>Восстановить удалённую заметку</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="1967"/>
         <source>Erase the note completely</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить заметку насовсем</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2240"/>
         <source>Filters</source>
-        <translation type="unfinished"></translation>
+        <translation>Фильтры</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2401"/>
         <source>Saved search:</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранённый запрос:</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2422"/>
         <source>Notebooks:</source>
-        <translation type="unfinished"></translation>
+        <translation>Блокноты:</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2443"/>
         <source>Tags:</source>
-        <translation type="unfinished"></translation>
+        <translation>Метки:</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2706"/>
         <source>Sort &amp;by:</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Сортировать по:</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2850"/>
         <source>&amp;File</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Файл</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2868"/>
         <source>&amp;Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Правка</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2875"/>
         <source>&amp;Find and replace</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск и за&amp;мена</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2911"/>
         <source>&amp;View</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Вид</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2918"/>
         <source>Side &amp;panel</source>
-        <translation type="unfinished"></translation>
+        <translation>Бо&amp;ковая панель</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2929"/>
         <source>Look &amp;and feel</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройки ви&amp;да</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2933"/>
         <source>&amp;Icons</source>
-        <translation type="unfinished"></translation>
+        <translation>Зна&amp;чки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2941"/>
         <source>&amp;Panels</source>
-        <translation type="unfinished"></translation>
+        <translation>Па&amp;нели</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2962"/>
         <source>For&amp;mat</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Формат</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2966"/>
         <source>&amp;Table</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Таблица</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2983"/>
         <source>&amp;Align</source>
-        <translation type="unfinished"></translation>
+        <translation>В&amp;ыровнять</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="2992"/>
         <source>I&amp;mage</source>
-        <translation type="unfinished"></translation>
+        <translation>Изобра&amp;жение</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3007"/>
         <source>In&amp;dentation</source>
-        <translation type="unfinished"></translation>
+        <translation>Отст&amp;уп</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3017"/>
         <source>I&amp;nsert list</source>
-        <translation type="unfinished"></translation>
+        <translation>Вставка сп&amp;иска</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3024"/>
         <source>&amp;Font size</source>
-        <translation type="unfinished"></translation>
+        <translation>Размер &amp;шрифта</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3031"/>
         <source>H&amp;yperlink</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Гиперссылка</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3061"/>
         <source>&amp;Service</source>
-        <translation type="unfinished"></translation>
+        <translation>Се&amp;рвис</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3077"/>
         <source>&amp;Help</source>
-        <translation type="unfinished"></translation>
+        <translation>Помо&amp;щь</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3088"/>
         <source>&amp;Debug</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Дебаг</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3115"/>
@@ -2697,13 +2697,13 @@
         <location filename="../src/MainWindow.ui" line="3206"/>
         <location filename="../src/MainWindow.ui" line="3231"/>
         <source>New</source>
-        <translation type="unfinished"></translation>
+        <translation>Новый</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3118"/>
         <location filename="../src/MainWindow.ui" line="4018"/>
         <source>Ctrl+N</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3130"/>
@@ -2711,54 +2711,54 @@
         <location filename="../src/MainWindow.ui" line="3216"/>
         <location filename="../src/MainWindow.ui" line="3241"/>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3135"/>
         <source>Reindex</source>
-        <translation type="unfinished"></translation>
+        <translation>Переиндексировать</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3140"/>
         <source>Set note tags</source>
-        <translation type="unfinished"></translation>
+        <translation>Установить метки на заметку</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3145"/>
         <source>Note history</source>
-        <translation type="unfinished"></translation>
+        <translation>Версии заметки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3154"/>
         <source>Copy note</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать заметку</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3159"/>
         <source>Merge notes</source>
-        <translation type="unfinished"></translation>
+        <translation>Объединить заметки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3173"/>
         <location filename="../src/MainWindow.ui" line="3211"/>
         <location filename="../src/MainWindow.ui" line="3236"/>
         <source>Properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3191"/>
         <source>Add to stack</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить в стек</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3196"/>
         <source>Open/close</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть/закрыть</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3201"/>
         <source>Установить лого</source>
-        <translation type="unfinished"></translation>
+        <translation>Установить лого</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3221"/>
@@ -2774,32 +2774,32 @@
     <message>
         <location filename="../src/MainWindow.ui" line="3255"/>
         <source>Send by e-mail</source>
-        <translation type="unfinished"></translation>
+        <translation>Отправить по e-mail</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3258"/>
         <source>Ctrl+Shift+E</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3270"/>
         <source>&amp;Print</source>
-        <translation type="unfinished"></translation>
+        <translation>Пе&amp;чать</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3273"/>
         <source>Ctrl+P</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3281"/>
         <source>Import notes</source>
-        <translation type="unfinished"></translation>
+        <translation>Импортировать заметки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3286"/>
         <source>Export selected notes</source>
-        <translation type="unfinished"></translation>
+        <translation>Экспортировать выбранные заметки</translation>
     </message>
     <message>
         <location filename="../src/MainWindow.ui" line="3291"/>
