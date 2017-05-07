@@ -64,5 +64,7 @@
 #define TRANSLATION_SETTINGS_GROUP_NAME QStringLiteral("TranslationSettings")
 
 #define LIBQUENTIER_TRANSLATIONS_SEARCH_PATH QStringLiteral("LibquentierTranslationsSearchPath")
+#define QUENTIER_TRANSLATIONS_SEARCH_PATH QStringLiteral("QuentierTranslationsSearchPath")
+
 
 #endif // QUENTIER_SETTINGS_NAMES_H
