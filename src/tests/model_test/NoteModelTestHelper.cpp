@@ -51,10 +51,10 @@ NoteModelTestHelper::NoteModelTestHelper(LocalStorageManagerAsync * pLocalStorag
     QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
                                                          LocalStorageManager::ListObjectsOptions,bool,
                                                          size_t,size_t,LocalStorageManager::ListNotesOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+                                                         LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,
                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  ErrorString,QUuid));
+                                  QString,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,Note,ErrorString,QUuid),
@@ -599,13 +599,13 @@ void NoteModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryDat
 void NoteModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                             size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                            ErrorString errorDescription, QUuid requestId)
+                                            QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
             << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ")
-            << requestId);
+            << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
+            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }

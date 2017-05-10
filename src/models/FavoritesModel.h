@@ -128,7 +128,7 @@ Q_SIGNALS:
                    bool withResourceBinaryData, size_t limit, size_t offset,
                    LocalStorageManager::ListNotesOrder::type order,
                    LocalStorageManager::OrderDirection::type orderDirection,
-                   QUuid requestId);
+                   QString linkedNotebookGuid, QUuid requestId);
 
     void updateNotebook(Notebook notebook, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
@@ -171,11 +171,11 @@ private Q_SLOTS:
     void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onListNotesComplete(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                              size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
-                             LocalStorageManager::OrderDirection::type orderDirection,
+                             LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                              QList<Note> foundNotes, QUuid requestId);
     void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                            size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
-                           LocalStorageManager::OrderDirection::type orderDirection,
+                           LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                            ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 

@@ -67,10 +67,10 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerAsync * pL
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
                                                            LocalStorageManager::ListObjectsOptions,bool,
                                                            size_t,size_t,LocalStorageManager::ListNotesOrder::type,
-                                                           LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+                                                           LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,
                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  ErrorString,QUuid));
+                                  QString,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNotebookComplete,Notebook,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookFailed,Notebook,ErrorString,QUuid),
@@ -743,13 +743,13 @@ void FavoritesModelTestHelper::onFindNoteFailed(Note note, bool withResourceBina
 void FavoritesModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                                  size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                                  LocalStorageManager::OrderDirection::type orderDirection,
-                                                 ErrorString errorDescription, QUuid requestId)
+                                                 QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
             << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ")
-            << requestId);
+            << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
+            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }

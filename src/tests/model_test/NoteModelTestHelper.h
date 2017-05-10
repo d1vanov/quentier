@@ -50,7 +50,7 @@ private Q_SLOTS:
     void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                            size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
-                           ErrorString errorDescription, QUuid requestId);
+                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 

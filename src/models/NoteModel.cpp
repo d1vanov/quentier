@@ -918,7 +918,7 @@ void NoteModel::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorSt
 void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                     size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                    QList<Note> foundNotes, QUuid requestId)
+                                    QString linkedNotebookGuid, QList<Note> foundNotes, QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -927,8 +927,8 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
     QNDEBUG(QStringLiteral("NoteModel::onListNotesComplete: flag = ") << flag << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ") << limit
             << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", num found notes = ") << foundNotes.size() << QStringLiteral(", request id = ")
-            << requestId);
+            << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid << QStringLiteral(", num found notes = ")
+            << foundNotes.size() << QStringLiteral(", request id = ") << requestId);
 
     for(auto it = foundNotes.begin(), end = foundNotes.end(); it != end; ++it) {
         ++m_numberOfNotesPerAccount;
@@ -950,7 +950,7 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
 void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                   size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                   LocalStorageManager::OrderDirection::type orderDirection,
-                                  ErrorString errorDescription, QUuid requestId)
+                                  QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -959,11 +959,10 @@ void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, 
     QNDEBUG(QStringLiteral("NoteModel::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
             << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ")
-            << requestId);
+            << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
+            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     m_listNotesRequestId = QUuid();
-
     emit notifyError(errorDescription);
 }
 
@@ -1169,11 +1168,11 @@ void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManager
     QObject::connect(this, QNSIGNAL(NoteModel,findNote,Note,bool,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                    LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QUuid),
+                                    LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
                                                        LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                                        LocalStorageManager::ListNotesOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QUuid));
+                                                       LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,expungeNote,Note,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNotebook,Notebook,QUuid),
@@ -1196,9 +1195,9 @@ void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManager
                      this, QNSLOT(NoteModel,onFindNoteFailed,Note,bool,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                                          LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
-                                                         QList<Note>,QUuid),
+                                                         QString,QList<Note>,QUuid),
                      this, QNSLOT(NoteModel,onListNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QUuid));
+                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Note>,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                                          LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(NoteModel,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
@@ -1240,7 +1239,7 @@ void NoteModel::requestNotesList()
     m_listNotesRequestId = QUuid::createUuid();
     QNTRACE(QStringLiteral("Emitting the request to list notes: offset = ") << m_listNotesOffset
             << QStringLiteral(", request id = ") << m_listNotesRequestId);
-    emit listNotes(flags, /* with resource binary data = */ false, NOTE_LIST_LIMIT, m_listNotesOffset, order, direction, m_listNotesRequestId);
+    emit listNotes(flags, /* with resource binary data = */ false, NOTE_LIST_LIMIT, m_listNotesOffset, order, direction, QString(), m_listNotesRequestId);
 }
 
 QVariant NoteModel::dataImpl(const int row, const Columns::type column) const
