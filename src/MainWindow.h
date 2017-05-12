@@ -54,6 +54,7 @@
 #include <QMap>
 #include <QStandardItemModel>
 #include <QStringList>
+#include <QMovie>
 
 namespace Ui {
 class MainWindow;
@@ -97,6 +98,7 @@ Q_SIGNALS:
     void localStorageSwitchUserRequest(Account account, bool startFromScratch, QUuid requestId);
     void authenticate();
     void noteInfoDialogRequested(QString noteLocalUid);
+    void synchronize();
 
 private Q_SLOTS:
     void onUndoAction();
@@ -137,6 +139,7 @@ private Q_SLOTS:
     void onImportEnexAction();
 
     // Synchronization manager slots
+    void onSynchronizationStarted();
     void onSynchronizationManagerFailure(ErrorString errorDescription);
     void onSynchronizationFinished(Account account);
     void onAuthenticationFinished(bool success, ErrorString errorDescription,
@@ -148,6 +151,8 @@ private Q_SLOTS:
     void onSynchronizationProgressUpdate(QString message, double workDonePercentage);
     void onRemoteToLocalSyncStopped();
     void onSendLocalChangesStopped();
+    void onRemoteToLocalSyncPaused(bool authRequired);
+    void onSendLocalChangesPaused(bool authRequired);
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(QString host);
@@ -260,6 +265,9 @@ private Q_SLOTS:
     void onSplitterHandleMoved(int pos, int index);
     void onSidePanelSplittedHandleMoved(int pos, int index);
 
+    void onSyncButtonPressed();
+    void onAnimatedSyncIconFrameChanged(int frame);
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
@@ -272,9 +280,7 @@ private:
 
 private:
     void setupThemeIcons();
-
     void setupAccountManager();
-
     void setupLocalStorageManager();
 
     void setupModels();
@@ -285,9 +291,7 @@ private:
     void clearViews();
 
     void setupAccountSpecificUiElements();
-
     void setupNoteFilters();
-
     void setupNoteEditorTabWidgetsCoordinator();
 
     void setupSynchronizationManager();
@@ -308,7 +312,6 @@ private:
     void updateSubMenuWithAvailableAccounts();
 
     void setupInitialChildWidgetsWidths();
-
     void setWindowTitleForAccount(const Account & account);
 
     NoteEditorWidget * currentNoteEditorTab();
@@ -317,6 +320,9 @@ private:
     void connectSynchronizationManager();
     void disconnectSynchronizationManager();
     void onSyncStopped();
+
+    void startSyncButtonAnimation();
+    void stopSyncButtonAnimation();
 
     bool checkNoteSearchQuery(const QString & noteSearchQuery);
 
@@ -419,6 +425,9 @@ private:
     QString                     m_synchronizationManagerHost;
     bool                        m_pendingNewEvernoteAccountAuthentication;
     bool                        m_pendingSwitchToNewEvernoteAccount;
+    double                      m_currentSynchronizationProgress;
+    bool                        m_syncInProgress;
+    QMovie                      m_animatedSyncButtonIcon;
 
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;

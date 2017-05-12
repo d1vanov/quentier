@@ -153,6 +153,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_synchronizationManagerHost(),
     m_pendingNewEvernoteAccountAuthentication(false),
     m_pendingSwitchToNewEvernoteAccount(false),
+    m_currentSynchronizationProgress(0.0),
+    m_syncInProgress(false),
+    m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
     m_notebookCache(),
     m_tagCache(),
     m_savedSearchCache(),
@@ -495,6 +498,8 @@ void MainWindow::connectToolbarButtonsToSlots()
                      this, QNSLOT(MainWindow,onCurrentNotePrintRequested));
     QObject::connect(m_pUI->exportNoteToPdfPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onCurrentNotePdfExportRequested));
+    QObject::connect(m_pUI->syncPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onSyncButtonPressed));
 }
 
 void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
@@ -764,8 +769,12 @@ void MainWindow::connectSynchronizationManager()
     // Connect local signals to SynchronizationManager slots
     QObject::connect(this, QNSIGNAL(MainWindow,authenticate),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
+    QObject::connect(this, QNSIGNAL(MainWindow,synchronize),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
 
     // Connect SynchronizationManager signals to local slots
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
+                     this, QNSLOT(MainWindow,onSynchronizationStarted));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
                      this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
@@ -778,6 +787,10 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
                      this, QNSLOT(MainWindow,onSendLocalChangesStopped));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncPaused,bool),
+                     this, QNSLOT(MainWindow,onRemoteToLocalSyncPaused,bool));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesPaused,bool),
+                     this, QNSLOT(MainWindow,onSendLocalChangesPaused,bool));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
                      this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
@@ -798,8 +811,12 @@ void MainWindow::disconnectSynchronizationManager()
     // Disconnect local signals from SynchronizationManager slots
     QObject::disconnect(this, QNSIGNAL(MainWindow,authenticate),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
+    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronize),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
 
-    // Disonnect SynchronizationManager signals from local slots
+    // Disconnect SynchronizationManager signals from local slots
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
+                        this, QNSLOT(MainWindow,onSynchronizationStarted));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
                         this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
@@ -812,6 +829,10 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
                         this, QNSLOT(MainWindow,onSendLocalChangesStopped));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncPaused,bool),
+                        this, QNSLOT(MainWindow,onRemoteToLocalSyncPaused,bool));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesPaused,bool),
+                        this, QNSLOT(MainWindow,onSendLocalChangesPaused,bool));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
                         this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
@@ -823,6 +844,41 @@ void MainWindow::disconnectSynchronizationManager()
 void MainWindow::onSyncStopped()
 {
     onSetStatusBarText(tr("Synchronization was stopped"));
+    m_currentSynchronizationProgress = 0.0;
+    m_syncInProgress = false;
+    stopSyncButtonAnimation();
+}
+
+void MainWindow::startSyncButtonAnimation()
+{
+    QNDEBUG(QStringLiteral("MainWindow::startSyncButtonAnimation"));
+
+    QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
+                     this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChanged,int));
+
+    // If the animation doesn't run forever, make it so
+    if (m_animatedSyncButtonIcon.loopCount() != -1) {
+        QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
+                         &m_animatedSyncButtonIcon, QNSLOT(QMovie,start));
+    }
+
+    m_animatedSyncButtonIcon.start();
+}
+
+void MainWindow::stopSyncButtonAnimation()
+{
+    QNDEBUG(QStringLiteral("MainWindow::stopSyncButtonAnimation"));
+
+    if (m_animatedSyncButtonIcon.loopCount() != -1) {
+        QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
+                            &m_animatedSyncButtonIcon, QNSLOT(QMovie,start));
+    }
+
+    QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
+                        this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChanged,int));
+
+    m_animatedSyncButtonIcon.stop();
+    m_pUI->syncPushButton->setIcon(QIcon(QStringLiteral(":/sync/sync.png")));
 }
 
 bool MainWindow::checkNoteSearchQuery(const QString & noteSearchQuery)
@@ -1696,26 +1752,37 @@ void MainWindow::onImportEnexAction()
     pImporter->start();
 }
 
+void MainWindow::onSynchronizationStarted()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStarted"));
+    m_currentSynchronizationProgress = 0.0;
+    m_syncInProgress = true;
+    startSyncButtonAnimation();
+}
+
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString());
+    m_currentSynchronizationProgress = 0.0;
+    m_syncInProgress = false;
+    stopSyncButtonAnimation();
 }
 
 void MainWindow::onSynchronizationFinished(Account account)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
 
-    onSetStatusBarText(tr("Synchronization finished!"));
+    onSetStatusBarText(tr("Synchronization finished!"), 5000);
+    m_currentSynchronizationProgress = 0.0;
+    m_syncInProgress = false;
+    stopSyncButtonAnimation();
 
     QNINFO(QStringLiteral("Synchronization finished for user ") << account.name()
            << QStringLiteral(", id ") << account.id());
-
-    // TODO: figure out what to do with the account object now: should anything be done with it?
 }
 
-void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescription,
-                                          Account account)
+void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescription, Account account)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
             << (success ? QStringLiteral("true") : QStringLiteral("false"))
@@ -1776,6 +1843,8 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
                           "it will continue automatically at approximately") + QStringLiteral(" ") +
                        dateTimeToShow);
 
+    m_animatedSyncButtonIcon.setPaused(true);
+
     QNINFO(QStringLiteral("Evernote API rate limit exceeded, need to wait for ")
            << secondsToWait << QStringLiteral(" seconds, the synchronization will continue at ")
            << dateTimeToShow);
@@ -1785,14 +1854,17 @@ void MainWindow::onRemoteToLocalSyncDone()
 {
     QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
 
-    onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
     QNINFO(QStringLiteral("Remote to local sync done"));
+    QString message = tr("Received all updates from Evernote servers, sending local changes");
+    onSynchronizationProgressUpdate(message, m_currentSynchronizationProgress);
 }
 
 void MainWindow::onSynchronizationProgressUpdate(QString message, double workDonePercentage)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationProgressUpdate: message = ")
             << message << QStringLiteral(", work done percentage = ") << workDonePercentage);
+
+    m_animatedSyncButtonIcon.setPaused(false);
 
     if (Q_UNLIKELY(message.isEmpty())) {
         return;
@@ -1829,6 +1901,22 @@ void MainWindow::onSendLocalChangesStopped()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSendLocalChangesStopped"));
     onSyncStopped();
+}
+
+void MainWindow::onRemoteToLocalSyncPaused(bool authRequired)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncPaused: auth required = ")
+            << (authRequired ? QStringLiteral("true") : QStringLiteral("false")));
+
+    m_animatedSyncButtonIcon.setPaused(true);
+}
+
+void MainWindow::onSendLocalChangesPaused(bool authRequired)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSendLocalChangesPaused: auth required = ")
+            << (authRequired ? QStringLiteral("true") : QStringLiteral("false")));
+
+    m_animatedSyncButtonIcon.setPaused(true);
 }
 
 void MainWindow::onEvernoteAccountAuthenticationRequested(QString host)
@@ -3218,6 +3306,34 @@ void MainWindow::onSidePanelSplittedHandleMoved(int pos, int index)
             << QStringLiteral(", index = ") << index);
 
     scheduleGeometryAndStatePersisting();
+}
+
+void MainWindow::onSyncButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSyncButtonPressed"));
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG(QStringLiteral("Ignoring the sync button click - no account is set"));
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pAccount->type() == Account::Type::Local)) {
+        QNDEBUG(QStringLiteral("The current account is of local type, won't do anything on attempt to sync it"));
+        return;
+    }
+
+    if (m_syncInProgress) {
+        QNDEBUG(QStringLiteral("The synchronization is already in progress"));
+        return;
+    }
+
+    emit synchronize();
+}
+
+void MainWindow::onAnimatedSyncIconFrameChanged(int frame)
+{
+    Q_UNUSED(frame)
+    m_pUI->syncPushButton->setIcon(QIcon(m_animatedSyncButtonIcon.currentPixmap()));
 }
 
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
