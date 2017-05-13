@@ -153,7 +153,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_synchronizationManagerHost(),
     m_pendingNewEvernoteAccountAuthentication(false),
     m_pendingSwitchToNewEvernoteAccount(false),
-    m_currentSynchronizationProgress(0.0),
     m_syncInProgress(false),
     m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
     m_notebookCache(),
@@ -795,8 +794,14 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                      this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QString,double),
-                     this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QString,double));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloaded),
+                     this, QNSLOT(MainWindow,onSyncChunksDownloaded));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,notesDownloadProgress,quint32,quint32),
+                     this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksSyncChunksDownloaded),
+                     this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksNotesDownloadProgress,quint32,quint32),
+                     this, QNSLOT(MainWindow,onLinkedNotebooksNotesDownloadProgress,quint32,quint32));
 }
 
 void MainWindow::disconnectSynchronizationManager()
@@ -837,14 +842,19 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                         this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QString,double),
-                        this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QString,double));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloaded),
+                        this, QNSLOT(MainWindow,onSyncChunksDownloaded));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,notesDownloadProgress,quint32,quint32),
+                        this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksSyncChunksDownloaded),
+                        this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksNotesDownloadProgress,quint32,quint32),
+                        this, QNSLOT(MainWindow,onLinkedNotebooksNotesDownloadProgress,quint32,quint32));
 }
 
 void MainWindow::onSyncStopped()
 {
     onSetStatusBarText(tr("Synchronization was stopped"));
-    m_currentSynchronizationProgress = 0.0;
     m_syncInProgress = false;
     stopSyncButtonAnimation();
 }
@@ -1755,7 +1765,6 @@ void MainWindow::onImportEnexAction()
 void MainWindow::onSynchronizationStarted()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStarted"));
-    m_currentSynchronizationProgress = 0.0;
     m_syncInProgress = true;
     startSyncButtonAnimation();
 }
@@ -1764,7 +1773,6 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString());
-    m_currentSynchronizationProgress = 0.0;
     m_syncInProgress = false;
     stopSyncButtonAnimation();
 }
@@ -1774,7 +1782,6 @@ void MainWindow::onSynchronizationFinished(Account account)
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
 
     onSetStatusBarText(tr("Synchronization finished!"), 5000);
-    m_currentSynchronizationProgress = 0.0;
     m_syncInProgress = false;
     stopSyncButtonAnimation();
 
@@ -1855,40 +1862,39 @@ void MainWindow::onRemoteToLocalSyncDone()
     QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
 
     QNINFO(QStringLiteral("Remote to local sync done"));
-    QString message = tr("Received all updates from Evernote servers, sending local changes");
-    onSynchronizationProgressUpdate(message, m_currentSynchronizationProgress);
+    onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
 }
 
-void MainWindow::onSynchronizationProgressUpdate(QString message, double workDonePercentage)
+void MainWindow::onSyncChunksDownloaded()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationProgressUpdate: message = ")
-            << message << QStringLiteral(", work done percentage = ") << workDonePercentage);
+    QNDEBUG(QStringLiteral("MainWindow::onSyncChunksDownloaded"));
+    onSetStatusBarText(tr("Downloaded the sync chunks, starting to download notes"));
+}
 
-    m_animatedSyncButtonIcon.setPaused(false);
+void MainWindow::onNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNotesDownloadProgress: notes downloaded = ")
+            << notesDownloaded << QStringLiteral(", total notes to download = ")
+            << totalNotesToDownload);
 
-    if (Q_UNLIKELY(message.isEmpty())) {
-        return;
-    }
+    onSetStatusBarText(tr("Downloading notes") + QStringLiteral(": ") + QString::number(notesDownloaded) +
+                       QStringLiteral(" ") + tr("of") + QStringLiteral(" ") + QString::number(totalNotesToDownload));
+}
 
-    bool showProgress = true;
-    if (Q_UNLIKELY((workDonePercentage < 0.0) || (workDonePercentage >= 1.0))) {
-        showProgress = false;
-    }
+void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onLinkedNotebooksSyncChunksDownloaded"));
+    onSetStatusBarText(tr("Downloaded the sync chunks from linked notebooks"));
+}
 
-    workDonePercentage *= 1.0e4;
-    workDonePercentage = std::floor(workDonePercentage + 0.5);
-    workDonePercentage *= 1.0e-2;
+void MainWindow::onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onLinkedNotebooksNotesDownloadProgress: notes downloaded = ")
+            << notesDownloaded << QStringLiteral(", total notes to download = ")
+            << totalNotesToDownload);
 
-    QString messageToShow = message;
-    if (showProgress) {
-        messageToShow += QStringLiteral(", ");
-        messageToShow += tr("progress");
-        messageToShow += QStringLiteral(": ");
-        messageToShow += QString::number(workDonePercentage);
-        messageToShow += QStringLiteral("%");
-    }
-
-    onSetStatusBarText(messageToShow);
+    onSetStatusBarText(tr("Downloading notes from linked notebooks") + QStringLiteral(": ") + QString::number(notesDownloaded) +
+                       QStringLiteral(" ") + tr("of") + QStringLiteral(" ") + QString::number(totalNotesToDownload));
 }
 
 void MainWindow::onRemoteToLocalSyncStopped()

@@ -148,7 +148,11 @@ private Q_SLOTS:
                                  qevercloud::UserID userId);
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone();
-    void onSynchronizationProgressUpdate(QString message, double workDonePercentage);
+    void onSyncChunksDownloaded();
+    void onNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload);
+    void onLinkedNotebooksSyncChunksDownloaded();
+    void onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload);
+
     void onRemoteToLocalSyncStopped();
     void onSendLocalChangesStopped();
     void onRemoteToLocalSyncPaused(bool authRequired);
@@ -425,7 +429,6 @@ private:
     QString                     m_synchronizationManagerHost;
     bool                        m_pendingNewEvernoteAccountAuthentication;
     bool                        m_pendingSwitchToNewEvernoteAccount;
-    double                      m_currentSynchronizationProgress;
     bool                        m_syncInProgress;
     QMovie                      m_animatedSyncButtonIcon;
 
