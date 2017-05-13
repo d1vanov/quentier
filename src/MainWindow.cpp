@@ -567,11 +567,34 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
     for(int i = 0; i < numAvailableAccounts; ++i)
     {
         const Account & availableAccount = availableAccounts[i];
+        QNTRACE(QStringLiteral("Examining the available account: ") << availableAccount);
+
         QString availableAccountRepresentationName = availableAccount.name();
-        if (availableAccount.type() == Account::Type::Local) {
+        if (availableAccount.type() == Account::Type::Local)
+        {
             availableAccountRepresentationName += QStringLiteral(" (");
             availableAccountRepresentationName += tr("local");
             availableAccountRepresentationName += QStringLiteral(")");
+        }
+        else if (availableAccount.type() == Account::Type::Evernote)
+        {
+            QString host = availableAccount.evernoteHost();
+            if (host != QStringLiteral("www.evernote.com"))
+            {
+                availableAccountRepresentationName += QStringLiteral(" (");
+
+                if (host == QStringLiteral("sandbox.evernote.com")) {
+                    availableAccountRepresentationName += QStringLiteral("sandbox");
+                }
+                else if (host == QStringLiteral("app.yinxiang.com")) {
+                    availableAccountRepresentationName += QStringLiteral("Yinxiang Biji");
+                }
+                else {
+                    availableAccountRepresentationName += host;
+                }
+
+                availableAccountRepresentationName += QStringLiteral(")");
+            }
         }
 
         QAction * pAccountAction = new QAction(availableAccountRepresentationName, Q_NULLPTR);
@@ -3227,6 +3250,9 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
     setupViews();
     setupAccountSpecificUiElements();
+
+    // FIXME: this can be done more lightweight: just set the current account in the already filled list
+    updateSubMenuWithAvailableAccounts();
 
     if (m_pAccount->type() == Account::Type::Evernote)
     {

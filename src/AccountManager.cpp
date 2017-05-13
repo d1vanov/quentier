@@ -248,8 +248,11 @@ void AccountManager::detectAvailableAccounts()
     for(int i = 0; i < numPotentialLocalAccountDirs; ++i)
     {
         const QFileInfo & accountDirInfo = localAccountsDirInfos[i];
+        QNTRACE(QStringLiteral("Examining potential local account dir: ") << accountDirInfo.absoluteFilePath());
+
         QFileInfo accountBasicInfoFileInfo(accountDirInfo.absoluteFilePath() + QStringLiteral("/accountInfo.txt"));
         if (!accountBasicInfoFileInfo.exists()) {
+            QNTRACE(QStringLiteral("Found no accountInfo.txt file in this dir, skipping it"));
             continue;
         }
 
@@ -266,13 +269,15 @@ void AccountManager::detectAvailableAccounts()
     for(int i = 0; i < numPotentialEvernoteAccountDirs; ++i)
     {
         const QFileInfo & accountDirInfo = evernoteAccountsDirInfos[i];
-        QDir accountDir = accountDirInfo.absoluteDir();
-        QFileInfo accountBasicInfoFileInfo(accountDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
+        QNTRACE(QStringLiteral("Examining potential Evernote account dir: ") << accountDirInfo.absoluteFilePath());
+
+        QFileInfo accountBasicInfoFileInfo(accountDirInfo.absoluteFilePath() + QStringLiteral("/accountInfo.txt"));
         if (!accountBasicInfoFileInfo.exists()) {
+            QNTRACE(QStringLiteral("Found no accountInfo.txt file in this dir, skipping it"));
             continue;
         }
 
-        QString accountName = accountDir.dirName();
+        QString accountName = accountDirInfo.fileName();
         qevercloud::UserID userId = -1;
 
         // The account dir for Evernote accounts is encoded as "<account_name>_<host>_<user_id>"
@@ -285,7 +290,7 @@ void AccountManager::detectAvailableAccounts()
             continue;
         }
 
-        QStringRef userIdStrRef = accountName.rightRef(accountNameSize - lastUnderlineIndex);
+        QStringRef userIdStrRef = accountName.rightRef(accountNameSize - lastUnderlineIndex - 1);
         bool conversionResult = false;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
         userId = static_cast<qevercloud::UserID>(userIdStrRef.toInt(&conversionResult));
@@ -298,7 +303,7 @@ void AccountManager::detectAvailableAccounts()
             continue;
         }
 
-        int preLastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"), lastUnderlineIndex);
+        int preLastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"), std::max(lastUnderlineIndex - 1, 1));
         if ((preLastUnderlineIndex < 0) || (preLastUnderlineIndex >= lastUnderlineIndex)) {
             QNTRACE(QStringLiteral("Dir ") << accountName
                     << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
@@ -306,15 +311,16 @@ void AccountManager::detectAvailableAccounts()
             continue;
         }
 
-        accountName.remove(preLastUnderlineIndex, accountName.size() - preLastUnderlineIndex);
+        QString evernoteHost = accountName.mid(preLastUnderlineIndex + 1, lastUnderlineIndex - preLastUnderlineIndex - 1);
+        accountName.remove(preLastUnderlineIndex, accountNameSize - preLastUnderlineIndex);
 
-        Account availableAccount(accountName, Account::Type::Evernote, userId);
+        Account availableAccount(accountName, Account::Type::Evernote, userId, Account::EvernoteAccountType::Free, evernoteHost);
         readComplementaryAccountInfo(availableAccount);
         m_availableAccounts << availableAccount;
         QNDEBUG(QStringLiteral("Found available Evernote account: name = ") << accountName
                 << QStringLiteral(", user id = ") << userId << QStringLiteral(", Evernote account type = ")
                 << availableAccount.evernoteAccountType() << QStringLiteral(", Evernote host = ")
-                << availableAccount.evernoteHost() << QStringLiteral(", dir ") << accountDir.absolutePath());
+                << availableAccount.evernoteHost() << QStringLiteral(", dir ") << accountDirInfo.absoluteFilePath());
     }
 }
 
