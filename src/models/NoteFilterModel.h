@@ -33,6 +33,8 @@ class NoteFilterModel: public QSortFilterProxyModel,
 public:
     explicit NoteFilterModel(QObject * parent = Q_NULLPTR);
 
+    bool hasFilters() const;
+
     const QStringList & notebookLocalUids() const { return m_notebookLocalUids; }
     void setNotebookLocalUids(const QStringList & notebookLocalUids);
 

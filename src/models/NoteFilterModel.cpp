@@ -32,6 +32,11 @@ NoteFilterModel::NoteFilterModel(QObject * parent) :
     m_modifiedWhilePendingFilterUpdate(false)
 {}
 
+bool NoteFilterModel::hasFilters() const
+{
+    return !m_notebookLocalUids.isEmpty() || !m_tagNames.isEmpty() || !m_noteLocalUids.isEmpty();
+}
+
 void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids)
 {
     QNDEBUG(QStringLiteral("NoteFilterModel::setNotebookLocalUids: ") << notebookLocalUids.join(QStringLiteral(", ")));
