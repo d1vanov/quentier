@@ -1812,8 +1812,8 @@ void NoteModel::checkAddedNoteItemsPendingNotebookData(const QString & notebookL
 
 void NoteModel::onNoteAddedOrUpdated(const Note & note)
 {
-    QNDEBUG(QStringLiteral("NoteModel::onNoteAddedOrUpdated: note local uid = ")
-              << note.localUid());
+    QNDEBUG(QStringLiteral("NoteModel::onNoteAddedOrUpdated: note local uid = ") << note.localUid());
+    QNTRACE(note);
 
     m_cache.put(note.localUid(), note);
 
