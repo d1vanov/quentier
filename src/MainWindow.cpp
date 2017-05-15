@@ -3596,6 +3596,9 @@ void MainWindow::setupModels()
     m_pNoteFilterModel = new NoteFilterModel(this);
     m_pNoteFilterModel->setSourceModel(m_pNoteModel);
 
+    QObject::connect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
+                     m_pNoteFilterModel, QNSLOT(NoteFilterModel,invalidate));
+
     m_pNoteFiltersManager = new NoteFiltersManager(*m_pUI->filterByTagsWidget,
                                                    *m_pUI->filterByNotebooksWidget,
                                                    *m_pNoteFilterModel,
