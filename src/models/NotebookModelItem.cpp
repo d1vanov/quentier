@@ -117,7 +117,7 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
     strm << QStringLiteral("\nParent item: ");
     if (Q_UNLIKELY(!m_pParent))
     {
-        strm << QStringLiteral("<null>");
+        strm << QStringLiteral("<null>\n");
     }
     else
     {

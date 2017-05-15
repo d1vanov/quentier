@@ -222,6 +222,9 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
     {
         bool filteredIn = m_notebookLocalUids.contains(pItem->notebookLocalUid());
         if (!filteredIn) {
+            QNTRACE(QStringLiteral("Note's notebook uid is not one of those to be filtered in: ")
+                    << pItem->notebookLocalUid() << QStringLiteral("; ") << m_notebookLocalUids.join(QStringLiteral(", "))
+                    << QStringLiteral("; item: ") << *pItem);
             return false;
         }
     }
