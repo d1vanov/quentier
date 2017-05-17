@@ -78,6 +78,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/Utility.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <cmath>
@@ -109,7 +110,7 @@ using quentier::FilterBySavedSearchWidget;
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
-    onSetStatusBarText(error)
+    onSetStatusBarText(error, SEC_TO_MSEC(30))
 
 #define FILTERS_VIEW_STATUS_KEY QStringLiteral("ViewExpandedStatus")
 #define NOTE_SORTING_MODE_KEY QStringLiteral("NoteSortingMode")
@@ -647,7 +648,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
                                             "for side panel, note list view and note editors view: "
                                             "wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -877,7 +878,7 @@ void MainWindow::disconnectSynchronizationManager()
 
 void MainWindow::onSyncStopped()
 {
-    onSetStatusBarText(tr("Synchronization was stopped"));
+    onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncInProgress = false;
     stopSyncButtonAnimation();
 }
@@ -1056,7 +1057,8 @@ void MainWindow::prepareTestInkNote()
     if (!inkNoteImageFileDir.exists())
     {
         if (Q_UNLIKELY(!inkNoteImageFileDir.mkpath(inkNoteImageFilePath))) {
-            onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't create folder to hold the ink note resource images"));
+            onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't create the folder "
+                                              "to hold the ink note resource images"), SEC_TO_MSEC(30));
             return;
         }
     }
@@ -1064,7 +1066,8 @@ void MainWindow::prepareTestInkNote()
     inkNoteImageFilePath += QStringLiteral("/") + resource.guid() + QStringLiteral(".png");
     QFile inkNoteImageFile(inkNoteImageFilePath);
     if (Q_UNLIKELY(!inkNoteImageFile.open(QIODevice::WriteOnly))) {
-        onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't open file meant to hold the ink note resource image for writing"));
+        onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't open the file "
+                                          "meant to hold the the ink note resource image for writing"), SEC_TO_MSEC(30));
         return;
     }
 
@@ -1158,7 +1161,7 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
                                             "the splitter after folding the filter view: "
                                             "wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral("Sizes count: ") << count);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -1335,7 +1338,7 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
            << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ") \
            << result << QStringLiteral(", property index = ") \
            << propertyIndex); \
-    onSetStatusBarText(errorDescription.localizedString())
+    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30))
 
     for(auto it = properties.constBegin(), end = properties.constEnd(); it != end; ++it)
     {
@@ -1402,7 +1405,7 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
                        << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ")
                        << result << QStringLiteral(", property index = ")
                        << propertyIndex);
-                onSetStatusBarText(error.localizedString());
+                onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
                 return QString();
             }
 
@@ -1760,7 +1763,7 @@ void MainWindow::onImportEnexAction()
         }
 
         QNDEBUG(QStringLiteral("Bad ENEX file path: ") << errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -1772,7 +1775,7 @@ void MainWindow::onImportEnexAction()
         }
 
         QNDEBUG(QStringLiteral("Bad notebook name: ") << errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -1795,7 +1798,7 @@ void MainWindow::onSynchronizationStarted()
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
-    onSetStatusBarText(errorDescription.localizedString());
+    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
     m_syncInProgress = false;
     stopSyncButtonAnimation();
 }
@@ -1804,7 +1807,7 @@ void MainWindow::onSynchronizationFinished(Account account)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
 
-    onSetStatusBarText(tr("Synchronization finished!"), 5000);
+    onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
     m_syncInProgress = false;
     stopSyncButtonAnimation();
 
@@ -1824,7 +1827,7 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
 
     if (!success) {
         onSetStatusBarText(tr("Couldn't authenticate the Evernote user") + QStringLiteral(": ") +
-                           errorDescription.localizedString());
+                           errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -1845,7 +1848,7 @@ void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescript
 
     if (!success) {
         onSetStatusBarText(tr("Couldn't revoke the authentication") + QStringLiteral(": ") +
-                           errorDescription.localizedString());
+                           errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -1871,7 +1874,7 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 
     onSetStatusBarText(tr("The synchronization has reached the Evernote API rate limit, "
                           "it will continue automatically at approximately") + QStringLiteral(" ") +
-                       dateTimeToShow);
+                       dateTimeToShow, SEC_TO_MSEC(60));
 
     m_animatedSyncButtonIcon.setPaused(true);
 
@@ -2014,7 +2017,7 @@ void MainWindow::onNewNotebookCreationRequested()
     if (Q_UNLIKELY(!m_pNotebookModel)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new notebook: no notebook model is set up"));
         QNWARNING(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2045,7 +2048,7 @@ void MainWindow::onNewTagCreationRequested()
     if (Q_UNLIKELY(!m_pTagModel)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new tag: no tag model is set up"));
         QNWARNING(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2076,7 +2079,7 @@ void MainWindow::onNewSavedSearchCreationRequested()
     if (Q_UNLIKELY(!m_pSavedSearchModel)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new saved search: no saved search model is set up"));
         QNWARNING(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2290,7 +2293,7 @@ void MainWindow::onNoteSortingModeChanged(int index)
         {
             ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: got unknown note sorting order, fallback to the default"));
             QNWARNING(error << QStringLiteral(", sorting mode index = ") << index);
-            onSetStatusBarText(error.localizedString());
+            onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
 
             m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp, Qt::AscendingOrder);
             break;
@@ -2324,7 +2327,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
                                                        "internal error, no note model"));
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2333,7 +2336,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
                                                        "no note editor tabs"));
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2342,7 +2345,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
                                                        "can't find the note to be deleted"));
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 }
@@ -2356,7 +2359,7 @@ void MainWindow::onCurrentNoteInfoRequested()
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't show note info: "
                                                        "no note editor tabs"));
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2372,7 +2375,7 @@ void MainWindow::onCurrentNotePrintRequested()
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't print note: "
                                                        "no note editor tabs"));
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2385,7 +2388,7 @@ void MainWindow::onCurrentNotePrintRequested()
         }
 
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), 300);
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
     }
 }
 
@@ -2398,7 +2401,7 @@ void MainWindow::onCurrentNotePdfExportRequested()
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't export note to pdf: "
                                                        "no note editor tabs"));
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString());
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2411,7 +2414,7 @@ void MainWindow::onCurrentNotePdfExportRequested()
         }
 
         QNDEBUG(errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), 300);
+        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
     }
 }
 
@@ -2480,9 +2483,9 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
         {
             bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
             if (!res) {
-                QNDEBUG(QStringLiteral("Failed to create folder for the selected ENEX file"));
-                onSetStatusBarText(tr("Could not create folder for the selected ENEX file") +
-                                   QStringLiteral(": ") + enexFilePath);
+                QNDEBUG(QStringLiteral("Failed to create the folder for the selected ENEX file"));
+                onSetStatusBarText(tr("Could not create the folder for the selected ENEX file") +
+                                   QStringLiteral(": ") + enexFilePath, SEC_TO_MSEC(30));
                 return;
             }
         }
@@ -2511,7 +2514,7 @@ void MainWindow::onExportedNotesToEnex(QString enex)
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
                                             "can't cast the slot invoker to EnexExporter"));
         QNWARNING(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2520,7 +2523,7 @@ void MainWindow::onExportedNotesToEnex(QString enex)
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
                                             "the selected ENEX file path was lost"));
         QNWARNING(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -2546,20 +2549,20 @@ void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
         pExporter->deleteLater();
     }
 
-    onSetStatusBarText(errorDescription.localizedString());
+    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onEnexFileWrittenSuccessfully(QString filePath)
 {
     QNDEBUG(QStringLiteral("MainWindow::onEnexFileWrittenSuccessfully: ") << filePath);
-    onSetStatusBarText(tr("Successfully exported note(s) to ENEX: ") + QDir::toNativeSeparators(filePath), 5000);
+    onSetStatusBarText(tr("Successfully exported note(s) to ENEX: ") + QDir::toNativeSeparators(filePath), SEC_TO_MSEC(5));
 }
 
 void MainWindow::onEnexFileWriteFailed(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onEnexFileWriteFailed: ") << errorDescription);
     onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file") +
-                       QStringLiteral(": ") + errorDescription.localizedString());
+                       QStringLiteral(": ") + errorDescription.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal)
@@ -2569,12 +2572,12 @@ void MainWindow::onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTota
 
 
     if (bytesWritten == 0) {
-        onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file"));
+        onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file"), SEC_TO_MSEC(30));
     }
     else {
         onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write the ENEX to file, "
                               "only a portion of data has been written") + QStringLiteral(": ") +
-                           QString::number(bytesWritten) + QStringLiteral("/") + QString::number(bytesTotal));
+                           QString::number(bytesWritten) + QStringLiteral("/") + QString::number(bytesTotal), SEC_TO_MSEC(30));
     }
 }
 
@@ -2583,7 +2586,7 @@ void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
     QNDEBUG(QStringLiteral("MainWindow::onEnexImportCompletedSuccessfully: ") << enexFilePath);
 
     onSetStatusBarText(tr("Successfully importes note(s) from ENEX file") +
-                       QStringLiteral(": ") + QDir::toNativeSeparators(enexFilePath));
+                       QStringLiteral(": ") + QDir::toNativeSeparators(enexFilePath), SEC_TO_MSEC(5));
 
     EnexImporter * pImporter = qobject_cast<EnexImporter*>(sender());
     if (pImporter) {
@@ -2596,7 +2599,7 @@ void MainWindow::onEnexImportFailed(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onEnexImportFailed: ") << errorDescription);
 
-    onSetStatusBarText(errorDescription.localizedString());
+    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 
     EnexImporter * pImporter = qobject_cast<EnexImporter*>(sender());
     if (pImporter) {
@@ -2686,7 +2689,7 @@ void MainWindow::onAccountSwitchRequestedFromSystemTrayIcon(Account account)
 void MainWindow::onSystemTrayIconManagerError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSystemTrayIconManagerError: ") << errorDescription);
-    onSetStatusBarText(errorDescription.localizedString());
+    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()
@@ -2737,13 +2740,13 @@ void MainWindow::onSetInkNote()
 void MainWindow::onNoteEditorError(ErrorString error)
 {
     QNINFO(QStringLiteral("MainWindow::onNoteEditorError: ") << error);
-    onSetStatusBarText(error.localizedString(), 20000);
+    onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onModelViewError(ErrorString error)
 {
     QNINFO(QStringLiteral("MainWindow::onModelViewError: ") << error);
-    onSetStatusBarText(error.localizedString(), 20000);
+    onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onNoteEditorSpellCheckerNotReady()
@@ -2895,7 +2898,7 @@ void MainWindow::onAccountAdded(Account account)
 void MainWindow::onAccountManagerError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAccountManagerError: ") << errorDescription);
-    onSetStatusBarText(errorDescription.localizedString());
+    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onShowSidePanelActionToggled(bool checked)
@@ -3067,14 +3070,14 @@ void MainWindow::onSwitchIconsToNativeAction()
     if (m_nativeIconThemeName.isEmpty()) {
         ErrorString error(QT_TRANSLATE_NOOP("", "No native icon theme is available"));
         QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
     if (QIcon::themeName() == m_nativeIconThemeName) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using the native icon theme"));
         QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -3092,7 +3095,7 @@ void MainWindow::onSwitchIconsToTangoAction()
     if (QIcon::themeName() == tango) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using tango icon theme"));
         QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -3110,7 +3113,7 @@ void MainWindow::onSwitchIconsToOxygenAction()
     if (QIcon::themeName() == oxygen) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using oxygen icon theme"));
         QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
     }
 
@@ -3126,7 +3129,7 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     if (m_currentPanelStyle.isEmpty()) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using the built-in panel style"));
         QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
     }
 
@@ -3147,7 +3150,7 @@ void MainWindow::onSwitchPanelStyleToLighter()
     if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using the lighter panel style"));
         QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
     }
 
@@ -3170,7 +3173,7 @@ void MainWindow::onSwitchPanelStyleToDarker()
     if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Already using the darker panel style"));
         QNDEBUG(error);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
     }
 
@@ -3277,7 +3280,7 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
 
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
-    onSetStatusBarText(tr("Could not switch account") + QStringLiteral(": ") + errorDescription.localizedString());
+    onSetStatusBarText(tr("Could not switch account") + QStringLiteral(": ") + errorDescription.localizedString(), SEC_TO_MSEC(30));
 
     if (!m_pAccount) {
         // If there was no any account set previously, nothing to do
@@ -4175,7 +4178,7 @@ void MainWindow::restoreNoteSortingMode()
                                             "can't convert the persisted setting "
                                             "to the integer index"));
         QNWARNING(error << QStringLiteral(", persisted data: ") << data);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
@@ -4371,7 +4374,7 @@ void MainWindow::restoreGeometryAndState()
                                             "for side panel, note list view and note editors view: "
                                             "wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
     }
 
     QList<int> sidePanelSplitterSizes = m_pUI->sidePanelSplitter->sizes();
@@ -4484,7 +4487,7 @@ void MainWindow::restoreGeometryAndState()
         ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore the heights "
                                             "of side panel's views: wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
-        onSetStatusBarText(error.localizedString());
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
     }
 }
 
