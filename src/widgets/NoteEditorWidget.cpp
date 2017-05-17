@@ -514,6 +514,11 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::exportNoteToPdf"));
 
+    if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
+        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to pdf: no note within the note editor widget"));
+        return false;
+    }
+
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
     QString lastExportNoteToPdfPath = appSettings.value(LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY).toString();
@@ -531,6 +536,20 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
     pFileDialog->setFileMode(QFileDialog::AnyFile);
     pFileDialog->setDefaultSuffix(QStringLiteral("pdf"));
 
+    QString suggestedFileName;
+    if (m_pCurrentNote->hasTitle()) {
+        suggestedFileName = m_pCurrentNote->title();
+    }
+    else if (m_pCurrentNote->hasContent()) {
+        suggestedFileName = m_pCurrentNote->plainText().simplified();
+        suggestedFileName.truncate(30);
+    }
+
+    if (!suggestedFileName.isEmpty()) {
+        suggestedFileName += QStringLiteral(".pdf");
+        pFileDialog->selectFile(suggestedFileName);
+    }
+
     if (pFileDialog->exec() == QDialog::Accepted)
     {
         QStringList selectedFiles = pFileDialog->selectedFiles();
@@ -547,7 +566,30 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
             return false;
         }
 
-        lastExportNoteToPdfPath = pFileDialog->directory().absolutePath();
+        QFileInfo selectedFileInfo(selectedFiles[0]);
+        if (selectedFileInfo.exists())
+        {
+            if (Q_UNLIKELY(!selectedFileInfo.isFile())) {
+                errorDescription.setBase(QT_TRANSLATE_NOOP("", "No file to save the pdf into was selected"));
+                return false;
+            }
+
+            if (Q_UNLIKELY(!selectedFileInfo.isWritable())) {
+                errorDescription.setBase(QT_TRANSLATE_NOOP("", "The selected file already exists and it is not writable"));
+                errorDescription.details() = selectedFiles[0];
+                return false;
+            }
+
+            int confirmOverwrite = questionMessageBox(this, tr("Overwrite existing file"),
+                                                      tr("Confirm the choice to overwrite the existing file"),
+                                                      tr("The selected pdf file already exists. Are you sure you want to overwrite this file?"));
+            if (confirmOverwrite != QMessageBox::Ok) {
+                QNDEBUG(QStringLiteral("Cancelled the export to pdf"));
+                return false;
+            }
+        }
+
+        lastExportNoteToPdfPath = selectedFileInfo.absolutePath();
         if (!lastExportNoteToPdfPath.isEmpty()) {
             appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
             appSettings.setValue(LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY, lastExportNoteToPdfPath);
@@ -1618,7 +1660,28 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
         if (index < 0)
         {
             QNDEBUG(QStringLiteral("Could not find font name ") << fontFamily
-                    << QStringLiteral(" within available font names: ") << fontNames.join(QStringLiteral(", ")));
+                    << QStringLiteral(" within available font names: ") << fontNames.join(QStringLiteral(", "))
+                    << QStringLiteral(", will try to match the font family \"approximately\""));
+
+            for(auto it = fontNames.constBegin(), end = fontNames.constEnd(); it != end; ++it)
+            {
+                const QString & currentFontFamily = *it;
+                if (fontFamily.contains(currentFontFamily, Qt::CaseInsensitive) ||
+                    currentFontFamily.contains(fontFamily, Qt::CaseInsensitive))
+                {
+                    QNDEBUG(QStringLiteral("Note editor's font family ") << fontFamily
+                            << QStringLiteral(" appears to correspond to ") << currentFontFamily);
+                    index = static_cast<int>(std::distance(fontNames.constBegin(), it));
+                    break;
+                }
+            }
+        }
+
+        if (index < 0)
+        {
+            QNDEBUG(QStringLiteral("Could not find neither exact nor approximate match for the font name ")
+                    << fontFamily << QStringLiteral(" within available font names: ") << fontNames.join(QStringLiteral(", "))
+                    << QStringLiteral(", will add the missing font name to the list"));
 
             fontNames << fontFamily;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -2041,7 +2104,12 @@ void NoteEditorWidget::onExportNoteToEnexButtonPressed()
 
     ErrorString errorDescription;
     bool res = exportNoteToEnex(errorDescription);
-    if (!res) {
+    if (!res)
+    {
+        if (errorDescription.isEmpty()) {
+            return;
+        }
+
         emit notifyError(errorDescription);
     }
 }
