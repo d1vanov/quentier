@@ -23,8 +23,9 @@ function(CreateQuentierBundle)
   # And, of course, need to deploy libquentier itself
   # 10) libquentier
   # 
-  # Also, quentier has one additional dependency of its own: 
+  # Also, quentier has one or more additional dependencies of its own:
   # 11) boost program options
+  # 12) Google breakpad, if used
 
   message(STATUS "Searching for additional dependencies for deployment")
 
@@ -90,6 +91,16 @@ function(CreateQuentierBundle)
   # 11) Boost program options
   get_filename_component(BOOST_LIB_DIR "${Boost_LIBRARIES}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS ${BOOST_LIB_DIR})
+
+  # 12) Google breakpad
+  if(BREAKPAD_FOUND)
+    if(APPLE)
+      get_filename_component(BREAKPAD_LIB_DIR "${BREAKPAD_LIBRARIES}" PATH)
+    else()
+      set(BREAKPAD_LIB_DIR ${BREAKPAD_LIBRARY_DIRS})
+    endif()
+    list(APPEND THIRDPARTY_LIB_DIRS ${BREAKPAD_LIB_DIR})
+  endif()
 
   # Finally, remove the duplicates from the lib dirs list
   list(REMOVE_DUPLICATES THIRDPARTY_LIB_DIRS)

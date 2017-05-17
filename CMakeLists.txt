@@ -31,12 +31,17 @@ include(QuentierFindQEverCloud)
 include(QuentierFindLibquentier)
 include(QuentierFindBoost)
 include(QuentierDoxygen)
+include(QuentierFindBreakpad)
 include(PrependPath)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 
 add_custom_target(check COMMAND "${CMAKE_CTEST_COMMAND}" "--verbose")
+
+if(BREAKPAD_FOUND)
+  add_definitions(-DBUILDING_WITH_BREAKPAD)
+endif()
 
 if(APPLE)
   set(MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
@@ -271,6 +276,10 @@ list(APPEND THIRDPARTY_LIBS ${LIBQUENTIER_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${Boost_LIBRARIES})
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND THIRDPARTY_LIBS wsock32 ws2_32)
+endif()
+
+if(BREAKPAD_FOUND)
+  list(APPEND THIRDPARTY_LIBS ${BREAKPAD_LIBRARIES})
 endif()
 
 if(WIN32)
