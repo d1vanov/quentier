@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>476</width>
-    <height>303</height>
+    <width>506</width>
+    <height>299</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>3</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -158,81 +158,69 @@
       <attribute name="title">
        <string>Appearance</string>
       </attribute>
-      <widget class="QLabel" name="iconThemeLabel">
+      <widget class="QWidget" name="">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>101</width>
-         <height>16</height>
+         <width>481</width>
+         <height>56</height>
         </rect>
        </property>
-       <property name="text">
-        <string>Icon theme:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="iconThemeComboBox">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>20</y>
-         <width>341</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>300</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
-      <widget class="QLabel" name="panelStyleLabel">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>60</y>
-         <width>101</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Panel style:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="panelStyleComboBox">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>60</y>
-         <width>341</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>300</width>
-         <height>0</height>
-        </size>
-       </property>
+       <layout class="QGridLayout" name="IconThemePanelStyleGridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="iconThemeLabel">
+          <property name="text">
+           <string>Icon theme:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="iconThemeComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="panelStyleLabel">
+          <property name="text">
+           <string>Panel style:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="panelStyleComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
      <widget class="QWidget" name="noteEditorTab">
@@ -251,6 +239,56 @@
        <property name="text">
         <string>Use only fonts compatible with Evernote web client</string>
        </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="syncTab">
+      <attribute name="title">
+       <string>Synchronization</string>
+      </attribute>
+      <widget class="QCheckBox" name="downloadNoteThumbnailsCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>491</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Download note thumbnails</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>40</y>
+         <width>491</width>
+         <height>60</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="noteThumbnailsStoragePathGridLayout">
+        <item row="0" column="0" colspan="2">
+         <widget class="QLabel" name="noteThumbnailsStoragePathLabel">
+          <property name="text">
+           <string>&amp;Note thumbnails storage path:</string>
+          </property>
+          <property name="buddy">
+           <cstring>noteThumbnailsStoragePathLineEdit</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLineEdit" name="noteThumbnailsStoragePathLineEdit"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="noteThumbnailsStoragePathBrowsePushButton">
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
