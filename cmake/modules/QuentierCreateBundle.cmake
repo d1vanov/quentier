@@ -94,12 +94,7 @@ function(CreateQuentierBundle)
 
   # 12) Google breakpad
   if(BREAKPAD_FOUND)
-    if(APPLE)
-      get_filename_component(BREAKPAD_LIB_DIR "${BREAKPAD_LIBRARIES}" PATH)
-    else()
-      set(BREAKPAD_LIB_DIR ${BREAKPAD_LIBRARY_DIRS})
-    endif()
-    list(APPEND THIRDPARTY_LIB_DIRS ${BREAKPAD_LIB_DIR})
+    list(APPEND THIRDPARTY_LIB_DIRS ${BREAKPAD_LIBRARY_DIRS})
   endif()
 
   # Finally, remove the duplicates from the lib dirs list

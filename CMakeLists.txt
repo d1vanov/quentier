@@ -31,7 +31,11 @@ include(QuentierFindQEverCloud)
 include(QuentierFindLibquentier)
 include(QuentierFindBoost)
 include(QuentierDoxygen)
-include(QuentierFindBreakpad)
+
+if(NOT APPLE)
+  include(QuentierFindBreakpad)
+endif()
+
 include(PrependPath)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -301,11 +305,21 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
                ${${PROJECT_NAME}_FORMS_HEADERS}
                ${${PROJECT_NAME}_RESOURCES_RCC})
 
+if(BREAKPAD_FOUND)
+  add_custom_command(TARGET ${PROJECT_NAME}
+                     POST_BUILD
+                     COMMAND ${BREAKPAD_DUMP_SYMS} ./${PROJECT_NAME} > ${PROJECT_NAME}.syms)
+endif()
+
 target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
 if(USE_QT5)
   add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
+endif()
+
+if(BREAKPAD_FOUND)
+  add_subdirectory(crash_handler)
 endif()
 
 # Set up the model tests
@@ -403,6 +417,11 @@ foreach(QM_FILE ${${PROJECT_NAME}_QM_FILES})
                   file(COPY ${QM_FILE} DESTINATION ${CMAKE_INSTALL_TRANSLATIONSDIR})
                 endif()")
 endforeach()
+
+if(BREAKPAD_FOUND)
+  install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${BREAKPAD_STACKWALKER} DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME quentier_minidump_stackwalk)
+endif()
 
 # install application bundle
 include(QuentierCreateBundle)
