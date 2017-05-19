@@ -78,13 +78,14 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor & descriptor,
 #endif
 
         Q_UNUSED(pProcessHandle->start(*pQuentierCrashHandlerFilePath, crashHandlerArgs))
+        pProcessHandle->waitForFinished(-1);
+        return true;
     }
     else
     {
         printf("Dump path: %s\n", descriptor.path());
+        return succeeded;
     }
-
-    return succeeded;
 }
 
 static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = NULL;

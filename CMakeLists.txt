@@ -286,7 +286,7 @@ if(BREAKPAD_FOUND)
   else()
     list(APPEND ${PROJECT_NAME}_SOURCES src/BreakpadIntegrationLinux.cpp)
   endif()
-  add_definitions(-DBUILDING_WITH_BREAKPAD)
+  add_definitions(-DBUILDING_WITH_BREAKPAD=1)
 endif()
 
 if(WIN32)
@@ -323,6 +323,7 @@ endif()
 
 if(BREAKPAD_FOUND)
   add_subdirectory(crash_handler)
+  get_directory_property(crash_handler DIRECTORY crash_handler DEFINITION quentier_crash_handler)
 endif()
 
 # Set up the model tests
@@ -422,8 +423,18 @@ foreach(QM_FILE ${${PROJECT_NAME}_QM_FILES})
 endforeach()
 
 if(BREAKPAD_FOUND)
-  install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms DESTINATION ${CMAKE_INSTALL_BINDIR})
-  install(FILES ${BREAKPAD_STACKWALKER} DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME quentier_minidump_stackwalk)
+  install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+
+  install(FILES ${PROJECT_BINARY_DIR}/crash_handler/quentier_crash_handler
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE)
+
+  install(FILES ${BREAKPAD_STACKWALKER}
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE
+    RENAME quentier_minidump_stackwalk)
 endif()
 
 # install application bundle

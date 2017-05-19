@@ -18,6 +18,7 @@
 
 #include "MainWindow.h"
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QStringList>
 #include <QDebug>
 
@@ -33,6 +34,21 @@ int main(int argc, char * argv[])
     }
 
     MainWindow window(args.at(1), args.at(2), args.at(3));
+    QDesktopWidget * pDesktopWidget = QApplication::desktop();
+    if (pDesktopWidget)
+    {
+        int screenWidth = pDesktopWidget->width();
+        int screenHeight = pDesktopWidget->height();
+
+        int width = window.frameGeometry().width();
+        int height = window.frameGeometry().height();
+
+        int x = (screenWidth - width) / 2;
+        int y = (screenHeight - height) / 2;
+
+        window.move(x, y);
+    }
+
     window.show();
 
     return app.exec();

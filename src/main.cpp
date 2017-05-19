@@ -60,15 +60,15 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
-#ifdef BUILDING_WITH_BREAKPAD
-    quentier::setupBreakpad(app);
-#endif
-
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
 
     loadDependencies();
+
+#ifdef BUILDING_WITH_BREAKPAD
+    quentier::setupBreakpad(app);
+#endif
 
     quentier::initializeLibquentier();
     quentier::setupApplicationIcon(app);

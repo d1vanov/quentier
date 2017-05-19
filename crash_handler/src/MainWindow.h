@@ -21,6 +21,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QProcess>
 
 namespace Ui {
 class MainWindow;
@@ -36,8 +37,18 @@ public:
                         QWidget * parent = NULL);
     ~MainWindow();
 
+private Q_SLOTS:
+    void onMinidumpStackwalkReadyReadStandardOutput();
+    void onMinidumpStackwalkReadyReadStandardError();
+    void onMinidumpStackwalkProcessFinished(int exitCode, QProcess::ExitStatus ExitStatus);
+
 private:
-    Ui::MainWindow * m_pUi;
+    QString readData(QProcess & process, const bool fromStdout);
+
+private:
+    Ui::MainWindow *    m_pUi;
+    QString             m_output;
+    QString             m_error;
 };
 
 #endif // QUENTIER_CRASH_HANDLER_MAINWINDOW_H
