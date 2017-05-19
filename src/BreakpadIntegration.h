@@ -19,9 +19,11 @@
 #ifndef QUENTIER_BREAKPAD_INTEGRATION_H
 #define QUENTIER_BREAKPAD_INTEGRATION_H
 
+#include <QApplication>
+
 namespace quentier {
 
-void setupBreakpad();
+void setupBreakpad(const QApplication & app);
 
 } // namespace quentier
 

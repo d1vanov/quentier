@@ -30,9 +30,9 @@ class MainWindow: public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(const QString & minidumpLocation,
-                        const QString & symbolsFileLocation,
+    explicit MainWindow(const QString & symbolsFileLocation,
                         const QString & stackwalkBinaryLocation,
+                        const QString & minidumpLocation,
                         QWidget * parent = NULL);
     ~MainWindow();
 

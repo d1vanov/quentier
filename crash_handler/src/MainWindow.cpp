@@ -1,9 +1,9 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
-MainWindow::MainWindow(const QString & minidumpLocation,
-                       const QString & symbolsFileLocation,
+MainWindow::MainWindow(const QString & symbolsFileLocation,
                        const QString & stackwalkBinaryLocation,
+                       const QString & minidumpLocation,
                        QWidget * parent) :
     QMainWindow(parent),
     m_pUi(new Ui::MainWindow)

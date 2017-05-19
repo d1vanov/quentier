@@ -37,6 +37,10 @@
 #include <iostream>
 #include <exception>
 
+#ifdef BUILDING_WITH_BREAKPAD
+#include "BreakpadIntegration.h"
+#endif
+
 int main(int argc, char *argv[])
 {
     quentier::CommandLineParser cmdParser(argc, argv);
@@ -55,6 +59,10 @@ int main(int argc, char *argv[])
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
+
+#ifdef BUILDING_WITH_BREAKPAD
+    quentier::setupBreakpad(app);
+#endif
 
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);

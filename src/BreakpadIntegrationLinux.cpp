@@ -17,22 +17,94 @@
  */
 
 #include "BreakpadIntegration.h"
+
+#include "SuppressWarningsMacro.h"
+
+SUPPRESS_WARNINGS
 #include <client/linux/handler/exception_handler.h>
+RESTORE_WARNINGS
+
+#include <QStringList>
+#include <QFileInfo>
+#include <QProcess>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
+#include <QGlobalStatic>
+#endif
+
+#include <unistd.h>
+
+namespace quentier {
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
+Q_GLOBAL_STATIC(QString, quentierCrashHandlerFilePath)
+Q_GLOBAL_STATIC(QString, quentierSymbolsFilePath)
+Q_GLOBAL_STATIC(QString, quentierMinidumpStackwalkFilePath)
+#else
+static QString quentierCrashHandlerFilePath;
+static QString quentierSymbolsFilePath;
+static QString quentierMinidumpStackwalkFilePath;
+#endif
 
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor & descriptor,
                          void * context, bool succeeded)
 {
-    printf("Dump path: %s\n", descriptor.path());
+    Q_UNUSED(context)
+
+    pid_t p = fork();
+    if (p == 0)
+    {
+        QString minidumpFileLocation = QString::fromLocal8Bit(descriptor.path());
+
+        QStringList crashHandlerArgs;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
+        crashHandlerArgs << *quentierSymbolsFilePath;
+        crashHandlerArgs << *quentierMinidumpStackwalkFilePath;
+#else
+        crashHandlerArgs << quentierSymbolsFilePath;
+        crashHandlerArgs << quentierMinidumpStackwalkFilePath;
+#endif
+        crashHandlerArgs << minidumpFileLocation;
+
+        QProcess * pProcessHandle = new QProcess();
+        QObject::connect(pProcessHandle, SIGNAL(finished(int,QProcess::ExitStatus)),
+                         pProcessHandle, SLOT(deleteLater()));
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
+        QString * pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
+#else
+        QString * pQuentierCrashHandlerFilePath = &quentierCrashHandlerFilePath;
+#endif
+
+        Q_UNUSED(pProcessHandle->start(*pQuentierCrashHandlerFilePath, crashHandlerArgs))
+    }
+    else
+    {
+        printf("Dump path: %s\n", descriptor.path());
+    }
+
     return succeeded;
 }
-
-namespace quentier {
 
 static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = NULL;
 static google_breakpad::ExceptionHandler * pBreakpadHandler = NULL;
 
-void setupBreakpad()
+void setupBreakpad(const QApplication & app)
 {
+    QString appFilePath = app.applicationFilePath();
+    QFileInfo appFileInfo(appFilePath);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
+    *quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
+    *quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms");
+    *quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
+#else
+    quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
+    quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms");
+    quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
+#endif
+
     pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
     pBreakpadHandler = new google_breakpad::ExceptionHandler(*pBreakpadDescriptor, NULL, dumpCallback, NULL, true, -1);
 }

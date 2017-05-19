@@ -18,28 +18,21 @@
 
 #include "MainWindow.h"
 #include <QApplication>
-#include <QString>
+#include <QStringList>
 #include <QDebug>
 
 int main(int argc, char * argv[])
 {
     QApplication app(argc, argv);
 
-    if (argc < 4) {
-        qWarning() << "Usage: " << argv[0]
-                   << " <minidump location> "
-                   << "<symbols file location> "
-                   << "<stackwalker tool location>";
+    QStringList args = app.arguments();
+    if (args.size() < 4) {
+        qWarning() << QString::fromUtf8("Usage: ") << argv[0] << QString::fromUtf8(" ")
+                   << QString::fromUtf8("<symbols file location> <stackwalker tool location> <minidump file location>");
         return 1;
     }
 
-    QString minidumpLocation = QString::fromUtf8(argv[1]);
-    QString symbolsFileLocation = QString::fromUtf8(argv[2]);
-    QString stackwalkBinaryLocation = QString::fromUtf8(argv[3]);
-
-    MainWindow window(minidumpLocation,
-                      symbolsFileLocation,
-                      stackwalkBinaryLocation);
+    MainWindow window(args.at(1), args.at(2), args.at(3));
     window.show();
 
     return app.exec();
