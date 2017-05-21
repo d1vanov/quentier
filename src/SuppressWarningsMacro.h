@@ -48,7 +48,7 @@
 #define GCC_IGNORE_WARNING(warning) \
     _Pragma( STRINGIFY( GCC diagnostic ignored #warning ) )
 
-#define GCC_RESTORE_WARNINGS
+#define GCC_RESTORE_WARNINGS \
     _Pragma("GCC diagnostic pop")
 
 #define SUPPRESS_WARNINGS \
@@ -60,21 +60,20 @@
 
 #elif defined(_MSC_VER)
 
-#define MSVC_SAVE_WARNINGS __pragma("warning(push)")
-
-#define STRINGIFY(a) #a
+#define MSVC_SAVE_WARNINGS \
+    __pragma(warning(push))
 
 #define MSVC_IGNORE_WARNING(number) \
-    __pragma( STRINGIFY( warning(disable:##number) ) )
+    __pragma(warning(disable:number))
 
-#define MSVC_RESTORE_WARNINGS
-    __pragma("warning(pop)")
+#define MSVC_RESTORE_WARNINGS \
+    __pragma(warning(pop))
 
 #define SUPPRESS_WARNINGS \
     MSVC_SAVE_WARNINGS \
-    MSVC_IGNORE_WARNING(4365) \
-    MSVS_IGNORE_WARNING(4244) \
-    MSVS_IGNORE_WARNING(4305)
+    __pragma(warning(disable:4365)) \
+    __pragma(warning(disable:4244)) \
+    __pragma(warning(disable:4305))
 
 #define RESTORE_WARNINGS \
     MSVC_RESTORE_WARNINGS

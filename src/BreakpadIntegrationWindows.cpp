@@ -48,8 +48,6 @@ static QByteArray quentierCrashHandlerFilePath;
 static QByteArray quentierCrashHandlerArgs;
 #endif
 
-}
-
 bool ShowDumpResults(const wchar_t* dump_path,
                      const wchar_t* minidump_id,
                      void* context,
@@ -69,13 +67,13 @@ bool ShowDumpResults(const wchar_t* dump_path,
 
     // Hope it doesn't cause the resize; it shouldn't unless the dump_path is unexpectedly huge
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    quentierCrashHandlerArgs->append((const char*)dump_path);
-    const TCHAR * crashHandlerFilePath = (const TCHAR*)(quentierCrashHandlerFilePath->constData())
-    const TCHAR * argsData = (const TCHAR*)(quentierCrashHandlerArgs->constData())
+    quentierCrashHandlerArgs->append(QByteArray((const char*)dump_path));
+    const TCHAR * crashHandlerFilePath = (const TCHAR*)(quentierCrashHandlerFilePath->constData());
+    const TCHAR * argsData = (const TCHAR*)(quentierCrashHandlerArgs->constData());
 #else
     quentierCrashHandlerArgs.append((const char*)dump_path);
-    const TCHAR * crashHandlerFilePath = (const TCHAR*)(quentierCrashHandlerFilePath.constData())
-    const TCHAR * argsData = (const TCHAR*)(quentierCrashHandlerArgs.constData())
+    const TCHAR * crashHandlerFilePath = (const TCHAR*)(quentierCrashHandlerFilePath.constData());
+    const TCHAR * argsData = (const TCHAR*)(quentierCrashHandlerArgs.constData());
 #endif
 
     Q_UNUSED(CreateProcess(crashHandlerFilePath, argsData, NULL, NULL, FALSE,
@@ -91,8 +89,8 @@ void setupBreakpad(const QApplication & app)
     QFileInfo appFileInfo(appFilePath);
 
 #define CONVERT_PATH(path) \
-    path = QDir::toNativeSeparators(path);
-    path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"))
+    appFilePath = QDir::toNativeSeparators(appFilePath);
+    appFilePath.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"));
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString minidumpsStorageFolderPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation);

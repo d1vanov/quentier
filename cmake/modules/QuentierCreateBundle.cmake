@@ -153,6 +153,10 @@ function(CreateQuentierBundle)
       # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
       install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
 
+      if(BREAKPAD_FOUND)
+        list(APPEND APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}_minidump_stackwalk.exe)
+      endif()
+
       # fixup other dependencies not taken care of by windeployqt/macdeployqt
       install(CODE "
               include(CMakeParseArguments)
@@ -165,6 +169,9 @@ function(CreateQuentierBundle)
               fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
               " COMPONENT Runtime)
     else()
+      if(BREAKPAD_FOUND)
+        list(APPEND APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}_minidump_stackwalk.exe)
+      endif()
       install(CODE "
               include(DeployQt4)
               include(InstallRequiredSystemLibraries)
