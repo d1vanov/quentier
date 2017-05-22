@@ -26,8 +26,11 @@ public:
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
+    void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
+    void synchronizationNoteThumbnailsStoragePathChanged(QString path);
 
 private Q_SLOTS:
+    // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);
     void onCloseToSystemTrayCheckboxToggled(bool checked);
     void onMinimizeToSystemTrayCheckboxToggled(bool checked);
@@ -37,7 +40,12 @@ private Q_SLOTS:
     void onMiddleClickTrayActionChanged(int action);
     void onDoubleClickTrayActionChanged(int action);
 
-    void onNoteEditorUseLimitedFontsOptionChanged(bool enabled);
+    // Note editor tab
+    void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
+
+    // Synchronization tab
+    void onDownloadNoteThumbnailsCheckboxToggled(bool checked);
+    void onNoteThumbnailsStoragePathChanged();
 
 private:
     void setupCurrentSettingsState();

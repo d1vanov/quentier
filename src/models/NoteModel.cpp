@@ -41,7 +41,7 @@ namespace quentier {
 
 NoteModel::NoteModel(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                      NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent,
-                     const IncludedNotes::type includedNotes) :
+                     const IncludedNotes::type includedNotes, const QString & noteThumbnailsStoragePath) :
     QAbstractItemModel(parent),
     m_account(account),
     m_includedNotes(includedNotes),
@@ -66,7 +66,8 @@ NoteModel::NoteModel(const Account & account, LocalStorageManagerAsync & localSt
     m_tagDataByTagLocalUid(),
     m_findTagRequestForTagLocalUid(),
     m_tagLocalUidToNoteLocalUid(),
-    m_allNotesListed(false)
+    m_allNotesListed(false),
+    m_noteThumbnailsStoragePath(noteThumbnailsStoragePath)
 {
     createConnections(localStorageManagerAsync);
     requestNotesList();
@@ -79,6 +80,27 @@ void NoteModel::updateAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("NoteModel::updateAccount: ") << account);
     m_account = account;
+}
+
+void NoteModel::setNoteThumbnailsStoragePath(const QString & noteThumbnailsStoragePath)
+{
+    QNDEBUG(QStringLiteral("NoteModel::setNoteThumbnailsStoragePath: ") << noteThumbnailsStoragePath);
+
+    m_noteThumbnailsStoragePath = noteThumbnailsStoragePath;
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    ThumbnailPathModifier modifier(m_noteThumbnailsStoragePath);
+
+    // NOTE: exploiting the fact that thumbnail is not used in any way for indexing the model item;
+    // otherwise modification inside the loop would be unsafe
+    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it)
+    {
+        if (localUidIndex.modify(it, modifier)) {
+            QModelIndex itemIndex = indexForLocalUid(it->localUid());
+            itemIndex = index(itemIndex.row(), Columns::ThumbnailImage);
+            emit dataChanged(itemIndex, itemIndex);
+        }
+    }
 }
 
 QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
@@ -317,7 +339,7 @@ QVariant NoteModel::data(const QModelIndex & index, int role) const
     case Columns::DeletionTimestamp:
     case Columns::Title:
     case Columns::PreviewText:
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     case Columns::NotebookName:
     case Columns::TagNameList:
     case Columns::Size:
@@ -382,7 +404,7 @@ QVariant NoteModel::headerData(int section, Qt::Orientation orientation, int rol
     case Columns::Dirty:
         return QVariant(tr("Dirty"));
     // NOTE: intentional fall-through
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     default:
         return QVariant();
     }
@@ -651,7 +673,7 @@ void NoteModel::sort(int column, Qt::SortOrder order)
             << QStringLiteral(" (") << (order == Qt::AscendingOrder ? QStringLiteral("ascending") : QStringLiteral("descending"))
             << QStringLiteral(")"));
 
-    if ( (column == Columns::ThumbnailImageFilePath) ||
+    if ( (column == Columns::ThumbnailImage) ||
          (column == Columns::TagNameList) )
     {
         // Should not sort by these columns
@@ -1263,7 +1285,7 @@ QVariant NoteModel::dataImpl(const int row, const Columns::type column) const
         return item.title();
     case Columns::PreviewText:
         return item.previewText();
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
         return item.thumbnail();
     case Columns::NotebookName:
         return item.notebookName();
@@ -1389,7 +1411,7 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
     case Columns::Dirty:
         accessibleText += (item.isDirty() ? tr("dirty") : tr("not dirty"));
         break;
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     default:
         return QVariant();
     }
@@ -2216,6 +2238,26 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
     item.setSizeInBytes(static_cast<quint64>(sizeInBytes));
 }
 
+bool NoteModel::ThumbnailPathModifier::operator()(NoteModelItem & item) const
+{
+    const QString & guid = item.guid();
+    if (guid.isEmpty()) {
+        return false;
+    }
+
+    QFileInfo thumbnailFileInfo(m_thumbnailSearchPath + QStringLiteral("/") + guid + QStringLiteral(".png"));
+    if (thumbnailFileInfo.exists() && thumbnailFileInfo.isFile() && thumbnailFileInfo.isReadable())
+    {
+        QImage thumbnail(thumbnailFileInfo.absoluteFilePath(), "PNG");
+        item.setThumbnail(thumbnail);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
 {
     bool less = false;
@@ -2288,7 +2330,7 @@ bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const Note
         less = (!lhs.isDirty() && rhs.isDirty());
         greater = (lhs.isDirty() && !rhs.isDirty());
         break;
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     case Columns::TagNameList:
         less = false;
         greater = false;

@@ -4,6 +4,7 @@
 // The names of different .ini files containing the settings
 #define QUENTIER_UI_SETTINGS QStringLiteral("UserInterface")
 #define QUENTIER_AUXILIARY_SETTINGS QStringLiteral("Auxiliary")
+#define QUENTIER_SYNC_SETTINGS QStringLiteral("Synchronization")
 
 // System tray related settings keys
 #define SYSTEM_TRAY_SETTINGS_GROUP_NAME QStringLiteral("SystemTray")
@@ -66,5 +67,10 @@
 #define LIBQUENTIER_TRANSLATIONS_SEARCH_PATH QStringLiteral("LibquentierTranslationsSearchPath")
 #define QUENTIER_TRANSLATIONS_SEARCH_PATH QStringLiteral("QuentierTranslationsSearchPath")
 
+// Synchronization settings
+#define SYNCHRONIZATION_SETTINGS_GROUP_NAME QStringLiteral("SynchronizationSettings")
+
+#define SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS QStringLiteral("DownloadNoteThumbnails")
+#define SYNCHRINIZATION_NOTE_THUMBNAILS_STORAGE_PATH QStringLiteral("NoteThumbnailsStoragePath")
 
 #endif // QUENTIER_SETTINGS_NAMES_H

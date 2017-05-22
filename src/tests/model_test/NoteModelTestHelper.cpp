@@ -772,7 +772,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
             }
             break;
         }
-    case NoteModel::Columns::ThumbnailImageFilePath:
+    case NoteModel::Columns::ThumbnailImage:
     case NoteModel::Columns::TagNameList:
         break;
     }

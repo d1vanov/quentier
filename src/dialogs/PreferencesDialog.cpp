@@ -7,6 +7,8 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <QStringListModel>
+#include <QFileInfo>
+#include <QDir>
 
 namespace quentier {
 
@@ -22,6 +24,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_pTrayActionsModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
+    m_pUi->statusTextLabel->setHidden(true);
 
     setWindowTitle(tr("Preferences"));
 
@@ -182,18 +185,80 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
     appSettings.endGroup();
 }
 
-void PreferencesDialog::onNoteEditorUseLimitedFontsOptionChanged(bool enabled)
+void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorUseLimitedFontsOptionChanged: ")
-            << (enabled ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, enabled);
+    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, checked);
     appSettings.endGroup();
 
-    emit noteEditorUseLimitedFontsOptionChanged(enabled);
+    emit noteEditorUseLimitedFontsOptionChanged(checked);
+}
+
+void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled: ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS, checked);
+    appSettings.endGroup();
+
+    emit synchronizationDownloadNoteThumbnailsOptionChanged(checked);
+}
+
+void PreferencesDialog::onNoteThumbnailsStoragePathChanged()
+{
+    QString path = m_pUi->noteThumbnailsStoragePathLineEdit->text();
+    path = QDir::fromNativeSeparators(path);
+
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteThumbnailsStoragePathChanged: ") << path);
+
+    m_pUi->statusTextLabel->clear();
+    m_pUi->statusTextLabel->setHidden(true);
+
+    QFileInfo pathInfo(path);
+    if (pathInfo.exists())
+    {
+        if (!pathInfo.isDir()) {
+            QNDEBUG(QStringLiteral("The chosen path already exists and is not a directory"));
+            m_pUi->statusTextLabel->setText(tr("The chosen path for note thumbnails storage is not a directory"));
+            m_pUi->statusTextLabel->setHidden(false);
+            return;
+        }
+
+        if (!pathInfo.isWritable()) {
+            QNDEBUG(QStringLiteral("The chosen path already exists and is not writable"));
+            m_pUi->statusTextLabel->setText(tr("The chosen path for note thumbnails storage is not a directory"));
+            m_pUi->statusTextLabel->setHidden(false);
+            return;
+        }
+    }
+    else
+    {
+        QDir pathDir(path);
+        bool res = pathDir.mkpath(path);
+        if (!res) {
+            QNDEBUG(QStringLiteral("Can't create the folder from specified path for note thumbnails storage"));
+            m_pUi->statusTextLabel->setText(tr("Cannot create the folder for note thumbnails storage"));
+            m_pUi->statusTextLabel->setHidden(false);
+            return;
+        }
+    }
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SYNCHRINIZATION_NOTE_THUMBNAILS_STORAGE_PATH, path);
+    appSettings.endGroup();
+
+    emit synchronizationNoteThumbnailsStoragePathChanged(path);
 }
 
 void PreferencesDialog::setupCurrentSettingsState()
@@ -325,7 +390,12 @@ void PreferencesDialog::createConnections()
                      this, SLOT(onDoubleClickTrayActionChanged(int)));
 
     QObject::connect(m_pUi->limitedFontsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
-                     this, QNSLOT(PreferencesDialog,onNoteEditorUseLimitedFontsOptionChanged,bool));
+                     this, QNSLOT(PreferencesDialog,onNoteEditorUseLimitedFontsCheckboxToggled,bool));
+
+    QObject::connect(m_pUi->downloadNoteThumbnailsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onDownloadNoteThumbnailsCheckboxToggled,bool));
+    QObject::connect(m_pUi->noteThumbnailsStoragePathLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNoteThumbnailsStoragePathChanged));
 
     // TODO: continue
 }

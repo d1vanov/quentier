@@ -100,6 +100,9 @@ Q_SIGNALS:
     void noteInfoDialogRequested(QString noteLocalUid);
     void synchronize();
 
+    void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
+    void synchronizationNoteThumbnailsStoragePathChanged(QString path);
+
 private Q_SLOTS:
     void onUndoAction();
     void onRedoAction();
@@ -236,6 +239,8 @@ private Q_SLOTS:
 
     void onUseLimitedFontsPreferenceChanged(bool flag);
 
+    void onSynchronizationNoteThumbnailsStoragePathChanged(QString path);
+
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();
@@ -355,6 +360,8 @@ private:
 
     void adjustNoteListAndFiltersSplitterSizes();
 
+    void clearDir(const QString & path);
+
     class StyleSheetProperty
     {
     public:
@@ -431,6 +438,7 @@ private:
     bool                        m_pendingSwitchToNewEvernoteAccount;
     bool                        m_syncInProgress;
     QMovie                      m_animatedSyncButtonIcon;
+    QString                     m_noteThumbnailsStoragePath;
 
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;

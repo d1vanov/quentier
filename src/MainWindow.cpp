@@ -107,6 +107,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <QFocusEvent>
 #include <QMenu>
 #include <QThreadPool>
+#include <QDir>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -156,6 +157,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pendingSwitchToNewEvernoteAccount(false),
     m_syncInProgress(false),
     m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
+    m_noteThumbnailsStoragePath(),
     m_notebookCache(),
     m_tagCache(),
     m_savedSearchCache(),
@@ -794,6 +796,10 @@ void MainWindow::connectSynchronizationManager()
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronize),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
+    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool));
+    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationNoteThumbnailsStoragePathChanged,QString),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setNoteThumbnailsStoragePath,QString));
 
     // Connect SynchronizationManager signals to local slots
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
@@ -842,6 +848,10 @@ void MainWindow::disconnectSynchronizationManager()
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
     QObject::disconnect(this, QNSIGNAL(MainWindow,synchronize),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
+    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool));
+    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationNoteThumbnailsStoragePathChanged,QString),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setNoteThumbnailsStoragePath,QString));
 
     // Disconnect SynchronizationManager signals from local slots
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
@@ -1174,6 +1184,22 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
     // Need to schedule the repaint because otherwise the actions above
     // seem to have no effect
     m_pUI->noteListAndFiltersSplitter->update();
+}
+
+void MainWindow::clearDir(const QString & path)
+{
+    QDir newDir(path);
+
+    QStringList files = newDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
+    for(auto it = files.constBegin(), end = files.constEnd(); it != end; ++it) {
+        Q_UNUSED(newDir.remove(*it))
+    }
+
+    QStringList dirs = newDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
+    for(auto it = dirs.constBegin(), end = dirs.constEnd(); it != end; ++it) {
+        clearDir(*it);
+        Q_UNUSED(newDir.remove(*it))
+    }
 }
 
 void MainWindow::collectBaseStyleSheets()
@@ -2249,6 +2275,11 @@ void MainWindow::onShowSettingsDialogAction()
 
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,noteEditorUseLimitedFontsOptionChanged,bool),
                      this, QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
+    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
+                     this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool));
+    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,synchronizationNoteThumbnailsStoragePathChanged,QString),
+                     this, QNSLOT(MainWindow,onSynchronizationNoteThumbnailsStoragePathChanged,QString));
+
     Q_UNUSED(pPreferencesDialog->exec());
 }
 
@@ -2615,6 +2646,26 @@ void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
     if (m_pNoteEditorTabsAndWindowsCoordinator) {
         m_pNoteEditorTabsAndWindowsCoordinator->setUseLimitedFonts(flag);
     }
+}
+
+void MainWindow::onSynchronizationNoteThumbnailsStoragePathChanged(QString path)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationNoteThumbnailsStoragePathChanged: ") << path);
+
+    clearDir(path);
+
+    if (!m_noteThumbnailsStoragePath.isEmpty())
+    {
+        QDir previousDir(m_noteThumbnailsStoragePath);
+
+        QStringList entries = previousDir.entryList(QDir::NoDotAndDotDot);
+        for(auto it = entries.constBegin(), end = entries.constEnd(); it != end; ++it) {
+            QFileInfo entryInfo(*it);
+            Q_UNUSED(previousDir.rename(*it, path + QStringLiteral("/") + entryInfo.fileName()));
+        }
+    }
+
+    emit synchronizationNoteThumbnailsStoragePathChanged(path);
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
@@ -3220,25 +3271,11 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     *m_pAccount = account;
     setWindowTitleForAccount(account);
 
-    if (m_pAccount->type() == Account::Type::Local)
-    {
+    if (m_pAccount->type() == Account::Type::Local) {
         clearSynchronizationManager();
     }
-    else
-    {
-        if (m_synchronizationManagerHost == m_pAccount->evernoteHost())
-        {
-            if (!m_pSynchronizationManager) {
-                setupSynchronizationManager();
-            }
-        }
-        else
-        {
-            m_synchronizationManagerHost = m_pAccount->evernoteHost();
-            setupSynchronizationManager();
-        }
-
-        m_pSynchronizationManager->setAccount(*m_pAccount);
+    else {
+        setupSynchronizationManager();
     }
 
     setupModels();
@@ -3866,7 +3903,7 @@ void MainWindow::setupViews()
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::CreationTimestamp, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ModificationTimestamp, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::PreviewText, true);
-    pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ThumbnailImageFilePath, true);
+    pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ThumbnailImage, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::TagNameList, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::Size, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::Synchronizable, true);
@@ -3999,6 +4036,11 @@ void MainWindow::setupSynchronizationManager()
         return;
     }
 
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG(QStringLiteral("No account"));
+        return;
+    }
+
     QString consumerKey, consumerSecret;
     setupConsumerKeyAndSecret(consumerKey, consumerSecret);
 
@@ -4023,6 +4065,24 @@ void MainWindow::setupSynchronizationManager()
                                                            m_synchronizationManagerHost,
                                                            *m_pLocalStorageManagerAsync,
                                                            *m_pAuthenticationManager);
+
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_SYNC_SETTINGS);
+    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    bool downloadNoteThumbnails = (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
+                                   ? appSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS).toBool()
+                                   : true);
+    m_noteThumbnailsStoragePath = appSettings.value(SYNCHRINIZATION_NOTE_THUMBNAILS_STORAGE_PATH).toString();
+    appSettings.endGroup();
+
+    m_pSynchronizationManager->setDownloadNoteThumbnails(downloadNoteThumbnails);
+
+    if (!m_noteThumbnailsStoragePath.isEmpty()) {
+        m_pSynchronizationManager->setNoteThumbnailsStoragePath(m_noteThumbnailsStoragePath);
+    }
+    else {
+        m_noteThumbnailsStoragePath = m_pSynchronizationManager->noteThumbnailsStoragePath();
+    }
+
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
     connectSynchronizationManager();
 }
