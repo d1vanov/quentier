@@ -22,6 +22,9 @@
 
 SUPPRESS_WARNINGS
 #include <client/windows/handler/exception_handler.h>
+#include <client/windows/crash_generation/minidump_generator.h>
+#include <client/windows/crash_generation/client_info.h>
+#include <client/windows/crash_generation/crash_generation_client.h>
 RESTORE_WARNINGS
 
 #include <QList>
@@ -32,9 +35,13 @@ RESTORE_WARNINGS
 #include <QGlobalStatic>
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <QStandardPaths>
+#endif
 
 #include <windows.h>
 #include <tchar.h>
+#include <string>
 
 namespace quentier {
 
@@ -69,11 +76,11 @@ bool ShowDumpResults(const wchar_t* dump_path,
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     quentierCrashHandlerArgs->append(QByteArray((const char*)dump_path));
     const TCHAR * crashHandlerFilePath = (const TCHAR*)(quentierCrashHandlerFilePath->constData());
-    const TCHAR * argsData = (const TCHAR*)(quentierCrashHandlerArgs->constData());
+    TCHAR * argsData = (TCHAR*)(quentierCrashHandlerArgs->data());
 #else
     quentierCrashHandlerArgs.append((const char*)dump_path);
     const TCHAR * crashHandlerFilePath = (const TCHAR*)(quentierCrashHandlerFilePath.constData());
-    const TCHAR * argsData = (const TCHAR*)(quentierCrashHandlerArgs.constData());
+    TCHAR * argsData = (TCHAR*)(quentierCrashHandlerArgs.data());
 #endif
 
     Q_UNUSED(CreateProcess(crashHandlerFilePath, argsData, NULL, NULL, FALSE,
@@ -104,9 +111,9 @@ void setupBreakpad(const QApplication & app)
     CONVERT_PATH(crashHandlerFilePath);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    *quentierCrashHandlerFilePath = crashHandlerFilePath.utf16();
+    *quentierCrashHandlerFilePath = QByteArray((const char*)(crashHandlerFilePath.utf16()));
 #else
-    quentierCrashHandlerFilePath = crashHandlerFilePath.utf16();
+    quentierCrashHandlerFilePath = QByteArray((const char*)(crashHandlerFilePath.utf16()));
 #endif
 
     QString symbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms");
@@ -124,23 +131,24 @@ void setupBreakpad(const QApplication & app)
     const TCHAR * minidumpsStorageFolderPathData = (const TCHAR*)quentierMinidumpsStorageFolderPath.constData();
 #endif
 
-    *pQuentierCrashHandlerArgs = symbolsFilePath.utf16();
-    *pQuentierCrashHandlerArgs += QString::fromUtf8(" ").utf16();
-    *pQuentierCrashHandlerArgs += minidumpStackwalkFilePath.utf16();
-    *pQuentierCrashHandlerArgs += QString::fromUtf8(" ").utf16();
+    *pQuentierCrashHandlerArgs = QByteArray((const char*)symbolsFilePath.utf16());
+    *pQuentierCrashHandlerArgs += QByteArray((const char*)(QString::fromUtf8(" ").utf16()));
+    *pQuentierCrashHandlerArgs += QByteArray((const char*)(minidumpStackwalkFilePath.utf16()));
+    *pQuentierCrashHandlerArgs += QByteArray((const char*)(QString::fromUtf8(" ").utf16()));
 
     // NOTE: will need to append the path to generated minidump to this byte array = will increase its reserved buffer
     // and pray that the appending of the path to generated minidump won't cause the resize; or, if it does, that
     // the resize succeeds and doesn't break the program about to crash
-    pQuentierCrashHandlerArgs->reserve(quentierCrashHandlerArgs.size() + 1000);
+    pQuentierCrashHandlerArgs->reserve(pQuentierCrashHandlerArgs->size() + 1000);
 
-    pBreakpadHandler = new google_breakpad::ExceptionHandler(minidumpsStorageFolderPathData,
+
+    pBreakpadHandler = new google_breakpad::ExceptionHandler(std::wstring((const wchar_t*)minidumpsStorageFolderPathData),
                                                              NULL,
                                                              ShowDumpResults,
                                                              NULL,
                                                              google_breakpad::ExceptionHandler::HANDLER_ALL,
-                                                             google_breakpad::MiniDumpNormal,
-                                                             NULL,
+                                                             MiniDumpNormal,
+                                                             (const wchar_t*)NULL,
                                                              NULL);
 }
 
