@@ -100,6 +100,7 @@ Q_SIGNALS:
     void noteInfoDialogRequested(QString noteLocalUid);
     void synchronize();
 
+    void synchronizationSetAccount(Account account);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationNoteThumbnailsStoragePathChanged(QString path);
 
@@ -277,6 +278,10 @@ private Q_SLOTS:
     void onSyncButtonPressed();
     void onAnimatedSyncIconFrameChanged(int frame);
 
+    void onSynchronizationManagerSetAccountDone(Account account);
+    void onSynchronizationManagerSetDownloadNoteThumbnailsDone(bool flag);
+    void onSynchronizationManagerSetNoteThumbnailsStoragePathDone(QString path);
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
@@ -303,8 +308,21 @@ private:
     void setupNoteFilters();
     void setupNoteEditorTabWidgetsCoordinator();
 
-    void setupSynchronizationManager();
+    struct SetAccountOption
+    {
+        enum type
+        {
+            Set = 0,
+            DontSet
+        };
+    };
+
+    void setupSynchronizationManager(const SetAccountOption::type = SetAccountOption::DontSet);
     void clearSynchronizationManager();
+    void setAccountToSyncManager(const Account & account);
+    void setThumbnailsOptionsToSyncManager(const Account & account);
+    void launchSync();
+    void checkAndLaunchPendingSync();
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
@@ -437,6 +455,10 @@ private:
     bool                        m_pendingNewEvernoteAccountAuthentication;
     bool                        m_pendingSwitchToNewEvernoteAccount;
     bool                        m_syncInProgress;
+    bool                        m_pendingSynchronizationManagerSetAccount;
+    bool                        m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption;
+    bool                        m_pendingSynchronizationManagerSetNoteThumbnailsStoragePath;
+    bool                        m_pendingSynchronizationManagerResponseToStartSync;
     QMovie                      m_animatedSyncButtonIcon;
     QString                     m_noteThumbnailsStoragePath;
 

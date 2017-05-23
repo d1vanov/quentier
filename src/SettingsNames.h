@@ -71,6 +71,6 @@
 #define SYNCHRONIZATION_SETTINGS_GROUP_NAME QStringLiteral("SynchronizationSettings")
 
 #define SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS QStringLiteral("DownloadNoteThumbnails")
-#define SYNCHRINIZATION_NOTE_THUMBNAILS_STORAGE_PATH QStringLiteral("NoteThumbnailsStoragePath")
+#define SYNCHRONIZATION_NOTE_THUMBNAILS_STORAGE_PATH QStringLiteral("NoteThumbnailsStoragePath")
 
 #endif // QUENTIER_SETTINGS_NAMES_H

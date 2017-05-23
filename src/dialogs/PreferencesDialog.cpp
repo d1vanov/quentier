@@ -255,7 +255,7 @@ void PreferencesDialog::onNoteThumbnailsStoragePathChanged()
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SYNCHRINIZATION_NOTE_THUMBNAILS_STORAGE_PATH, path);
+    appSettings.setValue(SYNCHRONIZATION_NOTE_THUMBNAILS_STORAGE_PATH, path);
     appSettings.endGroup();
 
     emit synchronizationNoteThumbnailsStoragePathChanged(path);
