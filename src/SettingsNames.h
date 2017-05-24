@@ -36,6 +36,7 @@
 #define LOOK_AND_FEEL_SETTINGS_GROUP_NAME QStringLiteral("LookAndFeel")
 #define ICON_THEME_SETTINGS_KEY QStringLiteral("iconTheme")
 #define PANELS_STYLE_SETTINGS_KEY QStringLiteral("panelStyle")
+#define SHOW_NOTE_THUMBNAILS_SETTINGS_KEY QStringLiteral("ShowNoteThumbnails")
 
 // ENEX export/import related settings keys
 #define ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME QStringLiteral("EnexExportImport")

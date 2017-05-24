@@ -19,6 +19,7 @@
 #include "NoteItemDelegate.h"
 #include "../models/NoteModel.h"
 #include "../models/NoteFilterModel.h"
+#include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QPainter>
 #include <QDateTime>
@@ -33,6 +34,7 @@ namespace quentier {
 
 NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
+    m_showNoteThumbnails(DEFAULT_SHOW_NOTE_THUMBNAILS),
     m_minWidth(220),
     m_height(120),
     m_leftMargin(2),
@@ -165,7 +167,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     int left = option.rect.left() + leftMargin;
     int width = option.rect.width() - leftMargin - rightMargin;
-    if (!thumbnail.isNull()) {
+    if (m_showNoteThumbnails && !thumbnail.isNull()) {
         width -= 100;
     }
 
@@ -337,7 +339,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     painter->drawText(QRectF(previewTextRect), text, textOption);
 
     // 4) Painting the thumbnail (if any)
-    if (!thumbnail.isNull())
+    if (m_showNoteThumbnails && !thumbnail.isNull())
     {
         int top = option.rect.top() + topMargin;
         int bottom = option.rect.bottom() - bottomMargin;

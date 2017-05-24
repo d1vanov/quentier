@@ -32,7 +32,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -221,6 +221,19 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QCheckBox" name="showNoteThumbnailsCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>90</y>
+         <width>471</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Show note thumbnails</string>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="noteEditorTab">

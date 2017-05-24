@@ -27,6 +27,7 @@ public:
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
+    void showNoteThumbnailsOptionChanged(bool enabled);
 
 private Q_SLOTS:
     // System tray tab
@@ -38,6 +39,9 @@ private Q_SLOTS:
     void onSingleClickTrayActionChanged(int action);
     void onMiddleClickTrayActionChanged(int action);
     void onDoubleClickTrayActionChanged(int action);
+
+    // Appearance tab
+    void onShowNoteThumbnailsCheckboxToggled(bool checked);
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);

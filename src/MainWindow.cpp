@@ -2280,6 +2280,8 @@ void MainWindow::onShowSettingsDialogAction()
                      this, QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
                      this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool));
+    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged,bool),
+                     this, QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged,bool));
 
     Q_UNUSED(pPreferencesDialog->exec());
 }
@@ -2642,11 +2644,27 @@ void MainWindow::onEnexImportFailed(ErrorString errorDescription)
 
 void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onUseLimitedFontsPreferenceChanged: flag = ") << flag);
+    QNDEBUG(QStringLiteral("MainWindow::onUseLimitedFontsPreferenceChanged: flag = ")
+            << (flag ? QStringLiteral("enabled") : QStringLiteral("disabled")));
 
     if (m_pNoteEditorTabsAndWindowsCoordinator) {
         m_pNoteEditorTabsAndWindowsCoordinator->setUseLimitedFonts(flag);
     }
+}
+
+void MainWindow::onShowNoteThumbnailsPreferenceChanged(bool flag)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowNoteThumbnailsPreferenceChanged: ")
+            << (flag ? QStringLiteral("enabled") : QStringLiteral("disabled")));
+
+    NoteItemDelegate * pNoteItemDelegate = qobject_cast<NoteItemDelegate*>(m_pUI->noteListView->itemDelegate());
+    if (Q_UNLIKELY(!pNoteItemDelegate)) {
+        QNDEBUG(QStringLiteral("No NoteItemDelegate"));
+        return;
+    }
+
+    pNoteItemDelegate->setShowNoteThumbnails(flag);
+    m_pUI->noteListView->update();
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
@@ -3879,8 +3897,21 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onModelViewError,ErrorString));
 
     NoteListView * pNoteListView = m_pUI->noteListView;
+    NoteItemDelegate * pNoteItemDelegate = new NoteItemDelegate(pNoteListView);
+
+    if (m_pAccount)
+    {
+        ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+        if (appSettings.contains(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY)) {
+            bool showNoteThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY).toBool();
+            pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
+        }
+        appSettings.endGroup();
+    }
+
     pNoteListView->setModelColumn(NoteModel::Columns::Title);
-    pNoteListView->setItemDelegate(new NoteItemDelegate(pNoteListView));
+    pNoteListView->setItemDelegate(pNoteItemDelegate);
     pNoteListView->setNotebookItemView(pNotebooksTreeView);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pNoteModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
