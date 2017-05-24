@@ -41,7 +41,7 @@ namespace quentier {
 
 NoteModel::NoteModel(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                      NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent,
-                     const IncludedNotes::type includedNotes, const QString & noteThumbnailsStoragePath) :
+                     const IncludedNotes::type includedNotes) :
     QAbstractItemModel(parent),
     m_account(account),
     m_includedNotes(includedNotes),
@@ -66,8 +66,7 @@ NoteModel::NoteModel(const Account & account, LocalStorageManagerAsync & localSt
     m_tagDataByTagLocalUid(),
     m_findTagRequestForTagLocalUid(),
     m_tagLocalUidToNoteLocalUid(),
-    m_allNotesListed(false),
-    m_noteThumbnailsStoragePath(noteThumbnailsStoragePath)
+    m_allNotesListed(false)
 {
     createConnections(localStorageManagerAsync);
     requestNotesList();
@@ -80,27 +79,6 @@ void NoteModel::updateAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("NoteModel::updateAccount: ") << account);
     m_account = account;
-}
-
-void NoteModel::setNoteThumbnailsStoragePath(const QString & noteThumbnailsStoragePath)
-{
-    QNDEBUG(QStringLiteral("NoteModel::setNoteThumbnailsStoragePath: ") << noteThumbnailsStoragePath);
-
-    m_noteThumbnailsStoragePath = noteThumbnailsStoragePath;
-
-    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    ThumbnailPathModifier modifier(m_noteThumbnailsStoragePath);
-
-    // NOTE: exploiting the fact that thumbnail is not used in any way for indexing the model item;
-    // otherwise modification inside the loop would be unsafe
-    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it)
-    {
-        if (localUidIndex.modify(it, modifier)) {
-            QModelIndex itemIndex = indexForLocalUid(it->localUid());
-            itemIndex = index(itemIndex.row(), Columns::ThumbnailImage);
-            emit dataChanged(itemIndex, itemIndex);
-        }
-    }
 }
 
 QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
@@ -2236,26 +2214,6 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
 
     sizeInBytes = std::max(qint64(0), sizeInBytes);
     item.setSizeInBytes(static_cast<quint64>(sizeInBytes));
-}
-
-bool NoteModel::ThumbnailPathModifier::operator()(NoteModelItem & item) const
-{
-    const QString & guid = item.guid();
-    if (guid.isEmpty()) {
-        return false;
-    }
-
-    QFileInfo thumbnailFileInfo(m_thumbnailSearchPath + QStringLiteral("/") + guid + QStringLiteral(".png"));
-    if (thumbnailFileInfo.exists() && thumbnailFileInfo.isFile() && thumbnailFileInfo.isReadable())
-    {
-        QImage thumbnail(thumbnailFileInfo.absoluteFilePath(), "PNG");
-        item.setThumbnail(thumbnail);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
 }
 
 bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const

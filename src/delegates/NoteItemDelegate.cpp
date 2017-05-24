@@ -166,7 +166,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     int left = option.rect.left() + leftMargin;
     int width = option.rect.width() - leftMargin - rightMargin;
     if (!thumbnail.isNull()) {
-        width -= 120;
+        width -= 100;
     }
 
     // 1) Painting the title (or a piece of preview text if there's no title)
@@ -341,7 +341,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     {
         int top = option.rect.top() + topMargin;
         int bottom = option.rect.bottom() - bottomMargin;
-        QRect thumbnailRect(option.rect.width() - 110, top, 100, bottom);
+        QRect thumbnailRect(option.rect.right() - 100, top, 100, bottom - top);
 
         QNTRACE(QStringLiteral("Thumbnail rect: top = ") << thumbnailRect.top() << QStringLiteral(", bottom = ")
                 << thumbnailRect.bottom() << QStringLiteral(", left = ") << thumbnailRect.left()
@@ -354,7 +354,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
             painter->setPen(option.palette.windowText().color());
         }
 
-        painter->drawImage(thumbnailRect, thumbnail, thumbnail.rect());
+        painter->drawImage(thumbnailRect, thumbnail);
     }
 
     painter->restore();

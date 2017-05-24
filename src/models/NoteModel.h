@@ -60,15 +60,11 @@ public:
 
     explicit NoteModel(const Account & account,  LocalStorageManagerAsync & localStorageManagerAsync,
                        NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
-                       const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted,
-                       const QString & noteThumbnailsStoragePath = QString());
+                       const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
     virtual ~NoteModel();
 
     const Account & account() const { return m_account; }
     void updateAccount(const Account & account);
-
-    const QString & noteThumbnailsStoragePath() const { return m_noteThumbnailsStoragePath; }
-    void setNoteThumbnailsStoragePath(const QString & noteThumbnailsStoragePath);
 
     struct Columns
     {
@@ -363,8 +359,6 @@ private:
     QMultiHash<QString, QString>        m_tagLocalUidToNoteLocalUid;
 
     bool                    m_allNotesListed;
-
-    QString                 m_noteThumbnailsStoragePath;
 };
 
 } // namespace quentier

@@ -213,54 +213,6 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
     emit synchronizationDownloadNoteThumbnailsOptionChanged(checked);
 }
 
-void PreferencesDialog::onNoteThumbnailsStoragePathChanged()
-{
-    QString path = m_pUi->noteThumbnailsStoragePathLineEdit->text();
-    path = QDir::fromNativeSeparators(path);
-
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteThumbnailsStoragePathChanged: ") << path);
-
-    m_pUi->statusTextLabel->clear();
-    m_pUi->statusTextLabel->setHidden(true);
-
-    QFileInfo pathInfo(path);
-    if (pathInfo.exists())
-    {
-        if (!pathInfo.isDir()) {
-            QNDEBUG(QStringLiteral("The chosen path already exists and is not a directory"));
-            m_pUi->statusTextLabel->setText(tr("The chosen path for note thumbnails storage is not a directory"));
-            m_pUi->statusTextLabel->setHidden(false);
-            return;
-        }
-
-        if (!pathInfo.isWritable()) {
-            QNDEBUG(QStringLiteral("The chosen path already exists and is not writable"));
-            m_pUi->statusTextLabel->setText(tr("The chosen path for note thumbnails storage is not a directory"));
-            m_pUi->statusTextLabel->setHidden(false);
-            return;
-        }
-    }
-    else
-    {
-        QDir pathDir(path);
-        bool res = pathDir.mkpath(path);
-        if (!res) {
-            QNDEBUG(QStringLiteral("Can't create the folder from specified path for note thumbnails storage"));
-            m_pUi->statusTextLabel->setText(tr("Cannot create the folder for note thumbnails storage"));
-            m_pUi->statusTextLabel->setHidden(false);
-            return;
-        }
-    }
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SYNCHRONIZATION_NOTE_THUMBNAILS_STORAGE_PATH, path);
-    appSettings.endGroup();
-
-    emit synchronizationNoteThumbnailsStoragePathChanged(path);
-}
-
 void PreferencesDialog::setupCurrentSettingsState()
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
@@ -394,8 +346,6 @@ void PreferencesDialog::createConnections()
 
     QObject::connect(m_pUi->downloadNoteThumbnailsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onDownloadNoteThumbnailsCheckboxToggled,bool));
-    QObject::connect(m_pUi->noteThumbnailsStoragePathLineEdit, QNSIGNAL(QLineEdit,editingFinished),
-                     this, QNSLOT(PreferencesDialog,onNoteThumbnailsStoragePathChanged));
 
     // TODO: continue
 }

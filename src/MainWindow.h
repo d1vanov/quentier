@@ -102,7 +102,6 @@ Q_SIGNALS:
 
     void synchronizationSetAccount(Account account);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
-    void synchronizationNoteThumbnailsStoragePathChanged(QString path);
 
 private Q_SLOTS:
     void onUndoAction();
@@ -240,8 +239,6 @@ private Q_SLOTS:
 
     void onUseLimitedFontsPreferenceChanged(bool flag);
 
-    void onSynchronizationNoteThumbnailsStoragePathChanged(QString path);
-
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();
@@ -280,7 +277,6 @@ private Q_SLOTS:
 
     void onSynchronizationManagerSetAccountDone(Account account);
     void onSynchronizationManagerSetDownloadNoteThumbnailsDone(bool flag);
-    void onSynchronizationManagerSetNoteThumbnailsStoragePathDone(QString path);
 
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
@@ -320,7 +316,7 @@ private:
     void setupSynchronizationManager(const SetAccountOption::type = SetAccountOption::DontSet);
     void clearSynchronizationManager();
     void setAccountToSyncManager(const Account & account);
-    void setThumbnailsOptionsToSyncManager(const Account & account);
+    void setDownloadThumbnailsOptionToSyncManager(const Account & account);
     void launchSync();
     void checkAndLaunchPendingSync();
 
