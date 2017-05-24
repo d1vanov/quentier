@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>506</width>
-    <height>299</height>
+    <height>325</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -158,7 +158,7 @@
       <attribute name="title">
        <string>Appearance</string>
       </attribute>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -222,6 +222,19 @@
         </item>
        </layout>
       </widget>
+      <widget class="QCheckBox" name="showNoteThumbnailsCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>90</y>
+         <width>471</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Show note thumbnails</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="noteEditorTab">
       <attribute name="title">
@@ -257,38 +270,6 @@
        <property name="text">
         <string>Download note thumbnails</string>
        </property>
-      </widget>
-      <widget class="QWidget" name="">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>40</y>
-         <width>491</width>
-         <height>60</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="noteThumbnailsStoragePathGridLayout">
-        <item row="0" column="0" colspan="2">
-         <widget class="QLabel" name="noteThumbnailsStoragePathLabel">
-          <property name="text">
-           <string>&amp;Note thumbnails storage path:</string>
-          </property>
-          <property name="buddy">
-           <cstring>noteThumbnailsStoragePathLineEdit</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLineEdit" name="noteThumbnailsStoragePathLineEdit"/>
-        </item>
-        <item row="1" column="1">
-         <widget class="QPushButton" name="noteThumbnailsStoragePathBrowsePushButton">
-          <property name="text">
-           <string>Browse</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </widget>
      </widget>
     </widget>
@@ -329,6 +310,9 @@
       </spacer>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusTextLabel"/>
    </item>
   </layout>
  </widget>

@@ -74,7 +74,7 @@ public:
             DeletionTimestamp,
             Title,
             PreviewText,
-            ThumbnailImageFilePath,
+            ThumbnailImage,
             NotebookName,
             TagNameList,
             Size,
@@ -297,6 +297,19 @@ private:
     };
 
     typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
+
+    class ThumbnailPathModifier
+    {
+    public:
+        ThumbnailPathModifier(const QString & thumbnailSearchPath) :
+            m_thumbnailSearchPath(thumbnailSearchPath)
+        {}
+
+        bool operator()(NoteModelItem & item) const;
+
+    private:
+        QString m_thumbnailSearchPath;
+    };
 
 private:
     void onNoteAddedOrUpdated(const Note & note);

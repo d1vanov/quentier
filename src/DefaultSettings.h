@@ -10,6 +10,8 @@
 
 #define DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY (false)
 
+#define DEFAULT_SHOW_NOTE_THUMBNAILS (true)
+
 #ifdef Q_WS_MAC
 #define DEFAULT_TRAY_ICON_KIND QStringLiteral("dark")
 #else

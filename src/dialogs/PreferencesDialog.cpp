@@ -7,6 +7,8 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <QStringListModel>
+#include <QFileInfo>
+#include <QDir>
 
 namespace quentier {
 
@@ -22,6 +24,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_pTrayActionsModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
+    m_pUi->statusTextLabel->setHidden(true);
 
     setWindowTitle(tr("Preferences"));
 
@@ -182,18 +185,46 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
     appSettings.endGroup();
 }
 
-void PreferencesDialog::onNoteEditorUseLimitedFontsOptionChanged(bool enabled)
+void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorUseLimitedFontsOptionChanged: ")
-            << (enabled ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG(QStringLiteral("PreferencesDialog::onShowNoteThumbnailsCheckboxToggled: checked = ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, checked);
+    appSettings.endGroup();
+
+    emit showNoteThumbnailsOptionChanged(checked);
+}
+
+void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, enabled);
+    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, checked);
     appSettings.endGroup();
 
-    emit noteEditorUseLimitedFontsOptionChanged(enabled);
+    emit noteEditorUseLimitedFontsOptionChanged(checked);
+}
+
+void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled: ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS, checked);
+    appSettings.endGroup();
+
+    emit synchronizationDownloadNoteThumbnailsOptionChanged(checked);
 }
 
 void PreferencesDialog::setupCurrentSettingsState()
@@ -299,6 +330,18 @@ void PreferencesDialog::setupCurrentSettingsState()
     appSettings.endGroup();
 
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
+
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    bool showNoteThumbnails = DEFAULT_SHOW_NOTE_THUMBNAILS;
+    QVariant showNoteThumbnailsData = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY);
+    if (showNoteThumbnailsData.isValid()) {
+        showNoteThumbnails = showNoteThumbnailsData.toBool();
+    }
+
+    appSettings.endGroup();
+
+    m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
 }
 
 void PreferencesDialog::createConnections()
@@ -324,8 +367,14 @@ void PreferencesDialog::createConnections()
     QObject::connect(m_pUi->trayDoubleClickActionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onDoubleClickTrayActionChanged(int)));
 
+    QObject::connect(m_pUi->showNoteThumbnailsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onShowNoteThumbnailsCheckboxToggled,bool));
+
     QObject::connect(m_pUi->limitedFontsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
-                     this, QNSLOT(PreferencesDialog,onNoteEditorUseLimitedFontsOptionChanged,bool));
+                     this, QNSLOT(PreferencesDialog,onNoteEditorUseLimitedFontsCheckboxToggled,bool));
+
+    QObject::connect(m_pUi->downloadNoteThumbnailsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onDownloadNoteThumbnailsCheckboxToggled,bool));
 
     // TODO: continue
 }

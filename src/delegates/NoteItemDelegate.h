@@ -31,6 +31,9 @@ class NoteItemDelegate: public QStyledItemDelegate
 public:
     explicit NoteItemDelegate(QObject * parent = Q_NULLPTR);
 
+    bool showNoteThumbnails() const { return m_showNoteThumbnails; }
+    void setShowNoteThumbnails(const bool showNoteThumbnails) { m_showNoteThumbnails = showNoteThumbnails; }
+
     /**
      * @brief returns null pointer as NoteItemDelegate doesn't allow editing
      */
@@ -64,6 +67,7 @@ private:
     QString timestampToString(const qint64 timestamp, const qint64 timePassed) const;
 
 private:
+    bool                    m_showNoteThumbnails;
     int                     m_minWidth;
     int                     m_height;
     int                     m_leftMargin;

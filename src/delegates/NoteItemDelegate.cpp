@@ -19,6 +19,7 @@
 #include "NoteItemDelegate.h"
 #include "../models/NoteModel.h"
 #include "../models/NoteFilterModel.h"
+#include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QPainter>
 #include <QDateTime>
@@ -33,6 +34,7 @@ namespace quentier {
 
 NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
+    m_showNoteThumbnails(DEFAULT_SHOW_NOTE_THUMBNAILS),
     m_minWidth(220),
     m_height(120),
     m_leftMargin(2),
@@ -165,8 +167,8 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     int left = option.rect.left() + leftMargin;
     int width = option.rect.width() - leftMargin - rightMargin;
-    if (!thumbnail.isNull()) {
-        width -= 120;
+    if (m_showNoteThumbnails && !thumbnail.isNull()) {
+        width -= 100;
     }
 
     // 1) Painting the title (or a piece of preview text if there's no title)
@@ -337,11 +339,11 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     painter->drawText(QRectF(previewTextRect), text, textOption);
 
     // 4) Painting the thumbnail (if any)
-    if (!thumbnail.isNull())
+    if (m_showNoteThumbnails && !thumbnail.isNull())
     {
         int top = option.rect.top() + topMargin;
         int bottom = option.rect.bottom() - bottomMargin;
-        QRect thumbnailRect(option.rect.width() - 110, top, 100, bottom);
+        QRect thumbnailRect(option.rect.right() - 100, top, 100, bottom - top);
 
         QNTRACE(QStringLiteral("Thumbnail rect: top = ") << thumbnailRect.top() << QStringLiteral(", bottom = ")
                 << thumbnailRect.bottom() << QStringLiteral(", left = ") << thumbnailRect.left()
@@ -354,7 +356,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
             painter->setPen(option.palette.windowText().color());
         }
 
-        painter->drawImage(thumbnailRect, thumbnail, thumbnail.rect());
+        painter->drawImage(thumbnailRect, thumbnail);
     }
 
     painter->restore();

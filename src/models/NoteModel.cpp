@@ -317,7 +317,7 @@ QVariant NoteModel::data(const QModelIndex & index, int role) const
     case Columns::DeletionTimestamp:
     case Columns::Title:
     case Columns::PreviewText:
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     case Columns::NotebookName:
     case Columns::TagNameList:
     case Columns::Size:
@@ -382,7 +382,7 @@ QVariant NoteModel::headerData(int section, Qt::Orientation orientation, int rol
     case Columns::Dirty:
         return QVariant(tr("Dirty"));
     // NOTE: intentional fall-through
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     default:
         return QVariant();
     }
@@ -651,7 +651,7 @@ void NoteModel::sort(int column, Qt::SortOrder order)
             << QStringLiteral(" (") << (order == Qt::AscendingOrder ? QStringLiteral("ascending") : QStringLiteral("descending"))
             << QStringLiteral(")"));
 
-    if ( (column == Columns::ThumbnailImageFilePath) ||
+    if ( (column == Columns::ThumbnailImage) ||
          (column == Columns::TagNameList) )
     {
         // Should not sort by these columns
@@ -1263,7 +1263,7 @@ QVariant NoteModel::dataImpl(const int row, const Columns::type column) const
         return item.title();
     case Columns::PreviewText:
         return item.previewText();
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
         return item.thumbnail();
     case Columns::NotebookName:
         return item.notebookName();
@@ -1389,7 +1389,7 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
     case Columns::Dirty:
         accessibleText += (item.isDirty() ? tr("dirty") : tr("not dirty"));
         break;
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     default:
         return QVariant();
     }
@@ -2288,7 +2288,7 @@ bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const Note
         less = (!lhs.isDirty() && rhs.isDirty());
         greater = (lhs.isDirty() && !rhs.isDirty());
         break;
-    case Columns::ThumbnailImageFilePath:
+    case Columns::ThumbnailImage:
     case Columns::TagNameList:
         less = false;
         greater = false;
