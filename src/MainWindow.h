@@ -102,6 +102,8 @@ Q_SIGNALS:
 
     void synchronizationSetAccount(Account account);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
+    void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
+    void synchronizationSetInkNoteImagesStoragePath(QString path);
 
 private Q_SLOTS:
     void onUndoAction();
@@ -279,6 +281,8 @@ private Q_SLOTS:
 
     void onSynchronizationManagerSetAccountDone(Account account);
     void onSynchronizationManagerSetDownloadNoteThumbnailsDone(bool flag);
+    void onSynchronizationManagerSetDownloadInkNoteImagesDone(bool flag);
+    void onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString path);
 
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
@@ -318,7 +322,7 @@ private:
     void setupSynchronizationManager(const SetAccountOption::type = SetAccountOption::DontSet);
     void clearSynchronizationManager();
     void setAccountToSyncManager(const Account & account);
-    void setDownloadThumbnailsOptionToSyncManager(const Account & account);
+    void setSynchronizationOptions(const Account & account);
     void launchSync();
     void checkAndLaunchPendingSync();
 
@@ -455,7 +459,8 @@ private:
     bool                        m_syncInProgress;
     bool                        m_pendingSynchronizationManagerSetAccount;
     bool                        m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption;
-    bool                        m_pendingSynchronizationManagerSetNoteThumbnailsStoragePath;
+    bool                        m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption;
+    bool                        m_pendingSynchronizationManagerSetInkNoteImagesStoragePath;
     bool                        m_pendingSynchronizationManagerResponseToStartSync;
     QMovie                      m_animatedSyncButtonIcon;
     QString                     m_noteThumbnailsStoragePath;

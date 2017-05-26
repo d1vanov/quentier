@@ -18,6 +18,7 @@
 
 #include "MainWindow.h"
 #include "SettingsNames.h"
+#include "DefaultSettings.h"
 #include "AsyncFileWriter.h"
 #include "SystemTrayIconManager.h"
 #include "EditNoteDialogsManager.h"
@@ -158,6 +159,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_syncInProgress(false),
     m_pendingSynchronizationManagerSetAccount(false),
     m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption(false),
+    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption(false),
+    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath(false),
     m_pendingSynchronizationManagerResponseToStartSync(false),
     m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
     m_noteThumbnailsStoragePath(),
@@ -803,6 +806,10 @@ void MainWindow::connectSynchronizationManager()
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool));
+    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadInkNoteImages,bool));
+    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationSetInkNoteImagesStoragePath,QString),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setInkNoteImagesStoragePath,QString));
 
     // Connect SynchronizationManager signals to local slots
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
@@ -855,6 +862,10 @@ void MainWindow::disconnectSynchronizationManager()
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account));
     QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool));
+    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadInkNoteImages,bool));
+    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationSetInkNoteImagesStoragePath,QString),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setInkNoteImagesStoragePath,QString));
 
     // Disconnect SynchronizationManager signals from local slots
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
@@ -2280,6 +2291,8 @@ void MainWindow::onShowSettingsDialogAction()
                      this, QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
                      this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool));
+    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,synchronizationDownloadInkNoteImagesOptionChanged,bool),
+                     this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool));
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged,bool),
                      this, QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged,bool));
 
@@ -3291,7 +3304,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
             setupSynchronizationManager(SetAccountOption::Set);
         }
 
-        setDownloadThumbnailsOptionToSyncManager(*m_pAccount);
+        setSynchronizationOptions(*m_pAccount);
     }
 
     setupModels();
@@ -3444,6 +3457,29 @@ void MainWindow::onSynchronizationManagerSetDownloadNoteThumbnailsDone(bool flag
                         this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadNoteThumbnailsDone,bool));
 
     m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption = false;
+    checkAndLaunchPendingSync();
+}
+
+void MainWindow::onSynchronizationManagerSetDownloadInkNoteImagesDone(bool flag)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetDownloadInkNoteImagesDone: ")
+            << (flag ? QStringLiteral("true") : QStringLiteral("false")));
+
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setDownloadInkNoteImagesDone,bool),
+                        this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadInkNoteImagesDone,bool));
+
+    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = false;
+    checkAndLaunchPendingSync();
+}
+
+void MainWindow::onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString path)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetInkNoteImagesStoragePathDone: ") << path);
+
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setInkNoteImagesStoragePathDone,QString),
+                        this, QNSLOT(MainWindow,onSynchronizationManagerSetInkNoteImagesStoragePathDone,QString));
+
+    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = false;
     checkAndLaunchPendingSync();
 }
 
@@ -4144,6 +4180,8 @@ void MainWindow::clearSynchronizationManager()
 
     m_pendingSynchronizationManagerSetAccount = false;
     m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption = false;
+    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = false;
+    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = false;
     m_pendingSynchronizationManagerResponseToStartSync = false;
 }
 
@@ -4156,22 +4194,40 @@ void MainWindow::setAccountToSyncManager(const Account & account)
     emit synchronizationSetAccount(account);
 }
 
-void MainWindow::setDownloadThumbnailsOptionToSyncManager(const Account & account)
+void MainWindow::setSynchronizationOptions(const Account & account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::setDownloadThumbnailsOptionToSyncManager"));
+    QNDEBUG(QStringLiteral("MainWindow::setSynchronizationOptions"));
 
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setDownloadNoteThumbnailsDone,bool),
                      this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadNoteThumbnailsDone,bool));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setDownloadInkNoteImagesDone,bool),
+                     this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadInkNoteImagesDone,bool));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setInkNoteImagesStoragePathDone,QString),
+                     this, QNSLOT(MainWindow,onSynchronizationManagerSetInkNoteImagesStoragePathDone,QString));
 
     ApplicationSettings appSettings(account, QUENTIER_SYNC_SETTINGS);
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
     bool downloadNoteThumbnailsOption = (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
                                          ? appSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS).toBool()
-                                         : true);
+                                         : DEFAULT_DOWNLOAD_NOTE_THUMBNAILS);
+    bool downloadInkNoteImagesOption = (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)
+                                        ? appSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES).toBool()
+                                        : DEFAULT_DOWNLOAD_INK_NOTE_IMAGES);
     appSettings.endGroup();
 
     m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption = true;
     emit synchronizationDownloadNoteThumbnailsOptionChanged(downloadNoteThumbnailsOption);
+
+    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = true;
+    emit synchronizationDownloadInkNoteImagesOptionChanged(downloadInkNoteImagesOption);
+
+    QString inkNoteImagesStoragePath = m_pAccountManager->accountDataStorageDir(account);
+    inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
+    QNTRACE(QStringLiteral("Ink note images storage path: ") << inkNoteImagesStoragePath
+            << QStringLiteral("; account: ") << account);
+
+    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = true;
+    emit synchronizationSetInkNoteImagesStoragePath(inkNoteImagesStoragePath);
 }
 
 void MainWindow::launchSync()
@@ -4198,6 +4254,16 @@ void MainWindow::checkAndLaunchPendingSync()
 
     if (m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption) {
         QNDEBUG(QStringLiteral("Pending the response to setDownloadNoteThumbnails from SynchronizationManager"));
+        return;
+    }
+
+    if (m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption) {
+        QNDEBUG(QStringLiteral("Pending the response to setDownloadInkNoteImages from SynchronizationManager"));
+        return;
+    }
+
+    if (m_pendingSynchronizationManagerSetInkNoteImagesStoragePath) {
+        QNDEBUG(QStringLiteral("Pending the response to setInkNoteImagesStoragePath from SynchronizationManager"));
         return;
     }
 

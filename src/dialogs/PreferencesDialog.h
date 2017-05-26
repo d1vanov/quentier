@@ -27,6 +27,7 @@ public:
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
+    void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void showNoteThumbnailsOptionChanged(bool enabled);
 
 private Q_SLOTS:
@@ -48,6 +49,7 @@ private Q_SLOTS:
 
     // Synchronization tab
     void onDownloadNoteThumbnailsCheckboxToggled(bool checked);
+    void onDownloadInkNoteImagesCheckboxToggled(bool checked);
 
 private:
     void setupCurrentSettingsState();

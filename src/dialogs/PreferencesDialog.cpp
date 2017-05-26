@@ -227,9 +227,25 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
     emit synchronizationDownloadNoteThumbnailsOptionChanged(checked);
 }
 
+void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled: ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES, checked);
+    appSettings.endGroup();
+
+    emit synchronizationDownloadInkNoteImagesOptionChanged(checked);
+}
+
 void PreferencesDialog::setupCurrentSettingsState()
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
+
+    // 1) System tray tab
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable())
     {
@@ -325,23 +341,44 @@ void PreferencesDialog::setupCurrentSettingsState()
         m_pUi->trayDoubleClickActionComboBox->setDisabled(true);
     }
 
+    // 2) Note editor tab
+
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
     bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
     appSettings.endGroup();
 
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 
+    // 3) Appearance tab
+
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
 
     bool showNoteThumbnails = DEFAULT_SHOW_NOTE_THUMBNAILS;
-    QVariant showNoteThumbnailsData = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY);
-    if (showNoteThumbnailsData.isValid()) {
-        showNoteThumbnails = showNoteThumbnailsData.toBool();
+    if (appSettings.contains(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY)) {
+        showNoteThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY).toBool();
     }
 
     appSettings.endGroup();
 
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
+
+    // 4) Synchronization tab
+
+    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+
+    bool downloadNoteThumbnails = DEFAULT_DOWNLOAD_NOTE_THUMBNAILS;
+    if (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)) {
+        downloadNoteThumbnails = appSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS).toBool();
+    }
+
+    bool downloadInkNoteImages = DEFAULT_DOWNLOAD_INK_NOTE_IMAGES;
+    if (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)) {
+        downloadInkNoteImages = appSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES).toBool();
+    }
+
+    appSettings.endGroup();
+    m_pUi->downloadNoteThumbnailsCheckBox->setChecked(downloadNoteThumbnails);
+    m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
 }
 
 void PreferencesDialog::createConnections()
@@ -375,6 +412,8 @@ void PreferencesDialog::createConnections()
 
     QObject::connect(m_pUi->downloadNoteThumbnailsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onDownloadNoteThumbnailsCheckboxToggled,bool));
+    QObject::connect(m_pUi->downloadInkNoteImagesCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onDownloadInkNoteImagesCheckboxToggled,bool));
 
     // TODO: continue
 }

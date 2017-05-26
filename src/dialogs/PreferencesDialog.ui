@@ -32,7 +32,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -269,6 +269,19 @@
        </property>
        <property name="text">
         <string>Download note thumbnails</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="downloadInkNoteImagesCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>40</y>
+         <width>491</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Download ink note images</string>
        </property>
       </widget>
      </widget>
