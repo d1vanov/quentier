@@ -24,7 +24,7 @@
 #include "widgets/TabWidget.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/MessageBox.h>
 #include <quentier/utility/FileIOProcessorAsync.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/note_editor/SpellChecker.h>

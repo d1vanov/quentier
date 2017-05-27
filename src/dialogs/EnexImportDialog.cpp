@@ -4,7 +4,7 @@
 #include "../SettingsNames.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/StandardPaths.h>
 #include <quentier/types/Notebook.h>
 #include <QStringListModel>
 #include <QModelIndex>

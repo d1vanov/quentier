@@ -21,7 +21,7 @@
 #include "../models/FavoritesModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/MessageBox.h>
 #include <QMenu>
 #include <QContextMenuEvent>
 #include <QScopedPointer>

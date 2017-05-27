@@ -28,7 +28,8 @@
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/Utility.h>
-#include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/StandardPaths.h>
+#include <quentier/utility/MessageBox.h>
 #include <quentier/exception/DatabaseLockedException.h>
 #include <quentier/exception/DatabaseOpeningException.h>
 #include <quentier/exception/IQuentierException.h>

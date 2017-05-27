@@ -21,7 +21,8 @@
 #include "dialogs/AddAccountDialog.h"
 #include "dialogs/ManageAccountsDialog.h"
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/StandardPaths.h>
+#include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QXmlStreamWriter>
 

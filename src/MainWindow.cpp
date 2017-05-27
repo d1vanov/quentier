@@ -77,8 +77,9 @@ using quentier::FilterBySavedSearchWidget;
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Resource.h>
 #include <quentier/utility/QuentierCheckPtr.h>
-#include <quentier/utility/DesktopServices.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/MessageBox.h>
+#include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>

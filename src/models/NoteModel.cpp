@@ -20,7 +20,6 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/UidGenerator.h>
 #include <quentier/utility/Utility.h>
-#include <quentier/utility/DesktopServices.h>
 #include <quentier/types/Resource.h>
 #include <QDateTime>
 #include <iterator>

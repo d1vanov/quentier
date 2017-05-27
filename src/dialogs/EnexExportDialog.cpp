@@ -2,7 +2,7 @@
 #include "ui_EnexExportDialog.h"
 #include "../SettingsNames.h"
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/StandardPaths.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QFileInfo>
 #include <QScopedPointer>
