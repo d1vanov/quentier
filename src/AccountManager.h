@@ -57,8 +57,6 @@ public:
     void raiseAddAccountDialog();
     void raiseManageAccountsDialog();
 
-    QString accountDataStorageDir(const Account & account) const;
-
 Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host);
     void switchedAccount(Account account);
@@ -88,8 +86,6 @@ private:
     QString evernoteAccountTypeToString(const Account::EvernoteAccountType::type type) const;
 
     void readComplementaryAccountInfo(Account & account) const;
-
-    QDir accountStorageDir(const QString & name, const bool isLocal, const qevercloud::UserID id, const QString & evernoteHost) const;
 
     // Tries to find the account corresponding to the specified environment variables
     // specifying the details of the account; in case of success returns

@@ -686,7 +686,7 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
         if (nonStandardPersistencePath)
         {
             title += QStringLiteral(", ");
-            title += m_pAccountManager->accountDataStorageDir(account);
+            title += QDir::toNativeSeparators(accountPersistentStoragePath(account));
         }
         title += QStringLiteral(")");
     }
@@ -696,7 +696,7 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
 
         if (nonStandardPersistencePath) {
             title += QStringLiteral(" (");
-            title += m_pAccountManager->accountDataStorageDir(account);
+            title += QDir::toNativeSeparators(accountPersistentStoragePath(account));
             title += QStringLiteral(")");
         }
     }
@@ -4221,7 +4221,7 @@ void MainWindow::setSynchronizationOptions(const Account & account)
     m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = true;
     emit synchronizationDownloadInkNoteImagesOptionChanged(downloadInkNoteImagesOption);
 
-    QString inkNoteImagesStoragePath = m_pAccountManager->accountDataStorageDir(account);
+    QString inkNoteImagesStoragePath = accountPersistentStoragePath(account);
     inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
     QNTRACE(QStringLiteral("Ink note images storage path: ") << inkNoteImagesStoragePath
             << QStringLiteral("; account: ") << account);

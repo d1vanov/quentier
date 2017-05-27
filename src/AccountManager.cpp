@@ -102,13 +102,6 @@ void AccountManager::raiseManageAccountsDialog()
     Q_UNUSED(manageAccountsDialog->exec())
 }
 
-QString AccountManager::accountDataStorageDir(const Account & account) const
-{
-    bool isLocal = (account.type() == Account::Type::Local);
-    QDir dir = accountStorageDir(account.name(), isLocal, account.id(), account.evernoteHost());
-    return dir.absolutePath();
-}
-
 void AccountManager::switchAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
@@ -397,7 +390,10 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
             << QStringLiteral(", user id = ") << id << QStringLiteral(", Evernote account type = ")
             << evernoteAccountType << QStringLiteral(", Evernote host = ") << evernoteHost);
 
-    QDir accountPersistentStorageDir = accountStorageDir(name, isLocal, id, evernoteHost);
+    Account account(name, (isLocal ? Account::Type::Local : Account::Type::Evernote),
+                    id, Account::EvernoteAccountType::Free, evernoteHost);
+
+    QDir accountPersistentStorageDir(accountPersistentStoragePath(account));
     if (!accountPersistentStorageDir.exists())
     {
         bool res = accountPersistentStorageDir.mkpath(accountPersistentStorageDir.absolutePath());
@@ -494,9 +490,17 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
 {
     QNDEBUG(QStringLiteral("AccountManager::readComplementaryAccountInfo: ") << account);
 
-    QDir accountPersistentStorageDir = accountStorageDir(account.name(),
-                                                         (account.type() == Account::Type::Local),
-                                                         account.id(), account.evernoteHost());
+    if (Q_UNLIKELY(account.isEmpty())) {
+        QNDEBUG(QStringLiteral("The account is empty"));
+        return;
+    }
+
+    if (Q_UNLIKELY(account.name().isEmpty())) {
+        QNDEBUG(QStringLiteral("The account name is empty"));
+        return;
+    }
+
+    QDir accountPersistentStorageDir(accountPersistentStoragePath(account));
     if (!accountPersistentStorageDir.exists()) {
         QNDEBUG(QStringLiteral("No persistent storage dir exists for this account"));
         return;
@@ -589,30 +593,6 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
     accountInfo.close();
 
     QNDEBUG(QStringLiteral("Account after reading in the complementary info: ") << account);
-}
-
-QDir AccountManager::accountStorageDir(const QString & name, const bool isLocal,
-                                       const qevercloud::UserID id, const QString & evernoteHost) const
-{
-    QString accountPersistentStoragePath = applicationPersistentStoragePath();
-
-    accountPersistentStoragePath += QStringLiteral("/");
-    if (isLocal) {
-        accountPersistentStoragePath += QStringLiteral("LocalAccounts/");
-    }
-    else {
-        accountPersistentStoragePath += QStringLiteral("EvernoteAccounts/");
-    }
-
-    accountPersistentStoragePath += name;
-    if (!isLocal) {
-        accountPersistentStoragePath += QStringLiteral("_");
-        accountPersistentStoragePath += evernoteHost;
-        accountPersistentStoragePath += QStringLiteral("_");
-        accountPersistentStoragePath += QString::number(id);
-    }
-
-    return QDir(accountPersistentStoragePath);
 }
 
 QSharedPointer<Account> AccountManager::accountFromEnvVarHints() const
