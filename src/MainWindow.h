@@ -278,6 +278,8 @@ private Q_SLOTS:
 
     void onSyncButtonPressed();
     void onAnimatedSyncIconFrameChanged(int frame);
+    void onAnimatedSyncIconFrameChangedPendingFinish(int frame);
+    void onSyncIconAnimationFinished();
 
     void onSynchronizationManagerSetAccountDone(Account account);
     void onSynchronizationManagerSetDownloadNoteThumbnailsDone(bool flag);
@@ -352,6 +354,7 @@ private:
 
     void startSyncButtonAnimation();
     void stopSyncButtonAnimation();
+    void scheduleSyncButtonAnimationStop();
 
     bool checkNoteSearchQuery(const QString & noteSearchQuery);
 

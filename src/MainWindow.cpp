@@ -905,7 +905,7 @@ void MainWindow::onSyncStopped()
 {
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncInProgress = false;
-    stopSyncButtonAnimation();
+    scheduleSyncButtonAnimationStop();
 }
 
 void MainWindow::startSyncButtonAnimation()
@@ -938,6 +938,24 @@ void MainWindow::stopSyncButtonAnimation()
 
     m_animatedSyncButtonIcon.stop();
     m_pUI->syncPushButton->setIcon(QIcon(QStringLiteral(":/sync/sync.png")));
+}
+
+void MainWindow::scheduleSyncButtonAnimationStop()
+{
+    QNDEBUG(QStringLiteral("MainWindow::scheduleSyncButtonAnimationStop"));
+
+    if (m_animatedSyncButtonIcon.state() != QMovie::Running) {
+        stopSyncButtonAnimation();
+        return;
+    }
+
+    // NOTE: either finished signal should stop the sync animation or, if the movie
+    // is naturally looped, the frame count coming to max value (or zero after max value)
+    // would serve as a sign that full animation loop has finished
+    QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
+                     this, QNSLOT(MainWindow,onSyncIconAnimationFinished));
+    QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
+                     this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChangedPendingFinish,int));
 }
 
 bool MainWindow::checkNoteSearchQuery(const QString & noteSearchQuery)
@@ -1841,7 +1859,7 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
     m_syncInProgress = false;
-    stopSyncButtonAnimation();
+    scheduleSyncButtonAnimationStop();
 }
 
 void MainWindow::onSynchronizationFinished(Account account)
@@ -1850,7 +1868,7 @@ void MainWindow::onSynchronizationFinished(Account account)
 
     onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
     m_syncInProgress = false;
-    stopSyncButtonAnimation();
+    scheduleSyncButtonAnimationStop();
 
     QNINFO(QStringLiteral("Synchronization finished for user ") << account.name()
            << QStringLiteral(", id ") << account.id());
@@ -3436,6 +3454,25 @@ void MainWindow::onAnimatedSyncIconFrameChanged(int frame)
 {
     Q_UNUSED(frame)
     m_pUI->syncPushButton->setIcon(QIcon(m_animatedSyncButtonIcon.currentPixmap()));
+}
+
+void MainWindow::onAnimatedSyncIconFrameChangedPendingFinish(int frame)
+{
+    if ((frame == 0) || (frame == (m_animatedSyncButtonIcon.frameCount() - 1))) {
+        stopSyncButtonAnimation();
+    }
+}
+
+void MainWindow::onSyncIconAnimationFinished()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSyncIconAnimationFinished"));
+
+    QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
+                        this, QNSLOT(MainWindow,onSyncIconAnimationFinished));
+    QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
+                        this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChangedPendingFinish,int));
+
+    stopSyncButtonAnimation();
 }
 
 void MainWindow::onSynchronizationManagerSetAccountDone(Account account)
