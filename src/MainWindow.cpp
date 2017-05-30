@@ -205,9 +205,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
-    if (m_pAccount->type() == Account::Type::Evernote) {
-        setupSynchronizationManager(SetAccountOption::Set);
-    }
 
     m_pSystemTrayIconManager = new SystemTrayIconManager(*m_pAccountManager, this);
 
@@ -249,6 +246,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupUserShortcuts();
 
     addMenuActionsToMainWindow();
+
+    if (m_pAccount->type() == Account::Type::Evernote) {
+        setupSynchronizationManager(SetAccountOption::Set);
+    }
 
     connectActionsToSlots();
     connectViewButtonsToSlots();
@@ -3350,7 +3351,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
         // to sync stuff when one switches to the Evernote account
         if (wasPendingSwitchToNewEvernoteAccount)
         {
-            // For new Evernote account it is convenient if the first note to be synchronized
+            // For new Evernote account is is convenient if the first note to be synchronized
             // automatically opens in the note editor
             m_pUI->noteListView->setAutoSelectNoteOnNextAddition();
 
@@ -4164,9 +4165,29 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
 
     clearSynchronizationManager();
 
-    if (m_synchronizationManagerHost.isEmpty()) {
-        QNDEBUG(QStringLiteral("Host is empty"));
-        return;
+    if (m_synchronizationManagerHost.isEmpty())
+    {
+        if (Q_UNLIKELY(!m_pAccount)) {
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't set up the synchronization: no account"));
+            QNWARNING(error);
+            onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+            return;
+        }
+
+        if (Q_UNLIKELY(m_pAccount->type() != Account::Type::Evernote)) {
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't set up the synchronization: non-Evernote account is chosen"));
+            QNWARNING(error << QStringLiteral("; account: ") << *m_pAccount);
+            onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+            return;
+        }
+
+        m_synchronizationManagerHost = m_pAccount->evernoteHost();
+        if (Q_UNLIKELY(m_synchronizationManagerHost.isEmpty())) {
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't set up the synchronization: no Evernote host within the account"));
+            QNWARNING(error << QStringLiteral("; account: ") << *m_pAccount);
+            onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+            return;
+        }
     }
 
     QString consumerKey, consumerSecret;
