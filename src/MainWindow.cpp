@@ -933,6 +933,8 @@ void MainWindow::stopSyncButtonAnimation()
                             &m_animatedSyncButtonIcon, QNSLOT(QMovie,start));
     }
 
+    QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
+                        this, QNSLOT(MainWindow,onSyncIconAnimationFinished));
     QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
                         this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChanged,int));
 
@@ -3346,7 +3348,12 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     {
         // TODO: should also start the sync if the corresponding setting is set
         // to sync stuff when one switches to the Evernote account
-        if (wasPendingSwitchToNewEvernoteAccount) {
+        if (wasPendingSwitchToNewEvernoteAccount)
+        {
+            // For new Evernote account it is convenient if the first note to be synchronized
+            // automatically opens in the note editor
+            m_pUI->noteListView->setAutoSelectNoteOnNextAddition();
+
             onSetStatusBarText(tr("Starting the synchronization"));
             launchSync();
         }

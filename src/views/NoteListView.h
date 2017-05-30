@@ -44,6 +44,14 @@ public:
 
     void setNotebookItemView(NotebookItemView * pNotebookItemView);
 
+    /**
+     * After this method is called, NoteListView would automatically select the first note of the model
+     * after the next event of note item addition. It would happen only once.
+     *
+     * This method is handy to run before starting the synchronization of a fresh Evernote account
+     */
+    void setAutoSelectNoteOnNextAddition();
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
     void currentNoteChanged(QString noteLocalUid);
@@ -75,6 +83,7 @@ public Q_SLOTS:
                             Q_DECL_OVERRIDE;
 
     virtual void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
+    virtual void rowsInserted(const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
 
 protected Q_SLOTS:
     void onCreateNewNoteAction();
@@ -90,6 +99,8 @@ protected Q_SLOTS:
 
     void onExportSingleNoteToEnexAction();
     void onExportSeveralNotesToEnexAction();
+
+    void onSelectFirstNoteEvent();
 
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
@@ -109,6 +120,7 @@ protected:
 protected:
     QMenu *             m_pNoteItemContextMenu;
     NotebookItemView *  m_pNotebookItemView;
+    bool                m_shouldSelectFirstNoteOnNextNoteAddition;
 };
 
 } // namespace quentier

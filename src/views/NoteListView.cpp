@@ -27,6 +27,7 @@
 #include <QItemSelectionModel>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QTimer>
 #include <iterator>
 
 #define REPORT_ERROR(error) \
@@ -41,14 +42,20 @@ namespace quentier {
 NoteListView::NoteListView(QWidget * parent) :
     QListView(parent),
     m_pNoteItemContextMenu(Q_NULLPTR),
-    m_pNotebookItemView(Q_NULLPTR)
+    m_pNotebookItemView(Q_NULLPTR),
+    m_shouldSelectFirstNoteOnNextNoteAddition(false)
 {}
 
 void NoteListView::setNotebookItemView(NotebookItemView * pNotebookItemView)
 {
     QNDEBUG(QStringLiteral("NoteListView::setNotebookItemView"));
-
     m_pNotebookItemView = pNotebookItemView;
+}
+
+void NoteListView::setAutoSelectNoteOnNextAddition()
+{
+    QNDEBUG(QStringLiteral("NoteListView::setAutoSelectNoteOnNextAddition"));
+    m_shouldSelectFirstNoteOnNextNoteAddition = true;
 }
 
 void NoteListView::onCurrentNoteChanged(QString noteLocalUid)
@@ -107,6 +114,25 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start, i
     }
 
     QListView::rowsAboutToBeRemoved(parent, start, end);
+}
+
+void NoteListView::rowsInserted(const QModelIndex & parent, int start, int end)
+{
+    QListView::rowsInserted(parent, start, end);
+
+    if (Q_UNLIKELY(m_shouldSelectFirstNoteOnNextNoteAddition))
+    {
+        m_shouldSelectFirstNoteOnNextNoteAddition = false;
+
+        // NOTE: for some reason it's not safe to set the current index right here right now:
+        // sometimes things crash somewhere in the gory guts of Qt. So scheduling a separate callback
+        // as a workaround
+        QTimer * pTimer = new QTimer(this);
+        pTimer->setSingleShot(true);
+        QObject::connect(pTimer, QNSIGNAL(QTimer,timeout),
+                         this, QNSLOT(NoteListView,onSelectFirstNoteEvent));
+        pTimer->start(0);
+    }
 }
 
 void NoteListView::onCreateNewNoteAction()
@@ -335,6 +361,19 @@ void NoteListView::onExportSeveralNotesToEnexAction()
     }
 
     emit enexExportRequested(noteLocalUids);
+}
+
+void NoteListView::onSelectFirstNoteEvent()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onSelectFirstNoteEvent"));
+
+    const QAbstractItemModel * pModel = model();
+    if (Q_UNLIKELY(!pModel)) {
+        QNDEBUG(QStringLiteral("No model"));
+        return;
+    }
+
+    setCurrentIndex(pModel->index(0, NoteModel::Columns::Title, QModelIndex()));
 }
 
 void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
