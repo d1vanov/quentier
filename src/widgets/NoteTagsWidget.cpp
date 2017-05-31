@@ -274,6 +274,9 @@ void NoteTagsWidget::onNewTagNameEntered()
         m_currentNote.addTagGuid(pTagItem->guid());
     }
 
+    m_currentNote.setDirty(true);
+    m_currentNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+
     QUuid updateNoteRequestId = QUuid::createUuid();
     m_updateNoteRequestIdToAddedTagLocalUidAndGuid[updateNoteRequestId] =
             std::pair<QString, QString>(pTagItem->localUid(), pTagItem->guid());
