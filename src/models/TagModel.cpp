@@ -867,6 +867,7 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
 
     item.setParentLocalUid(pNewParentItem->localUid());
     item.setParentGuid(pNewParentItem->guid());
+    item.setDirty(true);
 
     if (row == -1)
     {
@@ -2206,6 +2207,9 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     copyItem.setParentLocalUid(pGrandParentItem->localUid());
     copyItem.setParentGuid(pGrandParentItem->guid());
 
+    bool wasDirty = copyItem.isDirty();
+    copyItem.setDirty(true);
+
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(copyItem.localUid());
     if (Q_UNLIKELY(it == localUidIndex.end())) {
@@ -2214,6 +2218,11 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     }
     else {
         localUidIndex.replace(it, copyItem);
+    }
+
+    if (!wasDirty) {
+        QModelIndex dirtyColumnIndex = index(appropriateRow, Columns::Dirty, grandParentIndex);
+        emit dataChanged(dirtyColumnIndex, dirtyColumnIndex);
     }
 
     updateTagInLocalStorage(copyItem);
@@ -2354,6 +2363,7 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     TagModelItem copyItem = *pTakenItem;
     copyItem.setParentLocalUid(pSiblingItem->localUid());
     copyItem.setParentGuid(pSiblingItem->guid());
+    copyItem.setDirty(true);
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(copyItem.localUid());
@@ -2437,6 +2447,7 @@ QModelIndex TagModel::moveToParent(const QModelIndex & index, const QString & pa
     TagModelItem tagItemCopy(*pItem);
     tagItemCopy.setParentLocalUid(pNewParentItem->localUid());
     tagItemCopy.setParentGuid(pNewParentItem->guid());
+    tagItemCopy.setDirty(true);
     localUidIndex.replace(tagItemIt, tagItemCopy);
 
     updateTagInLocalStorage(tagItemCopy);
@@ -2948,9 +2959,9 @@ void TagModel::setTagFavorited(const QModelIndex & index, const bool favorited)
 
     TagModelItem itemCopy(*pItem);
     itemCopy.setFavorited(favorited);
+    // NOTE: won't mark the tag as dirty as favorited property is not included into the synchronization protocol
 
     localUidIndex.replace(it, itemCopy);
-
     updateTagInLocalStorage(itemCopy);
 }
 
