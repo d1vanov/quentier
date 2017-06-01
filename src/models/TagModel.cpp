@@ -1195,7 +1195,7 @@ void TagModel::onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId
     auto itemIt = localUidIndex.find(tag.localUid());
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
         ErrorString error(QT_TRANSLATE_NOOP("", "No tag receiving the note count update was found in the model"));
-        QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag item: ") << *itemIt);
+        QNWARNING(error << QStringLiteral(", tag: ") << tag);
         emit notifyError(error);
         return;
     }
