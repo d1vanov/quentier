@@ -698,6 +698,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
             TagModelItem childItemCopy(*pChildItem);
             childItemCopy.setParentGuid(pParentItem->guid());
             childItemCopy.setParentLocalUid(pParentItem->localUid());
+            childItemCopy.setDirty(true);
             updateTagInLocalStorage(childItemCopy);
 
             removedItemsChildren << pChildItem;
@@ -2363,6 +2364,8 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     TagModelItem copyItem = *pTakenItem;
     copyItem.setParentLocalUid(pSiblingItem->localUid());
     copyItem.setParentGuid(pSiblingItem->guid());
+
+    bool wasDirty = copyItem.isDirty();
     copyItem.setDirty(true);
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
@@ -2373,6 +2376,11 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     }
     else {
         localUidIndex.replace(it, copyItem);
+    }
+
+    if (!wasDirty) {
+        QModelIndex dirtyColumnIndex = index(appropriateRow, Columns::Dirty, siblingItemIndex);
+        emit dataChanged(dirtyColumnIndex, dirtyColumnIndex);
     }
 
     updateTagInLocalStorage(copyItem);
@@ -2486,6 +2494,7 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
     TagModelItem tagItemCopy(*pItem);
     tagItemCopy.setParentGuid(QString());
     tagItemCopy.setParentLocalUid(QString());
+    tagItemCopy.setDirty(true);
     localUidIndex.replace(it, tagItemCopy);
 
     updateTagInLocalStorage(tagItemCopy);
