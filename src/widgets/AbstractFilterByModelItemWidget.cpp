@@ -103,7 +103,12 @@ QStringList AbstractFilterByModelItemWidget::itemsInFilter() const
             continue;
         }
 
-        result << pItemWidget->name();
+        QString itemName = pItemWidget->name().trimmed();
+        if (itemName.isEmpty()) {
+            continue;
+        }
+
+        result << itemName;
     }
 
     return result;
