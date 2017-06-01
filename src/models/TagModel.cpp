@@ -1795,29 +1795,71 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
         return;
     }
 
+    const TagModelItem * pNewParentItem = Q_NULLPTR;
+    if (tag.hasParentLocalUid())
+    {
+        TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+        auto parentIt = localUidIndex.find(tag.parentLocalUid());
+        if (Q_UNLIKELY(parentIt == localUidIndex.end())) {
+            ErrorString error(QT_TR_NOOP("Can't find the new parent tag item corresponding to the updated tag's parent local uid"));
+            QNWARNING(error << QStringLiteral(", tag: ") << tag);
+            emit notifyError(error);
+            return;
+        }
+
+        pNewParentItem = &(*parentIt);
+    }
+    else
+    {
+        if (Q_UNLIKELY(!m_fakeRootItem)) {
+            m_fakeRootItem = new TagModelItem;
+        }
+
+        pNewParentItem = m_fakeRootItem;
+    }
+
+    // NOTE: it's ok for any of these indexes to be invalid since either of them
+    // can be the index of the fake root item
+    QModelIndex parentItemIndex = indexForItem(pParentItem);
+    QModelIndex newParentItemIndex = ((pParentItem == pNewParentItem)
+                                      ? parentItemIndex
+                                      : indexForItem(pNewParentItem));
+
     // 1) Remove the original row from the parent
-    QModelIndex parentItemIndex = indexForLocalUid(pParentItem->localUid());
     beginRemoveRows(parentItemIndex, row, row);
     Q_UNUSED(pParentItem->takeChild(row))
     endRemoveRows();
 
     // 2) Insert the replacement row
-    beginInsertRows(parentItemIndex, row, row);
+    if (pParentItem != pNewParentItem) {
+        row = 0;
+    }
+
+    beginInsertRows(newParentItemIndex, row, row);
 
     int numNotesPerTag = it->numNotesPerTag();
     itemCopy.setNumNotesPerTag(numNotesPerTag);
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     Q_UNUSED(localUidIndex.replace(it, itemCopy))
-    pParentItem->insertChild(row, pItem);
+    pNewParentItem->insertChild(row, pItem);
+
     endInsertRows();
 
-    IndexId itemId = idForItem(*pItem);
-
-    QModelIndex modelIndexFrom = createIndex(row, 0, itemId);
-    QModelIndex modelIndexTo = createIndex(row, NUM_TAG_MODEL_COLUMNS - 1, itemId);
+    QModelIndex modelIndexFrom = index(row, 0, newParentItemIndex);
+    QModelIndex modelIndexTo = index(row, NUM_TAG_MODEL_COLUMNS - 1, newParentItemIndex);
     emit dataChanged(modelIndexFrom, modelIndexTo);
 
+    // 3) Insert the children of this item
+    TagDataByParentLocalUid & parentLocalUidIndex = m_data.get<ByParentLocalUid>();
+    auto range = parentLocalUidIndex.equal_range(pItem->localUid());
+    for(auto childIt = range.first; childIt != range.second; ++childIt) {
+        const TagModelItem & childItem = *childIt;
+        pItem->addChild(&childItem);
+        updateItemRowWithRespectToSorting(childItem);
+    }
+
+    // 4) Update the position of the updated item within its parent
     updateItemRowWithRespectToSorting(*pItem);
 }
 
@@ -2491,6 +2533,8 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
         return QModelIndex();
     }
 
+    removeModelItemFromParent(*pItem);
+
     TagModelItem tagItemCopy(*pItem);
     tagItemCopy.setParentGuid(QString());
     tagItemCopy.setParentLocalUid(QString());
@@ -2498,8 +2542,6 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
     localUidIndex.replace(it, tagItemCopy);
 
     updateTagInLocalStorage(tagItemCopy);
-
-    removeModelItemFromParent(*pItem);
 
     if (!m_fakeRootItem) {
         m_fakeRootItem = new TagModelItem;

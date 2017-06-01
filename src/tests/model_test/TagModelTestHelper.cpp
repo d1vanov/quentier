@@ -421,6 +421,11 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("Can't find tag model item within its original grand parent's children after the promotion"));
         }
 
+        // We'll be updating the twelveth tag in local storage manually further,
+        // so reflecting the change in the model in the local object as well
+        twelveth.setParentGuid(twelvethItem->parentGuid());
+        twelveth.setParentLocalUid(twelvethItem->parentLocalUid());
+
         // Should be able to demote the items
         int eighthNumChildren = eighthItem->numChildren();
         if (eighthNumChildren < 2) {
@@ -465,10 +470,57 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("The tag model item hasn't been automatically marked as dirty after demoting it"));
         }
 
+        // We might update the just demoted tag in the local storage further,
+        // so need to reflect the change done within the model in the local object as well
+        if (secondEighthChild->localUid() == twelveth.localUid()) {
+            twelveth.setParentGuid(secondEighthChild->parentGuid());
+            twelveth.setParentLocalUid(secondEighthChild->parentLocalUid());
+        }
+        else {
+            tenth.setParentGuid(secondEighthChild->parentGuid());
+            tenth.setParentLocalUid(secondEighthChild->parentLocalUid());
+        }
+
+        // Remove the only remaining child tag from the eighth tag item using TagModel::removeFromParent method
+        QModelIndex firstEighthChildIndex = model->indexForItem(firstEighthChild);
+        if (!firstEighthChildIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid tag model item index for given tag item"));
+        }
+
+        // First make the tag non-dirty to ensure the dirty flag would be set to true automatically after removing the tag from parent
+        if (firstEighthChild->localUid() == twelveth.localUid()) {
+            twelveth.setDirty(false);
+            m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
+        }
+        else {
+            tenth.setDirty(false);
+            m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
+        }
+
+        if (firstEighthChild->isDirty()) {
+            FAIL(QStringLiteral("The dirty flag should have been cleared from the tag item but it hasn't been"));
+        }
+
+        QModelIndex formerFirstEighthChildIndex = model->removeFromParent(firstEighthChildIndex);
+        if (!formerFirstEighthChildIndex.isValid()) {
+            FAIL(QStringLiteral("Failed to remove the tag item from parent"));
+        }
+
+        // Verify the item has indeed been removed from the children of the eighth tag
+        int formerFirstEighthChildRowInEighth = eighthItem->rowForChild(firstEighthChild);
+        if (formerFirstEighthChildRowInEighth >= 0) {
+            FAIL(QStringLiteral("Tag model item can still be found within the original parent's children after its removal from there"));
+        }
+
+        // Verity the dirty flag has been set automatically to the tag item removed from its parent
+        if (!firstEighthChild->isDirty()) {
+            FAIL(QStringLiteral("Tag model item which was removed from its parent was not marked as the dirty one"));
+        }
+
         // Check the sorting for tag items: by default should sort by name in ascending order
         QModelIndex fifthIndex = model->indexForLocalUid(fifth.localUid());
         if (!fifthIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid tah model item index for local uid"));
+            FAIL(QStringLiteral("Can't get the valid tag model item index for local uid"));
         }
 
         const TagModelItem * fifthItem = model->itemForIndex(fifthIndex);
@@ -553,6 +605,37 @@ void TagModelTestHelper::test()
         QModelIndex eleventhIndex = model->indexForLocalUid(eleventh.localUid());
         if (eleventhIndex.isValid()) {
             FAIL(QStringLiteral("The tag model returns valid index for the local uid corresponding to the tag being the child of a tag being expunged"));
+        }
+
+        // Should be able to change the parent of the tag externally and have the model recognize it
+        const TagModelItem * pNewThirteenthModelItem = model->itemForIndex(thirteenthTagIndex);
+        if (!pNewThirteenthModelItem) {
+            FAIL(QStringLiteral("Can't find the tag model item corresponding to index"));
+        }
+
+        Tag thirteenth;
+        thirteenth.setLocalUid(pNewThirteenthModelItem->localUid());
+        thirteenth.setGuid(pNewThirteenthModelItem->guid());
+        thirteenth.setLocal(!pNewThirteenthModelItem->isSynchronizable());
+        thirteenth.setDirty(pNewThirteenthModelItem->isDirty());
+
+        // Reparent the thirteenth tag to the second tag
+        thirteenth.setParentGuid(second.guid());
+        thirteenth.setParentLocalUid(second.localUid());
+
+        m_pLocalStorageManagerAsync->onUpdateTagRequest(thirteenth, QUuid());
+
+        if (pNewThirteenthModelItem->parentLocalUid() != second.localUid()) {
+            FAIL(QStringLiteral("The parent local uid of the externally updated tag was not picked up from the updated tag"));
+        }
+
+        const TagModelItem * pSecondTagItem = model->itemForLocalUid(second.localUid());
+        if (!pSecondTagItem) {
+            FAIL(QStringLiteral("Can't fint eht tag model item for local uid"));
+        }
+
+        if (pSecondTagItem->rowForChild(pNewThirteenthModelItem) < 0) {
+            FAIL(QStringLiteral("The new parent item doesn't contain the child item which was externally updated"));
         }
 
         emit success();
