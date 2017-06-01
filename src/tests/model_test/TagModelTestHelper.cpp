@@ -272,6 +272,28 @@ void TagModelTestHelper::test()
         }
 
         // Should be able to change name
+        // But first clear the dirty flag from the tag to ensure it would be automatically set when changing the name
+
+        second.setLocal(false);
+        second.setDirty(false);
+        m_pLocalStorageManagerAsync->onUpdateTagRequest(second, QUuid());
+
+        // Ensure the dirty flag was cleared
+        secondIndex = model->index(secondIndex.row(), TagModel::Columns::Dirty, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid tag item model index for dirty column"));
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the tag model while expected to get the dirty flag of model item"));
+        }
+
+        if (data.toBool()) {
+            FAIL(QStringLiteral("The tag model item is still dirty even though this flag for this item "
+                                "was updated in the local storage to false"));
+        }
+
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Name, secondParentIndex);
         if (!secondIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid tag item model index for name column"));
@@ -291,6 +313,21 @@ void TagModelTestHelper::test()
         if (data.toString() != newName) {
             FAIL(QStringLiteral("The name of the tag item returned by the model does not match the name just set to this item: received ")
                  << data.toString() << QStringLiteral(", expected ") << newName);
+        }
+
+        // Ensure the dirty flag has changed to true
+        secondIndex = model->index(secondIndex.row(), TagModel::Columns::Dirty, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid tag item model index for dirty column"));
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the tag model while expected to get the dirty flag of model item"));
+        }
+
+        if (!data.toBool()) {
+            FAIL(QStringLiteral("The dirty flag appears to not have changed as a result of changing the name of the tag model item"));
         }
 
         // Should not be able to remove the row with a synchronizable (non-local) tag
@@ -326,7 +363,32 @@ void TagModelTestHelper::test()
         }
 
         // Should be able to promote the items
+        // But first clear the dirty flag from the tag to be promoted to ensure it would be automatically set after the promotion
+
+        twelveth.setDirty(false);
+        m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
+
         QModelIndex twelvethIndex = model->indexForLocalUid(twelveth.localUid());
+        if (!twelvethIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid index to tag model item by local uid"));
+        }
+
+        twelvethIndex = model->index(twelvethIndex.row(), TagModel::Columns::Dirty, twelvethIndex.parent());
+        if (!twelvethIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid tag item model index for dirty column"));
+        }
+
+        data = model->data(twelvethIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the tag model while expected to get the state of dirty flag"));
+        }
+
+        if (data.toBool()) {
+            FAIL(QStringLiteral("The tag model item is still dirty even though this flag for this item "
+                                "was updated in the local storage to false"));
+        }
+
+        twelvethIndex = model->index(twelvethIndex.row(), TagModel::Columns::Name, twelvethIndex.parent());
         const TagModelItem * twelvethItem = model->itemForIndex(twelvethIndex);
         const TagModelItem * tenthItem = twelvethItem->parent();
         if (!tenthItem) {
@@ -337,6 +399,10 @@ void TagModelTestHelper::test()
         const TagModelItem * newTwelvethItem = model->itemForIndex(twelvethIndex);
         if (twelvethItem != newTwelvethItem) {
             FAIL(QStringLiteral("The tag model returns different pointers to items before and after the item promotion"));
+        }
+
+        if (!newTwelvethItem->isDirty()) {
+            FAIL(QStringLiteral("The dirty flag hasn't been automatically set to true after promoting the item"));
         }
 
         int rowInTenth = tenthItem->rowForChild(twelvethItem);
@@ -364,6 +430,24 @@ void TagModelTestHelper::test()
         const TagModelItem * firstEighthChild = eighthItem->childAtRow(0);
         const TagModelItem * secondEighthChild = eighthItem->childAtRow(1);
 
+        // First make the second child of eighth tag non-dirty to ensure that it would be marked as dirty after demoting
+        if (!secondEighthChild) {
+            FAIL(QStringLiteral("Unexpected null pointer to tag model item"));
+        }
+
+        if (secondEighthChild->localUid() == twelveth.localUid()) {
+            twelveth.setDirty(false);
+            m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
+        }
+        else {
+            tenth.setDirty(false);
+            m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
+        }
+
+        if (secondEighthChild->isDirty()) {
+            FAIL(QStringLiteral("The dirty flag should have been cleared from tag model item but it hasn't been"));
+        }
+
         QModelIndex secondEighthChildIndex = model->indexForItem(secondEighthChild);
         secondEighthChildIndex = model->demote(secondEighthChildIndex);
 
@@ -375,6 +459,10 @@ void TagModelTestHelper::test()
         int formerSecondEighthChildRowInNewParent = firstEighthChild->rowForChild(secondEighthChild);
         if (formerSecondEighthChildRowInNewParent < 0) {
             FAIL(QStringLiteral("Can't find tag model item within the children of its expected new parent after the demotion"));
+        }
+
+        if (!secondEighthChild->isDirty()) {
+            FAIL(QStringLiteral("The tag model item hasn't been automatically marked as dirty after demoting it"));
         }
 
         // Check the sorting for tag items: by default should sort by name in ascending order
