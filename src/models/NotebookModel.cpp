@@ -358,6 +358,7 @@ QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString 
 
     NotebookItem notebookItemCopy(*pNotebookItem);
     notebookItemCopy.setStack(stack);
+    notebookItemCopy.setDirty(true);
     localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
     updateNotebookInLocalStorage(notebookItemCopy);
@@ -414,6 +415,7 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
 
         NotebookItem notebookItemCopy(*pNotebookItem);
         notebookItemCopy.setStack(QString());
+        notebookItemCopy.setDirty(true);
         localUidIndex.replace(it, notebookItemCopy);
 
         updateNotebookInLocalStorage(notebookItemCopy);
@@ -1347,8 +1349,8 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         beginInsertRows(QModelIndex(), stackItemRow, stackItemRow);
         m_fakeRootItem->insertChild(stackItemRow, &(stackModelItemIt.value()));
 
-        IndexId index = m_lastFreeIndexId++;
-        m_indexIdToStackBimap.insert(IndexIdToStackBimap::value_type(index, newStack));
+        IndexId indexId = m_lastFreeIndexId++;
+        m_indexIdToStackBimap.insert(IndexIdToStackBimap::value_type(indexId, newStack));
         endInsertRows();
 
         // 3) Move all children of the previous stack items to the new one
@@ -1387,12 +1389,20 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             NotebookItem notebookItemCopy(*pNotebookItem);
             notebookItemCopy.setStack(newStack);
 
+            bool wasDirty = notebookItemCopy.isDirty();
+            notebookItemCopy.setDirty(true);
+
             localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
             QModelIndex notebookItemIndex = indexForLocalUid(pNotebookItem->localUid());
 
             QNTRACE(QStringLiteral("Emitting the data changed signal"));
             emit dataChanged(notebookItemIndex, notebookItemIndex);
+
+            if (!wasDirty) {
+                notebookItemIndex = index(notebookItemIndex.row(), Columns::Dirty, notebookItemIndex.parent());
+                emit dataChanged(notebookItemIndex, notebookItemIndex);
+            }
 
             updateNotebookInLocalStorage(notebookItemCopy);
         }
@@ -1878,11 +1888,12 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
     it = m_modelItemsByLocalUid.insert(item.notebookItem()->localUid(), item);
 
     beginInsertRows(parentIndex, row, row);
+
     pNewParentItem->insertChild(row, &(*it));
-    endInsertRows();
 
     NotebookItem itemCopy(*(item.notebookItem()));
     itemCopy.setStack(pNewParentItem->notebookStackItem()->name());
+    itemCopy.setDirty(true);
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto notebookItemIt = localUidIndex.find(item.notebookItem()->localUid());
@@ -1892,6 +1903,8 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
     else {
         Q_UNUSED(localUidIndex.insert(itemCopy))
     }
+
+    endInsertRows();
 
     updateItemRowWithRespectToSorting(*it);
     updateNotebookInLocalStorage(*(it->notebookItem()));
@@ -3240,11 +3253,18 @@ void NotebookModel::switchDefaultNotebookLocalUid(const QString & localUid)
             QNTRACE(QStringLiteral("Previous default notebook item: ") << previousDefaultItemCopy);
 
             previousDefaultItemCopy.setDefault(false);
+            bool wasDirty = previousDefaultItemCopy.isDirty();
+            previousDefaultItemCopy.setDirty(true);
 
             localUidIndex.replace(previousDefaultItemIt, previousDefaultItemCopy);
 
             QModelIndex previousDefaultItemIndex = indexForLocalUid(m_defaultNotebookLocalUid);
             emit dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
+
+            if (!wasDirty) {
+                previousDefaultItemIndex = index(previousDefaultItemIndex.row(), Columns::Dirty, previousDefaultItemIndex.parent());
+                emit dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
+            }
 
             updateNotebookInLocalStorage(previousDefaultItemCopy);
         }
@@ -3272,11 +3292,18 @@ void NotebookModel::switchLastUsedNotebookLocalUid(const QString & localUid)
             QNTRACE(QStringLiteral("Previous last used notebook item: ") << previousLastUsedItemCopy);
 
             previousLastUsedItemCopy.setLastUsed(false);
+            bool wasDirty = previousLastUsedItemCopy.isDirty();
+            previousLastUsedItemCopy.setDirty(true);
 
             localUidIndex.replace(previousLastUsedItemIt, previousLastUsedItemCopy);
 
             QModelIndex previousLastUsedItemIndex = indexForLocalUid(m_lastUsedNotebookLocalUid);
             emit dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
+
+            if (!wasDirty) {
+                previousLastUsedItemIndex = index(previousLastUsedItemIndex.row(), Columns::Dirty, previousLastUsedItemIndex.parent());
+                emit dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
+            }
 
             updateNotebookInLocalStorage(previousLastUsedItemCopy);
         }
@@ -3364,6 +3391,7 @@ void NotebookModel::setNotebookFavorited(const QModelIndex & index, const bool f
 
     NotebookItem itemCopy(*pNotebookItem);
     itemCopy.setFavorited(favorited);
+    // NOTE: won't mark the notebook as dirty as favorited property is not included into the synchronization protocol
 
     localUidIndex.replace(it, itemCopy);
 
