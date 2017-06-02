@@ -1465,6 +1465,8 @@ void NoteEditorWidget::onNoteTitleUpdated()
     qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
     m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
 
+    m_pCurrentNote->setDirty(true);
+
     m_isNewNote = false;
 
     QUuid requestId = QUuid::createUuid();
@@ -2067,6 +2069,8 @@ void NoteEditorWidget::updateNoteInLocalStorage()
 
     qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
     m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
+
+    m_pCurrentNote->setDirty(true);
 
     m_isNewNote = false;
 
