@@ -2058,6 +2058,9 @@ void NoteModel::moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const No
     item.setNotebookName(notebook.hasName() ? notebook.name() : QString());
     item.setNotebookGuid(notebook.hasGuid() ? notebook.guid() : QString());
 
+    item.setDirty(true);
+    item.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+
     QModelIndex itemIndex = indexForLocalUid(item.localUid());
     itemIndex = index(itemIndex.row(), Columns::NotebookName, itemIndex.parent());
 
