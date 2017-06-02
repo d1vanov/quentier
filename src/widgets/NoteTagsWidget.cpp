@@ -175,6 +175,9 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         m_currentNote.removeTagGuid(tagGuid);
     }
 
+    m_currentNote.setDirty(true);
+    m_currentNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+
     QUuid updateNoteRequestId = QUuid::createUuid();
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid[updateNoteRequestId] =
             std::pair<QString, QString>(tagLocalUid, tagGuid);
