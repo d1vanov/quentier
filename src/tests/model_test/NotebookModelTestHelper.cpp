@@ -255,6 +255,28 @@ void NotebookModelTestHelper::test()
         }
 
         // Should be able to change name
+        // But first clear the dirty flag from the tag to ensure it would be automatically set when changing the name
+
+        second.setLocal(false);
+        second.setDirty(false);
+        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(second, QUuid());
+
+        // Ensure the dirty flag was cleared
+        secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Dirty, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid notebook item model index for dirty column"));
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the notebook model while expected to get the dirty flag of model item"));
+        }
+
+        if (data.toBool()) {
+            FAIL(QStringLiteral("The notebook model item is still dirty even though this flag for this item "
+                                "was updated in the local storage to false"));
+        }
+
         secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Name, secondParentIndex);
         if (!secondIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid notebook model item index for name column"));
@@ -276,7 +298,22 @@ void NotebookModelTestHelper::test()
                  << data.toString() << QStringLiteral(", expected ") << newName);
         }
 
-        // Should not be able to remove row with a synchronizable (non-local) notebook
+        // Ensure the dirty flag has changed to true
+        secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Dirty, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid notebook item model index for dirty column"));
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the notebook model while expected to get the dirty flag of model item"));
+        }
+
+        if (!data.toBool()) {
+            FAIL(QStringLiteral("The dirty flag appears to not have changed as a result of changing the name of the notebook model item"));
+        }
+
+        // Should not be able to remove the row with a synchronizable (non-local) notebook
         res = model->removeRow(secondIndex.row(), secondParentIndex);
         if (res) {
             FAIL(QStringLiteral("Was able to remove the row with a synchronizable notebook which is not intended"));
@@ -358,6 +395,11 @@ void NotebookModelTestHelper::test()
                                 "after that item has been moved to the existing stack"));
         }
 
+        // Ensure the item moved to another stack was marked as dirty
+        if (!sixthNotebookItem->isDirty()) {
+            FAIL(QStringLiteral("The dirty flag hasn't been automatically set to true after moving the notebook to another stack"));
+        }
+
         // Should be able to move the non-stacked item to the new stack
         const QString newStack = QStringLiteral("My brand new stack");
 
@@ -410,6 +452,10 @@ void NotebookModelTestHelper::test()
                                 "after that item has been moved to the existing stack"));
         }
 
+        if (!seventhNotebookItem->isDirty()) {
+            FAIL(QStringLiteral("The dirty flag hasn't been automatically set to true after moving the non-stacked notebook to a stack"));
+        }
+
         // Should be able to move items from one stack to the other one
         QModelIndex fourthIndex = model->indexForLocalUid(fourth.localUid());
         if (!fourthIndex.isValid()) {
@@ -439,6 +485,8 @@ void NotebookModelTestHelper::test()
         if (!newFourthItemIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid notebook model item index after the attempt to move the item to another stack"));
         }
+
+        fourth.setStack(newStack);
 
         const NotebookModelItem * fourthItemFromNewIndex = model->itemForIndex(newFourthItemIndex);
         if (!fourthItemFromNewIndex) {
@@ -478,7 +526,24 @@ void NotebookModelTestHelper::test()
             FAIL(QStringLiteral("Notebook model item has been moved to another stack but its row within its new parent cannot be found"));
         }
 
+        if (!fourthItem->notebookItem()) {
+            FAIL(QStringLiteral("The notebook model item doesn't have the notebook item after moving to another stack"));
+        }
+
+        if (!fourthItem->notebookItem()->isDirty()) {
+            FAIL(QStringLiteral("The notebook item wasn't automatically marked as dirty after moving it to another stack"));
+        }
+
         // Should be able to remove the notebook item from the stack
+        // But first reset the dirty state of the notebook to ensure it would be set automatically afterwards
+
+        fourth.setDirty(false);
+        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(fourth, QUuid());
+
+        if (fourthItem->notebookItem()->isDirty()) {
+            FAIL(QStringLiteral("The notebook item is still marked as dirty after the flag has been cleared externally"));
+        }
+
         QModelIndex fourthIndexRemovedFromStack = model->removeFromStack(newFourthItemIndex);
         if (!fourthIndexRemovedFromStack.isValid()) {
             FAIL(QStringLiteral("Can't get the valid notebook model item index after the attempt to remove the item from the stack"));
@@ -515,6 +580,10 @@ void NotebookModelTestHelper::test()
             FAIL(QStringLiteral("The notebook item's stack is still not empty after the model item has been removed from the stack"));
         }
 
+        if (!fourthItemRemovedFromStackNotebookItem->isDirty()) {
+            FAIL(QStringLiteral("The notebook item was not automatically marked as dirty after removing the item from its stack"));
+        }
+
         // Should be able to remove the last item from the stack and thus cause the stack item to disappear
         seventhIndexMoved = model->indexForLocalUid(seventh.localUid());
         if (!seventhIndexMoved.isValid()) {
@@ -549,6 +618,39 @@ void NotebookModelTestHelper::test()
         if (emptyStackItemIndex.isValid()) {
             FAIL(QStringLiteral("Notebook model returned valid model index for stack which should have been removed from the model "
                                 "after the removal of the last notebook contained in this stack"));
+        }
+
+        // Should be able to change the stack of the notebook externally and have the model handle it
+        fourth.setStack(newStack);
+        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(fourth, QUuid());
+
+        QModelIndex restoredStackItemIndex = model->indexForNotebookStack(newStack);
+        if (!restoredStackItemIndex.isValid()) {
+            FAIL(QStringLiteral("Notebook model returned invalid model index for stack which should have been created "
+                                "after the external update of notebook with this stack value"));
+        }
+
+        newFourthItemIndex = model->indexForLocalUid(fourth.localUid());
+        if (!newFourthItemIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid notebook model item index for notebook local uid"));
+        }
+
+        fourthItem = model->itemForIndex(newFourthItemIndex);
+        if (!fourthItem) {
+            FAIL(QStringLiteral("Can't get the notebook model item for notebook local uid"));
+        }
+
+        fourthItemNewParent = fourthItem->parent();
+        if (!fourthItemNewParent) {
+            FAIL(QStringLiteral("Notebook model item has no parent after the external update of notebook with another stack"));
+        }
+
+        if (!fourthItemNewParent->notebookStackItem()) {
+            FAIL(QStringLiteral("The notebook model item has no stack item even though it should have one"));
+        }
+
+        if (fourthItemNewParent->notebookStackItem()->name() != newStack) {
+            FAIL(QStringLiteral("The notebook stack item has wrong stack name"));
         }
 
         // Set the account to local again to test accounting for notebook name reservation in create/remove/create cycles

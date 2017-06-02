@@ -2843,8 +2843,9 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
         return;
     }
 
-    bool notebookStackChanged = false;
+    bool shouldChangeParent = false;
 
+    QString previousStackName;
     if (pParentItem->type() == NotebookModelItem::Type::Stack)
     {
         const NotebookStackItem * parentStackItem = pParentItem->notebookStackItem();
@@ -2854,77 +2855,75 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
             return;
         }
 
-        bool shouldChangeParent = false;
+        previousStackName = parentStackItem->name();
+    }
 
-        if (!notebook.hasStack())
+    if (!notebook.hasStack() && !previousStackName.isEmpty())
+    {
+        // Need to remove the notebook model item from the current stack and set the fake root item as the parent
+        QModelIndex parentIndex = indexForItem(pParentItem);
+        beginRemoveRows(parentIndex, row, row);
+        Q_UNUSED(pParentItem->takeChild(row))
+        endRemoveRows();
+
+        if (!m_fakeRootItem) {
+            m_fakeRootItem = new NotebookModelItem;
+        }
+
+        pParentItem = m_fakeRootItem;
+        shouldChangeParent = true;
+    }
+    else if (notebook.hasStack() && (notebook.stack() != previousStackName))
+    {
+        // Need to remove the notebook from its current parent and insert it under the stack item,
+        // either existing or new
+        QModelIndex parentIndex = indexForItem(pParentItem);
+        beginRemoveRows(parentIndex, row, row);
+        Q_UNUSED(pParentItem->takeChild(row))
+        endRemoveRows();
+
+        auto stackModelItemIt = m_modelItemsByStack.find(notebook.stack());
+        if (stackModelItemIt == m_modelItemsByStack.end())
         {
-            // Need to remove the notebook model item from this parent and set the fake root item as the parent
-            QModelIndex parentIndex = indexForItem(pParentItem);
-            beginRemoveRows(parentIndex, row, row);
-            Q_UNUSED(pParentItem->takeChild(row))
-            endRemoveRows();
+            auto stackItemIt = m_stackItems.insert(notebook.stack(), NotebookStackItem(notebook.stack()));
+            const NotebookStackItem * pNewStackItem = &(stackItemIt.value());
 
             if (!m_fakeRootItem) {
                 m_fakeRootItem = new NotebookModelItem;
             }
 
-            pParentItem = m_fakeRootItem;
-            shouldChangeParent = true;
-        }
-        else if (notebook.stack() != parentStackItem->name())
-        {
-            // Notebook stack has changed, need to remove the notebook model item from this parent and either find
-            // the existing stack item corresponding to the new stack or create such item if it doesn't exist already
-            QModelIndex parentItemIndex = indexForItem(pParentItem);
-            beginRemoveRows(parentItemIndex, row, row);
-            Q_UNUSED(pParentItem->takeChild(row))
-            endRemoveRows();
-
-            auto stackModelItemIt = m_modelItemsByStack.find(notebook.stack());
-            if (stackModelItemIt == m_modelItemsByStack.end())
-            {
-                auto stackItemIt = m_stackItems.insert(notebook.stack(), NotebookStackItem(notebook.stack()));
-                const NotebookStackItem * newStackItem = &(stackItemIt.value());
-
-                if (!m_fakeRootItem) {
-                    m_fakeRootItem = new NotebookModelItem;
-                }
-
-                NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, newStackItem);
-                stackModelItemIt = m_modelItemsByStack.insert(notebook.stack(), newStackModelItem);
-                int newRow = m_fakeRootItem->numChildren();
-                beginInsertRows(QModelIndex(), newRow, newRow);
-                stackModelItemIt->setParent(m_fakeRootItem);
-                endInsertRows();
-            }
-
-            pParentItem = &(stackModelItemIt.value());
-            shouldChangeParent = true;
-        }
-
-        if (shouldChangeParent)
-        {
-            QModelIndex parentItemIndex = indexForItem(pParentItem);
-            int newRow = pParentItem->numChildren();
-            beginInsertRows(parentItemIndex, newRow, newRow);
-            pModelItem->setParent(pParentItem);
+            NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, pNewStackItem);
+            stackModelItemIt = m_modelItemsByStack.insert(notebook.stack(), newStackModelItem);
+            int newRow = m_fakeRootItem->numChildren();
+            beginInsertRows(QModelIndex(), newRow, newRow);
+            stackModelItemIt->setParent(m_fakeRootItem);
             endInsertRows();
 
-            row = pParentItem->rowForChild(pModelItem);
-            if (Q_UNLIKELY(row < 0)) {
-                QNWARNING(QStringLiteral("Can't find the row for the child notebook item within its parent right after setting "
-                                         "the parent item to the child item! Parent item = ") << *pParentItem
-                          << QStringLiteral("\nChild item = ") << *pModelItem);
-                return;
-            }
-
-            notebookStackChanged = true;
+            updateItemRowWithRespectToSorting(*stackModelItemIt);
         }
+
+        pParentItem = &(stackModelItemIt.value());
+        shouldChangeParent = true;
     }
-    else if (pParentItem != m_fakeRootItem)
+
+    bool notebookStackChanged = false;
+    if (shouldChangeParent)
     {
-        QNWARNING(QStringLiteral("The updated notebook item has parent which is not of notebook stack type and not a fake root item"));
-        return;
+        QModelIndex parentItemIndex = indexForItem(pParentItem);
+        int newRow = pParentItem->numChildren();
+        beginInsertRows(parentItemIndex, newRow, newRow);
+        pModelItem->setParent(pParentItem);
+        endInsertRows();
+
+        row = pParentItem->rowForChild(pModelItem);
+        if (Q_UNLIKELY(row < 0)) {
+            QNWARNING(QStringLiteral("Can't find the row for the child notebook item within its parent right after setting "
+                                     "the parent item to the child item! Parent item = ") << *pParentItem
+                      << QStringLiteral("\nChild item = ") << *pModelItem);
+            return;
+        }
+
+        notebookStackChanged = true;
     }
 
     int numNotesPerNotebook = it->numNotesPerNotebook();
@@ -2944,9 +2943,7 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
         return;
     }
 
-    emit layoutAboutToBeChanged();
     updateItemRowWithRespectToSorting(*pModelItem);
-    emit layoutChanged();
 
     if (notebookStackChanged) {
         emit notifyNotebookStackChanged(modelIndexFrom);
