@@ -208,7 +208,7 @@ QString MainWindow::readData(QProcess & process, const bool fromStdout)
                          : process.readAllStandardError());
 
 #ifdef Q_OS_WIN
-    return QString::fromUtf16(static_cast<const ushort *>(output.constData()), output.size());
+    return QString::fromUtf16(reinterpret_cast<const ushort*>(output.constData()), output.size());
 #else
     return QString::fromUtf8(output);
 #endif
