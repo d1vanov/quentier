@@ -309,9 +309,20 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
                ${${PROJECT_NAME}_RESOURCES_RCC})
 
 if(BREAKPAD_FOUND)
+  if(WIN32)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	  set(EXECUTABLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Debug/${PROJECT_NAME}.exe")
+	else()
+	  set(EXECUTABLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Release/${PROJECT_NAME}.exe")
+	endif()
+	string(REPLACE "/" "\\" EXECUTABLE_PATH "${EXECUTABLE_PATH}")
+  else()
+    set(EXECUTABLE_PATH ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME})
+  endif()
+
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
-                     COMMAND ${BREAKPAD_DUMP_SYMS} ./${PROJECT_NAME} > ${PROJECT_NAME}.syms)
+                     COMMAND ${BREAKPAD_DUMP_SYMS} ${EXECUTABLE_PATH} > ${PROJECT_NAME}.syms)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
