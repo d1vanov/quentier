@@ -309,6 +309,9 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
                ${${PROJECT_NAME}_RESOURCES_RCC})
 
 if(BREAKPAD_FOUND)
+  add_subdirectory(crash_handler)
+  add_subdirectory(symbols_compressor)
+
   if(WIN32)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	  set(EXECUTABLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Debug/${PROJECT_NAME}.exe")
@@ -323,6 +326,10 @@ if(BREAKPAD_FOUND)
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
                      COMMAND ${BREAKPAD_DUMP_SYMS} ${EXECUTABLE_PATH} > ${PROJECT_NAME}.syms)
+
+  add_custom_command(TARGET ${PROJECT_NAME}
+                     POST_BUILD
+                     COMMAND ${symbols_compressor} ${PROJECT_NAME}.syms)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
@@ -330,11 +337,6 @@ target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
 if(USE_QT5)
   add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
-endif()
-
-if(BREAKPAD_FOUND)
-  add_subdirectory(crash_handler)
-  get_directory_property(crash_handler DIRECTORY crash_handler DEFINITION quentier_crash_handler)
 endif()
 
 # Set up the model tests
@@ -434,7 +436,7 @@ foreach(QM_FILE ${${PROJECT_NAME}_QM_FILES})
 endforeach()
 
 if(BREAKPAD_FOUND)
-  install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms
+  install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms.compressed
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 

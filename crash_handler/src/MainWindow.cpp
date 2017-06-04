@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QRegExp>
 #include <QDesktopServices>
+#include <QTemporaryFile>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <QStandardPaths>
@@ -56,13 +57,36 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
         return;
     }
 
+    QFile compressedSymbolsFile(symbolsFileInfo.absoluteFilePath());
+    if (!compressedSymbolsFile.open(QIODevice::ReadOnly)) {
+        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't open the compressed symbols file for reading") +
+                                                     QString::fromUtf8(": ") + symbolsFileLocation);
+        return;
+    }
+
+    QByteArray symbolsFileData = compressedSymbolsFile.readAll();
+    compressedSymbolsFile.close();
+
+    QTemporaryFile uncompressedSymbolsFile;
+    if (!uncompressedSymbolsFile.open()) {
+        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't create the temporary file to store the uncompressed symbols") +
+                                                     QString::fromUtf8(": ") + symbolsFileLocation);
+        return;
+    }
+
+    uncompressedSymbolsFile.setAutoRemove(true);
+
+    symbolsFileData = qUncompress(symbolsFileData);
+    uncompressedSymbolsFile.write(symbolsFileData);
+    QFileInfo uncompressedSymbolsFileInfo(uncompressedSymbolsFile);
+
     // NOTE: all attempts to read the first line from the symbols file using QFile's API result in crash for unknown reason;
     // maybe it doesn't like what it finds within the file, I have no idea.
     // Working around this crap by using C++ standard library's API.
     std::ifstream symbolsFileStream;
-    symbolsFileStream.open(QDir::toNativeSeparators(symbolsFileInfo.absoluteFilePath()).toLocal8Bit().constData(), std::ifstream::in);
+    symbolsFileStream.open(QDir::toNativeSeparators(uncompressedSymbolsFileInfo.absoluteFilePath()).toLocal8Bit().constData(), std::ifstream::in);
     if (Q_UNLIKELY(!symbolsFileStream.good())) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't open the symbols file for reading") +
+        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't open the temporary uncompressed symbols file for reading") +
                                                      QString::fromUtf8(": ") + symbolsFileLocation);
         return;
     }

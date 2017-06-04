@@ -29,7 +29,7 @@ int main(int argc, char * argv[])
     QStringList args = app.arguments();
     if (args.size() < 4) {
         qWarning() << QString::fromUtf8("Usage: ") << argv[0] << QString::fromUtf8(" ")
-                   << QString::fromUtf8("<symbols file location> <stackwalker tool location> <minidump file location>");
+                   << QString::fromUtf8("<compressed symbols file location> <stackwalker tool location> <minidump file location>");
         return 1;
     }
 
