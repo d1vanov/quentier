@@ -116,7 +116,7 @@ void setupBreakpad(const QApplication & app)
     quentierCrashHandlerFilePath = QByteArray((const char*)(crashHandlerFilePath.utf16()));
 #endif
 
-    QString symbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms");
+    QString symbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms.compressed");
     CONVERT_PATH(symbolsFilePath);
 
     QString minidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");

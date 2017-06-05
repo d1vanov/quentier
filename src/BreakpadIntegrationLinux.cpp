@@ -98,11 +98,11 @@ void setupBreakpad(const QApplication & app)
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     *quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
-    *quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms");
+    *quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms.compressed");
     *quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
 #else
     quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
-    quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms");
+    quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms.compressed");
     quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
 #endif
 

@@ -160,14 +160,16 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
 
     QString newSymbolsFilePath = unpackFolder + QString::fromUtf8("/") + symbolsFileInfo.baseName() + QString::fromUtf8(".sym");
 
-    QFile symbolsFile(symbolsFileInfo.absoluteFilePath());
-    res = symbolsFile.copy(symbolsFileInfo.absoluteFilePath(), newSymbolsFilePath);
+    QFile newSymbolsFile(newSymbolsFilePath);
+    res = newSymbolsFile.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!res)) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't copy the symbols to the temporary directory for unpacking") +
-                                                     QString::fromUtf8(": ") + tr("error code") + QString::fromUtf8(": ") +
-                                                     QString::number(symbolsFile.error()));
+        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: failed to open the temporary file for unpacked symbols for writing") +
+                                                     QString::fromUtf8(":\n") + QDir::toNativeSeparators(unpackFolder));
         return;
     }
+
+    newSymbolsFile.write(symbolsFileData);
+    newSymbolsFile.close();
 
     QProcess * pStackwalkProcess = new QProcess(this);
     QObject::connect(pStackwalkProcess, QNSIGNAL(QProcess,readyReadStandardOutput),
