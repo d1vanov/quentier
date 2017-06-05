@@ -27,7 +27,7 @@ add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
 if(USE_QT5)
   target_link_libraries(${PROJECT_NAME} Qt5::Core)
 else()
-  target_link_libraries(${PROJECT_NAME} ${QT_CORE_LIBRARY})
+  target_link_libraries(${PROJECT_NAME} ${QT_QTCORE_LIBRARY})
 endif()
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
