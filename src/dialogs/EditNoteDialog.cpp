@@ -79,7 +79,17 @@ EditNoteDialog::EditNoteDialog(const Note & note,
         m_pUi->altitudeSpinBox->setReadOnly(true);
 
         m_pUi->buttonBox->setStandardButtons(QDialogButtonBox::StandardButtons(QDialogButtonBox::Ok));
+
+        m_pUi->favoritedCheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        m_pUi->favoritedCheckBox->setFocusPolicy(Qt::NoFocus);
     }
+
+    // Synchronizable and dirty checkboxes are read-only all the time
+    m_pUi->synchronizableCheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    m_pUi->synchronizableCheckBox->setFocusPolicy(Qt::NoFocus);
+
+    m_pUi->dirtyCheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    m_pUi->dirtyCheckBox->setFocusPolicy(Qt::NoFocus);
 
     createConnections();
 }
@@ -192,6 +202,8 @@ void EditNoteDialog::accept()
         QDateTime deletionDateTime = m_pUi->deletionDateTimeEdit->dateTime();
         modifiedNote.setDeletionTimestamp(deletionDateTime.toMSecsSinceEpoch());
     }
+
+    modifiedNote.setFavorited(m_pUi->favoritedCheckBox->isChecked());
 
     QDateTime subjectDateTime = m_pUi->subjectDateTimeEdit->dateTime();
 
@@ -574,6 +586,16 @@ void EditNoteDialog::fillDialogContent()
     }
     else {
         m_pUi->deletionDateTimeEdit->setDateTime(QDateTime());
+    }
+
+    m_pUi->synchronizableCheckBox->setChecked(!m_note.isLocal());
+    m_pUi->favoritedCheckBox->setChecked(m_note.isFavorited());
+    m_pUi->dirtyCheckBox->setChecked(m_note.isDirty());
+
+    m_pUi->localUidLineEdit->setText(m_note.localUid());
+
+    if (m_note.hasGuid()) {
+        m_pUi->guidLineEdit->setText(m_note.guid());
     }
 
     if (!m_note.hasNoteAttributes())
