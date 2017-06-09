@@ -4049,11 +4049,13 @@ void MainWindow::setupViews()
     QObject::connect(m_pUI->noteSortingModeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onNoteSortingModeChanged(int)));
 
-    restoreNoteSortingMode();
-    if (m_pUI->noteSortingModeComboBox->currentIndex() < 0) {
-        // Couldn't restore, fallback to the default
-        m_pUI->noteSortingModeComboBox->setCurrentIndex(0);
+    if (!restoreNoteSortingMode()) {
+        m_pUI->noteSortingModeComboBox->setCurrentIndex(NoteSortingModes::ModifiedDescending);
+        QNDEBUG(QStringLiteral("Couldn't restore the note sorting mode, fallback to the default one of ")
+                << m_pUI->noteSortingModeComboBox->currentIndex());
     }
+
+    onNoteSortingModeChanged(m_pUI->noteSortingModeComboBox->currentIndex());
 
     DeletedNoteItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::CreationTimestamp, true);
@@ -4467,7 +4469,7 @@ void MainWindow::persistChosenNoteSortingMode(int index)
     appSettings.endGroup();
 }
 
-void MainWindow::restoreNoteSortingMode()
+bool MainWindow::restoreNoteSortingMode()
 {
     QNDEBUG(QStringLiteral("MainWindow::restoreNoteSortingMode"));
 
@@ -4478,7 +4480,7 @@ void MainWindow::restoreNoteSortingMode()
 
     if (data.isNull()) {
         QNDEBUG(QStringLiteral("No persisted note sorting mode, nothing to restore"));
-        return;
+        return false;
     }
 
     bool conversionResult = false;
@@ -4490,10 +4492,12 @@ void MainWindow::restoreNoteSortingMode()
                                             "to the integer index"));
         QNWARNING(error << QStringLiteral(", persisted data: ") << data);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
-        return;
+        return false;
     }
 
     m_pUI->noteSortingModeComboBox->setCurrentIndex(index);
+    QNDEBUG(QStringLiteral("Restored the current note sorting mode combo box index: ") << index);
+    return true;
 }
 
 void MainWindow::persistGeometryAndState()

@@ -368,7 +368,7 @@ private:
     void refreshNoteEditorWidgetsSpecialIcons();
 
     void persistChosenNoteSortingMode(int index);
-    void restoreNoteSortingMode();
+    bool restoreNoteSortingMode();
 
     void persistGeometryAndState();
     void restoreGeometryAndState();
