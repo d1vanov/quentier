@@ -1518,6 +1518,7 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
 
     NoteModelItem itemCopy(item);
 
+    QNTRACE(QStringLiteral("Removing the moved item from the original row ") << originalRow);
     beginRemoveRows(QModelIndex(), originalRow, originalRow);
     Q_UNUSED(index.erase(it))
     endRemoveRows();
@@ -1527,6 +1528,8 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
     if (positionIter == index.end())
     {
         int newRow = static_cast<int>(index.size());
+
+        QNTRACE(QStringLiteral("Inserting the moved item at row ") << newRow);
         beginInsertRows(QModelIndex(), newRow, newRow);
         index.push_back(itemCopy);
         endInsertRows();
@@ -1534,7 +1537,9 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
         return;
     }
 
-    int newRow = static_cast<int>(std::distance(positionIter, index.begin()));
+    int newRow = static_cast<int>(std::distance(index.begin(), positionIter));
+
+    QNTRACE(QStringLiteral("Inserting the moved item at row ") << newRow);
     beginInsertRows(QModelIndex(), newRow, newRow);
     Q_UNUSED(index.insert(positionIter, itemCopy))
     endInsertRows();
