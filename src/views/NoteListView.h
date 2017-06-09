@@ -52,6 +52,16 @@ public:
      */
     void setAutoSelectNoteOnNextAddition();
 
+    /**
+     * @return local uids of selected notes
+     */
+    QStringList selectedNotesLocalUids() const;
+
+    /**
+     * @return the local uid of the current note
+     */
+    QString currentNoteLocalUid() const;
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
     void currentNoteChanged(QString noteLocalUid);
@@ -65,10 +75,16 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     /**
-     * The slot to watch for external changes of current note
+     * The slot which can watch for external changes of current note
      * and reflect the change of the current item in the view
      */
-    void onCurrentNoteChanged(QString noteLocalUid);
+    void setCurrentNoteByLocalUid(QString noteLocalUid);
+
+    /**
+     * The slot which can watch for external changes of selected notes
+     * and reflect that change in the view
+     */
+    void selectNotesByLocalUids(const QStringList & noteLocalUids);
 
     /**
      * @brief The dataChanged method is redefined in NoteListView for the sole reason of being a public slot
@@ -101,6 +117,7 @@ protected Q_SLOTS:
     void onExportSeveralNotesToEnexAction();
 
     void onSelectFirstNoteEvent();
+    void onTrySetLastCurrentNoteByLocalUidEvent();
 
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
@@ -121,6 +138,8 @@ protected:
     QMenu *             m_pNoteItemContextMenu;
     NotebookItemView *  m_pNotebookItemView;
     bool                m_shouldSelectFirstNoteOnNextNoteAddition;
+
+    QString             m_lastCurrentNoteLocalUid;
 };
 
 } // namespace quentier

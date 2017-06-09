@@ -220,6 +220,8 @@ private Q_SLOTS:
     void onNoteSortingModeChanged(int index);
     void onNewNoteCreationRequested();
 
+    void onNoteModelAllNotesListed();
+
     void onCurrentNoteInListChanged(QString noteLocalUid);
     void onOpenNoteInSeparateWindow(QString noteLocalUid);
 

@@ -2376,6 +2376,26 @@ void MainWindow::onNewNoteCreationRequested()
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
+void MainWindow::onNoteModelAllNotesListed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNoteModelAllNotesListed"));
+
+    // NOTE: the task of this slot is to ensure that the note selected within the note list view
+    // is the same as the one in the current note editor tab
+
+    QObject::disconnect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
+                        this, QNSLOT(MainWindow,onNoteModelAllNotesListed));
+
+    NoteEditorWidget * pCurrentNoteEditorTab = currentNoteEditorTab();
+    if (!pCurrentNoteEditorTab) {
+        QNDEBUG(QStringLiteral("No current note editor tab"));
+        return;
+    }
+
+    QString noteLocalUid = pCurrentNoteEditorTab->noteLocalUid();
+    m_pUI->noteListView->setCurrentNoteByLocalUid(noteLocalUid);
+}
+
 void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
 {
     QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteInListChanged: ") << noteLocalUid);
@@ -3759,6 +3779,8 @@ void MainWindow::setupModels()
 
     QObject::connect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
                      m_pNoteFilterModel, QNSLOT(NoteFilterModel,invalidate));
+    QObject::connect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
+                     this, QNSLOT(MainWindow,onNoteModelAllNotesListed));
 
     m_pNoteFiltersManager = new NoteFiltersManager(*m_pUI->filterByTagsWidget,
                                                    *m_pUI->filterByNotebooksWidget,
@@ -4156,7 +4178,7 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
     QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,notifyError,ErrorString),
                      this, QNSLOT(MainWindow,onNoteEditorError,ErrorString));
     QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,currentNoteChanged,QString),
-                     m_pUI->noteListView, QNSLOT(NoteListView,onCurrentNoteChanged,QString));
+                     m_pUI->noteListView, QNSLOT(NoteListView,setCurrentNoteByLocalUid,QString));
 }
 
 void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAccountOption)

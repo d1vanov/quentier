@@ -43,7 +43,8 @@ NoteListView::NoteListView(QWidget * parent) :
     QListView(parent),
     m_pNoteItemContextMenu(Q_NULLPTR),
     m_pNotebookItemView(Q_NULLPTR),
-    m_shouldSelectFirstNoteOnNextNoteAddition(false)
+    m_shouldSelectFirstNoteOnNextNoteAddition(false),
+    m_lastCurrentNoteLocalUid()
 {}
 
 void NoteListView::setNotebookItemView(NotebookItemView * pNotebookItemView)
@@ -58,9 +59,82 @@ void NoteListView::setAutoSelectNoteOnNextAddition()
     m_shouldSelectFirstNoteOnNextNoteAddition = true;
 }
 
-void NoteListView::onCurrentNoteChanged(QString noteLocalUid)
+QStringList NoteListView::selectedNotesLocalUids() const
 {
-    QNDEBUG(QStringLiteral("NoteListView::onCurrentNoteChanged: ") << noteLocalUid);
+    QStringList result;
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        QNDEBUG(QStringLiteral("Can't return the list of selected note local uids: "
+                               "wrong model connected to the note list view"));
+        return result;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Can't return the list of selected note local uids: can't get the source model "
+                               "from the note filter model connected to the note list view"));
+        return result;
+    }
+
+    QModelIndexList indexes = selectedIndexes();
+    result.reserve(indexes.size());
+
+    for(auto it = indexes.constBegin(), end = indexes.constEnd(); it != end; ++it)
+    {
+        const QModelIndex & filterModelIndex = *it;
+        QModelIndex sourceModelIndex = pNoteFilterModel->mapToSource(filterModelIndex);
+        const NoteModelItem * pItem = pNoteModel->itemForIndex(sourceModelIndex);
+        if (Q_UNLIKELY(!pItem)) {
+            QNWARNING(QStringLiteral("Found no note model item for selected index mapped from filter model to source model"));
+            continue;
+        }
+
+        if (!result.contains(pItem->localUid())) {
+            result.push_back(pItem->localUid());
+        }
+    }
+
+    QNTRACE(QStringLiteral("Local uids of selected notes: ")
+            << (result.isEmpty() ? QStringLiteral("<empty>") : result.join(QStringLiteral(", "))));
+    return result;
+}
+
+QString NoteListView::currentNoteLocalUid() const
+{
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        QNDEBUG(QStringLiteral("Can't return the current note local uid: "
+                               "wrong model connected to the note list view"));
+        return QString();
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Can't return the current note local uid: can't get the source model "
+                               "from the note filter model connected to the note list view"));
+        return QString();
+    }
+
+    QModelIndex currentFilterModelIndex = currentIndex();
+    if (!currentFilterModelIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Note view has no valid current index"));
+        return QString();
+    }
+
+    QModelIndex currentSourceModelIndex = pNoteFilterModel->mapToSource(currentFilterModelIndex);
+    const NoteModelItem * pItem = pNoteModel->itemForIndex(currentSourceModelIndex);
+    if (Q_UNLIKELY(!pItem)) {
+        QNWARNING(QStringLiteral("Found no note model item for the current index mapped from filter model to source model"));
+        return QString();
+    }
+
+    return pItem->localUid();
+}
+
+void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteListView::setCurrentNoteByLocalUid: ") << noteLocalUid);
 
     NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
@@ -81,6 +155,60 @@ void NoteListView::onCurrentNoteChanged(QString noteLocalUid)
     }
 
     setCurrentIndex(index);
+
+    m_lastCurrentNoteLocalUid = noteLocalUid;
+    QNDEBUG(QStringLiteral("Updated last current note local uid to ") << noteLocalUid);
+}
+
+void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
+{
+    QNDEBUG(QStringLiteral("NoteListView::selectNotesByLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        QNDEBUG(QStringLiteral("Can't select notes by local uids: wrong model connected to the note list view"));
+        return;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Can't select notes by local uids: can't get the source model from the note filter model "
+                               "connected to the note list view"));
+        return;
+    }
+
+    QItemSelectionModel * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        QNDEBUG(QStringLiteral("Can't select notes by local uids: no selection model within the view"));
+        return;
+    }
+
+    QItemSelection selection;
+    QItemSelectionModel::SelectionFlags selectionFlags(QItemSelectionModel::Select);
+
+    for(auto it = noteLocalUids.constBegin(), end = noteLocalUids.constEnd(); it != end; ++it)
+    {
+        QModelIndex sourceModelIndex = pNoteModel->indexForLocalUid(*it);
+        if (Q_UNLIKELY(!sourceModelIndex.isValid())) {
+            QNDEBUG(QStringLiteral("The source model index for note local uid ") << *it
+                    << QStringLiteral(" is invalid, skipping"));
+            continue;
+        }
+
+        QModelIndex filterModelIndex = pNoteFilterModel->mapFromSource(sourceModelIndex);
+        if (!filterModelIndex.isValid()) {
+            QNDEBUG(QStringLiteral("It looks like note with local uid ") << *it
+                    << QStringLiteral(" is filtered out by the note filter model because the index in the note filter model is invalid"));
+            continue;
+        }
+
+        QItemSelection currentSelection;
+        currentSelection.select(filterModelIndex, filterModelIndex);
+        selection.merge(currentSelection, selectionFlags);
+    }
+
+    selectionFlags = QItemSelectionModel::SelectionFlags(QItemSelectionModel::ClearAndSelect);
+    pSelectionModel->select(selection, selectionFlags);
 }
 
 void NoteListView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
@@ -106,10 +234,16 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start, i
     if (current.isValid())
     {
         int row = current.row();
-        if ((row >= start) && (row <= end)) {
+        if ((row >= start) && (row <= end))
+        {
             // The default implementation moves current to the next remaining item
             // but for this view it makes more sense to just get rid of the item altogether
             setCurrentIndex(QModelIndex());
+
+            // Also note that the last current note local uid is not changed here: while the row with it
+            // would be removed shortly, the row removal might correspond to the re-sorting or filtering of note
+            // model items so the row corresponding to this note might become available again before some other note
+            // item is selected manually. To account for this, leaving the last current note local uid untouched for now.
         }
     }
 
@@ -118,6 +252,8 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start, i
 
 void NoteListView::rowsInserted(const QModelIndex & parent, int start, int end)
 {
+    QNDEBUG(QStringLiteral("NoteListView::rowsInserted: start = ") << start << QStringLiteral(", end = ") << end);
+
     QListView::rowsInserted(parent, start, end);
 
     if (Q_UNLIKELY(m_shouldSelectFirstNoteOnNextNoteAddition))
@@ -132,7 +268,31 @@ void NoteListView::rowsInserted(const QModelIndex & parent, int start, int end)
         QObject::connect(pTimer, QNSIGNAL(QTimer,timeout),
                          this, QNSLOT(NoteListView,onSelectFirstNoteEvent));
         pTimer->start(0);
+        return;
     }
+
+    // Need to check if the row inserting made the last current note local uid available
+    QModelIndex currentModelIndex = currentIndex();
+    if (currentModelIndex.isValid()) {
+        QNTRACE(QStringLiteral("Current model index is already valid, no need to restore anything"));
+        return;
+    }
+
+    if (m_lastCurrentNoteLocalUid.isEmpty()) {
+        QNTRACE(QStringLiteral("The last current note local uid is empty, no current note item to restore"));
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Should try to re-select the last current note local uid"));
+
+    // As above, it is not safe to attempt to change the current model index right inside this callback
+    // so scheduling a separate one
+    QTimer * pTimer = new QTimer(this);
+    pTimer->setSingleShot(true);
+    QObject::connect(pTimer, QNSIGNAL(QTimer,timeout),
+                     this, QNSLOT(NoteListView,onTrySetLastCurrentNoteByLocalUidEvent));
+    pTimer->start(0);
+    return;
 }
 
 void NoteListView::onCreateNewNoteAction()
@@ -374,6 +534,40 @@ void NoteListView::onSelectFirstNoteEvent()
     }
 
     setCurrentIndex(pModel->index(0, NoteModel::Columns::Title, QModelIndex()));
+}
+
+void NoteListView::onTrySetLastCurrentNoteByLocalUidEvent()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onTrySetLastCurrentNoteByLocalUidEvent"));
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        QNDEBUG(QStringLiteral("Can't restore the last current note local uid: wrong model connected to the note list view"));
+        return;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Can't restore the last current note local uid: can't get the source model from the note "
+                               "filter model connected to the note list view"));
+        return;
+    }
+
+    QModelIndex sourceModelIndex = pNoteModel->indexForLocalUid(m_lastCurrentNoteLocalUid);
+    if (!sourceModelIndex.isValid()) {
+        QNTRACE(QStringLiteral("No valid model index within the note model for the last current note local uid ")
+                << m_lastCurrentNoteLocalUid);
+        return;
+    }
+
+    QModelIndex filterModelIndex = pNoteFilterModel->mapFromSource(sourceModelIndex);
+    if (!filterModelIndex.isValid()) {
+        QNTRACE(QStringLiteral("It appears the last current note model item is filtered out, at least the model index "
+                               "within the note filter model is invalid"));
+        return;
+    }
+
+    setCurrentIndex(filterModelIndex);
 }
 
 void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
@@ -622,6 +816,9 @@ void NoteListView::currentChanged(const QModelIndex & current,
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't retrieve the new current note item for note model index"));
         return;
     }
+
+    m_lastCurrentNoteLocalUid = pItem->localUid();
+    QNTRACE(QStringLiteral("Updated the last current note local uid to ") << pItem->localUid());
 
     emit currentNoteChanged(pItem->localUid());
 }
