@@ -92,8 +92,12 @@ function(CreateQuentierBundle)
   get_filename_component(BOOST_LIB_DIR "${Boost_LIBRARIES}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS ${BOOST_LIB_DIR})
 
-  # 12) Google breakpad
-  if(BREAKPAD_FOUND)
+  # 12) Google breakpad - include only on non-Windows platforms due to the following:
+  # dump_syms.exe doesn't have any runtime dependencies and minidump_stackwalk.exe
+  # requires some Cygwin dlls but the latter ones cannot be properly deployed
+  # by CMake's fixup_bundle because it assumes all binaries built with MSVC
+  # and freaks out from Cygwin dlls' binary format
+  if(NOT WIN32 AND BREAKPAD_FOUND)
     list(APPEND THIRDPARTY_LIB_DIRS ${BREAKPAD_LIBRARY_DIRS})
   endif()
 
@@ -153,10 +157,6 @@ function(CreateQuentierBundle)
       # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
       install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
 
-      if(BREAKPAD_FOUND)
-        list(APPEND APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}_minidump_stackwalk.exe)
-      endif()
-
       # fixup other dependencies not taken care of by windeployqt/macdeployqt
       install(CODE "
               include(CMakeParseArguments)
@@ -166,18 +166,24 @@ function(CreateQuentierBundle)
                 include(BundleUtilities)
               endif()
               include(InstallRequiredSystemLibraries)
-              fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
+              fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
               " COMPONENT Runtime)
     else()
-      if(BREAKPAD_FOUND)
-        list(APPEND APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}_minidump_stackwalk.exe)
-      endif()
       install(CODE "
               include(DeployQt4)
               include(InstallRequiredSystemLibraries)
-              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\")
+              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
               " COMPONENT Runtime)
     endif(USE_QT5)
+
+    if (BREAKPAD_FOUND)
+      # need to do some manual steps for deploying the dependencies of quentier_minidump_stackwalk.exe - Cygwin dlls
+      get_filename_component(BREAKPAD_STACKWALKER_DIR ${BREAKPAD_STACKWALKER} DIRECTORY)
+      file(GLOB cygwin_dlls "${BREAKPAD_STACKWALKER_DIR}/cy*.dll")
+      foreach(cygwin_dll ${cygwin_dlls})
+        install(CODE "file(COPY ${cygwin_dll} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)")
+      endforeach()
+    endif()
   elseif(APPLE)
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")

@@ -313,19 +313,14 @@ if(BREAKPAD_FOUND)
   add_subdirectory(symbols_compressor)
 
   if(WIN32)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	  set(EXECUTABLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Debug/${PROJECT_NAME}.exe")
-	else()
-	  set(EXECUTABLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/Release/${PROJECT_NAME}.exe")
-	endif()
-	string(REPLACE "/" "\\" EXECUTABLE_PATH "${EXECUTABLE_PATH}")
+    set(EXECUTABLE_NAME "${PROJECT_NAME}.exe")
   else()
-    set(EXECUTABLE_PATH ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME})
+    set(EXECUTABLE_NAME ${PROJECT_NAME})
   endif()
 
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
-                     COMMAND ${BREAKPAD_DUMP_SYMS} ${EXECUTABLE_PATH} > ${PROJECT_NAME}.syms)
+                     COMMAND ${BREAKPAD_DUMP_SYMS} ${EXECUTABLE_NAME} > ${PROJECT_NAME}.syms)
 
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
@@ -440,14 +435,26 @@ if(BREAKPAD_FOUND)
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
-  install(FILES ${PROJECT_BINARY_DIR}/crash_handler/quentier_crash_handler
+  if(WIN32)
+    set(CRASH_HANDLER_BINARY "${PROJECT_BINARY_DIR}/crash_handler/quentier_crash_handler.exe")
+  else()
+    set(CRASH_HANDLER_BINARY "${PROJECT_BINARY_DIR}/crash_handler/quentier_crash_handler")
+  endif()
+
+  install(FILES ${CRASH_HANDLER_BINARY}
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE)
+
+  if(WIN32)
+    set(STACKWALK_BINARY_NAME "quentier_minidump_stackwalk.exe")
+  else()
+    set(STACKWALK_BINARY_NAME "quentier_minidump_stackwalk")
+  endif()
 
   install(FILES ${BREAKPAD_STACKWALKER}
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE
-    RENAME quentier_minidump_stackwalk)
+    RENAME ${STACKWALK_BINARY_NAME})
 endif()
 
 # install application bundle
