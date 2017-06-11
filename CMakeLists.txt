@@ -312,6 +312,7 @@ if(BREAKPAD_FOUND)
   add_subdirectory(crash_handler)
   add_subdirectory(symbols_compressor)
 
+  # 1) Generate symbols for the executable
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
                      COMMAND ${BREAKPAD_DUMP_SYMS} $<TARGET_FILE:${PROJECT_NAME}> > ${PROJECT_NAME}.syms)
@@ -319,6 +320,15 @@ if(BREAKPAD_FOUND)
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
                      COMMAND ${symbols_compressor} ${PROJECT_NAME}.syms)
+
+  # 2) Generate symbols for the core library
+  add_custom_command(TARGET ${PROJECT_NAME}
+                     POST_BUILD
+                     COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_LIBRARY_LOCATION} > libquentier.syms)
+
+  add_custom_command(TARGET ${PROJECT_NAME}
+                     POST_BUILD
+                     COMMAND ${symbols_compressor} libquentier.syms)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
@@ -426,6 +436,10 @@ endforeach()
 
 if(BREAKPAD_FOUND)
   install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms.compressed
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+
+  install(FILES ${PROJECT_BINARY_DIR}/libquentier.syms.compressed
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
