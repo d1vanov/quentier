@@ -31,36 +31,47 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
     m_pUi->setupUi(this);
     setWindowTitle(tr("Quentier crashed"));
 
-    m_pUi->minidumpFilePathLineEdit->setText(minidumpLocation);
+    QString realMinidumpLocation = minidumpLocation;
+    realMinidumpLocation.replace(QString::fromUtf8("\\\\"), QString::fromUtf8("\\"));
 
-    QFileInfo symbolsFileInfo(QDir::fromNativeSeparators(symbolsFileLocation));
+    m_pUi->minidumpFilePathLineEdit->setText(realMinidumpLocation);
+
+    QString realSymbolsFileLocation = symbolsFileLocation;
+    realSymbolsFileLocation.replace(QString::fromUtf8("\\\\"), QString::fromUtf8("\\"));
+    realSymbolsFileLocation = QDir::fromNativeSeparators(realSymbolsFileLocation);
+
+    QFileInfo symbolsFileInfo(realSymbolsFileLocation);
     if (Q_UNLIKELY(!symbolsFileInfo.exists())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: symbols file doesn't exist") +
-                                                     QString::fromUtf8(": ") + symbolsFileLocation);
+                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(realSymbolsFileLocation));
         return;
     }
     else if (Q_UNLIKELY(!symbolsFileInfo.isFile())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: the path to symbols file doesn't point to an actual file") +
-                                                     QString::fromUtf8(": ") + symbolsFileLocation);
+                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(realSymbolsFileLocation));
         return;
     }
 
-    QFileInfo stackwalkBinaryInfo(QDir::fromNativeSeparators(stackwalkBinaryLocation));
+    QString realStackwalkBinaryLocation = stackwalkBinaryLocation;
+    realStackwalkBinaryLocation.replace(QString::fromUtf8("\\\\"), QString::fromUtf8("\\"));
+    realStackwalkBinaryLocation = QDir::fromNativeSeparators(realStackwalkBinaryLocation);
+
+    QFileInfo stackwalkBinaryInfo(realStackwalkBinaryLocation);
     if (Q_UNLIKELY(!stackwalkBinaryInfo.exists())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: minidump stackwalk utility file doesn't exist") +
-                                                     QString::fromUtf8(": ") + stackwalkBinaryLocation);
+                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(realStackwalkBinaryLocation));
         return;
     }
     else if (Q_UNLIKELY(!stackwalkBinaryInfo.isFile())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: the path to minidump stackwalk utility doesn't point to an actual file") +
-                                                     QString::fromUtf8(": ") + stackwalkBinaryLocation);
+                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(realStackwalkBinaryLocation));
         return;
     }
 
     QFile compressedSymbolsFile(symbolsFileInfo.absoluteFilePath());
     if (!compressedSymbolsFile.open(QIODevice::ReadOnly)) {
         m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't open the compressed symbols file for reading") +
-                                                     QString::fromUtf8(": ") + symbolsFileLocation);
+                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(realSymbolsFileLocation));
         return;
     }
 
@@ -70,7 +81,7 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
     QTemporaryFile uncompressedSymbolsFile;
     if (!uncompressedSymbolsFile.open()) {
         m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't create the temporary file to store the uncompressed symbols") +
-                                                     QString::fromUtf8(": ") + symbolsFileLocation);
+                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(realSymbolsFileLocation));
         return;
     }
 
@@ -87,7 +98,7 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
     symbolsFileStream.open(QDir::toNativeSeparators(uncompressedSymbolsFileInfo.absoluteFilePath()).toLocal8Bit().constData(), std::ifstream::in);
     if (Q_UNLIKELY(!symbolsFileStream.good())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't open the temporary uncompressed symbols file for reading") +
-                                                     QString::fromUtf8(": ") + symbolsFileLocation);
+                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(realSymbolsFileLocation));
         return;
     }
 
@@ -149,7 +160,12 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
     }
 #endif
 
-    QString unpackFolder = unpackFolderSymbols + QString::fromUtf8("/") + appName + QString::fromUtf8("/") + id;
+    QString unpackFolder = unpackFolderSymbols + QString::fromUtf8("/") + appName;
+#ifdef _MSC_VER
+    unpackFolder += QString::fromUtf8(".pdb");
+#endif
+    unpackFolder += QString::fromUtf8("/") + id;
+
     QDir unpackFolderDir(unpackFolder);
     bool res = unpackFolderDir.mkpath(unpackFolder);
     if (Q_UNLIKELY(!res)) {
@@ -181,7 +197,7 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
 
     QStringList stackwalkArgs;
     stackwalkArgs.reserve(2);
-    stackwalkArgs << QDir::fromNativeSeparators(minidumpLocation);
+    stackwalkArgs << QDir::fromNativeSeparators(realMinidumpLocation);
     stackwalkArgs << unpackFolderSymbols;
 
     pStackwalkProcess->start(stackwalkBinaryInfo.absoluteFilePath(), stackwalkArgs, QIODevice::ReadOnly);
@@ -232,10 +248,5 @@ QString MainWindow::readData(QProcess & process, const bool fromStdout)
     QByteArray output = (fromStdout
                          ? process.readAllStandardOutput()
                          : process.readAllStandardError());
-
-#ifdef Q_OS_WIN
-    return QString::fromUtf16(reinterpret_cast<const ushort*>(output.constData()), output.size());
-#else
     return QString::fromUtf8(output);
-#endif
 }

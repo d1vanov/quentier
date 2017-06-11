@@ -27,13 +27,18 @@ int main(int argc, char * argv[])
     QApplication app(argc, argv);
 
     QStringList args = app.arguments();
-    if (args.size() < 4) {
-        qWarning() << QString::fromUtf8("Usage: ") << argv[0] << QString::fromUtf8(" ")
-                   << QString::fromUtf8("<compressed symbols file location> <stackwalker tool location> <minidump file location>");
+
+    // NOTE: on Windows args.at(0) might contain the application name or it might not. Need to figure this out.
+    if (args.at(0).contains(QString::fromUtf8("quentier_crash_handler"))) {
+        args.pop_front();
+    }
+
+    if (args.size() < 3)  {
+        qWarning() << QString::fromUtf8("Usage: quentier_crash_handler <compressed symbols file location> <stackwalker tool location> <minidump file location>");
         return 1;
     }
 
-    MainWindow window(args.at(1), args.at(2), args.at(3));
+    MainWindow window(args.at(0), args.at(1), args.at(2));
     QDesktopWidget * pDesktopWidget = QApplication::desktop();
     if (pDesktopWidget)
     {
