@@ -312,15 +312,9 @@ if(BREAKPAD_FOUND)
   add_subdirectory(crash_handler)
   add_subdirectory(symbols_compressor)
 
-  if(WIN32)
-    set(EXECUTABLE_NAME "${PROJECT_NAME}.exe")
-  else()
-    set(EXECUTABLE_NAME ${PROJECT_NAME})
-  endif()
-
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
-                     COMMAND ${BREAKPAD_DUMP_SYMS} ${EXECUTABLE_NAME} > ${PROJECT_NAME}.syms)
+                     COMMAND ${BREAKPAD_DUMP_SYMS} $<TARGET_FILE:${PROJECT_NAME}> > ${PROJECT_NAME}.syms)
 
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
