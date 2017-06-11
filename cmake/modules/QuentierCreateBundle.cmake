@@ -144,7 +144,7 @@ function(CreateQuentierBundle)
     if(USE_QT5)
       install(CODE "
               message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-              execute_process(COMMAND \"${DEPLOYQT_TOOL}\" ${APPS})
+              execute_process(COMMAND \"${DEPLOYQT_TOOL}\" --no-compiler-runtime ${APPS})
               " COMPONENT Runtime)
 
       if(QUENTIER_USE_QT_WEB_ENGINE)
