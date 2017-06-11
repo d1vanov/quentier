@@ -43,6 +43,13 @@ private Q_SLOTS:
     void onMinidumpStackwalkProcessFinished(int exitCode, QProcess::ExitStatus ExitStatus);
 
 private:
+    QString convertFromNativePath(const QString & path) const;
+    bool qualifySymbolsFile(const QString & symbolsFileLocation,
+                            const QString & symbolsSourceNameHint,
+                            QString & symbolsSourceName, QString & id,
+                            QByteArray & symbolsUncompressedData,
+                            QString & errorDescription);
+
     QString readData(QProcess & process, const bool fromStdout);
 
 private:
