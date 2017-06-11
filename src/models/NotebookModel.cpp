@@ -2063,7 +2063,7 @@ void NotebookModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpti
             << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid) << QStringLiteral(", num found notebooks = ")
             << foundNotebooks.size() << QStringLiteral(", request id = ") << requestId);
 
-    for(auto it = foundNotebooks.begin(), end = foundNotebooks.end(); it != end; ++it) {
+    for(auto it = foundNotebooks.constBegin(), end = foundNotebooks.constEnd(); it != end; ++it) {
         onNotebookAddedOrUpdated(*it);
         requestNoteCountForNotebook(*it);
     }
