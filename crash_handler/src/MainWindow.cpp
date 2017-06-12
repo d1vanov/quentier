@@ -36,15 +36,18 @@
 #define QNSLOT(className, methodName, ...) &className::methodName
 #endif
 
-MainWindow::MainWindow(const QString & symbolsFileLocation,
+MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
+                       const QString & libquentierSymbolsFileLocation,
                        const QString & stackwalkBinaryLocation,
                        const QString & minidumpLocation,
                        QWidget * parent) :
     QMainWindow(parent),
     m_pUi(new Ui::MainWindow),
+    m_numPendingSymbolsUnpackers(0),
     m_minidumpLocation(),
     m_stackwalkBinary(),
     m_unpackedSymbolsRootPath(),
+    m_symbolsUnpackingErrors(),
     m_output(),
     m_error()
 {
@@ -91,10 +94,29 @@ MainWindow::MainWindow(const QString & symbolsFileLocation,
 
     m_pUi->stackTracePlainTextEdit->setPlainText(tr("Loading debugging symbols, please wait") + QString::fromUtf8("..."));
 
-    SymbolsUnpacker * pSymbolsUnpacker = new SymbolsUnpacker(symbolsFileLocation, m_unpackedSymbolsRootPath);
-    QObject::connect(pSymbolsUnpacker, QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
+    SymbolsUnpacker * pQuentierSymbolsUnpacker = new SymbolsUnpacker(QString::fromUtf8("quentier"),
+                                                                     quentierSymbolsFileLocation,
+                                                                     m_unpackedSymbolsRootPath);
+    QObject::connect(pQuentierSymbolsUnpacker, QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
                      this, QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
-    QThreadPool::globalInstance()->start(pSymbolsUnpacker);
+    ++m_numPendingSymbolsUnpackers;
+
+    QString libquentierSourceNameHint =
+#if QT_VERSION > QT_VERSION_CHECK(5, 0, 0)
+        QString::fromUtf8("libqt5quentier");
+#else
+        QString::fromUtf8("libqt4quentier");
+#endif
+
+    SymbolsUnpacker * pLibquentierSymbolsUnpacker = new SymbolsUnpacker(libquentierSourceNameHint,
+                                                                        libquentierSymbolsFileLocation,
+                                                                        m_unpackedSymbolsRootPath);
+    QObject::connect(pLibquentierSymbolsUnpacker, QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
+                     this, QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
+    ++m_numPendingSymbolsUnpackers;
+
+    QThreadPool::globalInstance()->start(pQuentierSymbolsUnpacker);
+    QThreadPool::globalInstance()->start(pLibquentierSymbolsUnpacker);
 }
 
 MainWindow::~MainWindow()
@@ -111,7 +133,16 @@ void MainWindow::onMinidumpStackwalkReadyReadStandardOutput()
     }
 
     m_output += readData(*pStackwalkProcess, /* from stdout = */ true);
-    m_pUi->stackTracePlainTextEdit->setPlainText(m_output);
+
+    QString output;
+
+    if (!m_symbolsUnpackingErrors.isEmpty()) {
+        output = m_symbolsUnpackingErrors;
+    }
+
+    output += m_output;
+
+    m_pUi->stackTracePlainTextEdit->setPlainText(output);
 }
 
 void MainWindow::onMinidumpStackwalkReadyReadStandardError()
@@ -129,7 +160,13 @@ void MainWindow::onMinidumpStackwalkProcessFinished(int exitCode, QProcess::Exit
 {
     Q_UNUSED(exitStatus)
 
-    QString output = tr("Stacktrace extraction finished, exit code") + QString::fromUtf8(": ") + QString::number(exitCode) + QString::fromUtf8("\n");
+    QString output;
+
+    if (!m_symbolsUnpackingErrors.isEmpty()) {
+        output = m_symbolsUnpackingErrors;
+    }
+
+    output += tr("Stacktrace extraction finished, exit code") + QString::fromUtf8(": ") + QString::number(exitCode) + QString::fromUtf8("\n");
     output += m_output;
     output += QString::fromUtf8("\n\n");
     output += m_error;
@@ -139,8 +176,21 @@ void MainWindow::onMinidumpStackwalkProcessFinished(int exitCode, QProcess::Exit
 
 void MainWindow::onSymbolsUnpackerFinished(bool status, QString errorDescription)
 {
-    if (!status) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(errorDescription);
+    if (m_numPendingSymbolsUnpackers != 0) {
+        --m_numPendingSymbolsUnpackers;
+    }
+
+    if (!status)
+    {
+        if (m_symbolsUnpackingErrors.isEmpty()) {
+            m_symbolsUnpackingErrors = tr("Errors detected during symbols unpacking") + QString::fromUtf8(":\n\n");
+        }
+
+        m_symbolsUnpackingErrors += errorDescription;
+        m_symbolsUnpackingErrors += QString::fromUtf8("\n");
+    }
+
+    if (m_numPendingSymbolsUnpackers != 0) {
         return;
     }
 

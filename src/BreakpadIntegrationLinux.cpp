@@ -39,10 +39,12 @@ namespace quentier {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
 Q_GLOBAL_STATIC(QString, quentierCrashHandlerFilePath)
 Q_GLOBAL_STATIC(QString, quentierSymbolsFilePath)
+Q_GLOBAL_STATIC(QString, libquentierSymbolsFilePath)
 Q_GLOBAL_STATIC(QString, quentierMinidumpStackwalkFilePath)
 #else
 static QString quentierCrashHandlerFilePath;
 static QString quentierSymbolsFilePath;
+static QString libquentierSymbolsFilePath;
 static QString quentierMinidumpStackwalkFilePath;
 #endif
 
@@ -60,9 +62,11 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor & descriptor,
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
         crashHandlerArgs << *quentierSymbolsFilePath;
+        crashHandlerArgs << *libquentierSymbolsFilePath;
         crashHandlerArgs << *quentierMinidumpStackwalkFilePath;
 #else
         crashHandlerArgs << quentierSymbolsFilePath;
+        crashHandlerArgs << libquentierSymbolsFilePath;
         crashHandlerArgs << quentierMinidumpStackwalkFilePath;
 #endif
         crashHandlerArgs << minidumpFileLocation;
@@ -99,10 +103,12 @@ void setupBreakpad(const QApplication & app)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     *quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
     *quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms.compressed");
+    *libquentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/libquentier.syms.compressed");
     *quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
 #else
     quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
     quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms.compressed");
+    libquentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/libquentier.syms.compressed");
     quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
 #endif
 

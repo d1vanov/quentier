@@ -26,10 +26,12 @@
 #include <iostream>
 #include <fstream>
 
-SymbolsUnpacker::SymbolsUnpacker(const QString & compressedSymbolsFilePath,
+SymbolsUnpacker::SymbolsUnpacker(const QString & symbolsSourceNameHint,
+                                 const QString & compressedSymbolsFilePath,
                                  const QString & unpackedSymbolsRootPath,
                                  QObject * parent) :
     QObject(parent),
+    m_symbolsSourceNameHint(symbolsSourceNameHint),
     m_compressedSymbolsFilePath(compressedSymbolsFilePath),
     m_unpackedSymbolsRootPath(unpackedSymbolsRootPath)
 {}
@@ -132,16 +134,17 @@ void SymbolsUnpacker::run()
 
     QByteArray symbolsFirstLineBytes(buf, 1024);
     QString symbolsFirstLine = QString::fromUtf8(symbolsFirstLineBytes);
-    QString symbolsSourceName = compressedSymbolsFileInfo.baseName();
-    int symbolsSourceNameIndex = symbolsFirstLine.indexOf(symbolsSourceName);
+    int symbolsSourceNameIndex = symbolsFirstLine.indexOf(m_symbolsSourceNameHint);
     if (Q_UNLIKELY(symbolsSourceNameIndex < 0)) {
-        QString errorDescription = tr("Error: can't find the symbols source name within the first 1024 bytes read from the symbols file") +
+        QString errorDescription = tr("Error: can't find the symbols source name hint") +
+                                   QString::fromUtf8(" \"") + m_symbolsSourceNameHint + QString::fromUtf8("\" ") +
+                                   tr("within the first 1024 bytes read from the symbols file") +
                                    QString::fromUtf8(": ") + QString::fromLocal8Bit(buf, 1024);
         emit finished(/* status = */ false, errorDescription);
         return;
     }
 
-    symbolsFirstLine.truncate(symbolsSourceNameIndex + symbolsSourceName.size());
+    symbolsFirstLine.truncate(symbolsSourceNameIndex + m_symbolsSourceNameHint.size());
 
     QRegExp regex(QString::fromUtf8("\\s"));
     QStringList symbolsFirstLineTokens = symbolsFirstLine.split(regex);
@@ -161,7 +164,7 @@ void SymbolsUnpacker::run()
         return;
     }
 
-    symbolsSourceName = symbolsFirstLineTokens.at(4);
+    QString symbolsSourceName = symbolsFirstLineTokens.at(4);
     if (Q_UNLIKELY(symbolsSourceName.isEmpty())) {
         QString errorDescription = tr("Error: minidump's application name is empty, first line of the minidump file") +
                                    QString::fromUtf8(": ") + symbolsFirstLineTokens.join(QString::fromUtf8(", "));

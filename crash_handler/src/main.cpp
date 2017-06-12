@@ -33,12 +33,14 @@ int main(int argc, char * argv[])
         args.pop_front();
     }
 
-    if (args.size() < 3)  {
-        qWarning() << QString::fromUtf8("Usage: quentier_crash_handler <compressed symbols file location> <stackwalker tool location> <minidump file location>");
+    if (args.size() < 4)  {
+        qWarning() << QString::fromUtf8("Usage: quentier_crash_handler <compressed quentier symbols file location> "
+                                        "<compressed libquentier symbols file location> <stackwalker tool location> "
+                                        "<minidump file location>");
         return 1;
     }
 
-    MainWindow window(args.at(0), args.at(1), args.at(2));
+    MainWindow window(args.at(0), args.at(1), args.at(2), args.at(3));
     QDesktopWidget * pDesktopWidget = QApplication::desktop();
     if (pDesktopWidget)
     {

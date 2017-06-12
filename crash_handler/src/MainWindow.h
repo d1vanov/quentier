@@ -31,7 +31,8 @@ class MainWindow: public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(const QString & symbolsFileLocation,
+    explicit MainWindow(const QString & quentierSymbolsFileLocation,
+                        const QString & libquentierSymbolsFileLocation,
                         const QString & stackwalkBinaryLocation,
                         const QString & minidumpLocation,
                         QWidget * parent = NULL);
@@ -49,9 +50,11 @@ private:
 
 private:
     Ui::MainWindow *    m_pUi;
+    int                 m_numPendingSymbolsUnpackers;
     QString             m_minidumpLocation;
     QString             m_stackwalkBinary;
     QString             m_unpackedSymbolsRootPath;
+    QString             m_symbolsUnpackingErrors;
     QString             m_output;
     QString             m_error;
 };
