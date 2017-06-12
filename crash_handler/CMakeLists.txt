@@ -20,10 +20,14 @@ set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 set(${PROJECT_NAME}_HEADERS
-    src/MainWindow.h)
+    src/MainWindow.h
+    src/Utility.h
+    src/SymbolsUnpacker.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
+    src/Utility.cpp
+    src/SymbolsUnpacker.cpp
     src/main.cpp)
 
 set(FORMS

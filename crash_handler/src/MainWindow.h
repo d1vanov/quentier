@@ -42,18 +42,16 @@ private Q_SLOTS:
     void onMinidumpStackwalkReadyReadStandardError();
     void onMinidumpStackwalkProcessFinished(int exitCode, QProcess::ExitStatus ExitStatus);
 
-private:
-    QString convertFromNativePath(const QString & path) const;
-    bool qualifySymbolsFile(const QString & symbolsFileLocation,
-                            const QString & symbolsSourceNameHint,
-                            QString & symbolsSourceName, QString & id,
-                            QByteArray & symbolsUncompressedData,
-                            QString & errorDescription);
+    void onSymbolsUnpackerFinished(bool status, QString errorDescription);
 
+private:
     QString readData(QProcess & process, const bool fromStdout);
 
 private:
     Ui::MainWindow *    m_pUi;
+    QString             m_minidumpLocation;
+    QString             m_stackwalkBinary;
+    QString             m_unpackedSymbolsRootPath;
     QString             m_output;
     QString             m_error;
 };
