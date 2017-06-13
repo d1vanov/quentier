@@ -56,7 +56,7 @@ else()
   set(APPLICATION_ICON "")
 endif()
 
-add_executable(${PROJECT_NAME} MACOSX_BUNDLE
+add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}
                ${${PROJECT_NAME}_HEADERS}
                ${${PROJECT_NAME}_SOURCES}
