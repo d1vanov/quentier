@@ -229,6 +229,12 @@ set(${PROJECT_NAME}_SOURCES
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
+if(WIN32)
+  configure_file(src/quentier.rc.in
+                 ${PROJECT_BINARY_DIR}/quentier.rc @ONLY)
+  list(APPEND ${PROJECT_NAME}_SOURCES ${PROJECT_BINARY_DIR}/quentier.rc)
+endif()
+
 set(FORMS
     src/MainWindow.ui
     src/dialogs/AddAccountDialog.ui
