@@ -623,6 +623,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
 
     if (pExportEnexDialog->exec() == QDialog::Accepted)
     {
+        QNDEBUG(QStringLiteral("Confirmed ENEX export"));
+
         QString enexFilePath = pExportEnexDialog->exportEnexFilePath();
 
         QFileInfo enexFileInfo(enexFilePath);
@@ -639,7 +641,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
 
             int res = questionMessageBox(this, tr("Enex file already exists"), tr("The file selected for ENEX export already exists"),
                                          tr("Do you wish to overwrite the existing file?"));
-            if (res != QDialog::Accepted) {
+            if (res != QMessageBox::Ok) {
                 QNDEBUG(QStringLiteral("Cancelled overwriting the existing ENEX file"));
                 return true;
             }
@@ -664,6 +666,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         QString enex;
         bool res = m_pUi->noteEditor->exportToEnex(tagNames, enex, errorDescription);
         if (!res) {
+            QNDEBUG(QStringLiteral("ENEX export failed: ") << errorDescription);
             return false;
         }
 
@@ -688,10 +691,11 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
             return false;
         }
 
+        QNDEBUG(QStringLiteral("Successfull exported the note to ENEX"));
         return true;
     }
 
-    QNTRACE(QStringLiteral("Exporting the note to pdf has been cancelled"));
+    QNTRACE(QStringLiteral("Exporting the note to ENEX has been cancelled"));
     return false;
 }
 
