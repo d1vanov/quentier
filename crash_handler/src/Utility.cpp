@@ -58,7 +58,7 @@ bool removeDir(const QString & dirPath)
                 return res;
             }
         }
-        res = QDir().rmdir(dirName);
+        res = QDir().rmdir(dirPath);
 #endif
     }
 
