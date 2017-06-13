@@ -138,6 +138,13 @@ void SymbolsUnpacker::run()
         symbolsSourceName.truncate(suffixIndex);
     }
 
+#ifdef _MSC_VER
+    int dllIndex = symbolsSourceName.indexOf(QString::fromUtf8(".dll"));
+    if (dllIndex >= 0) {
+        symbolsSourceName.truncate(dllIndex);
+    }
+#endif
+
     int symbolsSourceNameIndex = symbolsFirstLine.indexOf(symbolsSourceName);
     if (Q_UNLIKELY(symbolsSourceNameIndex < 0)) {
         QString errorDescription = tr("Error: can't find the symbols source name hint") +
@@ -199,6 +206,13 @@ void SymbolsUnpacker::run()
         emit finished(/* status = */ false, errorDescription);
         return;
     }
+
+#ifdef _MSC_VER
+    int pdbIndex = symbolsSourceName.indexOf(QString::fromUtf8(".pdb"));
+    if (pdbIndex > 0) {
+        symbolsSourceName.truncate(pdbIndex);
+    }
+#endif
 
     QString newSymbolsFilePath = unpackDirPath + QString::fromUtf8("/") + symbolsSourceName + QString::fromUtf8(".sym");
 
