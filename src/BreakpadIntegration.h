@@ -25,6 +25,10 @@ namespace quentier {
 
 void setupBreakpad(const QApplication & app);
 
+void findCompressedSymbolsFiles(const QApplication & app,
+                                QString & quentierCompressedSymbolsFilePath,
+                                QString & libquentierCompressedSymbolsFilePath);
+
 } // namespace quentier
 
 #endif // QUENTIER_BREAKPAD_INTEGRATION_H

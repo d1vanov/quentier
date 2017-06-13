@@ -29,8 +29,7 @@ class SymbolsUnpacker: public QObject,
 {
     Q_OBJECT
 public:
-    explicit SymbolsUnpacker(const QString & symbolsSourceNameHint,
-                             const QString & compressedSymbolsFilePath,
+    explicit SymbolsUnpacker(const QString & compressedSymbolsFilePath,
                              const QString & unpackedSymbolsRootPath,
                              QObject * parent = 0);
 
@@ -40,7 +39,6 @@ Q_SIGNALS:
     void finished(bool status, QString errorDescription);
 
 private:
-    QString     m_symbolsSourceNameHint;
     QString     m_compressedSymbolsFilePath;
     QString     m_unpackedSymbolsRootPath;
 };

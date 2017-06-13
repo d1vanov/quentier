@@ -102,14 +102,12 @@ void setupBreakpad(const QApplication & app)
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     *quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
-    *quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms.compressed");
-    *libquentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/libquentier.syms.compressed");
     *quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
+    findCompressedSymbolsFiles(app, *quentierSymbolsFilePath, *libquentierSymbolsFilePath);
 #else
     quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
-    quentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier.syms.compressed");
-    libquentierSymbolsFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/libquentier.syms.compressed");
     quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
+    findCompressedSymbolsFiles(app, quentierSymbolsFilePath, libquentierSymbolsFilePath);
 #endif
 
     pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");

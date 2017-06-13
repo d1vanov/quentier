@@ -94,22 +94,13 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
 
     m_pUi->stackTracePlainTextEdit->setPlainText(tr("Loading debugging symbols, please wait") + QString::fromUtf8("..."));
 
-    SymbolsUnpacker * pQuentierSymbolsUnpacker = new SymbolsUnpacker(QString::fromUtf8("quentier"),
-                                                                     quentierSymbolsFileLocation,
+    SymbolsUnpacker * pQuentierSymbolsUnpacker = new SymbolsUnpacker(quentierSymbolsFileLocation,
                                                                      m_unpackedSymbolsRootPath);
     QObject::connect(pQuentierSymbolsUnpacker, QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
                      this, QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
     ++m_numPendingSymbolsUnpackers;
 
-    QString libquentierSourceNameHint =
-#if QT_VERSION > QT_VERSION_CHECK(5, 0, 0)
-        QString::fromUtf8("libqt5quentier");
-#else
-        QString::fromUtf8("libqt4quentier");
-#endif
-
-    SymbolsUnpacker * pLibquentierSymbolsUnpacker = new SymbolsUnpacker(libquentierSourceNameHint,
-                                                                        libquentierSymbolsFileLocation,
+    SymbolsUnpacker * pLibquentierSymbolsUnpacker = new SymbolsUnpacker(libquentierSymbolsFileLocation,
                                                                         m_unpackedSymbolsRootPath);
     QObject::connect(pLibquentierSymbolsUnpacker, QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
                      this, QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
