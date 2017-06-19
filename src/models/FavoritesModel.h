@@ -235,10 +235,10 @@ private Q_SLOTS:
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
 
     // For note counts:
-    void onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId);
-    void onNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId);
-    void onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
-    void onNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
+    void onGetNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId);
+    void onGetNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId);
+    void onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
+    void onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
 
 private:
     void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);

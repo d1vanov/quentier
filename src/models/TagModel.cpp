@@ -1178,14 +1178,14 @@ void TagModel::onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid r
     onTagAddedOrUpdated(tag);
 }
 
-void TagModel::onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId)
+void TagModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId)
 {
     auto it = m_noteCountPerTagRequestIds.find(requestId);
     if (it == m_noteCountPerTagRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("TagModel::onNoteCountPerTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ")
+    QNDEBUG(QStringLiteral("TagModel::onGetNoteCountPerTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ")
             << requestId << QStringLiteral(", note count = ") << noteCount);
 
     Q_UNUSED(m_noteCountPerTagRequestIds.erase(it))
@@ -1230,14 +1230,14 @@ void TagModel::onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId
     // NOTE: in future, if/when sorting by note count is supported, will need to check if need to re-sort and emit the layout change signals
 }
 
-void TagModel::onNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId)
+void TagModel::onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId)
 {
     auto it = m_noteCountPerTagRequestIds.find(requestId);
     if (it == m_noteCountPerTagRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("TagModel::onNoteCountPerTagFailed: error description = ") << errorDescription
+    QNDEBUG(QStringLiteral("TagModel::onGetNoteCountPerTagFailed: error description = ") << errorDescription
             << QStringLiteral(", tag = ") << tag << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_noteCountPerTagRequestIds.erase(it))
@@ -1568,7 +1568,7 @@ void TagModel::createConnections(const NoteModel & noteModel, LocalStorageManage
     QObject::connect(this, QNSIGNAL(TagModel,findNotebook,Notebook,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,requestNoteCountPerTag,Tag,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onNoteCountPerTagRequest,Tag,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerTagRequest,Tag,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,listAllTagsPerNote,Note,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                     LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QUuid),
                      &localStorageManagerAsync,
@@ -1602,10 +1602,10 @@ void TagModel::createConnections(const NoteModel & noteModel, LocalStorageManage
                      this, QNSLOT(TagModel,onExpungeTagComplete,Tag,QStringList,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(TagModel,onExpungeTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerTagComplete,int,Tag,QUuid),
-                     this, QNSLOT(TagModel,onNoteCountPerTagComplete,int,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerTagFailed,ErrorString,Tag,QUuid),
-                     this, QNSLOT(TagModel,onNoteCountPerTagFailed,ErrorString,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagComplete,int,Tag,QUuid),
+                     this, QNSLOT(TagModel,onGetNoteCountPerTagComplete,int,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagFailed,ErrorString,Tag,QUuid),
+                     this, QNSLOT(TagModel,onGetNoteCountPerTagFailed,ErrorString,Tag,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotelessTagsFromLinkedNotebooksComplete,QUuid),
                      this, QNSLOT(TagModel,onExpungeNotelessTagsFromLinkedNotebooksComplete,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),

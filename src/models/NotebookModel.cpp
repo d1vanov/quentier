@@ -2135,14 +2135,14 @@ void NotebookModel::onExpungeNotebookFailed(Notebook notebook, ErrorString error
     requestNoteCountForNotebook(notebook);
 }
 
-void NotebookModel::onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId)
+void NotebookModel::onGetNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId)
 {
     auto it = m_noteCountPerNotebookRequestIds.find(requestId);
     if (it == m_noteCountPerNotebookRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("NotebookModel::onNoteCountPerNotebookComplete: note count = ") << noteCount
+    QNDEBUG(QStringLiteral("NotebookModel::onGetNoteCountPerNotebookComplete: note count = ") << noteCount
             << QStringLiteral(", notebook = ") << notebook << QStringLiteral("\nRequest id = ") << requestId);
 
     Q_UNUSED(m_noteCountPerNotebookRequestIds.erase(it))
@@ -2162,14 +2162,14 @@ void NotebookModel::onNoteCountPerNotebookComplete(int noteCount, Notebook noteb
     Q_UNUSED(updateNoteCountPerNotebookIndex(item, itemIt))
 }
 
-void NotebookModel::onNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId)
+void NotebookModel::onGetNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId)
 {
     auto it = m_noteCountPerNotebookRequestIds.find(requestId);
     if (it == m_noteCountPerNotebookRequestIds.end()) {
         return;
     }
 
-    QNWARNING(QStringLiteral("NotebookModel::onNoteCountPerNotebookFailed: error description = ") << errorDescription
+    QNWARNING(QStringLiteral("NotebookModel::onGetNoteCountPerNotebookFailed: error description = ") << errorDescription
               << QStringLiteral(", notebook: ") << notebook << QStringLiteral("\nRequest id = ") << requestId);
 
     Q_UNUSED(m_noteCountPerNotebookRequestIds.erase(it))
@@ -2347,7 +2347,7 @@ void NotebookModel::createConnections(const NoteModel & noteModel, LocalStorageM
     QObject::connect(this, QNSIGNAL(NotebookModel,expungeNotebook,Notebook,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(NotebookModel,requestNoteCountPerNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onNoteCountPerNotebookRequest,Notebook,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerNotebookRequest,Notebook,QUuid));
 
     // localStorageManagerAsync's signals to local slots
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,Notebook,QUuid),
@@ -2388,10 +2388,10 @@ void NotebookModel::createConnections(const NoteModel & noteModel, LocalStorageM
                      this, QNSLOT(NotebookModel,onUpdateNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NotebookModel,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerNotebookComplete,int,Notebook,QUuid),
-                     this, QNSLOT(NotebookModel,onNoteCountPerNotebookComplete,int,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteCountPerNotebookFailed,ErrorString,Notebook,QUuid),
-                     this, QNSLOT(NotebookModel,onNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookComplete,int,Notebook,QUuid),
+                     this, QNSLOT(NotebookModel,onGetNoteCountPerNotebookComplete,int,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid),
+                     this, QNSLOT(NotebookModel,onGetNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid));
 }
 
 void NotebookModel::requestNotebooksList()

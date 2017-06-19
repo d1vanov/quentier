@@ -310,8 +310,8 @@ private Q_SLOTS:
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
-    void onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId);
-    void onNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId);
+    void onGetNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId);
+    void onGetNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);

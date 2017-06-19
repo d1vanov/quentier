@@ -267,8 +267,8 @@ private Q_SLOTS:
                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
     void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
-    void onNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
+    void onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
+    void onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
 
     void onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId);
 
