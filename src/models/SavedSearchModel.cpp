@@ -930,7 +930,7 @@ void SavedSearchModel::createConnections(LocalStorageManagerAsync & localStorage
                                                        size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                                        LocalStorageManager::OrderDirection::type,QUuid));
     QObject::connect(this, QNSIGNAL(SavedSearchModel,expungeSavedSearch,SavedSearch,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeSavedSearch,SavedSearch,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeSavedSearchRequest,SavedSearch,QUuid));
 
     // localStorageManagerAsync's signals to local slots
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addSavedSearchComplete,SavedSearch,QUuid),
