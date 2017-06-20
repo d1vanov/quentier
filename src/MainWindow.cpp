@@ -921,6 +921,9 @@ void MainWindow::startSyncButtonAnimation()
 {
     QNDEBUG(QStringLiteral("MainWindow::startSyncButtonAnimation"));
 
+    QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
+                        this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChangedPendingFinish,int));
+
     QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
                      this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChanged,int));
 
@@ -3485,11 +3488,12 @@ void MainWindow::onSyncButtonPressed()
     }
 
     if (m_syncInProgress) {
-        QNDEBUG(QStringLiteral("The synchronization is already in progress"));
-        return;
+        QNDEBUG(QStringLiteral("The synchronization is in progress, will stop it"));
+        emit stopSynchronization();
     }
-
-    emit synchronize();
+    else {
+        emit synchronize();
+    }
 }
 
 void MainWindow::onAnimatedSyncIconFrameChanged(int frame)
