@@ -1249,7 +1249,7 @@ void TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId)
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
-    for(auto it = localUidIndex.begin(); it != localUidIndex.end(); )
+    for(auto it = localUidIndex.begin(); it != localUidIndex.end(); ++it)
     {
         const TagModelItem & item = *it;
 
