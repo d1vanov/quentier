@@ -804,6 +804,8 @@ void MainWindow::connectSynchronizationManager()
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronize),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
+    QObject::connect(this, QNSIGNAL(MainWindow,stopSynchronization),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,stop));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronizationSetAccount,Account),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
@@ -816,6 +818,8 @@ void MainWindow::connectSynchronizationManager()
     // Connect SynchronizationManager signals to local slots
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
                      this, QNSLOT(MainWindow,onSynchronizationStarted));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,stopped),
+                     this, QNSLOT(MainWindow,onSynchronizationStopped));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
                      this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
@@ -860,6 +864,8 @@ void MainWindow::disconnectSynchronizationManager()
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
     QObject::disconnect(this, QNSIGNAL(MainWindow,synchronize),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
+    QObject::disconnect(this, QNSIGNAL(MainWindow,stopSynchronization),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,stop));
     QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationSetAccount,Account),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account));
     QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
@@ -872,6 +878,8 @@ void MainWindow::disconnectSynchronizationManager()
     // Disconnect SynchronizationManager signals from local slots
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
                         this, QNSLOT(MainWindow,onSynchronizationStarted));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,stopped),
+                        this, QNSLOT(MainWindow,onSynchronizationStopped));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
                         this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
@@ -1857,12 +1865,18 @@ void MainWindow::onSynchronizationStarted()
     startSyncButtonAnimation();
 }
 
+void MainWindow::onSynchronizationStopped()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStopped"));
+    m_syncInProgress = false;
+    scheduleSyncButtonAnimationStop();
+}
+
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
-    m_syncInProgress = false;
-    scheduleSyncButtonAnimationStop();
+    emit stopSynchronization();
 }
 
 void MainWindow::onSynchronizationFinished(Account account)

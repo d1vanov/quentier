@@ -99,6 +99,7 @@ Q_SIGNALS:
     void authenticate();
     void noteInfoDialogRequested(QString noteLocalUid);
     void synchronize();
+    void stopSynchronization();
 
     void synchronizationSetAccount(Account account);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
@@ -145,6 +146,7 @@ private Q_SLOTS:
 
     // Synchronization manager slots
     void onSynchronizationStarted();
+    void onSynchronizationStopped();
     void onSynchronizationManagerFailure(ErrorString errorDescription);
     void onSynchronizationFinished(Account account);
     void onAuthenticationFinished(bool success, ErrorString errorDescription,
@@ -461,6 +463,7 @@ private:
     QString                     m_synchronizationManagerHost;
     bool                        m_pendingNewEvernoteAccountAuthentication;
     bool                        m_pendingSwitchToNewEvernoteAccount;
+
     bool                        m_syncInProgress;
     bool                        m_pendingSynchronizationManagerSetAccount;
     bool                        m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption;
