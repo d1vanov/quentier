@@ -334,6 +334,14 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & error
         fullName = QStringLiteral("Default user");
     }
 
+    // Need to check whether the default account already exists
+    QSharedPointer<Account> pDefaultAccount(new Account(username, Account::Type::Local, qevercloud::UserID(-1)));
+    pDefaultAccount->setDisplayName(fullName);
+    if (m_availableAccounts.contains(*pDefaultAccount)) {
+        QNDEBUG(QStringLiteral("The default account already exists"));
+        return pDefaultAccount;
+    }
+
     return createLocalAccount(username, fullName, errorDescription);
 }
 
