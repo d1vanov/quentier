@@ -910,13 +910,6 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onLinkedNotebooksNotesDownloadProgress,quint32,quint32));
 }
 
-void MainWindow::onSyncStopped()
-{
-    onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
-    m_syncInProgress = false;
-    scheduleSyncButtonAnimationStop();
-}
-
 void MainWindow::startSyncButtonAnimation()
 {
     QNDEBUG(QStringLiteral("MainWindow::startSyncButtonAnimation"));
@@ -1736,6 +1729,8 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
 {
     QStatusBar * pStatusBar = m_pUI->statusBar;
 
+    pStatusBar->clearMessage();
+
     if (m_currentStatusBarChildWidget != Q_NULLPTR) {
         pStatusBar->removeWidget(m_currentStatusBarChildWidget);
         m_currentStatusBarChildWidget = Q_NULLPTR;
@@ -1864,6 +1859,8 @@ void MainWindow::onImportEnexAction()
 void MainWindow::onSynchronizationStarted()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStarted"));
+
+    onSetStatusBarText(tr("Starting the synchronization") + QStringLiteral("..."));
     m_syncInProgress = true;
     startSyncButtonAnimation();
 }
@@ -1871,6 +1868,8 @@ void MainWindow::onSynchronizationStarted()
 void MainWindow::onSynchronizationStopped()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStopped"));
+
+    onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncInProgress = false;
     scheduleSyncButtonAnimationStop();
 }
@@ -2005,13 +2004,13 @@ void MainWindow::onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded,
 void MainWindow::onRemoteToLocalSyncStopped()
 {
     QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncStopped"));
-    onSyncStopped();
+    onSynchronizationStopped();
 }
 
 void MainWindow::onSendLocalChangesStopped()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSendLocalChangesStopped"));
-    onSyncStopped();
+    onSynchronizationStopped();
 }
 
 void MainWindow::onRemoteToLocalSyncPaused(bool authRequired)
@@ -3392,8 +3391,8 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
             // automatically opens in the note editor
             m_pUI->noteListView->setAutoSelectNoteOnNextAddition();
 
-            onSetStatusBarText(tr("Starting the synchronization"));
-            launchSync();
+            m_pendingSynchronizationManagerResponseToStartSync = true;
+            checkAndLaunchPendingSync();
         }
     }
 }
@@ -4336,14 +4335,6 @@ void MainWindow::setSynchronizationOptions(const Account & account)
 
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = true;
     emit synchronizationSetInkNoteImagesStoragePath(inkNoteImagesStoragePath);
-}
-
-void MainWindow::launchSync()
-{
-    QNDEBUG(QStringLiteral("MainWindow::launchSync"));
-
-    m_pendingSynchronizationManagerResponseToStartSync = true;
-    checkAndLaunchPendingSync();
 }
 
 void MainWindow::checkAndLaunchPendingSync()

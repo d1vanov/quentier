@@ -329,7 +329,6 @@ private:
     void clearSynchronizationManager();
     void setAccountToSyncManager(const Account & account);
     void setSynchronizationOptions(const Account & account);
-    void launchSync();
     void checkAndLaunchPendingSync();
 
     void setupDefaultShortcuts();
@@ -354,7 +353,6 @@ private:
 
     void connectSynchronizationManager();
     void disconnectSynchronizationManager();
-    void onSyncStopped();
 
     void startSyncButtonAnimation();
     void stopSyncButtonAnimation();
