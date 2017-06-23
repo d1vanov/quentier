@@ -162,8 +162,6 @@ private Q_SLOTS:
 
     void onRemoteToLocalSyncStopped();
     void onSendLocalChangesStopped();
-    void onRemoteToLocalSyncPaused(bool authRequired);
-    void onSendLocalChangesPaused(bool authRequired);
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(QString host);

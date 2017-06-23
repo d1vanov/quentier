@@ -832,10 +832,6 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
                      this, QNSLOT(MainWindow,onSendLocalChangesStopped));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncPaused,bool),
-                     this, QNSLOT(MainWindow,onRemoteToLocalSyncPaused,bool));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesPaused,bool),
-                     this, QNSLOT(MainWindow,onSendLocalChangesPaused,bool));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
                      this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
@@ -892,10 +888,6 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
                         this, QNSLOT(MainWindow,onSendLocalChangesStopped));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncPaused,bool),
-                        this, QNSLOT(MainWindow,onRemoteToLocalSyncPaused,bool));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesPaused,bool),
-                        this, QNSLOT(MainWindow,onSendLocalChangesPaused,bool));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
                         this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
@@ -2011,22 +2003,6 @@ void MainWindow::onSendLocalChangesStopped()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSendLocalChangesStopped"));
     onSynchronizationStopped();
-}
-
-void MainWindow::onRemoteToLocalSyncPaused(bool authRequired)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncPaused: auth required = ")
-            << (authRequired ? QStringLiteral("true") : QStringLiteral("false")));
-
-    m_animatedSyncButtonIcon.setPaused(true);
-}
-
-void MainWindow::onSendLocalChangesPaused(bool authRequired)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onSendLocalChangesPaused: auth required = ")
-            << (authRequired ? QStringLiteral("true") : QStringLiteral("false")));
-
-    m_animatedSyncButtonIcon.setPaused(true);
 }
 
 void MainWindow::onEvernoteAccountAuthenticationRequested(QString host)
