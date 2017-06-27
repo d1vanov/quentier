@@ -23,6 +23,7 @@ namespace quentier {
 
 NotebookItem::NotebookItem(const QString & localUid,
                            const QString & guid,
+                           const QString & linkedNotebookGuid,
                            const QString & name,
                            const QString & stack,
                            const bool isSynchronizable,
@@ -32,13 +33,13 @@ NotebookItem::NotebookItem(const QString & localUid,
                            const bool isDefault,
                            const bool isLastUsed,
                            const bool isPublished,
-                           const bool isLinkedNotebook,
                            const bool isFavorited,
                            const bool canCreateNotes,
                            const bool canUpdateNotes,
                            const int numNotesPerNotebook) :
     m_localUid(localUid),
     m_guid(guid),
+    m_linkedNotebookGuid(linkedNotebookGuid),
     m_name(name),
     m_stack(stack),
     m_flags(),
@@ -51,7 +52,6 @@ NotebookItem::NotebookItem(const QString & localUid,
     setDefault(isDefault);
     setLastUsed(isLastUsed);
     setPublished(isPublished);
-    setLinkedNotebook(isLinkedNotebook);
     setFavorited(isFavorited);
     setCanCreateNotes(canCreateNotes);
     setCanUpdateNotes(canUpdateNotes);
@@ -130,16 +130,6 @@ void NotebookItem::setPublished(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsPublished), flag);
 }
 
-bool NotebookItem::isLinkedNotebook() const
-{
-    return m_flags.test(static_cast<std::size_t>(Flags::IsLinkedNotebook));
-}
-
-void NotebookItem::setLinkedNotebook(const bool flag)
-{
-    m_flags.set(static_cast<std::size_t>(Flags::IsLinkedNotebook), flag);
-}
-
 bool NotebookItem::isFavorited() const
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsFavorited));
@@ -172,8 +162,9 @@ void NotebookItem::setCanUpdateNotes(const bool flag)
 
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Notebook item: local uid = ") << m_localUid << QStringLiteral(", guid = ")
-         << m_guid << QStringLiteral(", name = ") << m_name << QStringLiteral(", stack = ") << m_stack
+    strm << QStringLiteral("Notebook item: local uid = ") << m_localUid
+         << QStringLiteral(", guid = ") << m_guid << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
+         << QStringLiteral(", name = ") << m_name << QStringLiteral(", stack = ") << m_stack
          << QStringLiteral(", is synchronizable = ")
          << (isSynchronizable() ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is updatable = ")
@@ -188,8 +179,6 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
          << (isLastUsed() ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is published = ")
          << (isPublished() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is linked notebook = ")
-         << (isLinkedNotebook() ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is favorited = ")
          << (isFavorited() ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", can create notes = ")

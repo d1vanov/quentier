@@ -143,17 +143,27 @@ QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
     return indexForItem(&item);
 }
 
-QModelIndex NotebookModel::indexForNotebookName(const QString & notebookName) const
+QModelIndex NotebookModel::indexForNotebookName(const QString & notebookName,
+                                                const QString & linkedNotebookGuid) const
 {
     const NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
 
-    auto it = nameIndex.find(notebookName.toUpper());
-    if (it == nameIndex.end()) {
-        return QModelIndex();
+    auto range = nameIndex.equal_range(notebookName.toUpper());
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        const NotebookItem & item = *it;
+        const QString & itemLinkedNotebookGuid = item.linkedNotebookGuid();
+
+        if (itemLinkedNotebookGuid.isEmpty() && linkedNotebookGuid.isEmpty()) {
+            return indexForLocalUid(item.localUid());
+        }
+
+        if (itemLinkedNotebookGuid == linkedNotebookGuid) {
+            return indexForLocalUid(item.localUid());
+        }
     }
 
-    const NotebookItem & item = *it;
-    return indexForLocalUid(item.localUid());
+    return QModelIndex();
 }
 
 QModelIndex NotebookModel::indexForNotebookStack(const QString & stack) const
@@ -1579,7 +1589,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 return false; \
             } \
             \
-            if (pNotebookItem->isLinkedNotebook()) { \
+            if (!pNotebookItem->linkedNotebookGuid().isEmpty()) { \
                 ErrorString error(QT_TRANSLATE_NOOP("", "One of notebooks being removed along with the stack containing it " \
                                                     "is the linked notebook from another account, it can't be removed")); \
                 QNINFO(error << QStringLiteral(", notebook: ") << *pNotebookItem); \
@@ -2500,7 +2510,7 @@ QVariant NotebookModel::dataImpl(const NotebookModelItem & item, const Columns::
     case Columns::FromLinkedNotebook:
         {
             if (isNotebookItem) {
-                return QVariant(item.notebookItem()->isLinkedNotebook());
+                return QVariant( !(item.notebookItem()->linkedNotebookGuid().isEmpty()) );
             }
             else {
                 return QVariant();
@@ -2646,7 +2656,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
 
     notebook.setLocalUid(item.localUid());
     notebook.setGuid(item.guid());
-    notebook.setLinkedNotebookGuid(item.isLinkedNotebook() ? item.guid() : QString());
+    notebook.setLinkedNotebookGuid(item.linkedNotebookGuid());
     notebook.setName(item.name());
     notebook.setLocal(!item.isSynchronizable());
     notebook.setDirty(item.isDirty());
@@ -3076,7 +3086,7 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
     }
 
     if (notebook.hasLinkedNotebookGuid()) {
-        item.setLinkedNotebook(true);
+        item.setLinkedNotebookGuid(notebook.linkedNotebookGuid());
     }
 }
 

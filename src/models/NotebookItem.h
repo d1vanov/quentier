@@ -29,6 +29,7 @@ class NotebookItem: public Printable
 public:
     explicit NotebookItem(const QString & localUid = QString(),
                           const QString & guid = QString(),
+                          const QString & linkedNotebookGuid = QString(),
                           const QString & name = QString(),
                           const QString & stack = QString(),
                           const bool isSynchronizable = false,
@@ -38,7 +39,6 @@ public:
                           const bool isDefault = false,
                           const bool isLastUsed = false,
                           const bool isPublished = false,
-                          const bool isLinkedNotebook = false,
                           const bool isFavorited = false,
                           const bool canCreateNotes = true,
                           const bool canUpdateNotes = true,
@@ -51,13 +51,16 @@ public:
     const QString & guid() const { return m_guid; }
     void setGuid(const QString & guid) { m_guid = guid; }
 
+    const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
+    void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
+
+    const QString & name() const { return m_name; }
+    void setName(const QString & name) { m_name = name; }
+
     QString nameUpper() const { return m_name.toUpper(); }
 
     const QString & stack() const { return m_stack; }
     void setStack(const QString & stack) { m_stack = stack; }
-
-    const QString & name() const { return m_name; }
-    void setName(const QString & name) { m_name = name; }
 
     bool isSynchronizable() const;
     void setSynchronizable(const bool synchronizable);
@@ -80,9 +83,6 @@ public:
     bool isPublished() const;
     void setPublished(const bool flag);
 
-    bool isLinkedNotebook() const;
-    void setLinkedNotebook(const bool flag);
-
     bool isFavorited() const;
     void setFavorited(const bool flag);
 
@@ -100,6 +100,7 @@ public:
 private:
     QString     m_localUid;
     QString     m_guid;
+    QString     m_linkedNotebookGuid;
     QString     m_name;
     QString     m_stack;
 
@@ -115,7 +116,6 @@ private:
             IsDefault,
             IsLastUsed,
             IsPublished,
-            IsLinkedNotebook,
             IsFavorited,
             CanCreateNotes,
             CanUpdateNotes,

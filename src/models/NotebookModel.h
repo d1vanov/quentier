@@ -74,8 +74,11 @@ public:
 
     const NotebookModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const NotebookModelItem * item) const;
+
     QModelIndex indexForLocalUid(const QString & localUid) const;
-    QModelIndex indexForNotebookName(const QString & notebookName) const;
+
+    QModelIndex indexForNotebookName(const QString & notebookName,
+                                     const QString & linkedNotebookGuid = QString()) const;
     QModelIndex indexForNotebookStack(const QString & stack) const;
 
     /**
@@ -375,7 +378,7 @@ private:
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<NotebookItem,const QString&,&NotebookItem::localUid>
             >,
-            boost::multi_index::ordered_unique<
+            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<NotebookItem,QString,&NotebookItem::nameUpper>
             >,

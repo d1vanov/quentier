@@ -212,7 +212,7 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
     m_pUi->notebookLastUsedCheckBox->setChecked(item.isLastUsed());
     m_pUi->notebookPublishedCheckBox->setChecked(item.isPublished());
     m_pUi->notebookFavoritedCheckBox->setChecked(item.isFavorited());
-    m_pUi->notebookFromLinkedNotebookCheckBox->setChecked(item.isLinkedNotebook());
+    m_pUi->notebookFromLinkedNotebookCheckBox->setChecked(!item.linkedNotebookGuid().isEmpty());
     m_pUi->notebookGuidLineEdit->setText(item.guid());
     m_pUi->notebookLocalUidLineEdit->setText(item.localUid());
 
