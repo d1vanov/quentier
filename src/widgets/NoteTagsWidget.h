@@ -60,6 +60,8 @@ public:
 
     const QString & currentNotebookLocalUid() const { return m_currentNotebookLocalUid; }
 
+    const QString & currentLinkedNotebookGuid() const { return m_currentLinkedNotebookGuid; }
+
     /**
      * @brief clear method clears out the tags displayed by the widget and
      * removes the association with the particular note
@@ -120,6 +122,7 @@ private:
 private:
     Note                    m_currentNote;
     QString                 m_currentNotebookLocalUid;
+    QString                 m_currentLinkedNotebookGuid;
 
     QStringList             m_lastDisplayedTagLocalUids;
 

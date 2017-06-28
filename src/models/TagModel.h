@@ -75,7 +75,8 @@ public:
     const TagModelItem * itemForLocalUid(const QString & localUid) const;
     QModelIndex indexForItem(const TagModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
-    QModelIndex indexForTagName(const QString & tagName) const;
+    QModelIndex indexForTagName(const QString & tagName,
+                                const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @brief promote - moves the tag item pointed by the index from its parent to its grandparent, if both exist
@@ -345,7 +346,7 @@ private:
                 boost::multi_index::tag<ByParentLocalUid>,
                 boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::parentLocalUid>
             >,
-            boost::multi_index::ordered_unique<
+            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<TagModelItem,QString,&TagModelItem::nameUpper>
             >

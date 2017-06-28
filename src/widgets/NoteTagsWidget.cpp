@@ -32,6 +32,7 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     QWidget(parent),
     m_currentNote(),
     m_currentNotebookLocalUid(),
+    m_currentLinkedNotebookGuid(),
     m_lastDisplayedTagLocalUids(),
     m_currentNoteTagLocalUidToNameBimap(),
     m_pTagModel(),
@@ -104,7 +105,15 @@ void NoteTagsWidget::setCurrentNoteAndNotebook(const Note & note, const Notebook
 
     changed |= (m_currentNotebookLocalUid != notebook.localUid());
 
+    QString linkedNotebookGuid;
+    if (notebook.hasLinkedNotebookGuid()) {
+        linkedNotebookGuid = notebook.linkedNotebookGuid();
+    }
+
+    changed |= (m_currentLinkedNotebookGuid != linkedNotebookGuid);
+
     m_currentNotebookLocalUid = notebook.localUid();
+    m_currentLinkedNotebookGuid = linkedNotebookGuid;
 
     bool couldUpdateNote = m_tagRestrictions.m_canUpdateNote;
     bool couldUpdateTags = m_tagRestrictions.m_canUpdateTags;
@@ -134,6 +143,7 @@ void NoteTagsWidget::clear()
     m_lastDisplayedTagLocalUids.clear();
 
     m_currentNotebookLocalUid.clear();
+    m_currentLinkedNotebookGuid.clear();
     m_currentNoteTagLocalUidToNameBimap.clear();
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.clear();
     m_updateNoteRequestIdToAddedTagLocalUidAndGuid.clear();
@@ -233,15 +243,22 @@ void NoteTagsWidget::onNewTagNameEntered()
         return;
     }
 
-    QModelIndex tagIndex = m_pTagModel->indexForTagName(newTagName);
+    QModelIndex tagIndex = m_pTagModel->indexForTagName(newTagName, m_currentLinkedNotebookGuid);
     if (!tagIndex.isValid())
     {
+        if (!m_currentLinkedNotebookGuid.isEmpty()) {
+            ErrorString error(QT_TR_NOOP("Can't add a new tag: the note belongs to the external (linked) notebook"));
+            QNDEBUG(error);
+            emit notifyError(error);
+            return;
+        }
+
         QNDEBUG(QStringLiteral("The tag with such name doesn't exist, adding it"));
 
         ErrorString errorDescription;
         tagIndex = m_pTagModel->createTag(newTagName, QString(), errorDescription);
         if (Q_UNLIKELY(!tagIndex.isValid())) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the addition of a new tag"));
+            ErrorString error(QT_TR_NOOP("Can't process the addition of a new tag"));
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
@@ -253,9 +270,16 @@ void NoteTagsWidget::onNewTagNameEntered()
 
     const TagModelItem * pTagItem = m_pTagModel->itemForIndex(tagIndex);
     if (Q_UNLIKELY(!pTagItem)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't process the addition of a new tag: "
-                                            "can't find the tag item for index within the tag model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't process the addition of a new tag: "
+                                     "can't find the tag item for index within the tag model"));
         QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    if (!m_currentLinkedNotebookGuid.isEmpty() && (pTagItem->linkedNotebookGuid() != m_currentLinkedNotebookGuid)) {
+        ErrorString error(QT_TR_NOOP("Can't link the note from the external (linked) notebook with tag from your own account"));
+        QNDEBUG(error);
         emit notifyError(error);
         return;
     }

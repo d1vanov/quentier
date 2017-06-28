@@ -2120,17 +2120,20 @@ QModelIndex TagModel::indexForLocalUid(const QString & localUid) const
     return indexForItem(&item);
 }
 
-QModelIndex TagModel::indexForTagName(const QString & tagName) const
+QModelIndex TagModel::indexForTagName(const QString & tagName, const QString & linkedNotebookGuid) const
 {
     const TagDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
 
-    auto it = nameIndex.find(tagName.toUpper());
-    if (it == nameIndex.end()) {
-        return QModelIndex();
+    auto range = nameIndex.equal_range(tagName.toUpper());
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        const TagModelItem & item = *it;
+        if (item.linkedNotebookGuid() == linkedNotebookGuid) {
+            return indexForLocalUid(item.localUid());
+        }
     }
 
-    const TagModelItem & item = *it;
-    return indexForItem(&item);
+    return QModelIndex();
 }
 
 QModelIndex TagModel::promote(const QModelIndex & itemIndex)

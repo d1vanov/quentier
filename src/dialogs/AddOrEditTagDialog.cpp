@@ -120,7 +120,7 @@ void AddOrEditTagDialog::accept()
             if (Q_UNLIKELY(!res))
             {
                 // Probably the new name collides with some existing tag's name
-                QModelIndex existingItemIndex = m_pTagModel->indexForTagName(tagName);
+                QModelIndex existingItemIndex = m_pTagModel->indexForTagName(tagName, pItem->linkedNotebookGuid());
                 if (existingItemIndex.isValid() &&
                     ((existingItemIndex.row() != nameIndex.row()) ||
                      (existingItemIndex.parent() != nameIndex.parent())))
@@ -165,7 +165,23 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
         return;
     }
 
-    QModelIndex itemIndex = m_pTagModel->indexForTagName(tagName);
+    QString linkedNotebookGuid;
+    if (!m_editedTagLocalUid.isEmpty())
+    {
+        QModelIndex index = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
+        const TagModelItem * pItem = m_pTagModel->itemForIndex(index);
+        if (Q_UNLIKELY(!pItem)) {
+            QNDEBUG(QStringLiteral("Found no tag model item for edited tag local uid"));
+            m_pUi->statusBar->setText(tr("Can't edit tag: the tag was not found within the model by local uid"));
+            m_pUi->statusBar->setHidden(false);
+            m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+            return;
+        }
+
+        linkedNotebookGuid = pItem->linkedNotebookGuid();
+    }
+
+    QModelIndex itemIndex = m_pTagModel->indexForTagName(tagName, linkedNotebookGuid);
     if (itemIndex.isValid()) {
         m_pUi->statusBar->setText(tr("The tag name must be unique in case insensitive manner"));
         m_pUi->statusBar->setHidden(false);
@@ -186,7 +202,7 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
 
     // 1) If previous tag name corresponds to a real tag and is missing within the tag names,
     //    need to insert it there
-    QModelIndex previousTagNameIndex = m_pTagModel->indexForTagName(m_currentTagName);
+    QModelIndex previousTagNameIndex = m_pTagModel->indexForTagName(m_currentTagName, linkedNotebookGuid);
     if (previousTagNameIndex.isValid())
     {
         auto it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), m_currentTagName);
