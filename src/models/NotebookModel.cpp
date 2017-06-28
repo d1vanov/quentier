@@ -26,6 +26,8 @@ namespace quentier {
 
 // Limit for the queries to the local storage
 #define NOTEBOOK_LIST_LIMIT (40)
+#define LINKED_NOTEBOOK_LIST_LIMIT (40)
+
 
 #define NUM_NOTEBOOK_MODEL_COLUMNS (8)
 
@@ -44,9 +46,12 @@ NotebookModel::NotebookModel(const Account & account, const NoteModel & noteMode
     m_defaultNotebookLocalUid(),
     m_modelItemsByLocalUid(),
     m_modelItemsByStack(),
+    m_modelItemsByLinkedNotebookGuid(),
     m_stackItems(),
+    m_linkedNotebookItems(),
     m_indexIdToLocalUidBimap(),
     m_indexIdToStackBimap(),
+    m_indexIdToLinkedNotebookGuidBimap(),
     m_lastFreeIndexId(1),
     m_cache(cache),
     m_listNotebooksOffset(0),
@@ -59,10 +64,14 @@ NotebookModel::NotebookModel(const Account & account, const NoteModel & noteMode
     m_noteCountPerNotebookRequestIds(),
     m_notebookLocalUidByNoteLocalUid(),
     m_receivedNotebookLocalUidsForAllNotes(false),
+    m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids(),
+    m_listLinkedNotebooksOffset(0),
+    m_listLinkedNotebooksRequestId(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
     m_lastNewNotebookNameCounter(0),
-    m_allNotebooksListed(false)
+    m_allNotebooksListed(false),
+    m_allLinkedNotebooksListed(false)
 {
     createConnections(noteModel, localStorageManagerAsync);
 
@@ -2325,6 +2334,58 @@ void NotebookModel::onExpungeNoteComplete(Note note, QUuid requestId)
     requestNoteCountForNotebook(notebook);
 }
 
+void NotebookModel::onAddLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::onAddLinkedNotebookComplete: request id = ")
+            << requestId << QStringLiteral(", linked notebook: ") << linkedNotebook);
+
+    // TODO: implement
+}
+
+void NotebookModel::onUpdateLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::onUpdateLinkedNotebookComplete: request id = ")
+            << requestId << QStringLiteral(", linked notebook: ") << linkedNotebook);
+
+    // TODO: implement
+}
+
+void NotebookModel::onExpungeLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::onExpungeLinkedNotebookComplete: request id = ")
+            << requestId << QStringLiteral(", linked notebook: ") << linkedNotebook);
+
+    // TODO: implement
+}
+
+void NotebookModel::onListAllLinkedNotebooksComplete(size_t limit, size_t offset,
+                                                     LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                                     QList<LinkedNotebook> foundLinkedNotebooks,
+                                                     QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::onListAllLinkedNotebooksComplete: limit = ")
+            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ")
+            << order << QStringLiteral(", order direction = ") << orderDirection
+            << QStringLiteral(", request id = ") << requestId);
+
+    // TODO: implement
+    Q_UNUSED(foundLinkedNotebooks)
+}
+
+void NotebookModel::onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
+                                                   LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                   LocalStorageManager::OrderDirection::type orderDirection,
+                                                   ErrorString errorDescription, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::onListAllLinkedNotebooksFailed: limit = ") << limit
+            << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
+            << QStringLiteral(", order direction = ") << orderDirection << QStringLiteral(", error description = ")
+            << errorDescription << QStringLiteral(", request id = ") << requestId);
+
+    // TODO: implement
+}
+
 void NotebookModel::createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNDEBUG(QStringLiteral("NotebookModel::createConnections"));
@@ -2352,6 +2413,12 @@ void NotebookModel::createConnections(const NoteModel & noteModel, LocalStorageM
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(NotebookModel,requestNoteCountPerNotebook,Notebook,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerNotebookRequest,Notebook,QUuid));
+    QObject::connect(this, QNSIGNAL(NotebookModel,listAllLinkedNotebooks,size_t,size_t,
+                                    LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                    LocalStorageManager::OrderDirection::type,QUuid),
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListAllLinkedNotebooksRequest,
+                                                       size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                       LocalStorageManager::OrderDirection::type,QUuid));
 
     // localStorageManagerAsync's signals to local slots
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,Notebook,QUuid),
@@ -2396,6 +2463,25 @@ void NotebookModel::createConnections(const NoteModel & noteModel, LocalStorageM
                      this, QNSLOT(NotebookModel,onGetNoteCountPerNotebookComplete,int,Notebook,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid),
                      this, QNSLOT(NotebookModel,onGetNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addLinkedNotebookComplete,LinkedNotebook,QUuid),
+                     this, QNSLOT(NotebookModel,onAddLinkedNotebookComplete,LinkedNotebook,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateLinkedNotebookComplete,LinkedNotebook,QUuid),
+                     this, QNSLOT(NotebookModel,onUpdateLinkedNotebookComplete,LinkedNotebook,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeLinkedNotebookComplete,LinkedNotebook,QUuid),
+                     this, QNSLOT(NotebookModel,onExpungeLinkedNotebookComplete,LinkedNotebook,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listAllLinkedNotebooksComplete,
+                                                         size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,
+                                                         QList<LinkedNotebook>,QUuid),
+                     this, QNSLOT(NotebookModel,onListAllLinkedNotebooksComplete,size_t,size_t,
+                                  LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                  LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listAllLinkedNotebooksFailed,
+                                                         size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+                     this, QNSLOT(NotebookModel,onListAllLinkedNotebooksFailed,size_t,size_t,
+                                  LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                  LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
 }
 
 void NotebookModel::requestNotebooksList()
@@ -2407,8 +2493,8 @@ void NotebookModel::requestNotebooksList()
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
 
     m_listNotebooksRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to list notebooks: offset = ") << m_listNotebooksOffset << QStringLiteral(", request id = ")
-            << m_listNotebooksRequestId);
+    QNTRACE(QStringLiteral("Emitting the request to list notebooks: offset = ") << m_listNotebooksOffset
+            << QStringLiteral(", request id = ") << m_listNotebooksRequestId);
     emit listNotebooks(flags, NOTEBOOK_LIST_LIMIT, m_listNotebooksOffset, order, direction, QString(), m_listNotebooksRequestId);
 }
 
@@ -2434,6 +2520,19 @@ void NotebookModel::requestNoteCountForAllNotebooks()
         notebook.setLocalUid(item.localUid());
         requestNoteCountForNotebook(notebook);
     }
+}
+
+void NotebookModel::requestLinkedNotebooksList()
+{
+    QNDEBUG(QStringLiteral("NotebookModel::requestLinkedNotebooksList: offset = ") << m_listLinkedNotebooksRequestId);
+
+    LocalStorageManager::ListLinkedNotebooksOrder::type order = LocalStorageManager::ListLinkedNotebooksOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+
+    m_listLinkedNotebooksRequestId = QUuid::createUuid();
+    QNTRACE(QStringLiteral("Emitting the request to list linked notebooks: offset = ") << m_listLinkedNotebooksOffset
+            << QStringLiteral(", request id = ") << m_listLinkedNotebooksRequestId);
+    emit listAllLinkedNotebooks(LINKED_NOTEBOOK_LIST_LIMIT, m_listLinkedNotebooksOffset, order, direction, m_listLinkedNotebooksRequestId);
 }
 
 QVariant NotebookModel::dataImpl(const NotebookModelItem & item, const Columns::type column) const

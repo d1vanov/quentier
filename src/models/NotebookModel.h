@@ -173,7 +173,7 @@ public:
 
     /**
      * @brief allNotebooksListed
-     * @return true if the notebook model has received the information about all notebooks
+     * @return true if the notebook model has received the information it needs about all notebooks
      * stored in the local storage by the moment; false otherwise
      */
     bool allNotebooksListed() const { return m_allNotebooksListed; }
@@ -289,6 +289,10 @@ Q_SIGNALS:
     void expungeNotebook(Notebook notebook, QUuid requestId);
     void requestNoteCountPerNotebook(Notebook notebook, QUuid requestId);
 
+    void listAllLinkedNotebooks(const size_t limit, const size_t offset,
+                                const LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                const LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId);
+
 private Q_SLOTS:
     void onAllNotesListed();
 
@@ -320,11 +324,26 @@ private Q_SLOTS:
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
+    void onAddLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onUpdateLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onExpungeLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
+
+    void onListAllLinkedNotebooksComplete(size_t limit, size_t offset,
+                                          LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                          LocalStorageManager::OrderDirection::type orderDirection,
+                                          QList<LinkedNotebook> foundLinkedNotebooks,
+                                          QUuid requestId);
+    void onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
+                                        LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                        ErrorString errorDescription, QUuid requestId);
+
 private:
     void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
     void requestNotebooksList();
     void requestNoteCountForNotebook(const Notebook & notebook);
     void requestNoteCountForAllNotebooks();
+    void requestLinkedNotebooksList();
 
     QVariant dataImpl(const NotebookModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const NotebookModelItem & item, const Columns::type column) const;
@@ -370,6 +389,7 @@ private:
     struct ByLocalUid{};
     struct ByNameUpper{};
     struct ByStack{};
+    struct ByLinkedNotebookGuid{};
 
     typedef boost::multi_index_container<
         NotebookItem,
@@ -385,6 +405,10 @@ private:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByStack>,
                 boost::multi_index::const_mem_fun<NotebookItem,const QString&,&NotebookItem::stack>
+            >,
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<ByLinkedNotebookGuid>,
+                boost::multi_index::const_mem_fun<NotebookItem,const QString&,&NotebookItem::linkedNotebookGuid>
             >
         >
     > NotebookData;
@@ -392,6 +416,7 @@ private:
     typedef NotebookData::index<ByLocalUid>::type NotebookDataByLocalUid;
     typedef NotebookData::index<ByNameUpper>::type NotebookDataByNameUpper;
     typedef NotebookData::index<ByStack>::type NotebookDataByStack;
+    typedef NotebookData::index<ByLinkedNotebookGuid> NotebookDataByLinkedNotebookGuid;
 
     struct LessByName
     {
@@ -419,6 +444,7 @@ private:
 
     typedef QMap<QString, NotebookModelItem> ModelItems;
     typedef QMap<QString, NotebookStackItem> StackItems;
+    typedef QMap<QString, NotebookLinkedNotebookRootItem> LinkedNotebookItems;
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     typedef quint32 IndexId;
@@ -428,6 +454,7 @@ private:
 
     typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
     typedef boost::bimap<IndexId, QString> IndexIdToStackBimap;
+    typedef boost::bimap<IndexId, QString> IndexIdToLinkedNotebookGuidBimap;
 
     class RemoveRowsScopeGuard
     {
@@ -465,11 +492,15 @@ private:
 
     ModelItems              m_modelItemsByLocalUid;
     ModelItems              m_modelItemsByStack;
-    StackItems              m_stackItems;
+    ModelItems              m_modelItemsByLinkedNotebookGuid;
 
-    mutable IndexIdToLocalUidBimap  m_indexIdToLocalUidBimap;
-    mutable IndexIdToStackBimap     m_indexIdToStackBimap;
-    mutable IndexId                 m_lastFreeIndexId;
+    StackItems              m_stackItems;
+    LinkedNotebookItems     m_linkedNotebookItems;
+
+    mutable IndexIdToLocalUidBimap              m_indexIdToLocalUidBimap;
+    mutable IndexIdToStackBimap                 m_indexIdToStackBimap;
+    mutable IndexIdToLinkedNotebookGuidBimap    m_indexIdToLinkedNotebookGuidBimap;
+    mutable IndexId                             m_lastFreeIndexId;
 
     NotebookCache &         m_cache;
 
@@ -489,12 +520,17 @@ private:
     QHash<QString, QString> m_notebookLocalUidByNoteLocalUid;
     bool                    m_receivedNotebookLocalUidsForAllNotes;
 
+    QHash<QString,QString>  m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids;
+    size_t                  m_listLinkedNotebooksOffset;
+    QUuid                   m_listLinkedNotebooksRequestId;
+
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
 
     mutable int             m_lastNewNotebookNameCounter;
 
     bool                    m_allNotebooksListed;
+    bool                    m_allLinkedNotebooksListed;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(NotebookModel::NotebookFilters)

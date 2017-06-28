@@ -21,6 +21,7 @@
 
 #include "NotebookItem.h"
 #include "NotebookStackItem.h"
+#include "NotebookLinkedNotebookRootItem.h"
 #include <QDataStream>
 
 namespace quentier {
@@ -32,15 +33,17 @@ public:
     {
         enum type {
             Stack = 0,
-            Notebook
+            Notebook,
+            LinkedNotebook
         };
     };
 
     NotebookModelItem(const Type::type type = Type::Notebook,
                       const NotebookItem * notebookItem = Q_NULLPTR,
                       const NotebookStackItem * notebookStackItem = Q_NULLPTR,
+                      const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem = Q_NULLPTR,
                       const NotebookModelItem * parent = Q_NULLPTR);
-    ~NotebookModelItem();
+    virtual ~NotebookModelItem();
 
     Type::type type() const { return m_type; }
     void setType(const Type::type type) { m_type = type; }
@@ -50,6 +53,10 @@ public:
 
     const NotebookStackItem * notebookStackItem() const { return m_pNotebookStackItem; }
     void setNotebookStackItem(const NotebookStackItem * notebookStackItem) { m_pNotebookStackItem = notebookStackItem; }
+
+    const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem() const { return m_pNotebookLinkedNotebookItem; }
+    void setNotebookLinkedNotebookItem(const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem)
+    { m_pNotebookLinkedNotebookItem = notebookLinkedNotebookItem; }
 
     const NotebookModelItem * parent() const { return m_pParent; }
     void setParent(const NotebookModelItem * parent) const;
@@ -76,6 +83,7 @@ private:
     Type::type                  m_type;
     const NotebookItem *        m_pNotebookItem;
     const NotebookStackItem *   m_pNotebookStackItem;
+    const NotebookLinkedNotebookRootItem *  m_pNotebookLinkedNotebookItem;
 
     // NOTE: this is mutable in order to have the possibility to organize
     // the efficient storage of TagModelItems in boost::multi_index_container:

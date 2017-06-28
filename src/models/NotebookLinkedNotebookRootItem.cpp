@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2017 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NotebookStackItem.h"
+#include "NotebookLinkedNotebookRootItem.h"
 
 namespace quentier {
 
-QTextStream & NotebookStackItem::print(QTextStream & strm) const
+QTextStream & NotebookLinkedNotebookRootItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Notebook stack: ") << m_name;
+    strm << "Linked notebook root item: m_username = " << m_username
+         << ", linked notebook guid = " << m_linkedNotebookGuid;
     return strm;
 }
 

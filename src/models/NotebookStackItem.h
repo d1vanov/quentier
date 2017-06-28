@@ -23,8 +23,6 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
-
 class NotebookStackItem: public Printable
 {
 public:

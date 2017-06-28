@@ -102,6 +102,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
+    src/models/NotebookLinkedNotebookRootItem.h
     src/models/NotebookCache.h
     src/models/NoteModelItem.h
     src/models/NoteFilterModel.h
@@ -190,6 +191,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NotebookModelItem.cpp
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
+    src/models/NotebookLinkedNotebookRootItem.cpp
     src/models/NoteModelItem.cpp
     src/models/NoteFilterModel.cpp
     src/models/NoteModel.cpp
@@ -366,6 +368,7 @@ set(MODEL_TEST_HEADERS
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
+    src/models/NotebookLinkedNotebookRootItem.h
     src/models/NotebookCache.h
     src/models/NoteModelItem.h
     src/models/NoteFilterModel.h
@@ -391,6 +394,7 @@ set(MODEL_TEST_SOURCES
     src/models/NotebookModelItem.cpp
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
+    src/models/NotebookLinkedNotebookRootItem.cpp
     src/models/NoteModelItem.cpp
     src/models/NoteFilterModel.cpp
     src/models/NoteModel.cpp
