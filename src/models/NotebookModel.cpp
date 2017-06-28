@@ -152,13 +152,7 @@ QModelIndex NotebookModel::indexForNotebookName(const QString & notebookName,
     for(auto it = range.first; it != range.second; ++it)
     {
         const NotebookItem & item = *it;
-        const QString & itemLinkedNotebookGuid = item.linkedNotebookGuid();
-
-        if (itemLinkedNotebookGuid.isEmpty() && linkedNotebookGuid.isEmpty()) {
-            return indexForLocalUid(item.localUid());
-        }
-
-        if (itemLinkedNotebookGuid == linkedNotebookGuid) {
+        if (item.linkedNotebookGuid() == linkedNotebookGuid) {
             return indexForLocalUid(item.localUid());
         }
     }
