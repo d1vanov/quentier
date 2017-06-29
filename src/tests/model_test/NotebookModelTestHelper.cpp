@@ -614,7 +614,7 @@ void NotebookModelTestHelper::test()
         }
 
         // Ensure the stack item ceased to exist after the last notebook item has been removed from it
-        QModelIndex emptyStackItemIndex = model->indexForNotebookStack(newStack);
+        QModelIndex emptyStackItemIndex = model->indexForNotebookStack(newStack, QString());
         if (emptyStackItemIndex.isValid()) {
             FAIL(QStringLiteral("Notebook model returned valid model index for stack which should have been removed from the model "
                                 "after the removal of the last notebook contained in this stack"));
@@ -624,7 +624,7 @@ void NotebookModelTestHelper::test()
         fourth.setStack(newStack);
         m_pLocalStorageManagerAsync->onUpdateNotebookRequest(fourth, QUuid());
 
-        QModelIndex restoredStackItemIndex = model->indexForNotebookStack(newStack);
+        QModelIndex restoredStackItemIndex = model->indexForNotebookStack(newStack, QString());
         if (!restoredStackItemIndex.isValid()) {
             FAIL(QStringLiteral("Notebook model returned invalid model index for stack which should have been created "
                                 "after the external update of notebook with this stack value"));

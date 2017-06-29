@@ -27,6 +27,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NotebookStackItem)
+QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
 
 class NotebookItemView: public ItemView
 {
@@ -78,8 +79,8 @@ private Q_SLOTS:
     void onUnfavoriteAction();
 
     void onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index);
-    void onNotebookStackRenamed(const QString & previousStackName,
-                                const QString & newStackName);
+    void onNotebookStackRenamed(const QString & previousStackName, const QString & newStackName,
+                                const QString & linkedNotebookGuid);
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
     virtual void selectionChanged(const QItemSelection & selected,
@@ -91,11 +92,13 @@ private:
     void showNotebookItemContextMenu(const NotebookItem & item,
                                      const QPoint & point, NotebookModel & model);
     void showNotebookStackItemContextMenu(const NotebookStackItem & item,
+                                          const NotebookModelItem & modelItem,
                                           const QPoint & point, NotebookModel & model);
 
     void saveNotebookStackItemsState();
     void restoreNotebookStackItemsState(const NotebookModel & model);
-    void setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model);
+    void setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model,
+                           const QString & linkedNotebookGuid);
 
     void restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model);
     void autoSelectNotebook(const NotebookModel & model);

@@ -79,7 +79,21 @@ public:
 
     QModelIndex indexForNotebookName(const QString & notebookName,
                                      const QString & linkedNotebookGuid = QString()) const;
-    QModelIndex indexForNotebookStack(const QString & stack) const;
+
+    /**
+     * @param The name of the notebook stack which item's index is required
+     * @param The linked notebook guid for which the notebook stack item's index is required;
+     * if null or empty, the item corresponding to the notebook stack from user's own account it considered,
+     * otherwise the item corresponding linked notebook guid would be considered
+     * @return The model index of the NotebookStackItem corresponding to the given stack
+     */
+    QModelIndex indexForNotebookStack(const QString & stack, const QString & linkedNotebookGuid) const;
+
+    /**
+     * @param The linked notebook guid which corresponding linked notebook item's index is required
+     * @return The model index of the NotebookLinkedNotebookRootItem corresponding to the given linked notebook guid
+     */
+    QModelIndex indexForLinkedNotebookGuid(const QString & linkedNotebookGuid) const;
 
     /**
      * C++98-style struct wrapper for the enum defining filter for methods listing stuff
@@ -103,19 +117,22 @@ public:
     Q_DECLARE_FLAGS(NotebookFilters, NotebookFilter::type)
 
     /**
-     * @brief notebookNames
      * @param filter - filter for the listed notebook names
-     * @return the sorted list of notebook names conformant with the filter
+     * @param linkedNotebookGuid - the option guid of the linked notebook to which the returned notebook names belong;
+     * if it is null (i.e. linkedNotebookGuid.isNull() returns true), the notebook names would be returned ignoring
+     * their belonging to user's own account or linked notebook; if it's not null but empty (i.e. linkedNotebookGuid.isEmpty()
+     * returns true), only the names of notebooks from user's own account would be returned. Otherwise only the names
+     * of notebooks from the corresponding linked notebook would be returned
+     * @return The sorted list of notebook names conformant with the filter
      */
-    QStringList notebookNames(const NotebookFilters filters) const;
+    QStringList notebookNames(const NotebookFilters filters, const QString & linkedNotebookGuid = QString()) const;
 
     /**
-     * @return the list of indexes stored as persistent indexes in the model
+     * @return The list of indexes stored as persistent indexes in the model
      */
     QModelIndexList persistentIndexes() const;
 
     /**
-     * @brief defaultNotebookIndex
      * @return the index of the default notebook item if such one exists
      * or invalid model index otherwise
      */
@@ -134,6 +151,11 @@ public:
      * @param stack - the stack to which the notebook item needs to be moved
      * @return the index of the moved notebook item or invalid index if something went wrong,
      * for example, if the passed in index did not really point to the notebook item
+     *
+     * @note There is no ambiguity here between stacks from user's own account and those from linked notebooks -
+     * the notebook item would be moved to the stack which it corresponds to: if the notebook belongs to user's
+     * own account, the stack would also be from user's own account; otherwise, the stack would be that
+     * of the corresponding linked notebook
      */
     QModelIndex moveToStack(const QModelIndex & index, const QString & stack);
 
@@ -148,9 +170,11 @@ public:
 
     /**
      * @brief stacks
-     * @return the sorted list of notebook stacks existing within the notebook model
+     * @param linkedNotebookGuid - the guid of the linked notebook from which the stacks are requested;
+     * if empty, the stacks from user's own account are returned
+     * @return the sorted list of existing notebook stacks
      */
-    QStringList stacks() const;
+    QStringList stacks(const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @brief createNotebook - convenience method to create a new notebook within the model
@@ -176,7 +200,7 @@ public:
      * @return true if the notebook model has received the information it needs about all notebooks
      * stored in the local storage by the moment; false otherwise
      */
-    bool allNotebooksListed() const { return m_allNotebooksListed; }
+    bool allNotebooksListed() const;
 
     /**
      * @brief favoriteNotebook - marks the notebook pointed to by the index as favorited
@@ -209,7 +233,7 @@ public:
     virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
     virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
     virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }
-    virtual bool allItemsListed() const Q_DECL_OVERRIDE { return m_allNotebooksListed; }
+    virtual bool allItemsListed() const Q_DECL_OVERRIDE { return allNotebooksListed(); }
 
 public:
     // QAbstractItemModel interface
@@ -256,9 +280,11 @@ Q_SIGNALS:
      * has been renamed
      * @param previousStackName - the name of the notebook stack prior to renaming
      * @param newStackName - the new name of the notebook stack
+     * @param linkedNotebookGuid - if the stack belonged to the linked notebook, this parameter is the guid of it
      */
     void notifyNotebookStackRenamed(const QString & previousStackName,
-                                    const QString & newStackName);
+                                    const QString & newStackName,
+                                    const QString & linkedNotebookGuid);
 
     /**
      * @brief notifyNotebookStackChanged - the signal emitted after the notebook has been assigned to another stack
@@ -416,7 +442,7 @@ private:
     typedef NotebookData::index<ByLocalUid>::type NotebookDataByLocalUid;
     typedef NotebookData::index<ByNameUpper>::type NotebookDataByNameUpper;
     typedef NotebookData::index<ByStack>::type NotebookDataByStack;
-    typedef NotebookData::index<ByLinkedNotebookGuid> NotebookDataByLinkedNotebookGuid;
+    typedef NotebookData::index<ByLinkedNotebookGuid>::type NotebookDataByLinkedNotebookGuid;
 
     struct LessByName
     {
@@ -473,13 +499,17 @@ private:
     void onNotebookAdded(const Notebook & notebook);
     void onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it);
 
+    void onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linkedNotebook);
+
     const NotebookModelItem * itemForId(const IndexId id) const;
     IndexId idForItem(const NotebookModelItem & item) const;
 
     // Returns true if successfully incremented the note count for the notebook item with the corresponding local uid
     bool updateNoteCountPerNotebookIndex(const NotebookItem & item, const NotebookDataByLocalUid::iterator it);
 
-    ModelItems::iterator addNewStackModelItem(const NotebookStackItem & stackItem);
+    ModelItems::iterator addNewStackModelItem(const NotebookStackItem & stackItem,
+                                              const NotebookModelItem & parentItem,
+                                              ModelItems & modelItemsByStack);
 
 private:
     Account                 m_account;
@@ -490,12 +520,15 @@ private:
     QString                 m_defaultNotebookLocalUid;
     QString                 m_lastUsedNotebookLocalUid;
 
-    ModelItems              m_modelItemsByLocalUid;
-    ModelItems              m_modelItemsByStack;
-    ModelItems              m_modelItemsByLinkedNotebookGuid;
+    ModelItems                  m_modelItemsByLocalUid;
+    ModelItems                  m_modelItemsByStack;
+    ModelItems                  m_modelItemsByLinkedNotebookGuid;
+    QMap<QString, ModelItems>   m_modelItemsByStackByLinkedNotebookGuid;
 
-    StackItems              m_stackItems;
-    LinkedNotebookItems     m_linkedNotebookItems;
+    StackItems                  m_stackItems;
+    QMap<QString, StackItems>   m_stackItemsByLinkedNotebookGuid;
+
+    LinkedNotebookItems         m_linkedNotebookItems;
 
     mutable IndexIdToLocalUidBimap              m_indexIdToLocalUidBimap;
     mutable IndexIdToStackBimap                 m_indexIdToStackBimap;

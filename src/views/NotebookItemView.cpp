@@ -26,6 +26,7 @@
 #include <QMenu>
 #include <QContextMenuEvent>
 #include <QScopedPointer>
+#include <utility>
 
 #define LAST_SELECTED_NOTEBOOK_KEY QStringLiteral("LastSelectedNotebookLocalUid")
 #define LAST_EXPANDED_STACK_ITEMS_KEY QStringLiteral("LastExpandedStackItems")
@@ -63,18 +64,18 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
                             this, QNSIGNAL(NotebookItemView,notifyError,ErrorString));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyAllNotebooksListed),
                             this, QNSLOT(NotebookItemView,onAllNotebooksListed));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,const QString&,const QString&),
-                            this, QNSLOT(NotebookItemView,onNotebookStackRenamed,const QString&,const QString&));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyNotebookStackChanged,const QModelIndex&),
-                            this, QNSLOT(NotebookItemView,onNotebookStackChanged,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,QString,QString,QString),
+                            this, QNSLOT(NotebookItemView,onNotebookStackRenamed,QString,QString,QString));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyNotebookStackChanged,QModelIndex),
+                            this, QNSLOT(NotebookItemView,onNotebookStackChanged,QModelIndex));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,aboutToAddNotebook),
                             this, QNSLOT(NotebookItemView,onAboutToAddNotebook));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,addedNotebook,const QModelIndex&),
-                            this, QNSLOT(NotebookItemView,onAdddedNotebook,const QModelIndex&));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,aboutToUpdateNotebook,const QModelIndex&),
-                            this, QNSLOT(NotebookItemView,onAboutToUpdateNotebook,const QModelIndex&));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,updatedNotebook,const QModelIndex&),
-                            this, QNSLOT(NotebookItemView,onUpdatedNotebook,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,addedNotebook,QModelIndex),
+                            this, QNSLOT(NotebookItemView,onAdddedNotebook,QModelIndex));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,aboutToUpdateNotebook,QModelIndex),
+                            this, QNSLOT(NotebookItemView,onAboutToUpdateNotebook,QModelIndex));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,updatedNotebook,QModelIndex),
+                            this, QNSLOT(NotebookItemView,onUpdatedNotebook,QModelIndex));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,aboutToRemoveNotebooks),
                             this, QNSLOT(NotebookItemView,onAboutToRemoveNotebooks));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,removedNotebooks),
@@ -94,18 +95,18 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyError,ErrorString),
                      this, QNSIGNAL(NotebookItemView,notifyError,ErrorString));
-    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,const QString&,const QString&),
-                     this, QNSLOT(NotebookItemView,onNotebookStackRenamed,const QString&,const QString&));
-    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackChanged,const QModelIndex&),
-                     this, QNSLOT(NotebookItemView,onNotebookStackChanged,const QModelIndex&));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,QString,QString,QString),
+                     this, QNSLOT(NotebookItemView,onNotebookStackRenamed,QString,QString,QString));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackChanged,QModelIndex),
+                     this, QNSLOT(NotebookItemView,onNotebookStackChanged,QModelIndex));
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,aboutToAddNotebook),
                      this, QNSLOT(NotebookItemView,onAboutToAddNotebook));
-    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,addedNotebook,const QModelIndex&),
-                     this, QNSLOT(NotebookItemView,onAdddedNotebook,const QModelIndex&));
-    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,aboutToUpdateNotebook,const QModelIndex&),
-                     this, QNSLOT(NotebookItemView,onAboutToUpdateNotebook,const QModelIndex&));
-    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,updatedNotebook,const QModelIndex&),
-                     this, QNSLOT(NotebookItemView,onUpdatedNotebook,const QModelIndex&));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,addedNotebook,QModelIndex),
+                     this, QNSLOT(NotebookItemView,onAdddedNotebook,QModelIndex));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,aboutToUpdateNotebook,QModelIndex),
+                     this, QNSLOT(NotebookItemView,onAboutToUpdateNotebook,QModelIndex));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,updatedNotebook,QModelIndex),
+                     this, QNSLOT(NotebookItemView,onUpdatedNotebook,QModelIndex));
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,aboutToRemoveNotebooks),
                      this, QNSLOT(NotebookItemView,onAboutToRemoveNotebooks));
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,removedNotebooks),
@@ -511,14 +512,23 @@ void NotebookItemView::onRenameNotebookStackAction()
         return;
     }
 
-    QString notebookStack = pAction->data().toString();
+    QStringList actionData = pAction->data().toStringList();
+    if (Q_UNLIKELY(actionData.size() != 2)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename the notebook stack, "
+                                       "wrong size of string list embedded into QAction"))
+        return;
+    }
+
+    const QString & notebookStack = actionData.at(0);
     if (Q_UNLIKELY(notebookStack.isEmpty())) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename the notebook stack, "
                                        "can't get notebook stack from QAction"))
         return;
     }
 
-    QModelIndex notebookStackItemIndex = pNotebookModel->indexForNotebookStack(notebookStack);
+    const QString & linkedNotebookGuid = actionData.at(1);
+
+    QModelIndex notebookStackItemIndex = pNotebookModel->indexForNotebookStack(notebookStack, linkedNotebookGuid);
     if (!notebookStackItemIndex.isValid()) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename the notebook stack, "
                                        "the model returned invalid index for the notebook stack"))
@@ -547,16 +557,25 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
         return;
     }
 
-    QString notebookStack = pAction->data().toString();
+    QStringList actionData = pAction->data().toStringList();
+    if (Q_UNLIKELY(actionData.size() != 2)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove all notebooks from stack, "
+                                       "wrong size of string list embedded into QAction"))
+        return;
+    }
+
+    const QString & notebookStack = actionData.at(0);
     if (Q_UNLIKELY(notebookStack.isEmpty())) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove all notebooks from stack, "
                                        "can't get notebook stack from QAction"))
         return;
     }
 
+    const QString & linkedNotebookGuid = actionData.at(1);
+
     while(true)
     {
-        QModelIndex notebookStackItemIndex = pNotebookModel->indexForNotebookStack(notebookStack);
+        QModelIndex notebookStackItemIndex = pNotebookModel->indexForNotebookStack(notebookStack, linkedNotebookGuid);
         if (!notebookStackItemIndex.isValid()) {
             QNDEBUG(QStringLiteral("Notebook stack item index is invalid, breaking the loop"));
             break;
@@ -622,10 +641,12 @@ void NotebookItemView::onNotebookStackItemCollapsedOrExpanded(const QModelIndex 
 }
 
 void NotebookItemView::onNotebookStackRenamed(const QString & previousStackName,
-                                              const QString & newStackName)
+                                              const QString & newStackName,
+                                              const QString & linkedNotebookGuid)
 {
     QNDEBUG(QStringLiteral("NotebookItemView::onNotebookStackRenamed: previous stack name = ")
-            << previousStackName << QStringLiteral(", new stack name = ") << newStackName);
+            << previousStackName << QStringLiteral(", new stack name = ") << newStackName
+            << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid);
 
     NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
@@ -635,7 +656,12 @@ void NotebookItemView::onNotebookStackRenamed(const QString & previousStackName,
 
     ApplicationSettings appSettings(pNotebookModel->account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("NotebookItemView"));
-    QStringList expandedStacks = appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
+    QString key = LAST_EXPANDED_STACK_ITEMS_KEY;
+    if (!linkedNotebookGuid.isEmpty()) {
+        key += QStringLiteral("/") + linkedNotebookGuid;
+    }
+
+    QStringList expandedStacks = appSettings.value(key).toStringList();
     appSettings.endGroup();
 
     int previousStackIndex = expandedStacks.indexOf(previousStackName);
@@ -646,9 +672,9 @@ void NotebookItemView::onNotebookStackRenamed(const QString & previousStackName,
         expandedStacks.replace(previousStackIndex, newStackName);
     }
 
-    setStacksExpanded(expandedStacks, *pNotebookModel);
+    setStacksExpanded(expandedStacks, *pNotebookModel, linkedNotebookGuid);
 
-    QModelIndex newStackItemIndex = pNotebookModel->indexForNotebookStack(newStackName);
+    QModelIndex newStackItemIndex = pNotebookModel->indexForNotebookStack(newStackName, linkedNotebookGuid);
     if (Q_UNLIKELY(!newStackItemIndex.isValid())) {
         QNWARNING(QStringLiteral("Can't select the just renamed notebook stack: notebook model returned "
                                  "invalid index for the new notebook stack name"));
@@ -744,7 +770,7 @@ void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
             return;
         }
 
-        showNotebookStackItemContextMenu(*pNotebookStackItem, pEvent->globalPos(), *pNotebookModel);
+        showNotebookStackItemContextMenu(*pNotebookStackItem, *pModelItem, pEvent->globalPos(), *pNotebookModel);
     }
 }
 
@@ -926,8 +952,8 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
 }
 
 void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem & item,
-                                                        const QPoint & point,
-                                                        NotebookModel & model)
+                                                        const NotebookModelItem & modelItem,
+                                                        const QPoint & point, NotebookModel & model)
 {
     QNDEBUG(QStringLiteral("NotebookItemView::showNotebookStackItemContextMenu: (")
             << point.x() << QStringLiteral(", ") << point.y()
@@ -944,7 +970,13 @@ void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem 
 
     bool allChildrenUpdatable = false;
 
-    QModelIndex stackItemIndex = model.indexForNotebookStack(item.name());
+    QString linkedNotebookGuid;
+    const NotebookModelItem * pParentItem = modelItem.parent();
+    if (pParentItem && (pParentItem->type() == NotebookModelItem::Type::LinkedNotebook) && pParentItem->notebookLinkedNotebookItem()) {
+        linkedNotebookGuid = pParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
+    }
+
+    QModelIndex stackItemIndex = model.indexForNotebookStack(item.name(), linkedNotebookGuid);
     const NotebookModelItem * pModelItem = model.itemForIndex(stackItemIndex);
     if (Q_LIKELY(pModelItem))
     {
@@ -979,14 +1011,14 @@ void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem 
         }
     }
 
-    ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pNotebookStackItemContextMenu,
-                            onRenameNotebookStackAction, item.name(), allChildrenUpdatable);
+    ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pNotebookStackItemContextMenu, onRenameNotebookStackAction,
+                            QStringList() << item.name() << linkedNotebookGuid, allChildrenUpdatable);
 
-    ADD_CONTEXT_MENU_ACTION(tr("Remove stack"), m_pNotebookStackItemContextMenu,
-                            onRemoveNotebooksFromStackAction, item.name(), allChildrenUpdatable);
+    ADD_CONTEXT_MENU_ACTION(tr("Remove stack"), m_pNotebookStackItemContextMenu, onRemoveNotebooksFromStackAction,
+                            QStringList() << item.name() << linkedNotebookGuid, allChildrenUpdatable);
 
-    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pNotebookStackItemContextMenu,
-                            onShowNotebookInfoAction, item.name(), true);
+    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pNotebookStackItemContextMenu, onShowNotebookInfoAction,
+                            item.name(), true);
 
     m_pNotebookStackItemContextMenu->show();
     m_pNotebookStackItemContextMenu->exec(point);
@@ -1004,28 +1036,71 @@ void NotebookItemView::saveNotebookStackItemsState()
         return;
     }
 
-    QStringList result;
+    QMap<QString, QStringList> results;
 
     QModelIndexList indexes = pNotebookModel->persistentIndexes();
     for(auto it = indexes.constBegin(), end = indexes.constEnd(); it != end; ++it)
     {
         const QModelIndex & index = *it;
-
         if (!isExpanded(index)) {
             continue;
         }
 
-        QString stackItemName = index.data(Qt::DisplayRole).toString();
-        if (Q_UNLIKELY(stackItemName.isEmpty())) {
+        const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(index);
+        if (Q_UNLIKELY(!pModelItem)) {
+            QNWARNING(QStringLiteral("Can't save the state of notebook stack expanded/folded state: no notebook model item "
+                                     "corresponding to the persistent notebook model index"));
             continue;
         }
 
-        result << stackItemName;
+        if (pModelItem->type() != NotebookModelItem::Type::Stack) {
+            continue;
+        }
+
+        const NotebookStackItem * pStackItem = pModelItem->notebookStackItem();
+        if (Q_UNLIKELY(!pStackItem)) {
+            QNWARNING(QStringLiteral("Can't save the state of notebook stack expanded/folded state: the model item "
+                                     "of stack type has no actual notebook stack item"));
+            continue;
+        }
+
+        QString linkedNotebookGuid;
+        const NotebookModelItem * pParentItem = pModelItem->parent();
+        if (pParentItem && (pParentItem->type() == NotebookModelItem::Type::LinkedNotebook) && pParentItem->notebookLinkedNotebookItem()) {
+            linkedNotebookGuid = pParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
+        }
+
+        const QString & stackItemName = pStackItem->name();
+        if (Q_UNLIKELY(stackItemName.isEmpty())) {
+            QNDEBUG(QStringLiteral("Skipping the notebook stack item without a name"));
+            continue;
+        }
+
+        results[linkedNotebookGuid].append(stackItemName);
     }
 
     ApplicationSettings appSettings(pNotebookModel->account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("NotebookItemView"));
-    appSettings.setValue(LAST_EXPANDED_STACK_ITEMS_KEY, result);
+
+    for(auto it = results.constBegin(), end = results.constEnd(); it != end; ++it)
+    {
+        const QString & linkedNotebookGuid = it.key();
+        const QStringList & stackItemNames = it.value();
+
+        if (linkedNotebookGuid.isEmpty())
+        {
+            appSettings.setValue(LAST_EXPANDED_STACK_ITEMS_KEY, stackItemNames);
+        }
+        else
+        {
+            QString key = LAST_EXPANDED_STACK_ITEMS_KEY;
+            if (!linkedNotebookGuid.isEmpty()) {
+                key += QStringLiteral("/") + linkedNotebookGuid;
+            }
+            appSettings.setValue(key, stackItemNames);
+        }
+    }
+
     appSettings.endGroup();
 }
 
@@ -1040,18 +1115,23 @@ void NotebookItemView::restoreNotebookStackItemsState(const NotebookModel & mode
 
     bool wasTrackingNotebookItemsState = m_trackingNotebookStackItemsState;
     m_trackingNotebookStackItemsState = false;
-    setStacksExpanded(expandedStacks, model);
+    setStacksExpanded(expandedStacks, model, QString());
     m_trackingNotebookStackItemsState = wasTrackingNotebookItemsState;
+
+    // FIXME: need to restore the stack items state for stacks from linked notebooks as well
 }
 
-void NotebookItemView::setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model)
+void NotebookItemView::setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model,
+                                         const QString & linkedNotebookGuid)
 {
-    QNDEBUG(QStringLiteral("NotebookItemView::setStacksExpanded"));
+    QNDEBUG(QStringLiteral("NotebookItemView::setStacksExpanded: linked notebook guid = ")
+            << linkedNotebookGuid);
 
     for(auto it = expandedStackNames.constBegin(), end = expandedStackNames.constEnd(); it != end; ++it)
     {
         const QString & expandedStack = *it;
-        QModelIndex index = model.indexForNotebookStack(expandedStack);
+
+        QModelIndex index = model.indexForNotebookStack(expandedStack, linkedNotebookGuid);
         if (!index.isValid()) {
             continue;
         }
