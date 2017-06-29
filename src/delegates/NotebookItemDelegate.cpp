@@ -41,13 +41,25 @@ QString NotebookItemDelegate::displayText(const QVariant & value, const QLocale 
 QWidget * NotebookItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
                                              const QModelIndex & index) const
 {
-    // Only allow to edit the notebook name but no other notebook model columns
-    if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
-        return AbstractStyledItemDelegate::createEditor(parent, option, index);
-    }
-    else {
+    const NotebookModel * pNotebookModel = qobject_cast<const NotebookModel*>(index.model());
+    if (!pNotebookModel) {
         return Q_NULLPTR;
     }
+
+    const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(index);
+    if (!pModelItem) {
+        return Q_NULLPTR;
+    }
+
+    if (pModelItem->type() == NotebookModelItem::Type::LinkedNotebook) {
+        return Q_NULLPTR;
+    }
+
+    if (index.column() != NotebookModel::Columns::Name) {
+        return Q_NULLPTR;
+    }
+
+    return AbstractStyledItemDelegate::createEditor(parent, option, index);
 }
 
 void NotebookItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,

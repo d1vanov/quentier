@@ -411,6 +411,8 @@ private:
 
     void buildNotebookLocalUidByNoteLocalUidsHash(const NoteModel & noteModel);
 
+    const NotebookModelItem & findOrCreateLinkedNotebookModelItem(const QString & linkedNotebookGuid);
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};

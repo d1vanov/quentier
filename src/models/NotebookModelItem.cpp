@@ -188,7 +188,7 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
         else if (childItem->type() == NotebookModelItem::Type::Stack) {
             strm << QStringLiteral("stack");
         }
-        else if (m_pParent->type() == NotebookModelItem::Type::LinkedNotebook) {
+        else if (childItem->type() == NotebookModelItem::Type::LinkedNotebook) {
             strm << QStringLiteral("linked notebook root item");
         }
         else {
