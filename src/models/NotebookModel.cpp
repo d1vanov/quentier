@@ -611,6 +611,11 @@ QStringList NotebookModel::stacks(const QString & linkedNotebookGuid) const
     return result;
 }
 
+const QHash<QString,QString> & NotebookModel::linkedNotebookOwnerNamesByGuid() const
+{
+    return m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids;
+}
+
 QModelIndex NotebookModel::createNotebook(const QString & notebookName,
                                           const QString & notebookStack,
                                           ErrorString & errorDescription)

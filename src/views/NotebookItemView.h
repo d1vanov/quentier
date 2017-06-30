@@ -78,7 +78,8 @@ private Q_SLOTS:
     void onFavoriteAction();
     void onUnfavoriteAction();
 
-    void onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index);
+    void onNotebookModelItemCollapsedOrExpanded(const QModelIndex & index);
+
     void onNotebookStackRenamed(const QString & previousStackName, const QString & newStackName,
                                 const QString & linkedNotebookGuid);
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
@@ -95,10 +96,13 @@ private:
                                           const NotebookModelItem & modelItem,
                                           const QPoint & point, NotebookModel & model);
 
-    void saveNotebookStackItemsState();
-    void restoreNotebookStackItemsState(const NotebookModel & model);
+    void saveNotebookModelItemsState();
+    void restoreNotebookModelItemsState(const NotebookModel & model);
+
     void setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model,
                            const QString & linkedNotebookGuid);
+    void setLinkedNotebooksExpanded(const QStringList & expandedLinkedNotebookGuids,
+                                    const NotebookModel & model);
 
     void restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model);
     void autoSelectNotebook(const NotebookModel & model);
@@ -114,7 +118,7 @@ private:
 private:
     QMenu *     m_pNotebookItemContextMenu;
     QMenu *     m_pNotebookStackItemContextMenu;
-    bool        m_trackingNotebookStackItemsState;
+    bool        m_trackingNotebookModelItemsState;
     bool        m_trackingSelection;
     bool        m_modelReady;
 };

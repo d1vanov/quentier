@@ -177,6 +177,11 @@ public:
     QStringList stacks(const QString & linkedNotebookGuid = QString()) const;
 
     /**
+     * @return the linked notebook owners' names by linked notebook guid
+     */
+    const QHash<QString,QString> & linkedNotebookOwnerNamesByGuid() const;
+
+    /**
      * @brief createNotebook - convenience method to create a new notebook within the model
      * @param notebookName - the name of the new notebook
      * @param notebookStack - the stack of the new notebook
