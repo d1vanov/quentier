@@ -454,6 +454,9 @@ private:
         bool operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const;
         bool operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const;
 
+        bool operator()(const NotebookLinkedNotebookRootItem & lhs, const NotebookLinkedNotebookRootItem & rhs) const;
+        bool operator()(const NotebookLinkedNotebookRootItem * lhs, const NotebookLinkedNotebookRootItem * rhs) const;
+
         bool operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const;
         bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
     };
@@ -465,6 +468,9 @@ private:
 
         bool operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const;
         bool operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const;
+
+        bool operator()(const NotebookLinkedNotebookRootItem & lhs, const NotebookLinkedNotebookRootItem & rhs) const;
+        bool operator()(const NotebookLinkedNotebookRootItem * lhs, const NotebookLinkedNotebookRootItem * rhs) const;
 
         bool operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const;
         bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;

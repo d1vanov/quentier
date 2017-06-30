@@ -26,12 +26,17 @@
 #include <cmath>
 
 #define CIRCLE_RADIUS (2)
+#define ICON_SIDE_SIZE (16)
 
 namespace quentier {
 
 NotebookItemDelegate::NotebookItemDelegate(QObject * parent) :
-    AbstractStyledItemDelegate(parent)
-{}
+    AbstractStyledItemDelegate(parent),
+    m_userIcon(),
+    m_userIconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+{
+    m_userIcon.addFile(QStringLiteral(":/user/user.png"), m_userIconSize);
+}
 
 QString NotebookItemDelegate::displayText(const QVariant & value, const QLocale & locale) const
 {
@@ -165,48 +170,70 @@ void NotebookItemDelegate::drawEllipse(QPainter * painter, const QStyleOptionVie
 void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelIndex & index,
                                             const QStyleOptionViewItem & option) const
 {
-    const QAbstractItemModel * model = index.model();
-    if (Q_UNLIKELY(!model)) {
-        QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: can't draw, no model"));
+    const NotebookModel * pNotebookModel = qobject_cast<const NotebookModel*>(index.model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: can't draw, no notebook model"));
         return;
     }
 
-    QString name = model->data(index).toString();
+    const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(index);
+    if (Q_UNLIKELY(!pModelItem)) {
+        QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: can't draw, no notebook model item corresponding to index"));
+        return;
+    }
+
+    QStyleOptionViewItem adjustedOption(option);
+    if ((pModelItem->type() == NotebookModelItem::Type::LinkedNotebook) && pModelItem->notebookLinkedNotebookItem()) {
+        QRect iconRect = adjustedOption.rect;
+        iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
+        m_userIcon.paint(painter, iconRect);
+        adjustedOption.rect.setLeft(adjustedOption.rect.left() + iconRect.width() + 2);
+    }
+
+    QString name;
+    if ((pModelItem->type() == NotebookModelItem::Type::Notebook) && pModelItem->notebookItem()) {
+        name = pModelItem->notebookItem()->name();
+    }
+    else if ((pModelItem->type() == NotebookModelItem::Type::Stack) && pModelItem->notebookStackItem()) {
+        name = pModelItem->notebookStackItem()->name();
+    }
+    else if ((pModelItem->type() == NotebookModelItem::Type::LinkedNotebook) && pModelItem->notebookLinkedNotebookItem()) {
+        name = pModelItem->notebookLinkedNotebookItem()->username();
+    }
+
     if (name.isEmpty()) {
         QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: notebook name is empty"));
         return;
     }
 
     QString nameSuffix;
-
-    QModelIndex numNotesPerNotebookIndex = model->index(index.row(), NotebookModel::Columns::NumNotesPerNotebook, index.parent());
-    QVariant numNotesPerNotebook = model->data(numNotesPerNotebookIndex);
-    bool conversionResult = false;
-    int numNotesPerNotebookInt = numNotesPerNotebook.toInt(&conversionResult);
-    if (conversionResult && (numNotesPerNotebookInt > 0)) {
-        nameSuffix = QStringLiteral(" (");
-        nameSuffix += QString::number(numNotesPerNotebookInt);
-        nameSuffix += QStringLiteral(")");
+    if ((pModelItem->type() == NotebookModelItem::Type::Notebook) && pModelItem->notebookItem())
+    {
+        int numNotesPerNotebook = pModelItem->notebookItem()->numNotesPerNotebook();
+        if (numNotesPerNotebook > 0) {
+            nameSuffix = QStringLiteral(" (");
+            nameSuffix += QString::number(numNotesPerNotebook);
+            nameSuffix += QStringLiteral(")");
+            adjustDisplayedText(name, adjustedOption, nameSuffix);
+        }
     }
 
-    adjustDisplayedText(name, option, nameSuffix);
-
-    painter->setPen(option.state & QStyle::State_Selected
-                    ? option.palette.highlightedText().color()
-                    : option.palette.windowText().color());
-    painter->drawText(QRectF(option.rect), name, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    painter->setPen(adjustedOption.state & QStyle::State_Selected
+                    ? adjustedOption.palette.highlightedText().color()
+                    : adjustedOption.palette.windowText().color());
+    painter->drawText(QRectF(adjustedOption.rect), name, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     if (nameSuffix.isEmpty()) {
         return;
     }
 
-    QFontMetrics fontMetrics(option.font);
+    QFontMetrics fontMetrics(adjustedOption.font);
     int nameWidth = fontMetrics.width(name);
 
-    painter->setPen(option.state & QStyle::State_Selected
-                    ? option.palette.color(QPalette::Active, QPalette::WindowText)
-                    : option.palette.color(QPalette::Active, QPalette::Highlight));
-    painter->drawText(QRectF(option.rect.translated(nameWidth, 0)), nameSuffix,
+    painter->setPen(adjustedOption.state & QStyle::State_Selected
+                    ? adjustedOption.palette.color(QPalette::Active, QPalette::WindowText)
+                    : adjustedOption.palette.color(QPalette::Active, QPalette::Highlight));
+    painter->drawText(QRectF(adjustedOption.rect.translated(nameWidth, 0)), nameSuffix,
                       QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 

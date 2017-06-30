@@ -1750,6 +1750,7 @@ void TagModel::onTagAdded(const Tag & tag)
                 QUuid requestId = QUuid::createUuid();
                 m_findNotebookRequestForLinkedNotebookGuid.insert(LinkedNotebookGuidWithFindNotebookRequestIdBimap::value_type(linkedNotebookGuid, requestId));
                 Notebook notebook;
+                // FIXME: need to unset the notebook local uid
                 notebook.setLinkedNotebookGuid(linkedNotebookGuid);
                 QNTRACE(QStringLiteral("Emitted the request to find notebook by linked notebook guid: ") << linkedNotebookGuid
                         << QStringLiteral(", request id = ") << requestId);

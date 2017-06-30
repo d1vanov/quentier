@@ -206,6 +206,7 @@ QModelIndex NotebookModel::indexForLinkedNotebookGuid(const QString & linkedNote
 
     auto it = m_modelItemsByLinkedNotebookGuid.find(linkedNotebookGuid);
     if (it == m_modelItemsByLinkedNotebookGuid.end()) {
+        QNDEBUG(QStringLiteral("Found no model item for linked notebook guid ") << linkedNotebookGuid);
         return QModelIndex();
     }
 
@@ -922,7 +923,7 @@ Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
             }
         }
     }
-    else
+    else if (pItem->type() == NotebookModelItem::Type::Notebook)
     {
         const NotebookItem * pNotebookItem = pItem->notebookItem();
         if (Q_UNLIKELY(!pNotebookItem)) {
@@ -4093,7 +4094,7 @@ NotebookModel::IndexId NotebookModel::idForItem(const NotebookModelItem & item) 
         auto it = m_indexIdToLinkedNotebookGuidBimap.right.find(item.notebookLinkedNotebookItem()->linkedNotebookGuid());
         if (it == m_indexIdToLinkedNotebookGuidBimap.right.end()) {
             IndexId id = m_lastFreeIndexId++;
-            Q_UNUSED(m_indexIdToLinkedNotebookGuidBimap.insert(IndexIdToLinkedNotebookGuidBimap::value_type(id, item.notebookLinkedNotebookItem()->username())))
+            Q_UNUSED(m_indexIdToLinkedNotebookGuidBimap.insert(IndexIdToLinkedNotebookGuidBimap::value_type(id, item.notebookLinkedNotebookItem()->linkedNotebookGuid())))
             return id;
         }
 
@@ -4173,10 +4174,25 @@ bool NotebookModel::LessByName::operator()(const NotebookItem * lhs, const Noteb
     } \
     else if ((item.type() == NotebookModelItem::Type::Stack) && item.notebookStackItem()) { \
         itemName = item.notebookStackItem()->name().toUpper(); \
+    } \
+    else if ((item.type() == NotebookModelItem::Type::LinkedNotebook) && item.notebookLinkedNotebookItem()) { \
+        itemName = item.notebookLinkedNotebookItem()->username().toUpper(); \
     }
 
 bool NotebookModel::LessByName::operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const
 {
+    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    if ((lhs.type() == NotebookModelItem::Type::LinkedNotebook) &&
+        (rhs.type() != NotebookModelItem::Type::LinkedNotebook))
+    {
+        return false;
+    }
+    else if ((lhs.type() != NotebookModelItem::Type::LinkedNotebook) &&
+             (rhs.type() == NotebookModelItem::Type::LinkedNotebook))
+    {
+        return true;
+    }
+
     QString lhsName;
     MODEL_ITEM_NAME(lhs, lhsName)
 
@@ -4193,10 +4209,20 @@ bool NotebookModel::LessByName::operator()(const NotebookModelItem * lhs, const 
 
 bool NotebookModel::LessByName::operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const
 {
-    return (lhs.name().localeAwareCompare(rhs.name()) <= 0);
+    return (lhs.name().toUpper().localeAwareCompare(rhs.name().toUpper()) <= 0);
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const
+{
+    ITEM_PTR_LESS(lhs, rhs)
+}
+
+bool NotebookModel::LessByName::operator()(const NotebookLinkedNotebookRootItem & lhs, const NotebookLinkedNotebookRootItem & rhs) const
+{
+    return (lhs.username().toUpper().localeAwareCompare(rhs.username().toUpper()) <= 0);
+}
+
+bool NotebookModel::LessByName::operator()(const NotebookLinkedNotebookRootItem * lhs, const NotebookLinkedNotebookRootItem * rhs) const
 {
     ITEM_PTR_LESS(lhs, rhs)
 }
@@ -4224,7 +4250,7 @@ bool NotebookModel::GreaterByName::operator()(const NotebookItem * lhs, const No
 
 bool NotebookModel::GreaterByName::operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const
 {
-    return (lhs.name().localeAwareCompare(rhs.name()) > 0);
+    return (lhs.name().toUpper().localeAwareCompare(rhs.name().toUpper()) > 0);
 }
 
 bool NotebookModel::GreaterByName::operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const
@@ -4232,8 +4258,30 @@ bool NotebookModel::GreaterByName::operator()(const NotebookStackItem * lhs, con
     ITEM_PTR_GREATER(lhs, rhs)
 }
 
+bool NotebookModel::GreaterByName::operator()(const NotebookLinkedNotebookRootItem & lhs, const NotebookLinkedNotebookRootItem & rhs) const
+{
+    return (lhs.username().toUpper().localeAwareCompare(rhs.username().toUpper()) > 0);
+}
+
+bool NotebookModel::GreaterByName::operator()(const NotebookLinkedNotebookRootItem * lhs, const NotebookLinkedNotebookRootItem * rhs) const
+{
+    ITEM_PTR_GREATER(lhs, rhs)
+}
+
 bool NotebookModel::GreaterByName::operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const
 {
+    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    if ((lhs.type() == NotebookModelItem::Type::LinkedNotebook) &&
+        (rhs.type() != NotebookModelItem::Type::LinkedNotebook))
+    {
+        return false;
+    }
+    else if ((lhs.type() != NotebookModelItem::Type::LinkedNotebook) &&
+             (rhs.type() == NotebookModelItem::Type::LinkedNotebook))
+    {
+        return true;
+    }
+
     QString lhsName;
     MODEL_ITEM_NAME(lhs, lhsName)
 

@@ -1157,7 +1157,6 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
 
     NotebookItemView * notebooksTreeView = m_pUI->notebooksTreeView;
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::Published, isLocal);
-    notebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook, isLocal);
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
 
     TagItemView * tagsTreeView = m_pUI->tagsTreeView;
@@ -3907,18 +3906,13 @@ void MainWindow::setupViews()
     pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::NumNotesPerNotebook, true);    // This column's values would be displayed along with the notebook's name
     pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::Synchronizable, true);
     pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::LastUsed, true);
+    pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook, true);
     DirtyColumnDelegate * notebookTreeViewDirtyColumnDelegate =
             new DirtyColumnDelegate(pNotebooksTreeView);
     pNotebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,
                                                 notebookTreeViewDirtyColumnDelegate);
     pNotebooksTreeView->setColumnWidth(NotebookModel::Columns::Dirty,
                                       notebookTreeViewDirtyColumnDelegate->sideSize());
-    FromLinkedNotebookColumnDelegate * notebookTreeViewFromLinkedNotebookColumnDelegate =
-            new FromLinkedNotebookColumnDelegate(pNotebooksTreeView);
-    pNotebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::FromLinkedNotebook,
-                                                notebookTreeViewFromLinkedNotebookColumnDelegate);
-    pNotebooksTreeView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook,
-                                      notebookTreeViewFromLinkedNotebookColumnDelegate->sideSize());
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pNotebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
