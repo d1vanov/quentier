@@ -3404,6 +3404,12 @@ void NotebookModel::onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linked
         QNDEBUG(QStringLiteral("Updated the username corresponding to linked notebook guid ") << linkedNotebookGuid
                 << QStringLiteral(" to ") << linkedNotebook.username());
     }
+    else
+    {
+        QNDEBUG(QStringLiteral("Adding new username ") << linkedNotebook.username()
+                << QStringLiteral(" corresponding to linked notebook guid ") << linkedNotebookGuid);
+        it = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.insert(linkedNotebookGuid, linkedNotebook.username());
+    }
 
     auto modelItemIt = m_modelItemsByLinkedNotebookGuid.find(linkedNotebookGuid);
     if (modelItemIt == m_modelItemsByLinkedNotebookGuid.end()) {
