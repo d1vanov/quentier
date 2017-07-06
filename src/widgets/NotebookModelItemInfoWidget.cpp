@@ -207,7 +207,7 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
     m_pUi->notebookSynchronizableCheckBox->setChecked(item.isSynchronizable());
     m_pUi->notebookDirtyCheckBox->setChecked(item.isDirty());
     m_pUi->notebookUpdatableCheckBox->setChecked(item.isUpdatable());
-    m_pUi->notebookNameUpdatableCheckBox->setChecked(item.nameIsUpdatable());
+    m_pUi->notebookNameUpdatableCheckBox->setChecked(item.isUpdatable() && item.nameIsUpdatable());
     m_pUi->notebookDefaultCheckBox->setChecked(item.isDefault());
     m_pUi->notebookLastUsedCheckBox->setChecked(item.isLastUsed());
     m_pUi->notebookPublishedCheckBox->setChecked(item.isPublished());
