@@ -20,12 +20,27 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(NotebookModel * pNotebookModel,
     m_editedNotebookLocalUid(editedNotebookLocalUid),
     m_stringUtils()
 {
+    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog: edited notebook local uid = ")
+            << editedNotebookLocalUid);
+
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);
 
     QStringList stacks;
-    if (!m_pNotebookModel.isNull()) {
-        stacks = m_pNotebookModel->stacks();
+    if (!m_pNotebookModel.isNull())
+    {
+        if (m_editedNotebookLocalUid.isEmpty())
+        {
+            stacks = m_pNotebookModel->stacks(m_editedNotebookLocalUid);
+        }
+        else
+        {
+            QModelIndex editedNotebookIndex = m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
+            const NotebookModelItem * pModelItem = m_pNotebookModel->itemForIndex(editedNotebookIndex);
+            if (pModelItem && (pModelItem->type() == NotebookModelItem::Type::Notebook) && pModelItem->notebookItem()) {
+                stacks = m_pNotebookModel->stacks(pModelItem->notebookItem()->linkedNotebookGuid());
+            }
+        }
     }
 
     if (!stacks.isEmpty()) {
