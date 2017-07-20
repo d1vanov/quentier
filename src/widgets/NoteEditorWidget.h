@@ -274,6 +274,8 @@ Q_SIGNALS:
     void noteSaveInLocalStorageFailed();
     void conversionToNoteFailed();
 
+    void insertInAppNoteLink(const QString & userId, const QString & shardId, const QString & noteGuid, const QString & linkText);
+
 public Q_SLOTS:
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
 
@@ -369,6 +371,8 @@ private Q_SLOTS:
     void onEditorNoteUpdate(Note note);
     void onEditorNoteUpdateFailed(ErrorString error);
 
+    void onEditorInAppLinkPasteRequested(QString url, QString userId, QString shardId, QString noteGuid);
+
     void onEditorTextBoldStateChanged(bool state);
     void onEditorTextItalicStateChanged(bool state);
     void onEditorTextUnderlineStateChanged(bool state);
@@ -408,6 +412,8 @@ private Q_SLOTS:
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
+
+    void onCurrentNoteFound(const Note & note);
 
     void setupSpecialIcons();
     void setupFontsComboBox();
@@ -452,8 +458,19 @@ private:
 
     QUuid                       m_findCurrentNoteRequestId;
     QUuid                       m_findCurrentNotebookRequestId;
-
     QSet<QUuid>                 m_updateNoteRequestIds;
+
+    class NoteLinkInfo: public Printable
+    {
+    public:
+        QString     m_userId;
+        QString     m_shardId;
+        QString     m_noteGuid;
+
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    };
+
+    QHash<QUuid, NoteLinkInfo>  m_noteLinkInfoByFindNoteRequestIds;
 
     int                         m_lastFontSizeComboBoxIndex;
     QString                     m_lastFontComboBoxFontFamily;
