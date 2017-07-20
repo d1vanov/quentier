@@ -81,7 +81,8 @@ private:
 
     bool writeAccountInfo(const QString & name, const QString & displayName, const bool isLocal,
                           const qevercloud::UserID id, const QString & evernoteAccountType,
-                          const QString & evernoteHost, ErrorString & errorDescription);
+                          const QString & evernoteHost, const QString & shardId,
+                          ErrorString & errorDescription);
 
     QString evernoteAccountTypeToString(const Account::EvernoteAccountType::type type) const;
 

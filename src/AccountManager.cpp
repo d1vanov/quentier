@@ -205,7 +205,7 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
     bool res = writeAccountInfo(account.name(), account.displayName(),
                                 (account.type() == Account::Type::Local),
                                 account.id(), evernoteAccountType,
-                                account.evernoteHost(), errorDescription);
+                                account.evernoteHost(), account.shardId(), errorDescription);
     if (Q_UNLIKELY(!res)) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't save the changed account display name"));
         error.appendBase(errorDescription.base());
@@ -353,9 +353,8 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
             << QStringLiteral(", display name = ") << displayName);
 
     bool res = writeAccountInfo(name, displayName, /* is local = */ true, /* user id = */ -1,
-                                /* Evernote account type = */ QString(),
-                                /* Evernote host = */ QString(),
-                                errorDescription);
+                                /* Evernote account type = */ QString(), /* Evernote host = */ QString(),
+                                /* shard id = */ QString(), errorDescription);
     if (Q_UNLIKELY(!res)) {
         return QSharedPointer<Account>();
     }
@@ -378,7 +377,8 @@ bool AccountManager::createAccountInfo(const Account & account)
 
     ErrorString errorDescription;
     bool res = writeAccountInfo(account.name(), account.displayName(), isLocal, account.id(),
-                                evernoteAccountType, account.evernoteHost(), errorDescription);
+                                evernoteAccountType, account.evernoteHost(), account.shardId(),
+                                errorDescription);
     if (Q_UNLIKELY(!res)) {
         emit notifyError(errorDescription);
         return false;
@@ -391,16 +391,18 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
                                       const bool isLocal, const qevercloud::UserID id,
                                       const QString & evernoteAccountType,
                                       const QString & evernoteHost,
+                                      const QString & shardId,
                                       ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::writeAccountInfo: name = ") << name
             << QStringLiteral(", display name = ") << displayName
             << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", user id = ") << id << QStringLiteral(", Evernote account type = ")
-            << evernoteAccountType << QStringLiteral(", Evernote host = ") << evernoteHost);
+            << evernoteAccountType << QStringLiteral(", Evernote host = ") << evernoteHost
+            << QStringLiteral(", shard id = ") << shardId);
 
     Account account(name, (isLocal ? Account::Type::Local : Account::Type::Evernote),
-                    id, Account::EvernoteAccountType::Free, evernoteHost);
+                    id, Account::EvernoteAccountType::Free, evernoteHost, shardId);
 
     QDir accountPersistentStorageDir(accountPersistentStoragePath(account));
     if (!accountPersistentStorageDir.exists())
@@ -463,6 +465,12 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
     if (!evernoteHost.isEmpty()) {
         writer.writeStartElement(QStringLiteral("evernoteHost"));
         writer.writeCharacters(evernoteHost);
+        writer.writeEndElement();
+    }
+
+    if (!shardId.isEmpty()) {
+        writer.writeStartElement(QStringLiteral("shardId"));
+        writer.writeCharacters(shardId);
         writer.writeEndElement();
     }
 
@@ -584,6 +592,10 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
             else if (currentElementName == QStringLiteral("evernoteHost"))
             {
                 account.setEvernoteHost(reader.text().toString());
+            }
+            else if (currentElementName == QStringLiteral("shardId"))
+            {
+                account.setShardId(reader.text().toString());
             }
         }
 
