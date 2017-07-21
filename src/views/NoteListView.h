@@ -70,6 +70,7 @@ Q_SIGNALS:
     void editNoteDialogRequested(QString noteLocalUid);
     void noteInfoDialogRequested(QString noteLocalUid);
     void openNoteInSeparateWindowRequested(QString noteLocalUid);
+    void copyInAppNoteLinkRequested(QString noteLocalUid, QString noteGuid);
 
     void enexExportRequested(QStringList noteLocalUids);
 
@@ -112,6 +113,7 @@ protected Q_SLOTS:
     void onFavoriteAction();
 
     void onShowNoteInfoAction();
+    void onCopyInAppNoteLinkAction();
 
     void onExportSingleNoteToEnexAction();
     void onExportSeveralNotesToEnexAction();

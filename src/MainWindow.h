@@ -219,6 +219,7 @@ private Q_SLOTS:
     // Various note-related slots
     void onNoteSortingModeChanged(int index);
     void onNewNoteCreationRequested();
+    void onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid);
 
     void onNoteModelAllNotesListed();
 

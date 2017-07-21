@@ -110,6 +110,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <QMenu>
 #include <QThreadPool>
 #include <QDir>
+#include <QClipboard>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -2367,6 +2368,48 @@ void MainWindow::onNewNoteCreationRequested()
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
+void MainWindow::onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onCopyInAppLinkNoteRequested: note local uid = ")
+            << noteLocalUid << QStringLiteral(", note guid = ") << noteGuid);
+
+    if (noteGuid.isEmpty()) {
+        QNDEBUG(QStringLiteral("Can't copy the in-app note link: note guid is empty"));
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pAccount.isNull())) {
+        QNDEBUG(QStringLiteral("Can't copy the in-app note link: no current account"));
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pAccount->type() != Account::Type::Evernote)) {
+        QNDEBUG(QStringLiteral("Can't copy the in-app note link: the current account is not of Evernote type"));
+        return;
+    }
+
+    qevercloud::UserID id = m_pAccount->id();
+    if (Q_UNLIKELY(id < 0)) {
+        QNDEBUG(QStringLiteral("Can't copy the in-app note link: the current account's id is negative"));
+        return;
+    }
+
+    QString shardId = m_pAccount->shardId();
+    if (shardId.isEmpty()) {
+        QNDEBUG(QStringLiteral("Can't copy the in-app note link: the current account's shard id is empty"));
+        return;
+    }
+
+    QString urlString = QStringLiteral("evernote:///view/") + QString::number(id) + QStringLiteral("/") + shardId +
+                        QStringLiteral("/") + noteGuid + QStringLiteral("/") + noteGuid;
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (pClipboard) {
+        QNTRACE(QStringLiteral("Setting the composed in-app note URL to the clipboard: ") << urlString);
+        pClipboard->setText(urlString);
+    }
+}
+
 void MainWindow::onNoteModelAllNotesListed()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteModelAllNotesListed"));
@@ -4017,6 +4060,10 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onOpenNoteInSeparateWindow,QString));
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,enexExportRequested,QStringList),
                      this, QNSLOT(MainWindow,onExportNotesToEnexRequested,QStringList));
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,newNoteCreationRequested),
+                     this, QNSLOT(MainWindow,onNewNoteCreationRequested));
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,copyInAppNoteLinkRequested,QString,QString),
+                     this, QNSLOT(MainWindow,onCopyInAppLinkNoteRequested,QString,QString));
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);

@@ -479,6 +479,35 @@ void NoteListView::onShowNoteInfoAction()
     emit noteInfoDialogRequested(noteLocalUid);
 }
 
+void NoteListView::onCopyInAppNoteLinkAction()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onCopyInAppNoteLinkAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't copy in-app note link: internal error, "
+                                       "can't cast the slot invoker to QAction"));
+        return;
+    }
+
+    QStringList noteLocalUidAndGuid = pAction->data().toStringList();
+    if (Q_UNLIKELY(noteLocalUidAndGuid.isEmpty())) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't copy in-app note link: internal error, "
+                                       "no note local uid and guid were passed to the action handler"));
+        return;
+    }
+
+    if (Q_UNLIKELY(noteLocalUidAndGuid.size() != 2)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't copy in-app note link: internal error, "
+                                       "unidentified data received instead of note local uid and guid"));
+        return;
+    }
+
+    QNTRACE(QStringLiteral("Requesting copy in app note link for note model item: local uid = ")
+            << noteLocalUidAndGuid.at(0) << QStringLiteral(", guid = ") << noteLocalUidAndGuid.at(1));
+    emit copyInAppNoteLinkRequested(noteLocalUidAndGuid.at(0), noteLocalUidAndGuid.at(1));
+}
+
 void NoteListView::onExportSingleNoteToEnexAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onExportSingleNoteToEnexAction"));
@@ -767,6 +796,15 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
 
     ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pNoteItemContextMenu,
                             onShowNoteInfoAction, pItem->localUid(), true);
+
+    if (!pItem->guid().isEmpty()) {
+        QStringList localUidAndGuid;
+        localUidAndGuid.reserve(2);
+        localUidAndGuid << pItem->localUid();
+        localUidAndGuid << pItem->guid();
+        ADD_CONTEXT_MENU_ACTION(tr("Copy in-app note link"), m_pNoteItemContextMenu,
+                                onCopyInAppNoteLinkAction, localUidAndGuid, true);
+    }
 
     m_pNoteItemContextMenu->show();
     m_pNoteItemContextMenu->exec(globalPos);
