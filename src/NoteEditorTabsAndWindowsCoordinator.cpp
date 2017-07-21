@@ -74,6 +74,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_pIOThread(Q_NULLPTR),
     m_pFileIOProcessorAsync(Q_NULLPTR),
     m_pSpellChecker(Q_NULLPTR),
+    m_connectedToLocalStorage(false),
     m_maxNumNotesInTabs(-1),
     m_localUidsOfNotesInTabbedEditors(),
     m_lastCurrentTabNoteLocalUid(),
@@ -81,6 +82,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap(),
     m_noteEditorModeByCreateNoteRequestIds(),
     m_expungeNoteRequestIds(),
+    m_inAppNoteLinkFindNoteRequestIds(),
     m_pTabBarContextMenu(Q_NULLPTR),
     m_localUidOfNoteToBeExpunged(),
     m_pExpungeNoteDeadlineTimer(Q_NULLPTR),
@@ -240,6 +242,7 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
 
     m_noteEditorModeByCreateNoteRequestIds.clear();
     m_expungeNoteRequestIds.clear();
+    m_inAppNoteLinkFindNoteRequestIds.clear();
 
     m_localUidOfNoteToBeExpunged.clear();
 }
@@ -798,6 +801,23 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorTabCloseRequested(int tabI
     removeNoteEditorTab(tabIndex, /* close editor = */ true);
 }
 
+void NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked: user id = ")
+            << userId << QStringLiteral(", shard id = ") << shardId << QStringLiteral(", note guid = ") << noteGuid);
+
+    connectToLocalStorage();
+
+    Note dummyNote;
+    dummyNote.unsetLocalUid();
+    dummyNote.setGuid(noteGuid);
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.insert(requestId))
+    QNTRACE(QStringLiteral("Emitting the request to find note by guid for opening it inside a new note editor tab: request id = ")
+            << requestId << QStringLiteral(", note: ") << dummyNote);
+    emit findNote(dummyNote, /* with resource binary data = */ false, requestId);
+}
+
 void NoteEditorTabsAndWindowsCoordinator::onNoteLoadedInEditor()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onNoteLoadedInEditor"));
@@ -846,10 +866,7 @@ void NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete(Note note, QUuid req
 
     NoteEditorMode::type noteEditorMode = it.value();
     Q_UNUSED(m_noteEditorModeByCreateNoteRequestIds.erase(it))
-
-    if (m_noteEditorModeByCreateNoteRequestIds.empty()) {
-        disconnectFromLocalStorage();
-    }
+    checkPendingRequestsAndDisconnectFromLocalStorage();
 
     m_noteCache.put(note.localUid(), note);
     addNote(note.localUid(), noteEditorMode, /* is new note = */ true);
@@ -867,13 +884,49 @@ void NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed(Note note, ErrorString
               << errorDescription);
 
     Q_UNUSED(m_noteEditorModeByCreateNoteRequestIds.erase(it))
-    if (m_noteEditorModeByCreateNoteRequestIds.empty()) {
-        disconnectFromLocalStorage();
-    }
+    checkPendingRequestsAndDisconnectFromLocalStorage();
 
     Q_UNUSED(internalErrorMessageBox(m_pTabWidget,
                                      tr("Note creation in local storage has failed") +
                                      QStringLiteral(": ") + errorDescription.localizedString()))
+}
+
+void NoteEditorTabsAndWindowsCoordinator::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
+{
+    auto it = m_inAppNoteLinkFindNoteRequestIds.find(requestId);
+    if (it == m_inAppNoteLinkFindNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onFindNoteComplete: request id = ")
+            << requestId << QStringLiteral(", with resource binary data = ")
+            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", note: ") << note);
+
+    Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.erase(it))
+    checkPendingRequestsAndDisconnectFromLocalStorage();
+
+    addNote(note.localUid());
+}
+
+void NoteEditorTabsAndWindowsCoordinator::onFindNoteFailed(Note note, bool withResourceBinaryData,
+                                                           ErrorString errorDescription, QUuid requestId)
+{
+    auto it = m_inAppNoteLinkFindNoteRequestIds.find(requestId);
+    if (it == m_inAppNoteLinkFindNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onFindNoteFailed: request id = ")
+            << requestId << QStringLiteral(", with resource binary data = ")
+            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral(", note: ") << note);
+
+    Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.erase(it))
+    checkPendingRequestsAndDisconnectFromLocalStorage();
+
+    emit notifyError(errorDescription);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete(Note note, QUuid requestId)
@@ -887,9 +940,7 @@ void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete(Note note, QUuid
             << requestId << QStringLiteral(", note: ") << note);
 
     Q_UNUSED(m_expungeNoteRequestIds.erase(it))
-    if (m_expungeNoteRequestIds.empty()) {
-        disconnectFromLocalStorage();
-    }
+    checkPendingRequestsAndDisconnectFromLocalStorage();
 
     emit noteExpungedFromLocalStorage();
 }
@@ -908,9 +959,7 @@ void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteFailed(Note note,
               << QStringLiteral(", note: ") << note);
 
     Q_UNUSED(m_expungeNoteRequestIds.erase(it))
-    if (m_expungeNoteRequestIds.empty()) {
-        disconnectFromLocalStorage();
-    }
+    checkPendingRequestsAndDisconnectFromLocalStorage();
 
     emit noteExpungeFromLocalStorageFailed();
 }
@@ -1222,6 +1271,8 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(NoteEditorWidge
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onNoteEditorWidgetInvalidated));
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,noteLoaded),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onNoteLoadedInEditor));
+    QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,inAppNoteLinkClicked,QString,QString,QString),
+                     this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onInAppNoteLinkClicked,QString,QString,QString));
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,notifyError,ErrorString),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onNoteEditorError,ErrorString));
 
@@ -1544,38 +1595,64 @@ void NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage"));
 
+    if (m_connectedToLocalStorage) {
+        QNDEBUG(QStringLiteral("Already connected to the local storage"));
+        return;
+    }
+
     QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestAddNote,Note,QUuid),
                      &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestExpungeNote,Note,QUuid),
                      &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeNoteRequest,Note,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,findNote,Note,bool,QUuid),
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
 
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteComplete,Note,QUuid));
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteFailed,Note,ErrorString,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
+                     this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onFindNoteComplete,Note,bool,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onFindNoteFailed,Note,bool,ErrorString,QUuid));
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteFailed,Note,ErrorString,QUuid));
+
+    m_connectedToLocalStorage = true;
 }
 
 void NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage"));
 
+    if (!m_connectedToLocalStorage) {
+        QNDEBUG(QStringLiteral("Not connected to local storage at the moment"));
+        return;
+    }
+
     QObject::disconnect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestAddNote,Note,QUuid),
                         &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
     QObject::disconnect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,requestExpungeNote,Note,QUuid),
                         &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onExpungeNoteRequest,Note,QUuid));
+    QObject::disconnect(this, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,findNote,Note,bool,QUuid),
+                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
 
     QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteComplete,Note,QUuid));
     QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onAddNoteFailed,Note,ErrorString,QUuid));
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
+                        this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onFindNoteComplete,Note,bool,QUuid));
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
+                        this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onFindNoteFailed,Note,bool,ErrorString,QUuid));
     QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteComplete,Note,QUuid));
     QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,Note,ErrorString,QUuid),
                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onExpungeNoteFailed,Note,ErrorString,QUuid));
+
+    m_connectedToLocalStorage = false;
 }
 
 void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
@@ -1869,6 +1946,18 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(const QString
     }
     else {
         QNDEBUG(QStringLiteral("Successfully expunged the note from local storage"));
+    }
+}
+
+void NoteEditorTabsAndWindowsCoordinator::checkPendingRequestsAndDisconnectFromLocalStorage()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::checkPendingRequestsAndDisconnectFromLocalStorage"));
+
+    if (m_noteEditorModeByCreateNoteRequestIds.empty() &&
+        m_expungeNoteRequestIds.isEmpty() &&
+        m_inAppNoteLinkFindNoteRequestIds.isEmpty())
+    {
+        disconnectFromLocalStorage();
     }
 }
 

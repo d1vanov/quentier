@@ -2198,7 +2198,9 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
     QObject::connect(m_pUi->noteNameLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(NoteEditorWidget,onNoteTitleUpdated));
 
-    // Connect note editor's signals to local slots
+    // Connect note editor's signals to local signals and slots
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,inAppNoteLinkClicked,QString,QString,QString),
+                     this, QNSIGNAL(NoteEditorWidget,inAppNoteLinkClicked,QString,QString,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,inAppNoteLinkPasteRequested,QString,QString,QString,QString),
                      this, QNSLOT(NoteEditorWidget,onEditorInAppLinkPasteRequested,QString,QString,QString,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,convertedToNote,Note),

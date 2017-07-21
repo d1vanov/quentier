@@ -103,6 +103,8 @@ Q_SIGNALS:
     void requestAddNote(Note note, QUuid requestId);
     void requestExpungeNote(Note note, QUuid requestId);
 
+    void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
+
     void noteExpungedFromLocalStorage();
     void noteExpungeFromLocalStorageFailed();
 
@@ -111,12 +113,16 @@ private Q_SLOTS:
     void onNoteEditorWidgetInvalidated();
     void onNoteTitleOrPreviewTextChanged(QString titleOrPreview);
     void onNoteEditorTabCloseRequested(int tabIndex);
+    void onInAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid);
 
     void onNoteLoadedInEditor();
     void onNoteEditorError(ErrorString errorDescription);
 
     void onAddNoteComplete(Note note, QUuid requestId);
     void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
+
+    void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
 
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
@@ -166,6 +172,8 @@ private:
     bool shouldExpungeNote(const NoteEditorWidget & noteEditorWidget) const;
     void expungeNoteSynchronously(const QString & noteLocalUid);
 
+    void checkPendingRequestsAndDisconnectFromLocalStorage();
+
 private:
     Account                             m_currentAccount;
     LocalStorageManagerAsync &          m_localStorageManagerAsync;
@@ -181,6 +189,8 @@ private:
     FileIOProcessorAsync *              m_pFileIOProcessorAsync;
     SpellChecker *                      m_pSpellChecker;
 
+    bool                                m_connectedToLocalStorage;
+
     int                                 m_maxNumNotesInTabs;
 
     boost::circular_buffer<QString>     m_localUidsOfNotesInTabbedEditors;
@@ -194,6 +204,7 @@ private:
 
     QHash<QUuid, NoteEditorMode::type>  m_noteEditorModeByCreateNoteRequestIds;
     QSet<QUuid>                         m_expungeNoteRequestIds;
+    QSet<QUuid>                         m_inAppNoteLinkFindNoteRequestIds;
 
     QMenu *                             m_pTabBarContextMenu;
 

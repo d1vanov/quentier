@@ -265,6 +265,11 @@ Q_SIGNALS:
      */
     void invalidated();
 
+    /**
+     * The in-app note link was clicked within the editor
+     */
+    void inAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid);
+
 // private signals
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
