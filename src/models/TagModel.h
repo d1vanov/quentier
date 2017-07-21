@@ -319,9 +319,9 @@ private:
 
     void updateItemRowWithRespectToSorting(const TagModelItem & item);
     void updatePersistentModelIndices();
-    void updateTagInLocalStorage(const TagModelItem & item);
+    void updateTagInLocalStorage(const TagItem & item);
 
-    void tagFromItem(const TagModelItem & item, Tag & tag) const;
+    void tagFromItem(const TagItem & item, Tag & tag) const;
 
     void setTagFavorited(const QModelIndex & index, const bool favorited);
 
@@ -336,19 +336,19 @@ private:
     struct ByNameUpper{};
 
     typedef boost::multi_index_container<
-        TagModelItem,
+        TagItem,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
-                boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::localUid>
+                boost::multi_index::const_mem_fun<TagItem,const QString&,&TagItem::localUid>
             >,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByParentLocalUid>,
-                boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::parentLocalUid>
+                boost::multi_index::const_mem_fun<TagItem,const QString&,&TagItem::parentLocalUid>
             >,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByNameUpper>,
-                boost::multi_index::const_mem_fun<TagModelItem,QString,&TagModelItem::nameUpper>
+                boost::multi_index::const_mem_fun<TagItem,QString,&TagItem::nameUpper>
             >
         >
     > TagData;
@@ -364,6 +364,7 @@ private:
 #endif
 
     typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
+    typedef boost::bimap<IndexId, QString> IndexIdToLinkedNotebookGuidBimap;
 
     struct LessByName
     {
@@ -376,6 +377,9 @@ private:
         bool operator()(const TagModelItem & lhs, const TagModelItem & rhs) const;
         bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
     };
+
+    typedef QMap<QString, TagModelItem> ModelItems;
+    typedef QMap<QString, TagLinkedNotebookRootItem> LinkedNotebookItems;
 
     class RemoveRowsScopeGuard
     {
@@ -394,7 +398,7 @@ private:
     void onTagAdded(const Tag & tag);
     void onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it);
     void tagToItem(const Tag & tag, TagModelItem & item);
-    bool canUpdateTagItem(const TagModelItem & item) const;
+    bool canUpdateTagItem(const TagItem & item) const;
     bool canCreateTagItem(const TagModelItem & parentItem) const;
     void updateRestrictionsFromNotebook(const Notebook & notebook);
 
@@ -408,8 +412,14 @@ private:
 
     TagCache &              m_cache;
 
-    mutable IndexIdToLocalUidBimap  m_indexIdToLocalUidBimap;
-    mutable IndexId                 m_lastFreeIndexId;
+    ModelItems              m_modelItemsByLocalUid;
+    ModelItems              m_modelItemsByLinkedNotebookGuid;
+
+    LinkedNotebookItems     m_linkedNotebookItems;
+
+    mutable IndexIdToLocalUidBimap              m_indexIdToLocalUidBimap;
+    mutable IndexIdToLinkedNotebookGuidBimap    m_indexIdToLinkedNotebookGuidBimap;
+    mutable IndexId                             m_lastFreeIndexId;
 
     size_t                  m_listTagsOffset;
     QUuid                   m_listTagsRequestId;

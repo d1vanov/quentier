@@ -97,6 +97,8 @@ set(${PROJECT_NAME}_HEADERS
     src/models/SavedSearchCache.h
     src/models/TagModel.h
     src/models/TagModelItem.h
+    src/models/TagItem.h
+    src/models/TagLinkedNotebookRootItem.h
     src/models/TagCache.h
     src/models/NotebookModel.h
     src/models/NotebookModelItem.h
@@ -187,6 +189,8 @@ set(${PROJECT_NAME}_SOURCES
     src/models/SavedSearchModelItem.cpp
     src/models/TagModel.cpp
     src/models/TagModelItem.cpp
+    src/models/TagItem.cpp
+    src/models/TagLinkedNotebookRootItem.cpp
     src/models/NotebookModel.cpp
     src/models/NotebookModelItem.cpp
     src/models/NotebookItem.cpp

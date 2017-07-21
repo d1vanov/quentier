@@ -19,7 +19,8 @@
 #ifndef QUENTIER_MODELS_TAG_MODEL_ITEM_H
 #define QUENTIER_MODELS_TAG_MODEL_ITEM_H
 
-#include <quentier/utility/Printable.h>
+#include "TagItem.h"
+#include "TagLinkedNotebookRootItem.h"
 #include <QDataStream>
 
 namespace quentier {
@@ -27,50 +28,29 @@ namespace quentier {
 class TagModelItem: public Printable
 {
 public:
-    explicit TagModelItem(const QString & localUid = QString(),
-                          const QString & guid = QString(),
-                          const QString & linkedNotebookGuid = QString(),
-                          const QString & name = QString(),
-                          const QString & parentLocalUid = QString(),
-                          const QString & parentGuid = QString(),
-                          const bool isSynchronizable = false,
-                          const bool isDirty = false,
-                          const bool isFavorited = false,
-                          const int numNotesPerTag = -1,
+    struct Type
+    {
+        enum type {
+            Tag = 0,
+            LinkedNotebook
+        };
+    };
+
+    explicit TagModelItem(const Type::type type = Type::Tag,
+                          const TagItem * pTagItem = Q_NULLPTR,
+                          const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem = Q_NULLPTR,
                           TagModelItem * parent = Q_NULLPTR);
-    ~TagModelItem();
+    virtual ~TagModelItem();
 
-    const QString & localUid() const { return m_localUid; }
-    void setLocalUid(const QString & localUid) { m_localUid = localUid; }
+    Type::type type() const { return m_type; }
+    void setType(const Type::type type) { m_type = type; }
 
-    const QString & guid() const { return m_guid; }
-    void setGuid(const QString & guid) { m_guid = guid; }
+    const TagItem * tagItem() const { return m_pTagItem; }
+    void setTagItem(const TagItem * pTagItem) { m_pTagItem = pTagItem; }
 
-    const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
-    void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
-
-    QString nameUpper() const { return m_name.toUpper(); }
-
-    const QString & name() const { return m_name; }
-    void setName(const QString & name) { m_name = name; }
-
-    const QString & parentGuid() const { return m_parentGuid; }
-    void setParentGuid(const QString & parentGuid) { m_parentGuid = parentGuid; }
-
-    const QString & parentLocalUid() const { return m_parentLocalUid; }
-    void setParentLocalUid(const QString & parentLocalUid) { m_parentLocalUid = parentLocalUid; }
-
-    bool isSynchronizable() const { return m_isSynchronizable; }
-    void setSynchronizable(const bool synchronizable) { m_isSynchronizable = synchronizable; }
-
-    bool isDirty() const { return m_isDirty; }
-    void setDirty(const bool dirty) { m_isDirty = dirty; }
-
-    bool isFavorited() const { return m_isFavorited; }
-    void setFavorited(const bool favorited) { m_isFavorited = favorited; }
-
-    int numNotesPerTag() const { return m_numNotesPerTag; }
-    void setNumNotesPerTag(const int numNotesPerTag) { m_numNotesPerTag = numNotesPerTag; }
+    const TagLinkedNotebookRootItem * tagLinkedNotebookItem() const { return m_pTagLinkedNotebookRootItem; }
+    void setTagLinkedNotebookItem(const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem)
+    { m_pTagLinkedNotebookRootItem = pTagLinkedNotebookRootItem; }
 
     const TagModelItem * parent() const { return m_pParent; }
     void setParent(const TagModelItem * parent) const;
@@ -93,16 +73,9 @@ public:
     friend QDataStream & operator>>(QDataStream & in, TagModelItem & item);
 
 private:
-    QString     m_localUid;
-    QString     m_guid;
-    QString     m_linkedNotebookGuid;
-    QString     m_name;
-    QString     m_parentLocalUid;
-    QString     m_parentGuid;
-    bool        m_isSynchronizable;
-    bool        m_isDirty;
-    bool        m_isFavorited;
-    int         m_numNotesPerTag;
+    Type::type                          m_type;
+    const TagItem *                     m_pTagItem;
+    const TagLinkedNotebookRootItem *   m_pTagLinkedNotebookRootItem;
 
     // NOTE: these are mutable in order to have the possibility to organize
     // the efficient storage of TagModelItems in boost::multi_index_container:

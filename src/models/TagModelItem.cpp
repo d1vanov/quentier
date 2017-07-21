@@ -20,27 +20,12 @@
 
 namespace quentier {
 
-TagModelItem::TagModelItem(const QString & localUid,
-                           const QString & guid,
-                           const QString & linkedNotebookGuid,
-                           const QString & name,
-                           const QString & parentLocalUid,
-                           const QString & parentGuid,
-                           const bool isSynchronizable,
-                           const bool isDirty,
-                           const bool isFavorited,
-                           const int numNotesPerTag,
-                           TagModelItem * pParent) :
-    m_localUid(localUid),
-    m_guid(guid),
-    m_linkedNotebookGuid(linkedNotebookGuid),
-    m_name(name),
-    m_parentLocalUid(parentLocalUid),
-    m_parentGuid(parentGuid),
-    m_isSynchronizable(isSynchronizable),
-    m_isDirty(isDirty),
-    m_isFavorited(isFavorited),
-    m_numNotesPerTag(numNotesPerTag),
+TagModelItem::TagModelItem(const Type::type type, const TagItem * pTagItem,
+                           const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem,
+                           TagModelItem * parent) :
+    m_type(type),
+    m_pTagItem(pTagItem),
+    m_pTagLinkedNotebookRootItem(pTagLinkedNotebookRootItem)
     m_pParent(pParent),
     m_children()
 {
@@ -124,34 +109,58 @@ const TagModelItem * TagModelItem::takeChild(const int row) const
 
 QTextStream & TagModelItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Tag model item: local uid = ") << m_localUid << QStringLiteral(", guid = ") << m_guid
-         << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
-         << QStringLiteral(", name = ") << m_name << QStringLiteral(", parent local uid = ") << m_parentLocalUid
-         << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ") << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", num notes per tag = ") << m_numNotesPerTag
-         << QStringLiteral(", parent = ") << (m_pParent ? m_pParent->m_localUid : QStringLiteral("<null>"))
-         << QStringLiteral(", children: ");
+    strm << QStringLiteral("Tag model item (")
+         << ((m_type == Type::Tag)
+             ? QStringLiteral("tag")
+             : QStringLiteral("linked notebook"))
+         << QStringLiteral("): ")
+         << ((m_type == Type::Tag)
+             ? (m_pTagItem
+                ? m_pTagItem->toString()
+                : QStringLiteral("<null>"))
+             : (m_pTagLinkedNotebookRootItem
+                ? m_pTagLinkedNotebookRootItem->toString()
+                : QStringLiteral("<null>")));
 
-    if (m_children.isEmpty())
+    strm << QStringLiteral("\nParent item: ");
+    if (Q_UNLIKELY(!m_pParent))
     {
-        strm << QStringLiteral("<null> \n");
+        strm << QStringLiteral("<null>\n");
     }
     else
     {
-        strm << QStringLiteral("\n");
-        for(auto it = m_children.constBegin(), end = m_children.constEnd(); it != end; ++it) {
-            const TagModelItem * pChild = *it;
-            strm << (pChild ? pChild->m_localUid : QStringLiteral("<null>")) << QStringLiteral("\n");
+        if (m_pParent->type() == Type::Tag) {
+            strm << QStringLiteral("tag or fake root item");
+        }
+        else if (m_pParent->type() == Type::LinkedNotebook) {
+            strm << QStringLiteral("linked notebook root item");
+        }
+        else {
+            strm << QStringLiteral("<unknown type>");
+        }
+
+        if (m_pParent->tagItem()) {
+            strm << QStringLiteral(", tag local uid = ") << m_pParent->tagItem()->localUid()
+                 << QStringLiteral(", tag name = ") << m_pParent->tagItem()->name();
+        }
+        else if (m_pParent->tagLinkedNotebookItem()) {
+            strm << QStringLiteral(", linked notebook guid = ") << m_pParent->tagLinkedNotebookItem()->linkedNotebookGuid()
+                 << QStringLiteral(", linked notebook owner username = ") << m_pParent->tagLinkedNotebookItem()->username();
         }
 
         strm << QStringLiteral("\n");
     }
 
+    if (m_children.isEmpty()) {
+        return strm;
+    }
+
+    // TODO: print children stuff
+
     return strm;
 }
 
+// TODO: remake these
 QDataStream & operator<<(QDataStream & out, const TagModelItem & item)
 {
     out << item.m_localUid << item.m_guid << item.m_linkedNotebookGuid << item.m_name

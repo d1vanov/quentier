@@ -85,14 +85,13 @@ private:
     const NotebookStackItem *   m_pNotebookStackItem;
     const NotebookLinkedNotebookRootItem *  m_pNotebookLinkedNotebookItem;
 
-    // NOTE: this is mutable in order to have the possibility to organize
+    // NOTE: these are mutable in order to have the possibility to organize
     // the efficient storage of TagModelItems in boost::multi_index_container:
     // it doesn't allow the direct modification of its stored items,
     // however, these pointers to parent and children don't really affect
     // that container's indices
-    mutable const NotebookModelItem *   m_pParent;
-
-    mutable QList<const NotebookModelItem*>  m_children;
+    mutable const NotebookModelItem *       m_pParent;
+    mutable QList<const NotebookModelItem*> m_children;
 };
 
 } // namespace quentier
