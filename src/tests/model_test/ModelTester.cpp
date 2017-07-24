@@ -252,9 +252,10 @@ void ModelTester::testTagModelItemSerialization()
 {
     using namespace quentier;
 
-    TagModelItem parentItem(UidGenerator::Generate(), UidGenerator::Generate());
+    TagItem parentTagItem(UidGenerator::Generate(), UidGenerator::Generate());
+    TagModelItem parentItem(TagModelItem::Type::Tag, &parentTagItem);
 
-    TagModelItem item;
+    TagItem item;
     item.setLocalUid(UidGenerator::Generate());
     item.setName(QStringLiteral("Test item"));
     item.setGuid(UidGenerator::Generate());
@@ -262,26 +263,29 @@ void ModelTester::testTagModelItemSerialization()
     item.setDirty(true);
     item.setSynchronizable(false);
     item.setGuid(UidGenerator::Generate());
-    item.setParentLocalUid(parentItem.localUid());
-    item.setParentGuid(parentItem.guid());
-    item.setParent(&parentItem);
+    item.setParentLocalUid(parentTagItem.localUid());
+    item.setParentGuid(parentTagItem.guid());
+
+    TagModelItem modelItem(TagModelItem::Type::Tag, &item);
+    modelItem.setParent(&parentItem);
 
     QByteArray encodedItem;
     QDataStream out(&encodedItem, QIODevice::WriteOnly);
-    out << item;
+    out << modelItem;
 
     QDataStream in(&encodedItem, QIODevice::ReadOnly);
     TagModelItem restoredItem;
     in >> restoredItem;
 
-    QVERIFY2(restoredItem.localUid() == item.localUid(), qnPrintable("Local uids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.guid() == item.guid(), qnPrintable("Guids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.linkedNotebookGuid() == item.linkedNotebookGuid(), qnPrintable("Linked notebook guids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.name() == item.name(), qnPrintable("Names of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.parentGuid() == item.parentGuid(), qnPrintable("Parent guids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.parentLocalUid() == item.parentLocalUid(), qnPrintable("Parent local uids of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.isSynchronizable() == item.isSynchronizable(), qnPrintable("Synchronizable flags of original and deserialized items don't match"));
-    QVERIFY2(restoredItem.isDirty() == item.isDirty(), qnPrintable("Dirty flags of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem() != Q_NULLPTR, qnPrintable("Null pointer to tag item"));
+    QVERIFY2(restoredItem.tagItem()->localUid() == item.localUid(), qnPrintable("Local uids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem()->guid() == item.guid(), qnPrintable("Guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem()->linkedNotebookGuid() == item.linkedNotebookGuid(), qnPrintable("Linked notebook guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem()->name() == item.name(), qnPrintable("Names of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem()->parentGuid() == item.parentGuid(), qnPrintable("Parent guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem()->parentLocalUid() == item.parentLocalUid(), qnPrintable("Parent local uids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem()->isSynchronizable() == item.isSynchronizable(), qnPrintable("Synchronizable flags of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.tagItem()->isDirty() == item.isDirty(), qnPrintable("Dirty flags of original and deserialized items don't match"));
 }
 
 int main(int argc, char *argv[])

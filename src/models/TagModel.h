@@ -117,19 +117,26 @@ public:
 
     /**
      * @brief tagNames
+     * @param linkedNotebookGuid - the optional guid of a linked notebook to which the returned tag names belong;
+     * if it is null (i.e. linkedNotebookGuid.isNull() returns true), the tag names would be returned ignoring
+     * their belonging to user's own account or linked notebook; if it's not null but empty (i.e. linkedNotebookGuid.isEmpty()
+     * returns true), only the names of tags from user's own account would be returned. Otherwise only the names
+     * of tags from the corresponding linked notebook would be returned
      * @return the sorted (in case insensitive manner) list of tag names existing within the tag model
      */
-    QStringList tagNames() const;
+    QStringList tagNames(const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @brief createTag - convenience method to create a new tag within the model
      * @param tagName - the name of the new tag
      * @param parentTagName - the name of the parent tag for the new tag (empty for no parent tag)
+     * @param linkedNotebookGuid - the guid of the linked notebook to which the created tag should belong;
+     * if empty, the tag is supposed to belong to user's own account
      * @param errorDescription - the textual description of the error if tag was not created successfully
      * @return either valid model index if tag was created successfully or invalid model index otherwise
      */
     QModelIndex createTag(const QString & tagName, const QString & parentTagName,
-                          ErrorString & errorDescription);
+                          const QString & linkedNotebookGuid, ErrorString & errorDescription);
 
     /**
      * @brief columnName
@@ -309,7 +316,7 @@ private:
     void mapChildItems();
     void mapChildItems(const TagModelItem & item);
 
-    QString nameForNewTag() const;
+    QString nameForNewTag(const QString & linkedNotebookGuid) const;
     void removeItemByLocalUid(const QString & localUid);
 
     void removeModelItemFromParent(const TagModelItem & item);
@@ -459,9 +466,10 @@ private:
     typedef boost::bimap<QString, QUuid> LinkedNotebookGuidWithFindNotebookRequestIdBimap;
     LinkedNotebookGuidWithFindNotebookRequestIdBimap    m_findNotebookRequestForLinkedNotebookGuid;
 
-    mutable int             m_lastNewTagNameCounter;
+    mutable int                     m_lastNewTagNameCounter;
+    mutable QMap<QString,int>       m_lastNewTagNameCounterByLinkedNotebookGuid;
 
-    bool                    m_allTagsListed;
+    bool                            m_allTagsListed;
 };
 
 } // namespace quentier

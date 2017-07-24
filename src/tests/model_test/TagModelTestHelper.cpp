@@ -396,12 +396,17 @@ void TagModelTestHelper::test()
         }
 
         twelvethIndex = model->promote(twelvethIndex);
-        const TagModelItem * newTwelvethItem = model->itemForIndex(twelvethIndex);
-        if (twelvethItem != newTwelvethItem) {
+        const TagModelItem * pNewTwelvethItem = model->itemForIndex(twelvethIndex);
+        if (twelvethItem != pNewTwelvethItem) {
             FAIL(QStringLiteral("The tag model returns different pointers to items before and after the item promotion"));
         }
 
-        if (!newTwelvethItem->isDirty()) {
+        const TagItem * pNewTwelvethTagItem = pNewTwelvethItem->tagItem();
+        if (!pNewTwelvethTagItem) {
+            FAIL(QStringLiteral("No tag item under the tag model item"));
+        }
+
+        if (!pNewTwelvethTagItem->isDirty()) {
             FAIL(QStringLiteral("The dirty flag hasn't been automatically set to true after promoting the item"));
         }
 
@@ -423,8 +428,8 @@ void TagModelTestHelper::test()
 
         // We'll be updating the twelveth tag in local storage manually further,
         // so reflecting the change in the model in the local object as well
-        twelveth.setParentGuid(twelvethItem->parentGuid());
-        twelveth.setParentLocalUid(twelvethItem->parentLocalUid());
+        twelveth.setParentGuid(pNewTwelvethTagItem->parentGuid());
+        twelveth.setParentLocalUid(pNewTwelvethTagItem->parentLocalUid());
 
         // Should be able to demote the items
         int eighthNumChildren = eighthItem->numChildren();
@@ -440,7 +445,12 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("Unexpected null pointer to tag model item"));
         }
 
-        if (secondEighthChild->localUid() == twelveth.localUid()) {
+        const TagItem * secondEighthChildTag = secondEighthChild->tagItem();
+        if (!secondEighthChildTag) {
+            FAIL(QStringLiteral("Unexpected null pointer to tag item"));
+        }
+
+        if (secondEighthChildTag->localUid() == pNewTwelvethTagItem->localUid()) {
             twelveth.setDirty(false);
             m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
         }
@@ -449,7 +459,7 @@ void TagModelTestHelper::test()
             m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
         }
 
-        if (secondEighthChild->isDirty()) {
+        if (secondEighthChildTag->isDirty()) {
             FAIL(QStringLiteral("The dirty flag should have been cleared from tag model item but it hasn't been"));
         }
 
@@ -466,19 +476,19 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("Can't find tag model item within the children of its expected new parent after the demotion"));
         }
 
-        if (!secondEighthChild->isDirty()) {
+        if (!secondEighthChildTag->isDirty()) {
             FAIL(QStringLiteral("The tag model item hasn't been automatically marked as dirty after demoting it"));
         }
 
         // We might update the just demoted tag in the local storage further,
         // so need to reflect the change done within the model in the local object as well
-        if (secondEighthChild->localUid() == twelveth.localUid()) {
-            twelveth.setParentGuid(secondEighthChild->parentGuid());
-            twelveth.setParentLocalUid(secondEighthChild->parentLocalUid());
+        if (secondEighthChildTag->localUid() == twelveth.localUid()) {
+            twelveth.setParentGuid(secondEighthChildTag->parentGuid());
+            twelveth.setParentLocalUid(secondEighthChildTag->parentLocalUid());
         }
         else {
-            tenth.setParentGuid(secondEighthChild->parentGuid());
-            tenth.setParentLocalUid(secondEighthChild->parentLocalUid());
+            tenth.setParentGuid(secondEighthChildTag->parentGuid());
+            tenth.setParentLocalUid(secondEighthChildTag->parentLocalUid());
         }
 
         // Remove the only remaining child tag from the eighth tag item using TagModel::removeFromParent method
@@ -487,8 +497,13 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("Can't get the valid tag model item index for given tag item"));
         }
 
+        const TagItem * firstEighthChildTag = firstEighthChild->tagItem();
+        if (!firstEighthChildTag) {
+            FAIL(QStringLiteral("Unexpected null pointer to tag item"));
+        }
+
         // First make the tag non-dirty to ensure the dirty flag would be set to true automatically after removing the tag from parent
-        if (firstEighthChild->localUid() == twelveth.localUid()) {
+        if (firstEighthChildTag->localUid() == twelveth.localUid()) {
             twelveth.setDirty(false);
             m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
         }
@@ -497,7 +512,7 @@ void TagModelTestHelper::test()
             m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
         }
 
-        if (firstEighthChild->isDirty()) {
+        if (firstEighthChildTag->isDirty()) {
             FAIL(QStringLiteral("The dirty flag should have been cleared from the tag item but it hasn't been"));
         }
 
@@ -513,7 +528,7 @@ void TagModelTestHelper::test()
         }
 
         // Verity the dirty flag has been set automatically to the tag item removed from its parent
-        if (!firstEighthChild->isDirty()) {
+        if (!firstEighthChildTag->isDirty()) {
             FAIL(QStringLiteral("Tag model item which was removed from its parent was not marked as the dirty one"));
         }
 
@@ -544,7 +559,7 @@ void TagModelTestHelper::test()
 
         // Should not be able to create the tag with existing name
         ErrorString errorDescription;
-        QModelIndex thirteenthTagIndex = model->createTag(third.name(), QString(), errorDescription);
+        QModelIndex thirteenthTagIndex = model->createTag(third.name(), QString(), QString(), errorDescription);
         if (thirteenthTagIndex.isValid()) {
             FAIL(QStringLiteral("Was able to create tag with the same name as the already existing one"));
         }
@@ -557,13 +572,13 @@ void TagModelTestHelper::test()
         // Should be able to create the tag with a new name
         QString thirteenthTagName = QStringLiteral("Thirteenth");
         errorDescription.clear();
-        thirteenthTagIndex = model->createTag(thirteenthTagName, third.name(), errorDescription);
+        thirteenthTagIndex = model->createTag(thirteenthTagName, third.name(), QString(), errorDescription);
         if (!thirteenthTagIndex.isValid()) {
             FAIL(QStringLiteral("Wasn't able to create a tag with the name not present within the tag model"));
         }
 
         // Should no longer be able to create the tag with the same name as the just added one
-        QModelIndex fourteenthTagIndex = model->createTag(thirteenthTagName, fourth.name(), errorDescription);
+        QModelIndex fourteenthTagIndex = model->createTag(thirteenthTagName, fourth.name(), QString(), errorDescription);
         if (fourteenthTagIndex.isValid()) {
             FAIL(QStringLiteral("Was able to create a tag with the same name as just created one"));
         }
@@ -581,7 +596,7 @@ void TagModelTestHelper::test()
 
         // Should again be able to create the tag with the same name
         errorDescription.clear();
-        thirteenthTagIndex = model->createTag(thirteenthTagName, QString(), errorDescription);
+        thirteenthTagIndex = model->createTag(thirteenthTagName, QString(), QString(), errorDescription);
         if (!thirteenthTagIndex.isValid()) {
             FAIL(QStringLiteral("Wasn't able to create the tag with the same name as the just removed one"));
         }
@@ -613,11 +628,16 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("Can't find the tag model item corresponding to index"));
         }
 
+        const TagItem * pNewThirteenthTagItem = pNewThirteenthModelItem->tagItem();
+        if (!pNewThirteenthTagItem) {
+            FAIL("Unexpected null pointer to tag item");
+        }
+
         Tag thirteenth;
-        thirteenth.setLocalUid(pNewThirteenthModelItem->localUid());
-        thirteenth.setGuid(pNewThirteenthModelItem->guid());
-        thirteenth.setLocal(!pNewThirteenthModelItem->isSynchronizable());
-        thirteenth.setDirty(pNewThirteenthModelItem->isDirty());
+        thirteenth.setLocalUid(pNewThirteenthTagItem->localUid());
+        thirteenth.setGuid(pNewThirteenthTagItem->guid());
+        thirteenth.setLocal(!pNewThirteenthTagItem->isSynchronizable());
+        thirteenth.setDirty(pNewThirteenthTagItem->isDirty());
 
         // Reparent the thirteenth tag to the second tag
         thirteenth.setParentGuid(second.guid());
@@ -625,7 +645,7 @@ void TagModelTestHelper::test()
 
         m_pLocalStorageManagerAsync->onUpdateTagRequest(thirteenth, QUuid());
 
-        if (pNewThirteenthModelItem->parentLocalUid() != second.localUid()) {
+        if (pNewThirteenthTagItem->parentLocalUid() != second.localUid()) {
             FAIL(QStringLiteral("The parent local uid of the externally updated tag was not picked up from the updated tag"));
         }
 
@@ -736,12 +756,12 @@ bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem
 
 bool TagModelTestHelper::LessByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
 {
-    return (lhs->name().localeAwareCompare(rhs->name()) <= 0);
+    return (lhs->tagItem()->name().localeAwareCompare(rhs->tagItem()->name()) <= 0);
 }
 
 bool TagModelTestHelper::GreaterByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
 {
-    return (lhs->name().localeAwareCompare(rhs->name()) > 0);
+    return (lhs->tagItem()->name().localeAwareCompare(rhs->tagItem()->name()) > 0);
 }
 
 } // namespace quentier

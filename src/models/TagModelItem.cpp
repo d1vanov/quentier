@@ -22,10 +22,10 @@ namespace quentier {
 
 TagModelItem::TagModelItem(const Type::type type, const TagItem * pTagItem,
                            const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem,
-                           TagModelItem * parent) :
+                           TagModelItem * pParent) :
     m_type(type),
     m_pTagItem(pTagItem),
-    m_pTagLinkedNotebookRootItem(pTagLinkedNotebookRootItem)
+    m_pTagLinkedNotebookRootItem(pTagLinkedNotebookRootItem),
     m_pParent(pParent),
     m_children()
 {
@@ -161,20 +161,29 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
 }
 
 // TODO: remake these
-QDataStream & operator<<(QDataStream & out, const TagModelItem & item)
+QDataStream & operator<<(QDataStream & out, const TagModelItem & modelItem)
 {
-    out << item.m_localUid << item.m_guid << item.m_linkedNotebookGuid << item.m_name
-        << item.m_parentLocalUid << item.m_parentGuid << item.m_isSynchronizable << item.m_isDirty
-        << item.m_isFavorited << item.m_numNotesPerTag;
+    const TagItem * pTagItem = modelItem.tagItem();
+    if (pTagItem) {
+        out << pTagItem->localUid() << pTagItem->guid() << pTagItem->linkedNotebookGuid() << pTagItem->name()
+            << pTagItem->parentLocalUid() << pTagItem->parentGuid() << pTagItem->isSynchronizable() << pTagItem->isDirty()
+            << pTagItem->isFavorited() << pTagItem->numNotesPerTag();
+    }
 
     return out;
 }
 
-QDataStream & operator>>(QDataStream & in, TagModelItem & item)
+QDataStream & operator>>(QDataStream & in, TagModelItem & modelItem)
 {
-    in >> item.m_localUid >> item.m_guid >> item.m_linkedNotebookGuid >> item.m_name
-       >> item.m_parentLocalUid >> item.m_parentGuid >> item.m_isSynchronizable >> item.m_isDirty
-       >> item.m_isFavorited >> item.m_numNotesPerTag;
+    const TagItem * pTagItem = modelItem.tagItem();
+    if (pTagItem) {
+        // FIXME: reimplement this
+        /*
+        in >> pTagItem->localUid() >> pTagItem->guid() >> pTagItem->linkedNotebookGuid() >> pTagItem->name()
+            >> pTagItem->parentLocalUid() >> pTagItem->parentGuid() >> pTagItem->isSynchronizable() >> pTagItem->isDirty()
+            >> pTagItem->isFavorited() >> pTagItem->numNotesPerTag();
+        */
+    }
 
     return in;
 }

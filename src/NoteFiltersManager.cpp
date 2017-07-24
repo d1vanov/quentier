@@ -721,7 +721,12 @@ void NoteFiltersManager::setFilterByTags()
             return;
         }
 
-        tagLocalUids << pItem->localUid();
+        const TagItem * pTagItem = pItem->tagItem();
+        if (Q_UNLIKELY(!pTagItem)) {
+            continue;
+        }
+
+        tagLocalUids << pTagItem->localUid();
     }
 
     m_filteredTagLocalUids.clear();
@@ -752,7 +757,12 @@ QStringList NoteFiltersManager::tagNamesFromLocalUids(const TagModel & tagModel)
             continue;
         }
 
-        tagNames << pItem->name();
+        const TagItem * pTagItem = pItem->tagItem();
+        if (Q_UNLIKELY(!pTagItem)) {
+            continue;
+        }
+
+        tagNames << pTagItem->name();
     }
 
     return tagNames;
