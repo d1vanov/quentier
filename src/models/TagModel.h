@@ -397,7 +397,7 @@ private:
     void onTagAddedOrUpdated(const Tag & tag);
     void onTagAdded(const Tag & tag);
     void onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it);
-    void tagToItem(const Tag & tag, TagModelItem & item);
+    void tagToItem(const Tag & tag, TagItem & item);
     bool canUpdateTagItem(const TagItem & item) const;
     bool canCreateTagItem(const TagModelItem & parentItem) const;
     void updateRestrictionsFromNotebook(const Notebook & notebook);
