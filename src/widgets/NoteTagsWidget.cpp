@@ -170,17 +170,36 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
     QString tagLocalUid = tagNameIt->second;
     QNTRACE(QStringLiteral("Local uid of the removed tag: ") << tagLocalUid);
 
-    const TagModelItem * pItem = m_pTagModel->itemForLocalUid(tagLocalUid);
-    if (Q_UNLIKELY(!pItem)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't find the tag item attempted to be removed from the note"));
+    const TagModelItem * pModelItem = m_pTagModel->itemForLocalUid(tagLocalUid);
+    if (Q_UNLIKELY(!pModelItem)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't find the tag model item attempted to be removed from the note"));
         QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: the tag model item found by tag local uid "
+                                                "is not of a tag type"));
+        QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid
+                  << QStringLiteral(", tag model item: ") << *pModelItem);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    const TagItem * pTagItem = pModelItem->tagItem();
+    if (Q_UNLIKELY(!pTagItem)) {
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: the tag model item found by tag local uid "
+                                                "contains no tag item even though it is of a tag type"));
+        QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid
+                  << QStringLiteral(", tag model item: ") << *pModelItem);
         emit notifyError(errorDescription);
         return;
     }
 
     m_currentNote.removeTagLocalUid(tagLocalUid);
 
-    const QString & tagGuid = pItem->guid();
+    const QString & tagGuid = pTagItem->guid();
     if (!tagGuid.isEmpty()) {
         m_currentNote.removeTagGuid(tagGuid);
     }
@@ -256,7 +275,8 @@ void NoteTagsWidget::onNewTagNameEntered()
         QNDEBUG(QStringLiteral("The tag with such name doesn't exist, adding it"));
 
         ErrorString errorDescription;
-        tagIndex = m_pTagModel->createTag(newTagName, QString(), errorDescription);
+        tagIndex = m_pTagModel->createTag(newTagName, /* parent tag name = */ QString(),
+                                          m_currentLinkedNotebookGuid, errorDescription);
         if (Q_UNLIKELY(!tagIndex.isValid())) {
             ErrorString error(QT_TR_NOOP("Can't process the addition of a new tag"));
             error.appendBase(errorDescription.base());
@@ -268,11 +288,28 @@ void NoteTagsWidget::onNewTagNameEntered()
         }
     }
 
-    const TagModelItem * pTagItem = m_pTagModel->itemForIndex(tagIndex);
-    if (Q_UNLIKELY(!pTagItem)) {
+    const TagModelItem * pModelItem = m_pTagModel->itemForIndex(tagIndex);
+    if (Q_UNLIKELY(!pModelItem)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't process the addition of a new tag: "
-                                     "can't find the tag item for index within the tag model"));
+                                     "can't find the tag model item for index within the tag model"));
         QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+        ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag name "
+                                     "is not of a tag type"));
+        QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
+        emit notifyError(error);
+        return;
+    }
+
+    const TagItem * pTagItem = pModelItem->tagItem();
+    if (Q_UNLIKELY(!pTagItem)) {
+        ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag name "
+                                     "contains no actual tag item even though it is of a tag type"));
+        QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
         emit notifyError(error);
         return;
     }
@@ -357,12 +394,29 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
     {
         const QString & addedTagLocalUid = ait.value().first;
 
-        const TagModelItem * pTagItem = m_pTagModel->itemForLocalUid(addedTagLocalUid);
-        if (Q_UNLIKELY(!pTagItem)) {
+        const TagModelItem * pModelItem = m_pTagModel->itemForLocalUid(addedTagLocalUid);
+        if (Q_UNLIKELY(!pModelItem)) {
             ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the tag addition to note: "
-                                                "the tag item was not found within the model"));
+                                                "the tag model item was not found within the model"));
             QNWARNING(error << QStringLiteral(", request id = ") << requestId
                       << QStringLiteral(", tag local uid = ") << addedTagLocalUid);
+            emit notifyError(error);
+            return;
+        }
+
+        if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+            ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag local uid "
+                                         "is not of a tag type"));
+            QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
+            emit notifyError(error);
+            return;
+        }
+
+        const TagItem * pTagItem = pModelItem->tagItem();
+        if (Q_UNLIKELY(!pTagItem)) {
+            ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag local uid "
+                                         "contains no actual tag item even though it is of a tag type"));
+            QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
             emit notifyError(error);
             return;
         }
@@ -747,9 +801,16 @@ void NoteTagsWidget::updateLayout()
     {
         const QString & tagLocalUid = tagLocalUids[i];
 
-        const TagModelItem * pTagItem = m_pTagModel->itemForLocalUid(tagLocalUid);
-        if (Q_UNLIKELY(!pTagItem)) {
+        const TagModelItem * pModelItem = m_pTagModel->itemForLocalUid(tagLocalUid);
+        if (Q_UNLIKELY(!pModelItem)) {
             QNWARNING(QStringLiteral("Can't find tag model item for tag with local uid ") << tagLocalUid);
+            continue;
+        }
+
+        const TagItem * pTagItem = pModelItem->tagItem();
+        if (Q_UNLIKELY(!pTagItem)) {
+            QNWARNING(QStringLiteral("Skipping the tag model item found by tag local uid yet containing no actual tag item: ")
+                      << *pModelItem);
             continue;
         }
 

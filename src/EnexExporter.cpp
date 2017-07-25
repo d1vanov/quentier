@@ -336,13 +336,34 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
             const QStringList & tagLocalUids = currentNote.tagLocalUids();
             for(auto tagIt = tagLocalUids.constBegin(), tagEnd = tagLocalUids.constEnd(); tagIt != tagEnd; ++tagIt)
             {
-                const TagModelItem * pTagItem = m_pTagModel->itemForLocalUid(*tagIt);
-                if (Q_UNLIKELY(!pTagItem)) {
+                const TagModelItem * pModelItem = m_pTagModel->itemForLocalUid(*tagIt);
+                if (Q_UNLIKELY(!pModelItem)) {
                     errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
                                                                "detected note with tag local uid for which no tag "
                                                                "model item was found"));
                     QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << *tagIt
                               << QStringLiteral(", note: ") << currentNote);
+                    return QString();
+                }
+
+                if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+                    errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
+                                                               "detected tag model item corresponding to tag local uid "
+                                                               "but not of a tag type"));
+                    QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << *tagIt
+                              << QStringLiteral(", tag model item: ") << *pModelItem << QStringLiteral("\nNote: ")
+                              << currentNote);
+                    return QString();
+                }
+
+                const TagItem * pTagItem = pModelItem->tagItem();
+                if (Q_UNLIKELY(!pTagItem)) {
+                    errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
+                                                               "detected tag model item corresponding to tag local uid "
+                                                               "and of a tag type but containing no actual tag item"));
+                    QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << *tagIt
+                              << QStringLiteral(", tag model item: ") << *pModelItem << QStringLiteral("\nNote: ")
+                              << currentNote);
                     return QString();
                 }
 

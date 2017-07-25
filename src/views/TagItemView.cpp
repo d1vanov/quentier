@@ -660,10 +660,23 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    const TagModelItem * pItem = pTagModel->itemForIndex(clickedItemIndex);
-    if (Q_UNLIKELY(!pItem)) {
+    const TagModelItem * pModelItem = pTagModel->itemForIndex(clickedItemIndex);
+    if (Q_UNLIKELY(!pModelItem)) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the tag model item: "
                                        "no item corresponding to the clicked item's index"))
+        return;
+    }
+
+    if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+        QNDEBUG(QStringLiteral("Won't show the context menu for the tag model item not of a tag type"));
+        return;
+    }
+
+    const TagItem * pTagItem = pModelItem->tagItem();
+    if (Q_UNLIKELY(!pTagItem)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the tag model item "
+                                       "as it contains no actual tag item even though it is of a tag type"))
+        QNWARNING(*pModelItem);
         return;
     }
 
@@ -681,21 +694,21 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new tag") + QStringLiteral("..."),
                             m_pTagItemContextMenu, onCreateNewTagAction,
-                            pItem->localUid(), true);
+                            pTagItem->localUid(), true);
 
     m_pTagItemContextMenu->addSeparator();
 
     bool canUpdate = (pTagModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
     ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pTagItemContextMenu,
-                            onRenameTagAction, pItem->localUid(), canUpdate);
+                            onRenameTagAction, pTagItem->localUid(), canUpdate);
 
     ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pTagItemContextMenu,
-                            onDeleteTagAction, pItem->localUid(),
-                            !pItem->isSynchronizable());
+                            onDeleteTagAction, pTagItem->localUid(),
+                            !pTagItem->isSynchronizable());
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pTagItemContextMenu, onEditTagAction,
-                            pItem->localUid(), canUpdate);
+                            pTagItem->localUid(), canUpdate);
 
     QModelIndex clickedItemParentIndex = clickedItemIndex.parent();
     if (clickedItemParentIndex.isValid())
@@ -703,10 +716,10 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         m_pTagItemContextMenu->addSeparator();
 
         ADD_CONTEXT_MENU_ACTION(tr("Promote"), m_pTagItemContextMenu,
-                                onPromoteTagAction, pItem->localUid(),
+                                onPromoteTagAction, pTagItem->localUid(),
                                 canUpdate);
         ADD_CONTEXT_MENU_ACTION(tr("Remove from parent"), m_pTagItemContextMenu,
-                                onRemoveFromParentTagAction, pItem->localUid(),
+                                onRemoveFromParentTagAction, pTagItem->localUid(),
                                 canUpdate);
     }
 
@@ -716,15 +729,15 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                                                         clickedItemIndex.parent());
         bool canUpdateItemAndSibling = canUpdate && (pTagModel->flags(siblingItemIndex) & Qt::ItemIsEditable);
         ADD_CONTEXT_MENU_ACTION(tr("Demote"), m_pTagItemContextMenu,
-                                onDemoteTagAction, pItem->localUid(),
+                                onDemoteTagAction, pTagItem->localUid(),
                                 canUpdateItemAndSibling);
     }
 
     QStringList tagNames = pTagModel->tagNames();
 
     // 1) Remove the current tag's name from the list of possible new parents
-    auto nameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pItem->name());
-    if ((nameIt != tagNames.constEnd()) && (*nameIt == pItem->name())) {
+    auto nameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pTagItem->name());
+    if ((nameIt != tagNames.constEnd()) && (*nameIt == pTagItem->name())) {
         int pos = static_cast<int>(std::distance(tagNames.constBegin(), nameIt));
         tagNames.removeAt(pos);
     }
@@ -737,10 +750,11 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         {
             QNWARNING(QStringLiteral("Can't find parent tag model item for valid parent tag item index"));
         }
-        else
+        else if (pParentItem->tagItem())
         {
-            auto parentNameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pParentItem->name());
-            if ((parentNameIt != tagNames.constEnd()) && (*parentNameIt == pParentItem->name())) {
+            const QString & parentItemName = pParentItem->tagItem()->name();
+            auto parentNameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), parentItemName);
+            if ((parentNameIt != tagNames.constEnd()) && (*parentNameIt == parentItemName)) {
                 int pos = static_cast<int>(std::distance(tagNames.constBegin(), parentNameIt));
                 tagNames.removeAt(pos);
             }
@@ -748,17 +762,24 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     }
 
     // 3) Remove the current tag's children names from the list of possible new parents
-    int numItemChildren = pItem->numChildren();
+    int numItemChildren = pModelItem->numChildren();
     for(int i = 0; i < numItemChildren; ++i)
     {
-        const TagModelItem * pChildItem = pItem->childAtRow(i);
+        const TagModelItem * pChildItem = pModelItem->childAtRow(i);
         if (Q_UNLIKELY(!pChildItem)) {
             QNWARNING(QStringLiteral("Found null pointer to child tag model item"));
             continue;
         }
 
-        auto childNameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pChildItem->name());
-        if ((childNameIt != tagNames.constEnd()) && (*childNameIt == pChildItem->name())) {
+        const TagItem * pChildTagItem = pChildItem->tagItem();
+        if (Q_UNLIKELY(!pChildTagItem)) {
+            QNWARNING(QStringLiteral("Found a child tag model item under a tag item which contains no actual tag item: ")
+                      << *pChildItem);
+            continue;
+        }
+
+        auto childNameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pChildTagItem->name());
+        if ((childNameIt != tagNames.constEnd()) && (*childNameIt == pChildTagItem->name())) {
             int pos = static_cast<int>(std::distance(tagNames.constBegin(), childNameIt));
             tagNames.removeAt(pos);
         }
@@ -771,20 +792,20 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         {
             QStringList dataPair;
             dataPair.reserve(2);
-            dataPair << pItem->localUid();
+            dataPair << pTagItem->localUid();
             dataPair << *it;
             ADD_CONTEXT_MENU_ACTION(*it, pTargetParentSubMenu, onMoveTagToParentAction,
                                     dataPair, canUpdate);
         }
     }
 
-    if (pItem->isFavorited()) {
+    if (pTagItem->isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(tr("Unfavorite"), m_pTagItemContextMenu,
-                                onUnfavoriteAction, pItem->localUid(), canUpdate);
+                                onUnfavoriteAction, pTagItem->localUid(), canUpdate);
     }
     else {
         ADD_CONTEXT_MENU_ACTION(tr("Favorite"), m_pTagItemContextMenu,
-                                onFavoriteAction, pItem->localUid(), canUpdate);
+                                onFavoriteAction, pTagItem->localUid(), canUpdate);
     }
 
     m_pTagItemContextMenu->addSeparator();
@@ -793,7 +814,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                             onDeselectAction, QString(), true);
 
     ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pTagItemContextMenu,
-                            onShowTagInfoAction, pItem->localUid(), true);
+                            onShowTagInfoAction, pTagItem->localUid(), true);
 
     m_pTagItemContextMenu->show();
     m_pTagItemContextMenu->exec(pEvent->globalPos());
@@ -853,15 +874,20 @@ void TagItemView::saveTagItemsState()
             continue;
         }
 
-        const TagModelItem * pItem = pTagModel->itemForIndex(index);
-        if (Q_UNLIKELY(!pItem)) {
+        const TagModelItem * pModelItem = pTagModel->itemForIndex(index);
+        if (Q_UNLIKELY(!pModelItem)) {
             QNWARNING(QStringLiteral("Tag model returned null pointer to tag model item "
                                      "for valid model index"));
             continue;
         }
 
-        result << pItem->localUid();
-        QNTRACE(QStringLiteral("Found expanded tag item: local uid = ") << pItem->localUid());
+        const TagItem * pTagItem = pModelItem->tagItem();
+        if (Q_UNLIKELY(!pTagItem)) {
+            continue;
+        }
+
+        result << pTagItem->localUid();
+        QNTRACE(QStringLiteral("Found expanded tag item: local uid = ") << pTagItem->localUid());
     }
 
     ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
@@ -970,10 +996,23 @@ void TagItemView::selectionChangedImpl(const QItemSelection & selected,
         return;
     }
 
-    const TagModelItem * pTagItem = pTagModel->itemForIndex(sourceIndex);
-    if (Q_UNLIKELY(!pTagItem)) {
+    const TagModelItem * pModelItem = pTagModel->itemForIndex(sourceIndex);
+    if (Q_UNLIKELY(!pModelItem)) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the tag model item corresponding "
                                        "to the selected index"))
+        return;
+    }
+
+    if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+        QNDEBUG(QStringLiteral("The selected tag model item is not of a tag type"));
+        return;
+    }
+
+    const TagItem * pTagItem = pModelItem->tagItem();
+    if (Q_UNLIKELY(!pTagItem)) {
+        REPORT_ERROR(QT_TR_NOOP("Internal error: the tag model item corresponding "
+                                "to the selected index contains no tag item even though "
+                                "it is of a tag type"))
         return;
     }
 

@@ -31,6 +31,7 @@ QT_FORWARD_DECLARE_CLASS(QModelIndex)
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModelItem)
+QT_FORWARD_DECLARE_CLASS(TagItem)
 
 class TagModelItemInfoWidget: public QWidget
 {
@@ -46,7 +47,8 @@ private:
     void setNonTagModel();
     void setInvalidIndex();
     void setNoModelItem();
-    void setTagItem(const TagModelItem & item);
+    void setNonTagItem();
+    void setTagItem(const TagModelItem & modelItem, const TagItem & item);
 
     void hideAll();
 

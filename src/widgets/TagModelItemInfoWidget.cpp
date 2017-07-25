@@ -52,7 +52,13 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(const QModelIndex & index, QWidge
         return;
     }
 
-    setTagItem(*pModelItem);
+    const TagItem * pTagItem = pModelItem->tagItem();
+    if (Q_UNLIKELY(!pTagItem)) {
+        setNonTagItem();
+        return;
+    }
+
+    setTagItem(*pModelItem, *pTagItem);
 }
 
 TagModelItemInfoWidget::~TagModelItemInfoWidget()
@@ -97,20 +103,28 @@ void TagModelItemInfoWidget::setNoModelItem()
     m_pUi->statusBarLabel->show();
 }
 
-void TagModelItemInfoWidget::setTagItem(const TagModelItem & item)
+void TagModelItemInfoWidget::setNonTagItem()
+{
+    hideAll();
+
+    m_pUi->statusBarLabel->setText(tr("The tag model item doesn't correspond to the actual tag"));
+    m_pUi->statusBarLabel->show();
+}
+
+void TagModelItemInfoWidget::setTagItem(const TagModelItem & modelItem, const TagItem & item)
 {
     m_pUi->statusBarLabel->hide();
 
     m_pUi->tagNameLineEdit->setText(item.name());
 
-    const TagModelItem * pParentItem = item.parent();
+    const TagModelItem * pParentItem = modelItem.parent();
     const QString & parentLocalUid = item.parentLocalUid();
 
-    if (pParentItem && !parentLocalUid.isEmpty()) {
-        m_pUi->parentTagLineEdit->setText(pParentItem->name());
+    if (pParentItem && pParentItem->tagItem() && !parentLocalUid.isEmpty()) {
+        m_pUi->parentTagLineEdit->setText(pParentItem->tagItem()->name());
     }
 
-    m_pUi->childrenLineEdit->setText(QString::number(item.numChildren()));
+    m_pUi->childrenLineEdit->setText(QString::number(modelItem.numChildren()));
     m_pUi->numNotesLineEdit->setText(QString::number(item.numNotesPerTag()));
 
     m_pUi->synchronizableCheckBox->setChecked(item.isSynchronizable());

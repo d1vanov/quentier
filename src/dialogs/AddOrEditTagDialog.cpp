@@ -26,11 +26,6 @@ AddOrEditTagDialog::AddOrEditTagDialog(TagModel * pTagModel, QWidget * parent,
     m_pUi->statusBar->setHidden(true);
 
     QStringList tagNames;
-    if (!m_pTagModel.isNull()) {
-        tagNames = m_pTagModel->tagNames();
-        tagNames.prepend(QString());    // Inserting empty parent tag name to allow no parent in the combo box
-    }
-
     int parentTagNameIndex = -1;
     bool res = setupEditedTagItem(tagNames, parentTagNameIndex);
 
@@ -77,12 +72,13 @@ void AddOrEditTagDialog::accept()
             << QStringLiteral(", parent tag name = ") << parentTagName);
 
 #define REPORT_ERROR(error) \
-    m_pUi->statusBar->setText(tr(error)); \
-    QNWARNING(error); \
+    ErrorString errorDescription(error); \
+    m_pUi->statusBar->setText(errorDescription.localizedString()); \
+    QNWARNING(errorDescription); \
     m_pUi->statusBar->setHidden(false)
 
     if (Q_UNLIKELY(m_pTagModel.isNull())) {
-        REPORT_ERROR("Can't accept new tag or edit the existing one: tag model is gone");
+        REPORT_ERROR(QT_TR_NOOP("Can't accept new tag or edit the existing one: tag model is gone"));
         return;
     }
 
@@ -91,7 +87,8 @@ void AddOrEditTagDialog::accept()
         QNDEBUG(QStringLiteral("Edited tag local uid is empty, adding new tag to the model"));
 
         ErrorString errorDescription;
-        QModelIndex index = m_pTagModel->createTag(tagName, parentTagName, errorDescription);
+        QModelIndex index = m_pTagModel->createTag(tagName, parentTagName, /* linked notebook guid = */ QString(),
+                                                   errorDescription);
         if (!index.isValid()) {
             m_pUi->statusBar->setText(errorDescription.localizedString());
             QNWARNING(errorDescription);
@@ -105,44 +102,56 @@ void AddOrEditTagDialog::accept()
                                "the existing tag within the model"));
 
         QModelIndex index = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
-        const TagModelItem * pItem = m_pTagModel->itemForIndex(index);
-        if (Q_UNLIKELY(!pItem)) {
-            REPORT_ERROR("Can't edit tag: tag was not found in the model");
+        const TagModelItem * pModelItem = m_pTagModel->itemForIndex(index);
+        if (Q_UNLIKELY(!pModelItem)) {
+            REPORT_ERROR(QT_TR_NOOP("Can't edit tag: tag model item was not found for local uid"));
+            return;
+        }
+
+        if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+            REPORT_ERROR(QT_TR_NOOP("Can't edit tag: tag model item is not of a tag type"));
+            return;
+        }
+
+        const TagItem * pTagItem = pModelItem->tagItem();
+        if (Q_UNLIKELY(!pTagItem)) {
+            REPORT_ERROR(QT_TR_NOOP("Can't edit tag: tag model item has no tag item even though it is of a tag type"));
             return;
         }
 
         // If needed, update the tag name
         QModelIndex nameIndex = m_pTagModel->index(index.row(), TagModel::Columns::Name,
                                                    index.parent());
-        if (pItem->name().toUpper() != tagName.toUpper())
+        if (pTagItem->name().toUpper() != tagName.toUpper())
         {
             bool res = m_pTagModel->setData(nameIndex, tagName);
             if (Q_UNLIKELY(!res))
             {
                 // Probably the new name collides with some existing tag's name
-                QModelIndex existingItemIndex = m_pTagModel->indexForTagName(tagName, pItem->linkedNotebookGuid());
+                QModelIndex existingItemIndex = m_pTagModel->indexForTagName(tagName, pTagItem->linkedNotebookGuid());
                 if (existingItemIndex.isValid() &&
                     ((existingItemIndex.row() != nameIndex.row()) ||
                      (existingItemIndex.parent() != nameIndex.parent())))
                 {
                     // The new name collides with some existing tag and now with the currently edited one
-                    REPORT_ERROR("The tag name must be unique in case insensitive manner");
+                    REPORT_ERROR(QT_TR_NOOP("The tag name must be unique in case insensitive manner"));
                 }
                 else
                 {
                     // Don't really know what happened...
-                    REPORT_ERROR("Can't set this name for the tag");
+                    REPORT_ERROR(QT_TR_NOOP("Can't set this name for the tag"));
                 }
 
                 return;
             }
         }
 
-        if (!pItem->parent() || (pItem->parent()->nameUpper() != parentTagName.toUpper()))
+        if (!pModelItem->parent() ||
+            (pModelItem->parent()->tagItem() && pModelItem->parent()->tagItem()->nameUpper() != parentTagName.toUpper()))
         {
             QModelIndex movedItemIndex = m_pTagModel->moveToParent(nameIndex, parentTagName);
             if (Q_UNLIKELY(!movedItemIndex.isValid())) {
-                REPORT_ERROR("Can't set this parent for the tag");
+                REPORT_ERROR(QT_TR_NOOP("Can't set this parent for the tag"));
                 return;
             }
         }
@@ -169,8 +178,8 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
     if (!m_editedTagLocalUid.isEmpty())
     {
         QModelIndex index = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
-        const TagModelItem * pItem = m_pTagModel->itemForIndex(index);
-        if (Q_UNLIKELY(!pItem)) {
+        const TagModelItem * pModelItem = m_pTagModel->itemForIndex(index);
+        if (Q_UNLIKELY(!pModelItem)) {
             QNDEBUG(QStringLiteral("Found no tag model item for edited tag local uid"));
             m_pUi->statusBar->setText(tr("Can't edit tag: the tag was not found within the model by local uid"));
             m_pUi->statusBar->setHidden(false);
@@ -178,7 +187,9 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
             return;
         }
 
-        linkedNotebookGuid = pItem->linkedNotebookGuid();
+        if (pModelItem->tagItem()) {
+            linkedNotebookGuid = pModelItem->tagItem()->linkedNotebookGuid();
+        }
     }
 
     QModelIndex itemIndex = m_pTagModel->indexForTagName(tagName, linkedNotebookGuid);
@@ -290,23 +301,36 @@ bool AddOrEditTagDialog::setupEditedTagItem(QStringList & tagNames, int & curren
     }
 
     QModelIndex editedTagIndex = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
-    const TagModelItem * pItem = m_pTagModel->itemForIndex(editedTagIndex);
-    if (Q_UNLIKELY(!pItem)) {
+    const TagModelItem * pModelItem = m_pTagModel->itemForIndex(editedTagIndex);
+    if (Q_UNLIKELY(!pModelItem)) {
         m_pUi->statusBar->setText(tr("Can't find the edited tag within the model"));
         m_pUi->statusBar->setHidden(false);
         return false;
     }
 
-    m_pUi->tagNameLineEdit->setText(pItem->name());
-
-    if (tagNames.isEmpty()) {
-        QNDEBUG(QStringLiteral("Tag names list is empty"));
-        return true;
+    if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
+        m_pUi->statusBar->setText(tr("The edited tag model item within the model is not of a tag type"));
+        m_pUi->statusBar->setHidden(false);
+        return false;
     }
 
+    const TagItem * pTagItem = pModelItem->tagItem();
+    if (Q_UNLIKELY(!pTagItem)) {
+        m_pUi->statusBar->setText(tr("The edited tag model item within the model has no tag item "
+                                     "even though it is of a tag type"));
+        m_pUi->statusBar->setHidden(false);
+        return false;
+    }
+
+    m_pUi->tagNameLineEdit->setText(pTagItem->name());
+
+    const QString & linkedNotebookGuid = pTagItem->linkedNotebookGuid();
+    tagNames = m_pTagModel->tagNames(linkedNotebookGuid);
+    tagNames.prepend(QString());    // Inserting empty parent tag name to allow no parent in the combo box
+
     // 1) Remove the current tag name from the list of names available for parenting
-    auto it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pItem->name());
-    if ((it != tagNames.constEnd()) && (pItem->name() == *it)) {
+    auto it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pTagItem->name());
+    if ((it != tagNames.constEnd()) && (pTagItem->name() == *it)) {
         int pos = static_cast<int>(std::distance(tagNames.constBegin(), it));
         tagNames.removeAt(pos);
     }
@@ -317,17 +341,23 @@ bool AddOrEditTagDialog::setupEditedTagItem(QStringList & tagNames, int & curren
     }
 
     // 2) Remove all the children of this tag from the list of possible parents for it
-    int numChildren = pItem->numChildren();
+    int numChildren = pModelItem->numChildren();
     for(int i = 0; i < numChildren; ++i)
     {
-        const TagModelItem * pChildItem = pItem->childAtRow(i);
+        const TagModelItem * pChildItem = pModelItem->childAtRow(i);
         if (Q_UNLIKELY(!pChildItem)) {
             QNWARNING(QStringLiteral("Found null child item at row ") << i);
             continue;
         }
 
-        it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pItem->name());
-        if ((it != tagNames.constEnd()) && (pItem->name() == *it)) {
+        const TagItem * pChildTagItem = pChildItem->tagItem();
+        if (Q_UNLIKELY(!pChildTagItem)) {
+            QNWARNING(QStringLiteral("Found tag model item without the actual tag item within the list of tag item's children"));
+            continue;
+        }
+
+        it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pChildTagItem->name());
+        if ((it != tagNames.constEnd()) && (pTagItem->name() == *it)) {
             int pos = static_cast<int>(std::distance(tagNames.constBegin(), it));
             tagNames.removeAt(pos);
         }
@@ -335,10 +365,10 @@ bool AddOrEditTagDialog::setupEditedTagItem(QStringList & tagNames, int & curren
 
     // 3) If the current tag has a parent, set it's name as the current one
     QModelIndex editedTagParentIndex = editedTagIndex.parent();
-    const TagModelItem * pParentItem = pItem->parent();
-    if (editedTagParentIndex.isValid() && pParentItem)
+    const TagModelItem * pParentItem = pModelItem->parent();
+    if (editedTagParentIndex.isValid() && pParentItem && pParentItem->tagItem())
     {
-        const QString & parentTagName = pParentItem->name();
+        const QString & parentTagName = pParentItem->tagItem()->name();
         it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), parentTagName);
         if ((it != tagNames.constEnd()) && (parentTagName == *it)) {
             currentIndex = static_cast<int>(std::distance(tagNames.constBegin(), it));
