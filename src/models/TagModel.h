@@ -337,6 +337,8 @@ private:
 
     void buildTagLocalUidsByNoteLocalUidsHash(const NoteModel & noteModel);
 
+    const TagModelItem & modelItemForTagItem(const TagItem & tagItem);
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
