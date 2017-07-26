@@ -155,19 +155,65 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
         return strm;
     }
 
-    // TODO: print children stuff
+    int numChildren = m_children.size();
+    strm << QStringLiteral("Num children: ") << numChildren << QStringLiteral("\n");
+
+    for(int i = 0; i < numChildren; ++i)
+    {
+        strm << QStringLiteral("Child[") << i << QStringLiteral("]: ");
+
+        const TagModelItem * pChildItem = m_children[i];
+        if (Q_UNLIKELY(!pChildItem)) {
+            strm << QStringLiteral("<null>");
+            continue;
+        }
+
+        if (pChildItem->type() == TagModelItem::Type::Tag) {
+            strm << QStringLiteral("tag");
+        }
+        else if (pChildItem->type() == TagModelItem::Type::LinkedNotebook) {
+            strm << QStringLiteral("linked notebook root item");
+        }
+        else {
+            strm << QStringLiteral("<unknown type>");
+        }
+
+        if (pChildItem->tagItem()) {
+            strm << QStringLiteral(", tag local uid = ") << pChildItem->tagItem()->localUid()
+                 << QStringLiteral(", tag guid = ") << pChildItem->tagItem()->guid()
+                 << QStringLiteral(", tag name = ") << pChildItem->tagItem()->name();
+        }
+        else if (pChildItem->tagLinkedNotebookItem()) {
+            strm << QStringLiteral(", linked notebook guid = ") << pChildItem->tagLinkedNotebookItem()->linkedNotebookGuid()
+                 << QStringLiteral(", owner username = ") << pChildItem->tagLinkedNotebookItem()->username();
+        }
+
+        strm << QStringLiteral("\n");
+    }
 
     return strm;
 }
 
-// TODO: remake these
 QDataStream & operator<<(QDataStream & out, const TagModelItem & modelItem)
 {
-    const TagItem * pTagItem = modelItem.tagItem();
-    if (pTagItem) {
-        out << pTagItem->localUid() << pTagItem->guid() << pTagItem->linkedNotebookGuid() << pTagItem->name()
-            << pTagItem->parentLocalUid() << pTagItem->parentGuid() << pTagItem->isSynchronizable() << pTagItem->isDirty()
-            << pTagItem->isFavorited() << pTagItem->numNotesPerTag();
+    qint8 type = modelItem.type();
+    out << type;
+
+    qulonglong tagItemPtr = reinterpret_cast<qulonglong>(modelItem.tagItem());
+    out << tagItemPtr;
+
+    qulonglong tagLinkedNotebookItemPtr = reinterpret_cast<qulonglong>(modelItem.tagLinkedNotebookItem());
+    out << tagLinkedNotebookItemPtr;
+
+    qulonglong parentItemPtr = reinterpret_cast<qulonglong>(modelItem.parent());
+    out << parentItemPtr;
+
+    qint32 numChildren = modelItem.children().size();
+    out << numChildren;
+
+    for(qint32 i = 0; i < numChildren; ++i) {
+        qulonglong childItemPtr = reinterpret_cast<qulonglong>(modelItem.childAtRow(i));
+        out << childItemPtr;
     }
 
     return out;
@@ -175,14 +221,31 @@ QDataStream & operator<<(QDataStream & out, const TagModelItem & modelItem)
 
 QDataStream & operator>>(QDataStream & in, TagModelItem & modelItem)
 {
-    const TagItem * pTagItem = modelItem.tagItem();
-    if (pTagItem) {
-        // FIXME: reimplement this
-        /*
-        in >> pTagItem->localUid() >> pTagItem->guid() >> pTagItem->linkedNotebookGuid() >> pTagItem->name()
-            >> pTagItem->parentLocalUid() >> pTagItem->parentGuid() >> pTagItem->isSynchronizable() >> pTagItem->isDirty()
-            >> pTagItem->isFavorited() >> pTagItem->numNotesPerTag();
-        */
+    qint8 type = 0;
+    in >> type;
+    modelItem.m_type = static_cast<TagModelItem::Type::type>(type);
+
+    qulonglong tagItemPtr = 0;
+    in >> tagItemPtr;
+    modelItem.m_pTagItem = reinterpret_cast<const TagItem*>(tagItemPtr);
+
+    qulonglong tagLinkedNotebookItemPtr = 0;
+    in >> tagLinkedNotebookItemPtr;
+    modelItem.m_pTagLinkedNotebookRootItem = reinterpret_cast<const TagLinkedNotebookRootItem*>(tagLinkedNotebookItemPtr);
+
+    qulonglong parentItemPtr = 0;
+    in >> parentItemPtr;
+    modelItem.m_pParent = reinterpret_cast<const TagModelItem*>(parentItemPtr);
+
+    qint32 numChildren = 0;
+    in >> numChildren;
+
+    modelItem.m_children.clear();
+    modelItem.m_children.reserve(numChildren);
+    for(qint32 i = 0; i < numChildren; ++i) {
+        qulonglong childItemPtr = 0;
+        in >> childItemPtr;
+        modelItem.m_children << reinterpret_cast<const TagModelItem*>(childItemPtr);
     }
 
     return in;
