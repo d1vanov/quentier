@@ -339,6 +339,10 @@ private:
 
     const TagModelItem & modelItemForTagItem(const TagItem & tagItem);
 
+    void checkAndRemoveEmptyLinkedNotebookRootItem(const TagModelItem & modelItem);
+
+    void checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem);
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
