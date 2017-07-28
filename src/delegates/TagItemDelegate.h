@@ -28,6 +28,10 @@ private:
 private:
     void drawTagName(QPainter * painter, const QModelIndex & index, const QStyleOptionViewItem & option) const;
     QSize tagNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const;
+
+private:
+    QIcon   m_userIcon;
+    QSize   m_userIconSize;
 };
 
 } // namespace quentier
