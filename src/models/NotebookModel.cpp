@@ -2074,6 +2074,24 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
         return false;
     }
 
+    QString parentLinkedNotebookGuid;
+    if (pNewParentItem->notebookLinkedNotebookItem()) {
+        parentLinkedNotebookGuid = pNewParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
+    }
+    else if (pNewParentItem->type() == NotebookModelItem::Type::Stack)
+    {
+        const NotebookModelItem * pGrandParentItem = pNewParentItem->parent();
+        if (pGrandParentItem && pGrandParentItem->notebookLinkedNotebookItem()) {
+            parentLinkedNotebookGuid = pGrandParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
+        }
+    }
+
+    if (item.notebookItem()->linkedNotebookGuid() != parentLinkedNotebookGuid) {
+        REPORT_ERROR(QT_TR_NOOP("Can't move notebooks between different linked notebooks or between user's notebooks "
+                                "and those from linked notebooks"));
+        return false;
+    }
+
     auto it = m_modelItemsByLocalUid.find(item.notebookItem()->localUid());
     if (it == m_modelItemsByLocalUid.end()) {
         REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: failed to find the dropped model item by local uid in the notebook model"));
@@ -2641,7 +2659,7 @@ void NotebookModel::onListAllLinkedNotebooksComplete(size_t limit, size_t offset
 
     m_allLinkedNotebooksListed = true;
 
-    if (m_allLinkedNotebooksListed) {
+    if (m_allNotebooksListed) {
         emit notifyAllNotebooksListed();
         emit notifyAllItemsListed();
     }
