@@ -79,6 +79,12 @@ public:
                                 const QString & linkedNotebookGuid = QString()) const;
 
     /**
+     * @param The linked notebook guid which corresponding linked notebook item's index is required
+     * @return The model index of the TagLinkedNotebookRootItem corresponding to the given linked notebook guid
+     */
+    QModelIndex indexForLinkedNotebookGuid(const QString & linkedNotebookGuid) const;
+
+    /**
      * @brief promote - moves the tag item pointed by the index from its parent to its grandparent, if both exist
      * @param index - the index of the tag item to be promoted
      * @return the index of the promoted tag item or invalid model index if tag item could not be promoted
@@ -150,7 +156,7 @@ public:
      * @return true if the tag model has received the information about all tags
      * stored in the local storage by the moment; false otherwise
      */
-    bool allTagsListed() const { return m_allTagsListed; }
+    bool allTagsListed() const;
 
     /**
      * @brief favoriteTag - marks the tag pointed to by the index as favorited
@@ -183,7 +189,7 @@ public:
     virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
     virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
     virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }
-    virtual bool allItemsListed() const Q_DECL_OVERRIDE { return m_allTagsListed; }
+    virtual bool allItemsListed() const Q_DECL_OVERRIDE;
 
 public:
     // QAbstractItemModel interface
@@ -251,6 +257,9 @@ Q_SIGNALS:
                             LocalStorageManager::ListTagsOrder::type order,
                             LocalStorageManager::OrderDirection::type orderDirection,
                             QUuid requestId);
+    void listAllLinkedNotebooks(const size_t limit, const size_t offset,
+                                const LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                const LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId);
 
 private Q_SLOTS:
     // Slot for NoteModel's notifyAllNotesListed signal
@@ -289,6 +298,10 @@ private Q_SLOTS:
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
+    void onAddLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onUpdateLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onExpungeLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
+
     void onListAllTagsPerNoteComplete(QList<Tag> foundTags, Note note,
                                       LocalStorageManager::ListObjectsOptions flag,
                                       size_t limit, size_t offset,
@@ -301,12 +314,23 @@ private Q_SLOTS:
                                     LocalStorageManager::OrderDirection::type orderDirection,
                                     ErrorString errorDescription, QUuid requestId);
 
+    void onListAllLinkedNotebooksComplete(size_t limit, size_t offset,
+                                          LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                          LocalStorageManager::OrderDirection::type orderDirection,
+                                          QList<LinkedNotebook> foundLinkedNotebooks,
+                                          QUuid requestId);
+    void onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
+                                        LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                        ErrorString errorDescription, QUuid requestId);
+
 private:
     void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
     void requestTagsList();
     void requestNoteCountForTag(const Tag & tag);
     void requestTagsPerNote(const Note & note);
     void requestNoteCountForAllTags();
+    void requestLinkedNotebooksList();
 
     QVariant dataImpl(const TagModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
@@ -337,6 +361,7 @@ private:
 
     void buildTagLocalUidsByNoteLocalUidsHash(const NoteModel & noteModel);
 
+    const TagModelItem & findOrCreateLinkedNotebookModelItem(const QString & linkedNotebookGuid);
     const TagModelItem & modelItemForTagItem(const TagItem & tagItem);
 
     void checkAndRemoveEmptyLinkedNotebookRootItem(const TagModelItem & modelItem);
@@ -347,6 +372,7 @@ private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
     struct ByNameUpper{};
+    struct ByLinkedNotebookGuid{};
 
     typedef boost::multi_index_container<
         TagItem,
@@ -362,6 +388,10 @@ private:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<TagItem,QString,&TagItem::nameUpper>
+            >,
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<ByLinkedNotebookGuid>,
+                boost::multi_index::const_mem_fun<TagItem,const QString&,&TagItem::linkedNotebookGuid>
             >
         >
     > TagData;
@@ -369,6 +399,7 @@ private:
     typedef TagData::index<ByLocalUid>::type TagDataByLocalUid;
     typedef TagData::index<ByParentLocalUid>::type TagDataByParentLocalUid;
     typedef TagData::index<ByNameUpper>::type TagDataByNameUpper;
+    typedef TagData::index<ByLinkedNotebookGuid>::type TagDataByLinkedNotebookGuid;
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     typedef quint32 IndexId;
@@ -415,6 +446,8 @@ private:
     bool canCreateTagItem(const TagModelItem & parentItem) const;
     void updateRestrictionsFromNotebook(const Notebook & notebook);
 
+    void onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linkedNotebook);
+
     const TagModelItem * itemForId(const IndexId id) const;
     IndexId idForItem(const TagModelItem & item) const;
 
@@ -450,6 +483,10 @@ private:
 
     QSet<QUuid>             m_listTagsPerNoteRequestIds;
 
+    QHash<QString,QString>  m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids;
+    size_t                  m_listLinkedNotebooksOffset;
+    QUuid                   m_listLinkedNotebooksRequestId;
+
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
 
@@ -476,6 +513,7 @@ private:
     mutable QMap<QString,int>       m_lastNewTagNameCounterByLinkedNotebookGuid;
 
     bool                            m_allTagsListed;
+    bool                            m_allLinkedNotebooksListed;
 };
 
 } // namespace quentier
