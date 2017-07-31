@@ -1161,7 +1161,6 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
 
     TagItemView * tagsTreeView = m_pUI->tagsTreeView;
-    tagsTreeView->setColumnHidden(TagModel::Columns::FromLinkedNotebook, isLocal);
     tagsTreeView->setColumnHidden(TagModel::Columns::Dirty, isLocal);
 
     SavedSearchItemView * savedSearchesTableView = m_pUI->savedSearchesTableView;
@@ -3976,18 +3975,13 @@ void MainWindow::setupViews()
     TagItemView * pTagsTreeView = m_pUI->tagsTreeView;
     pTagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true); // This column's values would be displayed along with the notebook's name
     pTagsTreeView->setColumnHidden(TagModel::Columns::Synchronizable, true);
+    pTagsTreeView->setColumnHidden(TagModel::Columns::FromLinkedNotebook, true);
     DirtyColumnDelegate * tagsTreeViewDirtyColumnDelegate =
             new DirtyColumnDelegate(pTagsTreeView);
     pTagsTreeView->setItemDelegateForColumn(TagModel::Columns::Dirty,
                                            tagsTreeViewDirtyColumnDelegate);
     pTagsTreeView->setColumnWidth(TagModel::Columns::Dirty,
                                  tagsTreeViewDirtyColumnDelegate->sideSize());
-    FromLinkedNotebookColumnDelegate * tagsTreeViewFromLinkedNotebookColumnDelegate =
-            new FromLinkedNotebookColumnDelegate(pTagsTreeView);
-    pTagsTreeView->setItemDelegateForColumn(TagModel::Columns::FromLinkedNotebook,
-                                           tagsTreeViewFromLinkedNotebookColumnDelegate);
-    pTagsTreeView->setColumnWidth(TagModel::Columns::FromLinkedNotebook,
-                                 tagsTreeViewFromLinkedNotebookColumnDelegate->sideSize());
     TagItemDelegate * tagsTreeViewNameColumnDelegate = new TagItemDelegate(pTagsTreeView);
     pTagsTreeView->setItemDelegateForColumn(TagModel::Columns::Name, tagsTreeViewNameColumnDelegate);
 
