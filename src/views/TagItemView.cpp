@@ -29,6 +29,7 @@
 
 #define LAST_SELECTED_TAG_KEY QStringLiteral("LastSelectedTagLocalUid")
 #define LAST_EXPANDED_TAG_ITEMS_KEY QStringLiteral("LastExpandedTagLocalUids")
+#define LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY QStringLiteral("LastExpandedLinkedNotebookItemsGuids")
 
 #define REPORT_ERROR(error) \
     { \
@@ -863,7 +864,8 @@ void TagItemView::saveTagItemsState()
         return;
     }
 
-    QStringList result;
+    QStringList expandedTagItemsLocalUids;
+    QStringList expandedLinkedNotebookItemsGuids;
 
     QModelIndexList indexes = pTagModel->persistentIndexes();
     for(auto it = indexes.constBegin(), end = indexes.constEnd(); it != end; ++it)
@@ -881,18 +883,23 @@ void TagItemView::saveTagItemsState()
             continue;
         }
 
-        const TagItem * pTagItem = pModelItem->tagItem();
-        if (Q_UNLIKELY(!pTagItem)) {
-            continue;
+        if ((pModelItem->type() == TagModelItem::Type::Tag) && pModelItem->tagItem())
+        {
+            expandedTagItemsLocalUids << pModelItem->tagItem()->localUid();
+            QNTRACE(QStringLiteral("Found expanded tag item: local uid = ") << pModelItem->tagItem()->localUid());
         }
-
-        result << pTagItem->localUid();
-        QNTRACE(QStringLiteral("Found expanded tag item: local uid = ") << pTagItem->localUid());
+        else if ((pModelItem->type() == TagModelItem::Type::LinkedNotebook) && pModelItem->tagLinkedNotebookItem())
+        {
+            expandedLinkedNotebookItemsGuids << pModelItem->tagLinkedNotebookItem()->linkedNotebookGuid();
+            QNTRACE(QStringLiteral("Found expanded tag linked notebook root item: linked notebook guid = ")
+                    << pModelItem->tagLinkedNotebookItem()->linkedNotebookGuid());
+        }
     }
 
     ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("TagItemView"));
-    appSettings.setValue(LAST_EXPANDED_TAG_ITEMS_KEY, result);
+    appSettings.setValue(LAST_EXPANDED_TAG_ITEMS_KEY, expandedTagItemsLocalUids);
+    appSettings.setValue(LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY, expandedLinkedNotebookItemsGuids);
     appSettings.endGroup();
 }
 
@@ -902,13 +909,15 @@ void TagItemView::restoreTagItemsState(const TagModel & model)
 
     ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("TagItemView"));
-    QStringList expandedTagLocalUids = appSettings.value(LAST_EXPANDED_TAG_ITEMS_KEY).toStringList();
+    QStringList expandedTagItemsLocalUids = appSettings.value(LAST_EXPANDED_TAG_ITEMS_KEY).toStringList();
+    QStringList expandedLinkedNotebookItemsGuids = appSettings.value(LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY).toStringList();
     appSettings.endGroup();
 
     bool wasTrackingTagItemsState = m_trackingTagItemsState;
     m_trackingTagItemsState = false;
 
-    setTagsExpanded(expandedTagLocalUids, model);
+    setTagsExpanded(expandedTagItemsLocalUids, model);
+    setLinkedNotebooksExpanded(expandedLinkedNotebookItemsGuids, model);
 
     m_trackingTagItemsState = wasTrackingTagItemsState;
 }
@@ -916,12 +925,30 @@ void TagItemView::restoreTagItemsState(const TagModel & model)
 void TagItemView::setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model)
 {
     QNDEBUG(QStringLiteral("TagItemView::setTagsExpanded: ") << tagLocalUids.size()
-            << QStringLiteral(" tag local uids: ") << tagLocalUids.join(QStringLiteral(",")));
+            << QStringLiteral(", tag local uids: ") << tagLocalUids.join(QStringLiteral(",")));
 
     for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it)
     {
         const QString & tagLocalUid = *it;
         QModelIndex index = model.indexForLocalUid(tagLocalUid);
+        if (!index.isValid()) {
+            continue;
+        }
+
+        setExpanded(index, true);
+    }
+}
+
+void TagItemView::setLinkedNotebooksExpanded(const QStringList & linkedNotebookGuids, const TagModel & model)
+{
+    QNDEBUG(QStringLiteral("TagItemView::setLinkedNotebooksExpanded: ") << linkedNotebookGuids.size()
+            << QStringLiteral(", linked notebook guids: ") << linkedNotebookGuids.join(QStringLiteral(", ")));
+
+    for(auto it = linkedNotebookGuids.constBegin(), end = linkedNotebookGuids.constEnd(); it != end; ++it)
+    {
+        const QString & expandedLinkedNotebookGuid = *it;
+
+        QModelIndex index = model.indexForLinkedNotebookGuid(expandedLinkedNotebookGuid);
         if (!index.isValid()) {
             continue;
         }

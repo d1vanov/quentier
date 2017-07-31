@@ -88,6 +88,7 @@ private:
     void saveTagItemsState();
     void restoreTagItemsState(const TagModel & model);
     void setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model);
+    void setLinkedNotebooksExpanded(const QStringList & linkedNotebookGuids, const TagModel & model);
 
     void restoreLastSavedSelection(const TagModel & model);
 
