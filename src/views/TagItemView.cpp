@@ -734,7 +734,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                                 canUpdateItemAndSibling);
     }
 
-    QStringList tagNames = pTagModel->tagNames();
+    QStringList tagNames = pTagModel->tagNames(pTagItem->linkedNotebookGuid());
 
     // 1) Remove the current tag's name from the list of possible new parents
     auto nameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pTagItem->name());
