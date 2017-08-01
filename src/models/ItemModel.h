@@ -44,10 +44,12 @@ public:
     /**
      * @brief localUidForItemName - finds local uid for item name
      * @param itemName - the name of the item for which the local uid is required
+     * @param linkedNotebookGuid - the guid of a linked notebook to which the item which local uid is returned belongs (if any)
      * @return the local uid corresponding to the item name; empty string if no item
      * with such name exists
      */
-    virtual QString localUidForItemName(const QString & itemName) const = 0;
+    virtual QString localUidForItemName(const QString & itemName,
+                                        const QString & linkedNotebookGuid) const = 0;
 
     /**
      * @brief itemNameForLocalUid - finds item name for local uid
@@ -59,9 +61,14 @@ public:
 
     /**
      * @brief itemNames
+     * @param linkedNotebookGuid - the optional guid of a linked notebook to which the returned item names belong;
+     * if it is null (i.e. linkedNotebookGuid.isNull() returns true), the item names would be returned ignoring
+     * their belonging to user's own account or linked notebook; if it's not null but empty (i.e. linkedNotebookGuid.isEmpty()
+     * returns true), only the names of tags from user's own account would be returned. Otherwise only the names
+     * of tags from the corresponding linked notebook would be returned
      * @return the sorted list of names of the items stored within the model
      */
-    virtual QStringList itemNames() const = 0;
+    virtual QStringList itemNames(const QString & linkedNotebookGuid) const = 0;
 
     /**
      * @brief nameColumn

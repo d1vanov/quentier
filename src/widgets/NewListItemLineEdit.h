@@ -41,11 +41,13 @@ class NewListItemLineEdit: public QLineEdit
     Q_OBJECT
 public:
     explicit NewListItemLineEdit(ItemModel * pItemModel, const QStringList & reservedItemNames,
-                                 QWidget * parent = Q_NULLPTR);
+                                 const QString & linkedNotebookGuid, QWidget * parent = Q_NULLPTR);
     virtual ~NewListItemLineEdit();
 
     QStringList reservedItemNames() const;
     void updateReservedItemNames(const QStringList & reservedItemNames);
+
+    QString linkedNotebookGuid() const;
 
     virtual QSize sizeHint() const Q_DECL_OVERRIDE;
     virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
@@ -78,6 +80,7 @@ private:
     Ui::NewListItemLineEdit *   m_pUi;
     QPointer<ItemModel>         m_pItemModel;
     QStringList                 m_reservedItemNames;
+    QString                     m_linkedNotebookGuid;
     QStringListModel *          m_pItemNamesModel;
     QCompleter *                m_pCompleter;
     bool                        m_expectFocusOut;

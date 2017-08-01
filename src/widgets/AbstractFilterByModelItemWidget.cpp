@@ -300,7 +300,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         return;
     }
 
-    QString localUid = m_pItemModel->localUidForItemName(newItemName);
+    QString localUid = m_pItemModel->localUidForItemName(newItemName, /* linked notebook guid = */ QString());
     if (localUid.isEmpty()) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the addition of a new item "
                                             "to the filter: can't find the item's local uid"));
@@ -497,8 +497,9 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
         existingNames << it->second;
     }
 
-    NewListItemLineEdit * pNewItemLineEdit = new NewListItemLineEdit(m_pItemModel.data(),
-                                                                     existingNames, this);
+    NewListItemLineEdit * pNewItemLineEdit = new NewListItemLineEdit(m_pItemModel.data(), existingNames,
+                                                                     /* fake linked notebook guid = */ QStringLiteral(""),
+                                                                     this);
     QObject::connect(pNewItemLineEdit, QNSIGNAL(NewListItemLineEdit,returnPressed),
                      this, QNSLOT(AbstractFilterByModelItemWidget,onNewItemAdded));
     m_pLayout->addWidget(pNewItemLineEdit);

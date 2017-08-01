@@ -115,6 +115,8 @@ private:
     void removeNewTagWidgetFromLayout();
     void removeTagWidgetFromLayout(const QString & tagLocalUid);
 
+    void setTagItemsRemovable(const bool removable);
+
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
 
     NewListItemLineEdit * findNewItemWidget();

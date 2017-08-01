@@ -222,26 +222,9 @@ QStringList NotebookModel::notebookNames(const NotebookFilters filters, const QS
             << QStringLiteral(", empty = ") << (linkedNotebookGuid.isEmpty() ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(")"));
 
-    if (filters == NotebookFilters(NotebookFilter::NoFilter))
-    {
+    if (filters == NotebookFilters(NotebookFilter::NoFilter)) {
         QNTRACE(QStringLiteral("No filter, returning all notebook names"));
-
-        if (linkedNotebookGuid.isNull()) {
-            return itemNames();
-        }
-
-        QStringList result;
-        const NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
-        result.reserve(static_cast<int>(nameIndex.size()));
-        for(auto it = nameIndex.begin(), end = nameIndex.end(); it != end; ++it)
-        {
-            const NotebookItem & item = *it;
-            if (item.linkedNotebookGuid() != linkedNotebookGuid) {
-                continue;
-            }
-
-            result << item.name();
-        }
+        return itemNames(linkedNotebookGuid);
     }
 
     QStringList result;
@@ -272,7 +255,10 @@ QStringList NotebookModel::notebookNames(const NotebookFilters filters, const QS
     {
         const NotebookItem & item = *it;
 
-        if (!linkedNotebookGuid.isNull() && (item.linkedNotebookGuid() != linkedNotebookGuid)) {
+        if (!linkedNotebookGuid.isNull() &&
+            ( (item.linkedNotebookGuid().isEmpty() != linkedNotebookGuid.isEmpty()) ||
+              (!linkedNotebookGuid.isEmpty() && (item.linkedNotebookGuid() != linkedNotebookGuid)) ))
+        {
             QNTRACE(QStringLiteral("Skipping notebook item with different linked notebook guid: ") << item);
             continue;
         }
@@ -798,11 +784,13 @@ void NotebookModel::unfavoriteNotebook(const QModelIndex & index)
     setNotebookFavorited(index, false);
 }
 
-QString NotebookModel::localUidForItemName(const QString & itemName) const
+QString NotebookModel::localUidForItemName(const QString & itemName,
+                                           const QString & linkedNotebookGuid) const
 {
-    QNDEBUG(QStringLiteral("NotebookModel::localUidForItemName: ") << itemName);
+    QNDEBUG(QStringLiteral("NotebookModel::localUidForItemName: name = ") << itemName
+            << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid);
 
-    QModelIndex index = indexForNotebookName(itemName);
+    QModelIndex index = indexForNotebookName(itemName, linkedNotebookGuid);
     const NotebookModelItem * pModelItem = itemForIndex(index);
     if (!pModelItem) {
         QNTRACE(QStringLiteral("No notebook model item found for index found for this notebook name"));
@@ -838,26 +826,38 @@ QString NotebookModel::itemNameForLocalUid(const QString & localUid) const
     return it->name();
 }
 
-QStringList NotebookModel::itemNames() const
+QStringList NotebookModel::itemNames(const QString & linkedNotebookGuid) const
 {
     QStringList result;
     const NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
     result.reserve(static_cast<int>(nameIndex.size()));
     for(auto it = nameIndex.begin(), end = nameIndex.end(); it != end; ++it)
     {
-        const QString & name = it->name();
+        const NotebookItem & item = *it;
+        const QString & name = item.name();
 
-        // Prevent the occurrence of identical names within the returned result
-        if (Q_LIKELY(it != nameIndex.begin()))
+        if (linkedNotebookGuid.isNull())
         {
-            auto prevIt = it;
-            --prevIt;
-            if (prevIt->name() == name) {
-                continue;
+            // Prevent the occurrence of identical names within the returned result
+            if (Q_LIKELY(it != nameIndex.begin()))
+            {
+                auto prevIt = it;
+                --prevIt;
+                if (prevIt->name() == name) {
+                    continue;
+                }
             }
-        }
 
-        result << name;
+            result << name;
+        }
+        else if (linkedNotebookGuid.isEmpty() && item.linkedNotebookGuid().isEmpty())
+        {
+            result << name;
+        }
+        else if (linkedNotebookGuid == item.linkedNotebookGuid())
+        {
+            result << name;
+        }
     }
 
     return result;

@@ -130,11 +130,13 @@ void TagModel::unfavoriteTag(const QModelIndex & index)
     setTagFavorited(index, false);
 }
 
-QString TagModel::localUidForItemName(const QString & itemName) const
+QString TagModel::localUidForItemName(const QString & itemName,
+                                      const QString & linkedNotebookGuid) const
 {
-    QNDEBUG(QStringLiteral("TagModel::localUidForItemName: ") << itemName);
+    QNDEBUG(QStringLiteral("TagModel::localUidForItemName: name = ") << itemName
+            << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid);
 
-    QModelIndex index = indexForTagName(itemName);
+    QModelIndex index = indexForTagName(itemName, linkedNotebookGuid);
     const TagModelItem * pItem = itemForIndex(index);
     if (!pItem) {
         QNTRACE(QStringLiteral("No tag with such name was found"));
@@ -167,6 +169,11 @@ QString TagModel::itemNameForLocalUid(const QString & localUid) const
     }
 
     return it->name();
+}
+
+QStringList TagModel::itemNames(const QString & linkedNotebookGuid) const
+{
+    return tagNames(linkedNotebookGuid);
 }
 
 bool TagModel::allItemsListed() const

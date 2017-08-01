@@ -131,7 +131,7 @@ void EditNoteDialog::accept()
     modifiedNote.setTitle(title);
 
     QString notebookName = m_pUi->notebookComboBox->currentText();
-    QString notebookLocalUid = m_pNotebookModel->localUidForItemName(notebookName);
+    QString notebookLocalUid = m_pNotebookModel->localUidForItemName(notebookName, /* linked notebook guid = */ QString());
     if (notebookLocalUid.isEmpty()) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't edit note: can't find notebook local uid for current notebook name"));
         QNINFO(error);

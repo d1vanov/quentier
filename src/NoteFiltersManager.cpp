@@ -660,7 +660,7 @@ void NoteFiltersManager::setFilterByNotebooks()
     notebookLocalUids.reserve(notebookNames.size());
     for(auto it = notebookNames.constBegin(), end = notebookNames.constEnd(); it != end; ++it)
     {
-        QString localUid = pNotebookModel->localUidForItemName(*it);
+        QString localUid = pNotebookModel->localUidForItemName(*it, /* linked notebook guid = */ QString());
         if (Q_UNLIKELY(localUid.isEmpty())) {
             ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't set the filter by notebooks: the notebook model "
                                                 "returned empty local uid for the notebook name in the filter"));

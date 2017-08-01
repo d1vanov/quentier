@@ -218,10 +218,12 @@ void SavedSearchModel::unfavoriteSavedSearch(const QModelIndex & index)
     setSavedSearchFavorited(index, false);
 }
 
-QString SavedSearchModel::localUidForItemName(const QString & itemName) const
+QString SavedSearchModel::localUidForItemName(const QString & itemName,
+                                              const QString & linkedNotebookGuid) const
 {
-    QNDEBUG(QStringLiteral("SavedSearchModel::localUidForItemName: ") << itemName);
+    QNDEBUG(QStringLiteral("SavedSearchModel::localUidForItemName: name = ") << itemName);
 
+    Q_UNUSED(linkedNotebookGuid)
     QModelIndex index = indexForSavedSearchName(itemName);
     const SavedSearchModelItem * pItem = itemForIndex(index);
     if (!pItem) {
@@ -245,6 +247,15 @@ QString SavedSearchModel::itemNameForLocalUid(const QString & localUid) const
 
     const SavedSearchModelItem & item = *it;
     return item.m_name;
+}
+
+QStringList SavedSearchModel::itemNames(const QString & linkedNotebookGuid) const
+{
+    if (!linkedNotebookGuid.isEmpty()) {
+        return QStringList();
+    }
+
+    return savedSearchNames();
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const

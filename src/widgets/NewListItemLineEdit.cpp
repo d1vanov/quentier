@@ -32,11 +32,13 @@ namespace quentier {
 
 NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
                                          const QStringList & reservedItemNames,
+                                         const QString & linkedNotebookGuid,
                                          QWidget * parent) :
     QLineEdit(parent),
     m_pUi(new Ui::NewListItemLineEdit),
     m_pItemModel(pItemModel),
     m_reservedItemNames(reservedItemNames),
+    m_linkedNotebookGuid(linkedNotebookGuid),
     m_pItemNamesModel(new QStringListModel(this)),
     m_pCompleter(new QCompleter(this)),
     m_expectFocusOut(false)
@@ -87,6 +89,11 @@ void NewListItemLineEdit::updateReservedItemNames(const QStringList & reservedIt
 
     m_reservedItemNames = reservedItemNames;
     setupCompleter();
+}
+
+QString NewListItemLineEdit::linkedNotebookGuid() const
+{
+    return m_linkedNotebookGuid;
 }
 
 QSize NewListItemLineEdit::sizeHint() const
@@ -214,7 +221,7 @@ void NewListItemLineEdit::setupCompleter()
     QStringList itemNames;
     if (!m_pItemModel.isNull())
     {
-        itemNames = m_pItemModel->itemNames();
+        itemNames = m_pItemModel->itemNames(m_linkedNotebookGuid);
         QNTRACE(QStringLiteral("Model item names: ") << itemNames.join(QStringLiteral(", ")));
 
         for(auto it = m_reservedItemNames.constBegin(), end = m_reservedItemNames.constEnd(); it != end; ++it)

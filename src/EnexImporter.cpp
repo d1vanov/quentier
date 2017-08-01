@@ -101,10 +101,10 @@ void EnexImporter::start()
             return;
         }
 
-        QString notebookLocalUid = m_notebookModel.localUidForItemName(m_notebookName);
+        QString notebookLocalUid = m_notebookModel.localUidForItemName(m_notebookName, /* linked notebook guid = */ QString());
         if (notebookLocalUid.isEmpty())
         {
-            QNDEBUG(QStringLiteral("Could not find a notebook local uid for notebook name ")
+            QNDEBUG(QStringLiteral("Could not find a user's own notebook's local uid for notebook name ")
                     << m_notebookName << QStringLiteral(" within the notebook model; will create such notebook"));
 
             if (m_addNotebookRequestId.isNull()) {
@@ -570,7 +570,7 @@ void EnexImporter::processNotesPendingTagAddition()
         {
             const QString & tagName = *tagNameIt;
 
-            QString tagLocalUid = m_tagModel.localUidForItemName(tagName);
+            QString tagLocalUid = m_tagModel.localUidForItemName(tagName, /* linked notebook guid = */ QString());
             if (tagLocalUid.isEmpty()) {
                 nonexistentTagNames << tagName;
                 QNDEBUG(QStringLiteral("No tag called \"") << tagName << QStringLiteral("\" exists, it would need to be created"));

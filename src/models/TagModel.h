@@ -79,7 +79,7 @@ public:
                                 const QString & linkedNotebookGuid = QString()) const;
 
     /**
-     * @param The linked notebook guid which corresponding linked notebook item's index is required
+     * @param The linked notebook guid for which the corresponding linked notebook item's index is required
      * @return The model index of the TagLinkedNotebookRootItem corresponding to the given linked notebook guid
      */
     QModelIndex indexForLinkedNotebookGuid(const QString & linkedNotebookGuid) const;
@@ -183,9 +183,10 @@ public:
 
 public:
     // ItemModel interface
-    virtual QString localUidForItemName(const QString & itemName) const Q_DECL_OVERRIDE;
+    virtual QString localUidForItemName(const QString & itemName,
+                                        const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
     virtual QString itemNameForLocalUid(const QString & localUid) const Q_DECL_OVERRIDE;
-    virtual QStringList itemNames() const Q_DECL_OVERRIDE { return tagNames(); }
+    virtual QStringList itemNames(const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
     virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
     virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
     virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }

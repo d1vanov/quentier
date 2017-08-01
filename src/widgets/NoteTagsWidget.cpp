@@ -265,24 +265,17 @@ void NoteTagsWidget::onNewTagNameEntered()
     QModelIndex tagIndex = m_pTagModel->indexForTagName(newTagName, m_currentLinkedNotebookGuid);
     if (!tagIndex.isValid())
     {
-        if (!m_currentLinkedNotebookGuid.isEmpty()) {
-            ErrorString error(QT_TR_NOOP("Can't add a new tag: the note belongs to the external (linked) notebook"));
-            QNDEBUG(error);
-            emit notifyError(error);
-            return;
-        }
-
         QNDEBUG(QStringLiteral("The tag with such name doesn't exist, adding it"));
 
         ErrorString errorDescription;
         tagIndex = m_pTagModel->createTag(newTagName, /* parent tag name = */ QString(),
                                           m_currentLinkedNotebookGuid, errorDescription);
         if (Q_UNLIKELY(!tagIndex.isValid())) {
-            ErrorString error(QT_TR_NOOP("Can't process the addition of a new tag"));
+            ErrorString error(QT_TR_NOOP("Can't add a new tag"));
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
-            QNWARNING(error);
+            QNINFO(error);
             emit notifyError(error);
             return;
         }
@@ -440,6 +433,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
 
         ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
         pTagWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+        pTagWidget->setItemRemovable(m_tagRestrictions.m_canUpdateNote);
         QObject::connect(pTagWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                          this, QNSLOT(NoteTagsWidget,onTagRemoved,QString));
         QObject::connect(this, QNSIGNAL(NoteTagsWidget,canUpdateNoteRestrictionChanged,bool),
@@ -734,12 +728,15 @@ void NoteTagsWidget::clearLayout(const bool skipNewTagWidget)
     if (skipNewTagWidget || m_currentNote.localUid().isEmpty() ||
         m_currentNotebookLocalUid.isEmpty() || !m_tagRestrictions.m_canUpdateNote)
     {
+        setTagItemsRemovable(false);
         return;
     }
 
     if (m_tagRestrictions.m_canUpdateNote) {
         addNewTagWidgetToLayout();
     }
+
+    setTagItemsRemovable(m_tagRestrictions.m_canUpdateNote);
 }
 
 void NoteTagsWidget::updateLayout()
@@ -832,6 +829,7 @@ void NoteTagsWidget::updateLayout()
 
         ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
         pTagWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+        pTagWidget->setItemRemovable(m_tagRestrictions.m_canUpdateNote);
         QObject::connect(pTagWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                          this, QNSLOT(NoteTagsWidget,onTagRemoved,QString));
         QObject::connect(this, QNSIGNAL(NoteTagsWidget,canUpdateNoteRestrictionChanged,bool),
@@ -902,7 +900,8 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
         existingTagNames << it->first;
     }
 
-    NewListItemLineEdit * pNewTagLineEdit = new NewListItemLineEdit(m_pTagModel, existingTagNames, this);
+    NewListItemLineEdit * pNewTagLineEdit = new NewListItemLineEdit(m_pTagModel, existingTagNames,
+                                                                    m_currentLinkedNotebookGuid, this);
     QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,returnPressed),
                      this, QNSLOT(NoteTagsWidget,onNewTagNameEntered));
     QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,receivedFocusFromWindowSystem),
@@ -980,6 +979,28 @@ void NoteTagsWidget::removeTagWidgetFromLayout(const QString & tagLocalUid)
         pItem->widget()->hide();
         pItem->widget()->deleteLater();
         break;
+    }
+}
+
+void NoteTagsWidget::setTagItemsRemovable(const bool removable)
+{
+    QNDEBUG(QStringLiteral("NoteTagsWidget::setTagItemsRemovable: removable = ")
+            << (removable ? QStringLiteral("true") : QStringLiteral("false")));
+
+    int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        ListItemWidget * pNoteTagWidget = qobject_cast<ListItemWidget*>(pItem->widget());
+        if (!pNoteTagWidget) {
+            continue;
+        }
+
+        pNoteTagWidget->setItemRemovable(removable);
     }
 }
 

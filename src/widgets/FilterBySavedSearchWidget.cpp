@@ -216,7 +216,8 @@ void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(const QString & save
     }
     else
     {
-        m_currentSavedSearchLocalUid = m_pSavedSearchModel->localUidForItemName(savedSearchName);
+        m_currentSavedSearchLocalUid = m_pSavedSearchModel->localUidForItemName(savedSearchName,
+                                                                                /* linked notebook guid = */ QString());
         if (m_currentSavedSearchLocalUid.isEmpty()) {
             QNWARNING(QStringLiteral("Wasn't able to find the saved search local uid for chosen saved search name: ")
                       << savedSearchName);
@@ -249,7 +250,7 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
         m_currentSavedSearchName.resize(0);
     }
 
-    QStringList savedSearchNames = m_pSavedSearchModel->itemNames();
+    QStringList savedSearchNames = m_pSavedSearchModel->savedSearchNames();
     savedSearchNames.prepend(QString());
 
     int index = 0;
