@@ -484,6 +484,37 @@ if(BREAKPAD_FOUND)
     RENAME ${STACKWALK_BINARY_NAME})
 endif()
 
+if(NOT WIN32 AND NOT APPLE)
+  # install .desktop file
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/Quentier.desktop
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications")
+  # install application icons
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_16.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/16x16/apps"
+          RENAME quentier.png)
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_32.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps"
+          RENAME quentier.png)
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_48.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps"
+          RENAME quentier.png)
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_64.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
+          RENAME quentier.png)
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_128.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps"
+          RENAME quentier.png)
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_256.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps"
+          RENAME quentier.png)
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_512.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps"
+          RENAME quentier.png)
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
+          RENAME quentier.png)
+endif()
+
 # install application bundle
 include(QuentierCreateBundle)
 
