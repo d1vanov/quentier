@@ -175,8 +175,8 @@ QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
     if (Q_UNLIKELY((m_includedNotes != IncludedNotes::Deleted) &&
                    (m_numberOfNotesPerAccount >= m_account.noteCountMax())))
     {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new note: the account already contains "
-                                            "the max allowed number of notes"));
+        ErrorString error(QT_TR_NOOP("Can't create a new note: the account already contains "
+                                     "the max allowed number of notes"));
         error.details() = QString::number(m_account.noteCountMax());
         NMINFO(error);
         emit notifyError(error);
@@ -185,14 +185,14 @@ QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 
     auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
     if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't create a new note: internal error, can't identify the notebook "
-                                       "in which the note needs to be created"));
+        REPORT_ERROR(QT_TR_NOOP("Can't create a new note: internal error, can't identify the notebook "
+                                "in which the note needs to be created"));
         return QModelIndex();
     }
 
     const NotebookData & notebookData = notebookIt.value();
     if (!notebookData.m_canCreateNotes) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't create a new note: notebook restrictions apply"));
+        REPORT_ERROR(QT_TR_NOOP("Can't create a new note: notebook restrictions apply"));
         return QModelIndex();
     }
 
@@ -242,15 +242,15 @@ void NoteModel::moveNoteToNotebook(const QString & noteLocalUid, const QString &
             << QStringLiteral(", notebook name = ") << notebookName);
 
     if (Q_UNLIKELY(notebookName.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move the note to another notebook: the name of the target notebook is empty"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move the note to another notebook: the name of the target notebook is empty"));
         return;
     }
 
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(noteLocalUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move the note to another notebook: internal error, can't find note item "
-                                       "within the note model by local uid"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move the note to another notebook: internal error, can't find note item "
+                                "within the note model by local uid"));
         return;
     }
 
@@ -501,7 +501,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     case Columns::Title:
         {
             if (!item.canUpdateTitle()) {
-                REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't update the note title: note restrictions apply"));
+                REPORT_ERROR(QT_TR_NOOP("Can't update the note title: note restrictions apply"));
                 return false;
             }
 
@@ -513,7 +513,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     case Columns::Synchronizable:
         {
             if (item.isSynchronizable()) {
-                REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't make already synchronizable note not synchronizable"));
+                REPORT_ERROR(QT_TR_NOOP("Can't make already synchronizable note not synchronizable"));
                 return false;
             }
 
@@ -531,8 +531,8 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
                 timestamp = value.toLongLong(&conversionResult);
 
                 if (!conversionResult) {
-                    REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't change the note's deleted state: "
-                                                   "wrong deletion timestamp value"));
+                    REPORT_ERROR(QT_TR_NOOP("Can't change the note's deleted state: "
+                                            "wrong deletion timestamp value"));
                     return false;
                 }
             }
@@ -551,7 +551,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
                 timestamp = value.toLongLong(&conversionResult);
 
                 if (!conversionResult) {
-                    REPORT_ERROR(QT_TRANSLATE_NOOP("","Can't update the note's creation datetime: wrong creation timestamp value"));
+                    REPORT_ERROR(QT_TR_NOOP("Can't update the note's creation datetime: wrong creation timestamp value"));
                     return false;
                 }
             }
@@ -570,7 +570,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
                 timestamp = value.toLongLong(&conversionResult);
 
                 if (!conversionResult) {
-                    REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't update the note's modification datetime: wrong modification timestamp value"));
+                    REPORT_ERROR(QT_TR_NOOP("Can't update the note's modification datetime: wrong modification timestamp value"));
                     return false;
                 }
             }
@@ -636,7 +636,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     }
 
     if (Q_UNLIKELY((row + count) > static_cast<int>(m_data.size()))) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Detected attempt to remove more rows than the note model contains"));
+        REPORT_ERROR(QT_TR_NOOP("Detected attempt to remove more rows than the note model contains"));
         return false;
     }
 
@@ -646,7 +646,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         auto it = index.begin() + row;
         if (it->isSynchronizable()) {
-            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't remove the synchronizable note"));
+            REPORT_ERROR(QT_TR_NOOP("Can't remove the synchronizable note"));
             return false;
         }
     }
@@ -1061,8 +1061,8 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
         NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
         auto it = localUidIndex.find(noteLocalUid);
         if (it == localUidIndex.end()) {
-            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move the note to another notebook: internal error, can't find the item "
-                                           "within the note model by local uid"));
+            REPORT_ERROR(QT_TR_NOOP("Can't move the note to another notebook: internal error, can't find the item "
+                                    "within the note model by local uid"));
             return;
         }
 
@@ -1095,7 +1095,7 @@ void NoteModel::onFindNotebookFailed(Notebook notebook, ErrorString errorDescrip
     {
         Q_UNUSED(m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap.right.erase(mit))
 
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't move the note to another notebook: failed to find the target notebook"));
+        ErrorString error(QT_TR_NOOP("Can't move the note to another notebook: failed to find the target notebook"));
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
@@ -1815,8 +1815,8 @@ void NoteModel::setNoteFavorited(const QString & noteLocalUid, const bool favori
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(noteLocalUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't favorite/unfavorite the note: internal error, the note "
-                                       "to be favorited/unfavorited was not found within the model"));
+        REPORT_ERROR(QT_TR_NOOP("Can't favorite/unfavorite the note: internal error, the note "
+                                "to be favorited/unfavorited was not found within the model"));
         return;
     }
 
@@ -1912,7 +1912,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
 
     if (!notebookData.m_canCreateNotes)
     {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new note: notebook restrictions apply"));
+        ErrorString error(QT_TR_NOOP("Can't create a new note: notebook restrictions apply"));
         NMINFO(error << QStringLiteral(", notebook name = ") << notebookData.m_name);
         emit notifyError(error);
         return;
@@ -1987,8 +1987,8 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
         NoteDataByIndex & index = m_data.get<ByIndex>();
         auto indexIt = m_data.project<ByIndex>(it);
         if (Q_UNLIKELY(indexIt == index.end())) {
-            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                         "to the random access index iterator in note model"));
+            REPORT_ERROR(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                    "to the random access index iterator in note model"));
             return;
         }
 
@@ -2086,8 +2086,8 @@ void NoteModel::moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const No
     }
 
     if (!notebook.canCreateNotes()) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't move the note to another notebook: the target notebook "
-                                            "doesn't allow to create notes in it"));
+        ErrorString error(QT_TR_NOOP("Can't move the note to another notebook: the target notebook "
+                                     "doesn't allow to create notes in it"));
         NMINFO(error << QStringLiteral(", notebook: ") << notebook);
         emit notifyError(error);
         return;

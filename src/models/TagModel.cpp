@@ -439,23 +439,23 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     }
 
     if (modelIndex.column() == Columns::Dirty) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "The \"dirty\" flag can't be set manually for a tag"));
+        REPORT_ERROR(QT_TR_NOOP("The \"dirty\" flag can't be set manually for a tag"));
         return false;
     }
 
     if (modelIndex.column() == Columns::FromLinkedNotebook) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "The \"from linked notebook\" flag can't be set manually for a tag"));
+        REPORT_ERROR(QT_TR_NOOP("The \"from linked notebook\" flag can't be set manually for a tag"));
         return false;
     }
 
     const TagModelItem * pItem = itemForIndex(modelIndex);
     if (!pItem) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: no tag model item found for model index"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: no tag model item found for model index"));
         return false;
     }
 
     if (pItem == m_fakeRootItem) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set data for the invisible root item within the tag model"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set data for the invisible root item within the tag model"));
         return false;
     }
 
@@ -471,7 +471,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     }
 
     if (!canUpdateTagItem(*pTagItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't update the tag, restrictions apply"));
+        REPORT_ERROR(QT_TR_NOOP("Can't update the tag, restrictions apply"));
         return false;
     }
 
@@ -494,8 +494,8 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
             auto nameIt = nameIndex.find(newName.toUpper());
             if (nameIt != nameIndex.end()) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't change tag name: no two tags within the account are allowed "
-                                                    "to have the same name in a case-insensitive manner"));
+                ErrorString error(QT_TR_NOOP("Can't change tag name: no two tags within the account are allowed "
+                                             "to have the same name in a case-insensitive manner"));
                 QNINFO(error << QStringLiteral(", suggested name = ") << newName);
                 emit notifyError(error);
                 return false;
@@ -503,7 +503,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
             ErrorString errorDescription;
             if (!Tag::validateName(newName, &errorDescription)) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't change tag name"));
+                ErrorString error(QT_TR_NOOP("Can't change tag name"));
                 error.appendBase(errorDescription.base());
                 error.appendBase(errorDescription.additionalBases());
                 error.details() = errorDescription.details();
@@ -519,14 +519,14 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     case Columns::Synchronizable:
         {
             if (m_account.type() == Account::Type::Local) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't make the tag synchronizable within the local account"));
+                ErrorString error(QT_TR_NOOP("Can't make the tag synchronizable within the local account"));
                 QNINFO(error);
                 emit notifyError(error);
                 return false;
             }
 
             if (tagItemCopy.isSynchronizable() && !value.toBool()) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't make already synchronizable tag not synchronizable"));
+                ErrorString error(QT_TR_NOOP("Can't make already synchronizable tag not synchronizable"));
                 QNINFO(error << QStringLiteral(", already synchronizable tag item: ") << tagItemCopy);
                 emit notifyError(error);
                 return false;
@@ -577,7 +577,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
             dummy.setSynchronizable(true);
             auto dummyIt = index.find(dummy.localUid());
             if (Q_UNLIKELY(dummyIt == index.end())) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't find one of currently made synchronizable tag's parent tags"));
+                ErrorString error(QT_TR_NOOP("Can't find one of currently made synchronizable tag's parent tags"));
                 QNWARNING(error << QStringLiteral(", item: ") << dummy);
                 emit notifyError(error);
                 return false;
@@ -586,8 +586,8 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
             index.replace(dummyIt, dummy);
             QModelIndex changedIndex = indexForLocalUid(dummy.localUid());
             if (Q_UNLIKELY(!changedIndex.isValid())) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't get the valid model index for one of currently "
-                                                    "made synchronizable tag's parent tags"));
+                ErrorString error(QT_TR_NOOP("Can't get the valid model index for one of currently "
+                                             "made synchronizable tag's parent tags"));
                 QNWARNING(error << QStringLiteral(", item for which the index was requested: ") << dummy);
                 emit notifyError(error);
                 return false;
@@ -602,7 +602,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
     auto it = index.find(tagItemCopy.localUid());
     if (Q_UNLIKELY(it == index.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't find the tag being modified"));
+        ErrorString error(QT_TR_NOOP("Can't find the tag being modified"));
         QNWARNING(error << QStringLiteral(" by its local uid , item: ") << tagItemCopy);
         emit notifyError(error);
         return false;
@@ -648,7 +648,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingTags = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingTags + count >= m_account.tagCountMax())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create tag(s): the account can contain a limited number of tags"));
+        ErrorString error(QT_TR_NOOP("Can't create tag(s): the account can contain a limited number of tags"));
         error.details() = QString::number(m_account.tagCountMax());
         QNINFO(error);
         emit notifyError(error);
@@ -740,7 +740,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         }
 
         if (pModelItem->type() != TagModelItem::Type::Tag) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't remove tag linked notebook root item"));
+            ErrorString error(QT_TR_NOOP("Can't remove tag linked notebook root item"));
             QNINFO(error);
             emit notifyError(error);
             return false;
@@ -748,28 +748,28 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
 
         const TagItem * pTagItem = pModelItem->tagItem();
         if (Q_UNLIKELY(!pTagItem)) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: found no tag item under the tag model item of tag type"));
+            ErrorString error(QT_TR_NOOP("Internal error: found no tag item under the tag model item of tag type"));
             QNINFO(error);
             emit notifyError(error);
             return false;
         }
 
         if (!pTagItem->linkedNotebookGuid().isEmpty()) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't remove tag from linked notebook"));
+            ErrorString error(QT_TR_NOOP("Can't remove tag from linked notebook"));
             QNINFO(error);
             emit notifyError(error);
             return false;
         }
 
         if (pTagItem->isSynchronizable()) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't remove synchronizable tag"));
+            ErrorString error(QT_TR_NOOP("Can't remove synchronizable tag"));
             QNINFO(error);
             emit notifyError(error);
             return false;
         }
 
         if (hasSynchronizableChildren(pModelItem)) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't remove tag with synchronizable children"));
+            ErrorString error(QT_TR_NOOP("Can't remove tag with synchronizable children"));
             QNINFO(error);
             emit notifyError(error);
             return false;
@@ -984,14 +984,14 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
 
     const TagModelItem * pNewParentItem = itemForIndex(parentIndex);
     if (!pNewParentItem) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error, can't move the tag: the new parent item was not found "
-                                       "within the tag model by model index"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error, can't move the tag: the new parent item was not found "
+                                "within the tag model by model index"));
         return false;
     }
 
     if ((pNewParentItem != m_fakeRootItem) && !canCreateTagItem(*pNewParentItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move the tag under the new parent: restrictions apply "
-                                       "or the restrictions settings were not fetched yet"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move the tag under the new parent: restrictions apply "
+                                "or the restrictions settings were not fetched yet"));
         return false;
     }
 
@@ -1002,8 +1002,8 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
 
     const TagItem * pNewParentTagItem = pNewParentItem->tagItem();
     if (Q_UNLIKELY(!pNewParentTagItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move the tag under the new parent: the new parent model item "
-                                       "was recognized as a tag one but it has no inner tag item"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move the tag under the new parent: the new parent model item "
+                                "was recognized as a tag one but it has no inner tag item"));
     }
 
     QByteArray data = qUncompress(pMimeData->data(TAG_MODEL_MIME_TYPE));
@@ -1018,13 +1018,14 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
 
     const TagItem * pTagItem = item.tagItem();
     if (Q_UNLIKELY(!pTagItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move the tag under the new parent: the dropped model item "
-                                       "was recognized as a tag one but it has no inner tag item"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move the tag under the new parent: the dropped model item "
+                                "was recognized as a tag one but it has no inner tag item"));
         return false;
     }
 
     if (pTagItem->linkedNotebookGuid() != pNewParentTagItem->linkedNotebookGuid()) {
-        REPORT_ERROR(QT_TR_NOOP("Can't assign parent tags between linked notebooks or between user's tags and those from a linked notebook"));
+        REPORT_ERROR(QT_TR_NOOP("Can't assign parent tags between linked notebooks or between user's tags "
+                                "and those from a linked notebook"));
         return false;
     }
 
@@ -1033,7 +1034,7 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
     while(pTrackedParentItem && (pTrackedParentItem != m_fakeRootItem))
     {
         if (pTrackedParentItem->tagItem() && (pTrackedParentItem->tagItem()->localUid() == pTagItem->localUid())) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't move the tag under one of its child tags"));
+            ErrorString error(QT_TR_NOOP("Can't move the tag under one of its child tags"));
             QNINFO(error);
             emit notifyError(error);
             return false;
@@ -1115,7 +1116,7 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
         }
 
         if (pOriginalItemParent->tagItem() && !pOriginalItemParent->tagItem()->linkedNotebookGuid().isEmpty()) {
-            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't drag tag items from parent tags coming from linked notebook"));
+            REPORT_ERROR(QT_TR_NOOP("Can't drag tag items from parent tags coming from linked notebook"));
             return false;
         }
 
@@ -1159,8 +1160,8 @@ void TagModel::onAllNotesListed()
 
     NoteModel * pNoteModel = qobject_cast<NoteModel*>(sender());
     if (Q_UNLIKELY(!pNoteModel)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: received all notes listed event from some sender "
-                                                       "which is not an instance of NoteModel"));
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: received all notes listed event from some sender "
+                                                "which is not an instance of NoteModel"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -1411,7 +1412,7 @@ void TagModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid reques
 
     auto itemIt = localUidIndex.find(tag.localUid());
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "No tag receiving the note count update was found in the model"));
+        ErrorString error(QT_TR_NOOP("No tag receiving the note count update was found in the model"));
         QNWARNING(error << QStringLiteral(", tag: ") << tag);
         emit notifyError(error);
         return;
@@ -1419,8 +1420,8 @@ void TagModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid reques
 
     auto modelItemIt = m_modelItemsByLocalUid.find(itemIt->localUid());
     if (Q_UNLIKELY(modelItemIt == m_modelItemsByLocalUid.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "No tag model item corresponding to a receiving the note count update "
-                                            "was found in the model"));
+        ErrorString error(QT_TR_NOOP("No tag model item corresponding to a receiving the note count update "
+                                     "was found in the model"));
         QNWARNING(error << QStringLiteral(", tag: ") << tag);
         emit notifyError(error);
         return;
@@ -1429,8 +1430,8 @@ void TagModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid reques
     const TagModelItem * pModelItem = &(modelItemIt.value());
     const TagModelItem * pParentItem = pModelItem->parent();
     if (Q_UNLIKELY(!pParentItem)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "The tag model item being updated with the note count "
-                                            "does not have a parent item linked with it"));
+        ErrorString error(QT_TR_NOOP("The tag model item being updated with the note count "
+                                     "does not have a parent item linked with it"));
         QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag item: ") << *itemIt);
         emit notifyError(error);
         return;
@@ -1438,8 +1439,8 @@ void TagModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid reques
 
     int row = pParentItem->rowForChild(pModelItem);
     if (Q_UNLIKELY(row < 0)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't find the row of tag model item being updated with the note count "
-                                            "within its parent"));
+        ErrorString error(QT_TR_NOOP("Can't find the row of tag model item being updated with the note count "
+                                     "within its parent"));
         QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag model item: ") << *pModelItem);
         emit notifyError(error);
         return;
@@ -2164,7 +2165,7 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
 
     const TagModelItem * pParentItem = modelItem.parent();
     if (Q_UNLIKELY(!pParentItem)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Tag model item being updated does not have a parent item linked with it"));
+        ErrorString error(QT_TR_NOOP("Tag model item being updated does not have a parent item linked with it"));
         QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag model item: ") << modelItem);
         emit notifyError(error);
         return;
@@ -2172,7 +2173,7 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
 
     int row = pParentItem->rowForChild(&modelItem);
     if (Q_UNLIKELY(row < 0)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't find the row of the updated tag item within its parent"));
+        ErrorString error(QT_TR_NOOP("Can't find the row of the updated tag item within its parent"));
         QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag model item: ") << modelItem);
         emit notifyError(error);
         return;
@@ -2670,18 +2671,18 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     QNDEBUG(QStringLiteral("TagModel::promote"));
 
     if (!itemIndex.isValid()) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't promote the tag: model index is invalid"));
+        REPORT_ERROR(QT_TR_NOOP("Can't promote the tag: model index is invalid"));
         return QModelIndex();
     }
 
     const TagModelItem * pModelItem = itemForIndex(itemIndex);
     if (!pModelItem) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't promote the tag: found no tag item for given model index"));
+        REPORT_ERROR(QT_TR_NOOP("Can't promote the tag: found no tag item for given model index"));
         return QModelIndex();
     }
 
     if (pModelItem == m_fakeRootItem) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't promote the invisible root item within the tag model"));
+        REPORT_ERROR(QT_TR_NOOP("Can't promote the invisible root item within the tag model"));
         return QModelIndex();
     }
 
@@ -2712,7 +2713,7 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     }
 
     if (pParentItem == m_fakeRootItem) {
-        REPORT_INFO(QT_TRANSLATE_NOOP("", "Can't promote the tag: already a top level item"));
+        REPORT_INFO(QT_TR_NOOP("Can't promote the tag: already a top level item"));
         return QModelIndex();
     }
 
@@ -2737,14 +2738,14 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
          (!canCreateTagItem(*pGrandParentItem) ||
           (pGrandParentItem->tagItem() && !canUpdateTagItem(*(pGrandParentItem->tagItem())))) )
     {
-        REPORT_INFO(QT_TRANSLATE_NOOP("", "Can't promote the tag: can't create and/or update tags for the grand parent tag "
-                                      "due to restrictions"));
+        REPORT_INFO(QT_TR_NOOP("Can't promote the tag: can't create and/or update tags for the grand parent tag "
+                               "due to restrictions"));
         return QModelIndex();
     }
 
     int parentRow = pGrandParentItem->rowForChild(pParentItem);
     if (Q_UNLIKELY(parentRow < 0)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't promote the tag: can't find the parent tag's row within the grand parent model item"));
+        REPORT_ERROR(QT_TR_NOOP("Can't promote the tag: can't find the parent tag's row within the grand parent model item"));
         return QModelIndex();
     }
 
@@ -2775,8 +2776,8 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     QModelIndex newIndex = index(appropriateRow, Columns::Name, grandParentIndex);
     if (!newIndex.isValid())
     {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't promote the tag, invalid model index was returned "
-                                       "for the promoted tag item"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't promote the tag, invalid model index was returned "
+                                "for the promoted tag item"));
 
         // Trying to revert both done changes
         beginRemoveRows(grandParentIndex, appropriateRow, appropriateRow);
@@ -2829,18 +2830,18 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     QNDEBUG(QStringLiteral("TagModel::demote"));
 
     if (!itemIndex.isValid()) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't demote the tag: model index is invalid"));
+        REPORT_ERROR(QT_TR_NOOP("Can't demote the tag: model index is invalid"));
         return QModelIndex();
     }
 
     const TagModelItem * pModelItem = itemForIndex(itemIndex);
     if (!pModelItem) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't demote the tag: found no tag item for given model index"));
+        REPORT_ERROR(QT_TR_NOOP("Can't demote the tag: found no tag item for given model index"));
         return QModelIndex();
     }
 
     if (pModelItem == m_fakeRootItem) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't demote the invisible root item within the tag model"));
+        REPORT_ERROR(QT_TR_NOOP("Can't demote the invisible root item within the tag model"));
         return QModelIndex();
     }
 
@@ -2871,30 +2872,30 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     }
 
     if ((pParentItem != m_fakeRootItem) && pParentItem->tagItem() && !canUpdateTagItem(*(pParentItem->tagItem()))) {
-        REPORT_INFO(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't update the parent tag due to restrictions"));
+        REPORT_INFO(QT_TR_NOOP("Can't demote the tag: can't update the parent tag due to restrictions"));
         return QModelIndex();
     }
 
     int row = pParentItem->rowForChild(pModelItem);
     if (row < 0) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't find the row of demoted tag within its parent"));
+        REPORT_ERROR(QT_TR_NOOP("Can't demote the tag: can't find the row of demoted tag within its parent"));
         return QModelIndex();
     }
     else if (row == 0) {
-        REPORT_INFO(QT_TRANSLATE_NOOP("", "Can't demote the tag: found no preceding sibling within the parent model item "
-                                      "to demote this tag under"));
+        REPORT_INFO(QT_TR_NOOP("Can't demote the tag: found no preceding sibling within the parent model item "
+                               "to demote this tag under"));
         return QModelIndex();
     }
 
     const TagModelItem * pSiblingItem = pParentItem->childAtRow(row - 1);
     if (Q_UNLIKELY(!pSiblingItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't demote the tag: no sibling tag appropriate for demoting was found"));
+        REPORT_ERROR(QT_TR_NOOP("Can't demote the tag: no sibling tag appropriate for demoting was found"));
         return QModelIndex();
     }
 
     const TagItem * pSiblingTagItem = pSiblingItem->tagItem();
     if (Q_UNLIKELY(!pSiblingTagItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't demote the tag: the sibling model item is not of a tag type"));
+        REPORT_ERROR(QT_TR_NOOP("Can't demote the tag: the sibling model item is not of a tag type"));
         return QModelIndex();
     }
 
@@ -2904,11 +2905,11 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     {
         ErrorString error;
         if (itemLinkedNotebookGuid.isEmpty() != siblingItemLinkedNotebookGuid.isEmpty()) {
-            error.setBase(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't mix tags from linked notebooks "
-                                            "with tags from the current account"));
+            error.setBase(QT_TR_NOOP("Can't demote the tag: can't mix tags from linked notebooks "
+                                     "with tags from the current account"));
         }
         else {
-            error.setBase(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't mix tags from different linked notebooks"));
+            error.setBase(QT_TR_NOOP("Can't demote the tag: can't mix tags from different linked notebooks"));
         }
 
         QNINFO(error << QStringLiteral(", item attempted to be demoted: ") << *pModelItem
@@ -2918,13 +2919,13 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     }
 
     if (!canCreateTagItem(*pSiblingItem)) {
-        REPORT_INFO(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't create tags within the sibling tag"));
+        REPORT_INFO(QT_TR_NOOP("Can't demote the tag: can't create tags within the sibling tag"));
         return QModelIndex();
     }
 
     QModelIndex siblingItemIndex = indexForItem(pSiblingItem);
     if (Q_UNLIKELY(!siblingItemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't demote the tag: can't get the valid model index for the sibling tag"));
+        REPORT_ERROR(QT_TR_NOOP("Can't demote the tag: can't get the valid model index for the sibling tag"));
         return QModelIndex();
     }
 
@@ -2935,8 +2936,8 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
 
     if (Q_UNLIKELY(pTakenItem != pModelItem))
     {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't demote the tag, detected internal inconsistency within the tag model: "
-                                       "the item to take out from its parent doesn't match the original demoted item"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't demote the tag, detected internal inconsistency within the tag model: "
+                                "the item to take out from its parent doesn't match the original demoted item"));
 
         // Reverting the change
         beginInsertRows(parentIndex, row, row);
@@ -2955,8 +2956,8 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     QModelIndex newIndex = index(appropriateRow, Columns::Name, siblingItemIndex);
     if (!newIndex.isValid())
     {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't demote the tag, invalid model index was returned "
-                                       "for the demoted tag item"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't demote the tag, invalid model index was returned "
+                                "for the demoted tag item"));
 
         // Trying to revert both done changes
         beginRemoveRows(siblingItemIndex, appropriateRow, appropriateRow);
@@ -3019,8 +3020,8 @@ QModelIndex TagModel::moveToParent(const QModelIndex & index, const QString & pa
 
     const TagModelItem * pModelItem = itemForId(static_cast<IndexId>(index.internalId()));
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: detected attempt to move the tag item to parent "
-                                       "but the model index has no internal id corresponding to the tag model item"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: detected attempt to move the tag item to parent "
+                                "but the model index has no internal id corresponding to the tag model item"));
         return QModelIndex();
     }
 
@@ -3043,7 +3044,7 @@ QModelIndex TagModel::moveToParent(const QModelIndex & index, const QString & pa
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto tagItemIt = localUidIndex.find(pTagItem->localUid());
     if (Q_UNLIKELY(tagItemIt == localUidIndex.end())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the tag item being moved to another parent"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the tag item being moved to another parent"));
         return QModelIndex();
     }
 
@@ -3066,7 +3067,7 @@ QModelIndex TagModel::moveToParent(const QModelIndex & index, const QString & pa
     }
 
     if (Q_UNLIKELY(newParentItemIt == nameIndex.end())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the parent tag under which the current tag should be moved"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the parent tag under which the current tag should be moved"));
         return QModelIndex();
     }
 
@@ -3102,8 +3103,7 @@ QModelIndex TagModel::moveToParent(const QModelIndex & index, const QString & pa
         }
 
         if (pChildItem == pNewParentItem) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the parent of the tag "
-                                                "to one of its child tags"));
+            ErrorString error(QT_TR_NOOP("Can't set the parent of the tag to one of its child tags"));
             QNINFO(error);
             emit notifyError(error);
             return QModelIndex();
@@ -3138,8 +3138,8 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
 
     const TagModelItem * pModelItem = itemForId(static_cast<IndexId>(index.internalId()));
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: detected attempt to remove the tag model item from its parent "
-                                       "but the model index has no internal id corresponding to any tag model item"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: detected attempt to remove the tag model item from its parent "
+                                "but the model index has no internal id corresponding to any tag model item"));
         return QModelIndex();
     }
 
@@ -3158,7 +3158,7 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(pTagItem->localUid());
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't find the the tag to be removed from its parent within the tag model"));
+        REPORT_ERROR(QT_TR_NOOP("Can't find the the tag to be removed from its parent within the tag model"));
         QNDEBUG("Tag item: " << *pTagItem);
         return QModelIndex();
     }
@@ -3221,27 +3221,27 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
             << parentTagName << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid);
 
     if (tagName.isEmpty()) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag name is empty"));
+        errorDescription.setBase(QT_TR_NOOP("Tag name is empty"));
         return QModelIndex();
     }
 
     int tagNameSize = tagName.size();
 
     if (tagNameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag name size is below the minimal acceptable length"));
+        errorDescription.setBase(QT_TR_NOOP("Tag name size is below the minimal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_TAG_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (tagNameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag name size is above the maximal acceptable length"));
+        errorDescription.setBase(QT_TR_NOOP("Tag name size is above the maximal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_TAG_NAME_LEN_MAX);
         return QModelIndex();
     }
 
     QModelIndex existingItemIndex = indexForTagName(tagName, linkedNotebookGuid);
     if (existingItemIndex.isValid()) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Tag with such name already exists"));
+        errorDescription.setBase(QT_TR_NOOP("Tag with such name already exists"));
         return QModelIndex();
     }
 
@@ -3263,8 +3263,7 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingTags = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingTags + 1 >= m_account.tagCountMax())) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't create a new tag: the account can "
-                                                   "contain a limited number of tags"));
+        errorDescription.setBase(QT_TR_NOOP("Can't create a new tag: the account can contain a limited number of tags"));
         errorDescription.details() = QString::number(m_account.tagCountMax());
         return QModelIndex();
     }
@@ -3758,13 +3757,13 @@ void TagModel::tagFromItem(const TagItem & item, Tag & tag) const
 void TagModel::setTagFavorited(const QModelIndex & index, const bool favorited)
 {
     if (Q_UNLIKELY(!index.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't set favorited flag for the tag: model index is invalid"));
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the tag: model index is invalid"));
         return;
     }
 
     const TagModelItem * pModelItem = itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't set favorited flag for the tag: can't find the model item corresponding to index"));
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the tag: can't find the model item corresponding to index"));
         return;
     }
 
@@ -3789,7 +3788,7 @@ void TagModel::setTagFavorited(const QModelIndex & index, const bool favorited)
 
     auto it = localUidIndex.find(pTagItem->localUid());
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't set favorited flag for the tag: the modified tag entry was not found within the model"));
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the tag: the modified tag entry was not found within the model"));
         return;
     }
 

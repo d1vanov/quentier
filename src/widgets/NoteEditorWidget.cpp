@@ -61,7 +61,7 @@ using quentier::NoteTagsWidget;
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
-        emit notifyError(QT_TRANSLATE_NOOP("", "No note is set to the editor")); \
+        emit notifyError(QT_TRANSLATE_NOOP("NoteEditorWidget", "No note is set to the editor")); \
         return; \
     }
 
@@ -219,7 +219,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
     QNTRACE(QStringLiteral("Found the cached note"));
 
     if (Q_UNLIKELY(!pCachedNote->hasNotebookLocalUid() && !pCachedNote->hasNotebookGuid())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the note to the editor: the note has no linkage to any notebook"));
+        ErrorString error(QT_TR_NOOP("Can't set the note to the editor: the note has no linkage to any notebook"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -423,13 +423,13 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
         int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
 
         if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Failed to convert the editor contents to note"));
+            errorDescription.setBase(QT_TR_NOOP("Failed to convert the editor contents to note"));
             QNWARNING(errorDescription);
             return NoteSaveStatus::Failed;
         }
         else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "The conversion of note editor contents "
-                                                       "to note failed to finish in time"));
+            errorDescription.setBase(QT_TR_NOOP("The conversion of note editor contents "
+                                                "to note failed to finish in time"));
             QNWARNING(errorDescription);
             return NoteSaveStatus::Timeout;
         }
@@ -489,7 +489,7 @@ bool NoteEditorWidget::printNote(ErrorString & errorDescription)
     QNDEBUG(QStringLiteral("NoteEditorWidget::printNote"));
 
     if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't print note: no note is set to the editor"));
+        errorDescription.setBase(QT_TR_NOOP("Can't print note: no note is set to the editor"));
         QNDEBUG(errorDescription);
         return false;
     }
@@ -517,7 +517,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
     QNDEBUG(QStringLiteral("NoteEditorWidget::exportNoteToPdf"));
 
     if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to pdf: no note within the note editor widget"));
+        errorDescription.setBase(QT_TR_NOOP("Can't export note to pdf: no note within the note editor widget"));
         return false;
     }
 
@@ -558,12 +558,12 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         int numSelectedFiles = selectedFiles.size();
 
         if (numSelectedFiles == 0) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "No pdf file was selected to export the note into"));
+            errorDescription.setBase(QT_TR_NOOP("No pdf file was selected to export the note into"));
             return false;
         }
 
         if (numSelectedFiles > 1) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "More than one file were selected as output pdf files"));
+            errorDescription.setBase(QT_TR_NOOP("More than one file were selected as output pdf files"));
             errorDescription.details() = selectedFiles.join(QStringLiteral(", "));
             return false;
         }
@@ -572,12 +572,12 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         if (selectedFileInfo.exists())
         {
             if (Q_UNLIKELY(!selectedFileInfo.isFile())) {
-                errorDescription.setBase(QT_TRANSLATE_NOOP("", "No file to save the pdf into was selected"));
+                errorDescription.setBase(QT_TR_NOOP("No file to save the pdf into was selected"));
                 return false;
             }
 
             if (Q_UNLIKELY(!selectedFileInfo.isWritable())) {
-                errorDescription.setBase(QT_TRANSLATE_NOOP("", "The selected file already exists and it is not writable"));
+                errorDescription.setBase(QT_TR_NOOP("The selected file already exists and it is not writable"));
                 errorDescription.details() = selectedFiles[0];
                 return false;
             }
@@ -632,8 +632,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         if (enexFileInfo.exists())
         {
             if (!enexFileInfo.isWritable()) {
-                errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: the selected file "
-                                                           "already exists and is not writable"));
+                errorDescription.setBase(QT_TR_NOOP("Can't export note to ENEX: the selected file "
+                                                    "already exists and is not writable"));
                 QNWARNING(errorDescription);
                 return false;
             }
@@ -654,8 +654,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
             {
                 bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
                 if (!res) {
-                    errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: failed "
-                                                               "to create folder for the selected file"));
+                    errorDescription.setBase(QT_TR_NOOP("Can't export note to ENEX: failed "
+                                                        "to create folder for the selected file"));
                     QNWARNING(errorDescription);
                     return false;
                 }
@@ -674,8 +674,8 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         QFile enexFile(enexFilePath);
         res = enexFile.open(QIODevice::WriteOnly);
         if (!res) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: can't open "
-                                                       "the target ENEX file for writing"));
+            errorDescription.setBase(QT_TR_NOOP("Can't export note to ENEX: can't open "
+                                                "the target ENEX file for writing"));
             QNWARNING(errorDescription);
             return false;
         }
@@ -685,7 +685,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         enexFile.close();
 
         if (Q_UNLIKELY(bytes != rawEnexData.size())) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Writing the ENEX to a file was not completed successfully"));
+            errorDescription.setBase(QT_TR_NOOP("Writing the ENEX to a file was not completed successfully"));
             errorDescription.details() = QStringLiteral("Bytes written = ") + QString::number(bytes) +
                                          QStringLiteral(" while expected ") + QString::number(rawEnexData.size());
             QNWARNING(errorDescription);
@@ -1100,8 +1100,8 @@ void NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged(int index)
     QVariant data = m_pUi->fontSizeComboBox->itemData(index);
     int fontSize = data.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the change of font size combo box index: "
-                                            "can't convert combo box item data to int"));
+        ErrorString error(QT_TR_NOOP("Can't process the change of font size combo box index: "
+                                     "can't convert combo box item data to int"));
         QNWARNING(error << QStringLiteral(": ") << data);
         emit notifyError(error);
         return;
@@ -1195,7 +1195,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         else
         {
             if (Q_UNLIKELY(!m_pCurrentNote->hasNotebookLocalUid() && !m_pCurrentNote->hasNotebookGuid())) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Note has neither notebook local uid nor notebook guid"));
+                ErrorString error(QT_TR_NOOP("Note has neither notebook local uid nor notebook guid"));
                 if (note.hasTitle()) {
                     error.details() = note.title();
                 }
@@ -1244,7 +1244,7 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
 
     m_pUi->saveNotePushButton->setEnabled(true);
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Failed to save the updated note"));
+    ErrorString error(QT_TR_NOOP("Failed to save the updated note"));
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
@@ -1312,7 +1312,7 @@ void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, 
     if (isFindCurrentNoteRequestId) {
         m_findCurrentNoteRequestId = QUuid();
         clear();
-        emit notifyError(ErrorString(QT_TRANSLATE_NOOP("", "Can't find the note attempted to be selected in the note editor")));
+        emit notifyError(ErrorString(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor")));
         return;
     }
 
@@ -1403,7 +1403,7 @@ void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, ErrorString error
 
     m_findCurrentNotebookRequestId = QUuid();
     clear();
-    emit notifyError(ErrorString(QT_TRANSLATE_NOOP("", "Can't find the note attempted to be selected in the note editor")));
+    emit notifyError(ErrorString(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor")));
 }
 
 void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
@@ -1679,9 +1679,8 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
     if (useLimitedFonts)
     {
         if (Q_UNLIKELY(!m_pLimitedFontsListModel)) {
-            ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't process the change of font: "
-                                                           "internal error, no limited fonts "
-                                                           "list model is set up"));
+            ErrorString errorDescription(QT_TR_NOOP("Can't process the change of font: internal error, no limited fonts "
+                                                    "list model is set up"));
             QNWARNING(errorDescription);
             emit notifyError(errorDescription);
             return;
@@ -1899,7 +1898,7 @@ void NoteEditorWidget::onEditorSpellCheckerNotReady()
     QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorSpellCheckerNotReady"));
 
     m_pendingEditorSpellChecker = true;
-    emit notifyError(ErrorString(QT_TRANSLATE_NOOP("", "Spell checker is loading dictionaries, please wait")));
+    emit notifyError(ErrorString(QT_TR_NOOP("Spell checker is loading dictionaries, please wait")));
 }
 
 void NoteEditorWidget::onEditorSpellCheckerReady()

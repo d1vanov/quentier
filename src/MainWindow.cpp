@@ -655,9 +655,9 @@ void MainWindow::setupInitialChildWidgetsWidths()
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
     if (Q_UNLIKELY(splitterSizesCount != 3)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't setup the proper initial widths "
-                                            "for side panel, note list view and note editors view: "
-                                            "wrong number of sizes within the splitter"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't setup the proper initial widths "
+                                     "for side panel, note list view and note editors view: "
+                                     "wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -1198,9 +1198,9 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
     QList<int> splitterSizes = m_pUI->noteListAndFiltersSplitter->sizes();
     int count = splitterSizes.count();
     if (Q_UNLIKELY(count != 2)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't properly resize "
-                                            "the splitter after folding the filter view: "
-                                            "wrong number of sizes within the splitter"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't properly resize "
+                                     "the splitter after folding the filter view: "
+                                     "wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral("Sizes count: ") << count);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -1390,7 +1390,7 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
     QString result = originalStyleSheet;
 
 #define REPORT_ERROR() \
-    ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't alter the stylesheet: stylesheet parsing failed")); \
+    ErrorString errorDescription(QT_TR_NOOP("Can't alter the stylesheet: stylesheet parsing failed")); \
     QNINFO(errorDescription << QStringLiteral(", original stylesheet: ") \
            << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ") \
            << result << QStringLiteral(", property index = ") \
@@ -1457,12 +1457,7 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
 
             int propertyEndIndex = result.indexOf(QStringLiteral(";"), propertyIndex + 1);
             if (Q_UNLIKELY(propertyEndIndex < 0)) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't alter the stylesheet: stylesheet parsing failed"));
-                QNINFO(error << QStringLiteral(", original stylesheet: ")
-                       << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ")
-                       << result << QStringLiteral(", property index = ")
-                       << propertyIndex);
-                onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+                REPORT_ERROR();
                 return QString();
             }
 
@@ -1818,7 +1813,7 @@ void MainWindow::onImportEnexAction()
     if (enexFilePath.isEmpty())
     {
         if (errorDescription.isEmpty()) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve ENEX file path"));
+            errorDescription.setBase(QT_TR_NOOP("Can't import ENEX: internal error, can't retrieve ENEX file path"));
         }
 
         QNDEBUG(QStringLiteral("Bad ENEX file path: ") << errorDescription);
@@ -1830,7 +1825,7 @@ void MainWindow::onImportEnexAction()
     if (notebookName.isEmpty())
     {
         if (errorDescription.isEmpty()) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, can't retrieve notebook name"));
+            errorDescription.setBase(QT_TR_NOOP("Can't import ENEX: internal error, can't retrieve notebook name"));
         }
 
         QNDEBUG(QStringLiteral("Bad notebook name: ") << errorDescription);
@@ -2068,7 +2063,7 @@ void MainWindow::onNewNotebookCreationRequested()
     QNDEBUG(QStringLiteral("MainWindow::onNewNotebookCreationRequested"));
 
     if (Q_UNLIKELY(!m_pNotebookModel)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new notebook: no notebook model is set up"));
+        ErrorString error(QT_TR_NOOP("Can't create a new notebook: no notebook model is set up"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2099,7 +2094,7 @@ void MainWindow::onNewTagCreationRequested()
     QNDEBUG(QStringLiteral("MainWindow::onNewTagCreationRequested"));
 
     if (Q_UNLIKELY(!m_pTagModel)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new tag: no tag model is set up"));
+        ErrorString error(QT_TR_NOOP("Can't create a new tag: no tag model is set up"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2130,7 +2125,7 @@ void MainWindow::onNewSavedSearchCreationRequested()
     QNDEBUG(QStringLiteral("MainWindow::onNewSavedSearchCreationRequested"));
 
     if (Q_UNLIKELY(!m_pSavedSearchModel)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new saved search: no saved search model is set up"));
+        ErrorString error(QT_TR_NOOP("Can't create a new saved search: no saved search model is set up"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2351,7 +2346,7 @@ void MainWindow::onNoteSortingModeChanged(int index)
         break;
     default:
         {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: got unknown note sorting order, fallback to the default"));
+            ErrorString error(QT_TR_NOOP("Internal error: got unknown note sorting order, fallback to the default"));
             QNWARNING(error << QStringLiteral(", sorting mode index = ") << index);
             onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
 
@@ -2446,8 +2441,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
     QNDEBUG(QStringLiteral("MainWindow::onDeleteCurrentNoteButtonPressed"));
 
     if (Q_UNLIKELY(!m_pNoteModel)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
-                                                       "internal error, no note model"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note: internal error, no note model"));
         QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2455,8 +2449,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
-                                                       "no note editor tabs"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note: no note editor tabs"));
         QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2464,8 +2457,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
 
     bool res = m_pNoteModel->deleteNote(pNoteEditorWidget->noteLocalUid());
     if (Q_UNLIKELY(!res)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't delete current note: "
-                                                       "can't find the note to be deleted"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note: can't find the note to be deleted"));
         QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2478,8 +2470,7 @@ void MainWindow::onCurrentNoteInfoRequested()
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't show note info: "
-                                                       "no note editor tabs"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't show note info: no note editor tabs"));
         QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2494,8 +2485,7 @@ void MainWindow::onCurrentNotePrintRequested()
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't print note: "
-                                                       "no note editor tabs"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't print note: no note editor tabs"));
         QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2520,8 +2510,7 @@ void MainWindow::onCurrentNotePdfExportRequested()
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't export note to pdf: "
-                                                       "no note editor tabs"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't export note to pdf: no note editor tabs"));
         QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2633,8 +2622,8 @@ void MainWindow::onExportedNotesToEnex(QString enex)
 
     EnexExporter * pExporter = qobject_cast<EnexExporter*>(sender());
     if (Q_UNLIKELY(!pExporter)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                            "can't cast the slot invoker to EnexExporter"));
+        ErrorString error(QT_TR_NOOP("Can't export notes to ENEX: internal error, "
+                                     "can't cast the slot invoker to EnexExporter"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2642,8 +2631,8 @@ void MainWindow::onExportedNotesToEnex(QString enex)
 
     QString enexFilePath = pExporter->targetEnexFilePath();
     if (Q_UNLIKELY(enexFilePath.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                            "the selected ENEX file path was lost"));
+        ErrorString error(QT_TR_NOOP("Can't export notes to ENEX: internal error, "
+                                     "the selected ENEX file path was lost"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -2955,7 +2944,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
     QAction * action = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!action)) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Internal error: account switching action is unexpectedly null")));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Internal error: account switching action is unexpectedly null")));
         return;
     }
 
@@ -2963,8 +2952,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     bool conversionResult = false;
     int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Internal error: can't get identification data "
-                                                         "from the account switching action")));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Internal error: can't get identification data "
+                                                  "from the account switching action")));
         return;
     }
 
@@ -2972,8 +2961,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     const int numAvailableAccounts = availableAccounts.size();
 
     if ((index < 0) || (index >= numAvailableAccounts)) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Internal error: wrong index into available accounts "
-                                                         "in account switching action")));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Internal error: wrong index into available accounts "
+                                                  "in account switching action")));
         return;
     }
 
@@ -3206,14 +3195,14 @@ void MainWindow::onSwitchIconsToNativeAction()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToNativeAction"));
 
     if (m_nativeIconThemeName.isEmpty()) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "No native icon theme is available"));
+        ErrorString error(QT_TR_NOOP("No native icon theme is available"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
 
     if (QIcon::themeName() == m_nativeIconThemeName) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the native icon theme"));
+        ErrorString error(QT_TR_NOOP("Already using the native icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -3231,7 +3220,7 @@ void MainWindow::onSwitchIconsToTangoAction()
     QString tango = QStringLiteral("tango");
 
     if (QIcon::themeName() == tango) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Already using tango icon theme"));
+        ErrorString error(QT_TR_NOOP("Already using tango icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -3249,7 +3238,7 @@ void MainWindow::onSwitchIconsToOxygenAction()
     QString oxygen = QStringLiteral("oxygen");
 
     if (QIcon::themeName() == oxygen) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Already using oxygen icon theme"));
+        ErrorString error(QT_TR_NOOP("Already using oxygen icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
@@ -3265,7 +3254,7 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToBuiltIn"));
 
     if (m_currentPanelStyle.isEmpty()) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the built-in panel style"));
+        ErrorString error(QT_TR_NOOP("Already using the built-in panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
@@ -3286,7 +3275,7 @@ void MainWindow::onSwitchPanelStyleToLighter()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToLighter"));
 
     if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the lighter panel style"));
+        ErrorString error(QT_TR_NOOP("Already using the lighter panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
@@ -3309,7 +3298,7 @@ void MainWindow::onSwitchPanelStyleToDarker()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToDarker"));
 
     if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the darker panel style"));
+        ErrorString error(QT_TR_NOOP("Already using the darker panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
@@ -3339,7 +3328,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     m_pendingSwitchToNewEvernoteAccount = false;
 
     if (!expected) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TRANSLATE_NOOP("", "Local storage user was switched without explicit user action")));
+        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Local storage user was switched without explicit user action")));
         // Trying to undo it
         m_pAccountManager->switchAccount(*m_pAccount); // This should trigger the switch in local storage as well
         return;
@@ -4220,14 +4209,14 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
     if (m_synchronizationManagerHost.isEmpty())
     {
         if (Q_UNLIKELY(!m_pAccount)) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't set up the synchronization: no account"));
+            ErrorString error(QT_TR_NOOP("Can't set up the synchronization: no account"));
             QNWARNING(error);
             onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
             return;
         }
 
         if (Q_UNLIKELY(m_pAccount->type() != Account::Type::Evernote)) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't set up the synchronization: non-Evernote account is chosen"));
+            ErrorString error(QT_TR_NOOP("Can't set up the synchronization: non-Evernote account is chosen"));
             QNWARNING(error << QStringLiteral("; account: ") << *m_pAccount);
             onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
             return;
@@ -4235,7 +4224,7 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
 
         m_synchronizationManagerHost = m_pAccount->evernoteHost();
         if (Q_UNLIKELY(m_synchronizationManagerHost.isEmpty())) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't set up the synchronization: no Evernote host within the account"));
+            ErrorString error(QT_TR_NOOP("Can't set up the synchronization: no Evernote host within the account"));
             QNWARNING(error << QStringLiteral("; account: ") << *m_pAccount);
             onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
             return;
@@ -4506,10 +4495,8 @@ bool MainWindow::restoreNoteSortingMode()
     bool conversionResult = false;
     int index = data.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
-                                            "the last used note sorting mode, "
-                                            "can't convert the persisted setting "
-                                            "to the integer index"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't restore the last used note sorting mode, "
+                                     "can't convert the persisted setting to the integer index"));
         QNWARNING(error << QStringLiteral(", persisted data: ") << data);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return false;
@@ -4705,9 +4692,8 @@ void MainWindow::restoreGeometryAndState()
     }
     else
     {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore the widths "
-                                            "for side panel, note list view and note editors view: "
-                                            "wrong number of sizes within the splitter"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't restore the widths for side panel, note list view "
+                                     "and note editors view: wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
     }
@@ -4819,8 +4805,8 @@ void MainWindow::restoreGeometryAndState()
     }
     else
     {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore the heights "
-                                            "of side panel's views: wrong number of sizes within the splitter"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't restore the heights of side panel's views: "
+                                     "wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
     }

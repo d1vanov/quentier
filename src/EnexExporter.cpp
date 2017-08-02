@@ -81,16 +81,14 @@ void EnexExporter::start()
     QNDEBUG(QStringLiteral("EnexExporter::start"));
 
     if (m_noteLocalUids.isEmpty()) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: "
-                                                           "no note local uids were specified"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't export note to ENEX: no note local uids were specified"));
         QNWARNING(errorDescription);
         emit failedToExportNotesToEnex(errorDescription);
         return;
     }
 
     if (m_includeTags && m_pTagModel.isNull()) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: "
-                                                           "the tag model has expited"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't export note to ENEX: the tag model has expired"));
         QNWARNING(errorDescription);
         emit failedToExportNotesToEnex(errorDescription);
         return;
@@ -213,8 +211,7 @@ void EnexExporter::onFindNoteComplete(Note note, bool withResourceBinaryData, QU
     if (m_includeTags)
     {
         if (Q_UNLIKELY(m_pTagModel.isNull())) {
-            ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't export note(s) to ENEX: "
-                                                               "the tag model has expired"));
+            ErrorString errorDescription(QT_TR_NOOP("Can't export note(s) to ENEX: the tag model has expired"));
             QNWARNING(errorDescription);
             clear();
             emit failedToExportNotesToEnex(errorDescription);
@@ -251,8 +248,7 @@ void EnexExporter::onFindNoteFailed(Note note, bool withResourceBinaryData,
 
     Q_UNUSED(withResourceBinaryData)
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Can't export note(s) to ENEX: "
-                                            "can't find one of notes in the local storage"));
+    ErrorString error(QT_TR_NOOP("Can't export note(s) to ENEX: can't find one of notes in the local storage"));
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
@@ -312,13 +308,13 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
     QNDEBUG(QStringLiteral("EnexExporter::convertNotesToEnex"));
 
     if (m_notesByLocalUid.isEmpty()) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: no notes were specified or found"));
+        errorDescription.setBase(QT_TR_NOOP("Can't export notes to ENEX: no notes were specified or found"));
         QNWARNING(errorDescription);
         return QString();
     }
 
     if (m_includeTags && m_pTagModel.isNull()) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: the tag model has expired"));
+        errorDescription.setBase(QT_TR_NOOP("Can't export notes to ENEX: the tag model has expired"));
         QNWARNING(errorDescription);
         return QString();
     }
@@ -338,18 +334,18 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
             {
                 const TagModelItem * pModelItem = m_pTagModel->itemForLocalUid(*tagIt);
                 if (Q_UNLIKELY(!pModelItem)) {
-                    errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                                               "detected note with tag local uid for which no tag "
-                                                               "model item was found"));
+                    errorDescription.setBase(QT_TR_NOOP("Can't export notes to ENEX: internal error, "
+                                                        "detected note with tag local uid for which no tag "
+                                                        "model item was found"));
                     QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << *tagIt
                               << QStringLiteral(", note: ") << currentNote);
                     return QString();
                 }
 
                 if (Q_UNLIKELY(pModelItem->type() != TagModelItem::Type::Tag)) {
-                    errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                                               "detected tag model item corresponding to tag local uid "
-                                                               "but not of a tag type"));
+                    errorDescription.setBase(QT_TR_NOOP("Can't export notes to ENEX: internal error, "
+                                                        "detected tag model item corresponding to tag local uid "
+                                                        "but not of a tag type"));
                     QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << *tagIt
                               << QStringLiteral(", tag model item: ") << *pModelItem << QStringLiteral("\nNote: ")
                               << currentNote);
@@ -358,9 +354,9 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
 
                 const TagItem * pTagItem = pModelItem->tagItem();
                 if (Q_UNLIKELY(!pTagItem)) {
-                    errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                                               "detected tag model item corresponding to tag local uid "
-                                                               "and of a tag type but containing no actual tag item"));
+                    errorDescription.setBase(QT_TR_NOOP("Can't export notes to ENEX: internal error, "
+                                                        "detected tag model item corresponding to tag local uid "
+                                                        "and of a tag type but containing no actual tag item"));
                     QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << *tagIt
                               << QStringLiteral(", tag model item: ") << *pModelItem << QStringLiteral("\nNote: ")
                               << currentNote);

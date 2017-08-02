@@ -200,7 +200,7 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
 
     const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(QSortFilterProxyModel::sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: failed to get the note model from its proxy filter model"));
+        ErrorString error(QT_TR_NOOP("Internal error: failed to get the note model from its proxy filter model"));
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -208,7 +208,7 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
 
     const NoteModelItem * pItem = pNoteModel->itemAtRow(sourceRow);
     if (Q_UNLIKELY(!pItem)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to get get note model item at the specified row"));
+        ErrorString error(QT_TR_NOOP("Failed to get get note model item at the specified row"));
         error.details() = QString::number(sourceRow);
         QNWARNING(error);
         emit notifyError(error);

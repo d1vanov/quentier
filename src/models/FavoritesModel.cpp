@@ -357,8 +357,8 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
                 {
                     auto it = m_lowerCaseNotebookNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseNotebookNames.end()) {
-                        ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the notebook: no two notebooks within the account "
-                                                            "are allowed to have the same name in case-insensitive manner"));
+                        ErrorString error(QT_TR_NOOP("Can't rename the notebook: no two notebooks within the account "
+                                                     "are allowed to have the same name in case-insensitive manner"));
                         error.details() = newDisplayName;
                         QNINFO(error);
                         emit notifyError(error);
@@ -367,7 +367,7 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
 
                     ErrorString errorDescription;
                     if (!Notebook::validateName(newDisplayName, &errorDescription)) {
-                        ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the notebook"));
+                        ErrorString error(QT_TR_NOOP("Can't rename the notebook"));
                         error.appendBase(errorDescription.base());
                         error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
@@ -390,8 +390,8 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
                 {
                     auto it = m_lowerCaseTagNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseTagNames.end()) {
-                        ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the tag: no two tags within the account are allowed "
-                                                            "to have the same name in case-insensitive manner"));
+                        ErrorString error(QT_TR_NOOP("Can't rename the tag: no two tags within the account are allowed "
+                                                     "to have the same name in case-insensitive manner"));
                         QNINFO(error);
                         emit notifyError(error);
                         return false;
@@ -399,7 +399,7 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
 
                     ErrorString errorDescription;
                     if (!Tag::validateName(newDisplayName, &errorDescription)) {
-                        ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the tag"));
+                        ErrorString error(QT_TR_NOOP("Can't rename the tag"));
                         error.appendBase(errorDescription.base());
                         error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
@@ -422,8 +422,8 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
                 {
                     auto it = m_lowerCaseSavedSearchNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseSavedSearchNames.end()) {
-                        ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the saved search: no two saved searches within the account "
-                                                            "are allowed to have the same name in case-insensitive manner"));
+                        ErrorString error(QT_TR_NOOP("Can't rename the saved search: no two saved searches within the account "
+                                                     "are allowed to have the same name in case-insensitive manner"));
                         QNINFO(error);
                         emit notifyError(error);
                         return false;
@@ -431,7 +431,7 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
 
                     ErrorString errorDescription;
                     if (!SavedSearch::validateName(newDisplayName, &errorDescription)) {
-                        ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the saved search"));
+                        ErrorString error(QT_TR_NOOP("Can't rename the saved search"));
                         error.appendBase(errorDescription.base());
                         error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
@@ -487,7 +487,7 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
     }
 
     if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size()))) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Detected attempt to remove more rows than the favorites model contains"));
+        ErrorString error(QT_TR_NOOP("Detected attempt to remove more rows than the favorites model contains"));
         QNINFO(error << QStringLiteral(", row = ") << row << QStringLiteral(", count = ") << count
                << QStringLiteral(", number of favorites model items = ") << m_data.size());
         emit notifyError(error);
@@ -652,8 +652,8 @@ void FavoritesModel::onAllNotesListed()
 
     NoteModel * pNoteModel = qobject_cast<NoteModel*>(sender());
     if (Q_UNLIKELY(!pNoteModel)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: received all notes listed event from some sender "
-                                                       "which is not an instance of NoteModel"));
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: received all notes listed event from some sender "
+                                                "which is not an instance of NoteModel"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -2456,8 +2456,8 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                                            "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                     "to the random access index iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         emit notifyError(error);
         return;
@@ -2578,8 +2578,8 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                                            "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                     "to the random access index iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         emit notifyError(error);
         return;
@@ -2669,8 +2669,8 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                                            "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                     "to the random access index iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         emit notifyError(error);
         return;
@@ -2754,8 +2754,8 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                                            "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                     "to the random access index iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         emit notifyError(error);
         return;
@@ -2950,8 +2950,8 @@ void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, con
             return;
         }
 
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                                            "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                     "to the random access index iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         emit notifyError(error);
     }

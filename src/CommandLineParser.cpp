@@ -96,7 +96,7 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
     }
     catch(const po::error & error)
     {
-        m_errorDescription.setBase(QT_TRANSLATE_NOOP("", "Error parsing the command line arguments"));
+        m_errorDescription.setBase(QT_TRANSLATE_NOOP("CommandLineParser", "Error parsing the command line arguments"));
         m_errorDescription.details() = QString::fromLocal8Bit(error.what());
     }
 }

@@ -19,7 +19,7 @@ void AsyncFileWriter::run()
 
     QFile file(m_filePath);
     if (!file.open(QIODevice::WriteOnly)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "can't open file for writing"));
+        ErrorString error(QT_TR_NOOP("can't open file for writing"));
         error.details() = file.errorString();
         QNWARNING(error);
         emit

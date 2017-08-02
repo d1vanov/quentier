@@ -138,35 +138,35 @@ QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName,
             << QStringLiteral(", search query = ") << searchQuery);
 
     if (savedSearchName.isEmpty()) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search name is empty"));
+        errorDescription.setBase(QT_TR_NOOP("Saved search name is empty"));
         return QModelIndex();
     }
 
     int savedSearchNameSize = savedSearchName.size();
 
     if (savedSearchNameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search name size is below the minimal acceptable length"));
+        errorDescription.setBase(QT_TR_NOOP("Saved search name size is below the minimal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (savedSearchNameSize > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search name size is above the maximal acceptable length"));
+        errorDescription.setBase(QT_TR_NOOP("Saved search name size is above the maximal acceptable length"));
         errorDescription.details() = QString::number(qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX);
         return QModelIndex();
     }
 
     QModelIndex existingItemIndex = indexForSavedSearchName(savedSearchName);
     if (existingItemIndex.isValid()) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Saved search with such name already exists"));
+        errorDescription.setBase(QT_TR_NOOP("Saved search with such name already exists"));
         return QModelIndex();
     }
 
     SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingSavedSearches = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingSavedSearches + 1 >= m_account.savedSearchCountMax())) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't create a new saved search: the account can "
-                                                   "contain a limited number of saved searches"));
+        errorDescription.setBase(QT_TR_NOOP("Can't create a new saved search: the account can "
+                                            "contain a limited number of saved searches"));
         errorDescription.details() = QString::number(m_account.savedSearchCountMax());
         return QModelIndex();
     }
@@ -445,8 +445,8 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
 
             auto nameIt = nameIndex.find(name.toUpper());
             if (nameIt != nameIndex.end()) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the saved search: no two saved searches within the account "
-                                                    "are allowed to have the same name in case-insensitive manner"));
+                ErrorString error(QT_TR_NOOP("Can't rename the saved search: no two saved searches within the account "
+                                             "are allowed to have the same name in case-insensitive manner"));
                 error.details() = name;
                 QNINFO(error);
                 emit notifyError(error);
@@ -455,7 +455,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
 
             ErrorString errorDescription;
             if (!SavedSearch::validateName(name, &errorDescription)) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't rename the saved search"));
+                ErrorString error(QT_TR_NOOP("Can't rename the saved search"));
                 error.appendBase(errorDescription.base());
                 error.appendBase(errorDescription.additionalBases());
                 error.details() = errorDescription.details();
@@ -483,14 +483,14 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     case Columns::Synchronizable:
         {
             if (m_account.type() == Account::Type::Local) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't make the saved search synchronizable within the local account"));
+                ErrorString error(QT_TR_NOOP("Can't make the saved search synchronizable within the local account"));
                 QNINFO(error);
                 emit notifyError(error);
                 return false;
             }
 
             if (item.m_isSynchronizable) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Can't make already synchronizable saved search not synchronizable"));
+                ErrorString error(QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable"));
                 QNINFO(error << QStringLiteral(", already synchronizable saved search item: ") << item);
                 emit notifyError(error);
                 return false;
@@ -525,8 +525,8 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     int numExistingSavedSearches = static_cast<int>(index.size());
     if (Q_UNLIKELY(numExistingSavedSearches + count >= m_account.savedSearchCountMax())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new saved search): the account can contain "
-                                            "a limited number of saved searches"));
+        ErrorString error(QT_TR_NOOP("Can't create a new saved search): the account can contain "
+                                     "a limited number of saved searches"));
         error.details() = QString::number(m_account.savedSearchCountMax());
         QNINFO(error);
         emit notifyError(error);
@@ -571,7 +571,7 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
 
     if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size())))
     {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Detected attempt to remove more rows than the saved search model contains"));
+        ErrorString error(QT_TR_NOOP("Detected attempt to remove more rows than the saved search model contains"));
         QNINFO(error << QStringLiteral(", row = ") << row << QStringLiteral(", count = ") << count
                << QStringLiteral(", number of saved search model items = ") << m_data.size());
         emit notifyError(error);
@@ -584,7 +584,7 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
     {
         SavedSearchDataByIndex::iterator it = index.begin() + row + i;
         if (it->m_isSynchronizable) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't remove the synchronizable saved search"));
+            ErrorString error(QT_TR_NOOP("Can't remove the synchronizable saved search"));
             QNINFO(error << QStringLiteral(", synchronizable note item: ") << *it);
             emit notifyError(error);
             return false;
@@ -890,8 +890,8 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     SavedSearchDataByIndex::iterator indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == index.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                                            "to the random access index iterator within the saved searches model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                     "to the random access index iterator within the saved searches model"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1042,8 +1042,8 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't project the local uid index iterator "
-                                            "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
+                                     "to the random access index iterator within the favorites model"));
         QNWARNING(error);
         emit notifyError(error);
         emit updatedSavedSearch(QModelIndex());
@@ -1052,7 +1052,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     qint64 position = std::distance(rowIndex.begin(), indexIt);
     if (Q_UNLIKELY(position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Too many stored elements to handle for saved searches model"));
+        ErrorString error(QT_TR_NOOP("Too many stored elements to handle for saved searches model"));
         QNWARNING(error);
         emit notifyError(error);
         emit updatedSavedSearch(QModelIndex());

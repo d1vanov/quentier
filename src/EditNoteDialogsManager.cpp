@@ -75,10 +75,10 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinary
 
     ErrorString error;
     if (readOnlyFlag) {
-        error.setBase(QT_TRANSLATE_NOOP("", "Can't edit note: the note to be edited was not found"));
+        error.setBase(QT_TR_NOOP("Can't edit note: the note to be edited was not found"));
     }
     else {
-        error.setBase(QT_TRANSLATE_NOOP("", "Can't show the note info: the note to be edited was not found"));
+        error.setBase(QT_TR_NOOP("Can't show the note info: the note to be edited was not found"));
     }
 
     error.appendBase(errorDescription.base());
@@ -116,7 +116,7 @@ void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources,
               << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
               << QStringLiteral(", error: ") << errorDescription << QStringLiteral("; note: ") << note);
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Note update has failed"));
+    ErrorString error(QT_TR_NOOP("Note update has failed"));
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
@@ -164,7 +164,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool r
 
     QWidget * pWidget = qobject_cast<QWidget*>(parent());
     if (Q_UNLIKELY(!pWidget)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't raise the note editing dialog: no parent widget"));
+        ErrorString error(QT_TR_NOOP("Can't raise the note editing dialog: no parent widget"));
         QNWARNING(error << QStringLiteral(", parent = ") << parent());
         emit notifyError(error);
         return;

@@ -181,7 +181,7 @@ void AddOrEditSavedSearchDialog::onSearchQueryEdited()
     bool res = m_pSearchQuery->setQueryString(searchQuery, parseError);
     if (!res)
     {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't parse search query string"));
+        ErrorString error(QT_TR_NOOP("Can't parse search query string"));
         error.appendBase(parseError.base());
         error.appendBase(parseError.additionalBases());
         error.details() = parseError.details();

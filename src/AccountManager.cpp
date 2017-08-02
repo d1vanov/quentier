@@ -55,7 +55,7 @@ Account AccountManager::currentAccount()
         ErrorString errorDescription;
         pLastUsedAccount = createDefaultAccount(errorDescription);
         if (Q_UNLIKELY(pLastUsedAccount.isNull())) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't initialize the default account"));
+            ErrorString error(QT_TR_NOOP("Can't initialize the default account"));
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
@@ -164,7 +164,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
         }
 
         if (Q_UNLIKELY(availableAccount.name() == name)) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Can't add a local account: another account with the same name already exists"));
+            ErrorString error(QT_TR_NOOP("Can't add a local account: another account with the same name already exists"));
             QNWARNING(error);
             emit notifyError(error);
             return;
@@ -174,7 +174,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
     ErrorString errorDescription;
     QSharedPointer<Account> pNewAccount = createLocalAccount(name, fullName, errorDescription);
     if (Q_UNLIKELY(pNewAccount.isNull())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new local account"));
+        ErrorString error(QT_TR_NOOP("Can't create a new local account"));
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
@@ -192,8 +192,8 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
 
     int index = m_availableAccounts.indexOf(account);
     if (Q_UNLIKELY(index < 0)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't process the change of account's display name, "
-                                            "can't find the account within the list of available ones"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't process the change of account's display name, "
+                                     "can't find the account within the list of available ones"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -207,7 +207,7 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
                                 account.id(), evernoteAccountType,
                                 account.evernoteHost(), account.shardId(), errorDescription);
     if (Q_UNLIKELY(!res)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't save the changed account display name"));
+        ErrorString error(QT_TR_NOOP("Can't save the changed account display name"));
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
@@ -409,7 +409,7 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
     {
         bool res = accountPersistentStorageDir.mkpath(accountPersistentStorageDir.absolutePath());
         if (Q_UNLIKELY(!res)) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't create a directory for the account storage"));
+            errorDescription.setBase(QT_TR_NOOP("Can't create a directory for the account storage"));
             errorDescription.details() = accountPersistentStorageDir.absolutePath();
             QNWARNING(errorDescription);
             return false;
@@ -421,7 +421,7 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("", "Can't open the new account info file for writing"));
+        errorDescription.setBase(QT_TR_NOOP("Can't open the new account info file for writing"));
         errorDescription.details() = accountInfo.fileName();
 
         QString errorString = accountInfo.errorString();
@@ -528,8 +528,8 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
     bool open = accountInfo.open(QIODevice::ReadOnly);
     if (Q_UNLIKELY(!open))
     {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't read the complementary account info: "
-                                                       "can't open file for reading"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't read the complementary account info: "
+                                                "can't open file for reading"));
         errorDescription.details() = accountInfo.fileName();
 
         QString errorString = accountInfo.errorString();
@@ -605,7 +605,7 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
     }
 
     if (reader.hasError()) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't read the entire complementary account info, error reading XML"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't read the entire complementary account info, error reading XML"));
         errorDescription.details() = reader.errorString();
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);

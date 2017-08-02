@@ -84,7 +84,7 @@ void EnexImporter::start()
     if (m_notebookLocalUid.isEmpty())
     {
         if (Q_UNLIKELY(m_notebookName.isEmpty())) {
-            ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't import ENEX: the notebook name is empty"));
+            ErrorString errorDescription(QT_TR_NOOP("Can't import ENEX: the notebook name is empty"));
             QNWARNING(errorDescription);
             emit enexImportFailed(errorDescription);
             return;
@@ -92,7 +92,7 @@ void EnexImporter::start()
 
         ErrorString notebookNameError;
         if (Q_UNLIKELY(!Notebook::validateName(m_notebookName, &notebookNameError))) {
-            ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't import ENEX: the notebook name is invalid"));
+            ErrorString errorDescription(QT_TR_NOOP("Can't import ENEX: the notebook name is invalid"));
             errorDescription.appendBase(notebookNameError.base());
             errorDescription.appendBase(notebookNameError.additionalBases());
             errorDescription.details() = notebookNameError.details();
@@ -124,7 +124,7 @@ void EnexImporter::start()
     QFile enexFile(m_enexFilePath);
     bool res = enexFile.open(QIODevice::ReadOnly);
     if (Q_UNLIKELY(!res)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't import ENEX: can't open enex file for writing"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't import ENEX: can't open enex file for writing"));
         errorDescription.details() = m_enexFilePath;
         QNWARNING(errorDescription);
         emit enexImportFailed(errorDescription);
@@ -228,9 +228,9 @@ void EnexImporter::onAddTagComplete(Tag tag, QUuid requestId)
     Q_UNUSED(m_addTagRequestIdByTagNameBimap.right.erase(it))
 
     if (Q_UNLIKELY(!tag.hasName())) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't import ENEX: internal error, "
-                                                       "could not create a new tag in the local storage: "
-                                                       "the added tag has no name"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't import ENEX: internal error, "
+                                                "could not create a new tag in the local storage: "
+                                                "the added tag has no name"));
         QNWARNING(errorDescription);
         emit enexImportFailed(errorDescription);
         return;
@@ -301,7 +301,7 @@ void EnexImporter::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid r
 
     Q_UNUSED(m_addTagRequestIdByTagNameBimap.right.erase(it))
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Can't import ENEX"));
+    ErrorString error(QT_TR_NOOP("Can't import ENEX"));
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
@@ -375,7 +375,7 @@ void EnexImporter::onAddNotebookFailed(Notebook notebook, ErrorString errorDescr
 
     m_addNotebookRequestId = QUuid();
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Can't import ENEX"));
+    ErrorString error(QT_TR_NOOP("Can't import ENEX"));
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
@@ -388,7 +388,7 @@ void EnexImporter::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
             << QStringLiteral(", notebook: ") << notebook);
 
     if (Q_UNLIKELY(!m_notebookLocalUid.isEmpty() && (notebook.localUid() == m_notebookLocalUid))) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't complete ENEX import: notebook was expunged during the import"));
+        ErrorString error(QT_TR_NOOP("Can't complete ENEX import: notebook was expunged during the import"));
         QNWARNING(error << QStringLiteral(", notebook: ") << notebook);
         clear();
         emit enexImportFailed(error);
@@ -435,7 +435,7 @@ void EnexImporter::onAddNoteFailed(Note note, ErrorString errorDescription, QUui
 
     Q_UNUSED(m_addNoteRequestIds.erase(it))
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Can't import ENEX"));
+    ErrorString error(QT_TR_NOOP("Can't import ENEX"));
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();

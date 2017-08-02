@@ -308,26 +308,26 @@ void NoteListView::onDeleteNoteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete note, "
-                                       "can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't delete note, "
+                                "can't cast the slot invoker to QAction"))
         return;
     }
 
     NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't delete note: wrong model connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't delete note: wrong model connected to the note list view"));
         return;
     }
 
     NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't delete note: can't get the source model from the note filter model connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't delete note: can't get the source model from the note filter model connected to the note list view"));
         return;
     }
 
     bool res = pNoteModel->deleteNote(pAction->data().toString());
     if (!res) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't delete note: can't find the item to be deleted within the model"));
+        REPORT_ERROR(QT_TR_NOOP("Can't delete note: can't find the item to be deleted within the model"));
         return;
     }
 }
@@ -338,15 +338,13 @@ void NoteListView::onEditNoteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't edit note: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't edit note: internal error, can't cast the slot invoker to QAction"));
         return;
     }
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't edit note: internal error, the local uid "
-                                       "of the note to be edited is empty"));
+        REPORT_ERROR(QT_TR_NOOP("Can't edit note: internal error, the local uid of the note to be edited is empty"));
         return;
     }
 
@@ -359,28 +357,28 @@ void NoteListView::onMoveToOtherNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move note to another notebook: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: internal error, "
+                                "can't cast the slot invoker to QAction"));
         return;
     }
 
     QStringList actionData = pAction->data().toStringList();
     if (actionData.isEmpty() || (actionData.size() != 2)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move note to another notebook: internal error, "
-                                       "wrong action data"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: internal error, "
+                                "wrong action data"));
         return;
     }
 
     NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move note to another notebook: wrong model connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: wrong model connected to the note list view"));
         return;
     }
 
     NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move note to another notebook: can't get the source model from the note filter model "
-                                       "connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: can't get the source model "
+                                "from the note filter model connected to the note list view"));
         return;
     }
 
@@ -396,8 +394,8 @@ void NoteListView::onOpenNoteInSeparateWindowAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't open note in a separate window: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't open note in a separate window: internal error, "
+                                "can't cast the slot invoker to QAction"));
         return;
     }
 
@@ -410,21 +408,21 @@ void NoteListView::onUnfavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't unfavorite note: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't unfavorite note: internal error, "
+                                "can't cast the slot invoker to QAction"));
         return;
     }
 
     NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't unfavorite note: wrong model connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't unfavorite note: wrong model connected to the note list view"));
         return;
     }
 
     NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't unfavorite note: can't get the source model from the note filter model "
-                                       "connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't unfavorite note: can't get the source model from the note filter model "
+                                "connected to the note list view"));
         return;
     }
 
@@ -437,21 +435,20 @@ void NoteListView::onFavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't favorite note: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't favorite note: internal error, can't cast the slot invoker to QAction"));
         return;
     }
 
     NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't favorite note: wrong model connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't favorite note: wrong model connected to the note list view"));
         return;
     }
 
     NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't favorite note: can't get the source model from the note filter model "
-                                       "connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't favorite note: can't get the source model from the note filter model "
+                                "connected to the note list view"));
         return;
     }
 
@@ -464,15 +461,13 @@ void NoteListView::onShowNoteInfoAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show note info: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't show note info: internal error, can't cast the slot invoker to QAction"));
         return;
     }
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show note info: internal error, "
-                                       "the local uid of the note to be edited is empty"));
+        REPORT_ERROR(QT_TR_NOOP("Can't show note info: internal error, the local uid of the note to be edited is empty"));
         return;
     }
 
@@ -485,21 +480,21 @@ void NoteListView::onCopyInAppNoteLinkAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't copy in-app note link: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't copy in-app note link: internal error, "
+                                "can't cast the slot invoker to QAction"));
         return;
     }
 
     QStringList noteLocalUidAndGuid = pAction->data().toStringList();
     if (Q_UNLIKELY(noteLocalUidAndGuid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't copy in-app note link: internal error, "
-                                       "no note local uid and guid were passed to the action handler"));
+        REPORT_ERROR(QT_TR_NOOP("Can't copy in-app note link: internal error, "
+                                "no note local uid and guid were passed to the action handler"));
         return;
     }
 
     if (Q_UNLIKELY(noteLocalUidAndGuid.size() != 2)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't copy in-app note link: internal error, "
-                                       "unidentified data received instead of note local uid and guid"));
+        REPORT_ERROR(QT_TR_NOOP("Can't copy in-app note link: internal error, "
+                                "unidentified data received instead of note local uid and guid"));
         return;
     }
 
@@ -514,15 +509,14 @@ void NoteListView::onExportSingleNoteToEnexAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't export note to ENEX: internal error, can't cast the slot invoker to QAction"));
         return;
     }
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: internal error, "
-                                       "the local uid of the note to be exported is empty"));
+        REPORT_ERROR(QT_TR_NOOP("Can't export note to ENEX: internal error, "
+                                "the local uid of the note to be exported is empty"));
         return;
     }
 
@@ -537,15 +531,14 @@ void NoteListView::onExportSeveralNotesToEnexAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export notes to ENEX: internal error, "
-                                       "can't cast the slot invoker to QAction"));
+        REPORT_ERROR(QT_TR_NOOP("Can't export notes to ENEX: internal error, can't cast the slot invoker to QAction"));
         return;
     }
 
     QStringList noteLocalUids = pAction->data().toStringList();
     if (Q_UNLIKELY(noteLocalUids.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't export note to ENEX: internal error, "
-                                       "the list of local uids of notes to be exported is empty"));
+        REPORT_ERROR(QT_TR_NOOP("Can't export note to ENEX: internal error, "
+                                "the list of local uids of notes to be exported is empty"));
         return;
     }
 
@@ -619,20 +612,20 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & glo
 
     const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: wrong model connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't show the note item's context menu: wrong model connected to the note list view"));
         return;
     }
 
     const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: can't get the source model from the note filter model "
-                                       "connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't show the note item's context menu: can't get the source model from the note filter model "
+                                "connected to the note list view"));
         return;
     }
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: can't get the selection model from the view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't show the note item's context menu: can't get the selection model from the view"));
         return;
     }
 
@@ -687,19 +680,19 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
 
     QModelIndex clickedItemIndex = noteFilterModel.mapToSource(clickedFilterModelItemIndex);
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: note item index mapped from the proxy index of note filter model is invalid"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: note item index mapped from the proxy index of note filter model is invalid"));
         return;
     }
 
     const NoteModelItem * pItem = noteModel.itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: no item corresponding to the clicked item's index"));
+        REPORT_ERROR(QT_TR_NOOP("Can't show the note item's context menu: no item corresponding to the clicked item's index"));
         return;
     }
 
     if (!m_pNotebookItemView) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the note item's context menu: no notebook item view is set to the note list view "
-                                       "for notebooks reference"));
+        REPORT_ERROR(QT_TR_NOOP("Can't show the note item's context menu: no notebook item view is set to the note list view "
+                                "for notebooks reference"));
         return;
     }
 
@@ -837,21 +830,21 @@ void NoteListView::currentChanged(const QModelIndex & current,
 
     const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(current.model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: wrong model connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: wrong model connected to the note list view"));
         return;
     }
 
     const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't get the source model from the note filter model "
-                                       "connected to the note list view"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't get the source model from the note filter model "
+                                "connected to the note list view"));
         return;
     }
 
     QModelIndex sourceIndex = pNoteFilterModel->mapToSource(current);
     const NoteModelItem * pItem = pNoteModel->itemForIndex(sourceIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't retrieve the new current note item for note model index"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't retrieve the new current note item for note model index"));
         return;
     }
 
@@ -897,8 +890,8 @@ const NotebookItem * NoteListView::currentNotebookItem()
 
     const NotebookModelItem * pNotebookModelItem = pNotebookModel->itemForIndex(currentNotebookItemIndex);
     if (Q_UNLIKELY(!pNotebookModelItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't find the notebook model item corresponding "
-                                       "to the current item selected in the notebooks view"));
+        REPORT_ERROR(QT_TR_NOOP("Can't find the notebook model item corresponding "
+                                "to the current item selected in the notebooks view"));
         return Q_NULLPTR;
     }
 

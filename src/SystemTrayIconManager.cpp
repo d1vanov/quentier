@@ -76,8 +76,8 @@ void SystemTrayIconManager::show()
     }
 
     if (!isSystemTrayAvailable()) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't show the system tray icon, "
-                                                       "the system tray is said to be unavailable"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't show the system tray icon, "
+                                                "the system tray is said to be unavailable"));
         QNINFO(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -471,8 +471,8 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: account switching "
-                                                       "action is unexpectedly null"));
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: account switching "
+                                                "action is unexpectedly null"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -482,9 +482,8 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
     bool conversionResult = false;
     int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: can't get "
-                                                       "identification data from "
-                                                       "the account switching action"));
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: can't get identification data from "
+                                                "the account switching action"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -494,9 +493,8 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
     const int numAvailableAccounts = availableAccounts.size();
 
     if ((index < 0) || (index >= numAvailableAccounts)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: wrong index "
-                                                       "into available accounts "
-                                                       "in account switching action"));
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: wrong index into available accounts "
+                                                "in account switching action"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -532,8 +530,8 @@ void SystemTrayIconManager::onSwitchTrayIconContextMenuAction(bool checked)
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: tray icon kind switching "
-                                                       "action is unexpectedly null"));
+        ErrorString errorDescription(QT_TR_NOOP("Internal error: tray icon kind switching "
+                                                "action is unexpectedly null"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -664,9 +662,9 @@ void SystemTrayIconManager::setupContextMenu()
     MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
     if (Q_UNLIKELY(!pMainWindow))
     {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't set up the tray icon's context menu: "
-                                                       "internal error, the parent of SystemTrayIconManager "
-                                                       "is not a MainWindow"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't set up the tray icon's context menu: "
+                                                "internal error, the parent of SystemTrayIconManager "
+                                                "is not a MainWindow"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
 
@@ -928,9 +926,8 @@ void SystemTrayIconManager::onShowHideMainWindowContextMenuAction(const bool sho
     MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
     if (Q_UNLIKELY(!pMainWindow))
     {
-        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't show/hide the main window: "
-                                                       "internal error, the parent of SystemTrayIconManager "
-                                                       "is not a MainWindow"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't show/hide the main window: internal error, the parent "
+                                                "of SystemTrayIconManager is not a MainWindow"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;

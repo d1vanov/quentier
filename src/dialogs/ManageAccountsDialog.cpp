@@ -363,14 +363,14 @@ bool ManageAccountsDialog::AccountsModel::setData(const QModelIndex & index,
                 int displayNameSize = displayName.size();
 
                 if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
-                    ErrorString error(QT_TRANSLATE_NOOP("", "Account name length is below the acceptable level"));
+                    ErrorString error(QT_TR_NOOP("Account name length is below the acceptable level"));
                     error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
                     emit badAccountDisplayName(error, row);
                     return false;
                 }
 
                 if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) {
-                    ErrorString error(QT_TRANSLATE_NOOP("", "Account name length is above the acceptable level"));
+                    ErrorString error(QT_TR_NOOP("Account name length is above the acceptable level"));
                     error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
                     emit badAccountDisplayName(error, row);
                     return false;
@@ -379,8 +379,8 @@ bool ManageAccountsDialog::AccountsModel::setData(const QModelIndex & index,
                 QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
                 int matchIndex = regex.indexIn(displayName);
                 if (matchIndex < 0) {
-                    ErrorString error(QT_TRANSLATE_NOOP("", "Account name doesn't match the Evernote's regular expression "
-                                                        "for user names; consider simplifying the entered name"));
+                    ErrorString error(QT_TR_NOOP("Account name doesn't match the Evernote's regular expression "
+                                                 "for user names; consider simplifying the entered name"));
                     error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
                     emit badAccountDisplayName(error, row);
                     return false;

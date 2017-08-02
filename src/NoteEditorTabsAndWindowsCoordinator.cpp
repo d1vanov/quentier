@@ -665,7 +665,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetResolved()
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't resolve the added note editor, cast failed"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't resolve the added note editor, cast failed"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -732,7 +732,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetInvalidated()
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't invalidate the note editor, cast failed"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't invalidate the note editor, cast failed"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -755,7 +755,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteTitleOrPreviewTextChanged(QStrin
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't update the note editor's tab name, cast failed"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't update the note editor's tab name, cast failed"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -789,8 +789,8 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteTitleOrPreviewTextChanged(QStrin
         return;
     }
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't find the note editor which has sent "
-                                        "the title or preview text update"));
+    ErrorString error(QT_TR_NOOP("Internal error: can't find the note editor which has sent "
+                                 "the title or preview text update"));
     QNWARNING(error);
     emit notifyError(error);
 }
@@ -835,7 +835,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(ErrorString errorDes
         return;
     }
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Note editor error"));
+    ErrorString error(QT_TR_NOOP("Note editor error"));
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
@@ -1040,8 +1040,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint
 
     int tabIndex = m_pTabWidget->tabBar()->tabAt(pos);
     if (Q_UNLIKELY(tabIndex < 0)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't show the tab context menu: can't find the tab index "
-                                            "of the target note editor"));
+        ErrorString error(QT_TR_NOOP("Can't show the tab context menu: can't find the tab index "
+                                     "of the target note editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1049,8 +1049,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't show the tab context menu: can't cast the widget "
-                                            "at the clicked tab to note editor"));
+        ErrorString error(QT_TR_NOOP("Can't show the tab context menu: can't cast the widget "
+                                     "at the clicked tab to note editor"));
         QNWARNING(error << QStringLiteral(", tab index = ") << tabIndex);
         emit notifyError(error);
         return;
@@ -1091,8 +1091,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't close the chosen note editor, "
-                                            "can't cast the slot invoker to QAction"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note editor, "
+                                     "can't cast the slot invoker to QAction"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1100,8 +1100,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't close the chosen note editor, "
-                                            "can't get the note local uid corresponding to the editor"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note editor, "
+                                     "can't get the note local uid corresponding to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1121,8 +1121,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
     }
 
     // If we got here, no target note editor widget was found
-    ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't close the chosen note editor, "
-                                        "can't find the editor to be closed by note local uid"));
+    ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note editor, "
+                                 "can't find the editor to be closed by note local uid"));
     QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
     emit notifyError(error);
     return;
@@ -1134,8 +1134,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't save the note within the chosen note editor, "
-                                            "can't cast the slot invoker to QAction"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't save the note within the chosen note editor, "
+                                     "can't cast the slot invoker to QAction"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1143,8 +1143,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't save the note within the chosen note editor, "
-                                            "can't get the note local uid corresponding to the editor"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't save the note within the chosen note editor, "
+                                     "can't get the note local uid corresponding to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1170,7 +1170,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
         NoteEditorWidget::NoteSaveStatus::type res = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
         if (Q_UNLIKELY(res != NoteEditorWidget::NoteSaveStatus::Ok))
         {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Couldn't save the note"));
+            ErrorString error(QT_TR_NOOP("Couldn't save the note"));
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
@@ -1182,8 +1182,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
     }
 
     // If we got here, no target note editor widget was found
-    ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't save the note within the chosen note editor, "
-                                        "can't find the editor to be closed by note local uid"));
+    ErrorString error(QT_TR_NOOP("Internal error: can't save the note within the chosen note editor, "
+                                 "can't find the editor to be closed by note local uid"));
     QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
     emit notifyError(error);
     return;
@@ -1195,8 +1195,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't move the note editor tab to window, "
-                                            "can't cast the slot invoker to QAction"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't move the note editor tab to window, "
+                                     "can't cast the slot invoker to QAction"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1204,8 +1204,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't move the note editor tab to window, "
-                                            "can't get the note local uid corresponding to the editor"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't move the note editor tab to window, "
+                                     "can't get the note local uid corresponding to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1717,7 +1717,7 @@ void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorTabToWindow(const QStrin
         return;
     }
 
-    ErrorString error(QT_TRANSLATE_NOOP("", "Could not find the note editor widget to be moved from tab to window"));
+    ErrorString error(QT_TR_NOOP("Could not find the note editor widget to be moved from tab to window"));
     error.details() = noteLocalUid;
     QNWARNING(error);
     emit notifyError(error);

@@ -231,7 +231,7 @@ void AddAccountDialog::accept()
 
 void AddAccountDialog::showLocalAccountAlreadyExistsMessage()
 {
-    ErrorString message(QT_TRANSLATE_NOOP("", "Account with such username already exists"));
+    ErrorString message(QT_TR_NOOP("Account with such username already exists"));
     QNDEBUG(message);
     m_pUi->statusText->setText(message.localizedString());
     m_pUi->statusText->setHidden(false);

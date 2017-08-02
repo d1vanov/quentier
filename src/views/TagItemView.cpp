@@ -186,7 +186,7 @@ void TagItemView::onAllTagsListed()
 
     TagModel * pTagModel = qobject_cast<TagModel*>(model());
     if (Q_UNLIKELY(!pTagModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't cast the model set to the tag item view to the tag model"))
+        REPORT_ERROR(QT_TR_NOOP("Can't cast the model set to the tag item view to the tag model"))
         return;
     }
 
@@ -261,20 +261,20 @@ void TagItemView::onRenameTagAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename tag, can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't rename tag, can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename tag, can't get tag's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't rename tag, can't get tag's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename tag: the model returned invalid "
-                                       "index for the tag's local uid"));
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't rename tag: the model returned invalid "
+                                "index for the tag's local uid"));
         return;
     }
 
@@ -293,20 +293,20 @@ void TagItemView::onDeleteTagAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete tag, can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't delete tag, can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete tag, can't get tag's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't delete tag, can't get tag's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete tag: the model returned invalid "
-                                       "index for the tag's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't delete tag: the model returned invalid "
+                                "index for the tag's local uid"))
         return;
     }
 
@@ -325,13 +325,13 @@ void TagItemView::onEditTagAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't edit tag, can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't edit tag, can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't promote tag, can't get tag's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't promote tag, can't get tag's local uid from QAction"))
         return;
     }
 
@@ -352,20 +352,20 @@ void TagItemView::onPromoteTagAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't promote tag, can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't promote tag, can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't promote tag, can't get tag's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't promote tag, can't get tag's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't promote tag: the model returned invalid "
-                                       "index for the tag's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't promote tag: the model returned invalid "
+                                "index for the tag's local uid"))
         return;
     }
 
@@ -400,20 +400,20 @@ void TagItemView::onDemoteTagAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't demote tag, can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't demote tag, can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't demote tag, can't get tag's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't demote tag, can't get tag's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't demote tag: the model returned invalid "
-                                       "index for the tag's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't demote tag: the model returned invalid "
+                                "index for the tag's local uid"))
         return;
     }
 
@@ -448,22 +448,22 @@ void TagItemView::onRemoveFromParentTagAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove tag from parent, "
-                                       "can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't remove tag from parent, "
+                                "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove tag from parent, "
-                                       "can't get tag's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't remove tag from parent, "
+                                "can't get tag's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove tag from parent: the model returned invalid "
-                                       "index for the tag's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't remove tag from parent: the model returned invalid "
+                                "index for the tag's local uid"))
         return;
     }
 
@@ -498,16 +498,15 @@ void TagItemView::onMoveTagToParentAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't move tag to parent, "
-                                       "can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't move tag to parent, "
+                                "can't cast the slot invoker to QAction"))
         return;
     }
 
     QStringList itemLocalUidAndParentName = pAction->data().toStringList();
     if (itemLocalUidAndParentName.size() != 2) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't move tag to parent, "
-                                       "can't retrieve the tag local uid and parent name "
-                                       "from QAction data"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't move tag to parent, can't retrieve "
+                                "the tag local uid and parent name from QAction data"))
         return;
     }
 
@@ -515,8 +514,8 @@ void TagItemView::onMoveTagToParentAction()
 
     QModelIndex itemIndex = pTagModel->indexForLocalUid(localUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't move tag to parent, "
-                                       "can't get valid model index for tag's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't move tag to parent, "
+                                "can't get valid model index for tag's local uid"))
         return;
     }
 
@@ -532,7 +531,7 @@ void TagItemView::onMoveTagToParentAction()
     m_trackingSelection = wasTrackingSelection;
 
     if (!movedTagItemIndex.isValid()) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move tag to parent"))
+        REPORT_ERROR(QT_TR_NOOP("Can't move tag to parent"))
         return;
     }
 
@@ -551,7 +550,7 @@ void TagItemView::onDeselectAction()
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't clear the tag selection: no selection model in the view"))
+        REPORT_ERROR(QT_TR_NOOP("Can't clear the tag selection: no selection model in the view"))
         return;
     }
 
@@ -564,8 +563,7 @@ void TagItemView::onFavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't favorite tag, "
-                                       "can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't favorite tag, can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -578,8 +576,7 @@ void TagItemView::onUnfavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't unfavorite tag, "
-                                       "can't cast the slot invoker to QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't unfavorite tag, can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -663,8 +660,8 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const TagModelItem * pModelItem = pTagModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the tag model item: "
-                                       "no item corresponding to the clicked item's index"))
+        REPORT_ERROR(QT_TR_NOOP("Can't show the context menu for the tag model item: "
+                                "no item corresponding to the clicked item's index"))
         return;
     }
 
@@ -675,8 +672,8 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const TagItem * pTagItem = pModelItem->tagItem();
     if (Q_UNLIKELY(!pTagItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the tag model item "
-                                       "as it contains no actual tag item even though it is of a tag type"))
+        REPORT_ERROR(QT_TR_NOOP("Can't show the context menu for the tag model item "
+                                "as it contains no actual tag item even though it is of a tag type"))
         QNWARNING(*pModelItem);
         return;
     }
@@ -829,7 +826,7 @@ void TagItemView::deleteItem(const QModelIndex & itemIndex, TagModel & model)
 
     const TagModelItem * pItem = model.itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the tag model item meant to be deleted"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the tag model item meant to be deleted"))
         return;
     }
 
@@ -963,7 +960,7 @@ void TagItemView::restoreLastSavedSelection(const TagModel & model)
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't restore the last selected tag: no selection model in the view"))
+        REPORT_ERROR(QT_TR_NOOP("Can't restore the last selected tag: no selection model in the view"))
         return;
     }
 
@@ -1025,8 +1022,8 @@ void TagItemView::selectionChangedImpl(const QItemSelection & selected,
 
     const TagModelItem * pModelItem = pTagModel->itemForIndex(sourceIndex);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the tag model item corresponding "
-                                       "to the selected index"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the tag model item corresponding "
+                                "to the selected index"))
         return;
     }
 
@@ -1064,15 +1061,15 @@ void TagItemView::setFavoritedFlag(const QAction & action, const bool favorited)
 
     QString itemLocalUid = action.data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set the favorited flag for the tag, "
-                                       "can't get tag's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag for the tag, "
+                                "can't get tag's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set the favorited flag for the tag, the model "
-                                       "returned invalid index for the tag's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag for the tag, the model "
+                                "returned invalid index for the tag's local uid"))
         return;
     }
 
