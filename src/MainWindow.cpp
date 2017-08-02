@@ -4136,9 +4136,6 @@ void MainWindow::setupAccountSpecificUiElements()
 
     bool isLocal = (m_pAccount->type() == Account::Type::Local);
 
-    m_pUI->sendNotePushButton->setHidden(isLocal);
-    m_pUI->sendNotePushButton->setDisabled(isLocal);
-
     m_pUI->removeNotebookButton->setHidden(!isLocal);
     m_pUI->removeNotebookButton->setDisabled(!isLocal);
 
