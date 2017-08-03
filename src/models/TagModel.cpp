@@ -24,6 +24,7 @@
 #include <QByteArray>
 #include <QMimeData>
 #include <limits>
+#include <vector>
 
 // Limit for the queries to the local storage
 #define TAG_LIST_LIMIT (100)
@@ -655,8 +656,8 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         return false;
     }
 
-    QVector<TagDataByLocalUid::iterator> addedItems;
-    addedItems.reserve(std::max(count, 0));
+    std::vector<TagDataByLocalUid::iterator> addedItems;
+    addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
 
     beginInsertRows(parent, row, row + count - 1);
     for(int i = 0; i < count; ++i)
@@ -684,7 +685,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     {
         emit layoutAboutToBeChanged();
 
-        for(auto it = addedItems.constBegin(), end = addedItems.constEnd(); it != end; ++it)
+        for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it)
         {
             const TagItem & item = *(*it);
             auto tagModelItemIt = m_modelItemsByLocalUid.find(item.localUid());
@@ -696,7 +697,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         emit layoutChanged();
     }
 
-    for(auto it = addedItems.constBegin(), end = addedItems.constEnd(); it != end; ++it) {
+    for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it) {
         updateTagInLocalStorage(*(*it));
     }
 

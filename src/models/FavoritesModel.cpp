@@ -503,6 +503,12 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
     QStringList tagLocalUidsToRemove;
     QStringList savedSearchLocalUidsToRemove;
 
+    // NOTE: just a wild guess about how many items of each kind we can meet
+    notebookLocalUidsToRemove.reserve(count / 4);
+    noteLocalUidsToRemove.reserve(count / 4);
+    tagLocalUidsToRemove.reserve(count / 4);
+    savedSearchLocalUidsToRemove.reserve(count / 4);
+
     for(int i = 0; i < count; ++i)
     {
         auto it = rowIndex.begin() + row + i;
@@ -621,6 +627,7 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
     rowIndex.rearrange(items.begin());
 
     QModelIndexList replacementIndices;
+    replacementIndices.reserve(std::max(localUidsToUpdateWithColumns.size(), 0));
     for(auto it = localUidsToUpdateWithColumns.begin(), end = localUidsToUpdateWithColumns.end(); it != end; ++it)
     {
         const QString & localUid = it->first;

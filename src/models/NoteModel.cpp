@@ -753,6 +753,7 @@ void NoteModel::sort(int column, Qt::SortOrder order)
     index.rearrange(items.begin());
 
     QModelIndexList replacementIndices;
+    replacementIndices.reserve(std::max(localUidsToUpdateWithColumns.size(), 0));
     for(auto it = localUidsToUpdateWithColumns.begin(), end = localUidsToUpdateWithColumns.end(); it != end; ++it)
     {
         const QString & localUid = it->first;
