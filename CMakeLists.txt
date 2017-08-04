@@ -517,9 +517,9 @@ endif()
 
 # install application bundle
 if(WIN32 OR APPLE)
-  set(DEFAULT_CREATE_BUNDLE ON BOOL)
+  set(DEFAULT_CREATE_BUNDLE ON)
 else()
-  set(DEFAULT_CREATE_BUNDLE OFF BOOL)
+  set(DEFAULT_CREATE_BUNDLE OFF)
 endif()
 
 set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
