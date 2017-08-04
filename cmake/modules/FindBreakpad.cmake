@@ -204,7 +204,7 @@ ENDIF()
 # Report results
 IF(BREAKPAD_FOUND)
   IF(NOT BREAKPAD_FIND_QUIETLY)
-    MESSAGE(STATUS "Found Beakpad: headers at ${BREAKPAD_INCLUDE_DIRS}, libraries at ${BREAKPAD_LIBRARIES}, dump_syms at ${BREAKPAD_DUMP_SYMS}, minidump_stackwalk at ${BREAKPAD_STACKWALKER}")
+    MESSAGE(STATUS "Found Breakpad: headers at ${BREAKPAD_INCLUDE_DIRS}, libraries at ${BREAKPAD_LIBRARIES}, dump_syms at ${BREAKPAD_DUMP_SYMS}, minidump_stackwalk at ${BREAKPAD_STACKWALKER}")
   ENDIF()
 ELSE()
   IF(BREAKPAD_FIND_REQUIRED)
