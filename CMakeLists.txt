@@ -516,8 +516,6 @@ if(NOT WIN32 AND NOT APPLE)
 endif()
 
 # install application bundle
-include(QuentierCreateBundle)
-
 if(WIN32 OR APPLE)
   set(DEFAULT_CREATE_BUNDLE ON BOOL)
 else()
@@ -525,6 +523,12 @@ else()
 endif()
 
 set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
+
+if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
+  include(QuentierFindLinuxdeployqt)
+endif()
+
+include(QuentierCreateBundle)
 CreateQuentierBundle()
 
 # list headers/sources and include dirs for cppcheck
