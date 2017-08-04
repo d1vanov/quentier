@@ -199,6 +199,19 @@ function(CreateQuentierBundle)
             execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/MacOS/${PROJECT_NAME})
             " COMPONENT Runtime)
   else()
-    # TODO: call linuxdeployqt twice with all the necessary actions in between
+    install(CODE "
+            message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
+            set(ENV{PATH} ${Qt5Core_DIR}/../../../bin:${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH})
+            set(ENV{LD_LIBRARY_PATH} \"${DIRS}\")
+            #execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}\"
+            #                COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -verbose=0 -bundle-non-qt-libs)
+            set(ARCH \"\")
+            execute_process(COMMAND /bin/uname -m OUTPUT_VARIABLE ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+            message(STATUS \"ARCH = ${ARCH}\")
+            set(ENV{ARCH} \"${ARCH}\")
+            message(STATUS \"ENV{ARCH} = $ENV{ARCH}, creating AppImage\")
+            #execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}\"
+            #                COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -appimage)
+            " COMPONENT Runtime)
   endif()
 endfunction()
