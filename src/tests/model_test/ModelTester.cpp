@@ -10,6 +10,7 @@
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/UidGenerator.h>
+#include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QtTest/QtTest>
 #include <QtGui/QtGui>
@@ -37,6 +38,7 @@ void ModelTester::testSavedSearchModel()
 {
     using namespace quentier;
 
+    QString error;
     int res = -1;
     {
         QTimer timer;
@@ -54,7 +56,7 @@ void ModelTester::testSavedSearchModel()
         EventLoopWithExitStatus loop;
         loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
         loop.connect(&savedSearchModelTestHelper, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&savedSearchModelTestHelper, SIGNAL(failure()), SLOT(exitAsFailure()));
+        loop.connect(&savedSearchModelTestHelper, SIGNAL(failure(ErrorString)), SLOT(exitAsFailureWithErrorString(ErrorString)));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -63,13 +65,15 @@ void ModelTester::testSavedSearchModel()
         timer.start();
         slotInvokingTimer.singleShot(0, &savedSearchModelTestHelper, SLOT(test()));
         res = loop.exec();
+        error = loop.errorDescription().nonLocalizedString();
     }
 
     if (res == -1) {
         QFAIL("Internal error: incorrect return status from saved search model async tester");
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QFAIL("Detected failure during the asynchronous loop processing in saved search model async tester");
+        error.prepend(QStringLiteral("Detected failure during the asynchronous loop processing in saved search model async tester: "));
+        QFAIL(qPrintable(error));
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Saved search model async tester failed to finish in time");
@@ -80,6 +84,7 @@ void ModelTester::testTagModel()
 {
     using namespace quentier;
 
+    QString error;
     int res = -1;
     {
         QTimer timer;
@@ -97,7 +102,7 @@ void ModelTester::testTagModel()
         EventLoopWithExitStatus loop;
         loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
         loop.connect(&tagModelTestHelper, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&tagModelTestHelper, SIGNAL(failure()), SLOT(exitAsFailure()));
+        loop.connect(&tagModelTestHelper, SIGNAL(failure(ErrorString)), SLOT(exitAsFailureWithErrorString(ErrorString)));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -106,13 +111,15 @@ void ModelTester::testTagModel()
         timer.start();
         slotInvokingTimer.singleShot(0, &tagModelTestHelper, SLOT(test()));
         res = loop.exec();
+        error = loop.errorDescription().nonLocalizedString();
     }
 
     if (res == -1) {
         QFAIL("Internal error: incorrect return status from tag model async tester");
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QFAIL("Detected failure during the asynchronous loop processing in tag model async tester");
+        error.prepend(QStringLiteral("Detected failure during the asynchronous loop processing in tag model async tester: "));
+        QFAIL(qPrintable(error));
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Tag model async tester failed to finish in time");
@@ -123,6 +130,7 @@ void ModelTester::testNotebookModel()
 {
     using namespace quentier;
 
+    QString error;
     int res = -1;
     {
         QTimer timer;
@@ -140,7 +148,7 @@ void ModelTester::testNotebookModel()
         EventLoopWithExitStatus loop;
         loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
         loop.connect(&notebookModelTestHelper, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&notebookModelTestHelper, SIGNAL(failure()), SLOT(exitAsFailure()));
+        loop.connect(&notebookModelTestHelper, SIGNAL(failure(ErrorString)), SLOT(exitAsFailureWithErrorString(ErrorString)));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -149,13 +157,15 @@ void ModelTester::testNotebookModel()
         timer.start();
         slotInvokingTimer.singleShot(0, &notebookModelTestHelper, SLOT(test()));
         res = loop.exec();
+        error = loop.errorDescription().nonLocalizedString();
     }
 
     if (res == -1) {
         QFAIL("Internal error: incorrect return status from notebook model async tester");
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QFAIL("Detected failure during the asynchronous loop processing in notebook model async tester");
+        error.prepend(QStringLiteral("Detected failure during the asynchronous loop processing in notebook model async tester: "));
+        QFAIL(qPrintable(error));
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Notebook model async tester failed to finish in time");
@@ -166,6 +176,7 @@ void ModelTester::testNoteModel()
 {
     using namespace quentier;
 
+    QString error;
     int res = -1;
     {
         QTimer timer;
@@ -183,7 +194,7 @@ void ModelTester::testNoteModel()
         EventLoopWithExitStatus loop;
         QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
         QObject::connect(&noteModelTestHelper, QNSIGNAL(NoteModelTestHelper,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-        QObject::connect(&noteModelTestHelper, QNSIGNAL(NoteModelTestHelper,failure), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+        QObject::connect(&noteModelTestHelper, QNSIGNAL(NoteModelTestHelper,failure,ErrorString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithErrorString,ErrorString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -192,13 +203,15 @@ void ModelTester::testNoteModel()
         timer.start();
         slotInvokingTimer.singleShot(0, &noteModelTestHelper, SLOT(launchTest()));
         res = loop.exec();
+        error = loop.errorDescription().nonLocalizedString();
     }
 
     if (res == -1) {
         QFAIL("Internal error: incorrect return status from note model async tester");
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QFAIL("Detected failure during the asynchronous loop processing in note model async tester");
+        error.prepend(QStringLiteral("Detected failure during the asynchronous loop processing in note model async tester: "));
+        QFAIL(qPrintable(error));
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Note model async tester failed to finish in time");
@@ -209,6 +222,7 @@ void ModelTester::testFavoritesModel()
 {
     using namespace quentier;
 
+    QString error;
     int res = -1;
     {
         QTimer timer;
@@ -226,7 +240,7 @@ void ModelTester::testFavoritesModel()
         EventLoopWithExitStatus loop;
         QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
         QObject::connect(&favoritesModelTestHelper, QNSIGNAL(FavoritesModelTestHelper,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-        QObject::connect(&favoritesModelTestHelper, QNSIGNAL(FavoritesModelTestHelper,failure), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+        QObject::connect(&favoritesModelTestHelper, QNSIGNAL(FavoritesModelTestHelper,failure,ErrorString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithErrorString,ErrorString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -235,16 +249,18 @@ void ModelTester::testFavoritesModel()
         timer.start();
         slotInvokingTimer.singleShot(0, &favoritesModelTestHelper, SLOT(launchTest()));
         res = loop.exec();
+        error = loop.errorDescription().nonLocalizedString();
     }
 
     if (res == -1) {
-        QFAIL("Internal error: incorrect return status from note model async tester");
+        QFAIL("Internal error: incorrect return status from favorites model async tester");
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QFAIL("Detected failure during the asynchronous loop processing in note model async tester");
+        error.prepend(QStringLiteral("Detected failure during the asynchronous loop processing in favorites model async tester: "));
+        QFAIL(qPrintable(error));
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        QFAIL("Note model async tester failed to finish in time");
+        QFAIL("Favorites model async tester failed to finish in time");
     }
 }
 
@@ -284,6 +300,7 @@ void ModelTester::testTagModelItemSerialization()
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    quentier::initializeLibquentier();
     ModelTester tester;
     return QTest::qExec(&tester, argc, argv);
 }

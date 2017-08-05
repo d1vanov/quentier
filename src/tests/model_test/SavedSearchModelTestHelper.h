@@ -33,7 +33,7 @@ public:
                                         QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void failure();
+    void failure(ErrorString errorDescription);
     void success();
 
 public Q_SLOTS:
@@ -52,6 +52,7 @@ private Q_SLOTS:
 
 private:
     bool checkSorting(const SavedSearchModel & model) const;
+    void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
     {

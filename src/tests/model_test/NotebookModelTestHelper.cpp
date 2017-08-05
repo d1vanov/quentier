@@ -55,7 +55,17 @@ void NotebookModelTestHelper::test()
 {
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::test"));
 
+    ErrorString errorDescription;
+
     try {
+        LinkedNotebook firstLinkedNotebook;
+        firstLinkedNotebook.setGuid(UidGenerator::Generate());
+        firstLinkedNotebook.setUsername(QStringLiteral("userone"));
+
+        LinkedNotebook secondLinkedNotebook;
+        secondLinkedNotebook.setGuid(UidGenerator::Generate());
+        secondLinkedNotebook.setUsername(QStringLiteral("usertwo"));
+
         Notebook first;
         first.setName(QStringLiteral("First"));
         first.setLocal(true);
@@ -86,7 +96,7 @@ void NotebookModelTestHelper::test()
         fifth.setName(QStringLiteral("Fifth"));
         fifth.setLocal(false);
         fifth.setGuid(UidGenerator::Generate());
-        fifth.setLinkedNotebookGuid(fifth.guid());
+        fifth.setLinkedNotebookGuid(firstLinkedNotebook.guid());
         fifth.setDirty(false);
         fifth.setStack(QStringLiteral("Stack 1"));
 
@@ -107,7 +117,7 @@ void NotebookModelTestHelper::test()
         eighth.setName(QStringLiteral("Eighth"));
         eighth.setLocal(false);
         eighth.setGuid(UidGenerator::Generate());
-        eighth.setLinkedNotebookGuid(eighth.guid());
+        eighth.setLinkedNotebookGuid(secondLinkedNotebook.guid());
         eighth.setDirty(false);
 
         Notebook nineth;
@@ -122,6 +132,9 @@ void NotebookModelTestHelper::test()
         tenth.setGuid(UidGenerator::Generate());
         tenth.setDirty(false);
         tenth.setStack(QStringLiteral("Stack 2"));
+
+        m_pLocalStorageManagerAsync->onAddLinkedNotebookRequest(firstLinkedNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onAddLinkedNotebookRequest(secondLinkedNotebook, QUuid());
 
 #define ADD_NOTEBOOK(notebook) \
         m_pLocalStorageManagerAsync->onAddNotebookRequest(notebook, QUuid())
@@ -720,7 +733,7 @@ void NotebookModelTestHelper::test()
     }
     CATCH_EXCEPTION()
 
-    emit failure();
+    emit failure(errorDescription);
 }
 
 void NotebookModelTestHelper::onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -728,7 +741,7 @@ void NotebookModelTestHelper::onAddNotebookFailed(Notebook notebook, ErrorString
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onAddNotebookFailed: notebook = ") << notebook
             << QStringLiteral("\nError description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NotebookModelTestHelper::onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -736,7 +749,7 @@ void NotebookModelTestHelper::onUpdateNotebookFailed(Notebook notebook, ErrorStr
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onUpdateNotebookFailed: notebook = ") << notebook
             << QStringLiteral("\nError description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NotebookModelTestHelper::onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -744,7 +757,7 @@ void NotebookModelTestHelper::onFindNotebookFailed(Notebook notebook, ErrorStrin
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onFindNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NotebookModelTestHelper::onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
@@ -757,7 +770,7 @@ void NotebookModelTestHelper::onListNotebooksFailed(LocalStorageManager::ListObj
             << orderDirection << QStringLiteral(", linked notebook guid = ") << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid)
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NotebookModelTestHelper::onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -765,7 +778,7 @@ void NotebookModelTestHelper::onExpungeNotebookFailed(Notebook notebook, ErrorSt
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onExpungeNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 bool NotebookModelTestHelper::checkSorting(const NotebookModel & model, const NotebookModelItem * rootItem) const
@@ -806,17 +819,66 @@ bool NotebookModelTestHelper::checkSorting(const NotebookModel & model, const No
     return true;
 }
 
+void NotebookModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescription)
+{
+    SysInfo sysInfo;
+    errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
+    emit failure(errorDescription);
+}
+
 bool NotebookModelTestHelper::LessByName::operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
 {
-    const QString & leftName = ((lhs->type() == NotebookModelItem::Type::Stack) ? lhs->notebookStackItem()->name() : lhs->notebookItem()->name());
-    const QString & rightName = ((rhs->type() == NotebookModelItem::Type::Stack) ? rhs->notebookStackItem()->name() : rhs->notebookItem()->name());
+    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    if ((lhs->type() == NotebookModelItem::Type::LinkedNotebook) &&
+        (rhs->type() != NotebookModelItem::Type::LinkedNotebook))
+    {
+        return false;
+    }
+    else if ((lhs->type() != NotebookModelItem::Type::LinkedNotebook) &&
+             (rhs->type() == NotebookModelItem::Type::LinkedNotebook))
+    {
+        return true;
+    }
+
+    const QString & leftName = (lhs->notebookStackItem()
+                                ? lhs->notebookStackItem()->name()
+                                : (lhs->notebookItem()
+                                   ? lhs->notebookItem()->name()
+                                   : lhs->notebookLinkedNotebookItem()->username()));
+    const QString & rightName = (rhs->notebookStackItem()
+                                 ? rhs->notebookStackItem()->name()
+                                 : (rhs->notebookItem()
+                                    ? rhs->notebookItem()->name()
+                                    : rhs->notebookLinkedNotebookItem()->username()));
+
     return (leftName.localeAwareCompare(rightName) <= 0);
 }
 
 bool NotebookModelTestHelper::GreaterByName::operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
 {
-    const QString & leftName = ((lhs->type() == NotebookModelItem::Type::Stack) ? lhs->notebookStackItem()->name() : lhs->notebookItem()->name());
-    const QString & rightName = ((rhs->type() == NotebookModelItem::Type::Stack) ? rhs->notebookStackItem()->name() : rhs->notebookItem()->name());
+    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    if ((lhs->type() == NotebookModelItem::Type::LinkedNotebook) &&
+        (rhs->type() != NotebookModelItem::Type::LinkedNotebook))
+    {
+        return false;
+    }
+    else if ((lhs->type() != NotebookModelItem::Type::LinkedNotebook) &&
+             (rhs->type() == NotebookModelItem::Type::LinkedNotebook))
+    {
+        return true;
+    }
+
+    const QString & leftName = (lhs->notebookStackItem()
+                                ? lhs->notebookStackItem()->name()
+                                : (lhs->notebookItem()
+                                   ? lhs->notebookItem()->name()
+                                   : lhs->notebookLinkedNotebookItem()->username()));
+    const QString & rightName = (rhs->notebookStackItem()
+                                 ? rhs->notebookStackItem()->name()
+                                 : (rhs->notebookItem()
+                                    ? rhs->notebookItem()->name()
+                                    : rhs->notebookLinkedNotebookItem()->username()));
+
     return (leftName.localeAwareCompare(rightName) > 0);
 }
 

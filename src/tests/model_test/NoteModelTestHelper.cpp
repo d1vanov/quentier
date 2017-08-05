@@ -71,6 +71,8 @@ void NoteModelTestHelper::launchTest()
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::launchTest"));
 
+    ErrorString errorDescription;
+
     try {
         Notebook firstNotebook;
         firstNotebook.setName(QStringLiteral("First notebook"));
@@ -435,7 +437,7 @@ void NoteModelTestHelper::launchTest()
     }
     CATCH_EXCEPTION()
 
-    emit failure();
+    emit failure(errorDescription);
 }
 
 void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
@@ -448,6 +450,8 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
 
     Q_UNUSED(requestId)
     m_expectingNewNoteFromLocalStorage = false;
+
+    ErrorString errorDescription;
 
     try
     {
@@ -478,7 +482,7 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
     }
     CATCH_EXCEPTION()
 
-    emit failure();
+    emit failure(errorDescription);
 }
 
 void NoteModelTestHelper::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
@@ -486,7 +490,7 @@ void NoteModelTestHelper::onAddNoteFailed(Note note, ErrorString errorDescriptio
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onAddNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -500,6 +504,8 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
         QNDEBUG(QStringLiteral("NoteModelTestHelper::onUpdateNoteComplete: note = ") << note);
 
         m_expectingNoteUpdateFromLocalStorage = false;
+
+        ErrorString errorDescription;
 
         try
         {
@@ -535,7 +541,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
         }
         CATCH_EXCEPTION()
 
-        emit failure();
+        emit failure(errorDescription);
     }
     else if (m_expectingNoteDeletionFromLocalStorage)
     {
@@ -543,6 +549,8 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
 
         Q_UNUSED(requestId)
         m_expectingNoteDeletionFromLocalStorage = false;
+
+        ErrorString errorDescription;
 
         try
         {
@@ -572,7 +580,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
         }
         CATCH_EXCEPTION()
 
-        emit failure();
+        emit failure(errorDescription);
     }
 }
 
@@ -584,7 +592,7 @@ void NoteModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bo
             << (updateTags ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId)
@@ -593,7 +601,7 @@ void NoteModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryDat
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
@@ -607,7 +615,7 @@ void NoteModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOpti
             << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
@@ -620,6 +628,8 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
 
     Q_UNUSED(requestId)
     m_expectingNoteExpungeFromLocalStorage = false;
+
+    ErrorString errorDescription;
 
     try
     {
@@ -638,7 +648,7 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
     }
     CATCH_EXCEPTION()
 
-    emit failure();
+    emit failure(errorDescription);
 }
 
 void NoteModelTestHelper::onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
@@ -646,7 +656,7 @@ void NoteModelTestHelper::onExpungeNoteFailed(Note note, ErrorString errorDescri
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onExpungeNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -654,7 +664,7 @@ void NoteModelTestHelper::onAddNotebookFailed(Notebook notebook, ErrorString err
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onAddNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -662,7 +672,7 @@ void NoteModelTestHelper::onUpdateNotebookFailed(Notebook notebook, ErrorString 
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onUpdateNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -670,7 +680,7 @@ void NoteModelTestHelper::onAddTagFailed(Tag tag, ErrorString errorDescription, 
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onAddTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void NoteModelTestHelper::checkSorting(const NoteModel & model)
@@ -788,6 +798,13 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
             FAIL(QStringLiteral("Found mismatched note model items when checking the sorting"));
         }
     }
+}
+
+void NoteModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescription)
+{
+    SysInfo sysInfo;
+    errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
+    emit failure(errorDescription);
 }
 
 bool NoteModelTestHelper::LessByCreationTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
