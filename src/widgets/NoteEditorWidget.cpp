@@ -141,18 +141,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
 }
 
 NoteEditorWidget::~NoteEditorWidget()
-{
-    // The note editor from the UI needs special treatment: it may have queued callbacks which need that object to
-    // continue existing; therefore, letting Qt to delete it when it thinks that should be done
-    NoteEditor * pNoteEditor = m_pUi->noteEditor;
-    m_pUi->noteEditor = Q_NULLPTR;
-
-    pNoteEditor->disconnect(this);
-    pNoteEditor->hide();
-    pNoteEditor->deleteLater();
-
-    delete m_pUi;
-}
+{}
 
 QString NoteEditorWidget::noteLocalUid() const
 {
