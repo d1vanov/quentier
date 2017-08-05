@@ -52,6 +52,8 @@ void SavedSearchModelTestHelper::test()
 {
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::test"));
 
+    ErrorString errorDescription;
+
     try {
         SavedSearch first;
         first.setName(QStringLiteral("First search"));
@@ -334,7 +336,7 @@ void SavedSearchModelTestHelper::test()
     }
     CATCH_EXCEPTION()
 
-    emit failure();
+    emit failure(errorDescription);
 }
 
 void SavedSearchModelTestHelper::onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
@@ -342,7 +344,7 @@ void SavedSearchModelTestHelper::onAddSavedSearchFailed(SavedSearch search, Erro
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onAddSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
@@ -350,7 +352,7 @@ void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, E
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onUpdateSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void SavedSearchModelTestHelper::onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
@@ -358,7 +360,7 @@ void SavedSearchModelTestHelper::onFindSavedSearchFailed(SavedSearch search, Err
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onFindSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void SavedSearchModelTestHelper::onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -372,7 +374,7 @@ void SavedSearchModelTestHelper::onListSavedSearchesFailed(LocalStorageManager::
             << orderDirection << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ")
             << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
@@ -380,7 +382,7 @@ void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(SavedSearch search, 
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onExpungeSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 bool SavedSearchModelTestHelper::checkSorting(const SavedSearchModel & model) const
@@ -404,6 +406,13 @@ bool SavedSearchModelTestHelper::checkSorting(const SavedSearchModel & model) co
     }
 
     return (names == sortedNames);
+}
+
+void SavedSearchModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescription)
+{
+    SysInfo sysInfo;
+    errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
+    emit failure(errorDescription);
 }
 
 bool SavedSearchModelTestHelper::LessByName::operator()(const QString & lhs, const QString & rhs) const

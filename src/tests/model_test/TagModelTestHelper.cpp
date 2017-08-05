@@ -55,6 +55,8 @@ void TagModelTestHelper::test()
 {
     QNDEBUG(QStringLiteral("TagModelTestHelper::test"));
 
+    ErrorString errorDescription;
+
     try {
         Tag first;
         first.setName(QStringLiteral("First"));
@@ -663,7 +665,7 @@ void TagModelTestHelper::test()
     }
     CATCH_EXCEPTION()
 
-    emit failure();
+    emit failure(errorDescription);
 }
 
 void TagModelTestHelper::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -671,7 +673,7 @@ void TagModelTestHelper::onAddTagFailed(Tag tag, ErrorString errorDescription, Q
     QNDEBUG(QStringLiteral("TagModelTestHelper::onAddTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void TagModelTestHelper::onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -679,7 +681,7 @@ void TagModelTestHelper::onUpdateTagFailed(Tag tag, ErrorString errorDescription
     QNDEBUG(QStringLiteral("TagModelTestHelper::onUpdateTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void TagModelTestHelper::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -687,7 +689,7 @@ void TagModelTestHelper::onFindTagFailed(Tag tag, ErrorString errorDescription, 
     QNDEBUG(QStringLiteral("TagModelTestHelper::onFindTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void TagModelTestHelper::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -705,7 +707,7 @@ void TagModelTestHelper::onListTagsFailed(LocalStorageManager::ListObjectsOption
             << QStringLiteral(", value = ") << linkedNotebookGuid << QStringLiteral(", error description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 void TagModelTestHelper::onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -713,7 +715,7 @@ void TagModelTestHelper::onExpungeTagFailed(Tag tag, ErrorString errorDescriptio
     QNDEBUG(QStringLiteral("TagModelTestHelper::onExpungeTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-    emit failure();
+    notifyFailureWithStackTrace(errorDescription);
 }
 
 bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem * rootItem) const
@@ -752,6 +754,13 @@ bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem
     }
 
     return true;
+}
+
+void TagModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescription)
+{
+    SysInfo sysInfo;
+    errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
+    emit failure(errorDescription);
 }
 
 bool TagModelTestHelper::LessByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
