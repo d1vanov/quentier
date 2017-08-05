@@ -1734,7 +1734,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 
     QStringList notebookLocalUidsToRemove;
     QVector<std::pair<QString,QString> > notebookStacksToRemoveWithLinkedNotebookGuids;
-    QStringList notebookStacksToRemove;
+    notebookStacksToRemoveWithLinkedNotebookGuids.reserve(count / 2);   // NOTE: just a wild guess
 
     QString linkedNotebookGuid;
     if ((pParentItem->type() == NotebookModelItem::Type::LinkedNotebook) && pParentItem->notebookLinkedNotebookItem()) {
