@@ -39,6 +39,8 @@
 #include <boost/bimap.hpp>
 #endif
 
+#include <utility>
+
 #define NOTEBOOK_MODEL_MIME_TYPE QStringLiteral("application/x-com.quentier.notebookmodeldatalist")
 #define NOTEBOOK_MODEL_MIME_DATA_MAX_COMPRESSION (9)
 
@@ -493,7 +495,7 @@ private:
 #endif
 
     typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
-    typedef boost::bimap<IndexId, QString> IndexIdToStackBimap;
+    typedef boost::bimap<IndexId, std::pair<QString,QString> > IndexIdToStackAndLinkedNotebookGuidBimap;
     typedef boost::bimap<IndexId, QString> IndexIdToLinkedNotebookGuidBimap;
 
     class RemoveRowsScopeGuard
@@ -544,10 +546,10 @@ private:
 
     LinkedNotebookItems         m_linkedNotebookItems;
 
-    mutable IndexIdToLocalUidBimap              m_indexIdToLocalUidBimap;
-    mutable IndexIdToStackBimap                 m_indexIdToStackBimap;
-    mutable IndexIdToLinkedNotebookGuidBimap    m_indexIdToLinkedNotebookGuidBimap;
-    mutable IndexId                             m_lastFreeIndexId;
+    mutable IndexIdToLocalUidBimap                      m_indexIdToLocalUidBimap;
+    mutable IndexIdToStackAndLinkedNotebookGuidBimap    m_indexIdToStackAndLinkedNotebookGuidBimap;
+    mutable IndexIdToLinkedNotebookGuidBimap            m_indexIdToLinkedNotebookGuidBimap;
+    mutable IndexId                                     m_lastFreeIndexId;
 
     NotebookCache &         m_cache;
 
