@@ -550,9 +550,10 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("Can't get the fake root item in the tag model: getting null pointer instead"));
         }
 
-        res = checkSorting(*model, fakeRootItem);
+        ErrorString errorDescription;
+        res = checkSorting(*model, fakeRootItem, errorDescription);
         if (!res) {
-            FAIL(QStringLiteral("Sorting check failed for the tag model for ascending order"));
+            FAIL(QStringLiteral("Sorting check failed for the tag model for ascending order: ") << errorDescription);
         }
 
         // Set the account to local again to test accounting for tag name reservation in create/remove/create cycles
@@ -560,7 +561,7 @@ void TagModelTestHelper::test()
         model->updateAccount(account);
 
         // Should not be able to create the tag with existing name
-        ErrorString errorDescription;
+        errorDescription.clear();
         QModelIndex thirteenthTagIndex = model->createTag(third.name(), QString(), QString(), errorDescription);
         if (thirteenthTagIndex.isValid()) {
             FAIL(QStringLiteral("Was able to create tag with the same name as the already existing one"));
@@ -606,9 +607,9 @@ void TagModelTestHelper::test()
         // Change the sort order and check the sorting again
         model->sort(TagModel::Columns::Name, Qt::DescendingOrder);
 
-        res = checkSorting(*model, fakeRootItem);
+        res = checkSorting(*model, fakeRootItem, errorDescription);
         if (!res) {
-            FAIL(QStringLiteral("Sorting check failed for the tag model for descending order"));
+            FAIL(QStringLiteral("Sorting check failed for the tag model for descending order: ") << errorDescription);
         }
 
         // After expunging the tag being the parent for other tags, the child tags should not be present within the model as well as the parent one
@@ -718,10 +719,11 @@ void TagModelTestHelper::onExpungeTagFailed(Tag tag, ErrorString errorDescriptio
     notifyFailureWithStackTrace(errorDescription);
 }
 
-bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem * rootItem) const
+bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem * rootItem,
+                                      ErrorString & errorDescription) const
 {
     if (!rootItem) {
-        QNWARNING(QStringLiteral("Found null pointer to tag model item when checking the sorting"));
+        errorDescription.setBase(QStringLiteral("Found null pointer to tag model item when checking the sorting"));
         return false;
     }
 
@@ -740,14 +742,69 @@ bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem
     }
 
     bool res = (children == sortedChildren);
-    if (!res) {
+    if (!res)
+    {
+        errorDescription.setBase(QStringLiteral("The list of child tags is not equal to the list of sorted child tags"));
+
+        errorDescription.details() = QStringLiteral("Child tags: ");
+        for(auto it = children.constBegin(), end = children.constEnd(); it != end; ++it)
+        {
+            const TagModelItem * pTagModelItem = *it;
+            if (!pTagModelItem) {
+                errorDescription.details() += QStringLiteral("<null>; ");
+                continue;
+            }
+
+            if (pTagModelItem->tagItem()) {
+                errorDescription.details() += QStringLiteral("tag: ");
+                errorDescription.details() += pTagModelItem->tagItem()->name();
+                errorDescription.details() += QStringLiteral("; ");
+                continue;
+            }
+
+            if (pTagModelItem->tagLinkedNotebookItem()) {
+                errorDescription.details() += QStringLiteral("linked notebook: ");
+                errorDescription.details() += pTagModelItem->tagLinkedNotebookItem()->username();
+                errorDescription.details() += QStringLiteral("; ");
+                continue;
+            }
+
+            errorDescription.details() += QStringLiteral("<unknown>; ");
+        }
+
+        errorDescription.details() += QStringLiteral("\nSorted child tags: ");
+        for(auto it = sortedChildren.constBegin(), end = sortedChildren.constEnd(); it != end; ++it)
+        {
+            const TagModelItem * pTagModelItem = *it;
+            if (!pTagModelItem) {
+                errorDescription.details() += QStringLiteral("<null>; ");
+                continue;
+            }
+
+            if (pTagModelItem->tagItem()) {
+                errorDescription.details() += QStringLiteral("tag: ");
+                errorDescription.details() += pTagModelItem->tagItem()->name();
+                errorDescription.details() += QStringLiteral("; ");
+                continue;
+            }
+
+            if (pTagModelItem->tagLinkedNotebookItem()) {
+                errorDescription.details() += QStringLiteral("linked notebook: ");
+                errorDescription.details() += pTagModelItem->tagLinkedNotebookItem()->username();
+                errorDescription.details() += QStringLiteral("; ");
+                continue;
+            }
+
+            errorDescription.details() += QStringLiteral("<unknown>; ");
+        }
+
         return false;
     }
 
     for(auto it = children.begin(), end = children.end(); it != end; ++it)
     {
         const TagModelItem * child = *it;
-        res = checkSorting(model, child);
+        res = checkSorting(model, child, errorDescription);
         if (!res) {
             return false;
         }

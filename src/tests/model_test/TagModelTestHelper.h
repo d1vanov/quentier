@@ -53,7 +53,8 @@ private Q_SLOTS:
     void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
 
 private:
-    bool checkSorting(const TagModel & model, const TagModelItem * rootItem) const;
+    bool checkSorting(const TagModel & model, const TagModelItem * rootItem,
+                      ErrorString & errorDescription) const;
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
