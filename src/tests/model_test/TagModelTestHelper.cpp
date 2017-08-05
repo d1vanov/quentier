@@ -765,11 +765,35 @@ void TagModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescriptio
 
 bool TagModelTestHelper::LessByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
 {
+    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    if ((lhs->type() == TagModelItem::Type::LinkedNotebook) &&
+        (rhs->type() != TagModelItem::Type::LinkedNotebook))
+    {
+        return false;
+    }
+    else if ((lhs->type() != TagModelItem::Type::LinkedNotebook) &&
+             (rhs->type() == TagModelItem::Type::LinkedNotebook))
+    {
+        return true;
+    }
+
     return (lhs->tagItem()->name().localeAwareCompare(rhs->tagItem()->name()) <= 0);
 }
 
 bool TagModelTestHelper::GreaterByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
 {
+    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    if ((lhs->type() == TagModelItem::Type::LinkedNotebook) &&
+        (rhs->type() != TagModelItem::Type::LinkedNotebook))
+    {
+        return false;
+    }
+    else if ((lhs->type() != TagModelItem::Type::LinkedNotebook) &&
+             (rhs->type() == TagModelItem::Type::LinkedNotebook))
+    {
+        return true;
+    }
+
     return (lhs->tagItem()->name().localeAwareCompare(rhs->tagItem()->name()) > 0);
 }
 
