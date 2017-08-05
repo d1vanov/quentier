@@ -8,6 +8,10 @@ function(CreateQuentierBundle)
       message(STATUS "Deployment on Linux is only supported with Qt5")
       return()
     endif()
+    set(ARCH "")
+    execute_process(COMMAND /bin/uname -m
+                    OUTPUT_VARIABLE ARCH
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
   elseif((NOT WIN32) AND (NOT APPLE))
     message(STATUS "The application bundle creation is not supported on this platform")
     return()
@@ -203,15 +207,11 @@ function(CreateQuentierBundle)
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
             set(ENV{PATH} ${Qt5Core_DIR}/../../../bin:${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH})
             set(ENV{LD_LIBRARY_PATH} \"${DIRS}\")
-            #execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}\"
-            #                COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -verbose=0 -bundle-non-qt-libs)
-            set(ARCH \"\")
-            execute_process(COMMAND /bin/uname -m OUTPUT_VARIABLE ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
-            message(STATUS \"ARCH = ${ARCH}\")
             set(ENV{ARCH} \"${ARCH}\")
-            message(STATUS \"ENV{ARCH} = $ENV{ARCH}, creating AppImage\")
-            #execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}\"
-            #                COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -appimage)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
+                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -verbose=0 -bundle-non-qt-libs)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
+                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -appimage)
             " COMPONENT Runtime)
   endif()
 endfunction()

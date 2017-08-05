@@ -425,16 +425,33 @@ list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/insert
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 
 # installation settings
-if(NOT CMAKE_INSTALL_LIBDIR)
+
+# install application bundle
+if(WIN32 OR APPLE)
+  set(DEFAULT_CREATE_BUNDLE ON)
+else()
+  set(DEFAULT_CREATE_BUNDLE OFF)
+endif()
+
+set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
+
+# installation directories
+
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/usr")
   set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")
-endif()
-
-if(NOT CMAKE_INSTALL_BINDIR)
   set(CMAKE_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin")
-endif()
-
-if(NOT CMAKE_INSTALL_TRANSLATIONSDIR)
   set(CMAKE_INSTALL_TRANSLATIONSDIR "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/translations")
+else()
+  if(NOT CMAKE_INSTALL_LIBDIR)
+    set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")
+  endif()
+  if(NOT CMAKE_INSTALL_BINDIR)
+    set(CMAKE_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin")
+  endif()
+  if(NOT CMAKE_INSTALL_TRANSLATIONSDIR)
+    set(CMAKE_INSTALL_TRANSLATIONSDIR "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/translations")
+  endif()
 endif()
 
 install(TARGETS ${PROJECT_NAME}
@@ -445,10 +462,10 @@ install(TARGETS ${PROJECT_NAME}
 
 # install translations
 foreach(QM_FILE ${${PROJECT_NAME}_QM_FILES})
-  install(CODE "set(QM_FILE \"${QM_FILE})\")
+  install(CODE "set(QM_FILE \"${QM_FILE}\")
                 if(EXISTS \"${QM_FILE}\")
                   set(CMAKE_INSTALL_TRANSLATIONSDIR \"${CMAKE_INSTALL_TRANSLATIONSDIR}\")
-                  message(STATUS \"Installing: ${QM_FILE}\")
+                  message(STATUS \"Installing translations into: ${CMAKE_INSTALL_TRANSLATIONSDIR}\")
                   file(COPY ${QM_FILE} DESTINATION ${CMAKE_INSTALL_TRANSLATIONSDIR})
                 endif()")
 endforeach()
@@ -514,15 +531,6 @@ if(NOT WIN32 AND NOT APPLE)
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
           RENAME quentier.png)
 endif()
-
-# install application bundle
-if(WIN32 OR APPLE)
-  set(DEFAULT_CREATE_BUNDLE ON)
-else()
-  set(DEFAULT_CREATE_BUNDLE OFF)
-endif()
-
-set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
 
 if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
   include(QuentierFindLinuxdeployqt)
