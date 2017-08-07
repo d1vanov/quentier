@@ -18,6 +18,7 @@
 
 #include "SymbolsUnpacker.h"
 #include "Utility.h"
+#include <PackagingInfo.h>
 #include <QFileInfo>
 #include <QFile>
 #include <QTemporaryFile>
@@ -25,6 +26,7 @@
 #include <QRegExp>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 SymbolsUnpacker::SymbolsUnpacker(const QString & compressedSymbolsFilePath,
                                  const QString & unpackedSymbolsRootPath,
@@ -183,8 +185,17 @@ void SymbolsUnpacker::run()
         return;
     }
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
     symbolsSourceName += QString::fromUtf8(".pdb");
+#else
+    if (symbolsSourceName.contains(QStringLiteral("lib"))) {
+        symbolsSourceName = QString::fromUtf8(QUENTIER_LIBQUENTIER_BINARY_NAME);
+    }
+    else if (QUENTIER_PACKAGED_AS_APP_IMAGE) {
+        // NOTE: when AppImage-packaged quentier crashes, the symbols id of the executable is composed of all-zeros,
+        // presumably due to crashed binary being AppRun, the tiny file
+        symbolsId = QStringLiteral("000000000000000000000000000000000");
+    }
 #endif
 
     QString unpackDirPath = unpackedSymbolsRootPath + QString::fromUtf8("/") +
@@ -224,6 +235,24 @@ void SymbolsUnpacker::run()
         emit finished(/* status = */ false, errorDescription);
         return;
     }
+
+#ifndef _MSC_VER
+    // Need to replace the first line within the uncompressed data to ensure the proper names used
+    int firstLineLength = static_cast<int>(strlen(buf));
+    int uncompressedSymbolsSize = symbolsUncompressedData.size();
+    if (uncompressedSymbolsSize > firstLineLength) {
+        QString replacementFirstLine = QStringLiteral("MODULE ");
+        replacementFirstLine += symbolsFirstLineTokens[1];
+        replacementFirstLine += QStringLiteral(" ");
+        replacementFirstLine += symbolsFirstLineTokens[2];
+        replacementFirstLine += QStringLiteral(" ");
+        replacementFirstLine += symbolsId;
+        replacementFirstLine += QStringLiteral(" ");
+        replacementFirstLine += symbolsSourceName;
+        replacementFirstLine += QStringLiteral("\n");
+        symbolsUncompressedData.replace(0, uncompressedSymbolsSize - firstLineLength, replacementFirstLine.toLocal8Bit());
+    }
+#endif
 
     newSymbolsFile.write(symbolsUncompressedData);
     newSymbolsFile.close();

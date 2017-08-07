@@ -314,6 +314,15 @@ else()
   set(APPLICATION_ICON "")
 endif()
 
+# install application bundle
+if(WIN32 OR APPLE)
+  set(DEFAULT_CREATE_BUNDLE ON)
+else()
+  set(DEFAULT_CREATE_BUNDLE OFF)
+endif()
+
+set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
+
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}
                ${${PROJECT_NAME}_HEADERS}
@@ -425,18 +434,6 @@ list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/insert
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 
 # installation settings
-
-# install application bundle
-if(WIN32 OR APPLE)
-  set(DEFAULT_CREATE_BUNDLE ON)
-else()
-  set(DEFAULT_CREATE_BUNDLE OFF)
-endif()
-
-set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
-
-# installation directories
-
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/usr")
   set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")

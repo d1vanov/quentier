@@ -1,0 +1,37 @@
+/*
+ * Copyright 2017 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef QUENTIER_PACKAGING_INGO_H
+#define QUENTIER_PACKAGING_INGO_H
+
+/**
+ * This file contains automatically generated code including macro definitions
+ * which determine packaging-specific properties of quentier
+ */
+
+/** 
+ * This macro is set to true if quentier was packaged as AppImage on Linux
+ */
+@QUENTIER_PACKAGED_AS_APP_IMAGE@
+
+/**
+ * This macro contains the name of libquentier binary found by CMake
+ */
+@QUENTIER_LIBQUENTIER_BINARY_NAME@
+
+#endif // QUENTIER_PACKAGING_INGO_H

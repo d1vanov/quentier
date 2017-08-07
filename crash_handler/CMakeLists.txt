@@ -56,6 +56,22 @@ else()
   set(APPLICATION_ICON "")
 endif()
 
+# configure packaging info
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
+  set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 1")
+  set(LIBQUENTIER_BINARY_NAME "libqt5quentier.so.0")
+else()
+  set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 0")
+  get_filename_component(LIBQUENTIER_BINARY_NAME "${LIBQUENTIER_LIBRARY_LOCATION}" NAME)
+endif()
+
+set(QUENTIER_LIBQUENTIER_BINARY_NAME "#define QUENTIER_LIBQUENTIER_BINARY_NAME \"${LIBQUENTIER_BINARY_NAME}\"")
+
+configure_file(src/PackagingInfo.h.in
+               ${PROJECT_BINARY_DIR}/PackagingInfo.h @ONLY)
+list(APPEND ${PROJECT_NAME}_HEADERS ${PROJECT_BINARY_DIR}/PackagingInfo.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}
                ${${PROJECT_NAME}_HEADERS}
