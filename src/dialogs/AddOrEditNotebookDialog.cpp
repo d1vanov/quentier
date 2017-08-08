@@ -217,32 +217,38 @@ void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
         return;
     }
 
-    QModelIndex index = m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
-    const NotebookModelItem * pModelItem = m_pNotebookModel->itemForIndex(index);
-    if (Q_UNLIKELY(!pModelItem)) {
-        m_pUi->statusBar->setText(tr("Can't edit notebook: notebook was not found in the model"));
-        m_pUi->statusBar->setHidden(false);
-        m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
-        return;
+    QString linkedNotebookGuid;
+    if (!m_editedNotebookLocalUid.isEmpty())
+    {
+        QModelIndex index = m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
+        const NotebookModelItem * pModelItem = m_pNotebookModel->itemForIndex(index);
+        if (Q_UNLIKELY(!pModelItem)) {
+            m_pUi->statusBar->setText(tr("Can't edit notebook: notebook was not found in the model"));
+            m_pUi->statusBar->setHidden(false);
+            m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+            return;
+        }
+
+        if (Q_UNLIKELY(pModelItem->type() != NotebookModelItem::Type::Notebook)) {
+            m_pUi->statusBar->setText(tr("Can't edit notebook: the edited model item is not a notebook"));
+            m_pUi->statusBar->setHidden(false);
+            m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+            return;
+        }
+
+        const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+        if (Q_UNLIKELY(!pNotebookItem)) {
+            m_pUi->statusBar->setText(tr("Internal error, can't edit notebook: the edited model "
+                                         "item has null pointer to the notebook item"));
+            m_pUi->statusBar->setHidden(false);
+            m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+            return;
+        }
+
+        linkedNotebookGuid = pNotebookItem->linkedNotebookGuid();
     }
 
-    if (Q_UNLIKELY(pModelItem->type() != NotebookModelItem::Type::Notebook)) {
-        m_pUi->statusBar->setText(tr("Can't edit notebook: the edited model item is not a notebook"));
-        m_pUi->statusBar->setHidden(false);
-        m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
-        return;
-    }
-
-    const NotebookItem * pNotebookItem = pModelItem->notebookItem();
-    if (Q_UNLIKELY(!pNotebookItem)) {
-        m_pUi->statusBar->setText(tr("Internal error, can't edit notebook: the edited model "
-                                     "item has null pointer to the notebook item"));
-        m_pUi->statusBar->setHidden(false);
-        m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
-        return;
-    }
-
-    QModelIndex itemIndex = m_pNotebookModel->indexForNotebookName(notebookName, pNotebookItem->linkedNotebookGuid());
+    QModelIndex itemIndex = m_pNotebookModel->indexForNotebookName(notebookName, linkedNotebookGuid);
     if (itemIndex.isValid()) {
         m_pUi->statusBar->setText(tr("The notebook name must be unique in case insensitive manner"));
         m_pUi->statusBar->setHidden(false);
