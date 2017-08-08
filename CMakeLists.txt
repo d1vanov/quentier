@@ -330,6 +330,8 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${${PROJECT_NAME}_FORMS_HEADERS}
                ${${PROJECT_NAME}_RESOURCES_RCC})
 
+get_filename_component(LIBQUENTIER_FILE_NAME "${LIBQUENTIER_LIBRARIES}" NAME)
+
 if(BREAKPAD_FOUND)
   add_subdirectory(crash_handler)
   add_subdirectory(symbols_compressor)
@@ -346,11 +348,11 @@ if(BREAKPAD_FOUND)
   # 2) Generate symbols for the core library
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
-                     COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_LIBRARY_LOCATION} > $<TARGET_FILE_NAME:${LIBQUENTIER_LIBRARIES}>.syms)
+                     COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_LIBRARY_LOCATION} > ${LIBQUENTIER_FILE_NAME}.syms)
 
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
-                     COMMAND ${symbols_compressor} $<TARGET_FILE_NAME:${LIBQUENTIER_LIBRARIES}>.syms)
+                     COMMAND ${symbols_compressor} ${LIBQUENTIER_FILE_NAME}.syms)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
@@ -472,7 +474,7 @@ if(BREAKPAD_FOUND)
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
-  install(FILES ${PROJECT_BINARY_DIR}/$<TARGET_FILE_NAME:${LIBQUENTIER_LIBRARIES}>.syms.compressed
+  install(FILES ${PROJECT_BINARY_DIR}/${LIBQUENTIER_FILE_NAME}.syms.compressed
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 

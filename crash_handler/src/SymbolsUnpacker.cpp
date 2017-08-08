@@ -238,9 +238,8 @@ void SymbolsUnpacker::run()
 
 #ifndef _MSC_VER
     // Need to replace the first line within the uncompressed data to ensure the proper names used
-    int firstLineLength = static_cast<int>(strlen(buf));
-    int uncompressedSymbolsSize = symbolsUncompressedData.size();
-    if (uncompressedSymbolsSize > firstLineLength) {
+    int firstLineBreakIndex = symbolsUncompressedData.indexOf('\n');
+    if (firstLineBreakIndex > 0) {
         QString replacementFirstLine = QStringLiteral("MODULE ");
         replacementFirstLine += symbolsFirstLineTokens[1];
         replacementFirstLine += QStringLiteral(" ");
@@ -250,7 +249,7 @@ void SymbolsUnpacker::run()
         replacementFirstLine += QStringLiteral(" ");
         replacementFirstLine += symbolsSourceName;
         replacementFirstLine += QStringLiteral("\n");
-        symbolsUncompressedData.replace(0, uncompressedSymbolsSize - firstLineLength, replacementFirstLine.toLocal8Bit());
+        symbolsUncompressedData.replace(0, firstLineBreakIndex, replacementFirstLine.toLocal8Bit());
     }
 #endif
 
