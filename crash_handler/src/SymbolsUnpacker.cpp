@@ -188,13 +188,13 @@ void SymbolsUnpacker::run()
 #if defined(_MSC_VER)
     symbolsSourceName += QString::fromUtf8(".pdb");
 #else
-    if (symbolsSourceName.contains(QStringLiteral("lib"))) {
+    if (symbolsSourceName.contains(QString::fromUtf8("lib"))) {
         symbolsSourceName = QString::fromUtf8(QUENTIER_LIBQUENTIER_BINARY_NAME);
     }
     else if (QUENTIER_PACKAGED_AS_APP_IMAGE) {
         // NOTE: when AppImage-packaged quentier crashes, the symbols id of the executable is composed of all-zeros,
         // presumably due to crashed binary being AppRun, the tiny file
-        symbolsId = QStringLiteral("000000000000000000000000000000000");
+        symbolsId = QString::fromUtf8("000000000000000000000000000000000");
     }
 #endif
 
@@ -240,15 +240,15 @@ void SymbolsUnpacker::run()
     // Need to replace the first line within the uncompressed data to ensure the proper names used
     int firstLineBreakIndex = symbolsUncompressedData.indexOf('\n');
     if (firstLineBreakIndex > 0) {
-        QString replacementFirstLine = QStringLiteral("MODULE ");
+        QString replacementFirstLine = QString::fromUtf8("MODULE ");
         replacementFirstLine += symbolsFirstLineTokens[1];
-        replacementFirstLine += QStringLiteral(" ");
+        replacementFirstLine += QString::fromUtf8(" ");
         replacementFirstLine += symbolsFirstLineTokens[2];
-        replacementFirstLine += QStringLiteral(" ");
+        replacementFirstLine += QString::fromUtf8(" ");
         replacementFirstLine += symbolsId;
-        replacementFirstLine += QStringLiteral(" ");
+        replacementFirstLine += QString::fromUtf8(" ");
         replacementFirstLine += symbolsSourceName;
-        replacementFirstLine += QStringLiteral("\n");
+        replacementFirstLine += QString::fromUtf8("\n");
         symbolsUncompressedData.replace(0, firstLineBreakIndex, replacementFirstLine.toLocal8Bit());
     }
 #endif
