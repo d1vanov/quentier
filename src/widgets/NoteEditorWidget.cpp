@@ -851,6 +851,11 @@ void NoteEditorWidget::onEditorTextInsertOrderedListAction()
     m_pUi->noteEditor->insertNumberedList();
 }
 
+void NoteEditorWidget::onEditorTextFormatAsSourceCodeAction()
+{
+    m_pUi->noteEditor->formatSelectionAsSourceCode();
+}
+
 void NoteEditorWidget::onEditorTextEditHyperlinkAction()
 {
     m_pUi->noteEditor->editHyperlinkDialog();
@@ -2282,6 +2287,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
                      this, QNSLOT(NoteEditorWidget,onEditorTextInsertUnorderedListAction));
     QObject::connect(m_pUi->formatListOrderedPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextInsertOrderedListAction));
+    QObject::connect(m_pUi->formatAsSourceCodePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(NoteEditorWidget,onEditorTextFormatAsSourceCodeAction));
     QObject::connect(m_pUi->chooseTextColorToolButton, QNSIGNAL(ColorPickerToolButton,colorSelected,QColor),
                      this, QNSLOT(NoteEditorWidget,onEditorChooseTextColor,QColor));
     QObject::connect(m_pUi->chooseBackgroundColorToolButton, QNSIGNAL(ColorPickerToolButton,colorSelected,QColor),

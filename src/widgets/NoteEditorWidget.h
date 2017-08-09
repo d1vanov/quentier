@@ -303,6 +303,7 @@ public Q_SLOTS:
     void onEditorTextDecreaseIndentationAction();
     void onEditorTextInsertUnorderedListAction();
     void onEditorTextInsertOrderedListAction();
+    void onEditorTextFormatAsSourceCodeAction();
     void onEditorTextInsertTableDialogRequested();
     void onEditorTextEditHyperlinkAction();
     void onEditorTextCopyHyperlinkAction();

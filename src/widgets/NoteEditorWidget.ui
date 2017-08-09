@@ -483,7 +483,8 @@
               </property>
               <property name="icon">
                <iconset theme="format-justify-fill">
-                <normaloff>.</normaloff>.</iconset>
+                <normaloff/>
+               </iconset>
               </property>
               <property name="checkable">
                <bool>true</bool>
@@ -850,6 +851,25 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="formatAsSourceCodePushButton">
+              <property name="minimumSize">
+               <size>
+                <width>26</width>
+                <height>26</height>
+               </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="icon">
+               <iconset theme="text-x-script"/>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="InsertTableToolButton" name="insertTableToolButton">
               <property name="minimumSize">
                <size>
@@ -885,7 +905,8 @@
               </property>
               <property name="icon">
                <iconset theme="document-save">
-                <normaloff>.</normaloff>.</iconset>
+                <normaloff/>
+               </iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -905,7 +926,8 @@
               </property>
               <property name="icon">
                <iconset theme="document-print">
-                <normaloff>.</normaloff>.</iconset>
+                <normaloff/>
+               </iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -925,7 +947,8 @@
               </property>
               <property name="icon">
                <iconset theme="application-pdf">
-                <normaloff>.</normaloff>.</iconset>
+                <normaloff/>
+               </iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -942,7 +965,8 @@
              <widget class="QPushButton" name="exportNoteToEnexPushButton">
               <property name="icon">
                <iconset theme="application-enex">
-                <normaloff>.</normaloff>.</iconset>
+                <normaloff/>
+               </iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
