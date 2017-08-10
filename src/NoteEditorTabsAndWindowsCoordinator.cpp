@@ -592,69 +592,6 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
             scheduleNoteEditorWindowGeometrySave(noteLocalUid);
         }
     }
-    else if (pEvent && (pEvent->type() == QEvent::KeyRelease))
-    {
-        /**
-         * WARNING: it is a very-very dirty hack intended to work around the situation
-         * in which the note editor's backend eats the keyboard shortcut key itself
-         * and doesn't let it properly propagate to the top level widget (MainWindow).
-         *
-         * For simplicity, here the following approach is presented: if we are indeed
-         * dealing with a note editor having a key press containing Ctrl and/or Alt modifiers,
-         * we go to the top level parent (MainWindow), get all its child actions and find the one
-         * matching the key sequence encoded in the event.
-         *
-         * It is extremely ugly and I deeply regret about this but it's the only way
-         * I can make this thing work right now
-         */
-
-        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(pWatched);
-        NoteEditor * pNoteEditor = qobject_cast<NoteEditor*>(pWatched);
-
-        QKeyEvent * pKeyEvent = dynamic_cast<QKeyEvent*>(pEvent);
-        if (pKeyEvent && (pNoteEditorWidget || pNoteEditor))
-        {
-            Qt::KeyboardModifiers modifiers = pKeyEvent->modifiers();
-            if (modifiers.testFlag(Qt::ControlModifier) ||
-                modifiers.testFlag(Qt::AltModifier) ||
-                modifiers.testFlag(Qt::MetaModifier) )
-            {
-                QNTRACE(QStringLiteral("Detected key press event with Ctrl and/or Alt and/or Meta "
-                                       "modifiers, rejecting the event"));
-
-                QObject * pTarget = parent();
-                while(pTarget)
-                {
-                    QObject * pNextParent = pTarget->parent();
-                    if (!pNextParent) {
-                        break;
-                    }
-                    pTarget = pNextParent;
-                }
-
-                if (!pTarget) {
-                    QNDEBUG(QStringLiteral("Wasn't able to find the target for the event "
-                                           "to be re-sent to; allowing the event to proceed "
-                                           "the default path"));
-                    return true;
-                }
-
-                QKeySequence keySequence(pKeyEvent->key() | static_cast<int>(modifiers));
-
-                QList<QAction*> actions = pTarget->findChildren<QAction*>();
-                for(auto it = actions.begin(), end = actions.end(); it != end; ++it)
-                {
-                    QAction * pAction = *it;
-                    if (pAction->shortcut() == keySequence) {
-                        pAction->trigger();
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
-    }
 
     return QObject::eventFilter(pWatched, pEvent);
 }
