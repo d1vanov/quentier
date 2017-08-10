@@ -96,6 +96,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_stringUtils(),
     m_lastSuggestedFontSize(-1),
     m_lastActualFontSize(-1),
+    m_processingFontFamilyUpdateFromEditor(false),
     m_pendingEditorSpellChecker(false),
     m_currentNoteWasExpunged(false),
     m_noteHasBeenModified(false),
@@ -1059,6 +1060,11 @@ void NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged(QString fontFam
 
     m_lastFontComboBoxFontFamily = fontFamily;
 
+    if (m_processingFontFamilyUpdateFromEditor) {
+        m_processingFontFamilyUpdateFromEditor = false;
+        return;
+    }
+
     if (!m_pCurrentNote) {
         QNTRACE(QStringLiteral("No note is set to the editor, nothing to do"));
         return;
@@ -1733,12 +1739,14 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
             m_pLimitedFontsListModel->setStringList(fontNames);
         }
 
+        m_processingFontFamilyUpdateFromEditor = true;
         m_pUi->limitedFontComboBox->setCurrentIndex(index);
         QNTRACE(QStringLiteral("Set limited font combo box index to ") << index
                 << QStringLiteral(" corresponding to font family ") << fontFamily);
     }
     else
     {
+        m_processingFontFamilyUpdateFromEditor = true;
         m_pUi->fontComboBox->setCurrentFont(currentFont);
         QNTRACE(QStringLiteral("Font family from combo box: ") << m_pUi->fontComboBox->currentFont().family()
                 << QStringLiteral(", font family set by QFont's constructor from it: ") << currentFont.family());
