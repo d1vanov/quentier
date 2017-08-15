@@ -332,7 +332,7 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionPrint, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onCurrentNotePrintRequested));
     QObject::connect(m_pUI->ActionQuit, QNSIGNAL(QAction,triggered),
-                     QApplication::instance(), QNSLOT(QCoreApplication,quit));
+                     this, QNSLOT(MainWindow,onQuitAction));
 
     // Edit menu actions
     QObject::connect(m_pUI->ActionFindInsideNote, QNSIGNAL(QAction,triggered),
@@ -2804,7 +2804,7 @@ void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
 void MainWindow::onQuitRequestedFromSystemTrayIcon()
 {
     QNINFO(QStringLiteral("MainWindow::onQuitRequestedFromSystemTrayIcon"));
-    qApp->quit();
+    onQuitAction();
 }
 
 void MainWindow::onAccountSwitchRequestedFromSystemTrayIcon(Account account)
@@ -3570,6 +3570,18 @@ void MainWindow::onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString
 
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = false;
     checkAndLaunchPendingSync();
+}
+
+void MainWindow::onQuitAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onQuitAction"));
+
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        // That would save the modified notes
+        m_pNoteEditorTabsAndWindowsCoordinator->clear();
+    }
+
+    qApp->quit();
 }
 
 void MainWindow::resizeEvent(QResizeEvent * pEvent)

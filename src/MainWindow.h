@@ -289,6 +289,8 @@ private Q_SLOTS:
     void onSynchronizationManagerSetDownloadInkNoteImagesDone(bool flag);
     void onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString path);
 
+    void onQuitAction();
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
