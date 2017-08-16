@@ -89,6 +89,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/EnexImportDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/dialogs/PreferencesDialog.h
+    src/dialogs/shortcut_settings/ShortcutButton.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
@@ -178,6 +179,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/EnexImportDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/dialogs/PreferencesDialog.cpp
+    src/dialogs/shortcut_settings/ShortcutButton.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
