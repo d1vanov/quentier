@@ -4393,7 +4393,7 @@ void MainWindow::setupDefaultShortcuts()
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
-            m_shortcutManager.setDefaultShortcut(key, shortcut, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
+            m_shortcutManager.setDefaultShortcut(key, shortcut, *m_pAccount, QString::fromUtf8("" __VA_ARGS__)); \
         } \
     }
 
@@ -4404,7 +4404,7 @@ void MainWindow::setupDefaultShortcuts()
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
-            m_shortcutManager.setNonStandardDefaultShortcut(QString::fromUtf8(#action), shortcut, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
+            m_shortcutManager.setNonStandardDefaultShortcut(QString::fromUtf8(#action), shortcut, *m_pAccount, QString::fromUtf8("" __VA_ARGS__)); \
         } \
     }
 
@@ -4420,7 +4420,7 @@ void MainWindow::setupUserShortcuts()
 
 #define PROCESS_ACTION_SHORTCUT(action, key, ...) \
     { \
-        QKeySequence shortcut = m_shortcutManager.shortcut(key, *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
+        QKeySequence shortcut = m_shortcutManager.shortcut(key, *m_pAccount, QStringLiteral("" __VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
@@ -4432,7 +4432,7 @@ void MainWindow::setupUserShortcuts()
 
 #define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
     { \
-        QKeySequence shortcut = m_shortcutManager.shortcut(QStringLiteral(#action), *m_pAccount, QStringLiteral("" #__VA_ARGS__)); \
+        QKeySequence shortcut = m_shortcutManager.shortcut(QStringLiteral(#action), *m_pAccount, QStringLiteral("" __VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \

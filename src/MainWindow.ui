@@ -2955,18 +2955,6 @@ border-bottom: 1px solid black;</string>
      <addaction name="ActionAlignRight"/>
      <addaction name="ActionAlignFull"/>
     </widget>
-    <widget class="QMenu" name="menuImage">
-     <property name="title">
-      <string>I&amp;mage</string>
-     </property>
-     <property name="icon">
-      <iconset theme="image-x-generic">
-       <normaloff>.</normaloff>.</iconset>
-     </property>
-     <addaction name="ActionSaveImage"/>
-     <addaction name="ActionRotateClockwise"/>
-     <addaction name="ActionRotateCounterClockwise"/>
-    </widget>
     <widget class="QMenu" name="menuIndentation">
      <property name="locale">
       <locale language="English" country="UnitedStates"/>
@@ -3014,7 +3002,6 @@ border-bottom: 1px solid black;</string>
     <addaction name="separator"/>
     <addaction name="ActionInsertHorizontalLine"/>
     <addaction name="menuTable"/>
-    <addaction name="menuImage"/>
     <addaction name="separator"/>
     <addaction name="menuAlign"/>
     <addaction name="menuList"/>
@@ -3663,33 +3650,6 @@ border-bottom: 1px solid black;</string>
   <action name="ActionRemoveColumn">
    <property name="text">
     <string>R&amp;emove column</string>
-   </property>
-  </action>
-  <action name="ActionSaveImage">
-   <property name="icon">
-    <iconset theme="document-save">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Save</string>
-   </property>
-  </action>
-  <action name="ActionRotateClockwise">
-   <property name="icon">
-    <iconset theme="object-rotate-right">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Rotate clockwise</string>
-   </property>
-  </action>
-  <action name="ActionRotateCounterClockwise">
-   <property name="icon">
-    <iconset theme="object-rotate-left">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Rotate &amp;counterclockwise</string>
    </property>
   </action>
   <action name="ActionAlignLeft">
