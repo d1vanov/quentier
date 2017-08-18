@@ -26,12 +26,14 @@
 #define QUENTIER_DIALOGS_SHORTCUT_SETTINGS_WIDGET_H
 
 #include <quentier/utility/Macros.h>
+#include <quentier/utility/Printable.h>
+#include <quentier/types/Account.h>
 #include <QWidget>
 #include <QList>
 #include <QPointer>
+#include <QHash>
 
 QT_FORWARD_DECLARE_CLASS(QTreeWidgetItem)
-QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace Ui {
 class ShortcutSettingsWidget;
@@ -63,10 +65,10 @@ public:
     ShortcutSettingsWidget(QWidget * parent = Q_NULLPTR);
     virtual ~ShortcutSettingsWidget();
 
-    void initialize(ShortcutManager * pShortcutManager,
-                    const QList<QMenu*> & menusWithActions);
+    void initialize(const Account & currentAccount,
+                    ShortcutManager * pShortcutManager);
     void apply();
-    
+
 private Q_SLOTS:
     void onCurrentActionChanged(QTreeWidgetItem * pCurrentItem);
     void resetToDefault();
@@ -76,15 +78,39 @@ private Q_SLOTS:
     void setKeySequence(const QKeySequence & key);
 
 private:
+    void mapActionNamesToShortcutKeys();
     bool validateShortcutEdit() const;
     bool markCollisions(ShortcutItem * pItem);
+    void setModified(QTreeWidgetItem * pItem, bool modified);
 
     void clear();
 
 private:
     Ui::ShortcutSettingsWidget *    m_pUi;
     QPointer<ShortcutManager>       m_pShortcutManager;
+    Account                         m_currentAccount;
+
     QList<ShortcutItem*>            m_shortcutItems;
+
+    struct ShortcutInfo: public Printable
+    {
+        ShortcutInfo() :
+            m_key(-1),
+            m_nonStandardKey(),
+            m_context()
+        {}
+
+        bool isEmpty() const { return m_key < 0; }
+        void clear() { m_key = -1; m_nonStandardKey.clear(); m_context.clear(); }
+
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+        int         m_key;
+        QString     m_nonStandardKey;
+        QString     m_context;
+    };
+
+    QHash<QString,ShortcutInfo>     m_actionNameToShortcutInfo;
 };
 
 } // namespace quentier
