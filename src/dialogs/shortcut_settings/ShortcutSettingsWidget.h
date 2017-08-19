@@ -43,17 +43,26 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 
-struct ShortcutItem
+class ShortcutItem: public Printable
 {
+public:
     ShortcutItem() :
         m_actionKey(-1),
         m_nonStandardActionKey(),
+        m_actionName(),
+        m_context(),
+        m_isModified(false),
         m_keySequence(),
         m_pTreeWidgetItem(Q_NULLPTR)
     {}
 
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
     int                 m_actionKey;
     QString             m_nonStandardActionKey;
+    QString             m_actionName;
+    QString             m_context;
+    bool                m_isModified;
     QKeySequence        m_keySequence;
     QTreeWidgetItem *   m_pTreeWidgetItem;
 };
@@ -75,42 +84,27 @@ private Q_SLOTS:
     void resetAll();
     void onActionFilterChanged(const QString & filter);
     void showConflicts(const QString &);
-    void setKeySequence(const QKeySequence & key);
+    void setCurrentItemKeySequence(const QKeySequence & key);
 
 private:
-    void mapActionNamesToShortcutKeys();
     bool validateShortcutEdit() const;
-    bool markCollisions(ShortcutItem * pItem);
-    void setModified(QTreeWidgetItem * pItem, bool modified);
 
+    bool markCollisions(ShortcutItem & item);
+    void setModified(QTreeWidgetItem & item, bool modified);
+
+    bool filterColumn(const QString & filter, QTreeWidgetItem & item, int column);
+    bool filterItem(const QString & filter, QTreeWidgetItem & item);
+
+    void applyItem(ShortcutItem * pItem);
     void clear();
+
+    ShortcutItem * shortcutItemFromTreeItem(QTreeWidgetItem * pItem) const;
 
 private:
     Ui::ShortcutSettingsWidget *    m_pUi;
     QPointer<ShortcutManager>       m_pShortcutManager;
     Account                         m_currentAccount;
-
     QList<ShortcutItem*>            m_shortcutItems;
-
-    struct ShortcutInfo: public Printable
-    {
-        ShortcutInfo() :
-            m_key(-1),
-            m_nonStandardKey(),
-            m_context()
-        {}
-
-        bool isEmpty() const { return m_key < 0; }
-        void clear() { m_key = -1; m_nonStandardKey.clear(); m_context.clear(); }
-
-        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
-
-        int         m_key;
-        QString     m_nonStandardKey;
-        QString     m_context;
-    };
-
-    QHash<QString,ShortcutInfo>     m_actionNameToShortcutInfo;
 };
 
 } // namespace quentier
