@@ -245,6 +245,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupDefaultShortcuts();
     setupUserShortcuts();
+    startListeningForShortcutChanges();
 
     addMenuActionsToMainWindow();
 
@@ -3347,6 +3348,10 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     *m_pAccount = account;
     setWindowTitleForAccount(account);
 
+    stopListeningForShortcutChanges();
+    setupUserShortcuts();
+    startListeningForShortcutChanges();
+
     if (m_pAccount->type() == Account::Type::Local)
     {
         clearSynchronizationManager();
@@ -3582,6 +3587,43 @@ void MainWindow::onQuitAction()
     }
 
     qApp->quit();
+}
+
+void MainWindow::onShortcutChanged(int key, QKeySequence shortcut, const Account & account, QString context)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShortcutChanged: key = ") << key << QStringLiteral(", shortcut: ")
+            << shortcut.toString(QKeySequence::PortableText) << QStringLiteral(", context: ")
+            << context << QStringLiteral(", account: ") << account);
+
+    auto it = m_shortcutKeyToAction.find(key);
+    if (it == m_shortcutKeyToAction.end()) {
+        QNDEBUG(QStringLiteral("Haven't found the action corresponding to the shortcut key"));
+        return;
+    }
+
+    QAction * pAction = it.value();
+    pAction->setShortcut(shortcut);
+    QNDEBUG(QStringLiteral("Updated shortcut for action ") << pAction->text()
+            << QStringLiteral(" (") << pAction->objectName() << QStringLiteral(")"));
+}
+
+void MainWindow::onNonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut,
+                                              const Account & account, QString context)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNonStandardShortcutChanged: non-standard key = ")
+            << nonStandardKey << QStringLiteral(", shortcut: ") << shortcut.toString(QKeySequence::PortableText)
+            << QStringLiteral(", context: ") << context << QStringLiteral(", account: ") << account);
+
+    auto it = m_nonStandardShortcutKeyToAction.find(nonStandardKey);
+    if (it == m_nonStandardShortcutKeyToAction.end()) {
+        QNDEBUG(QStringLiteral("Haven't found the action corresponding to the non-standard shortcut key"));
+        return;
+    }
+
+    QAction * pAction = it.value();
+    pAction->setShortcut(shortcut);
+    QNDEBUG(QStringLiteral("Updated shortcut for action ") << pAction->text()
+            << QStringLiteral(" (") << pAction->objectName() << QStringLiteral(")"));
 }
 
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
@@ -4421,24 +4463,42 @@ void MainWindow::setupUserShortcuts()
 #define PROCESS_ACTION_SHORTCUT(action, key, ...) \
     { \
         QKeySequence shortcut = m_shortcutManager.shortcut(key, *m_pAccount, QStringLiteral("" __VA_ARGS__)); \
-        if (shortcut.isEmpty()) { \
+        if (shortcut.isEmpty()) \
+        { \
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
+            auto it = m_shortcutKeyToAction.find(key); \
+            if (it != m_shortcutKeyToAction.end()) { \
+                QAction * pAction = it.value(); \
+                pAction->setShortcut(QKeySequence()); \
+                Q_UNUSED(m_shortcutKeyToAction.erase(it)) \
+            } \
         } \
-        else { \
+        else \
+        { \
             m_pUI->Action##action->setShortcut(shortcut); \
             m_pUI->Action##action->setShortcutContext(Qt::WidgetWithChildrenShortcut); \
+            m_shortcutKeyToAction[key] = m_pUI->Action##action; \
         } \
     }
 
 #define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
     { \
         QKeySequence shortcut = m_shortcutManager.shortcut(QStringLiteral(#action), *m_pAccount, QStringLiteral("" __VA_ARGS__)); \
-        if (shortcut.isEmpty()) { \
+        if (shortcut.isEmpty()) \
+        { \
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
+            auto it = m_nonStandardShortcutKeyToAction.find(QStringLiteral(#action)); \
+            if (it != m_nonStandardShortcutKeyToAction.end()) { \
+                QAction * pAction = it.value(); \
+                pAction->setShortcut(QKeySequence()); \
+                Q_UNUSED(m_nonStandardShortcutKeyToAction.erase(it)) \
+            } \
         } \
-        else { \
+        else \
+        { \
             m_pUI->Action##action->setShortcut(shortcut); \
             m_pUI->Action##action->setShortcutContext(Qt::WidgetWithChildrenShortcut); \
+            m_nonStandardShortcutKeyToAction[QStringLiteral(#action)] = m_pUI->Action##action; \
         } \
     }
 
@@ -4446,6 +4506,26 @@ void MainWindow::setupUserShortcuts()
 
 #undef PROCESS_NON_STANDARD_ACTION_SHORTCUT
 #undef PROCESS_ACTION_SHORTCUT
+}
+
+void MainWindow::startListeningForShortcutChanges()
+{
+    QNDEBUG(QStringLiteral("MainWindow::startListeningForShortcutChanges"));
+
+    QObject::connect(&m_shortcutManager, QNSIGNAL(ShortcutManager,shortcutChanged,int,QKeySequence,Account,QString),
+                     this, QNSLOT(MainWindow,onShortcutChanged,int,QKeySequence,Account,QString));
+    QObject::connect(&m_shortcutManager, QNSIGNAL(ShortcutManager,nonStandardShortcutChanged,QString,QKeySequence,Account,QString),
+                     this, QNSLOT(MainWindow,onNonStandardShortcutChanged,QString,QKeySequence,Account,QString));
+}
+
+void MainWindow::stopListeningForShortcutChanges()
+{
+    QNDEBUG(QStringLiteral("MainWindow::stopListeningForShortcutChanges"));
+
+    QObject::disconnect(&m_shortcutManager, QNSIGNAL(ShortcutManager,shortcutChanged,int,QKeySequence,Account,QString),
+                        this, QNSLOT(MainWindow,onShortcutChanged,int,QKeySequence,Account,QString));
+    QObject::disconnect(&m_shortcutManager, QNSIGNAL(ShortcutManager,nonStandardShortcutChanged,QString,QKeySequence,Account,QString),
+                        this, QNSLOT(MainWindow,onNonStandardShortcutChanged,QString,QKeySequence,Account,QString));
 }
 
 void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & consumerSecret)

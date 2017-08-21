@@ -291,6 +291,10 @@ private Q_SLOTS:
 
     void onQuitAction();
 
+    void onShortcutChanged(int key, QKeySequence shortcut, const Account & account, QString context);
+    void onNonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut,
+                                      const Account & account, QString context);
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
@@ -334,6 +338,8 @@ private:
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
+    void startListeningForShortcutChanges();
+    void stopListeningForShortcutChanges();
 
     void setupConsumerKeyAndSecret(QString & consumerKey, QString & consumerSecret);
 
@@ -530,9 +536,11 @@ private:
 
     QHash<QWidget*, StyleSheetInfo>    m_styleSheetInfo;
 
-    QString                 m_currentPanelStyle;
+    QString                     m_currentPanelStyle;
 
     quentier::ShortcutManager   m_shortcutManager;
+    QHash<int, QAction*>        m_shortcutKeyToAction;
+    QHash<QString, QAction*>    m_nonStandardShortcutKeyToAction;
 
     bool                    m_filtersViewExpanded;
 
