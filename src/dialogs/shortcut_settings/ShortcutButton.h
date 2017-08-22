@@ -47,6 +47,8 @@ protected:
 
 private:
     void updateText();
+
+private Q_SLOTS:
     void handleToggleChange(bool toggleChange);
 
 private:

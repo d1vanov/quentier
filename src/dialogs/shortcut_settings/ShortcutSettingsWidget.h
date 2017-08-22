@@ -79,7 +79,8 @@ public:
     void apply();
 
 private Q_SLOTS:
-    void onCurrentActionChanged(QTreeWidgetItem * pCurrentItem);
+    void onCurrentActionChanged(QTreeWidgetItem * pCurrentItem,
+                                QTreeWidgetItem * pPreviousItem);
     void resetToDefault();
     void resetAll();
     void onActionFilterChanged(const QString & filter);
@@ -97,6 +98,8 @@ private:
 
     void applyItem(ShortcutItem * pItem);
     void clear();
+
+    void warnOfConflicts();
 
     ShortcutItem * shortcutItemFromTreeItem(QTreeWidgetItem * pItem) const;
 
