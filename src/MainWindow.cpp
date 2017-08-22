@@ -2292,6 +2292,7 @@ void MainWindow::onShowSettingsDialogAction()
     QNDEBUG(QStringLiteral("MainWindow::onShowSettingsDialogAction"));
 
     QScopedPointer<PreferencesDialog> pPreferencesDialog(new PreferencesDialog(*m_pAccountManager,
+                                                                               m_shortcutManager,
                                                                                *m_pSystemTrayIconManager,
                                                                                this));
     pPreferencesDialog->setWindowModality(Qt::WindowModal);

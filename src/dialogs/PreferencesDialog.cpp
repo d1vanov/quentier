@@ -1,11 +1,16 @@
 #include "PreferencesDialog.h"
+
+#include <dialogs/shortcut_settings/ShortcutSettingsWidget.h>
+using quentier::ShortcutSettingsWidget;
 #include "ui_PreferencesDialog.h"
+
 #include "../AccountManager.h"
 #include "../SystemTrayIconManager.h"
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/ShortcutManager.h>
 #include <QStringListModel>
 #include <QFileInfo>
 #include <QDir>
@@ -15,6 +20,7 @@ namespace quentier {
 QString trayActionToString(SystemTrayIconManager::TrayAction action);
 
 PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
+                                     ShortcutManager & shortcutManager,
                                      SystemTrayIconManager & systemTrayIconManager,
                                      QWidget *parent) :
     QDialog(parent),
@@ -35,7 +41,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_pUi->minimizeToTrayCheckBox->setHidden(true);
 #endif
 
-    setupCurrentSettingsState();
+    setupCurrentSettingsState(shortcutManager);
     createConnections();
 }
 
@@ -241,7 +247,7 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
     emit synchronizationDownloadInkNoteImagesOptionChanged(checked);
 }
 
-void PreferencesDialog::setupCurrentSettingsState()
+void PreferencesDialog::setupCurrentSettingsState(ShortcutManager & shortcutManager)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
 
@@ -379,6 +385,9 @@ void PreferencesDialog::setupCurrentSettingsState()
     appSettings.endGroup();
     m_pUi->downloadNoteThumbnailsCheckBox->setChecked(downloadNoteThumbnails);
     m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
+
+    // 5) Shortcuts tab
+    m_pUi->shortcutSettingsWidget->initialize(currentAccount, &shortcutManager);
 }
 
 void PreferencesDialog::createConnections()

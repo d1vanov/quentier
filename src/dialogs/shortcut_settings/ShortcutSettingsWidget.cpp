@@ -119,6 +119,8 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
 #endif
                 QStringLiteral("</html></body>"));
 
+    m_pUi->warningLabel->hide();
+
     QObject::connect(m_pUi->resetAllPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(ShortcutSettingsWidget,resetAll));
     QObject::connect(m_pUi->resetPushButton, QNSIGNAL(QPushButton,clicked),
@@ -160,19 +162,19 @@ void ShortcutSettingsWidget::initialize(const Account & account, ShortcutManager
         ShortcutItem * pShortcutItem = new ShortcutItem; \
         m_shortcutItems << pShortcutItem; \
         pShortcutItem->m_actionKey = key; \
-        pShortcutItem->m_actionName = QStringLiteral(#action); \
-        pShortcutItem->m_context = QStringLiteral("" __VA_ARGS__); \
-        QNTRACE(QStringLiteral("Action name " #action " corresponds to shortcut item: ") << *pShortcutItem); \
+        pShortcutItem->m_actionName = QString::fromUtf8(#action); \
+        pShortcutItem->m_context = QString::fromUtf8("" __VA_ARGS__); \
+        QNTRACE(QString::fromUtf8("Action name " #action " corresponds to shortcut item: ") << *pShortcutItem); \
     }
 
 #define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, context) \
     { \
         ShortcutItem * pShortcutItem = new ShortcutItem; \
         m_shortcutItems << pShortcutItem; \
-        pShortcutItem->m_nonStandardActionKey = QStringLiteral(#action); \
-        pShortcutItem->m_actionName = QStringLiteral(#action); \
-        pShortcutItem->m_context = QStringLiteral(#context); \
-        QNTRACE(QStringLiteral("Action name " #action " corresponds to shortcut item: ") << *pShortcutItem); \
+        pShortcutItem->m_nonStandardActionKey = QString::fromUtf8(#action); \
+        pShortcutItem->m_actionName = pShortcutItem->m_nonStandardActionKey; \
+        pShortcutItem->m_context = QString::fromUtf8(context); \
+        QNTRACE(QString::fromUtf8("Action name " #action " corresponds to shortcut item: ") << *pShortcutItem); \
     }
 
 #include "../../ActionShortcuts.inl"
@@ -251,6 +253,7 @@ void ShortcutSettingsWidget::onCurrentActionChanged(QTreeWidgetItem * pCurrentIt
     if (!pShortcutItem) {
         m_pUi->keySequenceLineEdit->clear();
         m_pUi->warningLabel->clear();
+        m_pUi->warningLabel->hide();
         m_pUi->shortcutGroupBox->setEnabled(false);
         return;
     }
@@ -273,7 +276,7 @@ void ShortcutSettingsWidget::resetToDefault()
 
     pShortcutItem->m_isModified = false;
 
-    if (Q_UNLIKELY(!m_pShortcutManager.isNull())) {
+    if (Q_UNLIKELY(m_pShortcutManager.isNull())) {
         QNWARNING(QStringLiteral("Can't reset the shortcut to the default one: shortcut manager is expired"));
         return;
     }
@@ -383,6 +386,7 @@ bool ShortcutSettingsWidget::validateShortcutEdit() const
     QNDEBUG(QStringLiteral("ShortcutSettingsWidget::validateShortcutEdit"));
 
     m_pUi->warningLabel->clear();
+    m_pUi->warningLabel->hide();
 
     QTreeWidgetItem * pCurrentItem = m_pUi->actionsTreeWidget->currentItem();
     ShortcutItem * pShortcutItem = shortcutItemFromTreeItem(pCurrentItem);
@@ -416,11 +420,13 @@ bool ShortcutSettingsWidget::validateShortcutEdit() const
         valid = !nonConstThis->markCollisions(*pShortcutItem);
         if (!valid) {
             m_pUi->warningLabel->setText(tr("Key sequence has potential conflicts. <a href=\"#conflicts\">Show.</a>"));
+            m_pUi->warningLabel->show();
         }
     }
     else
     {
         m_pUi->warningLabel->setText(tr("Invalid key sequence."));
+        m_pUi->warningLabel->show();
     }
 
     return valid;
@@ -441,12 +447,16 @@ bool ShortcutSettingsWidget::markCollisions(ShortcutItem & item)
                 continue;
             }
 
+            if (Q_UNLIKELY(pCurrentItem == &item)) {
+                continue;
+            }
+
             if (Q_UNLIKELY(!pCurrentItem->m_pTreeWidgetItem)) {
                 QNWARNING(QStringLiteral("Skipping ShortcutItem with null pointer to QTreeWidgetItem"));
                 continue;
             }
 
-            if (!pCurrentItem->m_keySequence.isEmpty() && (pCurrentItem->m_keySequence != item.m_keySequence)) {
+            if (!pCurrentItem->m_keySequence.isEmpty() && (pCurrentItem->m_keySequence == item.m_keySequence)) {
                 QNDEBUG(QStringLiteral("Found item with conflicting shortcut: ") << pCurrentItem->m_pTreeWidgetItem->text(0));
                 pCurrentItem->m_pTreeWidgetItem->setForeground(1, Qt::red);
                 hasCollision = true;
