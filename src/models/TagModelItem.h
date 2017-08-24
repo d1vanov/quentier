@@ -22,6 +22,7 @@
 #include "TagItem.h"
 #include "TagLinkedNotebookRootItem.h"
 #include <QDataStream>
+#include <QtAlgorithms>
 
 namespace quentier {
 
@@ -66,6 +67,12 @@ public:
     void addChild(const TagModelItem * item) const;
     bool swapChildren(const int sourceRow, const int destRow) const;
     const TagModelItem * takeChild(const int row) const;
+
+    template <typename Comparator>
+    void sortChildren(Comparator comparator) const
+    {
+        qSort(m_children.begin(), m_children.end(), comparator);
+    }
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

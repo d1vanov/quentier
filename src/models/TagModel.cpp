@@ -912,17 +912,39 @@ void TagModel::sort(int column, Qt::SortOrder order)
         return;
     }
 
+    if (Q_UNLIKELY(!m_fakeRootItem)) {
+        QNDEBUG(QStringLiteral("No fake root item, nothing to sort"));
+        return;
+    }
+
     m_sortOrder = order;
     emit sortingChanged();
 
     emit layoutAboutToBeChanged();
 
-    for(auto it = m_modelItemsByLocalUid.constBegin(), end = m_modelItemsByLocalUid.constEnd(); it != end; ++it) {
-        updateItemRowWithRespectToSorting(*it);
-    }
+    if (m_sortOrder == Qt::AscendingOrder)
+    {
+        for(auto it = m_modelItemsByLocalUid.constBegin(); it != m_modelItemsByLocalUid.constEnd(); ++it) {
+            it->sortChildren(LessByName());
+        }
 
-    for(auto it = m_modelItemsByLinkedNotebookGuid.constBegin(), end = m_modelItemsByLinkedNotebookGuid.constEnd(); it != end; ++it) {
-        updateItemRowWithRespectToSorting(*it);
+        for(auto it = m_modelItemsByLinkedNotebookGuid.constBegin(); it != m_modelItemsByLinkedNotebookGuid.constEnd(); ++it) {
+            it->sortChildren(LessByName());
+        }
+
+        m_fakeRootItem->sortChildren(LessByName());
+    }
+    else
+    {
+        for(auto it = m_modelItemsByLocalUid.constBegin(); it != m_modelItemsByLocalUid.constEnd(); ++it) {
+            it->sortChildren(GreaterByName());
+        }
+
+        for(auto it = m_modelItemsByLinkedNotebookGuid.constBegin(); it != m_modelItemsByLinkedNotebookGuid.constEnd(); ++it) {
+            it->sortChildren(GreaterByName());
+        }
+
+        m_fakeRootItem->sortChildren(GreaterByName());
     }
 
     updatePersistentModelIndices();
@@ -3595,7 +3617,11 @@ void TagModel::removeModelItemFromParent(const TagModelItem & item)
 
 int TagModel::rowForNewItem(const TagModelItem & parentItem, const TagModelItem & newItem) const
 {
+    QNDEBUG(QStringLiteral("TagModel::rowForNewItem: new item = ") << newItem
+            << QStringLiteral(", parent item = ") << parentItem);
+
     if (m_sortedColumn != Columns::Name) {
+        QNDEBUG(QStringLiteral("Won't sort on column ") << m_sortedColumn);
         // Sorting by other columns is not yet implemented
         return parentItem.numChildren();
     }
@@ -3610,17 +3636,24 @@ int TagModel::rowForNewItem(const TagModelItem & parentItem, const TagModelItem 
         it = std::lower_bound(children.constBegin(), children.constEnd(), &newItem, GreaterByName());
     }
 
+    int row = -1;
     if (it == children.constEnd()) {
-        return parentItem.numChildren();
+        row = parentItem.numChildren();
+    }
+    else {
+        row = static_cast<int>(std::distance(children.constBegin(), it));
     }
 
-    int row = static_cast<int>(std::distance(children.constBegin(), it));
+    QNDEBUG(QStringLiteral("Appropriate row = ") << row);
     return row;
 }
 
 void TagModel::updateItemRowWithRespectToSorting(const TagModelItem & item)
 {
+    QNDEBUG(QStringLiteral("TagModel::updateItemRowWithRespectToSorting: item = ") << item);
+
     if (m_sortedColumn != Columns::Name) {
+        QNDEBUG(QStringLiteral("Won't sort on column ") << m_sortedColumn);
         // Sorting by other columns is not yet implemented
         return;
     }

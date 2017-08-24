@@ -745,8 +745,8 @@ bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem
     if (!res)
     {
         errorDescription.setBase(QStringLiteral("The list of child tags is not equal to the list of sorted child tags"));
-
-        errorDescription.details() = QStringLiteral("Child tags: ");
+        errorDescription.details() = QStringLiteral("Root item: ") + rootItem->toString();
+        errorDescription.details() += QStringLiteral("\nChild tags: ");
         for(auto it = children.constBegin(), end = children.constEnd(); it != end; ++it)
         {
             const TagModelItem * pTagModelItem = *it;
