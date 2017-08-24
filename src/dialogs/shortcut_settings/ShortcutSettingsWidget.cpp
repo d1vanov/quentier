@@ -427,6 +427,11 @@ void ShortcutSettingsWidget::onActionFilterChanged(const QString & filter)
             Q_UNUSED(filterItem(filter, *pCurrentItem))
         }
     }
+
+    QTreeWidgetItem * pCurrentItem = m_pUi->actionsTreeWidget->currentItem();
+    if (pCurrentItem) {
+        m_pUi->actionsTreeWidget->scrollToItem(pCurrentItem);
+    }
 }
 
 void ShortcutSettingsWidget::onCurrentItemKeySequenceEdited()
@@ -481,7 +486,7 @@ void ShortcutSettingsWidget::onCurrentItemKeySequenceEdited()
     }
     else
     {
-        m_pUi->warningLabel->setText(tr("Invalid key sequence."));
+        m_pUi->warningLabel->setText(QStringLiteral("<font color=\"red\">") + tr("Invalid key sequence.") + QStringLiteral("</font>"));
         m_pUi->warningLabel->show();
     }
 }
@@ -654,7 +659,9 @@ void ShortcutSettingsWidget::clear()
 void ShortcutSettingsWidget::warnOfConflicts()
 {
     QNDEBUG(QStringLiteral("ShortcutSettingsWidget::warnOfConflicts"));
-    m_pUi->warningLabel->setText(tr("Key sequence has potential conflicts. <a href=\"#conflicts\">Show.</a>"));
+    m_pUi->warningLabel->setText(QStringLiteral("<font color=\"red\">") +
+                                 tr("Key sequence has potential conflicts. <a href=\"#conflicts\">Show.</a>") +
+                                 QStringLiteral("</font>"));
     m_pUi->warningLabel->show();
 }
 
