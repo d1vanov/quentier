@@ -24,6 +24,7 @@ using quentier::ShortcutSettingsWidget;
 
 #include "../AccountManager.h"
 #include "../SystemTrayIconManager.h"
+#include "../ActionsInfo.h"
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -40,7 +41,8 @@ QString trayActionToString(SystemTrayIconManager::TrayAction action);
 PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
                                      ShortcutManager & shortcutManager,
                                      SystemTrayIconManager & systemTrayIconManager,
-                                     QWidget *parent) :
+                                     ActionsInfo & actionsInfo,
+                                     QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::PreferencesDialog),
     m_accountManager(accountManager),
@@ -49,6 +51,9 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
 {
     m_pUi->setupUi(this);
     m_pUi->statusTextLabel->setHidden(true);
+
+    m_pUi->okPushButton->setDefault(false);
+    m_pUi->okPushButton->setAutoDefault(false);
 
     setWindowTitle(tr("Preferences"));
 
@@ -59,7 +64,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_pUi->minimizeToTrayCheckBox->setHidden(true);
 #endif
 
-    setupCurrentSettingsState(shortcutManager);
+    setupCurrentSettingsState(actionsInfo, shortcutManager);
     createConnections();
 }
 
@@ -265,7 +270,7 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
     emit synchronizationDownloadInkNoteImagesOptionChanged(checked);
 }
 
-void PreferencesDialog::setupCurrentSettingsState(ShortcutManager & shortcutManager)
+void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, ShortcutManager & shortcutManager)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
 
@@ -405,7 +410,7 @@ void PreferencesDialog::setupCurrentSettingsState(ShortcutManager & shortcutMana
     m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
 
     // 5) Shortcuts tab
-    m_pUi->shortcutSettingsWidget->initialize(currentAccount, &shortcutManager);
+    m_pUi->shortcutSettingsWidget->initialize(currentAccount, actionsInfo, &shortcutManager);
 }
 
 void PreferencesDialog::createConnections()

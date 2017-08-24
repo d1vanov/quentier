@@ -28,6 +28,7 @@
 using quentier::ShortcutButton;
 #include "ui_ShortcutSettingsWidget.h"
 
+#include "../../ActionsInfo.h"
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -128,6 +129,15 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
 
     m_pUi->warningLabel->hide();
 
+    m_pUi->resetAllPushButton->setDefault(false);
+    m_pUi->resetAllPushButton->setAutoDefault(false);
+
+    m_pUi->resetPushButton->setDefault(false);
+    m_pUi->resetPushButton->setAutoDefault(false);
+
+    m_pUi->recordPushButton->setDefault(false);
+    m_pUi->recordPushButton->setAutoDefault(false);
+
     QObject::connect(m_pUi->resetAllPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(ShortcutSettingsWidget,resetAll));
     QObject::connect(m_pUi->resetPushButton, QNSIGNAL(QPushButton,clicked),
@@ -140,6 +150,8 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
                      this, QNSLOT(ShortcutSettingsWidget,onActionFilterChanged,QString));
     QObject::connect(m_pUi->actionsTreeWidget, QNSIGNAL(QTreeWidget,currentItemChanged,QTreeWidgetItem*,QTreeWidgetItem*),
                      this, QNSLOT(ShortcutSettingsWidget,onCurrentActionChanged,QTreeWidgetItem*,QTreeWidgetItem*));
+    QObject::connect(m_pUi->keySequenceLineEdit, SIGNAL(editingFinished()),
+                     this, SLOT(onCurrentItemKeySequenceEdited()));
 }
 
 ShortcutSettingsWidget::~ShortcutSettingsWidget()
@@ -148,12 +160,14 @@ ShortcutSettingsWidget::~ShortcutSettingsWidget()
     qDeleteAll(m_shortcutItems);
 }
 
-void ShortcutSettingsWidget::initialize(const Account & account, ShortcutManager * pShortcutManager)
+void ShortcutSettingsWidget::initialize(const Account & account, const ActionsInfo & actionsInfo,
+                                        ShortcutManager * pShortcutManager)
 {
     QNDEBUG(QStringLiteral("ShortcutSettingsWidget::initialize: account = ") << account);
 
     clear();
 
+    m_pShortcutManager = pShortcutManager;
     m_currentAccount = account;
 
     if (Q_UNLIKELY(!pShortcutManager)) {
@@ -162,36 +176,33 @@ void ShortcutSettingsWidget::initialize(const Account & account, ShortcutManager
         return;
     }
 
-    m_pShortcutManager = pShortcutManager;
+    for(auto it = actionsInfo.begin(), end = actionsInfo.end(); it != end; ++it)
+    {
+        ActionsInfo::ActionInfo info = it.actionInfo();
+        if (Q_UNLIKELY(info.isEmpty())) {
+            continue;
+        }
 
-#define PROCESS_ACTION_SHORTCUT(action, key, ...) \
-    { \
-        ShortcutItem * pShortcutItem = new ShortcutItem; \
-        m_shortcutItems << pShortcutItem; \
-        pShortcutItem->m_actionKey = key; \
-        pShortcutItem->m_actionName = QString::fromUtf8(#action); \
-        pShortcutItem->m_context = QString::fromUtf8("" __VA_ARGS__); \
-        QNTRACE(QString::fromUtf8("Action name " #action " corresponds to shortcut item: ") << *pShortcutItem); \
+        ShortcutItem * pShortcutItem = new ShortcutItem;
+        m_shortcutItems << pShortcutItem;
+
+        if (info.m_shortcutKey >= 0) {
+            pShortcutItem->m_actionKey = info.m_shortcutKey;
+        }
+        else {
+            pShortcutItem->m_nonStandardActionKey = info.m_nonStandardShortcutKey;
+        }
+
+        pShortcutItem->m_actionName = info.m_localizedName;
+        pShortcutItem->m_context = info.m_context;
+        pShortcutItem->m_category = info.m_category;
+        pShortcutItem->m_keySequence = info.m_shortcut;
+        QNDEBUG(QStringLiteral("ActionInfo: ") << info);
+        QNDEBUG(QStringLiteral("Setup ShortcutItem: ") << *pShortcutItem);
     }
-
-#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, context) \
-    { \
-        ShortcutItem * pShortcutItem = new ShortcutItem; \
-        m_shortcutItems << pShortcutItem; \
-        pShortcutItem->m_nonStandardActionKey = QString::fromUtf8(#action); \
-        pShortcutItem->m_actionName = pShortcutItem->m_nonStandardActionKey; \
-        pShortcutItem->m_context = QString::fromUtf8(context); \
-        QNTRACE(QString::fromUtf8("Action name " #action " corresponds to shortcut item: ") << *pShortcutItem); \
-    }
-
-#include "../../ActionShortcuts.inl"
-
-#undef PROCESS_NON_STANDARD_ACTION_SHORTCUT
-#undef PROCESS_ACTION_SHORTCUT
 
     QMap<QString, QTreeWidgetItem*> sections;
 
-    bool foundCollisions = false;
     for(auto it = m_shortcutItems.begin(), end = m_shortcutItems.end(); it != end; ++it)
     {
         ShortcutItem * pShortcutItem = *it;
@@ -203,10 +214,10 @@ void ShortcutSettingsWidget::initialize(const Account & account, ShortcutManager
                                                                        m_currentAccount, pShortcutItem->m_context));
         pShortcutItem->m_pTreeWidgetItem = new QTreeWidgetItem;
 
-        QString sectionName = pShortcutItem->m_context;
+        QString sectionName = pShortcutItem->m_category;
         if (sectionName.isEmpty()) {
             sectionName = tr("Actions");
-            pShortcutItem->m_context = sectionName;
+            pShortcutItem->m_category = sectionName;
         }
 
         if (!sections.contains(sectionName))
@@ -240,25 +251,12 @@ void ShortcutSettingsWidget::initialize(const Account & account, ShortcutManager
 
         pShortcutItem->m_pTreeWidgetItem->setData(0, Qt::UserRole, qVariantFromValue(pShortcutItem));
 
-        foundCollisions |= markCollisions(*pShortcutItem);
+        Q_UNUSED(markCollisions(*pShortcutItem))
     }
+
+    m_pUi->actionsTreeWidget->sortItems(0, Qt::AscendingOrder);
+
     onActionFilterChanged(m_pUi->filterLineEdit->text());
-
-    if (foundCollisions) {
-        warnOfConflicts();
-    }
-    else {
-        m_pUi->warningLabel->hide();
-    }
-}
-
-void ShortcutSettingsWidget::apply()
-{
-    QNDEBUG(QStringLiteral("ShortcutSettingsWidget::apply"));
-
-    for(auto it = m_shortcutItems.begin(), end = m_shortcutItems.end(); it != end; ++it) {
-        applyItem(*it);
-    }
 }
 
 void ShortcutSettingsWidget::onCurrentActionChanged(QTreeWidgetItem * pCurrentItem,
@@ -337,7 +335,6 @@ void ShortcutSettingsWidget::resetToDefault()
     m_pUi->keySequenceLineEdit->setText(keySequenceToEditString(defaultShortcut));
     pCurrentItem->setText(1, defaultShortcut.toString(QKeySequence::NativeText));
 
-    bool foundCollisions = false;
     for(auto it = m_shortcutItems.begin(), end = m_shortcutItems.end(); it != end; ++it)
     {
         ShortcutItem * pCurrentShortcutItem = *it;
@@ -346,14 +343,12 @@ void ShortcutSettingsWidget::resetToDefault()
             continue;
         }
 
-        foundCollisions |= markCollisions(*pCurrentShortcutItem);
-    }
-
-    if (foundCollisions) {
-        warnOfConflicts();
-    }
-    else {
-        m_pUi->warningLabel->hide();
+        if (markCollisions(*pCurrentShortcutItem) && (pCurrentShortcutItem == pShortcutItem)) {
+            warnOfConflicts();
+        }
+        else {
+            m_pUi->warningLabel->hide();
+        }
     }
 }
 
@@ -401,7 +396,6 @@ void ShortcutSettingsWidget::resetAll()
         }
     }
 
-    bool foundCollisions = false;
     for(auto it = m_shortcutItems.begin(), end = m_shortcutItems.end(); it != end; ++it)
     {
         ShortcutItem * pCurrentShortcutItem = *it;
@@ -410,14 +404,15 @@ void ShortcutSettingsWidget::resetAll()
             continue;
         }
 
-        foundCollisions |= markCollisions(*pCurrentShortcutItem);
-    }
-
-    if (foundCollisions) {
-        warnOfConflicts();
-    }
-    else {
-        m_pUi->warningLabel->hide();
+        if (markCollisions(*pCurrentShortcutItem) &&
+            (pCurrentShortcutItem->m_pTreeWidgetItem == m_pUi->actionsTreeWidget->currentItem()))
+        {
+            warnOfConflicts();
+        }
+        else
+        {
+            m_pUi->warningLabel->hide();
+        }
     }
 }
 
@@ -434,9 +429,9 @@ void ShortcutSettingsWidget::onActionFilterChanged(const QString & filter)
     }
 }
 
-bool ShortcutSettingsWidget::validateShortcutEdit() const
+void ShortcutSettingsWidget::onCurrentItemKeySequenceEdited()
 {
-    QNDEBUG(QStringLiteral("ShortcutSettingsWidget::validateShortcutEdit"));
+    QNDEBUG(QStringLiteral("ShortcutSettingsWidget::onCurrentItemKeySequenceEdited"));
 
     m_pUi->warningLabel->clear();
     m_pUi->warningLabel->hide();
@@ -444,10 +439,8 @@ bool ShortcutSettingsWidget::validateShortcutEdit() const
     QTreeWidgetItem * pCurrentItem = m_pUi->actionsTreeWidget->currentItem();
     ShortcutItem * pShortcutItem = shortcutItemFromTreeItem(pCurrentItem);
     if (!pShortcutItem) {
-        return true;
+        return;
     }
-
-    bool valid = false;
 
     const QString text = m_pUi->keySequenceLineEdit->text().trimmed();
     const QKeySequence currentKeySequence = keySequenceFromEditString(text);
@@ -459,20 +452,28 @@ bool ShortcutSettingsWidget::validateShortcutEdit() const
         QKeySequence defaultShortcut = ((pShortcutItem->m_actionKey >= 0)
                                         ? m_pShortcutManager->defaultShortcut(pShortcutItem->m_actionKey, m_currentAccount,
                                                                               pShortcutItem->m_context)
-                                        : m_pShortcutManager->defaultShortcut(pShortcutItem->m_actionKey, m_currentAccount,
-                                                                              pShortcutItem->m_context));
-        ShortcutSettingsWidget * nonConstThis = const_cast<ShortcutSettingsWidget*>(this);
-        if (defaultShortcut != pShortcutItem->m_keySequence) {
-            nonConstThis->setModified(*pCurrentItem, true);
+                                        : m_pShortcutManager->defaultShortcut(pShortcutItem->m_nonStandardActionKey,
+                                                                              m_currentAccount, pShortcutItem->m_context));
+        bool modified = (defaultShortcut != pShortcutItem->m_keySequence);
+
+        pShortcutItem->m_isModified = modified;
+        setModified(*pCurrentItem, modified);
+
+        if (pShortcutItem->m_actionKey >= 0) {
+            m_pShortcutManager->setUserShortcut(pShortcutItem->m_actionKey,
+                                                (modified ? pShortcutItem->m_keySequence : QKeySequence()),
+                                                m_currentAccount, pShortcutItem->m_context);
         }
         else {
-            nonConstThis->setModified(*pCurrentItem, false);
+            m_pShortcutManager->setNonStandardUserShortcut(pShortcutItem->m_nonStandardActionKey,
+                                                           (modified ? pShortcutItem->m_keySequence : QKeySequence()),
+                                                           m_currentAccount, pShortcutItem->m_context);
         }
 
         pCurrentItem->setText(1, pShortcutItem->m_keySequence.toString(QKeySequence::NativeText));
-        valid = !nonConstThis->markCollisions(*pShortcutItem);
-        if (!valid) {
-            nonConstThis->warnOfConflicts();
+
+        if (markCollisions(*pShortcutItem)) {
+            warnOfConflicts();
         }
         else {
             m_pUi->warningLabel->hide();
@@ -483,8 +484,6 @@ bool ShortcutSettingsWidget::validateShortcutEdit() const
         m_pUi->warningLabel->setText(tr("Invalid key sequence."));
         m_pUi->warningLabel->show();
     }
-
-    return valid;
 }
 
 bool ShortcutSettingsWidget::markCollisions(ShortcutItem & item)
@@ -589,33 +588,6 @@ bool ShortcutSettingsWidget::filterItem(const QString & filter, QTreeWidgetItem 
     return !visible;
 }
 
-void ShortcutSettingsWidget::applyItem(ShortcutItem * pItem)
-{
-    QNDEBUG(QStringLiteral("ShortcutSettingsWidget::applyItem: ") << (pItem ? pItem->toString() : QStringLiteral("<null>")));
-
-    if (Q_UNLIKELY(!pItem)) {
-        QNWARNING(QStringLiteral("Detected null pointer to ShortcutItem"));
-        return;
-    }
-
-    if (!pItem->m_isModified) {
-        QNDEBUG(QStringLiteral("Not modified, skipping"));
-        return;
-    }
-
-    if (Q_UNLIKELY(m_pShortcutManager.isNull())) {
-        QNWARNING(QStringLiteral("Can't apply the user shortcut: the pointer to shortcut manager is null"));
-        return;
-    }
-
-    if (pItem->m_actionKey >= 0) {
-        m_pShortcutManager->setUserShortcut(pItem->m_actionKey, pItem->m_keySequence, m_currentAccount, pItem->m_context);
-    }
-    else {
-        m_pShortcutManager->setNonStandardUserShortcut(pItem->m_nonStandardActionKey, pItem->m_keySequence, m_currentAccount, pItem->m_context);
-    }
-}
-
 void ShortcutSettingsWidget::setCurrentItemKeySequence(const QKeySequence & key)
 {
     QNDEBUG(QStringLiteral("ShortcutSettingsWidget::setCurrentItemKeySequence: ") << key);
@@ -707,6 +679,7 @@ QTextStream & ShortcutItem::print(QTextStream & strm) const
          << (m_nonStandardActionKey.isEmpty() ? QStringLiteral("<empty>") : m_nonStandardActionKey)
          << QStringLiteral(", action name = " ) << m_actionName
          << QStringLiteral(", context = ") << m_context
+         << QStringLiteral(", category = ") << m_category
          << QStringLiteral(", is modified = ") << (m_isModified ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", key sequence = ") << m_keySequence.toString(QKeySequence::PortableText)
          << QStringLiteral(", tree widget item: ") << (m_pTreeWidgetItem ? QStringLiteral("non-null") : QStringLiteral("null"));

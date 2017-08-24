@@ -63,6 +63,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/AsyncFileWriter.h
+    src/ActionsInfo.h
     src/CommandLineParser.h
     src/DefaultSettings.h
     src/LoadDependencies.h
@@ -154,6 +155,7 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
+    src/ActionsInfo.cpp
     src/AsyncFileWriter.cpp
     src/CommandLineParser.cpp
     src/LoadDependencies.cpp

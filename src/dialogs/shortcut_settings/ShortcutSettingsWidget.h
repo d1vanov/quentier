@@ -41,6 +41,7 @@ class ShortcutSettingsWidget;
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 
 class ShortcutItem: public Printable
@@ -51,6 +52,7 @@ public:
         m_nonStandardActionKey(),
         m_actionName(),
         m_context(),
+        m_category(),
         m_isModified(false),
         m_keySequence(),
         m_pTreeWidgetItem(Q_NULLPTR)
@@ -62,6 +64,7 @@ public:
     QString             m_nonStandardActionKey;
     QString             m_actionName;
     QString             m_context;
+    QString             m_category;
     bool                m_isModified;
     QKeySequence        m_keySequence;
     QTreeWidgetItem *   m_pTreeWidgetItem;
@@ -74,9 +77,8 @@ public:
     ShortcutSettingsWidget(QWidget * parent = Q_NULLPTR);
     virtual ~ShortcutSettingsWidget();
 
-    void initialize(const Account & currentAccount,
+    void initialize(const Account & currentAccount, const ActionsInfo & actionsInfo,
                     ShortcutManager * pShortcutManager);
-    void apply();
 
 private Q_SLOTS:
     void onCurrentActionChanged(QTreeWidgetItem * pCurrentItem,
@@ -86,9 +88,9 @@ private Q_SLOTS:
     void onActionFilterChanged(const QString & filter);
     void showConflicts(const QString &);
     void setCurrentItemKeySequence(const QKeySequence & key);
+    void onCurrentItemKeySequenceEdited();
 
 private:
-    bool validateShortcutEdit() const;
 
     bool markCollisions(ShortcutItem & item);
     void setModified(QTreeWidgetItem & item, bool modified);
@@ -96,7 +98,6 @@ private:
     bool filterColumn(const QString & filter, QTreeWidgetItem & item, int column);
     bool filterItem(const QString & filter, QTreeWidgetItem & item);
 
-    void applyItem(ShortcutItem * pItem);
     void clear();
 
     void warnOfConflicts();

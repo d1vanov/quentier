@@ -33,6 +33,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(AccountManager)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
+QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 
 class PreferencesDialog: public QDialog
 {
@@ -41,6 +42,7 @@ public:
     explicit PreferencesDialog(AccountManager & accountManager,
                                ShortcutManager & shortcutManager,
                                SystemTrayIconManager & systemTrayIconManager,
+                               ActionsInfo & actionsInfo,
                                QWidget * parent = Q_NULLPTR);
     virtual ~PreferencesDialog();
 
@@ -72,7 +74,8 @@ private Q_SLOTS:
     void onDownloadInkNoteImagesCheckboxToggled(bool checked);
 
 private:
-    void setupCurrentSettingsState(ShortcutManager & shortcutManager);
+    void setupCurrentSettingsState(ActionsInfo & actionsInfo,
+                                   ShortcutManager & shortcutManager);
     void createConnections();
 
 private:

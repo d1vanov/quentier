@@ -29,12 +29,28 @@ QT_FORWARD_DECLARE_CLASS(QAction)
 
 namespace quentier {
 
+struct ActionKeyWithContext
+{
+    ActionKeyWithContext() : m_key(-1), m_context() {}
+
+    int     m_key;
+    QString m_context;
+};
+
+struct ActionNonStandardKeyWithContext
+{
+    QString     m_nonStandardActionKey;
+    QString     m_context;
+};
+
 class ActionsInfo
 {
 public:
     class ActionInfo: public Printable
     {
     public:
+        ActionInfo();
+
         virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
         bool isEmpty() const;
@@ -42,6 +58,7 @@ public:
         QString         m_name;
         QString         m_localizedName;
         QString         m_context;
+        QString         m_category;
         int             m_shortcutKey;
         QString         m_nonStandardShortcutKey;
         QKeySequence    m_shortcut;
@@ -66,9 +83,12 @@ public:
         Iterator & operator++(int);
 
     private:
+        void increment();
+
+    private:
         const ActionsInfo &     m_actionsInfo;
-        const int               m_menuIndex;
-        const int               m_actionIndex;
+        int                     m_menuIndex;
+        int                     m_actionIndex;
     };
 
     friend class Iterator;
@@ -77,7 +97,7 @@ public:
     Iterator end() const;
 
 private:
-    ActionInfo fromAction(const QAction * pAction) const;
+    ActionInfo fromAction(const QAction * pAction, const QString & category) const;
 
 private:
     Q_DISABLE_COPY(ActionsInfo)
@@ -87,5 +107,8 @@ private:
 };
 
 } // namespace quentier
+
+Q_DECLARE_METATYPE(quentier::ActionKeyWithContext)
+Q_DECLARE_METATYPE(quentier::ActionNonStandardKeyWithContext)
 
 #endif // QUENTIER_ACTIONS_INFO_H

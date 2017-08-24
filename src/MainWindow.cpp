@@ -21,6 +21,7 @@
 #include "DefaultSettings.h"
 #include "AsyncFileWriter.h"
 #include "SystemTrayIconManager.h"
+#include "ActionsInfo.h"
 #include "EditNoteDialogsManager.h"
 #include "NoteFiltersManager.h"
 #include "EnexExporter.h"
@@ -2291,10 +2292,13 @@ void MainWindow::onShowSettingsDialogAction()
 {
     QNDEBUG(QStringLiteral("MainWindow::onShowSettingsDialogAction"));
 
+    QList<QMenu*> menus = m_pUI->menuBar->findChildren<QMenu*>();
+    ActionsInfo actionsInfo(menus);
+
     QScopedPointer<PreferencesDialog> pPreferencesDialog(new PreferencesDialog(*m_pAccountManager,
                                                                                m_shortcutManager,
                                                                                *m_pSystemTrayIconManager,
-                                                                               this));
+                                                                               actionsInfo, this));
     pPreferencesDialog->setWindowModality(Qt::WindowModal);
 
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,noteEditorUseLimitedFontsOptionChanged,bool),
@@ -4429,25 +4433,40 @@ void MainWindow::setupDefaultShortcuts()
 
     using quentier::ShortcutManager;
 
-#define PROCESS_ACTION_SHORTCUT(action, key, ...) \
+#define PROCESS_ACTION_SHORTCUT(action, key, context) \
     { \
+        QString contextStr = QString::fromUtf8(context); \
+        ActionKeyWithContext actionData; \
+        actionData.m_key = key; \
+        actionData.m_context = contextStr; \
+        QVariant data; \
+        data.setValue(actionData); \
+        m_pUI->Action##action->setData(data); \
         QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
         if (shortcut.isEmpty()) { \
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
-            m_shortcutManager.setDefaultShortcut(key, shortcut, *m_pAccount, QString::fromUtf8("" __VA_ARGS__)); \
+            m_shortcutManager.setDefaultShortcut(key, shortcut, *m_pAccount, contextStr); \
         } \
     }
 
-#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
+#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, context) \
     { \
+        QString actionStr = QString::fromUtf8(#action); \
+        QString contextStr = QString::fromUtf8(context); \
+        ActionNonStandardKeyWithContext actionData; \
+        actionData.m_nonStandardActionKey = actionStr; \
+        actionData.m_context = contextStr; \
+        QVariant data; \
+        data.setValue(actionData); \
+        m_pUI->Action##action->setData(data); \
         QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
         if (shortcut.isEmpty()) { \
             QNTRACE(QStringLiteral("No shortcut was found for action ") << m_pUI->Action##action->objectName()); \
         } \
         else { \
-            m_shortcutManager.setNonStandardDefaultShortcut(QString::fromUtf8(#action), shortcut, *m_pAccount, QString::fromUtf8("" __VA_ARGS__)); \
+            m_shortcutManager.setNonStandardDefaultShortcut(actionStr, shortcut, *m_pAccount, contextStr); \
         } \
     }
 
