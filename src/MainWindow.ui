@@ -2803,7 +2803,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3005,6 +3005,7 @@ border-bottom: 1px solid black;</string>
     <addaction name="separator"/>
     <addaction name="menuAlign"/>
     <addaction name="menuList"/>
+    <addaction name="ActionInsertToDo"/>
     <addaction name="menuIndentation"/>
     <addaction name="menuHyperlink"/>
    </widget>
@@ -4337,6 +4338,17 @@ border-bottom: 1px solid black;</string>
   <action name="ActionImportENEX">
    <property name="text">
     <string>&amp;Import ENEX...</string>
+   </property>
+  </action>
+  <action name="ActionInsertToDo">
+   <property name="text">
+    <string>Insert ToDo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
    </property>
   </action>
  </widget>

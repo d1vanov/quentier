@@ -67,6 +67,8 @@ PROCESS_ACTION_SHORTCUT(AlignFull, ShortcutManager::AlignFull, "Format");
 PROCESS_ACTION_SHORTCUT(InsertBulletedList, ShortcutManager::InsertBulletedList, "Format");
 PROCESS_ACTION_SHORTCUT(InsertNumberedList, ShortcutManager::InsertNumberedList, "Format");
 
+PROCESS_ACTION_SHORTCUT(InsertToDo, ShortcutManager::InsertToDoTag, "Format")
+
 PROCESS_ACTION_SHORTCUT(IncreaseIndentation, ShortcutManager::IncreaseIndentation, "Format");
 PROCESS_ACTION_SHORTCUT(DecreaseIndentation, ShortcutManager::DecreaseIndentation, "Format");
 

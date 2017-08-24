@@ -130,6 +130,7 @@ private Q_SLOTS:
     void onNoteTextDecreaseIndentationAction();
     void onNoteTextInsertUnorderedListAction();
     void onNoteTextInsertOrderedListAction();
+    void onNoteTextInsertToDoAction();
     void onNoteTextInsertTableDialogAction();
     void onNoteTextEditHyperlinkAction();
     void onNoteTextCopyHyperlinkAction();

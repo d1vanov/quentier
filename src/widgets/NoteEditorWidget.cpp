@@ -852,6 +852,11 @@ void NoteEditorWidget::onEditorTextInsertOrderedListAction()
     m_pUi->noteEditor->insertNumberedList();
 }
 
+void NoteEditorWidget::onEditorTextInsertToDoAction()
+{
+    m_pUi->noteEditor->insertToDoCheckbox();
+}
+
 void NoteEditorWidget::onEditorTextFormatAsSourceCodeAction()
 {
     m_pUi->noteEditor->formatSelectionAsSourceCode();

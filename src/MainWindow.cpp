@@ -400,6 +400,8 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
     QObject::connect(m_pUI->ActionInsertNumberedList, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
+    QObject::connect(m_pUI->ActionInsertToDo, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextInsertToDoAction));
     QObject::connect(m_pUI->ActionInsertTable, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
     QObject::connect(m_pUI->ActionEditHyperlink, QNSIGNAL(QAction,triggered),
@@ -1768,6 +1770,7 @@ DISPATCH_TO_NOTE_EDITOR(onNoteTextIncreaseIndentationAction, onEditorTextIncreas
 DISPATCH_TO_NOTE_EDITOR(onNoteTextDecreaseIndentationAction, onEditorTextDecreaseIndentationAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextInsertUnorderedListAction, onEditorTextInsertUnorderedListAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextInsertOrderedListAction, onEditorTextInsertOrderedListAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextInsertToDoAction, onEditorTextInsertToDoAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextInsertTableDialogAction, onEditorTextInsertTableDialogRequested)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextEditHyperlinkAction, onEditorTextEditHyperlinkAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextCopyHyperlinkAction, onEditorTextCopyHyperlinkAction)
