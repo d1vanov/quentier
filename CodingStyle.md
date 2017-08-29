@@ -73,7 +73,7 @@ The «native» line endings for headers and sources of Quentier are considered t
 
 ## Source file names
 
-A name of a header/source file should reflect the name of the class declared/implemented in the file. In case when the header/source file contains declarations/implementations for more than one class, the file name should be either the most important class’ name or some name encompassing the nature of those multiple classes. If the header/source file doesn’t contain C++ classes at all, the file name should just provide some reasonable hint about the contents of the file.
+The name of a header/source file should reflect the name of the class declared/implemented in the file. In case when the header/source file contains declarations/implementations for more than one class, the file name should be either the most important class’ name or some name encompassing the nature of those multiple classes. If the header/source file doesn’t contain C++ classes at all, the file name should just provide some reasonable hint about the contents of the file.
 
 C++ header files have `.h` extension and source files have `.cpp` extension.
 
