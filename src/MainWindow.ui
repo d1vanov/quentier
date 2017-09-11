@@ -150,70 +150,6 @@ padding-right: 2px;
         <number>0</number>
        </property>
        <item>
-        <widget class="QPushButton" name="goBackPushButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>32</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Move focus to the previous widget</string>
-         </property>
-         <property name="icon">
-          <iconset theme="go-previous">
-           <normaloff>.</normaloff>.</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>26</width>
-           <height>26</height>
-          </size>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="goForwardPushButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>32</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Move focus to the next widget</string>
-         </property>
-         <property name="icon">
-          <iconset theme="go-next">
-           <normaloff>.</normaloff>.</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>26</width>
-           <height>26</height>
-          </size>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="syncPushButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -2803,7 +2739,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3674,7 +3610,7 @@ border-bottom: 1px solid black;</string>
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>Aligh &amp;center</string>
+    <string>Align &amp;center</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
@@ -3835,57 +3771,6 @@ border-bottom: 1px solid black;</string>
   <action name="ActionViewLogs">
    <property name="text">
     <string>&amp;View logs</string>
-   </property>
-  </action>
-  <action name="ActionGoPrevious">
-   <property name="icon">
-    <iconset theme="go-previous">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Go back</string>
-   </property>
-   <property name="toolTip">
-    <string>Назад</string>
-   </property>
-  </action>
-  <action name="ActionGoNext">
-   <property name="icon">
-    <iconset theme="go-next">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Go forward</string>
-   </property>
-   <property name="toolTip">
-    <string>Вперед</string>
-   </property>
-  </action>
-  <action name="ActionGoUp">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="go-up">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Up</string>
-   </property>
-   <property name="toolTip">
-    <string>Вверх</string>
-   </property>
-  </action>
-  <action name="ActionGoDown">
-   <property name="icon">
-    <iconset theme="go-down">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Down</string>
-   </property>
-   <property name="toolTip">
-    <string>Вниз</string>
    </property>
   </action>
   <action name="ActionSynchronizeButton">
@@ -4349,6 +4234,25 @@ border-bottom: 1px solid black;</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionGoNext">
+   <property name="icon">
+    <iconset theme="go-next"/>
+   </property>
+   <property name="text">
+    <string>Go next</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionGoPrevious">
+   <property name="icon">
+    <iconset theme="go-previous"/>
+   </property>
+   <property name="text">
+    <string>Go previous</string>
    </property>
   </action>
  </widget>
