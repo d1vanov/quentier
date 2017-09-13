@@ -17,15 +17,24 @@
  */
 
 #include "LogViewerModel.h"
+#include <quentier/utility/Utility.h>
 #include <QFileInfo>
+#include <QStringList>
+#include <QTextStream>
+#include <QClipboard>
+#include <QApplication>
+#include <algorithm>
 
-#define LOG_VIEWER_MODEL_COLUMN_COUNT (4)
+#define LOG_VIEWER_MODEL_COLUMN_COUNT (5)
 
 namespace quentier {
 
 LogViewerModel::LogViewerModel(QObject * parent) :
     QAbstractTableModel(parent),
+    m_logParsingRegex(QStringLiteral("^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3}\\s+\\w+)\\s+(.+)\\s+@\\s+(\\d+)\\s+\\[(\\w+)\\]:\\s(.+$)"),
+                      Qt::CaseInsensitive, QRegExp::RegExp),
     m_currentLogFile(),
+    m_currentLogFileWatcher(),
     m_currentPos(-1),
     m_offsetPos(-1),
     m_data()
@@ -40,15 +49,22 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
 {
     QNDEBUG(QStringLiteral("LogViewerModel::setLogFileName: ") << logFileName);
 
+    QFileInfo currentLogFileInfo(m_currentLogFile);
+    QFileInfo newLogFileInfo(QuentierLogFilesDirPath() + QStringLiteral("/") + logFileName);
+    if (currentLogFileInfo.absoluteFilePath() == newLogFileInfo.absoluteFilePath()) {
+        QNDEBUG(QStringLiteral("This log file is already set to the model"));
+        return;
+    }
+
     beginResetModel();
 
     m_offsetPos = -1;
     m_currentPos = 0;
     m_currentLogFile.close();
+    m_currentLogFileWatcher.removePath(currentLogFileInfo.absoluteFilePath());
+    m_data.clear();
 
-    // TODO: stop watching for current log file's changes
-
-    m_currentLogFile.setFileName(QuentierLogFilesDirPath() + QStringLiteral("/") + logFileName);
+    m_currentLogFile.setFileName(newLogFileInfo.absoluteFilePath());
     if (Q_UNLIKELY(!m_currentLogFile.exists()))
     {
         QFileInfo info(m_currentLogFile);
@@ -72,7 +88,20 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
         return;
     }
 
-    // TODO: start watching for current log file's changes
+    currentLogFileInfo.setFile(m_currentLogFile);
+    m_currentLogFileWatcher.addPath(currentLogFileInfo.absoluteFilePath());
+
+    m_currentLogFileStartBytesRead = m_currentLogFile.read(m_currentLogFileStartBytes, sizeof(m_currentLogFileStartBytes));
+    if (!m_currentLogFile.seek(0))
+    {
+        QFileInfo info(m_currentLogFile);
+        ErrorString errorDescription(QT_TR_NOOP("Can't set the position within the current log file to zero"));
+        errorDescription.details() = info.absoluteFilePath();
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        endResetModel();
+        return;
+    }
 
     parseFullDataFromLogFile();
     endResetModel();
@@ -81,13 +110,63 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
 void LogViewerModel::setOffsetPos(const qint64 offsetPos)
 {
     QNDEBUG(QStringLiteral("LogViewerModel::setOffsetPos: ") << offsetPos);
-    // TODO: implement
+
+    m_offsetPos = offsetPos;
+
+    if (!m_currentLogFile.isOpen()) {
+        QNDEBUG(QStringLiteral("The current log file is not open, won't do anything"));
+        return;
+    }
+
+    beginResetModel();
+    m_data.clear();
+    m_currentPos = std::max(offsetPos, qint64(0));
+    parseDataFromLogFileFromCurrentPos();
+    endResetModel();
 }
 
 void LogViewerModel::copyAllToClipboard()
 {
     QNDEBUG(QStringLiteral("LogViewerModel::copyAllToClipboard"));
-    // TODO: implement
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (Q_UNLIKELY(!pClipboard)) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't copy data to clipboard: got null pointer to clipboard from app"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QString modelTextData;
+    QTextStream strm(&modelTextData);
+
+
+
+    for(int i = 0, size = m_data.size(); i < size; ++i)
+    {
+        const Data & entry = m_data.at(i);
+        strm << entry.m_timestamp.toString(
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+                                           QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
+#else
+                                           QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")
+#endif
+                                          )
+             << QStringLiteral(" ")
+             << entry.m_sourceFileName
+             << QStringLiteral(" @ ")
+             << QString::number(entry.m_sourceFileLineNumber)
+             << QStringLiteral(" [")
+             << logLevelToString(entry.m_logLevel)
+             << QStringLiteral(": ")
+             << entry.m_logEntry
+             << QStringLiteral("\n");
+
+    }
+
+    strm.flush();
+
+    pClipboard->setText(modelTextData);
 }
 
 int LogViewerModel::rowCount(const QModelIndex & parent) const
@@ -145,6 +224,110 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
     }
 }
 
+void LogViewerModel::onFileChanged(const QString & path)
+{
+    QFileInfo currentLogFileInfo(m_currentLogFile);
+    if (currentLogFileInfo.absoluteFilePath() != path) {
+        // The changed file is not the current log file
+        return;
+    }
+
+    if (!m_currentLogFile.isOpen() && !m_currentLogFile.open(QIODevice::ReadOnly))
+    {
+        QFileInfo info(m_currentLogFile);
+        ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
+        errorDescription.details() = info.absoluteFilePath();
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    qint64 currentPos = m_currentLogFile.pos();
+
+    if (!m_currentLogFile.seek(0))
+    {
+        QFileInfo info(m_currentLogFile);
+        ErrorString errorDescription(QT_TR_NOOP("Can't set the position within the current log file to zero"));
+        errorDescription.details() = info.absoluteFilePath();
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    char startBytes[sizeof(m_currentLogFileStartBytes)];
+    qint64 startBytesRead = m_currentLogFile.read(startBytes, sizeof(startBytes));
+
+    if (!m_currentLogFile.seek(currentPos))
+    {
+        QFileInfo info(m_currentLogFile);
+        ErrorString errorDescription(QT_TR_NOOP("Can't restore the position within the current log file after reading some first bytes from it"));
+        errorDescription.details() = info.absoluteFilePath();
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    bool fileStartBytesChanged = false;
+    if (startBytesRead != m_currentLogFileStartBytesRead)
+    {
+        fileStartBytesChanged = true;
+    }
+    else
+    {
+        for(qint64 i = 0, size = std::min(startBytesRead, qint64(sizeof(startBytes))); i < size; ++i)
+        {
+            size_t index = static_cast<size_t>(i);
+            if (startBytes[index] != m_currentLogFileStartBytes[index]) {
+                fileStartBytesChanged = true;
+                break;
+            }
+        }
+    }
+
+    if (fileStartBytesChanged)
+    {
+        // The change within the file is not just the addition of new log entry, the file's start bytes changed,
+        // hence should reset the model
+
+        m_currentLogFileStartBytesRead = startBytesRead;
+
+        for(qint64 i = 0, size = sizeof(startBytes); i < size; ++i) {
+            size_t index = static_cast<size_t>(i);
+            m_currentLogFileStartBytes[index] = startBytes[index];
+        }
+
+        beginResetModel();
+        m_offsetPos = -1;
+        m_currentPos = 0;
+        m_data.clear();
+        parseFullDataFromLogFile();
+        endResetModel();
+
+        return;
+    }
+
+    // New log entries were appended to the log file, need to process them
+    parseDataFromLogFileFromCurrentPos();
+}
+
+void LogViewerModel::onFileRemoved(const QString & path)
+{
+    QFileInfo currentLogFileInfo(m_currentLogFile);
+    if (currentLogFileInfo.absoluteFilePath() != path) {
+        // The changed file is not the current log file
+        return;
+    }
+
+    beginResetModel();
+    m_currentLogFile.close();
+    m_currentLogFileWatcher.removePath(path);
+    m_currentLogFileStartBytesRead = 0;
+    for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
+        m_currentLogFileStartBytes[i] = 0;
+    }
+    m_currentPos = 0;
+    m_offsetPos = -1;
+    m_data.clear();
+    endResetModel();
+}
+
 void LogViewerModel::parseFullDataFromLogFile()
 {
     QNDEBUG(QStringLiteral("LogViewerModel::parseFullDataFromLogFile"));
@@ -193,17 +376,134 @@ void LogViewerModel::parseDataFromLogFileFromCurrentPos()
         m_currentPos = m_currentLogFile.pos();
     }
 
-    // Convert the read data into UTF8 string
-    QString readDataString = QString::fromUtf8(readData);
-    readData.clear();   // free the no longer used memory
+    parseAndAppendData(QString::fromUtf8(readData));
+}
 
-    // TODO: scan through the read data string, recognize the particular log entries and append them to m_data
-    Q_UNUSED(readDataString)
+void LogViewerModel::parseAndAppendData(const QString & logFileFragment)
+{
+    if (Q_UNLIKELY(!m_logParsingRegex.isValid())) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't parse the log file: invalid regexp"));
+        errorDescription.details() = m_logParsingRegex.pattern();
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    int numFoundMatches = 0;
+    QStringList lines = logFileFragment.split(QChar::fromLatin1('\n'), QString::SkipEmptyParts);
+    for(int i = 0, numLines = lines.size(); i < numLines; ++i)
+    {
+        const QString & line = lines.at(i);
+        int currentIndex = m_logParsingRegex.indexIn(line);
+        if (currentIndex < 0)
+        {
+            if (m_data.empty() || (numFoundMatches == 0)) {
+                continue;
+            }
+
+            Data & lastDataEntry = m_data.back();
+            lastDataEntry.m_logEntry += line;
+
+            QModelIndex changedDataIndex = index(static_cast<int>(m_data.size()) - 1, Columns::LogEntry);
+            emit dataChanged(changedDataIndex, changedDataIndex);
+            continue;
+        }
+
+        QStringList capturedTexts = m_logParsingRegex.capturedTexts();
+
+        if (capturedTexts.size() != 6) {
+            ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: unexpected number of captures by regex"));
+            errorDescription.details() += QString::number(capturedTexts.size());
+            QNWARNING(errorDescription);
+            emit notifyError(errorDescription);
+            return;
+        }
+
+        bool convertedSourceLineNumberToInt = false;
+        int sourceFileLineNumber = capturedTexts[3].toInt(&convertedSourceLineNumberToInt);
+        if (!convertedSourceLineNumberToInt) {
+            ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: failed to convert the source line number to int"));
+            errorDescription.details() += capturedTexts[3];
+            QNWARNING(errorDescription);
+            emit notifyError(errorDescription);
+            return;
+        }
+
+        Data dataEntry;
+        dataEntry.m_timestamp = QDateTime::fromString(capturedTexts[1],
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+                                                      QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
+#else
+                                                      QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")
+#endif
+                                                     );
+        dataEntry.m_sourceFileName = capturedTexts[2];
+        dataEntry.m_sourceFileLineNumber = sourceFileLineNumber;
+
+        const QString & logLevel = capturedTexts[4];
+        if (logLevel == QStringLiteral("Trace")) {
+            dataEntry.m_logLevel = LogLevel::TraceLevel;
+        }
+        else if (logLevel == QStringLiteral("Debug")) {
+            dataEntry.m_logLevel = LogLevel::DebugLevel;
+        }
+        else if (logLevel == QStringLiteral("Info")) {
+            dataEntry.m_logLevel = LogLevel::InfoLevel;
+        }
+        else if (logLevel == QStringLiteral("Warn")) {
+            dataEntry.m_logLevel = LogLevel::WarnLevel;
+        }
+        else if (logLevel == QStringLiteral("Error")) {
+            dataEntry.m_logLevel = LogLevel::ErrorLevel;
+        }
+        else if (logLevel == QStringLiteral("Fatal")) {
+            dataEntry.m_logLevel = LogLevel::FatalLevel;
+        }
+        else
+        {
+            ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: failed to parse the log level"));
+            errorDescription.details() += logLevel;
+            QNWARNING(errorDescription);
+            emit notifyError(errorDescription);
+            return;
+        }
+
+        dataEntry.m_logEntry = capturedTexts[5];
+        dataEntry.m_logEntry += QStringLiteral("\n");
+
+        beginInsertRows(QModelIndex(), m_data.size(), m_data.size());
+        m_data.append(dataEntry);
+        endInsertRows();
+
+        ++numFoundMatches;
+    }
+}
+
+QString LogViewerModel::logLevelToString(LogLevel::type logLevel) const
+{
+    switch(logLevel)
+    {
+    case LogLevel::TraceLevel:
+        return QStringLiteral("Trace");
+    case LogLevel::DebugLevel:
+        return QStringLiteral("Debug");
+    case LogLevel::InfoLevel:
+        return QStringLiteral("Info");
+    case LogLevel::WarnLevel:
+        return QStringLiteral("Warn");
+    case LogLevel::ErrorLevel:
+        return QStringLiteral("Error");
+    case LogLevel::FatalLevel:
+        return QStringLiteral("Fatal");
+    default:
+        return QStringLiteral("Unknown");
+    }
 }
 
 QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Source file name = ") << m_sourceFileName
+    strm << QStringLiteral("Timestamp = ") << printableDateTimeFromTimestamp(m_timestamp.toMSecsSinceEpoch())
+         << QStringLiteral(", source file name = ") << m_sourceFileName
          << QStringLiteral(", line number = ") << m_sourceFileLineNumber
          << QStringLiteral(", log level = ") << m_logLevel
          << QStringLiteral(", log entry: ") << m_logEntry;

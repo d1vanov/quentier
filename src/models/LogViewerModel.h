@@ -22,10 +22,12 @@
 #include <quentier/utility/Macros.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/Printable.h>
+#include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/types/ErrorString.h>
 #include <QAbstractTableModel>
 #include <QFile>
 #include <QVector>
+#include <QRegExp>
 
 namespace quentier {
 
@@ -38,7 +40,8 @@ public:
     struct Columns
     {
         enum type {
-            SourceFileName = 0,
+            Timestamp = 0,
+            SourceFileName,
             SourceFileLineNumber,
             LogLevel,
             LogEntry
@@ -51,6 +54,8 @@ public:
     qint64 offsetPos() const { return m_offsetPos; }
     void setOffsetPos(const qint64 offsetPos);
 
+    qint64 currentPos() const { return m_currentPos; }
+
     void copyAllToClipboard();
 
 Q_SIGNALS:
@@ -62,21 +67,36 @@ private:
     virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
     virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
+private Q_SLOTS:
+    void onFileChanged(const QString & path);
+    void onFileRemoved(const QString & path);
+
 private:
     void parseFullDataFromLogFile();
     void parseDataFromLogFileFromCurrentPos();
+    void parseAndAppendData(const QString & logFileFragment);
+
+    QString logLevelToString(LogLevel::type logLevel) const;
 
 private:
     Q_DISABLE_COPY(LogViewerModel)
 
 private:
-    QFile       m_currentLogFile;
-    qint64      m_currentPos;
-    qint64      m_offsetPos;
+    QRegExp             m_logParsingRegex;
+
+    QFile               m_currentLogFile;
+    FileSystemWatcher   m_currentLogFileWatcher;
+
+    char                m_currentLogFileStartBytes[256];
+    qint64              m_currentLogFileStartBytesRead;
+
+    qint64              m_currentPos;
+    qint64              m_offsetPos;
 
     struct Data: public Printable
     {
         Data() :
+            m_timestamp(),
             m_sourceFileName(),
             m_sourceFileLineNumber(-1),
             m_logLevel(LogLevel::InfoLevel),
@@ -85,13 +105,14 @@ private:
 
         virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+        QDateTime       m_timestamp;
         QString         m_sourceFileName;
         int             m_sourceFileLineNumber;
         LogLevel::type  m_logLevel;
         QString         m_logEntry;
     };
 
-    QVector<Data>   m_data;
+    QVector<Data>       m_data;
 };
 
 } // namespace quentier
