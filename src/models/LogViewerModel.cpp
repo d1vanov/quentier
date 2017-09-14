@@ -479,7 +479,7 @@ void LogViewerModel::parseAndAppendData(const QString & logFileFragment)
     }
 }
 
-QString LogViewerModel::logLevelToString(LogLevel::type logLevel) const
+QString LogViewerModel::logLevelToString(LogLevel::type logLevel)
 {
     switch(logLevel)
     {

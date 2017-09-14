@@ -58,6 +58,8 @@ public:
 
     void copyAllToClipboard();
 
+    static QString logLevelToString(LogLevel::type logLevel);
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
@@ -75,8 +77,6 @@ private:
     void parseFullDataFromLogFile();
     void parseDataFromLogFileFromCurrentPos();
     void parseAndAppendData(const QString & logFileFragment);
-
-    QString logLevelToString(LogLevel::type logLevel) const;
 
 private:
     Q_DISABLE_COPY(LogViewerModel)

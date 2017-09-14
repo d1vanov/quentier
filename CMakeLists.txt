@@ -116,6 +116,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/FavoritesModel.h
     src/models/FavoritesModelItem.h
     src/models/LogViewerModel.h
+    src/models/LogViewerFilterModel.h
     src/delegates/AbstractStyledItemDelegate.h
     src/delegates/LimitedFontsDelegate.h
     src/delegates/NoteItemDelegate.h
@@ -144,6 +145,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/FilterByTagWidget.h
     src/widgets/FlowLayout.h
     src/widgets/ListItemWidget.h
+    src/widgets/LogViewerWidget.h
     src/widgets/NewListItemLineEdit.h
     src/widgets/NotebookModelItemInfoWidget.h
     src/widgets/SavedSearchModelItemInfoWidget.h
@@ -209,6 +211,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
     src/models/LogViewerModel.cpp
+    src/models/LogViewerFilterModel.cpp
     src/delegates/AbstractStyledItemDelegate.cpp
     src/delegates/LimitedFontsDelegate.cpp
     src/delegates/NoteItemDelegate.cpp
@@ -232,6 +235,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/FilterByTagWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/ListItemWidget.cpp
+    src/widgets/LogViewerWidget.cpp
     src/widgets/NewListItemLineEdit.cpp
     src/widgets/NotebookModelItemInfoWidget.cpp
     src/widgets/SavedSearchModelItemInfoWidget.cpp
@@ -264,6 +268,7 @@ set(FORMS
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
     src/widgets/ListItemWidget.ui
+    src/widgets/LogViewerWidget.ui
     src/widgets/NewListItemLineEdit.ui
     src/widgets/NotebookModelItemInfoWidget.ui
     src/widgets/NoteEditorWidget.ui
