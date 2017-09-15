@@ -169,16 +169,16 @@
    <item row="2" column="0">
     <layout class="QHBoxLayout" name="leftButtonsHorizontalLayout">
      <item>
-      <widget class="QPushButton" name="copyToClipboardPushButton">
+      <widget class="QPushButton" name="clearPushButton">
        <property name="text">
-        <string>Copy to clipboard</string>
+        <string>Clear</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="saveToFilePushButton">
+      <widget class="QPushButton" name="resetPushButton">
        <property name="text">
-        <string>Save to file...</string>
+        <string>Reset</string>
        </property>
       </widget>
      </item>
@@ -194,6 +194,20 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="copyToClipboardPushButton">
+       <property name="text">
+        <string>Copy to clipboard</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveToFilePushButton">
+       <property name="text">
+        <string>Save to file...</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

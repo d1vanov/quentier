@@ -32,20 +32,31 @@ private Q_SLOTS:
     void onCurrentLogLevelChanged(int index);
     void onFilterByLogLevelCheckboxToggled(int state);
 
+    void onCurrentLogFileChanged(const QString & currentLogFile);
+
     void onLogFileDirRemoved(const QString & path);
     void onLogFileDirChanged(const QString & path);
+
+    void onCopyAllToClipboardButtonPressed();
+    void onSaveAllToFileButtonPressed();
+
+    void onClearButtonPressed();
+    void onResetButtonPressed();
 
 private:
     void clear();
 
 private:
     Ui::LogViewerWidget *   m_pUi;
-    LogLevel::type          m_logLevels[6];
-    bool                    m_logLevelEnabledStates[6];
     FileSystemWatcher       m_logFilesFolderWatcher;
 
     LogViewerModel *        m_pLogViewerModel;
     LogViewerFilterModel *  m_pLogViewerFilterModel;
+
+    // Backups for tracing mode
+    LogLevel::type          m_minLogLevelBeforeTracing;
+    QString                 m_filterByContentBeforeTracing;
+    bool                    m_filterByLogLevelBeforeTracing[6];
 };
 
 } // namespace quentier

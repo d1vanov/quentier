@@ -51,19 +51,19 @@ public:
     QString logFileName() const;
     void setLogFileName(const QString & logFileName);
 
-    qint64 offsetPos() const { return m_offsetPos; }
-    void setOffsetPos(const qint64 offsetPos);
-
     qint64 currentPos() const { return m_currentPos; }
 
-    void copyAllToClipboard();
+    void clear();
+
+    QString copyAllToString() const;
+    void copyAllToClipboard() const;
 
     static QString logLevelToString(LogLevel::type logLevel);
 
 Q_SIGNALS:
-    void notifyError(ErrorString errorDescription);
+    void notifyError(ErrorString errorDescription) const;
 
-private:
+public:
     // QAbstractTableModel interface
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
     virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
@@ -91,7 +91,6 @@ private:
     qint64              m_currentLogFileStartBytesRead;
 
     qint64              m_currentPos;
-    qint64              m_offsetPos;
 
     struct Data: public Printable
     {

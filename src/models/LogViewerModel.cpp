@@ -36,7 +36,6 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_currentLogFile(),
     m_currentLogFileWatcher(),
     m_currentPos(-1),
-    m_offsetPos(-1),
     m_data()
 {}
 
@@ -58,11 +57,15 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
 
     beginResetModel();
 
-    m_offsetPos = -1;
     m_currentPos = 0;
     m_currentLogFile.close();
     m_currentLogFileWatcher.removePath(currentLogFileInfo.absoluteFilePath());
     m_data.clear();
+
+    for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
+        m_currentLogFileStartBytes[i] = 0;
+    }
+    m_currentLogFileStartBytesRead = 0;
 
     m_currentLogFile.setFileName(newLogFileInfo.absoluteFilePath());
     if (Q_UNLIKELY(!m_currentLogFile.exists()))
@@ -107,40 +110,28 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     endResetModel();
 }
 
-void LogViewerModel::setOffsetPos(const qint64 offsetPos)
+void LogViewerModel::clear()
 {
-    QNDEBUG(QStringLiteral("LogViewerModel::setOffsetPos: ") << offsetPos);
-
-    m_offsetPos = offsetPos;
-
-    if (!m_currentLogFile.isOpen()) {
-        QNDEBUG(QStringLiteral("The current log file is not open, won't do anything"));
-        return;
-    }
-
     beginResetModel();
+
+    m_currentPos = 0;
+    m_currentLogFile.close();
+    QFileInfo currentLogFileInfo(m_currentLogFile);
+    m_currentLogFileWatcher.removePath(currentLogFileInfo.absoluteFilePath());
     m_data.clear();
-    m_currentPos = std::max(offsetPos, qint64(0));
-    parseDataFromLogFileFromCurrentPos();
+
+    for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
+        m_currentLogFileStartBytes[i] = 0;
+    }
+    m_currentLogFileStartBytesRead = 0;
+
     endResetModel();
 }
 
-void LogViewerModel::copyAllToClipboard()
+QString LogViewerModel::copyAllToString() const
 {
-    QNDEBUG(QStringLiteral("LogViewerModel::copyAllToClipboard"));
-
-    QClipboard * pClipboard = QApplication::clipboard();
-    if (Q_UNLIKELY(!pClipboard)) {
-        ErrorString errorDescription(QT_TR_NOOP("Can't copy data to clipboard: got null pointer to clipboard from app"));
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
-
     QString modelTextData;
     QTextStream strm(&modelTextData);
-
-
 
     for(int i = 0, size = m_data.size(); i < size; ++i)
     {
@@ -165,7 +156,22 @@ void LogViewerModel::copyAllToClipboard()
     }
 
     strm.flush();
+    return modelTextData;
+}
 
+void LogViewerModel::copyAllToClipboard() const
+{
+    QNDEBUG(QStringLiteral("LogViewerModel::copyAllToClipboard"));
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (Q_UNLIKELY(!pClipboard)) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't copy data to clipboard: got null pointer to clipboard from app"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QString modelTextData = copyAllToString();
     pClipboard->setText(modelTextData);
 }
 
@@ -294,7 +300,6 @@ void LogViewerModel::onFileChanged(const QString & path)
         }
 
         beginResetModel();
-        m_offsetPos = -1;
         m_currentPos = 0;
         m_data.clear();
         parseFullDataFromLogFile();
@@ -323,7 +328,6 @@ void LogViewerModel::onFileRemoved(const QString & path)
         m_currentLogFileStartBytes[i] = 0;
     }
     m_currentPos = 0;
-    m_offsetPos = -1;
     m_data.clear();
     endResetModel();
 }
