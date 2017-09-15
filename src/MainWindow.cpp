@@ -4555,7 +4555,7 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & cons
 {
     const char key[10] = "e3zA914Ol";
 
-    QByteArray consumerKeyObf = QByteArray::fromBase64(QStringLiteral("ZVYsYCHKtSuDnK0g0swrUYAHzYy1m1UeVw==").toUtf8());
+    QByteArray consumerKeyObf = QByteArray::fromBase64(QStringLiteral("AR8MO2M8Z14WFFcuLzM1Shob").toUtf8());
     char lastChar = 0;
     int size = consumerKeyObf.size();
     for(int i = 0; i < size; ++i) {
@@ -4564,10 +4564,9 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & cons
         lastChar = currentChar;
     }
 
-    consumerKeyObf = qUncompress(consumerKeyObf);
     consumerKey = QString::fromUtf8(consumerKeyObf.constData(), consumerKeyObf.size());
 
-    QByteArray consumerSecretObf = QByteArray::fromBase64(QStringLiteral("ZVYsfTzX0KqA+jbDsjC0T2ZnKiRT0+Os7AN9uQ==").toUtf8());
+    QByteArray consumerSecretObf = QByteArray::fromBase64(QStringLiteral("BgFLOzJiZh9KSwRyLS8sAg==").toUtf8());
     lastChar = 0;
     size = consumerSecretObf.size();
     for(int i = 0; i < size; ++i) {
@@ -4576,7 +4575,6 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & cons
         lastChar = currentChar;
     }
 
-    consumerSecretObf = qUncompress(consumerSecretObf);
     consumerSecret = QString::fromUtf8(consumerSecretObf.constData(), consumerSecretObf.size());
 }
 
