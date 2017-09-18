@@ -14,20 +14,23 @@
 namespace quentier {
 
 LogViewerWidget::LogViewerWidget(QWidget * parent) :
-    QWidget(parent),
+    QWidget(parent, Qt::Window),
     m_pUi(new Ui::LogViewerWidget),
     m_logFilesFolderWatcher(),
     m_pLogViewerModel(new LogViewerModel(this)),
     m_pLogViewerFilterModel(new LogViewerFilterModel(this)),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
     m_filterByContentBeforeTracing(),
-    m_filterByLogLevelBeforeTracing()
+    m_filterByLogLevelBeforeTracing(),
+    m_logLevelEnabledCheckboxPtrs()
 {
     m_pUi->setupUi(this);
     m_pUi->resetPushButton->setEnabled(false);
+    m_pUi->tracePushButton->setCheckable(true);
 
     for(size_t i = 0; i < sizeof(m_filterByLogLevelBeforeTracing); ++i) {
         m_filterByLogLevelBeforeTracing[i] = true;
+        m_logLevelEnabledCheckboxPtrs[i] = Q_NULLPTR;
     }
 
     setupLogLevels();
@@ -45,6 +48,11 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this, QNSLOT(LogViewerWidget,onClearButtonPressed));
     QObject::connect(m_pUi->resetPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onResetButtonPressed));
+    QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(LogViewerWidget,onTraceButtonPressed));
+
+    QObject::connect(m_pUi->filterByContentLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(LogViewerWidget,onFilterByContentEditingFinished));
 }
 
 LogViewerWidget::~LogViewerWidget()
@@ -54,12 +62,12 @@ LogViewerWidget::~LogViewerWidget()
 
 void LogViewerWidget::setupLogLevels()
 {
-    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::FatalLevel));
-    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::ErrorLevel));
-    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::WarnLevel));
-    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::InfoLevel));
-    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::DebugLevel));
     m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::TraceLevel));
+    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::DebugLevel));
+    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::InfoLevel));
+    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::WarnLevel));
+    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::ErrorLevel));
+    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::FatalLevel));
 
     m_pUi->logLevelComboBox->setCurrentIndex(QuentierMinLogLevel());
     QObject::connect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),
@@ -149,6 +157,8 @@ void LogViewerWidget::setupFilterByLogLevelWidget()
         pWidget->setLayout(pLayout);
         m_pUi->filterByLogLevelTableWidget->setCellWidget(static_cast<int>(i), 1, pWidget);
 
+        m_logLevelEnabledCheckboxPtrs[i] = pCheckbox;
+
         QObject::connect(pCheckbox, QNSIGNAL(QCheckBox,stateChanged,int),
                          this, QNSLOT(LogViewerWidget,onFilterByLogLevelCheckboxToggled,int));
     }
@@ -163,6 +173,11 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
     }
 
     QuentierSetMinLogLevel(static_cast<LogLevel::type>(index));
+}
+
+void LogViewerWidget::onFilterByContentEditingFinished()
+{
+    m_pLogViewerFilterModel->setFilterRegExp(QRegExp(m_pUi->filterByContentLineEdit->text()));
 }
 
 void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
@@ -275,6 +290,58 @@ void LogViewerWidget::onResetButtonPressed()
 {
     m_pLogViewerFilterModel->setFilterOutBeforeRow(0);
     m_pUi->resetPushButton->setEnabled(false);
+}
+
+void LogViewerWidget::onTraceButtonPressed()
+{
+    if (!m_pUi->tracePushButton->isChecked())
+    {
+        m_pUi->tracePushButton->setChecked(true);
+
+        // Clear the currently displayed log entries to create some space for new ones
+        onClearButtonPressed();
+        m_pUi->resetPushButton->setEnabled(false);
+
+        // Backup the settings used before tracing
+        m_minLogLevelBeforeTracing = QuentierMinLogLevel();
+        m_filterByContentBeforeTracing = m_pUi->filterByContentLineEdit->text();
+        for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i) {
+            m_filterByLogLevelBeforeTracing[i] = m_pLogViewerFilterModel->logLevelEnabled(static_cast<LogLevel::type>(i));
+        }
+
+        // Enable tracing
+        QuentierSetMinLogLevel(LogLevel::TraceLevel);
+
+        m_pUi->filterByContentLineEdit->setText(QString());
+        onFilterByContentEditingFinished();
+
+        for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i) {
+            m_pLogViewerFilterModel->setLogLevelEnabled(static_cast<LogLevel::type>(i), true);
+            m_logLevelEnabledCheckboxPtrs[i]->setChecked(true);
+        }
+        m_pUi->filterByLogLevelTableWidget->setEnabled(false);
+    }
+    else
+    {
+        m_pUi->tracePushButton->setChecked(false);
+
+        // Restore the previously backed up settings
+        QuentierSetMinLogLevel(m_minLogLevelBeforeTracing);
+        m_minLogLevelBeforeTracing = LogLevel::InfoLevel;
+
+        m_pUi->filterByContentLineEdit->setText(m_filterByContentBeforeTracing);
+        onFilterByContentEditingFinished();
+        m_filterByContentBeforeTracing.clear();
+
+        for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i) {
+            m_pLogViewerFilterModel->setLogLevelEnabled(static_cast<LogLevel::type>(i), m_filterByLogLevelBeforeTracing[i]);
+            m_logLevelEnabledCheckboxPtrs[i]->setChecked(m_filterByLogLevelBeforeTracing[i]);
+            m_filterByLogLevelBeforeTracing[i] = false;
+        }
+        m_pUi->filterByLogLevelTableWidget->setEnabled(true);
+
+        onResetButtonPressed();
+    }
 }
 
 void LogViewerWidget::clear()

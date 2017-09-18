@@ -10,6 +10,8 @@ namespace Ui {
 class LogViewerWidget;
 }
 
+QT_FORWARD_DECLARE_CLASS(QCheckBox)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LogViewerModel)
@@ -30,6 +32,7 @@ private:
 
 private Q_SLOTS:
     void onCurrentLogLevelChanged(int index);
+    void onFilterByContentEditingFinished();
     void onFilterByLogLevelCheckboxToggled(int state);
 
     void onCurrentLogFileChanged(const QString & currentLogFile);
@@ -42,6 +45,8 @@ private Q_SLOTS:
 
     void onClearButtonPressed();
     void onResetButtonPressed();
+
+    void onTraceButtonPressed();
 
 private:
     void clear();
@@ -57,6 +62,7 @@ private:
     LogLevel::type          m_minLogLevelBeforeTracing;
     QString                 m_filterByContentBeforeTracing;
     bool                    m_filterByLogLevelBeforeTracing[6];
+    QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
 };
 
 } // namespace quentier
