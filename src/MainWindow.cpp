@@ -67,6 +67,9 @@ using quentier::FilterByTagWidget;
 #include "widgets/FilterBySavedSearchWidget.h"
 using quentier::FilterBySavedSearchWidget;
 
+#include "widgets/LogViewerWidget.h"
+using quentier::LogViewerWidget;
+
 #include "widgets/NotebookModelItemInfoWidget.h"
 #include "widgets/TagModelItemInfoWidget.h"
 #include "widgets/SavedSearchModelItemInfoWidget.h"
@@ -444,6 +447,9 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToLighter));
     QObject::connect(m_pUI->ActionPanelStyleDarker, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToDarker));
+    // Help menu actions
+    QObject::connect(m_pUI->ActionViewLogs, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onViewLogsActionTriggered));
 }
 
 void MainWindow::connectViewButtonsToSlots()
@@ -2871,6 +2877,18 @@ void MainWindow::onSetInkNote()
     m_testNotebook.setCanUpdateNotes(true);
 
     // TODO: set this note to editor, in new tab or replace existing tab (if any)
+}
+
+void MainWindow::onViewLogsActionTriggered()
+{
+    LogViewerWidget * pLogViewerWidget = findChild<LogViewerWidget*>();
+    if (pLogViewerWidget) {
+        return;
+    }
+
+    pLogViewerWidget = new LogViewerWidget(this);
+    pLogViewerWidget->setAttribute(Qt::WA_DeleteOnClose);
+    pLogViewerWidget->show();
 }
 
 void MainWindow::onNoteEditorError(ErrorString error)

@@ -264,6 +264,8 @@ private Q_SLOTS:
     void onSetTestReadOnlyNote();
     void onSetInkNote();
 
+    void onViewLogsActionTriggered();
+
     void onNoteEditorError(ErrorString error);
     void onModelViewError(ErrorString error);
 

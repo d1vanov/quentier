@@ -25,9 +25,10 @@
 #include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/types/ErrorString.h>
 #include <QAbstractTableModel>
-#include <QFile>
+#include <QFileInfo>
 #include <QVector>
 #include <QRegExp>
+#include <QThread>
 
 namespace quentier {
 
@@ -63,6 +64,9 @@ public:
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription) const;
 
+    // private signals
+    void startAsyncLogFileReading();
+
 public:
     // QAbstractTableModel interface
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
@@ -73,10 +77,16 @@ private Q_SLOTS:
     void onFileChanged(const QString & path);
     void onFileRemoved(const QString & path);
 
+    void onFileReadAsyncReady(QByteArray readData, qint64 pos,
+                              ErrorString errorDescription);
+
 private:
     void parseFullDataFromLogFile();
     void parseDataFromLogFileFromCurrentPos();
     void parseAndAppendData(const QString & logFileFragment);
+
+private:
+    class FileReaderAsync;
 
 private:
     Q_DISABLE_COPY(LogViewerModel)
@@ -84,13 +94,17 @@ private:
 private:
     QRegExp             m_logParsingRegex;
 
-    QFile               m_currentLogFile;
+    QFileInfo           m_currentLogFileInfo;
     FileSystemWatcher   m_currentLogFileWatcher;
 
     char                m_currentLogFileStartBytes[256];
     qint64              m_currentLogFileStartBytesRead;
 
     qint64              m_currentPos;
+
+    bool                m_pendingLogFileReadData;
+
+    QThread *           m_pReadLogFileIOThread;
 
     struct Data: public Printable
     {

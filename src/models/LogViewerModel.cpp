@@ -17,6 +17,7 @@
  */
 
 #include "LogViewerModel.h"
+#include "LogViewerModelFileReaderAsync.h"
 #include <quentier/utility/Utility.h>
 #include <QFileInfo>
 #include <QStringList>
@@ -33,24 +34,29 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     QAbstractTableModel(parent),
     m_logParsingRegex(QStringLiteral("^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3}\\s+\\w+)\\s+(.+)\\s+@\\s+(\\d+)\\s+\\[(\\w+)\\]:\\s(.+$)"),
                       Qt::CaseInsensitive, QRegExp::RegExp),
-    m_currentLogFile(),
+    m_currentLogFileInfo(),
     m_currentLogFileWatcher(),
     m_currentPos(-1),
+    m_pendingLogFileReadData(false),
+    m_pReadLogFileIOThread(new QThread),
     m_data()
-{}
+{
+    QObject::connect(m_pReadLogFileIOThread, QNSIGNAL(QThread,finished),
+                     this, QNSLOT(QThread,deleteLater));
+    m_pReadLogFileIOThread->start(QThread::LowPriority);
+}
 
 QString LogViewerModel::logFileName() const
 {
-    return m_currentLogFile.fileName();
+    return m_currentLogFileInfo.fileName();
 }
 
 void LogViewerModel::setLogFileName(const QString & logFileName)
 {
     QNDEBUG(QStringLiteral("LogViewerModel::setLogFileName: ") << logFileName);
 
-    QFileInfo currentLogFileInfo(m_currentLogFile);
     QFileInfo newLogFileInfo(QuentierLogFilesDirPath() + QStringLiteral("/") + logFileName);
-    if (currentLogFileInfo.absoluteFilePath() == newLogFileInfo.absoluteFilePath()) {
+    if (m_currentLogFileInfo.absoluteFilePath() == newLogFileInfo.absoluteFilePath()) {
         QNDEBUG(QStringLiteral("This log file is already set to the model"));
         return;
     }
@@ -58,8 +64,8 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     beginResetModel();
 
     m_currentPos = 0;
-    m_currentLogFile.close();
-    m_currentLogFileWatcher.removePath(currentLogFileInfo.absoluteFilePath());
+    m_currentLogFileInfo = newLogFileInfo;
+    m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
     m_data.clear();
 
     for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
@@ -67,44 +73,31 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     }
     m_currentLogFileStartBytesRead = 0;
 
-    m_currentLogFile.setFileName(newLogFileInfo.absoluteFilePath());
-    if (Q_UNLIKELY(!m_currentLogFile.exists()))
+    QFile currentLogFile(newLogFileInfo.absoluteFilePath());
+    if (Q_UNLIKELY(!currentLogFile.exists()))
     {
-        QFileInfo info(m_currentLogFile);
         ErrorString errorDescription(QT_TR_NOOP("Log file doesn't exist"));
-        errorDescription.details() = info.absoluteFilePath();
+        errorDescription.details() = m_currentLogFileInfo.absoluteFilePath();
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         endResetModel();
         return;
     }
 
-    bool open = m_currentLogFile.open(QIODevice::ReadOnly);
+    bool open = currentLogFile.open(QIODevice::ReadOnly);
     if (Q_UNLIKELY(!open))
     {
-        QFileInfo info(m_currentLogFile);
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
-        errorDescription.details() = info.absoluteFilePath();
+        errorDescription.details() = m_currentLogFileInfo.absoluteFilePath();
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         endResetModel();
         return;
     }
 
-    currentLogFileInfo.setFile(m_currentLogFile);
-    m_currentLogFileWatcher.addPath(currentLogFileInfo.absoluteFilePath());
+    m_currentLogFileStartBytesRead = currentLogFile.read(m_currentLogFileStartBytes, sizeof(m_currentLogFileStartBytes));
 
-    m_currentLogFileStartBytesRead = m_currentLogFile.read(m_currentLogFileStartBytes, sizeof(m_currentLogFileStartBytes));
-    if (!m_currentLogFile.seek(0))
-    {
-        QFileInfo info(m_currentLogFile);
-        ErrorString errorDescription(QT_TR_NOOP("Can't set the position within the current log file to zero"));
-        errorDescription.details() = info.absoluteFilePath();
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        endResetModel();
-        return;
-    }
+    m_currentLogFileWatcher.addPath(m_currentLogFileInfo.absoluteFilePath());
 
     parseFullDataFromLogFile();
     endResetModel();
@@ -115,9 +108,8 @@ void LogViewerModel::clear()
     beginResetModel();
 
     m_currentPos = 0;
-    m_currentLogFile.close();
-    QFileInfo currentLogFileInfo(m_currentLogFile);
-    m_currentLogFileWatcher.removePath(currentLogFileInfo.absoluteFilePath());
+    m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
+    m_currentLogFileInfo = QFileInfo();
     m_data.clear();
 
     for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
@@ -232,43 +224,22 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
 
 void LogViewerModel::onFileChanged(const QString & path)
 {
-    QFileInfo currentLogFileInfo(m_currentLogFile);
-    if (currentLogFileInfo.absoluteFilePath() != path) {
+    if (m_currentLogFileInfo.absoluteFilePath() != path) {
         // The changed file is not the current log file
         return;
     }
 
-    if (!m_currentLogFile.isOpen() && !m_currentLogFile.open(QIODevice::ReadOnly))
+    QFile currentLogFile(path);
+    if (!currentLogFile.isOpen() && !currentLogFile.open(QIODevice::ReadOnly))
     {
-        QFileInfo info(m_currentLogFile);
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
-        errorDescription.details() = info.absoluteFilePath();
-        emit notifyError(errorDescription);
-        return;
-    }
-
-    qint64 currentPos = m_currentLogFile.pos();
-
-    if (!m_currentLogFile.seek(0))
-    {
-        QFileInfo info(m_currentLogFile);
-        ErrorString errorDescription(QT_TR_NOOP("Can't set the position within the current log file to zero"));
-        errorDescription.details() = info.absoluteFilePath();
+        errorDescription.details() = path;
         emit notifyError(errorDescription);
         return;
     }
 
     char startBytes[sizeof(m_currentLogFileStartBytes)];
-    qint64 startBytesRead = m_currentLogFile.read(startBytes, sizeof(startBytes));
-
-    if (!m_currentLogFile.seek(currentPos))
-    {
-        QFileInfo info(m_currentLogFile);
-        ErrorString errorDescription(QT_TR_NOOP("Can't restore the position within the current log file after reading some first bytes from it"));
-        errorDescription.details() = info.absoluteFilePath();
-        emit notifyError(errorDescription);
-        return;
-    }
+    qint64 startBytesRead = currentLogFile.read(startBytes, sizeof(startBytes));
 
     bool fileStartBytesChanged = false;
     if (startBytesRead != m_currentLogFileStartBytesRead)
@@ -314,14 +285,13 @@ void LogViewerModel::onFileChanged(const QString & path)
 
 void LogViewerModel::onFileRemoved(const QString & path)
 {
-    QFileInfo currentLogFileInfo(m_currentLogFile);
-    if (currentLogFileInfo.absoluteFilePath() != path) {
+    if (m_currentLogFileInfo.absoluteFilePath() != path) {
         // The changed file is not the current log file
         return;
     }
 
     beginResetModel();
-    m_currentLogFile.close();
+    m_currentLogFileInfo = QFileInfo();
     m_currentLogFileWatcher.removePath(path);
     m_currentLogFileStartBytesRead = 0;
     for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
@@ -332,9 +302,22 @@ void LogViewerModel::onFileRemoved(const QString & path)
     endResetModel();
 }
 
+void LogViewerModel::onFileReadAsyncReady(QByteArray readData, qint64 pos, ErrorString errorDescription)
+{
+    if (!errorDescription.isEmpty()) {
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    m_currentPos = pos;
+    parseAndAppendData(QString::fromUtf8(readData));
+}
+
 void LogViewerModel::parseFullDataFromLogFile()
 {
     QNDEBUG(QStringLiteral("LogViewerModel::parseFullDataFromLogFile"));
+
+
     m_currentPos = 0;
     parseDataFromLogFileFromCurrentPos();
 }
@@ -343,48 +326,22 @@ void LogViewerModel::parseDataFromLogFileFromCurrentPos()
 {
     QNDEBUG(QStringLiteral("LogViewerModel::parseDataFromLogFileFromCurrentPos"));
 
-    if (!m_currentLogFile.seek(m_currentPos)) {
-        ErrorString errorDescription(QT_TR_NOOP("Failed to read the data from log file: failed to seek at position"));
-        errorDescription.details() = QString::number(m_currentPos);
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
+    FileReaderAsync * pFileReaderAsync = new FileReaderAsync(m_currentLogFileInfo.absoluteFilePath(),
+                                                             m_currentPos, this);
+    pFileReaderAsync->moveToThread(m_pReadLogFileIOThread);
+    QObject::connect(this, QNSIGNAL(LogViewerModel,startAsyncLogFileReading),
+                     pFileReaderAsync, QNSLOT(FileReaderAsync,onStartReading));
+    QObject::connect(pFileReaderAsync, QNSIGNAL(FileReaderAsync,finished,QByteArray,qint64,ErrorString),
+                     this, QNSLOT(LogViewerModel,onFileReadAsyncReady,QByteArray,qint64,ErrorString));
 
-    const qint64 bufSize = 1024;
-    char buf[bufSize];
-    QByteArray readData;
-
-    while(true)
-    {
-        qint64 bytesRead = m_currentLogFile.read(buf, bufSize);
-        if (bytesRead == -1)
-        {
-            ErrorString errorDescription(QT_TR_NOOP("Failed to read the data from log file"));
-            QString logFileError = m_currentLogFile.errorString();
-            if (!logFileError.isEmpty()) {
-                errorDescription.details() = logFileError;
-            }
-
-            QNWARNING(errorDescription);
-            emit notifyError(errorDescription);
-            return;
-        }
-        else if (bytesRead == 0)
-        {
-            QNDEBUG(QStringLiteral("Read all data from the log file"));
-            break;
-        }
-
-        readData.append(buf, static_cast<int>(bytesRead));
-        m_currentPos = m_currentLogFile.pos();
-    }
-
-    parseAndAppendData(QString::fromUtf8(readData));
+    m_pendingLogFileReadData = true;
+    emit startAsyncLogFileReading();
 }
 
 void LogViewerModel::parseAndAppendData(const QString & logFileFragment)
 {
+    QNDEBUG(QStringLiteral("LogViewerModel::parseAndAppendData"));
+
     if (Q_UNLIKELY(!m_logParsingRegex.isValid())) {
         ErrorString errorDescription(QT_TR_NOOP("Can't parse the log file: invalid regexp"));
         errorDescription.details() = m_logParsingRegex.pattern();
