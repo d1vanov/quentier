@@ -32,14 +32,14 @@ public:
                              QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void finished(QByteArray readData, qint64 currentPos, ErrorString errorDescription);
+    void finished(qint64 currentPos, QString readData, ErrorString errorDescription);
 
 public Q_SLOTS:
     void onStartReading();
 
 private:
-    QFile   m_targetFile;
-    qint64  m_startPos;
+    QFile       m_targetFile;
+    qint64      m_startPos;
 };
 
 } // namespace quentier

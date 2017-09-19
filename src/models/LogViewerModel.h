@@ -26,9 +26,9 @@
 #include <quentier/types/ErrorString.h>
 #include <QAbstractTableModel>
 #include <QFileInfo>
-#include <QVector>
-#include <QRegExp>
+#include <QList>
 #include <QThread>
+#include <QRegExp>
 
 namespace quentier {
 
@@ -52,7 +52,7 @@ public:
     QString logFileName() const;
     void setLogFileName(const QString & logFileName);
 
-    qint64 currentPos() const { return m_currentPos; }
+    qint64 currentLogFilePos() const { return m_currentLogFilePos; }
 
     void clear();
 
@@ -60,51 +60,6 @@ public:
     void copyAllToClipboard() const;
 
     static QString logLevelToString(LogLevel::type logLevel);
-
-Q_SIGNALS:
-    void notifyError(ErrorString errorDescription) const;
-
-    // private signals
-    void startAsyncLogFileReading();
-
-public:
-    // QAbstractTableModel interface
-    virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-
-private Q_SLOTS:
-    void onFileChanged(const QString & path);
-    void onFileRemoved(const QString & path);
-
-    void onFileReadAsyncReady(QByteArray readData, qint64 pos,
-                              ErrorString errorDescription);
-
-private:
-    void parseFullDataFromLogFile();
-    void parseDataFromLogFileFromCurrentPos();
-    void parseAndAppendData(const QString & logFileFragment);
-
-private:
-    class FileReaderAsync;
-
-private:
-    Q_DISABLE_COPY(LogViewerModel)
-
-private:
-    QRegExp             m_logParsingRegex;
-
-    QFileInfo           m_currentLogFileInfo;
-    FileSystemWatcher   m_currentLogFileWatcher;
-
-    char                m_currentLogFileStartBytes[256];
-    qint64              m_currentLogFileStartBytesRead;
-
-    qint64              m_currentPos;
-
-    bool                m_pendingLogFileReadData;
-
-    QThread *           m_pReadLogFileIOThread;
 
     struct Data: public Printable
     {
@@ -120,14 +75,68 @@ private:
 
         QDateTime       m_timestamp;
         QString         m_sourceFileName;
-        int             m_sourceFileLineNumber;
+        qint64          m_sourceFileLineNumber;
         LogLevel::type  m_logLevel;
         QString         m_logEntry;
     };
 
-    QVector<Data>       m_data;
+    const Data * dataEntry(const int row) const;
+
+Q_SIGNALS:
+    void notifyError(ErrorString errorDescription) const;
+
+    // private signals
+    void startAsyncLogFileReading();
+
+public:
+    // QAbstractTableModel interface
+    virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    virtual bool canFetchMore(const QModelIndex & parent) const Q_DECL_OVERRIDE;
+    virtual void fetchMore(const QModelIndex & parent) Q_DECL_OVERRIDE;
+
+private Q_SLOTS:
+    void onFileChanged(const QString & path);
+    void onFileRemoved(const QString & path);
+
+    void onFileReadAsyncReady(qint64 logFilePos, QString readData, ErrorString errorDescription);
+
+private:
+    void parseFullDataFromLogFile();
+    void parseDataFromLogFileFromCurrentPos();
+    void parseAndAppendData(const QString & logFileFragment);
+
+private:
+    class FileReaderAsync;
+
+private:
+    Q_DISABLE_COPY(LogViewerModel)
+
+private:
+    QFileInfo           m_currentLogFileInfo;
+    FileSystemWatcher   m_currentLogFileWatcher;
+
+    QRegExp             m_logParsingRegex;
+
+    char                m_currentLogFileStartBytes[256];
+    qint64              m_currentLogFileStartBytesRead;
+
+    qint64              m_currentLogFilePos;
+
+    int                 m_currentParsedLogFileLines;
+    QStringList         m_currentLogFileLines;
+
+    bool                m_pendingLogFileReadData;
+
+    QThread *           m_pReadLogFileIOThread;
+
+    QList<Data>         m_data;
 };
 
 } // namespace quentier
+
+Q_DECLARE_METATYPE(quentier::LogViewerModel::Data)
+Q_DECLARE_METATYPE(QList<quentier::LogViewerModel::Data>)
 
 #endif // QUENTIER_MODELS_LOG_VIEWER_MODEL_H

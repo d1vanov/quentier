@@ -27,23 +27,28 @@
 #include <algorithm>
 
 #define LOG_VIEWER_MODEL_COLUMN_COUNT (5)
+#define LOG_VIEWER_MODEL_FETCH_ITEMS_BUCKET_SIZE (100)
 
 namespace quentier {
 
 LogViewerModel::LogViewerModel(QObject * parent) :
     QAbstractTableModel(parent),
-    m_logParsingRegex(QStringLiteral("^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3}\\s+\\w+)\\s+(.+)\\s+@\\s+(\\d+)\\s+\\[(\\w+)\\]:\\s(.+$)"),
-                      Qt::CaseInsensitive, QRegExp::RegExp),
     m_currentLogFileInfo(),
     m_currentLogFileWatcher(),
-    m_currentPos(-1),
+    m_logParsingRegex(QStringLiteral("^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3}\\s+\\w+)\\s+(.+)\\s+@\\s+(\\d+)\\s+\\[(\\w+)\\]:\\s(.+$)"),
+                      Qt::CaseInsensitive, QRegExp::RegExp),
+    m_currentLogFilePos(-1),
+    m_currentParsedLogFileLines(0),
+    m_currentLogFileLines(),
     m_pendingLogFileReadData(false),
     m_pReadLogFileIOThread(new QThread),
     m_data()
 {
     QObject::connect(m_pReadLogFileIOThread, QNSIGNAL(QThread,finished),
                      this, QNSLOT(QThread,deleteLater));
-    m_pReadLogFileIOThread->start(QThread::LowPriority);
+    QObject::connect(this, QNSIGNAL(LogViewerModel,destroyed),
+                     m_pReadLogFileIOThread, QNSLOT(QThread,quit));
+    m_pReadLogFileIOThread->start(QThread::LowestPriority);
 }
 
 QString LogViewerModel::logFileName() const
@@ -63,10 +68,12 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
 
     beginResetModel();
 
-    m_currentPos = 0;
-    m_currentLogFileInfo = newLogFileInfo;
+    m_currentLogFilePos = 0;
     m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
+    m_currentLogFileInfo = newLogFileInfo;
     m_data.clear();
+    m_currentParsedLogFileLines = 0;
+    m_currentLogFileLines.clear();
 
     for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
         m_currentLogFileStartBytes[i] = 0;
@@ -107,10 +114,12 @@ void LogViewerModel::clear()
 {
     beginResetModel();
 
-    m_currentPos = 0;
+    m_currentLogFilePos = 0;
     m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
     m_currentLogFileInfo = QFileInfo();
     m_data.clear();
+    m_currentParsedLogFileLines = 0;
+    m_currentLogFileLines.clear();
 
     for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
         m_currentLogFileStartBytes[i] = 0;
@@ -165,6 +174,15 @@ void LogViewerModel::copyAllToClipboard() const
 
     QString modelTextData = copyAllToString();
     pClipboard->setText(modelTextData);
+}
+
+const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
+{
+    if (Q_UNLIKELY((row < 0) || (row >= m_data.size()))) {
+        return Q_NULLPTR;
+    }
+
+    return &(m_data.at(row));
 }
 
 int LogViewerModel::rowCount(const QModelIndex & parent) const
@@ -222,6 +240,24 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
     }
 }
 
+bool LogViewerModel::canFetchMore(const QModelIndex & parent) const
+{
+    if (parent.isValid()) {
+        return false;
+    }
+
+    return m_currentParsedLogFileLines < m_currentLogFileLines.size();
+}
+
+void LogViewerModel::fetchMore(const QModelIndex & parent)
+{
+    if (parent.isValid()) {
+        return;
+    }
+
+    // TODO: implement
+}
+
 void LogViewerModel::onFileChanged(const QString & path)
 {
     if (m_currentLogFileInfo.absoluteFilePath() != path) {
@@ -271,8 +307,10 @@ void LogViewerModel::onFileChanged(const QString & path)
         }
 
         beginResetModel();
-        m_currentPos = 0;
+        m_currentLogFilePos = 0;
         m_data.clear();
+        m_currentParsedLogFileLines = 0;
+        m_currentLogFileLines.clear();
         parseFullDataFromLogFile();
         endResetModel();
 
@@ -297,76 +335,52 @@ void LogViewerModel::onFileRemoved(const QString & path)
     for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
         m_currentLogFileStartBytes[i] = 0;
     }
-    m_currentPos = 0;
+    m_currentLogFilePos = 0;
     m_data.clear();
+    m_currentParsedLogFileLines = 0;
+    m_currentLogFileLines.clear();
     endResetModel();
 }
 
-void LogViewerModel::onFileReadAsyncReady(QByteArray readData, qint64 pos, ErrorString errorDescription)
+void LogViewerModel::onFileReadAsyncReady(qint64 pos, QString readData, ErrorString errorDescription)
 {
+    FileReaderAsync * pFileReaderAsync = qobject_cast<FileReaderAsync*>(sender());
+    if (pFileReaderAsync) {
+        pFileReaderAsync->deleteLater();
+    }
+
+    m_pendingLogFileReadData = false;
+
     if (!errorDescription.isEmpty()) {
         emit notifyError(errorDescription);
         return;
     }
 
-    m_currentPos = pos;
-    parseAndAppendData(QString::fromUtf8(readData));
-}
+    m_currentLogFilePos = pos;
 
-void LogViewerModel::parseFullDataFromLogFile()
-{
-    QNDEBUG(QStringLiteral("LogViewerModel::parseFullDataFromLogFile"));
-
-
-    m_currentPos = 0;
-    parseDataFromLogFileFromCurrentPos();
-}
-
-void LogViewerModel::parseDataFromLogFileFromCurrentPos()
-{
-    QNDEBUG(QStringLiteral("LogViewerModel::parseDataFromLogFileFromCurrentPos"));
-
-    FileReaderAsync * pFileReaderAsync = new FileReaderAsync(m_currentLogFileInfo.absoluteFilePath(),
-                                                             m_currentPos, this);
-    pFileReaderAsync->moveToThread(m_pReadLogFileIOThread);
-    QObject::connect(this, QNSIGNAL(LogViewerModel,startAsyncLogFileReading),
-                     pFileReaderAsync, QNSLOT(FileReaderAsync,onStartReading));
-    QObject::connect(pFileReaderAsync, QNSIGNAL(FileReaderAsync,finished,QByteArray,qint64,ErrorString),
-                     this, QNSLOT(LogViewerModel,onFileReadAsyncReady,QByteArray,qint64,ErrorString));
-
-    m_pendingLogFileReadData = true;
-    emit startAsyncLogFileReading();
-}
-
-void LogViewerModel::parseAndAppendData(const QString & logFileFragment)
-{
-    QNDEBUG(QStringLiteral("LogViewerModel::parseAndAppendData"));
-
-    if (Q_UNLIKELY(!m_logParsingRegex.isValid())) {
-        ErrorString errorDescription(QT_TR_NOOP("Can't parse the log file: invalid regexp"));
-        errorDescription.details() = m_logParsingRegex.pattern();
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
+    QList<LogViewerModel::Data> readLogFileEntries;
 
     int numFoundMatches = 0;
-    QStringList lines = logFileFragment.split(QChar::fromLatin1('\n'), QString::SkipEmptyParts);
-    for(int i = 0, numLines = lines.size(); i < numLines; ++i)
+
+    m_currentLogFileLines = readData.split(QChar::fromLatin1('\n'), QString::SkipEmptyParts);
+
+    int numLines = m_currentLogFileLines.size();
+    readLogFileEntries.reserve(numLines / 10);  // Just a rough guess
+
+    int numLinesToParse = std::min(LOG_VIEWER_MODEL_FETCH_ITEMS_BUCKET_SIZE, numLines);
+
+    for(int i = 0; i < numLinesToParse; ++i)
     {
-        const QString & line = lines.at(i);
+        const QString & line = m_currentLogFileLines.at(i);
         int currentIndex = m_logParsingRegex.indexIn(line);
         if (currentIndex < 0)
         {
-            if (m_data.empty() || (numFoundMatches == 0)) {
+            if ((numFoundMatches == 0) || readLogFileEntries.empty()) {
                 continue;
             }
 
-            Data & lastDataEntry = m_data.back();
-            lastDataEntry.m_logEntry += line;
-
-            QModelIndex changedDataIndex = index(static_cast<int>(m_data.size()) - 1, Columns::LogEntry);
-            emit dataChanged(changedDataIndex, changedDataIndex);
+            LogViewerModel::Data & lastEntry = readLogFileEntries.back();
+            lastEntry.m_logEntry += line;
             continue;
         }
 
@@ -390,35 +404,35 @@ void LogViewerModel::parseAndAppendData(const QString & logFileFragment)
             return;
         }
 
-        Data dataEntry;
-        dataEntry.m_timestamp = QDateTime::fromString(capturedTexts[1],
+        Data entry;
+        entry.m_timestamp = QDateTime::fromString(capturedTexts[1],
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-                                                      QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
+                                                  QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
 #else
-                                                      QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")
+                                                  QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")
 #endif
-                                                     );
-        dataEntry.m_sourceFileName = capturedTexts[2];
-        dataEntry.m_sourceFileLineNumber = sourceFileLineNumber;
+                                                 );
+        entry.m_sourceFileName = capturedTexts[2];
+        entry.m_sourceFileLineNumber = sourceFileLineNumber;
 
         const QString & logLevel = capturedTexts[4];
         if (logLevel == QStringLiteral("Trace")) {
-            dataEntry.m_logLevel = LogLevel::TraceLevel;
+            entry.m_logLevel = LogLevel::TraceLevel;
         }
         else if (logLevel == QStringLiteral("Debug")) {
-            dataEntry.m_logLevel = LogLevel::DebugLevel;
+            entry.m_logLevel = LogLevel::DebugLevel;
         }
         else if (logLevel == QStringLiteral("Info")) {
-            dataEntry.m_logLevel = LogLevel::InfoLevel;
+            entry.m_logLevel = LogLevel::InfoLevel;
         }
         else if (logLevel == QStringLiteral("Warn")) {
-            dataEntry.m_logLevel = LogLevel::WarnLevel;
+            entry.m_logLevel = LogLevel::WarnLevel;
         }
         else if (logLevel == QStringLiteral("Error")) {
-            dataEntry.m_logLevel = LogLevel::ErrorLevel;
+            entry.m_logLevel = LogLevel::ErrorLevel;
         }
         else if (logLevel == QStringLiteral("Fatal")) {
-            dataEntry.m_logLevel = LogLevel::FatalLevel;
+            entry.m_logLevel = LogLevel::FatalLevel;
         }
         else
         {
@@ -429,15 +443,51 @@ void LogViewerModel::parseAndAppendData(const QString & logFileFragment)
             return;
         }
 
-        dataEntry.m_logEntry = capturedTexts[5];
-        dataEntry.m_logEntry += QStringLiteral("\n");
+        entry.m_logEntry = capturedTexts[5];
+        entry.m_logEntry += QStringLiteral("\n");
 
-        beginInsertRows(QModelIndex(), m_data.size(), m_data.size());
-        m_data.append(dataEntry);
-        endInsertRows();
+        readLogFileEntries.push_back(entry);
 
         ++numFoundMatches;
     }
+
+    m_currentParsedLogFileLines = numLinesToParse;
+
+    int numNewRows = readLogFileEntries.size();
+    if (Q_UNLIKELY(numNewRows < 0)) {
+        return;
+    }
+
+    beginInsertRows(QModelIndex(), m_data.size(), m_data.size() + numNewRows);
+
+    for(int i = 0, numEntries = readLogFileEntries.size(); i < numEntries; ++i) {
+        m_data.append(readLogFileEntries[i]);
+    }
+
+    endInsertRows();
+}
+
+void LogViewerModel::parseFullDataFromLogFile()
+{
+    m_currentLogFilePos = 0;
+    parseDataFromLogFileFromCurrentPos();
+}
+
+void LogViewerModel::parseDataFromLogFileFromCurrentPos()
+{
+    FileReaderAsync * pFileReaderAsync = new FileReaderAsync(m_currentLogFileInfo.absoluteFilePath(),
+                                                             m_currentLogFilePos, this);
+    pFileReaderAsync->moveToThread(m_pReadLogFileIOThread);
+    QObject::connect(this, QNSIGNAL(LogViewerModel,startAsyncLogFileReading),
+                     pFileReaderAsync, QNSLOT(FileReaderAsync,onStartReading),
+                     Qt::QueuedConnection);
+    QObject::connect(pFileReaderAsync, QNSIGNAL(FileReaderAsync,finished,qint64,QString,ErrorString),
+                     this, QNSLOT(LogViewerModel,onFileReadAsyncReady,qint64,QString,ErrorString),
+                     Qt::QueuedConnection);
+
+    m_pendingLogFileReadData = true;
+
+    emit startAsyncLogFileReading();
 }
 
 QString LogViewerModel::logLevelToString(LogLevel::type logLevel)
