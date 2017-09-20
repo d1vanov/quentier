@@ -10,6 +10,7 @@
 #include <QFileDialog>
 
 #define QUENTIER_NUM_LOG_LEVELS (6)
+#define FETCHING_MORE_TIMER_PERIOD (400)
 
 namespace quentier {
 
@@ -19,6 +20,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_logFilesFolderWatcher(),
     m_pLogViewerModel(new LogViewerModel(this)),
     m_pLogViewerFilterModel(new LogViewerFilterModel(this)),
+    m_modelFetchingMoreTimer(),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
     m_filterByContentBeforeTracing(),
     m_filterByLogLevelBeforeTracing(),
@@ -28,6 +30,11 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pUi->resetPushButton->setEnabled(false);
     m_pUi->tracePushButton->setCheckable(true);
 
+    m_pUi->logEntriesTableView->verticalHeader()->hide();
+    m_pUi->logEntriesTableView->setWordWrap(true);
+
+    m_pUi->filterByLogLevelTableWidget->verticalHeader()->hide();
+
     for(size_t i = 0; i < sizeof(m_filterByLogLevelBeforeTracing); ++i) {
         m_filterByLogLevelBeforeTracing[i] = true;
         m_logLevelEnabledCheckboxPtrs[i] = Q_NULLPTR;
@@ -36,6 +43,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     setupLogLevels();
     setupLogFiles();
     setupFilterByLogLevelWidget();
+    startWatchingForLogFilesFolderChanges();
 
     m_pLogViewerFilterModel->setSourceModel(m_pLogViewerModel);
     m_pUi->logEntriesTableView->setModel(m_pLogViewerFilterModel);
@@ -125,6 +133,10 @@ void LogViewerWidget::setupLogFiles()
     }
 
     m_pLogViewerModel->setLogFileName(logFileName);
+
+    if (!m_modelFetchingMoreTimer.isActive()) {
+        m_modelFetchingMoreTimer.start(FETCHING_MORE_TIMER_PERIOD, this);
+    }
 }
 
 void LogViewerWidget::startWatchingForLogFilesFolderChanges()
@@ -348,6 +360,24 @@ void LogViewerWidget::clear()
 {
     m_pUi->logFileComboBox->clear();
     m_pLogViewerModel->clear();
+    m_modelFetchingMoreTimer.stop();
+}
+
+void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        return;
+    }
+
+    if (pEvent->timerId() == m_modelFetchingMoreTimer.timerId())
+    {
+        if (m_pLogViewerModel->canFetchMore(QModelIndex())) {
+            m_pLogViewerModel->fetchMore(QModelIndex());
+        }
+        else {
+            m_modelFetchingMoreTimer.stop();
+        }
+    }
 }
 
 } // namespace quentier

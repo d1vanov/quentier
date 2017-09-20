@@ -93,6 +93,7 @@ public:
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
     virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
     virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
     virtual bool canFetchMore(const QModelIndex & parent) const Q_DECL_OVERRIDE;
     virtual void fetchMore(const QModelIndex & parent) Q_DECL_OVERRIDE;
 
@@ -105,7 +106,9 @@ private Q_SLOTS:
 private:
     void parseFullDataFromLogFile();
     void parseDataFromLogFileFromCurrentPos();
-    void parseAndAppendData(const QString & logFileFragment);
+    void parseNextChunkOfLogFileLines();
+    bool parseNextChunkOfLogFileLines(const int lineNumFrom, QList<Data> & readLogFileEntries,
+                                      int & lastParsedLogFileLine);
 
 private:
     class FileReaderAsync;

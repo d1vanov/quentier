@@ -5,6 +5,7 @@
 #include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QWidget>
+#include <QBasicTimer>
 
 namespace Ui {
 class LogViewerWidget;
@@ -52,11 +53,16 @@ private:
     void clear();
 
 private:
+    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
+
+private:
     Ui::LogViewerWidget *   m_pUi;
     FileSystemWatcher       m_logFilesFolderWatcher;
 
     LogViewerModel *        m_pLogViewerModel;
     LogViewerFilterModel *  m_pLogViewerFilterModel;
+
+    QBasicTimer             m_modelFetchingMoreTimer;
 
     // Backups for tracing mode
     LogLevel::type          m_minLogLevelBeforeTracing;
