@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>618</width>
-    <height>362</height>
+    <width>936</width>
+    <height>448</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Log viewer</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -196,9 +196,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="copyToClipboardPushButton">
+      <widget class="QPushButton" name="copyAllToClipboardPushButton">
        <property name="text">
-        <string>Copy to clipboard</string>
+        <string>Copy all to clipboard</string>
        </property>
       </widget>
      </item>
