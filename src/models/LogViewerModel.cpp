@@ -64,18 +64,20 @@ QString LogViewerModel::logFileName() const
 
 void LogViewerModel::setLogFileName(const QString & logFileName)
 {
-    QNDEBUG(QStringLiteral("LogViewerModel::setLogFileName: ") << logFileName);
-
     QFileInfo newLogFileInfo(QuentierLogFilesDirPath() + QStringLiteral("/") + logFileName);
     if (m_currentLogFileInfo.absoluteFilePath() == newLogFileInfo.absoluteFilePath()) {
-        QNDEBUG(QStringLiteral("This log file is already set to the model"));
         return;
     }
 
     beginResetModel();
 
     m_currentLogFilePos = 0;
-    m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
+
+    QString currentLogFilePath = m_currentLogFileInfo.absoluteFilePath();
+    if (!currentLogFilePath.isEmpty()) {
+        m_currentLogFileWatcher.removePath(currentLogFilePath);
+    }
+
     m_currentLogFileInfo = newLogFileInfo;
     m_data.clear();
     m_currentParsedLogFileLines = 0;
@@ -156,7 +158,7 @@ QString LogViewerModel::copyAllToString() const
              << QString::number(entry.m_sourceFileLineNumber)
              << QStringLiteral(" [")
              << logLevelToString(entry.m_logLevel)
-             << QStringLiteral(": ")
+             << QStringLiteral("]: ")
              << entry.m_logEntry
              << QStringLiteral("\n");
 
@@ -410,7 +412,7 @@ void LogViewerModel::parseFullDataFromLogFile()
 void LogViewerModel::parseDataFromLogFileFromCurrentPos()
 {
     FileReaderAsync * pFileReaderAsync = new FileReaderAsync(m_currentLogFileInfo.absoluteFilePath(),
-                                                             m_currentLogFilePos, this);
+                                                             m_currentLogFilePos);
     pFileReaderAsync->moveToThread(m_pReadLogFileIOThread);
     QObject::connect(this, QNSIGNAL(LogViewerModel,startAsyncLogFileReading),
                      pFileReaderAsync, QNSLOT(FileReaderAsync,onStartReading),
@@ -418,6 +420,8 @@ void LogViewerModel::parseDataFromLogFileFromCurrentPos()
     QObject::connect(pFileReaderAsync, QNSIGNAL(FileReaderAsync,finished,qint64,QString,ErrorString),
                      this, QNSLOT(LogViewerModel,onFileReadAsyncReady,qint64,QString,ErrorString),
                      Qt::QueuedConnection);
+    QObject::connect(pFileReaderAsync, SIGNAL(finished(qint64,QString,ErrorString)),
+                     pFileReaderAsync, SLOT(deleteLater()));
 
     m_pendingLogFileReadData = true;
 
