@@ -50,30 +50,52 @@ bool LogViewerFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & s
 
     const LogViewerModel * pLogViewerModel = qobject_cast<const LogViewerModel*>(sourceModel());
     if (Q_UNLIKELY(!pLogViewerModel)) {
-        return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+        return false;
     }
 
     QModelIndex sourceIndex = pLogViewerModel->index(sourceRow, LogViewerModel::Columns::LogLevel, sourceParent);
     if (!sourceIndex.isValid()) {
-        return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+        return false;
     }
 
     QVariant logLevelData = pLogViewerModel->data(sourceIndex);
     bool convertedToInt = false;
     int logLevelInt = logLevelData.toInt(&convertedToInt);
     if (Q_UNLIKELY(!convertedToInt)) {
-        return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+        return false;
     }
 
     if (Q_UNLIKELY((logLevelInt < 0) || (logLevelInt >= static_cast<int>(sizeof(m_enabledLogLevels))))) {
-        return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+        return false;
     }
 
     if (!m_enabledLogLevels[static_cast<size_t>(logLevelInt)]) {
         return false;
     }
 
-    return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+    QRegExp regExp = filterRegExp();
+
+    sourceIndex = pLogViewerModel->index(sourceRow, LogViewerModel::Columns::SourceFileName, sourceParent);
+    if (!sourceIndex.isValid()) {
+        return false;
+    }
+
+    QString sourceFileName = pLogViewerModel->data(sourceIndex).toString();
+    if (regExp.indexIn(sourceFileName) >= 0) {
+        return true;
+    }
+
+    sourceIndex = pLogViewerModel->index(sourceRow, LogViewerModel::Columns::LogEntry, sourceParent);
+    if (!sourceIndex.isValid()) {
+        return false;
+    }
+
+    QString logEntry = pLogViewerModel->data(sourceIndex).toString();
+    if (regExp.indexIn(logEntry) >= 0) {
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace quentier
