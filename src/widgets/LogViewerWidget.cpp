@@ -8,6 +8,7 @@
 #include <QHBoxLayout>
 #include <QDir>
 #include <QFileDialog>
+#include <QColor>
 
 #define QUENTIER_NUM_LOG_LEVELS (6)
 #define FETCHING_MORE_TIMER_PERIOD (400)
@@ -32,13 +33,23 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
 
     m_pUi->logEntriesTableView->verticalHeader()->hide();
     m_pUi->logEntriesTableView->setWordWrap(true);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    m_pUi->logEntriesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
+    m_pUi->logEntriesTableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+#endif
 
+    m_pUi->filterByLogLevelTableWidget->horizontalHeader()->hide();
     m_pUi->filterByLogLevelTableWidget->verticalHeader()->hide();
 
     for(size_t i = 0; i < sizeof(m_filterByLogLevelBeforeTracing); ++i) {
         m_filterByLogLevelBeforeTracing[i] = true;
         m_logLevelEnabledCheckboxPtrs[i] = Q_NULLPTR;
     }
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+    m_pUi->filterByContentLineEdit->setClearButtonEnabled(true);
+#endif
 
     setupLogLevels();
     setupLogFiles();
@@ -48,7 +59,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pLogViewerFilterModel->setSourceModel(m_pLogViewerModel);
     m_pUi->logEntriesTableView->setModel(m_pLogViewerFilterModel);
 
-    QObject::connect(m_pUi->copyToClipboardPushButton, QNSIGNAL(QPushButton,clicked),
+    QObject::connect(m_pUi->copyAllToClipboardPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onCopyAllToClipboardButtonPressed));
     QObject::connect(m_pUi->saveToFilePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onSaveAllToFileButtonPressed));
@@ -99,8 +110,19 @@ void LogViewerWidget::setupLogFiles()
     QString originalLogFileName = m_pUi->logFileComboBox->currentText();
     QString currentLogFileName = originalLogFileName;
     if (currentLogFileName.isEmpty()) {
-        currentLogFileName = QStringLiteral("Quentier.log");
+        currentLogFileName = QStringLiteral("Quentier-log.txt");
     }
+
+    int numCurrentLogFileComboBoxItems = m_pUi->logFileComboBox->count();
+    int numEntries = entries.size();
+    if (numCurrentLogFileComboBoxItems == numEntries) {
+        // as the number of entries didn't change, assuming there's no need
+        // to change anything
+        return;
+    }
+
+    QObject::disconnect(m_pUi->logFileComboBox, SIGNAL(currentIndexChanged(QString)),
+                        this, SLOT(onCurrentLogFileChanged(QString)));
 
     m_pUi->logFileComboBox->clear();
 
@@ -153,9 +175,18 @@ void LogViewerWidget::setupFilterByLogLevelWidget()
     m_pUi->filterByLogLevelTableWidget->setRowCount(QUENTIER_NUM_LOG_LEVELS);
     m_pUi->filterByLogLevelTableWidget->setColumnCount(2);
 
+    QColor rowColors[QUENTIER_NUM_LOG_LEVELS];
+    rowColors[LogLevel::TraceLevel] = QColor(127, 230, 255);    // Light blue
+    rowColors[LogLevel::DebugLevel] = QColor(127, 255, 142);    // Light green
+    rowColors[LogLevel::InfoLevel]  = QColor(252, 255, 127);    // Light yellow
+    rowColors[LogLevel::WarnLevel]  = QColor(255, 212, 127);    // Orange
+    rowColors[LogLevel::ErrorLevel] = QColor(255, 128, 127);    // Pink
+    rowColors[LogLevel::FatalLevel] = QColor(255, 38, 10);      // Red
+
     for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i)
     {
         QTableWidgetItem * pItem = new QTableWidgetItem(LogViewerModel::logLevelToString(static_cast<LogLevel::type>(i)));
+        pItem->setData(Qt::BackgroundRole, rowColors[i]);
         m_pUi->filterByLogLevelTableWidget->setItem(static_cast<int>(i), 0, pItem);
 
         QWidget * pWidget = new QWidget;
@@ -189,7 +220,7 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
 
 void LogViewerWidget::onFilterByContentEditingFinished()
 {
-    m_pLogViewerFilterModel->setFilterRegExp(QRegExp(m_pUi->filterByContentLineEdit->text()));
+    m_pLogViewerFilterModel->setFilterWildcard(m_pUi->filterByContentLineEdit->text());
 }
 
 void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
@@ -216,6 +247,10 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
 
 void LogViewerWidget::onCurrentLogFileChanged(const QString & currentLogFile)
 {
+    if (currentLogFile.isEmpty()) {
+        return;
+    }
+
     m_pLogViewerModel->setLogFileName(currentLogFile);
 }
 
