@@ -433,7 +433,7 @@ void LogViewerModel::parseNextChunkOfLogFileLines()
     QList<LogViewerModel::Data> readLogFileEntries;
     int lastParsedLogFileLine = 0;
     bool res = parseNextChunkOfLogFileLines(m_currentParsedLogFileLines, readLogFileEntries, lastParsedLogFileLine);
-    m_currentParsedLogFileLines = lastParsedLogFileLine;
+    m_currentParsedLogFileLines = lastParsedLogFileLine + 1;
     if (!res) {
         return;
     }
