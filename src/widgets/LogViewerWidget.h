@@ -47,7 +47,7 @@ private Q_SLOTS:
     void onClearButtonPressed();
     void onResetButtonPressed();
 
-    void onTraceButtonPressed();
+    void onTraceButtonToggled(int checked);
 
 private:
     void clear();

@@ -33,11 +33,6 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
 
     m_pUi->logEntriesTableView->verticalHeader()->hide();
     m_pUi->logEntriesTableView->setWordWrap(true);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    m_pUi->logEntriesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    m_pUi->logEntriesTableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
 
     m_pUi->filterByLogLevelTableWidget->horizontalHeader()->hide();
     m_pUi->filterByLogLevelTableWidget->verticalHeader()->hide();
@@ -67,8 +62,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this, QNSLOT(LogViewerWidget,onClearButtonPressed));
     QObject::connect(m_pUi->resetPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onResetButtonPressed));
-    QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(LogViewerWidget,onTraceButtonPressed));
+    QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,toggled,int),
+                     this, QNSLOT(LogViewerWidget,onTraceButtonToggled,int));
 
     QObject::connect(m_pUi->filterByContentLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(LogViewerWidget,onFilterByContentEditingFinished));
@@ -339,11 +334,11 @@ void LogViewerWidget::onResetButtonPressed()
     m_pUi->resetPushButton->setEnabled(false);
 }
 
-void LogViewerWidget::onTraceButtonPressed()
+void LogViewerWidget::onTraceButtonToggled(int checked)
 {
-    if (!m_pUi->tracePushButton->isChecked())
+    if (checked != 0)
     {
-        m_pUi->tracePushButton->setChecked(true);
+        m_pUi->tracePushButton->setText(tr("Stop tracing"));
 
         // Clear the currently displayed log entries to create some space for new ones
         onClearButtonPressed();
@@ -370,7 +365,7 @@ void LogViewerWidget::onTraceButtonPressed()
     }
     else
     {
-        m_pUi->tracePushButton->setChecked(false);
+        m_pUi->tracePushButton->setText(tr("Trace"));
 
         // Restore the previously backed up settings
         QuentierSetMinLogLevel(m_minLogLevelBeforeTracing);
