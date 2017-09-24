@@ -62,8 +62,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this, QNSLOT(LogViewerWidget,onClearButtonPressed));
     QObject::connect(m_pUi->resetPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onResetButtonPressed));
-    QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,toggled,int),
-                     this, QNSLOT(LogViewerWidget,onTraceButtonToggled,int));
+    QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,toggled,bool),
+                     this, QNSLOT(LogViewerWidget,onTraceButtonToggled,bool));
 
     QObject::connect(m_pUi->filterByContentLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(LogViewerWidget,onFilterByContentEditingFinished));
@@ -334,9 +334,9 @@ void LogViewerWidget::onResetButtonPressed()
     m_pUi->resetPushButton->setEnabled(false);
 }
 
-void LogViewerWidget::onTraceButtonToggled(int checked)
+void LogViewerWidget::onTraceButtonToggled(bool checked)
 {
-    if (checked != 0)
+    if (checked)
     {
         m_pUi->tracePushButton->setText(tr("Stop tracing"));
 
