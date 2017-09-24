@@ -30,7 +30,7 @@ LogViewerModel::FileReaderAsync::FileReaderAsync(QString targetFilePath,
 
 void LogViewerModel::FileReaderAsync::onStartReading()
 {
-    if (!m_targetFile.open(QIODevice::ReadOnly)) {
+    if (!m_targetFile.isOpen() && !m_targetFile.open(QIODevice::ReadOnly)) {
         QFileInfo targetFileInfo(m_targetFile);
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
         errorDescription.details() = targetFileInfo.absoluteFilePath();
