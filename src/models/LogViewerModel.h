@@ -57,8 +57,8 @@ public:
 
     void clear();
 
-    QString copyAllToString() const;
-    void copyAllToClipboard() const;
+    QString copyAllToString(int fromLine = 0) const;
+    void copyAllToClipboard(int fromLine = 0) const;
 
     static QString logLevelToString(LogLevel::type logLevel);
 

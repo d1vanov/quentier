@@ -161,12 +161,14 @@ void LogViewerModel::clear()
     endResetModel();
 }
 
-QString LogViewerModel::copyAllToString() const
+QString LogViewerModel::copyAllToString(int fromLine) const
 {
     QString modelTextData;
     QTextStream strm(&modelTextData);
 
-    for(int i = 0, size = m_data.size(); i < size; ++i)
+    fromLine = std::max(fromLine, 0);
+
+    for(int i = fromLine, size = m_data.size(); i < size; ++i)
     {
         const Data & entry = m_data.at(i);
         strm << entry.m_timestamp.toString(
@@ -192,9 +194,9 @@ QString LogViewerModel::copyAllToString() const
     return modelTextData;
 }
 
-void LogViewerModel::copyAllToClipboard() const
+void LogViewerModel::copyAllToClipboard(int fromLine) const
 {
-    QNDEBUG(QStringLiteral("LogViewerModel::copyAllToClipboard"));
+    QNDEBUG(QStringLiteral("LogViewerModel::copyAllToClipboard: from line ") << fromLine);
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (Q_UNLIKELY(!pClipboard)) {
@@ -204,7 +206,7 @@ void LogViewerModel::copyAllToClipboard() const
         return;
     }
 
-    QString modelTextData = copyAllToString();
+    QString modelTextData = copyAllToString(fromLine);
     pClipboard->setText(modelTextData);
 }
 

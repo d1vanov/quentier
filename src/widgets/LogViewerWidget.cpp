@@ -265,7 +265,8 @@ void LogViewerWidget::onLogFileDirChanged(const QString & path)
 
 void LogViewerWidget::onCopyAllToClipboardButtonPressed()
 {
-    m_pLogViewerModel->copyAllToClipboard();
+    int fromLine = m_pLogViewerFilterModel->filterOutBeforeRow();
+    m_pLogViewerModel->copyAllToClipboard(fromLine);
 }
 
 void LogViewerWidget::onSaveAllToFileButtonPressed()
@@ -300,7 +301,8 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
         }
     }
 
-    QString logs = m_pLogViewerModel->copyAllToString();
+    int fromLine = m_pLogViewerFilterModel->filterOutBeforeRow();
+    QString logs = m_pLogViewerModel->copyAllToString(fromLine);
     if (logs.isEmpty()) {
         ErrorString errorDescription(QT_TR_NOOP("No logs to save"));
         // TODO: set error to status bar
