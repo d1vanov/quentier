@@ -55,6 +55,11 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     QObject::connect(this, QNSIGNAL(LogViewerModel,destroyed),
                      m_pReadLogFileIOThread, QNSLOT(QThread,quit));
     m_pReadLogFileIOThread->start(QThread::LowestPriority);
+
+    QObject::connect(&m_currentLogFileWatcher, QNSIGNAL(FileSystemWatcher,fileChanged,QString),
+                     this, QNSLOT(LogViewerModel,onFileChanged,QString));
+    QObject::connect(&m_currentLogFileWatcher, QNSIGNAL(FileSystemWatcher,fileRemoved,QString),
+                     this, QNSLOT(LogViewerModel,onFileRemoved,QString));
 }
 
 QString LogViewerModel::logFileName() const
@@ -473,6 +478,7 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
             }
 
             LogViewerModel::Data & lastEntry = readLogFileEntries.back();
+            lastEntry.m_logEntry += QStringLiteral("\n");
             lastEntry.m_logEntry += line;
             continue;
         }
