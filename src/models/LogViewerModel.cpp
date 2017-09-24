@@ -34,6 +34,7 @@
 #define LOG_VIEWER_MODEL_COLUMN_COUNT (5)
 #define LOG_VIEWER_MODEL_PARSED_LINES_BUCKET_SIZE (100)
 #define LOG_VIEWER_MODEL_FETCH_ITEMS_BUCKET_SIZE (100)
+#define LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC (500)
 
 namespace quentier {
 
@@ -46,6 +47,8 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_currentLogFilePos(-1),
     m_currentParsedLogFileLines(0),
     m_currentLogFileLines(),
+    m_currentLogFileSize(0),
+    m_currentLogFileSizePollingTimer(),
     m_pendingLogFileReadData(false),
     m_pReadLogFileIOThread(new QThread),
     m_data()
@@ -77,6 +80,8 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     beginResetModel();
 
     m_currentLogFilePos = 0;
+    m_currentLogFileSize = 0;
+    m_currentLogFileSizePollingTimer.stop();
 
     QString currentLogFilePath = m_currentLogFileInfo.absoluteFilePath();
     if (!currentLogFilePath.isEmpty()) {
@@ -118,14 +123,17 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     m_currentLogFileStartBytesRead = currentLogFile.read(m_currentLogFileStartBytes, sizeof(m_currentLogFileStartBytes));
     currentLogFile.close();
 
-    // TODO: don't attempt to use FileSystemWatcher at all with Qt4, it doesn't work and hangs the process for unknown reason;
-    // should add timer polling the size of the current log file over small time intervals and reading next parts from it
-    // if the size has changed. That should also fix the bug so far found only on OS X / macOS where the log file's
-    // changes don't seem to be detected by QFileSystemWatcher unless the log file is opened with some text editor.
+    m_currentLogFileSize = m_currentLogFileInfo.size();
+    m_currentLogFileSizePollingTimer.start(LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC, this);
+
+    // NOTE: for unknown reason QFileSystemWatcher from Qt4 fails do add any log file path + also hangs the process;
+    // hence, using only the current log file size polling timer as the means to watch the log file's changes with Qt4
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString filePath = m_currentLogFileInfo.absoluteFilePath();
     if (!m_currentLogFileWatcher.files().contains(filePath)) {
         m_currentLogFileWatcher.addPath(filePath);
     }
+#endif
 
     parseFullDataFromLogFile();
     endResetModel();
@@ -136,6 +144,9 @@ void LogViewerModel::clear()
     beginResetModel();
 
     m_currentLogFilePos = 0;
+    m_currentLogFileSize = 0;
+    m_currentLogFileSizePollingTimer.stop();
+
     m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
     m_currentLogFileInfo = QFileInfo();
     m_data.clear();
@@ -365,6 +376,7 @@ void LogViewerModel::onFileChanged(const QString & path)
 
         beginResetModel();
         m_currentLogFilePos = 0;
+        m_currentLogFileSize = 0;
         m_data.clear();
         m_currentParsedLogFileLines = 0;
         m_currentLogFileLines.clear();
@@ -393,6 +405,8 @@ void LogViewerModel::onFileRemoved(const QString & path)
         m_currentLogFileStartBytes[i] = 0;
     }
     m_currentLogFilePos = 0;
+    m_currentLogFileSize = 0;
+    m_currentLogFileSizePollingTimer.stop();
     m_data.clear();
     m_currentParsedLogFileLines = 0;
     m_currentLogFileLines.clear();
@@ -407,6 +421,12 @@ void LogViewerModel::onFileReadAsyncReady(qint64 pos, QString readData, ErrorStr
     }
 
     m_pendingLogFileReadData = false;
+
+    // NOTE: it is necessary to create a new object of QFileInfo type
+    // because the existing m_currentLogFileInfo has cached value of
+    // current log file size, it doesn't update in live regime
+    QFileInfo currentLogFileInfo(m_currentLogFileInfo.absoluteFilePath());
+    m_currentLogFileSize = currentLogFileInfo.size();
 
     if (!errorDescription.isEmpty()) {
         emit notifyError(errorDescription);
@@ -576,6 +596,35 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
     }
 
     return true;
+}
+
+void LogViewerModel::timerEvent(QTimerEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        return;
+    }
+
+    if (pEvent->timerId() == m_currentLogFileSizePollingTimer.timerId())
+    {
+        if (m_currentLogFileInfo.absoluteFilePath().isEmpty()) {
+            m_currentLogFileSizePollingTimer.stop();
+            return;
+        }
+
+        // NOTE: it is necessary to create a new object of QFileInfo type
+        // because the existing m_currentLogFileInfo has cached value of
+        // current log file size, it doesn't update in live regime
+        QFileInfo currentLogFileInfo(m_currentLogFileInfo.absoluteFilePath());
+        qint64 size = currentLogFileInfo.size();
+        if (size != m_currentLogFileSize) {
+            m_currentLogFileSize = size;
+            onFileChanged(m_currentLogFileInfo.absoluteFilePath());
+        }
+
+        return;
+    }
+
+    QAbstractTableModel::timerEvent(pEvent);
 }
 
 QString LogViewerModel::logLevelToString(LogLevel::type logLevel)

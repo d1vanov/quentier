@@ -29,6 +29,7 @@
 #include <QList>
 #include <QThread>
 #include <QRegExp>
+#include <QBasicTimer>
 
 namespace quentier {
 
@@ -111,6 +112,9 @@ private:
                                       int & lastParsedLogFileLine);
 
 private:
+    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
+
+private:
     class FileReaderAsync;
 
 private:
@@ -129,6 +133,9 @@ private:
 
     int                 m_currentParsedLogFileLines;
     QStringList         m_currentLogFileLines;
+
+    qint64              m_currentLogFileSize;
+    QBasicTimer         m_currentLogFileSizePollingTimer;
 
     bool                m_pendingLogFileReadData;
 
