@@ -116,8 +116,16 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     }
 
     m_currentLogFileStartBytesRead = currentLogFile.read(m_currentLogFileStartBytes, sizeof(m_currentLogFileStartBytes));
+    currentLogFile.close();
 
-    m_currentLogFileWatcher.addPath(m_currentLogFileInfo.absoluteFilePath());
+    // TODO: don't attempt to use FileSystemWatcher at all with Qt4, it doesn't work and hangs the process for unknown reason;
+    // should add timer polling the size of the current log file over small time intervals and reading next parts from it
+    // if the size has changed. That should also fix the bug so far found only on OS X / macOS where the log file's
+    // changes don't seem to be detected by QFileSystemWatcher unless the log file is opened with some text editor.
+    QString filePath = m_currentLogFileInfo.absoluteFilePath();
+    if (!m_currentLogFileWatcher.files().contains(filePath)) {
+        m_currentLogFileWatcher.addPath(filePath);
+    }
 
     parseFullDataFromLogFile();
     endResetModel();
@@ -323,6 +331,8 @@ void LogViewerModel::onFileChanged(const QString & path)
 
     char startBytes[sizeof(m_currentLogFileStartBytes)];
     qint64 startBytesRead = currentLogFile.read(startBytes, sizeof(startBytes));
+
+    currentLogFile.close();
 
     bool fileStartBytesChanged = false;
     if (startBytesRead != m_currentLogFileStartBytesRead)
