@@ -126,6 +126,7 @@ set(${PROJECT_NAME}_HEADERS
     src/delegates/DirtyColumnDelegate.h
     src/delegates/FavoriteItemDelegate.h
     src/delegates/FromLinkedNotebookColumnDelegate.h
+    src/delegates/LogViewerDelegate.h
     src/delegates/SynchronizableColumnDelegate.h
     src/delegates/TagItemDelegate.h
     src/insert-table-tool-button/InsertTableToolButton.h
@@ -222,6 +223,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/DirtyColumnDelegate.cpp
     src/delegates/FavoriteItemDelegate.cpp
     src/delegates/FromLinkedNotebookColumnDelegate.cpp
+    src/delegates/LogViewerDelegate.cpp
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
     src/views/ItemView.cpp

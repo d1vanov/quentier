@@ -2,6 +2,7 @@
 #include "ui_LogViewerWidget.h"
 #include "models/LogViewerModel.h"
 #include "models/LogViewerFilterModel.h"
+#include "delegates/LogViewerDelegate.h"
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/MessageBox.h>
 #include <QCheckBox>
@@ -55,6 +56,9 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
 
     m_pLogViewerFilterModel->setSourceModel(m_pLogViewerModel);
     m_pUi->logEntriesTableView->setModel(m_pLogViewerFilterModel);
+
+    LogViewerDelegate * pLogViewerDelegate = new LogViewerDelegate(m_pUi->logEntriesTableView);
+    m_pUi->logEntriesTableView->setItemDelegate(pLogViewerDelegate);
 
     QObject::connect(m_pUi->copyAllToClipboardPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onCopyAllToClipboardButtonPressed));
