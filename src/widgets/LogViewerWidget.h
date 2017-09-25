@@ -4,6 +4,7 @@
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/types/ErrorString.h>
 #include <QWidget>
 #include <QBasicTimer>
 
@@ -48,6 +49,8 @@ private Q_SLOTS:
     void onResetButtonPressed();
 
     void onTraceButtonToggled(bool checked);
+
+    void onModelError(ErrorString errorDescription);
 
 private:
     void clear();

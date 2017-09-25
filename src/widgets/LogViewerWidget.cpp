@@ -31,6 +31,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pUi->resetPushButton->setEnabled(false);
     m_pUi->tracePushButton->setCheckable(true);
 
+    m_pUi->statusBarLineEdit->hide();
+
     m_pUi->logEntriesTableView->verticalHeader()->hide();
     m_pUi->logEntriesTableView->setWordWrap(true);
 
@@ -64,9 +66,10 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this, QNSLOT(LogViewerWidget,onResetButtonPressed));
     QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,toggled,bool),
                      this, QNSLOT(LogViewerWidget,onTraceButtonToggled,bool));
-
     QObject::connect(m_pUi->filterByContentLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(LogViewerWidget,onFilterByContentEditingFinished));
+    QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,notifyError,ErrorString),
+                     this, QNSLOT(LogViewerWidget,onModelError,ErrorString));
 }
 
 LogViewerWidget::~LogViewerWidget()
@@ -206,6 +209,9 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
 {
     QNDEBUG(QStringLiteral("LogViewerWidget::onCurrentLogLevelChanged: ") << index);
 
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     if (Q_UNLIKELY((index < 0) || (index >= QUENTIER_NUM_LOG_LEVELS))) {
         return;
     }
@@ -215,12 +221,18 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
 
 void LogViewerWidget::onFilterByContentEditingFinished()
 {
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     m_pLogViewerFilterModel->setFilterWildcard(m_pUi->filterByContentLineEdit->text());
 }
 
 void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
 {
     QNDEBUG(QStringLiteral("LogViewerWidget::onFilterByLogLevelCheckboxToggled: state = ") << state);
+
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
 
     QCheckBox * pCheckbox = qobject_cast<QCheckBox*>(sender());
     if (Q_UNLIKELY(!pCheckbox)) {
@@ -242,6 +254,9 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
 
 void LogViewerWidget::onCurrentLogFileChanged(const QString & currentLogFile)
 {
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     if (currentLogFile.isEmpty()) {
         return;
     }
@@ -265,12 +280,18 @@ void LogViewerWidget::onLogFileDirChanged(const QString & path)
 
 void LogViewerWidget::onCopyAllToClipboardButtonPressed()
 {
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     int fromLine = m_pLogViewerFilterModel->filterOutBeforeRow();
     m_pLogViewerModel->copyAllToClipboard(fromLine);
 }
 
 void LogViewerWidget::onSaveAllToFileButtonPressed()
 {
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     QString absoluteFilePath = QFileDialog::getSaveFileName(this, tr("Save as") + QStringLiteral("..."),
                                                             documentsPath());
     QFileInfo fileInfo(absoluteFilePath);
@@ -278,7 +299,8 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
     {
         if (Q_UNLIKELY(!fileInfo.isFile())) {
             ErrorString errorDescription(QT_TR_NOOP("Can't save the log to file: the selected entity is not a file"));
-            // TODO: set error to status bar
+            m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+            m_pUi->statusBarLineEdit->show();
             Q_UNUSED(errorDescription)
             return;
         }
@@ -295,7 +317,8 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
         QDir fileDir(fileInfo.absoluteDir());
         if (!fileDir.exists() && !fileDir.mkpath(fileDir.absolutePath())) {
             ErrorString errorDescription(QT_TR_NOOP("Failed to create the folder to contain the file with saved logs"));
-            // TODO: set error to status bar
+            m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+            m_pUi->statusBarLineEdit->show();
             Q_UNUSED(errorDescription)
             return;
         }
@@ -305,7 +328,8 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
     QString logs = m_pLogViewerModel->copyAllToString(fromLine);
     if (logs.isEmpty()) {
         ErrorString errorDescription(QT_TR_NOOP("No logs to save"));
-        // TODO: set error to status bar
+        m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+        m_pUi->statusBarLineEdit->show();
         Q_UNUSED(errorDescription)
         return;
     }
@@ -314,7 +338,8 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
     bool open = file.open(QIODevice::WriteOnly);
     if (!open) {
         ErrorString errorDescription(QT_TR_NOOP("Failed to open the target file for writing"));
-        // TODO: set error to status bar
+        m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+        m_pUi->statusBarLineEdit->show();
         Q_UNUSED(errorDescription)
         return;
     }
@@ -325,6 +350,9 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
 
 void LogViewerWidget::onClearButtonPressed()
 {
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     int numRows = m_pLogViewerModel->rowCount();
     m_pLogViewerFilterModel->setFilterOutBeforeRow(numRows);
     m_pUi->resetPushButton->setEnabled(true);
@@ -332,12 +360,18 @@ void LogViewerWidget::onClearButtonPressed()
 
 void LogViewerWidget::onResetButtonPressed()
 {
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     m_pLogViewerFilterModel->setFilterOutBeforeRow(0);
     m_pUi->resetPushButton->setEnabled(false);
 }
 
 void LogViewerWidget::onTraceButtonToggled(bool checked)
 {
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
     if (checked)
     {
         m_pUi->tracePushButton->setText(tr("Stop tracing"));
@@ -388,11 +422,20 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
     }
 }
 
+void LogViewerWidget::onModelError(ErrorString errorDescription)
+{
+    m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+    m_pUi->statusBarLineEdit->show();
+}
+
 void LogViewerWidget::clear()
 {
     m_pUi->logFileComboBox->clear();
     m_pLogViewerModel->clear();
     m_modelFetchingMoreTimer.stop();
+
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
 }
 
 void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
