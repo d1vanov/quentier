@@ -25,7 +25,10 @@ private:
     bool paintImpl(QPainter * pPainter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
 private:
-    double  m_margin;
+    double      m_margin;
+    QString     m_widestLogLevelName;
+    QString     m_sampleDateTimeString;
+    QString     m_sampleSourceFileLineNumberString;
 };
 
 } // namespace quentier
