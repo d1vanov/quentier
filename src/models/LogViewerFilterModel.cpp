@@ -58,13 +58,12 @@ bool LogViewerFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & s
         return false;
     }
 
-    QVariant logLevelData = pLogViewerModel->data(sourceIndex);
-    bool convertedToInt = false;
-    int logLevelInt = logLevelData.toInt(&convertedToInt);
-    if (Q_UNLIKELY(!convertedToInt)) {
+    const LogViewerModel::Data * pDataEntry = pLogViewerModel->dataEntry(sourceIndex.row());
+    if (Q_UNLIKELY(!pDataEntry)) {
         return false;
     }
 
+    int logLevelInt = pDataEntry->m_logLevel;
     if (Q_UNLIKELY((logLevelInt < 0) || (logLevelInt >= static_cast<int>(sizeof(m_enabledLogLevels))))) {
         return false;
     }
@@ -75,22 +74,12 @@ bool LogViewerFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & s
 
     QRegExp regExp = filterRegExp();
 
-    sourceIndex = pLogViewerModel->index(sourceRow, LogViewerModel::Columns::SourceFileName, sourceParent);
-    if (!sourceIndex.isValid()) {
-        return false;
-    }
-
-    QString sourceFileName = pLogViewerModel->data(sourceIndex).toString();
+    const QString & sourceFileName = pDataEntry->m_sourceFileName;
     if (regExp.indexIn(sourceFileName) >= 0) {
         return true;
     }
 
-    sourceIndex = pLogViewerModel->index(sourceRow, LogViewerModel::Columns::LogEntry, sourceParent);
-    if (!sourceIndex.isValid()) {
-        return false;
-    }
-
-    QString logEntry = pLogViewerModel->data(sourceIndex).toString();
+    const QString & logEntry = pDataEntry->m_logEntry;
     if (regExp.indexIn(logEntry) >= 0) {
         return true;
     }
