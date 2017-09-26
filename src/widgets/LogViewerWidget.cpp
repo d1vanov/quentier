@@ -12,7 +12,8 @@
 #include <QColor>
 
 #define QUENTIER_NUM_LOG_LEVELS (6)
-#define FETCHING_MORE_TIMER_PERIOD (400)
+#define FETCHING_MORE_TIMER_PERIOD (800)
+#define DELAY_SECTION_RESIZE_TIMER_PERIOD (3000)
 
 namespace quentier {
 
@@ -23,6 +24,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pLogViewerModel(new LogViewerModel(this)),
     m_pLogViewerFilterModel(new LogViewerFilterModel(this)),
     m_modelFetchingMoreTimer(),
+    m_delayedSectionResizeTimer(),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
     m_filterByContentBeforeTracing(),
     m_filterByLogLevelBeforeTracing(),
@@ -36,6 +38,9 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
 
     m_pUi->logEntriesTableView->verticalHeader()->hide();
     m_pUi->logEntriesTableView->setWordWrap(true);
+
+    LogViewerDelegate * pDelegate = new LogViewerDelegate(m_pUi->logEntriesTableView);
+    m_pUi->logEntriesTableView->setItemDelegate(pDelegate);
 
     m_pUi->filterByLogLevelTableWidget->horizontalHeader()->hide();
     m_pUi->filterByLogLevelTableWidget->verticalHeader()->hide();
@@ -60,14 +65,6 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     LogViewerDelegate * pLogViewerDelegate = new LogViewerDelegate(m_pUi->logEntriesTableView);
     m_pUi->logEntriesTableView->setItemDelegate(pLogViewerDelegate);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    m_pUi->logEntriesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_pUi->logEntriesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    m_pUi->logEntriesTableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-    m_pUi->logEntriesTableView->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
-
     QObject::connect(m_pUi->copyAllToClipboardPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onCopyAllToClipboardButtonPressed));
     QObject::connect(m_pUi->saveToFilePushButton, QNSIGNAL(QPushButton,clicked),
@@ -82,6 +79,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this, QNSLOT(LogViewerWidget,onFilterByContentEditingFinished));
     QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,notifyError,ErrorString),
                      this, QNSLOT(LogViewerWidget,onModelError,ErrorString));
+    QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,rowsInserted,QModelIndex,int,int),
+                     this, QNSLOT(LogViewerWidget,onModelRowsInserted,QModelIndex,int,int));
 }
 
 LogViewerWidget::~LogViewerWidget()
@@ -165,6 +164,7 @@ void LogViewerWidget::setupLogFiles()
     }
 
     m_pLogViewerModel->setLogFileName(logFileName);
+    resizeLogEntriesViewColumns();
 
     if (!m_modelFetchingMoreTimer.isActive()) {
         m_modelFetchingMoreTimer.start(FETCHING_MORE_TIMER_PERIOD, this);
@@ -432,12 +432,22 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
 
         onResetButtonPressed();
     }
+
+    scheduleLogEntriesViewColumnsResize();
 }
 
 void LogViewerWidget::onModelError(ErrorString errorDescription)
 {
     m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
     m_pUi->statusBarLineEdit->show();
+}
+
+void LogViewerWidget::onModelRowsInserted(const QModelIndex & parent, int first, int last)
+{
+    Q_UNUSED(parent)
+    Q_UNUSED(first)
+    Q_UNUSED(last)
+    scheduleLogEntriesViewColumnsResize();
 }
 
 void LogViewerWidget::clear()
@@ -450,6 +460,22 @@ void LogViewerWidget::clear()
     m_pUi->statusBarLineEdit->hide();
 }
 
+void LogViewerWidget::scheduleLogEntriesViewColumnsResize()
+{
+    if (m_delayedSectionResizeTimer.isActive()) {
+        // Already scheduled
+        return;
+    }
+
+    m_delayedSectionResizeTimer.start(DELAY_SECTION_RESIZE_TIMER_PERIOD, this);
+}
+
+void LogViewerWidget::resizeLogEntriesViewColumns()
+{
+    m_pUi->logEntriesTableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+    m_pUi->logEntriesTableView->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
+}
+
 void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
@@ -460,10 +486,16 @@ void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
     {
         if (m_pLogViewerModel->canFetchMore(QModelIndex())) {
             m_pLogViewerModel->fetchMore(QModelIndex());
+            scheduleLogEntriesViewColumnsResize();
         }
         else {
             m_modelFetchingMoreTimer.stop();
         }
+    }
+    else if (pEvent->timerId() == m_delayedSectionResizeTimer.timerId())
+    {
+        resizeLogEntriesViewColumns();
+        m_delayedSectionResizeTimer.stop();
     }
 }
 

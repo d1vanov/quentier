@@ -7,6 +7,7 @@
 #include <quentier/types/ErrorString.h>
 #include <QWidget>
 #include <QBasicTimer>
+#include <QModelIndex>
 
 namespace Ui {
 class LogViewerWidget;
@@ -52,8 +53,12 @@ private Q_SLOTS:
 
     void onModelError(ErrorString errorDescription);
 
+    void onModelRowsInserted(const QModelIndex & parent, int first, int last);
+
 private:
     void clear();
+    void scheduleLogEntriesViewColumnsResize();
+    void resizeLogEntriesViewColumns();
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -66,6 +71,7 @@ private:
     LogViewerFilterModel *  m_pLogViewerFilterModel;
 
     QBasicTimer             m_modelFetchingMoreTimer;
+    QBasicTimer             m_delayedSectionResizeTimer;
 
     // Backups for tracing mode
     LogLevel::type          m_minLogLevelBeforeTracing;
