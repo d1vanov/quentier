@@ -512,6 +512,13 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
             LogViewerModel::Data & lastEntry = readLogFileEntries.back();
             lastEntry.m_logEntry += QStringLiteral("\n");
             lastEntry.m_logEntry += line;
+            ++lastEntry.m_numLogEntryLines;
+
+            int lineSize = line.size();
+            if (lastEntry.m_logEntryMaxNumCharsPerLine < lineSize) {
+                lastEntry.m_logEntryMaxNumCharsPerLine = lineSize;
+            }
+
             continue;
         }
 
@@ -591,6 +598,8 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
 
         entry.m_logEntry = capturedTexts[6];
         entry.m_logEntry += QStringLiteral("\n");
+        entry.m_numLogEntryLines = 1;
+        entry.m_logEntryMaxNumCharsPerLine = entry.m_logEntry.size();
 
         readLogFileEntries.push_back(entry);
 
@@ -656,7 +665,9 @@ QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
          << QStringLiteral(", source file name = ") << m_sourceFileName
          << QStringLiteral(", line number = ") << m_sourceFileLineNumber
          << QStringLiteral(", log level = ") << m_logLevel
-         << QStringLiteral(", log entry: ") << m_logEntry;
+         << QStringLiteral(", log entry: ") << m_logEntry
+         << QStringLiteral("\nNum log entry lines = ") << m_numLogEntryLines
+         << QStringLiteral(", log entry max num chars per line = ") << m_logEntryMaxNumCharsPerLine;
     return strm;
 }
 

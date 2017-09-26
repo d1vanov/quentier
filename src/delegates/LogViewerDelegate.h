@@ -13,11 +13,19 @@ public:
 
 private:
     // QStyledItemDelegate interface
-    virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option,
+    virtual QWidget * createEditor(QWidget * pParent, const QStyleOptionViewItem & option,
                                    const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual void paint(QPainter * painter, const QStyleOptionViewItem & option,
+    virtual void paint(QPainter * pPainter, const QStyleOptionViewItem & option,
                        const QModelIndex & index) const Q_DECL_OVERRIDE;
     virtual QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
+
+private:
+    QSize stringSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index, const QString & content) const;
+
+    bool paintImpl(QPainter * pPainter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+
+private:
+    double  m_margin;
 };
 
 } // namespace quentier

@@ -60,6 +60,14 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     LogViewerDelegate * pLogViewerDelegate = new LogViewerDelegate(m_pUi->logEntriesTableView);
     m_pUi->logEntriesTableView->setItemDelegate(pLogViewerDelegate);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    m_pUi->logEntriesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_pUi->logEntriesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
+    m_pUi->logEntriesTableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+    m_pUi->logEntriesTableView->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+#endif
+
     QObject::connect(m_pUi->copyAllToClipboardPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onCopyAllToClipboardButtonPressed));
     QObject::connect(m_pUi->saveToFilePushButton, QNSIGNAL(QPushButton,clicked),
