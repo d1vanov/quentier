@@ -24,6 +24,7 @@
 #include <QTextStream>
 #include <QClipboard>
 #include <QApplication>
+#include <QStringRef>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
 #include <QTimeZone>
@@ -35,6 +36,7 @@
 #define LOG_VIEWER_MODEL_PARSED_LINES_BUCKET_SIZE (100)
 #define LOG_VIEWER_MODEL_FETCH_ITEMS_BUCKET_SIZE (100)
 #define LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC (500)
+#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (500)
 
 namespace quentier {
 
@@ -510,15 +512,7 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
             }
 
             LogViewerModel::Data & lastEntry = readLogFileEntries.back();
-            lastEntry.m_logEntry += QStringLiteral("\n");
-            lastEntry.m_logEntry += line;
-            ++lastEntry.m_numLogEntryLines;
-
-            int lineSize = line.size();
-            if (lastEntry.m_logEntryMaxNumCharsPerLine < lineSize) {
-                lastEntry.m_logEntryMaxNumCharsPerLine = lineSize;
-            }
-
+            appendLogEntryLine(lastEntry, line);
             continue;
         }
 
@@ -596,13 +590,8 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
             return false;
         }
 
-        entry.m_logEntry = capturedTexts[6];
-        entry.m_logEntry += QStringLiteral("\n");
-        entry.m_numLogEntryLines = 1;
-        entry.m_logEntryMaxNumCharsPerLine = entry.m_logEntry.size();
-
+        appendLogEntryLine(entry, capturedTexts[6]);
         readLogFileEntries.push_back(entry);
-
         ++numFoundMatches;
     }
 
@@ -636,6 +625,46 @@ void LogViewerModel::timerEvent(QTimerEvent * pEvent)
     }
 
     QAbstractTableModel::timerEvent(pEvent);
+}
+
+void LogViewerModel::appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const
+{
+    int lineSize = line.size();
+    if (lineSize < LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
+    {
+        if (!data.m_logEntry.isEmpty()) {
+            data.m_logEntry += QStringLiteral("\n");
+        }
+
+        data.m_logEntry += line;
+        ++data.m_numLogEntryLines;
+
+        if (data.m_logEntryMaxNumCharsPerLine < lineSize) {
+            data.m_logEntryMaxNumCharsPerLine = lineSize;
+        }
+
+        return;
+    }
+
+    int position = 0;
+    while(position < lineSize)
+    {
+        int size = std::min(lineSize - position, LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
+        QStringRef linePart(&line, position, size);
+
+        if (!data.m_logEntry.isEmpty()) {
+            data.m_logEntry += QStringLiteral("\n");
+        }
+
+        data.m_logEntry += linePart;
+        ++data.m_numLogEntryLines;
+
+        if (data.m_logEntryMaxNumCharsPerLine < size) {
+            data.m_logEntryMaxNumCharsPerLine = size;
+        }
+
+        position += size;
+    }
 }
 
 QString LogViewerModel::logLevelToString(LogLevel::type logLevel)

@@ -123,6 +123,9 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
+    void appendLogEntryLine(Data & data, const QString & line) const;
+
+private:
     class FileReaderAsync;
 
 private:
