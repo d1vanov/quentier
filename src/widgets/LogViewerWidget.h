@@ -94,11 +94,13 @@ private:
     QBasicTimer             m_modelFetchingMoreTimer;
     QBasicTimer             m_delayedSectionResizeTimer;
 
+    QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
+
     // Backups for tracing mode
     LogLevel::type          m_minLogLevelBeforeTracing;
     QString                 m_filterByContentBeforeTracing;
     bool                    m_filterByLogLevelBeforeTracing[6];
-    QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
+    int                     m_filterOutBeforeRowBeforeTracing;
 };
 
 } // namespace quentier

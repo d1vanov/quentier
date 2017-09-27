@@ -46,10 +46,11 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pLogViewerFilterModel(new LogViewerFilterModel(this)),
     m_modelFetchingMoreTimer(),
     m_delayedSectionResizeTimer(),
+    m_logLevelEnabledCheckboxPtrs(),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
     m_filterByContentBeforeTracing(),
     m_filterByLogLevelBeforeTracing(),
-    m_logLevelEnabledCheckboxPtrs()
+    m_filterOutBeforeRowBeforeTracing(0)
 {
     m_pUi->setupUi(this);
     m_pUi->resetPushButton->setEnabled(false);
@@ -417,6 +418,8 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
     {
         m_pUi->tracePushButton->setText(tr("Stop tracing"));
 
+        m_filterOutBeforeRowBeforeTracing = m_pLogViewerFilterModel->filterOutBeforeRow();
+
         // Clear the currently displayed log entries to create some space for new ones
         onClearButtonPressed();
         m_pUi->resetPushButton->setEnabled(false);
@@ -448,6 +451,10 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         QuentierSetMinLogLevel(m_minLogLevelBeforeTracing);
         m_minLogLevelBeforeTracing = LogLevel::InfoLevel;
 
+        m_pLogViewerFilterModel->setFilterOutBeforeRow(m_filterOutBeforeRowBeforeTracing);
+        m_pUi->resetPushButton->setEnabled(m_filterOutBeforeRowBeforeTracing != 0);
+        m_filterOutBeforeRowBeforeTracing = 0;
+
         m_pUi->filterByContentLineEdit->setText(m_filterByContentBeforeTracing);
         onFilterByContentEditingFinished();
         m_filterByContentBeforeTracing.clear();
@@ -458,8 +465,6 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
             m_filterByLogLevelBeforeTracing[i] = false;
         }
         m_pUi->filterByLogLevelTableWidget->setEnabled(true);
-
-        onResetButtonPressed();
     }
 
     scheduleLogEntriesViewColumnsResize();
