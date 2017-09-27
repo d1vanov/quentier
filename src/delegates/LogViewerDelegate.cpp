@@ -26,7 +26,7 @@
 namespace quentier {
 
 LogViewerDelegate::LogViewerDelegate(QObject * parent) :
-    AbstractStyledItemDelegate(parent),
+    QStyledItemDelegate(parent),
     m_margin(0.1),
     m_widestLogLevelName(QStringLiteral("Warning")),
     m_sampleDateTimeString(QStringLiteral("26/09/2017 19:31:23:457")),
@@ -49,7 +49,7 @@ void LogViewerDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & 
         return;
     }
 
-    AbstractStyledItemDelegate::paint(pPainter, option, index);
+    QStyledItemDelegate::paint(pPainter, option, index);
 }
 
 QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
@@ -58,69 +58,65 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
     // it has to be very fast, otherwise the performance is complete crap
     // so there are some shortcuts and missing checks which should normally be here
 
+    QFontMetrics fontMetrics(option.font);
+    QSize size;
+
+#define STRING_SIZE_HINT(str) \
+    { \
+        size.setWidth(static_cast<int>(std::floor(fontMetrics.width(str) * (1.0 + m_margin) + 0.5))); \
+        size.setHeight(static_cast<int>(std::floor(fontMetrics.height() * (1.0 + m_margin) + 0.5))); \
+        return size; \
+    }
+
     switch(index.column())
     {
     case LogViewerModel::Columns::Timestamp:
-        return stringSizeHint(option, index, m_sampleDateTimeString);
+        STRING_SIZE_HINT(m_sampleDateTimeString)
     case LogViewerModel::Columns::SourceFileLineNumber:
-        return stringSizeHint(option, index, m_sampleSourceFileLineNumberString);
+        STRING_SIZE_HINT(m_sampleSourceFileLineNumberString)
     case LogViewerModel::Columns::LogLevel:
-        return stringSizeHint(option, index, m_widestLogLevelName);
+        STRING_SIZE_HINT(m_widestLogLevelName)
     }
 
     // If we haven't returned yet, either the index is invalid or we are dealing
     // with either log entry column or source file name column
 
     if (Q_UNLIKELY(!index.isValid())) {
-        return AbstractStyledItemDelegate::sizeHint(option, index);
+        return QStyledItemDelegate::sizeHint(option, index);
     }
 
     const LogViewerFilterModel * pFilterModel = qobject_cast<const LogViewerFilterModel*>(index.model());
     if (Q_UNLIKELY(!pFilterModel)) {
-        return AbstractStyledItemDelegate::sizeHint(option, index);
+        return QStyledItemDelegate::sizeHint(option, index);
     }
 
     const LogViewerModel * pModel = qobject_cast<const LogViewerModel*>(pFilterModel->sourceModel());
     if (Q_UNLIKELY(!pModel)) {
-        return AbstractStyledItemDelegate::sizeHint(option, index);
+        return QStyledItemDelegate::sizeHint(option, index);
     }
 
     QModelIndex sourceIndex = pFilterModel->mapToSource(index);
     if (Q_UNLIKELY(!sourceIndex.isValid())) {
-        return AbstractStyledItemDelegate::sizeHint(option, index);
+        return QStyledItemDelegate::sizeHint(option, index);
     }
 
     int row = sourceIndex.row();
     const LogViewerModel::Data * pDataEntry = pModel->dataEntry(row);
     if (Q_UNLIKELY(!pDataEntry)) {
-        return AbstractStyledItemDelegate::sizeHint(option, index);
+        return QStyledItemDelegate::sizeHint(option, index);
     }
 
     if (index.column() == LogViewerModel::Columns::SourceFileName) {
-        return stringSizeHint(option, index, pDataEntry->m_sourceFileName);
+        STRING_SIZE_HINT(pDataEntry->m_sourceFileName)
     }
 
-    QFontMetrics fontMetrics(option.font);
+#undef STRING_SIZE_HINT
 
-    QSize size;
     size.setWidth(static_cast<int>(std::floor(fontMetrics.width(QStringLiteral("w")) *
                                               (pDataEntry->m_logEntryMaxNumCharsPerLine + 2 + m_margin) + 0.5)));
     size.setHeight(static_cast<int>(std::floor(fontMetrics.height() *
                                                (pDataEntry->m_numLogEntryLines + 1 + m_margin) + 0.5)));
     return size;
-}
-
-QSize LogViewerDelegate::stringSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index, const QString & content) const
-{
-    QSize result;
-
-    QFontMetrics fontMetrics(option.font);
-    int contentWidth = static_cast<int>(std::floor(fontMetrics.width(content) * (1.0 + m_margin) + 0.5));
-    int headerWidth = columnNameWidth(option, index);
-    result.setWidth(std::max(contentWidth, headerWidth));
-    result.setHeight(static_cast<int>(std::floor(fontMetrics.height() * (1.0 + m_margin) + 0.5)));
-
-    return result;
 }
 
 bool LogViewerDelegate::paintImpl(QPainter * pPainter, const QStyleOptionViewItem & option, const QModelIndex & index) const

@@ -19,11 +19,12 @@
 #ifndef QUENTIER_DELEGATES_LOG_VIEWER_DELEGATE_H
 #define QUENTIER_DELEGATES_LOG_VIEWER_DELEGATE_H
 
-#include "AbstractStyledItemDelegate.h"
+#include <quentier/utility/Macros.h>
+#include <QStyledItemDelegate>
 
 namespace quentier {
 
-class LogViewerDelegate: public AbstractStyledItemDelegate
+class LogViewerDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -38,8 +39,6 @@ private:
     virtual QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
-    QSize stringSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index, const QString & content) const;
-
     bool paintImpl(QPainter * pPainter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
 private:
