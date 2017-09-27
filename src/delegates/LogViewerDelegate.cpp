@@ -27,7 +27,7 @@ namespace quentier {
 
 LogViewerDelegate::LogViewerDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
-    m_margin(0.1),
+    m_margin(0.4),
     m_widestLogLevelName(QStringLiteral("Warning")),
     m_sampleDateTimeString(QStringLiteral("26/09/2017 19:31:23:457")),
     m_sampleSourceFileLineNumberString(QStringLiteral("99999"))
@@ -158,8 +158,8 @@ bool LogViewerDelegate::paintImpl(QPainter * pPainter, const QStyleOptionViewIte
         pPainter->setPen(option.palette.highlightedText().color());
     }
     else {
-        // TODO: fill background with color specific to the log level
-        pPainter->setPen(option.palette.windowText().color());
+        pPainter->fillRect(option.rect, QBrush(pModel->backgroundColorForLogLevel(pDataEntry->m_logLevel)));
+        pPainter->setPen(Qt::black);
     }
 
     QTextOption textOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignTop));

@@ -196,6 +196,28 @@ QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry
     return result;
 }
 
+QColor LogViewerModel::backgroundColorForLogLevel(const LogLevel::type logLevel) const
+{
+    int alpha = 90;
+    switch(logLevel)
+    {
+    case LogLevel::TraceLevel:
+        return QColor(127, 230, 255, alpha);   // Light blue
+    case LogLevel::DebugLevel:
+        return QColor(127, 255, 142, alpha);   // Light green
+    case LogLevel::InfoLevel:
+        return QColor(252, 255, 127, alpha);   // Light yellow
+    case LogLevel::WarnLevel:
+        return QColor(255, 212, 127, alpha);   // Orange
+    case LogLevel::ErrorLevel:
+        return QColor(255, 128, 127, alpha);   // Pink
+    case LogLevel::FatalLevel:
+        return QColor(255, 38, 10, alpha);     // Red
+    default:
+        return QColor();
+    }
+}
+
 int LogViewerModel::rowCount(const QModelIndex & parent) const
 {
     if (!parent.isValid()) {

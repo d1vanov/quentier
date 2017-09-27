@@ -38,6 +38,9 @@
 #define FETCHING_MORE_TIMER_PERIOD (200)
 #define DELAY_SECTION_RESIZE_TIMER_PERIOD (500)
 
+#define MAX_SOURCE_FILE_NAME_COLUMN_WIDTH (300)
+#define MAX_LOG_ENTRY_COLUMN_WIDTH (900)
+
 namespace quentier {
 
 LogViewerWidget::LogViewerWidget(QWidget * parent) :
@@ -212,18 +215,10 @@ void LogViewerWidget::setupFilterByLogLevelWidget()
     m_pUi->filterByLogLevelTableWidget->setRowCount(QUENTIER_NUM_LOG_LEVELS);
     m_pUi->filterByLogLevelTableWidget->setColumnCount(2);
 
-    QColor rowColors[QUENTIER_NUM_LOG_LEVELS];
-    rowColors[LogLevel::TraceLevel] = QColor(127, 230, 255);    // Light blue
-    rowColors[LogLevel::DebugLevel] = QColor(127, 255, 142);    // Light green
-    rowColors[LogLevel::InfoLevel]  = QColor(252, 255, 127);    // Light yellow
-    rowColors[LogLevel::WarnLevel]  = QColor(255, 212, 127);    // Orange
-    rowColors[LogLevel::ErrorLevel] = QColor(255, 128, 127);    // Pink
-    rowColors[LogLevel::FatalLevel] = QColor(255, 38, 10);      // Red
-
     for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i)
     {
         QTableWidgetItem * pItem = new QTableWidgetItem(LogViewerModel::logLevelToString(static_cast<LogLevel::type>(i)));
-        pItem->setData(Qt::BackgroundRole, rowColors[i]);
+        pItem->setData(Qt::BackgroundRole, m_pLogViewerModel->backgroundColorForLogLevel(static_cast<LogLevel::type>(i)));
         m_pUi->filterByLogLevelTableWidget->setItem(static_cast<int>(i), 0, pItem);
 
         QWidget * pWidget = new QWidget;
@@ -579,7 +574,19 @@ void LogViewerWidget::scheduleLogEntriesViewColumnsResize()
 
 void LogViewerWidget::resizeLogEntriesViewColumns()
 {
-    m_pUi->logEntriesTableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+    QHeaderView * pHorizontalHeader = m_pUi->logEntriesTableView->horizontalHeader();
+    pHorizontalHeader->resizeSections(QHeaderView::ResizeToContents);
+
+    // Manually correct the sizes of some particular sections
+    if (pHorizontalHeader->sectionSize(LogViewerModel::Columns::SourceFileName) > MAX_SOURCE_FILE_NAME_COLUMN_WIDTH) {
+        pHorizontalHeader->resizeSection(LogViewerModel::Columns::SourceFileName,
+                                         MAX_SOURCE_FILE_NAME_COLUMN_WIDTH);
+    }
+
+    if (pHorizontalHeader->sectionSize(LogViewerModel::Columns::LogEntry) > MAX_LOG_ENTRY_COLUMN_WIDTH) {
+        pHorizontalHeader->resizeSection(LogViewerModel::Columns::LogEntry, MAX_LOG_ENTRY_COLUMN_WIDTH);
+    }
+
     m_pUi->logEntriesTableView->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
 }
 
