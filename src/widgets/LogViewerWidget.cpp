@@ -10,6 +10,9 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QColor>
+#include <QTextStream>
+#include <QClipboard>
+#include <QApplication>
 
 #define QUENTIER_NUM_LOG_LEVELS (6)
 #define FETCHING_MORE_TIMER_PERIOD (800)
@@ -295,8 +298,17 @@ void LogViewerWidget::onCopyAllToClipboardButtonPressed()
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
-    int fromLine = m_pLogViewerFilterModel->filterOutBeforeRow();
-    m_pLogViewerModel->copyAllToClipboard(fromLine);
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (Q_UNLIKELY(!pClipboard)) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't copy data to clipboard: got null pointer to clipboard from app"));
+        QNWARNING(errorDescription);
+        m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+        m_pUi->statusBarLineEdit->show();
+        return;
+    }
+
+    QString text = displayedLogEntriesToString();
+    pClipboard->setText(text);
 }
 
 void LogViewerWidget::onSaveAllToFileButtonPressed()
@@ -336,9 +348,8 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
         }
     }
 
-    int fromLine = m_pLogViewerFilterModel->filterOutBeforeRow();
-    QString logs = m_pLogViewerModel->copyAllToString(fromLine);
-    if (logs.isEmpty()) {
+    QString text = displayedLogEntriesToString();
+    if (text.isEmpty()) {
         ErrorString errorDescription(QT_TR_NOOP("No logs to save"));
         m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
         m_pUi->statusBarLineEdit->show();
@@ -356,7 +367,7 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
         return;
     }
 
-    Q_UNUSED(file.write(logs.toLocal8Bit()))
+    Q_UNUSED(file.write(text.toLocal8Bit()))
     file.close();
 }
 
@@ -474,6 +485,46 @@ void LogViewerWidget::resizeLogEntriesViewColumns()
 {
     m_pUi->logEntriesTableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     m_pUi->logEntriesTableView->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
+}
+
+QString LogViewerWidget::displayedLogEntriesToString() const
+{
+    QString result;
+    QTextStream strm(&result);
+
+    int fromLine = m_pLogViewerFilterModel->filterOutBeforeRow();
+    int numEntries = m_pLogViewerModel->rowCount();
+    for(int i = fromLine; i < numEntries; ++i)
+    {
+        if (!m_pLogViewerFilterModel->filterAcceptsRow(i, QModelIndex())) {
+            continue;
+        }
+
+        const LogViewerModel::Data * pDataEntry = m_pLogViewerModel->dataEntry(i);
+        if (Q_UNLIKELY(!pDataEntry)) {
+            continue;
+        }
+
+        strm << pDataEntry->m_timestamp.toString(
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+                                                 QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
+#else
+                                                 QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")
+#endif
+                                          )
+             << QStringLiteral(" ")
+             << pDataEntry->m_sourceFileName
+             << QStringLiteral(" @ ")
+             << QString::number(pDataEntry->m_sourceFileLineNumber)
+             << QStringLiteral(" [")
+             << LogViewerModel::logLevelToString(pDataEntry->m_logLevel)
+             << QStringLiteral("]: ")
+             << pDataEntry->m_logEntry
+             << QStringLiteral("\n");
+    }
+
+    strm.flush();
+    return result;
 }
 
 void LogViewerWidget::timerEvent(QTimerEvent * pEvent)

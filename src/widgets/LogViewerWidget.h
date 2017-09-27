@@ -57,8 +57,11 @@ private Q_SLOTS:
 
 private:
     void clear();
+
     void scheduleLogEntriesViewColumnsResize();
     void resizeLogEntriesViewColumns();
+
+    QString displayedLogEntriesToString() const;
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;

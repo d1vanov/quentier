@@ -57,9 +57,6 @@ public:
 
     void clear();
 
-    QString copyAllToString(int fromLine = 0) const;
-    void copyAllToClipboard(int fromLine = 0) const;
-
     static QString logLevelToString(LogLevel::type logLevel);
 
     struct Data: public Printable

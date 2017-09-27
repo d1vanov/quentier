@@ -19,7 +19,7 @@ public:
     bool logLevelEnabled(const LogLevel::type logLevel) const;
     void setLogLevelEnabled(const LogLevel::type logLevel, const bool enabled);
 
-private:
+public:
     virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
 
 private:

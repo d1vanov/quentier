@@ -22,8 +22,6 @@
 #include <QFileInfo>
 #include <QStringList>
 #include <QTextStream>
-#include <QClipboard>
-#include <QApplication>
 #include <QStringRef>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
@@ -161,55 +159,6 @@ void LogViewerModel::clear()
     m_currentLogFileStartBytesRead = 0;
 
     endResetModel();
-}
-
-QString LogViewerModel::copyAllToString(int fromLine) const
-{
-    QString modelTextData;
-    QTextStream strm(&modelTextData);
-
-    fromLine = std::max(fromLine, 0);
-
-    for(int i = fromLine, size = m_data.size(); i < size; ++i)
-    {
-        const Data & entry = m_data.at(i);
-        strm << entry.m_timestamp.toString(
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-                                           QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
-#else
-                                           QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")
-#endif
-                                          )
-             << QStringLiteral(" ")
-             << entry.m_sourceFileName
-             << QStringLiteral(" @ ")
-             << QString::number(entry.m_sourceFileLineNumber)
-             << QStringLiteral(" [")
-             << logLevelToString(entry.m_logLevel)
-             << QStringLiteral("]: ")
-             << entry.m_logEntry
-             << QStringLiteral("\n");
-
-    }
-
-    strm.flush();
-    return modelTextData;
-}
-
-void LogViewerModel::copyAllToClipboard(int fromLine) const
-{
-    QNDEBUG(QStringLiteral("LogViewerModel::copyAllToClipboard: from line ") << fromLine);
-
-    QClipboard * pClipboard = QApplication::clipboard();
-    if (Q_UNLIKELY(!pClipboard)) {
-        ErrorString errorDescription(QT_TR_NOOP("Can't copy data to clipboard: got null pointer to clipboard from app"));
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
-
-    QString modelTextData = copyAllToString(fromLine);
-    pClipboard->setText(modelTextData);
 }
 
 const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
