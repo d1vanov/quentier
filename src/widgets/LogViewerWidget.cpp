@@ -31,6 +31,8 @@
 #include <QTextStream>
 #include <QClipboard>
 #include <QApplication>
+#include <QMenu>
+#include <set>
 
 #define QUENTIER_NUM_LOG_LEVELS (6)
 #define FETCHING_MORE_TIMER_PERIOD (200)
@@ -47,6 +49,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_modelFetchingMoreTimer(),
     m_delayedSectionResizeTimer(),
     m_logLevelEnabledCheckboxPtrs(),
+    m_pLogEntriesContextMenu(Q_NULLPTR),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
     m_filterByContentBeforeTracing(),
     m_filterByLogLevelBeforeTracing(),
@@ -103,6 +106,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this, QNSLOT(LogViewerWidget,onModelError,ErrorString));
     QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,rowsInserted,QModelIndex,int,int),
                      this, QNSLOT(LogViewerWidget,onModelRowsInserted,QModelIndex,int,int));
+    QObject::connect(m_pUi->logEntriesTableView, QNSIGNAL(QTableView,customContextMenuRequested,QPoint),
+                     this, QNSLOT(LogViewerWidget,onLogEntriesViewContextMenuRequested,QPoint));
 }
 
 LogViewerWidget::~LogViewerWidget()
@@ -317,17 +322,8 @@ void LogViewerWidget::onCopyAllToClipboardButtonPressed()
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
-    QClipboard * pClipboard = QApplication::clipboard();
-    if (Q_UNLIKELY(!pClipboard)) {
-        ErrorString errorDescription(QT_TR_NOOP("Can't copy data to clipboard: got null pointer to clipboard from app"));
-        QNWARNING(errorDescription);
-        m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
-        m_pUi->statusBarLineEdit->show();
-        return;
-    }
-
     QString text = displayedLogEntriesToString();
-    pClipboard->setText(text);
+    copyStringToClipboard(text);
 }
 
 void LogViewerWidget::onSaveAllToFileButtonPressed()
@@ -484,6 +480,83 @@ void LogViewerWidget::onModelRowsInserted(const QModelIndex & parent, int first,
     scheduleLogEntriesViewColumnsResize();
 }
 
+void LogViewerWidget::onLogEntriesViewContextMenuRequested(const QPoint & pos)
+{
+    QModelIndex index = m_pUi->logEntriesTableView->indexAt(pos);
+    if (!index.isValid()) {
+        return;
+    }
+
+    delete m_pLogEntriesContextMenu;
+    m_pLogEntriesContextMenu = new QMenu(this);
+
+    QAction * pCopyAction = new QAction(tr("Copy"), m_pLogEntriesContextMenu);
+    pCopyAction->setEnabled(true);
+    QObject::connect(pCopyAction, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(LogViewerWidget,onLogEntriesViewCopySelectedItemsAction));
+    m_pLogEntriesContextMenu->addAction(pCopyAction);
+
+    QAction * pDeselectAction = new QAction(tr("Clear selection"), m_pLogEntriesContextMenu);
+    pDeselectAction->setEnabled(true);
+    QObject::connect(pDeselectAction, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(LogViewerWidget,onLogEntriesViewDeselectAction));
+    m_pLogEntriesContextMenu->addAction(pDeselectAction);
+
+    m_pLogEntriesContextMenu->show();
+    m_pLogEntriesContextMenu->exec(m_pUi->logEntriesTableView->mapToGlobal(pos));
+}
+
+void LogViewerWidget::onLogEntriesViewCopySelectedItemsAction()
+{
+    QString result;
+    QTextStream strm(&result);
+
+    QItemSelectionModel * pSelectionModel = m_pUi->logEntriesTableView->selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        return;
+    }
+
+    QModelIndexList selectedIndexes = pSelectionModel->selectedIndexes();
+    std::set<int> processedRows;
+
+    for(auto it = selectedIndexes.constBegin(),
+        end = selectedIndexes.constEnd(); it != end; ++it)
+    {
+        const QModelIndex & filterModelIndex = *it;
+        QModelIndex sourceModelIndex = m_pLogViewerFilterModel->mapToSource(filterModelIndex);
+        if (Q_UNLIKELY(!sourceModelIndex.isValid())) {
+            continue;
+        }
+
+        int row = sourceModelIndex.row();
+        if (processedRows.find(row) != processedRows.end()) {
+            continue;
+        }
+
+        Q_UNUSED(processedRows.insert(row))
+
+        bool rowAccepted = m_pLogViewerFilterModel->filterAcceptsRow(row, sourceModelIndex.parent());
+        if (Q_UNLIKELY(!rowAccepted)) {
+            continue;
+        }
+
+        const LogViewerModel::Data * pDataEntry = m_pLogViewerModel->dataEntry(row);
+        if (Q_UNLIKELY(!pDataEntry)) {
+            continue;
+        }
+
+        strm << m_pLogViewerModel->dataEntryToString(*pDataEntry);
+    }
+
+    strm.flush();
+    copyStringToClipboard(result);
+}
+
+void LogViewerWidget::onLogEntriesViewDeselectAction()
+{
+    m_pUi->logEntriesTableView->clearSelection();
+}
+
 void LogViewerWidget::clear()
 {
     m_pUi->logFileComboBox->clear();
@@ -528,26 +601,25 @@ QString LogViewerWidget::displayedLogEntriesToString() const
             continue;
         }
 
-        strm << pDataEntry->m_timestamp.toString(
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-                                                 QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
-#else
-                                                 QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")
-#endif
-                                          )
-             << QStringLiteral(" ")
-             << pDataEntry->m_sourceFileName
-             << QStringLiteral(" @ ")
-             << QString::number(pDataEntry->m_sourceFileLineNumber)
-             << QStringLiteral(" [")
-             << LogViewerModel::logLevelToString(pDataEntry->m_logLevel)
-             << QStringLiteral("]: ")
-             << pDataEntry->m_logEntry
-             << QStringLiteral("\n");
+        strm << m_pLogViewerModel->dataEntryToString(*pDataEntry);
     }
 
     strm.flush();
     return result;
+}
+
+void LogViewerWidget::copyStringToClipboard(const QString & text)
+{
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (Q_UNLIKELY(!pClipboard)) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't copy data to clipboard: got null pointer to clipboard from app"));
+        QNWARNING(errorDescription);
+        m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+        m_pUi->statusBarLineEdit->show();
+        return;
+    }
+
+    pClipboard->setText(text);
 }
 
 void LogViewerWidget::timerEvent(QTimerEvent * pEvent)

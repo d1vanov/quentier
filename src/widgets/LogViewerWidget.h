@@ -32,6 +32,7 @@ class LogViewerWidget;
 }
 
 QT_FORWARD_DECLARE_CLASS(QCheckBox)
+QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
@@ -43,7 +44,7 @@ class LogViewerWidget : public QWidget
     Q_OBJECT
 public:
     explicit LogViewerWidget(QWidget * parent = Q_NULLPTR);
-    ~LogViewerWidget();
+    virtual ~LogViewerWidget();
 
 private:
     void setupLogLevels();
@@ -70,8 +71,11 @@ private Q_SLOTS:
     void onTraceButtonToggled(bool checked);
 
     void onModelError(ErrorString errorDescription);
-
     void onModelRowsInserted(const QModelIndex & parent, int first, int last);
+
+    void onLogEntriesViewContextMenuRequested(const QPoint & pos);
+    void onLogEntriesViewCopySelectedItemsAction();
+    void onLogEntriesViewDeselectAction();
 
 private:
     void clear();
@@ -80,6 +84,7 @@ private:
     void resizeLogEntriesViewColumns();
 
     QString displayedLogEntriesToString() const;
+    void copyStringToClipboard(const QString & text);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -95,6 +100,7 @@ private:
     QBasicTimer             m_delayedSectionResizeTimer;
 
     QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
+    QMenu *                 m_pLogEntriesContextMenu;
 
     // Backups for tracing mode
     LogLevel::type          m_minLogLevelBeforeTracing;

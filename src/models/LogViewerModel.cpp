@@ -170,6 +170,32 @@ const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
     return &(m_data.at(row));
 }
 
+QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry) const
+{
+    QString result;
+    QTextStream strm(&result);
+
+    strm << dataEntry.m_timestamp.toString(
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+                                             QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
+#else
+                                             QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz")
+#endif
+                                             )
+         << QStringLiteral(" ")
+         << dataEntry.m_sourceFileName
+         << QStringLiteral(" @ ")
+         << QString::number(dataEntry.m_sourceFileLineNumber)
+         << QStringLiteral(" [")
+         << LogViewerModel::logLevelToString(dataEntry.m_logLevel)
+         << QStringLiteral("]: ")
+         << dataEntry.m_logEntry
+         << QStringLiteral("\n");
+
+    strm.flush();
+    return result;
+}
+
 int LogViewerModel::rowCount(const QModelIndex & parent) const
 {
     if (!parent.isValid()) {

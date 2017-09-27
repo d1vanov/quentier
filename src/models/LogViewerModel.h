@@ -88,6 +88,8 @@ public:
 
     const Data * dataEntry(const int row) const;
 
+    QString dataEntryToString(const Data & dataEntry) const;
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription) const;
 
