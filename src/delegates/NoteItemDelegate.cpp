@@ -38,7 +38,7 @@ NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     m_minWidth(220),
     m_height(120),
     m_leftMargin(2),
-    m_rightMargin(2),
+    m_rightMargin(4),
     m_topMargin(2),
     m_bottomMargin(2)
 {}
@@ -363,22 +363,71 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     if (pItem->isDirty() && pItem->isSynchronizable())
     {
         QPainterPath modifiedTrianglePath;
+        int triangleSide = 20;
 
         QPoint topRight = option.rect.topRight();
         modifiedTrianglePath.moveTo(topRight);
 
         QPoint bottomRight = topRight;
-        bottomRight.setY(topRight.y() + 10);
+        bottomRight.setY(topRight.y() + triangleSide);
         modifiedTrianglePath.lineTo(bottomRight);
 
         QPoint topLeft = topRight;
-        topLeft.setX(topRight.x() - 10);
+        topLeft.setX(topRight.x() - triangleSide);
         modifiedTrianglePath.lineTo(topLeft);
 
         painter->setPen(Qt::NoPen);
         painter->fillPath(modifiedTrianglePath, ((option.state & QStyle::State_Selected)
                                                  ? option.palette.highlightedText()
                                                  : option.palette.highlight()));
+
+        // Also paint a little arrow here as an indication of the fact that the note is about to be sent
+        // to the remote server
+        QPainterPath arrowVerticalLinePath;
+        int arrowVerticalLineHorizontalOffset = static_cast<int>(std::floor(triangleSide * 0.7) + 0.5);
+        int arrowVerticalLineVerticalOffset = static_cast<int>(std::floor(triangleSide * 0.5) + 0.5);
+        QPoint arrowBottomPoint(topLeft.x() + arrowVerticalLineHorizontalOffset,
+                                topLeft.y() + arrowVerticalLineVerticalOffset);
+        arrowVerticalLinePath.moveTo(arrowBottomPoint);
+        QPoint arrowTopPoint(arrowBottomPoint.x(), arrowBottomPoint.y() - static_cast<int>(std::floor(arrowVerticalLineVerticalOffset * 0.8) + 0.5));
+        arrowVerticalLinePath.lineTo(arrowTopPoint);
+
+        int arrowPointerOffset = static_cast<int>(std::floor((arrowBottomPoint.y() - arrowTopPoint.y()) * 0.3) + 0.5);
+
+        // Adjustments accounting for the fact we'd be using pen of width 2
+        arrowTopPoint.ry() += 1;
+        arrowTopPoint.rx() -= 1;
+
+        QPainterPath arrowPointerLeftPartPath;
+        arrowPointerLeftPartPath.moveTo(arrowTopPoint);
+        QPoint arrowPointerLeftPartEndPoint = arrowTopPoint;
+        arrowPointerLeftPartEndPoint.rx() -= arrowPointerOffset;
+        arrowPointerLeftPartEndPoint.ry() += arrowPointerOffset;
+        arrowPointerLeftPartPath.lineTo(arrowPointerLeftPartEndPoint);
+
+        // Adjustment accounting for the fact we'd be using pen of width 2
+        arrowTopPoint.rx() += 2;
+
+        QPainterPath arrowPointerRightPartPath;
+        arrowPointerRightPartPath.moveTo(arrowTopPoint);
+        QPoint arrowPointerRightPartEndPoint = arrowTopPoint;
+        arrowPointerRightPartEndPoint.rx() += arrowPointerOffset;
+        arrowPointerRightPartEndPoint.ry() += arrowPointerOffset;
+        arrowPointerRightPartPath.lineTo(arrowPointerRightPartEndPoint);
+
+        QPen arrowPen;
+        arrowPen.setBrush((option.state & QStyle::State_Selected)
+                          ? option.palette.highlight()
+                          : option.palette.highlightedText());
+        arrowPen.setWidth(2);
+        arrowPen.setStyle(Qt::SolidLine);
+        arrowPen.setCapStyle(Qt::SquareCap);
+        arrowPen.setJoinStyle(Qt::BevelJoin);
+
+        painter->setPen(arrowPen);
+        painter->drawPath(arrowVerticalLinePath);
+        painter->drawPath(arrowPointerLeftPartPath);
+        painter->drawPath(arrowPointerRightPartPath);
     }
 
     painter->restore();
