@@ -38,9 +38,6 @@
 #define FETCHING_MORE_TIMER_PERIOD (200)
 #define DELAY_SECTION_RESIZE_TIMER_PERIOD (500)
 
-#define MAX_SOURCE_FILE_NAME_COLUMN_WIDTH (300)
-#define MAX_LOG_ENTRY_COLUMN_WIDTH (900)
-
 namespace quentier {
 
 LogViewerWidget::LogViewerWidget(QWidget * parent) :
@@ -577,14 +574,9 @@ void LogViewerWidget::resizeLogEntriesViewColumns()
     QHeaderView * pHorizontalHeader = m_pUi->logEntriesTableView->horizontalHeader();
     pHorizontalHeader->resizeSections(QHeaderView::ResizeToContents);
 
-    // Manually correct the sizes of some particular sections
     if (pHorizontalHeader->sectionSize(LogViewerModel::Columns::SourceFileName) > MAX_SOURCE_FILE_NAME_COLUMN_WIDTH) {
         pHorizontalHeader->resizeSection(LogViewerModel::Columns::SourceFileName,
                                          MAX_SOURCE_FILE_NAME_COLUMN_WIDTH);
-    }
-
-    if (pHorizontalHeader->sectionSize(LogViewerModel::Columns::LogEntry) > MAX_LOG_ENTRY_COLUMN_WIDTH) {
-        pHorizontalHeader->resizeSection(LogViewerModel::Columns::LogEntry, MAX_LOG_ENTRY_COLUMN_WIDTH);
     }
 
     m_pUi->logEntriesTableView->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);

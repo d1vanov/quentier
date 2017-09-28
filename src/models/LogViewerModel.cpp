@@ -34,7 +34,7 @@
 #define LOG_VIEWER_MODEL_PARSED_LINES_BUCKET_SIZE (100)
 #define LOG_VIEWER_MODEL_FETCH_ITEMS_BUCKET_SIZE (100)
 #define LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC (500)
-#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (500)
+#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
 namespace quentier {
 
@@ -198,11 +198,11 @@ QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry
 
 QColor LogViewerModel::backgroundColorForLogLevel(const LogLevel::type logLevel) const
 {
-    int alpha = 90;
+    int alpha = 140;
     switch(logLevel)
     {
     case LogLevel::TraceLevel:
-        return QColor(127, 230, 255, alpha);   // Light blue
+        return QColor(127, 174, 255, alpha);   // Light blue
     case LogLevel::DebugLevel:
         return QColor(127, 255, 142, alpha);   // Light green
     case LogLevel::InfoLevel:

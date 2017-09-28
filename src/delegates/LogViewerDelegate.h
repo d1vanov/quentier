@@ -22,6 +22,8 @@
 #include <quentier/utility/Macros.h>
 #include <QStyledItemDelegate>
 
+#define MAX_SOURCE_FILE_NAME_COLUMN_WIDTH (200)
+
 namespace quentier {
 
 class LogViewerDelegate: public QStyledItemDelegate

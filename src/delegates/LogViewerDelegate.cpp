@@ -64,7 +64,7 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
 #define STRING_SIZE_HINT(str) \
     { \
         size.setWidth(static_cast<int>(std::floor(fontMetrics.width(str) * (1.0 + m_margin) + 0.5))); \
-        size.setHeight(static_cast<int>(std::floor(fontMetrics.height() * (1.0 + m_margin) + 0.5))); \
+        size.setHeight(static_cast<int>(std::floor(fontMetrics.lineSpacing() * (1.0 + m_margin) + 0.5))); \
         return size; \
     }
 
@@ -77,6 +77,8 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
     case LogViewerModel::Columns::LogLevel:
         STRING_SIZE_HINT(m_widestLogLevelName)
     }
+
+#undef STRING_SIZE_HINT
 
     // If we haven't returned yet, either the index is invalid or we are dealing
     // with either log entry column or source file name column
@@ -106,15 +108,25 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    if (index.column() == LogViewerModel::Columns::SourceFileName) {
-        STRING_SIZE_HINT(pDataEntry->m_sourceFileName)
-    }
+    if (index.column() == LogViewerModel::Columns::SourceFileName)
+    {
+        int numSubRows = 1;
+        QString sourceFileName = pDataEntry->m_sourceFileName;
+        int originalWidth = static_cast<int>(std::floor(fontMetrics.width(sourceFileName) * (1.0 + m_margin) + 0.5));
+        int width = originalWidth;
+        while(width > MAX_SOURCE_FILE_NAME_COLUMN_WIDTH) {
+            ++numSubRows;
+            width -= MAX_SOURCE_FILE_NAME_COLUMN_WIDTH;
+        }
 
-#undef STRING_SIZE_HINT
+        size.setWidth(std::min(originalWidth, MAX_SOURCE_FILE_NAME_COLUMN_WIDTH));
+        size.setHeight(static_cast<int>(std::floor(fontMetrics.lineSpacing() * (numSubRows + 1 + m_margin) + 0.5)));
+        return size;
+    }
 
     size.setWidth(static_cast<int>(std::floor(fontMetrics.width(QStringLiteral("w")) *
                                               (pDataEntry->m_logEntryMaxNumCharsPerLine + 2 + m_margin) + 0.5)));
-    size.setHeight(static_cast<int>(std::floor(fontMetrics.height() *
+    size.setHeight(static_cast<int>(std::floor(fontMetrics.lineSpacing() *
                                                (pDataEntry->m_numLogEntryLines + 1 + m_margin) + 0.5)));
     return size;
 }
