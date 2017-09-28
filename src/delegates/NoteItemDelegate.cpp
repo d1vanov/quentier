@@ -171,7 +171,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         width -= 100;
     }
 
-    // 1) Painting the title (or a piece of preview text if there's no title)
+    // Painting the title (or a piece of preview text if there's no title)
     QFont originalFont = painter->font();
     painter->setFont(boldFont);
 
@@ -207,7 +207,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     title = boldFontMetrics.elidedText(title, Qt::ElideRight, titleRect.width());
     painter->drawText(QRectF(titleRect), title, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
-    // 2) Painting the created/modified datetime
+    // Painting the created/modified datetime
     qint64 creationTimestamp = pItem->creationTimestamp();
     qint64 modificationTimestamp = pItem->modificationTimestamp();
 
@@ -272,7 +272,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     painter->drawText(QRectF(dateTimeRect), displayText, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
-    // 3) Painting the preview text
+    // Painting the preview text
     int previewTextTop = dateTimeRect.bottom() + topMargin;
     QRect previewTextRect(left, previewTextTop, width, option.rect.bottom() - bottomMargin - previewTextTop);
 
@@ -338,7 +338,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     painter->drawText(QRectF(previewTextRect), text, textOption);
 
-    // 4) Painting the thumbnail (if any)
+    // Painting the thumbnail (if any)
     if (m_showNoteThumbnails && !thumbnail.isNull())
     {
         int top = option.rect.top() + topMargin;
@@ -357,6 +357,28 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         }
 
         painter->drawImage(thumbnailRect, thumbnail);
+    }
+
+    // Fill the triangle in the right upper corner if the note is modified
+    if (pItem->isDirty() && pItem->isSynchronizable())
+    {
+        QPainterPath modifiedTrianglePath;
+
+        QPoint topRight = option.rect.topRight();
+        modifiedTrianglePath.moveTo(topRight);
+
+        QPoint bottomRight = topRight;
+        bottomRight.setY(topRight.y() + 10);
+        modifiedTrianglePath.lineTo(bottomRight);
+
+        QPoint topLeft = topRight;
+        topLeft.setX(topRight.x() - 10);
+        modifiedTrianglePath.lineTo(topLeft);
+
+        painter->setPen(Qt::NoPen);
+        painter->fillPath(modifiedTrianglePath, ((option.state & QStyle::State_Selected)
+                                                 ? option.palette.highlightedText()
+                                                 : option.palette.highlight()));
     }
 
     painter->restore();
