@@ -67,10 +67,6 @@ int main(int argc, char *argv[])
 
     loadDependencies();
 
-    QNFATAL(QStringLiteral("Hey fatal!"));
-    QNWARNING(QStringLiteral("Hey warning!"));
-    QNINFO(QStringLiteral("Hey info!"));
-
 #ifdef BUILDING_WITH_BREAKPAD
     quentier::setupBreakpad(app);
 #endif
