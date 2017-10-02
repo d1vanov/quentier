@@ -73,4 +73,10 @@
 #define SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS QStringLiteral("DownloadNoteThumbnails")
 #define SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES QStringLiteral("DownloadInkNoteImages")
 
+#define SYNCHRONIZATION_NETWORK_PROXY_TYPE QStringLiteral("SynchronizationNetworkProxyType")
+#define SYNCHRONIZATION_NETWORK_PROXY_HOST QStringLiteral("SynchronizationNetworkProxyHost")
+#define SYNCHRONIZATION_NETWORK_PROXY_PORT QStringLiteral("SynchronizationNetworkProxyPort")
+#define SYNCHRONIZATION_NETWORK_PROXY_USER QStringLiteral("SynchronizationNetworkProxyUser")
+#define SYNCHRONIZATION_NETWORK_PROXY_PASSWORD QStringLiteral("SynchronizationNetworkProxyPassword")
+
 #endif // QUENTIER_SETTINGS_NAMES_H
