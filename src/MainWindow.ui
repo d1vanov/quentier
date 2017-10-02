@@ -2970,20 +2970,8 @@ border-bottom: 1px solid black;</string>
     </property>
     <addaction name="ActionReleaseNotes"/>
     <addaction name="ActionViewLogs"/>
-    <addaction name="ActionAbout"/>
-   </widget>
-   <widget class="QMenu" name="menuDebug">
-    <property name="locale">
-     <locale language="English" country="UnitedStates"/>
-    </property>
-    <property name="title">
-     <string>&amp;Debug</string>
-    </property>
     <addaction name="ActionShowNoteSource"/>
-    <addaction name="ActionSetTestNoteWithEncryptedData"/>
-    <addaction name="ActionSetTestNoteWithResources"/>
-    <addaction name="ActionSetTestReadOnlyNote"/>
-    <addaction name="ActionSetTestInkNote"/>
+    <addaction name="ActionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2991,7 +2979,6 @@ border-bottom: 1px solid black;</string>
    <addaction name="menuFormat"/>
    <addaction name="menuService"/>
    <addaction name="menuHelp"/>
-   <addaction name="menuDebug"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
    <property name="enabled">
@@ -3815,11 +3802,6 @@ border-bottom: 1px solid black;</string>
     <string>Управление метками</string>
    </property>
   </action>
-  <action name="ActionShowNoteSource">
-   <property name="text">
-    <string>&amp;Current note html</string>
-   </property>
-  </action>
   <action name="ActionNewNote">
    <property name="icon">
     <iconset theme="document-new">
@@ -4065,16 +4047,6 @@ border-bottom: 1px solid black;</string>
     <string>&amp;About Quentier</string>
    </property>
   </action>
-  <action name="ActionSetTestNoteWithEncryptedData">
-   <property name="text">
-    <string>&amp;Set test note with encrypted data</string>
-   </property>
-  </action>
-  <action name="ActionSetTestNoteWithResources">
-   <property name="text">
-    <string>Set &amp;test note with resources</string>
-   </property>
-  </action>
   <action name="ActionIncreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-more">
@@ -4143,16 +4115,6 @@ border-bottom: 1px solid black;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+K</string>
-   </property>
-  </action>
-  <action name="ActionSetTestReadOnlyNote">
-   <property name="text">
-    <string>Set test &amp;read only note</string>
-   </property>
-  </action>
-  <action name="ActionSetTestInkNote">
-   <property name="text">
-    <string>Set test &amp;ink note</string>
    </property>
   </action>
   <action name="ActionSwitchAccount">
@@ -4238,7 +4200,8 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionGoNext">
    <property name="icon">
-    <iconset theme="go-next"/>
+    <iconset theme="go-next">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go next</string>
@@ -4249,10 +4212,16 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionGoPrevious">
    <property name="icon">
-    <iconset theme="go-previous"/>
+    <iconset theme="go-previous">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go previous</string>
+   </property>
+  </action>
+  <action name="ActionShowNoteSource">
+   <property name="text">
+    <string>&amp;Show note source</string>
    </property>
   </action>
  </widget>

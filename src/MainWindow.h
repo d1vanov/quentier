@@ -258,12 +258,6 @@ private Q_SLOTS:
     void onAccountSwitchRequestedFromSystemTrayIcon(Account account);
     void onSystemTrayIconManagerError(ErrorString errorDescription);
 
-    // Test notes for debugging
-    void onSetTestNoteWithEncryptedData();
-    void onSetTestNoteWithResources();
-    void onSetTestReadOnlyNote();
-    void onSetInkNote();
-
     void onViewLogsActionTriggered();
 
     void onNoteEditorError(ErrorString error);
@@ -369,9 +363,6 @@ private:
     void scheduleSyncButtonAnimationStop();
 
     bool checkNoteSearchQuery(const QString & noteSearchQuery);
-
-    void prepareTestNoteWithResources();
-    void prepareTestInkNote();
 
     void persistChosenIconTheme(const QString & iconThemeName);
     void refreshChildWidgetsThemeIcons();
@@ -522,9 +513,6 @@ private:
 
     NoteEditorTabsAndWindowsCoordinator *   m_pNoteEditorTabsAndWindowsCoordinator;
     EditNoteDialogsManager *                m_pEditNoteDialogsManager;
-
-    Notebook                m_testNotebook;
-    Note                    m_testNote;
 
     QUndoStack *            m_pUndoStack;
 

@@ -155,8 +155,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/NoteTagsWidget.h
     src/widgets/TagModelItemInfoWidget.h
     src/widgets/AbstractFilterByModelItemWidget.h
-    src/widgets/TabWidget.h
-    src/tests/ManualTestingHelper.h)
+    src/widgets/TabWidget.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
@@ -248,7 +247,6 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/TagModelItemInfoWidget.cpp
     src/widgets/AbstractFilterByModelItemWidget.cpp
     src/widgets/TabWidget.cpp
-    src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
 if(WIN32)
@@ -285,8 +283,7 @@ set(RESOURCES
     resource/icons/app/app_icons.qrc
     resource/icons/themes/tango/tango.qrc
     resource/icons/themes/oxygen/oxygen.qrc
-    resource/icons/other/icons.qrc
-    src/tests/test_notes.qrc)
+    resource/icons/other/icons.qrc)
 
 qt_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 

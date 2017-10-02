@@ -30,7 +30,6 @@
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
-#include "tests/ManualTestingHelper.h"
 #include "widgets/FindAndReplaceWidget.h"
 #include "delegates/NotebookItemDelegate.h"
 #include "delegates/SynchronizableColumnDelegate.h"
@@ -193,8 +192,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteFiltersManager(Q_NULLPTR),
     m_pNoteEditorTabsAndWindowsCoordinator(Q_NULLPTR),
     m_pEditNoteDialogsManager(Q_NULLPTR),
-    m_testNotebook(),
-    m_testNote(),
     m_pUndoStack(new QUndoStack(this)),
     m_noteSearchQueryValidated(false),
     m_styleSheetInfo(),
@@ -267,18 +264,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      this, QNSLOT(MainWindow,onSplitterHandleMoved,int,int));
     QObject::connect(m_pUI->sidePanelSplitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
                      this, QNSLOT(MainWindow,onSidePanelSplittedHandleMoved,int,int));
-
-    // Stuff primarily for manual testing
-    QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
-                     this, QNSLOT(MainWindow, onShowNoteSource));
-    QObject::connect(m_pUI->ActionSetTestNoteWithEncryptedData, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSetTestNoteWithEncryptedData));
-    QObject::connect(m_pUI->ActionSetTestNoteWithResources, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSetTestNoteWithResources));
-    QObject::connect(m_pUI->ActionSetTestReadOnlyNote, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSetTestReadOnlyNote));
-    QObject::connect(m_pUI->ActionSetTestInkNote, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSetInkNote));
 }
 
 MainWindow::~MainWindow()
@@ -989,143 +974,6 @@ bool MainWindow::checkNoteSearchQuery(const QString & noteSearchQuery)
 
     m_noteSearchQueryValidated = true;
     return true;
-}
-
-void MainWindow::prepareTestNoteWithResources()
-{
-    QNDEBUG(QStringLiteral("MainWindow::prepareTestNoteWithResources"));
-
-    m_testNote = Note();
-
-    QString noteContent = test::ManualTestingHelper::noteContentWithResources();
-    m_testNote.setContent(noteContent);
-
-    // Read the first result from qrc
-    QFile resourceFile(QStringLiteral(":/test_notes/Architecture_whats_the_architecture.png"));
-    Q_UNUSED(resourceFile.open(QIODevice::ReadOnly))
-    QByteArray resourceData = resourceFile.readAll();
-    resourceFile.close();
-
-    // Assemble the first resource data
-    quentier::Resource resource;
-    resource.setLocalUid(QStringLiteral("{e2f201df-8718-499b-ac92-4c9970170cba}"));
-    resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setDataBody(resourceData);
-    resource.setDataSize(resourceData.size());
-    resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
-    resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setMime(QStringLiteral("image/png"));
-
-    qevercloud::ResourceAttributes resourceAttributes;
-    resourceAttributes.fileName = QStringLiteral("Architecture_whats_the_architecture.png");
-
-    resource.setResourceAttributes(resourceAttributes);
-
-    // Gather the recognition data as well
-    resourceFile.setFileName(QStringLiteral(":/test_notes/Architecture_whats_the_architecture_recognition_data.xml"));
-    resourceFile.open(QIODevice::ReadOnly);
-    QByteArray resourceRecognitionData = resourceFile.readAll();
-    resourceFile.close();
-
-    resource.setRecognitionDataBody(resourceRecognitionData);
-    resource.setRecognitionDataSize(resourceRecognitionData.size());
-    resource.setRecognitionDataHash(QCryptographicHash::hash(resourceRecognitionData, QCryptographicHash::Md5).toHex());
-
-    // Add the first resource to the note
-    m_testNote.addResource(resource);
-
-    // Read the second resource from qrc
-    resourceFile.setFileName(QStringLiteral(":/test_notes/cDock_v8.2.zip"));
-    resourceFile.open(QIODevice::ReadOnly);
-    resourceData = resourceFile.readAll();
-    resourceFile.close();
-
-    // Assemble the second resource data
-    resource = quentier::Resource();
-    resource.setLocalUid(QStringLiteral("{c3acdcba-d6a4-407d-a85f-5fc3c15126df}"));
-    resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setDataBody(resourceData);
-    resource.setDataSize(resourceData.size());
-    resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
-    resource.setMime(QStringLiteral("application/zip"));
-
-    resourceAttributes = qevercloud::ResourceAttributes();
-    resourceAttributes.fileName = QStringLiteral("cDock_v8.2.zip");
-
-    resource.setResourceAttributes(resourceAttributes);
-
-    // Add the second resource to the note
-    m_testNote.addResource(resource);
-
-    // Read the third resource from qrc
-    resourceFile.setFileName(QStringLiteral(":/test_notes/GrowlNotify.pkg"));
-    resourceFile.open(QIODevice::ReadOnly);
-    resourceData = resourceFile.readAll();
-    resourceFile.close();
-
-    // Assemble the third resource data
-    resource = quentier::Resource();
-    resource.setLocalUid(QStringLiteral("{d44d85f4-d4e2-4788-a172-4d477741b233}"));
-    resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setDataBody(resourceData);
-    resource.setDataSize(resourceData.size());
-    resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
-    resource.setMime(QStringLiteral("application/octet-stream"));
-
-    resourceAttributes = qevercloud::ResourceAttributes();
-    resourceAttributes.fileName = QStringLiteral("GrowlNotify.pkg");
-
-    resource.setResourceAttributes(resourceAttributes);
-
-    // Add the third resource to the note
-    m_testNote.addResource(resource);
-}
-
-void MainWindow::prepareTestInkNote()
-{
-    QNDEBUG(QStringLiteral("MainWindow::prepareTestInkNote"));
-
-    m_testNote = Note();
-    m_testNote.setGuid(QStringLiteral("a458d0ac-5c0b-446d-bc39-5b069148f66a"));
-
-    // Read the ink note image data from qrc
-    QFile inkNoteImageQrc(QStringLiteral(":/test_notes/inknoteimage.png"));
-    Q_UNUSED(inkNoteImageQrc.open(QIODevice::ReadOnly))
-    QByteArray inkNoteImageData = inkNoteImageQrc.readAll();
-    inkNoteImageQrc.close();
-
-    quentier::Resource resource;
-    resource.setGuid(QStringLiteral("6bdf808c-7bd9-4a39-bef8-20b84779956e"));
-    resource.setDataBody(QByteArray("aaa"));
-    resource.setDataHash(QByteArray("2e0f79af4ca47b473e5105156a18c7cb"));
-    resource.setMime(QStringLiteral("application/vnd.evernote.ink"));
-    resource.setHeight(308);
-    resource.setWidth(602);
-    resource.setNoteGuid(m_testNote.guid());
-
-    m_testNote.addResource(resource);
-
-    QString inkNoteImageFilePath = quentier::applicationPersistentStoragePath() + QStringLiteral("/NoteEditorPage/inkNoteImages");
-    QDir inkNoteImageFileDir(inkNoteImageFilePath);
-    if (!inkNoteImageFileDir.exists())
-    {
-        if (Q_UNLIKELY(!inkNoteImageFileDir.mkpath(inkNoteImageFilePath))) {
-            onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't create the folder "
-                                              "to hold the ink note resource images"), SEC_TO_MSEC(30));
-            return;
-        }
-    }
-
-    inkNoteImageFilePath += QStringLiteral("/") + resource.guid() + QStringLiteral(".png");
-    QFile inkNoteImageFile(inkNoteImageFilePath);
-    if (Q_UNLIKELY(!inkNoteImageFile.open(QIODevice::WriteOnly))) {
-        onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't open the file "
-                                          "meant to hold the the ink note resource image for writing"), SEC_TO_MSEC(30));
-        return;
-    }
-
-    inkNoteImageFile.write(inkNoteImageData);
-    inkNoteImageFile.close();
 }
 
 void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
@@ -2832,51 +2680,6 @@ void MainWindow::onSystemTrayIconManagerError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSystemTrayIconManagerError: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
-}
-
-void MainWindow::onSetTestNoteWithEncryptedData()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithEncryptedData"));
-
-    m_testNote = Note();
-    m_testNote.setLocalUid(QStringLiteral("{7ae26137-9b62-4c30-85a9-261b435f6db3}"));
-
-    QString noteContent = test::ManualTestingHelper::noteContentWithEncryption();
-    m_testNote.setContent(noteContent);
-
-    // TODO: set this note to editor, in new tab or replace existing tab (if any)
-}
-
-void MainWindow::onSetTestNoteWithResources()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithResources"));
-
-    prepareTestNoteWithResources();
-
-    m_testNote.setLocalUid(QStringLiteral("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe6}"));
-    m_testNotebook.setCanUpdateNotes(true);
-
-    // TODO: set this note to editor, in new tab or replace existing tab (if any)
-}
-
-void MainWindow::onSetTestReadOnlyNote()
-{
-    prepareTestNoteWithResources();
-
-    m_testNote.setLocalUid(QStringLiteral("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe5}"));
-    m_testNotebook.setCanUpdateNotes(false);
-
-    // TODO: set this note to editor, in new tab or replace existing tab (if any)
-}
-
-void MainWindow::onSetInkNote()
-{
-    prepareTestInkNote();
-
-    m_testNote.setLocalUid(QStringLiteral("{96c747e2-7bdc-4805-a704-105cbfcc7fbe}"));
-    m_testNotebook.setCanUpdateNotes(true);
-
-    // TODO: set this note to editor, in new tab or replace existing tab (if any)
 }
 
 void MainWindow::onViewLogsActionTriggered()
