@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>506</width>
-    <height>325</height>
+    <height>353</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -258,32 +258,181 @@
       <attribute name="title">
        <string>Synchronization</string>
       </attribute>
-      <widget class="QCheckBox" name="downloadNoteThumbnailsCheckBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>491</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Download note thumbnails</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="downloadInkNoteImagesCheckBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>40</y>
-         <width>491</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Download ink note images</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <layout class="QVBoxLayout" name="syncTabVerticalLayout">
+         <item>
+          <widget class="QLabel" name="networkProxyLabel">
+           <property name="text">
+            <string>Network proxy settings:</string>
+           </property>
+           <property name="buddy">
+            <cstring>preferencesTabWidget</cstring>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="networkProxyFrame">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QGridLayout" name="gridLayout">
+            <property name="horizontalSpacing">
+             <number>12</number>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="networkProxyTypeLabel">
+              <property name="text">
+               <string>&amp;Type:</string>
+              </property>
+              <property name="buddy">
+               <cstring>networkProxyTypeComboBox</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="networkProxyUserLabel">
+              <property name="text">
+               <string>&amp;User:</string>
+              </property>
+              <property name="buddy">
+               <cstring>networkProxyUserLineEdit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QComboBox" name="networkProxyTypeComboBox"/>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="networkProxyUserLineEdit"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="networkProxyHostLabel">
+              <property name="text">
+               <string>&amp;Host:</string>
+              </property>
+              <property name="buddy">
+               <cstring>networkProxyHostLineEdit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="networkProxyPasswordLabel">
+              <property name="text">
+               <string>&amp;Password:</string>
+              </property>
+              <property name="buddy">
+               <cstring>networkProxyPasswordLineEdit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLineEdit" name="networkProxyHostLineEdit"/>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="networkProxyPasswordLineEdit">
+              <property name="echoMode">
+               <enum>QLineEdit::Password</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="networkProxyPortLabel">
+              <property name="text">
+               <string>&amp;Port:</string>
+              </property>
+              <property name="buddy">
+               <cstring>networkProxyPortSpinBox</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1" rowspan="2">
+             <layout class="QVBoxLayout" name="networkProxyPasswordShowVerticalLayout">
+              <item>
+               <layout class="QHBoxLayout" name="networkProxyPasswordShowHorizontalLayout">
+                <item>
+                 <spacer name="networkProxyPasswordShowHorizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>148</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="networkProxyPasswordShowCheckBox">
+                  <property name="text">
+                   <string>Show</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <spacer name="networkProxyPasswordVerticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>218</width>
+                  <height>17</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item row="5" column="0">
+             <widget class="QSpinBox" name="networkProxyPortSpinBox"/>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="downloadOptionsHorizontalLayout">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <widget class="QCheckBox" name="downloadInkNoteImagesCheckBox">
+             <property name="text">
+              <string>Download ink note images</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="downloadNoteThumbnailsCheckBox">
+             <property name="text">
+              <string>Download note thumbnails</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="downloadOptionsHorizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="shortcutsTab">
       <attribute name="title">
