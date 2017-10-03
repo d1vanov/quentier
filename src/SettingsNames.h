@@ -73,6 +73,7 @@
 #define SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS QStringLiteral("DownloadNoteThumbnails")
 #define SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES QStringLiteral("DownloadInkNoteImages")
 
+#define SYNCHRONIZATION_NETWORK_PROXY_SETTINGS QStringLiteral("SynchronizationNetworkProxySettings")
 #define SYNCHRONIZATION_NETWORK_PROXY_TYPE QStringLiteral("SynchronizationNetworkProxyType")
 #define SYNCHRONIZATION_NETWORK_PROXY_HOST QStringLiteral("SynchronizationNetworkProxyHost")
 #define SYNCHRONIZATION_NETWORK_PROXY_PORT QStringLiteral("SynchronizationNetworkProxyPort")

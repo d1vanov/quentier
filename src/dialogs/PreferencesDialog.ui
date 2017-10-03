@@ -432,6 +432,9 @@
          </item>
         </layout>
        </item>
+       <item>
+        <widget class="QLabel" name="synchronizationTabStatusLabel"/>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="shortcutsTab">

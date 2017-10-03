@@ -27,12 +27,16 @@ using quentier::ShortcutSettingsWidget;
 #include "../ActionsInfo.h"
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
+#include "../ParseNetworkProxySettings.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
 #include <QStringListModel>
 #include <QFileInfo>
 #include <QDir>
+#include <QNetworkProxy>
+#include <algorithm>
+#include <limits>
 
 namespace quentier {
 
@@ -47,7 +51,8 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_pUi(new Ui::PreferencesDialog),
     m_accountManager(accountManager),
     m_systemTrayIconManager(systemTrayIconManager),
-    m_pTrayActionsModel(new QStringListModel(this))
+    m_pTrayActionsModel(new QStringListModel(this)),
+    m_pNetworkProxyTypesModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
     m_pUi->statusTextLabel->setHidden(true);
@@ -248,7 +253,7 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
             << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
 
     Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
     appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS, checked);
     appSettings.endGroup();
@@ -262,12 +267,52 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
             << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
 
     Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
     appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES, checked);
     appSettings.endGroup();
 
     emit synchronizationDownloadInkNoteImagesOptionChanged(checked);
+}
+
+void PreferencesDialog::onNetworkProxyTypeChanged(int type)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyTypeChanged: type = ") << type);
+    checkAndSetNetworkProxy();
+}
+
+void PreferencesDialog::onNetworkProxyHostChanged()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyHostChanged: ")
+            << m_pUi->networkProxyHostLineEdit->text());
+    checkAndSetNetworkProxy();
+}
+
+void PreferencesDialog::onNetworkProxyPortChanged(int port)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyPortChanged: ") << port);
+    checkAndSetNetworkProxy();
+}
+
+void PreferencesDialog::onNetworkProxyUsernameChanged()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyUsernameChanged: ")
+            << m_pUi->networkProxyUserLineEdit->text());
+    checkAndSetNetworkProxy();
+}
+
+void PreferencesDialog::onNetworkProxyPasswordChanged()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyPasswordChanged: ")
+            << m_pUi->networkProxyPasswordLineEdit->text());
+    checkAndSetNetworkProxy();
+}
+
+void PreferencesDialog::onNetworkProxyPasswordVisibilityToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyPasswordVisibilityToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    m_pUi->networkProxyPasswordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
 }
 
 void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, ShortcutManager & shortcutManager)
@@ -393,24 +438,88 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
 
     // 4) Synchronization tab
 
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    ApplicationSettings syncSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
+
+    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
 
     bool downloadNoteThumbnails = DEFAULT_DOWNLOAD_NOTE_THUMBNAILS;
-    if (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)) {
-        downloadNoteThumbnails = appSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS).toBool();
+    if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)) {
+        downloadNoteThumbnails = syncSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS).toBool();
     }
 
     bool downloadInkNoteImages = DEFAULT_DOWNLOAD_INK_NOTE_IMAGES;
-    if (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)) {
-        downloadInkNoteImages = appSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES).toBool();
+    if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)) {
+        downloadInkNoteImages = syncSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES).toBool();
     }
 
-    appSettings.endGroup();
+    syncSettings.endGroup();
     m_pUi->downloadNoteThumbnailsCheckBox->setChecked(downloadNoteThumbnails);
     m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
 
+    setupNetworkProxySettingsState();
+
+    m_pUi->synchronizationTabStatusLabel->hide();
+
     // 5) Shortcuts tab
     m_pUi->shortcutSettingsWidget->initialize(currentAccount, actionsInfo, &shortcutManager);
+}
+
+void PreferencesDialog::setupNetworkProxySettingsState()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::setupNetworkProxySettingsState"));
+
+    QNetworkProxy::ProxyType proxyType = QNetworkProxy::DefaultProxy;
+    QString proxyHost;
+    int proxyPort = 0;
+    QString proxyUsername;
+    QString proxyPassword;
+
+    parseNetworkProxySettings(m_accountManager.currentAccount(),
+                              proxyType, proxyHost, proxyPort,
+                              proxyUsername, proxyPassword);
+
+    QStringList networkProxyTypes;
+    networkProxyTypes.reserve(3);
+
+    // Allow only "No proxy", "Http proxy" and "Socks5 proxy"
+    // If proxy type parsed from the settings is different, fall back to "No proxy"
+    // Also treat QNetworkProxy::DefaultProxy as "No proxy" because the default proxy type
+    // of QNetworkProxy is QNetworkProxy::NoProxy
+
+    QString noProxyItem = tr("No proxy");
+    QString httpProxyItem = tr("Http proxy");
+    QString socks5ProxyItem = tr("Socks5 proxy");
+
+    networkProxyTypes << noProxyItem;
+    networkProxyTypes << httpProxyItem;
+    networkProxyTypes << socks5ProxyItem;
+
+    if ( (proxyType == QNetworkProxy::NoProxy) ||
+         (proxyType == QNetworkProxy::DefaultProxy) )
+    {
+        m_pUi->networkProxyTypeComboBox->setCurrentIndex(0);
+    }
+    else if (proxyType == QNetworkProxy::HttpProxy)
+    {
+        m_pUi->networkProxyTypeComboBox->setCurrentIndex(1);
+    }
+    else if (proxyType == QNetworkProxy::Socks5Proxy)
+    {
+        m_pUi->networkProxyTypeComboBox->setCurrentIndex(2);
+    }
+    else
+    {
+        QNINFO(QStringLiteral("Detected unsupported proxy type: ") << proxyType
+               << QStringLiteral(", falling back to no proxy"));
+        proxyType = QNetworkProxy::DefaultProxy;
+        m_pUi->networkProxyTypeComboBox->setCurrentIndex(0);
+    }
+
+    m_pUi->networkProxyHostLineEdit->setText(proxyHost);
+    m_pUi->networkProxyPortSpinBox->setValue(std::max(0, proxyPort));
+    m_pUi->networkProxyPortSpinBox->setMinimum(0);
+    m_pUi->networkProxyUserLineEdit->setText(proxyUsername);
+    m_pUi->networkProxyPasswordLineEdit->setText(proxyPassword);
 }
 
 void PreferencesDialog::createConnections()
@@ -447,7 +556,76 @@ void PreferencesDialog::createConnections()
     QObject::connect(m_pUi->downloadInkNoteImagesCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onDownloadInkNoteImagesCheckboxToggled,bool));
 
+    QObject::connect(m_pUi->networkProxyTypeComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onNetworkProxyTypeChanged(int)));
+    QObject::connect(m_pUi->networkProxyHostLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNetworkProxyHostChanged));
+    QObject::connect(m_pUi->networkProxyPortSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(onNetworkProxyPortChanged(int)));
+    QObject::connect(m_pUi->networkProxyUserLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNetworkProxyUsernameChanged));
+    QObject::connect(m_pUi->networkProxyPasswordLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNetworkProxyPasswordChanged));
+    QObject::connect(m_pUi->networkProxyPasswordShowCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onNetworkProxyPasswordVisibilityToggled,bool));
+
     // TODO: continue
+}
+
+void PreferencesDialog::checkAndSetNetworkProxy()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::checkAndSetNetworkProxy"));
+
+    QNetworkProxy proxy;
+
+    int proxyTypeIndex = m_pUi->networkProxyTypeComboBox->currentIndex();
+    switch(proxyTypeIndex)
+    {
+    case 0:
+        proxy.setType(QNetworkProxy::DefaultProxy);
+        break;
+    case 1:
+        proxy.setType(QNetworkProxy::HttpProxy);
+        break;
+    case 2:
+        proxy.setType(QNetworkProxy::Socks5Proxy);
+        break;
+    default:
+        proxy.setType(QNetworkProxy::DefaultProxy);
+        break;
+    }
+
+    QUrl proxyUrl = m_pUi->networkProxyHostLineEdit->text();
+    if (!proxyUrl.isValid()) {
+        m_pUi->synchronizationTabStatusLabel->setText(tr("Network proxy host is not a valid URL"));
+        m_pUi->synchronizationTabStatusLabel->show();
+        QNDEBUG(QStringLiteral("Invalid network proxy host: ") << m_pUi->networkProxyHostLineEdit->text()
+                << QStringLiteral(", resetting the application proxy to no proxy"));
+        QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
+        return;
+    }
+
+    proxy.setHostName(m_pUi->networkProxyHostLineEdit->text());
+
+    int proxyPort = m_pUi->networkProxyPortSpinBox->value();
+    if (Q_UNLIKELY((proxyPort < 0) || (proxyPort >= std::numeric_limits<quint16>::max()))) {
+        m_pUi->synchronizationTabStatusLabel->setText(tr("Network proxy port is outside the allowed range"));
+        m_pUi->synchronizationTabStatusLabel->show();
+        QNDEBUG(QStringLiteral("Invalid network proxy port: ") << proxyPort
+                << QStringLiteral(", resetting the application proxy to no proxy"));
+        QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
+        return;
+    }
+
+    proxy.setPort(static_cast<quint16>(proxyPort));
+    proxy.setUser(m_pUi->networkProxyUserLineEdit->text());
+    proxy.setPassword(m_pUi->networkProxyPasswordLineEdit->text());
+
+    QNDEBUG(QStringLiteral("Setting the application proxy: host = ")
+            << proxy.hostName() << QStringLiteral(", port = ")
+            << proxy.port() << QStringLiteral(", username = ")
+            << proxy.user());
+    QNetworkProxy::setApplicationProxy(proxy);
 }
 
 QString trayActionToString(SystemTrayIconManager::TrayAction action)

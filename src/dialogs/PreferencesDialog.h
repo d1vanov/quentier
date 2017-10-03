@@ -73,16 +73,27 @@ private Q_SLOTS:
     void onDownloadNoteThumbnailsCheckboxToggled(bool checked);
     void onDownloadInkNoteImagesCheckboxToggled(bool checked);
 
+    void onNetworkProxyTypeChanged(int type);
+    void onNetworkProxyHostChanged();
+    void onNetworkProxyPortChanged(int port);
+    void onNetworkProxyUsernameChanged();
+    void onNetworkProxyPasswordChanged();
+    void onNetworkProxyPasswordVisibilityToggled(bool checked);
+
 private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);
+    void setupNetworkProxySettingsState();
     void createConnections();
+
+    void checkAndSetNetworkProxy();
 
 private:
     Ui::PreferencesDialog *         m_pUi;
     AccountManager &                m_accountManager;
     SystemTrayIconManager &         m_systemTrayIconManager;
     QStringListModel *              m_pTrayActionsModel;
+    QStringListModel *              m_pNetworkProxyTypesModel;
 };
 
 } // namespace quentier
