@@ -24,8 +24,9 @@
 #include <quentier/types/ErrorString.h>
 #include <QStringListModel>
 #include <QPushButton>
+#include <limits>
 
-using namespace quentier;
+namespace quentier {
 
 AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
                                    QWidget * parent) :
@@ -259,6 +260,8 @@ void AddAccountDialog::accept()
         emit localAccountAdditionRequested(name, fullName);
     }
     else {
+        // TODO: should retrieve the network proxy settings (if any) and emit
+        // them along with the requested Evernote server URL
         QString server = evernoteServerUrl();
         emit evernoteAccountAdditionRequested(server);
     }
@@ -322,23 +325,83 @@ void AddAccountDialog::showLocalAccountAlreadyExistsMessage()
 void AddAccountDialog::evaluateNetworkProxySettingsValidity()
 {
     QNDEBUG(QStringLiteral("AddAccountDialog::evaluateNetworkProxySettingsValidity"));
-    // TODO: evaluate validity of network proxy and change the state of buttons accordingly (if necessary)
+
+    QPushButton * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+
+    ErrorString errorDescription;
+    if (m_pUi->accountTypeComboBox->currentIndex() == 0) {
+        QNetworkProxy currentProxy = networkProxy(errorDescription);
+    }
+
+    if (!errorDescription.isEmpty())
+    {
+        m_pUi->statusText->setText(errorDescription.localizedString());
+        m_pUi->statusText->show();
+
+        if (pOkButton) {
+            pOkButton->setEnabled(false);
+        }
+    }
+    else
+    {
+        m_pUi->statusText->clear();
+        m_pUi->statusText->hide();
+
+        if (pOkButton) {
+            pOkButton->setEnabled(true);
+        }
+    }
 }
 
-QNetworkProxy AddAccountDialog::networkProxy() const
+QNetworkProxy AddAccountDialog::networkProxy(ErrorString & errorDescription) const
 {
+    errorDescription.clear();
+
     QNetworkProxy proxy;
 
-    // TODO: set type
+    int proxyTypeInt = m_pUi->networkProxyTypeComboBox->currentIndex();
+    switch(proxyTypeInt)
+    {
+    case 1:
+        proxy.setType(QNetworkProxy::HttpProxy);
+        break;
+    case 2:
+        proxy.setType(QNetworkProxy::Socks5Proxy);
+        break;
+    default:
+        proxy.setType(QNetworkProxy::NoProxy);
+        break;
+    }
 
-    QUrl proxyHostUrl = m_pUi->networkProxyHostLineEdit->text();
+    QString host = m_pUi->networkProxyHostLineEdit->text();
+    QUrl proxyHostUrl = host;
     if (!proxyHostUrl.isValid()) {
-        QNDEBUG(QStringLiteral("Network proxy host url is not valid: ") << m_pUi->networkProxyHostLineEdit->text());
+        errorDescription.setBase(QT_TR_NOOP("Network proxy host url is not valid"));
+        errorDescription.setDetails(host);
+        QNDEBUG(errorDescription);
         return QNetworkProxy(QNetworkProxy::NoProxy);
     }
 
-    int proxyPort = m_pUi->networkProxyPortSpinBox->value();
+    proxy.setHostName(host);
 
-    // TODO: implement
-    return QNetworkProxy();
+    int proxyPort = m_pUi->networkProxyPortSpinBox->value();
+    if (Q_UNLIKELY((proxyPort < 0) || (proxyPort >= std::numeric_limits<quint16>::max()))) {
+        errorDescription.setBase(QT_TR_NOOP("Network proxy port is not valid"));
+        errorDescription.setDetails(QString::number(proxyPort));
+        QNDEBUG(errorDescription);
+        return QNetworkProxy(QNetworkProxy::NoProxy);
+    }
+
+    proxy.setPort(static_cast<quint16>(proxyPort));
+
+    proxy.setUser(m_pUi->networkProxyUserLineEdit->text());
+    proxy.setPassword(m_pUi->networkProxyPasswordLineEdit->text());
+
+    QNTRACE(QStringLiteral("Network proxy: type = ") << proxy.type()
+            << QStringLiteral(", host = ") << proxy.hostName()
+            << QStringLiteral(", port = ") << proxy.port()
+            << QStringLiteral(", user = ") << proxy.user());
+    return proxy;
 }
+
+} // namespace quentier

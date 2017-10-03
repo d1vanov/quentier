@@ -20,12 +20,15 @@
 #define QUENTIER_DIALOGS_ADD_ACCOUNT_DIALOG_H
 
 #include <quentier/types/Account.h>
+#include <quentier/types/ErrorString.h>
 #include <QDialog>
 #include <QNetworkProxy>
 
 namespace Ui {
 class AddAccountDialog;
 }
+
+namespace quentier {
 
 class AddAccountDialog : public QDialog
 {
@@ -65,12 +68,14 @@ private:
     void showLocalAccountAlreadyExistsMessage();
 
     void evaluateNetworkProxySettingsValidity();
-    QNetworkProxy networkProxy() const;
+    QNetworkProxy networkProxy(ErrorString & errorDescription) const;
 
 private:
     Ui::AddAccountDialog *      m_pUi;
     QVector<quentier::Account>  m_availableAccounts;
     bool                        m_onceSuggestedFullName;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_DIALOGS_ADD_ACCOUNT_DIALOG_H
