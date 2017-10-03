@@ -52,12 +52,19 @@ private Q_SLOTS:
 
     void onUseNetworkProxyToggled(bool checked);
 
+    void onNetworkProxyTypeChanged(int index);
+    void onNetworkProxyHostChanged();
+    void onNetworkProxyPortChanged(int port);
+
+    void onNetworkProxyShowPasswordToggled(bool checked);
+
     virtual void accept() Q_DECL_OVERRIDE;
 
 private:
     void setupNetworkProxySettingsFrame();
     void showLocalAccountAlreadyExistsMessage();
 
+    void evaluateNetworkProxySettingsValidity();
     QNetworkProxy networkProxy() const;
 
 private:
