@@ -7,23 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>282</width>
-    <height>178</height>
+    <height>518</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="accountTypeLabel">
+   <item row="6" column="0" colspan="2">
+    <widget class="QCheckBox" name="useNetworkProxyCheckBox">
      <property name="text">
-      <string>&amp;Account type:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-     <property name="buddy">
-      <cstring>accountTypeComboBox</cstring>
+      <string>Use network proxy</string>
      </property>
     </widget>
    </item>
@@ -43,6 +37,9 @@
    <item row="2" column="1">
     <widget class="QLineEdit" name="accountUsernameLineEdit"/>
    </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="evernoteServerComboBox"/>
+   </item>
    <item row="5" column="0">
     <spacer name="horizontalSpacer">
      <property name="orientation">
@@ -58,9 +55,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="0" column="1">
-    <widget class="QComboBox" name="accountTypeComboBox"/>
    </item>
    <item row="5" column="1">
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -85,11 +79,39 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QComboBox" name="evernoteServerComboBox"/>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="accountTypeComboBox"/>
    </item>
-   <item row="6" column="0" colspan="2">
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="accountFullNameLineEdit"/>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="accountTypeLabel">
+     <property name="text">
+      <string>&amp;Account type:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <property name="buddy">
+      <cstring>accountTypeComboBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2">
     <widget class="QLabel" name="statusText">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>70</height>
+      </size>
+     </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
@@ -111,8 +133,135 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="accountFullNameLineEdit"/>
+   <item row="7" column="0" colspan="2">
+    <widget class="QFrame" name="networkProxyFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QLabel" name="networkProxyHostLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>241</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&amp;Host:</string>
+      </property>
+      <property name="buddy">
+       <cstring>networkProxyHostLineEdit</cstring>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="networkProxyHostLineEdit">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>241</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="networkProxyPortLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>241</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&amp;Port:</string>
+      </property>
+      <property name="buddy">
+       <cstring>spinBox</cstring>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>90</y>
+        <width>241</width>
+        <height>24</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="networkProxyUserLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>130</y>
+        <width>241</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&amp;User:</string>
+      </property>
+      <property name="buddy">
+       <cstring>networkProxyUserLineEdit</cstring>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="networkProxyUserLineEdit">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>150</y>
+        <width>241</width>
+        <height>23</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="networkProxyPasswordLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>190</y>
+        <width>241</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>P&amp;assword:</string>
+      </property>
+      <property name="buddy">
+       <cstring>networkProxyPasswordLineEdit</cstring>
+      </property>
+     </widget>
+     <widget class="QWidget" name="">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>220</y>
+        <width>241</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="networkProxyPasswordHorizontalLayout">
+       <item>
+        <widget class="QLineEdit" name="networkProxyPasswordLineEdit">
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="networkProxyPasswordShowCheckBox">
+         <property name="text">
+          <string>Show</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </item>
   </layout>
  </widget>

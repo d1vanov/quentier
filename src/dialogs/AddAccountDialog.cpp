@@ -37,6 +37,8 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
     m_pUi->setupUi(this);
     setWindowTitle(tr("Add account"));
 
+    setupNetworkProxySettingsFrame();
+
     m_pUi->statusText->setHidden(true);
 
     QStringList accountTypes;
@@ -198,6 +200,13 @@ void AddAccountDialog::onLocalAccountUsernameEdited(const QString & username)
     }
 }
 
+void AddAccountDialog::onUseNetworkProxyToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("AddAccountDialog::onUseNetworkProxyToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    m_pUi->networkProxyFrame->setVisible(checked);
+}
+
 void AddAccountDialog::accept()
 {
     bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
@@ -229,10 +238,24 @@ void AddAccountDialog::accept()
     QDialog::accept();
 }
 
+void AddAccountDialog::setupNetworkProxySettingsFrame()
+{
+    m_pUi->networkProxyFrame->hide();
+
+    QObject::connect(m_pUi->useNetworkProxyCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(AddAccountDialog,onUseNetworkProxyToggled,bool));
+}
+
 void AddAccountDialog::showLocalAccountAlreadyExistsMessage()
 {
     ErrorString message(QT_TR_NOOP("Account with such username already exists"));
     QNDEBUG(message);
     m_pUi->statusText->setText(message.localizedString());
     m_pUi->statusText->setHidden(false);
+}
+
+QNetworkProxy AddAccountDialog::networkProxy() const
+{
+    // TODO: implement
+    return QNetworkProxy();
 }

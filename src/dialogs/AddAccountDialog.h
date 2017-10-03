@@ -21,6 +21,7 @@
 
 #include <quentier/types/Account.h>
 #include <QDialog>
+#include <QNetworkProxy>
 
 namespace Ui {
 class AddAccountDialog;
@@ -49,10 +50,15 @@ private Q_SLOTS:
     bool localAccountAlreadyExists(const QString & name) const;
     void onLocalAccountUsernameEdited(const QString & username);
 
+    void onUseNetworkProxyToggled(bool checked);
+
     virtual void accept() Q_DECL_OVERRIDE;
 
 private:
+    void setupNetworkProxySettingsFrame();
     void showLocalAccountAlreadyExistsMessage();
+
+    QNetworkProxy networkProxy() const;
 
 private:
     Ui::AddAccountDialog *      m_pUi;
