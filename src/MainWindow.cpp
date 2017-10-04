@@ -209,6 +209,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
+    restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     m_pSystemTrayIconManager = new SystemTrayIconManager(*m_pAccountManager, this);
 
