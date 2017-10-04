@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>506</width>
-    <height>356</height>
+    <height>362</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -469,7 +469,11 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="synchronizationTabStatusLabel"/>
+        <widget class="QLabel" name="synchronizationTabStatusLabel">
+         <property name="textFormat">
+          <enum>Qt::RichText</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -479,7 +483,14 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="ShortcutSettingsWidget" name="shortcutSettingsWidget" native="true"/>
+        <widget class="ShortcutSettingsWidget" name="shortcutSettingsWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
