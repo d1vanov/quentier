@@ -24,6 +24,7 @@
 #include <quentier/types/ErrorString.h>
 #include <QStringListModel>
 #include <QPushButton>
+#include <algorithm>
 #include <limits>
 
 namespace quentier {
@@ -39,6 +40,7 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
     setWindowTitle(tr("Add account"));
 
     setupNetworkProxySettingsFrame();
+    adjustSize();
 
     m_pUi->statusText->setHidden(true);
 
@@ -209,6 +211,13 @@ void AddAccountDialog::onUseNetworkProxyToggled(bool checked)
     QNDEBUG(QStringLiteral("AddAccountDialog::onUseNetworkProxyToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUi->networkProxyFrame->setVisible(checked);
+
+    if (!checked) {
+        m_pUi->statusText->clear();
+        m_pUi->statusText->setHidden(true);
+    }
+
+    adjustSize();
 }
 
 void AddAccountDialog::onNetworkProxyTypeChanged(int index)
@@ -255,15 +264,28 @@ void AddAccountDialog::accept()
         return;
     }
 
-    if (isLocal) {
+    if (isLocal)
+    {
         QString fullName = userFullName();
         emit localAccountAdditionRequested(name, fullName);
     }
-    else {
-        // TODO: should retrieve the network proxy settings (if any) and emit
-        // them along with the requested Evernote server URL
+    else
+    {
+        QNetworkProxy proxy = QNetworkProxy(QNetworkProxy::NoProxy);
+
+        if ((m_pUi->accountTypeComboBox->currentIndex() == 0) &&
+            m_pUi->useNetworkProxyCheckBox->isChecked())
+        {
+            ErrorString errorDescription;
+
+            QNetworkProxy proxy = networkProxy(errorDescription);
+            if (!errorDescription.isEmpty()) {
+                proxy = QNetworkProxy(QNetworkProxy::NoProxy);
+            }
+        }
+
         QString server = evernoteServerUrl();
-        emit evernoteAccountAdditionRequested(server);
+        emit evernoteAccountAdditionRequested(server, proxy);
     }
 
     QDialog::accept();
@@ -300,7 +322,11 @@ void AddAccountDialog::setupNetworkProxySettingsFrame()
     QObject::connect(m_pUi->networkProxyTypeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onNetworkProxyTypeChanged(int)));
 
-    // 4) Connect to other editors of network proxy pieces
+    // 4) Setup the valid range for port spin box
+    m_pUi->networkProxyPortSpinBox->setMinimum(0);
+    m_pUi->networkProxyPortSpinBox->setMaximum(std::max(std::numeric_limits<quint16>::max()-1, 0));
+
+    // 5) Connect to other editors of network proxy pieces
 
     QObject::connect(m_pUi->networkProxyHostLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(AddAccountDialog,onNetworkProxyHostChanged));
@@ -329,7 +355,9 @@ void AddAccountDialog::evaluateNetworkProxySettingsValidity()
     QPushButton * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
 
     ErrorString errorDescription;
-    if (m_pUi->accountTypeComboBox->currentIndex() == 0) {
+    if ((m_pUi->accountTypeComboBox->currentIndex() == 0) &&
+        m_pUi->useNetworkProxyCheckBox->isChecked())
+    {
         QNetworkProxy currentProxy = networkProxy(errorDescription);
     }
 
@@ -355,6 +383,8 @@ void AddAccountDialog::evaluateNetworkProxySettingsValidity()
 
 QNetworkProxy AddAccountDialog::networkProxy(ErrorString & errorDescription) const
 {
+    QNDEBUG(QStringLiteral("AddAccountDialog::networkProxy"));
+
     errorDescription.clear();
 
     QNetworkProxy proxy;
@@ -369,8 +399,11 @@ QNetworkProxy AddAccountDialog::networkProxy(ErrorString & errorDescription) con
         proxy.setType(QNetworkProxy::Socks5Proxy);
         break;
     default:
-        proxy.setType(QNetworkProxy::NoProxy);
-        break;
+        {
+            proxy.setType(QNetworkProxy::NoProxy);
+            QNTRACE(QStringLiteral("No proxy"));
+            return proxy;
+        }
     }
 
     QString host = m_pUi->networkProxyHostLineEdit->text();

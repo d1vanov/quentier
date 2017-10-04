@@ -44,7 +44,7 @@ public:
     QString userFullName() const;
 
 Q_SIGNALS:
-    void evernoteAccountAdditionRequested(QString evernoteServer);
+    void evernoteAccountAdditionRequested(QString evernoteServer, QNetworkProxy proxy);
     void localAccountAdditionRequested(QString name, QString fullName);
 
 private Q_SLOTS:

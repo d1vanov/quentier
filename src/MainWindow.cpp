@@ -26,6 +26,7 @@
 #include "NoteFiltersManager.h"
 #include "EnexExporter.h"
 #include "EnexImporter.h"
+#include "NetworkProxySettingsHelpers.h"
 #include "models/NoteFilterModel.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
@@ -159,6 +160,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pAuthenticationManager(Q_NULLPTR),
     m_pSynchronizationManager(Q_NULLPTR),
     m_synchronizationManagerHost(),
+    m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest(),
     m_pendingNewEvernoteAccountAuthentication(false),
     m_pendingSwitchToNewEvernoteAccount(false),
     m_syncInProgress(false),
@@ -1748,11 +1750,21 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
     bool wasPendingNewEvernoteAccountAuthentication = m_pendingNewEvernoteAccountAuthentication;
     m_pendingNewEvernoteAccountAuthentication = false;
 
-    if (!success) {
+    if (!success)
+    {
+        // Restore the network proxy which was active before the authentication
+        QNetworkProxy::setApplicationProxy(m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest);
+        m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest = QNetworkProxy(QNetworkProxy::NoProxy);
+
         onSetStatusBarText(tr("Couldn't authenticate the Evernote user") + QStringLiteral(": ") +
                            errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
+
+    QNetworkProxy currentProxy = QNetworkProxy::applicationProxy();
+    persistNetworkProxySettingsForAccount(account, currentProxy);
+
+    m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest = QNetworkProxy(QNetworkProxy::NoProxy);
 
     if (wasPendingNewEvernoteAccountAuthentication) {
         m_pendingSwitchToNewEvernoteAccount = true;
@@ -1858,14 +1870,22 @@ void MainWindow::onSendLocalChangesStopped()
     onSynchronizationStopped();
 }
 
-void MainWindow::onEvernoteAccountAuthenticationRequested(QString host)
+void MainWindow::onEvernoteAccountAuthenticationRequested(QString host, QNetworkProxy proxy)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onEvernoteAccountAuthenticationRequested: host = ") << host);
+    QNDEBUG(QStringLiteral("MainWindow::onEvernoteAccountAuthenticationRequested: host = ")
+            << host << QStringLiteral(", proxy type = ") << proxy.type() << QStringLiteral(", proxy host = ")
+            << proxy.hostName() << QStringLiteral(", proxy port = ") << proxy.port()
+            << QStringLiteral(", proxy user = ") << proxy.user());
 
     if ((host != m_synchronizationManagerHost) || !m_pSynchronizationManager) {
         m_synchronizationManagerHost = host;
         setupSynchronizationManager();
     }
+
+    // Set the proxy specified within the slot argument but remember the previous application proxy
+    // so that it can be restored in case of authentication failure
+    m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest = QNetworkProxy::applicationProxy();
+    QNetworkProxy::setApplicationProxy(proxy);
 
     m_pendingNewEvernoteAccountAuthentication = true;
     emit authenticate();
@@ -3181,6 +3201,8 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     setupUserShortcuts();
     startListeningForShortcutChanges();
 
+    restoreNetworkProxySettingsForAccount(*m_pAccount);
+
     if (m_pAccount->type() == Account::Type::Local)
     {
         clearSynchronizationManager();
@@ -3255,6 +3277,8 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
         // If there was no any account set previously, nothing to do
         return;
     }
+
+    restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
     const int numAvailableAccounts = availableAccounts.size();
@@ -3628,8 +3652,8 @@ void MainWindow::setupAccountManager()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupAccountManager"));
 
-    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString),
-                     this, QNSLOT(MainWindow,onEvernoteAccountAuthenticationRequested,QString));
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy),
+                     this, QNSLOT(MainWindow,onEvernoteAccountAuthenticationRequested,QString,QNetworkProxy));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,switchedAccount,Account),
                      this, QNSLOT(MainWindow,onAccountSwitched,Account));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,accountUpdated,Account),

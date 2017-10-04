@@ -76,8 +76,8 @@ void AccountManager::raiseAddAccountDialog()
 
     QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_availableAccounts, parentWidget));
     addAccountDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString),
-                     this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
+                     this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
     Q_UNUSED(addAccountDialog->exec())
@@ -94,8 +94,8 @@ void AccountManager::raiseManageAccountsDialog()
 
     QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(m_availableAccounts, currentAccountRow, parentWidget));
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString),
-                     this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
+    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
+                     this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,accountDisplayNameChanged,QString),

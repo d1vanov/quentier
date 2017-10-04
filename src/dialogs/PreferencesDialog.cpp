@@ -27,7 +27,7 @@ using quentier::ShortcutSettingsWidget;
 #include "../ActionsInfo.h"
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
-#include "../ParseNetworkProxySettings.h"
+#include "../NetworkProxySettingsHelpers.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
@@ -71,6 +71,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
 
     setupCurrentSettingsState(actionsInfo, shortcutManager);
     createConnections();
+    adjustSize();
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -518,6 +519,7 @@ void PreferencesDialog::setupNetworkProxySettingsState()
     m_pUi->networkProxyHostLineEdit->setText(proxyHost);
     m_pUi->networkProxyPortSpinBox->setValue(std::max(0, proxyPort));
     m_pUi->networkProxyPortSpinBox->setMinimum(0);
+    m_pUi->networkProxyPortSpinBox->setMaximum(std::max(std::numeric_limits<quint16>::max()-1, 0));
     m_pUi->networkProxyUserLineEdit->setText(proxyUsername);
     m_pUi->networkProxyPasswordLineEdit->setText(proxyPassword);
 }
@@ -581,9 +583,6 @@ void PreferencesDialog::checkAndSetNetworkProxy()
     int proxyTypeIndex = m_pUi->networkProxyTypeComboBox->currentIndex();
     switch(proxyTypeIndex)
     {
-    case 0:
-        proxy.setType(QNetworkProxy::DefaultProxy);
-        break;
     case 1:
         proxy.setType(QNetworkProxy::HttpProxy);
         break;
@@ -591,8 +590,11 @@ void PreferencesDialog::checkAndSetNetworkProxy()
         proxy.setType(QNetworkProxy::Socks5Proxy);
         break;
     default:
-        proxy.setType(QNetworkProxy::DefaultProxy);
-        break;
+        {
+            proxy.setType(QNetworkProxy::NoProxy);
+            persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(), proxy);
+            break;
+        }
     }
 
     QUrl proxyUrl = m_pUi->networkProxyHostLineEdit->text();
@@ -601,7 +603,9 @@ void PreferencesDialog::checkAndSetNetworkProxy()
         m_pUi->synchronizationTabStatusLabel->show();
         QNDEBUG(QStringLiteral("Invalid network proxy host: ") << m_pUi->networkProxyHostLineEdit->text()
                 << QStringLiteral(", resetting the application proxy to no proxy"));
-        QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
+        proxy = QNetworkProxy(QNetworkProxy::NoProxy);
+        persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(), proxy);
+        QNetworkProxy::setApplicationProxy(proxy);
         return;
     }
 
@@ -613,7 +617,9 @@ void PreferencesDialog::checkAndSetNetworkProxy()
         m_pUi->synchronizationTabStatusLabel->show();
         QNDEBUG(QStringLiteral("Invalid network proxy port: ") << proxyPort
                 << QStringLiteral(", resetting the application proxy to no proxy"));
-        QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
+        proxy = QNetworkProxy(QNetworkProxy::NoProxy);
+        persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(), proxy);
+        QNetworkProxy::setApplicationProxy(proxy);
         return;
     }
 
@@ -625,6 +631,8 @@ void PreferencesDialog::checkAndSetNetworkProxy()
             << proxy.hostName() << QStringLiteral(", port = ")
             << proxy.port() << QStringLiteral(", username = ")
             << proxy.user());
+
+    persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(), proxy);
     QNetworkProxy::setApplicationProxy(proxy);
 }
 

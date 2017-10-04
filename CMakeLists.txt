@@ -77,7 +77,7 @@ set(${PROJECT_NAME}_HEADERS
     src/NoteFiltersManager.h
     src/EnexExporter.h
     src/ParseStartupAccount.h
-    src/ParseNetworkProxySettings.h
+    src/NetworkProxySettingsHelpers.h
     src/SettingsNames.h
     src/SetupTranslations.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
@@ -175,7 +175,7 @@ set(${PROJECT_NAME}_SOURCES
     src/NoteFiltersManager.cpp
     src/EnexExporter.cpp
     src/ParseStartupAccount.cpp
-    src/ParseNetworkProxySettings.cpp
+    src/NetworkProxySettingsHelpers.cpp
     src/SetupTranslations.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp

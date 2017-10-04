@@ -16,13 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ParseNetworkProxySettings.h"
+#include "NetworkProxySettingsHelpers.h"
 #include "SettingsNames.h"
+#include <quentier/types/Account.h>
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QUrl>
 #include <QScopedPointer>
+#include <algorithm>
 
 namespace quentier {
 
@@ -165,6 +167,56 @@ void parseNetworkProxySettings(const Account & currentAccount,
     QNDEBUG(QStringLiteral("Result: network proxy type = ") << type << QStringLiteral(", host = ")
             << host << QStringLiteral(", port = ") << port << QStringLiteral(", username = ") << user
             << QStringLiteral(", password: ") << (password.isEmpty() ? QStringLiteral("<empty>") : QStringLiteral("not empty")));
+}
+
+void persistNetworkProxySettingsForAccount(const Account & account, const QNetworkProxy & proxy)
+{
+    QNDEBUG(QStringLiteral("persistNetworkProxySettingsForAccount: account = ") << account
+            << QStringLiteral("\nProxy type = ") << proxy.type() << QStringLiteral(", proxy host = ")
+            << proxy.hostName() << QStringLiteral(", proxy port = ") << proxy.port()
+            << QStringLiteral(", proxy user = ") << proxy.user());
+
+    QScopedPointer<ApplicationSettings> pSyncSettings;
+    if (account.isEmpty()) {
+        QNDEBUG(QStringLiteral("Persisting application-wise proxy settings"));
+        pSyncSettings.reset(new ApplicationSettings);
+    }
+    else {
+        QNDEBUG(QStringLiteral("Persisting account-specific settings"));
+        pSyncSettings.reset(new ApplicationSettings(account, QUENTIER_SYNC_SETTINGS));
+    }
+
+    pSyncSettings->beginGroup(SYNCHRONIZATION_NETWORK_PROXY_SETTINGS);
+
+    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_TYPE, proxy.type());
+    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_HOST, proxy.hostName());
+    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_PORT, proxy.port());
+    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_USER, proxy.user());
+    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_PASSWORD, proxy.password());
+
+    pSyncSettings->endGroup();
+}
+
+void restoreNetworkProxySettingsForAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("restoreNetworkProxySettingsForAccount: account = ") << account);
+
+    QNetworkProxy::ProxyType type = QNetworkProxy::NoProxy;
+    QString host;
+    int port = 0;
+    QString user;
+    QString password;
+
+    parseNetworkProxySettings(account, type, host, port, user, password);
+
+    QNetworkProxy proxy(type);
+    proxy.setHostName(host);
+    proxy.setPort(static_cast<quint16>(std::max(port, 0)));
+    proxy.setUser(user);
+    proxy.setPassword(password);
+
+    QNTRACE(QStringLiteral("Setting the application proxy extracted from app settings"));
+    QNetworkProxy::setApplicationProxy(proxy);
 }
 
 } // namespace quentier

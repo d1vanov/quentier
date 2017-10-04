@@ -55,6 +55,7 @@
 #include <QStandardItemModel>
 #include <QStringList>
 #include <QMovie>
+#include <QNetworkProxy>
 
 namespace Ui {
 class MainWindow;
@@ -165,7 +166,7 @@ private Q_SLOTS:
     void onSendLocalChangesStopped();
 
     // AccountManager slots
-    void onEvernoteAccountAuthenticationRequested(QString host);
+    void onEvernoteAccountAuthenticationRequested(QString host, QNetworkProxy proxy);
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
     void onAccountAdded(Account account);
@@ -460,6 +461,7 @@ private:
     AuthenticationManager *     m_pAuthenticationManager;
     SynchronizationManager *    m_pSynchronizationManager;
     QString                     m_synchronizationManagerHost;
+    QNetworkProxy               m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest;
     bool                        m_pendingNewEvernoteAccountAuthentication;
     bool                        m_pendingSwitchToNewEvernoteAccount;
 

@@ -26,6 +26,7 @@
 #include <QSharedPointer>
 #include <QVector>
 #include <QDir>
+#include <QNetworkProxy>
 
 namespace quentier {
 
@@ -58,7 +59,7 @@ public:
     void raiseManageAccountsDialog();
 
 Q_SIGNALS:
-    void evernoteAccountAuthenticationRequested(QString host);
+    void evernoteAccountAuthenticationRequested(QString host, QNetworkProxy proxy);
     void switchedAccount(Account account);
     void accountUpdated(Account account);
     void notifyError(ErrorString error) const;

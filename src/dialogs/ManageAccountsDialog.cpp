@@ -154,8 +154,8 @@ void ManageAccountsDialog::onAddAccountButtonPressed()
 
     QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(*m_pAvailableAccounts, this));
     addAccountDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString),
-                     this, QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString));
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
+                     this, QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy));
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString));
     Q_UNUSED(addAccountDialog->exec())

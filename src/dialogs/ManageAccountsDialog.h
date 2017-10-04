@@ -25,6 +25,7 @@
 #include <QVector>
 #include <QSharedPointer>
 #include <QScopedPointer>
+#include <QNetworkProxy>
 
 namespace Ui {
 class ManageAccountsDialog;
@@ -41,7 +42,7 @@ public:
     virtual ~ManageAccountsDialog();
 
 Q_SIGNALS:
-    void evernoteAccountAdditionRequested(QString evernoteServer);
+    void evernoteAccountAdditionRequested(QString evernoteServer, QNetworkProxy proxy);
     void localAccountAdditionRequested(QString name, QString fullName);
     void revokeAuthentication(qevercloud::UserID id);
     void accountDisplayNameChanged(Account account);
