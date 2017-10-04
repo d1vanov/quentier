@@ -83,6 +83,7 @@ private Q_SLOTS:
 private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);
+    void setupSystemTraySettings();
     void setupNetworkProxySettingsState();
     void createConnections();
 

@@ -62,13 +62,6 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
 
     setWindowTitle(tr("Preferences"));
 
-#ifdef Q_WS_MAC
-    // It makes little sense to minimize to tray on Mac
-    // because the minimized app goes to dock
-    m_pUi->minimizeToTrayCheckBox->setDisabled(true);
-    m_pUi->minimizeToTrayCheckBox->setHidden(true);
-#endif
-
     setupCurrentSettingsState(actionsInfo, shortcutManager);
     createConnections();
     adjustSize();
@@ -321,6 +314,76 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
 
     // 1) System tray tab
+    setupSystemTraySettings();
+
+    // 2) Note editor tab
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+    appSettings.endGroup();
+
+    m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
+
+    // 3) Appearance tab
+
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    bool showNoteThumbnails = DEFAULT_SHOW_NOTE_THUMBNAILS;
+    if (appSettings.contains(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY)) {
+        showNoteThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY).toBool();
+    }
+
+    appSettings.endGroup();
+
+    m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
+
+    // 4) Synchronization tab
+
+    if (currentAccount.type() == Account::Type::Local)
+    {
+        // Remove the synchronization tab entirely
+        m_pUi->preferencesTabWidget->removeTab(3);
+    }
+    else
+    {
+        ApplicationSettings syncSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
+
+        syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+
+        bool downloadNoteThumbnails = DEFAULT_DOWNLOAD_NOTE_THUMBNAILS;
+        if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)) {
+            downloadNoteThumbnails = syncSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS).toBool();
+        }
+
+        bool downloadInkNoteImages = DEFAULT_DOWNLOAD_INK_NOTE_IMAGES;
+        if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)) {
+            downloadInkNoteImages = syncSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES).toBool();
+        }
+
+        syncSettings.endGroup();
+        m_pUi->downloadNoteThumbnailsCheckBox->setChecked(downloadNoteThumbnails);
+        m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
+
+        setupNetworkProxySettingsState();
+
+        m_pUi->synchronizationTabStatusLabel->hide();
+    }
+
+    // 5) Shortcuts tab
+    m_pUi->shortcutSettingsWidget->initialize(currentAccount, actionsInfo, &shortcutManager);
+}
+
+void PreferencesDialog::setupSystemTraySettings()
+{
+#ifdef Q_WS_MAC
+    // It makes little sense to minimize to tray on Mac
+    // because the minimized app goes to dock
+    m_pUi->minimizeToTrayCheckBox->setDisabled(true);
+    m_pUi->minimizeToTrayCheckBox->setHidden(true);
+#endif
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable())
     {
@@ -415,54 +478,6 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
         m_pUi->trayMiddleClickActionComboBox->setDisabled(true);
         m_pUi->trayDoubleClickActionComboBox->setDisabled(true);
     }
-
-    // 2) Note editor tab
-
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
-    appSettings.endGroup();
-
-    m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
-
-    // 3) Appearance tab
-
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-
-    bool showNoteThumbnails = DEFAULT_SHOW_NOTE_THUMBNAILS;
-    if (appSettings.contains(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY)) {
-        showNoteThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY).toBool();
-    }
-
-    appSettings.endGroup();
-
-    m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
-
-    // 4) Synchronization tab
-
-    ApplicationSettings syncSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
-
-    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
-
-    bool downloadNoteThumbnails = DEFAULT_DOWNLOAD_NOTE_THUMBNAILS;
-    if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)) {
-        downloadNoteThumbnails = syncSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS).toBool();
-    }
-
-    bool downloadInkNoteImages = DEFAULT_DOWNLOAD_INK_NOTE_IMAGES;
-    if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)) {
-        downloadInkNoteImages = syncSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES).toBool();
-    }
-
-    syncSettings.endGroup();
-    m_pUi->downloadNoteThumbnailsCheckBox->setChecked(downloadNoteThumbnails);
-    m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
-
-    setupNetworkProxySettingsState();
-
-    m_pUi->synchronizationTabStatusLabel->hide();
-
-    // 5) Shortcuts tab
-    m_pUi->shortcutSettingsWidget->initialize(currentAccount, actionsInfo, &shortcutManager);
 }
 
 void PreferencesDialog::setupNetworkProxySettingsState()
@@ -495,6 +510,8 @@ void PreferencesDialog::setupNetworkProxySettingsState()
     networkProxyTypes << httpProxyItem;
     networkProxyTypes << socks5ProxyItem;
 
+    m_pUi->networkProxyTypeComboBox->setModel(new QStringListModel(networkProxyTypes, this));
+
     if ( (proxyType == QNetworkProxy::NoProxy) ||
          (proxyType == QNetworkProxy::DefaultProxy) )
     {
@@ -517,9 +534,9 @@ void PreferencesDialog::setupNetworkProxySettingsState()
     }
 
     m_pUi->networkProxyHostLineEdit->setText(proxyHost);
-    m_pUi->networkProxyPortSpinBox->setValue(std::max(0, proxyPort));
     m_pUi->networkProxyPortSpinBox->setMinimum(0);
     m_pUi->networkProxyPortSpinBox->setMaximum(std::max(std::numeric_limits<quint16>::max()-1, 0));
+    m_pUi->networkProxyPortSpinBox->setValue(std::max(0, proxyPort));
     m_pUi->networkProxyUserLineEdit->setText(proxyUsername);
     m_pUi->networkProxyPasswordLineEdit->setText(proxyPassword);
 }
@@ -598,8 +615,11 @@ void PreferencesDialog::checkAndSetNetworkProxy()
     }
 
     QUrl proxyUrl = m_pUi->networkProxyHostLineEdit->text();
-    if (!proxyUrl.isValid()) {
-        m_pUi->synchronizationTabStatusLabel->setText(tr("Network proxy host is not a valid URL"));
+    if (!proxyUrl.isValid())
+    {
+        m_pUi->synchronizationTabStatusLabel->setText(QStringLiteral("<span style=\"color:#ff0000;\">") +
+                                                      tr("Network proxy host is not a valid URL") +
+                                                      QStringLiteral("</span>"));
         m_pUi->synchronizationTabStatusLabel->show();
         QNDEBUG(QStringLiteral("Invalid network proxy host: ") << m_pUi->networkProxyHostLineEdit->text()
                 << QStringLiteral(", resetting the application proxy to no proxy"));
@@ -612,8 +632,11 @@ void PreferencesDialog::checkAndSetNetworkProxy()
     proxy.setHostName(m_pUi->networkProxyHostLineEdit->text());
 
     int proxyPort = m_pUi->networkProxyPortSpinBox->value();
-    if (Q_UNLIKELY((proxyPort < 0) || (proxyPort >= std::numeric_limits<quint16>::max()))) {
-        m_pUi->synchronizationTabStatusLabel->setText(tr("Network proxy port is outside the allowed range"));
+    if (Q_UNLIKELY((proxyPort < 0) || (proxyPort >= std::numeric_limits<quint16>::max())))
+    {
+        m_pUi->synchronizationTabStatusLabel->setText(QStringLiteral("<span style=\"color:#ff0000;\">") +
+                                                      tr("Network proxy port is outside the allowed range") +
+                                                      QStringLiteral("</span>"));
         m_pUi->synchronizationTabStatusLabel->show();
         QNDEBUG(QStringLiteral("Invalid network proxy port: ") << proxyPort
                 << QStringLiteral(", resetting the application proxy to no proxy"));
@@ -631,6 +654,9 @@ void PreferencesDialog::checkAndSetNetworkProxy()
             << proxy.hostName() << QStringLiteral(", port = ")
             << proxy.port() << QStringLiteral(", username = ")
             << proxy.user());
+
+    m_pUi->synchronizationTabStatusLabel->clear();
+    m_pUi->synchronizationTabStatusLabel->hide();
 
     persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(), proxy);
     QNetworkProxy::setApplicationProxy(proxy);
