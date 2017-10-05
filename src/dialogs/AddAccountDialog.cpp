@@ -278,7 +278,7 @@ void AddAccountDialog::accept()
         {
             ErrorString errorDescription;
 
-            QNetworkProxy proxy = networkProxy(errorDescription);
+            proxy = networkProxy(errorDescription);
             if (!errorDescription.isEmpty()) {
                 proxy = QNetworkProxy(QNetworkProxy::NoProxy);
             }
