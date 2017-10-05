@@ -224,7 +224,7 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
     appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, checked);
     appSettings.endGroup();
 
-    emit showNoteThumbnailsOptionChanged(checked);
+    Q_EMIT showNoteThumbnailsOptionChanged(checked);
 }
 
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
@@ -238,7 +238,7 @@ void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
     appSettings.setValue(USE_LIMITED_SET_OF_FONTS, checked);
     appSettings.endGroup();
 
-    emit noteEditorUseLimitedFontsOptionChanged(checked);
+    Q_EMIT noteEditorUseLimitedFontsOptionChanged(checked);
 }
 
 void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
@@ -252,7 +252,7 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
     appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS, checked);
     appSettings.endGroup();
 
-    emit synchronizationDownloadNoteThumbnailsOptionChanged(checked);
+    Q_EMIT synchronizationDownloadNoteThumbnailsOptionChanged(checked);
 }
 
 void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
@@ -266,7 +266,7 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
     appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES, checked);
     appSettings.endGroup();
 
-    emit synchronizationDownloadInkNoteImagesOptionChanged(checked);
+    Q_EMIT synchronizationDownloadInkNoteImagesOptionChanged(checked);
 }
 
 void PreferencesDialog::onNetworkProxyTypeChanged(int type)

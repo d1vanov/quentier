@@ -35,7 +35,7 @@
     { \
         ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
-        emit notifyError(errorDescription); \
+        Q_EMIT notifyError(errorDescription); \
     }
 
 namespace quentier {
@@ -246,7 +246,7 @@ void TagItemView::onRemovedTags()
 void TagItemView::onCreateNewTagAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onCreateNewTagAction"));
-    emit newTagCreationRequested();
+    Q_EMIT newTagCreationRequested();
 }
 
 void TagItemView::onRenameTagAction()
@@ -541,7 +541,7 @@ void TagItemView::onMoveTagToParentAction()
 void TagItemView::onShowTagInfoAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onShowTagInfoAction"));
-    emit tagInfoRequested();
+    Q_EMIT tagInfoRequested();
 }
 
 void TagItemView::onDeselectAction()

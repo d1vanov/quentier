@@ -419,7 +419,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
 
             QNTRACE(QStringLiteral("Emitting the update of last current tab note local uid to ")
                     << m_lastCurrentTabNoteLocalUid);
-            emit currentNoteChanged(m_lastCurrentTabNoteLocalUid);
+            Q_EMIT currentNoteChanged(m_lastCurrentTabNoteLocalUid);
         }
 
         return;
@@ -474,7 +474,7 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(const QString & notebook
     QNTRACE(QStringLiteral("Emitting the request to add a new note to the local storage: request id = ")
             << requestId << QStringLiteral(", note editor mode: ") << noteEditorMode
             << QStringLiteral(", note = ") << newNote);
-    emit requestAddNote(newNote, requestId);
+    Q_EMIT requestAddNote(newNote, requestId);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts(const bool flag)
@@ -604,7 +604,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetResolved()
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't resolve the added note editor, cast failed"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -671,7 +671,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetInvalidated()
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't invalidate the note editor, cast failed"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -694,7 +694,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteTitleOrPreviewTextChanged(QStrin
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't update the note editor's tab name, cast failed"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -729,7 +729,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteTitleOrPreviewTextChanged(QStrin
     ErrorString error(QT_TR_NOOP("Internal error: can't find the note editor which has sent "
                                  "the title or preview text update"));
     QNWARNING(error);
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onNoteEditorTabCloseRequested(int tabIndex)
@@ -752,7 +752,7 @@ void NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked(QString userId,
     Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to find note by guid for opening it inside a new note editor tab: request id = ")
             << requestId << QStringLiteral(", note: ") << dummyNote);
-    emit findNote(dummyNote, /* with resource binary data = */ false, requestId);
+    Q_EMIT findNote(dummyNote, /* with resource binary data = */ false, requestId);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onNoteLoadedInEditor()
@@ -768,7 +768,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(ErrorString errorDes
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
         QNWARNING(QStringLiteral("Received error from note editor but can't cast the sender to NoteEditorWidget; error: ")
                   << errorDescription);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -788,7 +788,7 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(ErrorString errorDes
         error.details() += QStringLiteral("\"");
     }
 
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete(Note note, QUuid requestId)
@@ -863,7 +863,7 @@ void NoteEditorTabsAndWindowsCoordinator::onFindNoteFailed(Note note, bool withR
     Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
 
-    emit notifyError(errorDescription);
+    Q_EMIT notifyError(errorDescription);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete(Note note, QUuid requestId)
@@ -879,7 +879,7 @@ void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete(Note note, QUuid
     Q_UNUSED(m_expungeNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
 
-    emit noteExpungedFromLocalStorage();
+    Q_EMIT noteExpungedFromLocalStorage();
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteFailed(Note note,
@@ -898,7 +898,7 @@ void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteFailed(Note note,
     Q_UNUSED(m_expungeNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
 
-    emit noteExpungeFromLocalStorageFailed();
+    Q_EMIT noteExpungeFromLocalStorageFailed();
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
@@ -913,7 +913,7 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
             persistLastCurrentTabNoteLocalUid();
 
             QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
-            emit currentNoteChanged(QString());
+            Q_EMIT currentNoteChanged(QString());
         }
 
         return;
@@ -931,7 +931,7 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
             persistLastCurrentTabNoteLocalUid();
 
             QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
-            emit currentNoteChanged(QString());
+            Q_EMIT currentNoteChanged(QString());
         }
 
         return;
@@ -949,7 +949,7 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
             persistLastCurrentTabNoteLocalUid();
 
             QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
-            emit currentNoteChanged(QString());
+            Q_EMIT currentNoteChanged(QString());
         }
 
         return;
@@ -966,7 +966,7 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
         persistLastCurrentTabNoteLocalUid();
 
         QNTRACE(QStringLiteral("Emitting last current tab note local uid update to ") << m_lastCurrentTabNoteLocalUid);
-        emit currentNoteChanged(currentNoteLocalUid);
+        Q_EMIT currentNoteChanged(currentNoteLocalUid);
     }
 }
 
@@ -980,7 +980,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint
         ErrorString error(QT_TR_NOOP("Can't show the tab context menu: can't find the tab index "
                                      "of the target note editor"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -989,7 +989,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint
         ErrorString error(QT_TR_NOOP("Can't show the tab context menu: can't cast the widget "
                                      "at the clicked tab to note editor"));
         QNWARNING(error << QStringLiteral(", tab index = ") << tabIndex);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1031,7 +1031,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
         ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note editor, "
                                      "can't cast the slot invoker to QAction"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1040,7 +1040,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
         ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note editor, "
                                      "can't get the note local uid corresponding to the editor"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1061,7 +1061,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
     ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note editor, "
                                  "can't find the editor to be closed by note local uid"));
     QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
     return;
 }
 
@@ -1074,7 +1074,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
         ErrorString error(QT_TR_NOOP("Internal error: can't save the note within the chosen note editor, "
                                      "can't cast the slot invoker to QAction"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1083,7 +1083,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
         ErrorString error(QT_TR_NOOP("Internal error: can't save the note within the chosen note editor, "
                                      "can't get the note local uid corresponding to the editor"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1112,7 +1112,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
             QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
         }
 
         return;
@@ -1122,7 +1122,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
     ErrorString error(QT_TR_NOOP("Internal error: can't save the note within the chosen note editor, "
                                  "can't find the editor to be closed by note local uid"));
     QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
     return;
 }
 
@@ -1135,7 +1135,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
         ErrorString error(QT_TR_NOOP("Internal error: can't move the note editor tab to window, "
                                      "can't cast the slot invoker to QAction"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1144,7 +1144,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
         ErrorString error(QT_TR_NOOP("Internal error: can't move the note editor tab to window, "
                                      "can't get the note local uid corresponding to the editor"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1157,7 +1157,7 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteFromLocalStorage()
 
     if (Q_UNLIKELY(m_localUidOfNoteToBeExpunged.isEmpty())) {
         QNWARNING(QStringLiteral("The local uid of note to be expunged is empty"));
-        emit noteExpungeFromLocalStorageFailed();
+        Q_EMIT noteExpungeFromLocalStorageFailed();
         return;
     }
 
@@ -1170,7 +1170,7 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteFromLocalStorage()
     Q_UNUSED(m_expungeNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to expunge note: request id = ")
             << requestId << QStringLiteral(", note local uid = ") << m_localUidOfNoteToBeExpunged);
-    emit requestExpungeNote(dummyNote, requestId);
+    Q_EMIT requestExpungeNote(dummyNote, requestId);
 
     m_localUidOfNoteToBeExpunged.clear();
 }
@@ -1324,7 +1324,7 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex, cons
         persistLastCurrentTabNoteLocalUid();
 
         QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
-        emit currentNoteChanged(QString());
+        Q_EMIT currentNoteChanged(QString());
     }
 
     if (m_pTabWidget->count() == 1)
@@ -1657,7 +1657,7 @@ void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorTabToWindow(const QStrin
     ErrorString error(QT_TR_NOOP("Could not find the note editor widget to be moved from tab to window"));
     error.details() = noteLocalUid;
     QNWARNING(error);
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorWindowToTab(NoteEditorWidget * pNoteEditorWidget)

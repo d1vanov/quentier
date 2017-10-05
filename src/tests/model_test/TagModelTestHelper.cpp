@@ -661,12 +661,12 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("The new parent item doesn't contain the child item which was externally updated"));
         }
 
-        emit success();
+        Q_EMIT success();
         return;
     }
     CATCH_EXCEPTION()
 
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 void TagModelTestHelper::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
@@ -817,7 +817,7 @@ void TagModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescriptio
 {
     SysInfo sysInfo;
     errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 bool TagModelTestHelper::LessByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const

@@ -61,7 +61,7 @@ using quentier::NoteTagsWidget;
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
-        emit notifyError(QT_TRANSLATE_NOOP("NoteEditorWidget", "No note is set to the editor")); \
+        Q_EMIT notifyError(QT_TRANSLATE_NOOP("NoteEditorWidget", "No note is set to the editor")); \
         return; \
     }
 
@@ -202,7 +202,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
         dummy.setLocalUid(noteLocalUid);
         QNTRACE(QStringLiteral("Emitting the request to find the current note: local uid = ") << noteLocalUid
                 << QStringLiteral(", request id = ") << m_findCurrentNoteRequestId);
-        emit findNote(dummy, /* with resource binary data = */ true, m_findCurrentNoteRequestId);
+        Q_EMIT findNote(dummy, /* with resource binary data = */ true, m_findCurrentNoteRequestId);
         return;
     }
 
@@ -211,7 +211,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
     if (Q_UNLIKELY(!pCachedNote->hasNotebookLocalUid() && !pCachedNote->hasNotebookGuid())) {
         ErrorString error(QT_TR_NOOP("Can't set the note to the editor: the note has no linkage to any notebook"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -237,7 +237,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
 
         QNTRACE(QStringLiteral("Emitting the request to find the notebook for note: ") << dummy
                 << QStringLiteral("\nRequest id = ") << m_findCurrentNotebookRequestId);
-        emit findNotebook(dummy, m_findCurrentNotebookRequestId);
+        Q_EMIT findNotebook(dummy, m_findCurrentNotebookRequestId);
         return;
     }
 
@@ -247,7 +247,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 
     QNTRACE(QStringLiteral("Emitting resolved signal, note local uid = ") << m_noteLocalUid);
-    emit resolved();
+    Q_EMIT resolved();
 }
 
 bool NoteEditorWidget::isResolved() const
@@ -1108,7 +1108,7 @@ void NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged(int index)
         ErrorString error(QT_TR_NOOP("Can't process the change of font size combo box index: "
                                      "can't convert combo box item data to int"));
         QNWARNING(error << QStringLiteral(": ") << data);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -1129,7 +1129,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
         Q_UNUSED(m_updateNoteRequestIds.erase(it))
-        emit noteSavedInLocalStorage();
+        Q_EMIT noteSavedInLocalStorage();
         return;
     }
 
@@ -1174,7 +1174,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
 
     if (note.hasDeletionTimestamp()) {
         QNINFO(QStringLiteral("The note loaded into the editor was deleted: ") << *m_pCurrentNote);
-        emit invalidated();
+        Q_EMIT invalidated();
         return;
     }
 
@@ -1209,7 +1209,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
                 }
 
                 QNWARNING(error << QStringLiteral(", note: ") << *m_pCurrentNote);
-                emit notifyError(error);
+                Q_EMIT notifyError(error);
                 clear();
                 return;
             }
@@ -1226,7 +1226,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
 
             QNTRACE(QStringLiteral("Emitting the request to find the current notebook: ") << dummy
                     << QStringLiteral("\nRequest id = ") << m_findCurrentNotebookRequestId);
-            emit findNotebook(dummy, m_findCurrentNotebookRequestId);
+            Q_EMIT findNotebook(dummy, m_findCurrentNotebookRequestId);
             return;
         }
     }
@@ -1253,10 +1253,10 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
     // NOTE: not clearing out the unsaved stuff because it may be of value to the user
 
-    emit noteSaveInLocalStorageFailed();
+    Q_EMIT noteSaveInLocalStorageFailed();
 }
 
 void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
@@ -1293,7 +1293,7 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     QNTRACE(QStringLiteral("Emitting the request to insert the in-app note link: user id = ") << noteLinkInfo.m_userId
             << QStringLiteral(", shard id = ") << noteLinkInfo.m_shardId << QStringLiteral(", note guid = ")
             << noteLinkInfo.m_noteGuid << QStringLiteral(", title or preview = ") << titleOrPreview);
-    emit insertInAppNoteLink(noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid, titleOrPreview);
+    Q_EMIT insertInAppNoteLink(noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid, titleOrPreview);
 
     Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(noteLinkInfoIt))
 }
@@ -1317,7 +1317,7 @@ void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, 
     if (isFindCurrentNoteRequestId) {
         m_findCurrentNoteRequestId = QUuid();
         clear();
-        emit notifyError(ErrorString(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor")));
+        Q_EMIT notifyError(ErrorString(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor")));
         return;
     }
 
@@ -1326,7 +1326,7 @@ void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, 
     QNTRACE(QStringLiteral("Emitting the request to insert the in-app note link without the link text as the note was not found: user id = ")
             << noteLinkInfo.m_userId << QStringLiteral(", shard id = ") << noteLinkInfo.m_shardId
             << QStringLiteral(", note guid = ") << noteLinkInfo.m_noteGuid);
-    emit insertInAppNoteLink(noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid, QString());
+    Q_EMIT insertInAppNoteLink(noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid, QString());
 
     Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(noteLinkInfoIt))
 }
@@ -1345,7 +1345,7 @@ void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
     // TODO: ideally should allow the choice to either re-save the note or to drop it
 
     QNINFO(QStringLiteral("The note loaded into the editor was expunged from the local storage: ") << *m_pCurrentNote);
-    emit invalidated();
+    Q_EMIT invalidated();
 }
 
 void NoteEditorWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
@@ -1394,7 +1394,7 @@ void NoteEditorWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 
     QNTRACE(QStringLiteral("Emitting resolved signal, note local uid = ") << m_noteLocalUid);
-    emit resolved();
+    Q_EMIT resolved();
 }
 
 void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -1408,7 +1408,7 @@ void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, ErrorString error
 
     m_findCurrentNotebookRequestId = QUuid();
     clear();
-    emit notifyError(ErrorString(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor")));
+    Q_EMIT notifyError(ErrorString(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor")));
 }
 
 void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
@@ -1486,9 +1486,9 @@ void NoteEditorWidget::onNoteTitleUpdated()
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to update note due to note title update: request id = ") << requestId
             << QStringLiteral(", note = ") << *m_pCurrentNote);
-    emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
+    Q_EMIT updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
 
-    emit titleOrPreviewChanged(titleOrPreview());
+    Q_EMIT titleOrPreviewChanged(titleOrPreview());
 }
 
 void NoteEditorWidget::onEditorNoteUpdate(Note note)
@@ -1519,9 +1519,9 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
 void NoteEditorWidget::onEditorNoteUpdateFailed(ErrorString error)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorNoteUpdateFailed: ") << error);
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
 
-    emit conversionToNoteFailed();
+    Q_EMIT conversionToNoteFailed();
 }
 
 void NoteEditorWidget::onEditorInAppLinkPasteRequested(QString url, QString userId, QString shardId, QString noteGuid)
@@ -1542,7 +1542,7 @@ void NoteEditorWidget::onEditorInAppLinkPasteRequested(QString url, QString user
     dummyNote.setGuid(noteGuid);
     QNTRACE(QStringLiteral("Emitting the request to find note by guid for the purpose of in-app note link insertion: request id = ")
             << requestId << QStringLiteral(", note guid = ") << noteGuid);
-    emit findNote(dummyNote, /* with resource binary data = */ false, requestId);
+    Q_EMIT findNote(dummyNote, /* with resource binary data = */ false, requestId);
 }
 
 void NoteEditorWidget::onEditorTextBoldStateChanged(bool state)
@@ -1687,7 +1687,7 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
             ErrorString errorDescription(QT_TR_NOOP("Can't process the change of font: internal error, no limited fonts "
                                                     "list model is set up"));
             QNWARNING(errorDescription);
-            emit notifyError(errorDescription);
+            Q_EMIT notifyError(errorDescription);
             return;
         }
 
@@ -1905,7 +1905,7 @@ void NoteEditorWidget::onEditorSpellCheckerNotReady()
     QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorSpellCheckerNotReady"));
 
     m_pendingEditorSpellChecker = true;
-    emit notifyError(ErrorString(QT_TR_NOOP("Spell checker is loading dictionaries, please wait")));
+    Q_EMIT notifyError(ErrorString(QT_TR_NOOP("Spell checker is loading dictionaries, please wait")));
 }
 
 void NoteEditorWidget::onEditorSpellCheckerReady()
@@ -1917,7 +1917,7 @@ void NoteEditorWidget::onEditorSpellCheckerReady()
     }
 
     m_pendingEditorSpellChecker = false;
-    emit notifyError(ErrorString());     // Send the empty message to remove the previous one about the non-ready spell checker
+    Q_EMIT notifyError(ErrorString());     // Send the empty message to remove the previous one about the non-ready spell checker
 }
 
 void NoteEditorWidget::onEditorHtmlUpdate(QString html)
@@ -2113,7 +2113,7 @@ void NoteEditorWidget::updateNoteInLocalStorage()
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId
             << QStringLiteral(", note = ") << *m_pCurrentNote);
-    emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
+    Q_EMIT updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
 }
 
 void NoteEditorWidget::onPrintNoteButtonPressed()
@@ -2123,7 +2123,7 @@ void NoteEditorWidget::onPrintNoteButtonPressed()
     ErrorString errorDescription;
     bool res = printNote(errorDescription);
     if (!res) {
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
     }
 }
 
@@ -2134,7 +2134,7 @@ void NoteEditorWidget::onExportNoteToPdfButtonPressed()
     ErrorString errorDescription;
     bool res = exportNoteToPdf(errorDescription);
     if (!res) {
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
     }
 }
 
@@ -2150,7 +2150,7 @@ void NoteEditorWidget::onExportNoteToEnexButtonPressed()
             return;
         }
 
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
     }
 }
 
@@ -2386,7 +2386,7 @@ void NoteEditorWidget::onCurrentNoteFound(const Note & note)
 
         QNTRACE(QStringLiteral("Emitting the request to find the current notebook: ") << dummy
                 << QStringLiteral("\nRequest id = ") << m_findCurrentNotebookRequestId);
-        emit findNotebook(dummy, m_findCurrentNotebookRequestId);
+        Q_EMIT findNotebook(dummy, m_findCurrentNotebookRequestId);
         return;
     }
 
@@ -2395,7 +2395,7 @@ void NoteEditorWidget::onCurrentNoteFound(const Note & note)
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 
     QNTRACE(QStringLiteral("Emitting resolved signal, note local uid = ") << m_noteLocalUid);
-    emit resolved();
+    Q_EMIT resolved();
 }
 
 void NoteEditorWidget::setupSpecialIcons()
@@ -2514,7 +2514,7 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
         m_pUi->noteNameLineEdit->setText(title);
         if (m_lastNoteTitleOrPreviewText != title) {
             m_lastNoteTitleOrPreviewText = title;
-            emit titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
+            Q_EMIT titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
         }
     }
     else if (!m_noteTitleIsEdited)
@@ -2529,7 +2529,7 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
 
         if (previewText != m_lastNoteTitleOrPreviewText) {
             m_lastNoteTitleOrPreviewText = previewText;
-            emit titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
+            Q_EMIT titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
         }
     }
 

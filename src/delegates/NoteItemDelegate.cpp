@@ -59,7 +59,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     if (Q_UNLIKELY(!pNoteFilterModel)) {
         ErrorString error(QT_TR_NOOP("Wrong model is connected to the note item delegate"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -67,7 +67,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     if (Q_UNLIKELY(!pNoteModel)) {
         ErrorString error(QT_TR_NOOP("Can't get the source model from the note filter model connected to the note item delegate"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -76,7 +76,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     if (Q_UNLIKELY(!pItem)) {
         ErrorString error(QT_TR_NOOP("Can't retrieve the item to paint for note model index"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 

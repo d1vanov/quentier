@@ -163,7 +163,7 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
 
         ++m_keyNum;
         pKeyEvent->accept();
-        emit keySequenceChanged(QKeySequence(m_key[0], m_key[1], m_key[2], m_key[3]));
+        Q_EMIT keySequenceChanged(QKeySequence(m_key[0], m_key[1], m_key[2], m_key[3]));
 
         if (m_keyNum > 3) {
             setChecked(false);

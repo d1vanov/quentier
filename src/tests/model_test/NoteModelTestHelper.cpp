@@ -437,7 +437,7 @@ void NoteModelTestHelper::launchTest()
     }
     CATCH_EXCEPTION()
 
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
@@ -482,7 +482,7 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
     }
     CATCH_EXCEPTION()
 
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 void NoteModelTestHelper::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
@@ -541,7 +541,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
         }
         CATCH_EXCEPTION()
 
-        emit failure(errorDescription);
+        Q_EMIT failure(errorDescription);
     }
     else if (m_expectingNoteDeletionFromLocalStorage)
     {
@@ -580,7 +580,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
         }
         CATCH_EXCEPTION()
 
-        emit failure(errorDescription);
+        Q_EMIT failure(errorDescription);
     }
 }
 
@@ -643,12 +643,12 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
             FAIL(QStringLiteral("Was able to get the non-null pointer to the note model item while the corresponding note was expunged from local storage"));
         }
 
-        emit success();
+        Q_EMIT success();
         return;
     }
     CATCH_EXCEPTION()
 
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 void NoteModelTestHelper::onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
@@ -804,7 +804,7 @@ void NoteModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescripti
 {
     SysInfo sysInfo;
     errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 bool NoteModelTestHelper::LessByCreationTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const

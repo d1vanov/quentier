@@ -22,7 +22,7 @@ void AsyncFileWriter::run()
         ErrorString error(QT_TR_NOOP("can't open file for writing"));
         error.details() = file.errorString();
         QNWARNING(error);
-        emit
+        Q_EMIT fileWriteFailed(error);
     }
 
     qint64 dataSize = static_cast<qint64>(m_dataToWrite.size());
@@ -30,11 +30,11 @@ void AsyncFileWriter::run()
     if (bytesWritten != dataSize) {
         QNDEBUG(QStringLiteral("Couldn't write the entire file: expected ")
                 << dataSize << QStringLiteral(", got only ") << bytesWritten);
-        emit fileWriteIncomplete(bytesWritten, dataSize);
+        Q_EMIT fileWriteIncomplete(bytesWritten, dataSize);
     }
     else {
         QNDEBUG(QStringLiteral("Successfully written the file"));
-        emit fileSuccessfullyWritten(m_filePath);
+        Q_EMIT fileSuccessfullyWritten(m_filePath);
     }
 }
 

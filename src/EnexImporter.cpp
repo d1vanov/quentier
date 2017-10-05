@@ -86,7 +86,7 @@ void EnexImporter::start()
         if (Q_UNLIKELY(m_notebookName.isEmpty())) {
             ErrorString errorDescription(QT_TR_NOOP("Can't import ENEX: the notebook name is empty"));
             QNWARNING(errorDescription);
-            emit enexImportFailed(errorDescription);
+            Q_EMIT enexImportFailed(errorDescription);
             return;
         }
 
@@ -97,7 +97,7 @@ void EnexImporter::start()
             errorDescription.appendBase(notebookNameError.additionalBases());
             errorDescription.details() = notebookNameError.details();
             QNWARNING(errorDescription);
-            emit enexImportFailed(errorDescription);
+            Q_EMIT enexImportFailed(errorDescription);
             return;
         }
 
@@ -127,7 +127,7 @@ void EnexImporter::start()
         ErrorString errorDescription(QT_TR_NOOP("Can't import ENEX: can't open enex file for writing"));
         errorDescription.details() = m_enexFilePath;
         QNWARNING(errorDescription);
-        emit enexImportFailed(errorDescription);
+        Q_EMIT enexImportFailed(errorDescription);
         return;
     }
 
@@ -139,7 +139,7 @@ void EnexImporter::start()
     ENMLConverter converter;
     res = converter.importEnex(enex, importedNotes, m_tagNamesByImportedNoteLocalUid, errorDescription);
     if (!res) {
-        emit enexImportFailed(errorDescription);
+        Q_EMIT enexImportFailed(errorDescription);
         return;
     }
 
@@ -232,7 +232,7 @@ void EnexImporter::onAddTagComplete(Tag tag, QUuid requestId)
                                                 "could not create a new tag in the local storage: "
                                                 "the added tag has no name"));
         QNWARNING(errorDescription);
-        emit enexImportFailed(errorDescription);
+        Q_EMIT enexImportFailed(errorDescription);
         return;
     }
 
@@ -305,7 +305,7 @@ void EnexImporter::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid r
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
-    emit enexImportFailed(error);
+    Q_EMIT enexImportFailed(error);
 }
 
 void EnexImporter::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
@@ -379,7 +379,7 @@ void EnexImporter::onAddNotebookFailed(Notebook notebook, ErrorString errorDescr
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
-    emit enexImportFailed(error);
+    Q_EMIT enexImportFailed(error);
 }
 
 void EnexImporter::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
@@ -391,7 +391,7 @@ void EnexImporter::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
         ErrorString error(QT_TR_NOOP("Can't complete ENEX import: notebook was expunged during the import"));
         QNWARNING(error << QStringLiteral(", notebook: ") << notebook);
         clear();
-        emit enexImportFailed(error);
+        Q_EMIT enexImportFailed(error);
     }
 }
 
@@ -419,7 +419,7 @@ void EnexImporter::onAddNoteComplete(Note note, QUuid requestId)
 
     QNDEBUG(QStringLiteral("There are no pending add note requests and no notes pending tags addition => "
                            "it looks like the import has finished"));
-    emit enexImportedSuccessfully(m_enexFilePath);
+    Q_EMIT enexImportedSuccessfully(m_enexFilePath);
 }
 
 void EnexImporter::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
@@ -439,7 +439,7 @@ void EnexImporter::onAddNoteFailed(Note note, ErrorString errorDescription, QUui
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
-    emit enexImportFailed(error);
+    Q_EMIT enexImportFailed(error);
 }
 
 void EnexImporter::onAllTagsListed()
@@ -638,7 +638,7 @@ void EnexImporter::addNoteToLocalStorage(const Note & note)
     Q_UNUSED(m_addNoteRequestIds.insert(requestId));
     QNTRACE(QStringLiteral("Emitting the request to add note to local storage: request id = ")
             << requestId << QStringLiteral(", note: ") << note);
-    emit addNote(note, requestId);
+    Q_EMIT addNote(note, requestId);
 }
 
 void EnexImporter::addTagToLocalStorage(const QString & tagName)
@@ -654,7 +654,7 @@ void EnexImporter::addTagToLocalStorage(const QString & tagName)
     Q_UNUSED(m_addTagRequestIdByTagNameBimap.insert(AddTagRequestIdByTagNameBimap::value_type(tagName.toLower(), requestId)))
     QNTRACE(QStringLiteral("Emitting the request to add tag to local storage: request id = ")
             << requestId << QStringLiteral(", tag: ") << newTag);
-    emit addTag(newTag, requestId);
+    Q_EMIT addTag(newTag, requestId);
 }
 
 void EnexImporter::addNotebookToLocalStorage(const QString & notebookName)
@@ -670,7 +670,7 @@ void EnexImporter::addNotebookToLocalStorage(const QString & notebookName)
     m_addNotebookRequestId = QUuid::createUuid();
     QNTRACE(QStringLiteral("Emitting the request to add notebook to local storage: request id = ")
             << m_addNotebookRequestId << QStringLiteral(", notebook: ") << newNotebook);
-    emit addNotebook(newNotebook, m_addNotebookRequestId);
+    Q_EMIT addNotebook(newNotebook, m_addNotebookRequestId);
 }
 
 } // namespace quentier

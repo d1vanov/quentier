@@ -9,7 +9,7 @@
     { \
         ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
-        emit notifyError(errorDescription); \
+        Q_EMIT notifyError(errorDescription); \
     }
 
 namespace quentier {
@@ -93,7 +93,7 @@ void DeletedNoteItemView::showCurrentlySelectedNoteInfo()
         return;
     }
 
-    emit deletedNoteInfoRequested(pItem->localUid());
+    Q_EMIT deletedNoteInfoRequested(pItem->localUid());
 }
 
 void DeletedNoteItemView::onRestoreNoteAction()
@@ -176,7 +176,7 @@ void DeletedNoteItemView::onShowDeletedNoteInfoAction()
         return;
     }
 
-    emit deletedNoteInfoRequested(itemLocalUid);
+    Q_EMIT deletedNoteInfoRequested(itemLocalUid);
 }
 
 void DeletedNoteItemView::restoreNote(const QModelIndex & index, NoteModel & model)

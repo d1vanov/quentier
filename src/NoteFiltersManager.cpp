@@ -212,7 +212,7 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNDEBUG(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
 
         m_filterBySavedSearchWidget.setEnabled(true);
 
@@ -230,7 +230,7 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNDEBUG(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
     }
 
     m_noteFilterModel.beginUpdateFilter();
@@ -283,7 +283,7 @@ void NoteFiltersManager::onUpdateTagComplete(Tag tag, QUuid requestId)
         if (Q_UNLIKELY(!pTagModel)) {
             ErrorString error(QT_TR_NOOP("Internal error: can't update the filter by tags: no tag model within FilterByTagWidget"));
             QNWARNING(error);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             m_noteFilterModel.setTagNames(QStringList());
             return;
         }
@@ -331,7 +331,7 @@ void NoteFiltersManager::onExpungeTagComplete(Tag tag, QStringList expungedChild
     if (Q_UNLIKELY(!pTagModel)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't update the filter by tags: no tag model within FilterByTagWidget"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         m_noteFilterModel.setTagNames(QStringList());
         return;
     }
@@ -546,7 +546,7 @@ bool NoteFiltersManager::setFilterBySearchString()
     QNTRACE(QStringLiteral("Emitting the request to find note local uids corresponding to the note search query: request id = ")
             << m_findNoteLocalUidsForSearchStringRequestId << QStringLiteral(", query: ") << query
             << QStringLiteral("\nSearch string: ") << searchString);
-    emit findNoteLocalUidsForNoteSearchQuery(query, m_findNoteLocalUidsForSearchStringRequestId);
+    Q_EMIT findNoteLocalUidsForNoteSearchQuery(query, m_findNoteLocalUidsForSearchStringRequestId);
 
     m_filterByTagWidget.setDisabled(true);
     m_filterByNotebookWidget.setDisabled(true);
@@ -582,7 +582,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by saved search, the saved search model "
                                      "returned invalid model index for the given saved search name"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
@@ -592,7 +592,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by saved search, the saved search model "
                                      "returned null item for the given valid model index"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
@@ -600,7 +600,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     if (Q_UNLIKELY(pItem->m_query.isEmpty())) {
         ErrorString error(QT_TR_NOOP("Can't set the filter by saved search: saved search's query is empty"));
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
@@ -615,7 +615,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         m_noteFilterModel.clearNoteLocalUids();
         return false;
     }
@@ -626,7 +626,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     QNTRACE(QStringLiteral("Emitting the request to find note local uids corresponding to the saved search: request id = ")
             << m_findNoteLocalUidsForSavedSearchQueryRequestId << QStringLiteral(", query: ") << query
             << QStringLiteral("\nSaved search item: ") << *pItem);
-    emit findNoteLocalUidsForNoteSearchQuery(query, m_findNoteLocalUidsForSavedSearchQueryRequestId);
+    Q_EMIT findNoteLocalUidsForNoteSearchQuery(query, m_findNoteLocalUidsForSavedSearchQueryRequestId);
 
     m_filterByTagWidget.setDisabled(true);
     m_filterByNotebookWidget.setDisabled(true);
@@ -665,7 +665,7 @@ void NoteFiltersManager::setFilterByNotebooks()
             ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by notebooks: the notebook model "
                                          "returned empty local uid for the notebook name in the filter"));
             QNWARNING(error << QStringLiteral(", notebook name: ") << *it);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             m_noteFilterModel.setNotebookLocalUids(QStringList());
             return;
         }
@@ -687,7 +687,7 @@ void NoteFiltersManager::setFilterByTags()
     if (Q_UNLIKELY(!pTagModel)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by tags: no tag model within FilterByTagWidget"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         m_noteFilterModel.setTagNames(QStringList());
         return;
     }
@@ -706,7 +706,7 @@ void NoteFiltersManager::setFilterByTags()
             ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by tags: tag model returned "
                                          "invalid index for one of tag names"));
             QNWARNING(error << QStringLiteral(", tag name = ") << *it);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             m_noteFilterModel.setTagNames(QStringList());
             return;
         }
@@ -716,7 +716,7 @@ void NoteFiltersManager::setFilterByTags()
             ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by tags: tag model returned "
                                          "null item for a valid index corresponding to one of tag names"));
             QNWARNING(error << QStringLiteral(", tag name = ") << *it);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             m_noteFilterModel.setTagNames(QStringList());
             return;
         }

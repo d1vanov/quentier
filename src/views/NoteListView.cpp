@@ -34,7 +34,7 @@
     { \
         ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
-        emit notifyError(errorDescription); \
+        Q_EMIT notifyError(errorDescription); \
     }
 
 namespace quentier {
@@ -299,7 +299,7 @@ void NoteListView::onCreateNewNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onCreateNewNoteAction"));
 
-    emit newNoteCreationRequested();
+    Q_EMIT newNoteCreationRequested();
 }
 
 void NoteListView::onDeleteNoteAction()
@@ -348,7 +348,7 @@ void NoteListView::onEditNoteAction()
         return;
     }
 
-    emit editNoteDialogRequested(noteLocalUid);
+    Q_EMIT editNoteDialogRequested(noteLocalUid);
 }
 
 void NoteListView::onMoveToOtherNotebookAction()
@@ -399,7 +399,7 @@ void NoteListView::onOpenNoteInSeparateWindowAction()
         return;
     }
 
-    emit openNoteInSeparateWindowRequested(pAction->data().toString());
+    Q_EMIT openNoteInSeparateWindowRequested(pAction->data().toString());
 }
 
 void NoteListView::onUnfavoriteAction()
@@ -471,7 +471,7 @@ void NoteListView::onShowNoteInfoAction()
         return;
     }
 
-    emit noteInfoDialogRequested(noteLocalUid);
+    Q_EMIT noteInfoDialogRequested(noteLocalUid);
 }
 
 void NoteListView::onCopyInAppNoteLinkAction()
@@ -500,7 +500,7 @@ void NoteListView::onCopyInAppNoteLinkAction()
 
     QNTRACE(QStringLiteral("Requesting copy in app note link for note model item: local uid = ")
             << noteLocalUidAndGuid.at(0) << QStringLiteral(", guid = ") << noteLocalUidAndGuid.at(1));
-    emit copyInAppNoteLinkRequested(noteLocalUidAndGuid.at(0), noteLocalUidAndGuid.at(1));
+    Q_EMIT copyInAppNoteLinkRequested(noteLocalUidAndGuid.at(0), noteLocalUidAndGuid.at(1));
 }
 
 void NoteListView::onExportSingleNoteToEnexAction()
@@ -522,7 +522,7 @@ void NoteListView::onExportSingleNoteToEnexAction()
 
     QStringList noteLocalUids;
     noteLocalUids << noteLocalUid;
-    emit enexExportRequested(noteLocalUids);
+    Q_EMIT enexExportRequested(noteLocalUids);
 }
 
 void NoteListView::onExportSeveralNotesToEnexAction()
@@ -542,7 +542,7 @@ void NoteListView::onExportSeveralNotesToEnexAction()
         return;
     }
 
-    emit enexExportRequested(noteLocalUids);
+    Q_EMIT enexExportRequested(noteLocalUids);
 }
 
 void NoteListView::onSelectFirstNoteEvent()
@@ -851,7 +851,7 @@ void NoteListView::currentChanged(const QModelIndex & current,
     m_lastCurrentNoteLocalUid = pItem->localUid();
     QNTRACE(QStringLiteral("Updated the last current note local uid to ") << pItem->localUid());
 
-    emit currentNoteChanged(pItem->localUid());
+    Q_EMIT currentNoteChanged(pItem->localUid());
 }
 
 void NoteListView::mousePressEvent(QMouseEvent * pEvent)

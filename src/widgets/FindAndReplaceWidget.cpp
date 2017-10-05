@@ -120,7 +120,7 @@ void FindAndReplaceWidget::show()
 
 void FindAndReplaceWidget::onCloseButtonPressed()
 {
-    emit closed();
+    Q_EMIT closed();
     setReplaceEnabled(false);
     hide();
 }
@@ -132,7 +132,7 @@ void FindAndReplaceWidget::onFindTextEntered()
         return;
     }
 
-    emit findNext(textToFind, m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT findNext(textToFind, m_pUI->matchCaseCheckBox->isChecked());
 }
 
 void FindAndReplaceWidget::onNextButtonPressed()
@@ -147,17 +147,17 @@ void FindAndReplaceWidget::onPreviousButtonPressed()
         return;
     }
 
-    emit findPrevious(textToFind, m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT findPrevious(textToFind, m_pUI->matchCaseCheckBox->isChecked());
 }
 
 void FindAndReplaceWidget::onMatchCaseCheckboxToggled(int state)
 {
-    emit searchCaseSensitivityChanged(static_cast<bool>(state));
+    Q_EMIT searchCaseSensitivityChanged(static_cast<bool>(state));
 }
 
 void FindAndReplaceWidget::onReplaceTextEntered()
 {
-    emit replace(m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(), m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT replace(m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(), m_pUI->matchCaseCheckBox->isChecked());
 }
 
 void FindAndReplaceWidget::onReplaceButtonPressed()
@@ -167,7 +167,7 @@ void FindAndReplaceWidget::onReplaceButtonPressed()
 
 void FindAndReplaceWidget::onReplaceAllButtonPressed()
 {
-    emit replaceAll(m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(), m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT replaceAll(m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(), m_pUI->matchCaseCheckBox->isChecked());
 }
 
 QSize FindAndReplaceWidget::sizeHint() const

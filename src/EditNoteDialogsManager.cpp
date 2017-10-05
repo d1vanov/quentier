@@ -85,7 +85,7 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinary
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
     QNWARNING(error);
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
 }
 
 void EditNoteDialogsManager::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -120,7 +120,7 @@ void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources,
     error.appendBase(errorDescription.base());
     error.appendBase(errorDescription.additionalBases());
     error.details() = errorDescription.details();
-    emit notifyError(error);
+    Q_EMIT notifyError(error);
 }
 
 void EditNoteDialogsManager::createConnections()
@@ -154,7 +154,7 @@ void EditNoteDialogsManager::findNoteAndRaiseEditNoteDialog(const QString & note
     note.setLocalUid(noteLocalUid);
     QNTRACE(QStringLiteral("Emitting the request to find note: requets id = ") << requestId
             << QStringLiteral(", note local uid = ") << noteLocalUid);
-    emit findNote(note, /* with resource binary data = */ false, requestId);
+    Q_EMIT findNote(note, /* with resource binary data = */ false, requestId);
 }
 
 void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool readOnlyFlag)
@@ -166,7 +166,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool r
     if (Q_UNLIKELY(!pWidget)) {
         ErrorString error(QT_TR_NOOP("Can't raise the note editing dialog: no parent widget"));
         QNWARNING(error << QStringLiteral(", parent = ") << parent());
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -197,7 +197,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool r
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId);
-    emit updateNote(editedNote, /* update resources = */ false, /* update tags = */ false, requestId);
+    Q_EMIT updateNote(editedNote, /* update resources = */ false, /* update tags = */ false, requestId);
 }
 
 } // namespace quentier

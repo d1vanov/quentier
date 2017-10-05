@@ -34,7 +34,7 @@ namespace quentier {
 #define REPORT_ERROR(error, ...) \
     ErrorString errorDescription(error); \
     QNWARNING(errorDescription << "" __VA_ARGS__ ); \
-    emit notifyError(errorDescription)
+    Q_EMIT notifyError(errorDescription)
 
 NotebookModel::NotebookModel(const Account & account, const NoteModel & noteModel,
                              LocalStorageManagerAsync & localStorageManagerAsync,
@@ -471,7 +471,7 @@ QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString 
     QNTRACE(QStringLiteral("Model item after moving to stack: ") << *pModelItem);
 
     QNTRACE(QStringLiteral("Emitting \"notifyNotebookStackChanged\" signal"));
-    emit notifyNotebookStackChanged(index);
+    Q_EMIT notifyNotebookStackChanged(index);
     return indexForItem(pModelItem);
 }
 
@@ -560,7 +560,7 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
     endInsertRows();
 
     QNTRACE(QStringLiteral("Emitting \"notifyNotebookStackChanged\" signal"));
-    emit notifyNotebookStackChanged(index);
+    Q_EMIT notifyNotebookStackChanged(index);
     return indexForItem(pModelItem);
 }
 
@@ -649,7 +649,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
 
     const NotebookModelItem * pParentItem = m_fakeRootItem;
 
-    emit aboutToAddNotebook();
+    Q_EMIT aboutToAddNotebook();
 
     if (!notebookStack.isEmpty())
     {
@@ -674,7 +674,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
         if (it == m_modelItemsByStack.end()) {
             errorDescription.setBase(QT_TR_NOOP("Internal error: no notebook model item while it's expected to be there; "
                                                 "failed to auto-fix the problem"));
-            emit addedNotebook(QModelIndex());
+            Q_EMIT addedNotebook(QModelIndex());
             return QModelIndex();
         }
 
@@ -716,20 +716,20 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
 
     if (m_sortedColumn != Columns::Name) {
         QNDEBUG(QStringLiteral("Not sorting by name, returning"));
-        emit addedNotebook(addedNotebookIndex);
+        Q_EMIT addedNotebook(addedNotebookIndex);
         return addedNotebookIndex;
     }
 
-    emit layoutAboutToBeChanged();
+    Q_EMIT layoutAboutToBeChanged();
     for(auto it = m_modelItemsByLocalUid.begin(), end = m_modelItemsByLocalUid.end(); it != end; ++it) {
         updateItemRowWithRespectToSorting(*it);
     }
-    emit layoutChanged();
+    Q_EMIT layoutChanged();
 
     // Need to update the index as the item's row could have changed as a result of sorting
     addedNotebookIndex = indexForLocalUid(item.localUid());
 
-    emit addedNotebook(addedNotebookIndex);
+    Q_EMIT addedNotebook(addedNotebookIndex);
     return addedNotebookIndex;
 }
 
@@ -1203,7 +1203,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             ErrorString error(QT_TR_NOOP("Can't update the notebook, restrictions apply"));
             error.details() = pNotebookItem->name();
             QNINFO(error << QStringLiteral(", notebookItem = ") << *pNotebookItem);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return false;
         }
         else if ((modelIndex.column() == Columns::Name) && !pNotebookItem->nameIsUpdatable())
@@ -1211,7 +1211,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             ErrorString error(QT_TR_NOOP("Can't update the notebook's name, restrictions apply"));
             error.details() = pNotebookItem->name();
             QNINFO(error << QStringLiteral(", notebookItem = ") << *pNotebookItem);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return false;
         }
 
@@ -1244,7 +1244,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     ErrorString error(QT_TR_NOOP("Can't rename the notebook: no two notebooks within the account are allowed "
                                                  "to have the same name in a case-insensitive manner"));
                     QNINFO(error << QStringLiteral(", suggested new name = ") << newName);
-                    emit notifyError(error);
+                    Q_EMIT notifyError(error);
                     return false;
                 }
 
@@ -1255,7 +1255,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     error.appendBase(errorDescription.additionalBases());
                     error.details() = errorDescription.details();
                     QNINFO(error << QStringLiteral("; suggested new name = ") << newName);
-                    emit notifyError(error);
+                    Q_EMIT notifyError(error);
                     return false;
                 }
 
@@ -1268,14 +1268,14 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 if (m_account.type() == Account::Type::Local) {
                     ErrorString error(QT_TR_NOOP("Can't make the notebook synchronizable within the local account"));
                     QNINFO(error);
-                    emit notifyError(error);
+                    Q_EMIT notifyError(error);
                     return false;
                 }
 
                 if (notebookItemCopy.isSynchronizable() && !value.toBool()) {
                     ErrorString error(QT_TR_NOOP("Can't make the already synchronizable notebook not synchronizable"));
                     QNINFO(error << QStringLiteral(", already synchronizable notebook item: ") << notebookItemCopy);
-                    emit notifyError(error);
+                    Q_EMIT notifyError(error);
                     return false;
                 }
 
@@ -1294,7 +1294,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     ErrorString error(QT_TR_NOOP("In order to stop the notebook from being the default "
                                                  "one please choose another default notebook"));
                     QNINFO(error);
-                    emit notifyError(error);
+                    Q_EMIT notifyError(error);
                     return false;
                 }
 
@@ -1314,7 +1314,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     ErrorString error(QT_TR_NOOP("The last used flag for the notebook is set automatically "
                                                  "when some of its notes is edited"));
                     QNDEBUG(error);
-                    emit notifyError(error);
+                    Q_EMIT notifyError(error);
                     return false;
                 }
 
@@ -1335,16 +1335,16 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 << (sortingByName ? QStringLiteral("true") : QStringLiteral("false")));
 
         if (sortingByName) {
-            emit layoutAboutToBeChanged();
+            Q_EMIT layoutAboutToBeChanged();
         }
 
         localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
         QNTRACE(QStringLiteral("Emitting the data changed signal"));
-        emit dataChanged(modelIndex, modelIndex);
+        Q_EMIT dataChanged(modelIndex, modelIndex);
 
         if (sortingByName) {
-            emit layoutChanged();
+            Q_EMIT layoutChanged();
         }
 
         updateNotebookInLocalStorage(notebookItemCopy);
@@ -1395,7 +1395,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                                              "of stacked notebooks update apply"));
                 error.details() = pNotebookItem->name();
                 QNINFO(error << QStringLiteral(", notebook item for which the restrictions apply: ") << *pNotebookItem);
-                emit notifyError(error);
+                Q_EMIT notifyError(error);
                 return false;
             }
         }
@@ -1407,7 +1407,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                                          "of the notebook stack item"));
             QNWARNING(error << QStringLiteral(", previous stack: \"") << previousStack
                       << QStringLiteral("\", new stack: \"") << newStack << QStringLiteral("\""));
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return false;
         }
 
@@ -1432,7 +1432,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 QNWARNING(error << QStringLiteral(", previous stack: \"") << previousStack
                           << QStringLiteral("\", new stack: \"") << newStack << QStringLiteral("\", linked notebook guid = ")
                           << linkedNotebookGuid);
-                emit notifyError(error);
+                Q_EMIT notifyError(error);
                 return false;
             }
 
@@ -1446,7 +1446,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                                          "model item for the previous stack value"));
             QNWARNING(error << QStringLiteral(", previous stack: \"") << previousStack
                       << QStringLiteral("\", new stack: \"") << newStack << QStringLiteral("\""));
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return false;
         }
 
@@ -1598,17 +1598,17 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             QModelIndex notebookItemIndex = indexForLocalUid(pNotebookItem->localUid());
 
             QNTRACE(QStringLiteral("Emitting the data changed signal"));
-            emit dataChanged(notebookItemIndex, notebookItemIndex);
+            Q_EMIT dataChanged(notebookItemIndex, notebookItemIndex);
 
             if (!wasDirty) {
                 notebookItemIndex = index(notebookItemIndex.row(), Columns::Dirty, notebookItemIndex.parent());
-                emit dataChanged(notebookItemIndex, notebookItemIndex);
+                Q_EMIT dataChanged(notebookItemIndex, notebookItemIndex);
             }
 
             updateNotebookInLocalStorage(notebookItemCopy);
         }
 
-        emit notifyNotebookStackRenamed(previousStack, newStack, linkedNotebookGuid);
+        Q_EMIT notifyNotebookStackRenamed(previousStack, newStack, linkedNotebookGuid);
 
 #undef CHECK_ITEM
 
@@ -1654,7 +1654,7 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
         ErrorString error(QT_TR_NOOP("Can't create a new notebook: the account can contain a limited number of notebooks"));
         error.details() = QString::number(m_account.notebookCountMax());
         QNINFO(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return false;
     }
 
@@ -1693,11 +1693,11 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
 
     if (m_sortedColumn == Columns::Name)
     {
-        emit layoutAboutToBeChanged();
+        Q_EMIT layoutAboutToBeChanged();
         for(auto it = m_modelItemsByLocalUid.begin(), end = m_modelItemsByLocalUid.end(); it != end; ++it) {
             updateItemRowWithRespectToSorting(*it);
         }
-        emit layoutChanged();
+        Q_EMIT layoutChanged();
     }
 
     QNDEBUG(QStringLiteral("Successfully inserted the row(s)"));
@@ -1778,7 +1778,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 ErrorString error(QT_TR_NOOP("One of notebooks being removed along with the stack containing it " \
                                              "is synchronizable, it can't be removed")); \
                 QNINFO(error << QStringLiteral(", notebook: ") << *pNotebookItem); \
-                emit notifyError(error); \
+                Q_EMIT notifyError(error); \
                 return false; \
             } \
             \
@@ -1786,7 +1786,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 ErrorString error(QT_TR_NOOP("One of notebooks being removed along with the stack containing it " \
                                              "is the linked notebook from another account, it can't be removed")); \
                 QNINFO(error << QStringLiteral(", notebook: ") << *pNotebookItem); \
-                emit notifyError(error); \
+                Q_EMIT notifyError(error); \
                 return false; \
             }
 
@@ -2000,7 +2000,7 @@ void NotebookModel::sort(int column, Qt::SortOrder order)
 
     m_sortOrder = order;
 
-    emit layoutAboutToBeChanged();
+    Q_EMIT layoutAboutToBeChanged();
 
     for(auto it = m_modelItemsByLocalUid.begin(), end = m_modelItemsByLocalUid.end(); it != end; ++it) {
         updateItemRowWithRespectToSorting(*it);
@@ -2023,7 +2023,7 @@ void NotebookModel::sort(int column, Qt::SortOrder order)
     }
 
     updatePersistentModelIndices();
-    emit layoutChanged();
+    Q_EMIT layoutChanged();
 }
 
 QStringList NotebookModel::mimeTypes() const
@@ -2085,7 +2085,7 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
     if ((pNewParentItem != m_fakeRootItem) && (pNewParentItem->type() != NotebookModelItem::Type::Stack)) {
         ErrorString error(QT_TR_NOOP("Can't drop the notebook onto another notebook"));
         QNINFO(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return false;
     }
 
@@ -2173,7 +2173,7 @@ void NotebookModel::onAllNotesListed()
         ErrorString errorDescription(QT_TR_NOOP("Internal error: received all notes listed event from some sender "
                                                 "which is not an instance of NoteModel"));
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -2210,7 +2210,7 @@ void NotebookModel::onAddNotebookFailed(Notebook notebook, ErrorString errorDesc
 
     Q_UNUSED(m_addNotebookRequestIds.erase(it))
 
-    emit notifyError(errorDescription);
+    Q_EMIT notifyError(errorDescription);
 
     removeItemByLocalUid(notebook.localUid());
 }
@@ -2245,7 +2245,7 @@ void NotebookModel::onUpdateNotebookFailed(Notebook notebook, ErrorString errorD
     Q_UNUSED(m_findNotebookToRestoreFailedUpdateRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to find the notebook: local uid = ") << notebook.localUid()
             << QStringLiteral(", request id = ") << requestId);
-    emit findNotebook(notebook, requestId);
+    Q_EMIT findNotebook(notebook, requestId);
 }
 
 void NotebookModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
@@ -2297,7 +2297,7 @@ void NotebookModel::onFindNotebookFailed(Notebook notebook, ErrorString errorDes
         Q_UNUSED(m_findNotebookToPerformUpdateRequestIds.erase(performUpdateIt))
     }
 
-    emit notifyError(errorDescription);
+    Q_EMIT notifyError(errorDescription);
 }
 
 void NotebookModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
@@ -2334,8 +2334,8 @@ void NotebookModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpti
     m_allNotebooksListed = true;
 
     if (m_allLinkedNotebooksListed) {
-        emit notifyAllNotebooksListed();
-        emit notifyAllItemsListed();
+        Q_EMIT notifyAllNotebooksListed();
+        Q_EMIT notifyAllItemsListed();
     }
 }
 
@@ -2357,7 +2357,7 @@ void NotebookModel::onListNotebooksFailed(LocalStorageManager::ListObjectsOption
 
     m_listNotebooksRequestId = QUuid();
 
-    emit notifyError(errorDescription);
+    Q_EMIT notifyError(errorDescription);
 }
 
 void NotebookModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
@@ -2371,9 +2371,9 @@ void NotebookModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId
         return;
     }
 
-    emit aboutToRemoveNotebooks();
+    Q_EMIT aboutToRemoveNotebooks();
     removeItemByLocalUid(notebook.localUid());
-    emit removedNotebooks();
+    Q_EMIT removedNotebooks();
 }
 
 void NotebookModel::onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -2685,8 +2685,8 @@ void NotebookModel::onListAllLinkedNotebooksComplete(size_t limit, size_t offset
     m_allLinkedNotebooksListed = true;
 
     if (m_allNotebooksListed) {
-        emit notifyAllNotebooksListed();
-        emit notifyAllItemsListed();
+        Q_EMIT notifyAllNotebooksListed();
+        Q_EMIT notifyAllItemsListed();
     }
 }
 
@@ -2706,7 +2706,7 @@ void NotebookModel::onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
 
     m_listLinkedNotebooksRequestId = QUuid();
 
-    emit notifyError(errorDescription);
+    Q_EMIT notifyError(errorDescription);
 }
 
 void NotebookModel::createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync)
@@ -2818,7 +2818,7 @@ void NotebookModel::requestNotebooksList()
     m_listNotebooksRequestId = QUuid::createUuid();
     QNTRACE(QStringLiteral("Emitting the request to list notebooks: offset = ") << m_listNotebooksOffset
             << QStringLiteral(", request id = ") << m_listNotebooksRequestId);
-    emit listNotebooks(flags, NOTEBOOK_LIST_LIMIT, m_listNotebooksOffset, order, direction, QString(), m_listNotebooksRequestId);
+    Q_EMIT listNotebooks(flags, NOTEBOOK_LIST_LIMIT, m_listNotebooksOffset, order, direction, QString(), m_listNotebooksRequestId);
 }
 
 void NotebookModel::requestNoteCountForNotebook(const Notebook & notebook)
@@ -2828,7 +2828,7 @@ void NotebookModel::requestNoteCountForNotebook(const Notebook & notebook)
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_noteCountPerNotebookRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting request to get the note count per notebook: request id = ") << requestId);
-    emit requestNoteCountPerNotebook(notebook, requestId);
+    Q_EMIT requestNoteCountPerNotebook(notebook, requestId);
 }
 
 void NotebookModel::requestNoteCountForAllNotebooks()
@@ -2855,7 +2855,7 @@ void NotebookModel::requestLinkedNotebooksList()
     m_listLinkedNotebooksRequestId = QUuid::createUuid();
     QNTRACE(QStringLiteral("Emitting the request to list linked notebooks: offset = ") << m_listLinkedNotebooksOffset
             << QStringLiteral(", request id = ") << m_listLinkedNotebooksRequestId);
-    emit listAllLinkedNotebooks(LINKED_NOTEBOOK_LIST_LIMIT, m_listLinkedNotebooksOffset, order, direction, m_listLinkedNotebooksRequestId);
+    Q_EMIT listAllLinkedNotebooks(LINKED_NOTEBOOK_LIST_LIMIT, m_listLinkedNotebooksOffset, order, direction, m_listLinkedNotebooksRequestId);
 }
 
 QVariant NotebookModel::dataImpl(const NotebookModelItem & item, const Columns::type column) const
@@ -3082,7 +3082,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
             Q_UNUSED(m_findNotebookToPerformUpdateRequestIds.insert(requestId))
             Notebook dummy;
             dummy.setLocalUid(item.localUid());
-            emit findNotebook(dummy, requestId);
+            Q_EMIT findNotebook(dummy, requestId);
             QNTRACE(QStringLiteral("Emitted the request to find the notebook: local uid = ") << item.localUid()
                     << QStringLiteral(", request id = ") << requestId);
             return;
@@ -3126,7 +3126,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
 
         QNTRACE(QStringLiteral("Emitting the request to add the notebook to local storage: id = ")
                 << requestId << QStringLiteral(", notebook = ") << notebook);
-        emit addNotebook(notebook, requestId);
+        Q_EMIT addNotebook(notebook, requestId);
 
         Q_UNUSED(m_notebookItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
     }
@@ -3140,7 +3140,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
 
         QNTRACE(QStringLiteral("Emitting the request to update notebook in the local storage: id = ")
                 << requestId << QStringLiteral(", notebook = ") << notebook);
-        emit updateNotebook(notebook, requestId);
+        Q_EMIT updateNotebook(notebook, requestId);
     }
 }
 
@@ -3159,7 +3159,7 @@ void NotebookModel::expungeNotebookFromLocalStorage(const QString & localUid)
     QNDEBUG(QStringLiteral("Emitting the request to expunge the notebook from local storage: "
                            "request id = ") << requestId
             << QStringLiteral(", local uid = ") << localUid);
-    emit expungeNotebook(dummyNotebook, requestId);
+    Q_EMIT expungeNotebook(dummyNotebook, requestId);
 }
 
 QString NotebookModel::nameForNewNotebook() const
@@ -3190,22 +3190,22 @@ void NotebookModel::onNotebookAddedOrUpdated(const Notebook & notebook)
     bool newNotebook = (itemIt == localUidIndex.end());
     if (newNotebook)
     {
-        emit aboutToAddNotebook();
+        Q_EMIT aboutToAddNotebook();
 
         onNotebookAdded(notebook);
 
         QModelIndex addedNotebookIndex = indexForLocalUid(notebook.localUid());
-        emit addedNotebook(addedNotebookIndex);
+        Q_EMIT addedNotebook(addedNotebookIndex);
     }
     else
     {
         QModelIndex notebookIndexBefore = indexForLocalUid(notebook.localUid());
-        emit aboutToUpdateNotebook(notebookIndexBefore);
+        Q_EMIT aboutToUpdateNotebook(notebookIndexBefore);
 
         onNotebookUpdated(notebook, itemIt);
 
         QModelIndex notebookIndexAfter = indexForLocalUid(notebook.localUid());
-        emit updatedNotebook(notebookIndexAfter);
+        Q_EMIT updatedNotebook(notebookIndexAfter);
     }
 }
 
@@ -3403,7 +3403,7 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
 
     QModelIndex modelIndexFrom = createIndex(row, 0, modelItemId);
     QModelIndex modelIndexTo = createIndex(row, NUM_NOTEBOOK_MODEL_COLUMNS - 1, modelItemId);
-    emit dataChanged(modelIndexFrom, modelIndexTo);
+    Q_EMIT dataChanged(modelIndexFrom, modelIndexTo);
 
     if (m_sortedColumn != Columns::Name) {
         QNDEBUG(QStringLiteral("Not sorting by name, returning"));
@@ -3413,7 +3413,7 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     updateItemRowWithRespectToSorting(*pModelItem);
 
     if (notebookStackChanged) {
-        emit notifyNotebookStackChanged(modelIndexFrom);
+        Q_EMIT notifyNotebookStackChanged(modelIndexFrom);
     }
 }
 
@@ -3477,7 +3477,7 @@ void NotebookModel::onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linked
     }
 
     QModelIndex linkedNotebookItemIndex = indexForLinkedNotebookGuid(linkedNotebookGuid);
-    emit dataChanged(linkedNotebookItemIndex, linkedNotebookItemIndex);
+    Q_EMIT dataChanged(linkedNotebookItemIndex, linkedNotebookItemIndex);
 }
 
 NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const NotebookStackItem & stackItem,
@@ -3784,11 +3784,11 @@ void NotebookModel::switchDefaultNotebookLocalUid(const QString & localUid)
             localUidIndex.replace(previousDefaultItemIt, previousDefaultItemCopy);
 
             QModelIndex previousDefaultItemIndex = indexForLocalUid(m_defaultNotebookLocalUid);
-            emit dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
+            Q_EMIT dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
 
             if (!wasDirty) {
                 previousDefaultItemIndex = index(previousDefaultItemIndex.row(), Columns::Dirty, previousDefaultItemIndex.parent());
-                emit dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
+                Q_EMIT dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
             }
 
             updateNotebookInLocalStorage(previousDefaultItemCopy);
@@ -3823,11 +3823,11 @@ void NotebookModel::switchLastUsedNotebookLocalUid(const QString & localUid)
             localUidIndex.replace(previousLastUsedItemIt, previousLastUsedItemCopy);
 
             QModelIndex previousLastUsedItemIndex = indexForLocalUid(m_lastUsedNotebookLocalUid);
-            emit dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
+            Q_EMIT dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
 
             if (!wasDirty) {
                 previousLastUsedItemIndex = index(previousLastUsedItemIndex.row(), Columns::Dirty, previousLastUsedItemIndex.parent());
-                emit dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
+                Q_EMIT dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
             }
 
             updateNotebookInLocalStorage(previousLastUsedItemCopy);
@@ -3978,12 +3978,12 @@ void NotebookModel::setNotebookFavorited(const QModelIndex & index, const bool f
 
 void NotebookModel::beginRemoveNotebooks()
 {
-    emit aboutToRemoveNotebooks();
+    Q_EMIT aboutToRemoveNotebooks();
 }
 
 void NotebookModel::endRemoveNotebooks()
 {
-    emit removedNotebooks();
+    Q_EMIT removedNotebooks();
 }
 
 void NotebookModel::buildNotebookLocalUidByNoteLocalUidsHash(const NoteModel & noteModel)
@@ -4233,7 +4233,7 @@ bool NotebookModel::updateNoteCountPerNotebookIndex(const NotebookItem & item, c
             << QStringLiteral(", model item: ") << *pModelItem);
     QModelIndex modelIndexFrom = createIndex(row, Columns::NumNotesPerNotebook, modelItemId);
     QModelIndex modelIndexTo = createIndex(row, Columns::NumNotesPerNotebook, modelItemId);
-    emit dataChanged(modelIndexFrom, modelIndexTo);
+    Q_EMIT dataChanged(modelIndexFrom, modelIndexTo);
     return true;
 }
 

@@ -157,7 +157,7 @@ void AbstractFilterByModelItemWidget::clear()
     addNewItemWidget();
     persistFilteredItems();
 
-    emit cleared();
+    Q_EMIT cleared();
 }
 
 void AbstractFilterByModelItemWidget::update()
@@ -276,7 +276,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         ErrorString error(QT_TR_NOOP("Internal error: can't process the addition of a new item to the filter: "
                                      "can't cast the signal sender to NewListLineEdit"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -304,7 +304,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         ErrorString error(QT_TR_NOOP("Can't process the addition of a new item "
                                      "to the filter: can't find the item's local uid"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -333,7 +333,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
     }
 
     QNTRACE(QStringLiteral("Successfully added the new item to filter: ") << newItemName);
-    emit addedItemToFilter(newItemName);
+    Q_EMIT addedItemToFilter(newItemName);
 
     persistFilteredItems();
 }
@@ -374,7 +374,7 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(QString name)
     }
 
     QNTRACE(QStringLiteral("Removed item from filter: ") << name);
-    emit itemRemovedFromFilter(name);
+    Q_EMIT itemRemovedFromFilter(name);
 
     persistFilteredItems();
 
@@ -471,7 +471,7 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
     addNewItemWidget();
 
     QNTRACE(QStringLiteral("Updated the list of items within the filter"));
-    emit updated();
+    Q_EMIT updated();
 }
 
 void AbstractFilterByModelItemWidget::addNewItemWidget()

@@ -83,14 +83,14 @@ void EnexExporter::start()
     if (m_noteLocalUids.isEmpty()) {
         ErrorString errorDescription(QT_TR_NOOP("Can't export note to ENEX: no note local uids were specified"));
         QNWARNING(errorDescription);
-        emit failedToExportNotesToEnex(errorDescription);
+        Q_EMIT failedToExportNotesToEnex(errorDescription);
         return;
     }
 
     if (m_includeTags && m_pTagModel.isNull()) {
         ErrorString errorDescription(QT_TR_NOOP("Can't export note to ENEX: the tag model has expired"));
         QNWARNING(errorDescription);
-        emit failedToExportNotesToEnex(errorDescription);
+        Q_EMIT failedToExportNotesToEnex(errorDescription);
         return;
     }
 
@@ -167,11 +167,11 @@ void EnexExporter::start()
     ErrorString errorDescription;
     QString enex = convertNotesToEnex(errorDescription);
     if (enex.isEmpty()) {
-        emit failedToExportNotesToEnex(errorDescription);
+        Q_EMIT failedToExportNotesToEnex(errorDescription);
         return;
     }
 
-    emit notesExportedToEnex(enex);
+    Q_EMIT notesExportedToEnex(enex);
 }
 
 void EnexExporter::clear()
@@ -214,7 +214,7 @@ void EnexExporter::onFindNoteComplete(Note note, bool withResourceBinaryData, QU
             ErrorString errorDescription(QT_TR_NOOP("Can't export note(s) to ENEX: the tag model has expired"));
             QNWARNING(errorDescription);
             clear();
-            emit failedToExportNotesToEnex(errorDescription);
+            Q_EMIT failedToExportNotesToEnex(errorDescription);
             return;
         }
 
@@ -227,11 +227,11 @@ void EnexExporter::onFindNoteComplete(Note note, bool withResourceBinaryData, QU
     ErrorString errorDescription;
     QString enex = convertNotesToEnex(errorDescription);
     if (enex.isEmpty()) {
-        emit failedToExportNotesToEnex(errorDescription);
+        Q_EMIT failedToExportNotesToEnex(errorDescription);
         return;
     }
 
-    emit notesExportedToEnex(enex);
+    Q_EMIT notesExportedToEnex(enex);
 }
 
 void EnexExporter::onFindNoteFailed(Note note, bool withResourceBinaryData,
@@ -255,7 +255,7 @@ void EnexExporter::onFindNoteFailed(Note note, bool withResourceBinaryData,
     QNWARNING(error);
 
     clear();
-    emit failedToExportNotesToEnex(error);
+    Q_EMIT failedToExportNotesToEnex(error);
 }
 
 void EnexExporter::onAllTagsListed()
@@ -279,11 +279,11 @@ void EnexExporter::onAllTagsListed()
     ErrorString errorDescription;
     QString enex = convertNotesToEnex(errorDescription);
     if (enex.isEmpty()) {
-        emit failedToExportNotesToEnex(errorDescription);
+        Q_EMIT failedToExportNotesToEnex(errorDescription);
         return;
     }
 
-    emit notesExportedToEnex(enex);
+    Q_EMIT notesExportedToEnex(enex);
 }
 
 void EnexExporter::findNoteInLocalStorage(const QString & noteLocalUid)
@@ -300,7 +300,7 @@ void EnexExporter::findNoteInLocalStorage(const QString & noteLocalUid)
 
     QNTRACE(QStringLiteral("Emitting the request to find note in the local storage: note local uid = ")
             << noteLocalUid << QStringLiteral(", request id = ") << requestId);
-    emit findNote(dummyNote, /* with resource binary data */ true, requestId);
+    Q_EMIT findNote(dummyNote, /* with resource binary data */ true, requestId);
 }
 
 QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)

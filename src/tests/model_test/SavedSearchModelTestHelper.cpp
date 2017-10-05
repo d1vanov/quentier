@@ -331,12 +331,12 @@ void SavedSearchModelTestHelper::test()
             FAIL(QStringLiteral("Sorting check failed for the saved search model for descending order"));
         }
 
-        emit success();
+        Q_EMIT success();
         return;
     }
     CATCH_EXCEPTION()
 
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 void SavedSearchModelTestHelper::onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
@@ -412,7 +412,7 @@ void SavedSearchModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDe
 {
     SysInfo sysInfo;
     errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 bool SavedSearchModelTestHelper::LessByName::operator()(const QString & lhs, const QString & rhs) const

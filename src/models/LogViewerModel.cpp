@@ -104,7 +104,7 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
         ErrorString errorDescription(QT_TR_NOOP("Log file doesn't exist"));
         errorDescription.details() = m_currentLogFileInfo.absoluteFilePath();
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         endResetModel();
         return;
     }
@@ -115,7 +115,7 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
         errorDescription.details() = m_currentLogFileInfo.absoluteFilePath();
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         endResetModel();
         return;
     }
@@ -337,7 +337,7 @@ void LogViewerModel::onFileChanged(const QString & path)
     {
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
         errorDescription.details() = path;
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -430,7 +430,7 @@ void LogViewerModel::onFileReadAsyncReady(qint64 pos, QString readData, ErrorStr
     m_currentLogFileSize = currentLogFileInfo.size();
 
     if (!errorDescription.isEmpty()) {
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -461,7 +461,7 @@ void LogViewerModel::parseDataFromLogFileFromCurrentPos()
 
     m_pendingLogFileReadData = true;
 
-    emit startAsyncLogFileReading();
+    Q_EMIT startAsyncLogFileReading();
 }
 
 void LogViewerModel::parseNextChunkOfLogFileLines()
@@ -525,7 +525,7 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
             ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: unexpected number of captures by regex"));
             errorDescription.details() += QString::number(capturedTexts.size());
             QNWARNING(errorDescription);
-            emit notifyError(errorDescription);
+            Q_EMIT notifyError(errorDescription);
             return false;
         }
 
@@ -535,7 +535,7 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
             ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: failed to convert the source line number to int"));
             errorDescription.details() += capturedTexts[3];
             QNWARNING(errorDescription);
-            emit notifyError(errorDescription);
+            Q_EMIT notifyError(errorDescription);
             return false;
         }
 
@@ -583,7 +583,7 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
             ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: failed to parse the log level"));
             errorDescription.details() += logLevel;
             QNWARNING(errorDescription);
-            emit notifyError(errorDescription);
+            Q_EMIT notifyError(errorDescription);
             return false;
         }
 

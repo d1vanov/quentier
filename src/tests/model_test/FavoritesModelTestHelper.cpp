@@ -680,7 +680,7 @@ void FavoritesModelTestHelper::launchTest()
     }
     CATCH_EXCEPTION()
 
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -704,7 +704,7 @@ void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, bool updateResour
             !m_expectingTagUpdateFromLocalStorage &&
             !m_expectingSavedSearchUpdateFromLocalStorage)
         {
-            emit success();
+            Q_EMIT success();
         }
     }
     else if (m_expectingNoteUnfavoriteFromLocalStorage)
@@ -773,7 +773,7 @@ void FavoritesModelTestHelper::onUpdateNotebookComplete(Notebook notebook, QUuid
             !m_expectingTagUpdateFromLocalStorage &&
             !m_expectingSavedSearchUpdateFromLocalStorage)
         {
-            emit success();
+            Q_EMIT success();
         }
     }
     else if (m_expectingNotebookUnfavoriteFromLocalStorage)
@@ -838,7 +838,7 @@ void FavoritesModelTestHelper::onUpdateTagComplete(Tag tag, QUuid requestId)
             !m_expectingSavedSearchUpdateFromLocalStorage &&
             !m_expectingNotebookUpdateFromLocalStorage)
         {
-            emit success();
+            Q_EMIT success();
         }
     }
     else if (m_expectingTagUnfavoriteFromLocalStorage)
@@ -907,7 +907,7 @@ void FavoritesModelTestHelper::onUpdateSavedSearchComplete(SavedSearch search, Q
             !m_expectingNotebookUpdateFromLocalStorage &&
             !m_expectingTagUpdateFromLocalStorage)
         {
-            emit success();
+            Q_EMIT success();
         }
     }
     else if (m_expectingSavedSearchUnfavoriteFromLocalStorage)
@@ -1023,7 +1023,7 @@ void FavoritesModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDesc
 {
     SysInfo sysInfo;
     errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 bool FavoritesModelTestHelper::LessByType::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const

@@ -163,7 +163,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
     if (Q_UNLIKELY(tagNameIt == m_currentNoteTagLocalUidToNameBimap.right.end())) {
         ErrorString errorDescription(QT_TR_NOOP("Can't determine the tag which has been removed from the note"));
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -174,7 +174,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
     if (Q_UNLIKELY(!pModelItem)) {
         ErrorString errorDescription(QT_TR_NOOP("Can't find the tag model item attempted to be removed from the note"));
         QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -183,7 +183,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
                                                 "is not of a tag type"));
         QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid
                   << QStringLiteral(", tag model item: ") << *pModelItem);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -193,7 +193,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
                                                 "contains no tag item even though it is of a tag type"));
         QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid
                   << QStringLiteral(", tag model item: ") << *pModelItem);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -213,8 +213,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in the local storage: request id = ")
             << updateNoteRequestId << QStringLiteral(", note = ") << m_currentNote);
-    emit updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true,
-                    updateNoteRequestId);
+    Q_EMIT updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true, updateNoteRequestId);
 }
 
 void NoteTagsWidget::onNewTagNameEntered()
@@ -226,7 +225,7 @@ void NoteTagsWidget::onNewTagNameEntered()
         ErrorString error(QT_TR_NOOP("Internal error: can't process the addition of a new tag: "
                                      "can't cast the signal sender to NewListLineEdit"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -252,7 +251,7 @@ void NoteTagsWidget::onNewTagNameEntered()
     if (Q_UNLIKELY(m_pTagModel.isNull())) {
         ErrorString error(QT_TR_NOOP("Can't process the addition of a new tag: the tag model is null"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -275,7 +274,7 @@ void NoteTagsWidget::onNewTagNameEntered()
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
             QNINFO(error);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return;
         }
     }
@@ -285,7 +284,7 @@ void NoteTagsWidget::onNewTagNameEntered()
         ErrorString error(QT_TR_NOOP("Internal error: can't process the addition of a new tag: "
                                      "can't find the tag model item for index within the tag model"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -293,7 +292,7 @@ void NoteTagsWidget::onNewTagNameEntered()
         ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag name "
                                      "is not of a tag type"));
         QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -302,14 +301,14 @@ void NoteTagsWidget::onNewTagNameEntered()
         ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag name "
                                      "contains no actual tag item even though it is of a tag type"));
         QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
     if (!m_currentLinkedNotebookGuid.isEmpty() && (pTagItem->linkedNotebookGuid() != m_currentLinkedNotebookGuid)) {
         ErrorString error(QT_TR_NOOP("Can't link the note from the external (linked) notebook with tag from your own account"));
         QNDEBUG(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -339,8 +338,7 @@ void NoteTagsWidget::onNewTagNameEntered()
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in the local storage: request id = ")
             << updateNoteRequestId << QStringLiteral(", note = ") << m_currentNote);
-    emit updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true,
-                    updateNoteRequestId);
+    Q_EMIT updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true, updateNoteRequestId);
 }
 
 void NoteTagsWidget::onAllTagsListed()
@@ -392,7 +390,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
                                          "the tag model item was not found within the model"));
             QNWARNING(error << QStringLiteral(", request id = ") << requestId
                       << QStringLiteral(", tag local uid = ") << addedTagLocalUid);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return;
         }
 
@@ -400,7 +398,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
             ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag local uid "
                                          "is not of a tag type"));
             QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return;
         }
 
@@ -409,7 +407,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
             ErrorString error(QT_TR_NOOP("Internal error: the tag model item found by tag local uid "
                                          "contains no actual tag item even though it is of a tag type"));
             QNWARNING(error << QStringLiteral(", tag model item: ") << *pModelItem);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return;
         }
 
@@ -614,7 +612,7 @@ void NoteTagsWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId
         return;
     }
 
-    emit canUpdateNoteRestrictionChanged(m_tagRestrictions.m_canUpdateNote);
+    Q_EMIT canUpdateNoteRestrictionChanged(m_tagRestrictions.m_canUpdateNote);
 
     if (!m_tagRestrictions.m_canUpdateNote) {
         removeNewTagWidgetFromLayout();
@@ -651,7 +649,7 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
     if (Q_UNLIKELY(previousNameIt == m_currentNoteTagLocalUidToNameBimap.left.end())) {
         ErrorString errorDescription(QT_TR_NOOP("Detected the update of a tag, however, its previous name cannot be found"));
         QNWARNING(errorDescription << QStringLiteral(", tag = ") << tag);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -950,7 +948,7 @@ void NoteTagsWidget::removeTagWidgetFromLayout(const QString & tagLocalUid)
     if (Q_UNLIKELY(it == m_currentNoteTagLocalUidToNameBimap.left.end())) {
         ErrorString errorDescription(QT_TR_NOOP("Detected the expunge of a tag, however, its name cannot be found"));
         QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 

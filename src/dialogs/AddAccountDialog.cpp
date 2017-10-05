@@ -267,7 +267,7 @@ void AddAccountDialog::accept()
     if (isLocal)
     {
         QString fullName = userFullName();
-        emit localAccountAdditionRequested(name, fullName);
+        Q_EMIT localAccountAdditionRequested(name, fullName);
     }
     else
     {
@@ -285,7 +285,7 @@ void AddAccountDialog::accept()
         }
 
         QString server = evernoteServerUrl();
-        emit evernoteAccountAdditionRequested(server, proxy);
+        Q_EMIT evernoteAccountAdditionRequested(server, proxy);
     }
 
     QDialog::accept();

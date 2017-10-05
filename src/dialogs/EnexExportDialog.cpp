@@ -117,7 +117,7 @@ void EnexExportDialog::onExportTagsOptionChanged(int state)
     appSettings.setValue(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY, checked);
     appSettings.endGroup();
 
-    emit exportTagsOptionChanged(checked);
+    Q_EMIT exportTagsOptionChanged(checked);
 }
 
 void EnexExportDialog::onBrowseFolderButtonPressed()

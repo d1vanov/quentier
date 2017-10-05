@@ -69,10 +69,10 @@ void ColorPickerToolButton::onColorDialogAction()
     if (colorDialog->exec() == QColorDialog::Accepted)
     {
         QColor color = colorDialog->currentColor();
-        emit colorSelected(color);
+        Q_EMIT colorSelected(color);
     }
     else
     {
-        emit rejected();
+        Q_EMIT rejected();
     }
 }

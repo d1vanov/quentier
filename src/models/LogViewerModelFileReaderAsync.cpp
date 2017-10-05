@@ -35,7 +35,7 @@ void LogViewerModel::FileReaderAsync::onStartReading()
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
         errorDescription.details() = targetFileInfo.absoluteFilePath();
         QNWARNING(errorDescription);
-        emit finished(-1, QString(), errorDescription);
+        Q_EMIT finished(-1, QString(), errorDescription);
         return;
     }
 
@@ -43,7 +43,7 @@ void LogViewerModel::FileReaderAsync::onStartReading()
         ErrorString errorDescription(QT_TR_NOOP("Failed to read the data from log file: failed to seek at position"));
         errorDescription.details() = QString::number(m_startPos);
         QNWARNING(errorDescription);
-        emit finished(-1, QString(), errorDescription);
+        Q_EMIT finished(-1, QString(), errorDescription);
         return;
     }
 
@@ -64,7 +64,7 @@ void LogViewerModel::FileReaderAsync::onStartReading()
             }
 
             QNWARNING(errorDescription);
-            emit finished(-1, QString(), errorDescription);
+            Q_EMIT finished(-1, QString(), errorDescription);
             return;
         }
         else if (bytesRead == 0)
@@ -76,7 +76,7 @@ void LogViewerModel::FileReaderAsync::onStartReading()
         currentPos = m_targetFile.pos();
     }
 
-    emit finished(currentPos, QString::fromUtf8(readData), ErrorString());
+    Q_EMIT finished(currentPos, QString::fromUtf8(readData), ErrorString());
 }
 
 } // namespace quentier

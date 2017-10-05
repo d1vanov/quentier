@@ -728,12 +728,12 @@ void NotebookModelTestHelper::test()
             FAIL(QStringLiteral("Sorting check failed for the notebook model for descending order"));
         }
 
-        emit success();
+        Q_EMIT success();
         return;
     }
     CATCH_EXCEPTION()
 
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 void NotebookModelTestHelper::onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
@@ -823,7 +823,7 @@ void NotebookModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescr
 {
     SysInfo sysInfo;
     errorDescription.details() += QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-    emit failure(errorDescription);
+    Q_EMIT failure(errorDescription);
 }
 
 bool NotebookModelTestHelper::LessByName::operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const

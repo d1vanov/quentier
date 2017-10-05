@@ -73,7 +73,7 @@ void InsertTableToolButton::onTableSettingsDialogAction()
 
 void InsertTableToolButton::onTableSizeChosen(int rows, int columns)
 {
-    emit createdTable(rows, columns, m_currentWidth, m_currentWidthIsRelative);
+    Q_EMIT createdTable(rows, columns, m_currentWidth, m_currentWidthIsRelative);
 }
 
 void InsertTableToolButton::onTableSizeConstraintsChosen(double width, bool relative)

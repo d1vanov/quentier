@@ -1726,7 +1726,7 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
-    emit stopSynchronization();
+    Q_EMIT stopSynchronization();
 }
 
 void MainWindow::onSynchronizationFinished(Account account)
@@ -1889,7 +1889,7 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(QString host, QNetwork
     QNetworkProxy::setApplicationProxy(proxy);
 
     m_pendingNewEvernoteAccountAuthentication = true;
-    emit authenticate();
+    Q_EMIT authenticate();
 }
 
 void MainWindow::onNoteTextSpellCheckToggled()
@@ -2065,7 +2065,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     switch(pItem->type())
     {
     case FavoritesModelItem::Type::Note:
-        emit noteInfoDialogRequested(pItem->localUid());
+        Q_EMIT noteInfoDialogRequested(pItem->localUid());
         break;
     case FavoritesModelItem::Type::Notebook:
         {
@@ -2360,7 +2360,7 @@ void MainWindow::onCurrentNoteInfoRequested()
         return;
     }
 
-    emit noteInfoDialogRequested(pNoteEditorWidget->noteLocalUid());
+    Q_EMIT noteInfoDialogRequested(pNoteEditorWidget->noteLocalUid());
 }
 
 void MainWindow::onCurrentNotePrintRequested()
@@ -2828,7 +2828,7 @@ void MainWindow::onAccountSwitched(Account account)
 
     // Now need to ask the local stortage manager to switch the account
     m_lastLocalStorageSwitchUserRequest = QUuid::createUuid();
-    emit localStorageSwitchUserRequest(account, /* start from scratch = */ false,
+    Q_EMIT localStorageSwitchUserRequest(account, /* start from scratch = */ false,
                                        m_lastLocalStorageSwitchUserRequest);
 }
 
@@ -3353,10 +3353,10 @@ void MainWindow::onSyncButtonPressed()
 
     if (m_syncInProgress) {
         QNDEBUG(QStringLiteral("The synchronization is in progress, will stop it"));
-        emit stopSynchronization();
+        Q_EMIT stopSynchronization();
     }
     else {
-        emit synchronize();
+        Q_EMIT synchronize();
     }
 }
 
@@ -3565,7 +3565,7 @@ void MainWindow::showEvent(QShowEvent * pShowEvent)
 
     Qt::WindowStates state = windowState();
     if (!(state & Qt::WindowMinimized)) {
-        emit shown();
+        Q_EMIT shown();
     }
 }
 
@@ -3574,7 +3574,7 @@ void MainWindow::hideEvent(QHideEvent * pHideEvent)
     QNDEBUG("MainWindow::hideEvent");
 
     QMainWindow::hideEvent(pHideEvent);
-    emit hidden();
+    Q_EMIT hidden();
 }
 
 void MainWindow::changeEvent(QEvent * pEvent)
@@ -3594,7 +3594,7 @@ void MainWindow::changeEvent(QEvent * pEvent)
             QNDEBUG(QStringLiteral("MainWindow is no longer minimized"));
 
             if (isVisible()) {
-                emit shown();
+                Q_EMIT shown();
             }
         }
         else if (minimized)
@@ -3615,7 +3615,7 @@ void MainWindow::changeEvent(QEvent * pEvent)
                 return;
             }
 
-            emit hidden();
+            Q_EMIT hidden();
         }
     }
 }
@@ -4203,7 +4203,7 @@ void MainWindow::setAccountToSyncManager(const Account & account)
 
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setAccountDone,Account),
                      this, QNSLOT(MainWindow,onSynchronizationManagerSetAccountDone,Account));
-    emit synchronizationSetAccount(account);
+    Q_EMIT synchronizationSetAccount(account);
 }
 
 void MainWindow::setSynchronizationOptions(const Account & account)
@@ -4228,10 +4228,10 @@ void MainWindow::setSynchronizationOptions(const Account & account)
     appSettings.endGroup();
 
     m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption = true;
-    emit synchronizationDownloadNoteThumbnailsOptionChanged(downloadNoteThumbnailsOption);
+    Q_EMIT synchronizationDownloadNoteThumbnailsOptionChanged(downloadNoteThumbnailsOption);
 
     m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = true;
-    emit synchronizationDownloadInkNoteImagesOptionChanged(downloadInkNoteImagesOption);
+    Q_EMIT synchronizationDownloadInkNoteImagesOptionChanged(downloadInkNoteImagesOption);
 
     QString inkNoteImagesStoragePath = accountPersistentStoragePath(account);
     inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
@@ -4239,7 +4239,7 @@ void MainWindow::setSynchronizationOptions(const Account & account)
             << QStringLiteral("; account: ") << account);
 
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = true;
-    emit synchronizationSetInkNoteImagesStoragePath(inkNoteImagesStoragePath);
+    Q_EMIT synchronizationSetInkNoteImagesStoragePath(inkNoteImagesStoragePath);
 }
 
 void MainWindow::checkAndLaunchPendingSync()
@@ -4273,7 +4273,7 @@ void MainWindow::checkAndLaunchPendingSync()
 
     QNDEBUG(QStringLiteral("Everything is ready, starting the sync"));
     m_pendingSynchronizationManagerResponseToStartSync = false;
-    emit synchronize();
+    Q_EMIT synchronize();
 }
 
 void MainWindow::setupDefaultShortcuts()

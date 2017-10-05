@@ -33,7 +33,7 @@
     { \
         ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
-        emit notifyError(errorDescription); \
+        Q_EMIT notifyError(errorDescription); \
     }
 
 namespace quentier {
@@ -325,7 +325,7 @@ void FavoriteItemView::onDeselectAction()
 void FavoriteItemView::onShowFavoritedItemInfoAction()
 {
     QNDEBUG(QStringLiteral("FavoriteItemView::onShowFavoritedItemInfoAction"));
-    emit favoritedItemInfoRequested();
+    Q_EMIT favoritedItemInfoRequested();
 }
 
 void FavoriteItemView::selectionChanged(const QItemSelection & selected,

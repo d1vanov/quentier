@@ -65,7 +65,7 @@ bool TableSizeConstraintsActionWidget::isRelative() const
 void TableSizeConstraintsActionWidget::onWidthChange(double width)
 {
     m_currentWidth = width;
-    emit chosenTableWidthConstraints(m_currentWidth, m_currentWidthTypeIsRelative);
+    Q_EMIT chosenTableWidthConstraints(m_currentWidth, m_currentWidthTypeIsRelative);
 }
 
 void TableSizeConstraintsActionWidget::onWidthTypeChange(QString widthType)
@@ -77,5 +77,5 @@ void TableSizeConstraintsActionWidget::onWidthTypeChange(QString widthType)
         m_currentWidthTypeIsRelative = false;
     }
 
-    emit chosenTableWidthConstraints(m_currentWidth, m_currentWidthTypeIsRelative);
+    Q_EMIT chosenTableWidthConstraints(m_currentWidth, m_currentWidthTypeIsRelative);
 }

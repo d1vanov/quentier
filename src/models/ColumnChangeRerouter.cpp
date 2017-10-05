@@ -66,7 +66,7 @@ void ColumnChangeRerouter::onModelDataChanged(const QModelIndex & topLeft, const
     QModelIndex newBottomRight = model->index(bottomRight.row(), m_columnTo, bottomRight.parent());
 
     QNDEBUG(QStringLiteral("Emitting the dataChanged signal for column ") << m_columnTo);
-    emit dataChanged(newTopLeft, newBottomRight
+    Q_EMIT dataChanged(newTopLeft, newBottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                     );
 #else

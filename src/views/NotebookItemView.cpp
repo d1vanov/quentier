@@ -36,7 +36,7 @@
     { \
         ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
-        emit notifyError(errorDescription); \
+        Q_EMIT notifyError(errorDescription); \
     }
 
 namespace quentier {
@@ -252,7 +252,7 @@ void NotebookItemView::onRemovedNotebooks()
 void NotebookItemView::onCreateNewNotebookAction()
 {
     QNDEBUG(QStringLiteral("NotebookItemView::onCreateNewNotebookAction"));
-    emit newNotebookCreationRequested();
+    Q_EMIT newNotebookCreationRequested();
 }
 
 void NotebookItemView::onRenameNotebookAction()
@@ -366,7 +366,7 @@ void NotebookItemView::onSetNotebookDefaultAction()
 void NotebookItemView::onShowNotebookInfoAction()
 {
     QNDEBUG(QStringLiteral("NotebookItemView::onShowNotebookInfoAction"));
-    emit notebookInfoRequested();
+    Q_EMIT notebookInfoRequested();
 }
 
 void NotebookItemView::onEditNotebookAction()

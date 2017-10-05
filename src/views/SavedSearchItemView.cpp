@@ -33,7 +33,7 @@
     { \
         ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
-        emit notifyError(errorDescription); \
+        Q_EMIT notifyError(errorDescription); \
     }
 
 namespace quentier {
@@ -229,7 +229,7 @@ void SavedSearchItemView::onRemovedSavedSearches()
 void SavedSearchItemView::onCreateNewSavedSearchAction()
 {
     QNDEBUG(QStringLiteral("SavedSearchItemView::onCreateNewSavedSearchAction"));
-    emit newSavedSearchCreationRequested();
+    Q_EMIT newSavedSearchCreationRequested();
 }
 
 void SavedSearchItemView::onRenameSavedSearchAction()
@@ -332,7 +332,7 @@ void SavedSearchItemView::onEditSavedSearchAction()
 void SavedSearchItemView::onShowSavedSearchInfoAction()
 {
     QNDEBUG(QStringLiteral("SavedSearchItemView::onShowSavedSearchInfoAction"));
-    emit savedSearchInfoRequested();
+    Q_EMIT savedSearchInfoRequested();
 }
 
 void SavedSearchItemView::onDeselectAction()

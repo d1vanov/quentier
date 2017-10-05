@@ -100,7 +100,7 @@ void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
 void TableSizeSelector::mouseReleaseEvent(QMouseEvent * event)
 {
     if (m_rect.contains(event->pos())) {
-        emit tableSizeSelected(m_currentRow, m_currentColumn);
+        Q_EMIT tableSizeSelected(m_currentRow, m_currentColumn);
     }
 
     QFrame::mouseReleaseEvent(event);

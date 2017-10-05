@@ -67,7 +67,7 @@ void ListItemWidget::setItemRemovable(bool removable)
 
 void ListItemWidget::onRemoveItemButtonPressed()
 {
-    emit itemRemovedFromList(m_pUi->itemNameLabel->text());
+    Q_EMIT itemRemovedFromList(m_pUi->itemNameLabel->text());
 }
 
 } // namespace quentier

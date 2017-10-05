@@ -26,7 +26,7 @@
     QString str; \
     QTextStream strm(&str); \
     strm << text; \
-    emit failure(ErrorString(str)); \
+    Q_EMIT failure(ErrorString(str)); \
     return
 
 #define CATCH_EXCEPTION() \

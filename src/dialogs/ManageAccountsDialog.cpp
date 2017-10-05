@@ -188,7 +188,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
         return;
     }
 
-    emit revokeAuthentication(availableAccount.id());
+    Q_EMIT revokeAuthentication(availableAccount.id());
 }
 
 void ManageAccountsDialog::onBadAccountDisplayNameEntered(ErrorString errorDescription, int row)
@@ -211,12 +211,12 @@ ManageAccountsDialog::AccountsModel::AccountsModel(const QSharedPointer<QVector<
 
 void ManageAccountsDialog::AccountsModel::beginUpdateAccounts()
 {
-    emit layoutAboutToBeChanged();
+    Q_EMIT layoutAboutToBeChanged();
 }
 
 void ManageAccountsDialog::AccountsModel::endUpdateAccounts()
 {
-    emit layoutChanged();
+    Q_EMIT layoutChanged();
 }
 
 Qt::ItemFlags ManageAccountsDialog::AccountsModel::flags(const QModelIndex & index) const
@@ -365,14 +365,14 @@ bool ManageAccountsDialog::AccountsModel::setData(const QModelIndex & index,
                 if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
                     ErrorString error(QT_TR_NOOP("Account name length is below the acceptable level"));
                     error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
-                    emit badAccountDisplayName(error, row);
+                    Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
 
                 if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) {
                     ErrorString error(QT_TR_NOOP("Account name length is above the acceptable level"));
                     error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
-                    emit badAccountDisplayName(error, row);
+                    Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
 
@@ -382,7 +382,7 @@ bool ManageAccountsDialog::AccountsModel::setData(const QModelIndex & index,
                     ErrorString error(QT_TR_NOOP("Account name doesn't match the Evernote's regular expression "
                                                  "for user names; consider simplifying the entered name"));
                     error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
-                    emit badAccountDisplayName(error, row);
+                    Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
             }
@@ -393,7 +393,7 @@ bool ManageAccountsDialog::AccountsModel::setData(const QModelIndex & index,
             }
 
             account.setDisplayName(displayName);
-            emit accountDisplayNameChanged(account);
+            Q_EMIT accountDisplayNameChanged(account);
             return true;
         }
     default:

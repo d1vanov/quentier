@@ -139,7 +139,7 @@ void AccountManager::switchAccount(const Account & account)
         }
 
         m_availableAccounts << account;
-        emit accountAdded(account);
+        Q_EMIT accountAdded(account);
     }
     else
     {
@@ -147,7 +147,7 @@ void AccountManager::switchAccount(const Account & account)
     }
 
     updateLastUsedAccount(complementedAccount);
-    emit switchedAccount(complementedAccount);
+    Q_EMIT switchedAccount(complementedAccount);
 }
 
 void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullName)
@@ -166,7 +166,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
         if (Q_UNLIKELY(availableAccount.name() == name)) {
             ErrorString error(QT_TR_NOOP("Can't add a local account: another account with the same name already exists"));
             QNWARNING(error);
-            emit notifyError(error);
+            Q_EMIT notifyError(error);
             return;
         }
     }
@@ -179,7 +179,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -195,7 +195,7 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
         ErrorString error(QT_TR_NOOP("Internal error: can't process the change of account's display name, "
                                      "can't find the account within the list of available ones"));
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
@@ -212,12 +212,12 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNWARNING(error);
-        emit notifyError(error);
+        Q_EMIT notifyError(error);
         return;
     }
 
     m_availableAccounts[index].setDisplayName(account.displayName());
-    emit accountUpdated(account);
+    Q_EMIT accountUpdated(account);
 }
 
 void AccountManager::detectAvailableAccounts()
@@ -380,7 +380,7 @@ bool AccountManager::createAccountInfo(const Account & account)
                                 evernoteAccountType, account.evernoteHost(), account.shardId(),
                                 errorDescription);
     if (Q_UNLIKELY(!res)) {
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return false;
     }
 
@@ -539,7 +539,7 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
         }
 
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 
@@ -608,7 +608,7 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
         ErrorString errorDescription(QT_TR_NOOP("Can't read the entire complementary account info, error reading XML"));
         errorDescription.details() = reader.errorString();
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        Q_EMIT notifyError(errorDescription);
     }
 
     accountInfo.close();

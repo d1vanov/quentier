@@ -140,7 +140,7 @@ void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
 
     if (pEvent->reason() == Qt::ActiveWindowFocusReason) {
         QNTRACE(QStringLiteral("Received focus from the window system"));
-        emit receivedFocusFromWindowSystem();
+        Q_EMIT receivedFocusFromWindowSystem();
     }
 }
 
