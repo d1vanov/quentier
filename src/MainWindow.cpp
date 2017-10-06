@@ -138,7 +138,7 @@ using quentier::LogViewerWidget;
 #define DARKER_PANEL_STYLE_NAME QStringLiteral("Darker")
 #define LIGHTER_PANEL_STYLE_NAME QStringLiteral("Lighter")
 
-#define PERSIST_GEOMETRY_AND_STATE_DELAY (3000)
+#define PERSIST_GEOMETRY_AND_STATE_DELAY (500)
 
 using namespace quentier;
 
@@ -267,6 +267,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      this, QNSLOT(MainWindow,onSplitterHandleMoved,int,int));
     QObject::connect(m_pUI->sidePanelSplitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
                      this, QNSLOT(MainWindow,onSidePanelSplittedHandleMoved,int,int));
+
+    restoreGeometryAndState();
 }
 
 MainWindow::~MainWindow()
@@ -3596,6 +3598,8 @@ void MainWindow::changeEvent(QEvent * pEvent)
             if (isVisible()) {
                 Q_EMIT shown();
             }
+
+            scheduleGeometryAndStatePersisting();
         }
         else if (minimized)
         {
