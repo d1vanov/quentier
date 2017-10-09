@@ -200,6 +200,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_currentPanelStyle(),
     m_shortcutManager(this),
     m_filtersViewExpanded(false),
+    m_onceSetupNoteSortingModeComboBox(false),
     m_geometryRestored(false),
     m_stateRestored(false),
     m_shown(false),
@@ -2831,7 +2832,7 @@ void MainWindow::onAccountSwitched(Account account)
     // Now need to ask the local stortage manager to switch the account
     m_lastLocalStorageSwitchUserRequest = QUuid::createUuid();
     Q_EMIT localStorageSwitchUserRequest(account, /* start from scratch = */ false,
-                                       m_lastLocalStorageSwitchUserRequest);
+                                         m_lastLocalStorageSwitchUserRequest);
 }
 
 void MainWindow::onAccountUpdated(Account account)
@@ -3830,18 +3831,18 @@ void MainWindow::setupViews()
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pFavoritesModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
-                     pFavoritesTableView, &FavoriteItemView::dataChanged);
+                     pFavoritesTableView, &FavoriteItemView::dataChanged, Qt::UniqueConnection);
     pFavoritesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 #else
     QObject::connect(m_pFavoritesModelColumnChangeRerouter, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     pFavoritesTableView, SLOT(dataChanged(QModelIndex,QModelIndex)));
+                     pFavoritesTableView, SLOT(dataChanged(QModelIndex,QModelIndex)), Qt::UniqueConnection);
     pFavoritesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
 
     QObject::connect(pFavoritesTableView, QNSIGNAL(FavoriteItemView,notifyError,ErrorString),
-                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString), Qt::UniqueConnection);
     QObject::connect(pFavoritesTableView, QNSIGNAL(FavoriteItemView,favoritedItemInfoRequested),
-                     this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed));
+                     this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed), Qt::UniqueConnection);
 
     NotebookItemView * pNotebooksTreeView = m_pUI->notebooksTreeView;
     NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(pNotebooksTreeView);
@@ -3859,19 +3860,24 @@ void MainWindow::setupViews()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pNotebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
-                     pNotebooksTreeView, QNSLOT(NotebookItemView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+                     pNotebooksTreeView, QNSLOT(NotebookItemView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
+                     Qt::UniqueConnection);
 #else
     pNotebooksTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
-                     pNotebooksTreeView, QNSLOT(NotebookItemView,dataChanged,const QModelIndex&,const QModelIndex&));
+                     pNotebooksTreeView, QNSLOT(NotebookItemView,dataChanged,const QModelIndex&,const QModelIndex&),
+                     Qt::UniqueConnection);
 #endif
 
     QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,newNotebookCreationRequested),
-                     this, QNSLOT(MainWindow,onNewNotebookCreationRequested));
+                     this, QNSLOT(MainWindow,onNewNotebookCreationRequested),
+                     Qt::UniqueConnection);
     QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,notebookInfoRequested),
-                     this, QNSLOT(MainWindow,onNotebookInfoButtonPressed));
+                     this, QNSLOT(MainWindow,onNotebookInfoButtonPressed),
+                     Qt::UniqueConnection);
     QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,notifyError,ErrorString),
-                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString),
+                     Qt::UniqueConnection);
 
     TagItemView * pTagsTreeView = m_pUI->tagsTreeView;
     pTagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true); // This column's values would be displayed along with the notebook's name
@@ -3889,19 +3895,21 @@ void MainWindow::setupViews()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pTagsTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pTagModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
-                     pTagsTreeView, QNSLOT(TagItemView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+                     pTagsTreeView, QNSLOT(TagItemView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
+                     Qt::UniqueConnection);
 #else
     pTagsTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pTagModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
-                     pTagsTreeView, QNSLOT(TagItemView,dataChanged,const QModelIndex&,const QModelIndex&));
+                     pTagsTreeView, QNSLOT(TagItemView,dataChanged,const QModelIndex&,const QModelIndex&),
+                     Qt::UniqueConnection);
 #endif
 
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,newTagCreationRequested),
-                     this, QNSLOT(MainWindow,onNewTagCreationRequested));
+                     this, QNSLOT(MainWindow,onNewTagCreationRequested), Qt::UniqueConnection);
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,tagInfoRequested),
-                     this, QNSLOT(MainWindow,onTagInfoButtonPressed));
+                     this, QNSLOT(MainWindow,onTagInfoButtonPressed), Qt::UniqueConnection);
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,notifyError,ErrorString),
-                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString), Qt::UniqueConnection);
 
     SavedSearchItemView * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
     pSavedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);
@@ -3919,11 +3927,11 @@ void MainWindow::setupViews()
 #endif
 
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,savedSearchInfoRequested),
-                     this, QNSLOT(MainWindow,onSavedSearchInfoButtonPressed));
+                     this, QNSLOT(MainWindow,onSavedSearchInfoButtonPressed), Qt::UniqueConnection);
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,newSavedSearchCreationRequested),
-                     this, QNSLOT(MainWindow,onNewSavedSearchCreationRequested));
+                     this, QNSLOT(MainWindow,onNewSavedSearchCreationRequested), Qt::UniqueConnection);
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,notifyError,ErrorString),
-                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString), Qt::UniqueConnection);
 
     NoteListView * pNoteListView = m_pUI->noteListView;
     NoteItemDelegate * pNoteItemDelegate = new NoteItemDelegate(pNoteListView);
@@ -3944,39 +3952,41 @@ void MainWindow::setupViews()
     pNoteListView->setNotebookItemView(pNotebooksTreeView);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pNoteModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
-                     pNoteListView, &NoteListView::dataChanged);
+                     pNoteListView, &NoteListView::dataChanged, Qt::UniqueConnection);
 #else
     QObject::connect(m_pNoteModelColumnChangeRerouter, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     pNoteListView, SLOT(dataChanged(QModelIndex,QModelIndex)));
+                     pNoteListView, SLOT(dataChanged(QModelIndex,QModelIndex)), Qt::UniqueConnection);
 #endif
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,currentNoteChanged,QString),
-                     this, QNSLOT(MainWindow,onCurrentNoteInListChanged,QString));
+                     this, QNSLOT(MainWindow,onCurrentNoteInListChanged,QString), Qt::UniqueConnection);
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,openNoteInSeparateWindowRequested,QString),
-                     this, QNSLOT(MainWindow,onOpenNoteInSeparateWindow,QString));
+                     this, QNSLOT(MainWindow,onOpenNoteInSeparateWindow,QString), Qt::UniqueConnection);
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,enexExportRequested,QStringList),
-                     this, QNSLOT(MainWindow,onExportNotesToEnexRequested,QStringList));
+                     this, QNSLOT(MainWindow,onExportNotesToEnexRequested,QStringList), Qt::UniqueConnection);
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,newNoteCreationRequested),
-                     this, QNSLOT(MainWindow,onNewNoteCreationRequested));
+                     this, QNSLOT(MainWindow,onNewNoteCreationRequested), Qt::UniqueConnection);
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,copyInAppNoteLinkRequested,QString,QString),
-                     this, QNSLOT(MainWindow,onCopyInAppLinkNoteRequested,QString,QString));
+                     this, QNSLOT(MainWindow,onCopyInAppLinkNoteRequested,QString,QString), Qt::UniqueConnection);
 
-    QStringList noteSortingModes;
-    noteSortingModes.reserve(8);
-    noteSortingModes << tr("Created (ascending)");
-    noteSortingModes << tr("Created (descending)");
-    noteSortingModes << tr("Modified (ascending)");
-    noteSortingModes << tr("Modified (descending)");
-    noteSortingModes << tr("Title (ascending)");
-    noteSortingModes << tr("Title (descending)");
-    noteSortingModes << tr("Size (ascending)");
-    noteSortingModes << tr("Size (descending)");
+    if (!m_onceSetupNoteSortingModeComboBox)
+    {
+        QStringList noteSortingModes;
+        noteSortingModes.reserve(8);
+        noteSortingModes << tr("Created (ascending)");
+        noteSortingModes << tr("Created (descending)");
+        noteSortingModes << tr("Modified (ascending)");
+        noteSortingModes << tr("Modified (descending)");
+        noteSortingModes << tr("Title (ascending)");
+        noteSortingModes << tr("Title (descending)");
+        noteSortingModes << tr("Size (ascending)");
+        noteSortingModes << tr("Size (descending)");
 
-    QStringListModel * pNoteSortingModeModel = new QStringListModel(this);
-    pNoteSortingModeModel->setStringList(noteSortingModes);
+        QStringListModel * pNoteSortingModeModel = new QStringListModel(this);
+        pNoteSortingModeModel->setStringList(noteSortingModes);
 
-    m_pUI->noteSortingModeComboBox->setModel(pNoteSortingModeModel);
-    QObject::connect(m_pUI->noteSortingModeComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(onNoteSortingModeChanged(int)));
+        m_pUI->noteSortingModeComboBox->setModel(pNoteSortingModeModel);
+        m_onceSetupNoteSortingModeComboBox = true;
+    }
 
     if (!restoreNoteSortingMode()) {
         m_pUI->noteSortingModeComboBox->setCurrentIndex(NoteSortingModes::ModifiedDescending);
@@ -3984,6 +3994,8 @@ void MainWindow::setupViews()
                 << m_pUI->noteSortingModeComboBox->currentIndex());
     }
 
+    QObject::connect(m_pUI->noteSortingModeComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onNoteSortingModeChanged(int)), Qt::UniqueConnection);
     onNoteSortingModeChanged(m_pUI->noteSortingModeComboBox->currentIndex());
 
     DeletedNoteItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
@@ -4007,13 +4019,17 @@ void MainWindow::setupViews()
     {
         m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManagerAsync, m_noteCache, m_pNotebookModel, this);
         QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
-                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString),
+                         Qt::UniqueConnection);
         QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
-                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString),
+                         Qt::UniqueConnection);
         QObject::connect(this, QNSIGNAL(MainWindow,noteInfoDialogRequested,QString),
-                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString),
+                         Qt::UniqueConnection);
         QObject::connect(pDeletedNotesTableView, QNSIGNAL(DeletedNoteItemView,deletedNoteInfoRequested,QString),
-                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString),
+                         Qt::UniqueConnection);
     }
 
     Account::Type::type currentAccountType = Account::Type::Local;
@@ -4444,6 +4460,11 @@ bool MainWindow::restoreNoteSortingMode()
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("NoteListView"));
+    if (!appSettings.contains(NOTE_SORTING_MODE_KEY)) {
+        QNDEBUG(QStringLiteral("No persisted note sorting mode within the settings, nothing to restore"));
+        return false;
+    }
+
     QVariant data = appSettings.value(NOTE_SORTING_MODE_KEY);
     appSettings.endGroup();
 
