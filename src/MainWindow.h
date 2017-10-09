@@ -365,6 +365,9 @@ private:
 
     bool checkNoteSearchQuery(const QString & noteSearchQuery);
 
+    void startListeningForSplitterMoves();
+    void stopListeningForSplitterMoves();
+
     void persistChosenIconTheme(const QString & iconThemeName);
     void refreshChildWidgetsThemeIcons();
     void refreshNoteEditorWidgetsSpecialIcons();
@@ -374,6 +377,9 @@ private:
 
     void persistGeometryAndState();
     void restoreGeometryAndState();
+
+    void restoreSplitterSizes();
+    void scheduleSplitterSizesRestoration();
 
     void scheduleGeometryAndStatePersisting();
 
@@ -543,6 +549,7 @@ private:
     bool                    m_shown;
 
     int                     m_geometryAndStatePersistingDelayTimerId;
+    int                     m_splitterSizesRestorationDelayTimerId;
 };
 
 #endif // QUENTIER_MAINWINDOW_H

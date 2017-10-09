@@ -115,6 +115,7 @@ using quentier::LogViewerWidget;
 #include <QThreadPool>
 #include <QDir>
 #include <QClipboard>
+#include <cmath>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -139,6 +140,7 @@ using quentier::LogViewerWidget;
 #define LIGHTER_PANEL_STYLE_NAME QStringLiteral("Lighter")
 
 #define PERSIST_GEOMETRY_AND_STATE_DELAY (500)
+#define RESTORE_SPLITTER_SIZES_DELAY (200)
 
 using namespace quentier;
 
@@ -204,7 +206,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_geometryRestored(false),
     m_stateRestored(false),
     m_shown(false),
-    m_geometryAndStatePersistingDelayTimerId(0)
+    m_geometryAndStatePersistingDelayTimerId(0),
+    m_splitterSizesRestorationDelayTimerId(0)
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
@@ -264,12 +267,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     connectToolbarButtonsToSlots();
     connectSystemTrayIconManagerSignalsToSlots();
 
-    QObject::connect(m_pUI->splitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
-                     this, QNSLOT(MainWindow,onSplitterHandleMoved,int,int));
-    QObject::connect(m_pUI->sidePanelSplitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
-                     this, QNSLOT(MainWindow,onSidePanelSplittedHandleMoved,int,int));
-
     restoreGeometryAndState();
+    startListeningForSplitterMoves();
 }
 
 MainWindow::~MainWindow()
@@ -980,6 +979,28 @@ bool MainWindow::checkNoteSearchQuery(const QString & noteSearchQuery)
 
     m_noteSearchQueryValidated = true;
     return true;
+}
+
+void MainWindow::startListeningForSplitterMoves()
+{
+    QNDEBUG(QStringLiteral("MainWindow::startListeningForSplitterMoves"));
+
+    QObject::connect(m_pUI->splitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
+                     this, QNSLOT(MainWindow,onSplitterHandleMoved,int,int),
+                     Qt::UniqueConnection);
+    QObject::connect(m_pUI->sidePanelSplitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
+                     this, QNSLOT(MainWindow,onSidePanelSplittedHandleMoved,int,int),
+                     Qt::UniqueConnection);
+}
+
+void MainWindow::stopListeningForSplitterMoves()
+{
+    QNDEBUG(QStringLiteral("MainWindow::stopListeningForSplitterMoves"));
+
+    QObject::disconnect(m_pUI->splitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
+                        this, QNSLOT(MainWindow,onSplitterHandleMoved,int,int));
+    QObject::disconnect(m_pUI->sidePanelSplitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
+                        this, QNSLOT(MainWindow,onSidePanelSplittedHandleMoved,int,int));
 }
 
 void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
@@ -2697,6 +2718,8 @@ void MainWindow::onQuitRequestedFromSystemTrayIcon()
 void MainWindow::onAccountSwitchRequestedFromSystemTrayIcon(Account account)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequestedFromSystemTrayIcon: ") << account);
+
+    stopListeningForSplitterMoves();
     m_pAccountManager->switchAccount(account);
 }
 
@@ -2821,6 +2844,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     }
 
     const Account & availableAccount = availableAccounts[index];
+
+    stopListeningForSplitterMoves();
     m_pAccountManager->switchAccount(availableAccount);
     // Will continue in slot connected to AccountManager's switchedAccount signal
 }
@@ -3185,6 +3210,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
         NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Local storage user was switched without explicit user action")));
         // Trying to undo it
         m_pAccountManager->switchAccount(*m_pAccount); // This should trigger the switch in local storage as well
+        startListeningForSplitterMoves();
         return;
     }
 
@@ -3197,6 +3223,11 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
         killTimer(m_geometryAndStatePersistingDelayTimerId);
     }
     m_geometryAndStatePersistingDelayTimerId = 0;
+
+    if (m_splitterSizesRestorationDelayTimerId != 0) {
+        killTimer(m_splitterSizesRestorationDelayTimerId);
+    }
+    m_splitterSizesRestorationDelayTimerId = 0;
 
     *m_pAccount = account;
     setWindowTitleForAccount(account);
@@ -3247,6 +3278,9 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     // FIXME: this can be done more lightweight: just set the current account in the already filled list
     updateSubMenuWithAvailableAccounts();
 
+    restoreGeometryAndState();
+    startListeningForSplitterMoves();
+
     if (m_pAccount->type() == Account::Type::Evernote)
     {
         // TODO: should also start the sync if the corresponding setting is set
@@ -3273,6 +3307,7 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
     QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ") << account << QStringLiteral("\nError description: ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
+
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
     onSetStatusBarText(tr("Could not switch account") + QStringLiteral(": ") + errorDescription.localizedString(), SEC_TO_MSEC(30));
@@ -3283,6 +3318,7 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
     }
 
     restoreNetworkProxySettingsForAccount(*m_pAccount);
+    startListeningForSplitterMoves();
 
     const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
     const int numAvailableAccounts = availableAccounts.size();
@@ -3528,6 +3564,11 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         persistGeometryAndState();
         killTimer(m_geometryAndStatePersistingDelayTimerId);
         m_geometryAndStatePersistingDelayTimerId = 0;
+    }
+    else if (pTimerEvent->timerId() == m_splitterSizesRestorationDelayTimerId) {
+        restoreSplitterSizes();
+        killTimer(m_splitterSizesRestorationDelayTimerId);
+        m_splitterSizesRestorationDelayTimerId = 0;
     }
 }
 
@@ -4601,6 +4642,24 @@ void MainWindow::restoreGeometryAndState()
     QByteArray savedGeometry = appSettings.value(MAIN_WINDOW_GEOMETRY_KEY).toByteArray();
     QByteArray savedState = appSettings.value(MAIN_WINDOW_STATE_KEY).toByteArray();
 
+    appSettings.endGroup();
+
+    m_geometryRestored = restoreGeometry(savedGeometry);
+    m_stateRestored = restoreState(savedState);
+
+    QNTRACE(QStringLiteral("Geometry restored = ") << (m_geometryRestored ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", state restored = )") << (m_stateRestored ? QStringLiteral("true") : QStringLiteral("false")));
+
+    scheduleSplitterSizesRestoration();
+}
+
+void MainWindow::restoreSplitterSizes()
+{
+    QNDEBUG(QStringLiteral("MainWindow::restoreSplitterSizes"));
+
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+
     QVariant sidePanelWidth = appSettings.value(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY);
     QVariant notesListWidth = appSettings.value(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY);
 
@@ -4612,12 +4671,7 @@ void MainWindow::restoreGeometryAndState()
 
     appSettings.endGroup();
 
-    m_geometryRestored = restoreGeometry(savedGeometry);
-    m_stateRestored = restoreState(savedState);
-
-    QNTRACE(QStringLiteral("Geometry restored = ") << (m_geometryRestored ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", state restored = )") << (m_stateRestored ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", side panel width = ") << sidePanelWidth << QStringLiteral(", notes list width = ")
+    QNTRACE(QStringLiteral("Side panel width = ") << sidePanelWidth << QStringLiteral(", notes list width = ")
             << notesListWidth << QStringLiteral(", favorites view height = ") << favoritesViewHeight
             << QStringLiteral(", notebooks view height = ") << notebooksViewHeight << QStringLiteral(", tags view height = ")
             << tagsViewHeight << QStringLiteral(", saved searches view height = ") << savedSearchesViewHeight
@@ -4791,6 +4845,31 @@ void MainWindow::restoreGeometryAndState()
         QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
     }
+}
+
+void MainWindow::scheduleSplitterSizesRestoration()
+{
+    QNDEBUG(QStringLiteral("MainWindow::scheduleSplitterSizesRestoration"));
+
+    if (!m_shown) {
+        QNDEBUG(QStringLiteral("Not shown yet, won't do anything"));
+        return;
+    }
+
+    if (m_splitterSizesRestorationDelayTimerId != 0) {
+        QNDEBUG(QStringLiteral("Splitter sizes restoration already scheduled, timer id = ")
+                << m_splitterSizesRestorationDelayTimerId);
+        return;
+    }
+
+    m_splitterSizesRestorationDelayTimerId = startTimer(RESTORE_SPLITTER_SIZES_DELAY);
+    if (Q_UNLIKELY(m_splitterSizesRestorationDelayTimerId == 0)) {
+        QNWARNING(QStringLiteral("Failed to start the timer to delay the restoration of splitter sizes"));
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Started the timer to delay the restoration of splitter sizes: ")
+            << m_splitterSizesRestorationDelayTimerId);
 }
 
 void MainWindow::scheduleGeometryAndStatePersisting()
