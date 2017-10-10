@@ -44,6 +44,7 @@ NoteListView::NoteListView(QWidget * parent) :
     m_pNoteItemContextMenu(Q_NULLPTR),
     m_pNotebookItemView(Q_NULLPTR),
     m_shouldSelectFirstNoteOnNextNoteAddition(false),
+    m_currentAccount(),
     m_lastCurrentNoteLocalUid()
 {}
 
@@ -130,6 +131,16 @@ QString NoteListView::currentNoteLocalUid() const
     }
 
     return pItem->localUid();
+}
+
+const Account & NoteListView::currentAccount() const
+{
+    return m_currentAccount;
+}
+
+void NoteListView::setCurrentAccount(const Account & account)
+{
+    m_currentAccount = account;
 }
 
 void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)

@@ -19,6 +19,7 @@
 #include "NoteItemDelegate.h"
 #include "../models/NoteModel.h"
 #include "../models/NoteFilterModel.h"
+#include "../views/NoteListView.h"
 #include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QPainter>
@@ -357,6 +358,16 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         }
 
         painter->drawImage(thumbnailRect, thumbnail);
+    }
+
+    NoteListView * pNoteListView = qobject_cast<NoteListView*>(pView);
+    if (!pNoteListView) {
+        return;
+    }
+
+    const Account & currentAccount = pNoteListView->currentAccount();
+    if (currentAccount.type() == Account::Type::Local) {
+        return;
     }
 
     // Fill the triangle in the right upper corner if the note is modified

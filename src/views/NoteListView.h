@@ -21,6 +21,7 @@
 
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/types/Account.h>
 #include <QListView>
 
 QT_FORWARD_DECLARE_CLASS(QMenu)
@@ -61,6 +62,13 @@ public:
      * @return the local uid of the current note
      */
     QString currentNoteLocalUid() const;
+
+    /**
+     * @return the current account
+     */
+    const Account & currentAccount() const;
+
+    void setCurrentAccount(const Account & account);
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -140,6 +148,8 @@ protected:
     QMenu *             m_pNoteItemContextMenu;
     NotebookItemView *  m_pNotebookItemView;
     bool                m_shouldSelectFirstNoteOnNextNoteAddition;
+
+    Account             m_currentAccount;
 
     QString             m_lastCurrentNoteLocalUid;
 };
