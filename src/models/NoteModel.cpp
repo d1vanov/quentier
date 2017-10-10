@@ -63,7 +63,7 @@ inline QString includedNotesStr(const quentier::NoteModel::IncludedNotes::type i
 
 #define NOTE_PREVIEW_TEXT_SIZE (500)
 
-#define NUM_NOTE_MODEL_COLUMNS (11)
+#define NUM_NOTE_MODEL_COLUMNS (12)
 
 #define REPORT_ERROR(error, ...) \
     ErrorString errorDescription(error); \
@@ -311,7 +311,8 @@ Qt::ItemFlags NoteModel::flags(const QModelIndex & modelIndex) const
 
     if ((column == Columns::Dirty) ||
         (column == Columns::Size) ||
-        (column == Columns::Synchronizable))
+        (column == Columns::Synchronizable) ||
+        (column == Columns::HasResources))
 
     {
         return indexFlags;
@@ -356,6 +357,7 @@ QVariant NoteModel::data(const QModelIndex & index, int role) const
     case Columns::Size:
     case Columns::Synchronizable:
     case Columns::Dirty:
+    case Columns::HasResources:
         column = static_cast<Columns::type>(columnIndex);
         break;
     default:
@@ -414,6 +416,8 @@ QVariant NoteModel::headerData(int section, Qt::Orientation orientation, int rol
         return QVariant(tr("Synchronizable"));
     case Columns::Dirty:
         return QVariant(tr("Dirty"));
+    case Columns::HasResources:
+        return QVariant(tr("Has attachments"));
     // NOTE: intentional fall-through
     case Columns::ThumbnailImage:
     default:
@@ -1309,6 +1313,8 @@ QVariant NoteModel::dataImpl(const int row, const Columns::type column) const
         return item.isSynchronizable();
     case Columns::Dirty:
         return item.isDirty();
+    case Columns::HasResources:
+        return item.hasResources();
     default:
         return QVariant();
     }
@@ -1422,6 +1428,9 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         break;
     case Columns::Dirty:
         accessibleText += (item.isDirty() ? tr("dirty") : tr("not dirty"));
+        break;
+    case Columns::HasResources:
+        accessibleText += (item.hasResources() ? tr("has attachments") : tr("has no attachments"));
         break;
     case Columns::ThumbnailImage:
     default:
@@ -2004,7 +2013,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
         else
         {
             QModelIndex modelIndexFrom = createIndex(row, Columns::CreationTimestamp);
-            QModelIndex modelIndexTo = createIndex(row, Columns::Dirty);
+            QModelIndex modelIndexTo = createIndex(row, Columns::HasResources);
             Q_UNUSED(localUidIndex.replace(it, item))
             Q_EMIT dataChanged(modelIndexFrom, modelIndexTo);
 
@@ -2211,6 +2220,7 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
     item.setSynchronizable(!note.isLocal());
     item.setDirty(note.isDirty());
     item.setFavorited(note.isFavorited());
+    item.setHasResources(note.hasResources());
 
     if (note.hasNoteRestrictions()) {
         const qevercloud::NoteRestrictions & restrictions = note.noteRestrictions();
@@ -2329,6 +2339,10 @@ bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const Note
     case Columns::Dirty:
         less = (!lhs.isDirty() && rhs.isDirty());
         greater = (lhs.isDirty() && !rhs.isDirty());
+        break;
+    case Columns::HasResources:
+        less = (!lhs.hasResources() && rhs.hasResources());
+        greater = (lhs.hasResources() && !rhs.hasResources());
         break;
     case Columns::ThumbnailImage:
     case Columns::TagNameList:

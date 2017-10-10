@@ -79,7 +79,8 @@ public:
             TagNameList,
             Size,
             Synchronizable,
-            Dirty
+            Dirty,
+            HasResources
         };
     };
 

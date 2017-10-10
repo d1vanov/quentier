@@ -40,6 +40,7 @@ NoteModelItem::NoteModelItem() :
     m_isSynchronizable(false),
     m_isDirty(true),
     m_isFavorited(false),
+    m_hasResources(false),
     m_canUpdateTitle(true),
     m_canUpdateContent(true),
     m_canEmail(true),
