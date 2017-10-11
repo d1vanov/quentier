@@ -2220,7 +2220,7 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
     item.setSynchronizable(!note.isLocal());
     item.setDirty(note.isDirty());
     item.setFavorited(note.isFavorited());
-    item.setHasResources(note.hasResources());
+    item.setHasResources(note.hasResources() && (note.numResources() > 0));
 
     if (note.hasNoteRestrictions()) {
         const qevercloud::NoteRestrictions & restrictions = note.noteRestrictions();
