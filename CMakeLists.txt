@@ -558,6 +558,16 @@ CreateQuentierBundle()
 # list headers/sources and include dirs for cppcheck
 set(QUENTIER_CPPCHECKABLE_SOURCES "${${PROJECT_NAME}_SOURCES}")
 
+if(BREAKPAD_FOUND)
+  # workaround: cppcheck fails to parse some macros used within Breakpad integration sources so need to exclude them
+  list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/BreakpadIntegration.cpp)
+  if(WIN32)
+    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/BreakpadIntegrationWindows.cpp)
+  else()
+    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/BreakpadIntegrationLinux.cpp)
+  endif()
+endif()
+
 set(QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "${${PROJECT_NAME}_INCLUDE_DIRS}")
 list(APPEND QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "${LIBQUENTIER_INCLUDE_DIRS}")
 
