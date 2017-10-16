@@ -21,6 +21,7 @@
 
 #include "ItemView.h"
 #include <quentier/types/ErrorString.h>
+#include <QPointer>
 
 namespace quentier {
 
@@ -28,12 +29,15 @@ QT_FORWARD_DECLARE_CLASS(NotebookModel)
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NotebookStackItem)
 QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
+QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 class NotebookItemView: public ItemView
 {
     Q_OBJECT
 public:
     explicit NotebookItemView(QWidget * parent = Q_NULLPTR);
+
+    void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
 
@@ -84,6 +88,8 @@ private Q_SLOTS:
                                 const QString & linkedNotebookGuid);
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
+    void onNoteFilterChanged();
+
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
@@ -110,14 +116,24 @@ private:
     void selectionChangedImpl(const QItemSelection & selected,
                               const QItemSelection & deselected);
 
+    void persistSelectedNotebookLocalUid(const NotebookModel & notebookModel,
+                                         const QString & notebookLocalUid);
+
+    void clearSelectionImpl();
+
     void setFavoritedFlag(const QAction & action, const bool favorited);
 
     void prepareForNotebookModelChange();
     void postProcessNotebookModelChange();
 
+    void setSelectedNotebookToNoteFilterManager(const QString & notebookLocalUid);
+
 private:
     QMenu *     m_pNotebookItemContextMenu;
     QMenu *     m_pNotebookStackItemContextMenu;
+
+    QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
+
     bool        m_trackingNotebookModelItemsState;
     bool        m_trackingSelection;
     bool        m_modelReady;

@@ -52,8 +52,18 @@ public:
                                 LocalStorageManagerAsync & localStorageManagerAsync,
                                 QObject * parent = Q_NULLPTR);
 
+    const QStringList & notebookLocalUidsInFilter() const;
+    QStringList tagLocalUidsInFilter() const;
+    const QString & savedSearchLocalUidInFilter() const;
+    bool isFilterBySearchStringActive() const;
+
+    void clear();
+    void resetFilterToNotebookLocalUid(const QString & notebookLocalUid);
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
+
+    void filterChanged();
 
     // private signals
     void findNoteLocalUidsForNoteSearchQuery(NoteSearchQuery noteSearchQuery, QUuid requestId);

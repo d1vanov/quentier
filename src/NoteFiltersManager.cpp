@@ -54,6 +54,64 @@ NoteFiltersManager::NoteFiltersManager(FilterByTagWidget & filterByTagWidget,
     createConnections();
 }
 
+const QStringList & NoteFiltersManager::notebookLocalUidsInFilter() const
+{
+    return m_noteFilterModel.notebookLocalUids();
+}
+
+QStringList NoteFiltersManager::tagLocalUidsInFilter() const
+{
+    if (isFilterBySearchStringActive()) {
+        return QStringList();
+    }
+
+    if (!savedSearchLocalUidInFilter().isEmpty()) {
+        return QStringList();
+    }
+
+    QStringList filteredTagLocalUids;
+    filteredTagLocalUids.reserve(m_filteredTagLocalUids.size());
+    for(auto it = m_filteredTagLocalUids.constBegin(),
+        end = m_filteredTagLocalUids.constEnd(); it != end; ++it)
+    {
+        filteredTagLocalUids << *it;
+    }
+
+    return filteredTagLocalUids;
+}
+
+const QString & NoteFiltersManager::savedSearchLocalUidInFilter() const
+{
+    return m_filteredSavedSearchLocalUid;
+}
+
+bool NoteFiltersManager::isFilterBySearchStringActive() const
+{
+    return !m_filterByTagWidget.isEnabled() &&
+           !m_filterByNotebookWidget.isEnabled() &&
+           !m_filterBySavedSearchWidget.isEnabled();
+}
+
+void NoteFiltersManager::clear()
+{
+    QNDEBUG(QStringLiteral("NoteFiltersManager::clear"));
+
+    // TODO: implement
+}
+
+void NoteFiltersManager::resetFilterToNotebookLocalUid(const QString & notebookLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteFiltersManager::resetFilterToNotebookLocalUid: ")
+            << notebookLocalUid);
+
+    if (notebookLocalUid.isEmpty()) {
+        clear();
+        return;
+    }
+
+    // TODO: implement
+}
+
 void NoteFiltersManager::onAddedTagToFilter(const QString & tagName)
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::onAddedTagToFilter: ") << tagName);
@@ -504,11 +562,13 @@ void NoteFiltersManager::evaluate()
 
     bool res = setFilterBySearchString();
     if (res) {
+        emit filterChanged();
         return;
     }
 
     res = setFilterBySavedSearch();
     if (res) {
+        emit filterChanged();
         return;
     }
 
@@ -518,6 +578,8 @@ void NoteFiltersManager::evaluate()
     setFilterByTags();
 
     m_noteFilterModel.endUpdateFilter();
+
+    emit filterChanged();
 }
 
 bool NoteFiltersManager::setFilterBySearchString()
