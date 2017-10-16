@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     app.setQuitOnLastWindowClosed(false);
 
     QUENTIER_INITIALIZE_LOGGING();
-    QUENTIER_SET_MIN_LOG_LEVEL(Trace);
+    QUENTIER_SET_MIN_LOG_LEVEL(Info);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
 
     loadDependencies();
