@@ -425,6 +425,8 @@ private:
     void setupSpecialIcons();
     void setupFontsComboBox();
     void setupLimitedFontsComboBox(const QString & startupFont = QString());
+    void setupFontSizesComboBox();
+    void setupFontSizesForFont(const QFont & font);
 
     void updateNoteSourceView(const QString & html);
 

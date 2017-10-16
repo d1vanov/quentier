@@ -108,6 +108,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
 
     setupSpecialIcons();
     setupFontsComboBox();
+    setupFontSizesComboBox();
 
     // Originally the NoteEditorWidget is not a window, so hide these two buttons,
     // they are for the separate-window mode only
@@ -122,14 +123,6 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_pUi->noteEditor->setUndoStack(m_pUndoStack.data());
 
     setupBlankEditor();
-
-    m_pUi->fontSizeComboBox->clear();
-    int numFontSizes = m_pUi->fontSizeComboBox->count();
-    QNTRACE(QStringLiteral("fontSizeComboBox num items: ") << numFontSizes);
-    for(int i = 0; i < numFontSizes; ++i) {
-        QVariant value = m_pUi->fontSizeComboBox->itemData(i, Qt::UserRole);
-        QNTRACE(QStringLiteral("Font size value for index[") << i << QStringLiteral("] = ") << value);
-    }
 
     BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUi->noteSourceView->document());
     Q_UNUSED(highlighter);
@@ -1757,45 +1750,7 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
                 << QStringLiteral(", font family set by QFont's constructor from it: ") << currentFont.family());
     }
 
-    QFontDatabase fontDatabase;
-    QList<int> fontSizes = fontDatabase.pointSizes(currentFont.family(), currentFont.styleName());
-    // NOTE: it is important to use currentFont.family() in the call above instead of fontFamily variable
-    // because the two can be different by presence/absence of apostrophes around the font family name
-    if (fontSizes.isEmpty()) {
-        QNTRACE(QStringLiteral("Couldn't find point sizes for font family ") << currentFont.family()
-                << QStringLiteral(", will use standard sizes instead"));
-        fontSizes = fontDatabase.standardSizes();
-    }
-
-    QList<int> currentFontSizes;
-    int currentCount = m_pUi->fontSizeComboBox->count();
-    currentFontSizes.reserve(currentCount);
-    for(int i = 0; i < currentCount; ++i)
-    {
-        bool conversionResult = false;
-        QVariant data = m_pUi->fontSizeComboBox->itemData(i);
-        int fontSize = data.toInt(&conversionResult);
-        if (conversionResult) {
-            currentFontSizes << fontSize;
-        }
-    }
-
-    if (currentFontSizes == fontSizes) {
-        QNDEBUG(QStringLiteral("No need to update the items within font sizes combo box: none of them have changed"));
-        return;
-    }
-
-    m_lastFontSizeComboBoxIndex = 0;    // NOTE: clearing out font sizes combo box causes unwanted update of its index to 0, workarounding it
-    m_pUi->fontSizeComboBox->clear();
-    int numFontSizes = fontSizes.size();
-    QNTRACE(QStringLiteral("Found ") << numFontSizes << QStringLiteral(" font sizes for font family ") << currentFont.family());
-
-    for(int i = 0; i < numFontSizes; ++i) {
-        m_pUi->fontSizeComboBox->addItem(QString::number(fontSizes[i]), QVariant(fontSizes[i]));
-        QNTRACE(QStringLiteral("Added item ") << fontSizes[i] << QStringLiteral("pt for index ") << i);
-    }
-
-    m_lastFontSizeComboBoxIndex = -1;
+    setupFontSizesForFont(currentFont);
 }
 
 void NoteEditorWidget::onEditorTextFontSizeChanged(int fontSize)
@@ -2192,7 +2147,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
 
     // Connect to font sizes combobox signals
     QObject::connect(m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(onFontSizesComboBoxCurrentIndexChanged(int)));
+                     this, SLOT(onFontSizesComboBoxCurrentIndexChanged(int)),
+                     Qt::UniqueConnection);
 
     // Connect to note tags widget's signals
     QObject::connect(m_pUi->tagNameLabelsContainer, QNSIGNAL(NoteTagsWidget,newTagLineEditReceivedFocusFromWindowSystem),
@@ -2493,6 +2449,132 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
 
     QObject::connect(m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(QString)),
                      this, SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
+}
+
+void NoteEditorWidget::setupFontSizesComboBox()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setupFontSizesComboBox"));
+
+    bool useLimitedFonts = !(m_pUi->limitedFontComboBox->isHidden());
+
+    QFont currentFont;
+    if (useLimitedFonts) {
+        currentFont.setFamily(m_pUi->limitedFontComboBox->currentText());
+    }
+    else {
+        currentFont = m_pUi->fontComboBox->currentFont();
+    }
+
+    setupFontSizesForFont(currentFont);
+}
+
+void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setupFontSizesForFont: family = ") << font.family()
+            << QStringLiteral(", style name = ") << font.styleName());
+
+    QFontDatabase fontDatabase;
+    QList<int> fontSizes = fontDatabase.pointSizes(font.family(), font.styleName());
+    if (fontSizes.isEmpty()) {
+        QNTRACE(QStringLiteral("Couldn't find point sizes for font family ") << font.family()
+                << QStringLiteral(", will use standard sizes instead"));
+        fontSizes = fontDatabase.standardSizes();
+    }
+
+    int currentFontSize = -1;
+    int currentFontSizeIndex = m_pUi->fontSizeComboBox->currentIndex();
+
+    QList<int> currentFontSizes;
+    int currentCount = m_pUi->fontSizeComboBox->count();
+    currentFontSizes.reserve(currentCount);
+    for(int i = 0; i < currentCount; ++i)
+    {
+        bool conversionResult = false;
+        QVariant data = m_pUi->fontSizeComboBox->itemData(i);
+        int fontSize = data.toInt(&conversionResult);
+        if (conversionResult)
+        {
+            currentFontSizes << fontSize;
+            if (i == currentFontSizeIndex) {
+                currentFontSize = fontSize;
+            }
+        }
+    }
+
+    if (currentFontSizes == fontSizes) {
+        QNDEBUG(QStringLiteral("No need to update the items within font sizes combo box: none of them have changed"));
+        return;
+    }
+
+    QObject::disconnect(m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)),
+                        this, SLOT(onFontSizesComboBoxCurrentIndexChanged(int)));
+
+    m_lastFontSizeComboBoxIndex = 0;
+    m_pUi->fontSizeComboBox->clear();
+    int numFontSizes = fontSizes.size();
+    QNTRACE(QStringLiteral("Found ") << numFontSizes << QStringLiteral(" font sizes for font family ")
+            << font.family());
+
+    for(int i = 0; i < numFontSizes; ++i) {
+        m_pUi->fontSizeComboBox->addItem(QString::number(fontSizes[i]), QVariant(fontSizes[i]));
+        QNTRACE(QStringLiteral("Added item ") << fontSizes[i] << QStringLiteral("pt for index ") << i);
+    }
+
+    m_lastFontSizeComboBoxIndex = -1;
+
+    bool setFontSizeIndex = false;
+    if (currentFontSize > 0)
+    {
+        int fontSizeIndex = fontSizes.indexOf(currentFontSize);
+        if (fontSizeIndex >= 0) {
+            m_pUi->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
+            QNTRACE(QStringLiteral("Setting the current font size to its previous value: ")
+                    << currentFontSize);
+            setFontSizeIndex = true;
+        }
+    }
+
+    if (!setFontSizeIndex && (currentFontSize != 12))
+    {
+        // Try to look for font size 12 as the sanest default font size
+        int fontSizeIndex = fontSizes.indexOf(12);
+        if (fontSizeIndex >= 0) {
+            m_pUi->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
+            QNTRACE(QStringLiteral("Setting the current font size to the default value of 12"));
+            setFontSizeIndex = true;
+        }
+    }
+
+    if (!setFontSizeIndex)
+    {
+        // Try to find any font size between 10 and 20, should be good enough
+        for(int i = 0; i < numFontSizes; ++i)
+        {
+            int fontSize = fontSizes[i];
+            if ((fontSize >= 10) && (fontSize <= 20)) {
+                m_pUi->fontSizeComboBox->setCurrentIndex(i);
+                QNTRACE(QStringLiteral("Setting the current font size to the default value of ")
+                        << fontSize);
+                setFontSizeIndex = true;
+                break;
+            }
+        }
+    }
+
+    if (!setFontSizeIndex && !fontSizes.isEmpty())
+    {
+        // All attempts to pick some sane font size have failed,
+        // will just take the median (or only) font size
+        int index = numFontSizes / 2;
+        m_pUi->fontSizeComboBox->setCurrentIndex(index);
+        QNTRACE(QStringLiteral("Setting the current font size to the median value of ")
+                << fontSizes.at(index));
+        setFontSizeIndex = true;
+    }
+
+    QObject::connect(m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onFontSizesComboBoxCurrentIndexChanged(int)),
+                     Qt::UniqueConnection);
 }
 
 void NoteEditorWidget::updateNoteSourceView(const QString & html)

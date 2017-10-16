@@ -483,8 +483,7 @@
               </property>
               <property name="icon">
                <iconset theme="format-justify-fill">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="checkable">
                <bool>true</bool>
@@ -588,7 +587,7 @@
               </property>
               <property name="minimumSize">
                <size>
-                <width>180</width>
+                <width>120</width>
                 <height>26</height>
                </size>
               </property>
@@ -604,7 +603,7 @@
              <widget class="QComboBox" name="limitedFontComboBox">
               <property name="minimumSize">
                <size>
-                <width>180</width>
+                <width>120</width>
                 <height>26</height>
                </size>
               </property>
@@ -620,7 +619,7 @@
               </property>
               <property name="minimumSize">
                <size>
-                <width>60</width>
+                <width>40</width>
                 <height>26</height>
                </size>
               </property>
@@ -862,7 +861,8 @@
                <enum>Qt::NoFocus</enum>
               </property>
               <property name="icon">
-               <iconset theme="text-x-script"/>
+               <iconset theme="text-x-script">
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -905,8 +905,7 @@
               </property>
               <property name="icon">
                <iconset theme="document-save">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -926,8 +925,7 @@
               </property>
               <property name="icon">
                <iconset theme="document-print">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -947,8 +945,7 @@
               </property>
               <property name="icon">
                <iconset theme="application-pdf">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -965,8 +962,7 @@
              <widget class="QPushButton" name="exportNoteToEnexPushButton">
               <property name="icon">
                <iconset theme="application-enex">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
