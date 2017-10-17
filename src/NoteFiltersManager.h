@@ -122,6 +122,8 @@ private:
 
     QStringList tagNamesFromLocalUids(const TagModel & tagModel) const;
 
+    void clearFilterWidgetsItems();
+
 private:
     FilterByTagWidget &                 m_filterByTagWidget;
     FilterByNotebookWidget &            m_filterByNotebookWidget;

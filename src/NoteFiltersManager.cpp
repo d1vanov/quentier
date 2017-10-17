@@ -96,7 +96,8 @@ void NoteFiltersManager::clear()
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::clear"));
 
-    // TODO: implement
+    clearFilterWidgetsItems();
+    evaluate();
 }
 
 void NoteFiltersManager::resetFilterToNotebookLocalUid(const QString & notebookLocalUid)
@@ -109,7 +110,33 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(const QString & notebookL
         return;
     }
 
-    // TODO: implement
+    const NotebookModel * pNotebookModel = m_filterByNotebookWidget.notebookModel();
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Notebook model in the filter by notebook widget is null"));
+        clear();
+        return;
+    }
+
+    const QString name = pNotebookModel->itemNameForLocalUid(notebookLocalUid);
+    if (name.isEmpty()) {
+        QNWARNING(QStringLiteral("Failed to find the notebook name for notebook local uid ")
+                  << notebookLocalUid);
+        clear();
+        return;
+    }
+
+    clearFilterWidgetsItems();
+
+    QObject::disconnect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
+                        this, QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString));
+
+    m_filterByNotebookWidget.addItemToFilter(notebookLocalUid, name);
+
+    QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
+                     this, QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
+                     Qt::UniqueConnection);
+
+    evaluate();
 }
 
 void NoteFiltersManager::onAddedTagToFilter(const QString & tagName)
@@ -141,6 +168,7 @@ void NoteFiltersManager::onTagsFilterUpdated()
     }
 
     setFilterByTags();
+    Q_EMIT filterChanged();
 }
 
 void NoteFiltersManager::onAddedNotebookToFilter(const QString & notebookName)
@@ -172,6 +200,7 @@ void NoteFiltersManager::onNotebooksFilterUpdated()
     }
 
     setFilterByNotebooks();
+    Q_EMIT filterChanged();
 }
 
 void NoteFiltersManager::onSavedSearchFilterChanged(const QString & savedSearchName)
@@ -186,6 +215,7 @@ void NoteFiltersManager::onSavedSearchFilterChanged(const QString & savedSearchN
 
     bool res = setFilterBySavedSearch();
     if (res) {
+        Q_EMIT filterChanged();
         return;
     }
 
@@ -198,6 +228,8 @@ void NoteFiltersManager::onSavedSearchFilterChanged(const QString & savedSearchN
     setFilterByNotebooks();
 
     m_noteFilterModel.endUpdateFilter();
+
+    Q_EMIT filterChanged();
 }
 
 void NoteFiltersManager::onSearchStringEdited(const QString & text)
@@ -276,6 +308,7 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
 
         bool res = setFilterBySavedSearch();
         if (res) {
+            Q_EMIT filterChanged();
             return;
         }
     }
@@ -297,6 +330,8 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
     setFilterByTags();
 
     m_noteFilterModel.endUpdateFilter();
+
+    Q_EMIT filterChanged();
 }
 
 void NoteFiltersManager::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
@@ -491,58 +526,80 @@ void NoteFiltersManager::createConnections()
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::createConnections"));
 
-    QObject::connect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,addedItemToFilter,const QString&),
-                     this, QNSLOT(NoteFiltersManager,onAddedTagToFilter,const QString&));
-    QObject::connect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,itemRemovedFromFilter,const QString&),
-                     this, QNSLOT(NoteFiltersManager,onRemovedTagFromFilter,const QString&));
+    QObject::connect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,addedItemToFilter,QString),
+                     this, QNSLOT(NoteFiltersManager,onAddedTagToFilter,QString),
+                     Qt::UniqueConnection);
+    QObject::connect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,itemRemovedFromFilter,QString),
+                     this, QNSLOT(NoteFiltersManager,onRemovedTagFromFilter,QString),
+                     Qt::UniqueConnection);
     QObject::connect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,cleared),
-                     this, QNSLOT(NoteFiltersManager,onTagsClearedFromFilter));
+                     this, QNSLOT(NoteFiltersManager,onTagsClearedFromFilter),
+                     Qt::UniqueConnection);
     QObject::connect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,updated),
-                     this, QNSLOT(NoteFiltersManager,onTagsFilterUpdated));
+                     this, QNSLOT(NoteFiltersManager,onTagsFilterUpdated),
+                     Qt::UniqueConnection);
 
-    QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,const QString&),
-                     this, QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,const QString&));
-    QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,itemRemovedFromFilter,const QString&),
-                     this, QNSLOT(NoteFiltersManager,onRemovedNotebookFromFilter,const QString&));
+    QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
+                     this, QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
+                     Qt::UniqueConnection);
+    QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,itemRemovedFromFilter,QString),
+                     this, QNSLOT(NoteFiltersManager,onRemovedNotebookFromFilter,QString),
+                     Qt::UniqueConnection);
     QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,cleared),
-                     this, QNSLOT(NoteFiltersManager,onNotebooksClearedFromFilter));
+                     this, QNSLOT(NoteFiltersManager,onNotebooksClearedFromFilter),
+                     Qt::UniqueConnection);
     QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,updated),
-                     this, QNSLOT(NoteFiltersManager,onNotebooksFilterUpdated));
+                     this, QNSLOT(NoteFiltersManager,onNotebooksFilterUpdated),
+                     Qt::UniqueConnection);
 
     QObject::connect(&m_filterBySavedSearchWidget, SIGNAL(currentIndexChanged(QString)),
-                     this, SLOT(onSavedSearchFilterChanged(QString)));
+                     this, SLOT(onSavedSearchFilterChanged(QString)),
+                     Qt::UniqueConnection);
 
     QObject::connect(&m_searchLineEdit, QNSIGNAL(QLineEdit,textEdited,QString),
-                     this, QNSLOT(NoteFiltersManager,onSearchStringEdited,QString));
+                     this, QNSLOT(NoteFiltersManager,onSearchStringEdited,QString),
+                     Qt::UniqueConnection);
     QObject::connect(&m_searchLineEdit, QNSIGNAL(QLineEdit,editingFinished),
-                     this, QNSLOT(NoteFiltersManager,onSearchStringChanged));
+                     this, QNSLOT(NoteFiltersManager,onSearchStringChanged),
+                     Qt::UniqueConnection);
 
     QObject::connect(this, QNSIGNAL(NoteFiltersManager,findNoteLocalUidsForNoteSearchQuery,NoteSearchQuery,QUuid),
                      &m_localStorageManagerAsync,
-                     QNSLOT(LocalStorageManagerAsync,onFindNoteLocalUidsWithSearchQuery,NoteSearchQuery,QUuid));
+                     QNSLOT(LocalStorageManagerAsync,onFindNoteLocalUidsWithSearchQuery,NoteSearchQuery,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findNoteLocalUidsWithSearchQueryComplete,QStringList,NoteSearchQuery,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryCompleted,QStringList,NoteSearchQuery,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryCompleted,QStringList,NoteSearchQuery,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid),
+                     Qt::UniqueConnection);
 
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onExpungeNotebookComplete,Notebook,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onExpungeNotebookComplete,Notebook,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onUpdateTagComplete,Tag,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onUpdateTagComplete,Tag,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onExpungeTagComplete,Tag,QStringList,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onExpungeTagComplete,Tag,QStringList,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchComplete,SavedSearch,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onUpdateSavedSearchComplete,SavedSearch,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onUpdateSavedSearchComplete,SavedSearch,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchComplete,SavedSearch,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onExpungeSavedSearchComplete,SavedSearch,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onExpungeSavedSearchComplete,SavedSearch,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onAddNoteComplete,Note,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onAddNoteComplete,Note,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onUpdateNoteComplete,Note,bool,bool,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onUpdateNoteComplete,Note,bool,bool,QUuid),
+                     Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onExpungeNoteComplete,Note,QUuid));
+                     this, QNSLOT(NoteFiltersManager,onExpungeNoteComplete,Note,QUuid),
+                     Qt::UniqueConnection);
 }
 
 void NoteFiltersManager::evaluate()
@@ -562,13 +619,13 @@ void NoteFiltersManager::evaluate()
 
     bool res = setFilterBySearchString();
     if (res) {
-        emit filterChanged();
+        Q_EMIT filterChanged();
         return;
     }
 
     res = setFilterBySavedSearch();
     if (res) {
-        emit filterChanged();
+        Q_EMIT filterChanged();
         return;
     }
 
@@ -579,7 +636,7 @@ void NoteFiltersManager::evaluate()
 
     m_noteFilterModel.endUpdateFilter();
 
-    emit filterChanged();
+    Q_EMIT filterChanged();
 }
 
 bool NoteFiltersManager::setFilterBySearchString()
@@ -828,6 +885,55 @@ QStringList NoteFiltersManager::tagNamesFromLocalUids(const TagModel & tagModel)
     }
 
     return tagNames;
+}
+
+void NoteFiltersManager::clearFilterWidgetsItems()
+{
+    QNDEBUG(QStringLiteral("NoteFiltersManager::clearFilterWidgetsItems"));
+
+    // Clear tags
+
+    QObject::disconnect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,cleared),
+                        this, QNSLOT(NoteFiltersManager,onTagsClearedFromFilter));
+
+    m_filterByTagWidget.clear();
+
+    QObject::connect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,addedItemToFilter,QString),
+                     this, QNSLOT(NoteFiltersManager,onAddedTagToFilter,QString),
+                     Qt::UniqueConnection);
+
+    // Clear notebooks
+
+    QObject::disconnect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
+                        this, QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString));
+
+    m_filterByNotebookWidget.clear();
+
+    QObject::connect(&m_filterByNotebookWidget, QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
+                     this, QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
+                     Qt::UniqueConnection);
+
+    // Clear saved search
+
+    QObject::disconnect(&m_filterBySavedSearchWidget, SIGNAL(currentIndexChanged(QString)),
+                        this, SLOT(onSavedSearchFilterChanged(QString)));
+
+    m_filterBySavedSearchWidget.setCurrentIndex(0);
+
+    QObject::connect(&m_filterBySavedSearchWidget, SIGNAL(currentIndexChanged(QString)),
+                     this, SLOT(onSavedSearchFilterChanged(QString)),
+                     Qt::UniqueConnection);
+
+    // Clear search string
+
+    QObject::disconnect(&m_searchLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                        this, QNSLOT(NoteFiltersManager,onSearchStringChanged));
+
+    m_searchLineEdit.setText(QString());
+
+    QObject::connect(&m_searchLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(NoteFiltersManager,onSearchStringChanged),
+                     Qt::UniqueConnection);
 }
 
 } // namespace quentier

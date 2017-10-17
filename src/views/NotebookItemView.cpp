@@ -61,6 +61,17 @@ void NotebookItemView::setNoteFiltersManager(NoteFiltersManager & noteFiltersMan
 {
     QNDEBUG(QStringLiteral("NotebookItemView::setNoteFiltersManager"));
 
+    if (!m_pNoteFiltersManager.isNull())
+    {
+        if (m_pNoteFiltersManager.data() == &noteFiltersManager) {
+            QNDEBUG(QStringLiteral("Already using this note filters manager"));
+            return;
+        }
+
+        QObject::disconnect(m_pNoteFiltersManager.data(), QNSIGNAL(NoteFiltersManager,filterChanged),
+                            this, QNSLOT(NotebookItemView,onNoteFilterChanged));
+    }
+
     m_pNoteFiltersManager = &noteFiltersManager;
 
     QObject::connect(m_pNoteFiltersManager.data(), QNSIGNAL(NoteFiltersManager,filterChanged),

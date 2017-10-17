@@ -3898,6 +3898,7 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed), Qt::UniqueConnection);
 
     NotebookItemView * pNotebooksTreeView = m_pUI->notebooksTreeView;
+    pNotebooksTreeView->setNoteFiltersManager(*m_pNoteFiltersManager);
 
     QAbstractItemDelegate * pPreviousNotebookItemDelegate = pNotebooksTreeView->itemDelegate();
     NotebookItemDelegate * pNotebookItemDelegate = qobject_cast<NotebookItemDelegate*>(pPreviousNotebookItemDelegate);
