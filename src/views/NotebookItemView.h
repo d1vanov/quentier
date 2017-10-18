@@ -58,7 +58,7 @@ private Q_SLOTS:
     void onAllNotebooksListed();
 
     void onAboutToAddNotebook();
-    void onAdddedNotebook(const QModelIndex & index);
+    void onAddedNotebook(const QModelIndex & index);
 
     void onAboutToUpdateNotebook(const QModelIndex & index);
     void onUpdatedNotebook(const QModelIndex & index);

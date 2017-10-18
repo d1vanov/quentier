@@ -192,6 +192,11 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
     m_currentSavedSearchLocalUid = appSettings.value(LAST_FILTERED_SAVED_SEARCH_KEY).toString();
     appSettings.endGroup();
 
+    if (m_currentSavedSearchLocalUid.isEmpty()) {
+        QNDEBUG(QStringLiteral("No last selected saved search local uid, nothing to restore"));
+        return;
+    }
+
     updateSavedSearchesInComboBox();
 }
 

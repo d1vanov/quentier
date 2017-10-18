@@ -151,13 +151,18 @@ void AbstractFilterByModelItemWidget::clear()
 {
     QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::clear"));
 
+    bool wasEmpty = m_filteredItemsLocalUidToNameBimap.empty();
+    QNTRACE(QStringLiteral("Was empty: ") << (wasEmpty ? QStringLiteral("true") : QStringLiteral("false")));
+
     m_filteredItemsLocalUidToNameBimap.clear();
 
     clearLayout();
     addNewItemWidget();
     persistFilteredItems();
 
-    Q_EMIT cleared();
+    if (!wasEmpty) {
+        Q_EMIT cleared();
+    }
 }
 
 void AbstractFilterByModelItemWidget::update()
