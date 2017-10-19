@@ -51,6 +51,7 @@ Q_SIGNALS:
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void showNoteThumbnailsOptionChanged(bool enabled);
+    void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
 private Q_SLOTS:
     // System tray tab
@@ -72,6 +73,7 @@ private Q_SLOTS:
     // Synchronization tab
     void onDownloadNoteThumbnailsCheckboxToggled(bool checked);
     void onDownloadInkNoteImagesCheckboxToggled(bool checked);
+    void onRunSyncPeriodicallyOptionChanged(int index);
 
     void onNetworkProxyTypeChanged(int type);
     void onNetworkProxyHostChanged();
@@ -84,6 +86,7 @@ private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);
     void setupSystemTraySettings();
+    void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupNetworkProxySettingsState();
     void createConnections();
 

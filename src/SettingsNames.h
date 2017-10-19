@@ -72,6 +72,7 @@
 #define SYNCHRONIZATION_SETTINGS_GROUP_NAME QStringLiteral("SynchronizationSettings")
 #define SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS QStringLiteral("DownloadNoteThumbnails")
 #define SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES QStringLiteral("DownloadInkNoteImages")
+#define SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES QStringLiteral("RunSyncEachNumMinutes")
 
 #define SYNCHRONIZATION_NETWORK_PROXY_SETTINGS QStringLiteral("SynchronizationNetworkProxySettings")
 #define SYNCHRONIZATION_NETWORK_PROXY_TYPE QStringLiteral("SynchronizationNetworkProxyType")

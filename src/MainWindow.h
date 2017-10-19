@@ -247,6 +247,7 @@ private Q_SLOTS:
     // Preferences dialog slots
     void onUseLimitedFontsPreferenceChanged(bool flag);
     void onShowNoteThumbnailsPreferenceChanged(bool flag);
+    void onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes);
 
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
@@ -333,6 +334,7 @@ private:
     void setAccountToSyncManager(const Account & account);
     void setSynchronizationOptions(const Account & account);
     void checkAndLaunchPendingSync();
+    void setupRunSyncPeriodicallyTimer();
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
@@ -477,8 +479,10 @@ private:
     bool                        m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption;
     bool                        m_pendingSynchronizationManagerSetInkNoteImagesStoragePath;
     bool                        m_pendingSynchronizationManagerResponseToStartSync;
+    bool                        m_syncApiRateLimitExceeded;
+
     QMovie                      m_animatedSyncButtonIcon;
-    QString                     m_noteThumbnailsStoragePath;
+    int                         m_runSyncPeriodicallyTimerId;
 
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;

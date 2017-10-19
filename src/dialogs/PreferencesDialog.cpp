@@ -269,6 +269,40 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
     Q_EMIT synchronizationDownloadInkNoteImagesOptionChanged(checked);
 }
 
+void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(int index)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onRunSyncPeriodicallyOptionChanged: index = ") << index);
+
+    int runSyncEachNumMinutes = 0;
+    switch(index)
+    {
+    case 1:
+        runSyncEachNumMinutes = 5;
+        break;
+    case 2:
+        runSyncEachNumMinutes = 15;
+        break;
+    case 3:
+        runSyncEachNumMinutes = 30;
+        break;
+    case 4:
+        runSyncEachNumMinutes = 60;
+        break;
+        // NOTE: intentional fall-through
+    case 0:
+    default:
+        break;
+    }
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings syncSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
+    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    syncSettings.setValue(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES, runSyncEachNumMinutes);
+    syncSettings.endGroup();
+
+    emit runSyncPeriodicallyOptionChanged(runSyncEachNumMinutes);
+}
+
 void PreferencesDialog::onNetworkProxyTypeChanged(int type)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyTypeChanged: type = ") << type);
@@ -363,11 +397,29 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
             downloadInkNoteImages = syncSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES).toBool();
         }
 
+        int runSyncEachNumMinutes = -1;
+        if (syncSettings.contains(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES))
+        {
+            QVariant data = syncSettings.value(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES);
+            bool conversionResult = false;
+            runSyncEachNumMinutes = data.toInt(&conversionResult);
+            if (Q_UNLIKELY(!conversionResult)) {
+                QNDEBUG(QStringLiteral("Failed to convert the number of minutes to run sync over to int: ") << data);
+                runSyncEachNumMinutes = -1;
+            }
+        }
+
+        if (runSyncEachNumMinutes < 0) {
+            runSyncEachNumMinutes = DEFAULT_RUN_SYNC_EACH_NUM_MINUTES;
+        }
+
         syncSettings.endGroup();
+
         m_pUi->downloadNoteThumbnailsCheckBox->setChecked(downloadNoteThumbnails);
         m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
 
         setupNetworkProxySettingsState();
+        setupRunSyncEachNumMinutesComboBox(runSyncEachNumMinutes);
 
         m_pUi->synchronizationTabStatusLabel->hide();
     }
@@ -478,6 +530,53 @@ void PreferencesDialog::setupSystemTraySettings()
         m_pUi->trayMiddleClickActionComboBox->setDisabled(true);
         m_pUi->trayDoubleClickActionComboBox->setDisabled(true);
     }
+}
+
+void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::setupRunSyncEachNumMinutesComboBox: ")
+            << currentNumMinutes);
+
+    QStringList runSyncPeriodicallyOptions;
+    runSyncPeriodicallyOptions.reserve(5);
+    runSyncPeriodicallyOptions << tr("Manually");
+    runSyncPeriodicallyOptions << tr("Every 5 minutes");
+    runSyncPeriodicallyOptions << tr("Every 15 minutes");
+    runSyncPeriodicallyOptions << tr("Every 30 minutes");
+    runSyncPeriodicallyOptions << tr("Every hour");
+
+    QStringListModel * pRunSyncPeriodicallyComboBoxModel = new QStringListModel(this);
+    pRunSyncPeriodicallyComboBoxModel->setStringList(runSyncPeriodicallyOptions);
+    m_pUi->runSyncPeriodicallyComboBox->setModel(pRunSyncPeriodicallyComboBoxModel);
+
+    int currentIndex = 2;
+    switch(currentNumMinutes)
+    {
+    case 0:
+        currentIndex = 0;
+        break;
+    case 5:
+        currentIndex = 1;
+        break;
+    case 15:
+        currentIndex = 2;
+        break;
+    case 30:
+        currentIndex = 3;
+        break;
+    case 60:
+        currentIndex = 4;
+        break;
+    default:
+        {
+            QNDEBUG(QStringLiteral("Unrecognized option, using the default one"));
+            break;
+        }
+    }
+
+    m_pUi->runSyncPeriodicallyComboBox->setCurrentIndex(currentIndex);
+    QObject::connect(m_pUi->runSyncPeriodicallyComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onRunSyncPeriodicallyOptionChanged(int)));
 }
 
 void PreferencesDialog::setupNetworkProxySettingsState()

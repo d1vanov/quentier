@@ -171,8 +171,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption(false),
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath(false),
     m_pendingSynchronizationManagerResponseToStartSync(false),
+    m_syncApiRateLimitExceeded(false),
     m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
-    m_noteThumbnailsStoragePath(),
+    m_runSyncPeriodicallyTimerId(0),
     m_notebookCache(),
     m_tagCache(),
     m_savedSearchCache(),
@@ -1733,6 +1734,7 @@ void MainWindow::onSynchronizationStarted()
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStarted"));
 
     onSetStatusBarText(tr("Starting the synchronization") + QStringLiteral("..."));
+    m_syncApiRateLimitExceeded = false;
     m_syncInProgress = true;
     startSyncButtonAnimation();
 }
@@ -1742,6 +1744,7 @@ void MainWindow::onSynchronizationStopped()
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStopped"));
 
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
+    m_syncApiRateLimitExceeded = false;
     m_syncInProgress = false;
     scheduleSyncButtonAnimationStop();
 }
@@ -1841,6 +1844,8 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
     QNINFO(QStringLiteral("Evernote API rate limit exceeded, need to wait for ")
            << secondsToWait << QStringLiteral(" seconds, the synchronization will continue at ")
            << dateTimeToShow);
+
+    m_syncApiRateLimitExceeded = true;
 }
 
 void MainWindow::onRemoteToLocalSyncDone()
@@ -2211,6 +2216,8 @@ void MainWindow::onShowSettingsDialogAction()
                      this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool));
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged,bool),
                      this, QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged,bool));
+    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,runSyncPeriodicallyOptionChanged,int),
+                     this, QNSLOT(MainWindow,onRunSyncEachNumMinitesPreferenceChanged,int));
 
     Q_UNUSED(pPreferencesDialog->exec());
 }
@@ -2650,6 +2657,27 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged(bool flag)
 
     pNoteItemDelegate->setShowNoteThumbnails(flag);
     m_pUI->noteListView->update();
+}
+
+void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRunSyncEachNumMinitesPreferenceChanged: ")
+            << runSyncEachNumMinutes);
+
+    if (m_runSyncPeriodicallyTimerId != 0) {
+        killTimer(m_runSyncPeriodicallyTimerId);
+        m_runSyncPeriodicallyTimerId = 0;
+    }
+
+    if (runSyncEachNumMinutes <= 0) {
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pAccount || (m_pAccount->type() != Account::Type::Evernote))) {
+        return;
+    }
+
+    m_runSyncPeriodicallyTimerId = startTimer(SEC_TO_MSEC(runSyncEachNumMinutes * 60));
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
@@ -3560,15 +3588,49 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         return;
     }
 
-    if (pTimerEvent->timerId() == m_geometryAndStatePersistingDelayTimerId) {
+    if (pTimerEvent->timerId() == m_geometryAndStatePersistingDelayTimerId)
+    {
         persistGeometryAndState();
         killTimer(m_geometryAndStatePersistingDelayTimerId);
         m_geometryAndStatePersistingDelayTimerId = 0;
     }
-    else if (pTimerEvent->timerId() == m_splitterSizesRestorationDelayTimerId) {
+    else if (pTimerEvent->timerId() == m_splitterSizesRestorationDelayTimerId)
+    {
         restoreSplitterSizes();
         killTimer(m_splitterSizesRestorationDelayTimerId);
         m_splitterSizesRestorationDelayTimerId = 0;
+    }
+    else if (pTimerEvent->timerId() == m_runSyncPeriodicallyTimerId)
+    {
+        if (Q_UNLIKELY(!m_pAccount ||
+                       (m_pAccount->type() != Account::Type::Evernote) ||
+                       !m_pSynchronizationManager))
+        {
+            QNDEBUG(QStringLiteral("Non-Evernote account is being used: ")
+                    << (m_pAccount ? m_pAccount->toString() : QStringLiteral("<null>")));
+            killTimer(m_runSyncPeriodicallyTimerId);
+            m_runSyncPeriodicallyTimerId = 0;
+            return;
+        }
+
+        if (m_syncInProgress ||
+            m_pendingNewEvernoteAccountAuthentication ||
+            m_pendingSwitchToNewEvernoteAccount ||
+            m_syncApiRateLimitExceeded)
+        {
+            QNDEBUG(QStringLiteral("Sync in progress = ")
+                    << (m_syncInProgress ? QStringLiteral("true") : QStringLiteral("false"))
+                    << QStringLiteral(", pending new Evernote account authentication = ")
+                    << (m_pendingNewEvernoteAccountAuthentication ? QStringLiteral("true") : QStringLiteral("false"))
+                    << QStringLiteral(", pending switch to new Evernote account = ")
+                    << (m_pendingSwitchToNewEvernoteAccount ? QStringLiteral("true") : QStringLiteral("false"))
+                    << QStringLiteral(", sync API rate limit exceeded = ")
+                    << (m_syncApiRateLimitExceeded ? QStringLiteral("true") : QStringLiteral("false")));
+            return;
+        }
+
+        QNDEBUG(QStringLiteral("Starting the periodically run sync"));
+        emit synchronize();
     }
 }
 
@@ -4264,7 +4326,8 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
 
 void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAccountOption)
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManager"));
+    QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManager: set account option = ")
+            << setAccountOption);
 
     clearSynchronizationManager();
 
@@ -4324,6 +4387,8 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
 
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
     connectSynchronizationManager();
+
+    setupRunSyncPeriodicallyTimer();
 }
 
 void MainWindow::clearSynchronizationManager()
@@ -4352,6 +4417,14 @@ void MainWindow::clearSynchronizationManager()
     m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = false;
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = false;
     m_pendingSynchronizationManagerResponseToStartSync = false;
+
+    m_syncApiRateLimitExceeded = false;
+    scheduleSyncButtonAnimationStop();
+
+    if (m_runSyncPeriodicallyTimerId != 0) {
+        killTimer(m_runSyncPeriodicallyTimerId);
+        m_runSyncPeriodicallyTimerId = 0;
+    }
 }
 
 void MainWindow::setAccountToSyncManager(const Account & account)
@@ -4431,6 +4504,44 @@ void MainWindow::checkAndLaunchPendingSync()
     QNDEBUG(QStringLiteral("Everything is ready, starting the sync"));
     m_pendingSynchronizationManagerResponseToStartSync = false;
     Q_EMIT synchronize();
+}
+
+void MainWindow::setupRunSyncPeriodicallyTimer()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupRunSyncPeriodicallyTimer"));
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG(QStringLiteral("No current account"));
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pAccount->type() != Account::Type::Evernote)) {
+        QNDEBUG(QStringLiteral("Non-Evernote account is used"));
+        return;
+    }
+
+    ApplicationSettings syncSettings(*m_pAccount, QUENTIER_SYNC_SETTINGS);
+    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+
+    int runSyncEachNumMinutes = -1;
+    if (syncSettings.contains(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES))
+    {
+        QVariant data = syncSettings.value(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES);
+        bool conversionResult = false;
+        runSyncEachNumMinutes = data.toInt(&conversionResult);
+        if (Q_UNLIKELY(!conversionResult)) {
+            QNDEBUG(QStringLiteral("Failed to convert the number of minutes to run sync over to int: ") << data);
+            runSyncEachNumMinutes = -1;
+        }
+    }
+
+    if (runSyncEachNumMinutes < 0) {
+        runSyncEachNumMinutes = DEFAULT_RUN_SYNC_EACH_NUM_MINUTES;
+    }
+
+    syncSettings.endGroup();
+
+    onRunSyncEachNumMinitesPreferenceChanged(runSyncEachNumMinutes);
 }
 
 void MainWindow::setupDefaultShortcuts()
