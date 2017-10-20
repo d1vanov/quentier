@@ -126,7 +126,7 @@ void LogViewerWidget::setupLogLevels()
 
     m_pUi->logLevelComboBox->setCurrentIndex(QuentierMinLogLevel());
     QObject::connect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(onCurrentLogLevelChanged(int)));
+                     this, SLOT(onCurrentLogLevelChanged(int)), Qt::UniqueConnection);
 }
 
 void LogViewerWidget::setupLogFiles()
@@ -422,6 +422,14 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         // Enable tracing
         QuentierSetMinLogLevel(LogLevel::TraceLevel);
 
+        QObject::disconnect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),
+                            this, SLOT(onCurrentLogLevelChanged(int)));
+        m_pUi->logLevelComboBox->setCurrentIndex(0);
+        QObject::connect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),
+                         this, SLOT(onCurrentLogLevelChanged(int)), Qt::UniqueConnection);
+
+        m_pUi->logLevelComboBox->setEnabled(false);
+
         m_pUi->filterByContentLineEdit->setText(QString());
         onFilterByContentEditingFinished();
 
@@ -437,6 +445,15 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
 
         // Restore the previously backed up settings
         QuentierSetMinLogLevel(m_minLogLevelBeforeTracing);
+
+        QObject::disconnect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),
+                            this, SLOT(onCurrentLogLevelChanged(int)));
+        m_pUi->logLevelComboBox->setCurrentIndex(m_minLogLevelBeforeTracing);
+        QObject::connect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),
+                         this, SLOT(onCurrentLogLevelChanged(int)), Qt::UniqueConnection);
+
+        m_pUi->logLevelComboBox->setEnabled(true);
+
         m_minLogLevelBeforeTracing = LogLevel::InfoLevel;
 
         m_pLogViewerFilterModel->setFilterOutBeforeRow(m_filterOutBeforeRowBeforeTracing);
