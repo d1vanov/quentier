@@ -1764,6 +1764,8 @@ void MainWindow::onSynchronizationFinished(Account account)
     m_syncInProgress = false;
     scheduleSyncButtonAnimationStop();
 
+    setupRunSyncPeriodicallyTimer();
+
     QNINFO(QStringLiteral("Synchronization finished for user ") << account.name()
            << QStringLiteral(", id ") << account.id());
 }
