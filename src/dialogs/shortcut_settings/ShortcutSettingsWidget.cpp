@@ -511,7 +511,7 @@ bool ShortcutSettingsWidget::markCollisions(ShortcutItem & item)
             }
 
             if (Q_UNLIKELY(!pCurrentItem->m_pTreeWidgetItem)) {
-                QNWARNING(QStringLiteral("Skipping ShortcutItem with null pointer to QTreeWidgetItem"));
+                QNTRACE(QStringLiteral("Skipping ShortcutItem with null pointer to QTreeWidgetItem"));
                 continue;
             }
 
