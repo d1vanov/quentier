@@ -100,6 +100,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this, QNSLOT(LogViewerWidget,onResetButtonPressed));
     QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,toggled,bool),
                      this, QNSLOT(LogViewerWidget,onTraceButtonToggled,bool));
+    QObject::connect(m_pUi->logFileWipePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(LogViewerWidget,onWipeLogPushButtonPressed));
     QObject::connect(m_pUi->filterByContentLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(LogViewerWidget,onFilterByContentEditingFinished));
     QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,notifyError,ErrorString),
@@ -564,6 +566,48 @@ void LogViewerWidget::onLogEntriesViewCopySelectedItemsAction()
 void LogViewerWidget::onLogEntriesViewDeselectAction()
 {
     m_pUi->logEntriesTableView->clearSelection();
+}
+
+void LogViewerWidget::onWipeLogPushButtonPressed()
+{
+    QString currentLogFileName = m_pLogViewerModel->logFileName();
+    if (Q_UNLIKELY(currentLogFileName.isEmpty())) {
+        return;
+    }
+
+    QDir dir(QuentierLogFilesDirPath());
+    if (Q_UNLIKELY(!dir.exists())) {
+        return;
+    }
+
+    QFileInfo currentLogFileInfo(dir.absoluteFilePath(currentLogFileName));
+    if (Q_UNLIKELY(!currentLogFileInfo.exists() ||
+                   !currentLogFileInfo.isFile() ||
+                   !currentLogFileInfo.isWritable()))
+    {
+        Q_UNUSED(warningMessageBox(this, tr("Can't wipe log file"),
+                                   tr("Found no log file to wipe"),
+                                   tr("Current log file doesn't seem to exist or be a writable file") +
+                                   QStringLiteral(": ") + QDir::toNativeSeparators(currentLogFileInfo.absoluteFilePath())))
+        return;
+    }
+
+    int confirm = questionMessageBox(this, tr("Confirm wiping out the log file"),
+                                     tr("Are you sure you want to wipe out the log file?"),
+                                     tr("The log file's contents would be removed without "
+                                        "the possibility to restore them. Are you sure you want "
+                                        "to wipe out the contents of the log file?"));
+    if (confirm != QMessageBox::Ok) {
+        return;
+    }
+
+    ErrorString errorDescription;
+    bool res = m_pLogViewerModel->wipeCurrentLogFile(errorDescription);
+    if (!res) {
+        Q_UNUSED(warningMessageBox(this, tr("Failed to wipe the log file"),
+                                   tr("Error wiping out the contents of the log file"),
+                                   errorDescription.localizedString()))
+    }
 }
 
 void LogViewerWidget::clear()

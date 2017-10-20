@@ -126,7 +126,7 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     m_currentLogFileSize = m_currentLogFileInfo.size();
     m_currentLogFileSizePollingTimer.start(LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC, this);
 
-    // NOTE: for unknown reason QFileSystemWatcher from Qt4 fails do add any log file path + also hangs the process;
+    // NOTE: for unknown reason QFileSystemWatcher from Qt4 fails to add any log file path + also hangs the process;
     // hence, using only the current log file size polling timer as the means to watch the log file's changes with Qt4
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString filePath = m_currentLogFileInfo.absoluteFilePath();
@@ -137,6 +137,22 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
 
     parseFullDataFromLogFile();
     endResetModel();
+}
+
+bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
+{
+    if (!m_currentLogFileInfo.exists()) {
+        errorDescription.setBase(QT_TR_NOOP("No log file is selected"));
+        return false;
+    }
+
+    if (Q_UNLIKELY(!m_currentLogFileInfo.isFile())) {
+        errorDescription.setBase(QT_TR_NOOP("Currently selected log file name does not really correspond to a file"));
+        return false;
+    }
+
+    // TODO: implement further
+    return true;
 }
 
 void LogViewerModel::clear()

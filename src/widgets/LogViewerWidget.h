@@ -77,6 +77,8 @@ private Q_SLOTS:
     void onLogEntriesViewCopySelectedItemsAction();
     void onLogEntriesViewDeselectAction();
 
+    void onWipeLogPushButtonPressed();
+
 private:
     void clear();
 

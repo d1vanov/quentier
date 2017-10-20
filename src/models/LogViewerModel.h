@@ -55,6 +55,7 @@ public:
 
     qint64 currentLogFilePos() const { return m_currentLogFilePos; }
 
+    bool wipeCurrentLogFile(ErrorString & errorDescription);
     void clear();
 
     static QString logLevelToString(LogLevel::type logLevel);
