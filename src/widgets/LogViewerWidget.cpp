@@ -440,6 +440,7 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
             m_logLevelEnabledCheckboxPtrs[i]->setChecked(true);
         }
         m_pUi->filterByLogLevelTableWidget->setEnabled(false);
+        m_pUi->logFileWipePushButton->setEnabled(false);
     }
     else
     {
@@ -472,6 +473,7 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
             m_filterByLogLevelBeforeTracing[i] = false;
         }
         m_pUi->filterByLogLevelTableWidget->setEnabled(true);
+        m_pUi->logFileWipePushButton->setEnabled(true);
     }
 
     scheduleLogEntriesViewColumnsResize();
