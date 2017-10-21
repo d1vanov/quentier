@@ -98,6 +98,8 @@ Q_SIGNALS:
 
     // private signals
     void startAsyncLogFileReading();
+    void deleteFileReaderAsync();
+    void wipeCurrentLogFileFinished();
 
 public:
     // QAbstractTableModel interface
@@ -126,6 +128,7 @@ private:
 
 private:
     void appendLogEntryLine(Data & data, const QString & line) const;
+    bool wipeCurrentLogFileImpl(ErrorString & errorDescription);
 
 private:
     class FileReaderAsync;
@@ -153,8 +156,13 @@ private:
     bool                m_pendingLogFileReadData;
 
     QThread *           m_pReadLogFileIOThread;
+    FileReaderAsync *   m_pFileReaderAsync;
 
     QList<Data>         m_data;
+
+    bool                m_pendingCurrentLogFileWipe;
+    bool                m_wipeCurrentLogFileResultStatus;
+    ErrorString         m_wipeCurrentLogFileErrorDescription;
 };
 
 } // namespace quentier
