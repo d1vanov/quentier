@@ -159,6 +159,7 @@ private Q_SLOTS:
     void onRemoteToLocalSyncDone();
     void onSyncChunksDownloaded();
     void onNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload);
+    void onResourcesDownloadProgress(quint32 resourcesDownloaded, quint32 totalResourcesToDownload);
     void onLinkedNotebooksSyncChunksDownloaded();
     void onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload);
 

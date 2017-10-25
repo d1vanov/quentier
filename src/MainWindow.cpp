@@ -842,6 +842,8 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onSyncChunksDownloaded));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,notesDownloadProgress,quint32,quint32),
                      this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,resourcesDownloadProgress,quint32,quint32),
+                     this, QNSLOT(MainWindow,onResourcesDownloadProgress,quint32,quint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksSyncChunksDownloaded),
                      this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksNotesDownloadProgress,quint32,quint32),
@@ -898,6 +900,8 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onSyncChunksDownloaded));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,notesDownloadProgress,quint32,quint32),
                         this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,resourcesDownloadProgress,quint32,quint32),
+                        this, QNSLOT(MainWindow,onResourcesDownloadProgress,quint32,quint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksSyncChunksDownloaded),
                         this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksNotesDownloadProgress,quint32,quint32),
@@ -1872,6 +1876,16 @@ void MainWindow::onNotesDownloadProgress(quint32 notesDownloaded, quint32 totalN
 
     onSetStatusBarText(tr("Downloading notes") + QStringLiteral(": ") + QString::number(notesDownloaded) +
                        QStringLiteral(" ") + tr("of") + QStringLiteral(" ") + QString::number(totalNotesToDownload));
+}
+
+void MainWindow::onResourcesDownloadProgress(quint32 resourcesDownloaded, quint32 totalResourcesToDownload)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onResourcesDownloadProgress: resources downloaded = ")
+            << resourcesDownloaded << QStringLiteral(", total resources to download = ")
+            << totalResourcesToDownload);
+
+    onSetStatusBarText(tr("Downloading attachments") + QStringLiteral(": ") + QString::number(resourcesDownloaded) +
+                       QStringLiteral(" ") + tr("of") + QStringLiteral(" ") + QString::number(totalResourcesToDownload));
 }
 
 void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
