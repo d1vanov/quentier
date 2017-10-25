@@ -353,6 +353,10 @@ private Q_SLOTS:
     void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
+    void onAddResourceComplete(Resource resource, QUuid requestId);
+    void onUpdateResourceComplete(Resource resource, QUuid requestId);
+    void onExpungeResourceComplete(Resource resource, QUuid requestId);
+
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);

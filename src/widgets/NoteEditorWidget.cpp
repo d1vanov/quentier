@@ -1341,6 +1341,77 @@ void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
     Q_EMIT invalidated();
 }
 
+void NoteEditorWidget::onAddResourceComplete(Resource resource, QUuid requestId)
+{
+    if (!m_pCurrentNote || !m_pCurrentNotebook) {
+        return;
+    }
+
+    if (!resource.hasNoteLocalUid() || (resource.noteLocalUid() != m_pCurrentNote->localUid())) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onAddResourceComplete: request id = ") << requestId
+            << QStringLiteral(", resource: ") << resource);
+
+    if (m_pCurrentNote->hasResources())
+    {
+        QList<Resource> resources = m_pCurrentNote->resources();
+        for(auto it = resources.constBegin(), end = resources.constEnd(); it != end; ++it)
+        {
+            const Resource & currentResource = *it;
+            if (currentResource.localUid() == resource.localUid()) {
+                QNDEBUG(QStringLiteral("Found the added resource already belonging to the note"));
+                return;
+            }
+        }
+    }
+
+    // Haven't found the added resource within the note's resources, need to add it and update the note editor
+    m_pCurrentNote->addResource(resource);
+    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+}
+
+void NoteEditorWidget::onUpdateResourceComplete(Resource resource, QUuid requestId)
+{
+    if (!m_pCurrentNote || !m_pCurrentNotebook) {
+        return;
+    }
+
+    if (!resource.hasNoteLocalUid() || (resource.noteLocalUid() != m_pCurrentNote->localUid())) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onUpdateResourceComplete: request id = ") << requestId
+            << QStringLiteral(", resource: ") << resource);
+
+    // TODO: ideally should allow the choice to either leave the current version of the note or to reload it
+
+    if (m_pCurrentNote->updateResource(resource)) {
+        m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    }
+}
+
+void NoteEditorWidget::onExpungeResourceComplete(Resource resource, QUuid requestId)
+{
+    if (!m_pCurrentNote || !m_pCurrentNotebook) {
+        return;
+    }
+
+    if (!resource.hasNoteLocalUid() || (resource.noteLocalUid() != m_pCurrentNote->localUid())) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onExpungeResourceComplete: request id = ") << requestId
+            << QStringLiteral(", resource: ") << resource);
+
+    // TODO: ideally should allow the choice to either leave the current version of the note or to reload it
+
+    if (m_pCurrentNote->removeResource(resource)) {
+        m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    }
+}
+
 void NoteEditorWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
     if (!m_pCurrentNote || !m_pCurrentNotebook || (m_pCurrentNotebook->localUid() != notebook.localUid())) {
@@ -2136,6 +2207,14 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
                      this, QNSLOT(NoteEditorWidget,onFindNoteFailed,Note,bool,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNoteComplete,Note,QUuid));
+
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addResourceComplete,Resource,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onAddResourceComplete,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateResourceComplete,Resource,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onUpdateResourceComplete,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeResourceComplete,Resource,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onExpungeResourceComplete,Resource,QUuid));
+
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
