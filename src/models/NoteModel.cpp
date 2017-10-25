@@ -343,6 +343,10 @@ QVariant NoteModel::data(const QModelIndex & index, int role) const
         return QVariant();
     }
 
+    if (role == Qt::ToolTipRole) {
+        return dataImpl(rowIndex, Columns::Title);
+    }
+
     Columns::type column;
     switch(columnIndex)
     {
