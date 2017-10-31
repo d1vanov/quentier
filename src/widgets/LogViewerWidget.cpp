@@ -258,6 +258,7 @@ void LogViewerWidget::onFilterByContentEditingFinished()
     m_pUi->statusBarLineEdit->hide();
 
     m_pLogViewerFilterModel->setFilterWildcard(m_pUi->filterByContentLineEdit->text());
+    scheduleLogEntriesViewColumnsResize();
 }
 
 void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
@@ -283,6 +284,7 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
     }
 
     m_pLogViewerFilterModel->setLogLevelEnabled(static_cast<LogLevel::type>(checkboxRow), (state == Qt::Checked));
+    scheduleLogEntriesViewColumnsResize();
 }
 
 void LogViewerWidget::onCurrentLogFileChanged(const QString & currentLogFile)
