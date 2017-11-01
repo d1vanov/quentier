@@ -47,6 +47,7 @@ private Q_SLOTS:
 
 private:
     QString readData(QProcess & process, const bool fromStdout);
+    QString versionInfos() const;
 
 private:
     Ui::MainWindow *    m_pUi;

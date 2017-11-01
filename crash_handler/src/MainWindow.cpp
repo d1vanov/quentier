@@ -20,6 +20,8 @@
 #include "ui_MainWindow.h"
 #include "Utility.h"
 #include "SymbolsUnpacker.h"
+#include <PackagingInfo.h>
+#include <quentier/utility/VersionInfo.h>
 #include <QDir>
 #include <QDesktopServices>
 #include <QThreadPool>
@@ -92,7 +94,12 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
         return;
     }
 
-    m_pUi->stackTracePlainTextEdit->setPlainText(tr("Loading debugging symbols, please wait") + QString::fromUtf8("..."));
+    QString output = QString::fromUtf8("Version info:\n\n");
+    output += versionInfos();
+    output += QString::fromUtf8("\n\n");
+    output += tr("Loading debugging symbols, please wait");
+    output += QString::fromUtf8("...");
+    m_pUi->stackTracePlainTextEdit->setPlainText(output);
 
     SymbolsUnpacker * pQuentierSymbolsUnpacker = new SymbolsUnpacker(quentierSymbolsFileLocation,
                                                                      m_unpackedSymbolsRootPath);
@@ -155,8 +162,12 @@ void MainWindow::onMinidumpStackwalkProcessFinished(int exitCode, QProcess::Exit
 
     if (!m_symbolsUnpackingErrors.isEmpty()) {
         output = m_symbolsUnpackingErrors;
+        output += QString::fromUtf8("\n");
     }
 
+    output += QString::fromUtf8("Version info:\n\n");
+    output += versionInfos();
+    output += QString::fromUtf8("\n\n");
     output += tr("Stacktrace extraction finished, exit code") + QString::fromUtf8(": ") + QString::number(exitCode) + QString::fromUtf8("\n");
     output += m_output;
     output += QString::fromUtf8("\n\n");
@@ -207,4 +218,33 @@ QString MainWindow::readData(QProcess & process, const bool fromStdout)
                          ? process.readAllStandardOutput()
                          : process.readAllStandardError());
     return QString::fromUtf8(output);
+}
+
+QString MainWindow::versionInfos() const
+{
+    QString result = QString::fromUtf8("libquentier: ");
+    result += QString::fromUtf8(QUENTIER_LIBQUENTIER_BINARY_NAME);
+
+    int libquentierVersion = quentier::libraryVersion();
+    int libquentierMajorVersion = libquentierVersion / 10000;
+    int libquentierMinorVersion = (libquentierVersion - libquentierMajorVersion * 10000) / 100;
+    int libquentierPatchVersion = (libquentierVersion - libquentierMajorVersion * 10000 - libquentierMinorVersion * 100);
+
+    result += QString::fromUtf8("; version ") + QString::number(libquentierMajorVersion) +
+              QString::fromUtf8(".") + QString::number(libquentierMinorVersion) +
+              QString::fromUtf8(".") + QString::number(libquentierPatchVersion);
+
+#if LIB_QUENTIER_USE_QT_WEB_ENGINE
+    result += QString::fromUtf8("; uses QtWebEngine");
+#endif
+
+    result += QString::fromUtf8("; ");
+    result += QString::fromUtf8(LIB_QUENTIER_BUILD_INFO);
+    result += QString::fromUtf8("\n");
+
+    result += QString::fromUtf8("Quentier: ");
+    result += QString::fromUtf8(QUENTIER_BUILD_INFO);
+    result += QString::fromUtf8("\n\nQt version: ");
+    result += QString::fromUtf8(QT_VERSION_STR);
+    return result;
 }

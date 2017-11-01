@@ -34,4 +34,9 @@
  */
 @QUENTIER_LIBQUENTIER_BINARY_NAME@
 
+/**
+ * This macro is set to a string holding the information about the current Quenrier build
+ */
+@QUENTIER_BUILD_INFO@
+
 #endif // QUENTIER_PACKAGING_INGO_H

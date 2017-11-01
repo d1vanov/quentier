@@ -55,7 +55,7 @@
     <item>
      <widget class="QLabel" name="stackTraceLabel">
       <property name="text">
-       <string>Backtrace:</string>
+       <string>Crash info:</string>
       </property>
      </widget>
     </item>
