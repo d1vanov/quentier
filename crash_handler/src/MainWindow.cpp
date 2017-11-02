@@ -20,7 +20,7 @@
 #include "ui_MainWindow.h"
 #include "Utility.h"
 #include "SymbolsUnpacker.h"
-#include <PackagingInfo.h>
+#include <VersionInfo.h>
 #include <quentier/utility/VersionInfo.h>
 #include <QDir>
 #include <QDesktopServices>

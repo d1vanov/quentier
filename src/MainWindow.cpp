@@ -73,6 +73,7 @@ using quentier::LogViewerWidget;
 #include "widgets/NotebookModelItemInfoWidget.h"
 #include "widgets/TagModelItemInfoWidget.h"
 #include "widgets/SavedSearchModelItemInfoWidget.h"
+#include "widgets/AboutQuentierWidget.h"
 #include "dialogs/EditNoteDialog.h"
 
 #include <quentier/note_editor/NoteEditor.h>
@@ -441,6 +442,8 @@ void MainWindow::connectActionsToSlots()
     // Help menu actions
     QObject::connect(m_pUI->ActionViewLogs, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onViewLogsActionTriggered));
+    QObject::connect(m_pUI->ActionAbout, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onShowInfoAboutQuentierActionTriggered));
 }
 
 void MainWindow::connectViewButtonsToSlots()
@@ -2179,15 +2182,7 @@ void MainWindow::showInfoWidget(QWidget * pWidget)
     pWidget->setWindowModality(Qt::WindowModal);
     pWidget->adjustSize();
 #ifndef Q_OS_MAC
-    // Center the widget relative to the main window
-    const QRect & geometryRect = geometry();
-    const QRect & dialogGeometryRect = pWidget->geometry();
-    if (geometryRect.isValid() && dialogGeometryRect.isValid()) {
-        const QPoint center = geometryRect.center();
-        int x = center.x() - dialogGeometryRect.width() / 2;
-        int y = center.y() - dialogGeometryRect.height() / 2;
-        pWidget->move(x, y);
-    }
+    centerWidget(*pWidget);
 #endif
     pWidget->show();
 }
@@ -2783,6 +2778,23 @@ void MainWindow::onViewLogsActionTriggered()
     pLogViewerWidget = new LogViewerWidget(this);
     pLogViewerWidget->setAttribute(Qt::WA_DeleteOnClose);
     pLogViewerWidget->show();
+}
+
+void MainWindow::onShowInfoAboutQuentierActionTriggered()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowInfoAboutQuentierActionTriggered"));
+
+    AboutQuentierWidget * pWidget = findChild<AboutQuentierWidget*>();
+    if (pWidget) {
+        pWidget->show();
+        return;
+    }
+
+    pWidget = new AboutQuentierWidget(this);
+    pWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    centerWidget(*pWidget);
+    pWidget->adjustSize();
+    pWidget->show();
 }
 
 void MainWindow::onNoteEditorError(ErrorString error)
@@ -3741,6 +3753,19 @@ void MainWindow::changeEvent(QEvent * pEvent)
 
             Q_EMIT hidden();
         }
+    }
+}
+
+void MainWindow::centerWidget(QWidget & widget)
+{
+    // Center the widget relative to the main window
+    const QRect & geometryRect = geometry();
+    const QRect & widgetGeometryRect = widget.geometry();
+    if (geometryRect.isValid() && widgetGeometryRect.isValid()) {
+        const QPoint center = geometryRect.center();
+        int x = center.x() - widgetGeometryRect.width() / 2;
+        int y = center.y() - widgetGeometryRect.height() / 2;
+        widget.move(x, y);
     }
 }
 

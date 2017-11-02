@@ -56,68 +56,7 @@ else()
   set(APPLICATION_ICON "")
 endif()
 
-# configure packaging info
-if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
-  set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 1")
-  set(LIBQUENTIER_BINARY_NAME "libqt5quentier.so.0")
-else()
-  set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 0")
-  get_filename_component(LIBQUENTIER_BINARY_NAME "${LIBQUENTIER_LIBRARY_LOCATION}" NAME)
-endif()
-
-set(QUENTIER_LIBQUENTIER_BINARY_NAME "#define QUENTIER_LIBQUENTIER_BINARY_NAME \"${LIBQUENTIER_BINARY_NAME}\"")
-
-find_package(Git)
-if(GIT_FOUND)
-  message(STATUS "Git found: ${GIT_EXECUTABLE}")
-
-  # Get git branch
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                  OUTPUT_VARIABLE QUENTIER_GIT_BRANCH
-                  RESULT_VARIABLE QUENTIER_GIT_BRANCH_RETURN_CODE
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(NOT "${QUENTIER_GIT_BRANCH_RETURN_CODE}" STREQUAL "0")
-    message(AUTHOR_WARNING "Failed to determine the current git branch, return code ${QUENTIER_GIT_BRANCH_RETURN_CODE}")
-    set(QUENTIER_GIT_BRANCH "unknown branch")
-  else()
-    message(STATUS "Git branch: ${QUENTIER_GIT_BRANCH}")
-  endif()
-
-  # Get last commit short hash
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                  OUTPUT_VARIABLE QUENTIER_GIT_REVISION
-                  RESULT_VARIABLE QUENTIER_GIT_REVISION_RETURN_CODE
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(NOT "${QUENTIER_GIT_REVISION_RETURN_CODE}" STREQUAL "0")
-    message(AUTHOR_WARNING "Failed to determine the current git revision")
-    set(QUENTIER_GIT_REVISION "unknown revision")
-  else()
-    message(STATUS "Last commit short hash: ${QUENTIER_GIT_REVISION}")
-  endif()
-
-  # Check for uncommitted changes
-  execute_process(COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
-                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                  RESULT_VARIABLE QUENTIER_GIT_DIRTY_STATE)
-  if(NOT "${QUENTIER_GIT_DIRTY_STATE}" STREQUAL "0")
-    string(CONCAT QUENTIER_GIT_REVISION "${QUENTIER_GIT_REVISION}" ", with uncommitted changes")
-  endif()
-
-  set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"${QUENTIER_GIT_BRANCH}, ${QUENTIER_GIT_REVISION}\"")
-else()
-  set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"unknown\"")
-endif()
-
-set(QUENTIER_MAJOR_VERSION "#define QUENTIER_MAJOR_VERSION \"${QUENTIER_VERSION_MAJOR}\"")
-set(QUENTIER_MINOR_VERSION "#define QUENTIER_MINOR_VERSION \"${QUENTIER_VERSION_MINOR}\"")
-set(QUENTIER_PATCH_VERSION "#define QUENTIER_PATCH_VERSION \"${QUENTIER_VERSION_PATCH}\"")
-
-configure_file(src/PackagingInfo.h.in
-               ${PROJECT_BINARY_DIR}/PackagingInfo.h @ONLY)
-list(APPEND ${PROJECT_NAME}_HEADERS ${PROJECT_BINARY_DIR}/PackagingInfo.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+list(APPEND ${PROJECT_NAME}_HEADERS ${QUENTIER_VERSION_INFO_HEADER})
 
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}

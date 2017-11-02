@@ -262,6 +262,7 @@ private Q_SLOTS:
     void onSystemTrayIconManagerError(ErrorString errorDescription);
 
     void onViewLogsActionTriggered();
+    void onShowInfoAboutQuentierActionTriggered();
 
     void onNoteEditorError(ErrorString error);
     void onModelViewError(ErrorString error);
@@ -306,6 +307,8 @@ private:
     virtual void changeEvent(QEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
+    void centerWidget(QWidget & widget);
+
     void setupThemeIcons();
     void setupAccountManager();
     void setupLocalStorageManager();

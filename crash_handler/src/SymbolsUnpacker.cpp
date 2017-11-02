@@ -18,7 +18,7 @@
 
 #include "SymbolsUnpacker.h"
 #include "Utility.h"
-#include <PackagingInfo.h>
+#include <VersionInfo.h>
 #include <QFileInfo>
 #include <QFile>
 #include <QTemporaryFile>

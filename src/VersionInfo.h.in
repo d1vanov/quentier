@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_PACKAGING_INGO_H
-#define QUENTIER_PACKAGING_INGO_H
+#ifndef QUENTIER_VERSION_INFO_H
+#define QUENTIER_VERSION_INFO_H
 
 /**
  * This file contains automatically generated code including macro definitions
@@ -33,7 +33,6 @@
  * This macro contains the name of libquentier binary found by CMake
  */
 @QUENTIER_LIBQUENTIER_BINARY_NAME@
-
 /**
  * This macro denotes the major version number of Quentier
  */
@@ -54,4 +53,4 @@
  */
 @QUENTIER_BUILD_INFO@
 
-#endif // QUENTIER_PACKAGING_INGO_H
+#endif // QUENTIER_VERSION_INFO_H
