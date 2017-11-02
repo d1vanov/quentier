@@ -35,6 +35,21 @@
 @QUENTIER_LIBQUENTIER_BINARY_NAME@
 
 /**
+ * This macro denotes the major version number of Quentier
+ */
+@QUENTIER_MAJOR_VERSION@
+
+/**
+ * This macro denotes the minor version number of Quentier
+ */
+@QUENTIER_MINOR_VERSION@
+
+/**
+ * This macro denotes the patch version number of Quentier
+ */
+@QUENTIER_PATCH_VERSION@
+
+/**
  * This macro is set to a string holding the information about the current Quenrier build
  */
 @QUENTIER_BUILD_INFO@

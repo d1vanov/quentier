@@ -238,11 +238,17 @@ QString MainWindow::versionInfos() const
     result += QString::fromUtf8("; uses QtWebEngine");
 #endif
 
-    result += QString::fromUtf8("; ");
+    result += QString::fromUtf8("; build info: ");
     result += QString::fromUtf8(LIB_QUENTIER_BUILD_INFO);
     result += QString::fromUtf8("\n");
 
-    result += QString::fromUtf8("Quentier: ");
+    result += QString::fromUtf8("Quentier: version ");
+    result += QString::fromUtf8(QUENTIER_MAJOR_VERSION);
+    result += QString::fromUtf8(".");
+    result += QString::fromUtf8(QUENTIER_MINOR_VERSION);
+    result += QString::fromUtf8(".");
+    result += QString::fromUtf8(QUENTIER_PATCH_VERSION);
+    result += QString::fromUtf8("; build info: ");
     result += QString::fromUtf8(QUENTIER_BUILD_INFO);
     result += QString::fromUtf8("\n\nQt version: ");
     result += QString::fromUtf8(QT_VERSION_STR);
