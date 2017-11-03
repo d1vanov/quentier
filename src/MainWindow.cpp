@@ -2787,6 +2787,8 @@ void MainWindow::onShowInfoAboutQuentierActionTriggered()
     AboutQuentierWidget * pWidget = findChild<AboutQuentierWidget*>();
     if (pWidget) {
         pWidget->show();
+        pWidget->raise();
+        pWidget->setFocus();
         return;
     }
 
