@@ -2968,7 +2968,6 @@ border-bottom: 1px solid black;</string>
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="ActionReleaseNotes"/>
     <addaction name="ActionViewLogs"/>
     <addaction name="ActionShowNoteSource"/>
     <addaction name="ActionAbout"/>
