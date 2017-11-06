@@ -3084,10 +3084,12 @@ void MainWindow::onShowNoteListActionToggled(bool checked)
     appSettings.endGroup();
 
     if (checked) {
+        m_pUI->noteListView->setModel(m_pNoteFilterModel);
         m_pUI->notesListAndFiltersFrame->show();
     }
     else {
         m_pUI->notesListAndFiltersFrame->hide();
+        m_pUI->noteListView->setModel(&m_blankModel);
     }
 }
 
