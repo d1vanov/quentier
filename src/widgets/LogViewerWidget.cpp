@@ -21,8 +21,10 @@
 #include "models/LogViewerModel.h"
 #include "models/LogViewerFilterModel.h"
 #include "delegates/LogViewerDelegate.h"
+#include "../SettingsNames.h"
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/MessageBox.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QDir>
@@ -250,6 +252,11 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
     }
 
     QuentierSetMinLogLevel(static_cast<LogLevel::type>(index));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    appSettings.setValue(CURRENT_MIN_LOG_LEVEL, index);
+    appSettings.endGroup();
 }
 
 void LogViewerWidget::onFilterByContentEditingFinished()

@@ -62,6 +62,10 @@
 #define ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR "QUENTIER_ACCOUNT_EVERNOTE_ACCOUNT_TYPE"
 #define ACCOUNT_EVERNOTE_HOST_ENV_VAR "QUENTIER_ACCOUNT_EVERNOTE_HOST"
 
+// Log level settings
+#define LOGGING_SETTINGS_GROUP QStringLiteral("LoggingSettings")
+#define CURRENT_MIN_LOG_LEVEL QStringLiteral("MinLogLevel")
+
 // Translations setting
 #define TRANSLATION_SETTINGS_GROUP_NAME QStringLiteral("TranslationSettings")
 

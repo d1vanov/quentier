@@ -75,6 +75,17 @@ int main(int argc, char *argv[])
     quentier::setupApplicationIcon(app);
     quentier::setupTranslations(app);
 
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    if (appSettings.contains(CURRENT_MIN_LOG_LEVEL))
+    {
+        bool conversionResult = false;
+        int minLogLevel = appSettings.value(CURRENT_MIN_LOG_LEVEL).toInt(&conversionResult);
+        if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6)) {
+            quentier::QuentierSetMinLogLevel(static_cast<quentier::LogLevel::type>(minLogLevel));
+        }
+    }
+
     typedef CommandLineParser::CommandLineOptions CmdOptions;
     CmdOptions cmdOptions = cmdParser.options();
 
