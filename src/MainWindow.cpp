@@ -440,6 +440,8 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionPanelStyleDarker, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToDarker));
     // Help menu actions
+    QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onShowNoteSource));
     QObject::connect(m_pUI->ActionViewLogs, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onViewLogsActionTriggered));
     QObject::connect(m_pUI->ActionAbout, QNSIGNAL(QAction,triggered),
