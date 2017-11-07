@@ -28,6 +28,10 @@ AddOrEditTagDialog::AddOrEditTagDialog(TagModel * pTagModel, QWidget * parent,
     QStringList tagNames;
     int parentTagNameIndex = -1;
     bool res = setupEditedTagItem(tagNames, parentTagNameIndex);
+    if (!res && !m_pTagModel.isNull()) {
+        tagNames = m_pTagModel->tagNames();
+        tagNames.prepend(QStringLiteral(""));
+    }
 
     m_pTagNamesModel = new QStringListModel(this);
     m_pTagNamesModel->setStringList(tagNames);
@@ -41,6 +45,9 @@ AddOrEditTagDialog::AddOrEditTagDialog(TagModel * pTagModel, QWidget * parent,
     }
     else if (!tagNames.isEmpty() && !m_pTagModel.isNull())
     {
+        parentTagNameIndex = 0;
+        m_pUi->parentTagNameComboBox->setCurrentIndex(parentTagNameIndex);
+
         ApplicationSettings appSettings(m_pTagModel->account(), QUENTIER_UI_SETTINGS);
         appSettings.beginGroup(QStringLiteral("AddOrEditTagDialog"));
         QString lastSelectedParentTagName = appSettings.value(LAST_SELECTED_PARENT_TAG_NAME_KEY).toString();
