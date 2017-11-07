@@ -1868,7 +1868,8 @@ void MainWindow::onRemoteToLocalSyncDone()
 void MainWindow::onSyncChunksDownloaded()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSyncChunksDownloaded"));
-    onSetStatusBarText(tr("Downloaded the sync chunks, starting to download notes"));
+    onSetStatusBarText(tr("Downloaded the sync chunks, parsing tags, notebooks and saved searches from them") +
+                       QStringLiteral("..."));
 }
 
 void MainWindow::onNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload)
