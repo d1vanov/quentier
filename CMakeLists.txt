@@ -68,10 +68,7 @@ set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/AsyncFileWriter.h
     src/ActionsInfo.h
-    src/CommandLineParser.h
     src/DefaultSettings.h
-    src/LoadDependencies.h
-    src/SetupApplicationIcon.h
     src/SystemTrayIconManager.h
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
@@ -80,10 +77,8 @@ set(${PROJECT_NAME}_HEADERS
     src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
     src/EnexExporter.h
-    src/ParseStartupAccount.h
     src/NetworkProxySettingsHelpers.h
     src/SettingsNames.h
-    src/SetupTranslations.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/dialogs/AddAccountDialog.h
@@ -97,6 +92,12 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/PreferencesDialog.h
     src/dialogs/shortcut_settings/ShortcutButton.h
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.h
+    src/initialization/CommandLineParser.h
+    src/initialization/Initialize.h
+    src/initialization/LoadDependencies.h
+    src/initialization/ParseStartupAccount.h
+    src/initialization/SetupApplicationIcon.h
+    src/initialization/SetupTranslations.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
@@ -167,10 +168,7 @@ set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
     src/ActionsInfo.cpp
     src/AsyncFileWriter.cpp
-    src/CommandLineParser.cpp
-    src/LoadDependencies.cpp
     src/AccountManager.cpp
-    src/SetupApplicationIcon.cpp
     src/SystemTrayIconManager.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
@@ -179,9 +177,7 @@ set(${PROJECT_NAME}_SOURCES
     src/NoteEditorTabsAndWindowsCoordinator.cpp
     src/NoteFiltersManager.cpp
     src/EnexExporter.cpp
-    src/ParseStartupAccount.cpp
     src/NetworkProxySettingsHelpers.cpp
-    src/SetupTranslations.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/dialogs/AddAccountDialog.cpp
@@ -195,6 +191,12 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/PreferencesDialog.cpp
     src/dialogs/shortcut_settings/ShortcutButton.cpp
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.cpp
+    src/initialization/CommandLineParser.cpp
+    src/initialization/Initialize.cpp
+    src/initialization/LoadDependencies.cpp
+    src/initialization/ParseStartupAccount.cpp
+    src/initialization/SetupApplicationIcon.cpp
+    src/initialization/SetupTranslations.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
@@ -316,12 +318,12 @@ endif()
 
 if(BREAKPAD_FOUND)
   list(APPEND THIRDPARTY_LIBS ${BREAKPAD_LIBRARIES})
-  list(APPEND ${PROJECT_NAME}_HEADERS src/BreakpadIntegration.h)
-  list(APPEND ${PROJECT_NAME}_SOURCES src/BreakpadIntegration.cpp)
+  list(APPEND ${PROJECT_NAME}_HEADERS src/initialization/breakpad/BreakpadIntegration.h)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/initialization/breakpad/BreakpadIntegration.cpp)
   if(WIN32)
-    list(APPEND ${PROJECT_NAME}_SOURCES src/BreakpadIntegrationWindows.cpp)
+    list(APPEND ${PROJECT_NAME}_SOURCES src/initialization/breakpad/BreakpadIntegrationWindows.cpp)
   else()
-    list(APPEND ${PROJECT_NAME}_SOURCES src/BreakpadIntegrationLinux.cpp)
+    list(APPEND ${PROJECT_NAME}_SOURCES src/initialization/breakpad/BreakpadIntegrationLinux.cpp)
   endif()
   add_definitions(-DBUILDING_WITH_BREAKPAD=1)
 endif()
@@ -631,11 +633,11 @@ set(QUENTIER_CPPCHECKABLE_SOURCES "${${PROJECT_NAME}_SOURCES}")
 
 if(BREAKPAD_FOUND)
   # workaround: cppcheck fails to parse some macros used within Breakpad integration sources so need to exclude them
-  list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/BreakpadIntegration.cpp)
+  list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/initialization/breakpad/BreakpadIntegration.cpp)
   if(WIN32)
-    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/BreakpadIntegrationWindows.cpp)
+    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/initialization/breakpad/BreakpadIntegrationWindows.cpp)
   else()
-    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/BreakpadIntegrationLinux.cpp)
+    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/src/initialization/breakpad/BreakpadIntegrationLinux.cpp)
   endif()
 endif()
 

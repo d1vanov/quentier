@@ -17,156 +17,43 @@
  */
 
 #include "MainWindow.h"
-#include "LoadDependencies.h"
-#include "SetupApplicationIcon.h"
-#include "CommandLineParser.h"
 #include "SystemTrayIconManager.h"
-#include "SettingsNames.h"
-#include "SetupTranslations.h"
-#include "ParseStartupAccount.h"
-#include <quentier/logging/QuentierLogger.h>
+#include "initialization/Initialize.h"
 #include <quentier/utility/QuentierApplication.h>
-#include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Utility.h>
-#include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/MessageBox.h>
+#include <quentier/logging/QuentierLogger.h>
 #include <quentier/exception/DatabaseLockedException.h>
 #include <quentier/exception/DatabaseOpeningException.h>
 #include <quentier/exception/IQuentierException.h>
-#include <QDebug>
 #include <QScopedPointer>
 #include <iostream>
 #include <exception>
 
-#ifdef BUILDING_WITH_BREAKPAD
-#include "BreakpadIntegration.h"
-#endif
+using namespace quentier;
 
 int main(int argc, char *argv[])
 {
-    quentier::CommandLineParser cmdParser(argc, argv);
-    if (cmdParser.shouldQuit())
+    ParseCommandLineResult parseCmdResult;
+    parseCommandLine(argc, argv, parseCmdResult);
+    if (parseCmdResult.m_shouldQuit)
     {
-        if (cmdParser.hasError()) {
-            std::cerr << cmdParser.errorDescription().nonLocalizedString().toLocal8Bit().constData();
+        if (!parseCmdResult.m_errorDescription.isEmpty()) {
+            std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString().toLocal8Bit().constData();
             return 1;
         }
 
-        std::cout << cmdParser.responseMessage().toLocal8Bit().constData();
+        std::cout << parseCmdResult.m_responseMessage.toLocal8Bit().constData();
         return 0;
     }
 
-    quentier::QuentierApplication app(argc, argv);
+    QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
-    QUENTIER_INITIALIZE_LOGGING();
-    QUENTIER_SET_MIN_LOG_LEVEL(Info);
-    QUENTIER_ADD_STDOUT_LOG_DESTINATION();
-
-    loadDependencies();
-
-#ifdef BUILDING_WITH_BREAKPAD
-    quentier::setupBreakpad(app);
-#endif
-
-    quentier::initializeLibquentier();
-    quentier::setupApplicationIcon(app);
-    quentier::setupTranslations(app);
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    if (appSettings.contains(CURRENT_MIN_LOG_LEVEL))
-    {
-        bool conversionResult = false;
-        int minLogLevel = appSettings.value(CURRENT_MIN_LOG_LEVEL).toInt(&conversionResult);
-        if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6)) {
-            quentier::QuentierSetMinLogLevel(static_cast<quentier::LogLevel::type>(minLogLevel));
-        }
-    }
-
-    typedef CommandLineParser::CommandLineOptions CmdOptions;
-    CmdOptions cmdOptions = cmdParser.options();
-
-    CmdOptions::const_iterator storageDirIt = cmdOptions.find(QStringLiteral("storageDir"));
-    if (storageDirIt != cmdOptions.constEnd()) {
-        QString storageDir = storageDirIt.value().toString();
-        qputenv(LIBQUENTIER_PERSISTENCE_STORAGE_PATH, storageDir.toLocal8Bit());
-    }
-
-    CmdOptions::const_iterator accountIt = cmdOptions.find(QStringLiteral("account"));
-    if (accountIt != cmdOptions.constEnd())
-    {
-        QString accountStr = accountIt.value().toString();
-
-        bool isLocal = false;
-        qevercloud::UserID userId = -1;
-        QString evernoteHost;
-        QString accountName;
-
-        ErrorString errorDescription;
-        bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost, accountName, errorDescription);
-        if (!res) {
-            criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
-                               QObject::tr("Unable to parse the startup account"),
-                               errorDescription.localizedString());
-            return 1;
-        }
-
-        bool foundAccount = false;
-        Account::EvernoteAccountType::type evernoteAccountType = Account::EvernoteAccountType::Free;
-
-        AccountManager accountManager;
-        const QVector<Account> & availableAccounts = accountManager.availableAccounts();
-        for(int i = 0, numAvailableAccounts = availableAccounts.size(); i < numAvailableAccounts; ++i)
-        {
-            const Account & availableAccount = availableAccounts.at(i);
-            if (isLocal != (availableAccount.type() == Account::Type::Local)) {
-                continue;
-            }
-
-            if (availableAccount.name() != accountName) {
-                continue;
-            }
-
-            if (!isLocal && (availableAccount.evernoteHost() != evernoteHost)) {
-                continue;
-            }
-
-            if (!isLocal && (availableAccount.id() != userId)) {
-                continue;
-            }
-
-            foundAccount = true;
-            if (!isLocal) {
-                evernoteAccountType = availableAccount.evernoteAccountType();
-            }
-            break;
-        }
-
-        if (!foundAccount) {
-            criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
-                               QObject::tr("Wrong startup account"),
-                               QObject::tr("The startup account specified on the command line does not correspond "
-                                           "to any already existing account"));
-            return 1;
-        }
-
-        qputenv(ACCOUNT_NAME_ENV_VAR, accountName.toLocal8Bit());
-        qputenv(ACCOUNT_TYPE_ENV_VAR, (isLocal ? QByteArray("1") : QByteArray("0")));
-        qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(userId));
-        qputenv(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR, QByteArray::number(evernoteAccountType));
-        qputenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR, evernoteHost.toLocal8Bit());
-    }
-
-    CmdOptions::const_iterator overrideSystemTrayAvailabilityIt =
-            cmdOptions.find(QStringLiteral("overrideSystemTrayAvailability"));
-    if (overrideSystemTrayAvailabilityIt != cmdOptions.constEnd())
-    {
-        bool overrideSystemTrayAvailability = overrideSystemTrayAvailabilityIt.value().toBool();
-        qputenv(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR,
-                (overrideSystemTrayAvailability ? QByteArray("1") : QByteArray("0")));
+    int res = initialize(app, parseCmdResult.m_cmdOptions);
+    if (res != 0) {
+        return res;
     }
 
     QScopedPointer<MainWindow> pMainWindow;
