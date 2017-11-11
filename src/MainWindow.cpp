@@ -4297,6 +4297,10 @@ void MainWindow::clearViews()
     m_pUI->savedSearchesTableView->setModel(&m_blankModel);
 
     m_pUI->noteListView->setModel(&m_blankModel);
+    // NOTE: without this the note list view doesn't seem to re-render
+    // so the items from the previously set model are still displayed
+    m_pUI->noteListView->update();
+
     m_pUI->deletedNotesTableView->setModel(&m_blankModel);
 }
 
