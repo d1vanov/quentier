@@ -3471,6 +3471,18 @@ void TagModel::mapChildItems(const TagModelItem & item)
                 continue;
             }
 
+            const TagModelItem * pPreviousParentItem = currentModelItem.parent();
+            if (pPreviousParentItem && (pPreviousParentItem != &item))
+            {
+                row = pPreviousParentItem->rowForChild(&item);
+                if (row >= 0) {
+                    QModelIndex previousParentIndex = indexForItem(pPreviousParentItem);
+                    beginRemoveRows(previousParentIndex, row, row);
+                    Q_UNUSED(pPreviousParentItem->takeChild(row))
+                    endRemoveRows();
+                }
+            }
+
             row = rowForNewItem(item, currentModelItem);
             beginInsertRows(parentIndex, row, row);
             item.insertChild(row, &currentModelItem);
@@ -3492,6 +3504,18 @@ void TagModel::mapChildItems(const TagModelItem & item)
             int row = item.rowForChild(&currentModelItem);
             if (row >= 0) {
                 continue;
+            }
+
+            const TagModelItem * pPreviousParentItem = currentModelItem.parent();
+            if (pPreviousParentItem && (pPreviousParentItem != &item))
+            {
+                row = pPreviousParentItem->rowForChild(&item);
+                if (row >= 0) {
+                    QModelIndex previousParentIndex = indexForItem(pPreviousParentItem);
+                    beginRemoveRows(previousParentIndex, row, row);
+                    Q_UNUSED(pPreviousParentItem->takeChild(row))
+                    endRemoveRows();
+                }
             }
 
             row = rowForNewItem(item, currentModelItem);
