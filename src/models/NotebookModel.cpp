@@ -3533,7 +3533,7 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     }
 
     int row = pParentItem->rowForChild(pModelItem);
-    if (Q_LIKELY(row < 0)) {
+    if (Q_UNLIKELY(row < 0)) {
         QNWARNING(QStringLiteral("Can't find the notebook item's row within its parent model item: notebook item = ") << *pModelItem
                   << QStringLiteral("\nStack item = ") << *pParentItem);
         return;
@@ -3544,6 +3544,7 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     Q_UNUSED(pParentItem->takeChild(row))
     endRemoveRows();
 
+    Q_UNUSED(m_modelItemsByLocalUid.erase(notebookModelItemIt))
     Q_UNUSED(localUidIndex.erase(itemIt))
     Q_UNUSED(m_cache.remove(localUid))
 
