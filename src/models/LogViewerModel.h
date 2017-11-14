@@ -94,7 +94,7 @@ public:
     QColor backgroundColorForLogLevel(const LogLevel::type logLevel) const;
 
 Q_SIGNALS:
-    void notifyError(ErrorString errorDescription) const;
+    void notifyError(ErrorString errorDescription);
 
     // private signals
     void startAsyncLogFileReading();

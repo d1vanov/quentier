@@ -61,7 +61,7 @@ public:
     virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(ErrorString error) const;
+    void notifyError(ErrorString error) const;  // clazy:exclude=const-signal-or-slot
 
 private:
     QString timestampToString(const qint64 timestamp, const qint64 timePassed) const;

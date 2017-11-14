@@ -503,7 +503,7 @@ QString AccountManager::evernoteAccountTypeToString(const Account::EvernoteAccou
     return evernoteAccountType;
 }
 
-void AccountManager::readComplementaryAccountInfo(Account & account) const
+void AccountManager::readComplementaryAccountInfo(Account & account)
 {
     QNDEBUG(QStringLiteral("AccountManager::readComplementaryAccountInfo: ") << account);
 
@@ -616,7 +616,7 @@ void AccountManager::readComplementaryAccountInfo(Account & account) const
     QNDEBUG(QStringLiteral("Account after reading in the complementary info: ") << account);
 }
 
-QSharedPointer<Account> AccountManager::accountFromEnvVarHints() const
+QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
 {
     QNDEBUG(QStringLiteral("AccountManager::accountFromEnvVarHints"));
 
@@ -687,7 +687,7 @@ QSharedPointer<Account> AccountManager::accountFromEnvVarHints() const
     return findAccount(isLocal, accountName, id, evernoteAccountType, evernoteHost);
 }
 
-QSharedPointer<Account> AccountManager::lastUsedAccount() const
+QSharedPointer<Account> AccountManager::lastUsedAccount()
 {
     QNDEBUG(QStringLiteral("AccountManager::lastUsedAccount"));
 
@@ -768,7 +768,7 @@ QSharedPointer<Account> AccountManager::findAccount(const bool isLocal,
                                                     const QString & accountName,
                                                     const qevercloud::UserID id,
                                                     const Account::EvernoteAccountType::type evernoteAccountType,
-                                                    const QString & evernoteHost) const
+                                                    const QString & evernoteHost)
 {
     QNDEBUG(QStringLiteral("AccountManager::findAccount"));
 

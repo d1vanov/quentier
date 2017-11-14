@@ -62,7 +62,7 @@ Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host, QNetworkProxy proxy);
     void switchedAccount(Account account);
     void accountUpdated(Account account);
-    void notifyError(ErrorString error) const;
+    void notifyError(ErrorString error);
     void accountAdded(Account account);
 
 public Q_SLOTS:
@@ -87,20 +87,20 @@ private:
 
     QString evernoteAccountTypeToString(const Account::EvernoteAccountType::type type) const;
 
-    void readComplementaryAccountInfo(Account & account) const;
+    void readComplementaryAccountInfo(Account & account);
 
     // Tries to find the account corresponding to the specified environment variables
     // specifying the details of the account; in case of success returns
     // non-null pointer to the account, null otherwise
-    QSharedPointer<Account> accountFromEnvVarHints() const;
+    QSharedPointer<Account> accountFromEnvVarHints();
 
     // Tries to restore the last used account from the app settings;
     // in case of success returns non-null pointer to account, null otherwise
-    QSharedPointer<Account> lastUsedAccount() const;
+    QSharedPointer<Account> lastUsedAccount();
 
     QSharedPointer<Account> findAccount(const bool isLocal, const QString & accountName,
                                         const qevercloud::UserID id, const Account::EvernoteAccountType::type type,
-                                        const QString & evernoteHost) const;
+                                        const QString & evernoteHost);
 
     void updateLastUsedAccount(const Account & account);
 

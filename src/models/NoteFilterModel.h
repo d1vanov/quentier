@@ -51,7 +51,7 @@ public:
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(ErrorString error) const;
+    void notifyError(ErrorString error) const;  // clazy:exclude=const-signal-or-slot
 
 protected:
     virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;

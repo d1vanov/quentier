@@ -43,6 +43,8 @@ public:
     QString evernoteServerUrl() const;
     QString userFullName() const;
 
+    bool localAccountAlreadyExists(const QString & name) const;
+
 Q_SIGNALS:
     void evernoteAccountAdditionRequested(QString evernoteServer, QNetworkProxy proxy);
     void localAccountAdditionRequested(QString name, QString fullName);
@@ -50,7 +52,6 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onCurrentAccountTypeChanged(int index);
     void onLocalAccountNameChosen();
-    bool localAccountAlreadyExists(const QString & name) const;
     void onLocalAccountUsernameEdited(const QString & username);
 
     void onUseNetworkProxyToggled(bool checked);
