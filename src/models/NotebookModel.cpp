@@ -3552,6 +3552,8 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     if (indexIt != m_indexIdToLocalUidBimap.right.end()) {
         m_indexIdToLocalUidBimap.right.erase(indexIt);
     }
+
+    checkAndRemoveEmptyStackItem(*pParentItem);
 }
 
 void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & item)
@@ -3923,7 +3925,8 @@ void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & model
             QNWARNING(QStringLiteral("Can't find stack item to remove, stack ") << previousStack);
         }
     }
-    else {
+    else
+    {
         QNWARNING(QStringLiteral("Can't find stack model item to remove, stack ") << previousStack);
     }
 }
