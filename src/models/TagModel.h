@@ -253,6 +253,7 @@ Q_SIGNALS:
     void expungeTag(Tag tag, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
     void requestNoteCountPerTag(Tag tag, QUuid requestId);
+    void requestNoteCountsForAllTags(QUuid requestId);
     void listAllTagsPerNote(Note note, LocalStorageManager::ListObjectsOptions flag,
                             size_t limit, size_t offset,
                             LocalStorageManager::ListTagsOrder::type order,
@@ -287,6 +288,8 @@ private Q_SLOTS:
     void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
     void onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
+    void onGetNoteCountsPerAllTagsComplete(QHash<QString, int> noteCountsPerTagLocalUid, QUuid requestId);
+    void onGetNoteCountsPerAllTagsFailed(ErrorString errorDescription, QUuid requestId);
 
     void onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId);
 
@@ -330,7 +333,7 @@ private:
     void requestTagsList();
     void requestNoteCountForTag(const Tag & tag);
     void requestTagsPerNote(const Note & note);
-    void requestNoteCountForAllTags();
+    void requestNoteCountsPerAllTags();
     void requestLinkedNotebooksList();
 
     QVariant dataImpl(const TagModelItem & item, const Columns::type column) const;
@@ -477,6 +480,7 @@ private:
     QSet<QUuid>             m_expungeTagRequestIds;
 
     QSet<QUuid>             m_noteCountPerTagRequestIds;
+    QUuid                   m_noteCountsPerAllTagsRequestId;
 
     QSet<QUuid>             m_findTagToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findTagToPerformUpdateRequestIds;

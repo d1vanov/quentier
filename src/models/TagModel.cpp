@@ -65,6 +65,7 @@ TagModel::TagModel(const Account & account, const NoteModel & noteModel,
     m_updateTagRequestIds(),
     m_expungeTagRequestIds(),
     m_noteCountPerTagRequestIds(),
+    m_noteCountsPerAllTagsRequestId(),
     m_findTagToRestoreFailedUpdateRequestIds(),
     m_findTagToPerformUpdateRequestIds(),
     m_findTagAfterNotelessTagsErasureRequestIds(),
@@ -1491,6 +1492,76 @@ void TagModel::onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag,
             << QStringLiteral(", tag = ") << tag << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_noteCountPerTagRequestIds.erase(it))
+
+    ErrorString error(QT_TR_NOOP("Failed to get note count for one of tags"));
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
+    Q_EMIT notifyError(error);
+}
+
+void TagModel::onGetNoteCountsPerAllTagsComplete(QHash<QString, int> noteCountsPerTagLocalUid, QUuid requestId)
+{
+    if (requestId != m_noteCountsPerAllTagsRequestId) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("TagModel::onGetNoteCountsPerAllTagsComplete: note counts were received for ")
+            << noteCountsPerTagLocalUid.size() << QStringLiteral(" tag local uids; request id = ")
+            << requestId);
+
+    m_noteCountsPerAllTagsRequestId = QUuid();
+
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it)
+    {
+        TagItem item = *it;
+        auto noteCountIt = noteCountsPerTagLocalUid.find(item.localUid());
+        if (noteCountIt != noteCountsPerTagLocalUid.end()) {
+            item.setNumNotesPerTag(noteCountIt.value());
+        }
+        else {
+            item.setNumNotesPerTag(0);
+        }
+
+        localUidIndex.replace(it, item);
+
+        const QString & parentLocalUid = item.parentLocalUid();
+        const QString & linkedNotebookGuid = item.linkedNotebookGuid();
+        if (parentLocalUid.isEmpty() && linkedNotebookGuid.isEmpty()) {
+            continue;
+        }
+
+        // If tag item has either parent tag or linked notebook local uid, we'll send dataChanged signal for it here;
+        // for all tags from user's own account and without parent tags we'll send dataChanged signal later, once for all such tags
+        QModelIndex idx = indexForLocalUid(item.localUid());
+        if (idx.isValid()) {
+            idx = index(idx.row(), Columns::NumNotesPerTag, idx.parent());
+            Q_EMIT dataChanged(idx, idx);
+        }
+    }
+
+    QModelIndex startIndex = index(0, Columns::NumNotesPerTag, QModelIndex());
+    QModelIndex endIndex = index(rowCount(QModelIndex()), Columns::NumNotesPerTag, QModelIndex());
+    Q_EMIT dataChanged(startIndex, endIndex);
+}
+
+void TagModel::onGetNoteCountsPerAllTagsFailed(ErrorString errorDescription, QUuid requestId)
+{
+    if (requestId != m_noteCountsPerAllTagsRequestId) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("TagModel::onGetNoteCountsPerAllTagsFailed: error description = ")
+              << errorDescription << QStringLiteral(", request id = ") << requestId);
+
+    m_noteCountsPerAllTagsRequestId = QUuid();
+
+    ErrorString error(QT_TR_NOOP("Failed to get note counts for tags"));
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
+    Q_EMIT notifyError(error);
 }
 
 void TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId)
@@ -1564,7 +1635,7 @@ void TagModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 
     // Notes from this notebook have been expunged along with it; need to re-request the number of notes per tag
     // for all tags
-    requestNoteCountForAllTags();
+    requestNoteCountsPerAllTags();
 
     if (!notebook.hasLinkedNotebookGuid()) {
         return;
@@ -1633,7 +1704,7 @@ void TagModel::onUpdateNoteComplete(Note note, bool updateResources, bool update
 
     if (!m_receivedTagLocalUidsForAllNotes) {
         // Tags might have been removed from the note so need to re-request the note count for all tags
-        requestNoteCountForAllTags();
+        requestNoteCountsPerAllTags();
         return;
     }
 
@@ -1745,7 +1816,7 @@ void TagModel::onExpungeNoteComplete(Note note, QUuid requestId)
     }
 
     // Inefficient fallback which should be used rarely if at all
-    requestNoteCountForAllTags();
+    requestNoteCountsPerAllTags();
 }
 
 void TagModel::onAddLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId)
@@ -1859,7 +1930,7 @@ void TagModel::onListAllTagsPerNoteFailed(Note note, LocalStorageManager::ListOb
               << requestId << QStringLiteral(", error description = ") << errorDescription);
 
     // Trying to work around this problem by re-requesting the note count for all tags
-    requestNoteCountForAllTags();
+    requestNoteCountsPerAllTags();
 }
 
 void TagModel::onListAllLinkedNotebooksComplete(size_t limit, size_t offset,
@@ -1945,6 +2016,8 @@ void TagModel::createConnections(const NoteModel & noteModel, LocalStorageManage
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,requestNoteCountPerTag,Tag,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerTagRequest,Tag,QUuid));
+    QObject::connect(this, QNSIGNAL(TagModel,requestNoteCountsForAllTags,QUuid),
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onGetNoteCountsPerAllTagsRequest,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,listAllTagsPerNote,Note,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                     LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QUuid),
                      &localStorageManagerAsync,
@@ -1988,6 +2061,10 @@ void TagModel::createConnections(const NoteModel & noteModel, LocalStorageManage
                      this, QNSLOT(TagModel,onGetNoteCountPerTagComplete,int,Tag,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagFailed,ErrorString,Tag,QUuid),
                      this, QNSLOT(TagModel,onGetNoteCountPerTagFailed,ErrorString,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountsPerAllTagsComplete,QHash<QString,int>,QUuid),
+                     this, QNSLOT(TagModel,onGetNoteCountsPerAllTagsComplete,QHash<QString,int>,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountsPerAllTagsFailed,ErrorString,QUuid),
+                     this, QNSLOT(TagModel,onGetNoteCountsPerAllTagsFailed,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotelessTagsFromLinkedNotebooksComplete,QUuid),
                      this, QNSLOT(TagModel,onExpungeNotelessTagsFromLinkedNotebooksComplete,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
@@ -2067,17 +2144,12 @@ void TagModel::requestTagsPerNote(const Note & note)
                               LocalStorageManager::OrderDirection::Ascending, requestId);
 }
 
-void TagModel::requestNoteCountForAllTags()
+void TagModel::requestNoteCountsPerAllTags()
 {
-    QNDEBUG(QStringLiteral("TagModel::requestNoteCountForAllTags"));
+    QNDEBUG(QStringLiteral("TagModel::requestNoteCountsPerAllTags"));
 
-    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
-        const TagItem & item = *it;
-        Tag tag;
-        tag.setLocalUid(item.localUid());
-        requestNoteCountForTag(tag);
-    }
+    m_noteCountsPerAllTagsRequestId = QUuid::createUuid();
+    Q_EMIT requestNoteCountsForAllTags(m_noteCountsPerAllTagsRequestId);
 }
 
 void TagModel::requestLinkedNotebooksList()
