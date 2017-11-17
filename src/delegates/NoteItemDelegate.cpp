@@ -93,8 +93,6 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
         pPainter->setPen(option.palette.windowText().color());
     }
 
-    bool isLast = (index.row() == pNoteFilterModel->rowCount(QModelIndex()) - 1);
-
     int leftMargin = m_leftMargin;
     int rightMargin = m_rightMargin;
     int topMargin = m_topMargin;
@@ -122,7 +120,7 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
             int dx1 = 1;
             int dy1 = 1;
             int dx2 = -1;
-            int dy2 = (isLast ? -2 : -3);
+            int dy2 = -3;
             pPainter->drawRoundedRect(QRectF(option.rect.adjusted(dx1, dy1, dx2, dy2)), 2, 2);
 
             pPainter->setPen(originalPen);
@@ -130,31 +128,28 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
             leftMargin += 2;
             rightMargin += 2;
             topMargin += 2;
-            bottomMargin += (isLast ? 3 : 2);
+            bottomMargin += 2;
         }
     }
 
-    // Draw the bottom border line for all notes but the last (lowest) one
-    if (!isLast)
-    {
-        QPen originalPen = pPainter->pen();
-        QPen pen = originalPen;
-        pen.setWidth(1);
+    // Draw the bottom border line for all notes
+    QPen originalPen = pPainter->pen();
+    QPen pen = originalPen;
+    pen.setWidth(1);
 
-        if (option.state & QStyle::State_Selected) {
-            pen.setColor(option.palette.highlightedText().color());
-        }
-        else {
-            pen.setColor(option.palette.windowText().color());
-        }
-
-        pPainter->setPen(pen);
-
-        QLine bottomBoundaryLine(option.rect.bottomLeft(), option.rect.bottomRight());
-        pPainter->drawLine(bottomBoundaryLine);
-
-        pPainter->setPen(originalPen);
+    if (option.state & QStyle::State_Selected) {
+        pen.setColor(option.palette.highlightedText().color());
     }
+    else {
+        pen.setColor(option.palette.windowText().color());
+    }
+
+    pPainter->setPen(pen);
+
+    QLine bottomBoundaryLine(option.rect.bottomLeft(), option.rect.bottomRight());
+    pPainter->drawLine(bottomBoundaryLine);
+
+    pPainter->setPen(originalPen);
 
     QFont boldFont = pPainter->font();
     boldFont.setBold(true);
