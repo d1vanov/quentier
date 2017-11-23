@@ -351,7 +351,7 @@ void NoteTagsWidget::onAllTagsListed()
 
     QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
                         this, QNSLOT(NoteTagsWidget,onAllTagsListed));
-    addNewTagWidgetToLayout();
+    updateLayout();
 }
 
 void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
@@ -785,6 +785,11 @@ void NoteTagsWidget::updateLayout()
     }
 
     clearLayout(/* skip new tag widget = */ true);
+
+    if (!m_pTagModel->allTagsListed()) {
+        QNDEBUG(QStringLiteral("Not all tags are listed within the tag model yet"));
+        return;
+    }
 
     m_lastDisplayedTagLocalUids.reserve(numTags);
 
