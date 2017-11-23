@@ -26,6 +26,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QEvent>
 #include <QKeyEvent>
+#include <QApplication>
 
 namespace quentier {
 

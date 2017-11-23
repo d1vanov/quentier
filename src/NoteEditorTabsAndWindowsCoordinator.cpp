@@ -39,6 +39,7 @@
 #include <QEvent>
 #include <QTimerEvent>
 #include <QTimer>
+#include <QApplication>
 #include <algorithm>
 
 #define DEFAULT_MAX_NUM_NOTES_IN_TABS (5)
