@@ -157,9 +157,12 @@ private Q_SLOTS:
                                  qevercloud::UserID userId);
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone();
+    void onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn, qint32 lastPreviousUsn);
     void onSyncChunksDownloaded();
     void onNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload);
     void onResourcesDownloadProgress(quint32 resourcesDownloaded, quint32 totalResourcesToDownload);
+    void onLinkedNotebookSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn,
+                                                    qint32 lastPreviousUsn, LinkedNotebook linkedNotebook);
     void onLinkedNotebooksSyncChunksDownloaded();
     void onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload);
 

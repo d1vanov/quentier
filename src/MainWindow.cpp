@@ -117,6 +117,7 @@ using quentier::LogViewerWidget;
 #include <QDir>
 #include <QClipboard>
 #include <cmath>
+#include <algorithm>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -843,12 +844,18 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                      this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloadProgress,qint32,qint32,qint32),
+                     this, QNSLOT(MainWindow,onSyncChunksDownloadProgress,qint32,qint32,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloaded),
                      this, QNSLOT(MainWindow,onSyncChunksDownloaded));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,notesDownloadProgress,quint32,quint32),
                      this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,resourcesDownloadProgress,quint32,quint32),
                      this, QNSLOT(MainWindow,onResourcesDownloadProgress,quint32,quint32));
+    QObject::connect(m_pSynchronizationManager,
+                     QNSIGNAL(SynchronizationManager,linkedNotebookSyncChunksDownloadProgress,qint32,qint32,qint32,LinkedNotebook),
+                     this,
+                     QNSLOT(MainWindow,onLinkedNotebookSyncChunksDownloadProgress,qint32,qint32,qint32,LinkedNotebook));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksSyncChunksDownloaded),
                      this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksNotesDownloadProgress,quint32,quint32),
@@ -901,12 +908,18 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                         this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloadProgress,qint32,qint32,qint32),
+                        this, QNSLOT(MainWindow,onSyncChunksDownloadProgress,qint32,qint32,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloaded),
                         this, QNSLOT(MainWindow,onSyncChunksDownloaded));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,notesDownloadProgress,quint32,quint32),
                         this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,resourcesDownloadProgress,quint32,quint32),
                         this, QNSLOT(MainWindow,onResourcesDownloadProgress,quint32,quint32));
+    QObject::disconnect(m_pSynchronizationManager,
+                        QNSIGNAL(SynchronizationManager,linkedNotebookSyncChunksDownloadProgress,qint32,qint32,qint32,LinkedNotebook),
+                        this,
+                        QNSLOT(MainWindow,onLinkedNotebookSyncChunksDownloadProgress,qint32,qint32,qint32,LinkedNotebook));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksSyncChunksDownloaded),
                         this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksNotesDownloadProgress,quint32,quint32),
@@ -1867,10 +1880,32 @@ void MainWindow::onRemoteToLocalSyncDone()
     onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
 }
 
+void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn, qint32 lastPreviousUsn)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSyncChunksDownloadProgress: highest downloaded USN = ")
+            << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
+            << highestServerUsn << QStringLiteral(", last previous USN = ")
+            << lastPreviousUsn);
+
+    if (Q_UNLIKELY((highestServerUsn <= lastPreviousUsn) || (highestDownloadedUsn <= lastPreviousUsn))) {
+        QNWARNING(QStringLiteral("Received incorrect sync chunks download progress state: highest downloaded USN = ")
+                  << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
+                  << highestServerUsn << QStringLiteral(", last previous USN = ")
+                  << lastPreviousUsn);
+        return;
+    }
+
+    double percentage = (highestDownloadedUsn - lastPreviousUsn) / (highestServerUsn - lastPreviousUsn) * 100.0;
+    percentage = std::min(percentage, 100.0);
+
+    onSetStatusBarText(tr("Downloading sync chunks") + QStringLiteral(": ") +
+                       QString::number(percentage) + QStringLiteral("%"));
+}
+
 void MainWindow::onSyncChunksDownloaded()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSyncChunksDownloaded"));
-    onSetStatusBarText(tr("Downloaded the sync chunks, parsing tags, notebooks and saved searches from them") +
+    onSetStatusBarText(tr("Downloaded sync chunks, parsing tags, notebooks and saved searches from them") +
                        QStringLiteral("..."));
 }
 
@@ -1892,6 +1927,39 @@ void MainWindow::onResourcesDownloadProgress(quint32 resourcesDownloaded, quint3
 
     onSetStatusBarText(tr("Downloading attachments") + QStringLiteral(": ") + QString::number(resourcesDownloaded) +
                        QStringLiteral(" ") + tr("of") + QStringLiteral(" ") + QString::number(totalResourcesToDownload));
+}
+
+void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn,
+                                                            qint32 lastPreviousUsn, LinkedNotebook linkedNotebook)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onLinkedNotebookSyncChunksDownloadProgress: highest downloaded USN = ")
+            << highestDownloadedUsn << QStringLiteral(", highest server USN = ") << highestServerUsn
+            << QStringLiteral(", last previous USN = ") << lastPreviousUsn << QStringLiteral(", linked notebook = ")
+            << linkedNotebook);
+
+    if (Q_UNLIKELY((highestServerUsn <= lastPreviousUsn) || (highestDownloadedUsn <= lastPreviousUsn))) {
+        QNWARNING(QStringLiteral("Received incorrect sync chunks download progress state: highest downloaded USN = ")
+                  << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
+                  << highestServerUsn << QStringLiteral(", last previous USN = ")
+                  << lastPreviousUsn << QStringLiteral(", linked notebook: ") << linkedNotebook);
+        return;
+    }
+
+    double percentage = (highestDownloadedUsn - lastPreviousUsn) / (highestServerUsn - lastPreviousUsn) * 100.0;
+    percentage = std::min(percentage, 100.0);
+
+    QString message = tr("Downloading sync chunks from linked notebook");
+
+    if (linkedNotebook.hasShareName()) {
+        message += QStringLiteral(": ") + linkedNotebook.shareName();
+    }
+
+    if (linkedNotebook.hasUsername()) {
+        message += QStringLiteral(" (") + linkedNotebook.username() + QStringLiteral(")");
+    }
+
+    message += QStringLiteral(": ") + QString::number(percentage) + QStringLiteral("%");
+    onSetStatusBarText(message);
 }
 
 void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
