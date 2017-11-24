@@ -2323,10 +2323,10 @@ void NotebookModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpti
 
     m_listNotebooksRequestId = QUuid();
 
-    if (foundNotebooks.size() == static_cast<int>(limit)) {
+    if (!foundNotebooks.isEmpty()) {
         QNTRACE(QStringLiteral("The number of found notebooks matches the limit, requesting more "
                                "notebooks from the local storage"));
-        m_listNotebooksOffset += limit;
+        m_listNotebooksOffset += static_cast<size_t>(foundNotebooks.size());
         requestNotebooksList();
         return;
     }

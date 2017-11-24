@@ -1351,9 +1351,9 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
 
     m_listTagsRequestId = QUuid();
 
-    if (foundTags.size() == static_cast<int>(limit)) {
-        QNTRACE(QStringLiteral("The number of found tags matches the limit, requesting more tags from the local storage"));
-        m_listTagsOffset += limit;
+    if (!foundTags.isEmpty()) {
+        QNTRACE(QStringLiteral("The number of found tags is greater than zero, requesting more tags from the local storage"));
+        m_listTagsOffset += static_cast<size_t>(foundTags.size());
         requestTagsList();
         return;
     }

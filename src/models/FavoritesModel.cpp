@@ -807,9 +807,9 @@ void FavoritesModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions
 
     m_listNotesRequestId = QUuid();
 
-    if (foundNotes.size() == static_cast<int>(limit)) {
-        QNTRACE(QStringLiteral("The number of found notes matches the limit, requesting more notes from the local storage"));
-        m_listNotesOffset += limit;
+    if (!foundNotes.isEmpty()) {
+        QNTRACE(QStringLiteral("The number of found notes is greater than zero, requesting more notes from the local storage"));
+        m_listNotesOffset += static_cast<size_t>(foundNotes.size());
         requestNotesList();
         return;
     }
@@ -979,9 +979,9 @@ void FavoritesModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpt
 
     m_listNotebooksRequestId = QUuid();
 
-    if (foundNotebooks.size() == static_cast<int>(limit)) {
-        QNTRACE(QStringLiteral("The number of found notebooks matches the limit, requesting more notebooks from the local storage"));
-        m_listNotebooksOffset += limit;
+    if (!foundNotebooks.isEmpty()) {
+        QNTRACE(QStringLiteral("The number of found notebooks is greater than zero, requesting more notebooks from the local storage"));
+        m_listNotebooksOffset += static_cast<size_t>(foundNotebooks.size());
         requestNotebooksList();
         return;
     }
@@ -1145,9 +1145,9 @@ void FavoritesModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions 
 
     m_listTagsRequestId = QUuid();
 
-    if (foundTags.size() == static_cast<int>(limit)) {
-        QNTRACE(QStringLiteral("The number of found tags matches the limit, requesting more tags from the local storage"));
-        m_listTagsOffset += limit;
+    if (!foundTags.isEmpty()) {
+        QNTRACE(QStringLiteral("The number of found tags is greater than zero, requesting more tags from the local storage"));
+        m_listTagsOffset += static_cast<size_t>(foundTags.size());
         requestTagsList();
         return;
     }
@@ -1310,19 +1310,15 @@ void FavoritesModel::onListSavedSearchesComplete(LocalStorageManager::ListObject
             << QStringLiteral(", direction = ") << orderDirection << QStringLiteral(", num found searches = ")
             << foundSearches.size() << QStringLiteral(", request id = ") << requestId);
 
-    if (foundSearches.isEmpty()) {
-        return;
-    }
-
     for(auto it = foundSearches.begin(), end = foundSearches.end(); it != end; ++it) {
         onSavedSearchAddedOrUpdated(*it);
     }
 
     m_listSavedSearchesRequestId = QUuid();
 
-    if (foundSearches.size() == static_cast<int>(limit)) {
+    if (!foundSearches.isEmpty()) {
         QNTRACE(QStringLiteral("The number of found saved searches matches the limit, requesting more saved searches from the local storage"));
-        m_listSavedSearchesOffset += limit;
+        m_listSavedSearchesOffset += static_cast<size_t>(foundSearches.size());
         requestSavedSearchesList();
         return;
     }

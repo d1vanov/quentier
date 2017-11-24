@@ -979,9 +979,9 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
 
     m_listNotesRequestId = QUuid();
 
-    if (foundNotes.size() == static_cast<int>(limit)) {
-        NMTRACE(QStringLiteral("The number of found notes matches the limit, requesting more notes from the local storage"));
-        m_listNotesOffset += limit;
+    if (!foundNotes.isEmpty()) {
+        NMTRACE(QStringLiteral("The number of found notes is greater than zero, requesting more notes from the local storage"));
+        m_listNotesOffset += static_cast<size_t>(foundNotes.size());
         requestNotesList();
         return;
     }

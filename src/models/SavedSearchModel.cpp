@@ -838,9 +838,9 @@ void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObje
     }
 
     m_listSavedSearchesRequestId = QUuid();
-    if (foundSearches.size() == static_cast<int>(limit)) {
-        QNTRACE(QStringLiteral("The number of found saved searches matches the limit, requesting more saved searches from the local storage"));
-        m_listSavedSearchesOffset += limit;
+    if (!foundSearches.isEmpty()) {
+        QNTRACE(QStringLiteral("The number of found saved searches is greater than zero, requesting more saved searches from the local storage"));
+        m_listSavedSearchesOffset += static_cast<size_t>(foundSearches.size());
         requestSavedSearchesList();
         return;
     }
