@@ -1347,7 +1347,6 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
 
     for(auto it = foundTags.constBegin(), end = foundTags.constEnd(); it != end; ++it) {
         onTagAddedOrUpdated(*it);
-        requestNoteCountForTag(*it);
     }
 
     m_listTagsRequestId = QUuid();
@@ -1360,6 +1359,7 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
     }
 
     m_allTagsListed = true;
+    requestNoteCountsPerAllTags();
 
     if (m_allLinkedNotebooksListed) {
         Q_EMIT notifyAllTagsListed();
