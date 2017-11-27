@@ -90,6 +90,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/EnexImportDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/dialogs/PreferencesDialog.h
+    src/dialogs/WelcomeToQuentierDialog.h
     src/dialogs/shortcut_settings/ShortcutButton.h
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.h
     src/initialization/CommandLineParser.h
@@ -189,6 +190,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/EnexImportDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/dialogs/PreferencesDialog.cpp
+    src/dialogs/WelcomeToQuentierDialog.cpp
     src/dialogs/shortcut_settings/ShortcutButton.cpp
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.cpp
     src/initialization/CommandLineParser.cpp
@@ -276,6 +278,7 @@ set(FORMS
     src/dialogs/EnexImportDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/dialogs/PreferencesDialog.ui
+    src/dialogs/WelcomeToQuentierDialog.ui
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/AboutQuentierWidget.ui
