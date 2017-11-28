@@ -46,6 +46,7 @@
 #include "dialogs/EnexExportDialog.h"
 #include "dialogs/EnexImportDialog.h"
 #include "dialogs/PreferencesDialog.h"
+#include "dialogs/WelcomeToQuentierDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
 #include "views/DeletedNoteItemView.h"
@@ -204,6 +205,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_styleSheetInfo(),
     m_currentPanelStyle(),
     m_shortcutManager(this),
+    m_pendingGreeterDialog(false),
     m_filtersViewExpanded(false),
     m_onceSetupNoteSortingModeComboBox(false),
     m_geometryRestored(false),
@@ -215,7 +217,14 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
     setupAccountManager();
-    m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
+
+    bool createdDefaultAccount = false;
+    m_pAccount.reset(new Account(m_pAccountManager->currentAccount(&createdDefaultAccount)));
+    if (createdDefaultAccount && !onceDisplayedGreeterScreen()) {
+        m_pendingGreeterDialog = true;
+        setOnceDisplayedGreeterScreen();
+    }
+
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     m_pSystemTrayIconManager = new SystemTrayIconManager(*m_pAccountManager, this);
@@ -304,6 +313,18 @@ void MainWindow::show()
     if (!m_geometryRestored) {
         setupInitialChildWidgetsWidths();
         persistGeometryAndState();
+    }
+
+    if (Q_UNLIKELY(m_pendingGreeterDialog))
+    {
+        m_pendingGreeterDialog = false;
+
+        QScopedPointer<WelcomeToQuentierDialog> pDialog(new WelcomeToQuentierDialog(this));
+        pDialog->setWindowModality(Qt::WindowModal);
+        if (pDialog->exec() == QDialog::Accepted) {
+            QNDEBUG(QStringLiteral("Log in to Evernote account option was chosen on the greeter screen"));
+            onEvernoteAccountAuthenticationRequested(QStringLiteral("www.evernote.com"), QNetworkProxy(QNetworkProxy::NoProxy));
+        }
     }
 }
 
@@ -4442,6 +4463,30 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
                      this, QNSLOT(MainWindow,onNoteEditorError,ErrorString));
     QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,currentNoteChanged,QString),
                      m_pUI->noteListView, QNSLOT(NoteListView,setCurrentNoteByLocalUid,QString));
+}
+
+bool MainWindow::onceDisplayedGreeterScreen() const
+{
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+
+    bool result = false;
+    if (appSettings.contains(ONCE_DISPLAYED_GREETER_SCREEN)) {
+        result = appSettings.value(ONCE_DISPLAYED_GREETER_SCREEN).toBool();
+    }
+
+    appSettings.endGroup();
+    return result;
+}
+
+void MainWindow::setOnceDisplayedGreeterScreen()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setOnceDisplayedGreeterScreen"));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+    appSettings.setValue(ONCE_DISPLAYED_GREETER_SCREEN, true);
+    appSettings.endGroup();
 }
 
 void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAccountOption)

@@ -17,6 +17,10 @@ public:
     explicit WelcomeToQuentierDialog(QWidget * parent = Q_NULLPTR);
     ~WelcomeToQuentierDialog();
 
+private Q_SLOTS:
+    void onContinueWithLocalAccountPushButtonPressed();
+    void onLogInToEvernoteAccountPushButtonPressed();
+
 private:
     Ui::WelcomeToQuentierDialog *   m_pUi;
 };

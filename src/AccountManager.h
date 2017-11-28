@@ -52,8 +52,11 @@ public:
     /**
      * Attempts to retrieve the last used account from the app settings, in case of failure creates and returns
      * the default local account
+     *
+     * @param pCreatedDefaultAccount - optional pointer to bool parameter which, if not null,
+     * is used to report whether no existing account was found so the default account was created
      */
-    Account currentAccount();
+    Account currentAccount(bool * pCreatedDefaultAccount = Q_NULLPTR);
 
     void raiseAddAccountDialog();
     void raiseManageAccountsDialog();

@@ -34,8 +34,8 @@
 
 // Other UI related settings keys
 #define LOOK_AND_FEEL_SETTINGS_GROUP_NAME QStringLiteral("LookAndFeel")
-#define ICON_THEME_SETTINGS_KEY QStringLiteral("iconTheme")
-#define PANELS_STYLE_SETTINGS_KEY QStringLiteral("panelStyle")
+#define ICON_THEME_SETTINGS_KEY QStringLiteral("IconTheme")
+#define PANELS_STYLE_SETTINGS_KEY QStringLiteral("PanelStyle")
 #define SHOW_NOTE_THUMBNAILS_SETTINGS_KEY QStringLiteral("ShowNoteThumbnails")
 
 // ENEX export/import related settings keys
@@ -54,6 +54,8 @@
 #define LAST_USED_ACCOUNT_ID QStringLiteral("LastUsedAccountId")
 #define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE QStringLiteral("LastUsedAccountEvernoteAccountType")
 #define LAST_USED_ACCOUNT_EVERNOTE_HOST QStringLiteral("LastUsedAccountEvernoteHost")
+
+#define ONCE_DISPLAYED_GREETER_SCREEN QStringLiteral("OnceDisplayedGreeterScreen")
 
 // Environment variables that can be used to specify the account to use on startup
 #define ACCOUNT_NAME_ENV_VAR "QUENTIER_ACCOUNT_NAME"

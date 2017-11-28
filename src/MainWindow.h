@@ -336,6 +336,9 @@ private:
         };
     };
 
+    bool onceDisplayedGreeterScreen() const;
+    void setOnceDisplayedGreeterScreen();
+
     void setupSynchronizationManager(const SetAccountOption::type = SetAccountOption::DontSet);
     void clearSynchronizationManager();
     void setAccountToSyncManager(const Account & account);
@@ -551,6 +554,8 @@ private:
     quentier::ShortcutManager   m_shortcutManager;
     QHash<int, QAction*>        m_shortcutKeyToAction;
     QHash<QString, QAction*>    m_nonStandardShortcutKeyToAction;
+
+    bool                    m_pendingGreeterDialog;
 
     bool                    m_filtersViewExpanded;
     bool                    m_onceSetupNoteSortingModeComboBox;

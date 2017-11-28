@@ -40,9 +40,13 @@ AccountManager::AccountManager(QObject * parent) :
     detectAvailableAccounts();
 }
 
-Account AccountManager::currentAccount()
+Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
 {
     QNDEBUG(QStringLiteral("AccountManager::currentAccount"));
+
+    if (pCreatedDefaultAccount) {
+        *pCreatedDefaultAccount = false;
+    }
 
     QSharedPointer<Account> pManuallySpecifiedAccount = accountFromEnvVarHints();
     if (!pManuallySpecifiedAccount.isNull()) {
@@ -63,6 +67,10 @@ Account AccountManager::currentAccount()
         }
 
         updateLastUsedAccount(*pLastUsedAccount);
+
+        if (pCreatedDefaultAccount) {
+            *pCreatedDefaultAccount = true;
+        }
     }
 
     return *pLastUsedAccount;

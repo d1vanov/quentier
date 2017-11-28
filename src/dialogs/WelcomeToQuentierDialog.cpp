@@ -9,11 +9,26 @@ WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Welcome to Quentier"));
+
+    QObject::connect(m_pUi->continueWithLocalAccountPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(WelcomeToQuentierDialog,onContinueWithLocalAccountPushButtonPressed));
+    QObject::connect(m_pUi->loginToEvernoteAccountPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(WelcomeToQuentierDialog,onLogInToEvernoteAccountPushButtonPressed));
 }
 
 WelcomeToQuentierDialog::~WelcomeToQuentierDialog()
 {
     delete m_pUi;
+}
+
+void WelcomeToQuentierDialog::onContinueWithLocalAccountPushButtonPressed()
+{
+    QDialog::reject();
+}
+
+void WelcomeToQuentierDialog::onLogInToEvernoteAccountPushButtonPressed()
+{
+    QDialog::accept();
 }
 
 } // namespace quentier
