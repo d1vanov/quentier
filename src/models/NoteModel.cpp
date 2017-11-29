@@ -1924,14 +1924,6 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
             << QStringLiteral(", notebook local uid = ") << item.notebookLocalUid()
             << QStringLiteral(", notebook name = ") << notebookData.m_name);
 
-    if (!notebookData.m_canCreateNotes)
-    {
-        ErrorString error(QT_TR_NOOP("Can't create a new note: notebook restrictions apply"));
-        NMINFO(error << QStringLiteral(", notebook name = ") << notebookData.m_name);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
     item.setNotebookName(notebookData.m_name);
     findTagNamesForItem(item);
 
