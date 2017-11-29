@@ -299,6 +299,9 @@ private Q_SLOTS:
     void onNonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut,
                                       const Account & account, QString context);
 
+    void onDefaultAccountFirstNotebookAndNoteCreatorFinished(QString createdNoteLocalUid);
+    void onDefaultAccountFirstNotebookAndNoteCreatorError(ErrorString errorDescription);
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
@@ -315,6 +318,8 @@ private:
     void setupThemeIcons();
     void setupAccountManager();
     void setupLocalStorageManager();
+
+    void setupDefaultAccount();
 
     void setupModels();
     void clearModels();
@@ -532,6 +537,9 @@ private:
             SizeDescending
         };
     };
+
+    int                     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId;
+    QString                 m_defaultAccountFirstNoteLocalUid;
 
     NoteEditorTabsAndWindowsCoordinator *   m_pNoteEditorTabsAndWindowsCoordinator;
     EditNoteDialogsManager *                m_pEditNoteDialogsManager;

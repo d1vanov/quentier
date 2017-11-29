@@ -94,6 +94,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/shortcut_settings/ShortcutButton.h
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.h
     src/initialization/CommandLineParser.h
+    src/initialization/DefaultAccountFirstNotebookAndNoteCreator.h
     src/initialization/Initialize.h
     src/initialization/LoadDependencies.h
     src/initialization/ParseStartupAccount.h
@@ -194,6 +195,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/shortcut_settings/ShortcutButton.cpp
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.cpp
     src/initialization/CommandLineParser.cpp
+    src/initialization/DefaultAccountFirstNotebookAndNoteCreator.cpp
     src/initialization/Initialize.cpp
     src/initialization/LoadDependencies.cpp
     src/initialization/ParseStartupAccount.cpp

@@ -47,6 +47,7 @@
 #include "dialogs/EnexImportDialog.h"
 #include "dialogs/PreferencesDialog.h"
 #include "dialogs/WelcomeToQuentierDialog.h"
+#include "initialization/DefaultAccountFirstNotebookAndNoteCreator.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
 #include "views/DeletedNoteItemView.h"
@@ -198,6 +199,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_blankModel(),
     m_pNoteFilterModel(Q_NULLPTR),
     m_pNoteFiltersManager(Q_NULLPTR),
+    m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId(0),
+    m_defaultAccountFirstNoteLocalUid(),
     m_pNoteEditorTabsAndWindowsCoordinator(Q_NULLPTR),
     m_pEditNoteDialogsManager(Q_NULLPTR),
     m_pUndoStack(new QUndoStack(this)),
@@ -258,6 +261,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupModels();
     setupViews();
     setupNoteFilters();
+
+    if (createdDefaultAccount) {
+        setupDefaultAccount();
+    }
 
     setupNoteEditorTabWidgetsCoordinator();
 
@@ -3671,6 +3678,52 @@ void MainWindow::onNonStandardShortcutChanged(QString nonStandardKey, QKeySequen
             << QStringLiteral(" (") << pAction->objectName() << QStringLiteral(")"));
 }
 
+void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(QString createdNoteLocalUid)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished: created note local uid = ")
+            << createdNoteLocalUid);
+
+    DefaultAccountFirstNotebookAndNoteCreator * pDefaultAccountFirstNotebookAndNoteCreator =
+        qobject_cast<DefaultAccountFirstNotebookAndNoteCreator*>(sender());
+    if (pDefaultAccountFirstNotebookAndNoteCreator) {
+        pDefaultAccountFirstNotebookAndNoteCreator->deleteLater();
+    }
+
+    bool foundNoteModelItem = false;
+    if (m_pNoteModel)
+    {
+        QModelIndex index = m_pNoteModel->indexForLocalUid(createdNoteLocalUid);
+        if (index.isValid()) {
+            foundNoteModelItem = true;
+        }
+    }
+
+    if (foundNoteModelItem) {
+        m_pUI->noteListView->setCurrentNoteByLocalUid(createdNoteLocalUid);
+        return;
+    }
+
+    // If we got here, the just created note hasn't got to the note model yet;
+    // in the ideal world should subscribe to note model's insert signal
+    // but as a shortcut will just introduce a small delay in the hope the note
+    // would have enough time to get from local storage into the model
+    m_defaultAccountFirstNoteLocalUid = createdNoteLocalUid;
+    m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId = startTimer(100);
+}
+
+void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError(ErrorString errorDescription)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError: ") << errorDescription);
+
+    onSetStatusBarText(errorDescription.localizedString());
+
+    DefaultAccountFirstNotebookAndNoteCreator * pDefaultAccountFirstNotebookAndNoteCreator =
+        qobject_cast<DefaultAccountFirstNotebookAndNoteCreator*>(sender());
+    if (pDefaultAccountFirstNotebookAndNoteCreator) {
+        pDefaultAccountFirstNotebookAndNoteCreator->deleteLater();
+    }
+}
+
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
 {
     QMainWindow::resizeEvent(pEvent);
@@ -3754,7 +3807,16 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         }
 
         QNDEBUG(QStringLiteral("Starting the periodically run sync"));
-        emit synchronize();
+        Q_EMIT synchronize();
+    }
+    else if (pTimerEvent->timerId() == m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId)
+    {
+        QNDEBUG(QStringLiteral("Executing postponed setting of defaut account's first note as the current note"));
+
+        m_pUI->noteListView->setCurrentNoteByLocalUid(m_defaultAccountFirstNoteLocalUid);
+        m_defaultAccountFirstNoteLocalUid.clear();
+        killTimer(m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId);
+        m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId = 0;
     }
 }
 
@@ -3930,6 +3992,19 @@ void MainWindow::setupLocalStorageManager()
                      this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestComplete,Account,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,switchUserFailed,Account,ErrorString,QUuid),
                      this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,Account,ErrorString,QUuid));
+}
+
+void MainWindow::setupDefaultAccount()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupDefaultAccount"));
+
+    DefaultAccountFirstNotebookAndNoteCreator * pDefaultAccountFirstNotebookAndNoteCreator =
+        new DefaultAccountFirstNotebookAndNoteCreator(*m_pLocalStorageManagerAsync, this);
+    QObject::connect(pDefaultAccountFirstNotebookAndNoteCreator, QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,finished,QString),
+                     this, QNSLOT(MainWindow,onDefaultAccountFirstNotebookAndNoteCreatorFinished,QString));
+    QObject::connect(pDefaultAccountFirstNotebookAndNoteCreator, QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onDefaultAccountFirstNotebookAndNoteCreatorError,ErrorString));
+    pDefaultAccountFirstNotebookAndNoteCreator->start();
 }
 
 void MainWindow::setupModels()
