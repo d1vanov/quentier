@@ -38,7 +38,7 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
 #include <boost/bimap.hpp>
 #endif
 
@@ -250,7 +250,7 @@ private:
             boost::multi_index::random_access<
                 boost::multi_index::tag<ByIndex>
             >,
-            boost::multi_index::ordered_unique<
+            boost::multi_index::hashed_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<NoteModelItem,const QString&,&NoteModelItem::localUid>
             >
@@ -363,5 +363,7 @@ private:
 };
 
 } // namespace quentier
+
+inline std::size_t hash_value(QString x) { return qHash(x); }
 
 #endif // QUENTIER_MODELS_NOTE_MODEL_H
