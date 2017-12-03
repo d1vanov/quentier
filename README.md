@@ -8,12 +8,12 @@ Quentier
 Quentier is a cross-platform desktop note taking app capable of working as Evernote client. You can also use Quentier
 for local notes without any connection to Evernote and synchronization.
 
-At the moment Quentier is in public beta state and is not yet intended for production usage. Currently it's targeted
+Quentier is free software distributed under the terms of GPL v.3.
+
+At the moment Quentier is in public alpha state and is not yet intended for production usage. Currently it's targeted
 at software enthusiasts, developers and people who like tinkering with fresh stuff.
 
 Quentier is written in C++ using Qt framework and is built on top of [libquentier](http://github.com/d1vanov/libquentier) library.
-
-Quentier is free software distributed under the terms of GPL v.3.
 
 ## How to build/install
 

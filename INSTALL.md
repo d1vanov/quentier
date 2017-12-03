@@ -7,6 +7,9 @@ starting from Qt 4.8.6 and up to the latest and greatest Qt 5.x. The major part 
 with a few features of C++11 standard which are supported by older compilers. As a result, Quentier can be built
 by as old compilers as gcc-4.5, Visual C++ 2010.
 
+Even though Quentier is cross-platform, most development and testing currently occurs on Linux and OS X / macOS
+so things might occasionally break on Windows platform.
+
 ## Dependencies
 
 Quentier itself depends on just a few Qt modules:
@@ -22,11 +25,11 @@ Here are the libraries Quentier depends on:
  * Optional although recommended dependency: [Google breakpad](https://chromium.googlesource.com/breakpad/breakpad)
 
 Although it is theoretically possible to use different Qt versions to build Quentier and its dependencies, it is highly
-non-recommended as it can cause all sort of building and/or runtime issues.
+not recommended as it can cause all sort of building and/or runtime issues.
 
 ## Building
 
-Quentier uses [CMake](https://cmake.org) meta-build system to find all the necessary libraries and to generate makefiles
+Quentier uses [CMake](https://cmake.org) build system to find all the necessary libraries and to generate makefiles
 or IDE project files. Prior to building Quentier you should build and install all of its dependencies listed above.
 
 Here are the basic steps of building Quentier (on Linux and OS X / macOS):
@@ -89,7 +92,7 @@ The creation of an application bundle is enabled by default on Windows and OS X 
 To manually change this option pass `-DCREATE_BUNDLE=ON` or `-DCREATE_BUNDLE=OFF` to `CMake` during building. Note that
 for bundle creation `CMake` would need to find all Quentier's dependencies' own dependencies and that might require
 additional hints to be given to `CMake`. The following additional libraries would be searched for:
- * OpenSSL (libssl and libcrypto, libquentier's dependency)
+ * OpenSSL (libssl and libcrypto, libquentier's dependency; important note for OS X / macOS: system built-in libssl and libcrypto are not appropriate as they lack the encryption algorithm implementation used by libquentier; OpenSSL libraries from Homebrew or Macports should be used instead)
  * libxml2 (libquentier's dependency)
  * tidy-html5 (libquentier's dependency)
  * libhunspell (libquentier's dependency)
