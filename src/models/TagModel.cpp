@@ -1954,10 +1954,10 @@ void TagModel::onListAllLinkedNotebooksComplete(size_t limit, size_t offset,
 
     m_listLinkedNotebooksRequestId = QUuid();
 
-    if (foundLinkedNotebooks.size() == static_cast<int>(limit)) {
-        QNTRACE(QStringLiteral("The number of found linked notebooks matches the limit, requesting more "
+    if (!foundLinkedNotebooks.isEmpty()) {
+        QNTRACE(QStringLiteral("The number of found linked notebooks is not empty, requesting more "
                                "linked notebooks from the local storage"));
-        m_listLinkedNotebooksOffset += limit;
+        m_listLinkedNotebooksOffset += static_cast<size_t>(foundLinkedNotebooks.size());
         requestLinkedNotebooksList();
         return;
     }

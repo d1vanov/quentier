@@ -1317,7 +1317,7 @@ void FavoritesModel::onListSavedSearchesComplete(LocalStorageManager::ListObject
     m_listSavedSearchesRequestId = QUuid();
 
     if (!foundSearches.isEmpty()) {
-        QNTRACE(QStringLiteral("The number of found saved searches matches the limit, requesting more saved searches from the local storage"));
+        QNTRACE(QStringLiteral("The number of found saved searches is not empty, requesting more saved searches from the local storage"));
         m_listSavedSearchesOffset += static_cast<size_t>(foundSearches.size());
         requestSavedSearchesList();
         return;
