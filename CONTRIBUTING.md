@@ -11,9 +11,15 @@ This section explains how to create and fill GitHub issues in a way most helpful
 If you think you have found a bug in Quentier, you are kindly encouraged to create an issue and describe the bug you have encountered. However, before doing that please look through the existing [open](https://github.com/d1vanov/Quentier/issues) and [closed](https://github.com/d1vanov/Quentier/issues?q=is%3Aissue+is%3Aclosed) issues to see whether the bug you've encountered has already been reported or maybe even fixed in some version of Quentier. If you don't see anything like what you experience, please proceed to creating a new issue.
 
 If Quentier crashes, here is what you should do:
- * If the version of Quentier you are using was built with crash handler support (from Google breakpad library), the crashing app should display the window with excuses and some information which can help to diagnose the cause of the crash. Please include that information into your bug report. In the most ideal case, please also upload somewhere the generated minidump file (its location is also displayed in the post-crash window) as it can be very useful for troubleshooting.
+ * If the version of Quentier you are using was built with crash handler support from Google breakpad library (currently only available for Linux and Windows versions of Quentier), the crashing app should display the window with excuses and some information which can help to diagnose the cause of the crash. Please include that information into your bug report. In the most ideal case, please also upload somewhere the generated minidump file (its location is also displayed in the post-crash window) as it can be very useful for troubleshooting.
  * If the version of Quentier you are using was built without the crash handler, consider trying to reproduce the issue with the version including the crash handler.
- * Regardless of the crash handler support and the information it provides, please describe what you were doing before the app crashed, in as much detail as possible.
+ * If you are using Quentier on Mac, the default crash handler on that platform also provides useful information for troubleshooting:
+   * On Quentier crash you should notice the appearance of a window with exclamation mark and title like "The application Quentier quit unexpectedly"
+   * That window would contain three buttons: "Close", "Report..." and "Reopen".
+   * Press the "Report..." button: another window with title like "Problem Report for Quentier" should appear
+   * Select "Problem details" tab (the middle one)
+   * Copy the entire contents of the window and attach them to the issue
+ * Regardless of the information from the crash handler, please describe what you were doing before the app crashed, in as much detail as possible.
 
 If Quentier behaves in a way you would not expect, please do the following:
  * Describe in fine details what you were doing, which result you expected to get and what you actually got
