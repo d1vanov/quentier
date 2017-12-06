@@ -36,7 +36,7 @@
 #include <QMenu>
 #include <set>
 
-#define QUENTIER_NUM_LOG_LEVELS (6)
+#define QUENTIER_NUM_LOG_LEVELS (5)
 #define FETCHING_MORE_TIMER_PERIOD (200)
 #define DELAY_SECTION_RESIZE_TIMER_PERIOD (500)
 
@@ -126,7 +126,6 @@ void LogViewerWidget::setupLogLevels()
     m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::InfoLevel));
     m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::WarnLevel));
     m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::ErrorLevel));
-    m_pUi->logLevelComboBox->addItem(LogViewerModel::logLevelToString(LogLevel::FatalLevel));
 
     m_pUi->logLevelComboBox->setCurrentIndex(QuentierMinLogLevel());
     QObject::connect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),

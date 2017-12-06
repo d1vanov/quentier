@@ -262,8 +262,6 @@ QColor LogViewerModel::backgroundColorForLogLevel(const LogLevel::type logLevel)
     case LogLevel::WarnLevel:
         return QColor(255, 212, 127, alpha);   // Orange
     case LogLevel::ErrorLevel:
-        return QColor(255, 128, 127, alpha);   // Pink
-    case LogLevel::FatalLevel:
         return QColor(255, 38, 10, alpha);     // Red
     default:
         return QColor();
@@ -646,9 +644,6 @@ bool LogViewerModel::parseNextChunkOfLogFileLines(const int lineNumFrom, QList<D
         else if (logLevel == QStringLiteral("Error")) {
             entry.m_logLevel = LogLevel::ErrorLevel;
         }
-        else if (logLevel == QStringLiteral("Fatal")) {
-            entry.m_logLevel = LogLevel::FatalLevel;
-        }
         else
         {
             ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: failed to parse the log level"));
@@ -801,8 +796,6 @@ QString LogViewerModel::logLevelToString(LogLevel::type logLevel)
         return QStringLiteral("Warn");
     case LogLevel::ErrorLevel:
         return QStringLiteral("Error");
-    case LogLevel::FatalLevel:
-        return QStringLiteral("Fatal");
     default:
         return QStringLiteral("Unknown");
     }
