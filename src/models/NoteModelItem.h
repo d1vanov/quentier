@@ -21,7 +21,7 @@
 
 #include <quentier/utility/Printable.h>
 #include <QStringList>
-#include <QImage>
+#include <QByteArray>
 
 namespace quentier {
 
@@ -49,8 +49,8 @@ public:
     const QString & previewText() const { return m_previewText; }
     void setPreviewText(const QString & previewText) { m_previewText = previewText; }
 
-    const QImage & thumbnail() const { return m_thumbnail; }
-    void setThumbnail(const QImage & thumbnail) { m_thumbnail = thumbnail; }
+    const QByteArray & thumbnailData() const { return m_thumbnailData; }
+    void setThumbnailData(const QByteArray & thumbnailData) { m_thumbnailData = thumbnailData; }
 
     const QString & notebookName() const { return m_notebookName; }
     void setNotebookName(const QString & notebookName) { m_notebookName = notebookName; }
@@ -124,7 +124,7 @@ private:
     QString     m_notebookGuid;
     QString     m_title;
     QString     m_previewText;
-    QImage      m_thumbnail;
+    QByteArray  m_thumbnailData;
     QString     m_notebookName;
     QStringList m_tagLocalUids;
     QStringList m_tagGuids;

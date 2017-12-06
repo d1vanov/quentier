@@ -1306,7 +1306,11 @@ QVariant NoteModel::dataImpl(const int row, const Columns::type column) const
     case Columns::PreviewText:
         return item.previewText();
     case Columns::ThumbnailImage:
-        return item.thumbnail();
+        {
+            QImage thumbnail;
+            Q_UNUSED(thumbnail.loadFromData(item.thumbnailData(), "PNG"))
+            return thumbnail;
+        }
     case Columns::NotebookName:
         return item.notebookName();
     case Columns::TagNameList:
@@ -2174,7 +2178,7 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
         item.setPreviewText(previewText);
     }
 
-    item.setThumbnail(note.thumbnail());
+    item.setThumbnailData(note.thumbnailData());
 
     if (note.hasTagLocalUids())
     {

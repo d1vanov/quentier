@@ -28,7 +28,7 @@ NoteModelItem::NoteModelItem() :
     m_notebookGuid(),
     m_title(),
     m_previewText(),
-    m_thumbnail(),
+    m_thumbnailData(),
     m_notebookName(),
     m_tagLocalUids(),
     m_tagGuids(),
@@ -146,7 +146,7 @@ QTextStream & NoteModelItem::print(QTextStream & strm) const
     strm << QStringLiteral("NoteModelItem: local uid = ") << m_localUid << QStringLiteral(", guid = ") << m_guid
          << QStringLiteral(", notebook local uid = ") << m_notebookLocalUid << QStringLiteral(", notebook guid = ")
          << m_notebookGuid << QStringLiteral(", title = ") << m_title << QStringLiteral(", preview text = ")
-         << m_previewText << QStringLiteral(", thumbnail ") << (m_thumbnail.isNull() ? QStringLiteral("null") : QStringLiteral("not null"))
+         << m_previewText << QStringLiteral(", thumbnail ") << (m_thumbnailData.isEmpty() ? QStringLiteral("null") : QStringLiteral("not null"))
          << QStringLiteral(", notebook name = ") << m_notebookName << QStringLiteral(", tag local uids = ")
          << m_tagLocalUids.join(QStringLiteral(", ")) << QStringLiteral(", tag guids = ") << m_tagGuids.join(QStringLiteral(", "))
          << QStringLiteral(", tag name list = ") << m_tagNameList.join(QStringLiteral(", ")) << QStringLiteral(", creation timestamp = ")

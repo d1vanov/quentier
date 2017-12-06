@@ -159,11 +159,11 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
     smallerFont.setPointSize(smallerFont.pointSize() - 1);
     QFontMetrics smallerFontMetrics(smallerFont);
 
-    const QImage & thumbnail = pItem->thumbnail();
+    const QByteArray & thumbnailData = pItem->thumbnailData();
 
     int left = option.rect.left() + leftMargin;
     int width = option.rect.width() - leftMargin - rightMargin;
-    if (m_showNoteThumbnails && !thumbnail.isNull() && pItem->hasResources()) {
+    if (m_showNoteThumbnails && !thumbnailData.isEmpty() && pItem->hasResources()) {
         width -= 100;
     }
 
@@ -335,7 +335,7 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
     pPainter->drawText(QRectF(previewTextRect), text, textOption);
 
     // Painting the thumbnail (if any)
-    if (m_showNoteThumbnails && !thumbnail.isNull() && pItem->hasResources())
+    if (m_showNoteThumbnails && !thumbnailData.isEmpty() && pItem->hasResources())
     {
         int top = option.rect.top() + topMargin;
         int bottom = option.rect.bottom() - bottomMargin;
@@ -352,6 +352,8 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
             pPainter->setPen(option.palette.windowText().color());
         }
 
+        QImage thumbnail;
+        Q_UNUSED(thumbnail.loadFromData(thumbnailData, "PNG"))
         pPainter->drawImage(thumbnailRect, thumbnail);
     }
 
