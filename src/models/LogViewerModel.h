@@ -38,6 +38,7 @@ class LogViewerModel: public QAbstractTableModel
     Q_OBJECT
 public:
     LogViewerModel(QObject * parent = Q_NULLPTR);
+    ~LogViewerModel();
 
     struct Columns
     {

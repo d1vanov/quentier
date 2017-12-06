@@ -73,6 +73,9 @@ LogViewerModel::LogViewerModel(QObject * parent) :
                      this, QNSLOT(LogViewerModel,onFileRemoved,QString));
 }
 
+LogViewerModel::~LogViewerModel()
+{}
+
 QString LogViewerModel::logFileName() const
 {
     return m_currentLogFileInfo.fileName();
@@ -519,6 +522,8 @@ void LogViewerModel::parseDataFromLogFileFromCurrentPos()
     m_pFileReaderAsync = new FileReaderAsync(m_currentLogFileInfo.absoluteFilePath(),
                                              m_currentLogFilePos);
     m_pFileReaderAsync->moveToThread(m_pReadLogFileIOThread);
+    QObject::connect(m_pReadLogFileIOThread, QNSIGNAL(QThread,finished),
+                     m_pFileReaderAsync, QNSLOT(FileReaderAsync,deleteLater));
     QObject::connect(this, QNSIGNAL(LogViewerModel,startAsyncLogFileReading),
                      m_pFileReaderAsync, QNSLOT(FileReaderAsync,onStartReading),
                      Qt::QueuedConnection);

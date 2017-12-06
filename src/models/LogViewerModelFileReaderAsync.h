@@ -30,6 +30,7 @@ class LogViewerModel::FileReaderAsync : public QObject
 public:
     explicit FileReaderAsync(QString targetFilePath, qint64 startPos,
                              QObject * parent = Q_NULLPTR);
+    ~FileReaderAsync();
 
 Q_SIGNALS:
     void finished(qint64 currentPos, QString readData, ErrorString errorDescription);

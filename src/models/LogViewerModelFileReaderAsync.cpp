@@ -28,6 +28,13 @@ LogViewerModel::FileReaderAsync::FileReaderAsync(QString targetFilePath,
     m_startPos(startPos)
 {}
 
+LogViewerModel::FileReaderAsync::~FileReaderAsync()
+{
+    if (m_targetFile.isOpen()) {
+        m_targetFile.close();
+    }
+}
+
 void LogViewerModel::FileReaderAsync::onStartReading()
 {
     if (!m_targetFile.isOpen() && !m_targetFile.open(QIODevice::ReadOnly)) {

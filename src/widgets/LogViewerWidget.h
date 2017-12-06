@@ -90,6 +90,7 @@ private:
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     Ui::LogViewerWidget *   m_pUi;

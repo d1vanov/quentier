@@ -34,6 +34,7 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QMenu>
+#include <QCloseEvent>
 #include <set>
 
 #define QUENTIER_NUM_LOG_LEVELS (5)
@@ -58,6 +59,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_filterOutBeforeRowBeforeTracing(0)
 {
     m_pUi->setupUi(this);
+    setAttribute(Qt::WA_DeleteOnClose);
     m_pUi->resetPushButton->setEnabled(false);
     m_pUi->tracePushButton->setCheckable(true);
 
@@ -713,6 +715,16 @@ void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
         resizeLogEntriesViewColumns();
         m_delayedSectionResizeTimer.stop();
     }
+}
+
+void LogViewerWidget::closeEvent(QCloseEvent * pEvent)
+{
+    if (m_pUi->tracePushButton->isChecked()) {
+        // Restore the previously backed up log level
+        QuentierSetMinLogLevel(m_minLogLevelBeforeTracing);
+    }
+
+    QWidget::closeEvent(pEvent);
 }
 
 } // namespace quentier
