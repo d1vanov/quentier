@@ -1,0 +1,25 @@
+IDI_ICON1               ICON    DISCARDABLE     "@PROJECT_SOURCE_DIR@/resource/icons/app/quentier_icon_windows.ico"
+
+1 VERSIONINFO
+FILEVERSION     @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+PRODUCTVERSION  @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName", "Quentier"
+      VALUE "FileDescription", "Quentier"
+      VALUE "FileVersion", "@PROJECT_VERSION@"
+      VALUE "InternalName", "Quentier"
+      VALUE "LegalCopyright", "Dmitry Ivanov"
+      VALUE "OriginalFilename", "quentier.exe"
+      VALUE "ProductName", "Quentier"
+      VALUE "ProductVersion", "@PROJECT_VERSION@"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1252
+  END
+END

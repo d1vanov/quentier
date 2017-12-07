@@ -1,0 +1,7 @@
+Oxygen icons, by Oxygen project: https://techbase.kde.org/Projects/Oxygen
+License: LGPL v.3, see COPYING
+
+Extensions:
+1) application-enex (32x32 + 22x22 + 16x16 png images + svg icon) - custom icon based on Oxygen's application-x-zerosize
+License: GPL v.3
+Copyright: Dmitry Ivanov

@@ -1,0 +1,1423 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="128"
+   height="128"
+   id="svg11337"
+   sodipodi:version="0.32"
+   inkscape:version="0.46+devel"
+   version="1.0"
+   sodipodi:docname="applications-science.svgz"
+   inkscape:output_extension="org.inkscape.output.svgz.inkscape"
+   inkscape:export-filename="/home/pinheiro/pics/oxygen-icons/scalable/categories/applications-science.png"
+   inkscape:export-xdpi="1440"
+   inkscape:export-ydpi="1440">
+  <defs
+     id="defs11339">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4127">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop4129" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop4131" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4119">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop4121" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop4123" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4032">
+      <stop
+         style="stop-color:#b0d7ff;stop-opacity:1"
+         offset="0"
+         id="stop4034" />
+      <stop
+         style="stop-color:#006bd9;stop-opacity:0;"
+         offset="1"
+         id="stop4036" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3989">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop3992" />
+      <stop
+         id="stop3998"
+         offset="0.8115651"
+         style="stop-color:#ffffff;stop-opacity:1;" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop3994" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3970"
+       inkscape:collect="always">
+      <stop
+         id="stop3972"
+         offset="0"
+         style="stop-color:#bee2e5;stop-opacity:0.72093023" />
+      <stop
+         id="stop3974"
+         offset="1"
+         style="stop-color:#bee2e5;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3933">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop3935" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop3937" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3922">
+      <stop
+         style="stop-color:#9ed1ff;stop-opacity:1;"
+         offset="0"
+         id="stop3924" />
+      <stop
+         style="stop-color:#2790f0;stop-opacity:0;"
+         offset="1"
+         id="stop3926" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3878">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop3880" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop3882" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3816">
+      <stop
+         style="stop-color:#ababab;stop-opacity:1"
+         offset="0"
+         id="stop3818" />
+      <stop
+         style="stop-color:#b3b3b3;stop-opacity:1"
+         offset="1"
+         id="stop3820" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3762">
+      <stop
+         style="stop-color:#002027;stop-opacity:1;"
+         offset="0"
+         id="stop3764" />
+      <stop
+         style="stop-color:#002027;stop-opacity:0;"
+         offset="1"
+         id="stop3766" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3748">
+      <stop
+         style="stop-color:#24394a;stop-opacity:1;"
+         offset="0"
+         id="stop3750" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop3752" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3943">
+      <stop
+         style="stop-color:#d5dadc;stop-opacity:1;"
+         offset="0"
+         id="stop3945" />
+      <stop
+         id="stop3951"
+         offset="0.5"
+         style="stop-color:#c3e1ed;stop-opacity:0.31620553;" />
+      <stop
+         style="stop-color:#b2e9ff;stop-opacity:0;"
+         offset="1"
+         id="stop3947" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2943">
+      <stop
+         style="stop-color:white;stop-opacity:1;"
+         offset="0"
+         id="stop2945" />
+      <stop
+         style="stop-color:white;stop-opacity:0;"
+         offset="1"
+         id="stop2947" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2930">
+      <stop
+         style="stop-color:#327bc0;stop-opacity:1;"
+         offset="0"
+         id="stop2932" />
+      <stop
+         style="stop-color:#327bc0;stop-opacity:0;"
+         offset="1"
+         id="stop2934" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2920">
+      <stop
+         style="stop-color:black;stop-opacity:1;"
+         offset="0"
+         id="stop2922" />
+      <stop
+         style="stop-color:black;stop-opacity:0;"
+         offset="1"
+         id="stop2924" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient2856">
+      <stop
+         style="stop-color:#d9d9d9;stop-opacity:1;"
+         offset="0"
+         id="stop2858" />
+      <stop
+         style="stop-color:white;stop-opacity:1;"
+         offset="1"
+         id="stop2860" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2848">
+      <stop
+         style="stop-color:#6ea7d8;stop-opacity:1;"
+         offset="0"
+         id="stop2850" />
+      <stop
+         style="stop-color:#6ea7d8;stop-opacity:0;"
+         offset="1"
+         id="stop2852" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient17346">
+      <stop
+         style="stop-color:#edf8fc;stop-opacity:1;"
+         offset="0"
+         id="stop17348" />
+      <stop
+         style="stop-color:#edf8fc;stop-opacity:0;"
+         offset="1"
+         id="stop17350" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient11023">
+      <stop
+         style="stop-color:#99b8ff;stop-opacity:1;"
+         offset="0"
+         id="stop11025" />
+      <stop
+         style="stop-color:#99b8ff;stop-opacity:0;"
+         offset="1"
+         id="stop11027" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient31821">
+      <stop
+         style="stop-color:#8cc2e6;stop-opacity:1;"
+         offset="0"
+         id="stop31823" />
+      <stop
+         style="stop-color:#8cc2e6;stop-opacity:0;"
+         offset="1"
+         id="stop31825" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient4116">
+      <stop
+         style="stop-color:#e6e6e6;stop-opacity:1;"
+         offset="0"
+         id="stop4118" />
+      <stop
+         style="stop-color:white;stop-opacity:0;"
+         offset="1"
+         id="stop4120" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient9975">
+      <stop
+         style="stop-color:white;stop-opacity:1;"
+         offset="0"
+         id="stop9977" />
+      <stop
+         style="stop-color:white;stop-opacity:0"
+         offset="1"
+         id="stop9979" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient17346"
+       id="linearGradient2923"
+       gradientUnits="userSpaceOnUse"
+       x1="159.27913"
+       y1="37.490334"
+       x2="166.36295"
+       y2="-9.9224138" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9975"
+       id="linearGradient2927"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.989524,0,0,0.965908,-1.889713,0.43688)"
+       x1="40.772728"
+       y1="68.636368"
+       x2="59.817509"
+       y2="72.272728" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9975"
+       id="linearGradient2929"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.94248,0,0,0.94803,-7.699303,2.712004)"
+       x1="40.772728"
+       y1="68.636368"
+       x2="59.817509"
+       y2="72.272728" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9975"
+       id="linearGradient2931"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.918553,0,0,0.955609,126.4079,0.674882)"
+       x1="40.772728"
+       y1="68.636368"
+       x2="59.817509"
+       y2="72.272728" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2930"
+       id="radialGradient2937"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1,0,0,19,0,-443.25)"
+       cx="48.625"
+       cy="24.625"
+       fx="48.754017"
+       fy="25.653078"
+       r="1.625" />
+    <filter
+       inkscape:collect="always"
+       id="filter3688">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.18046501"
+         id="feGaussianBlur3690" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter3692">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.53664708"
+         id="feGaussianBlur3694" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter3696">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.11227952"
+         id="feGaussianBlur3698" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2943"
+       id="radialGradient3720"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(2.6779145,0,0,0.6174406,-124.71864,-1.0384598)"
+       cx="74.921875"
+       cy="2.1976438"
+       fx="74.921875"
+       fy="2.1976438"
+       r="1.75" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2856"
+       id="linearGradient3723"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.82586655,0.03818446,0,0.84512092,14.586109,-15.058437)"
+       x1="38.401947"
+       y1="90.770405"
+       x2="47.244867"
+       y2="90.770405" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2856"
+       id="linearGradient3726"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.97897593,0.0452636,0,1.0017999,6.2999332,-19.484917)"
+       x1="38.401947"
+       y1="90.520409"
+       x2="47.244867"
+       y2="90.770405" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2856"
+       id="linearGradient3729"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.97897593,0.0452636,0,1.0017999,6.2999332,-19.484917)"
+       x1="38.024147"
+       y1="85.678238"
+       x2="50.182367"
+       y2="85.678239" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2856"
+       id="linearGradient3732"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.88459283,0.04089973,0,0.90521636,8.0034884,-5.847167)"
+       x1="38.401955"
+       y1="90.113304"
+       x2="47.244867"
+       y2="90.770405" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4116"
+       id="linearGradient3735"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0858259,0,0,0.96753333,-252.89733,-495.4019)"
+       x1="286.49881"
+       y1="565.05914"
+       x2="311.26419"
+       y2="571.60455" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient31821"
+       id="linearGradient3738"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.85634004,0,0,0.73649931,131.20248,-89.972572)"
+       x1="-80.500648"
+       y1="257.15033"
+       x2="-75.731331"
+       y2="229.89458" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient11023"
+       id="linearGradient3740"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.032017,0.10762089,-0.19205145,1.0139725,73.032397,-0.99026175)"
+       x1="-85.269962"
+       y1="257.15033"
+       x2="-75.731331"
+       y2="257.15033" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9975"
+       id="linearGradient3743"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.4379745,0,0,0.8982756,30.895519,3.4554088)"
+       x1="51.692898"
+       y1="39.492558"
+       x2="62.978611"
+       y2="45.173569" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2848"
+       id="linearGradient3746"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.97897593,0,0,1.0017999,2.4926088,-2.6869495)"
+       x1="62.812454"
+       y1="86.643661"
+       x2="58.780773"
+       y2="85.563377" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2856"
+       id="linearGradient3749"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.96952746,0.04482671,0,1.0018386,2.7467787,-4.6001795)"
+       x1="38.401947"
+       y1="90.770405"
+       x2="47.244867"
+       y2="90.770405" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2856"
+       id="linearGradient3753"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.96952746,0.04482671,0,1.0018386,2.7467787,-4.6001795)"
+       x1="36.932367"
+       y1="85.678239"
+       x2="50.182367"
+       y2="85.678239" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2856"
+       id="linearGradient3756"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.96952746,0.10259086,0,1.0018386,2.7467787,-6.9907586)"
+       x1="32.713617"
+       y1="95.474094"
+       x2="50.057367"
+       y2="95.474094" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9975"
+       id="linearGradient3776"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.92773931,0,0,0.97343363,133.68939,-1.5904139)"
+       x1="40.772728"
+       y1="68.636368"
+       x2="59.817509"
+       y2="72.272728" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient11023"
+       id="linearGradient3781"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.99286382,0,0,1.0973267,-0.65766203,-15.032329)"
+       x1="33.511276"
+       y1="107.18645"
+       x2="44.743717"
+       y2="109.18645" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient11023"
+       id="linearGradient3784"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-1.0526427,0,0,1.1087462,136.90771,-16.46386)"
+       x1="33.511276"
+       y1="107.18645"
+       x2="44.743717"
+       y2="109.18645" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient11023"
+       id="linearGradient3787"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.2005509,0,0,1.1087472,-13.731739,-16.46386)"
+       x1="33.511276"
+       y1="107.18645"
+       x2="44.743717"
+       y2="109.18645" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient11023"
+       id="linearGradient3790"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.99609929,0,0,1.0862405,130.16253,-13.642181)"
+       x1="33.511276"
+       y1="107.18645"
+       x2="44.743717"
+       y2="109.18645" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2920"
+       id="linearGradient3795"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.97897593,0,0,1.0017999,2.4926091,-2.6869495)"
+       x1="20.207975"
+       y1="129.55519"
+       x2="32.452454"
+       y2="107.55519" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9975"
+       id="linearGradient3804"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.4379745,0,0,0.8982756,99.927448,3.4554088)"
+       x1="51.692898"
+       y1="39.492558"
+       x2="62.978611"
+       y2="45.173569" />
+    <filter
+       inkscape:collect="always"
+       id="filter3854">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.58797393"
+         id="feGaussianBlur3856" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter3871">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.99572798"
+         id="feGaussianBlur3873" />
+    </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath3875">
+      <path
+         sodipodi:nodetypes="ccccsscc"
+         id="path3877"
+         d="m 182.57876,23.242009 c 8.61524,-2.7483 14.99128,-3.286277 24.50711,-0.2337 l 1.27663,27.53779 c 2.09693,10.562182 25.56078,58.207581 20.01234,64.302671 -5.55882,8.16906 -20.13769,8.97142 -30.18358,8.99092 -12.0312,0.0224 -31.01193,-0.32064 -37.63347,-9.46464 -4.29329,-5.92883 15.1744,-44.595315 20.53569,-63.323844 l 1.48528,-27.809197 z"
+         style="fill:#d5dadc;fill-opacity:1;fill-rule:evenodd;stroke:none"
+         inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+    </clipPath>
+    <filter
+       inkscape:collect="always"
+       id="filter3909">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.34345701"
+         id="feGaussianBlur3911" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter3919"
+       x="-0.06439819"
+       width="1.1287964"
+       y="-0.32325366"
+       height="1.6465073">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="1.7172851"
+         id="feGaussianBlur3921" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9975"
+       id="linearGradient3925"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.96611375,0,0,0.95967441,-219.87171,-493.71904)"
+       x1="307.58847"
+       y1="498.49298"
+       x2="316.90414"
+       y2="613.15674" />
+    <filter
+       inkscape:collect="always"
+       id="filter3935">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.41205052"
+         id="feGaussianBlur3937" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter3939">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.44175066"
+         id="feGaussianBlur3941" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3943"
+       id="linearGradient3949"
+       x1="28.165371"
+       y1="72.390406"
+       x2="100"
+       y2="72.390406"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       inkscape:collect="always"
+       id="filter3969">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.23407966"
+         id="feGaussianBlur3971" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3748"
+       id="linearGradient3754"
+       x1="53.82539"
+       y1="20.760077"
+       x2="75.513788"
+       y2="20.760077"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3762"
+       id="linearGradient3768"
+       x1="85.870629"
+       y1="21.91369"
+       x2="114.58819"
+       y2="21.91369"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       inkscape:collect="always"
+       id="filter3774"
+       x="-0.039838855"
+       width="1.0796777"
+       y="-0.18812751"
+       height="1.376255">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.46009829"
+         id="feGaussianBlur3776" />
+    </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath3778">
+      <path
+         sodipodi:nodetypes="cssssccscssssc"
+         id="path3780"
+         d="m 100.22942,18.978883 c -6.642656,0 -12.102771,0.734831 -13.108782,1.597837 -0.03484,0.02989 -0.07924,0.05788 -0.101906,0.08968 -0.230927,0.187558 -0.648103,0.515249 -0.648103,1.247291 0,0.425121 0.356866,0.9468 0.652179,1.239139 0.03331,0.03297 0.06669,0.07139 0.09783,0.09783 l 0,0 c 1.019459,0.900183 6.504301,1.597837 13.108782,1.597837 6.60448,0 12.12193,-0.697654 13.14139,-1.597837 0.0263,-0.01178 0.0451,-0.05894 0.0652,-0.06522 0.29532,-0.29234 0.65218,-0.846626 0.65218,-1.271747 0,-0.732045 -0.42125,-1.051583 -0.65218,-1.239142 -0.0226,-0.03178 -0.0643,-0.06652 -0.0978,-0.09783 -0.9734,-0.907844 -6.46612,-1.597837 -13.10878,-1.597837 z"
+         style="fill:#f3f8fb;fill-opacity:1;stroke:none" />
+    </clipPath>
+    <filter
+       inkscape:collect="always"
+       id="filter3796"
+       x="-0.01826484"
+       width="1.0365297"
+       y="-0.16438355"
+       height="1.3287671">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.16505631"
+         id="feGaussianBlur3798" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3748"
+       id="linearGradient3800"
+       gradientUnits="userSpaceOnUse"
+       x1="53.82539"
+       y1="20.760077"
+       x2="75.513788"
+       y2="20.760077" />
+    <filter
+       inkscape:collect="always"
+       id="filter3810">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.082528153"
+         id="feGaussianBlur3812" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3816"
+       id="linearGradient3822"
+       x1="71.519272"
+       y1="19.19927"
+       x2="75.526856"
+       y2="20.273099"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       inkscape:collect="always"
+       id="filter3872"
+       x="-1.3495152"
+       width="3.6990304"
+       y="-0.31827147"
+       height="1.6365429">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.25930372"
+         id="feGaussianBlur3874" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3878"
+       id="radialGradient3884"
+       cx="66.636642"
+       cy="19.371658"
+       fx="66.636642"
+       fy="19.371658"
+       r="7.1966935"
+       gradientTransform="matrix(1,0,0,0.58746498,0,8.1942947)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3878"
+       id="linearGradient3898"
+       x1="62.744675"
+       y1="19.567123"
+       x2="76.175629"
+       y2="27.321489"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       inkscape:collect="always"
+       id="filter3918"
+       x="-0.3479443"
+       width="1.6958886"
+       y="-0.17192609"
+       height="1.3438522">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.25781538"
+         id="feGaussianBlur3920" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3922"
+       id="radialGradient3930"
+       cx="166.36295"
+       cy="31.062088"
+       fx="176.16455"
+       fy="58.055626"
+       r="29.648939"
+       gradientTransform="matrix(1,0,0,0.22899834,0,23.948921)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3933"
+       id="linearGradient3939"
+       x1="74.135605"
+       y1="21.524389"
+       x2="74.902679"
+       y2="18.661636"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3970"
+       id="linearGradient3968"
+       gradientUnits="userSpaceOnUse"
+       x1="64.88768"
+       y1="85.096687"
+       x2="64.88768"
+       y2="89.6334" />
+    <filter
+       inkscape:collect="always"
+       id="filter3980">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.060787696"
+         id="feGaussianBlur3982" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3989"
+       id="radialGradient3996"
+       cx="102.64062"
+       cy="83.640625"
+       fx="102.64062"
+       fy="83.640625"
+       r="27.234375"
+       gradientTransform="matrix(1,0,0,0.47261252,-38,44.211018)"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       inkscape:collect="always"
+       id="filter4004">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.043453162"
+         id="feGaussianBlur4006" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4020">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.23879575"
+         id="feGaussianBlur4022" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4028">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.31961326"
+         id="feGaussianBlur4030" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4032"
+       id="radialGradient4038"
+       cx="71.224937"
+       cy="492.99567"
+       fx="85.594139"
+       fy="512.32587"
+       r="36.434646"
+       gradientTransform="matrix(1,0,0,0.28933943,0,350.35258)"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       inkscape:collect="always"
+       id="filter4045">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.011269763"
+         id="feGaussianBlur4047" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4116"
+       id="radialGradient4052"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,-2.5718188,1.9202996,0,24.88052,183.60943)"
+       cx="62.985767"
+       cy="21.602043"
+       fx="63.544712"
+       fy="21.602043"
+       r="0.9891609" />
+    <filter
+       inkscape:collect="always"
+       id="filter4079"
+       x="-0.039931662"
+       width="1.0798633"
+       y="-0.18608521"
+       height="1.3721704">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.46117041"
+         id="feGaussianBlur4081" />
+    </filter>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath4093">
+      <path
+         style="stroke-width:1px"
+         d="M 51.640892,23.237711 51.32228,28.894053 77.527544,33.158776 77.167225,22.891859 51.640892,23.237711 z"
+         id="path4095" />
+    </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4119"
+       id="linearGradient4125"
+       x1="82.7118"
+       y1="-4.59375"
+       x2="60.083061"
+       y2="79.857849"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4127"
+       id="linearGradient4133"
+       x1="82.7118"
+       y1="-4.59375"
+       x2="60.083061"
+       y2="79.857849"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       inkscape:collect="always"
+       id="filter4159">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.248125"
+         id="feGaussianBlur4161" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4197"
+       x="-0.4224226"
+       width="1.8448452"
+       y="-0.54701462"
+       height="2.0940292">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.3520352"
+         id="feGaussianBlur4199" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="-23.08078"
+     inkscape:cy="68.514116"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     width="128px"
+     height="128px"
+     inkscape:window-width="1024"
+     inkscape:window-height="862"
+     inkscape:window-x="99"
+     inkscape:window-y="233"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     showgrid="false"
+     inkscape:snap-bbox="true"
+     inkscape:snap-nodes="true"
+     inkscape:object-paths="true" />
+  <metadata
+     id="metadata11342">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       transform="matrix(0.94062144,0,0,1,3.8596063,0)"
+       d="m 97,118.375 a 32,6.375 0 1 1 -64,0 32,6.375 0 1 1 64,0 z"
+       sodipodi:ry="6.375"
+       sodipodi:rx="32"
+       sodipodi:cy="118.375"
+       sodipodi:cx="65"
+       id="path3913"
+       style="opacity:0.61395349;fill:#000d30;fill-opacity:1;stroke:none;filter:url(#filter3919)"
+       sodipodi:type="arc" />
+    <path
+       sodipodi:type="arc"
+       style="opacity:1;fill:#000d30;fill-opacity:1;stroke:none;filter:url(#filter3909)"
+       id="path3891"
+       sodipodi:cx="65"
+       sodipodi:cy="118.375"
+       sodipodi:rx="32"
+       sodipodi:ry="6.375"
+       d="m 97,118.375 a 32,6.375 0 1 1 -64,0 32,6.375 0 1 1 64,0 z"
+       transform="matrix(0.94062144,0,0,1,3.8596063,0)" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       style="fill:url(#linearGradient3949);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 51.635299,23.242009 c 8.933327,-2.7483 15.544776,-3.286277 25.411947,-0.2337 l 1.323772,27.53779 c 2.174356,10.562182 26.504522,58.207581 20.751229,64.302671 -5.764053,8.16906 -20.881208,8.97142 -31.298007,8.99092 -12.475409,0.0224 -32.156949,-0.32064 -39.022958,-9.46464 -4.45181,-5.92883 15.734656,-44.595315 21.293901,-63.323844 l 1.540116,-27.809197 z"
+       id="path1963"
+       sodipodi:nodetypes="ccccsscc" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       style="opacity:0.75;fill:url(#linearGradient3804);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 68.25286,25.265415 0,0.438287 c -0.170851,-0.0052 -0.351922,-0.02074 -0.519876,-0.0313 0.170606,-0.151772 0.351639,-0.279542 0.519876,-0.406981 z m 7.250867,1.377476 0.519876,25.201541 c 0.0053,0.04797 0.0083,0.108295 0.01367,0.156531 l -9.316675,0 0,0.594819 -0.355701,0 c 0.04372,-0.418441 0.09725,-0.883137 0.123126,-1.220944 l 0.410436,-22.728346 c 0.588277,0.0703 1.194194,0.125214 1.833232,0.125225 3.16317,-2.1e-5 6.396738,-0.398968 6.758343,-1.534008 0.01992,0.01971 -0.0063,-0.614704 0.01368,-0.594818 z"
+       id="path1965" />
+    <g
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       style="fill:#002b8e;fill-opacity:1"
+       transform="matrix(1.1320495,0,0,1.0408306,-8.8436705,-6.4919559)"
+       id="g1967">
+      <path
+         style="fill:#002b8e;fill-opacity:1;fill-rule:evenodd;stroke:none"
+         d="m 40.871785,87.99796 c -5.084738,13.38575 -9.004683,25.17822 -6.993373,28.28246 5.802777,8.95595 23.213321,9.11055 34.116292,9.08906 9.103835,-0.0187 22.292599,-0.79876 27.330145,-8.64206 2.480594,-2.88705 -1.538065,-15.49852 -6.373622,-28.739326 l -48.079442,0.0099 z"
+         id="path1969"
+         sodipodi:nodetypes="cscccc" />
+      <path
+         sodipodi:nodetypes="cssccc"
+         id="path1971"
+         d="m 34.848384,106.40214 c -1.220491,4.7088 -1.362395,7.9952 -0.439433,9.5 5.583266,9.10296 23.027627,9.11524 33.836214,9.09375 9.025026,-0.0187 22.10433,-0.7817 27.098268,-8.625 1.186159,-1.39257 0.865034,-5.07469 -0.292954,-9.96875 l -60.202095,0 z"
+         style="opacity:0.5;fill:#002b8e;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+    </g>
+    <path
+       sodipodi:nodetypes="cssccc"
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       id="path1973"
+       d="m 39.95632,85.101118 c -5.213188,13.410364 -9.057571,25.247322 -7.011933,28.332422 5.965839,8.99726 23.799709,9.1273 34.978099,9.10577 9.333806,-0.0187 22.855729,-0.80023 28.020528,-8.65794 2.543254,-2.89236 -1.483485,-15.515098 -6.441192,-28.780252 l -49.545502,0 z"
+       style="opacity:0.5;fill:#3466d9;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+    <path
+       sodipodi:nodetypes="cssccc"
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       style="fill:#0060b5;fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter3696)"
+       d="m 41.123096,86.192336 c -4.721494,13.159667 -8.179426,24.814354 -6.350592,27.802764 5.427045,8.86808 21.555024,8.95668 31.67912,8.93555 8.453485,-0.0184 20.700081,-0.78527 25.377763,-8.49609 2.303383,-2.83829 -1.343575,-15.225053 -5.833686,-28.242224 l -44.872605,0 z"
+       id="path1975"
+       transform="matrix(0.9958334,0,0,1.0190504,1.4348339,-2.733216)" />
+    <path
+       transform="matrix(0.90423166,0,0,0.83758096,0.30100687,-297.60065)"
+       style="fill:url(#radialGradient4038);fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter4028)"
+       d="m 106.96597,492.99567 c 0,5.46734 -16.001804,9.89949 -35.741033,9.89949 -19.739228,0 -35.741035,-4.43215 -35.741035,-9.89949 0,-5.46734 15.899534,-8.18811 35.638762,-8.18811 19.739229,0 35.843306,2.72077 35.843306,8.18811 z"
+       id="path1977"
+       sodipodi:nodetypes="csssc" />
+    <path
+       sodipodi:nodetypes="ccccsscc"
+       id="path2918"
+       d="m 51.537601,23.044203 c 6.08848,-3.053036 5.333552,-1.888514 11.914702,1.711776 L 64.4084,51.576551 c 1.570426,10.287088 19.142915,56.691579 14.987581,62.627939 -4.163088,7.95629 -15.081455,8.73774 -22.604996,8.75673 -9.010372,0.0218 -23.129952,-0.14089 -28.18435,-9.21813 -3.119888,-5.60302 16.054529,-46.157889 22.216059,-63.622886 l 0.714907,-27.076001 z"
+       style="fill:url(#linearGradient3795);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.50000000000000000;fill:#0077fd;fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter4020)"
+       d="m 38.532851,110.3437 c -1.061682,3.1964 -1.368847,4.54711 -0.382247,5.44876 4.672986,6.29909 20.031117,6.1876 29.433206,6.173 7.850633,-0.0127 19.22798,-0.53063 23.572074,-5.8548 1.031801,-0.94531 0.75247,-2.4448 -0.25484,-5.76696 -20.734022,-3.01195 -36.738637,-1.94823 -52.368193,0 z"
+       id="path1979"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       sodipodi:nodetypes="ccsccc" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       transform="matrix(0.94609252,0,0,0.52012231,-92.75336,69.100992)"
+       d="m 195.16148,31.062088 a 28.798531,6.4282436 0 1 1 -57.59707,0 28.798531,6.4282436 0 1 1 57.59707,0 z"
+       sodipodi:ry="6.4282436"
+       sodipodi:rx="28.798531"
+       sodipodi:cy="31.062088"
+       sodipodi:cx="166.36295"
+       id="path1981"
+       style="fill:#002b8e;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       sodipodi:type="arc" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       id="path1983"
+       d="m 85.542194,87.378017 c 4.300261,13.118053 7.809631,23.529023 5.784016,26.254083 -4.582917,9.09392 -19.631972,8.92836 -28.852837,8.90729 -7.699289,-0.0183 -18.574624,-0.96222 -23.113652,-8.46922 -1.819209,-3.00875 1.223699,-13.71615 5.313234,-26.692153 14.967332,3.352895 28.284016,2.623155 40.869239,0 z"
+       style="fill:url(#linearGradient3790);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       sodipodi:nodetypes="ccsscc" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       id="path1985"
+       d="m 40.047097,86.649411 c -5.18291,13.389859 -9.003829,23.719409 -6.971203,26.798069 5.932324,8.98521 23.661493,9.11333 34.774963,9.09185 9.2796,-0.0188 22.72299,-0.79902 27.857802,-8.64471 2.52848,-2.88793 -1.474874,-14.00034 -6.403787,-27.245209 -18.039426,3.422361 -34.089401,2.677504 -49.257775,0 z"
+       style="fill:url(#linearGradient3787);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       sodipodi:nodetypes="cssccc" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       sodipodi:nodetypes="ccsscc"
+       style="fill:url(#linearGradient3784);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 89.754597,86.649411 c 4.544369,13.389859 8.252938,24.016549 6.112347,26.798069 -4.843061,9.28234 -20.746367,9.11333 -30.49065,9.09185 -8.136343,-0.0188 -19.634788,-0.99143 -24.425685,-8.64471 -1.928267,-3.08034 1.293156,-14.00034 5.614825,-27.245209 15.816949,3.422361 29.889553,2.677504 43.189163,0 z"
+       id="path1987" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       sodipodi:nodetypes="cssccc"
+       style="fill:url(#linearGradient3781);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 43.817822,87.019079 c -4.2863,13.251951 -7.409828,23.541081 -5.765227,26.522071 4.942467,8.95865 19.568205,9.01948 28.759123,8.99821 7.674285,-0.0185 18.79206,-0.79079 23.038581,-8.55568 2.091077,-2.85819 -1.219723,-13.85615 -5.295976,-26.964601 -14.91872,3.387117 -28.192154,2.649934 -40.736501,0 z"
+       id="path1989" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       transform="matrix(0.8021209,0,0,0.34079797,-68.661909,75.277426)"
+       d="m 195.16148,31.062088 a 28.798531,6.4282436 0 1 1 -57.59707,0 28.798531,6.4282436 0 1 1 57.59707,0 z"
+       sodipodi:ry="6.4282436"
+       sodipodi:rx="28.798531"
+       sodipodi:cy="31.062088"
+       sodipodi:cx="166.36295"
+       id="path1991"
+       style="fill:url(#radialGradient3930);fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter3939)"
+       sodipodi:type="arc" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       sodipodi:type="arc"
+       style="opacity:0.50000000000000000;fill:url(#linearGradient2923);fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter3935)"
+       id="path1993"
+       sodipodi:cx="166.36295"
+       sodipodi:cy="31.062088"
+       sodipodi:rx="28.798531"
+       sodipodi:ry="6.4282436"
+       d="m 195.16148,31.062088 a 28.798531,6.4282436 0 1 1 -57.59707,0 28.798531,6.4282436 0 1 1 57.59707,0 z"
+       transform="matrix(0.87251238,0,0,0.43997603,-80.637015,71.741341)" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       sodipodi:nodetypes="ccccsccc"
+       id="path1995"
+       d="m 75.59679,21.598271 c -6.01833,-3.076249 -5.27211,-1.90287 -11.777425,1.724779 l -0.94508,27.024428 c -1.55233,10.365278 -18.922346,57.122462 -14.814891,63.103932 4.115126,8.01676 14.90769,8.80417 22.344536,8.82331 8.90655,0.0219 23.43291,0.19654 27.85961,-9.2882 3.65339,-5.3071 -15.87319,-45.753565 -21.96372,-63.351312 L 75.59679,21.598271 z"
+       style="fill:url(#linearGradient3776);fill-opacity:1;fill-rule:evenodd;stroke:none" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       sodipodi:nodetypes="ccccszcc"
+       id="path1997"
+       d="m 53.283234,25.385411 c 6.41913,-3.052459 12.411979,-3.82717 19.350544,-0.227561 l 1.008013,26.815534 c 1.65571,10.28515 20.182537,56.680896 15.801533,62.616136 -4.389182,7.95479 -15.900509,8.73609 -23.832636,8.75509 -9.499704,0.0218 -25.405876,-1.87765 -29.714988,-9.2164 -4.309111,-7.33875 11.98154,-43.425664 16.214768,-61.662976 l 1.172766,-27.079823 z"
+       style="fill:url(#linearGradient2927);fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter3969)"
+       transform="matrix(0.9958334,0,0,1.0190504,-0.565166,-2.733216)" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       style="fill:url(#linearGradient2929);fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter3688)"
+       d="m 51.316583,25.295529 c 6.113954,-2.995962 5.355868,-1.85321 11.964553,1.679776 l 0.960098,26.319181 c 1.576996,10.094778 19.223009,55.631774 15.050289,61.457154 -4.180506,7.80755 -15.144556,8.5744 -22.699576,8.59303 -9.048072,0.0214 -23.226728,-0.13826 -28.302274,-9.0458 -3.132942,-5.49828 16.121701,-45.295004 22.309012,-62.433506 l 0.717898,-26.569835 z"
+       id="path1999"
+       sodipodi:nodetypes="ccccsscc"
+       transform="matrix(0.9958334,0,0,1.0190504,1.4348339,-2.733216)" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       id="path2005"
+       d="M 75.192283,25.357453 C 69.233546,22.337543 63.670516,21.57109 57.229612,25.132319 l -0.935718,26.529617 c -1.536965,10.175499 -18.734983,56.076574 -14.668199,61.948524 4.074374,7.86998 14.760077,8.64295 22.12328,8.66174 8.818367,0.0216 23.200884,0.19296 27.583746,-9.11812 C 94.949956,107.94415 80.210534,70.191418 76.280928,52.148547 L 75.192283,25.357453 z"
+       style="fill:url(#linearGradient2931);fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter3692)"
+       transform="matrix(0.9958334,0,0,1.0190504,0.434834,-1.733216)" />
+    <path
+       style="fill:url(#radialGradient3996);fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter4004);opacity:0.6744186"
+       d="m 64.65625,82.00625 c -15.047591,0 -27.25,1.497201 -27.25,3.34375 0,0.03899 0.02046,0.08633 0.03125,0.125 0.382854,-1.805585 12.412632,-3.25 27.21875,-3.25 14.80612,0 26.80465,1.444415 27.1875,3.25 0.0108,-0.03867 0.0313,-0.08601 0.0313,-0.125 0,-1.846549 -12.17116,-3.34375 -27.21875,-3.34375 z"
+       id="path3984" />
+    <path
+       style="fill:#bee2e5;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 75.803754,-0.00840669 c -0.744921,0.08605066 -1.317943,0.43918861 -1.449169,0.89969606 l -0.0064,0.00126 L 60.037626,86.453605 c 0.322728,0.381189 3.796829,0.498997 4.347513,0 L 78.605123,1.4923464 c 0.0045,-0.026727 -0.0014,-0.06332 0,-0.08997 0.03354,-0.63067968 -0.924667,-1.28207168 -2.016375,-1.41078345 -0.272927,-0.03218263 -0.536658,-0.02868321 -0.784969,0 l -2.5e-5,3.6e-7 z"
+       id="path2110"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       sodipodi:nodetypes="ccccccsscc" />
+    <path
+       style="stroke-width:0.59999993;stroke:#ffffff;stroke-opacity:1;filter:url(#filter3854);stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 77.5625,1.1874999 63.25,86.125"
+       id="path3852" />
+    <path
+       style="fill:url(#linearGradient3925);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="M 76.25,0.28125 C 76.128931,0.28165328 75.967262,0.2982311 75.84375,0.3125 75.130766,0.3948653 74.641684,0.7374276 74.53125,1.125 L 60.144701,86.527333 c 0.358394,0.171832 0.80865,0.221181 1.29137,0.227246 L 75.65625,1.8125 l 0,-0.03125 c -0.0013,-0.010361 -0.0013,-0.020889 0,-0.03125 0.102828,-0.360858 0.440783,-0.6458732 0.875,-0.8125 C 76.898664,0.79650812 77.341827,0.75884394 77.8125,0.78125 77.501115,0.56292736 77.109598,0.36963353 76.625,0.3125 76.486806,0.29620696 76.371078,0.28084666 76.25,0.28125 z"
+       id="path3923"
+       sodipodi:nodetypes="cscccccsscsc" />
+    <path
+       sodipodi:type="arc"
+       style="opacity:0.12295083;fill:url(#radialGradient2937);fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path2928"
+       sodipodi:cx="48.625"
+       sodipodi:cy="24.625"
+       sodipodi:rx="1.625"
+       sodipodi:ry="30.875"
+       d="m 50.25,24.625 a 1.625,30.875 0 1 1 -3.25,0 1.625,30.875 0 1 1 3.25,0 z"
+       transform="matrix(0.54713377,0.08685337,-0.06521961,0.43023289,48.359938,4.4919818)" />
+    <path
+       style="fill:url(#linearGradient3756);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 34.978592,90.551089 -0.515063,1.166488 c 5.241514,2.888975 11.044706,3.267137 16.815243,3.595136 l 0,-1.314914 c -5.613209,-0.215362 -11.197728,-0.736093 -16.30018,-3.44671 z"
+       id="path2023"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       style="fill:url(#linearGradient3753);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 39.068785,81.599043 -0.515061,1.197176 c 1.65063,0.438504 3.593802,0.977283 5.868654,1.346496 2.6818,0.435237 5.185898,0.594974 6.977585,0.656295 l 0,-1.314915 c -1.783253,-0.06303 -4.243654,-0.191807 -6.886692,-0.620783 -2.079569,-0.337493 -3.859424,-0.854886 -5.444486,-1.264269 z"
+       id="path2025"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       sodipodi:nodetypes="ccsccsc" />
+    <path
+       style="fill:#002b8e;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 59.856057,88.152169 4.869674,0.09106 -0.04407,0.364309 -5.045954,-0.06831 0.220345,-0.387071 z"
+       id="path2029"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       inkscape:transform-center-x="5.8427057"
+       id="path2037"
+       d="m 40.206254,86.847542 -0.227731,1.21046 c 0.887756,0.322181 1.90673,0.660881 3.014106,0.922046 2.469531,0.582391 4.604528,0.856795 5.559347,0.839359 0.01968,-0.357396 0.01185,-1.101846 0.0068,-1.374084 -1.06076,-0.07906 -3.28222,-0.251694 -5.51255,-0.777711 -1.03689,-0.244531 -1.991613,-0.519838 -2.83996,-0.82007 z"
+       style="fill:url(#linearGradient3749);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       sodipodi:nodetypes="ccsccsc"
+       inkscape:transform-center-y="-0.26454789" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       id="path2836"
+       d="M 75.804654,7.4602304e-4 C 75.059733,0.08679668 74.486711,0.43993483 74.355485,0.90044228 l -0.0034,0.003826 L 60.03762,86.453605 c 0.353457,0.505591 3.971234,0.374392 4.347519,0 L 78.389888,2.0548464 c 0.0045,-0.026727 0.21381,-0.62582 0.215229,-0.65247 0.03354,-0.63067972 -0.923767,-1.27291881 -2.015475,-1.40163057696 -0.272927,-0.032182633 -0.536658,-0.028683223 -0.784969,0 l -1.9e-5,2e-7 z"
+       style="opacity:0.4262295;fill:url(#linearGradient3746);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       sodipodi:nodetypes="ccccccsscc" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       id="path2039"
+       d="m 55.319161,26.642891 -0.519884,25.201541 c -0.0053,0.04797 -0.0083,0.108295 -0.01367,0.156531 l 9.316673,0 0,0.594819 0.355702,0 c -0.04372,-0.418441 -0.09725,-0.883137 -0.123126,-1.220944 l -0.41044,-22.728346 c -0.588277,0.0703 -1.196146,0.175118 -1.833231,0.125225 -3.021221,-0.236605 -5.878467,-1.262756 -6.758344,-1.534008 -0.01992,0.01971 0.0063,-0.614704 -0.01368,-0.594818 z"
+       style="opacity:0.75000000000000000;fill:url(#linearGradient3743);fill-opacity:1;fill-rule:evenodd;stroke:none;"
+       sodipodi:nodetypes="ccccccccscc" />
+    <path
+       style="fill:url(#linearGradient3738);fill-opacity:1;fill-rule:evenodd;stroke:url(#linearGradient3740);stroke-width:0.32746312;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 62.162572,88.680806 -3.678397,19.504544 c -0.04392,0.0905 -0.08539,0.18296 -0.104108,0.28176 -0.01686,0.0891 -0.04011,0.22631 -0.0347,0.31308 0.04261,0.68377 0.770019,1.27692 1.735096,1.37754 0.965067,0.10068 1.856529,-0.35331 2.151517,-1.00185 l 0.0694,0.0313 3.886604,-20.506374 -4.02541,0 z"
+       id="path2009"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.75;fill:url(#linearGradient3735);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="M 61.905133,88.869924 58.342255,107.888 c -0.05343,0.11164 -0.07903,0.21063 -0.101791,0.33258 -0.02052,0.10988 -0.04052,0.25573 -0.03394,0.36284 0.05139,0.83596 0.91246,1.55896 2.069864,1.69318 -0.285768,-0.28256 -0.452566,-0.63184 -0.475058,-0.99777 -0.0066,-0.10709 0.01342,-0.2227 0.03394,-0.33259 0.02277,-0.12194 0.04836,-0.25122 0.1018,-0.36282 l 3.664659,-19.713496 -1.696596,0 z"
+       id="path2011"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="ccsccsc"
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       style="fill:url(#linearGradient3732);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 42.181383,76.796242 -0.330154,1.025356 c 0.809987,0.291472 1.770287,0.787174 2.780653,1.023604 2.253192,0.52723 4.537678,0.760297 5.408853,0.744933 0.01795,-0.32292 0.01082,-0.995575 0.0062,-1.241559 -0.967834,-0.07186 -3.331209,-0.213013 -5.366154,-0.689212 -0.946056,-0.221371 -1.725362,-0.591498 -2.499391,-0.863122 z"
+       id="path2876"
+       inkscape:transform-center-x="5.3308645"
+       inkscape:transform-center-y="-0.23932577" />
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       id="path2891"
+       d="m 46.494127,67.422301 -0.30593,1.269412 c 1.642307,0.499501 3.251898,0.850584 4.925475,0.885163 l 0,-1.314862 c -1.442003,-0.06667 -3.053687,-0.433573 -4.619545,-0.839713 z"
+       style="fill:url(#linearGradient3729);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       sodipodi:nodetypes="ccsccsc"
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       style="fill:url(#linearGradient3726);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 44.124486,71.976239 -0.382917,1.20324 c 0.89641,0.322571 2.078279,0.66879 3.196446,0.930447 2.4936,0.583484 4.649404,0.858845 5.613529,0.841841 0.01987,-0.357373 0.01196,-1.101799 0.0069,-1.374028 -1.071098,-0.07954 -3.314208,-0.253169 -5.566275,-0.780174 -1.046996,-0.244992 -2.011023,-0.52072 -2.867637,-0.821326 z"
+       id="path2893"
+       inkscape:transform-center-x="5.8996484"
+       inkscape:transform-center-y="-0.26362326" />
+    <path
+       inkscape:transform-center-x="4.976959"
+       id="path2895"
+       d="m 46.494995,62.098446 -0.193989,1.021024 c 0.756215,0.272121 1.624201,0.558225 2.56749,0.77896 2.103606,0.492228 3.922248,0.724523 4.735587,0.71018 0.01676,-0.301482 0.01009,-0.929482 0.0058,-1.159135 -0.903581,-0.06709 -2.795875,-0.213574 -4.695723,-0.658157 -0.88325,-0.206675 -1.696505,-0.439281 -2.419147,-0.692872 z"
+       style="fill:url(#linearGradient3723);fill-opacity:1;fill-rule:evenodd;stroke:none"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       sodipodi:nodetypes="ccsccsc"
+       inkscape:transform-center-y="-0.22532" />
+    <path
+       style="fill:url(#radialGradient3720);fill-opacity:1;fill-rule:nonzero;stroke:none"
+       d="m 76.390032,0.16192045 c -0.992131,0 -1.804988,0.47685649 -1.804988,1.06441295 0,0.2818683 0.217722,0.5295543 0.520082,0.7200441 -0.02607,-0.075382 -0.06118,-0.1392189 -0.06118,-0.2191439 -10e-7,-0.6393993 0.878281,-1.15833173 1.957953,-1.15833173 0.376955,0 0.802621,0.0626298 1.101349,0.17218446 -0.285879,-0.363743 -0.991477,-0.57916588 -1.713212,-0.57916588 z"
+       id="path2938"
+       sodipodi:nodetypes="cscsscc" />
+    <path
+       style="stroke-width:1px;fill:#cee4f0;fill-opacity:0.35911602"
+       d="M 52.754088,82.247758 59.275,50.625 61.376317,19.652606 57.757018,19.830277 55.21914,50.881583 48.292148,82.5822"
+       id="path4075"
+       sodipodi:nodetypes="cccccc" />
+    <path
+       sodipodi:nodetypes="ccccsscc"
+       id="path3244"
+       d="m 51.635299,23.242009 c 8.933327,-2.7483 15.544776,-3.286277 25.41195,-0.2337 l 1.323771,27.53779 c 2.174353,10.562182 26.50452,58.207581 20.751227,64.302671 -5.764053,8.16906 -20.881203,8.97142 -31.298007,8.99092 -12.475409,0.0224 -32.156949,-0.32064 -39.022958,-9.46464 -4.45181,-5.92883 15.734656,-44.595315 21.293901,-63.323844 l 1.540116,-27.809197 z"
+       style="fill:none;stroke:none;stroke-width:0.99875115999999997;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       inkscape:export-filename="/home/beast/kalzium/kalzium-beaker-with-rod.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="cssssccscssssc"
+       id="path4077"
+       d="m 64.34375,19.535737 c -6.642655,-0.195577 -12.10277,0.378494 -13.108781,1.21188 -0.03484,0.02886 -0.07924,0.05555 -0.101906,0.08668 -0.230927,0.180759 -0.648103,0.496167 -0.648103,1.228209 0,0.425121 0.356866,0.957307 0.652179,1.258341 0.03331,0.03395 0.06669,0.07335 0.09783,0.10071 l 0,0 c 1.019459,0.930199 6.504301,1.789341 13.108781,1.983794 6.60448,0.194453 12.121931,-0.340753 13.14139,-1.21092 0.02635,-0.01101 0.04514,-0.05761 0.06522,-0.0633 0.295316,-0.283645 0.652179,-0.827424 0.652179,-1.252545 4e-6,-0.732045 -0.421248,-1.063986 -0.652174,-1.258344 -0.02265,-0.03245 -0.06426,-0.06841 -0.09783,-0.10071 -0.973402,-0.936504 -6.466125,-1.788217 -13.108781,-1.983794 z"
+       style="fill:#183648;fill-opacity:1;stroke:none;filter:url(#filter4079)"
+       clip-path="url(#clipPath4093)" />
+    <path
+       style="fill:#00336b;fill-opacity:1;fill-rule:evenodd;stroke:none;filter:url(#filter3871)"
+       d="m 191.5,21.15625 c -2.9911,0.336174 -6.025,1.063137 -9.375,2.09375 l -1.53125,27.8125 c -5.55924,18.728529 -25.73306,57.38367 -21.28125,63.3125 5.14951,6.858 17.50466,8.7656 28.625,9.28125 -10.61771,-0.53322 -22.34147,-2.47623 -27.25,-9.28125 -4.27653,-5.92883 15.79142,-44.958971 21.13177,-63.6875 L 183.1072,23.5 c 3.17223,-1.015926 5.55949,-2.001604 8.3928,-2.34375 z m 7.40625,0 c 2.51475,0.294772 5.04237,0.76482 8.00445,1.71875 l 1.4018,27.65625 c 2.08874,10.562182 25.46426,58.21741 19.9375,64.3125 -4.79346,7.07193 -16.31063,8.63577 -25.8125,8.9375 9.95076,-0.27833 22.14395,-1.78957 27.1875,-8.9375 5.75329,-6.09509 -18.57565,-53.750318 -20.75,-64.3125 L 207.5625,23 c -3.15702,-0.976679 -5.98311,-1.55699 -8.65625,-1.84375 z"
+       id="path3862"
+       transform="matrix(1.0369217,0,0,1,-137.69223,0)"
+       clip-path="url(#clipPath3875)"
+       sodipodi:nodetypes="cccscscccccccccccc" />
+    <path
+       id="path4097"
+       d="M 77.5625,1.1874999 63.25,86.125"
+       style="stroke-width:0.59999992999999996;stroke:url(#linearGradient4133);stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1;fill:url(#linearGradient4125);filter:url(#filter4159)" />
+    <path
+       style="fill:url(#linearGradient3968);fill-opacity:1;stroke:none;filter:url(#filter3980)"
+       d="m 64.375,86.6625 c -0.370073,0.368211 -3.860618,0.407921 -4.3125,-0.06875 l 0.3125,1.9375 c 1.401636,0.02729 2.817048,0.0625 4.28125,0.0625 0.02149,0 0.04102,6e-6 0.0625,0 L 64.375,86.6625 z"
+       id="rect3941"
+       sodipodi:nodetypes="cccscc" />
+    <path
+       style="opacity:1;fill:#f3f8fb;fill-opacity:1;stroke:none"
+       d="m 64.34375,19.127698 c -6.642655,0 -12.10277,0.734831 -13.108781,1.597837 -0.03484,0.02989 -0.07924,0.05788 -0.101906,0.08968 -0.230927,0.187558 -0.648103,0.515249 -0.648103,1.247291 0,0.425121 0.356866,0.9468 0.652179,1.239139 0.03331,0.03297 0.06669,0.07139 0.09783,0.09783 l 0,0 c 1.019459,0.900183 6.504301,1.597837 13.108781,1.597837 6.60448,0 12.121931,-0.697654 13.14139,-1.597837 0.02635,-0.01178 0.04514,-0.05894 0.06522,-0.06522 0.295316,-0.29234 0.652179,-0.846626 0.652179,-1.271747 4e-6,-0.732045 -0.421248,-1.051583 -0.652174,-1.239142 -0.02265,-0.03178 -0.06426,-0.06652 -0.09783,-0.09783 -0.973402,-0.907844 -6.466125,-1.597837 -13.108781,-1.597837 z"
+       id="path2960"
+       sodipodi:nodetypes="cssssccscssssc" />
+    <rect
+       style="opacity:0.61395347000000000;fill:url(#linearGradient3754);fill-opacity:1;stroke:none;filter:url(#filter3810)"
+       id="rect2974"
+       width="21.688398"
+       height="2.4098222"
+       x="53.82539"
+       y="19.555166"
+       rx="71.932549"
+       ry="2.4098222" />
+    <rect
+       ry="2.4098222"
+       rx="71.932549"
+       y="19.555166"
+       x="53.82539"
+       height="2.4098222"
+       width="21.688398"
+       id="rect3782"
+       style="opacity:0.61395347;fill:url(#linearGradient3800);fill-opacity:1;stroke:none;filter:url(#filter3796)"
+       transform="matrix(0.95666484,0,0,0.81959096,2.8024669,3.7724945)" />
+    <path
+       style="fill:none;stroke:url(#linearGradient3768);stroke-width:0.69999999;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter3774)"
+       d="m 100.22942,18.678883 c -6.642656,0 -12.102771,0.734831 -13.108782,1.597837 -0.03484,0.02989 -0.07924,0.05788 -0.101906,0.08968 -0.230927,0.187558 -0.648103,0.815249 -0.648103,1.547291 0,0.425121 0.356866,0.9468 0.652179,1.239139 0.03331,0.03297 0.06669,0.07139 0.09783,0.09783 l 0,0 c 1.019459,0.900183 6.504301,1.597837 13.108782,1.597837 6.60448,0 12.12193,-0.697654 13.14139,-1.597837 0.0263,-0.01178 0.0451,-0.05894 0.0652,-0.06522 0.29532,-0.29234 0.65218,-0.846626 0.65218,-1.271747 0,-0.732045 -0.42125,-1.051583 -0.65218,-1.239142 -0.0226,-0.03178 -0.0643,-0.06652 -0.0978,-0.09783 -0.9734,-0.907844 -6.46612,-1.897837 -13.10878,-1.897837 l -10e-6,-1e-6 z"
+       id="path3760"
+       sodipodi:nodetypes="cssssccscsssscc"
+       clip-path="url(#clipPath3778)"
+       transform="translate(-35.888614,0.14628509)" />
+    <path
+       style="stroke-width:1px;fill:url(#linearGradient3822);fill-opacity:1"
+       d="m 71.295503,19.171721 -0.43716,2.586159 c 1.570903,-0.09616 3.995553,-0.438281 4.484413,-0.773614 l 0.176998,-1.05752 c -1.257266,-0.513447 -2.701663,-0.791374 -4.22867,-0.728634 l 0.0044,-0.02639 1.9e-5,-10e-7 z"
+       id="path3814"
+       sodipodi:nodetypes="ccccccc" />
+    <path
+       style="stroke-width:1px;fill:#e6e6e6;fill-opacity:1"
+       d="M 71.488592,19.187017 71.062503,21.75 c 0.398679,-0.02828 0.835305,-0.07243 1.28125,-0.125 l 0.399552,-2.384409 c -0.425353,-0.04004 -0.872423,-0.05008 -1.254713,-0.05357 z"
+       id="path3824"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       style="stroke-width:0.29999999999999999;stroke:url(#linearGradient3939);stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter3872)"
+       d="m 74.718152,17.254174 -0.66115,3.95534"
+       id="path3829"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="stroke-width:1px;fill:url(#radialGradient3884);fill-opacity:1;opacity:0.60465115999999997;filter:url(#filter4045)"
+       d="m 70.651611,19.753784 -0.262358,0.404011 c -4.621064,-0.252703 -9.305112,-0.316938 -14.131029,-0.159937 4.726685,-0.413335 9.962754,-0.69216 14.393387,-0.244074 z"
+       id="path3876"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="stroke-width:1px;fill-opacity:1;fill:url(#linearGradient3898)"
+       d="m 54,21.625 c 2.30295,1.458333 22.144975,-0.817855 21.15885,1.59375 l -1.078427,0.962276 C 74.554117,21.25819 55.505974,23.185342 54,21.625 z"
+       id="path3890"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="fill:url(#radialGradient4052);fill-opacity:1;stroke:none;filter:url(#filter3918);opacity:0.41860465000000002"
+       d="M 65.46875 19.8125 L 65.46875 21.75 C 66.085421 21.745263 66.669077 21.733228 67.25 21.71875 L 67.25 19.84375 C 66.66898 19.82927 66.085529 19.817235 65.46875 19.8125 z "
+       id="rect3900" />
+    <path
+       sodipodi:type="arc"
+       style="opacity:0.60465117999999995;fill:#0060b5;fill-opacity:1;stroke:none;filter:url(#filter4197)"
+       id="path4163"
+       sodipodi:cx="60.508423"
+       sodipodi:cy="109.26074"
+       sodipodi:rx="1.0000465"
+       sodipodi:ry="0.77226865"
+       d="m 61.508469,109.26074 a 1.0000465,0.77226865 0 1 1 -2.000093,0 1.0000465,0.77226865 0 1 1 2.000093,0 z" />
+  </g>
+</svg>

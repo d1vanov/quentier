@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.0"
+   width="88"
+   height="88"
+   viewBox="0 0 88 80.918"
+   id="svg1966"
+   xml:space="preserve"><defs
+   id="defs2020"><linearGradient
+     id="linearGradient16538"><stop
+       style="stop-color:#646464;stop-opacity:1"
+       offset="0"
+       id="stop16540" /><stop
+       style="stop-color:black;stop-opacity:1"
+       offset="0.5"
+       id="stop16546" /><stop
+       style="stop-color:#646464;stop-opacity:1"
+       offset="1"
+       id="stop16542" /></linearGradient><linearGradient
+     x1="-39.000408"
+     y1="-8.6369371"
+     x2="57.486698"
+     y2="65.651802"
+     id="XMLID_5_"
+     gradientUnits="userSpaceOnUse"
+     gradientTransform="matrix(1.039286,0,0,1,-3.285736,-3.541)">
+				<stop
+   style="stop-color:#4d2600;stop-opacity:1"
+   offset="0"
+   id="stop1984" />
+				<stop
+   style="stop-color:#4d2600;stop-opacity:1"
+   offset="1"
+   id="stop1986" />
+				<a:midPointStop
+   offset="0"
+   style="stop-color:#B3925D" />
+				<a:midPointStop
+   offset="0.5"
+   style="stop-color:#B3925D" />
+				<a:midPointStop
+   offset="1"
+   style="stop-color:#4D2600" />
+			</linearGradient><radialGradient
+     cx="-13"
+     cy="0.91799998"
+     r="116.4002"
+     fx="-13"
+     fy="0.91799998"
+     id="XMLID_6_"
+     gradientUnits="userSpaceOnUse">
+				<stop
+   style="stop-color:white;stop-opacity:1"
+   offset="0"
+   id="stop1991" />
+				<stop
+   style="stop-color:#803f00;stop-opacity:1"
+   offset="1"
+   id="stop1993" />
+				<a:midPointStop
+   offset="0"
+   style="stop-color:#FFFFFF" />
+				<a:midPointStop
+   offset="0.5"
+   style="stop-color:#FFFFFF" />
+				<a:midPointStop
+   offset="1"
+   style="stop-color:#803F00" />
+			</radialGradient><linearGradient
+     x1="9.0341997"
+     y1="45.680698"
+     x2="17.070499"
+     y2="57.161098"
+     id="XMLID_7_"
+     gradientUnits="userSpaceOnUse"
+     gradientTransform="translate(-1,-3.541)">
+				<stop
+   style="stop-color:#b3925d;stop-opacity:1"
+   offset="0"
+   id="stop2002" />
+				<stop
+   style="stop-color:#4d2600;stop-opacity:1"
+   offset="1"
+   id="stop2004" />
+				<a:midPointStop
+   offset="0"
+   style="stop-color:#B3925D" />
+				<a:midPointStop
+   offset="0.5"
+   style="stop-color:#B3925D" />
+				<a:midPointStop
+   offset="1"
+   style="stop-color:#4D2600" />
+			</linearGradient><linearGradient
+     x1="2.7363"
+     y1="40.276901"
+     x2="17.0242"
+     y2="54.365101"
+     id="XMLID_8_"
+     gradientUnits="userSpaceOnUse"
+     gradientTransform="translate(-1,-3.541)">
+				<stop
+   style="stop-color:white;stop-opacity:1"
+   offset="0"
+   id="stop2009" />
+				<stop
+   style="stop-color:#803f00;stop-opacity:1"
+   offset="1"
+   id="stop2011" />
+				<a:midPointStop
+   offset="0"
+   style="stop-color:#FFFFFF" />
+				<a:midPointStop
+   offset="0.5"
+   style="stop-color:#FFFFFF" />
+				<a:midPointStop
+   offset="1"
+   style="stop-color:#803F00" />
+			</linearGradient><radialGradient
+     cx="-7.4307694"
+     cy="-20.74012"
+     r="116.4002"
+     fx="-7.4307694"
+     fy="-20.74012"
+     id="radialGradient2066"
+     xlink:href="#XMLID_6_"
+     gradientUnits="userSpaceOnUse"
+     gradientTransform="matrix(1.039286,0,0,1,-3.285736,-3.541)" /><linearGradient
+     x1="13.764423"
+     y1="17.394068"
+     x2="77.728523"
+     y2="17.85955"
+     id="linearGradient22367"
+     xlink:href="#linearGradient16538"
+     gradientUnits="userSpaceOnUse"
+     gradientTransform="matrix(0.999999,0,0,1.124999,-13.6624,-57.65102)" /><linearGradient
+     x1="13.764423"
+     y1="17.394068"
+     x2="77.728523"
+     y2="17.85955"
+     id="linearGradient22404"
+     xlink:href="#linearGradient16538"
+     gradientUnits="userSpaceOnUse"
+     gradientTransform="matrix(1,0,0,1.125,-1.851,-7.8408)" /></defs>
+	
+		
+	<g
+   transform="translate(0,10)"
+   id="g22393"><rect
+     width="66"
+     height="40.878559"
+     rx="2"
+     ry="1.999999"
+     x="11.877528"
+     y="-0.12736392"
+     style="opacity:0.3;fill:#555753;fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:1.99999952;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="rect21366" /><rect
+     width="66"
+     height="40"
+     rx="2"
+     ry="2"
+     x="10.877528"
+     y="-0.24885464"
+     style="fill:white;fill-opacity:1;fill-rule:nonzero;stroke:#555753;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="rect21368" /><rect
+     width="64"
+     height="9"
+     x="11.877528"
+     y="7.7511458"
+     style="fill:url(#linearGradient22404);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="rect21370" /><flowRoot
+     transform="matrix(0.301165,2.666075e-8,-2.666075e-8,0.301165,22.18287,54.08809)"
+     style="font-size:9.96131706px;text-align:center;text-anchor:middle"
+     id="flowRoot21372"
+     xml:space="preserve"><flowRegion
+       id="flowRegion21374"><rect
+         width="158.51956"
+         height="57.546783"
+         x="-10.22906"
+         y="-107.56835"
+         style="font-size:9.96131706px;text-align:center;text-anchor:middle"
+         id="rect21376" /></flowRegion><flowPara
+       id="flowPara21378">Nuno Marco Fernandes Pinheiro </flowPara><flowPara
+       id="flowPara21380" /><flowPara
+       id="flowPara21382">OxyCard - 2006</flowPara></flowRoot></g><g
+   transform="matrix(0.707108,-0.707107,0.707107,0.707108,4.804036,34.25018)"
+   id="g22371"><rect
+     width="65.834488"
+     height="40.916786"
+     rx="1.9992028"
+     ry="1.999251"
+     x="-0.2863313"
+     y="-50.321495"
+     transform="matrix(2.208084e-2,0.999756,-0.999768,-2.153446e-2,0,0)"
+     style="opacity:0.3;fill:#555753;fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:2.0009501;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="rect21344" /><rect
+     width="65.999947"
+     height="39.999966"
+     rx="1.9999983"
+     ry="1.9999983"
+     x="-0.93389237"
+     y="-50.059082"
+     transform="matrix(-1.366025e-6,1,-1,-1.366025e-6,0,0)"
+     style="fill:white;fill-opacity:1;fill-rule:nonzero;stroke:#555753;stroke-width:1.99999833;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="rect21346" /><rect
+     width="63.999947"
+     height="8.9999924"
+     x="0.066107638"
+     y="-42.059097"
+     transform="matrix(-1.366025e-6,1,-1,-1.366025e-6,0,0)"
+     style="fill:url(#linearGradient22367);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+     id="rect21348" /><flowRoot
+     transform="matrix(-2.2345e-7,0.351294,-0.301164,-2.606441e-7,-3.277838,3.666453)"
+     style="font-size:9.96131706px;font-weight:bold;text-align:center;text-anchor:middle"
+     id="flowRoot21350"
+     xml:space="preserve"><flowRegion
+       id="flowRegion21352"><rect
+         width="158.51956"
+         height="57.546783"
+         x="-10.22906"
+         y="-107.56835"
+         style="font-size:9.96131706px;font-weight:bold;text-align:center;text-anchor:middle"
+         id="rect21354" /></flowRegion><flowPara
+       id="flowPara21356">Nuno Marco Fernandes Pinheiro </flowPara><flowPara
+       id="flowPara21358" /><flowPara
+       id="flowPara21360">OxyCard - 2006</flowPara></flowRoot></g><path
+   d="M 8.6702106,28.377 C 5.517017,28.377 2.9499803,30.833 2.9499803,33.852 L 2.9499803,78.901 C 2.9499803,81.921 5.517017,84.377 8.6702106,84.377 L 82.45017,84.377 C 85.605442,84.377 88.17144,81.921 88.17144,78.901 L 88.17144,33.852 C 88.17144,30.833 85.605442,28.377 82.45017,28.377 L 8.6702106,28.377 z "
+   style="fill:url(#XMLID_5_)"
+   id="path1988" /><path
+   d="M 6.7543327,30.377 C 5.8024686,30.377 5.0285525,31.127 5.0285525,32.047 L 5.0285525,78.706 C 5.0285525,79.627 5.8024686,80.377 6.7543327,80.377 L 83.327802,80.377 C 84.278613,80.377 85.053581,79.627 85.053581,78.706 L 85.053581,32.047 C 85.053581,31.126 84.279666,30.377 83.327802,30.377 L 6.7543327,30.377 L 6.7543327,30.377 z "
+   style="fill:url(#radialGradient2066)"
+   id="path1995" /><path
+   d="M 80,77.02 C 80,77.77 79.338,78.377 78.522,78.377 L 16.478,78.377 C 15.662,78.377 15,77.77 15,77.02 L 76.75,75.127 L 78.522,37.752 C 79.337,37.752 80,38.36 80,39.109 L 80,77.02 z "
+   style="opacity:0.3;fill:#4d2600;fill-opacity:1"
+   id="path1997" /><path
+   d="M 10,34.734 C 10,33.984 10.662,33.377 11.478,33.377 L 73.523,33.377 C 74.338,33.377 75.001,33.984 75.001,34.734 L 14.765948,36.122017 C 14.765948,36.122017 11.838266,36.928362 11.680993,39.259186 C 11.516936,41.690558 10.28647,64.259957 10.28647,63.509957 L 10.001,34.734 L 10,34.734 z "
+   style="opacity:0.50568183;fill:white"
+   id="path1999" /><path
+   d="M 23,58.932 C 23,61.387 20.851,63.377 18.2,63.377 L 3.8,63.377 C 1.149,63.377 0,61.387 0,58.932 L 0,47.82 C 0,45.366 1.149,43.377 3.8,43.377 L 18.2,43.377 C 20.851,43.377 23,45.367 23,47.82 L 23,58.932 z "
+   style="fill:url(#XMLID_7_)"
+   id="path2006" /><path
+   d="M 21,55.377 C 21,57.586 18.649,59.377 15.75,59.377 L 1.25,59.377 C 1.2909453,59.698437 1.2571897,45.360605 1.25,45.377 L 15.75,45.377 C 18.649,45.377 21,47.168 21,49.377 L 21,55.377 z "
+   style="fill:url(#XMLID_8_)"
+   id="path2013" /><circle
+   cx="14"
+   cy="48.917999"
+   r="4"
+   transform="translate(-1,3.459)"
+   style="fill:#fd0"
+   id="circle2015" /><circle
+   cx="13"
+   cy="47.917999"
+   r="2"
+   transform="translate(-1,3.459)"
+   style="fill:white;fill-opacity:1"
+   id="circle2017" /></svg>

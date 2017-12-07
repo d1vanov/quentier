@@ -1,0 +1,7 @@
+MACRO( prepend_path var _srcs _path )
+    unset( _tmp )
+    foreach( src ${_srcs} )
+        list(APPEND _tmp "${_path}/${src}")
+    endforeach( src ${_srcs} )
+    set( ${var} "${_tmp}" )
+ENDMACRO( prepend_path _srcs )
