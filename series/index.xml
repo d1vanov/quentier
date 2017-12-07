@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Series on Quentier</title>
+    <link>https://d1vanov.github.io/quentier/series/</link>
+    <description>Recent content in Series on Quentier</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Dmitry Ivanov</copyright>
+    
+	<atom:link href="https://d1vanov.github.io/quentier/series/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+  </channel>
+</rss>

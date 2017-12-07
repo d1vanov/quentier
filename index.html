@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+	<meta name="generator" content="Hugo 0.27.1" />
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  
+
+  <title> Quentier </title>
+
+  
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/poole.css">
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/syntax.css">
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/hyde.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/quentier/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/quentier/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/quentier/favicon-16x16.png">
+  <link rel="manifest" href="/quentier/manifest.json">
+  <link rel="mask-icon" href="/quentier/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="theme-color" content="#ffffff">
+
+  
+  <link href="https://d1vanov.github.io/quentier/index.xml" rel="alternate" type="application/rss+xml" title="Quentier" />
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+  <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ['Fira Sans']
+      }
+    });
+  </script>
+
+</head>
+
+<body class="theme-base-0d">
+
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about" align=center>
+      <h1 class="brand"><a href="https://d1vanov.github.io/quentier">Quentier</a></h1>
+      <img src="/quentier/quentier_icon.svg" width=50% />
+      <p class="lead">
+         Free &amp; open source desktop Evernote client 
+      </p>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="https://d1vanov.github.io/quentier/blog">Posts</a></li>
+      
+      <br/> 
+      <li>Code:</li>
+       
+       
+       
+       
+       
+       
+       
+      
+    </ul>
+     
+    
+    
+     <a href="https://github.com/d1vanov"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp; 
+     
+
+    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2017 Dmitry Ivanov. All rights reserved.</p>
+
+  </div>
+</div>
+
+
+    <div class="content container">
+<div class="posts">
+
+      
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="https://d1vanov.github.io/quentier/blog/helloworld/">
+        Hello world!
+      </a>
+    </h1>
+
+    <span class="post-date">Dec 7, 2017</span>
+
+    
+
+
+    <p>This blog is dedicated to <a href="https://github.com/d1vanov/quentier">Quentier</a> — an open source desktop note taking app which can be used as Evernote client or just for local note taking without the necessity to even have the Evernote account. Quentier is free software distributed under the terms of GNU GPL v.3. The core functionality of Quentier is encapsulated in <a href="https://github.com/d1vanov/libquentier">libquentier</a> library which is distributed under the terms of GNU LGPL v.3.</p>
+
+<p>Let me briefly introduce myself as the author of Quentier: my name is Dmitry Ivanov, I&rsquo;m a 29 years old software developer from Saint-Petersburg, Russia. I bet I&rsquo;m not (yet) known to the free software community as my contributions to free software in the past were quite limited. Quentier is my &ldquo;pet project&rdquo; on which I&rsquo;ve been working in my free time for several last years. There is no any company or organization behind the project.</p>
+
+<p>Here&rsquo;s how Quentier looks like:</p>
+
+<p><img src="/quentier/Quentier_sample_screenshot.png" alt="Sample Quentier screenshot" /></p>
+
+<p>With Quentier you can read, modify, search and create notes, put them into notebooks, label them with tags, create and manage saved searches. If you are using Quentier for working with Evernote account, you can also synchronize with Evernote service - download the data into Quentier&rsquo;s local storage, work with the content and then send changes back to Evernote. With Quentier it is absolutely possible to create and edit content offline and synchronize it with Evernote later.</p>
+
+<p>Compared to official Evernote clients for various platforms, Quentier is a rather minimalistic one: it doesn&rsquo;t have many advanced features such as <a href="https://help.evernote.com/hc/en-us/articles/209004967-How-to-create-import-folders-in-Evernote-for-Windows">import folders</a> or PDF reader embedded into the note editor or the possibility to e-mail notes right from the app. Some of such advanced functionality might (or might not) be added to Quentier in future. However, there are some notable already supported features required for proper working with already existing notes: for example, Quentier properly supports encryption and decryption of note fragments supporting both current encryption method used by Evernote - AES - and the older legacy one - RC2.</p>
+
+<p>Quentier maintains most of the account&rsquo;s content within a local SQLite database which allows for convenient and efficient searching of stuff. Quentier fully supports Evernote search syntax as internally it is translated into SQL queries.</p>
+
+<p>More details on what Quentier can and cannot do and how it works will be revealed in future posts so stay tuned. The rest of this post is dedicated to project&rsquo;s history and attempts to foresee and answer some questions expected from newcomers.</p>
+
+<!-- more -->
+
+<p>The Quentier project was open sourced only in late 2017 although it was started long before that, in the middle of 2013. At that time I had the following situation in my life — it was about half a year since I decided to abandon the PhD program I was participating and about a year since I got permanent job of a junior software developer. My education had little to do with software development, I was a theoretical physicist and just did some mathematical modeling in Fortran. Shortly before my graduation one of my university teachers moved to a rather young company to start a new department there and he offered me to become his assistant. The job had no connection to physics at all but it was connected to mathematical modeling so I agreed. I was working part time for about a year as after my graduation I entered the PhD program. But that program didn&rsquo;t work out well for me so I quit it at some point and decided to start working full time. My employer agreed under condition that I&rsquo;d take some purely programming tasks not involving math in addition to my previous duties.</p>
+
+<p>Shortly after starting to work on purely programming tasks I realized I lack the expertise required to solve such problems efficiently and decided to learn programming to become a more proficient developer. I started to read various books on software development but I felt it was not enough – I needed practice as well as theory and the practice I had at work wasn&rsquo;t quite enough since it was mostly about maintaining already existing working code and I tried really hard to change it minimally to not break things. So I decided to start some hobby project to work on in my free time – such project could serve as a playground for various ideas on software design which I read from books and articles as well as the ongoing source of learning various things which I&rsquo;d need to master for the project&rsquo;s completion.</p>
+
+<p>Many people finding themselves in a similar situation seem to settle with small projects like various ToDo lists or small scripts or something similar. Other folks go for various exercises which can be found in great numbers on the Internet. Others go further and take some programming courses. I didn&rsquo;t want to participate in any courses but wanted to build something mildly complex and actually useful myself. That desire was backed by my introduction to Linux and the world of free software which happened in 2012. I became very enthusiastic about the ideas of free software and wanted to participate in its development somehow. So I did intend to open source my pet project if it ever reaches usable state.</p>
+
+<p>By the time I switched my home computer from Windows to Linux (in 2012) I already used <a href="https://evernote.com">Evernote</a> service – I didn&rsquo;t use it very often or very much but I found it very convenient for note taking and syncing across several computers. So when I found out there is no official Evernote client for Linux, it was a disappointment. I tried Everpad and Nevernote (or Nixnote 1, the Evernote client in Java with Qt bindings) but neither seemed good enough for me. So after some thought I decided to devote my pet project to the creation of something like Evernote client for Linux myself. You can judge by that decision how much “junior” I was at the time as I could not even roughly estimate the scale of the task. If I realized how huge it was back then, you would have probably never heard of Quentier as it won&rsquo;t have ever been even started.</p>
+
+<p>Coincidentally around the time I decided to start Quentier project I also started to tinker with the <a href="https://www.qt.io">Qt framework</a>. At work I developed things in C++ but no Qt. I learned about Qt framework&rsquo;s existence somewehere on KDE forums and decided that&rsquo;s just what I need for writing GUI apps in C++ which would also be cross-platform.</p>
+
+<p>So the pet project&rsquo;s technological set was mostly determined – Qt and C++. I need to master C++ because that&rsquo;s what I code in at work and I need Qt if I want to make nice cross-platform apps. One other piece of technology I learned about from watching the KDE project was <a href="https://cmake.org/">CMake</a> build system. From a brief look it seemed much more powerful than <a href="http://doc.qt.io/qt-5/qmake-manual.html">qmake</a> so I decided to learn and use it.</p>
+
+<p>One might ask why I didn&rsquo;t come to help build <a href="https://github.com/baumgarr/nixnote2">Nixnote 2</a> instead as it also used Qt and C++. The answer is simple – I had no idea of Nixnote 2&rsquo;s existence. I&rsquo;ll return to discussing Nixnote 2 a bit later in this post.</p>
+
+<p>So in the second half of 2013 I created a private repository on <a href="https://bitbucket.org">bitbucket</a> and started to tinker with the official <a href="https://github.com/evernote/evernote-sdk-cpp">Evernote C++ SDK</a> and its dependencies trying to put something together. I had little idea of how to structure whatever I was building so for the first 7-8 months I just did random things like the main window&rsquo;s UI created in Qt Designer, some basic note editor based on <code>QTextEdit</code> and <code>QTextDocument</code> and various other small things. After I realized I have no idea where I&rsquo;m going I decided to put the code aside and try to come up with some high level architecture which I would then implement piece by piece. After some thought I figured there are just three large required components interacting with each other:
+1. Local storage
+2. Synchronization
+3. GUI</p>
+
+<p>Fortunately, by that time I learned some basics about multithreading and figured that operations with local storage and synchronizaton should be done in background threads and not block the UI thread. So the threading model was also quite simple initially: local storage controller runs in its own thread, the synchronization controller also runs in its own thread and they communicate with each other and with GUI asynchronously, by sending data via signals and slots.</p>
+
+<p>Once that concept was worked out, I started to implement the local storage part. Quick googling revealed the industry standard for embedded databases is <a href="https://www.sqlite.org/">SQLite</a> so I read a book on SQL basics in context of SQLite and got to coding. Fortunately, I was aware of <code>QtSql</code> module&rsquo;s existence which simplified the coding of database management for me.</p>
+
+<p>Shortly after I started to implement the local storage component I learned about the existence of <a href="https://github.com/d1vanov/QEverCloud">QEverCloud</a> – the amazing Qt-friendly replacement for the official Evernote C++ SDK which was quite a pain to use – first, it had a fair share of dependencies including thrift library, some boost parts, libevent and something else which I don&rsquo;t even remember now; second, the use of the official Evernote C++ SDK involved a lot of conversions between <code>std::string</code> and <code>QString</code> which was of course nothing good. I rejoiced and converted my project to use <code>QEverCloud</code>.</p>
+
+<p>A little later, when about 60% of the known work on the local storage was done, I occasionally learned about the existence of Nixnote 2. It felt to match exactly the niche of my project and even used the same technological stack – C++ and Qt. I was very disappointed and considered shutting my project down and switching to doing something else. For a couple of weeks I ceased the development of Quentier and tried to use Nixnote 2. At that time – mid 2014 if I remember correctly – it was quite buggy. Out of curiosity I decided to look at the source code and find the origin of some bugs which prevented me from using the app normally. I have properly traced the roots for a couple of issues and even <a href="https://github.com/baumgarr/nixnote2/pull/19">contributed</a> a simple fix for one bug. I saw a lot of interesting things within the source code of Nixnote 2 about the existence of which I had no idea previously. One thing which later affected the development of Quentier was the use of <code>QtWebKit</code> as the note editor&rsquo;s backend. My previous attempts to build the note editor were focused on employing <code>QTextEdit</code> and <code>QTextDocument</code> for that and there were quite several problems which I wasn&rsquo;t sure how to handle, for example, what to do with HTML elements which <code>QTextDocument</code> doesn&rsquo;t support but which might appear within Evernote&rsquo;s notes – there are not many such elements but they exist so just ignoring them was not an option. Furthermore, it was unclear how to embed the resources (attachments) within the note&rsquo;s text. <code>QtWebKit</code> solved both mentioned problems nicely – being the browser engine it supported HTML much better out of the box + there was a nice piece of API for the insertion of custom widgets into the page – web plugins. That was a perfect match for displaying of attachments embedded into notes.</p>
+
+<p>I need to take a brief stop here to tell about my opinion and impression on Nixnote 2 and its author. I greatly admire the time and effort put into the development of Nixnote 2 by its author, <a href="https://github.com/baumgarr">baumgarr</a>. He was also the author of “Nixnote 1” also known as Nevernote – the free open source Evernote client implemented in Java with Qt bindings. Its first version was <a href="https://discussion.evernote.com/topic/7943-linux-guinea-pigs/">announced</a> in late 2009 and for all these years till now baumgarr has been devoting his free time and effort into building Nevernote and then Nixnote 2. The years of dedicated volunteer job deserve a lot of respect.</p>
+
+<p>However I must confess that I consider several engineering solutions implemented in Nixnote 2 corner-cutting shortcuts and oversimplifications for the increased speed of development. I&rsquo;ll mention some of them here, for completeness:
+* The first such shortcut is the use of <code>QSqlTableModel</code> and relatives. These Qt classes are indeed very convenient but they talk to the SQLite database synchronously, in the UI thread. For large enough databases that has the potential to totally screw up the performance.
+* The second shortcut is the use of global variables. Nixnote 2 has a special class “globals” which mostly consists of a bunch of different app settings. It is used a lot across the whole code of the app. Everybody knows why global variables are bad – they tighten the binding between components and thus increase the potential for the code to become spaghetti.
+* The third shortcut is the ad-hoc style of conversions between ENML and HTML representations of the note. The conversion is basically just a linear search and replace of some pre-specified markup fragments. The proper approach as I see it should involve iterating over the DOM tree of the HTML document and working with its elements, attributes and their contents. That is what I implemented in <a href="https://github.com/d1vanov/libquentier">libquentier</a> (the core library of Quentier). I did it using the conversion of HTML to a valid XML and then using Qt&rsquo;s standard XML reading/writing facilities. Nixnote 2 could do the same because it also uses HTML tidy – the tool capable of making HTML a well formed XML. Speaking of which, originally Nixnote 2 used the tool via launching it as another process which is not quite as performant as making library calls – several months ago such option was added to Nixnote 2.</p>
+
+<p>I could continue this list but I&rsquo;d stop here as that&rsquo;s enough to briefly represent my view on Nixnote 2&rsquo;s engineering issues. Despite these issues Nixnote 2 has nevertheless become successful – it has been included into Debian which does mean something in my opinion. Currently it is much more stable and usable than it was years ago.</p>
+
+<p>Returning back to my story, I decided to continue the development of Quentier. Beyond the lack of ensureness in Nixnote 2&rsquo;s success the determining factors in my decision were the following:</p>
+
+<ol>
+<li>For the end user of the software it never hurts to have a choice so the existence of Nixnote 2 doesn&rsquo;t mean Quentier won&rsquo;t be needed by anyone ever.</li>
+<li>Quentier still nicely plays the role of a playground project for self-learning.</li>
+<li>I also realized that having a finished pet project capable of doing something useful would be a very nice portfolio item should I decide to change job.</li>
+</ol>
+
+<p>I&rsquo;d like to specifically note that I decided to not copy-paste any code from Nixnote 2 even though it was written in C++ and used Qt. The rationale was the following:</p>
+
+<ol>
+<li>Nixnote 2 is licensed under GPL and I wanted to have the core library licensed under LGPL.</li>
+<li>If I start to copy-paste someone else&rsquo;s code, that would diminish the self-learning role of the project.</li>
+</ol>
+
+<p>I learned a lot from viewing the progress of Nixnote 2 – I watched its GitHub repository, saw problems which users encountered and features they wanted and suggested. It taught me a lot and some of that knowledge was shamelessly used in Quentier project.</p>
+
+<p>Shortly after my decision to continue the work on Quentier despite the existence of Nixnote 2 I learned that the original author of QEverCloud library decided to resign from maintaining it. As by that time a lot of my code depended on QEverCloud I decided to volunteer becoming the next maintainer. I got the blessing from the original author as well as the code used to produce the auto-generated headers and sources of QEverCloud – <a href="https://github.com/d1vanov/QEverCloudGenerator">QEverCloudGenerator</a>. One thing I felt QEverCloud is lacking is the ability to be used as a shared library so I added such support. Another thing I did was the switch from <code>qmake</code> build system to <code>CMake</code>.</p>
+
+<p>A major milestone in Quentier development was finalizing the local storage management and covering it with unit tests. The coverage is still not 100% but it is rather good. The hardest part of the entire development, I think, was implementing the Evernote search syntax support within the local storage. I guess finishing it (and covering with tests) was the absolute point of no return after which the sunk cost psychology would not let me cease the development no matter what happens.</p>
+
+<p>The next thing to implement after the local storage which I chose to do was the note editor. I started it from scratch using <code>QtWebKit</code> as the backend. As a lot of stuff about HTML, CSS and JavaScript was new to me, I progressed quite slowly and had to read a lot of literature to make myself familiar with the basics of these technologies. I&rsquo;ve even read David Flanagan&rsquo;s “Javascript. The definitive guide” – a huge manuscript of ~1500 pages covering a whole lot of information. After several months of work I had some basic note editor with support for resources (attachments to notes) and simple actions like font size/family adjustment and stuff like that. I should have probably stopped at this for the first version but I didn’t. Instead I decided to implement smart undo/redo support for the note editor and some other fancy things like the support for resizable table columns. It all took several more months of work, involved a fair share of scripting but the end result got me really proud.</p>
+
+<p>Unfortunately, there was another disappointment waiting for me just around the corner: Qt decided to deprecate <code>QtWebKit</code> module in favour of newish <code>QtWebEngine</code>. The more I learned about the differences between the two web modules the more frustrated I became: <code>QtWebEngine</code> was almost entirely asynchronous unlike the synchronous <code>QtWebKit</code> but much worse was another fact: the entire web plugin based API was missing in <code>QtWebEngine</code>. The official statement was like “with HTML5 nobody needs web plugins anymore”. Aha, sure. Probably I should have just ignored that deprecation but I once again couldn’t resist the challenge and spent several more months supporting <code>QtWebEngine</code> backend in addition to <code>QtWebKit</code>. For <code>QtWebEngine</code> I replaced web plugins with programmatically generated resource (attachment) representing images which were also additionally scripted to catch the clicks on “Open” and “Save” buttons rendered on them.</p>
+
+<p>As a result of supporting both <code>QtWebKit</code> and <code>QtWebEngine</code> the source code of the note editor has become the messiest code of the entire project. It is full of <code>ifdef</code>s splitting the pieces of logics required for different backends plus I did a lot of things via JavaScript even when <code>QtWebKit</code> and <code>QtWebEngine</code> had some incompatible C++ APIs for them – they were too different + most C++ APIs for <code>QtWebEngine</code> appear only in the latest and greatest versions of Qt5 while I wanted to keep compatibility with as many Qt versions as possible.</p>
+
+<p>The rest of Quentier’s development after the note editor was much less dramatic which was very fortunate for me since I started to get really tired of all these unexpected issues. I implemented the synchronization logics but before I could test it properly I needed to implement the rest of UI components and piece them together to form the bulk of the app which one can interact with. I decided to use Qt’s model-view framework for lists of notebooks, notes, tags etc. Notebooks and tags are actually represented by tree models: notebooks can be nested into stacks + they can correspond to linked notebooks instead of user’s own account; tags can be nested into each other + they can also come from linked notebooks’ notes. Implementing models and some custom delegates took several months but it was worth it: now I feel like <code>QAbstractItemModel</code> is my best understood part of Qt framework.</p>
+
+<p>I first compiled the pieces together into an app in the beginning of 2017 and the rest of the year was spent on implementing various small missing pieces of functionality and troubleshooting. Finally the whole thing was published on GitHub.</p>
+
+<p>Looking back now I can see the history of Quentier project is full of operational mistakes: I should have studied the landscape better and found out about the existence of Nixnote 2 much earlier, ideally before I started to tinker with anything. I should have invested more effort into building the high level design of the app in the very beginning of the project. Finally, once I had some blueprint I should have probably started to develop things in public – that might have attracted people with good suggestions and skills. If I ever start any open source project again, I’ll definitely try to avoid the same mistakes. Hopefully someone would be able to avoid such mistakes after reading about my experience.</p>
+
+<p>A logical conclusion to this post would be some estimation about the future of Quentier project. I plan to continue working on it but I might have to slow down a little because I’ve accumulated some “technical debt” in my life during several previous years of development and I need to &ldquo;pay&rdquo; it now. I really hope someone would join the development, at least in the form of bug reports and maybe patches. I would also enjoy to see someone willing to work on some new functionality and improving the existing one as well. So what I definitely intend to do is to make the project as developer-friendly as possible: write more developer docs, especially the introductory ones + factor out some “junior jobs” and mark them appropriately. Then time will tell whether there&rsquo;s any public interest in Quentier: if the project manages to attract both developers and users, it&rsquo;s development would most likely continue even if I choose to step aside (although right now I don&rsquo;t have such plans).</p>
+
+<p>Also one more note about Quentier&rsquo;s potential connections with Nixnote 2: even though playing on the same field makes us competitors, I’m not really a person who is into competition. I would much rather collaborate than compete. I think the appearance of Quentier is good for Nixnote 2 since it can definitely take some pieces from it, for example, the C++ code for encrypting/decrypting the note fragments. Currently Nixnote 2 still requires Java only for that functionality. To foresee the next question, I don’t think it would be possible to merge the two projects together: after all, they are very different architecturally. But I think these two projects can definitely become good neighbours.</p>
+
+<p>I guess that&rsquo;s more than enough for the introductory post. I plan to write more on many things which I feel should be communicated so stay tuned.</p>
+
+  </div>
+  
+  
+</div>
+
+
+  </body>
+</html>

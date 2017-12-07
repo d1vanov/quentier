@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blogs on Quentier</title>
+    <link>https://d1vanov.github.io/quentier/blog/</link>
+    <description>Recent content in Blogs on Quentier</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Dmitry Ivanov</copyright>
+    <lastBuildDate>Thu, 07 Dec 2017 08:07:11 +0300</lastBuildDate>
+    
+	<atom:link href="https://d1vanov.github.io/quentier/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Hello world!</title>
+      <link>https://d1vanov.github.io/quentier/blog/helloworld/</link>
+      <pubDate>Thu, 07 Dec 2017 08:07:11 +0300</pubDate>
+      
+      <guid>https://d1vanov.github.io/quentier/blog/helloworld/</guid>
+      <description>This blog is dedicated to Quentier — an open source desktop note taking app which can be used as Evernote client or just for local note taking without the necessity to even have the Evernote account. Quentier is free software distributed under the terms of GNU GPL v.3. The core functionality of Quentier is encapsulated in libquentier library which is distributed under the terms of GNU LGPL v.3.
+Let me briefly introduce myself as the author of Quentier: my name is Dmitry Ivanov, I&amp;rsquo;m a 29 years old software developer from Saint-Petersburg, Russia.</description>
+    </item>
+    
+  </channel>
+</rss>
