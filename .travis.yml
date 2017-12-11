@@ -280,3 +280,5 @@ script:
       make &&
       make check &&
       make install
+
+# dummy line to trigger Travis CI build
