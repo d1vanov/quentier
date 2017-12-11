@@ -96,7 +96,7 @@ install:
     - cmake --version
     - cd ..
     - |
-      if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+      if ! [ "${COMPILER}" == "g++-4.6" ] && [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         echo "Building breakpad" &&
         mkdir breakpad &&
         git clone https://chromium.googlesource.com/breakpad/breakpad &&
@@ -188,6 +188,7 @@ install:
     - |
       echo "Building libquentier" &&
       mkdir libquentier &&
+      git clone https://github.com/d1vanov/libquentier.git libquentier &&
       cd libquentier &&
       mkdir build &&
       cd build &&
