@@ -280,6 +280,7 @@ script:
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
               -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 \
+              -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
               -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
               -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
