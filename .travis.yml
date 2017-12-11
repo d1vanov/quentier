@@ -106,6 +106,7 @@ install:
         ./configure --prefix=$(pwd)/installdir &&
         make &&
         make install &&
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         cd ..
       fi
     - |
@@ -131,6 +132,7 @@ install:
       fi
       make &&
       sudo make install &&
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
       cd ../..
     - echo "Building tidy-html5" &&
       mkdir tidy-html5 &&
@@ -142,6 +144,7 @@ install:
       cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
       make &&
       make install &&
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
       cd ../..
     - if [ "${QT_BASE}" = "48" ]; then
         echo "Building qt4-mimetypes" &&
@@ -153,6 +156,7 @@ install:
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
         make &&
         make install &&
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         cd ../..
         ;
       fi
@@ -169,11 +173,11 @@ install:
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         if [ "${QT_BASE}" = "592" ]; then
           source /opt/qt59/bin/qt59-env.sh &&
-          export LD_LIBRARY_PATH=/opt/qt59/lib &&
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt59/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
         elif [ "${QT_BASE}" = "551" ]; then
           source /opt/qt55/bin/qt55-env.sh &&
-          export LD_LIBRARY_PATH=/opt/qt55/lib
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt55/lib
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt55 -DUSE_QT5=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
@@ -184,6 +188,7 @@ install:
       make &&
       make check &&
       make install &&
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
       cd ../..
     - |
       echo "Building libquentier" &&
@@ -195,7 +200,7 @@ install:
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         if [ "${QT_BASE}" = "592" ]; then
           source /opt/qt59/bin/qt59-env.sh &&
-          export LD_LIBRARY_PATH=/opt/qt59/lib &&
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt59/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
@@ -204,7 +209,7 @@ install:
                 -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
         elif [ "${QT_BASE}" = "551" ]; then
           source /opt/qt55/bin/qt55-env.sh &&
-          export LD_LIBRARY_PATH=/opt/qt55/lib &&
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt55/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
@@ -220,12 +225,7 @@ install:
                 -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
                 -DCMAKE_VERBOSE_MAKEFILE=ON ..
         fi
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../../qtkeychain/build/installdir/lib &&
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../../QEverCloud/build/installdir/lib &&
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../../tidy-html5/build-tidy/installdir/lib &&
-        if [ "${QT_BASE}" = "48" ]; then
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../../qt4-mimetypes/build/installdir/lib
-        fi
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
@@ -249,8 +249,6 @@ script:
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         if [ "${QT_BASE}" = "592" ]; then
-          source /opt/qt59/bin/qt59-env.sh &&
-          export LD_LIBRARY_PATH=/opt/qt59/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
@@ -260,8 +258,6 @@ script:
                 -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
                 -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
         elif [ "${QT_BASE}" = "551" ]; then
-          source /opt/qt55/bin/qt55-env.sh &&
-          export LD_LIBRARY_PATH=/opt/qt55/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
