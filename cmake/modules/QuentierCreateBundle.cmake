@@ -206,7 +206,7 @@ function(CreateQuentierBundle)
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
             set(ENV{PATH} ${Qt5Core_DIR}/../../../bin:${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH})
-            set(ENV{LD_LIBRARY_PATH} \"${DIRS}\")
+            set(ENV{LD_LIBRARY_PATH} \"${Qt5Core_DIR}/../../../lib:${DIRS}\")
             set(ENV{ARCH} \"${ARCH}\")
             execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
                             COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -verbose=0 -bundle-non-qt-libs)
