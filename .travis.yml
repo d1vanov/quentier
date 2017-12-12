@@ -113,6 +113,7 @@ install:
         ./configure &&
         make &&
         sudo make install &&
+        cd .. &&
         sudo wget -c "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool &&
         sudo chmod a+x /usr/local/bin/appimagetool
       fi
