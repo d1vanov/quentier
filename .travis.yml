@@ -105,7 +105,7 @@ install:
         git checkout 4 &&
         qmake &&
         make &&
-        sudo make install &&
+        export PATH=$(pwd)/linuxdeployqt:$PATH
         cd .. &&
         wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 &&
         tar xf patchelf-0.9.tar.bz2 &&
