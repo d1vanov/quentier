@@ -6,5 +6,5 @@ Icon=quentier
 Terminal=false
 GenericName=Note taking app
 Comment=Note taking app integrated with Evernote
-Categories=Qt;Network;Office;TextTools
-Keywords=Quentier;note;Evernote
+Categories=Qt;Network;Office;TextTools;
+Keywords=Quentier;note;Evernote;
