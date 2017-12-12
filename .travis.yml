@@ -97,10 +97,24 @@ install:
     - cd ..
     - |
       if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ]; then
-        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" &&
-        mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt.AppImage &&
-        chmod a+x linuxdeployqt.AppImage &&
-        export PATH=$(pwd):$PATH
+        sudo apt-get -qq install libgl1-mesa-dev &&
+        git clone https://github.com/probonopd/linuxdeployqt.git &&
+        source /opt/qt59/bin/qt59-env.sh &&
+        export PATH=/opt/qt59/bin:$PATH &&
+        cd linuxdeployqt &&
+        git checkout 4 &&
+        qmake &&
+        make &&
+        sudo make install &&
+        cd .. &&
+        wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 &&
+        tar xf patchelf-0.9.tar.bz2 &&
+        cd patchelf-0.9 &&
+        ./configure &&
+        make &&
+        sudo make install &&
+        sudo wget -c "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool &&
+        sudo chmod a+x /usr/local/bin/appimagetool
       fi
     - |
       if ! [ "${COMPILER}" == "g++-4.6" ] && [ "${TRAVIS_OS_NAME}" = "linux" ]; then
@@ -310,4 +324,3 @@ after_success:
           bash upload.sh $QUENTIER_DIR/build/installdir/*.AppImage
         fi
       fi
-
