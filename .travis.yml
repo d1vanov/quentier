@@ -318,10 +318,15 @@ after_success:
     - |
       if [ "{TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-7" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
-          if [ "${TRAVIS_BRANCH}" = "development" ]; then
-            export UPLOADTOOL_SUFFIX=$TRAVIS_BRANCH
-          fi
+          export UPLOADTOOL_SUFFIX="continuous-linux-$TRAVIS_BRANCH" &&
           wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh &&
           bash upload.sh $QUENTIER_DIR/build/installdir/*.AppImage
+        fi
+      elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+        if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
+          zip -r installdir/quentier.zip installdir/quentier.app &&
+          export UPLOADTOOL_SUFFIX="continuous-mac-$TRAVIS_BRANCH" &&
+          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh &&
+          bash upload.sh $QUENTIER_DIR/build/installdir/quentier.zip
         fi
       fi
