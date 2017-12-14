@@ -28,7 +28,7 @@ matrix:
           env: QT_BASE=592 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
 
         - os: osx
-          env: CMAKE_BUILD_TYPE=Debug
+          env: CMAKE_BUILD_TYPE=RelWithDebInfo
           compiler: clang
 
 install:
