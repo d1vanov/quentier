@@ -42,28 +42,52 @@ make
 make install
 ```
 
-On Windows the `cmake` step is usually more convenient to do using GUI version of `CMake`.
+On Windows the `cmake` step is usually more convenient to do using GUI version of `CMake`. For build instead of `make`
+it is convenient to call `cmake --build .` command; if target specification is required, it can be done like this:
+`cmake --build . --target install`.
 	
-If you installed Quentier's dependencies into non-standard locations on your Linux or OS X / macOS system, the `cmake` step
+If you installed Quentier's or libquentier's dependencies into non-standard locations, the `cmake` step
 from the above list might fail to find some library. You can give `CMake` some hints where to find the dependencies:
 
 For Qt4:
 ```
 cmake -Dqt4-mimetypes_DIR=<...path to qt4-mimetypes installation folder...>/lib/cmake/qt4-mimetypes \
-      -DLibquentier-qt4_DIR=<...path to Qt4 libquentier installation...>/lib/cmake/Libquentier-qt4 \
-      -DQEverCloud-qt4_DIR=<...path to Qt4 QEverCloud installation...>/lib/cmake/QEverCloud-qt4 \
+      -DLIBXML2_INCLUDE_DIR=<...path to libxml2 include directory...> \
+      -DLIBXML2_LIBRARIES=<...path to libxml2 library...> \
+      -DOPENSSL_ROOT_DIR=<...path to the OpenSSL installation prefix...> \
       -DBOOST_ROOT=<...path to boost installation prefix...> \
+      -DQtKeychain_DIR=<...path to QtKeychain cmake dir within the installation prefix...> \
+      -DQEverCloud-qt4_DIR=<...path to Qt4 QEverCloud installation...>/lib/cmake/QEverCloud-qt4 \
+      -DTIDY_HTML5_INCLUDE_PATH=<...path to tidy-html5 include directory...> \
+      -DTIDY_HTML5_LIB=<...path to tidy-html5 library...> \
+      -DLibquentier-qt4_DIR=<...path to Qt4 libquentier installation...>/lib/cmake/Libquentier-qt4 \
       -DBREAKPAD_ROOT=<...path to Google breakpad installation prefix...> \
       -DCMAKE_INSTALL_PREFIX=<...where to install the built app...> ../
 ```
 For Qt5:
 ```
-cmake -DLibquentier-qt5_DIR=<...path to Qt5 libquentier installation...>/lib/cmake/Libquentier-qt5 \
-      -DQEverCloud-qt5_DIR=<...path to Qt5 QEverCloud installation...>/lib/cmake/QEverCloud-qt5 \
+cmake -DLIBXML2_INCLUDE_DIR=<...path to libxml2 include directory...> \
+      -DLIBXML2_LIBRARIES=<...path to libxml2 library...> \
+      -DOPENSSL_ROOT_DIR=<...path to the OpenSSL installation prefix...> \
       -DBOOST_ROOT=<...path to boost installation prefix...> \
+      -DQt5Keychain_DIR=<...path to Qt5 QtKeychain installation...>/lib/cmake/Qt5Keychain \
+      -DQEverCloud-qt5_DIR=<...path to Qt5 QEverCloud installation...>/lib/cmake/QEverCloud-qt5 \
+      -DTIDY_HTML5_INCLUDE_PATH=<...path to tidy-html5 include directory...> \
+      -DTIDY_HTML5_LIB=<...path to tidy-html5 library...> \
+      -DLibquentier-qt5_DIR=<...path to Qt5 libquentier installation...>/lib/cmake/Libquentier-qt5 \
       -DBREAKPAD_ROOT=<...path to Google breakpad installation prefix...> \
       -DCMAKE_INSTALL_PREFIX=<...where to install the built app...> ../
 ```
+
+### Running tests
+
+Quentier comes with a set of self tests which you are encouraged to run if you build Quentier yourself. Obviously,
+if tests don't pass, something is wrong. The tests can be run by making `test` or `check` target - the latter one
+provides more explicit output than the former one. So the available options to run the tests are as follows:
+ * `make test`
+ * `make check`
+ * `cmake --build . target test`
+ * `cmake --build . target check`
 
 ### Translation
 
@@ -92,6 +116,7 @@ The creation of an application bundle is enabled by default on Windows and OS X 
 To manually change this option pass `-DCREATE_BUNDLE=ON` or `-DCREATE_BUNDLE=OFF` to `CMake` during building. Note that
 for bundle creation `CMake` would need to find all Quentier's dependencies' own dependencies and that might require
 additional hints to be given to `CMake`. The following additional libraries would be searched for:
+ * qtkeychain (libquentier's dependency)
  * OpenSSL (libssl and libcrypto, libquentier's dependency; important note for OS X / macOS: system built-in libssl and libcrypto are not appropriate as they lack the encryption algorithm implementation used by libquentier; OpenSSL libraries from Homebrew or Macports should be used instead)
  * libxml2 (libquentier's dependency)
  * tidy-html5 (libquentier's dependency)
