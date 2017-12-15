@@ -88,8 +88,6 @@ install:
         brew link cmake &&
         brew install qt5 &&
         chmod -R 755 /usr/local/opt/qt5/* &&
-        brew install openssl &&
-        brew install boost &&
         brew install hunspell
       fi
     - export QUENTIER_DIR=$(pwd) &&
