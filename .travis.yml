@@ -23,7 +23,7 @@ matrix:
           env: QT_BASE=551 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
 
         - os: linux
-          env: QT_BASE=592 COMPILER=g++-7 CMAKE_BUILD_TYPE=RelWithDebInfo
+          env: QT_BASE=592 COMPILER=g++-4.8 CMAKE_BUILD_TYPE=RelWithDebInfo
 
         - os: linux
           env: QT_BASE=592 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
@@ -59,10 +59,8 @@ install:
           echo "Building for Qt 5.9.2" &&
           sudo apt-add-repository -y ppa:beineri/opt-qt592-trusty &&
           travis_wait 30 sudo apt-get -qq update &&
-          if [ "${COMPILER}" = "g++-7" ]; then
-            sudo apt-get -qq install g++-7 gcc-7 qt59tools qt59base qt59webchannel qt59webengine qt59websockets qt59xmlpatterns &&
-            export CXX="g++-7" &&
-            export CC="gcc-7"
+          if [ "${COMPILER}" = "g++-4.8" ]; then
+            sudo apt-get -qq install qt59tools qt59base qt59webchannel qt59webengine qt59websockets qt59xmlpatterns
           else
             sudo apt-get -qq install qt59tools qt59base qt59webchannel qt59webengine qt59websockets qt59xmlpatterns &&
             export CXX="clang++" &&
@@ -320,7 +318,7 @@ script:
 
 after_success:
     - |
-      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-7" ]; then
+      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
           export UPLOADTOOL_SUFFIX="linux-$TRAVIS_BRANCH" &&
           wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh &&
