@@ -45,7 +45,7 @@ install:
         if [ "${QT_BASE}" = "551" ]; then
           echo "Building for Qt 5.5.1" &&
           sudo apt-add-repository -y ppa:beineri/opt-qt551-trusty &&
-          sudo apt-get -qq update &&
+          travis_wait 30 sudo apt-get -qq update &&
           if [ "${COMPILER}" = "g++-4.9" ]; then
             sudo apt-get -qq install g++-4.9 gcc-4.9 qt55tools qt55base qt55webchannel qt55webengine qt55websockets qt55xmlpatterns &&
             export CXX="g++-4.9" &&
@@ -58,7 +58,7 @@ install:
         elif [ "${QT_BASE}" = "592" ]; then
           echo "Building for Qt 5.9.2" &&
           sudo apt-add-repository -y ppa:beineri/opt-qt592-trusty &&
-          sudo apt-get -qq update &&
+          travis_wait 30 sudo apt-get -qq update &&
           if [ "${COMPILER}" = "g++-7" ]; then
             sudo apt-get -qq install g++-7 gcc-7 qt59tools qt59base qt59webchannel qt59webengine qt59websockets qt59xmlpatterns &&
             export CXX="g++-7" &&
@@ -70,7 +70,7 @@ install:
           fi
         else
           echo "Building for Qt 4.8" &&
-          sudo apt-get -qq update &&
+          travis_wait 30 sudo apt-get -qq update &&
           if [ "${COMPILER}" = "g++-4.6" ]; then
             sudo apt-get -qq install g++-4.6 gcc-4.6 libqt4-dev libqt4-dev-bin libqt4-network libqt4-xml libqt4-xmlpatterns libqt4-sql libqt4-sql-sqlite libqt4-test libqt4-dbus libqt4-webkit &&
             export CXX="g++-4.6" &&
