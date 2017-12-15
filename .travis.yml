@@ -317,7 +317,7 @@ script:
 
 after_success:
     - |
-      if [ "{TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-7" ]; then
+      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-7" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
           export UPLOADTOOL_SUFFIX="linux-$TRAVIS_BRANCH" &&
           wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh &&
