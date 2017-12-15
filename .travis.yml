@@ -88,7 +88,8 @@ install:
         brew link cmake &&
         brew install qt5 &&
         chmod -R 755 /usr/local/opt/qt5/* &&
-        brew install hunspell
+        brew install hunspell &&
+        brew install tidy-html5
       fi
     - export QUENTIER_DIR=$(pwd) &&
       echo "QUENTIER_DIR = $QUENTIER_DIR"
@@ -155,18 +156,21 @@ install:
       sudo make install &&
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib/x86_64-linux-gnu &&
       cd ../..
-    - echo "Building tidy-html5" &&
-      mkdir tidy-html5 &&
-      git clone https://github.com/htacg/tidy-html5.git tidy-html5 &&
-      cd tidy-html5 &&
-      git checkout 5.6.0 &&
-      mkdir build-tidy &&
-      cd build-tidy &&
-      cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
-      make &&
-      make install &&
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
-      cd ../..
+    - |
+      if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+        echo "Building tidy-html5" &&
+        mkdir tidy-html5 &&
+        git clone https://github.com/htacg/tidy-html5.git tidy-html5 &&
+        cd tidy-html5 &&
+        git checkout 5.6.0 &&
+        mkdir build-tidy &&
+        cd build-tidy &&
+        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
+        make &&
+        make install &&
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
+        cd ../..
+      fi
     - if [ "${QT_BASE}" = "48" ]; then
         echo "Building qt4-mimetypes" &&
         mkdir qt4-mimetypes &&
@@ -254,8 +258,8 @@ install:
               -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
               -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-              -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-              -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.dylib \
+              -DTIDY_HTML5_INCLUDE_PATH=/usr/local/include \
+              -DTIDY_HTML5_LIB=/usr/local/lib/libtidy.dylib \
               -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 ..
       fi
       make &&
