@@ -328,7 +328,7 @@ after_success:
         fi
       elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
-          cd $QUENTIER_DIR/installdir &&
+          cd $QUENTIER_DIR/build/installdir &&
           7z a quentier.zip quentier.app &&
           cd .. &&
           export UPLOADTOOL_SUFFIX="mac-$TRAVIS_BRANCH" &&
