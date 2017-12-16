@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Dmitry Ivanov</copyright>
-    <lastBuildDate>Thu, 07 Dec 2017 08:07:11 +0300</lastBuildDate>
+    <lastBuildDate>Sat, 16 Dec 2017 14:05:09 +0300</lastBuildDate>
     
 	<atom:link href="https://d1vanov.github.io/quentier/blog/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Brief overview of Quentier features</title>
+      <link>https://d1vanov.github.io/quentier/blog/quentier-brief-overview/</link>
+      <pubDate>Sat, 16 Dec 2017 14:05:09 +0300</pubDate>
+      
+      <guid>https://d1vanov.github.io/quentier/blog/quentier-brief-overview/</guid>
+      <description>In this post I describe in more details what Quentier app is capable of by the current moment.
+First of all, please note that at the time of this writing Quentier is in public alpha stage. That means the project is very fresh, some things are unpolished while some other things might just refuse to work due to some unforeseen circumstances. It is pretty normal to go through this stage for any new software project, just be aware of that and don&amp;rsquo;t expect too much from the current version.</description>
+    </item>
     
     <item>
       <title>Hello world!</title>
