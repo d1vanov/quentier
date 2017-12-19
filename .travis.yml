@@ -334,3 +334,5 @@ after_success:
           bash upload.sh $QUENTIER_DIR/build/installdir/quentier.zip
         fi
       fi
+
+# dummy comment to commit to trigger rebuild with another commit SHA
