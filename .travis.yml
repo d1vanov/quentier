@@ -331,7 +331,7 @@ after_success:
           wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_mac.zip &&
           unzip ciuploadtool_mac.zip &&
           chmod 755 ciuploadtool &&
-          7z a quentier.zip quentier.app &&
-          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/installdir/quentier.zip
+          7z a Quentier_mac_x86_64.zip quentier.app &&
+          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/installdir/Quentier_mac_x86_64.zip
         fi
       fi
