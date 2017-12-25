@@ -320,19 +320,18 @@ after_success:
     - |
       if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
-          export UPLOADTOOL_SUFFIX="linux-$TRAVIS_BRANCH" &&
-          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh &&
-          bash upload.sh $QUENTIER_DIR/build/installdir/*.AppImage
+          wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_linux.zip &&
+          unzip ciuploadtool_linux.zip &&
+          chmod 755 ciuploadtool &&
+          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/installdir/*.AppImage
         fi
       elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
           cd $QUENTIER_DIR/build/installdir &&
+          wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_mac.zip &&
+          unzip ciuploadtool_mac.zip &&
+          chmod 755 ciuploadtool &&
           7z a quentier.zip quentier.app &&
-          cd .. &&
-          export UPLOADTOOL_SUFFIX="mac-$TRAVIS_BRANCH" &&
-          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh &&
-          bash upload.sh $QUENTIER_DIR/build/installdir/quentier.zip
+          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/installdir/quentier.zip
         fi
       fi
-
-# dummy comment to commit to trigger rebuild with another commit SHA
