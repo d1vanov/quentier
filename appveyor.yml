@@ -156,8 +156,8 @@ install:
   - if not %qt%==mingw492_32 echo "Building breakpad"
   - if not %qt%==mingw492_32 ..\gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check -Dwin_release_RuntimeLibrary=2 -Dwin_debug_RuntimeLibrary=2
   - if not %qt%==mingw492_32 cd src\client\windows
-  - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="Win32" /clp:ErrorsOnly
-  - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="x64" /clp:ErrorsOnly
+  - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="Win32"
+  - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="x64"
   - if %qt%==msvc2015 copy Release\lib\common.lib c:\dev\breakpad\installdir\lib
   - if %qt%==msvc2015 copy Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
   - if %qt%==msvc2015 copy Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
