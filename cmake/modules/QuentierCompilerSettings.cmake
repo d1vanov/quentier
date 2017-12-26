@@ -65,7 +65,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   endif()
   set(CMAKE_CXX_FLAGS "-D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS ${CMAKE_CXX_FLAGS}")
   add_definitions("-DUNICODE -D_UNICODE")
-  set(CMAKE_EXE_LINKER_FLAGS "/NODEFAULTLIB:MSVCRT ${CMAKE_EXE_LINKER_FLAGS}")
+  # set(CMAKE_EXE_LINKER_FLAGS "/NODEFAULTLIB:MSVCRT ${CMAKE_EXE_LINKER_FLAGS}")
 else()
   message(WARNING "Your C++ compiler is not officially supported for building of this application.
                    If you'd get any compilation errors, consider upgrading to a compiler version
