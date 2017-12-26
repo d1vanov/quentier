@@ -81,6 +81,9 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+  - set ZLIB_INCLUDE_DIRS=%cd%\include
+  - if not %qt%==mingw492_32 set ZLIB_LIBRARIES=%cd%\lib\libz.lib
+  - if %qt%==mingw492_32 set ZLIB_LIBRARIES=%cd%\lib\libz.dll.a
   - echo "Downloading libxml2"
   - md c:\dev\libxml2
   - cd c:\dev\libxml2
