@@ -146,9 +146,10 @@ install:
   - if not %qt%==mingw492_32 md installdir\include\breakpad\client
   - if not %qt%==mingw492_32 md installdir\lib
   - if not %qt%==mingw492_32 xcopy src\client\windows installdir\include\breakpad\client /e
-  - if not %qt%==mingw492_32 C:\msys64\usr\bin\bash -lc "cd /c/dev/breakpad/src/build && sed -i -e \"s/'WarnAsError': 'true'/'WarnAsError': 'false'/g\" common.gypi"
+  - |
+    if not %qt%==mingw492_32 C:\msys64\usr\bin\bash -lc "cd /c/dev/breakpad/src/build && sed -i -e \"s/'WarnAsError': 'true'/'WarnAsError': 'false'/g\" common.gypi"
   - if not %qt%==mingw492_32 echo "Building breakpad"
-  - if not %qt%==mingw492_32 ..\gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check
+  - if not %qt%==mingw492_32 ..\gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check -Dwin_release_RuntimeLibrary=2 -Dwin_debug_RuntimeLibrary=2
   - if not %qt%==mingw492_32 cd src\client\windows
   - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="Win32" /clp:ErrorsOnly
   - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="x64" /clp:ErrorsOnly
