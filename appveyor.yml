@@ -159,15 +159,10 @@ install:
   - if not %qt%==mingw492_32 cd src\client\windows
   - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="Win32"
   - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="x64"
-  - if %qt%==msvc2017_64 dir /s
-  - if %qt%==msvc2015 copy Release\lib\common.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2015 copy Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2015 copy Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2015 copy Release\lib\exception_handler.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Release\lib\common.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Release\lib\exception_handler.lib c:\dev\breakpad\installdir\lib
+  - if not %qt%==mingw492_32 copy Release\lib\common.lib c:\dev\breakpad\installdir\lib
+  - if not %qt%==mingw492_32 copy Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
+  - if not %qt%==mingw492_32 copy Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
+  - if not %qt%==mingw492_32 copy Release\lib\exception_handler.lib c:\dev\breakpad\installdir\lib
   - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\common.lib c:\dev\breakpad\installdir\lib\common_d.lib
   - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib\crash_generation_client_d.lib
   - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib\crash_generation_server_d.lib
