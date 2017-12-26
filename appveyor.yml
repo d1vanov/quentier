@@ -13,19 +13,19 @@ environment:
 #      name: win32-prepare
 #      platform: amd64_x86
 #      qt: msvc2015
-    - prepare_mode: NO
-      name: win32
-      platform: amd64_x86
-      qt: msvc2015
+#    - prepare_mode: NO
+#      name: win32
+#      platform: amd64_x86
+#      qt: msvc2015
     - prepare_mode: NO
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       name: win64
       platform: amd64
       qt: msvc2017_64
-    - prepare_mode: NO
-      name: win32
-      platform: mingw
-      qt: mingw492_32
+#    - prepare_mode: NO
+#      name: win32
+#      platform: mingw
+#      qt: mingw492_32
 
 clone_folder: c:\dev\quentier
 
@@ -159,6 +159,7 @@ install:
   - if not %qt%==mingw492_32 cd src\client\windows
   - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="Win32"
   - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="x64"
+  - if %qt%==msvc2017_64 dir /s
   - if %qt%==msvc2015 copy Release\lib\common.lib c:\dev\breakpad\installdir\lib
   - if %qt%==msvc2015 copy Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
   - if %qt%==msvc2015 copy Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
