@@ -175,20 +175,6 @@ void setupBreakpad(const QApplication & app)
     // the resize succeeds and doesn't break the program about to crash
     pQuentierCrashHandlerArgs->reserve(static_cast<size_t>(pQuentierCrashHandlerArgs->size() + 1000));
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    quentierCrashHandlerArgsMultiByte->reserve(quentierCrashHandlerFilePath->capacity());
-#else
-    quentierCrashHandlerArgsMultiByte.reserve(quentierCrashHandlerFilePath.capacity());
-#endif
-
-    std::string * pQuentierCrashHandlerArgsMultiByte = NULL;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    pQuentierCrashHandlerArgsMultiByte = quentierCrashHandlerArgsMultiByte;
-#else
-    pQuentierCrashHandlerArgsMultiByte = &quentierCrashHandlerArgsMultiByte;
-#endif
-    pQuentierCrashHandlerArgsMultiByte->reserve(pQuentierCrashHandlerArgs->size());
-
     pBreakpadHandler = new google_breakpad::ExceptionHandler(std::wstring(minidumpsStorageFolderPathData),
                                                              NULL,
                                                              ShowDumpResults,
