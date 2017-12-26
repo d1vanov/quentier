@@ -165,17 +165,10 @@ install:
   - if %qt%==msvc2017_64 copy x64\Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
   - if %qt%==msvc2017_64 copy x64\Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
   - if %qt%==msvc2017_64 copy x64\Release\lib\exception_handler.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Debug" /p:Platform="Win32" /clp:ErrorsOnly
-  - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Debug" /p:Platform="x64" /clp:ErrorsOnly
-  - if not %qt%==mingw492_32 dir /s
-  - if %qt%==msvc2015 copy Debug\lib\common_d.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2015 copy Debug\lib\crash_generation_client_d.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2015 copy Debug\lib\crash_generation_server_d.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2015 copy Debug\lib\exception_handler_d.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Debug\lib\common_d.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Debug\lib\crash_generation_client_d.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Debug\lib\crash_generation_server_d.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Debug\lib\exception_handler_d.lib c:\dev\breakpad\installdir\lib
+  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\common.lib c:\dev\breakpad\installdir\lib\common_d.lib
+  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib\crash_generation_client_d.lib
+  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib\crash_generation_server_d.lib
+  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\exception_handler.lib c:\dev\breakpad\installdir\lib\exception_handler_d.lib
   - if not %qt%==mingw492_32 cd c:\dev\breakpad\installdir\bin
   - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/minidump_stackwalk.exe -o minidump_stackwalk.exe
   - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygwin1.dll -o cygwin1.dll
