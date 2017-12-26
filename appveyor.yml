@@ -166,7 +166,7 @@ install:
   - if not %qt%==mingw492_32 cd c:\dev\breakpad\installdir\bin
   - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/minidump_stackwalk.exe -o minidump_stackwalk.exe
   - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygwin1.dll -o cygwin1.dll
-  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygstdc%2B%2B-6.dll -o cygstdc++-6.dll
+  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygstdc++-6.dll -o cygstdc++-6.dll
   - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cyggcc_s-1.dll -o cyggcc_s-1.dll
   - if not %qt%==mingw492_32 set LIB=c:\dev\breakpad\installdir\lib;%LIB%
   - if not %qt%==mingw492_32 set INCLUDE=c:\dev\breakpad\installdir\include;%INCLUDE%
