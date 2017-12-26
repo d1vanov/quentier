@@ -145,6 +145,7 @@ install:
   - if not %qt%==mingw492_32 md installdir
   - if not %qt%==mingw492_32 md installdir\include\breakpad\client
   - if not %qt%==mingw492_32 md installdir\lib
+  - if not %qt%==mingw492_32 md installdir\bin
   - if not %qt%==mingw492_32 xcopy src\client\windows installdir\include\breakpad\client /e
   - |
     if not %qt%==mingw492_32 C:\msys64\usr\bin\bash -lc "cd /c/dev/breakpad/src/build && sed -i -e \"s/'WarnAsError': 'true'/'WarnAsError': 'false'/g\" common.gypi"
@@ -154,10 +155,22 @@ install:
   - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="Win32" /clp:ErrorsOnly
   - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="x64" /clp:ErrorsOnly
   - if not %qt%==mingw492_32 dir /s
-  - if %qt%==msvc2015 copy Release\libbreakpad_client.lib c:\dev\breakpad\installdir\lib
-  - if %qt%==msvc2017_64 copy x64\Release\libbreakpad_client.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2015 copy Release\lib\common.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2015 copy Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2015 copy Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2015 copy Release\lib\exception_handler.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2017_64 copy x64\Release\lib\common.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2017_64 copy x64\Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2017_64 copy x64\Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
+  - if %qt%==msvc2017_64 copy x64\Release\lib\exception_handler.lib c:\dev\breakpad\installdir\lib
+  - if not %qt%==mingw492_32 cd c:\dev\breakpad\installdir\bin
+  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/minidump_stackwalk.exe -o minidump_stackwalk.exe
+  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygwin1.dll -o cygwin1.dll
+  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygstdc%2B%2B-6.dll -o cygstdc++-6.dll
+  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cyggcc_s-1.dll -o cyggcc_s-1.dll
   - if not %qt%==mingw492_32 set LIB=c:\dev\breakpad\installdir\lib;%LIB%
   - if not %qt%==mingw492_32 set INCLUDE=c:\dev\breakpad\installdir\include;%INCLUDE%
+  - if not %qt%==mingw492_32 set PATH=c:\dev\breakpad\installdir\bin;%PATH%
   - echo "Downloading QEverCloud"
   - md c:\dev\qevercloud
   - cd c:\dev
