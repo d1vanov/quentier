@@ -196,6 +196,7 @@ install:
   - md c:\dev\libquentier
   - cd c:\dev
   - git clone https://github.com/d1vanov/libquentier.git libquentier
+  - cd libquentier
   - echo "Building libquentier"
   - if %APPVEYOR_REPO_BRANCH%=="development" git checkout development
   - md build
