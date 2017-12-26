@@ -146,11 +146,11 @@ install:
   - if not %qt%==mingw492_32 python setup.py install
   - if not %qt%==mingw492_32 cd ..\breakpad
   - if not %qt%==mingw492_32 md installdir
-  - if not %qt%==mingw492_32 md installdir\include\breakpad\client
+  - if not %qt%==mingw492_32 md installdir\include\breakpad\client\windows
   - if not %qt%==mingw492_32 md installdir\lib
   - if not %qt%==mingw492_32 md installdir\bin
   - if not %qt%==mingw492_32 copy src\tools\windows\binaries\dump_syms.exe installdir\bin
-  - if not %qt%==mingw492_32 xcopy src\client\windows installdir\include\breakpad\client /e
+  - if not %qt%==mingw492_32 xcopy src\client\windows installdir\include\breakpad\client\windows /e
   - |
     if not %qt%==mingw492_32 C:\msys64\usr\bin\bash -lc "cd /c/dev/breakpad/src/build && sed -i -e \"s/'WarnAsError': 'true'/'WarnAsError': 'false'/g\" common.gypi"
   - if not %qt%==mingw492_32 echo "Building breakpad"
