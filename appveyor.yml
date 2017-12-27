@@ -176,9 +176,18 @@ install:
   - if not %qt%==mingw492_32 set INCLUDE=c:\dev\breakpad\installdir\include;%INCLUDE%
   - if not %qt%==mingw492_32 set PATH=c:\dev\breakpad\installdir\bin;%PATH%
   - if not %qt%==mingw492_32 cd c:\dev\breakpad\installdir
-  - if not %qt%==mingw492_32 dir /s
   - if %qt%==msvc2015 7z a breakpad_VS2015_x86.zip *
   - if %qt%==msvc2017_64 7z a breakpad_VS2017_x64.zip *
+  - if %qt%==mingw492_32 echo "Building boost"
+  - if %qt%==mingw492_32 md C:\Libraries\boost_1_63_0\MinGW-build
+  - if %qt%==mingw492_32 cd C:\Libraries\boost_1_63_0\tools\build
+  - if %qt%==mingw492_32 bootstrap.bat mingw
+  - if %qt%==mingw492_32 .\b2 toolset=gcc link=shared --with-program-options --prefix="C:\Libraries\boost_1_63_0\MinGW" --build-dir="C:\Libraries\boost_1_63_0\MinGW-build" install
+  - if %qt%==mingw492_32 set PATH=C:\Libraries\boost_1_63_0\MinGW\bin;%PATH%
+  - if %qt%==mingw492_32 set LIB=C:\Libraries\boost_1_63_0\MinGW\lib;%LIB%
+  - if %qt%==mingw492_32 cd C:\Libraries\boost_1_63_0\MinGW
+  - if %qt%==mingw492_32 dir /s
+  - if %qt%==mingw492_32 7z a boost_mingw.zip *
   - echo "Downloading QEverCloud"
   - md c:\dev\qevercloud
   - cd c:\dev
@@ -239,6 +248,7 @@ build_script:
 after_build:
   - if %qt%==msvc2015 copy c:\dev\breakpad\installdir\breakpad_VS2015_x86.zip %APPVEYOR_BUILD_FOLDER%
   - if %qt%==msvc2017_64 copy c:\dev\breakpad\installdir\breakpad_VS2017_x64.zip %APPVEYOR_BUILD_FOLDER%
+  - if %qt%==mingw492_32 copy C:\Libraries\boost_1_63_0\MinGW\boost_mingw.zip %APPVEYOR_BUILD_FOLDER%
 #  - cd c:\dev\install
 #  - 7z a %DEPLOYMENT_TARGET% c:\dev\install\*
 #  - cp %DEPLOYMENT_TARGET% %APPVEYOR_BUILD_FOLDER%
