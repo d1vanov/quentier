@@ -181,7 +181,7 @@ install:
   - if %qt%==mingw492_32 echo "Building boost"
   - if %qt%==mingw492_32 md C:\Libraries\boost_1_63_0\MinGW-build
   - if %qt%==mingw492_32 cd C:\Libraries\boost_1_63_0\tools\build
-  - if %qt%==mingw492_32 bootstrap.bat mingw
+  - if %qt%==mingw492_32 bootstrap.bat gcc
   - if %qt%==mingw492_32 .\b2 toolset=gcc link=shared --with-program-options --prefix="C:\Libraries\boost_1_63_0\MinGW" --build-dir="C:\Libraries\boost_1_63_0\MinGW-build" install
   - if %qt%==mingw492_32 set PATH=C:\Libraries\boost_1_63_0\MinGW\bin;%PATH%
   - if %qt%==mingw492_32 set LIB=C:\Libraries\boost_1_63_0\MinGW\lib;%LIB%
