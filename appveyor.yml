@@ -13,15 +13,15 @@ environment:
 #      name: win32-prepare
 #      platform: amd64_x86
 #      qt: msvc2015
-#    - prepare_mode: NO
-#      name: win32
-#      platform: amd64_x86
-#      qt: msvc2015
-#    - prepare_mode: NO
-#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-#      name: win64
-#      platform: amd64
-#      qt: msvc2017_64
+    - prepare_mode: NO
+      name: win32
+      platform: amd64_x86
+      qt: msvc2015
+    - prepare_mode: NO
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      name: win64
+      platform: amd64
+      qt: msvc2017_64
     - prepare_mode: NO
       name: win32
       platform: mingw
@@ -60,24 +60,24 @@ install:
   - echo "Downloading libiconv"
   - md c:\dev\libiconv
   - cd c:\dev\libiconv
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2015_x86/libiconv-msvc2015-x86.7z -o libiconv-msvc2015-x86.7z
-  - if %qt%==msvc2015 7z x libiconv-msvc2015-x86.7z
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2017_x64/libiconv-msvc2017-x64.7z -o libiconv-msvc2017-x64.7z
-  - if %qt%==msvc2017_64 7z x libiconv-msvc2017-x64.7z
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/mingw/mingw32/libiconv-mingw-x86.7z -o libiconv-mingw-x86.7z
-  - if %qt%==mingw492_32 7z x libiconv-mingw-x86.7z
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libiconv-msvc2015_x86.zip -o libiconv-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x libiconv-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libiconv-msvc2017_x64.zip -o libiconv-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x libiconv-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libiconv-mingw492_32_x86.zip -o libiconv-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x libiconv-mingw492_32_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
   - echo "Downloading zlib"
   - md c:\dev\zlib
   - cd c:\dev\zlib
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2015_x86/zlib-msvc2015-x86.7z -o zlib-msvc2015-x86.7z
-  - if %qt%==msvc2015 7z x zlib-msvc2015-x86.7z
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2017_x64/zlib-msvc2017-x64.7z -o zlib-msvc2017-x64.7z
-  - if %qt%==msvc2017_64 7z x zlib-msvc2017-x64.7z
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/mingw/mingw32/zlib-mingw-x86.7z -o zlib-mingw-x86.7z
-  - if %qt%==mingw492_32 7z x zlib-mingw-x86.7z
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/zlib-msvc2015_x86.zip -o zlib-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x zlib-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/zlib-msvc2017_x64.zip -o zlib-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x zlib-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/zlib-mingw492_32_x86.zip -o zlib-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x zlib-mingw492_32_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -87,111 +87,71 @@ install:
   - echo "Downloading libxml2"
   - md c:\dev\libxml2
   - cd c:\dev\libxml2
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2015_x86/libxml2-msvc2015-x86.7z -o libxml2-msvc2015-x86.7z
-  - if %qt%==msvc2015 7z x libxml2-msvc2015-x86.7z
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2017_x64/libxml2-msvc2017-x64.7z -o libxml2-msvc2017-x64.7z
-  - if %qt%==msvc2017_64 7z x libxml2-msvc2017-x64.7z
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/mingw/mingw32/libxml2-mingw-x86.7z -o libxml2-mingw-x86.7z
-  - if %qt%==mingw492_32 7z x libxml2-mingw-x86.7z
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libxml2-msvc2015_x86.zip -o libxml2-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x libxml2-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libxml2-msvc2017_x64.zip -o libxml2-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x libxml2-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libxml2-mingw492_32_x86.zip -o libxml2-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x libxml2-mingw492_32_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
   - echo "Downloading libhunspell"
   - md c:\dev\libhunspell
   - cd c:\dev\libhunspell
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2015_x86/libhunspell-msvc2015-x86.7z -o libhunspell-msvc2015-x86.7z
-  - if %qt%==msvc2015 7z x libhunspell-msvc2015-x86.7z
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2017_x64/libhunspell-msvc2017-x64.7z -o libhunspell-msvc2017-x64.7z
-  - if %qt%==msvc2017_64 7z x libhunspell-msvc2017-x64.7z
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/mingw/mingw32/libhunspell-mingw-x86.7z -o libhunspell-mingw-x86.7z
-  - if %qt%==mingw492_32 7z x libhunspell-mingw-x86.7z
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-msvc2015_x86.zip -o libhunspell-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x libhunspell-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-msvc2017_x64.zip -o libhunspell-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x libhunspell-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-mingw492_32_x86.zip -o libhunspell-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x libhunspell-mingw492_32_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
   - echo "Downloading tidy-html5"
   - md c:\dev\tidy-html5
   - cd c:\dev\tidy-html5
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2015_x86/tidy-html5-msvc2015-x86.7z -o tidy-html5-msvc2015-x86.7z
-  - if %qt%==msvc2015 7z x tidy-html5-msvc2015-x86.7z
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2017_x64/tidy-html5-msvc2017-x64.7z -o tidy-html5-msvc2017-x64.7z
-  - if %qt%==msvc2017_64 7z x tidy-html5-msvc2017-x64.7z
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/mingw/mingw32/tidy-html5-mingw-x86.7z -o tidy-html5-mingw-x86.7z
-  - if %qt%==mingw492_32 7z x tidy-html5-mingw-x86.7z
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/tidy-html5-msvc2015_x86.zip -o tidy-html5-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x tidy-html5-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/tidy-html5-msvc2017_x64.zip -o tidy-html5-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x tidy-html5-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/tidy-html5-mingw492_32_x86.zip -o tidy-html5-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x tidy-html5-mingw492_32_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
   - echo "Downloading qtkeychain"
   - md c:\dev\qtkeychain
   - cd c:\dev\qtkeychain
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2015_x86/qtkeychain-msvc2015-x86.7z -o qtkeychain-msvc2015-x86.7z
-  - if %qt%==msvc2015 7z x qtkeychain-msvc2015-x86.7z
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/msvc/VS2017_x64/qtkeychain-msvc2017-x64.7z -o qtkeychain-msvc2017-x64.7z
-  - if %qt%==msvc2017_64 7z x qtkeychain-msvc2017-x64.7z
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/mingw/mingw32/qtkeychain-mingw-x86.7z -o qtkeychain-mingw-x86.7z
-  - if %qt%==mingw492_32 7z x qtkeychain-mingw-x86.7z
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-msvc2015_x86.zip -o qtkeychain-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x qtkeychain-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-msvc2017_x64.zip -o qtkeychain-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x qtkeychain-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-mingw492_32_x86.zip -o qtkeychain-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x qtkeychain-mingw492_32_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
-  - if not %qt%==mingw492_32 echo "Downloading breakpad"
-  - if not %qt%==mingw492_32 md c:\dev\breakpad
-  - if not %qt%==mingw492_32 cd c:\dev
-  - if not %qt%==mingw492_32 git clone https://chromium.googlesource.com/breakpad/breakpad
-  - if not %qt%==mingw492_32 cd c:\dev\breakpad
-  - if not %qt%==mingw492_32 git checkout chrome_64
-  - if not %qt%==mingw492_32 cd src
-  - if not %qt%==mingw492_32 git clone https://github.com/google/googletest.git testing
-  - if not %qt%==mingw492_32 cd ..\..
-  - if not %qt%==mingw492_32 git clone https://chromium.googlesource.com/external/gyp
-  - if not %qt%==mingw492_32 cd gyp
-  - if not %qt%==mingw492_32 python setup.py install
-  - if not %qt%==mingw492_32 cd ..\breakpad
-  - if not %qt%==mingw492_32 md installdir
-  - if not %qt%==mingw492_32 md installdir\include\breakpad\client\windows
-  - if not %qt%==mingw492_32 md installdir\include\breakpad\common\windows
-  - if not %qt%==mingw492_32 md installdir\lib
-  - if not %qt%==mingw492_32 md installdir\bin
-  - if not %qt%==mingw492_32 copy src\tools\windows\binaries\dump_syms.exe installdir\bin
-  - if not %qt%==mingw492_32 xcopy src installdir\include\breakpad /e
-  - |
-    if not %qt%==mingw492_32 C:\msys64\usr\bin\bash -lc "cd /c/dev/breakpad/src/build && sed -i -e \"s/'WarnAsError': 'true'/'WarnAsError': 'false'/g\" common.gypi"
-  - if not %qt%==mingw492_32 echo "Building breakpad"
-  - if not %qt%==mingw492_32 ..\gyp\gyp.bat src\client\windows\breakpad_client.gyp --no-circular-check -Dwin_release_RuntimeLibrary=2 -Dwin_debug_RuntimeLibrary=2
-  - if not %qt%==mingw492_32 cd src\client\windows
-  - if %qt%==msvc2015 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="Win32"
-  - if %qt%==msvc2017_64 msbuild breakpad_client.sln /p:Configuration="Release" /p:Platform="x64"
-  - if not %qt%==mingw492_32 copy Release\lib\common.lib c:\dev\breakpad\installdir\lib
-  - if not %qt%==mingw492_32 copy Release\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib
-  - if not %qt%==mingw492_32 copy Release\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib
-  - if not %qt%==mingw492_32 copy Release\lib\exception_handler.lib c:\dev\breakpad\installdir\lib
-  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\common.lib c:\dev\breakpad\installdir\lib\common_d.lib
-  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\crash_generation_client.lib c:\dev\breakpad\installdir\lib\crash_generation_client_d.lib
-  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\crash_generation_server.lib c:\dev\breakpad\installdir\lib\crash_generation_server_d.lib
-  - if not %qt%==mingw492_32 copy c:\dev\breakpad\installdir\lib\exception_handler.lib c:\dev\breakpad\installdir\lib\exception_handler_d.lib
-  - if not %qt%==mingw492_32 cd c:\dev\breakpad\installdir\bin
-  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/minidump_stackwalk.exe -o minidump_stackwalk.exe
-  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygwin1.dll -o cygwin1.dll
-  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cygstdc++-6.dll -o cygstdc++-6.dll
-  - if not %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/raw/master/breakpad/cyggcc_s-1.dll -o cyggcc_s-1.dll
-  - if not %qt%==mingw492_32 set LIB=c:\dev\breakpad\installdir\lib;%LIB%
-  - if not %qt%==mingw492_32 set INCLUDE=c:\dev\breakpad\installdir\include;%INCLUDE%
-  - if not %qt%==mingw492_32 set PATH=c:\dev\breakpad\installdir\bin;%PATH%
-  - if not %qt%==mingw492_32 cd c:\dev\breakpad\installdir
-  - if %qt%==msvc2015 7z a breakpad_VS2015_x86.zip *
-  - if %qt%==msvc2017_64 7z a breakpad_VS2017_x64.zip *
-  - if %qt%==mingw492_32 echo "Building boost"
-  - if %qt%==mingw492_32 md C:\Libraries\boost_1_63_0\MinGW-build
-  - if %qt%==mingw492_32 cd C:\Libraries\boost_1_63_0\tools\build
-  - if %qt%==mingw492_32 bootstrap.bat gcc
-  - if %qt%==mingw492_32 .\b2 --prefix=..\..\b2_installdir install
-  - if %qt%==mingw492_32 cd ..\..\b2_installdir\bin
-  - if %qt%==mingw492_32 set PATH=%cd%;%PATH%
-  - if %qt%==mingw492_32 cd ..\..\
-  - if %qt%==mingw492_32 b2 --prefix=%cd%\mingw_installdir --build-dir=%cd%\mingw_builddir --with-program_options toolset=gcc link=shared install
-  - if %qt%==mingw492_32 set PATH=C:\Libraries\boost_1_63_0\mingw_installdir\lib;%PATH%
-  - if %qt%==mingw492_32 set LIB=C:\Libraries\boost_1_63_0\mingw_installdir\lib;%LIB%
-  - if %qt%==mingw492_32 set INCLUDE=C:\Libraries\boost_1_63_0\mingw_installdir\include\boost_1_63;%INCLUDE%
-  - if %qt%==mingw492_32 cd mingw_installdir
-  - if %qt%==mingw492_32 7z a boost_mingw.zip *
+  - echo "Downloading breakpad"
+  - md c:\dev\breakpad
+  - cd c:\dev\breakpad
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2015_x86.zip -o breakpad-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x breakpad-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2017_x64.zip -o breakpad-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x breakpad-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-mingw492_32_x86.zip -o breakpad-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x breakpad-mingw492_32_x86.zip
+  - set PATH=%cd%\bin;%PATH%
+  - set LIB=%cd%\lib;%LIB%
+  - set INCLUDE=%cd%\include;%INCLUDE%
+  - if %qt%==mingw492_32 echo "Downloading boost"
+  - if %qt%==mingw492_32 md c:\dev\boost
+  - if %qt%==mingw492_32 cd c:\dev\boost
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost_mingw.zip -o boost_mingw.zip
+  - if %qt%==mingw492_32 7z x boost_mingw.zip
+  - if %qt%==mingw492_32 set PATH=%cd%\lib;%PATH%
+  - if %qt%==mingw492_32 set LIB=%cd%\lib;%LIB%
+  - if %qt%==mingw492_32 set INCLUDE=%cd%\include\boost-1_63;%INCLUDE%
   - echo "Downloading QEverCloud"
   - md c:\dev\qevercloud
   - cd c:\dev
@@ -224,7 +184,7 @@ install:
   - cd build
   - if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
-  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%" -DCMAKE_VERBOSE_MAKEFILE=ON
+  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%"
   - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%
   - cmake --build . --target all
   - cmake --build . --target check
@@ -243,7 +203,7 @@ build_script:
   - if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
   - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.dll.a"
-  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.lib" -DBREAKPAD_ROOT="C:/dev/breakpad/installdir" -DCMAKE_VERBOSE_MAKEFILE=ON
+  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.lib" -DBREAKPAD_ROOT="C:/dev/breakpad"
   - cmake --build . --target all
   - cmake --build . --target check
   - cmake --build . --target install
