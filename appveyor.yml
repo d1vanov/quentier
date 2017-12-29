@@ -57,6 +57,7 @@ install:
   - 7z x ciuploadtool_windows_x86.zip
 #  - if %prepare_mode%==YES c:\dev\ciuploadtool\ciuploadtool.exe -preponly -suffix="%APPVEYOR_REPO_BRANCH%"
 #  - ps: if ($env:prepare_mode -eq "YES") { throw "Failing in order to stop the current build matrix job early" }
+# libiconv
   - echo "Downloading libiconv"
   - md c:\dev\libiconv
   - cd c:\dev\libiconv
@@ -69,6 +70,7 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+# zlib
   - echo "Downloading zlib"
   - md c:\dev\zlib
   - cd c:\dev\zlib
@@ -84,6 +86,7 @@ install:
   - set ZLIB_INCLUDE_DIRS=%cd%\include
   - if not %qt%==mingw492_32 set ZLIB_LIBRARIES=%cd%\lib\libz.lib
   - if %qt%==mingw492_32 set ZLIB_LIBRARIES=%cd%\lib\libz.dll.a
+# libxml2
   - echo "Downloading libxml2"
   - md c:\dev\libxml2
   - cd c:\dev\libxml2
@@ -96,6 +99,7 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+# libhunspell
   - echo "Downloading libhunspell"
   - md c:\dev\libhunspell
   - cd c:\dev\libhunspell
@@ -108,6 +112,7 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+# tidy-html5
   - echo "Downloading tidy-html5"
   - md c:\dev\tidy-html5
   - cd c:\dev\tidy-html5
@@ -120,6 +125,7 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+# Qtkeychain
   - echo "Downloading qtkeychain"
   - md c:\dev\qtkeychain
   - cd c:\dev\qtkeychain
@@ -132,6 +138,7 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+# Google breakpad
   - echo "Downloading breakpad"
   - md c:\dev\breakpad
   - cd c:\dev\breakpad
@@ -144,6 +151,7 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+# Boost (for MinGW only)
   - if %qt%==mingw492_32 echo "Downloading boost"
   - if %qt%==mingw492_32 md c:\dev\boost
   - if %qt%==mingw492_32 cd c:\dev\boost
@@ -152,6 +160,7 @@ install:
   - if %qt%==mingw492_32 set PATH=%cd%\lib;%PATH%
   - if %qt%==mingw492_32 set LIB=%cd%\lib;%LIB%
   - if %qt%==mingw492_32 set INCLUDE=%cd%\include\boost-1_63;%INCLUDE%
+# QEverCloud
   - echo "Downloading QEverCloud"
   - md c:\dev\qevercloud
   - cd c:\dev
@@ -172,27 +181,44 @@ install:
   - set PATH=%PATH%;%cd%\installdir\bin
   - set LIB=%LIB%;%cd%\installdir\lib
   - set INCLUDE=%INCLUDE%;%cd%\installdir\include
+# Libquentier
   - cd c:\dev
   - echo "Downloading libquentier"
   - md c:\dev\libquentier
-  - cd c:\dev
-  - git clone https://github.com/d1vanov/libquentier.git libquentier
-  - cd libquentier
-  - echo "Building libquentier"
-  - if %APPVEYOR_REPO_BRANCH%=="development" git checkout development
-  - md build
-  - cd build
-  - if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
-  - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
-  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%"
-  - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%
-  - cmake --build . --target all
-  - cmake --build . --target check
-  - cmake --build . --target install
-  - if %qt%==mingw492_32 set PATH=%PATH%;C:\Program Files\Git\usr\bin
-  - set PATH=%PATH%;%cd%\installdir\bin
-  - set LIB=%LIB%;%cd%\installdir\lib
-  - set INCLUDE=%INCLUDE%;%cd%\installdir\include
+  - cd c:\dev\libquentier
+  - set LIBQUENTIER_DOWNLOADED=0
+# First try to download the prebuilt binary to save the precious time as well as CPU cycles
+  - if %qt%==msvc2015 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip && set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==msvc2015 if %APPVEYOR_REPO_BRANCH%=="master" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip && set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==msvc2017_64 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip && set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==msvc2017_64 if %APPVEYOR_REPO_BRANCH%=="master" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip && set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="master" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==msvc2015 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2015_x86.zip
+  - if %qt%==msvc2017_64 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2017_x64.zip
+  - if %qt%==mingw492_32 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt55-MinGW_x86.zip
+  - if %LIBQUENTIER_DOWNLOADED%==1 set PATH=%cd%\bin;%PATH%
+  - if %LIBQUENTIER_DOWNLOADED%==1 set LIB=%cd%\lib;%LIB%
+  - if %LIBQUENTIER_DOWNLOADED%==1 set INCLUDE=%cd%\lib;%INCLUDE%
+# In case of failure clone the libquentier repo and build the library from sources
+  - if not %LIBQUENTIER_DOWNLOADED%==1 cd ..
+  - if not %LIBQUENTIER_DOWNLOADED%==1 git clone https://github.com/d1vanov/libquentier.git libquentier
+  - if not %LIBQUENTIER_DOWNLOADED%==1 cd libquentier
+  - if not %LIBQUENTIER_DOWNLOADED%==1 echo "Building libquentier"
+  - if not %LIBQUENTIER_DOWNLOADED%==1 if %APPVEYOR_REPO_BRANCH%=="development" git checkout development
+  - if not %LIBQUENTIER_DOWNLOADED%==1 md build
+  - if not %LIBQUENTIER_DOWNLOADED%==1 cd build
+  - if not %LIBQUENTIER_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+  - if not %LIBQUENTIER_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
+  - if not %LIBQUENTIER_DOWNLOADED%==1 if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%"
+  - if not %LIBQUENTIER_DOWNLOADED%==1 if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%
+  - if not %LIBQUENTIER_DOWNLOADED%==1 cmake --build . --target all
+  - if not %LIBQUENTIER_DOWNLOADED%==1 cmake --build . --target check
+  - if not %LIBQUENTIER_DOWNLOADED%==1 cmake --build . --target install
+  - if not %LIBQUENTIER_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=%PATH%;C:\Program Files\Git\usr\bin
+  - if not %LIBQUENTIER_DOWNLOADED%==1 set PATH=%PATH%;%cd%\installdir\bin
+  - if not %LIBQUENTIER_DOWNLOADED%==1 set LIB=%LIB%;%cd%\installdir\lib
+  - if not %LIBQUENTIER_DOWNLOADED%==1 set INCLUDE=%INCLUDE%;%cd%\installdir\include
 
 before_build:
   - cd c:\dev\quentier
