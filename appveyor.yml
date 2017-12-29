@@ -96,6 +96,7 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+  - if %qt%==mingw492_32 set LIBXML2_LIBRARIES=%cd%\bin\libxml2.dll
   - echo "Downloading libhunspell"
   - md c:\dev\libhunspell
   - cd c:\dev\libhunspell
