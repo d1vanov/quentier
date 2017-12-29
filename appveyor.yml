@@ -194,6 +194,7 @@ install:
   - if %qt%==msvc2017_64 if %APPVEYOR_REPO_BRANCH%=="master" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip && set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="master" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
+  - dir /s
   - if %qt%==msvc2015 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2015_x86.zip
   - if %qt%==msvc2017_64 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2017_x64.zip
   - if %qt%==mingw492_32 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt55-MinGW_x86.zip
