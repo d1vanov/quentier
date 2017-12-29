@@ -163,24 +163,44 @@ install:
 # QEverCloud
   - echo "Downloading QEverCloud"
   - md c:\dev\qevercloud
-  - cd c:\dev
-  - git clone https://github.com/d1vanov/QEverCloud.git qevercloud
-  - echo "Building QEverCloud"
   - cd c:\dev\qevercloud
-  - if %APPVEYOR_REPO_BRANCH%=="development" git checkout development
-  - md build
-  - cd build
-  - if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
-  - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
-  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\qevercloud\build\installdir" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%
-  - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\qevercloud\build\installdir" -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%
-  - cmake --build . --target all
-  - cmake --build . --target check
-  - cmake --build . --target install
-  - if %qt%==mingw492_32 set PATH=%PATH%;C:\Program Files\Git\usr\bin
-  - set PATH=%PATH%;%cd%\installdir\bin
-  - set LIB=%LIB%;%cd%\installdir\lib
-  - set INCLUDE=%INCLUDE%;%cd%\installdir\include
+# First try to download the prebuilt binary to save the precious time as well as CPU cycles
+  - md build\installdir
+  - cd build\installdir
+  - set QEVERCLOUD_DOWNLOADED=0
+  - if %qt%==msvc2015 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-development/qevercloud-windows-qt592-VS2015_x86.zip -o qevercloud-windows-qt592-VS2015_x86.zip & set errorlevel=0
+  - if %qt%==msvc2015 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-master/qevercloud-windows-qt592-VS2015_x86.zip -o qevercloud-windows-qt592-VS2015_x86.zip & set errorlevel=0
+  - if %qt%==msvc2017_64 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-development/qevercloud-windows-qt592-VS2017_x64.zip -o qevercloud-windows-qt592-VS2017_x64.zip & set errorlevel=0
+  - if %qt%==msvc2017_64 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-master/qevercloud-windows-qt592-VS2017_x64.zip -o qevercloud-windows-qt592-VS2017_x64.zip & set errorlevel=0
+  - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-development/qevercloud-windows-qt55-MinGW_x86.zip -o qevercloud-windows-qt55-MinGW_x86.zip & set errorlevel=0
+  - if %qt%==mingw492_32 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-master/qevercloud-windows-qt55-MinGW_x86.zip -o qevercloud-windows-qt55-MinGW_x86.zip & set errorlevel=0
+  - if %qt%==msvc2015 if exist qevercloud-windows-qt592-VS2015_x86.zip set QEVERCLOUD_DOWNLOADED=1
+  - if %qt%==msvc2017_64 if exist qevercloud-windows-qt592-VS2017_x64.zip set QEVERCLOUD_DOWNLOADED=1
+  - if %qt%==mingw492_32 if exist qevercloud-windows-qt55-MinGW_x86.zip set QEVERCLOUD_DOWNLOADED=1
+  - if %qt%==msvc2015 if %QEVERCLOUD_DOWNLOADED%==1 7z x qevercloud-windows-qt592-VS2015_x86.zip
+  - if %qt%==msvc2017_64 if %QEVERCLOUD_DOWNLOADED%==1 7z x qevercloud-windows-qt592-VS2017_x64.zip
+  - if %qt%==mingw492_32 if %QEVERCLOUD_DOWNLOADED%==1 7z x qevercloud-windows-qt55-MinGW_x86.zip
+  - if %QEVERCLOUD_DOWNLOADED%==1 set PATH=%cd%\bin;%PATH%
+  - if %QEVERCLOUD_DOWNLOADED%==1 set LIB=%cd%\lib;%LIB%
+  - if %QEVERCLOUD_DOWNLOADED%==1 set INCLUDE=%cd%\lib;%INCLUDE%
+# In case of failure clone the QEverCloud repo and build the library from sources
+  - if not %QEVERCLOUD_DOWNLOADED%==1 cd c:\dev
+  - if not %QEVERCLOUD_DOWNLOADED%==1 git clone https://github.com/d1vanov/QEverCloud.git qevercloud
+  - if not %QEVERCLOUD_DOWNLOADED%==1 cd c:\dev\qevercloud
+  - if not %QEVERCLOUD_DOWNLOADED%==1 echo "Building QEverCloud"
+  - if not %QEVERCLOUD_DOWNLOADED%==1 if %APPVEYOR_REPO_BRANCH%=="development" git checkout development
+  - if not %QEVERCLOUD_DOWNLOADED%==1 cd build
+  - if not %QEVERCLOUD_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+  - if not %QEVERCLOUD_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
+  - if not %QEVERCLOUD_DOWNLOADED%==1 if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\qevercloud\build\installdir" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%
+  - if not %QEVERCLOUD_DOWNLOADED%==1 if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\qevercloud\build\installdir" -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%
+  - if not %QEVERCLOUD_DOWNLOADED%==1 cmake --build . --target all
+  - if not %QEVERCLOUD_DOWNLOADED%==1 cmake --build . --target check
+  - if not %QEVERCLOUD_DOWNLOADED%==1 cmake --build . --target install
+  - if not %QEVERCLOUD_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=%PATH%;C:\Program Files\Git\usr\bin
+  - if not %QEVERCLOUD_DOWNLOADED%==1 set PATH=%PATH%;%cd%\installdir\bin
+  - if not %QEVERCLOUD_DOWNLOADED%==1 set LIB=%LIB%;%cd%\installdir\lib
+  - if not %QEVERCLOUD_DOWNLOADED%==1 set INCLUDE=%INCLUDE%;%cd%\installdir\include
 # Libquentier
   - echo "Downloading libquentier"
   - md c:\dev\libquentier
@@ -189,12 +209,15 @@ install:
 # First try to download the prebuilt binary to save the precious time as well as CPU cycles
   - md build\installdir
   - cd build\installdir
-  - if %qt%==msvc2015 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip && set LIBQUENTIER_DOWNLOADED=1
-  - if %qt%==msvc2015 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip && set LIBQUENTIER_DOWNLOADED=1
-  - if %qt%==msvc2017_64 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip && set LIBQUENTIER_DOWNLOADED=1
-  - if %qt%==msvc2017_64 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip && set LIBQUENTIER_DOWNLOADED=1
-  - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
-  - if %qt%==mingw492_32 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==msvc2015 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip & set errorlevel=0
+  - if %qt%==msvc2015 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip & set errorlevel=0
+  - if %qt%==msvc2017_64 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip & set errorlevel=0
+  - if %qt%==msvc2017_64 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip & set errorlevel=0
+  - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip & set errorlevel=0
+  - if %qt%==mingw492_32 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip & set errorlevel=0
+  - if %qt%==msvc2015 if exist libquentier-windows-qt592-VS2015_x86.zip set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==msvc2017_64 if exist libquentier-windows-qt592-VS2017_x64.zip set LIBQUENTIER_DOWNLOADED=1
+  - if %qt%==mingw492_32 if exist libquentier-windows-qt55-MinGW_x86.zip set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==msvc2015 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2015_x86.zip
   - if %qt%==msvc2017_64 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2017_x64.zip
   - if %qt%==mingw492_32 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt55-MinGW_x86.zip
