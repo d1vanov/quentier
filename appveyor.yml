@@ -210,10 +210,7 @@ build_script:
   - cmake --build . --target install
   - if %qt%==mingw492_32 set PATH=%ORIGPATH%
 
-after_build:
-  - if %qt%==msvc2015 copy c:\dev\breakpad\installdir\breakpad_VS2015_x86.zip %APPVEYOR_BUILD_FOLDER%
-  - if %qt%==msvc2017_64 copy c:\dev\breakpad\installdir\breakpad_VS2017_x64.zip %APPVEYOR_BUILD_FOLDER%
-  - if %qt%==mingw492_32 copy C:\Libraries\boost_1_63_0\mingw_installdir\boost_mingw.zip %APPVEYOR_BUILD_FOLDER%
+#after_build:
 #  - cd c:\dev\install
 #  - 7z a %DEPLOYMENT_TARGET% c:\dev\install\*
 #  - cp %DEPLOYMENT_TARGET% %APPVEYOR_BUILD_FOLDER%
