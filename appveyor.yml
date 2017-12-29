@@ -182,19 +182,19 @@ install:
   - set LIB=%LIB%;%cd%\installdir\lib
   - set INCLUDE=%INCLUDE%;%cd%\installdir\include
 # Libquentier
-  - cd c:\dev
   - echo "Downloading libquentier"
   - md c:\dev\libquentier
   - cd c:\dev\libquentier
   - set LIBQUENTIER_DOWNLOADED=0
 # First try to download the prebuilt binary to save the precious time as well as CPU cycles
+  - md build\installdir
+  - cd build\installdir
   - if %qt%==msvc2015 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip && set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==msvc2015 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2015_x86.zip -o libquentier-windows-qt592-VS2015_x86.zip && set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==msvc2017_64 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip && set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==msvc2017_64 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt592-VS2017_x64.zip -o libquentier-windows-qt592-VS2017_x64.zip && set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==mingw492_32 if %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
   - if %qt%==mingw492_32 if not %APPVEYOR_REPO_BRANCH%=="development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier-windows-qt55-MinGW_x86.zip -o libquentier-windows-qt55-MinGW_x86.zip && set LIBQUENTIER_DOWNLOADED=1
-  - dir /s
   - if %qt%==msvc2015 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2015_x86.zip
   - if %qt%==msvc2017_64 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt592-VS2017_x64.zip
   - if %qt%==mingw492_32 if %LIBQUENTIER_DOWNLOADED%==1 7z x libquentier-windows-qt55-MinGW_x86.zip
@@ -202,12 +202,11 @@ install:
   - if %LIBQUENTIER_DOWNLOADED%==1 set LIB=%cd%\lib;%LIB%
   - if %LIBQUENTIER_DOWNLOADED%==1 set INCLUDE=%cd%\lib;%INCLUDE%
 # In case of failure clone the libquentier repo and build the library from sources
-  - if not %LIBQUENTIER_DOWNLOADED%==1 cd ..
+  - if not %LIBQUENTIER_DOWNLOADED%==1 cd c:\dev
   - if not %LIBQUENTIER_DOWNLOADED%==1 git clone https://github.com/d1vanov/libquentier.git libquentier
   - if not %LIBQUENTIER_DOWNLOADED%==1 cd libquentier
   - if not %LIBQUENTIER_DOWNLOADED%==1 echo "Building libquentier"
   - if not %LIBQUENTIER_DOWNLOADED%==1 if %APPVEYOR_REPO_BRANCH%=="development" git checkout development
-  - if not %LIBQUENTIER_DOWNLOADED%==1 md build
   - if not %LIBQUENTIER_DOWNLOADED%==1 cd build
   - if not %LIBQUENTIER_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - if not %LIBQUENTIER_DOWNLOADED%==1 if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
