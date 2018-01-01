@@ -42,6 +42,20 @@ install:
         sudo cp -fR cmake-3.2.0-Linux-x86_64/* /usr &&
         sudo apt-get -qq install libxml2-dev libboost-dev libboost-program-options-dev libssl-dev libhunspell-dev &&
         sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test &&
+        if [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
+          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" &&
+          sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+          sudo chmod a+x /usr/local/bin/linuxdeployqt &&
+          wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 &&
+          tar xf patchelf-0.9.tar.bz2 &&
+          cd patchelf-0.9 &&
+          ./configure &&
+          make &&
+          sudo make install &&
+          cd .. &&
+          sudo wget -c "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool &&
+          sudo chmod a+x /usr/local/bin/appimagetool
+        fi
         if [ "${QT_BASE}" = "551" ]; then
           echo "Building for Qt 5.5.1" &&
           sudo apt-add-repository -y ppa:beineri/opt-qt551-trusty &&
@@ -94,28 +108,6 @@ install:
       echo "QUENTIER_DIR = $QUENTIER_DIR"
     - cmake --version
     - cd ..
-    - |
-      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ]; then
-        sudo apt-get -qq install libgl1-mesa-dev &&
-        git clone https://github.com/probonopd/linuxdeployqt.git &&
-        source /opt/qt59/bin/qt59-env.sh &&
-        export PATH=/opt/qt59/bin:$PATH &&
-        cd linuxdeployqt &&
-        git checkout 4 &&
-        qmake &&
-        make &&
-        export PATH=$(pwd)/linuxdeployqt:$PATH
-        cd .. &&
-        wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 &&
-        tar xf patchelf-0.9.tar.bz2 &&
-        cd patchelf-0.9 &&
-        ./configure &&
-        make &&
-        sudo make install &&
-        cd .. &&
-        sudo wget -c "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool &&
-        sudo chmod a+x /usr/local/bin/appimagetool
-      fi
     - |
       if ! [ "${COMPILER}" == "g++-4.6" ] && [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         echo "Building breakpad" &&
@@ -273,14 +265,14 @@ script:
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         if [ "${QT_BASE}" = "592" ]; then
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
+          cmake -DCMAKE_INSTALL_PREFIX=/usr \
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 -DCREATE_BUNDLE=ON ..
+                -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
         elif [ "${QT_BASE}" = "551" ]; then
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
@@ -289,7 +281,7 @@ script:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt55 -DUSE_QT5=1 ..
+                -DCMAKE_PREFIX_PATH=/opt/qt55 -DUSE_QT5=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt4_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt4 \
@@ -298,8 +290,7 @@ script:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
-                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                -DCMAKE_VERBOSE_MAKEFILE=ON ..
+                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
@@ -312,9 +303,25 @@ script:
               -DTIDY_HTML5_LIB=/usr/local/lib/libtidy.dylib \
               -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 ..
       fi
-      make &&
-      make check &&
-      make install
+    - make
+    - make check
+    - |
+      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
+        unset QTDIR &&
+        unset QT_PLUGIN_PATH &&
+        unset LD_LIBRARY_PATH &&
+        if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
+          export VERSION=$TRAVIS_BRANCH
+        else
+          export VERSION=$(git rev-parse --short HEAD)
+        fi
+        make DESTDIR=appdir install &&
+        linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs &&
+        linuxdeployqt appdir/usr/share/applications/*.desktop -appimage &&
+        find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
+      else
+        make install
+      fi
 
 after_success:
     - |
@@ -323,7 +330,7 @@ after_success:
           wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_linux.zip &&
           unzip ciuploadtool_linux.zip &&
           chmod 755 ciuploadtool &&
-          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/installdir/*.AppImage
+          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/Quentier*.AppImage*
         fi
       elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
