@@ -290,7 +290,7 @@ script:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
-                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir
+                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
