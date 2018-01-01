@@ -323,7 +323,7 @@ script:
         linuxdeployqt appdir/usr/share/applications/*.desktop -appimage &&
         find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
       else
-        make install
+        sudo make install
       fi
 
 after_success:
