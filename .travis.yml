@@ -256,6 +256,9 @@ install:
       make &&
       make check &&
       make install
+    - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
+      fi
 
 script:
     - |
@@ -309,7 +312,6 @@ script:
       if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
         unset QTDIR &&
         unset QT_PLUGIN_PATH &&
-        unset LD_LIBRARY_PATH &&
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
           export VERSION=$TRAVIS_BRANCH
         else
