@@ -256,8 +256,9 @@ install:
       make &&
       make check &&
       make install
-    - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
+    - |
+      if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib
       fi
 
 script:
