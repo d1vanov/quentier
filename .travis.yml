@@ -322,8 +322,10 @@ script:
         linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs &&
         linuxdeployqt appdir/usr/share/applications/*.desktop -appimage &&
         find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-      else
+      elif [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ]; then
         sudo make install
+      else
+        make install
       fi
 
 after_success:
