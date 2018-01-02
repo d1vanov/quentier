@@ -337,11 +337,12 @@ after_success:
         fi
       elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
-          cd $QUENTIER_DIR/build/installdir &&
+          cd $QUENTIER_DIR/build &&
           wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_mac.zip &&
           unzip ciuploadtool_mac.zip &&
           chmod 755 ciuploadtool &&
+          mv $QUENTIER_DIR/build/installdir/quentier.app . &&
           7z a Quentier_mac_x86_64.zip quentier.app &&
-          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/installdir/Quentier_mac_x86_64.zip
+          ./ciuploadtool -suffix="$TRAVIS_BRANCH" $QUENTIER_DIR/build/Quentier_mac_x86_64.zip
         fi
       fi
