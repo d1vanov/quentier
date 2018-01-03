@@ -134,7 +134,7 @@ Try to stick with the following layout of class contents:
 - `Q_OBJECT` macro, if required for the class
 - inner classes, if any
 - typedefs, if any
-- contructors - the default one, if present, comes first, then non-default constructors, if any, then copy-constructor, if present.
+- constructors - the default one, if present, comes first, then non-default constructors, if any, then copy-constructor, if present.
 - assignment operators, if any
 - destructor, if present
 - Qt signals, if any

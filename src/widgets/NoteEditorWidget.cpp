@@ -675,7 +675,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
             return false;
         }
 
-        QNDEBUG(QStringLiteral("Successfull exported the note to ENEX"));
+        QNDEBUG(QStringLiteral("Successfully exported the note to ENEX"));
         return true;
     }
 

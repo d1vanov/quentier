@@ -1887,7 +1887,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             }
 
             Q_UNUSED(m_modelItemsByLocalUid.erase(modelItemIt))
-            QNTRACE(QStringLiteral("Erased the notebok model item corresponding to local uid ") << localUid);
+            QNTRACE(QStringLiteral("Erased the notebook model item corresponding to local uid ") << localUid);
         }
         else
         {
@@ -1899,7 +1899,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
         if (Q_LIKELY(it != localUidIndex.end()))
         {
             Q_UNUSED(localUidIndex.erase(it))
-            QNTRACE(QStringLiteral("Erased the notebok item corresponding to local uid ") << localUid);
+            QNTRACE(QStringLiteral("Erased the notebook item corresponding to local uid ") << localUid);
 
             auto indexIt = m_indexIdToLocalUidBimap.right.find(localUid);
             if (indexIt != m_indexIdToLocalUidBimap.right.end()) {

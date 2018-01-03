@@ -112,13 +112,13 @@ void TagModelTestHelper::test()
         eighth.setParentLocalUid(fifth.localUid());
         eighth.setParentGuid(fifth.guid());
 
-        Tag nineth;
-        nineth.setName(QStringLiteral("Nineth"));
-        nineth.setLocal(false);
-        nineth.setDirty(false);
-        nineth.setGuid(UidGenerator::Generate());
-        nineth.setParentLocalUid(sixth.localUid());
-        nineth.setParentGuid(sixth.guid());
+        Tag ninth;
+        ninth.setName(QStringLiteral("Ninth"));
+        ninth.setLocal(false);
+        ninth.setDirty(false);
+        ninth.setGuid(UidGenerator::Generate());
+        ninth.setParentLocalUid(sixth.localUid());
+        ninth.setParentGuid(sixth.guid());
 
         Tag tenth;
         tenth.setName(QStringLiteral("Tenth"));
@@ -152,7 +152,7 @@ void TagModelTestHelper::test()
         ADD_TAG(sixth);
         ADD_TAG(seventh);
         ADD_TAG(eighth);
-        ADD_TAG(nineth);
+        ADD_TAG(ninth);
         ADD_TAG(tenth);
         ADD_TAG(eleventh);
         ADD_TAG(twelveth);

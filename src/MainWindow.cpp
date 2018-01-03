@@ -2721,7 +2721,7 @@ void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
 {
     QNDEBUG(QStringLiteral("MainWindow::onEnexImportCompletedSuccessfully: ") << enexFilePath);
 
-    onSetStatusBarText(tr("Successfully importes note(s) from ENEX file") +
+    onSetStatusBarText(tr("Successfully imported note(s) from ENEX file") +
                        QStringLiteral(": ") + QDir::toNativeSeparators(enexFilePath), SEC_TO_MSEC(5));
 
     EnexImporter * pImporter = qobject_cast<EnexImporter*>(sender());
@@ -4135,7 +4135,7 @@ void MainWindow::setupViews()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupViews"));
 
-    // NOTE: only a few columns would be shown for each view because otherwise there are problems finding space for everyting
+    // NOTE: only a few columns would be shown for each view because otherwise there are problems finding space for everything
     // TODO: in future should implement the persistent setting of which columns to show or not to show
 
     FavoriteItemView * pFavoritesTableView = m_pUI->favoritesTableView;

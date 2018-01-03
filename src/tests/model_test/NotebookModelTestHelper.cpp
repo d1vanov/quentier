@@ -120,11 +120,11 @@ void NotebookModelTestHelper::test()
         eighth.setLinkedNotebookGuid(secondLinkedNotebook.guid());
         eighth.setDirty(false);
 
-        Notebook nineth;
-        nineth.setName(QStringLiteral("Nineth"));
-        nineth.setLocal(true);
-        nineth.setDirty(false);
-        nineth.setStack(QStringLiteral("Stack 2"));
+        Notebook ninth;
+        ninth.setName(QStringLiteral("Ninth"));
+        ninth.setLocal(true);
+        ninth.setDirty(false);
+        ninth.setStack(QStringLiteral("Stack 2"));
 
         Notebook tenth;
         tenth.setName(QStringLiteral("Tenth"));
@@ -149,7 +149,7 @@ void NotebookModelTestHelper::test()
         ADD_NOTEBOOK(sixth);
         ADD_NOTEBOOK(seventh);
         ADD_NOTEBOOK(eighth);
-        ADD_NOTEBOOK(nineth);
+        ADD_NOTEBOOK(ninth);
         ADD_NOTEBOOK(tenth);
 
 #undef ADD_NOTEBOOK

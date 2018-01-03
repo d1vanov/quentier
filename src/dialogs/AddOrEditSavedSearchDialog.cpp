@@ -132,7 +132,7 @@ void AddOrEditSavedSearchDialog::accept()
                     ((existingItemIndex.row() != nameIndex.row()) ||
                      (existingItemIndex.parent() != nameIndex.parent())))
                 {
-                    // The new name collides wih some existing saved search and now with the currently edited one
+                    // The new name collides with some existing saved search and now with the currently edited one
                     REPORT_ERROR("The saved search name must be unique in case insensitive manner");
                 }
                 else

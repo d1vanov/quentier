@@ -84,7 +84,7 @@ void setupTranslations(QuentierApplication & app)
     loadTranslations(defaultLibquentierTranslationsSearchPath, LIBQUENTIER_TRANSLATIONS_SEARCH_PATH,
                      QStringLiteral("libquentier_*.qm"), *pTranslator);
 
-    QNDEBUG(QStringLiteral("Loading translationg for quentier"));
+    QNDEBUG(QStringLiteral("Loading translations for quentier"));
     loadTranslations(defaultQuentierTranslationsSearchPath, QUENTIER_TRANSLATIONS_SEARCH_PATH,
                      QStringLiteral("quentier_*.qm"), *pTranslator);
 
