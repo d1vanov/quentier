@@ -196,6 +196,12 @@ function(CreateQuentierBundle)
         install(CODE "file(COPY ${cygwin_dll} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)")
       endforeach()
     endif()
+
+    if(NSIS_FOUND)
+      install(CODE "
+              ${NSIS_MAKE} ${PROJECT_BINARY_DIR}/wininstaller.nsi
+	      " COMPONENT Runtime)
+    endif()
   elseif(APPLE)
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")

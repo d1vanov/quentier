@@ -35,6 +35,7 @@ include(QuentierFindQEverCloud)
 include(QuentierFindLibquentier)
 include(QuentierFindBoost)
 include(QuentierDoxygen)
+include(QuentierFindNSIS)
 
 if(NOT APPLE)
   include(QuentierFindBreakpad)
@@ -417,6 +418,11 @@ configure_file(src/VersionInfo.h.in
                ${QUENTIER_VERSION_INFO_HEADER} @ONLY)
 list(APPEND ${PROJECT_NAME}_HEADERS ${QUENTIER_VERSION_INFO_HEADER})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+if(NSIS_FOUND)
+  configure_file(src/installer/windows/wininstaller.nsi.in
+	         ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
+endif()
 
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}

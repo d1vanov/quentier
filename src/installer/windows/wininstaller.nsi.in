@@ -1,0 +1,216 @@
+;--------------------------------
+;Product and version declaration
+
+!define MUI_PRODUCT "Quentier"
+!define MUI_VERSION "@PROJECT_VERSION@"
+
+;--------------------------------
+;Include Modern UI
+!include "MUI2.nsh"
+
+;--------------------------------
+;Include Logic lib and checking
+;whether running on x64 system
+!include "LogicLib.nsh"
+!include "x64.nsh"
+
+;--------------------------------
+;General
+
+  ;Name and file
+  Name "Quentier"
+  OutFile "Install.exe"
+
+  ;Default installation folder
+  InstallDir "$LOCALAPPDATA\Quentier"
+
+  ;Get installation folder from registry if available
+  InstallDirRegKey HKCU "Software\Quentier" ""
+
+  ;Variable helping to figure out if the installed application was built with MSVC
+  Var MSVC
+  ${If} "@CMAKE_CXX_COMPILER_ID@"=="MSVC"
+    $MSVC = true
+  ${Else}
+    $MSVC = false
+  ${EndIf}
+
+  ;Request application privileges for Windows >= Vista
+  ${If} ${MSVC}
+    ; Will need to install VC runtime -> need admin privileges
+    RequestExecutionLevel admin
+  ${Else}
+    RequestExecutionLevel user
+  ${EndIf}
+
+;--------------------------------
+;Variables and functions
+
+  Var StartMenuFolder
+  Var VCRuntimeVersion
+
+  Function DetermineVCRuntimeVersion
+
+    ${If} ${MSVC}
+      ;Need to Download VCRuntime
+      Var VC2017Index
+      ${StrLoc} $VC2017Index "@CMAKE_CXX_COMPILER_VERSION@" "19.1" ">"
+      ${If} $VC2017Index != ""
+        $VCRuntimeVersion = "2017"
+        return
+      ${EndIf}
+
+      Var VC2015Index
+      ${StrLoc} $VC2015Index "@CMAKE_CXX_COMPILER_VERSION@" "19.0" ">"
+      ${If} $VC2015Index != ""
+        $VCRuntimeVersion = "2015"
+        return
+      ${EndIf}
+
+      Var VC2013Index
+      ${StrLoc} $VC2013Index "@CMAKE_CXX_COMPILER_VERSION@" "18" ">"
+      ${If} $VC2013Index != ""
+        $VCRuntimeVersion = "2013"
+        return
+      ${EndIf}
+
+      Var VC2012Index
+      ${StrLoc} $VC2012Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
+      ${If} $VC2012Index != ""
+        $VCRuntimeVersion = "2012"
+        return
+      ${EndIf}
+
+      Var VC2010Index
+      ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
+      ${If} $VC2010Index != ""
+        $VCRuntimeVersion = "2010"
+        return
+      ${EndIf}
+    ${EndIf}
+
+  FunctionEnd
+
+;--------------------------------
+;Interface Settings
+
+  !define MUI_ABORTWARNING
+
+;--------------------------------
+;Pages
+
+  ;Installer pages
+  !insertmacro MUI_PAGE_WELCOME
+  !insertmacro MUI_PAGE_LICENSE ..\COPYING
+  !insertmacro MUI_PAGE_DIRECTORY
+
+  ;Start Menu Folder Page Configuration
+  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU"
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Quentier"
+  !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Quentier"
+  !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
+
+  !insertmacro MUI_PAGE_INSTFILES
+  !insertmacro MUI_PAGE_FINISH
+
+  ;Uninstaller pages
+  !insertmacro MUI_UNPAGE_CONFIRM
+  !insertmacro MUI_UNPAGE_INSTFILES
+  !insertmacro MUI_UNPAGE_FINISH
+
+;--------------------------------
+;Languages
+
+  !insertmacro MUI_LANGUAGE "English"
+
+;--------------------------------
+;Installer Sections
+ 
+Section "Default Section" SecDefault
+
+  SetOutPath "$INSTDIR"
+  
+  File /r "@CMAKE_INSTALL_BINDIR@\*"
+
+  ;Store installation folder
+  WriteRegStr HKCU "Software\Quentier" "" $INSTDIR
+                   
+  ;Create uninstaller
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
+  
+  ${If} ${MSVC}
+    call DetermineVCRuntimeVersion
+    ${If} $VCRuntimeVersion=="2017"
+      ${If} ${RunningX64}
+        # TODO: download and install VC2017 redist 64 bit
+      ${Else}
+        # TODO: download and install VC2017 redist 32 bit
+      ${EndIf}
+    ${EndIf}
+    ${If} $VCRuntimeVersion=="2015"
+      ${If} ${RunningX64}
+        # TODO: download and install VC2015 redist 64 bit
+      ${Else}
+        # TODO: download and install VC2015 redist 32 bit
+      ${EndIf}
+    ${EndIf}
+    ${If} $VCRuntimeVersion=="2013"
+      ${If} ${RunningX64}
+        # TODO: download and install VC2013 redist 64 bit
+      ${Else}
+        # TODO: download and install VC2013 redist 32 bit
+      ${EndIf}
+    ${EndIf}
+    ${If} $VCRuntimeVersion=="2012"
+      ${If} ${RunningX64}
+        # TODO: download and install VC2012 redist 64 bit
+      ${Else}
+        # TODO: download and install VC2012 redist 32 bit
+      ${EndIf}
+    ${EndIf}
+    ${If} $VCRuntimeVersion=="2010"
+      ${If} ${RunningX64}
+        # TODO: download and install VC2010 redist 64 bit
+      ${Else}
+        # TODO: download and install VC2010 redist 32 bit
+      ${EndIf}
+    ${EndIf}
+  ${EndIf}
+
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+      
+    ;Create shortcuts
+    CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+
+  !insertmacro MUI_STARTMENU_WRITE_END
+
+SectionEnd
+
+;--------------------------------
+;Descriptions
+
+  ;Language strings
+  LangString DESC_SecDefault ${LANG_ENGLISH} "Installing..."
+  
+  ;Assign language strings to sections
+  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecDefault} $(DESC_SecDefault)
+  !insertmacro MUI_FUNCTION_DESCRIPTION_END
+  
+;--------------------------------
+;Uninstaller Section
+
+Section "uninstall"
+
+  Delete "$INSTDIR\Uninstall.exe"
+  RmDir "$INSTDIR"
+
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+  Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
+  RMDir "$SMPROGRAMS\$StartMenuFolder"
+    
+  DeleteRegKey /ifempty HKCU "Software\Quentier"
+
+SectionEnd
+
