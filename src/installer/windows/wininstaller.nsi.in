@@ -9,9 +9,11 @@
 !include "MUI2.nsh"
 
 ;--------------------------------
-;Include Logic lib and checking
+;Include Logic lib, StrFunc and checking
 ;whether running on x64 system
 !include "LogicLib.nsh"
+!include "StrFunc.nsh"
+${StrLoc}
 !include "x64.nsh"
 
 ;--------------------------------
@@ -27,64 +29,52 @@
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "Software\Quentier" ""
 
-  ;Variable helping to figure out if the installed application was built with MSVC
-  Var MSVC
-  ${If} "@CMAKE_CXX_COMPILER_ID@"=="MSVC"
-    $MSVC = true
-  ${Else}
-    $MSVC = false
-  ${EndIf}
-
   ;Request application privileges for Windows >= Vista
-  ${If} ${MSVC}
-    ; Will need to install VC runtime -> need admin privileges
-    RequestExecutionLevel admin
-  ${Else}
-    RequestExecutionLevel user
-  ${EndIf}
+  RequestExecutionLevel @QUENTIER_INSTALL_PRIVILEGE_LEVEL@
 
 ;--------------------------------
 ;Variables and functions
 
   Var StartMenuFolder
   Var VCRuntimeVersion
+  Var MSVC
+  Var VC2017Index
+  Var VC2015Index
+  Var VC2013Index
+  Var VC2012Index
+  Var VC2010Index
 
   Function DetermineVCRuntimeVersion
 
-    ${If} ${MSVC}
+    ${If} $MSVC == "true"
       ;Need to Download VCRuntime
-      Var VC2017Index
       ${StrLoc} $VC2017Index "@CMAKE_CXX_COMPILER_VERSION@" "19.1" ">"
       ${If} $VC2017Index != ""
-        $VCRuntimeVersion = "2017"
+        StrCpy $VCRuntimeVersion = "2017"
         return
       ${EndIf}
 
-      Var VC2015Index
       ${StrLoc} $VC2015Index "@CMAKE_CXX_COMPILER_VERSION@" "19.0" ">"
       ${If} $VC2015Index != ""
-        $VCRuntimeVersion = "2015"
+        StrCpy $VCRuntimeVersion = "2015"
         return
       ${EndIf}
 
-      Var VC2013Index
       ${StrLoc} $VC2013Index "@CMAKE_CXX_COMPILER_VERSION@" "18" ">"
       ${If} $VC2013Index != ""
-        $VCRuntimeVersion = "2013"
+        StrCpy $VCRuntimeVersion = "2013"
         return
       ${EndIf}
 
-      Var VC2012Index
       ${StrLoc} $VC2012Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
       ${If} $VC2012Index != ""
-        $VCRuntimeVersion = "2012"
+        StrCpy $VCRuntimeVersion = "2012"
         return
       ${EndIf}
 
-      Var VC2010Index
       ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
       ${If} $VC2010Index != ""
-        $VCRuntimeVersion = "2010"
+        StrCpy $VCRuntimeVersion = "2010"
         return
       ${EndIf}
     ${EndIf}
@@ -138,37 +128,43 @@ Section "Default Section" SecDefault
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   
-  ${If} ${MSVC}
+  ${If} "@CMAKE_CXX_COMPILER_ID@" == "MSVC"
+    StrCpy $MSVC "true"
+  ${Else}
+    StrCpy $MSVC "false"
+  ${EndIf}
+
+  ${If} $MSVC == true
     call DetermineVCRuntimeVersion
-    ${If} $VCRuntimeVersion=="2017"
+    ${If} $VCRuntimeVersion == "2017"
       ${If} ${RunningX64}
         # TODO: download and install VC2017 redist 64 bit
       ${Else}
         # TODO: download and install VC2017 redist 32 bit
       ${EndIf}
     ${EndIf}
-    ${If} $VCRuntimeVersion=="2015"
+    ${If} $VCRuntimeVersion == "2015"
       ${If} ${RunningX64}
         # TODO: download and install VC2015 redist 64 bit
       ${Else}
         # TODO: download and install VC2015 redist 32 bit
       ${EndIf}
     ${EndIf}
-    ${If} $VCRuntimeVersion=="2013"
+    ${If} $VCRuntimeVersion == "2013"
       ${If} ${RunningX64}
         # TODO: download and install VC2013 redist 64 bit
       ${Else}
         # TODO: download and install VC2013 redist 32 bit
       ${EndIf}
     ${EndIf}
-    ${If} $VCRuntimeVersion=="2012"
+    ${If} $VCRuntimeVersion == "2012"
       ${If} ${RunningX64}
         # TODO: download and install VC2012 redist 64 bit
       ${Else}
         # TODO: download and install VC2012 redist 32 bit
       ${EndIf}
     ${EndIf}
-    ${If} $VCRuntimeVersion=="2010"
+    ${If} $VCRuntimeVersion == "2010"
       ${If} ${RunningX64}
         # TODO: download and install VC2010 redist 64 bit
       ${Else}
@@ -204,11 +200,11 @@ SectionEnd
 Section "uninstall"
 
   Delete "$INSTDIR\Uninstall.exe"
-  RmDir "$INSTDIR"
+  RmDir /r /REBOOTOK "$INSTDIR"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-  RMDir "$SMPROGRAMS\$StartMenuFolder"
+  RMDir /r /REBOOTOK "$SMPROGRAMS\$StartMenuFolder"
     
   DeleteRegKey /ifempty HKCU "Software\Quentier"
 

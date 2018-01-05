@@ -199,7 +199,7 @@ function(CreateQuentierBundle)
 
     if(NSIS_FOUND)
       install(CODE "
-              ${NSIS_MAKE} ${PROJECT_BINARY_DIR}/wininstaller.nsi
+              execute_process(COMMAND \"${NSIS_MAKE}\" ${PROJECT_BINARY_DIR}/wininstaller.nsi)
 	      " COMPONENT Runtime)
     endif()
   elseif(APPLE)

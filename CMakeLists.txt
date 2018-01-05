@@ -419,11 +419,6 @@ configure_file(src/VersionInfo.h.in
 list(APPEND ${PROJECT_NAME}_HEADERS ${QUENTIER_VERSION_INFO_HEADER})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-if(NSIS_FOUND)
-  configure_file(src/installer/windows/wininstaller.nsi.in
-	         ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
-endif()
-
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}
                ${${PROJECT_NAME}_HEADERS}
@@ -634,6 +629,16 @@ endif()
 
 if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
   include(QuentierFindLinuxdeployqt)
+endif()
+
+if(NSIS_FOUND)
+  if(MSVC)
+    set(QUENTIER_INSTALL_PRIVILEGE_LEVEL admin)
+  else()
+    set(QUENTIER_INSTALL_PRIVILEGE_LEVEL user)
+  endif()
+  configure_file(src/installer/windows/wininstaller.nsi.in
+                 ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
 endif()
 
 include(QuentierCreateBundle)
