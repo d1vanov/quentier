@@ -3,6 +3,7 @@
 
 !define MUI_PRODUCT "Quentier"
 !define MUI_VERSION "@PROJECT_VERSION@"
+!define MUI_FILE quentier
 
 ;--------------------------------
 ;Include Modern UI
@@ -18,6 +19,9 @@ ${StrLoc}
 
 ;--------------------------------
 ;General
+
+  CRCCheck on
+  SetCompressor /SOLID lzma
 
   ;Name and file
   Name "Quentier"
@@ -72,7 +76,7 @@ ${StrLoc}
         return
       ${EndIf}
 
-      ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
+      ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "16" ">"
       ${If} $VC2010Index != ""
         StrCpy $VCRuntimeVersion = "2010"
         return
@@ -125,9 +129,6 @@ Section "Default Section" SecDefault
   ;Store installation folder
   WriteRegStr HKCU "Software\Quentier" "" $INSTDIR
                    
-  ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
-  
   ${If} "@CMAKE_CXX_COMPILER_ID@" == "MSVC"
     StrCpy $MSVC "true"
   ${Else}
@@ -173,27 +174,23 @@ Section "Default Section" SecDefault
     ${EndIf}
   ${EndIf}
 
+  ;Create desktop shortcut
+  CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${MUI_FILE}.exe"
+
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
       
-    ;Create shortcuts
+    ;Create start menu shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT} ${MUI_VERSION}.lnk" "$INSTDIR\${MUI_FILE}.exe"
     CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_END
 
+  ;Create uninstaller
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
+
 SectionEnd
 
-;--------------------------------
-;Descriptions
-
-  ;Language strings
-  LangString DESC_SecDefault ${LANG_ENGLISH} "Installing..."
-  
-  ;Assign language strings to sections
-  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecDefault} $(DESC_SecDefault)
-  !insertmacro MUI_FUNCTION_DESCRIPTION_END
-  
 ;--------------------------------
 ;Uninstaller Section
 
@@ -205,8 +202,30 @@ Section "uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
   RMDir /r /REBOOTOK "$SMPROGRAMS\$StartMenuFolder"
-    
+
+  Delete "$DESKTOP\{MUI_PRODUCT}.lnk"
+
   DeleteRegKey /ifempty HKCU "Software\Quentier"
 
 SectionEnd
 
+;--------------------------------
+;Function that calls a messagebox when installation finished correctly
+Function .onInstSuccess
+  MessageBox MB_OK "You have successfully installed ${MUI_PRODUCT}. Use the desktop icon to start the program."
+FunctionEnd
+
+Function un.onUninstSuccess
+  MessageBox MB_OK "You have successfully uninstalled ${MUI_PRODUCT}."
+FunctionEnd
+
+;--------------------------------
+;Descriptions
+
+  ;Language strings
+  LangString DESC_SecDefault ${LANG_ENGLISH} "Copying files..."
+
+  ;Assign language strings to sections
+  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecDefault} $(DESC_SecDefault)
+  !insertmacro MUI_FUNCTION_DESCRIPTION_END
