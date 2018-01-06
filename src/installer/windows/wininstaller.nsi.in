@@ -7,6 +7,7 @@
 !define COMPANY_NAME "Dmitry Ivanov"
 !define PRODUCT_EDITION "@PRODUCT_EDITION@"
 !define PLATFORM "@QUENTIER_TARGET_PLATFORM@"
+!define MIN_WIN_VER "XP"
 
 ;Defines required for MultiUser script
 !define PRODUCT_NAME "${MUI_PRODUCT}"
@@ -308,6 +309,18 @@ SectionEnd
 ;Functions
 
 Function .onInit
+  ;Check for minimal supported Windows version
+  ${IfNot} ${AtLeastWin${MIN_WIN_VER}}
+    MessageBox MB_ICONSTOP "This program requires at least Windows ${MIN_WIN_VER}." /SD IDOK
+    ;Will SetErrorLevel 2 - Installation aborted by script
+    Quit
+  ${Endif}
+  ;Prevent attempt to install 64 bit application onto 32 bit Windows
+  ${IfNot} ${RunningX64}
+    ${If} ${PLATFORM} == "Win64"
+      MessageBox MB_ICONSTOP "Please, run the 32-bit installer of ${PRODUCT_NAME} on this version of Windows." /SD IDOK
+    ${EndIf}
+  ${EndIf}
   !insertmacro MULTIUSER_INIT
 FunctionEnd
 
