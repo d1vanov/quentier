@@ -19,6 +19,7 @@
 #include "MainWindow.h"
 #include "SystemTrayIconManager.h"
 #include "initialization/Initialize.h"
+#include "initialization/LoadDependencies.h"
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -33,6 +34,9 @@ using namespace quentier;
 
 int main(int argc, char *argv[])
 {
+    // Loading the dependencies manually - required on Windows
+    loadDependencies();
+
     ParseCommandLineResult parseCmdResult;
     parseCommandLine(argc, argv, parseCmdResult);
     if (parseCmdResult.m_shouldQuit)

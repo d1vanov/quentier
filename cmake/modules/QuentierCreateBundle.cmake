@@ -159,7 +159,7 @@ function(CreateQuentierBundle)
               execute_process(COMMAND \"${DEPLOYQT_TOOL}\" --no-compiler-runtime ${APPS})
               " COMPONENT Runtime)
 
-      if(QUENTIER_USE_QT_WEB_ENGINE)
+      if(LIBQUENTIER_USE_QT_WEB_ENGINE)
         set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe)
         install(FILES ${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
         install(DIRECTORY ${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

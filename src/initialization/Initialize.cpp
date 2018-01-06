@@ -17,7 +17,6 @@
  */
 
 #include "Initialize.h"
-#include "LoadDependencies.h"
 #include "SetupApplicationIcon.h"
 #include "SetupTranslations.h"
 #include "ParseStartupAccount.h"
@@ -56,9 +55,6 @@ int initialize(QuentierApplication & app, const CommandLineParser::CommandLineOp
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Info);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
-
-    // Load dependencies (libs and plugins) manually - required on Windows
-    loadDependencies();
 
 #ifdef BUILDING_WITH_BREAKPAD
     setupBreakpad(app);

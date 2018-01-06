@@ -64,18 +64,6 @@ void loadDependencies()
     for(auto it = drivers.constBegin(), end = drivers.constEnd(); it != end; ++it) {
         QNDEBUG(QStringLiteral("Available SQL driver: ") << *it);
     }
-
-#ifdef LIB_QUENTIER_USE_QT_WEB_ENGINE
-    QString qtWebEngineProcessPath = QDir::currentPath() + QStringLiteral("/QtWebEngineProcess.exe");
-    QFileInfo qtWebEngineProcessFileInfo(qtWebEngineProcessPath);
-    if (!qtWebEngineProcessFileInfo.exists()) {
-        qtWebEngineProcessPath = QDir::currentPath() + QStringLiteral("/QtWebEngineProcessd.exe");
-    }
-
-    qputenv("QTWEBENGINEPROCESS_PATH", QByteArray(qtWebEngineProcessPath.toLocal8Bit()));
-    QNDEBUG(QStringLiteral("Set QTWEBENGINEPROCESS_PATH to ") << qtWebEngineProcessPath);
-#endif
-
 #endif // Q_OS_WIN
 }
 
