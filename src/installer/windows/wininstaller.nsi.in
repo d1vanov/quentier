@@ -8,6 +8,7 @@
 !define PRODUCT_EDITION "@PRODUCT_EDITION@"
 !define PLATFORM "@QUENTIER_TARGET_PLATFORM@"
 !define MIN_WIN_VER "XP"
+!define MUI_CUSTOMFUNCTION_GUIINIT onGuiInit
 
 ;Defines required for MultiUser script
 !define PRODUCT_NAME "${MUI_PRODUCT}"
@@ -39,6 +40,11 @@
 !addincludedir "..\src\installer\windows\NsisMultiUser\Include\"
 
 ;--------------------------------
+;Setup nsislog plugin
+
+!addplugindir "..\src\installer\windows\Nsislog\plugin"
+
+;--------------------------------
 ;Includes
 
 !include "NsisMultiUser.nsh"
@@ -48,6 +54,40 @@
 !include "StrFunc.nsh"
 ${StrLoc}
 !include "x64.nsh"
+
+;--------------------------------
+;Macros
+
+!macro _SyncVariable _variable
+  !define Lprefix L${__LINE__}
+  push $R0
+  goto _SyncVariableInner${Lprefix}
+  _SyncVariableOuter${Lprefix}:
+    StrCpy $R0 ${_variable}
+    return
+  _SyncVariableInner${Lprefix}:
+  !insertmacro UAC_AsUser_Call Label _SyncVariableOuter${Lprefix} ${UAC_SYNCREGISTERS}
+  StrCpy ${_variable} $R0
+  !undef Lprefix
+  pop $R0
+!macroend
+!define SyncVariable `!insertmacro _SyncVariable`
+
+!macro _SyncSection _section
+  !define Lprefix L${__LINE__}
+  push $R0
+  goto _SyncSectionInner${Lprefix}
+  _SyncSectionOuter${Lprefix}:
+    SectionGetFlags ${_section} $R0
+    return
+  _SyncSectionInner${Lprefix}:
+  !insertmacro UAC_AsUser_Call Label _SyncSectionOuter${Lprefix} ${UAC_SYNCREGISTERS}
+  SectionSetFlags ${_section} $R0
+  StrCpy ${_variable} $R0
+  !undef Lprefix
+  pop $R0
+!macroend
+!define SyncSection `!insertmacro _SyncSection`
 
 ;--------------------------------
 ;Installer attributes
@@ -81,6 +121,10 @@ Var VC2015Index
 Var VC2013Index
 Var VC2012Index
 Var VC2010Index
+Var VCRedistUrl
+Var VCRedistName
+Var VCRedistDownloadMessage_
+Var VCRedistInstalled
 
 ;--------------------------------
 ;Installer pages
@@ -224,40 +268,147 @@ Section "Install" SectionInstallProgram
 
   ${If} $MSVC == true
     call DetermineVCRuntimeVersion
+    nsislog::log "$INSTDIR\install.log" "VC runtime version: $VCRuntimeVersion"
     ${If} $VCRuntimeVersion == "2017"
-      ${If} ${RunningX64}
-        # TODO: download and install VC2017 redist 64 bit
+    ${OrIf} $VCRuntimeVersion == "2015"
+      ${If} ${PLATFORM} == "Win64"
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64 Installed
+        nsislog::log "$INSTDIR\install.log" "After the first attempt to check Visual C++ redist installed: $VCRedistInstalled"
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\VC\14.0\Runtimes\x64 Installed
+          nsislog::log "$INSTDIR\install.log" "After the second attempt to check Visual C++ redist installed: $VCRedistInstalled"
+        ${EndIf}
+        ${If} $VCRuntimeVersion == "2017"
+          StrCpy $VCRedistUrl "https://go.microsoft.com/fwlink/?LinkId=746572"
+        ${Else}
+          StrCpy $VCRedistUrl "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe"
+        ${EndIf}
       ${Else}
-        # TODO: download and install VC2017 redist 32 bit
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x86 Installed
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x86 Installed
+        ${EndIf}
+        ${If} $VCRuntimeVersion == "2017"
+          StrCpy $VCRedistUrl "https://go.microsoft.com/fwlink/?LinkId=746571"
+        ${Else}
+          StrCpy $VCRedistUrl "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe"
+        ${EndIf}
       ${EndIf}
     ${EndIf}
-    ${If} $VCRuntimeVersion == "2015"
-      ${If} ${RunningX64}
-        # TODO: download and install VC2015 redist 64 bit
-      ${Else}
-        # TODO: download and install VC2015 redist 32 bit
-      ${EndIf}
-    ${EndIf}
+
     ${If} $VCRuntimeVersion == "2013"
-      ${If} ${RunningX64}
-        # TODO: download and install VC2013 redist 64 bit
+      ${If} ${PLATFORM} == "Win64"
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\12.0\VC\Runtimes\x64 Installed
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0\VC\Runtimes\x64 Installed
+        ${EndIf}
+        StrCpy $VCRedistUrl "https://download.microsoft.com/download/4/9/B/49BAC912-B6EF-4A34-A17C-06673338A7FC/vcredist_x64.exe"
       ${Else}
-        # TODO: download and install VC2013 redist 32 bit
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\12.0\VC\Runtimes\x86 Installed
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0\VC\Runtimes\x86 Installed
+        ${EndIf}
+        StrCpy $VCRedistUrl "https://download.microsoft.com/download/4/9/B/49BAC912-B6EF-4A34-A17C-06673338A7FC/vcredist_x86.exe"
       ${EndIf}
     ${EndIf}
+
     ${If} $VCRuntimeVersion == "2012"
-      ${If} ${RunningX64}
-        # TODO: download and install VC2012 redist 64 bit
+      ${If} ${PLATFORM} == "Win64"
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\11.0\VC\Runtimes\x64 Installed
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\11.0\VC\Runtimes\x64 Installed
+        ${EndIf}
+        StrCpy $VCRedistUrl "https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe"
       ${Else}
-        # TODO: download and install VC2012 redist 32 bit
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\11.0\VC\Runtimes\x86 Installed
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\11.0\VC\Runtimes\x86 Installed
+        ${EndIf}
+        StrCpy $VCRedistUrl "https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x86.exe"
       ${EndIf}
     ${EndIf}
+
     ${If} $VCRuntimeVersion == "2010"
-      ${If} ${RunningX64}
-        # TODO: download and install VC2010 redist 64 bit
+      ${If} ${PLATFORM} == "Win64"
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\10.0\VC\Runtimes\x64 Installed
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\VC\Runtimes\x64 Installed
+        ${EndIf}
+        StrCpy $VCRedistUrl "https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe"
       ${Else}
-        # TODO: download and install VC2010 redist 32 bit
+        ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\10.0\VC\Runtimes\x86 Installed
+        ${If} $VCRedistInstalled != "1"
+          ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\VC\Runtimes\x86 Installed
+        ${EndIf}
+        StrCpy $VCRedistUrl "https://download.microsoft.com/download/5/B/C/5BC5DBB3-652D-4DCE-B14A-475AB85EEF6E/vcredist_x86.exe"
       ${EndIf}
+    ${EndIf}
+
+    ${If} $VCRedistInstalled != "1"
+      StrCpy $VCRedistDownloadMessage_ "The installer will download the Microsoft Visual C++ Redistributable Packages.$\r$\n$\r$\n"
+      StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_These system libraries from Microsoft are required for Quentier"
+      StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_ built with Microsoft's Visual C++ compiler. Without them Quentier"
+      StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_ would fail to run. For licensing reasons these libraries cannot be"
+      StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_ distributed along with Quentier but have to be downloaded and installed"
+      StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_ separately. Press OK to continue downloading and installing these libraries"
+      StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_ or Cancel to skip downloading and installing them this time."
+      MessageBox MB_OKCANCEL "$VCRedistDownloadMessage_" IDOK download IDCANCEL cancel_download
+
+      download:
+      ;Set the name for the downloaded redistributable VC runtime package
+      ${If} ${PLATFORM} == "Win64"
+        StrCpy $VCRedistName vc_redist.x64.exe
+      ${Else}
+        StrCpy $VCRedistName vc_redist.x86.exe
+      ${EndIf}
+      InitPluginsDir
+      nsislog::log "$INSTDIR\install.log" "VC redist URL: $VCRedistUrl, Temp: $TEMP, name: $VCRedistName"
+      NSISdl::download /TIMEOUT=30000 /NOIEPROXY "$VCRedistUrl" "$TEMP\$VCRedistName"
+      Pop $0
+      StrCmp $0 "success" download_ok download_failed
+
+      download_ok:
+      uac_tryagain:
+      ${IfNot} ${UAC_IsAdmin}
+        !insertmacro UAC_RunElevated
+        ${Switch} $0
+        ${Case} 0
+          ${IfThen} $1 = 1 ${|} ${Break} ${|} ;we are the outer process, the inner process has done its work
+          ${IfThen} $3 <> 0 ${|} ${Break} ${|} ;we are admin, let the show go on
+          ${If} $1 = 3 ;RunAs completed successfully, but with a non-admin user
+            MessageBox mb_YesNo|mb_IconExclamation|mb_TopMost|mb_SetForeground "The installation of Microsoft Visual C++ redistributable requires admin privileges, try again" /SD IDNO IDYES uac_tryagain IDNO 0
+          ${EndIf}
+          ;fall-through and die
+        ${Case} 1223
+          MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "The installation of Microsoft Visual C++ redistributable requires admin privileges, aborting!"
+          Quit
+        ${Case} 1062
+          MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Logon service not running, aborting!"
+          Quit
+        ${Default}
+          MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Unable to elevate, error $0"
+          Quit
+        ${EndSwitch}
+        Goto end
+      ${EndIf}
+      DetailPrint "Installing Microsoft Visual C++ redistributable..."
+      ClearErrors
+      ExecWait '"$TEMP\$VCRedistName" /passive /norestart' $0
+      ${If} ${Errors}
+        MessageBox MB_ICONSTOP "Failed to install Microsoft Visual C++ redistributable"
+        Quit
+      ${EndIf}
+      Goto end
+
+      download_failed:
+      MessageBox MB_ICONSTOP "Failed to download Microsoft Visual C++ redistributable"
+      Quit
+
+      cancel_download:
+      MessageBox MB_OK "The downloading of Microsoft Visual C++ redistributable was cancelled"
+      Goto end
+
+      end:
     ${EndIf}
   ${EndIf}
 
@@ -309,6 +460,27 @@ SectionEnd
 ;Functions
 
 Function .onInit
+  ${If} ${UAC_IsInnerInstance}
+    ; We're the inner (elevated) process.
+    nsislog::log "$INSTDIR\install.log" "Running inside UAC forked installer"
+    ${IfNot} ${UAC_IsAdmin}
+      ;Not elevated to admin. Set special return value for outer instance
+      ;so it knows we did not have admin rights, then close the inner process.
+      nsislog::log "$INSTDIR\install.log" "Not elevated to admin"
+      SetErrorLevel 0x666
+      Quit
+    ${EndIf}
+    nsislog::log "$INSTDIR\install.log" "Syncing VCRedistName variable"
+    ${SyncVariable} $VCRedistName
+    nsislog::log "$INSTDIR\install.log" "VC redist name: $VCRedistName, temp dir: $TEMP"
+    DetailPrint "Installing Microsoft Visual C++ redistributable..."
+    ClearErrors
+    ExecWait '"$TEMP\$VCRedistName" /passive /norestart' $0
+    ${If} ${Errors}
+      MessageBox MB_ICONSTOP "Failed to install Microsoft Visual C++ redistributable"
+    ${EndIf}
+    Quit
+  ${EndIf}
   ;Check for minimal supported Windows version
   ${IfNot} ${AtLeastWin${MIN_WIN_VER}}
     MessageBox MB_ICONSTOP "This program requires at least Windows ${MIN_WIN_VER}." /SD IDOK
@@ -328,10 +500,6 @@ Function un.onInit
   !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
-Function .onInstSuccess
-  MessageBox MB_OK "You have successfully installed ${MUI_PRODUCT}. Use the desktop icon to start the program."
-FunctionEnd
-
 Function un.onUninstSuccess
   MessageBox MB_OK "You have successfully uninstalled ${MUI_PRODUCT}."
 FunctionEnd
@@ -345,35 +513,41 @@ Function un.PageInstallModeChangeMode
 FunctionEnd
 
 Function DetermineVCRuntimeVersion
+  nsislog::log "$INSTDIR\install.log" "DetermineVCRuntimeVersion: MSVC = $MSVC"
   ${If} $MSVC == "true"
     ;Need to Download VCRuntime
     ${StrLoc} $VC2017Index "@CMAKE_CXX_COMPILER_VERSION@" "19.1" ">"
     ${If} $VC2017Index != ""
-      StrCpy $VCRuntimeVersion = "2017"
+      nsislog::log "$INSTDIR\install.log" "Detected MSVC2017"
+      StrCpy $VCRuntimeVersion "2017"
       return
     ${EndIf}
 
     ${StrLoc} $VC2015Index "@CMAKE_CXX_COMPILER_VERSION@" "19.0" ">"
     ${If} $VC2015Index != ""
-      StrCpy $VCRuntimeVersion = "2015"
+      nsislog::log "$INSTDIR\install.log" "Detected MSVC2015"
+      StrCpy $VCRuntimeVersion "2015"
       return
     ${EndIf}
 
     ${StrLoc} $VC2013Index "@CMAKE_CXX_COMPILER_VERSION@" "18" ">"
     ${If} $VC2013Index != ""
-      StrCpy $VCRuntimeVersion = "2013"
+      nsislog::log "$INSTDIR\install.log" "Detected MSVC2013"
+      StrCpy $VCRuntimeVersion "2013"
       return
     ${EndIf}
 
     ${StrLoc} $VC2012Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
     ${If} $VC2012Index != ""
-      StrCpy $VCRuntimeVersion = "2012"
+      nsislog::log "$INSTDIR\install.log" "Detected MSVC2012"
+      StrCpy $VCRuntimeVersion "2012"
       return
     ${EndIf}
 
     ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "16" ">"
     ${If} $VC2010Index != ""
-      StrCpy $VCRuntimeVersion = "2010"
+      nsislog::log "$INSTDIR\install.log" "Detected MSVC2010"
+      StrCpy $VCRuntimeVersion "2010"
       return
     ${EndIf}
   ${EndIf}
@@ -424,4 +598,9 @@ Function PageFinishRun
   System::Call "User32::SetWindowPos(i, i, i, i, i, i, i) b ($HWNDPARENT, 0, -1000, -1000, 0, 0, ${SWP_NOZORDER}|${SWP_NOSIZE})"
 
   !insertmacro UAC_AsUser_ExecShell "open" "$INSTDIR\${PROGEXE}" "" "$INSTDIR" ""
+FunctionEnd
+
+Function onGuiInit
+  ;Hide the outer process window if user chose to elevate
+  !insertmacro UAC_Notify_OnGuiInit
 FunctionEnd
