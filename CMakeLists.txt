@@ -632,11 +632,18 @@ if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
 endif()
 
 if(NSIS_FOUND)
-  if(MSVC)
-    set(QUENTIER_INSTALL_PRIVILEGE_LEVEL admin)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "(amd64)|(AMD64)")
+    set(QUENTIER_TARGET_PLATFORM Win64)
   else()
-    set(QUENTIER_INSTALL_PRIVILEGE_LEVEL user)
+    set(QUENTIER_TARGET_PLATFORM Win32)
   endif()
+
+  if(MSVC)
+    set(PRODUCT_EDITION "MSVC ${CMAKE_CXX_COMPILER_VERSION}")
+  else()
+    set(PRODUCT_EDITION "MinGW")
+  endif()
+
   configure_file(src/installer/windows/wininstaller.nsi.in
                  ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
 endif()

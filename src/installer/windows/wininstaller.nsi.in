@@ -1,134 +1,220 @@
 ;--------------------------------
-;Product and version declaration
+;Product info declaration
 
 !define MUI_PRODUCT "Quentier"
 !define MUI_VERSION "@PROJECT_VERSION@"
 !define MUI_FILE quentier
+!define COMPANY_NAME "Dmitry Ivanov"
+!define PRODUCT_EDITION "@PRODUCT_EDITION@"
+!define PLATFORM "@QUENTIER_TARGET_PLATFORM@"
+
+;Defines required for MultiUser script
+!define PRODUCT_NAME "${MUI_PRODUCT}"
+!define VERSION "${MUI_VERSION}"
+!define PROGEXE "${MUI_FILE}.exe"
+!define UNINSTALL_FILENAME "Uninstall.exe"
 
 ;--------------------------------
-;Include Modern UI
+;Setup info for MultiUser script
+
+!define MULTIUSER_INSTALLMODE_INSTDIR "${MUI_PRODUCT}"
+!define MULTIUSER_INSTALLMODE_INSTALL_REGISTRY_KEY "${MUI_PRODUCT}"
+!define MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY "${MUI_PRODUCT}"
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "UninstallString"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "InstallLocation"
+!define MULTIUSER_INSTALLMODE_DISPLAYNAME "${MUI_PRODUCT} ${MUI_VERSION} ${PRODUCT_EDITION}"
+
+!define MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS 1
+!define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION 1
+!define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION_IF_SILENT 0
+!define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS 1
+
+!if ${PLATFORM} == "Win64"
+!define MULTIUSER_INSTALLMODE_64_BIT 1
+!endif
+
+!addplugindir /x86-ansi "..\src\installer\windows\NsisMultiUser\Plugins\x86-ansi\"
+!addplugindir /x86-unicode "..\src\installer\windows\NsisMultiUser\Plugins\x86-unicode\"
+!addincludedir "..\src\installer\windows\NsisMultiUser\Include\"
+
+;--------------------------------
+;Includes
+
+!include "NsisMultiUser.nsh"
 !include "MUI2.nsh"
-
-;--------------------------------
-;Include Logic lib, StrFunc and checking
-;whether running on x64 system
+!include "UAC.nsh"
 !include "LogicLib.nsh"
 !include "StrFunc.nsh"
 ${StrLoc}
 !include "x64.nsh"
 
 ;--------------------------------
-;General
+;Installer attributes
 
-  CRCCheck on
-  SetCompressor /SOLID lzma
+CRCCheck on
+SetCompressor /SOLID lzma
+ShowInstDetails hide
+ShowUninstDetails show
+XPStyle on
+AllowSkipFiles off
+SetOverwrite on
 
-  ;Name and file
-  Name "Quentier"
-  OutFile "Install.exe"
+Name "${MUI_PRODUCT} ${MUI_VERSION} ${PLATFORM}"
+OutFile "Setup${MUI_PRODUCT} ${MUI_VERSION} ${PLATFORM}.exe"
 
-  ;Default installation folder
-  InstallDir "$LOCALAPPDATA\Quentier"
 
-  ;Get installation folder from registry if available
-  InstallDirRegKey HKCU "Software\Quentier" ""
+;Default installation folder
+InstallDir "$LOCALAPPDATA\Quentier"
 
-  ;Request application privileges for Windows >= Vista
-  RequestExecutionLevel @QUENTIER_INSTALL_PRIVILEGE_LEVEL@
-
-;--------------------------------
-;Variables and functions
-
-  Var StartMenuFolder
-  Var VCRuntimeVersion
-  Var MSVC
-  Var VC2017Index
-  Var VC2015Index
-  Var VC2013Index
-  Var VC2012Index
-  Var VC2010Index
-
-  Function DetermineVCRuntimeVersion
-
-    ${If} $MSVC == "true"
-      ;Need to Download VCRuntime
-      ${StrLoc} $VC2017Index "@CMAKE_CXX_COMPILER_VERSION@" "19.1" ">"
-      ${If} $VC2017Index != ""
-        StrCpy $VCRuntimeVersion = "2017"
-        return
-      ${EndIf}
-
-      ${StrLoc} $VC2015Index "@CMAKE_CXX_COMPILER_VERSION@" "19.0" ">"
-      ${If} $VC2015Index != ""
-        StrCpy $VCRuntimeVersion = "2015"
-        return
-      ${EndIf}
-
-      ${StrLoc} $VC2013Index "@CMAKE_CXX_COMPILER_VERSION@" "18" ">"
-      ${If} $VC2013Index != ""
-        StrCpy $VCRuntimeVersion = "2013"
-        return
-      ${EndIf}
-
-      ${StrLoc} $VC2012Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
-      ${If} $VC2012Index != ""
-        StrCpy $VCRuntimeVersion = "2012"
-        return
-      ${EndIf}
-
-      ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "16" ">"
-      ${If} $VC2010Index != ""
-        StrCpy $VCRuntimeVersion = "2010"
-        return
-      ${EndIf}
-    ${EndIf}
-
-  FunctionEnd
+;Get installation folder from registry if available
+InstallDirRegKey HKCU "Software\Quentier" ""
 
 ;--------------------------------
-;Interface Settings
+;Variables
 
-  !define MUI_ABORTWARNING
+Var StartMenuFolder
+Var VCRuntimeVersion
+Var MSVC
+Var VC2017Index
+Var VC2015Index
+Var VC2013Index
+Var VC2012Index
+Var VC2010Index
 
 ;--------------------------------
-;Pages
+;Installer pages
 
-  ;Installer pages
-  !insertmacro MUI_PAGE_WELCOME
-  !insertmacro MUI_PAGE_LICENSE ..\COPYING
-  !insertmacro MUI_PAGE_DIRECTORY
+;Ask for confirmation when cancelling the installation
+!define MUI_ABORTWARNING
 
-  ;Start Menu Folder Page Configuration
-  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU"
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Quentier"
-  !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Quentier"
-  !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE ..\COPYING
 
-  !insertmacro MUI_PAGE_INSTFILES
-  !insertmacro MUI_PAGE_FINISH
+!define MULTIUSER_INSTALLMODE_CHANGE_MODE_FUNCTION PageInstallModeChangeMode
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
 
-  ;Uninstaller pages
-  !insertmacro MUI_UNPAGE_CONFIRM
-  !insertmacro MUI_UNPAGE_INSTFILES
-  !insertmacro MUI_UNPAGE_FINISH
+!define MUI_PAGE_CUSTOMFUNCTION_PRE PageDirectoryPre
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW PageDirectoryShow
+!insertmacro MUI_PAGE_DIRECTORY
+
+;--------------------------------
+;Start Menu Folder Page Configuration
+
+!define MUI_STARTMENUPAGE_NODISABLE ; Do not display the checkbox to disable the creation of Start Menu shortcuts
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "${MUI_PRODUCT}"
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "SHCTX" ; writing to $StartMenuFolder happens in MUI_STARTMENU_WRITE_END, so it's safe to use "SHCTX" here
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}"
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuFolder"
+!define MUI_PAGE_CUSTOMFUNCTION_PRE PageStartMenuPre
+!insertmacro MUI_PAGE_STARTMENU "" "$StartMenuFolder"
+
+!insertmacro MUI_PAGE_INSTFILES
+
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_FUNCTION PageFinishRun
+!insertmacro MUI_PAGE_FINISH
+
+;--------------------------------
+;Uninstaller pages
+
+;Ask for confirmation when cancelling the uninstallation
+!define MUI_UNABORTWARNING
+
+!define MULTIUSER_INSTALLMODE_CHANGE_MODE_UNFUNCTION un.PageInstallModeChangeMode
+!insertmacro MULTIUSER_UNPAGE_INSTALLMODE
+
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
 
 ;--------------------------------
 ;Languages
 
-  !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "English"
 
 ;--------------------------------
 ;Installer Sections
- 
-Section "Default Section" SecDefault
 
-  SetOutPath "$INSTDIR"
-  
+Section "Install" SectionInstallProgram
+
+  ;If there's an installed version, uninstall it first
+  ;If both per-user and per-machine versions are installed, unistall the one that matches $MultiUser.InstallMode
+  StrCpy $0 ""
+  ${If} $HasCurrentModeInstallation == 1
+    StrCpy $0 "$MultiUser.InstallMode"
+  ${Else}
+    !if	${MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS} == 0
+      ${If} $HasPerMachineInstallation == 1
+        ;If there's no per-user installation, but there's per-machine installation, uninstall it
+        StrCpy $0 "AllUsers"
+      ${Elseif}	$HasPerUserInstallation == 1
+        ;Ff there's no per-machine installation, but there's per-user installation, uninstall it
+        StrCpy $0 "CurrentUser"
+      ${Endif}
+    !endif
+  ${Endif}
+
+  ${If} "$0" != ""
+    ${If} $0 == "AllUsers"
+      StrCpy $1 "$PerMachineUninstallString"
+      StrCpy $3 "$PerMachineInstallationFolder"
+    ${Else}
+      StrCpy $1 "$PerUserUninstallString"
+      StrCpy $3 "$PerUserInstallationFolder"
+    ${Endif}
+    ${If} ${silent}
+      StrCpy $2 "/S"
+    ${Else}
+      StrCpy $2 ""
+    ${Endif}
+
+    HideWindow
+    ClearErrors
+    StrCpy $0 0
+
+    ;$1 is quoted in registry; the _? param stops the uninstaller from copying itself to the temporary directory, which is the only way for ExecWait to work
+    ExecWait '$1 /SS $2 _?=$3' $0
+
+    ${If} ${errors}
+      ;Stay in installer
+      SetErrorLevel 2 ; Installation aborted by script
+      BringToFront
+      Abort "Error executing uninstaller."
+    ${Else}
+      ${Switch} $0
+        ${Case} 0
+          ;Uninstaller completed successfully - continue with installation
+          BringToFront
+          ${Break}
+        ${Case} 1
+          ;Installation aborted by user (cancel button)
+        ${Case} 2
+          ;Installation aborted by script
+          SetErrorLevel $0
+          ;Uninstaller was started, but completed with errors - Quit installer
+          Quit
+        ${Default}
+          ;All other error codes - uninstaller could not start, elevate, etc. - Abort installer
+          SetErrorLevel $0
+          BringToFront
+          Abort "Error executing uninstaller."
+      ${EndSwitch}
+    ${Endif}
+
+    ;The uninstaller doesn't delete itself when not copied to the temp directory
+    Delete "$2\${UNINSTALL_FILENAME}"
+
+    RMDir /r /REBOOTOK "$2"
+  ${Endif}
+
+  SetOutPath $INSTDIR
+
   File /r "@CMAKE_INSTALL_BINDIR@\*"
+  File /oname=License.txt ..\COPYING
 
   ;Store installation folder
   WriteRegStr HKCU "Software\Quentier" "" $INSTDIR
-                   
+
   ${If} "@CMAKE_CXX_COMPILER_ID@" == "MSVC"
     StrCpy $MSVC "true"
   ${Else}
@@ -177,29 +263,36 @@ Section "Default Section" SecDefault
   ;Create desktop shortcut
   CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${MUI_FILE}.exe"
 
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-      
-    ;Create start menu shortcuts
-    CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT} ${MUI_VERSION}.lnk" "$INSTDIR\${MUI_FILE}.exe"
-    CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-
-  !insertmacro MUI_STARTMENU_WRITE_END
-
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
+  !insertmacro MULTIUSER_RegistryAddInstallInfo
+
+SectionEnd
+
+Section "Program Group" SectionProgramGroup
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN ""
+
+  CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
+
+  ${If} $MultiUser.InstallMode == "AllUsers"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\${UNINSTALL_FILENAME}" "/allusers"
+  ${Else}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall (current user).lnk" "$INSTDIR\${UNINSTALL_FILENAME}" "/currentuser"
+  ${Endif}
+
+  !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
 ;--------------------------------
 ;Uninstaller Section
 
-Section "uninstall"
+Section "uninstall" SectionUninstallProgram
 
   Delete "$INSTDIR\Uninstall.exe"
   RmDir /r /REBOOTOK "$INSTDIR"
 
-  !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
   RMDir /r /REBOOTOK "$SMPROGRAMS\$StartMenuFolder"
 
@@ -207,10 +300,21 @@ Section "uninstall"
 
   DeleteRegKey /ifempty HKCU "Software\Quentier"
 
+  !insertmacro MULTIUSER_RegistryRemoveInstallInfo
+
 SectionEnd
 
 ;--------------------------------
-;Function that calls a messagebox when installation finished correctly
+;Functions
+
+Function .onInit
+  !insertmacro MULTIUSER_INIT
+FunctionEnd
+
+Function un.onInit
+  !insertmacro MULTIUSER_UNINIT
+FunctionEnd
+
 Function .onInstSuccess
   MessageBox MB_OK "You have successfully installed ${MUI_PRODUCT}. Use the desktop icon to start the program."
 FunctionEnd
@@ -219,13 +323,92 @@ Function un.onUninstSuccess
   MessageBox MB_OK "You have successfully uninstalled ${MUI_PRODUCT}."
 FunctionEnd
 
-;--------------------------------
-;Descriptions
+Function PageInstallModeChangeMode
+  !insertmacro MUI_STARTMENU_GETFOLDER "" $StartMenuFolder
+FunctionEnd
 
-  ;Language strings
-  LangString DESC_SecDefault ${LANG_ENGLISH} "Copying files..."
+Function un.PageInstallModeChangeMode
+  !insertmacro MUI_STARTMENU_GETFOLDER "" $StartMenuFolder
+FunctionEnd
 
-  ;Assign language strings to sections
-  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecDefault} $(DESC_SecDefault)
-  !insertmacro MUI_FUNCTION_DESCRIPTION_END
+Function DetermineVCRuntimeVersion
+  ${If} $MSVC == "true"
+    ;Need to Download VCRuntime
+    ${StrLoc} $VC2017Index "@CMAKE_CXX_COMPILER_VERSION@" "19.1" ">"
+    ${If} $VC2017Index != ""
+      StrCpy $VCRuntimeVersion = "2017"
+      return
+    ${EndIf}
+
+    ${StrLoc} $VC2015Index "@CMAKE_CXX_COMPILER_VERSION@" "19.0" ">"
+    ${If} $VC2015Index != ""
+      StrCpy $VCRuntimeVersion = "2015"
+      return
+    ${EndIf}
+
+    ${StrLoc} $VC2013Index "@CMAKE_CXX_COMPILER_VERSION@" "18" ">"
+    ${If} $VC2013Index != ""
+      StrCpy $VCRuntimeVersion = "2013"
+      return
+    ${EndIf}
+
+    ${StrLoc} $VC2012Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
+    ${If} $VC2012Index != ""
+      StrCpy $VCRuntimeVersion = "2012"
+      return
+    ${EndIf}
+
+    ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "16" ">"
+    ${If} $VC2010Index != ""
+      StrCpy $VCRuntimeVersion = "2010"
+      return
+    ${EndIf}
+  ${EndIf}
+FunctionEnd
+
+Function PageDirectoryPre
+  GetDlgItem $0 $HWNDPARENT 1
+  ${If} ${SectionIsSelected} ${SectionProgramGroup}
+    ;This is not the last page before installing
+    SendMessage $0 ${WM_SETTEXT} 0 "STR:$(^NextBtn)"
+  ${Else}
+    ;This is the last page before installing
+    SendMessage $0 ${WM_SETTEXT} 0 "STR:$(^InstallBtn)"
+  ${Endif}
+FunctionEnd
+
+Function PageDirectoryShow
+  ${If} $CmdLineDir != ""
+    FindWindow $R1 "#32770" "" $HWNDPARENT
+
+    ;Directory edit
+    GetDlgItem $0 $R1 1019
+
+    ;Read-only is better than disabled, as user can copy contents
+    SendMessage $0 ${EM_SETREADONLY} 1 0
+
+    ;Browse button
+    GetDlgItem $0 $R1 1001
+
+    EnableWindow $0 0
+  ${Endif}
+FunctionEnd
+
+Function PageStartMenuPre
+  ${IfNot} ${SectionIsSelected} ${SectionProgramGroup}
+    Abort ; don't display this dialog if SectionProgramGroup is not selected
+  ${Endif}
+FunctionEnd
+
+Function PageFinishRun
+  ;The installer might exit too soon before the application starts and it loses the right to be the foreground window and starts in the background
+  ;however, if there's no active window when the application starts, it will become the active window, so we hide the installer
+  HideWindow
+
+  ;The installer will show itself again quickly before closing (w/o Taskbar button), we move it offscreen
+  !define SWP_NOSIZE 0x0001
+  !define SWP_NOZORDER 0x0004
+  System::Call "User32::SetWindowPos(i, i, i, i, i, i, i) b ($HWNDPARENT, 0, -1000, -1000, 0, 0, ${SWP_NOZORDER}|${SWP_NOSIZE})"
+
+  !insertmacro UAC_AsUser_ExecShell "open" "$INSTDIR\${PROGEXE}" "" "$INSTDIR" ""
+FunctionEnd
