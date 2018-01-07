@@ -7,19 +7,30 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Dmitry Ivanov</copyright>
-    <lastBuildDate>Sat, 16 Dec 2017 14:05:09 +0300</lastBuildDate>
+    <lastBuildDate>Sun, 07 Jan 2018 23:20:33 +0300</lastBuildDate>
     
 	<atom:link href="https://d1vanov.github.io/quentier/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>Quentier internals overview</title>
+      <link>https://d1vanov.github.io/quentier/blog/quentier-technical-overview/</link>
+      <pubDate>Sun, 07 Jan 2018 23:20:33 +0300</pubDate>
+      
+      <guid>https://d1vanov.github.io/quentier/blog/quentier-technical-overview/</guid>
+      <description>This post is primarily for developers who would like to contribute to Quentier but aren&amp;rsquo;t quite sure where to start. Here the high-level overview of the app design is explained.
+First, let&amp;rsquo;s briefly enumerate the kinds of technology used in Quentier project:
+ Qt/C++ CMake SQLite JavaScript CSS (a bit)  If you are familiar with any of these technologies, you are most likely able to help developing Quentier! However, note that there are some specific ways in which these technologies are used in the project.</description>
+    </item>
+    
+    <item>
       <title>Brief overview of Quentier features</title>
       <link>https://d1vanov.github.io/quentier/blog/quentier-brief-overview/</link>
-      <pubDate>Sat, 16 Dec 2017 14:05:09 +0300</pubDate>
+      <pubDate>Sat, 16 Dec 2017 08:16:09 +0300</pubDate>
       
       <guid>https://d1vanov.github.io/quentier/blog/quentier-brief-overview/</guid>
       <description>In this post I describe in more details what Quentier app is capable of by the current moment.
-First of all, please note that at the time of this writing Quentier is in public alpha stage. That means the project is very fresh, some things are unpolished while some other things might just refuse to work due to some unforeseen circumstances. It is pretty normal to go through this stage for any new software project, just be aware of that and don&amp;rsquo;t expect too much from the current version.</description>
+First of all, please note that at the time of this writing Quentier is in public alpha stage. That means the project is very fresh, some things are unpolished while some other things might just refuse to work due to some unforeseen circumstances. It is pretty normal to go through this stage for any new software project, just be aware of that and don’t expect too much from the current version.</description>
     </item>
     
     <item>

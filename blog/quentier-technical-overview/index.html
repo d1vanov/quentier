@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  
+
+  <title> Quentier internals overview  &middot; Quentier </title>
+
+  
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/poole.css">
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/syntax.css">
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/hyde.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/quentier/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/quentier/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/quentier/favicon-16x16.png">
+  <link rel="manifest" href="/quentier/manifest.json">
+  <link rel="mask-icon" href="/quentier/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="theme-color" content="#ffffff">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Quentier" />
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+  <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ['Fira Sans']
+      }
+    });
+  </script>
+
+</head>
+
+<body class="theme-base-0d">
+
+  <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about" align=center>
+      <h1 class="brand"><a href="https://d1vanov.github.io/quentier">Quentier</a></h1>
+      <img src="/quentier/quentier_icon.svg" width=50% />
+      <p class="lead">
+         Free &amp; open source desktop Evernote client 
+      </p>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="https://d1vanov.github.io/quentier/blog">Posts</a></li>
+      
+      <br/> 
+    </ul>
+     
+    
+    
+     <a href="https://github.com/d1vanov"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp; 
+     
+
+    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2018 Dmitry Ivanov. All rights reserved.</p>
+
+  </div>
+</div>
+
+
+  <div class="content container">
+    <div class="post">
+    <h1 class="post-title">Quentier internals overview</h1>
+    <span class="post-date">Jan 7, 2018</span>
+    
+    <p>This post is primarily for developers who would like to contribute to Quentier but aren&rsquo;t quite sure where to start. Here the high-level overview of the app design is explained.</p>
+
+<p>First, let&rsquo;s briefly enumerate the kinds of technology used in Quentier project:</p>
+
+<ul>
+<li>Qt/C++</li>
+<li>CMake</li>
+<li>SQLite</li>
+<li>JavaScript</li>
+<li>CSS (a bit)</li>
+</ul>
+
+<p>If you are familiar with any of these technologies, you are most likely able to help developing Quentier! However, note that there are some specific ways in which these technologies are used in the project. For example, currently the list of supported Qt versions ranges from Qt 4.8.6 to the latest and greatest Qt 5.x. However, Qt 4.8.6 is only really supported on Linux while on Windows and on Mac it&rsquo;s much more reasonable to use newer Qt 5.x.</p>
+
+<p>Another point is that even though C++ is known as a hard to grasp language for system programmers, in Quentier project only a relatively simple subset of it is used - the use of exceptions is very limited, most part of the code is written in C++98 style with only a handful of features from C++11 standard employed. That makes is possible to build Quentier using as old compilers as gcc-4.5 or Visual C++ 2010. In future the support for such old compilers is going to be dropped at some point though in order to use more useful features from mode recent C++ standards.</p>
+
+<p>The core functionality of Quentier is encapsulated in <a href="https://github.com/d1vanov/libquentier">libquentier</a> library which is distributed under the terms of GNU LGPL v.3. It has no tight bindings to Quentier application (otherwise it won&rsquo;t make much sense to make it a separate library at all) so it can be used by other applications as well. Libquentier provides the following essential functionality:</p>
+
+<ol>
+<li>Local storage of notes, notebooks, tags, saved searches, resources. The data elements of each kind can be added, updated, removed, listed, looked up etc.</li>
+<li>Synchronization of data from local storage with Evernote servers. Both full and partial synchronization algorithms are implemented.</li>
+<li>Note editor UI component which enables one to view and edit notes.</li>
+<li>Conversion between ENML and HTML used for presenting notes within the note editor.</li>
+<li>A bunch of utility functions and classes.</li>
+</ol>
+
+<p>Libquentier&rsquo;s functionality is in turn based on <a href="https://github.com/d1vanov/QEverCloud">QEverCloud</a> library which essentially is the Qt-friendly replacement of the official Evernote C++ SDK: QEverCloud handles the transmission of data between Evernote servers and the outside world and also offers nice Qt-friendly API. A large part of QEverCloud&rsquo;s code was generated automatically from <a href="https://github.com/evernote/evernote-thrift">Evernote thrift IDL files</a>. IDL stands for &ldquo;interface definition language&rdquo;. Thrift was originally invented within Facebook and later on was contributed to Apache Foundation. Thrift IDL is a thing like pseudo-code only it focuses on the definitions of structs instead of commands. Thrift IDL code itself is not compiled into executable code but it can be parsed and converted to code in some real programming language. Normally the generation of code in real programming language is performed by <a href="https://thrift.apache.org/https://thrift.apache.org">thrift compiler</a> but it doesn&rsquo;t have a Qt-friendly C++ backend so QEverCloud&rsquo;s sources are generated using a custom tool - <a href="https://github.com/d1vanov/QEverCloudGenerator">QEverCloudGenerator</a>. The Qt-friendliness of the generated code means that all the most convenient Qt&rsquo;s data types are used instead of their plain C++ counterparts so no conversion between different data types needs to be done. Most notably <code>QString</code> is used instead of <code>std::string</code>.</p>
+
+<p>The local storage within libquentier uses SQLite as its backend i.e. all user&rsquo;s data is stored within a SQLite database. However, it is just an implementation detail, the fact of SQLite usage is completely hidden from libquentier&rsquo;s public API. So in theory is is possible to change the database backend in future to whatever one is considered better - even to storage of plain text files. Internally SQLite is used via Qt&rsquo;s <code>QtSql</code> module.</p>
+
+<p>The synchronization is implemented according to <a href="https://dev.evernote.com/media/pdf/edam-sync.pdf">Evernote&rsquo;s document</a>. That document explains a lot of details but some non-obvious subtleties are not mentioned, unfortunately, so I plan to write more about them in further posts. The synchronization of user&rsquo;s own accounts, public notebooks and notebooks shared by other users is fully supported.</p>
+
+<p>Note editor is a very special thing within libquentier: it is unfortunately quite a complex collection of C++ classes, JavaScript code and a bit of CSS. The complexity of the note editor code comes primarily from the unexpected move of Qt devs who decided to deprecate QtWebKit in favour of QtWebEngine. I decided to support both backends after the semi-complete implementation of QtWebKit based note editor. As a result, note editor&rsquo;s source code has become full of ifdefs slitting the logical branches between the two alternative backends. Another source of complexity is the support for advanced &ldquo;smart&rdquo; undo-redo stack as well as various convenient actions like resizing images, resizing table columns etc.</p>
+
+<p>ENML converter serves the needs of the note editor: it performs the conversion between <a href="https://dev.evernote.com/doc/articles/enml.php">ENML</a> which is Evernote&rsquo;s format for note content storage and HTML. Currently this converter has some hardcoded parts to best serve the needs of the note editor. It would be nice to add some configurability to it in future.</p>
+
+<p>Quentier app&rsquo;s source code is mostly about handling various aspects of user interface and orchestration of work performed by the code within libquentier. Here are the primary parts of Quentier app&rsquo;s code:</p>
+
+<ol>
+<li><code>AccountManager</code>: this class controls the discovery of available and last used accounts, switching between accounts and other account management details.</li>
+<li><code>MainWindow</code>: this class is the central class within the entire app and it represents, as its name suggests, the main window of Quentier app. It also works as the mediator between several other classes.</li>
+<li><code>NoteEditorTabsAndWindowsCoordinator</code>: this class maintains the list of open note editor widgets, both tabbed ones and editors in separate windows. For performance and memory consumption concerns tabbed note editor widgets are automatically closed as new tabbed note editors are opened i.e. the <a href="https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_Recently_Used_(LRU)">LRU cache</a> of tabbed note editors is maintained. The contents of automatically closed note editor tabs are automatically saved, of course, so no loss of data occurs.</li>
+<li><code>SystemTrayIconManager</code>: this class, as its name suggests, maintains the Quentier&rsquo;s system tray icon and handles various actions which might be requested from the tray icon&rsquo;s context menu.</li>
+<li><code>EnexExporter</code> and <code>EnexImporter</code> are two helper classes which orchestrate the libqentier&rsquo;s code performing export and import of notes to and from data in ENEX format.</li>
+<li>Models: classes from <code>src/models</code> folder within Quentier&rsquo;s source tree. These are models in <a href="https://doc.qt.io/qt-5/model-view-programming.html">Qt&rsquo;s model-view framework</a> sense: each is a subclass of <a href="https://doc.qt.io/qt-5/qabstractitemmodel.html">QAbstractItemModel</a>. There are several such classes:
+
+<ul>
+<li><code>FavoritesModel</code> - contains data about favorited data items within the current account</li>
+<li><code>NotebookModel</code> - contains data about notebooks within the current account</li>
+<li><code>TagModel</code> - contains data about tags within the current account</li>
+<li><code>SavedSearchModel</code> - contains data about saved searches within the current account</li>
+<li><code>NoteModel</code> - contains data about notes within the current account</li>
+<li><code>NoteFilterModel</code> - subclass of <a href="https://doc.qt.io/qt-5/qabstractitemmodel.html">QSortFilterProxyModel</a>, implements filtering over the list of notes (sorting is implemented within the <code>NoteModel</code> itself)</li>
+<li><code>LogViewerModel</code> - subclass of <a href="https://doc.qt.io/qt-5/qabstracttablemodel.html">QAbstractTableModel</a>, contains data parsed from Quentier&rsquo;s log file; serves for convenient visual presentation of the log file&rsquo;s contents</li>
+</ul></li>
+<li>Views: classes from <code>src/views</code> folder within Quentier&rsquo;s source tree. These are views in <a href="https://doc.qt.io/qt-5/model-view-programming.html">Qt&rsquo;s model-view framework</a> sense: each is a subclass of <a href="https://doc.qt.io/qt-5/qtreeview.html">QTreeView</a> or <a href="https://doc.qt.io/qt-5/qlistview.html">QListView</a>. There are several such classes:
+
+<ul>
+<li><code>ItemView</code> - intermediate helper class within the inheritance chain between <code>QTreeView</code> and particular Quentier&rsquo;s view classes</li>
+<li><code>NotebookItemView</code> - implements various actions available via context menu on notebooks from this view as well as special behaviour on notebook selection - the list of notes is filtered by the currently selected notebook unless it is a linked notebook (which is the current technical limitation due to the possibility of name clashes between notebooks from user&rsquo;s own account and linked notebooks or between different linked notebooks)</li>
+<li><code>TagItemView</code> - implements various actions available via context menu on tags from this view</li>
+<li><code>SavedSearchItemView</code> - implements various actions available via context menu on saved searches from this view</li>
+<li><code>DeletedNoteItemView</code> - implements various actions available via context menu on deleted notes from this view</li>
+<li><code>NoteListView</code> - implements various actions available via context menu on non-deleted notes from this view</li>
+</ul></li>
+<li>Delegates: classes from <code>src/delegates</code> folder within Quentier&rsquo;s source tree. These are delegates in <a href="https://doc.qt.io/qt-5/model-view-programming.html">Qt&rsquo;s model-view framework</a> sense: each is a subclass of <a href="https://doc.qt.io/qt-5/qstyleditemdelegate.html">QStyledItemDelegate</a> and implements customized rendering and/or editing of items corresponding to a particular view. I won&rsquo;t list them here since basically each mentioned view has its own delegate + there are some other delegates which are best understood by looking at how and where they are used within Quentier&rsquo;s source code.</li>
+</ol>
+
+<p>To put things into perspective, Quentier primarily consists of three large parts:</p>
+
+<ol>
+<li>Local storage</li>
+<li>Synchronization</li>
+<li>UI</li>
+</ol>
+
+<p>These three parts interact with each other, primarily asynchronously, via signals and slots. Local storage and synchronization operate within their own threads of execution, the UI is processed primarily in the main (GUI) thread so the operations inside it need to be fast.</p>
+
+<p>That wraps up the brief technical overview. I intend to write more detailed posts about each of the mentioned parts so stay tuned.</p>
+
+    
+
+     
+	
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+(function() {
+    
+    
+    if (window.location.hostname == "localhost") 
+        return;
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = 'quentier';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+<noscript>Please enable JavaScript to view the comments powered by <a href="http://disqus.com/?ref_noscript">Disqus.</a></noscript>
+
+</div>
+</div> 
+
+</body>w
+</html>

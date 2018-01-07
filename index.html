@@ -65,7 +65,7 @@
      <a href="https://github.com/d1vanov"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp; 
      
 
-    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2017 Dmitry Ivanov. All rights reserved.</p>
+    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2018 Dmitry Ivanov. All rights reserved.</p>
 
   </div>
 </div>
@@ -75,6 +75,102 @@
 <div class="posts">
 
       
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="https://d1vanov.github.io/quentier/blog/quentier-technical-overview/">
+        Quentier internals overview
+      </a>
+    </h1>
+
+    <span class="post-date">Jan 7, 2018</span>
+
+    
+
+
+    <p>This post is primarily for developers who would like to contribute to Quentier but aren&rsquo;t quite sure where to start. Here the high-level overview of the app design is explained.</p>
+
+<p>First, let&rsquo;s briefly enumerate the kinds of technology used in Quentier project:</p>
+
+<ul>
+<li>Qt/C++</li>
+<li>CMake</li>
+<li>SQLite</li>
+<li>JavaScript</li>
+<li>CSS (a bit)</li>
+</ul>
+
+<p>If you are familiar with any of these technologies, you are most likely able to help developing Quentier! However, note that there are some specific ways in which these technologies are used in the project. For example, currently the list of supported Qt versions ranges from Qt 4.8.6 to the latest and greatest Qt 5.x. However, Qt 4.8.6 is only really supported on Linux while on Windows and on Mac it&rsquo;s much more reasonable to use newer Qt 5.x.</p>
+
+<p>Another point is that even though C++ is known as a hard to grasp language for system programmers, in Quentier project only a relatively simple subset of it is used - the use of exceptions is very limited, most part of the code is written in C++98 style with only a handful of features from C++11 standard employed. That makes is possible to build Quentier using as old compilers as gcc-4.5 or Visual C++ 2010. In future the support for such old compilers is going to be dropped at some point though in order to use more useful features from mode recent C++ standards.</p>
+
+<p>The core functionality of Quentier is encapsulated in <a href="https://github.com/d1vanov/libquentier">libquentier</a> library which is distributed under the terms of GNU LGPL v.3. It has no tight bindings to Quentier application (otherwise it won&rsquo;t make much sense to make it a separate library at all) so it can be used by other applications as well. Libquentier provides the following essential functionality:</p>
+
+<ol>
+<li>Local storage of notes, notebooks, tags, saved searches, resources. The data elements of each kind can be added, updated, removed, listed, looked up etc.</li>
+<li>Synchronization of data from local storage with Evernote servers. Both full and partial synchronization algorithms are implemented.</li>
+<li>Note editor UI component which enables one to view and edit notes.</li>
+<li>Conversion between ENML and HTML used for presenting notes within the note editor.</li>
+<li>A bunch of utility functions and classes.</li>
+</ol>
+
+<p>Libquentier&rsquo;s functionality is in turn based on <a href="https://github.com/d1vanov/QEverCloud">QEverCloud</a> library which essentially is the Qt-friendly replacement of the official Evernote C++ SDK: QEverCloud handles the transmission of data between Evernote servers and the outside world and also offers nice Qt-friendly API. A large part of QEverCloud&rsquo;s code was generated automatically from <a href="https://github.com/evernote/evernote-thrift">Evernote thrift IDL files</a>. IDL stands for &ldquo;interface definition language&rdquo;. Thrift was originally invented within Facebook and later on was contributed to Apache Foundation. Thrift IDL is a thing like pseudo-code only it focuses on the definitions of structs instead of commands. Thrift IDL code itself is not compiled into executable code but it can be parsed and converted to code in some real programming language. Normally the generation of code in real programming language is performed by <a href="https://thrift.apache.org/https://thrift.apache.org">thrift compiler</a> but it doesn&rsquo;t have a Qt-friendly C++ backend so QEverCloud&rsquo;s sources are generated using a custom tool - <a href="https://github.com/d1vanov/QEverCloudGenerator">QEverCloudGenerator</a>. The Qt-friendliness of the generated code means that all the most convenient Qt&rsquo;s data types are used instead of their plain C++ counterparts so no conversion between different data types needs to be done. Most notably <code>QString</code> is used instead of <code>std::string</code>.</p>
+
+<p>The local storage within libquentier uses SQLite as its backend i.e. all user&rsquo;s data is stored within a SQLite database. However, it is just an implementation detail, the fact of SQLite usage is completely hidden from libquentier&rsquo;s public API. So in theory is is possible to change the database backend in future to whatever one is considered better - even to storage of plain text files. Internally SQLite is used via Qt&rsquo;s <code>QtSql</code> module.</p>
+
+<p>The synchronization is implemented according to <a href="https://dev.evernote.com/media/pdf/edam-sync.pdf">Evernote&rsquo;s document</a>. That document explains a lot of details but some non-obvious subtleties are not mentioned, unfortunately, so I plan to write more about them in further posts. The synchronization of user&rsquo;s own accounts, public notebooks and notebooks shared by other users is fully supported.</p>
+
+<p>Note editor is a very special thing within libquentier: it is unfortunately quite a complex collection of C++ classes, JavaScript code and a bit of CSS. The complexity of the note editor code comes primarily from the unexpected move of Qt devs who decided to deprecate QtWebKit in favour of QtWebEngine. I decided to support both backends after the semi-complete implementation of QtWebKit based note editor. As a result, note editor&rsquo;s source code has become full of ifdefs slitting the logical branches between the two alternative backends. Another source of complexity is the support for advanced &ldquo;smart&rdquo; undo-redo stack as well as various convenient actions like resizing images, resizing table columns etc.</p>
+
+<p>ENML converter serves the needs of the note editor: it performs the conversion between <a href="https://dev.evernote.com/doc/articles/enml.php">ENML</a> which is Evernote&rsquo;s format for note content storage and HTML. Currently this converter has some hardcoded parts to best serve the needs of the note editor. It would be nice to add some configurability to it in future.</p>
+
+<p>Quentier app&rsquo;s source code is mostly about handling various aspects of user interface and orchestration of work performed by the code within libquentier. Here are the primary parts of Quentier app&rsquo;s code:</p>
+
+<ol>
+<li><code>AccountManager</code>: this class controls the discovery of available and last used accounts, switching between accounts and other account management details.</li>
+<li><code>MainWindow</code>: this class is the central class within the entire app and it represents, as its name suggests, the main window of Quentier app. It also works as the mediator between several other classes.</li>
+<li><code>NoteEditorTabsAndWindowsCoordinator</code>: this class maintains the list of open note editor widgets, both tabbed ones and editors in separate windows. For performance and memory consumption concerns tabbed note editor widgets are automatically closed as new tabbed note editors are opened i.e. the <a href="https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_Recently_Used_(LRU)">LRU cache</a> of tabbed note editors is maintained. The contents of automatically closed note editor tabs are automatically saved, of course, so no loss of data occurs.</li>
+<li><code>SystemTrayIconManager</code>: this class, as its name suggests, maintains the Quentier&rsquo;s system tray icon and handles various actions which might be requested from the tray icon&rsquo;s context menu.</li>
+<li><code>EnexExporter</code> and <code>EnexImporter</code> are two helper classes which orchestrate the libqentier&rsquo;s code performing export and import of notes to and from data in ENEX format.</li>
+<li>Models: classes from <code>src/models</code> folder within Quentier&rsquo;s source tree. These are models in <a href="https://doc.qt.io/qt-5/model-view-programming.html">Qt&rsquo;s model-view framework</a> sense: each is a subclass of <a href="https://doc.qt.io/qt-5/qabstractitemmodel.html">QAbstractItemModel</a>. There are several such classes:
+
+<ul>
+<li><code>FavoritesModel</code> - contains data about favorited data items within the current account</li>
+<li><code>NotebookModel</code> - contains data about notebooks within the current account</li>
+<li><code>TagModel</code> - contains data about tags within the current account</li>
+<li><code>SavedSearchModel</code> - contains data about saved searches within the current account</li>
+<li><code>NoteModel</code> - contains data about notes within the current account</li>
+<li><code>NoteFilterModel</code> - subclass of <a href="https://doc.qt.io/qt-5/qabstractitemmodel.html">QSortFilterProxyModel</a>, implements filtering over the list of notes (sorting is implemented within the <code>NoteModel</code> itself)</li>
+<li><code>LogViewerModel</code> - subclass of <a href="https://doc.qt.io/qt-5/qabstracttablemodel.html">QAbstractTableModel</a>, contains data parsed from Quentier&rsquo;s log file; serves for convenient visual presentation of the log file&rsquo;s contents</li>
+</ul></li>
+<li>Views: classes from <code>src/views</code> folder within Quentier&rsquo;s source tree. These are views in <a href="https://doc.qt.io/qt-5/model-view-programming.html">Qt&rsquo;s model-view framework</a> sense: each is a subclass of <a href="https://doc.qt.io/qt-5/qtreeview.html">QTreeView</a> or <a href="https://doc.qt.io/qt-5/qlistview.html">QListView</a>. There are several such classes:
+
+<ul>
+<li><code>ItemView</code> - intermediate helper class within the inheritance chain between <code>QTreeView</code> and particular Quentier&rsquo;s view classes</li>
+<li><code>NotebookItemView</code> - implements various actions available via context menu on notebooks from this view as well as special behaviour on notebook selection - the list of notes is filtered by the currently selected notebook unless it is a linked notebook (which is the current technical limitation due to the possibility of name clashes between notebooks from user&rsquo;s own account and linked notebooks or between different linked notebooks)</li>
+<li><code>TagItemView</code> - implements various actions available via context menu on tags from this view</li>
+<li><code>SavedSearchItemView</code> - implements various actions available via context menu on saved searches from this view</li>
+<li><code>DeletedNoteItemView</code> - implements various actions available via context menu on deleted notes from this view</li>
+<li><code>NoteListView</code> - implements various actions available via context menu on non-deleted notes from this view</li>
+</ul></li>
+<li>Delegates: classes from <code>src/delegates</code> folder within Quentier&rsquo;s source tree. These are delegates in <a href="https://doc.qt.io/qt-5/model-view-programming.html">Qt&rsquo;s model-view framework</a> sense: each is a subclass of <a href="https://doc.qt.io/qt-5/qstyleditemdelegate.html">QStyledItemDelegate</a> and implements customized rendering and/or editing of items corresponding to a particular view. I won&rsquo;t list them here since basically each mentioned view has its own delegate + there are some other delegates which are best understood by looking at how and where they are used within Quentier&rsquo;s source code.</li>
+</ol>
+
+<p>To put things into perspective, Quentier primarily consists of three large parts:</p>
+
+<ol>
+<li>Local storage</li>
+<li>Synchronization</li>
+<li>UI</li>
+</ol>
+
+<p>These three parts interact with each other, primarily asynchronously, via signals and slots. Local storage and synchronization operate within their own threads of execution, the UI is processed primarily in the main (GUI) thread so the operations inside it need to be fast.</p>
+
+<p>That wraps up the brief technical overview. I intend to write more detailed posts about each of the mentioned parts so stay tuned.</p>
+
+  </div>
+  
+  
   
   <div class="post">
     <h1 class="post-title">
@@ -92,11 +188,11 @@
 
 <p>In this post I describe in more details what Quentier app is capable of by the current moment.</p>
 
-<p>First of all, please note that at the time of this writing Quentier is in public alpha stage. That means the project is very fresh, some things are unpolished while some other things might just refuse to work due to some unforeseen circumstances. It is pretty normal to go through this stage for any new software project, just be aware of that and don&rsquo;t expect too much from the current version. Also please report the discovered issues to the project&rsquo;s <a href="https://github.com/d1vanov/quentier/issues">issue tracker</a>.</p>
+<p>First of all, please note that at the time of this writing Quentier is in public alpha stage. That means the project is very fresh, some things are unpolished while some other things might just refuse to work due to some unforeseen circumstances. It is pretty normal to go through this stage for any new software project, just be aware of that and don’t expect too much from the current version. Also please report the discovered issues to the project’s <a href="https://github.com/d1vanov/quentier/issues">issue tracker</a>.</p>
 
 <h3 id="accounts">Accounts</h3>
 
-<p>Quentier as a note taking app can work in two modes: it can either work with <em>local</em> accounts or with Evernote accounts. That means you are not obliged to have Evernote account if all you want to do is managing notes with Quentier on just a single computer. Or maybe even on several computers provided that you either copy the data between computers manually or you keep the local account data on a USB stick which you mount to different computers. The latter option requires that you start Quentier with <code>--storageDir &lt;path&gt;</code> command line parameter pointing at the location of your account data. By default, if no such command line option is specified, Quentier keeps its persistent data at the following locations depending on the platform the app runs on:</p>
+<p>Quentier as a note taking app can work in two modes: it can either work with <strong>local</strong> accounts or with Evernote accounts. That means you are not obliged to have Evernote account if all you want to do is managing notes with Quentier on just a single computer. Or maybe even on several computers provided that you either copy the data between computers manually or you keep the local account data on a USB stick which you mount to different computers. The latter option requires that you start Quentier with <code>--storageDir &lt;path&gt;</code> command line parameter pointing at the location of your account data. By default, if no such command line option is specified, Quentier keeps its persistent data at the following locations depending on the platform the app runs on:</p>
 
 <ul>
 <li><code>~/.quentier</code> on Linux</li>
@@ -106,84 +202,83 @@
 
 <p>At the moment Quentier works best when only a single instance of the application is running at any moment of time. There are some protection measures against having two app instances working with the same account, however, right now if you try hard enough you might be able to fool them. It is possible to run several instances of the application working with different accounts, however, it might not work on Windows and it might screw up the usefulness of logging on other platforms since currently all instances of Quentier attempt to write logs into the same log file.</p>
 
-<p>The preferred way to work with different accounts is to have a single instance of the application running and to switch between accounts as necessary: that can be done by opening &ldquo;File&rdquo; menu and choosing one of &ldquo;Switch account&rdquo; submenu&rsquo;s options. Note that most of different settings and preferences within Quentier are persistent and account-specific. Even the relative sizes of main window&rsquo;s parts are persisted and restored on per account basis.</p>
+<p>The preferred way to work with different accounts is to have a single instance of the application running and to switch between accounts as necessary: that can be done by opening “File” menu and choosing one of “Switch account” submenu’s options. Note that most of different settings and preferences within Quentier are persistent and account-specific. Even the relative sizes of main window’s parts are persisted and restored on per account basis.</p>
 
 <p>When you open Quentier app for the first time, it would ask you what would you like to do: use the app for local note-taking or use it as Evernote client. The local account is created for you automatically and even if you choose to use Quentier as Evernote client, you can still switch back to the local account later. You can also create as many local and Evernote accounts as you wish and switch between them freely.</p>
 
 <p><img src="/quentier/Welcome_to_Quentier.png" alt="Welcome to Quentier" /></p>
 
-<p>To add a new account, open &ldquo;File&rdquo; menu -&gt; &ldquo;Switch account&rdquo; -&gt; &ldquo;Add account&rdquo;. You will be prompted which kind of account you want to create - either local one or Evernote one.</p>
+<p>To add a new account, open “File” menu -&gt; “Switch account” -&gt; “Add account”. You will be prompted which kind of account you want to create - either local one or Evernote one.</p>
 
-<p><img src="/quentier/Quentier_add_account.png" alt="Add account" /></p>
+<p><img src="/quentier/Quentier_add_account.png" alt="Quentier add account" /></p>
 
-<p>If you choose Evernote account you will be prompted the Evernote server to use: &ldquo;Evernote&rdquo; means the default server used by most casual users, &ldquo;Yinxiang Biji&rdquo; is Chinese Evernote server and &ldquo;Evernote sandbox&rdquo; is mostly useful to developers - it is Evernote&rsquo;s server with which the synchronization algorithms can be tested. After you choose the Evernote server to use you&rsquo;ll be prompted to allow Quentier manage your Evernote account&rsquo;s data.</p>
+<p>If you choose Evernote account you will be prompted the Evernote server to use: “Evernote” means the default server used by most casual users, “Yinxiang Biji” is Chinese Evernote server and “Evernote sandbox” is mostly useful to developers - it is Evernote’s server with which the synchronization algorithms can be tested. After you choose the Evernote server to use you’ll be prompted to allow Quentier manage your Evernote account’s data.</p>
 
-<p><img src="/quentier/Quentier_authenticate_to_Evernote.png" alt="Authenticate to Evernote" /></p>
+<p><img src="/quentier/Quentier_authenticate_to_Evernote.png" alt="Quentier authenticate to Evernote" /></p>
 
-<p>It is also possible to manage the existing accounts: &ldquo;File&rdquo; -&gt; &ldquo;Switch account&rdquo; -&gt; &ldquo;Manage accounts&rdquo;. From the dialog you can add new accounts, revoke the authentication for particular Evernote accounts (might be useful in case of synchronization problems: revoking the authentication triggers authentication request on the next synchronization attempt) and even delete the account. Only use the latter option with great care because <strong>the removal of local accounts is permanent and cannot be reverted</strong>. The removal of Evernote account simply means unlinking Quentier from managing that account, not the permanent removal of your Evernote account, of course.</p>
+<p>It is also possible to manage the existing accounts: “File” -&gt; “Switch account” -&gt; “Manage accounts”. From the dialog you can add new accounts, revoke the authentication for particular Evernote accounts (might be useful in case of synchronization problems: revoking the authentication triggers authentication request on the next synchronization attempt) and even delete the account. Only use the latter option with great care because <strong>the removal of local accounts is permanent and cannot be reverted</strong>. The removal of Evernote account simply means unlinking Quentier from managing that account, not the permanent removal of your Evernote account, of course.</p>
 
-<p>One other nice account-related feature is the ability to change the display name of any account - this current account&rsquo;s display name is shown at the top of the main window. For example, for Evernote accounts your username would be displayed. You might want to change that to show your real name. Within &ldquo;Manage accounts&rdquo; dialog you can do so by entering your real name into the &ldquo;Display name&rdquo; column.</p>
+<p>One other nice account-related feature is the ability to change the display name of any account - this current account’s display name is shown at the top of the main window. For example, for Evernote accounts your username would be displayed. You might want to change that to show your real name. Within “Manage accounts” dialog you can do so by entering your real name into the “Display name” column.</p>
 
 <h3 id="user-interface">User interface</h3>
 
-<p>On the upper part of the main window there&rsquo;s a toolbox with several buttons for most frequently used actions: synchronization (for Evernote accounts), printing of current note or exporting it to PDF, deletion of current note or creation of a new one.</p>
+<p>On the upper part of the main window there’s a toolbox with several buttons for most frequently used actions: synchronization (for Evernote accounts), printing of current note or exporting it to PDF, deletion of current note or creation of a new one.</p>
 
 <p><img src="/quentier/Quentier_toolbar.png" alt="Quentier toolbar" /></p>
 
-<p>This panel also contains the note search string which can be used to filter notes by some particular criteria. The search string fully supports the <a href="https://dev.evernote.com/doc/articles/search_grammar.php">Evernote search syntax</a>. The search string can be saved (as a &ldquo;saved search&rdquo; data item within the account) by pressing the button to the right from the search string.</p>
+<p>This panel also contains the note search string which can be used to filter notes by some particular criteria. The search string fully supports the <a href="https://dev.evernote.com/doc/articles/search_grammar.php">Evernote search syntax</a>. The search string can be saved (as a “saved search” data item within the account) by pressing the button to the right from the search string.</p>
 
 <p><img src="/quentier/Quentier_note_search_string.png" alt="Quentier note search string" /></p>
 
-<p>On the left side of Quentier&rsquo;s main window there are panels displaying notebooks, tags, saved searches, favorited items and deleted notes. By default the deleted notes are not displayed but the display of them - as well as the display of all other side panels - can be toggled using the appropriate option from &ldquo;View&rdquo; menu. The entire left side panel can be hidden for which there&rsquo;s a default keyboard shortcut - F10.</p>
+<p>On the left side of Quentier’s main window there are panels displaying notebooks, tags, saved searches, favorited items and deleted notes. By default the deleted notes are not displayed but the display of them - as well as the display of all other side panels - can be toggled using the appropriate option from “View” menu. The entire left side panel can be hidden for which there’s a default keyboard shortcut - F10.</p>
 
 <p><img src="/quentier/Quentier_left_panels.png" alt="Quentier left panels" /></p>
 
-<p>Favorited items are similar to <a href="https://help.evernote.com/hc/en-us/articles/209004637-How-to-create-shortcuts">Evernote shortcuts</a>: they allow you to create links to most frequently used content - particular notes, notebooks, tags, saved searches - for quick access to them. However, favorited items are favorited only locally for either local or Evernote account because Evernote service doesn&rsquo;t offer any API for the synchronization of favorited items or shortcuts. Or no such <em>public</em> API at least. Quentier is not the only Evernote client which has to cope with this restriction, <a href="http://alternoteapp.com">Alternote</a> app describes the issue within its <a href="http://alternoteapp.com/ru/#faq">FAQ</a>.</p>
+<p>Favorited items are similar to <a href="https://help.evernote.com/hc/en-us/articles/209004637-How-to-create-shortcuts">Evernote shortcuts</a>: they allow you to create links to most frequently used content - particular notes, notebooks, tags, saved searches - for quick access to them. However, favorited items are favorited only locally for either local or Evernote account because Evernote service doesn’t offer any API for the synchronization of favorited items or shortcuts. Or no such public API at least. Quentier is not the only Evernote client which has to cope with this restriction, <a href="http://alternoteapp.com/">Alternote</a> app describes the issue within its <a href="http://alternoteapp.com/ru/#faq">FAQ</a>.</p>
 
-<p>The list of notebooks is really a tree view as notebooks can be nested into stacks and linked notebooks are displayed as children of special items representing users owning the corresponding linked notebooks. Notebooks can be freely moved between stacks either via context-menu or via drag-n-drop. However, it is prohibited to, say, drop user&rsquo;s own notebook onto the stack corresponding to some linked notebook. Or to attempt doing the same thing across different linked notebooks.</p>
+<p>The list of notebooks is really a tree view as notebooks can be nested into stacks and linked notebooks are displayed as children of special items representing users owning the corresponding linked notebooks. Notebooks can be freely moved between stacks either via context-menu or via drag-n-drop. However, it is prohibited to, say, drop user’s own notebook onto the stack corresponding to some linked notebook. Or to attempt doing the same thing across different linked notebooks.</p>
 
 <p>Tags also form a tree structure as they can be nested into each other. Plus, tags downloaded from linked notebooks are also shown under special items representing users owning the corresponding linked notebooks. Tags nesting can be altered either via context menu or via drag-n-drop, with the same restrictions as for notebooks.</p>
 
-<p>Saved searches list is a simple list without any kind of nesting. The query corresponding to each saved search can be edited through that saved search&rsquo;s context menu.</p>
+<p>Saved searches list is a simple list without any kind of nesting. The query corresponding to each saved search can be edited through that saved search’s context menu.</p>
 
-<p>The list of deleted notes shows the notes which are still persisted within the local storage (and Evernote account) but are marked as deleted. Quentier doesn&rsquo;t allow the permanent removal of notes for Evernote accounts as Evernote service prohibits this possibility for third party apps. As well as the possibility to permanently remove a tag, a notebook or a saved search. It is quite a wise decision from Evernote as this way Quentier or any other third party app has no way to cause the data loss within your Evernote account - you can only potentially lose the data which has not been synced yet. Or, if you are very inattentive, you can mark the note as deleted from third party app and then wipe it from the trash can via the official Evernote client or via Evernote web client. So, pay attention when emptying the trash of Evernote notes - make sure there&rsquo;s nothing of worth there.</p>
+<p>The list of deleted notes shows the notes which are still persisted within the local storage (and Evernote account) but are marked as deleted. Quentier doesn’t allow the permanent removal of notes for Evernote accounts as Evernote service prohibits this possibility for third party apps. As well as the possibility to permanently remove a tag, a notebook or a saved search. It is quite a wise decision from Evernote as this way Quentier or any other third party app has no way to cause the data loss within your Evernote account - you can only potentially lose the data which has not been synced yet. Or, if you are very inattentive, you can mark the note as deleted from third party app and then wipe it from the trash can via the official Evernote client or via Evernote web client. So, pay attention when emptying the trash of Evernote notes - make sure there’s nothing of worth there.</p>
 
-<p>The next column from the left edge of the main window is the list of notes. Each item within the list shows some information about the note: its title, creation and modification time, preview text and the thumbnail. The thumbnails are only displayed for Evernote accounts if &ldquo;Show note thumbnails&rdquo; preference is enabled (it is by default) and if the synchronization setting &ldquo;Download note thumbnails&rdquo; is enabled (it is by default). At this time there is no note table view so note list view is the only way to observe the existing notes.</p>
+<p>The next column from the left edge of the main window is the list of notes. Each item within the list shows some information about the note: its title, creation and modification time, preview text and the thumbnail. The thumbnails are only displayed for Evernote accounts if “Show note thumbnails” preference is enabled (it is by default) and if the synchronization setting “Download note thumbnails” is enabled (it is by default). At this time there is no note table view so note list view is the only way to observe the existing notes.</p>
 
 <p><img src="/quentier/Quentier_note_list_view.png" alt="Quentier note list view" /></p>
 
-<p>In the upper part of the note list view there&rsquo;s a widget called &ldquo;Filters&rdquo;, by default folded. To unfold it, press the button with left pointing arrow. The unfolded widget allows to enable filters for notes list: notebooks, tags or a saved search. The saved search filter overrides notebook and tag filters: the latter ones become disabled (greyed out) to indicate they don&rsquo;t contribute to the actual filtering criteria - saved search - at the moment. Filters by notebooks, tags and saved search are all disabled when the note search string (on the upper panel, above the note editor) is not empty. I.e. filter by saved search overrides filters by notebooks and tags but note search string overrides just any filter.</p>
+<p>In the upper part of the note list view there’s a widget called “Filters”, by default folded. To unfold it, press the button with left pointing arrow. The unfolded widget allows to enable filters for notes list: notebooks, tags or a saved search. The saved search filter overrides notebook and tag filters: the latter ones become disabled (greyed out) to indicate they don’t contribute to the actual filtering criteria - saved search - at the moment. Filters by notebooks, tags and saved search are all disabled when the note search string (on the upper panel, above the note editor) is not empty. I.e. filter by saved search overrides filters by notebooks and tags but note search string overrides just any filter.</p>
 
-<p>Filtering notes by a single notebook works automatically by selecting the notebook within the list i.e. as you select different notebooks within the notebooks list, you&rsquo;d see notes from the selected notebook but not from other notebooks. That&rsquo;s how the official Evernote clients work so it should be fairly convenient for Evernote users.</p>
+<p>Filtering notes by a single notebook works automatically by selecting the notebook within the list i.e. as you select different notebooks within the notebooks list, you’d see notes from the selected notebook but not from other notebooks. That’s how the official Evernote clients work so it should be fairly convenient for Evernote users.</p>
 
-<p>Currently there&rsquo;s a limitation on filtering by notebooks and tags: you can&rsquo;t filter the notes by linked notebooks and tags from linked notebooks. The reasons for this are purely technical and have to do with the potential clashing of notebook and/or tag names from user&rsquo;s own account and from linked notebooks. This issue would hopefully be addressed in future.</p>
+<p>Currently there’s a limitation on filtering by notebooks and tags: you can’t filter the notes by linked notebooks and tags from linked notebooks. The reasons for this are purely technical and have to do with the potential clashing of notebook and/or tag names from user’s own account and from linked notebooks. This issue would hopefully be addressed in future.</p>
 
-<p>Slightly below the filters widget there&rsquo;s a combo box allowing to pick the desired sorting criteria for the list of notes. By default the notes are sorted by modification time, the recently modified notes go first.</p>
+<p>Slightly below the filters widget there’s a combo box allowing to pick the desired sorting criteria for the list of notes. By default the notes are sorted by modification time, the recently modified notes go first.</p>
 
 <h3 id="note-editor">Note editor</h3>
 
-<p>On the right side of the main window there&rsquo;s one or more tabbed note editors displaying the contents of notes. Quentier by default limits the amount of open note editors in order to prevent the use of ever growing amounts of memory. It happens automatically: if you open different notes one by one, the editors for previous notes (longest time untouched ones) automatically close. The unsaved edits made to notes within those editors are automatically saved, of course, so there is no risk of data loss. The only thing which is lost when the note editor is closed is the state of the undo stack i.e. the ability to do undo/redo for already closed note editors is gone.</p>
+<p>On the right side of the main window there’s one or more tabbed note editors displaying the contents of notes. Quentier by default limits the amount of open note editors in order to prevent the use of ever growing amounts of memory. It happens automatically: if you open different notes one by one, the editors for previous notes (longest time untouched ones) automatically close. The unsaved edits made to notes within those editors are automatically saved, of course, so there is no risk of data loss. The only thing which is lost when the note editor is closed is the state of the undo stack i.e. the ability to do undo/redo for already closed note editors is gone.</p>
 
-<p>Each note editor can be moved from tab to a separate window. For this right click on the note editor tab&rsquo;s header and choose &ldquo;Open in separate window&rdquo; option. However, beware that once you did this, the only way to return the note editor to the tabs list is to close it and open the same note again.</p>
+<p>Each note editor can be moved from tab to a separate window. For this right click on the note editor tab’s header and choose “Open in separate window” option. However, beware that once you did this, the only way to return the note editor to the tabs list is to close it and open the same note again.</p>
 
-<p>The attachments to notes (&ldquo;resources&rdquo; in Evernote terminology) are represented as either images (for image attachments) or small blocks containing the name and the size of the attachment and the buttons to save the attachment to some file or open the attachment for editing. If the attachment was opened for editing within some app, Quentier would watch for changes done by the app and once the attachment file changes, it would update the resource within the note.
-Unfortunately at the time of this writing it is not possible to choose the application which is to be used for editing of the attachment - it appears to be highly platform specific and no standard Qt API to implement that exists.</p>
+<p>The attachments to notes (“resources” in Evernote terminology) are represented as either images (for image attachments) or small blocks containing the name and the size of the attachment and the buttons to save the attachment to some file or open the attachment for editing. If the attachment was opened for editing within some app, Quentier would watch for changes done by the app and once the attachment file changes, it would update the resource within the note. Unfortunately at the time of this writing it is not possible to choose the application which is to be used for editing of the attachment - it appears to be highly platform specific and no standard Qt API to implement that exists.</p>
 
 <p>The image attachments can be rotated clockwise or counterclockwise and can be resized - for that put the cursor to the right bottom edge of the image and drag it.</p>
 
 <p>The columns of tables within notes can be resized - simply put the cursor on the border between the columns and drag it.</p>
 
-<p>The note editor supports a wide range of undo/redo capabilities - it tries hard to intercept every possible action and account for it within the undo/redo stack. The intercepted actions include text input as well as various other manual actions like rotating the image attachments - try to rotate the image attachment and then click &ldquo;Undo&rdquo;. Then click &ldquo;Redo&rdquo;. Now you see how it works.</p>
+<p>The note editor supports a wide range of undo/redo capabilities - it tries hard to intercept every possible action and account for it within the undo/redo stack. The intercepted actions include text input as well as various other manual actions like rotating the image attachments - try to rotate the image attachment and then click “Undo”. Then click “Redo”. Now you see how it works.</p>
 
-<p>The note editor&rsquo;s undo stack implementation is one of the trickiest parts of the entire project. That means, it is unfortunately considerably fragile. If it doesn&rsquo;t work in some cases, please forgive it - it tries as hard as I was able to make it so. But in addition to forgiving it please file an issue on the project&rsquo;s <a href="https://github.com/d1vanov/quentier/issues">issue tracker</a> - unless the issue similar to the observed one has already been submitted.</p>
+<p>The note editor’s undo stack implementation is one of the trickiest parts of the entire project. That means, it is unfortunately considerably fragile. If it doesn’t work in some cases, please forgive it - it tries as hard as I was able to make it so. But in addition to forgiving it please file an issue on the project’s <a href="https://github.com/d1vanov/quentier/issues">issue tracker</a> - unless the issue similar to the observed one has already been submitted.</p>
 
-<p>Quentier supports encryption and decryption of note fragments, including both modern encryption used by Evernote - AES algorithm - and the legacy encryption algorithm - RC2. Unlike Nixnote 2, Quentier doesn&rsquo;t require Java for that: the encryption/decryption algorithms from OpenSSL are used instead. A side note for Mac users: Apple&rsquo;s SSL implementation doesn&rsquo;t have these algorithms, that&rsquo;s why OpenSSL from Homebrew or Macports (or some custom OpenSSL build) is required to build libquentier and Quentier on Mac.</p>
+<p>Quentier supports encryption and decryption of note fragments, including both modern encryption used by Evernote - AES algorithm - and the legacy encryption algorithm - RC2. Unlike Nixnote 2, Quentier doesn’t require Java for that: the encryption/decryption algorithms from OpenSSL are used instead. A side note for Mac users: Apple’s SSL implementation doesn’t have these algorithms, that’s why OpenSSL from Homebrew or Macports (or some custom OpenSSL build) is required to build libquentier and Quentier on Mac.</p>
 
 <h3 id="features-present-in-official-evernote-apps-but-not-in-quentier">Features present in official Evernote apps but not in Quentier</h3>
 
-<p>There are lots of them. Just about every single feature but the simplest notes, notebooks, tags and saved searches management is not implemented at this moment. Several features existing in Evernote look interesting so they might be added in future, for example, embedded PDFs within the note editor or <a href="https://help.evernote.com/hc/en-us/articles/209004967-How-to-create-import-folders-in-Evernote-for-Windows">import folders</a> functionality. However, I won&rsquo;t like to give the precise list of features planned for implementation in future as that would depend on a lot of things - on the degree of public interest to Quentier, on the amount of votes for this or that particular feature, on the technical difficulty to implement such a thing and on other factors.</p>
+<p>There are lots of them. Just about every single feature but the simplest notes, notebooks, tags and saved searches management is not implemented at this moment. Several features existing in Evernote look interesting so they might be added in future, for example, embedded PDFs within the note editor or <a href="https://help.evernote.com/hc/en-us/articles/209004967-How-to-create-import-folders-in-Evernote-for-Windows">import folders</a> functionality. However, I won’t like to give the precise list of features planned for implementation in future as that would depend on a lot of things - on the degree of public interest to Quentier, on the amount of votes for this or that particular feature, on the technical difficulty to implement such a thing and on other factors.</p>
 
-<p>Hopefully this post gives you some idea about what Quentier is capable of right now. If you&rsquo;d like to know more, give Quentier a try and evaluate its capabilities yourself.</p>
+<p>Hopefully this post gives you some idea about what Quentier is capable of right now. If you’d like to know more, give Quentier a try and evaluate its capabilities yourself.</p>
 
   </div>
   
