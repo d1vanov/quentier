@@ -138,6 +138,8 @@ Var VCRedistInstalled
 !define MULTIUSER_INSTALLMODE_CHANGE_MODE_FUNCTION PageInstallModeChangeMode
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
 
+!insertmacro MUI_PAGE_COMPONENTS
+
 !define MUI_PAGE_CUSTOMFUNCTION_PRE PageDirectoryPre
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW PageDirectoryShow
 !insertmacro MUI_PAGE_DIRECTORY
@@ -159,18 +161,8 @@ Var VCRedistInstalled
 !define MUI_FINISHPAGE_RUN_FUNCTION PageFinishRun
 !insertmacro MUI_PAGE_FINISH
 
-;--------------------------------
-;Uninstaller pages
-
-;Ask for confirmation when cancelling the uninstallation
-!define MUI_UNABORTWARNING
-
-!define MULTIUSER_INSTALLMODE_CHANGE_MODE_UNFUNCTION un.PageInstallModeChangeMode
-!insertmacro MULTIUSER_UNPAGE_INSTALLMODE
-
-!insertmacro MUI_UNPAGE_CONFIRM
-!insertmacro MUI_UNPAGE_INSTFILES
-!insertmacro MUI_UNPAGE_FINISH
+!addincludedir "..\src\installer\windows\"
+!include "Uninstall.nsh"
 
 ;--------------------------------
 ;Languages
@@ -180,7 +172,7 @@ Var VCRedistInstalled
 ;--------------------------------
 ;Installer Sections
 
-Section "Install" SectionInstallProgram
+Section "Core program files" SectionInstallProgram
 
   ;If there's an installed version, uninstall it first
   ;If both per-user and per-machine versions are installed, unistall the one that matches $MultiUser.InstallMode
@@ -268,15 +260,12 @@ Section "Install" SectionInstallProgram
 
   ${If} $MSVC == true
     call DetermineVCRuntimeVersion
-    nsislog::log "$INSTDIR\install.log" "VC runtime version: $VCRuntimeVersion"
     ${If} $VCRuntimeVersion == "2017"
     ${OrIf} $VCRuntimeVersion == "2015"
       ${If} ${PLATFORM} == "Win64"
         ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64 Installed
-        nsislog::log "$INSTDIR\install.log" "After the first attempt to check Visual C++ redist installed: $VCRedistInstalled"
         ${If} $VCRedistInstalled != "1"
           ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\VC\14.0\Runtimes\x64 Installed
-          nsislog::log "$INSTDIR\install.log" "After the second attempt to check Visual C++ redist installed: $VCRedistInstalled"
         ${EndIf}
         ${If} $VCRuntimeVersion == "2017"
           StrCpy $VCRedistUrl "https://go.microsoft.com/fwlink/?LinkId=746572"
@@ -412,8 +401,6 @@ Section "Install" SectionInstallProgram
     ${EndIf}
   ${EndIf}
 
-  ;Create desktop shortcut
-  CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${MUI_FILE}.exe"
 
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -437,24 +424,31 @@ Section "Program Group" SectionProgramGroup
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
-;--------------------------------
-;Uninstaller Section
+SectionGroup /e "Integration" SectionGroupIntegration
 
-Section "uninstall" SectionUninstallProgram
-
-  Delete "$INSTDIR\Uninstall.exe"
-  RmDir /r /REBOOTOK "$INSTDIR"
-
-  Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-  RMDir /r /REBOOTOK "$SMPROGRAMS\$StartMenuFolder"
-
-  Delete "$DESKTOP\{MUI_PRODUCT}.lnk"
-
-  DeleteRegKey /ifempty HKCU "Software\Quentier"
-
-  !insertmacro MULTIUSER_RegistryRemoveInstallInfo
-
+Section /o "Desktop icon" SectionDesktopIcon
+  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
 SectionEnd
+
+Section /o "Start Menu Icon" SectionStartMenuIcon
+  CreateShortCut "$STARTMENU\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
+SectionEnd
+
+Section /o "Quick Launch" SectionQuickLaunchIcon
+  ;The QuickLaunch is always only for the current user
+  CreateShortCut "$QUICKLAUNCH\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
+SectionEnd
+
+SectionGroupEnd
+
+; Modern install component descriptions
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionGroupIntegration} "Select how to integrate the program in Windows."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionProgramGroup} "Create a ${PRODUCT_NAME} program group under Start Menu->Programs."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionDesktopIcon} "Create ${PRODUCT_NAME} icon on the Desktop."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionStartMenuIcon} "Create ${PRODUCT_NAME} icon in the Start Menu."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionQuickLaunchIcon} "Create ${PRODUCT_NAME} icon in Quick Launch."
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
 ;Functions
@@ -496,19 +490,7 @@ Function .onInit
   !insertmacro MULTIUSER_INIT
 FunctionEnd
 
-Function un.onInit
-  !insertmacro MULTIUSER_UNINIT
-FunctionEnd
-
-Function un.onUninstSuccess
-  MessageBox MB_OK "You have successfully uninstalled ${MUI_PRODUCT}."
-FunctionEnd
-
 Function PageInstallModeChangeMode
-  !insertmacro MUI_STARTMENU_GETFOLDER "" $StartMenuFolder
-FunctionEnd
-
-Function un.PageInstallModeChangeMode
   !insertmacro MUI_STARTMENU_GETFOLDER "" $StartMenuFolder
 FunctionEnd
 
@@ -604,3 +586,4 @@ Function onGuiInit
   ;Hide the outer process window if user chose to elevate
   !insertmacro UAC_Notify_OnGuiInit
 FunctionEnd
+
