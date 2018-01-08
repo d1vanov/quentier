@@ -60,26 +60,27 @@ Section "un.Program Files" SectionUninstallProgram
   !insertmacro un.DeleteRetryAbort "$INSTDIR\${PROGEXE}"
 
   ${If} "$StartMenuFolder" != ""
+    nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the start menu folder: SMPROGRAMS = $SMPROGRAMS, StartMenuFolder = $StartMenuFolder"
     RMDir /r "$SMPROGRAMS\$StartMenuFolder"
   ${EndIf}
 
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the desktop shortcut: \$DESKTOP = $DESKTOP, \${PRODUCT_NAME} = ${PRODUCT_NAME}"
+  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the desktop shortcut: DESKTOP = $DESKTOP, PRODUCT_NAME = ${PRODUCT_NAME}"
   !insertmacro un.DeleteRetryAbort "$DESKTOP\${PRODUCT_NAME}.lnk"
 
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the start menu shortcut: \$STARTMENU = $STARTMENU, \${PRODUCT_NAME} = ${PRODUCT_NAME}"
+  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the start menu shortcut: STARTMENU = $STARTMENU, PRODUCT_NAME = ${PRODUCT_NAME}"
   !insertmacro un.DeleteRetryAbort "$STARTMENU\${PRODUCT_NAME}.lnk"
 
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the quick launch shortcut: \$QUICKLAUNCH = $QUICKLAUNCH, \${PRODUCT_NAME} = ${PRODUCT_NAME}"
+  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the quick launch shortcut: QUICKLAUNCH = $QUICKLAUNCH, PRODUCT_NAME = ${PRODUCT_NAME}"
   !insertmacro un.DeleteRetryAbort "$QUICKLAUNCH\${PRODUCT_NAME}.lnk"
 
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the uninstaller: \$INSTDIR = $INSTDIR, \${UNINSTALL_FILENAME} = ${UNINSTALL_FILENAME}"
-  !insertmacro un.DeleteRetryAbort "$INSTDIR\${UNINSTALL_FILENAME}"
-
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the installation dir with its whole content: \$INSTDIR = $INSTDIR"
-  RMDir /r /REBOOTOK "$INSTDIR"
-
+  ;Remove registry keys
   DeleteRegKey HKCU "Software\${PRODUCT_NAME}"
-  !insertmacro MULTIUSER_RegistryRemoveInstallInfo ; Remove registry keys
+SectionEnd
+
+Section "-Uninstall"
+  !insertmacro MULTIUSER_RegistryRemoveInstallInfo
+  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the installation dir with its whole content: INSTDIR = $INSTDIR"
+  RMDir /r /REBOOTOK "$INSTDIR"
 SectionEnd
 
 ;--------------------------------
@@ -136,6 +137,7 @@ Function un.DeleteRetryAbort
     Delete "$0"
     ${If} ${Errors}
       MessageBox MB_RETRYCANCEL|MB_ICONSTOP "Error deleting file:$\r$\n$\r$\n$0$\r$\n$\r$\nClick Retry to try again, or$\r$\nCancel to stop the uninstall." /SD IDCANCEL IDRETRY try
-      Abort "Error deleting file $0" ; when called from section, will SetErrorLevel 2 - Installation aborted by script
+      ;When called from section, will SetErrorLevel 2 - Installation aborted by script
+      Abort "Error deleting file $0"
     ${EndIf}
 FunctionEnd
