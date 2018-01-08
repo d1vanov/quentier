@@ -3466,7 +3466,6 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
     QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ") << account << QStringLiteral("\nError description: ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
-
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
     onSetStatusBarText(tr("Could not switch account") + QStringLiteral(": ") + errorDescription.localizedString(), SEC_TO_MSEC(30));

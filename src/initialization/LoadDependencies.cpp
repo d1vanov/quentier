@@ -17,7 +17,6 @@
  */
 
 #include "LoadDependencies.h"
-#include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/VersionInfo.h>
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -25,13 +24,12 @@
 #include <QStringList>
 #include <QDirIterator>
 #include <QSqlDatabase>
+#include <QDebug>
 
 namespace quentier {
 
 void loadDependencies()
 {
-    QNDEBUG(QStringLiteral("loadDependencies"));
-
 #ifdef Q_OS_WIN
     QStringList paths = QCoreApplication::libraryPaths();
     paths.append(QStringLiteral("."));
@@ -53,16 +51,8 @@ void loadDependencies()
 
         QPluginLoader pluginLoader(fileName);
         if (!pluginLoader.load()) {
-            QNDEBUG(QStringLiteral("Failed to load plugin ") << fileName);
+            qWarning() << QStringLiteral("Failed to load plugin ") << fileName;
         }
-        else {
-            QNDEBUG(QStringLiteral("Loaded plugin ") << fileName);
-        }
-    }
-
-    QStringList drivers = QSqlDatabase::drivers();
-    for(auto it = drivers.constBegin(), end = drivers.constEnd(); it != end; ++it) {
-        QNDEBUG(QStringLiteral("Available SQL driver: ") << *it);
     }
 #endif // Q_OS_WIN
 }
