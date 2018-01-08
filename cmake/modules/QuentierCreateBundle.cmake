@@ -120,7 +120,7 @@ function(CreateQuentierBundle)
     else()
       set(DEBUG_SUFFIX "")
     endif()
-    set(APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.exe)
+    set(APPS ${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}.exe)
   elseif(APPLE)
     set(APPS ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app)
   else()
@@ -161,13 +161,13 @@ function(CreateQuentierBundle)
 
       if(LIBQUENTIER_USE_QT_WEB_ENGINE)
         set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe)
-        install(FILES ${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-        install(DIRECTORY ${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-        install(DIRECTORY ${Qt5Core_DIR}/../../../translations/qtwebengine_locales DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/translations)
+        install(FILES ${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(DIRECTORY ${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(DIRECTORY ${Qt5Core_DIR}/../../../translations/qtwebengine_locales DESTINATION ${CMAKE_INSTALL_BINDIR}/translations)
       endif()
 
       # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
-      install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
+      install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll DESTINATION ${CMAKE_INSTALL_BINDIR}/sqldrivers)
 
       # fixup other dependencies not taken care of by windeployqt/macdeployqt
       install(CODE "
@@ -188,12 +188,36 @@ function(CreateQuentierBundle)
               " COMPONENT Runtime)
     endif(USE_QT5)
 
+    # Removing redundant SQL drivers deployed by windeployqt and/or fixup_bundle/fixup_qt4_executable
+    install(CODE "
+            file(GLOB sqlDrivers \"${CMAKE_INSTALL_BINDIR}/sqldrivers/*.dll\")
+            foreach(sqlDriver \${sqlDrivers})
+              get_filename_component(sqlDriverBaseName \${sqlDriver} NAME)
+              message(STATUS \"Processing SQL driver \${sqlDriver} with base name \${sqlDriverBaseName}\")
+              if(NOT \${sqlDriverBaseName} MATCHES \"qsqlite(\\\\s|d).dll\")
+                message(STATUS \"Removing redundant SQL driver: \${sqlDriver} with base name \${sqlDriverBaseName}\")
+                file(REMOVE \${sqlDriver})
+              endif()
+            endforeach()
+            " COMPONENT Runtime)
+
+    if(MSVC)
+      # Removing VC runtime deployed by fixup_bundle/fixup_qt4_executable
+      install(CODE "
+              file(GLOB runtimes \"${CMAKE_INSTALL_BINDIR}/vcruntime*.dll\")
+              foreach(runtime \${runtimes})
+                message(STATUS \"Removing automatically deployed VC runtime: \${runtime}\")
+                file(REMOVE \${runtime})
+              endforeach()
+              " COMPONENT Runtime)
+    endif()
+
     if (BREAKPAD_FOUND)
       # need to do some manual steps for deploying the dependencies of quentier_minidump_stackwalk.exe - Cygwin dlls
       get_filename_component(BREAKPAD_STACKWALKER_DIR ${BREAKPAD_STACKWALKER} DIRECTORY)
       file(GLOB cygwin_dlls "${BREAKPAD_STACKWALKER_DIR}/cy*.dll")
       foreach(cygwin_dll ${cygwin_dlls})
-        install(CODE "file(COPY ${cygwin_dll} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)")
+        install(CODE "file(COPY ${cygwin_dll} DESTINATION ${CMAKE_INSTALL_BINDIR})")
       endforeach()
     endif()
 
