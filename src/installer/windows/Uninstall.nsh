@@ -60,17 +60,17 @@ Section "un.Program Files" SectionUninstallProgram
   !insertmacro un.DeleteRetryAbort "$INSTDIR\${PROGEXE}"
 
   ${If} "$StartMenuFolder" != ""
-    nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the start menu folder: SMPROGRAMS = $SMPROGRAMS, StartMenuFolder = $StartMenuFolder"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the start menu folder: SMPROGRAMS = $SMPROGRAMS, StartMenuFolder = $StartMenuFolder"
     RMDir /r "$SMPROGRAMS\$StartMenuFolder"
   ${EndIf}
 
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the desktop shortcut: DESKTOP = $DESKTOP, PRODUCT_NAME = ${PRODUCT_NAME}"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the desktop shortcut: DESKTOP = $DESKTOP, PRODUCT_NAME = ${PRODUCT_NAME}"
   !insertmacro un.DeleteRetryAbort "$DESKTOP\${PRODUCT_NAME}.lnk"
 
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the start menu shortcut: STARTMENU = $STARTMENU, PRODUCT_NAME = ${PRODUCT_NAME}"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the start menu shortcut: STARTMENU = $STARTMENU, PRODUCT_NAME = ${PRODUCT_NAME}"
   !insertmacro un.DeleteRetryAbort "$STARTMENU\${PRODUCT_NAME}.lnk"
 
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the quick launch shortcut: QUICKLAUNCH = $QUICKLAUNCH, PRODUCT_NAME = ${PRODUCT_NAME}"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the quick launch shortcut: QUICKLAUNCH = $QUICKLAUNCH, PRODUCT_NAME = ${PRODUCT_NAME}"
   !insertmacro un.DeleteRetryAbort "$QUICKLAUNCH\${PRODUCT_NAME}.lnk"
 
   ;Remove registry keys
@@ -79,7 +79,7 @@ SectionEnd
 
 Section "-Uninstall"
   !insertmacro MULTIUSER_RegistryRemoveInstallInfo
-  nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Attempting to remove the installation dir with its whole content: INSTDIR = $INSTDIR"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the installation dir with its whole content: INSTDIR = $INSTDIR"
   RMDir /r /REBOOTOK "$INSTDIR"
 SectionEnd
 
@@ -92,26 +92,26 @@ Function un.onInit
   ${GetOptions} $R0 "/uninstall" $R1
   ${IfNot} ${Errors}
     StrCpy $RunningFromInstaller 1
-    nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Running from installer"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Running from installer"
   ${Else}
     StrCpy $RunningFromInstaller 0
-    nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Not running from installer"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Not running from installer"
   ${EndIf}
 
   ${GetOptions} $R0 "/SS" $R1
   ${IfNot} ${Errors}
     StrCpy $SemiSilentMode 1
-    nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Running in semi-silent mode"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Running in semi-silent mode"
     ;Auto close (if no errors) if we are called from the installer; if there are errors, will be automatically set to false
     SetAutoClose true
   ${Else}
     StrCpy $SemiSilentMode 0
-    nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Not running in semi-silent mode"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Not running in semi-silent mode"
   ${EndIf}
 
   ${IfNot} ${UAC_IsInnerInstance}
   ${AndIf} $RunningFromInstaller$SemiSilentMode == "00"
-    nsislog::log "$TEMP\${PRODUCT_NAME}_uninstall.log" "Running inside UAC forked uninstaller instance + not running from installer or in semi-silent mode"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Running inside UAC forked uninstaller instance + not running from installer or in semi-silent mode"
     !insertmacro CheckSingleInstance "${SINGLE_INSTANCE_ID}"
   ${Endif}
 

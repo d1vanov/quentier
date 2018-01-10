@@ -633,15 +633,40 @@ endif()
 
 if(NSIS_FOUND)
   if(CMAKE_SYSTEM_PROCESSOR MATCHES "(amd64)|(AMD64)")
-    set(QUENTIER_TARGET_PLATFORM Win64)
+    set(QUENTIER_TARGET_PLATFORM x64)
   else()
     set(QUENTIER_TARGET_PLATFORM Win32)
   endif()
 
-  if(MSVC)
-    set(PRODUCT_EDITION "MSVC ${CMAKE_CXX_COMPILER_VERSION}")
+  if(USE_QT5)
+    set(PRODUCT_EDITION "Qt ${Qt5Core_VERSION}")
   else()
-    set(PRODUCT_EDITION "MinGW")
+    set(PRODUCT_EDITION "Qt ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.${QT_VERSION_PATCH}")
+  endif()
+
+  if(MSVC)
+    if(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]1(.+)")
+      set(VC_VERSION "2017")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]0(.+)")
+      set(VC_VERSION "2015")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^18[.](.+)")
+      set(VC_VERSION "2013")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^17[.](.+)")
+      set(VC_VERSION "2012")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^16[.](.+)")
+      set(VC_VERSION "2010")
+    endif()
+    # No need to check for older versions since Quentier isn't buildable with them anyway
+
+    set(PRODUCT_EDITION "${PRODUCT_EDITION} MSVC${VC_VERSION}")
+  else()
+    set(PRODUCT_EDITION "${PRODUCT_EDITION} MinGW ${GCC_VERSION}")
+  endif()
+
+  set(PRODUCT_EDITION "${PRODUCT_EDITION} ${QUENTIER_TARGET_PLATFORM}")
+
+  if(NOT LIBQUENTIER_USE_QT_WEB_ENGINE AND MSVC)
+    set(PRODUCT_EDITION "${PRODUCT_EDITION} webkit")
   endif()
 
   configure_file(src/installer/windows/wininstaller.nsi.in

@@ -11,7 +11,7 @@
 !define MUI_CUSTOMFUNCTION_GUIINIT onGuiInit
 
 ;Defines required for MultiUser script
-!define PRODUCT_NAME "${MUI_PRODUCT}"
+!define PRODUCT_NAME "${MUI_PRODUCT} ${PRODUCT_EDITION}"
 !define VERSION "${MUI_VERSION}"
 !define PROGEXE "${MUI_FILE}.exe"
 !define UNINSTALL_FILENAME "Uninstall.exe"
@@ -19,9 +19,9 @@
 ;--------------------------------
 ;Setup info for MultiUser script
 
-!define MULTIUSER_INSTALLMODE_INSTDIR "${MUI_PRODUCT}"
-!define MULTIUSER_INSTALLMODE_INSTALL_REGISTRY_KEY "${MUI_PRODUCT}"
-!define MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY "${MUI_PRODUCT}"
+!define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCT_NAME}"
+!define MULTIUSER_INSTALLMODE_INSTALL_REGISTRY_KEY "${PRODUCT_NAME}"
+!define MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY "${PRODUCT_NAME}"
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "UninstallString"
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "InstallLocation"
 !define MULTIUSER_INSTALLMODE_DISPLAYNAME "${MUI_PRODUCT} ${MUI_VERSION} ${PRODUCT_EDITION}"
@@ -31,7 +31,7 @@
 !define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION_IF_SILENT 0
 !define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS 1
 
-!if ${PLATFORM} == "Win64"
+!if ${PLATFORM} == "x64"
 !define MULTIUSER_INSTALLMODE_64_BIT 1
 !endif
 
@@ -51,8 +51,6 @@
 !include "MUI2.nsh"
 !include "UAC.nsh"
 !include "LogicLib.nsh"
-!include "StrFunc.nsh"
-${StrLoc}
 !include "x64.nsh"
 
 ;--------------------------------
@@ -100,11 +98,11 @@ XPStyle on
 AllowSkipFiles off
 SetOverwrite on
 
-Name "${MUI_PRODUCT} ${MUI_VERSION} ${PLATFORM}"
-OutFile "Setup${MUI_PRODUCT} ${MUI_VERSION} ${PLATFORM}.exe"
+Name "${MUI_PRODUCT} ${MUI_VERSION} ${PRODUCT_EDITION}"
+OutFile "Setup${MUI_PRODUCT} ${MUI_VERSION} ${PRODUCT_EDITION}.exe"
 
 ;Get installation folder from registry if available
-InstallDirRegKey HKCU "Software\${MUI_PRODUCT}" ""
+InstallDirRegKey HKCU "Software\${PRODUCT_NAME}" ""
 
 ;--------------------------------
 ;Variables
@@ -112,11 +110,6 @@ InstallDirRegKey HKCU "Software\${MUI_PRODUCT}" ""
 Var StartMenuFolder
 Var VCRuntimeVersion
 Var MSVC
-Var VC2017Index
-Var VC2015Index
-Var VC2013Index
-Var VC2012Index
-Var VC2010Index
 Var VCRedistUrl
 Var VCRedistName
 Var VCRedistDownloadMessage_
@@ -144,9 +137,9 @@ Var VCRedistInstalled
 ;Start Menu Folder Page Configuration
 
 !define MUI_STARTMENUPAGE_NODISABLE ; Do not display the checkbox to disable the creation of Start Menu shortcuts
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "${MUI_PRODUCT}"
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "${PRODUCT_NAME}"
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "SHCTX" ; writing to $StartMenuFolder happens in MUI_STARTMENU_WRITE_END, so it's safe to use "SHCTX" here
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuFolder"
 !define MUI_PAGE_CUSTOMFUNCTION_PRE PageStartMenuPre
 !insertmacro MUI_PAGE_STARTMENU "" "$StartMenuFolder"
@@ -175,7 +168,7 @@ Section "Program files" SectionInstallProgram
   StrCpy $0 ""
   ${If} $HasCurrentModeInstallation == 1
     StrCpy $0 "$MultiUser.InstallMode"
-    nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Current mode installation: MultiUser.InstallMode = $MultiUser.InstallMode"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Current mode installation: MultiUser.InstallMode = $MultiUser.InstallMode"
   ${Else}
     !if	${MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS} == 0
       ${If} $HasPerMachineInstallation == 1
@@ -190,11 +183,11 @@ Section "Program files" SectionInstallProgram
 
   ${If} "$0" != ""
     ${If} $0 == "AllUsers"
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Detected existing installation for all users"
+      nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Detected existing installation for all users"
       StrCpy $1 "$PerMachineUninstallString"
       StrCpy $3 "$PerMachineInstallationFolder"
     ${Else}
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Detected existing installation for current user"
+      nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Detected existing installation for current user"
       StrCpy $1 "$PerUserUninstallString"
       StrCpy $3 "$PerUserInstallationFolder"
     ${Endif}
@@ -220,21 +213,21 @@ Section "Program files" SectionInstallProgram
       ${Switch} $0
         ${Case} 0
           ;Uninstaller completed successfully - continue with installation
-          nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Uninstaller completed successfully"
+          nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Uninstaller completed successfully"
           BringToFront
           ${Break}
         ${Case} 1
           ;Installation aborted by user (cancel button)
-          nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Uninstallation was cancelled by user"
+          nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Uninstallation was cancelled by user"
         ${Case} 2
           ;Installation aborted by script
-          nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Uninstallation failed (aborted by script)"
+          nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Uninstallation failed (aborted by script)"
           SetErrorLevel $0
           ;Uninstaller was started, but completed with errors - Quit installer
           Quit
         ${Default}
           ;All other error codes - uninstaller could not start, elevate, etc. - Abort installer
-          nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Uninstallation failed, error code = $0"
+          nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Uninstallation failed, error code = $0"
           SetErrorLevel $0
           BringToFront
           Abort "Error executing uninstaller."
@@ -253,7 +246,7 @@ Section "Program files" SectionInstallProgram
   File /oname=License.txt ..\COPYING
 
   ;Store installation folder
-  WriteRegStr HKCU "Software\${MUI_PRODUCT}" "" $INSTDIR
+  WriteRegStr HKCU "Software\${PRODUCT_NAME}" "" $INSTDIR
 
   ${If} "@CMAKE_CXX_COMPILER_ID@" == "MSVC"
     StrCpy $MSVC "true"
@@ -265,7 +258,7 @@ Section "Program files" SectionInstallProgram
     call DetermineVCRuntimeVersion
     ${If} $VCRuntimeVersion == "2017"
     ${OrIf} $VCRuntimeVersion == "2015"
-      ${If} ${PLATFORM} == "Win64"
+      ${If} ${PLATFORM} == "x64"
         ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64 Installed
         ${If} $VCRedistInstalled != "1"
           ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\VC\14.0\Runtimes\x64 Installed
@@ -289,7 +282,7 @@ Section "Program files" SectionInstallProgram
     ${EndIf}
 
     ${If} $VCRuntimeVersion == "2013"
-      ${If} ${PLATFORM} == "Win64"
+      ${If} ${PLATFORM} == "x64"
         ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\12.0\VC\Runtimes\x64 Installed
         ${If} $VCRedistInstalled != "1"
           ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0\VC\Runtimes\x64 Installed
@@ -305,7 +298,7 @@ Section "Program files" SectionInstallProgram
     ${EndIf}
 
     ${If} $VCRuntimeVersion == "2012"
-      ${If} ${PLATFORM} == "Win64"
+      ${If} ${PLATFORM} == "x64"
         ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\11.0\VC\Runtimes\x64 Installed
         ${If} $VCRedistInstalled != "1"
           ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\11.0\VC\Runtimes\x64 Installed
@@ -321,7 +314,7 @@ Section "Program files" SectionInstallProgram
     ${EndIf}
 
     ${If} $VCRuntimeVersion == "2010"
-      ${If} ${PLATFORM} == "Win64"
+      ${If} ${PLATFORM} == "x64"
         ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\10.0\VC\Runtimes\x64 Installed
         ${If} $VCRedistInstalled != "1"
           ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Wow6432Node\Microsoft\VisualStudio\10.0\VC\Runtimes\x64 Installed
@@ -337,6 +330,7 @@ Section "Program files" SectionInstallProgram
     ${EndIf}
 
     ${If} $VCRedistInstalled != "1"
+    ${AndIf} $VCRedistUrl != ""
       StrCpy $VCRedistDownloadMessage_ "The installer will download the Microsoft Visual C++ Redistributable Packages.$\r$\n$\r$\n"
       StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_These system libraries from Microsoft are required for ${MUI_PRODUCT}"
       StrCpy $VCRedistDownloadMessage_ "$VCRedistDownloadMessage_ built with Microsoft's Visual C++ compiler. Without them ${MUI_PRODUCT}"
@@ -348,13 +342,13 @@ Section "Program files" SectionInstallProgram
 
       download:
       ;Set the name for the downloaded redistributable VC runtime package
-      ${If} ${PLATFORM} == "Win64"
+      ${If} ${PLATFORM} == "x64"
         StrCpy $VCRedistName vc_redist.x64.exe
       ${Else}
         StrCpy $VCRedistName vc_redist.x86.exe
       ${EndIf}
       InitPluginsDir
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "VC redist URL: $VCRedistUrl, Temp: $TEMP, name: $VCRedistName"
+      nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "VC redist URL: $VCRedistUrl, Temp: $TEMP, name: $VCRedistName"
       NSISdl::download /TIMEOUT=30000 /NOIEPROXY "$VCRedistUrl" "$TEMP\$VCRedistName"
       Pop $0
       StrCmp $0 "success" download_ok download_failed
@@ -404,7 +398,6 @@ Section "Program files" SectionInstallProgram
     ${EndIf}
   ${EndIf}
 
-
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
@@ -430,7 +423,7 @@ SectionEnd
 SectionGroup /e "Integration" SectionGroupIntegration
 
 Section /o "Desktop icon" SectionDesktopIcon
-  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
+  CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}"
 SectionEnd
 
 Section /o "Start Menu Icon" SectionStartMenuIcon
@@ -439,19 +432,19 @@ SectionEnd
 
 Section /o "Quick Launch" SectionQuickLaunchIcon
   ;The QuickLaunch is always only for the current user
-  CreateShortCut "$QUICKLAUNCH\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
+  CreateShortCut "$QUICKLAUNCH\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}"
 SectionEnd
 
 SectionGroupEnd
 
 ; Modern install component descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SectionInstallProgram} "Install program files required to run ${PRODUCT_NAME}."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionInstallProgram} "Install program files required to run ${MUI_PRODUCT}."
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionProgramGroup} "Create a ${PRODUCT_NAME} program group under Start Menu->Programs."
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionGroupIntegration} "Select how to integrate the program in Windows."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SectionDesktopIcon} "Create ${PRODUCT_NAME} icon on the Desktop."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionDesktopIcon} "Create ${MUI_PRODUCT} icon on the Desktop."
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionStartMenuIcon} "Create ${PRODUCT_NAME} icon in the Start Menu."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SectionQuickLaunchIcon} "Create ${PRODUCT_NAME} icon in Quick Launch."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionQuickLaunchIcon} "Create ${MUI_PRODUCT} icon in Quick Launch."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -460,28 +453,28 @@ SectionGroupEnd
 Function .onInit
   ${If} ${UAC_IsInnerInstance}
     ; We're the inner (elevated) process.
-    nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Running inside UAC forked installer"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Running inside UAC forked installer"
     ${IfNot} ${UAC_IsAdmin}
       ;Not elevated to admin. Set special return value for outer instance
       ;so it knows we did not have admin rights, then close the inner process.
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Not elevated to admin"
+      nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Not elevated to admin"
       SetErrorLevel 0x666
       Quit
     ${EndIf}
-    nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Elevated to admin, syncing VCRedistName variable"
+    nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Elevated to admin, syncing VCRedistName variable"
     ${SyncVariable} $VCRedistName
     ${If} $VCRedistName != ""
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "VC redist name: $VCRedistName, temp dir: $TEMP"
+      nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "VC redist name: $VCRedistName, temp dir: $TEMP"
       DetailPrint "Installing Microsoft Visual C++ redistributable..."
       ClearErrors
       ExecWait '"$TEMP\$VCRedistName" /passive /norestart' $0
       ${If} ${Errors}
         MessageBox MB_ICONSTOP "Failed to install Microsoft Visual C++ redistributable"
       ${EndIf}
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Successfully installed VC redistributable"
+      nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "Successfully installed VC redistributable"
       Quit
     ${Else}
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "VCRedistName variable is empty, probably UAC forked due to installation for all users, not doing anything"
+      nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "VCRedistName variable is empty, probably UAC forked due to installation for all users, not doing anything"
     ${EndIf}
   ${EndIf}
   ;Check for minimal supported Windows version
@@ -492,7 +485,7 @@ Function .onInit
   ${Endif}
   ;Prevent attempt to install 64 bit application onto 32 bit Windows
   ${IfNot} ${RunningX64}
-    ${If} ${PLATFORM} == "Win64"
+    ${If} ${PLATFORM} == "x64"
       MessageBox MB_ICONSTOP "Please, run the 32-bit installer of ${PRODUCT_NAME} on this version of Windows." /SD IDOK
       ;Will SetErrorLevel 2 - Installation aborted by script
       Quit
@@ -511,43 +504,9 @@ Function PageInstallModeChangeMode
 FunctionEnd
 
 Function DetermineVCRuntimeVersion
-  nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "DetermineVCRuntimeVersion: MSVC = $MSVC"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "DetermineVCRuntimeVersion: MSVC = $MSVC"
   ${If} $MSVC == "true"
-    ;Need to Download VCRuntime
-    ${StrLoc} $VC2017Index "@CMAKE_CXX_COMPILER_VERSION@" "19.1" ">"
-    ${If} $VC2017Index != ""
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Detected MSVC2017"
-      StrCpy $VCRuntimeVersion "2017"
-      return
-    ${EndIf}
-
-    ${StrLoc} $VC2015Index "@CMAKE_CXX_COMPILER_VERSION@" "19.0" ">"
-    ${If} $VC2015Index != ""
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Detected MSVC2015"
-      StrCpy $VCRuntimeVersion "2015"
-      return
-    ${EndIf}
-
-    ${StrLoc} $VC2013Index "@CMAKE_CXX_COMPILER_VERSION@" "18" ">"
-    ${If} $VC2013Index != ""
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Detected MSVC2013"
-      StrCpy $VCRuntimeVersion "2013"
-      return
-    ${EndIf}
-
-    ${StrLoc} $VC2012Index "@CMAKE_CXX_COMPILER_VERSION@" "17" ">"
-    ${If} $VC2012Index != ""
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Detected MSVC2012"
-      StrCpy $VCRuntimeVersion "2012"
-      return
-    ${EndIf}
-
-    ${StrLoc} $VC2010Index "@CMAKE_CXX_COMPILER_VERSION@" "16" ">"
-    ${If} $VC2010Index != ""
-      nsislog::log "$TEMP\${PRODUCT_NAME}_install.log" "Detected MSVC2010"
-      StrCpy $VCRuntimeVersion "2010"
-      return
-    ${EndIf}
+    StrCpy $VCRuntimeVersion @VC_VERSION@
   ${EndIf}
 FunctionEnd
 
