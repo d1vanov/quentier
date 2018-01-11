@@ -256,6 +256,7 @@ build_script:
   - cmake --build . --target all
   - cmake --build . --target check
   - cmake --build . --target install
+  - move Setup*.exe %APPVEYOR_BUILD_FOLDER%
   - if %qt%==mingw492_32 set PATH=%ORIGPATH%
 
 after_build:
