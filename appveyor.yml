@@ -13,15 +13,15 @@ environment:
 #      name: win32-prepare
 #      platform: amd64_x86
 #      qt: msvc2015
-    - prepare_mode: NO
-      name: win32
-      platform: amd64_x86
-      qt: msvc2015
-    - prepare_mode: NO
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      name: win64
-      platform: amd64
-      qt: msvc2017_64
+#    - prepare_mode: NO
+#      name: win32
+#      platform: amd64_x86
+#      qt: msvc2015
+#    - prepare_mode: NO
+#      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      name: win64
+#      platform: amd64
+#      qt: msvc2017_64
     - prepare_mode: NO
       name: win32
       platform: mingw
@@ -255,6 +255,7 @@ build_script:
   - cmake --build . --target check
   - cmake --build . --target install
   - move Setup*.exe %APPVEYOR_BUILD_FOLDER%
+  - type wininstaller.nsi
   - if %qt%==mingw492_32 set PATH=%ORIGPATH%
 
 after_build:

@@ -668,6 +668,7 @@ if(NSIS_FOUND)
 
     set(PRODUCT_EDITION "${PRODUCT_EDITION} MSVC${VC_VERSION}")
   else()
+    message(STATUS "GCC_VERSION = ${GCC_VERSION}")
     set(PRODUCT_EDITION "${PRODUCT_EDITION} MinGW ${GCC_VERSION}")
   endif()
 
@@ -677,7 +678,7 @@ if(NSIS_FOUND)
     set(PRODUCT_EDITION "${PRODUCT_EDITION} webkit")
   endif()
 
-  configure_file(src/installer/windows/wininstaller.nsi.in
+  configre_file(src/installer/windows/wininstaller.nsi.in
                  ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
 endif()
 
