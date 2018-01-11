@@ -35,7 +35,6 @@ include(QuentierFindQEverCloud)
 include(QuentierFindLibquentier)
 include(QuentierFindBoost)
 include(QuentierDoxygen)
-include(QuentierFindNSIS)
 
 if(NOT APPLE)
   include(QuentierFindBreakpad)
@@ -361,6 +360,8 @@ set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standa
 if(WIN32)
   set(CREATE_INSTALLER ${DEFAULT_CREATE_INSTALLER} CACHE BOOL "Create application installer")
 endif()
+
+include(QuentierFindNSIS)
 
 # configure version info
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
