@@ -678,7 +678,7 @@ if(NSIS_FOUND)
     set(PRODUCT_EDITION "${PRODUCT_EDITION} webkit")
   endif()
 
-  configre_file(src/installer/windows/wininstaller.nsi.in
+  configure_file(src/installer/windows/wininstaller.nsi.in
                  ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
 endif()
 
