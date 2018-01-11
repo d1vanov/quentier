@@ -221,7 +221,7 @@ function(CreateQuentierBundle)
       endforeach()
     endif()
 
-    if(NSIS_FOUND)
+    if(NSIS_FOUND AND CREATE_INSTALLER)
       install(CODE "
               execute_process(COMMAND \"${NSIS_MAKE}\" ${PROJECT_BINARY_DIR}/wininstaller.nsi)
 	      " COMPONENT Runtime)

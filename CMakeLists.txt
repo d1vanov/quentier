@@ -349,11 +349,18 @@ endif()
 # install application bundle
 if(WIN32 OR APPLE)
   set(DEFAULT_CREATE_BUNDLE ON)
+  if(WIN32)
+    set(DEFAULT_CREATE_INSTALLER ON)
+  endif()
 else()
   set(DEFAULT_CREATE_BUNDLE OFF)
 endif()
 
 set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
+
+if(WIN32)
+  set(CREATE_INSTALLER ${DEFAULT_CREATE_INSTALLER} CACHE BOOL "Create application installer")
+endif()
 
 # configure version info
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)

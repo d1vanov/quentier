@@ -409,7 +409,7 @@ Section "Program Group" SectionProgramGroup
   !insertmacro MUI_STARTMENU_WRITE_BEGIN ""
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}"
 
   ${If} $MultiUser.InstallMode == "AllUsers"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\${UNINSTALL_FILENAME}" "/allusers"
@@ -427,7 +427,7 @@ Section /o "Desktop icon" SectionDesktopIcon
 SectionEnd
 
 Section /o "Start Menu Icon" SectionStartMenuIcon
-  CreateShortCut "$STARTMENU\${PRODUCT_NAME}.lnk" "$INSTDIR\${PROGEXE}"
+  CreateShortCut "$STARTMENU\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}"
 SectionEnd
 
 Section /o "Quick Launch" SectionQuickLaunchIcon

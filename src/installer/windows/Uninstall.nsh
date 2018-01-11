@@ -64,14 +64,14 @@ Section "un.Program Files" SectionUninstallProgram
     RMDir /r "$SMPROGRAMS\$StartMenuFolder"
   ${EndIf}
 
-  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the desktop shortcut: DESKTOP = $DESKTOP, PRODUCT_NAME = ${PRODUCT_NAME}"
-  !insertmacro un.DeleteRetryAbort "$DESKTOP\${PRODUCT_NAME}.lnk"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the desktop shortcut: DESKTOP = $DESKTOP, MUI_PRODUCT = ${MUI_PRODUCT}"
+  !insertmacro un.DeleteRetryAbort "$DESKTOP\${MUI_PRODUCT}.lnk"
 
-  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the start menu shortcut: STARTMENU = $STARTMENU, PRODUCT_NAME = ${PRODUCT_NAME}"
-  !insertmacro un.DeleteRetryAbort "$STARTMENU\${PRODUCT_NAME}.lnk"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the start menu shortcut: STARTMENU = $STARTMENU, MUI_PRODUCT = ${MUI_PRODUCT}"
+  !insertmacro un.DeleteRetryAbort "$STARTMENU\${MUI_PRODUCT}.lnk"
 
-  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the quick launch shortcut: QUICKLAUNCH = $QUICKLAUNCH, PRODUCT_NAME = ${PRODUCT_NAME}"
-  !insertmacro un.DeleteRetryAbort "$QUICKLAUNCH\${PRODUCT_NAME}.lnk"
+  nsislog::log "$TEMP\${MUI_PRODUCT}_uninstall.log" "Attempting to remove the quick launch shortcut: QUICKLAUNCH = $QUICKLAUNCH, MUI_PRODUCT = ${MUI_PRODUCT}"
+  !insertmacro un.DeleteRetryAbort "$QUICKLAUNCH\${MUI_PRODUCT}.lnk"
 
   ;Remove registry keys
   DeleteRegKey HKCU "Software\${PRODUCT_NAME}"
