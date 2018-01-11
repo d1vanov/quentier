@@ -506,7 +506,7 @@ FunctionEnd
 Function DetermineVCRuntimeVersion
   nsislog::log "$TEMP\${MUI_PRODUCT}_install.log" "DetermineVCRuntimeVersion: MSVC = $MSVC"
   ${If} $MSVC == "true"
-    StrCpy $VCRuntimeVersion @VC_VERSION@
+    StrCpy $VCRuntimeVersion "@VC_VERSION@"
   ${EndIf}
 FunctionEnd
 
