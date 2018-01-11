@@ -153,9 +153,6 @@ function(CreateQuentierBundle)
   endforeach()
 
   if(WIN32)
-    # For Windows need to add libquentier to the list of libs for "fixing up", otherwise OpenSSL libraries could be missed within the package
-    set(LIBS "${LIBQUENTIER_LIBRARY_LOCATION}")
-
     if(USE_QT5)
       install(CODE "
               message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
@@ -181,13 +178,13 @@ function(CreateQuentierBundle)
                 include(BundleUtilities)
               endif()
               include(InstallRequiredSystemLibraries)
-              fixup_bundle(\"${APPS}\"   \"${LIBS}\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
+              fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
               " COMPONENT Runtime)
     else()
       install(CODE "
               include(DeployQt4)
               include(InstallRequiredSystemLibraries)
-              fixup_qt4_executable(${APPS} \"qsqlite\" \"${LIBS}\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
+              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
               " COMPONENT Runtime)
     endif(USE_QT5)
 
