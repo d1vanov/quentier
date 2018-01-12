@@ -42,7 +42,6 @@ function(target_architecture output_var)
   if (NOT ARCH)
     set(ARCH unknown)
   endif()
-endif()
 
-set(${output_var} "${ARCH}" PARENT_SCOPE)
+  set(${output_var} "${ARCH}" PARENT_SCOPE)
 endfunction()
