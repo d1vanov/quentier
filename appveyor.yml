@@ -43,9 +43,6 @@ init:
   - if not %platform%==mingw (set makefiles="NMake Makefiles") else (set makefiles="MinGW Makefiles")
   - if %platform%==mingw (set use_webkit=1) else (set use_webkit=0)
   - if %platform%==mingw set PATH=C:\MinGW\bin;C:\Program Files (x86)\CMake\bin;%PATH%
-  - if not %name%==win64 set OPENSSL_ROOT_DIR=C:\OpenSSL-Win32 else set OPENSSL_ROOT_DIR=C:\OpenSSL-Win64
-  - if not %qt%==msvc2017_64 set BOOST_ROOT=C:\Libraries\boost_1_63_0
-  - if %qt%==msvc2017_64 set BOOST_ROOT=C:\Libraries\boost_1_65_1
   - if %qt%==msvc2017_64 set PATH="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin";%PATH%
   - if %qt%==msvc2015 set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
   
@@ -125,6 +122,34 @@ install:
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
+# Boost
+  - echo "Downloading boost"
+  - md c:\dev\boost
+  - cd c:\dev\boost
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost_msvc2015_x86.zip -o boost_msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x boost_msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost_msvc2017_x64.zip -o boost_msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x boost_msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost_mingw492_32_x86.zip -o boost_mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x boost_mingw492_32_x86.zip
+  - set PATH=%cd%\bin;%PATH%
+  - set LIB=%cd%\lib;%LIB%
+  - set INCLUDE=%cd%\include;%INCLUDE%
+  - set BOOST_ROOT=%cd%
+# OpenSSL
+  - echo "Downloading OpenSSL"
+  - md c:\dev\openssl
+  - cd c:\dev\openssl
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-msvc2015_x86.zip -o openssl-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x openssl-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-msvc2017_x64.zip -o openssl-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x openssl-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-mingw492_32_x86.zip -o openssl-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 7z x openssl-mingw492_32_x86.zip
+  - set PATH=%cd%\bin;%PATH%
+  - set LIB=%cd%\lib;%LIB%
+  - set INCLUDE=%cd%\include;%INCLUDE%
+  - set OPENSSL_ROOT_DIR=%cd%
 # Qtkeychain
   - echo "Downloading qtkeychain"
   - md c:\dev\qtkeychain
