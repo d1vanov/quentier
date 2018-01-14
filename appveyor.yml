@@ -276,7 +276,7 @@ build_script:
   - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
 # hack for Boost 1.66 not yet recognized by CMake
   - cd c:\dev\quentier\cmake\modules
-  - curl -fsSL https://gitlab.kitware.com/cmake/cmake/raw/v3.10.1/Modules/FindBoost.cmake -o FindBoost.cmake
+  - curl -fsSL https://gitlab.kitware.com/cmake/cmake/uploads/4229efe419ce4ab8b2911556cb91d439/FindBoost.cmake -o FindBoost.cmake
   - cd c:\dev\quentier\build
   - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.dll.a" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DBoost_ADDITIONAL_VERSIONS="1.66" -DBOOST_LIBRARYDIR="c:/dev/boost/lib"
   - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.lib" -DBREAKPAD_ROOT="C:/dev/breakpad" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DBoost_ADDITIONAL_VERSIONS="1.66" -DBOOST_LIBRARYDIR="c:/dev/boost/lib"
