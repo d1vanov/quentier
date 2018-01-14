@@ -209,9 +209,9 @@ function(CreateQuentierBundle)
             set(ENV{LD_LIBRARY_PATH} \"${Qt5Core_DIR}/../../../lib:${DIRS}\")
             set(ENV{ARCH} \"${ARCH}\")
             execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
-                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -verbose=0 -bundle-non-qt-libs)
+                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/org.quentier.Quentier.desktop -verbose=0 -bundle-non-qt-libs)
             execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
-                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/Quentier.desktop -appimage)
+                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/org.quentier.Quentier.desktop -appimage)
             " COMPONENT Runtime)
   endif()
 endfunction()

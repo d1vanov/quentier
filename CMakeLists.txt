@@ -598,7 +598,8 @@ endif()
 if(NOT WIN32 AND NOT APPLE)
   # install .desktop file
   install(FILES ${PROJECT_SOURCE_DIR}/resource/Quentier.desktop
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications")
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
+          RENAME org.quentier.Quentier.desktop)
   # install application icons
   install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_16.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/16x16/apps"
@@ -624,6 +625,10 @@ if(NOT WIN32 AND NOT APPLE)
   install(FILES ${PROJECT_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
           RENAME quentier.png)
+  # install metainfo file
+  install(FILES ${PROJECT_SOURCE_DIR}/resource/quentier-metainfo.appdata.xml
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/metainfo"
+          RENAME org.quentier.Quentier.appdata.xml)
 endif()
 
 if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))

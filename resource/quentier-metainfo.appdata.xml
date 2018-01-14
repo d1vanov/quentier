@@ -22,6 +22,8 @@
         </p>
     </description>
 
+    <launchable type="desktop-id">org.quentier.Quentier.desktop</launchable>
+
     <screenshots>
         <screenshot type="default">
 	    <caption>Main window</caption>
