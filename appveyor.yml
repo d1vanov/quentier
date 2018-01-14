@@ -274,8 +274,11 @@ build_script:
   - cd c:\dev\quentier\build
   - if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
-  - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.dll.a" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DBOOST_LIBRARYDIR="c:/dev/boost/lib"
-  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.lib" -DBREAKPAD_ROOT="C:/dev/breakpad" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DBOOST_LIBRARYDIR="c:/dev/boost/lib"
+  - if %qt%==msvc2015 set BOOSTLIBRARIES="optimized;c:/dev/boost/lib/boost_program_options-vc140-mt-x32-1_66.lib;debug;c:/dev/boost/lib/boost_program_options-vc140-mt-gd-x32-1_66.lib"
+  - if %qt%==msvc2017_64 set BOOSTLIBRARIES="optimized;c:/dev/boost/lib/boost_program_options-vc141-mt-x64-1_66.lib;debug;c:/dev/boost/lib/boost_program_options-vc141-mt-gd-x64-1_66.lib"
+  - if %qt%==mingw492_32 set BOOSTLIBRARIES="optimized;c:/dev/boost/lib/libboost_program_options-mgw53-mt-x32-1_66.lib;debug;c:/dev/boost/lib/libboost_program_options-mgw53-mt-d-x32-1_66.lib"
+  - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.dll.a" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DBOOST_LIBRARYDIR="c:/dev/boost/lib" -DBoost_LIBRARIES=%BOOSTLIBRARIES%
+  - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DUSE_QT5=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.9.2/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.lib" -DBREAKPAD_ROOT="C:/dev/breakpad" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DBOOST_LIBRARYDIR="c:/dev/boost/lib" -DBoost_LIBRARIES=%BOOSTLIBRARIES%
   - cmake --build . --target all
   - cmake --build . --target check
   - cmake --build . --target install
