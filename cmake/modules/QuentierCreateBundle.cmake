@@ -154,9 +154,14 @@ function(CreateQuentierBundle)
 
   if(WIN32)
     if(USE_QT5)
+      set(WINDEPLOYQT_OPTIONS "--no_compiler_runtime")
+      if(MINGW AND ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+        # Without this windeployqt thinks the binary is the debug one and deploys a ton of debug Qt libraries of huge weight
+        set(WINDEPLOYQT_OPTIONS "${WINDEPLOYQT_OPTIONS} --release")
+      endif()
       install(CODE "
               message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-              execute_process(COMMAND \"${DEPLOYQT_TOOL}\" --no-compiler-runtime ${APPS})
+              execute_process(COMMAND \"${DEPLOYQT_TOOL}\" ${WINDEPLOYQT_OPTIONS} ${APPS})
               " COMPONENT Runtime)
 
       if(LIBQUENTIER_USE_QT_WEB_ENGINE)
