@@ -154,7 +154,7 @@ function(CreateQuentierBundle)
 
   if(WIN32)
     if(USE_QT5)
-      set(WINDEPLOYQT_OPTIONS "--no_compiler_runtime")
+      set(WINDEPLOYQT_OPTIONS "--no-compiler-runtime")
       if(MINGW AND ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
         # Without this windeployqt thinks the binary is the debug one and deploys a ton of debug Qt libraries of huge weight
         set(WINDEPLOYQT_OPTIONS "${WINDEPLOYQT_OPTIONS} --release")
