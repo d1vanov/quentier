@@ -13,7 +13,7 @@
 ;Defines required for MultiUser script
 !define PRODUCT_NAME "${MUI_PRODUCT} ${PRODUCT_EDITION}"
 !define VERSION "${MUI_VERSION}"
-!define PROGEXE "${MUI_FILE}.exe"
+!define PROGEXE "@QUENTIER_LAUNCHABLE_FILE@"
 !define UNINSTALL_FILENAME "Uninstall.exe"
 
 ;--------------------------------

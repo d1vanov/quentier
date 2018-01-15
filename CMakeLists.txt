@@ -681,10 +681,12 @@ if(NSIS_FOUND)
     # No need to check for older versions since Quentier isn't buildable with them anyway
 
     set(PRODUCT_EDITION "${PRODUCT_EDITION} MSVC${VC_VERSION}")
+    set(QUENTIER_LAUNCHABLE_FILE "quentier.exe")
   else()
     set(MINGW_VERSION "${GCC_VERSION}")
     string(REGEX REPLACE "\n$" "" MINGW_VERSION "${MINGW_VERSION}")
     set(PRODUCT_EDITION "${PRODUCT_EDITION} MinGW ${MINGW_VERSION}")
+    set(QUENTIER_LAUNCHABLE_FILE "quentier.bat")
   endif()
 
   set(PRODUCT_EDITION "${PRODUCT_EDITION} ${QUENTIER_TARGET_PLATFORM}")
