@@ -1,3 +1,2 @@
-@echo off
 set PATH=
-start /d quentier.exe
+start "Quentier" "%cd%\quentier.exe"
