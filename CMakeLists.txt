@@ -308,7 +308,7 @@ set(${PROJECT_NAME}_TR_SOURCES
     ${${PROJECT_NAME}_SOURCES})
 
 set(${PROJECT_NAME}_TR_FILES
-    translations/quentier_ru.ts)
+    translations/quentier_ru_RU.ts)
 
 set(${PROJECT_NAME}_QM_FILES "")
 update_translation("${${PROJECT_NAME}_TR_SOURCES}" "${FORMS}" "${${PROJECT_NAME}_TR_FILES}")
@@ -575,13 +575,33 @@ install(TARGETS ${PROJECT_NAME}
 
 # install translations
 foreach(QM_FILE ${${PROJECT_NAME}_QM_FILES})
-  install(CODE "set(QM_FILE \"${QM_FILE}\")
-                if(EXISTS \"${QM_FILE}\")
-                  set(CMAKE_INSTALL_TRANSLATIONSDIR \"${CMAKE_INSTALL_TRANSLATIONSDIR}\")
-                  message(STATUS \"Installing translations into: ${CMAKE_INSTALL_TRANSLATIONSDIR}\")
-                  file(COPY ${QM_FILE} DESTINATION ${CMAKE_INSTALL_TRANSLATIONSDIR})
-                endif()")
+  install(CODE "
+          set(QM_FILE \"${QM_FILE}\")
+          if(EXISTS \"${QM_FILE}\")
+            get_filename_component(QM_FILE_BASE_NAME \"${QM_FILE}\" NAME)
+            if(APPLE)
+              set(DESTDIR \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Resources/translations/quentier\")
+            else()
+              set(DESTDIR \"${CMAKE_INSTALL_TRANSLATIONSDIR}\")
+            endif()
+            message(STATUS \"Installing: \${DESTDIR}/\${QM_FILE_BASE_NAME}\")
+            file(COPY \"${QM_FILE}\" DESTINATION \"\${DESTDIR}\")
+          endif()
+          " COMPONENT Runtime)
 endforeach()
+
+if(APPLE)
+  # install libquentier's translations into the app bundle
+  install(CODE "
+          set(LIBQUENTIER_TRANSLATIONS_SEARCH_PATH \"${LIBQUENTIER_INCLUDE_DIRS}/../share/libquentier/translations\")
+          file(GLOB LIBQUENTIER_TRANSLATION_FILES \"\${LIBQUENTIER_TRANSLATIONS_SEARCH_PATH}/libquentier_*.qm\")
+          foreach(LIBQUENTIER_TRANSLATION_FILE \${LIBQUENTIER_TRANSLATION_FILES})
+            get_filename_component(LIBQUENTIER_TRANSLATION_FILE_BASE_NAME \"\${LIBQUENTIER_TRANSLATION_FILE}\" NAME)
+            message(STATUS \"Installing: ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Resources/translations/libquentier/\${LIBQUENTIER_TRANSLATION_FILE_BASE_NAME}\")
+            file(COPY \"\${LIBQUENTIER_TRANSLATION_FILE}\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Resources/translations/libquentier/\${LIBQUENTIER_TRANSLATION_FILE_BASE_NAME}\")
+          endforeach()
+          " COMPONENT Runtime)
+endif()
 
 if(BREAKPAD_FOUND)
   install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms.compressed
