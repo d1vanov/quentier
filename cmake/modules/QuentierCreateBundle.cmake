@@ -254,7 +254,7 @@ function(CreateQuentierBundle)
       # MinGW built binary for some reason searches for dlls first on PATH and only then at its folder
       # Working around this: installing custom bat file for launching of quentier.exe with empty PATH
       install(CODE "
-              file(COPY \"${PROJECT_SOURCE_DIR}/src/installer/windows/quentier.bat\" ${CMAKE_INSTALL_BINDIR})
+              file(COPY \"${PROJECT_SOURCE_DIR}/src/installer/windows/quentier.bat\" DESTINATION ${CMAKE_INSTALL_BINDIR})
               " COMPONENT Runtime)
     endif()
 
