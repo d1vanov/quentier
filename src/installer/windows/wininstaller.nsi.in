@@ -409,7 +409,12 @@ Section "Program Group" SectionProgramGroup
   !insertmacro MUI_STARTMENU_WRITE_BEGIN ""
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+
+  ${If} $MSVC == true
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Else}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs$\" $\"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Endif}
 
   ${If} $MultiUser.InstallMode == "AllUsers"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\${UNINSTALL_FILENAME}" "/allusers"
@@ -423,16 +428,28 @@ SectionEnd
 SectionGroup /e "Integration" SectionGroupIntegration
 
 Section /o "Desktop icon" SectionDesktopIcon
-  CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${If} $MSVC == true
+    CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Else}
+    CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs\$" \$"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Endif}
 SectionEnd
 
 Section /o "Start Menu Icon" SectionStartMenuIcon
-  CreateShortCut "$STARTMENU\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${If} $MSVC == true
+    CreateShortCut "$STARTMENU\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Else}
+    CreateShortCut "$STARTMENU\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs\$" \$"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Endif}
 SectionEnd
 
 Section /o "Quick Launch" SectionQuickLaunchIcon
   ;The QuickLaunch is always only for the current user
-  CreateShortCut "$QUICKLAUNCH\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${If} $MSVC == true
+    CreateShortCut "$QUICKLAUNCH\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Else}
+    CreateShortCut "$QUICKLAUNCH\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs\$" \$"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+  ${Endif}
 SectionEnd
 
 SectionGroupEnd
