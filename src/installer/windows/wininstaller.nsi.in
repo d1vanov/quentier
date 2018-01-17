@@ -413,7 +413,7 @@ Section "Program Group" SectionProgramGroup
   ${If} $MSVC == true
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Else}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs$\" $\"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${MUI_PRODUCT}.lnk" 'wscript.exe "$INSTDIR\quentier_launcher.vbs" "$INSTDIR\quentier.bat"' "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Endif}
 
   ${If} $MultiUser.InstallMode == "AllUsers"
@@ -431,7 +431,7 @@ Section /o "Desktop icon" SectionDesktopIcon
   ${If} $MSVC == true
     CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Else}
-    CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs\$" \$"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+    CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" 'wscript.exe "$INSTDIR\quentier_launcher.vbs" "$INSTDIR\quentier.bat"' "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Endif}
 SectionEnd
 
@@ -439,7 +439,7 @@ Section /o "Start Menu Icon" SectionStartMenuIcon
   ${If} $MSVC == true
     CreateShortCut "$STARTMENU\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Else}
-    CreateShortCut "$STARTMENU\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs\$" \$"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+    CreateShortCut "$STARTMENU\${MUI_PRODUCT}.lnk" 'wscript.exe "$INSTDIR\quentier_launcher.vbs" "$INSTDIR\quentier.bat"' "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Endif}
 SectionEnd
 
@@ -448,7 +448,7 @@ Section /o "Quick Launch" SectionQuickLaunchIcon
   ${If} $MSVC == true
     CreateShortCut "$QUICKLAUNCH\${MUI_PRODUCT}.lnk" "$INSTDIR\${PROGEXE}" "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Else}
-    CreateShortCut "$QUICKLAUNCH\${MUI_PRODUCT}.lnk" "wscript.exe $\"$INSTDIR\quentier_launcher.vbs\$" \$"$INSTDIR\quentier.bat\$"" "" "$INSTDIR\${MUI_FILE}.exe" 0
+    CreateShortCut "$QUICKLAUNCH\${MUI_PRODUCT}.lnk" 'wscript.exe "$INSTDIR\quentier_launcher.vbs" "$INSTDIR\quentier.bat"' "" "$INSTDIR\${MUI_FILE}.exe" 0
   ${Endif}
 SectionEnd
 
