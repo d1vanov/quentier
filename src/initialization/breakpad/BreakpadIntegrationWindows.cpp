@@ -51,14 +51,10 @@ namespace quentier {
 Q_GLOBAL_STATIC(std::wstring, quentierMinidumpsStorageFolderPath)
 Q_GLOBAL_STATIC(std::wstring, quentierCrashHandlerFilePath)
 Q_GLOBAL_STATIC(std::wstring, quentierCrashHandlerArgs)
-Q_GLOBAL_STATIC(std::string, quentierCrashHandlerFilePathMultiByte)
-Q_GLOBAL_STATIC(std::string, quentierCrashHandlerArgsMultiByte)
 #else
 static std::wstring quentierMinidumpsStorageFolderPath;
 static std::wstring quentierCrashHandlerFilePath;
 static std::wstring quentierCrashHandlerArgs;
-static std::string quentierCrashHandlerFilePathMultiByte;
-static std::string quentierCrashHandlerArgsMultiByte;
 #endif
 
 bool ShowDumpResults(const wchar_t * dump_path,
@@ -95,31 +91,15 @@ bool ShowDumpResults(const wchar_t * dump_path,
     pQuentierCrashHandlerArgs->append(L".dmp");
 
     std::wstring * pQuentierCrashHandlerFilePath = NULL;
-    std::string * pQuentierCrashHandlerFilePathMultiByte = NULL;
-    std::string * pQuentierCrashHandlerArgsMultiByte = NULL;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
-    pQuentierCrashHandlerFilePathMultiByte = quentierCrashHandlerFilePathMultiByte;
-    pQuentierCrashHandlerArgsMultiByte = quentierCrashHandlerArgsMultiByte;
 #else
     pQuentierCrashHandlerFilePath = &quentierCrashHandlerFilePath;
-    pQuentierCrashHandlerFilePathMultiByte = &quentierCrashHandlerFilePathMultiByte;
-    pQuentierCrashHandlerArgsMultiByte = &quentierCrashHandlerArgsMultiByte;
 #endif
 
-    int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, pQuentierCrashHandlerFilePath->c_str(), int(pQuentierCrashHandlerFilePath->length() + 1), 0, 0, 0, 0);
-    pQuentierCrashHandlerFilePathMultiByte->assign(sizeNeeded, 0);
-    WideCharToMultiByte(CP_ACP, 0, pQuentierCrashHandlerFilePath->c_str(), int(pQuentierCrashHandlerFilePath->length() + 1),
-                        &(*pQuentierCrashHandlerFilePathMultiByte)[0], sizeNeeded, 0, 0);
-
-    sizeNeeded = WideCharToMultiByte(CP_ACP, 0, pQuentierCrashHandlerArgs->c_str(), int(pQuentierCrashHandlerArgs->length() + 1), 0, 0, 0, 0);
-    pQuentierCrashHandlerArgsMultiByte->assign(sizeNeeded, 0);
-    WideCharToMultiByte(CP_ACP, 0, pQuentierCrashHandlerArgs->c_str(), int(pQuentierCrashHandlerArgs->length() + 1),
-                        &(*pQuentierCrashHandlerArgsMultiByte)[0], sizeNeeded, 0, 0);
-
-    const TCHAR * crashHandlerFilePath = pQuentierCrashHandlerFilePathMultiByte->c_str();
-    TCHAR * argsData = const_cast<TCHAR*>(pQuentierCrashHandlerArgsMultiByte->c_str());
+    const TCHAR * crashHandlerFilePath = pQuentierCrashHandlerFilePath->c_str();
+    TCHAR * argsData = const_cast<TCHAR*>(pQuentierCrashHandlerArgs->c_str());
 
     if (CreateProcess(crashHandlerFilePath, argsData, NULL, NULL, FALSE,
                       0, NULL, NULL, &startupInfo, &processInfo))
@@ -194,20 +174,6 @@ void setupBreakpad(const QApplication & app)
     // and pray that the appending of the path to generated minidump won't cause the resize; or, if it does, that
     // the resize succeeds and doesn't break the program about to crash
     pQuentierCrashHandlerArgs->reserve(static_cast<size_t>(pQuentierCrashHandlerArgs->size() + 1000));
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    quentierCrashHandlerArgsMultiByte->reserve(quentierCrashHandlerFilePath->capacity());
-#else
-    quentierCrashHandlerArgsMultiByte.reserve(quentierCrashHandlerFilePath.capacity());
-#endif
-
-    std::string * pQuentierCrashHandlerArgsMultiByte = NULL;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    pQuentierCrashHandlerArgsMultiByte = quentierCrashHandlerArgsMultiByte;
-#else
-    pQuentierCrashHandlerArgsMultiByte = &quentierCrashHandlerArgsMultiByte;
-#endif
-    pQuentierCrashHandlerArgsMultiByte->reserve(pQuentierCrashHandlerArgs->size());
 
     pBreakpadHandler = new google_breakpad::ExceptionHandler(std::wstring(minidumpsStorageFolderPathData),
                                                              NULL,

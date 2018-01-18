@@ -1,0 +1,8 @@
+if(WIN32 AND CREATE_BUNDLE)
+  find_package(NSIS)
+  if(NOT NSIS_FOUND)
+    message(STATUS "NSIS was not found, won't create the installer")
+  else()
+    message(STATUS "NSIS was found: ${NSIS_MAKE}; will create the installer")
+  endif()
+endif()

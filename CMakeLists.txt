@@ -308,7 +308,7 @@ set(${PROJECT_NAME}_TR_SOURCES
     ${${PROJECT_NAME}_SOURCES})
 
 set(${PROJECT_NAME}_TR_FILES
-    translations/quentier_ru.ts)
+    translations/quentier_ru_RU.ts)
 
 set(${PROJECT_NAME}_QM_FILES "")
 update_translation("${${PROJECT_NAME}_TR_SOURCES}" "${FORMS}" "${${PROJECT_NAME}_TR_FILES}")
@@ -348,11 +348,20 @@ endif()
 # install application bundle
 if(WIN32 OR APPLE)
   set(DEFAULT_CREATE_BUNDLE ON)
+  if(WIN32)
+    set(DEFAULT_CREATE_INSTALLER ON)
+  endif()
 else()
   set(DEFAULT_CREATE_BUNDLE OFF)
 endif()
 
 set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
+
+if(WIN32)
+  set(CREATE_INSTALLER ${DEFAULT_CREATE_INSTALLER} CACHE BOOL "Create application installer")
+endif()
+
+include(QuentierFindNSIS)
 
 # configure version info
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
@@ -379,6 +388,16 @@ if(GIT_FOUND)
     message(AUTHOR_WARNING "Failed to determine the current git branch, return code ${QUENTIER_GIT_BRANCH_RETURN_CODE}")
     set(QUENTIER_GIT_BRANCH "unknown branch")
   else()
+    if(${QUENTIER_GIT_BRANCH} STREQUAL "HEAD")
+      # Can happen if running on detached HEAD, can happen in CI jobs; workaround: try to get the current branch from environment variables
+      set(APPVEYOR_REPO_BRANCH "$ENV{APPVEYOR_REPO_BRANCH}")
+      set(TRAVIS_BRANCH "$ENV{TRAVIS_BRANCH}")
+      if(NOT "${APPVEYOR_REPO_BRANCH}" STREQUAL "")
+        set(QUENTIER_GIT_BRANCH "${APPVEYOR_REPO_BRANCH}")
+      elseif(NOT "${TRAVIS_BRANCH}" STREQUAL "")
+        set(QUENTIER_GIT_BRANCH "${TRAVIS_BRANCH}")
+      endif()
+    endif()
     message(STATUS "Git branch: ${QUENTIER_GIT_BRANCH}")
   endif()
 
@@ -556,13 +575,33 @@ install(TARGETS ${PROJECT_NAME}
 
 # install translations
 foreach(QM_FILE ${${PROJECT_NAME}_QM_FILES})
-  install(CODE "set(QM_FILE \"${QM_FILE}\")
-                if(EXISTS \"${QM_FILE}\")
-                  set(CMAKE_INSTALL_TRANSLATIONSDIR \"${CMAKE_INSTALL_TRANSLATIONSDIR}\")
-                  message(STATUS \"Installing translations into: ${CMAKE_INSTALL_TRANSLATIONSDIR}\")
-                  file(COPY ${QM_FILE} DESTINATION ${CMAKE_INSTALL_TRANSLATIONSDIR})
-                endif()")
+  install(CODE "
+          set(QM_FILE \"${QM_FILE}\")
+          if(EXISTS \"${QM_FILE}\")
+            get_filename_component(QM_FILE_BASE_NAME \"${QM_FILE}\" NAME)
+            if(APPLE)
+              set(DESTDIR \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Resources/translations/quentier\")
+            else()
+              set(DESTDIR \"${CMAKE_INSTALL_TRANSLATIONSDIR}\")
+            endif()
+            message(STATUS \"Installing: \${DESTDIR}/\${QM_FILE_BASE_NAME}\")
+            file(COPY \"${QM_FILE}\" DESTINATION \"\${DESTDIR}\")
+          endif()
+          " COMPONENT Runtime)
 endforeach()
+
+if(APPLE)
+  # install libquentier's translations into the app bundle
+  install(CODE "
+          set(LIBQUENTIER_TRANSLATIONS_SEARCH_PATH \"${LIBQUENTIER_INCLUDE_DIRS}/../share/libquentier/translations\")
+          file(GLOB LIBQUENTIER_TRANSLATION_FILES \"\${LIBQUENTIER_TRANSLATIONS_SEARCH_PATH}/libquentier_*.qm\")
+          foreach(LIBQUENTIER_TRANSLATION_FILE \${LIBQUENTIER_TRANSLATION_FILES})
+            get_filename_component(LIBQUENTIER_TRANSLATION_FILE_BASE_NAME \"\${LIBQUENTIER_TRANSLATION_FILE}\" NAME)
+            message(STATUS \"Installing: ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Resources/translations/libquentier/\${LIBQUENTIER_TRANSLATION_FILE_BASE_NAME}\")
+            file(COPY \"\${LIBQUENTIER_TRANSLATION_FILE}\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Resources/translations/libquentier/\${LIBQUENTIER_TRANSLATION_FILE_BASE_NAME}\")
+          endforeach()
+          " COMPONENT Runtime)
+endif()
 
 if(BREAKPAD_FOUND)
   install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.syms.compressed
@@ -633,6 +672,56 @@ endif()
 
 if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
   include(QuentierFindLinuxdeployqt)
+endif()
+
+if(NSIS_FOUND)
+  include(QuentierDetectArchitecture)
+  set(ARCH "")
+  target_architecture(ARCH)
+  message(STATUS "Target architecture: ${ARCH}")
+  if(ARCH MATCHES "x86_64")
+    set(QUENTIER_TARGET_PLATFORM x64)
+  else()
+    set(QUENTIER_TARGET_PLATFORM Win32)
+  endif()
+
+  if(USE_QT5)
+    set(PRODUCT_EDITION "Qt ${Qt5Core_VERSION}")
+  else()
+    set(PRODUCT_EDITION "Qt ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.${QT_VERSION_PATCH}")
+  endif()
+
+  if(MSVC)
+    if(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]1(.+)")
+      set(VC_VERSION "2017")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]0(.+)")
+      set(VC_VERSION "2015")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^18[.](.+)")
+      set(VC_VERSION "2013")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^17[.](.+)")
+      set(VC_VERSION "2012")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^16[.](.+)")
+      set(VC_VERSION "2010")
+    endif()
+    # No need to check for older versions since Quentier isn't buildable with them anyway
+
+    set(PRODUCT_EDITION "${PRODUCT_EDITION} MSVC${VC_VERSION}")
+    set(QUENTIER_LAUNCHABLE_FILE "quentier.exe")
+  else()
+    set(MINGW_VERSION "${GCC_VERSION}")
+    string(REGEX REPLACE "\n$" "" MINGW_VERSION "${MINGW_VERSION}")
+    set(PRODUCT_EDITION "${PRODUCT_EDITION} MinGW ${MINGW_VERSION}")
+    set(QUENTIER_LAUNCHABLE_FILE "quentier.bat")
+  endif()
+
+  set(PRODUCT_EDITION "${PRODUCT_EDITION} ${QUENTIER_TARGET_PLATFORM}")
+
+  if(NOT LIBQUENTIER_USE_QT_WEB_ENGINE AND MSVC)
+    set(PRODUCT_EDITION "${PRODUCT_EDITION} webkit")
+  endif()
+
+  configure_file(src/installer/windows/wininstaller.nsi.in
+                 ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
 endif()
 
 include(QuentierCreateBundle)

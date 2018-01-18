@@ -17,7 +17,6 @@
  */
 
 #include "LoadDependencies.h"
-#include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/VersionInfo.h>
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -25,13 +24,12 @@
 #include <QStringList>
 #include <QDirIterator>
 #include <QSqlDatabase>
+#include <QDebug>
 
 namespace quentier {
 
 void loadDependencies()
 {
-    QNDEBUG(QStringLiteral("loadDependencies"));
-
 #ifdef Q_OS_WIN
     QStringList paths = QCoreApplication::libraryPaths();
     paths.append(QStringLiteral("."));
@@ -53,29 +51,9 @@ void loadDependencies()
 
         QPluginLoader pluginLoader(fileName);
         if (!pluginLoader.load()) {
-            QNDEBUG(QStringLiteral("Failed to load plugin ") << fileName);
-        }
-        else {
-            QNDEBUG(QStringLiteral("Loaded plugin ") << fileName);
+            qWarning() << QStringLiteral("Failed to load plugin ") << fileName;
         }
     }
-
-    QStringList drivers = QSqlDatabase::drivers();
-    for(auto it = drivers.constBegin(), end = drivers.constEnd(); it != end; ++it) {
-        QNDEBUG(QStringLiteral("Available SQL driver: ") << *it);
-    }
-
-#ifdef LIB_QUENTIER_USE_QT_WEB_ENGINE
-    QString qtWebEngineProcessPath = QDir::currentPath() + QStringLiteral("/QtWebEngineProcess.exe");
-    QFileInfo qtWebEngineProcessFileInfo(qtWebEngineProcessPath);
-    if (!qtWebEngineProcessFileInfo.exists()) {
-        qtWebEngineProcessPath = QDir::currentPath() + QStringLiteral("/QtWebEngineProcessd.exe");
-    }
-
-    qputenv("QTWEBENGINEPROCESS_PATH", QByteArray(qtWebEngineProcessPath.toLocal8Bit()));
-    QNDEBUG(QStringLiteral("Set QTWEBENGINEPROCESS_PATH to ") << qtWebEngineProcessPath);
-#endif
-
 #endif // Q_OS_WIN
 }
 
