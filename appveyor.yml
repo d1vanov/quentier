@@ -2,17 +2,18 @@ version: '0.4.0-{build}'
 
 branches:
   only:
-    - feature/Issue-145-integrate-AppVeyor-CI
+    - master
+    - development
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 environment:
   auth_token:
     secure: upe+zH95QfXvoMZJdhk37+Z0Wp8+vDpMmrrrxQDdBLL3mn4Yvm8/g6M/WElgOhN3
   matrix:
-#    - prepare_mode: YES
-#      name: win32-prepare
-#      platform: amd64_x86
-#      qt: msvc2015
+    - prepare_mode: YES
+      name: win32-prepare
+      platform: amd64_x86
+      qt: msvc2015
     - prepare_mode: NO
       name: win32
       platform: amd64_x86
@@ -52,8 +53,8 @@ install:
   - cd c:\dev\ciuploadtool
   - curl -fsSL https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_windows_x86.zip -o ciuploadtool_windows_x86.zip
   - 7z x ciuploadtool_windows_x86.zip
-#  - if %prepare_mode%==YES c:\dev\ciuploadtool\ciuploadtool.exe -preponly -suffix="%APPVEYOR_REPO_BRANCH%"
-#  - ps: if ($env:prepare_mode -eq "YES") { throw "Failing in order to stop the current build matrix job early" }
+  - if %prepare_mode%==YES c:\dev\ciuploadtool\ciuploadtool.exe -preponly -suffix="%APPVEYOR_REPO_BRANCH%"
+  - ps: if ($env:prepare_mode -eq "YES") { throw "Failing in order to stop the current build matrix job early" }
 # libiconv
   - echo "Downloading libiconv"
   - md c:\dev\libiconv
@@ -281,8 +282,8 @@ after_build:
   - cd c:\dev\install
   - 7z a %DEPLOYMENT_TARGET% c:\dev\install\*
   - move %DEPLOYMENT_TARGET% %APPVEYOR_BUILD_FOLDER%
-#  - cd %APPVEYOR_BUILD_FOLDER%
-#  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" %DEPLOYMENT_TARGET%
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe
 
 artifacts:
   - path: '*.zip'
