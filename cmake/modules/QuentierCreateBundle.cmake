@@ -166,9 +166,9 @@ function(CreateQuentierBundle)
 
       if(LIBQUENTIER_USE_QT_WEB_ENGINE)
         set(QTWEBENGINEPROCESS "${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe")
-        install(FILES "${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_BINDIR}")
-        install(DIRECTORY "${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_BINDIR}")
-        install(DIRECTORY "${Qt5Core_DIR}/../../../translations/qtwebengine_locales DESTINATION ${CMAKE_INSTALL_BINDIR}/translations")
+        install(FILES "${QTWEBENGINEPROCESS}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
+        install(DIRECTORY "${Qt5Core_DIR}/../../../resources" DESTINATION "${CMAKE_INSTALL_BINDIR}")
+        install(DIRECTORY "${Qt5Core_DIR}/../../../translations/qtwebengine_locales" DESTINATION "${CMAKE_INSTALL_BINDIR}/translations")
       endif()
 
       # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
