@@ -609,6 +609,17 @@ if(APPLE)
             file(COPY \"\${LIBQUENTIER_TRANSLATION_FILE}\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Resources/translations/libquentier/\${LIBQUENTIER_TRANSLATION_FILE_BASE_NAME}\")
           endforeach()
           " COMPONENT Runtime)
+elseif(WIN32)
+  # install libquentier's translations into the app's installation prefix
+  install(CODE "
+          set(LIBQUENTIER_TRANSLATIONS_SEARCH_PATH \"${LIBQUENTIER_INCLUDE_DIRS}/../share/libquentier/translations\")
+          file(GLOB LIBQUENTIER_TRANSLATION_FILES \"\${LIBQUENTIER_TRANSLATIONS_SEARCH_PATH}/libquentier_*.qm\")
+          foreach(LIBQUENTIER_TRANSLATION_FILE \${LIBQUENTIER_TRANSLATION_FILES})
+            get_filename_component(LIBQUENTIER_TRANSLATION_FILE_BASE_NAME \"\${LIBQUENTIER_TRANSLATION_FILE}\" NAME)
+            message(STATUS \"Installing: ${CMAKE_INSTALL_PREFIX}/share/libquentier/translations/\${LIBQUENTIER_TRANSLATION_FILE_BASE_NAME}\")
+            file(COPY \"\${LIBQUENTIER_TRANSLATION_FILE}\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/share/libquentier/translations/\${LIBQUENTIER_TRANSLATION_FILE_BASE_NAME}\")
+          endforeach()
+          " COMPONENT Runtime)
 endif()
 
 if(BREAKPAD_FOUND)
