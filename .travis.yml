@@ -288,7 +288,7 @@ script:
                   -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
                   -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
-          endif
+          fi
         elif [ "${QT_BASE}" = "551" ]; then
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
