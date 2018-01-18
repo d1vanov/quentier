@@ -21,7 +21,13 @@ at software enthusiasts, developers and people who like tinkering with fresh stu
 
 Quentier is written in C++ using Qt framework and is built on top of [libquentier](http://github.com/d1vanov/libquentier) library.
 
-Read the project's [blog](https://d1vanov.github.io/quentier) for more details.
+Read the project's [blog](https://d1vanov.github.io/quentier) and [wiki](https://github.com/d1vanov/quentier/wiki) for more details.
+
+## Downloads
+
+See [releases](https://github.com/d1vanov/quentier/releases) page with available releases and downloads for Linux, Windows and OS X / macOS.
+
+Note that **Continuous-master** is the latest somewhat stable version, **Continuous-development** is the latest development one.
 
 ## How to build/install
 
