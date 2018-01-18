@@ -5,6 +5,8 @@ Quentier
 
 Travis CI (Linux, OS X): [![Build Status](https://travis-ci.org/d1vanov/quentier.svg?branch=master)](https://travis-ci.org/d1vanov/quentier)
 
+AppVeyor CI (Windows): [![Build status](https://ci.appveyor.com/api/projects/status/0o2ro87sw1wm3ama/branch/master?svg=true)](https://ci.appveyor.com/project/d1vanov/quentier)
+
 ## What's this
 
 Quentier is a cross-platform desktop note taking app capable of working as Evernote client. You can also use Quentier
