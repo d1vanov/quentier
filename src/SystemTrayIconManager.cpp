@@ -874,6 +874,9 @@ void SystemTrayIconManager::evaluateShowHideMenuActions()
         }
 
         QString text = pAction->text();
+        // NOTE: required to workaround https://bugs.kde.org/show_bug.cgi?id=337491
+        text.remove(QChar::fromLatin1('&'), Qt::CaseInsensitive);
+
         if (text == showText) {
             pShowAction = pAction;
         }
