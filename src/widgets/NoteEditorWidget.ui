@@ -139,7 +139,7 @@
                <enum>Qt::NoFocus</enum>
               </property>
               <property name="toolTip">
-               <string/>
+               <string>Redo the last undone action</string>
               </property>
               <property name="text">
                <string/>
@@ -176,6 +176,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Cut the selected text</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -204,6 +207,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Copy the selected text</string>
               </property>
               <property name="text">
                <string/>
@@ -234,6 +240,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Paste the selected text</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -262,6 +271,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Toggle bold text</string>
               </property>
               <property name="text">
                <string/>
@@ -295,6 +307,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Toggle italic text</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -326,6 +341,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Toggle underlined text</string>
               </property>
               <property name="text">
                <string/>
@@ -359,6 +377,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Toggle strikethrough</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -390,6 +411,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Justify left</string>
               </property>
               <property name="text">
                <string/>
@@ -423,6 +447,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Justify center</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -455,6 +482,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Justify right</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -481,6 +511,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Justify fill</string>
+              </property>
               <property name="icon">
                <iconset theme="format-justify-fill">
                 <normaloff>.</normaloff>.</iconset>
@@ -503,6 +536,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Insert ToDo</string>
               </property>
               <property name="text">
                <string/>
@@ -532,6 +568,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Toggle spell checking</string>
               </property>
               <property name="layoutDirection">
                <enum>Qt::RightToLeft</enum>
@@ -597,6 +636,9 @@
                 <height>26</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Choose font family</string>
+              </property>
              </widget>
             </item>
             <item>
@@ -606,6 +648,9 @@
                 <width>120</width>
                 <height>26</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Choose font family</string>
               </property>
              </widget>
             </item>
@@ -628,6 +673,9 @@
                 <width>85</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Choose font size</string>
               </property>
               <property name="editable">
                <bool>false</bool>
@@ -654,6 +702,9 @@
                 <height>26</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Choose text color</string>
+              </property>
               <property name="text">
                <string notr="true"/>
               </property>
@@ -679,6 +730,9 @@
                 <width>52</width>
                 <height>26</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Choose background color</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -709,6 +763,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Insert horizontal line</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -737,6 +794,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Indent less</string>
               </property>
               <property name="text">
                <string/>
@@ -767,6 +827,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Indent more</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -795,6 +858,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Toggle ordered list</string>
               </property>
               <property name="text">
                <string/>
@@ -828,6 +894,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Toggle unordered list</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -860,6 +929,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Format selected text as source code</string>
+              </property>
               <property name="icon">
                <iconset resource="../../resource/icons/other/icons.qrc">
                 <normaloff>:/format_as_source_code/format_as_source_code.png</normaloff>:/format_as_source_code/format_as_source_code.png</iconset>
@@ -876,6 +948,9 @@
                 <width>52</width>
                 <height>26</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Insert table</string>
               </property>
               <property name="text">
                <string/>
@@ -903,6 +978,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Save note modifications</string>
+              </property>
               <property name="icon">
                <iconset theme="document-save">
                 <normaloff>.</normaloff>.</iconset>
@@ -922,6 +1000,9 @@
              <widget class="QPushButton" name="printNotePushButton">
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>Print note</string>
               </property>
               <property name="icon">
                <iconset theme="document-print">
@@ -943,6 +1024,9 @@
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
               </property>
+              <property name="toolTip">
+               <string>Export note to pdf</string>
+              </property>
               <property name="icon">
                <iconset theme="application-pdf">
                 <normaloff>.</normaloff>.</iconset>
@@ -960,6 +1044,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="exportNoteToEnexPushButton">
+              <property name="toolTip">
+               <string>Export note to ENEX</string>
+              </property>
               <property name="icon">
                <iconset theme="application-enex">
                 <normaloff>.</normaloff>.</iconset>
