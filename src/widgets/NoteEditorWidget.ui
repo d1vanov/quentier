@@ -861,8 +861,8 @@
                <enum>Qt::NoFocus</enum>
               </property>
               <property name="icon">
-               <iconset theme="text-x-script">
-                <normaloff>.</normaloff>.</iconset>
+               <iconset resource="../../resource/icons/other/icons.qrc">
+                <normaloff>:/format_as_source_code/format_as_source_code.png</normaloff>:/format_as_source_code/format_as_source_code.png</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -1113,6 +1113,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../resource/icons/other/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

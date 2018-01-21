@@ -6,5 +6,6 @@
         <file>notebook/book.png</file>
         <file>sync/sync.png</file>
         <file>sync/sync.gif</file>
+	<file>format_as_source_code/format_as_source_code.png</file>
     </qresource>
 </RCC>
