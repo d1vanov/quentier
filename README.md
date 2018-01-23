@@ -14,7 +14,7 @@ for local notes without any connection to Evernote and synchronization.
 
 Quentier is free software distributed under the terms of GPL v.3.
 
-<img src="https://d1vanov.github.io/quentier/Quentier_sample_screenshot.png" width=800>
+<img src="https://d1vanov.github.io/quentier/Quentier.gif">
 
 At the moment Quentier is in public alpha state and is not yet intended for production usage. Currently it's targeted
 at software enthusiasts, developers and people who like tinkering with fresh stuff.
