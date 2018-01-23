@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Developers Guide on Quentier</title>
+    <link>https://d1vanov.github.io/quentier/series/developers-guide/</link>
+    <description>Recent content in Developers Guide on Quentier</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Dmitry Ivanov</copyright>
+    <lastBuildDate>Sun, 07 Jan 2018 23:20:33 +0300</lastBuildDate>
+    
+	<atom:link href="https://d1vanov.github.io/quentier/series/developers-guide/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Quentier internals overview</title>
+      <link>https://d1vanov.github.io/quentier/blog/quentier-technical-overview/</link>
+      <pubDate>Sun, 07 Jan 2018 23:20:33 +0300</pubDate>
+      
+      <guid>https://d1vanov.github.io/quentier/blog/quentier-technical-overview/</guid>
+      <description>This post is primarily for developers who would like to contribute to Quentier but aren&amp;rsquo;t quite sure where to start. Here the high-level overview of the app design is explained.
+First, let&amp;rsquo;s briefly enumerate the kinds of technology used in Quentier project:
+ Qt/C++ CMake SQLite JavaScript CSS (a bit)  If you are familiar with any of these technologies, you are most likely able to help developing Quentier! However, note that there are some specific ways in which these technologies are used in the project.</description>
+    </item>
+    
+  </channel>
+</rss>

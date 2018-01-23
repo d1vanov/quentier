@@ -24,6 +24,12 @@
   </url>
   
   <url>
+    <loc>https://d1vanov.github.io/quentier/series/developers-guide/</loc>
+    <lastmod>2018-01-07T23:20:33+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://d1vanov.github.io/quentier/</loc>
     <lastmod>2018-01-07T23:20:33+03:00</lastmod>
     <priority>0</priority>
@@ -31,6 +37,7 @@
   
   <url>
     <loc>https://d1vanov.github.io/quentier/series/</loc>
+    <lastmod>2018-01-07T23:20:33+03:00</lastmod>
     <priority>0</priority>
   </url>
   
