@@ -27,6 +27,8 @@ Here are the libraries Quentier depends on:
 Although it is theoretically possible to use different Qt versions to build Quentier and its dependencies, it is highly
 not recommended as it can cause all sort of building and/or runtime issues.
 
+See [the detailed guide](https://github.com/d1vanov/quentier/wiki/Building-and-installation-of-Quentier's-dependencies) on building and installing the dependencies.
+
 ## Building
 
 Quentier uses [CMake](https://cmake.org) build system to find all the necessary libraries and to generate makefiles
