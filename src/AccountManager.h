@@ -78,7 +78,7 @@ private Q_SLOTS:
 private:
     void detectAvailableAccounts();
 
-    QSharedPointer<Account> createDefaultAccount(ErrorString & errorDescription);
+    QSharedPointer<Account> createDefaultAccount(ErrorString & errorDescription, bool * pCreatedDefaultAccount);
     QSharedPointer<Account> createLocalAccount(const QString & name, const QString & displayName,
                                                ErrorString & errorDescription);
     bool createAccountInfo(const Account & account);

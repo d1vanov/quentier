@@ -57,7 +57,7 @@ Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
     if (pLastUsedAccount.isNull())
     {
         ErrorString errorDescription;
-        pLastUsedAccount = createDefaultAccount(errorDescription);
+        pLastUsedAccount = createDefaultAccount(errorDescription, pCreatedDefaultAccount);
         if (Q_UNLIKELY(pLastUsedAccount.isNull())) {
             ErrorString error(QT_TR_NOOP("Can't initialize the default account"));
             error.appendBase(errorDescription.base());
@@ -67,10 +67,6 @@ Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
         }
 
         updateLastUsedAccount(*pLastUsedAccount);
-
-        if (pCreatedDefaultAccount) {
-            *pCreatedDefaultAccount = true;
-        }
     }
 
     return *pLastUsedAccount;
@@ -326,9 +322,13 @@ void AccountManager::detectAvailableAccounts()
     }
 }
 
-QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & errorDescription)
+QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & errorDescription, bool * pCreatedDefaultAccount)
 {
     QNDEBUG(QStringLiteral("AccountManager::createDefaultAccount"));
+
+    if (pCreatedDefaultAccount) {
+        *pCreatedDefaultAccount = false;
+    }
 
     QString username = getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
@@ -348,6 +348,10 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & error
     if (m_availableAccounts.contains(*pDefaultAccount)) {
         QNDEBUG(QStringLiteral("The default account already exists"));
         return pDefaultAccount;
+    }
+
+    if (pCreatedDefaultAccount) {
+        *pCreatedDefaultAccount = true;
     }
 
     return createLocalAccount(username, fullName, errorDescription);
