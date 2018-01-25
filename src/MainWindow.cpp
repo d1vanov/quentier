@@ -1923,7 +1923,10 @@ void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint3
         return;
     }
 
-    double percentage = (highestDownloadedUsn - lastPreviousUsn) / (highestServerUsn - lastPreviousUsn) * 100.0;
+    double numerator = highestDownloadedUsn - lastPreviousUsn;
+    double denominator = highestServerUsn - lastPreviousUsn;
+
+    double percentage = numerator / denominator * 100.0;
     percentage = std::min(percentage, 100.0);
 
     onSetStatusBarText(tr("Downloading sync chunks") + QStringLiteral(": ") +
