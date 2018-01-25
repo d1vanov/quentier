@@ -7,10 +7,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Dmitry Ivanov</copyright>
-    <lastBuildDate>Sun, 07 Jan 2018 23:20:33 +0300</lastBuildDate>
+    <lastBuildDate>Fri, 19 Jan 2018 11:07:39 +0300</lastBuildDate>
     
 	<atom:link href="https://d1vanov.github.io/quentier/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Installation of Quentier&#39;s dependencies</title>
+      <link>https://d1vanov.github.io/quentier/blog/quentier-installation-of-dependencies/</link>
+      <pubDate>Fri, 19 Jan 2018 11:07:39 +0300</pubDate>
+      
+      <guid>https://d1vanov.github.io/quentier/blog/quentier-installation-of-dependencies/</guid>
+      <description>Table of contents  Introduction Dependencies Linux Mac Windows  Building dependencies with Visual Studio  Preparing the environment Building boost program options library Building OpenSSL Building libiconv Building zlib Building libxml2 Building libhunspell Building tidy-html5 Building qtkeychain Building Google breakpad  Building dependencies with MinGW  Building boost program options library Building OpenSSL Building libiconv Building zlib Building libxml2 Building libhunspell Building tidy-html5 Building qtkeychain    Introduction Quentier has a fair share of dependencies and their installation is a complex enough procedure, especially on Windows platform.</description>
+    </item>
     
     <item>
       <title>Quentier internals overview</title>
