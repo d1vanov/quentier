@@ -1,10 +1,11 @@
-# How to contribute
+# Contributing to Quentier
 
-Contributions to Quentier are warmly welcome. However, in order to ensure the successful adoption of your contributions, please refer to this guide.
+Thank you very much for considering contributing to Quentier! In order to ensure the successful adoption of your contributions please follow this guide:
 
-## Issues
-
-This section explains how to create and fill GitHub issues in a way most helpful to the developers and community at large.
+* [How to report a bug](#how-to-report-a-bug)
+* [How to contribute a bugfix](#how-to-contribute-a-bugfix)
+* [How to suggest a new feature or improvement](#how-to-suggest-a-new-feature-or-improvement)
+* [Submitting pull requests: which proposed changes are generally NOT approved](#submitting-pull-requests-which-proposed-changes-are-generally-not-approved)
 
 ### How to report a bug
 
@@ -61,10 +62,9 @@ When working on a feature or improvement implementation, please comply with the 
 
 All the new features and major improvements should be contributed to `development` branch, not `master`.
 
+### Submitting pull requests: which proposed changes are generally NOT approved
 
-### What changes are generally NOT approved
-
-- Breaking backward compatibility without a really good reason for that.
-- The introduction of dependencies on strictly the latest versions of anything, like, on some feature existing only in the latest version of Qt.
-- The direct unconditional usage of C++11/14/17 features breaking the build with older compilers not supporting them (see the [coding style](CodingStyle.md) doc for more info on that)
-- The breakage of building/working with Qt4
+* Breaking backward compatibility without a really good reason for that.
+* The introduction of dependencies on strictly the latest versions of anything, like, on some feature existing only in the latest version of Qt.
+* The direct unconditional usage of C++11/14/17 features breaking the build with older compilers not supporting them (see the [coding style](CodingStyle.md) doc for more info on that)
+* The breakage of building/working with Qt4
