@@ -23,7 +23,7 @@ If Quentier crashes, here is what you should do:
 
 If Quentier behaves in a way you would not expect, please do the following:
  * Describe in fine details what you were doing, which result you expected to get and what you actually got
- * Provide the trace-level application log collected while reproducing the issue
+ * Provide the trace-level [application log](https://github.com/d1vanov/quentier/wiki/Collecting-Quentier-logs-for-troubleshooting) collected while reproducing the issue
 
 
 ### How to suggest a new feature or improvement
