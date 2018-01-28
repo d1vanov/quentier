@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2018 Dmitry Ivanov <dm.vl.ivanov@gmail.com> -->
 <component type="desktop-application">
-    <id type="desktop">Quentier</id>
+    <id>org.quentier.Quentier</id>
     <metadata_license>FSFAP</metadata_license>
     <project_license>GPL-3.0</project_license>
     <name>Quentier</name>
     <summary>Note taking app integrated with Evernote</summary>
-
     <description>
         <p>
             Quentier is a cross-platform note taking app capable of working as Evernote client.
@@ -21,9 +20,8 @@
 	     * Ability to switch between accounts - both local and Evernote ones
         </p>
     </description>
-
     <launchable type="desktop-id">org.quentier.Quentier.desktop</launchable>
-
+    <url type="homepage">https://github.com/d1vanov/quentier</url>
     <screenshots>
         <screenshot type="default">
 	    <caption>Main window</caption>
@@ -42,7 +40,8 @@
 	    <image>https://d1vanov.github.io/quentier/Quentier_note_list_view.png</image>
 	</screenshot>
     </screenshots>
-
-    <url type="homepage">https://github.com/d1vanov/quentier</url>
+    <provides>
+        <id>org.quentier.Quentier.desktop</id>
+    </provides>
     <updatecontact>dm.vl.ivanov@gmail.com</updatecontact>
 </component>
