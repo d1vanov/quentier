@@ -13,11 +13,13 @@
             the Evernote account.
 
 	    Quentier supports the following features:
-             * Synchronization of user data (notebooks, notes, tags, saved searches) with Evernote servers
-	     * <a href="https://dev.evernote.com/doc/articles/search_grammar.php">Evernote search syntax</a> can be used for data searching within the local database
-	     * Printing of notes and converting them to pdf files
-             * Ability to open several notes simultaneously in either tabbed or windowed interface
-	     * Ability to switch between accounts - both local and Evernote ones
+            <ul>
+              <li>Synchronization of user data (notebooks, notes, tags, saved searches) with Evernote servers</li>
+              <li><a href="https://dev.evernote.com/doc/articles/search_grammar.php">Evernote search syntax</a> can be used for data searching within the local database</li>
+              <li>Printing of notes and converting them to pdf files</li>
+              <li>Ability to open several notes simultaneously in either tabbed or windowed interface</li>
+              <li>Ability to switch between accounts - both local and Evernote ones</li>
+            </ul>
         </p>
     </description>
     <launchable type="desktop-id">org.quentier.Quentier.desktop</launchable>
