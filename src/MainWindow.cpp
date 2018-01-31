@@ -4998,7 +4998,7 @@ void MainWindow::persistGeometryAndState()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    bool splitterSizesCountOk = (splitterSizesCount == 3);
+    bool splitterSizesCountOk = (splitterSizesCount == 5);
 
     QList<int> sidePanelSplitterSizes = m_pUI->sidePanelSplitter->sizes();
     int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
@@ -5029,7 +5029,7 @@ void MainWindow::persistGeometryAndState()
     if (splitterSizesCountOk && showSidePanel &&
         (showFavoritesView || showNotebooksView || showTagsView || showSavedSearches || showDeletedNotes))
     {
-        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, splitterSizes[0]);
+        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, splitterSizes[1]);
     }
     else
     {
@@ -5038,7 +5038,7 @@ void MainWindow::persistGeometryAndState()
 
     bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
     if (splitterSizesCountOk && showNotesList) {
-        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, splitterSizes[1]);
+        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, splitterSizes[2]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, QVariant());
@@ -5137,9 +5137,12 @@ void MainWindow::restoreSplitterSizes()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    if (splitterSizesCount == 3)
+    if (splitterSizesCount == 5)
     {
-        int totalWidth = splitterSizes[0] + splitterSizes[1] + splitterSizes[2];
+        int totalWidth = 0;
+        for(int i = 0; i < splitterSizesCount; ++i) {
+            totalWidth += splitterSizes[i];
+        }
 
         if (sidePanelWidth.isValid() && showSidePanel &&
             (showFavoritesView || showNotebooksView || showTagsView || showSavedSearches || showDeletedNotes))
@@ -5147,7 +5150,7 @@ void MainWindow::restoreSplitterSizes()
             bool conversionResult = false;
             int sidePanelWidthInt = sidePanelWidth.toInt(&conversionResult);
             if (conversionResult) {
-                splitterSizes[0] = sidePanelWidthInt;
+                splitterSizes[1] = sidePanelWidthInt;
                 QNTRACE(QStringLiteral("Restored side panel width: ") << sidePanelWidthInt);
             }
             else {
@@ -5161,7 +5164,7 @@ void MainWindow::restoreSplitterSizes()
             bool conversionResult = false;
             int notesListWidthInt = notesListWidth.toInt(&conversionResult);
             if (conversionResult) {
-                splitterSizes[1] = notesListWidthInt;
+                splitterSizes[2] = notesListWidthInt;
                 QNTRACE(QStringLiteral("Restored notes list panel width: ") << notesListWidthInt);
             }
             else {
@@ -5170,7 +5173,7 @@ void MainWindow::restoreSplitterSizes()
             }
         }
 
-        splitterSizes[2] = totalWidth - splitterSizes[0] - splitterSizes[1];
+        splitterSizes[3] = totalWidth - splitterSizes[0] - splitterSizes[1] - splitterSizes[2] - splitterSizes[4];
         m_pUI->splitter->setSizes(splitterSizes);
         QNTRACE(QStringLiteral("Set splitter sizes"));
     }

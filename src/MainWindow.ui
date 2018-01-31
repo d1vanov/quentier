@@ -430,6 +430,31 @@ padding-right: 2px;
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
+      <widget class="QWidget" name="leftBorderWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>6</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>6</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #626262;
+border-right: 1px solid black;
+margin-right: 0px;</string>
+       </property>
+      </widget>
       <widget class="QSplitter" name="sidePanelSplitter">
        <property name="maximumSize">
         <size>
@@ -2729,6 +2754,31 @@ margin: 0px;
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="rightBorderWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>6</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>6</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #626262;
+border-left: 1px solid black;
+margin-left: 0px;</string>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -2739,7 +2789,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">
