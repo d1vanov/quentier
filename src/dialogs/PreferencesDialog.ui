@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>514</width>
-    <height>474</height>
+    <height>485</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -103,6 +103,257 @@
          <property name="text">
           <string>Show note thumbnails</string>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="leftMainWindowBorderGroupBox">
+         <property name="styleSheet">
+          <string notr="true">QGroupBox {
+border: 2px solid gray;
+border-radius: 8px;
+}</string>
+         </property>
+         <property name="title">
+          <string>Left border</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="leftMainWindowBorderOptionLabel">
+            <property name="text">
+             <string>&amp;Display option:</string>
+            </property>
+            <property name="buddy">
+             <cstring>leftMainWindowBorderOptionComboBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="leftMainWindowBorderOptionComboBox"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="leftMainWindowBorderWidthColorLayout">
+            <item>
+             <layout class="QHBoxLayout" name="leftMainWindowBorderWidthLayout">
+              <item>
+               <widget class="QLabel" name="leftMainWindowBorderWidthLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>&amp;Width:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>leftMainWindowBorderWidthSpinBox</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="leftMainWindowBorderWidthSpinBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="leftMainWindowBorderColorLayout">
+              <item>
+               <widget class="QLabel" name="leftMainWindowBorderColorLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>&amp;Color:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>leftMainWindowBorderColorLineEdit</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="leftMainWindowBorderColorLineEdit">
+                <property name="autoFillBackground">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="leftMainWindowBorderColorPushButton">
+                <property name="text">
+                 <string>Choose...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="leftMainWindowBorderWidthColorHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="rightMainWindowBorderGroupBox">
+         <property name="styleSheet">
+          <string notr="true">QGroupBox {
+border: 2px solid gray;
+border-radius: 8px;
+}</string>
+         </property>
+         <property name="title">
+          <string>Right border</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="rightMainWindowBorderOptionLabel">
+            <property name="text">
+             <string>Display &amp;option:</string>
+            </property>
+            <property name="buddy">
+             <cstring>rightMainWindowBorderOptionComboBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="rightMainWindowBorderOptionComboBox"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <layout class="QHBoxLayout" name="rightMainWindowBorderWidthLayout">
+              <item>
+               <widget class="QLabel" name="rightMainWindowBorderWidthLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>W&amp;idth:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>rightMainWindowBorderWidthSpinBox</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="rightMainWindowBorderWidthSpinBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="rightMainWindorBorderColorLayout">
+              <item>
+               <widget class="QLabel" name="rightMainWindowBorderColorLabel">
+                <property name="text">
+                 <string>Co&amp;lor:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>rightMainWindowBorderColorLineEdit</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="rightMainWindowBorderColorLineEdit">
+                <property name="autoFillBackground">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="rightMainWindowBorderColorPushButton">
+                <property name="text">
+                 <string>Choose...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="rightMainWindowBorderWidthColorHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
