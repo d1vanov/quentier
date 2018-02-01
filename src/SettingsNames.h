@@ -38,6 +38,19 @@
 #define PANELS_STYLE_SETTINGS_KEY QStringLiteral("PanelStyle")
 #define SHOW_NOTE_THUMBNAILS_SETTINGS_KEY QStringLiteral("ShowNoteThumbnails")
 
+#define DARKER_PANEL_STYLE_NAME QStringLiteral("Darker")
+#define LIGHTER_PANEL_STYLE_NAME QStringLiteral("Lighter")
+
+// Left/right main window borders settings
+
+#define SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowLeftMainWindowOption")
+#define LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY QStringLiteral("LeftMainWindowBorderWidth")
+#define LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR QStringLiteral("LeftMainWindowBorderOverrideColor")
+
+#define SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowRightMainWindowOption")
+#define RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY QStringLiteral("RightMainWindowBorderWidth")
+#define RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR QStringLiteral("RightMainWindowBorderOverrideColor")
+
 // ENEX export/import related settings keys
 #define ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME QStringLiteral("EnexExportImport")
 

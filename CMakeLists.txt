@@ -66,6 +66,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
+    src/MainWindowSideBorderOption.h
+    src/MainWindowSideBordersController.h
     src/AsyncFileWriter.h
     src/ActionsInfo.h
     src/DefaultSettings.h
@@ -168,6 +170,7 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
+    src/MainWindowSideBordersController.cpp
     src/ActionsInfo.cpp
     src/AsyncFileWriter.cpp
     src/AccountManager.cpp

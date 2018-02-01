@@ -140,9 +140,6 @@ using quentier::LogViewerWidget;
 #define MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT QStringLiteral("SavedSearchesViewHeight")
 #define MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT QStringLiteral("DeletedNotesViewHeight")
 
-#define DARKER_PANEL_STYLE_NAME QStringLiteral("Darker")
-#define LIGHTER_PANEL_STYLE_NAME QStringLiteral("Lighter")
-
 #define PERSIST_GEOMETRY_AND_STATE_DELAY (500)
 #define RESTORE_SPLITTER_SIZES_DELAY (200)
 
@@ -682,6 +679,14 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
     int totalWidth = width();
 
+    if (!m_pUI->leftBorderWidget->isHidden()) {
+        totalWidth -= m_pUI->leftBorderWidget->width();
+    }
+
+    if (!m_pUI->rightBorderWidget->isHidden()) {
+        totalWidth -= m_pUI->rightBorderWidget->width();
+    }
+
     // 1/5 - for side view, 1/5 - for note list view, 3/5 - for the note editor
     int partWidth = totalWidth / 5;
 
@@ -689,7 +694,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    if (Q_UNLIKELY(splitterSizesCount != 3)) {
+    if (Q_UNLIKELY(splitterSizesCount != 5)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't setup the proper initial widths "
                                      "for side panel, note list view and note editors view: "
                                      "wrong number of sizes within the splitter"));
@@ -698,9 +703,9 @@ void MainWindow::setupInitialChildWidgetsWidths()
         return;
     }
 
-    splitterSizes[0] = partWidth;
     splitterSizes[1] = partWidth;
-    splitterSizes[2] = totalWidth - 2 * partWidth;
+    splitterSizes[2] = partWidth;
+    splitterSizes[3] = totalWidth - 2 * partWidth;
 
     m_pUI->splitter->setSizes(splitterSizes);
 }
