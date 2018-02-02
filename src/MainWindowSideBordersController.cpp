@@ -17,27 +17,14 @@
  */
 
 #include "MainWindowSideBordersController.h"
-#include "MainWindowSideBorderOption.h"
-
-#include "views/FavoriteItemView.h"
-#include "views/NotebookItemView.h"
-#include "views/TagItemView.h"
-#include "views/SavedSearchItemView.h"
-#include "views/DeletedNoteItemView.h"
-#include "views/NoteListView.h"
-#include "widgets/FilterByNotebookWidget.h"
-#include "widgets/FilterByTagWidget.h"
-#include "widgets/FilterBySavedSearchWidget.h"
-#include "widgets/TabWidget.h"
-
-using namespace quentier;
-#include "ui_MainWindow.h"
-
 #include "SettingsNames.h"
 #include "DefaultSettings.h"
+#include "dialogs/PreferencesDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <QColor>
+#include <QWidget>
+#include <QMenu>
 
 #define BORDER_MIN_WIDTH (4)
 #define BORDER_MAX_WIDTH (20)
@@ -45,65 +32,89 @@ using namespace quentier;
 namespace quentier {
 
 MainWindowSideBordersController::MainWindowSideBordersController(const Account & account,
-                                                                 Ui::MainWindow & ui,
-                                                                 QObject * parent) :
-    QObject(parent),
-    m_ui(ui),
-    m_currentAccount(account)
+                                                                 QWidget & leftBorder, QWidget & rightBorder,
+                                                                 QWidget & parent) :
+    QObject(&parent),
+    m_leftBorder(leftBorder),
+    m_rightBorder(rightBorder),
+    m_parent(parent),
+    m_currentAccount(account),
+    m_pLeftBorderContextMenu(Q_NULLPTR),
+    m_pRightBorderContextMenu(Q_NULLPTR)
 {
     initializeBordersState();
 }
 
-void MainWindowSideBordersController::toggleLeftBorderDisplay(bool on)
+void MainWindowSideBordersController::connectToPreferencesDialog(PreferencesDialog & dialog)
 {
-    QNDEBUG(QStringLiteral("MainWindowSideBordersController::toggleLeftBorderDisplay: ")
-            << (on ? QStringLiteral("on") : QStringLiteral("off")));
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::connectToPreferencesDialog"));
 
-    toggleBorderDisplay(on, *m_ui.leftBorderWidget);
+    QObject::connect(&dialog, QNSIGNAL(PreferencesDialog,showMainWindowLeftBorderOptionChanged,int),
+                     this, QNSLOT(MainWindowSideBordersController,onShowLeftBorderOptionChanged,int),
+                     Qt::ConnectionType(Qt::AutoConnection | Qt::UniqueConnection));
+    QObject::connect(&dialog, QNSIGNAL(PreferencesDialog,showMainWindowRightBorderOptionChanged,int),
+                     this, QNSLOT(MainWindowSideBordersController,onShowRightBorderOptionChanged,int),
+                     Qt::ConnectionType(Qt::AutoConnection | Qt::UniqueConnection));
+    QObject::connect(&dialog, QNSIGNAL(PreferencesDialog,mainWindowLeftBorderWidthChanged,int),
+                     this, QNSLOT(MainWindowSideBordersController,onLeftBorderWidthChanged,int),
+                     Qt::ConnectionType(Qt::AutoConnection | Qt::UniqueConnection));
+    QObject::connect(&dialog, QNSIGNAL(PreferencesDialog,mainWindowRightBorderWidthChanged,int),
+                     this, QNSLOT(MainWindowSideBordersController,onRightBorderWidthChanged,int),
+                     Qt::ConnectionType(Qt::AutoConnection | Qt::UniqueConnection));
+    QObject::connect(&dialog, QNSIGNAL(PreferencesDialog,mainWindowLeftBorderColorChanged,QString),
+                     this, QNSLOT(MainWindowSideBordersController,onLeftBorderColorChanged,QString),
+                     Qt::ConnectionType(Qt::AutoConnection | Qt::UniqueConnection));
+    QObject::connect(&dialog, QNSIGNAL(PreferencesDialog,mainWindowRightBorderColorChanged,QString),
+                     this, QNSLOT(MainWindowSideBordersController,onRightBorderColorChanged,QString),
+                     Qt::ConnectionType(Qt::AutoConnection | Qt::UniqueConnection));
 }
 
-void MainWindowSideBordersController::toggleRightBorderDisplay(bool on)
+void MainWindowSideBordersController::onShowLeftBorderOptionChanged(int option)
 {
-    QNDEBUG(QStringLiteral("MainWindowSideBordersController::toggleRightBorderDisplay: ")
-            << (on ? QStringLiteral("on") : QStringLiteral("off")));
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onShowLeftBorderOptionChanged: ") << option);
+    toggleBorderDisplay(option, m_leftBorder);
+}
 
-    toggleBorderDisplay(on, *m_ui.rightBorderWidget);
+void MainWindowSideBordersController::onShowRightBorderOptionChanged(int option)
+{
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onShowRightBorderOptionChanged: ") << option);
+    toggleBorderDisplay(option, m_rightBorder);
 }
 
 void MainWindowSideBordersController::onLeftBorderWidthChanged(int width)
 {
     QNDEBUG(QStringLiteral("MainWindowSideBordersController::onLeftBorderWidthChanged: ") << width);
-    onBorderWidthChanged(width, *m_ui.leftBorderWidget);
+    onBorderWidthChanged(width, m_leftBorder);
 }
 
 void MainWindowSideBordersController::onRightBorderWidthChanged(int width)
 {
     QNDEBUG(QStringLiteral("MainWindowSideBordersController::onRightBorderWidthChanged: ") << width);
-    onBorderWidthChanged(width, *m_ui.rightBorderWidget);
+    onBorderWidthChanged(width, m_rightBorder);
 }
 
 void MainWindowSideBordersController::onLeftBorderColorChanged(QString colorCode)
 {
     QNDEBUG(QStringLiteral("MainWindowSideBordersController::onLeftBorderColorChanged: color code = ") << colorCode);
-    onBorderColorChanged(colorCode, *m_ui.leftBorderWidget);
+    onBorderColorChanged(colorCode, m_leftBorder);
 }
 
 void MainWindowSideBordersController::onRightBorderColorChanged(QString colorCode)
 {
     QNDEBUG(QStringLiteral("MainWindowSideBordersController::onRightBorderColorChanged: color code = ") << colorCode);
-    onBorderColorChanged(colorCode, *m_ui.rightBorderWidget);
+    onBorderColorChanged(colorCode, m_rightBorder);
 }
 
-void MainWindowSideBordersController::onMainWindowExpanded()
+void MainWindowSideBordersController::onMainWindowMaximized()
 {
-    QNDEBUG(QStringLiteral("MainWindowSideBorderOption::onMainWindowExpanded"));
-    // TODO: implement
+    QNDEBUG(QStringLiteral("MainWindowSideBorderOption::onMainWindowMaximized"));
+    initializeBordersState();
 }
 
-void MainWindowSideBordersController::onMainWindowUnexpanded()
+void MainWindowSideBordersController::onMainWindowUnmaximized()
 {
-    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onMainWindowUnexpanded"));
-    // TODO: implement
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onMainWindowUnmaximized"));
+    initializeBordersState();
 }
 
 void MainWindowSideBordersController::setCurrentAccount(const Account & account)
@@ -119,14 +130,117 @@ void MainWindowSideBordersController::setCurrentAccount(const Account & account)
     initializeBordersState();
 }
 
-void MainWindowSideBordersController::toggleBorderDisplay(const bool on, QWidget & border)
+void MainWindowSideBordersController::onPanelStyleChanged(QString panelStyle)
 {
-    if (on) {
-        border.show();
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onPanelStyleChanged: ") << panelStyle);
+
+    initializeBorderColor(panelStyle, m_leftBorder);
+    initializeBorderColor(panelStyle, m_rightBorder);
+}
+
+void MainWindowSideBordersController::onLeftBorderContextMenuRequested(const QPoint & pos)
+{
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onLeftBorderContextMenuRequested"));
+
+    delete m_pLeftBorderContextMenu;
+    m_pLeftBorderContextMenu = new QMenu(&m_leftBorder);
+
+    onBorderContextMenuRequested(m_leftBorder, *m_pLeftBorderContextMenu, pos);
+}
+
+void MainWindowSideBordersController::onRightBorderContextMenuRequested(const QPoint & pos)
+{
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onRightBorderContextMenuRequested"));
+
+    delete m_pRightBorderContextMenu;
+    m_pRightBorderContextMenu = new QMenu(&m_rightBorder);
+
+    onBorderContextMenuRequested(m_rightBorder, *m_pRightBorderContextMenu, pos);
+}
+
+void MainWindowSideBordersController::onHideBorderRequestFromContextMenu()
+{
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onHideBorderRequestFromContextMenu"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        QNWARNING(QStringLiteral("Can't hide the main window border: internal error, can't cast the slot invoker to QAction"));
+        return;
+    }
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    if (pAction->parent() == m_pLeftBorderContextMenu) {
+        m_leftBorder.hide();
+        appSettings.setValue(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::NeverShow);
+    }
+    else if (pAction->parent() == m_pRightBorderContextMenu) {
+        m_rightBorder.hide();
+        appSettings.setValue(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::NeverShow);
     }
     else {
-        border.hide();
+        QNWARNING(QStringLiteral("Can't hide the main window border: internal error, can't figure out which border to hide "
+                                 "by QAction causing the slot to invoke"));
     }
+
+    appSettings.endGroup();
+}
+
+void MainWindowSideBordersController::onHideBorderWhenNotMaximizedRequestFromContextMenu()
+{
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onHideBorderWhenNotMaximizedRequestFromContextMenu"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        QNWARNING(QStringLiteral("Can't hide the main window border when it is not maximized: internal error, "
+                                 "can't cast the slot invoker to QAction"));
+        return;
+    }
+
+    bool mainWindowIsMaximized = m_parent.windowState() & Qt::WindowMaximized;
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    if (pAction->parent() == m_pLeftBorderContextMenu)
+    {
+        if (!mainWindowIsMaximized) {
+            m_leftBorder.hide();
+        }
+
+        appSettings.setValue(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::ShowOnlyWhenExpanded);
+    }
+    else if (pAction->parent() == m_pRightBorderContextMenu)
+    {
+        if (!mainWindowIsMaximized) {
+            m_rightBorder.hide();
+        }
+
+        appSettings.setValue(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::ShowOnlyWhenExpanded);
+    }
+    else
+    {
+        QNWARNING(QStringLiteral("Can't hide the main window border: internal error, can't figure out which border to hide "
+                                 "by QAction causing the slot to invoke"));
+    }
+
+    appSettings.endGroup();
+}
+
+void MainWindowSideBordersController::toggleBorderDisplay(const int option, QWidget & border)
+{
+    MainWindowSideBorderOption::type borderOption = MainWindowSideBorderOption::ShowOnlyWhenExpanded;
+    if ((option < 0) || (option > 2)) {
+        QNWARNING(QStringLiteral("Can't process the toggle border display option, wrong option value: ")
+                  << option << QStringLiteral(", fallback to showing only when expanded"));
+    }
+    else {
+        borderOption = static_cast<MainWindowSideBorderOption::type>(option);
+    }
+
+    bool mainWindowIsMaximized = m_parent.windowState() & Qt::WindowMaximized;
+    setBorderDisplayedState(borderOption, mainWindowIsMaximized, border);
 }
 
 void MainWindowSideBordersController::onBorderWidthChanged(const int width, QWidget & border)
@@ -143,7 +257,12 @@ void MainWindowSideBordersController::onBorderColorChanged(const QString & color
         return;
     }
 
-    initializeBorderColor(border);
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QString panelStyle = appSettings.value(PANELS_STYLE_SETTINGS_KEY).toString();
+    appSettings.endGroup();
+
+    initializeBorderColor(panelStyle, border);
 }
 
 void MainWindowSideBordersController::setBorderStyleSheet(const QString & colorCode, QWidget & border)
@@ -154,6 +273,27 @@ void MainWindowSideBordersController::setBorderStyleSheet(const QString & colorC
     border.setStyleSheet(styleSheet);
 }
 
+void MainWindowSideBordersController::onBorderContextMenuRequested(QWidget & border, QMenu & menu, const QPoint & pos)
+{
+    QAction * pHideAction = new QAction(tr("Hide"), &menu);
+    pHideAction->setEnabled(true);
+    QObject::connect(pHideAction, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindowSideBordersController,onHideBorderRequestFromContextMenu));
+    menu.addAction(pHideAction);
+
+    bool mainWindowIsMaximized = m_parent.windowState() & Qt::WindowMaximized;
+    if (!mainWindowIsMaximized)
+    {
+        QAction * pHideWhenNotMaximizedAction = new QAction(tr("Hide when not maximized"), &menu);
+        pHideWhenNotMaximizedAction->setEnabled(true);
+        QObject::connect(pHideWhenNotMaximizedAction, QNSIGNAL(QAction,triggered),
+                         this, QNSLOT(MainWindowSideBordersController,onHideBorderWhenNotMaximizedRequestFromContextMenu));
+        menu.addAction(pHideWhenNotMaximizedAction);
+    }
+
+    menu.show();
+    menu.exec(border.mapToGlobal(pos));
+}
+
 void MainWindowSideBordersController::initializeBordersState()
 {
     QNDEBUG(QStringLiteral("MainWindowSideBordersController::initializeBordersState"));
@@ -161,23 +301,23 @@ void MainWindowSideBordersController::initializeBordersState()
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
 
-    MainWindowSideBorderOption::type leftBorderOption = MainWindowSideBorderOption::ShowOnlyWhenExpanded;
+    MainWindowSideBorderOption::type leftBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
     bool conversionResult = false;
     int leftBorderOptionInt = appSettings.value(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
     if (!conversionResult || (leftBorderOptionInt < 0) || (leftBorderOptionInt > 2)) {
         QNINFO(QStringLiteral("Couldn't restore the persistent \"Show left main window border\" option, "
-                              "using the default one: show only when expanded"));
+                              "using the default one"));
     }
     else {
         leftBorderOption = static_cast<MainWindowSideBorderOption::type>(leftBorderOptionInt);
     }
 
-    MainWindowSideBorderOption::type rightBorderOption = MainWindowSideBorderOption::ShowOnlyWhenExpanded;
+    MainWindowSideBorderOption::type rightBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
     conversionResult = false;
     int rightBorderOptionInt = appSettings.value(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
     if (!conversionResult || (rightBorderOptionInt < 0) || (rightBorderOptionInt > 2)) {
         QNINFO(QStringLiteral("Couldn't restore the persistent \"Show right main window border\" option, "
-                              "using the default one: show only when expanded"));
+                              "using the default one"));
     }
     else {
         rightBorderOption = static_cast<MainWindowSideBorderOption::type>(rightBorderOptionInt);
@@ -187,7 +327,7 @@ void MainWindowSideBordersController::initializeBordersState()
     int leftBorderWidth = appSettings.value(LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY).toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
         QNDEBUG(QStringLiteral("Couldn't restore the persistent \"Left main window border width\" option, "
-                               "using the default one: 4px"));
+                               "using the default one"));
         leftBorderWidth = 4;
     }
 
@@ -195,47 +335,55 @@ void MainWindowSideBordersController::initializeBordersState()
     int rightBorderWidth = appSettings.value(RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY).toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
         QNDEBUG(QStringLiteral("Couldn't restore the persistent \"Right main window border width\" option, "
-                               "using the default one: 4px"));
+                               "using the default one"));
         rightBorderWidth = 4;
     }
 
+    QString panelStyle = appSettings.value(PANELS_STYLE_SETTINGS_KEY).toString();
+
     appSettings.endGroup();
 
-    // TODO: apply show option and width option to both left and right borders
+    m_leftBorder.resize(sanitizeWidth(leftBorderWidth), m_leftBorder.height());
+    m_rightBorder.resize(sanitizeWidth(rightBorderWidth), m_rightBorder.height());
 
-    initializeBorderColor(*m_ui.leftBorderWidget);
-    initializeBorderColor(*m_ui.rightBorderWidget);
+    initializeBorderColor(panelStyle, m_leftBorder);
+    initializeBorderColor(panelStyle, m_rightBorder);
+
+    bool mainWindowIsMaximized = m_parent.windowState() & Qt::WindowMaximized;
+
+    setBorderDisplayedState(leftBorderOption, mainWindowIsMaximized, m_leftBorder);
+    setBorderDisplayedState(rightBorderOption, mainWindowIsMaximized, m_rightBorder);
 }
 
-void MainWindowSideBordersController::initializeBorderColor(QWidget & border)
+void MainWindowSideBordersController::initializeBorderColor(const QString & panelStyle, QWidget & border)
 {
-    QWidget * pParentWidget = qobject_cast<QWidget*>(parent());
-    if (Q_UNLIKELY(!pParentWidget)) {
-        QNDEBUG(QStringLiteral("Can't cast the parent to QWidget, resetting the color to the default one"));
-        setBorderStyleSheet(DEFAULT_MAIN_WINDOW_BORDER_COLOR, border);
-        return;
-    }
-
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QString panelStyle = appSettings.value(PANELS_STYLE_SETTINGS_KEY).toString();
-    appSettings.endGroup();
-
-    QNDEBUG(QStringLiteral("Panel style from app settings: ") << panelStyle);
-
     if (panelStyle == DARKER_PANEL_STYLE_NAME) {
-        QColor color = pParentWidget->palette().color(QPalette::Dark);
+        QColor color = m_parent.palette().color(QPalette::Dark);
         setBorderStyleSheet(color.name(), border);
         return;
     }
 
     if (panelStyle == LIGHTER_PANEL_STYLE_NAME) {
-        QColor color = pParentWidget->palette().color(QPalette::Light);
+        QColor color = m_parent.palette().color(QPalette::Light);
         setBorderStyleSheet(color.name(), border);
         return;
     }
 
     setBorderStyleSheet(DEFAULT_MAIN_WINDOW_BORDER_COLOR, border);
+}
+
+void MainWindowSideBordersController::setBorderDisplayedState(const MainWindowSideBorderOption::type option,
+                                                              const bool mainWindowIsMaximized, QWidget & border)
+{
+    if ( (option == MainWindowSideBorderOption::AlwaysShow) ||
+         ((option == MainWindowSideBorderOption::ShowOnlyWhenExpanded) && mainWindowIsMaximized) )
+    {
+        border.show();
+    }
+    else
+    {
+        border.hide();
+    }
 }
 
 int MainWindowSideBordersController::sanitizeWidth(const int width) const

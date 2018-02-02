@@ -17,6 +17,7 @@
  */
 
 #include "MainWindow.h"
+#include "MainWindowSideBordersController.h"
 #include "SettingsNames.h"
 #include "DefaultSettings.h"
 #include "AsyncFileWriter.h"
@@ -175,6 +176,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_syncApiRateLimitExceeded(false),
     m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
     m_runSyncPeriodicallyTimerId(0),
+    m_pSideBordersController(Q_NULLPTR),
     m_notebookCache(),
     m_tagCache(),
     m_savedSearchCache(),
@@ -220,6 +222,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     bool createdDefaultAccount = false;
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount(&createdDefaultAccount)));
+
+    m_pSideBordersController = new MainWindowSideBordersController(*m_pAccount, *m_pUI->leftBorderWidget,
+                                                                   *m_pUI->rightBorderWidget, *this);
+
     if (createdDefaultAccount && !onceDisplayedGreeterScreen()) {
         m_pendingGreeterDialog = true;
         setOnceDisplayedGreeterScreen();
@@ -1218,6 +1224,7 @@ void MainWindow::setupPanelOverlayStyleSheets()
     }
 
     m_currentPanelStyle = panelStyle;
+    m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
 
     setPanelsOverlayStyleSheet(properties);
 }
@@ -3313,6 +3320,8 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     appSettings.remove(PANELS_STYLE_SETTINGS_KEY);
     appSettings.endGroup();
 
+    m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
+
     setPanelsOverlayStyleSheet(StyleSheetProperties());
 }
 
@@ -3333,6 +3342,8 @@ void MainWindow::onSwitchPanelStyleToLighter()
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
+
+    m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
 
     StyleSheetProperties properties;
     getPanelStyleSheetProperties(m_currentPanelStyle, properties);
@@ -3356,6 +3367,8 @@ void MainWindow::onSwitchPanelStyleToDarker()
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
+
+    m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
 
     StyleSheetProperties properties;
     getPanelStyleSheetProperties(m_currentPanelStyle, properties);
@@ -3398,6 +3411,8 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
     *m_pAccount = account;
     setWindowTitleForAccount(account);
+
+    m_pSideBordersController->setCurrentAccount(*m_pAccount);
 
     stopListeningForShortcutChanges();
     setupUserShortcuts();
@@ -3884,9 +3899,18 @@ void MainWindow::changeEvent(QEvent * pEvent)
     {
         Qt::WindowStates state = windowState();
         bool minimized = (state & Qt::WindowMinimized);
+        bool maximized = (state & Qt::WindowMaximized);
 
         QNDEBUG(QStringLiteral("Change event of window state change type: minimized = ")
-                << (minimized ? QStringLiteral("true") : QStringLiteral("false")));
+                << (minimized ? QStringLiteral("true") : QStringLiteral("false"))
+                << QStringLiteral(", maximized = ") << (maximized ? QStringLiteral("true") : QStringLiteral("false")));
+
+        if (maximized) {
+            m_pSideBordersController->onMainWindowMaximized();
+        }
+        else {
+            m_pSideBordersController->onMainWindowUnmaximized();
+        }
 
         if (!minimized)
         {

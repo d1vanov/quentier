@@ -19,17 +19,17 @@
 #ifndef QUENTIER_MAIN_WINDOW_SIDE_BORDERS_CONTROLLER_H
 #define QUENTIER_MAIN_WINDOW_SIDE_BORDERS_CONTROLLER_H
 
+#include "MainWindowSideBorderOption.h"
 #include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
 #include <QObject>
 
-namespace Ui {
-class MainWindow;
-}
-
-QT_FORWARD_DECLARE_CLASS(QWidget);
+QT_FORWARD_DECLARE_CLASS(QWidget)
+QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
+
+QT_FORWARD_DECLARE_CLASS(PreferencesDialog)
 
 /**
  * The MainWindowSideBordersController class is a small helper class
@@ -44,12 +44,14 @@ class MainWindowSideBordersController: public QObject
     Q_OBJECT
 public:
     explicit MainWindowSideBordersController(const Account & account,
-                                             Ui::MainWindow & ui,
-                                             QObject * parent = Q_NULLPTR);
+                                             QWidget & leftBorder, QWidget & rightBorder,
+                                             QWidget & parent);
+
+    void connectToPreferencesDialog(PreferencesDialog & dialog);
 
 public Q_SLOTS:
-    void toggleLeftBorderDisplay(bool on);
-    void toggleRightBorderDisplay(bool on);
+    void onShowLeftBorderOptionChanged(int option);
+    void onShowRightBorderOptionChanged(int option);
 
     void onLeftBorderWidthChanged(int width);
     void onRightBorderWidthChanged(int width);
@@ -57,25 +59,41 @@ public Q_SLOTS:
     void onLeftBorderColorChanged(QString colorCode);
     void onRightBorderColorChanged(QString colorCode);
 
-    void onMainWindowExpanded();
-    void onMainWindowUnexpanded();
+    void onMainWindowMaximized();
+    void onMainWindowUnmaximized();
 
     void setCurrentAccount(const Account & account);
+    void onPanelStyleChanged(QString panelStyle);
+
+private Q_SLOTS:
+    void onLeftBorderContextMenuRequested(const QPoint & pos);
+    void onRightBorderContextMenuRequested(const QPoint & pos);
+
+    void onHideBorderRequestFromContextMenu();
+    void onHideBorderWhenNotMaximizedRequestFromContextMenu();
 
 private:
-    void toggleBorderDisplay(const bool on, QWidget & border);
+    void toggleBorderDisplay(const int option, QWidget & border);
     void onBorderWidthChanged(const int width, QWidget & border);
     void onBorderColorChanged(const QString & colorCode, QWidget & border);
     void setBorderStyleSheet(const QString & colorCode, QWidget & border);
 
+    void onBorderContextMenuRequested(QWidget & border, QMenu & menu, const QPoint & pos);
+
     void initializeBordersState();
-    void initializeBorderColor(QWidget & border);
+    void initializeBorderColor(const QString & panelStyle, QWidget & border);
+    void setBorderDisplayedState(const MainWindowSideBorderOption::type option,
+                                 const bool mainWindowIsMaximized, QWidget & border);
 
     int sanitizeWidth(const int width) const;
 
 private:
-    Ui::MainWindow &        m_ui;
+    QWidget &               m_leftBorder;
+    QWidget &               m_rightBorder;
+    QWidget &               m_parent;
     Account                 m_currentAccount;
+    QMenu *                 m_pLeftBorderContextMenu;
+    QMenu *                 m_pRightBorderContextMenu;
 };
 
 } // namespace quentier

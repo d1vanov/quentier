@@ -53,6 +53,13 @@ Q_SIGNALS:
     void showNoteThumbnailsOptionChanged(bool enabled);
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
+    void showMainWindowLeftBorderOptionChanged(int option);
+    void showMainWindowRightBorderOptionChanged(int option);
+    void mainWindowLeftBorderWidthChanged(int width);
+    void mainWindowRightBorderWidthChanged(int width);
+    void mainWindowLeftBorderColorChanged(QString colorCode);
+    void mainWindowRightBorderColorChanged(QString colorCode);
+
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);

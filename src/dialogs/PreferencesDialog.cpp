@@ -28,6 +28,7 @@ using quentier::ShortcutSettingsWidget;
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
 #include "../NetworkProxySettingsHelpers.h"
+#include "../MainWindowSideBorderOption.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
@@ -373,6 +374,17 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     appSettings.endGroup();
 
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
+
+    // Setting up the state of preferences for left & right main window borders
+    bool conversionResult = false;
+    int showLeftMainWindowBorderOption = appSettings.value(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
+    if (!conversionResult || (showLeftMainWindowBorderOption < 0) || (showLeftMainWindowBorderOption > 2)) {
+        QNDEBUG(QStringLiteral("No valid \"Show left main window border\" option was found within "
+                               "the persistent settings, using the default option"));
+        showLeftMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
+    }
+
+    // TODO: continue here
 
     // 4) Synchronization tab
 

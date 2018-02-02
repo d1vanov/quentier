@@ -73,6 +73,7 @@ QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
+QT_FORWARD_DECLARE_CLASS(MainWindowSideBordersController)
 }
 
 using namespace quentier;
@@ -498,6 +499,8 @@ private:
 
     QMovie                      m_animatedSyncButtonIcon;
     int                         m_runSyncPeriodicallyTimerId;
+
+    MainWindowSideBordersController *   m_pSideBordersController;
 
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;
