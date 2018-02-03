@@ -26,9 +26,6 @@
 #include <QWidget>
 #include <QMenu>
 
-#define BORDER_MIN_WIDTH (4)
-#define BORDER_MAX_WIDTH (20)
-
 namespace quentier {
 
 MainWindowSideBordersController::MainWindowSideBordersController(const Account & account,
@@ -209,7 +206,7 @@ void MainWindowSideBordersController::onHideBorderWhenNotMaximizedRequestFromCon
             m_leftBorder.hide();
         }
 
-        appSettings.setValue(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::ShowOnlyWhenExpanded);
+        appSettings.setValue(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::ShowOnlyWhenMaximized);
     }
     else if (pAction->parent() == m_pRightBorderContextMenu)
     {
@@ -217,7 +214,7 @@ void MainWindowSideBordersController::onHideBorderWhenNotMaximizedRequestFromCon
             m_rightBorder.hide();
         }
 
-        appSettings.setValue(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::ShowOnlyWhenExpanded);
+        appSettings.setValue(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY, MainWindowSideBorderOption::ShowOnlyWhenMaximized);
     }
     else
     {
@@ -230,10 +227,9 @@ void MainWindowSideBordersController::onHideBorderWhenNotMaximizedRequestFromCon
 
 void MainWindowSideBordersController::toggleBorderDisplay(const int option, QWidget & border)
 {
-    MainWindowSideBorderOption::type borderOption = MainWindowSideBorderOption::ShowOnlyWhenExpanded;
+    MainWindowSideBorderOption::type borderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
     if ((option < 0) || (option > 2)) {
-        QNWARNING(QStringLiteral("Can't process the toggle border display option, wrong option value: ")
-                  << option << QStringLiteral(", fallback to showing only when expanded"));
+        QNWARNING(QStringLiteral("Can't process the toggle border display option, wrong option value: ") << option);
     }
     else {
         borderOption = static_cast<MainWindowSideBorderOption::type>(option);
@@ -376,7 +372,7 @@ void MainWindowSideBordersController::setBorderDisplayedState(const MainWindowSi
                                                               const bool mainWindowIsMaximized, QWidget & border)
 {
     if ( (option == MainWindowSideBorderOption::AlwaysShow) ||
-         ((option == MainWindowSideBorderOption::ShowOnlyWhenExpanded) && mainWindowIsMaximized) )
+         ((option == MainWindowSideBorderOption::ShowOnlyWhenMaximized) && mainWindowIsMaximized) )
     {
         border.show();
     }
@@ -390,11 +386,11 @@ int MainWindowSideBordersController::sanitizeWidth(const int width) const
 {
     int sanitizedWidth = width;
 
-    if (sanitizedWidth < BORDER_MIN_WIDTH) {
-        sanitizedWidth = BORDER_MIN_WIDTH;
+    if (sanitizedWidth < 0) {
+        sanitizedWidth = 0;
     }
-    else if (sanitizedWidth > BORDER_MAX_WIDTH) {
-        sanitizedWidth = BORDER_MAX_WIDTH;
+    else if (sanitizedWidth > MAX_MAIN_WINDOW_BORDER_SIZE) {
+        sanitizedWidth = MAX_MAIN_WINDOW_BORDER_SIZE;
     }
 
     return sanitizedWidth;

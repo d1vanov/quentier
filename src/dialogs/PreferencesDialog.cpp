@@ -53,7 +53,8 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_accountManager(accountManager),
     m_systemTrayIconManager(systemTrayIconManager),
     m_pTrayActionsModel(new QStringListModel(this)),
-    m_pNetworkProxyTypesModel(new QStringListModel(this))
+    m_pNetworkProxyTypesModel(new QStringListModel(this)),
+    m_pAvailableMainWindowBorderOptionsModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
     m_pUi->statusTextLabel->setHidden(true);
@@ -375,16 +376,7 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
 
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
 
-    // Setting up the state of preferences for left & right main window borders
-    bool conversionResult = false;
-    int showLeftMainWindowBorderOption = appSettings.value(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
-    if (!conversionResult || (showLeftMainWindowBorderOption < 0) || (showLeftMainWindowBorderOption > 2)) {
-        QNDEBUG(QStringLiteral("No valid \"Show left main window border\" option was found within "
-                               "the persistent settings, using the default option"));
-        showLeftMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
-    }
-
-    // TODO: continue here
+    setupMainWindowBorderSettings();
 
     // 4) Synchronization tab
 
@@ -438,6 +430,142 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
 
     // 5) Shortcuts tab
     m_pUi->shortcutSettingsWidget->initialize(currentAccount, actionsInfo, &shortcutManager);
+}
+
+void PreferencesDialog::setupMainWindowBorderSettings()
+{
+    QStringList availableShowBorderOptions;
+    availableShowBorderOptions.reserve(3);
+    availableShowBorderOptions << tr("Show only when maximized");
+    availableShowBorderOptions << tr("Never show");
+    availableShowBorderOptions << tr("Always show");
+    m_pAvailableMainWindowBorderOptionsModel->setStringList(availableShowBorderOptions);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    bool conversionResult = false;
+    int showLeftMainWindowBorderOption = appSettings.value(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
+    if (!conversionResult || (showLeftMainWindowBorderOption < 0) || (showLeftMainWindowBorderOption > 2)) {
+        QNDEBUG(QStringLiteral("No valid \"Show left main window border\" option was found within "
+                               "the persistent settings, using the default option"));
+        showLeftMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
+    }
+
+    m_pUi->leftMainWindowBorderOptionComboBox->setModel(m_pAvailableMainWindowBorderOptionsModel);
+    switch(showLeftMainWindowBorderOption)
+    {
+    case MainWindowSideBorderOption::AlwaysShow:
+        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(2);
+        break;
+    case MainWindowSideBorderOption::NeverShow:
+        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(1);
+        break;
+    case MainWindowSideBorderOption::ShowOnlyWhenMaximized:
+    default:
+        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(0);
+        break;
+    }
+
+    QObject::connect(m_pUi->leftMainWindowBorderOptionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SIGNAL(showMainWindowLeftBorderOptionChanged(int)));
+
+    conversionResult = false;
+    int showRightMainWindowBorderOption = appSettings.value(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
+    if (!conversionResult || (showRightMainWindowBorderOption < 0) || (showRightMainWindowBorderOption > 2)) {
+        QNDEBUG(QStringLiteral("No valid \"Show right main window border\" option was found within "
+                               "the persistent settings, using the default option"));
+        showRightMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
+    }
+
+    m_pUi->rightMainWindowBorderOptionComboBox->setModel(m_pAvailableMainWindowBorderOptionsModel);
+    switch(showRightMainWindowBorderOption)
+    {
+    case MainWindowSideBorderOption::AlwaysShow:
+        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(2);
+        break;
+    case MainWindowSideBorderOption::NeverShow:
+        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(1);
+        break;
+    case MainWindowSideBorderOption::ShowOnlyWhenMaximized:
+    default:
+        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(0);
+        break;
+    }
+
+    QObject::connect(m_pUi->rightMainWindowBorderOptionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SIGNAL(showMainWindowRightBorderOptionChanged(int)));
+
+    conversionResult = false;
+    int leftMainWindowBorderWidth = appSettings.value(LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY).toInt(&conversionResult);
+    if (!conversionResult) {
+        QNDEBUG(QStringLiteral("No valid left main window border's width setting was found withiin "
+                               "the persistent settings, using the default value"));
+        leftMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
+    }
+    else if (leftMainWindowBorderWidth < 0) {
+        QNDEBUG(QStringLiteral("Found invalid negative left main window border's width "
+                               "within the persistent settings, using the default value"));
+        leftMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
+    }
+    else if (leftMainWindowBorderWidth > MAX_MAIN_WINDOW_BORDER_SIZE) {
+        QNDEBUG(QStringLiteral("Found invalid too large left main window border's width "
+                               "within the persistent settings, using the max allowed value instead"));
+        leftMainWindowBorderWidth = MAX_MAIN_WINDOW_BORDER_SIZE;
+    }
+
+    m_pUi->leftMainWindowBorderWidthSpinBox->setValue(leftMainWindowBorderWidth);
+    m_pUi->leftMainWindowBorderWidthSpinBox->setMinimum(0);
+    m_pUi->leftMainWindowBorderWidthSpinBox->setMaximum(MAX_MAIN_WINDOW_BORDER_SIZE);
+
+    QObject::connect(m_pUi->leftMainWindowBorderWidthSpinBox, SIGNAL(valueChanged(int)),
+                     this, SIGNAL(mainWindowLeftBorderWidthChanged(int)));
+
+    conversionResult = false;
+    int rightMainWindowBorderWidth = appSettings.value(RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY).toInt(&conversionResult);
+    if (!conversionResult) {
+        QNDEBUG(QStringLiteral("No valid right main window border's width setting was found within "
+                               "the persistent settings, using the default value"));
+        rightMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
+    }
+    else if (rightMainWindowBorderWidth < 0) {
+        QNDEBUG(QStringLiteral("Found invalid negative right main window border's width "
+                               "within the persistent settings, using the default value"));
+        rightMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
+    }
+    else if (rightMainWindowBorderWidth > MAX_MAIN_WINDOW_BORDER_SIZE) {
+        QNDEBUG(QStringLiteral("Found invalid too large right main window border's width "
+                               "within the persistent settings, using the max allowed value instead"));
+        rightMainWindowBorderWidth = MAX_MAIN_WINDOW_BORDER_SIZE;
+    }
+
+    m_pUi->rightMainWindowBorderWidthSpinBox->setValue(rightMainWindowBorderWidth);
+    m_pUi->rightMainWindowBorderWidthSpinBox->setMinimum(0);
+    m_pUi->rightMainWindowBorderWidthSpinBox->setMaximum(MAX_MAIN_WINDOW_BORDER_SIZE);
+
+    QObject::connect(m_pUi->rightMainWindowBorderWidthSpinBox, SIGNAL(valueChanged(int)),
+                     this, SIGNAL(mainWindowRightBorderWidthChanged(int)));
+
+    QString leftMainWindowBorderOverrideColorCode = appSettings.value(LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR).toString();
+    if (!leftMainWindowBorderOverrideColorCode.isEmpty() &&
+        QColor::isValidColor(leftMainWindowBorderOverrideColorCode))
+    {
+        m_pUi->leftMainWindowBorderColorLineEdit->setText(leftMainWindowBorderOverrideColorCode);
+    }
+
+    QString rightMainWindowBorderOverrideColorCode = appSettings.value(RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR).toString();
+    if (!rightMainWindowBorderOverrideColorCode.isEmpty() &&
+        QColor::isValidColor(rightMainWindowBorderOverrideColorCode))
+    {
+        m_pUi->rightMainWindowBorderColorLineEdit->setText(rightMainWindowBorderOverrideColorCode);
+    }
+
+    // TODO: continue here
+    // 1) Need to connect something to signals from color code line editors
+    // 2) Need to set up the validators for color code line editors to ensure only the valid colors are entered
+
+    appSettings.endGroup();
 }
 
 void PreferencesDialog::setupSystemTraySettings()

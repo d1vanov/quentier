@@ -26,7 +26,7 @@ struct MainWindowSideBorderOption
     enum type {
         AlwaysShow = 0,
         NeverShow,
-        ShowOnlyWhenExpanded
+        ShowOnlyWhenMaximized
     };
 };
 

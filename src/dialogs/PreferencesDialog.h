@@ -92,6 +92,7 @@ private Q_SLOTS:
 private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);
+    void setupMainWindowBorderSettings();
     void setupSystemTraySettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupNetworkProxySettingsState();
@@ -105,6 +106,7 @@ private:
     SystemTrayIconManager &         m_systemTrayIconManager;
     QStringListModel *              m_pTrayActionsModel;
     QStringListModel *              m_pNetworkProxyTypesModel;
+    QStringListModel *              m_pAvailableMainWindowBorderOptionsModel;
 };
 
 } // namespace quentier

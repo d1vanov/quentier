@@ -111,13 +111,17 @@
           <string notr="true">QGroupBox {
 border: 2px solid gray;
 border-radius: 8px;
+margin-top: 1ex;
+}
+
+QGroupBox::title {
+subcontrol-origin: margin;
+subcontrol-position: top left;
+padding: 0 3px;
 }</string>
          </property>
          <property name="title">
           <string>Left border</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <property name="leftMargin">
@@ -241,6 +245,13 @@ border-radius: 8px;
           <string notr="true">QGroupBox {
 border: 2px solid gray;
 border-radius: 8px;
+margin-top: 1ex;
+}
+
+QGroupBox::title {
+subcontrol-origin: margin;
+subcontrol-position: top left;
+padding: 0 3px;
 }</string>
          </property>
          <property name="title">
