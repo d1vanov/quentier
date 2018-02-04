@@ -230,6 +230,86 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
     Q_EMIT showNoteThumbnailsOptionChanged(checked);
 }
 
+void PreferencesDialog::onShowMainWindowLeftBorderOptionChanged(int option)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onShowMainWindowLeftBorderOptionChanged: option = ") << option);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY, option);
+    appSettings.endGroup();
+
+    Q_EMIT showMainWindowLeftBorderOptionChanged(option);
+}
+
+void PreferencesDialog::onShowMainWindowRightBorderOptionChanged(int option)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onShowMainWindowRightBorderOptionChanged: option = ") << option);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY, option);
+    appSettings.endGroup();
+
+    Q_EMIT showMainWindowRightBorderOptionChanged(option);
+}
+
+void PreferencesDialog::onLeftMainWindowBorderWidthChanged(int width)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderWidthChanged: width = ") << width);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY, width);
+    appSettings.endGroup();
+
+    Q_EMIT mainWindowLeftBorderWidthChanged(width);
+}
+
+void PreferencesDialog::onRightMainWindowBorderWidthChanged(int width)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderWidthChanged: width = ") << width);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY, width);
+    appSettings.endGroup();
+
+    Q_EMIT mainWindowRightBorderWidthChanged(width);
+}
+
+void PreferencesDialog::onLeftMainWindowBorderColorChanged()
+{
+    QString colorCode = m_pUi->leftMainWindowBorderColorLineEdit->text();
+    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderColorChanged: color code = ") << colorCode);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR, colorCode);
+    appSettings.endGroup();
+
+    Q_EMIT mainWindowLeftBorderColorChanged(colorCode);
+}
+
+void PreferencesDialog::onRightMainWindowBorderColorChanged()
+{
+    QString colorCode = m_pUi->rightMainWindowBorderColorLineEdit->text();
+    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderColorChanged: color code = ") << colorCode);
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR, colorCode);
+    appSettings.endGroup();
+
+    Q_EMIT mainWindowRightBorderColorChanged(colorCode);
+}
+
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: ")
@@ -470,7 +550,7 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     }
 
     QObject::connect(m_pUi->leftMainWindowBorderOptionComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SIGNAL(showMainWindowLeftBorderOptionChanged(int)));
+                     this, SLOT(onShowMainWindowLeftBorderOptionChanged(int)));
 
     conversionResult = false;
     int showRightMainWindowBorderOption = appSettings.value(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
@@ -496,7 +576,7 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     }
 
     QObject::connect(m_pUi->rightMainWindowBorderOptionComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SIGNAL(showMainWindowRightBorderOptionChanged(int)));
+                     this, SLOT(onShowMainWindowRightBorderOptionChanged(int)));
 
     conversionResult = false;
     int leftMainWindowBorderWidth = appSettings.value(LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY).toInt(&conversionResult);
@@ -521,7 +601,7 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     m_pUi->leftMainWindowBorderWidthSpinBox->setMaximum(MAX_MAIN_WINDOW_BORDER_SIZE);
 
     QObject::connect(m_pUi->leftMainWindowBorderWidthSpinBox, SIGNAL(valueChanged(int)),
-                     this, SIGNAL(mainWindowLeftBorderWidthChanged(int)));
+                     this, SLOT(onLeftMainWindowBorderWidthChanged(int)));
 
     conversionResult = false;
     int rightMainWindowBorderWidth = appSettings.value(RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY).toInt(&conversionResult);
@@ -546,7 +626,7 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     m_pUi->rightMainWindowBorderWidthSpinBox->setMaximum(MAX_MAIN_WINDOW_BORDER_SIZE);
 
     QObject::connect(m_pUi->rightMainWindowBorderWidthSpinBox, SIGNAL(valueChanged(int)),
-                     this, SIGNAL(mainWindowRightBorderWidthChanged(int)));
+                     this, SLOT(onRightMainWindowBorderWidthChanged(int)));
 
     QString leftMainWindowBorderOverrideColorCode = appSettings.value(LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR).toString();
     if (!leftMainWindowBorderOverrideColorCode.isEmpty() &&
@@ -566,7 +646,13 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     m_pUi->leftMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
     m_pUi->rightMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
 
-    // TODO: continue here: need to connect something to signals from color code line editors
+    QObject::connect(m_pUi->leftMainWindowBorderColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onLeftMainWindowBorderColorChanged));
+    QObject::connect(m_pUi->rightMainWindowBorderColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onRightMainWindowBorderColorChanged));
+
+    // TODO: continue here: setup color picking dialog invoked on "Choose..." push button pressing for both left and
+    // right main window borders
 
     appSettings.endGroup();
 }

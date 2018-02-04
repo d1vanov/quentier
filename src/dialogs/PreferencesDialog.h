@@ -73,6 +73,12 @@ private Q_SLOTS:
 
     // Appearance tab
     void onShowNoteThumbnailsCheckboxToggled(bool checked);
+    void onShowMainWindowLeftBorderOptionChanged(int option);
+    void onShowMainWindowRightBorderOptionChanged(int option);
+    void onLeftMainWindowBorderWidthChanged(int width);
+    void onRightMainWindowBorderWidthChanged(int width);
+    void onLeftMainWindowBorderColorChanged();
+    void onRightMainWindowBorderColorChanged();
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
