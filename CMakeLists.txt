@@ -144,6 +144,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
+    src/utility/ColorCodeValidator.h
     src/views/ItemView.h
     src/views/DeletedNoteItemView.h
     src/views/FavoriteItemView.h
@@ -241,6 +242,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/LogViewerDelegate.cpp
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
+    src/utility/ColorCodeValidator.cpp
     src/views/ItemView.cpp
     src/views/DeletedNoteItemView.cpp
     src/views/FavoriteItemView.cpp

@@ -29,6 +29,7 @@ using quentier::ShortcutSettingsWidget;
 #include "../DefaultSettings.h"
 #include "../NetworkProxySettingsHelpers.h"
 #include "../MainWindowSideBorderOption.h"
+#include "../utility/ColorCodeValidator.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
@@ -561,9 +562,11 @@ void PreferencesDialog::setupMainWindowBorderSettings()
         m_pUi->rightMainWindowBorderColorLineEdit->setText(rightMainWindowBorderOverrideColorCode);
     }
 
-    // TODO: continue here
-    // 1) Need to connect something to signals from color code line editors
-    // 2) Need to set up the validators for color code line editors to ensure only the valid colors are entered
+    ColorCodeValidator * pColorCodeValidator = new ColorCodeValidator(this);
+    m_pUi->leftMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
+    m_pUi->rightMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
+
+    // TODO: continue here: need to connect something to signals from color code line editors
 
     appSettings.endGroup();
 }
