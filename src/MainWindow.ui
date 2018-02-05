@@ -449,6 +449,9 @@ padding-right: 2px;
          <height>16777215</height>
         </size>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="styleSheet">
         <string notr="true">background-color: #626262;
 border-right: 1px solid black;
@@ -2772,6 +2775,9 @@ margin: 0px;
          <width>6</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
        </property>
        <property name="styleSheet">
         <string notr="true">background-color: #626262;

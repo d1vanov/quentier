@@ -40,6 +40,11 @@ MainWindowSideBordersController::MainWindowSideBordersController(const Account &
     m_pRightBorderContextMenu(Q_NULLPTR)
 {
     initializeBordersState();
+
+    QObject::connect(&m_leftBorder, QNSIGNAL(QWidget,customContextMenuRequested,QPoint),
+                     this, QNSLOT(MainWindowSideBordersController,onLeftBorderContextMenuRequested,QPoint));
+    QObject::connect(&m_rightBorder, QNSIGNAL(QWidget,customContextMenuRequested,QPoint),
+                     this, QNSLOT(MainWindowSideBordersController,onRightBorderContextMenuRequested,QPoint));
 }
 
 void MainWindowSideBordersController::connectToPreferencesDialog(PreferencesDialog & dialog)
@@ -140,7 +145,7 @@ void MainWindowSideBordersController::onLeftBorderContextMenuRequested(const QPo
     QNDEBUG(QStringLiteral("MainWindowSideBordersController::onLeftBorderContextMenuRequested"));
 
     delete m_pLeftBorderContextMenu;
-    m_pLeftBorderContextMenu = new QMenu(&m_leftBorder);
+    m_pLeftBorderContextMenu = new QMenu(&m_parent);
 
     onBorderContextMenuRequested(m_leftBorder, *m_pLeftBorderContextMenu, pos);
 }
@@ -150,7 +155,7 @@ void MainWindowSideBordersController::onRightBorderContextMenuRequested(const QP
     QNDEBUG(QStringLiteral("MainWindowSideBordersController::onRightBorderContextMenuRequested"));
 
     delete m_pRightBorderContextMenu;
-    m_pRightBorderContextMenu = new QMenu(&m_rightBorder);
+    m_pRightBorderContextMenu = new QMenu(&m_parent);
 
     onBorderContextMenuRequested(m_rightBorder, *m_pRightBorderContextMenu, pos);
 }

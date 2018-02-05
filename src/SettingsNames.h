@@ -43,11 +43,11 @@
 
 // Left/right main window borders settings
 
-#define SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowLeftMainWindowOption")
+#define SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowLeftMainWindowBorderOption")
 #define LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY QStringLiteral("LeftMainWindowBorderWidth")
 #define LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR QStringLiteral("LeftMainWindowBorderOverrideColor")
 
-#define SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowRightMainWindowOption")
+#define SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowRightMainWindowBorderOption")
 #define RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY QStringLiteral("RightMainWindowBorderWidth")
 #define RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR QStringLiteral("RightMainWindowBorderOverrideColor")
 

@@ -517,9 +517,9 @@ void PreferencesDialog::setupMainWindowBorderSettings()
 {
     QStringList availableShowBorderOptions;
     availableShowBorderOptions.reserve(3);
-    availableShowBorderOptions << tr("Show only when maximized");
-    availableShowBorderOptions << tr("Never show");
     availableShowBorderOptions << tr("Always show");
+    availableShowBorderOptions << tr("Never show");
+    availableShowBorderOptions << tr("Show only when maximized");
     m_pAvailableMainWindowBorderOptionsModel->setStringList(availableShowBorderOptions);
 
     Account currentAccount = m_accountManager.currentAccount();
@@ -538,14 +538,14 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     switch(showLeftMainWindowBorderOption)
     {
     case MainWindowSideBorderOption::AlwaysShow:
-        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(2);
+        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(0);
         break;
     case MainWindowSideBorderOption::NeverShow:
         m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(1);
         break;
     case MainWindowSideBorderOption::ShowOnlyWhenMaximized:
     default:
-        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(0);
+        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(2);
         break;
     }
 
@@ -564,14 +564,14 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     switch(showRightMainWindowBorderOption)
     {
     case MainWindowSideBorderOption::AlwaysShow:
-        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(2);
+        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(0);
         break;
     case MainWindowSideBorderOption::NeverShow:
         m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(1);
         break;
     case MainWindowSideBorderOption::ShowOnlyWhenMaximized:
     default:
-        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(0);
+        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(2);
         break;
     }
 

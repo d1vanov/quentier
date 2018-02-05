@@ -223,8 +223,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     bool createdDefaultAccount = false;
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount(&createdDefaultAccount)));
 
-    m_pSideBordersController = new MainWindowSideBordersController(*m_pAccount, *m_pUI->leftBorderWidget,
-                                                                   *m_pUI->rightBorderWidget, *this);
 
     if (createdDefaultAccount && !onceDisplayedGreeterScreen()) {
         m_pendingGreeterDialog = true;
@@ -259,6 +257,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 #endif
 
     setWindowTitleForAccount(*m_pAccount);
+
+    m_pSideBordersController = new MainWindowSideBordersController(*m_pAccount, *m_pUI->leftBorderWidget,
+                                                                   *m_pUI->rightBorderWidget, *this);
 
     setupLocalStorageManager();
     setupModels();
@@ -2343,6 +2344,7 @@ void MainWindow::onShowSettingsDialogAction()
                      this, QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged,bool));
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,runSyncPeriodicallyOptionChanged,int),
                      this, QNSLOT(MainWindow,onRunSyncEachNumMinitesPreferenceChanged,int));
+    m_pSideBordersController->connectToPreferencesDialog(*pPreferencesDialog);
 
     Q_UNUSED(pPreferencesDialog->exec());
 }
