@@ -25,6 +25,7 @@
 #include <QObject>
 
 QT_FORWARD_DECLARE_CLASS(QWidget)
+QT_FORWARD_DECLARE_CLASS(QSplitter)
 QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
@@ -43,11 +44,12 @@ class MainWindowSideBordersController: public QObject
 {
     Q_OBJECT
 public:
-    explicit MainWindowSideBordersController(const Account & account,
-                                             QWidget & leftBorder, QWidget & rightBorder,
-                                             QWidget & parent);
+    explicit MainWindowSideBordersController(const Account & account, QWidget & leftBorder, QWidget & rightBorder,
+                                             QSplitter & horizontalLayoutSplitter, QWidget & parent);
 
     void connectToPreferencesDialog(PreferencesDialog & dialog);
+
+    void persistCurrentBordersSizes();
 
 public Q_SLOTS:
     void onShowLeftBorderOptionChanged(int option);
@@ -90,8 +92,11 @@ private:
 private:
     QWidget &               m_leftBorder;
     QWidget &               m_rightBorder;
+    QSplitter &             m_horizontalLayoutSplitter;
     QWidget &               m_parent;
+
     Account                 m_currentAccount;
+
     QMenu *                 m_pLeftBorderContextMenu;
     QMenu *                 m_pRightBorderContextMenu;
 };

@@ -401,6 +401,11 @@ private:
 
     void scheduleGeometryAndStatePersisting();
 
+    void scheduleSideBordersControllerCreation();
+
+    void notifySideBordersControllerOfMainWindowStateUpdate();
+    void scheduleSideBordersControllerMainWindowStateUpdate();
+
     template <class T>
     void refreshThemeIcons();
 
@@ -577,6 +582,8 @@ private:
 
     int                     m_geometryAndStatePersistingDelayTimerId;
     int                     m_splitterSizesRestorationDelayTimerId;
+    int                     m_sideBordersControllerCreationDelayTimerId;
+    int                     m_sideBordersControllerMainWindowStateUpdateDelayTimerId;
 };
 
 #endif // QUENTIER_MAINWINDOW_H

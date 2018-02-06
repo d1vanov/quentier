@@ -439,13 +439,13 @@ padding-right: 2px;
        </property>
        <property name="minimumSize">
         <size>
-         <width>6</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>6</width>
+         <width>20</width>
          <height>16777215</height>
         </size>
        </property>
@@ -2766,13 +2766,13 @@ margin: 0px;
        </property>
        <property name="minimumSize">
         <size>
-         <width>6</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>6</width>
+         <width>20</width>
          <height>16777215</height>
         </size>
        </property>
@@ -2795,7 +2795,7 @@ margin-left: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">

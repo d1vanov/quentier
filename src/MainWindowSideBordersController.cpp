@@ -24,16 +24,20 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <QColor>
 #include <QWidget>
+#include <QSplitter>
 #include <QMenu>
+#include <cmath>
 
 namespace quentier {
 
 MainWindowSideBordersController::MainWindowSideBordersController(const Account & account,
                                                                  QWidget & leftBorder, QWidget & rightBorder,
+                                                                 QSplitter & horizontalLayoutSplitter,
                                                                  QWidget & parent) :
     QObject(&parent),
     m_leftBorder(leftBorder),
     m_rightBorder(rightBorder),
+    m_horizontalLayoutSplitter(horizontalLayoutSplitter),
     m_parent(parent),
     m_currentAccount(account),
     m_pLeftBorderContextMenu(Q_NULLPTR),
@@ -69,6 +73,83 @@ void MainWindowSideBordersController::connectToPreferencesDialog(PreferencesDial
     QObject::connect(&dialog, QNSIGNAL(PreferencesDialog,mainWindowRightBorderColorChanged,QString),
                      this, QNSLOT(MainWindowSideBordersController,onRightBorderColorChanged,QString),
                      Qt::ConnectionType(Qt::AutoConnection | Qt::UniqueConnection));
+}
+
+void MainWindowSideBordersController::persistCurrentBordersSizes()
+{
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::persistCurrentBordersSizes"));
+
+    QList<int> splitterSizes = m_horizontalLayoutSplitter.sizes();
+    int splitterSizesCount = splitterSizes.count();
+    if (Q_UNLIKELY(splitterSizesCount != 5)) {
+        QNWARNING(QStringLiteral("Internal error: can't persist the current main window's left & right borders size: "
+                                 "expected 5 items within the horizontal splitter but got ") << splitterSizesCount);
+        return;
+    }
+
+    bool mainWindowIsMaximized = m_parent.windowState() & Qt::WindowMaximized;
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    MainWindowSideBorderOption::type leftBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
+    bool conversionResult = false;
+    int leftBorderOptionInt = appSettings.value(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
+    if (!conversionResult || (leftBorderOptionInt < 0) || (leftBorderOptionInt > 2)) {
+        QNINFO(QStringLiteral("Couldn't restore the persistent \"Show left main window border\" option, "
+                              "using the default one"));
+    }
+    else {
+        leftBorderOption = static_cast<MainWindowSideBorderOption::type>(leftBorderOptionInt);
+    }
+
+    bool leftBorderIsDisplayed = false;
+    if (leftBorderOption == MainWindowSideBorderOption::AlwaysShow) {
+        leftBorderIsDisplayed = true;
+    }
+    else if (leftBorderOption == MainWindowSideBorderOption::ShowOnlyWhenMaximized) {
+        leftBorderIsDisplayed = mainWindowIsMaximized;
+    }
+
+    MainWindowSideBorderOption::type rightBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
+    conversionResult = false;
+    int rightBorderOptionInt = appSettings.value(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY).toInt(&conversionResult);
+    if (!conversionResult || (rightBorderOptionInt < 0) || (rightBorderOptionInt > 2)) {
+        QNINFO(QStringLiteral("Couldn't restore the persistent \"Show right main window border\" option, "
+                              "using the default one"));
+    }
+    else {
+        rightBorderOption = static_cast<MainWindowSideBorderOption::type>(rightBorderOptionInt);
+    }
+
+    bool rightBorderIsDisplayed = false;
+    if (rightBorderOption == MainWindowSideBorderOption::AlwaysShow) {
+        rightBorderIsDisplayed = true;
+    }
+    else if (rightBorderOption == MainWindowSideBorderOption::ShowOnlyWhenMaximized) {
+        rightBorderIsDisplayed = mainWindowIsMaximized;
+    }
+
+    QNDEBUG(QStringLiteral("Show left border option = ") << leftBorderOption
+            << QStringLiteral(", left border is displayed = ")
+            << (leftBorderIsDisplayed ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", show right border option = ") << rightBorderOption
+            << QStringLiteral(", right border is displayed = ")
+            << (rightBorderIsDisplayed ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", main window is maximized = ")
+            << (mainWindowIsMaximized ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", left border splitter size = ") << splitterSizes[0]
+            << QStringLiteral(", right border splitter size = ") << splitterSizes[4]);
+
+    if (leftBorderIsDisplayed) {
+        appSettings.setValue(LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY, splitterSizes[0]);
+    }
+
+    if (rightBorderIsDisplayed) {
+        appSettings.setValue(RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY, splitterSizes[4]);
+    }
+
+    appSettings.endGroup();
 }
 
 void MainWindowSideBordersController::onShowLeftBorderOptionChanged(int option)
@@ -246,8 +327,58 @@ void MainWindowSideBordersController::toggleBorderDisplay(const int option, QWid
 
 void MainWindowSideBordersController::onBorderWidthChanged(const int width, QWidget & border)
 {
+    QNDEBUG(QStringLiteral("MainWindowSideBordersController::onBorderWidthChanged: width = ") << width);
+
     int sanitizedWidth = sanitizeWidth(width);
-    border.resize(sanitizedWidth, border.height());
+
+    QList<int> splitterSizes = m_horizontalLayoutSplitter.sizes();
+    int splitterSizesCount = splitterSizes.count();
+    if (Q_UNLIKELY(splitterSizesCount != 5)) {
+        QNWARNING(QStringLiteral("Internal error: can't set up the proper border width: expected 5 items within the "
+                                 "horizontal splitter but got ") << splitterSizesCount);
+        return;
+    }
+
+    int originalBorderWidth = 0;
+    if (&border == &m_leftBorder) {
+        originalBorderWidth = splitterSizes[0];
+    }
+    else {
+        originalBorderWidth = splitterSizes[4];
+    }
+
+    // Item with index 3 within the splitter is the widget containing note editor tabs; will adjust its size
+    // in response to changing the border's width, whether it's the left or right border
+    int widthDiff = originalBorderWidth - sanitizedWidth;
+    if (widthDiff == 0) {
+        QNDEBUG(QStringLiteral("Border's width hasn't actually changed, nothing to do"));
+        return;
+    }
+
+    if (Q_UNLIKELY(std::abs(widthDiff) >= splitterSizes[3])) {
+        QNWARNING(QStringLiteral("Detected inappropriate change in the width of the border: the diff is larger "
+                                 "than the supposedly largert part of the main window's horizontal layout"));
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Original left border width = ") << splitterSizes[0]
+            << QStringLiteral(", original right border width = ") << splitterSizes[4]
+            << QStringLiteral(", original note editor width = ") << splitterSizes[3]);
+
+    splitterSizes[3] += widthDiff;
+
+    if (&border == &m_leftBorder) {
+        splitterSizes[0] = sanitizedWidth;
+    }
+    else {
+        splitterSizes[4] = sanitizedWidth;
+    }
+
+    QNDEBUG(QStringLiteral("New left border width = ") << splitterSizes[0]
+            << QStringLiteral(", new right border width = ") << splitterSizes[4]
+            << QStringLiteral(", new note editor width = ") << splitterSizes[3]);
+
+    m_horizontalLayoutSplitter.setSizes(splitterSizes);
 }
 
 void MainWindowSideBordersController::onBorderColorChanged(const QString & colorCode, QWidget & border)
@@ -344,8 +475,41 @@ void MainWindowSideBordersController::initializeBordersState()
 
     appSettings.endGroup();
 
-    m_leftBorder.resize(sanitizeWidth(leftBorderWidth), m_leftBorder.height());
-    m_rightBorder.resize(sanitizeWidth(rightBorderWidth), m_rightBorder.height());
+    leftBorderWidth = sanitizeWidth(leftBorderWidth);
+    rightBorderWidth = sanitizeWidth(rightBorderWidth);
+
+    QList<int> splitterSizes = m_horizontalLayoutSplitter.sizes();
+    int splitterSizesCount = splitterSizes.count();
+    if (splitterSizesCount == 5)
+    {
+        QNDEBUG(QStringLiteral("Original left border size = ") << splitterSizes[0]
+                << QStringLiteral(", original right border size = ") << splitterSizes[4]
+                << QStringLiteral(", original note editor size = ") << splitterSizes[3]
+                << QStringLiteral(", new left border width = ") << leftBorderWidth
+                << QStringLiteral(", new right border width = ") << rightBorderWidth);
+
+        int leftBorderWidthDiff = splitterSizes[0] - leftBorderWidth;
+        int rightBorderWidthDiff = splitterSizes[4] - rightBorderWidth;
+
+        // Item with index 3 within the splitter is the widget containing note editor tabs; will adjust its size
+        // in response to changing the width or borders
+        splitterSizes[3] += leftBorderWidthDiff;
+        splitterSizes[3] += rightBorderWidthDiff;
+
+        splitterSizes[0] = leftBorderWidth;
+        splitterSizes[4] = rightBorderWidth;
+
+        QNDEBUG(QStringLiteral("Left border splitter size after: ") << splitterSizes[0]
+                << QStringLiteral(", right border splitter size after: ") << splitterSizes[4]
+                << QStringLiteral(", note editor splitter size after: ") << splitterSizes[3]);
+
+        m_horizontalLayoutSplitter.setSizes(splitterSizes);
+    }
+    else
+    {
+        QNWARNING(QStringLiteral("Internal error: can't set up the proper border width: expected 5 items within the "
+                                 "horizontal splitter but got ") << splitterSizesCount);
+    }
 
     initializeBorderColor(panelStyle, m_leftBorder);
     initializeBorderColor(panelStyle, m_rightBorder);
