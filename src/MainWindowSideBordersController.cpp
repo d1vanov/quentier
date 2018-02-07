@@ -401,7 +401,25 @@ void MainWindowSideBordersController::setBorderStyleSheet(const QString & colorC
 {
     QString styleSheet = QStringLiteral("background-color: ");
     styleSheet += colorCode;
-    styleSheet += QStringLiteral("; border-right: 1px solid black; margin-right: 0px;");
+    styleSheet += QStringLiteral(";");
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    if (&border == &m_leftBorder) {
+        styleSheet += QStringLiteral("border-right: 1px solid black;");
+    }
+    else {
+        styleSheet += QStringLiteral("border-left: 1px solid black;");
+    }
+#endif
+
+    if (&border == &m_leftBorder) {
+        styleSheet += QStringLiteral("margin-right: 0px;");
+    }
+    else {
+        styleSheet += QStringLiteral("margin-left: 0px;");
+    }
+
+    styleSheet += QStringLiteral("border-bottom: 1px solid black;");
     border.setStyleSheet(styleSheet);
 }
 

@@ -455,6 +455,7 @@ padding-right: 2px;
        <property name="styleSheet">
         <string notr="true">background-color: #626262;
 border-right: 1px solid black;
+border-bottom: 1px solid black;
 margin-right: 0px;</string>
        </property>
       </widget>
@@ -2782,7 +2783,8 @@ margin: 0px;
        <property name="styleSheet">
         <string notr="true">background-color: #626262;
 border-left: 1px solid black;
-margin-left: 0px;</string>
+border-bottom: 1px solid black;
+margin: 0px;</string>
        </property>
       </widget>
      </widget>

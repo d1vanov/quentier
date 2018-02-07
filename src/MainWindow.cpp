@@ -1532,10 +1532,10 @@ void MainWindow::fixupQt4StyleSheets()
 
     QString alternateFilterBodyFrameStylesheet = QString::fromUtf8(
                 "#filterBodyFrame {"
-                "padding: 0px;"
-                "margin: 0px;"
-                "border: none;"
-                "border-top: 1px solid black;"
+                "  padding: 0px;"
+                "  margin: 0px;"
+                "  border: none;"
+                "  border-top: 1px solid black;"
                 "}");
     m_pUI->filterBodyFrame->setStyleSheet(alternateFilterBodyFrameStylesheet);
 
