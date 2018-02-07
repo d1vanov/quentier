@@ -27,6 +27,7 @@
 #include <QSplitter>
 #include <QMenu>
 #include <cmath>
+#include <cstdlib>
 
 namespace quentier {
 
