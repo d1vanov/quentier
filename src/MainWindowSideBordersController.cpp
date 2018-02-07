@@ -522,6 +522,24 @@ void MainWindowSideBordersController::initializeBordersState()
 
 void MainWindowSideBordersController::initializeBorderColor(const QString & panelStyle, QWidget & border)
 {
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    QString overrideColorCode;
+    if (&border == &m_leftBorder) {
+        overrideColorCode = appSettings.value(LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR).toString();
+    }
+    else {
+        overrideColorCode = appSettings.value(RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR).toString();
+    }
+
+    appSettings.endGroup();
+
+    if (!overrideColorCode.isEmpty() && QColor::isValidColor(overrideColorCode)) {
+        setBorderStyleSheet(overrideColorCode, border);
+        return;
+    }
+
     if (panelStyle == DARKER_PANEL_STYLE_NAME) {
         QColor color = m_parent.palette().color(QPalette::Dark);
         setBorderStyleSheet(color.name(), border);

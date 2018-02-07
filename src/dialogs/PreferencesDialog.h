@@ -77,8 +77,12 @@ private Q_SLOTS:
     void onShowMainWindowRightBorderOptionChanged(int option);
     void onLeftMainWindowBorderWidthChanged(int width);
     void onRightMainWindowBorderWidthChanged(int width);
-    void onLeftMainWindowBorderColorChanged();
-    void onRightMainWindowBorderColorChanged();
+    void onLeftMainWindowBorderColorCodeChanged(const QString & colorCode);
+    void onRightMainWindowBorderColorCodeChanged(const QString & colorCode);
+    void onLeftMainWindowBorderColorPickerRequested();
+    void onRightMainWindowBorderColorPickerRequested();
+    void onLeftMainWindowBorderColorSelected(const QColor & color);
+    void onRightMainWindowBorderColorSelected(const QColor & color);
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);

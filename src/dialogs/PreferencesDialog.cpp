@@ -37,6 +37,8 @@ using quentier::ShortcutSettingsWidget;
 #include <QFileInfo>
 #include <QDir>
 #include <QNetworkProxy>
+#include <QColorDialog>
+#include <QScopedPointer>
 #include <algorithm>
 #include <limits>
 
@@ -282,10 +284,13 @@ void PreferencesDialog::onRightMainWindowBorderWidthChanged(int width)
     Q_EMIT mainWindowRightBorderWidthChanged(width);
 }
 
-void PreferencesDialog::onLeftMainWindowBorderColorChanged()
+void PreferencesDialog::onLeftMainWindowBorderColorCodeChanged(const QString & colorCode)
 {
-    QString colorCode = m_pUi->leftMainWindowBorderColorLineEdit->text();
-    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderColorChanged: color code = ") << colorCode);
+    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderColorCodeChanged: color code = ") << colorCode);
+
+    if (!colorCode.isEmpty() && !QColor::isValidColor(colorCode)) {
+        return;
+    }
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -296,10 +301,13 @@ void PreferencesDialog::onLeftMainWindowBorderColorChanged()
     Q_EMIT mainWindowLeftBorderColorChanged(colorCode);
 }
 
-void PreferencesDialog::onRightMainWindowBorderColorChanged()
+void PreferencesDialog::onRightMainWindowBorderColorCodeChanged(const QString & colorCode)
 {
-    QString colorCode = m_pUi->rightMainWindowBorderColorLineEdit->text();
-    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderColorChanged: color code = ") << colorCode);
+    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderColorCodeChanged: color code = ") << colorCode);
+
+    if (!colorCode.isEmpty() && !QColor::isValidColor(colorCode)) {
+        return;
+    }
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -308,6 +316,64 @@ void PreferencesDialog::onRightMainWindowBorderColorChanged()
     appSettings.endGroup();
 
     Q_EMIT mainWindowRightBorderColorChanged(colorCode);
+}
+
+void PreferencesDialog::onLeftMainWindowBorderColorPickerRequested()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderColorPickerRequested"));
+
+    QScopedPointer<QColorDialog> pColorDialog(new QColorDialog(this));
+    pColorDialog->setWindowModality(Qt::WindowModal);
+
+    QString currentColorCode = m_pUi->leftMainWindowBorderColorLineEdit->text();
+    if (!currentColorCode.isEmpty() && QColor::isValidColor(currentColorCode)) {
+        pColorDialog->setCurrentColor(QColor(currentColorCode));
+    }
+
+    QObject::connect(pColorDialog.data(), QNSIGNAL(QColorDialog,colorSelected,QColor),
+                     this, QNSLOT(PreferencesDialog,onLeftMainWindowBorderColorSelected,QColor));
+    Q_UNUSED(pColorDialog->exec())
+}
+
+void PreferencesDialog::onRightMainWindowBorderColorPickerRequested()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderColorPickerRequested"));
+
+    QScopedPointer<QColorDialog> pColorDialog(new QColorDialog(this));
+    pColorDialog->setWindowModality(Qt::WindowModal);
+
+    QString currentColorCode = m_pUi->rightMainWindowBorderColorLineEdit->text();
+    if (!currentColorCode.isEmpty() && QColor::isValidColor(currentColorCode)) {
+        pColorDialog->setCurrentColor(QColor(currentColorCode));
+    }
+
+    QObject::connect(pColorDialog.data(), QNSIGNAL(QColorDialog,colorSelected,QColor),
+                     this, QNSLOT(PreferencesDialog,onRightMainWindowBorderColorSelected,QColor));
+    Q_UNUSED(pColorDialog->exec())
+}
+
+void PreferencesDialog::onLeftMainWindowBorderColorSelected(const QColor & color)
+{
+    QString colorCode = color.name();
+    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderColorSelected: color code = ") << colorCode);
+
+    if (!color.isValid()) {
+        colorCode.resize(0);
+    }
+
+    m_pUi->leftMainWindowBorderColorLineEdit->setText(colorCode);
+}
+
+void PreferencesDialog::onRightMainWindowBorderColorSelected(const QColor & color)
+{
+    QString colorCode = color.name();
+    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderColorSelected: color code = ") << colorCode);
+
+    if (!color.isValid()) {
+        colorCode.resize(0);
+    }
+
+    m_pUi->rightMainWindowBorderColorLineEdit->setText(colorCode);
 }
 
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
@@ -515,6 +581,14 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
 
 void PreferencesDialog::setupMainWindowBorderSettings()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+    m_pUi->leftMainWindowBorderColorLineEdit->setClearButtonEnabled(true);
+    m_pUi->rightMainWindowBorderColorLineEdit->setClearButtonEnabled(true);
+#endif
+
+    m_pUi->leftMainWindowBorderColorLineEdit->setPlaceholderText(tr("hex color code"));
+    m_pUi->rightMainWindowBorderColorLineEdit->setPlaceholderText(tr("hex color code"));
+
     QStringList availableShowBorderOptions;
     availableShowBorderOptions.reserve(3);
     availableShowBorderOptions << tr("Always show");
@@ -646,13 +720,15 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     m_pUi->leftMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
     m_pUi->rightMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
 
-    QObject::connect(m_pUi->leftMainWindowBorderColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
-                     this, QNSLOT(PreferencesDialog,onLeftMainWindowBorderColorChanged));
-    QObject::connect(m_pUi->rightMainWindowBorderColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
-                     this, QNSLOT(PreferencesDialog,onRightMainWindowBorderColorChanged));
+    QObject::connect(m_pUi->leftMainWindowBorderColorLineEdit, QNSIGNAL(QLineEdit,textChanged,QString),
+                     this, QNSLOT(PreferencesDialog,onLeftMainWindowBorderColorCodeChanged,QString));
+    QObject::connect(m_pUi->rightMainWindowBorderColorLineEdit, QNSIGNAL(QLineEdit,textChanged,QString),
+                     this, QNSLOT(PreferencesDialog,onRightMainWindowBorderColorCodeChanged,QString));
 
-    // TODO: continue here: setup color picking dialog invoked on "Choose..." push button pressing for both left and
-    // right main window borders
+    QObject::connect(m_pUi->leftMainWindowBorderColorPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(PreferencesDialog,onLeftMainWindowBorderColorPickerRequested));
+    QObject::connect(m_pUi->rightMainWindowBorderColorPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(PreferencesDialog,onRightMainWindowBorderColorPickerRequested));
 
     appSettings.endGroup();
 }

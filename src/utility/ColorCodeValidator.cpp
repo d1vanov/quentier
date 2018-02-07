@@ -26,6 +26,10 @@ ColorCodeValidator::ColorCodeValidator(QObject * parent) :
 
 void ColorCodeValidator::fixup(QString & input) const
 {
+    if (input.isEmpty()) {
+        return;
+    }
+
     QChar sharp = QChar::fromLatin1('#');
 
     if (!input.startsWith(sharp)) {
@@ -43,6 +47,10 @@ void ColorCodeValidator::fixup(QString & input) const
 QValidator::State ColorCodeValidator::validate(QString & input, int & pos) const
 {
     Q_UNUSED(pos)
+
+    if (input.isEmpty()) {
+        return QValidator::Acceptable;
+    }
 
     QChar sharp = QChar::fromLatin1('#');
 
