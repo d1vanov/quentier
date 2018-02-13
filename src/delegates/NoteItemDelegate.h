@@ -69,7 +69,7 @@ private:
 private:
     bool                    m_showNoteThumbnails;
     int                     m_minWidth;
-    int                     m_height;
+    int                     m_minHeight;
     int                     m_leftMargin;
     int                     m_rightMargin;
     int                     m_topMargin;

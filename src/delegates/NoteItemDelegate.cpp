@@ -37,11 +37,11 @@ NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
     m_showNoteThumbnails(DEFAULT_SHOW_NOTE_THUMBNAILS),
     m_minWidth(220),
-    m_height(120),
-    m_leftMargin(2),
-    m_rightMargin(4),
-    m_topMargin(2),
-    m_bottomMargin(2)
+    m_minHeight(120),
+    m_leftMargin(6),
+    m_rightMargin(6),
+    m_topMargin(6),
+    m_bottomMargin(6)
 {}
 
 QWidget * NoteItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
@@ -93,19 +93,13 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
         pPainter->setPen(option.palette.windowText().color());
     }
 
-    int leftMargin = m_leftMargin;
-    int rightMargin = m_rightMargin;
-    int topMargin = m_topMargin;
-    int bottomMargin = m_bottomMargin;
-
     QListView * pView = qobject_cast<QListView*>(parent());
     if (pView)
     {
         QModelIndex currentIndex = pView->currentIndex();
         if (currentIndex.isValid() && (sourceIndex.row() == currentIndex.row()))
         {
-            QPen originalPen = pPainter->pen();
-            QPen pen = originalPen;
+            QPen pen(Qt::SolidLine);
             pen.setWidth(2);
 
             if (option.state & QStyle::State_Selected) {
@@ -120,21 +114,13 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
             int dx1 = 1;
             int dy1 = 1;
             int dx2 = -1;
-            int dy2 = -3;
+            int dy2 = -1;
             pPainter->drawRoundedRect(QRectF(option.rect.adjusted(dx1, dy1, dx2, dy2)), 2, 2);
-
-            pPainter->setPen(originalPen);
-
-            leftMargin += 2;
-            rightMargin += 2;
-            topMargin += 2;
-            bottomMargin += 2;
         }
     }
 
     // Draw the bottom border line for all notes
-    QPen originalPen = pPainter->pen();
-    QPen pen = originalPen;
+    QPen pen(Qt::SolidLine);
     pen.setWidth(1);
 
     if (option.state & QStyle::State_Selected) {
@@ -149,29 +135,27 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
     QLine bottomBoundaryLine(option.rect.bottomLeft(), option.rect.bottomRight());
     pPainter->drawLine(bottomBoundaryLine);
 
-    pPainter->setPen(originalPen);
-
-    QFont boldFont = pPainter->font();
+    // Painting the text parts of note item
+    QFont boldFont = option.font;
     boldFont.setBold(true);
     QFontMetrics boldFontMetrics(boldFont);
 
-    QFont smallerFont = pPainter->font();
-    smallerFont.setPointSize(smallerFont.pointSize() - 1);
+    QFont smallerFont = option.font;
+    smallerFont.setPointSizeF(smallerFont.pointSize() - 1.0);
     QFontMetrics smallerFontMetrics(smallerFont);
 
     const QByteArray & thumbnailData = pItem->thumbnailData();
 
-    int left = option.rect.left() + leftMargin;
-    int width = option.rect.width() - leftMargin - rightMargin;
+    int left = option.rect.left() + m_leftMargin;
+    int width = option.rect.width() - m_leftMargin - m_rightMargin;
     if (m_showNoteThumbnails && !thumbnailData.isEmpty() && pItem->hasResources()) {
-        width -= 100;
+        width -= 104; // 100 is the width of the thumbnail and 4 is a little margin
     }
 
     // Painting the title (or a piece of preview text if there's no title)
-    QFont originalFont = pPainter->font();
     pPainter->setFont(boldFont);
 
-    QRect titleRect(left, option.rect.top() + topMargin, width, boldFontMetrics.height());
+    QRect titleRect(left, option.rect.top() + m_topMargin, width, boldFontMetrics.height());
 
     QString title = pItem->title();
     if (title.isEmpty()) {
@@ -252,7 +236,7 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
         displayText += modifiedDisplayText;
     }
 
-    QRect dateTimeRect(left, titleRect.bottom() + bottomMargin + topMargin,
+    QRect dateTimeRect(left, titleRect.bottom() + m_topMargin,
                        width, smallerFontMetrics.height());
     displayText = smallerFontMetrics.elidedText(displayText, Qt::ElideRight,
                                                 dateTimeRect.width());
@@ -269,8 +253,8 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
     pPainter->drawText(QRectF(dateTimeRect), displayText, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     // Painting the preview text
-    int previewTextTop = dateTimeRect.bottom() + topMargin;
-    QRect previewTextRect(left, previewTextTop, width, option.rect.bottom() - bottomMargin - previewTextTop);
+    int previewTextTop = dateTimeRect.bottom() + m_topMargin;
+    QRect previewTextRect(left, previewTextTop, width, option.rect.bottom() - m_bottomMargin - previewTextTop);
 
     QNTRACE(QStringLiteral("Preview text rect: top = ") << previewTextRect.top() << QStringLiteral(", bottom = ")
             << previewTextRect.bottom() << QStringLiteral(", left = ") << previewTextRect.left()
@@ -278,12 +262,12 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
             << previewTextRect.height() << QStringLiteral(", width = ") << previewTextRect.width());
 
     QString text = pItem->previewText().simplified();
-    QFontMetrics originalFontMetrics(originalFont);
+    QFontMetrics originalFontMetrics(option.font);
 
     QNTRACE(QStringLiteral("Preview text: ") << text);
 
     int linesForText = static_cast<int>(std::floor(originalFontMetrics.width(text) / previewTextRect.width() + 0.5));
-    int linesAvailable = static_cast<int>(std::floor(static_cast<double>(previewTextRect.height()) / smallerFontMetrics.lineSpacing()));
+    int linesAvailable = static_cast<int>(std::floor(static_cast<double>(previewTextRect.height()) / originalFontMetrics.lineSpacing()));
 
     QNTRACE(QStringLiteral("Lines for text = ") << linesForText << QStringLiteral(", lines available = ")
             << linesAvailable << QStringLiteral(", line spacing = ") << smallerFontMetrics.lineSpacing());
@@ -305,7 +289,7 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
         }
     }
 
-    pPainter->setFont(originalFont);
+    pPainter->setFont(option.font);
 
     if (option.state & QStyle::State_Selected) {
         pPainter->setPen(option.palette.base().color());
@@ -337,9 +321,9 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
     // Painting the thumbnail (if any)
     if (m_showNoteThumbnails && !thumbnailData.isEmpty() && pItem->hasResources())
     {
-        int top = option.rect.top() + topMargin;
-        int bottom = option.rect.bottom() - bottomMargin;
-        QRect thumbnailRect(option.rect.right() - 100, top, 100, bottom - top);
+        int top = option.rect.top() + m_topMargin;
+        int bottom = option.rect.bottom() - m_bottomMargin;
+        QRect thumbnailRect(option.rect.right() - m_rightMargin - 100, top, 100, bottom - top);
 
         QNTRACE(QStringLiteral("Thumbnail rect: top = ") << thumbnailRect.top() << QStringLiteral(", bottom = ")
                 << thumbnailRect.bottom() << QStringLiteral(", left = ") << thumbnailRect.left()
@@ -458,9 +442,43 @@ void NoteItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model
 
 QSize NoteItemDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    Q_UNUSED(index)
+    QModelIndex sourceIndex;
+    const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(index.model());
+    if (pNoteFilterModel) {
+        sourceIndex = pNoteFilterModel->mapToSource(index);
+    }
+
     int width = std::max(m_minWidth, option.rect.width());
-    return QSize(width, m_height);
+
+    // Computing height: need to compute all its components as if we were painting
+    // and ensure the integer number of preview text lines would correspond
+    // to the preview text's part of the overall height - this way note items look better
+
+    QFont boldFont = option.font;
+    boldFont.setBold(true);
+    QFontMetrics boldFontMetrics(boldFont);
+
+    int titleHeight = boldFontMetrics.height();
+
+    QFont smallerFont = option.font;
+    smallerFont.setPointSizeF(smallerFont.pointSize() - 1.0);
+    QFontMetrics smallerFontMetrics(smallerFont);
+
+    int dateTimeHeight = smallerFontMetrics.height();
+
+    int titleAndDateTimeHeightPart = 3 * m_topMargin + titleHeight + dateTimeHeight;
+
+    int remainingTextHeight = static_cast<int>(std::max(static_cast<double>(m_minHeight - titleAndDateTimeHeightPart), 0.0));
+
+    QFontMetrics fontMetrics(option.font);
+    int numFontHeights = static_cast<int>(std::ceil(remainingTextHeight / fontMetrics.lineSpacing()));
+
+    // NOTE: the last item is an ad-hoc constant which in some cases seems to make a good difference
+    int height = titleAndDateTimeHeightPart +
+                 numFontHeights * fontMetrics.lineSpacing() +
+                 fontMetrics.leading() + m_bottomMargin + 2;
+
+    return QSize(width, height);
 }
 
 void NoteItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const
