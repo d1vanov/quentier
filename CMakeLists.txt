@@ -145,6 +145,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
     src/utility/ColorCodeValidator.h
+    src/utility/StartAtLogin.h
     src/views/ItemView.h
     src/views/DeletedNoteItemView.h
     src/views/FavoriteItemView.h
@@ -243,6 +244,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
     src/utility/ColorCodeValidator.cpp
+    src/utility/StartAtLogin.cpp
     src/views/ItemView.cpp
     src/views/DeletedNoteItemView.cpp
     src/views/FavoriteItemView.cpp
@@ -272,6 +274,8 @@ if(WIN32)
   configure_file(src/quentier.rc.in
                  ${PROJECT_BINARY_DIR}/quentier.rc @ONLY)
   list(APPEND ${PROJECT_NAME}_SOURCES ${PROJECT_BINARY_DIR}/quentier.rc)
+elseif(APPLE)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/darwin/StartAtLogin.cpp)
 endif()
 
 set(FORMS

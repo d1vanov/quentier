@@ -2,6 +2,7 @@
 #define QUENTIER_DEFAULT_SETTINGS_H
 
 #include "SystemTrayIconManager.h"
+#include "utility/StartAtLogin.h"
 #include <QtGlobal>
 
 #define DEFAULT_SHOW_SYSTEM_TRAY_ICON (true)
@@ -11,6 +12,8 @@
 #define DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY (false)
 
 #define DEFAULT_SHOW_NOTE_THUMBNAILS (true)
+
+#define DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION (StartQuentierAtLoginOption::MinimizedToTray)
 
 #ifdef Q_WS_MAC
 #define DEFAULT_TRAY_ICON_KIND QStringLiteral("dark")

@@ -6,6 +6,12 @@
 #define QUENTIER_AUXILIARY_SETTINGS QStringLiteral("Auxiliary")
 #define QUENTIER_SYNC_SETTINGS QStringLiteral("Synchronization")
 
+// Start automatically at login settings keys
+#define START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME QStringLiteral("StartAutomaticallyAtLogin")
+
+#define SHOULD_START_AUTOMATICALLY_AT_LOGIN QStringLiteral("ShouldStartAutomaticallyAtLogin")
+#define START_AUTOMATICALLY_AT_LOGIN_OPTION QStringLiteral("StartAutomaticallyAtLoginOption")
+
 // System tray related settings keys
 #define SYSTEM_TRAY_SETTINGS_GROUP_NAME QStringLiteral("SystemTray")
 
