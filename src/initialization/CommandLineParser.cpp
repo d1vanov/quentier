@@ -112,6 +112,9 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
             else if (valueType == typeid(bool)) {
                 m_parsedArgs[key] = QVariant(boost::any_cast<bool>(value));
             }
+            else {
+                m_parsedArgs[key] = QVariant();
+            }
         }
     }
     catch(const po::error & error)

@@ -46,6 +46,7 @@ void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result)
     }
     else {
         result.m_responseMessage = cmdParser.responseMessage();
+        result.m_cmdOptions = cmdParser.options();
     }
 }
 
