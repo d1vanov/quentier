@@ -50,44 +50,54 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
         int res = QProcess::execute(QStringLiteral("launchd"), args);
         if (res == -2) {
             errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't execute launchd to unload previous configuration"));
+            QNWARNING(errorDescription);
             return false;
         }
         else if (res == -1) {
             errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd crashed during the attempt to unload previous configuration"));
+            QNWARNING(errorDescription);
             return false;
         }
         else if (res != 0) {
             errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd returned with error during the attempt to unload previous configuration"));
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        // Now can remove the launchd config file
+        if (!QFile::remove(QUENTIER_LAUNCH_PLIST_FILE_PATH)) {
+            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous launchd configuration file"));
+            QNWARNING(errorDescription);
             return false;
         }
     }
-
-    // First remove the launchd config file if it exists
-    Q_UNUSED(QFile::remove(QUENTIER_LAUNCH_PLIST_FILE_PATH))
 
     // If the app shouldn't start at login, that should be all
     if (!shouldStartAtLogin) {
         return true;
     }
 
-
     QDir plistFileDir = plistFileInfo.absoluteDir();
     if (Q_UNLIKELY(!plistFileDir.exists()))
     {
         bool res = plistFileDir.mkpath(plistFileDir.absolutePath());
-        if (!res) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "Can't create directory for app's launchd config"));
+        if (Q_UNLIKELY(!res)) {
+            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't create directory for app's launchd config"));
             errorDescription.details() = plistFileDir.absolutePath();
+            QNWARNING(errorDescription);
             return false;
         }
     }
 
-    // Now compose the new plist file with start at login setting set to the relevant value
+    // Now compose the new plist file with start at login option set to the relevant value
     QSettings plist(QUENTIER_LAUNCH_PLIST_FILE_PATH, QSettings::NativeFormat);
     plist.setValue(QStringLiteral("key"), plistFileInfo.completeBaseName());
 
     QStringList appArgsList;
+    appArgsList.reserve(4);
+    appArgsList << QStringLiteral("open");
     appArgsList << QCoreApplication::applicationFilePath();
+    appArgsList << QStringLiteral("--args");
 
     if (option == StartQuentierAtLoginOption::MinimizedToTray) {
         appArgsList << QStringLiteral("--startMinimizedToTray");
@@ -110,14 +120,17 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     int res = QProcess::execute(QStringLiteral("launchd"), args);
     if (res == -2) {
         errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't execute launchd to load the new configuration"));
+        QNWARNING(errorDescription);
         return false;
     }
     else if (res == -1) {
         errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd crashed during the attempt to load new configuration"));
+        QNWARNING(errorDescription);
         return false;
     }
     else if (res != 0) {
         errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd returned with error during the attempt to load new configuration"));
+        QNWARNING(errorDescription);
         return false;
     }
 
