@@ -276,6 +276,8 @@ if(WIN32)
   list(APPEND ${PROJECT_NAME}_SOURCES ${PROJECT_BINARY_DIR}/quentier.rc)
 elseif(APPLE)
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/darwin/StartAtLogin.cpp)
+else()
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/linux/StartAtLogin.cpp)
 endif()
 
 set(FORMS
