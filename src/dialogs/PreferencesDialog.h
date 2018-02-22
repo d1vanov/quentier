@@ -84,6 +84,10 @@ private Q_SLOTS:
     void onLeftMainWindowBorderColorSelected(const QColor & color);
     void onRightMainWindowBorderColorSelected(const QColor & color);
 
+    // Behaviour tab
+    void onStartAtLoginCheckboxToggled(bool checked);
+    void onStartAtLoginOptionChanged(int option);
+
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
 
@@ -104,6 +108,7 @@ private:
                                    ShortcutManager & shortcutManager);
     void setupMainWindowBorderSettings();
     void setupSystemTraySettings();
+    void setupStartAtLoginSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupNetworkProxySettingsState();
     void createConnections();
@@ -117,6 +122,7 @@ private:
     QStringListModel *              m_pTrayActionsModel;
     QStringListModel *              m_pNetworkProxyTypesModel;
     QStringListModel *              m_pAvailableMainWindowBorderOptionsModel;
+    QStringListModel *              m_pStartAtLoginOptionsModel;
 };
 
 } // namespace quentier

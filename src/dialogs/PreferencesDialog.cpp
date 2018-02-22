@@ -30,6 +30,7 @@ using quentier::ShortcutSettingsWidget;
 #include "../NetworkProxySettingsHelpers.h"
 #include "../MainWindowSideBorderOption.h"
 #include "../utility/ColorCodeValidator.h"
+#include "../utility/StartAtLogin.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
@@ -57,7 +58,8 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_systemTrayIconManager(systemTrayIconManager),
     m_pTrayActionsModel(new QStringListModel(this)),
     m_pNetworkProxyTypesModel(new QStringListModel(this)),
-    m_pAvailableMainWindowBorderOptionsModel(new QStringListModel(this))
+    m_pAvailableMainWindowBorderOptionsModel(new QStringListModel(this)),
+    m_pStartAtLoginOptionsModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
     m_pUi->statusTextLabel->setHidden(true);
@@ -376,6 +378,35 @@ void PreferencesDialog::onRightMainWindowBorderColorSelected(const QColor & colo
     m_pUi->rightMainWindowBorderColorLineEdit->setText(colorCode);
 }
 
+void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onStartAtLoginCheckboxToggled: ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+
+    ErrorString errorDescription;
+    bool res = setStartQuentierAtLoginOption(checked, errorDescription,
+                                             static_cast<StartQuentierAtLoginOption::type>(m_pUi->startAtLoginOptionComboBox->currentIndex()));
+    if (Q_UNLIKELY(!res)) {
+        // TODO: show error in status bar
+        checked = isQuentierSetToStartAtLogin().first;
+    }
+
+    m_pUi->startAtLoginOptionComboBox->setEnabled(checked);
+}
+
+void PreferencesDialog::onStartAtLoginOptionChanged(int option)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onStartAtLoginOptionChanged: option = ") << option);
+
+    ErrorString errorDescription;
+    bool res = setStartQuentierAtLoginOption(m_pUi->startAtLoginCheckBox->isChecked(),
+                                             errorDescription,
+                                             static_cast<StartQuentierAtLoginOption::type>(option));
+    if (Q_UNLIKELY(!res)) {
+        // TODO: show error in status bar + reset back the option
+    }
+}
+
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: ")
@@ -525,7 +556,10 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
 
     setupMainWindowBorderSettings();
 
-    // 4) Synchronization tab
+    // 4) Behaviour tab
+    setupStartAtLoginSettings();
+
+    // 5) Synchronization tab
 
     if (currentAccount.type() == Account::Type::Local)
     {
@@ -575,7 +609,7 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
         m_pUi->synchronizationTabStatusLabel->hide();
     }
 
-    // 5) Shortcuts tab
+    // 6) Shortcuts tab
     m_pUi->shortcutSettingsWidget->initialize(currentAccount, actionsInfo, &shortcutManager);
 }
 
@@ -837,6 +871,27 @@ void PreferencesDialog::setupSystemTraySettings()
     }
 }
 
+void PreferencesDialog::setupStartAtLoginSettings()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::setupStartAtLoginSettings"));
+
+    std::pair<bool, StartQuentierAtLoginOption::type> startAtLoginOptions = isQuentierSetToStartAtLogin();
+
+    m_pUi->startAtLoginCheckBox->setChecked(startAtLoginOptions.first);
+
+    QStringList startAtLoginOptionsList;
+    startAtLoginOptionsList.reserve(3);
+    startAtLoginOptionsList << tr("Start minimized to tray");
+    startAtLoginOptionsList << tr("Start minimized to taskbar");
+    startAtLoginOptionsList << tr("Start maximized");
+
+    m_pStartAtLoginOptionsModel->setStringList(startAtLoginOptionsList);
+    m_pUi->startAtLoginOptionComboBox->setModel(m_pStartAtLoginOptionsModel);
+    m_pUi->startAtLoginOptionComboBox->setCurrentIndex(static_cast<int>(startAtLoginOptions.second));
+
+    m_pUi->startAtLoginOptionComboBox->setEnabled(startAtLoginOptions.first);
+}
+
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupRunSyncEachNumMinutesComboBox: ")
@@ -960,6 +1015,11 @@ void PreferencesDialog::createConnections()
                      this, QNSLOT(PreferencesDialog,onMinimizeToSystemTrayCheckboxToggled,bool));
     QObject::connect(m_pUi->startFromTrayCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onStartMinimizedToSystemTrayCheckboxToggled,bool));
+
+    QObject::connect(m_pUi->startAtLoginCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onStartAtLoginCheckboxToggled,bool));
+    QObject::connect(m_pUi->startAtLoginOptionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onStartAtLoginOptionChanged(int)));
 
     QObject::connect(m_pUi->traySingleClickActionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onSingleClickTrayActionChanged(int)));
