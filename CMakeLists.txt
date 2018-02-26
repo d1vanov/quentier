@@ -274,6 +274,7 @@ if(WIN32)
   configure_file(src/quentier.rc.in
                  ${PROJECT_BINARY_DIR}/quentier.rc @ONLY)
   list(APPEND ${PROJECT_NAME}_SOURCES ${PROJECT_BINARY_DIR}/quentier.rc)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/StartAtLogin.cpp)
 elseif(APPLE)
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/darwin/StartAtLogin.cpp)
 else()
