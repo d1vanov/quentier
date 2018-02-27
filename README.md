@@ -25,13 +25,24 @@ Read the project's [blog](https://d1vanov.github.io/quentier) and [wiki](https:/
 
 ## Downloads
 
-See [releases](https://github.com/d1vanov/quentier/releases) page with available releases and downloads for Linux, Windows and OS X / macOS.
-
+See [releases](https://github.com/d1vanov/quentier/releases) page with available releases and downloads for Linux (AppImage), Windows and OS X / macOS.
 Note that **Continuous-master** is the latest somewhat stable version, **Continuous-development** is the latest development one.
 
-## How to build/install
+For users of Debian/Ubuntu and derivatives there's a [PPA repository](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-stable) from where it is easy to install Quentier:
+```
+sudo add-apt-repository ppa:d1vanov/quentier-stable
+sudo apt-get update
+sudo apt-get install quentier-qt5
+```
+Alternatively, if you run Qt4-based desktop environment (KDE 4), you might want to install Qt4-based Quentier instead:
+```
+sudo apt-get install quentier-qt4
+```
+The PPA is for daily Quentier builds from master branch. They are considered relatively stable but might lack certain newest developed functionality which has not yet been merged to master branch. If you prefer, you can use the [development PPA repository](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-development) instead of the stable one.
 
-Please see the [building/installation guide](INSTALL.md).
+## How to build from source
+
+See the [building/installation guide](INSTALL.md).
 
 ## How to contribute
 
