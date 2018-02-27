@@ -102,6 +102,7 @@ set(${PROJECT_NAME}_HEADERS
     src/initialization/ParseStartupAccount.h
     src/initialization/SetupApplicationIcon.h
     src/initialization/SetupTranslations.h
+    src/initialization/SetupStartAtLogin.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
@@ -206,6 +207,7 @@ set(${PROJECT_NAME}_SOURCES
     src/initialization/ParseStartupAccount.cpp
     src/initialization/SetupApplicationIcon.cpp
     src/initialization/SetupTranslations.cpp
+    src/initialization/SetupStartAtLogin.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
