@@ -118,6 +118,10 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
 
     // If the app shouldn't start at login, that should be all
     if (!shouldStartAtLogin) {
+        ApplicationSettings appSettings;
+        appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
+        appSettings.setValue(SHOULD_START_AUTOMATICALLY_AT_LOGIN, false);
+        appSettings.endGroup();
         return true;
     }
 
@@ -149,6 +153,12 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
         QNWARNING(errorDescription);
         return false;
     }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOULD_START_AUTOMATICALLY_AT_LOGIN, true);
+    appSettings.setValue(START_AUTOMATICALLY_AT_LOGIN_OPTION, option);
+    appSettings.endGroup();
 
     return true;
 }

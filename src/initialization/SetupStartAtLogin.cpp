@@ -47,19 +47,15 @@ void setupStartQuentierAtLogin()
         return;
     }
 
+    appSettings.endGroup();
+
     StartQuentierAtLoginOption::type option = DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
 
     ErrorString errorDescription;
     bool res = setStartQuentierAtLoginOption(shouldStartAutomaticallyAtLogin, errorDescription, option);
     if (Q_UNLIKELY(!res)) {
         QNWARNING(QStringLiteral("Failed to set Quentier to start automatically at login: ") << errorDescription);
-        appSettings.endGroup();
-        return;
     }
-
-    appSettings.setValue(SHOULD_START_AUTOMATICALLY_AT_LOGIN, shouldStartAutomaticallyAtLogin);
-    appSettings.setValue(START_AUTOMATICALLY_AT_LOGIN_OPTION, option);
-    appSettings.endGroup();
 }
 
 } // namespace quentier

@@ -17,6 +17,8 @@
  */
 
 #include "../StartAtLogin.h"
+#include "../../SettingsNames.h"
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QSettings>
 #include <QStringList>
@@ -26,7 +28,7 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#define QUENTIER_LAUNCH_PLIST_FILE_PATH QStringLiteral("~/Library/LaunchAgents/org.quentier.Quentier.plist")
+#define QUENTIER_LAUNCH_PLIST_FILE_PATH QDir::homePath() + QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")
 
 namespace quentier {
 
@@ -47,7 +49,7 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
         args << QStringLiteral("unload");
         args << QStringLiteral("-w");
         args << QStringLiteral("~/Library/LaunchAgents/") + plistFileInfo.fileName();
-        int res = QProcess::execute(QStringLiteral("launchd"), args);
+        int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
         if (res == -2) {
             errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't execute launchd to unload previous configuration"));
             QNWARNING(errorDescription);
@@ -74,6 +76,10 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
 
     // If the app shouldn't start at login, that should be all
     if (!shouldStartAtLogin) {
+        ApplicationSettings appSettings;
+        appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
+        appSettings.setValue(SHOULD_START_AUTOMATICALLY_AT_LOGIN, false);
+        appSettings.endGroup();
         return true;
     }
 
@@ -91,7 +97,7 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
 
     // Now compose the new plist file with start at login option set to the relevant value
     QSettings plist(QUENTIER_LAUNCH_PLIST_FILE_PATH, QSettings::NativeFormat);
-    plist.setValue(QStringLiteral("key"), plistFileInfo.completeBaseName());
+    plist.setValue(QStringLiteral("Label"), plistFileInfo.completeBaseName());
 
     QStringList appArgsList;
     appArgsList.reserve(4);
@@ -116,8 +122,8 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     QStringList args;
     args << QStringLiteral("load");
     args << QStringLiteral("-w");
-    args << QStringLiteral("~/Library/LaunchAgents/") + plistFileInfo.fileName();
-    int res = QProcess::execute(QStringLiteral("launchd"), args);
+    args << QDir::homePath() + QStringLiteral("/Library/LaunchAgents/") + plistFileInfo.fileName();
+    int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
     if (res == -2) {
         errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't execute launchd to load the new configuration"));
         QNWARNING(errorDescription);
@@ -133,6 +139,12 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
         QNWARNING(errorDescription);
         return false;
     }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOULD_START_AUTOMATICALLY_AT_LOGIN, true);
+    appSettings.setValue(START_AUTOMATICALLY_AT_LOGIN_OPTION, option);
+    appSettings.endGroup();
 
     return true;
 }
