@@ -21,8 +21,9 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QDir>
+#include <QCoreApplication>
 
-#define QUENTIER_AUTOSTART_DESKTOP_FILE_PATH QStringLiteral("~/.config/autostart/Quentier.desktop")
+#define QUENTIER_AUTOSTART_DESKTOP_FILE_PATH QDir::homePath() + QStringLiteral("/.config/autostart/Quentier.desktop")
 
 namespace quentier {
 
@@ -63,7 +64,9 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     }
 
     // Now compose the new .desktop file with start at login option set to the relevant value
-    QString desktopFileContents = QStringLiteral("[Desktop Entry]\nType=Application\nExec=quentier ");
+    QString desktopFileContents = QStringLiteral("[Desktop Entry]\nType=Application\nExec=");
+    desktopFileContents += QCoreApplication::applicationFilePath();
+    desktopFileContents += QStringLiteral(" ");
 
     if (option == StartQuentierAtLoginOption::MinimizedToTray) {
         desktopFileContents += QStringLiteral("--startMinimizedToTray");
