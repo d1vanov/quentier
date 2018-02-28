@@ -387,8 +387,13 @@ void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
     bool res = setStartQuentierAtLoginOption(checked, errorDescription,
                                              static_cast<StartQuentierAtLoginOption::type>(m_pUi->startAtLoginOptionComboBox->currentIndex()));
     if (Q_UNLIKELY(!res)) {
-        // TODO: show error in status bar
+        m_pUi->statusTextLabel->setText(tr("Failed to change start at login option") + QStringLiteral(": ") + errorDescription.localizedString());
+        m_pUi->statusTextLabel->show();
         checked = isQuentierSetToStartAtLogin().first;
+    }
+    else {
+        m_pUi->statusTextLabel->setText(QString());
+        m_pUi->statusTextLabel->hide();
     }
 
     m_pUi->startAtLoginOptionComboBox->setEnabled(checked);
@@ -403,7 +408,13 @@ void PreferencesDialog::onStartAtLoginOptionChanged(int option)
                                              errorDescription,
                                              static_cast<StartQuentierAtLoginOption::type>(option));
     if (Q_UNLIKELY(!res)) {
-        // TODO: show error in status bar + reset back the option
+        setupStartAtLoginSettings();
+        m_pUi->statusTextLabel->setText(tr("Failed to change start at login option") + QStringLiteral(": ") + errorDescription.localizedString());
+        m_pUi->statusTextLabel->show();
+    }
+    else {
+        m_pUi->statusTextLabel->setText(QString());
+        m_pUi->statusTextLabel->hide();
     }
 }
 
