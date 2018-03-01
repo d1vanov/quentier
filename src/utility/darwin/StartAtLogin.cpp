@@ -47,7 +47,6 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
 
         QStringList args;
         args << QStringLiteral("unload");
-        args << QStringLiteral("-w");
         args << QStringLiteral("~/Library/LaunchAgents/") + plistFileInfo.fileName();
         int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
         if (res == -2) {
@@ -100,10 +99,8 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     plist.setValue(QStringLiteral("Label"), plistFileInfo.completeBaseName());
 
     QStringList appArgsList;
-    appArgsList.reserve(4);
-    appArgsList << QStringLiteral("open");
+    appArgsList.reserve(2);
     appArgsList << QCoreApplication::applicationFilePath();
-    appArgsList << QStringLiteral("--args");
 
     if (option == StartQuentierAtLoginOption::MinimizedToTray) {
         appArgsList << QStringLiteral("--startMinimizedToTray");
@@ -121,7 +118,6 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     // Now need to tell launchd to load the new configuration
     QStringList args;
     args << QStringLiteral("load");
-    args << QStringLiteral("-w");
     args << QDir::homePath() + QStringLiteral("/Library/LaunchAgents/") + plistFileInfo.fileName();
     int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
     if (res == -2) {
