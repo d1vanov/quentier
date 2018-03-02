@@ -894,7 +894,7 @@ void PreferencesDialog::setupStartAtLoginSettings()
     startAtLoginOptionsList.reserve(3);
     startAtLoginOptionsList << tr("Start minimized to tray");
     startAtLoginOptionsList << tr("Start minimized to taskbar");
-    startAtLoginOptionsList << tr("Start maximized");
+    startAtLoginOptionsList << tr("Start maximized or windowed");
 
     m_pStartAtLoginOptionsModel->setStringList(startAtLoginOptionsList);
     m_pUi->startAtLoginOptionComboBox->setModel(m_pStartAtLoginOptionsModel);

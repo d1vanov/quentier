@@ -30,7 +30,7 @@ struct StartQuentierAtLoginOption
     {
         MinimizedToTray = 0,
         Minimized,
-        Maximized
+        Normal
     };
 };
 
@@ -38,7 +38,7 @@ struct StartQuentierAtLoginOption
  * @return                      Pair the first item of which is true if Quentier is set up to start automatically at login,
  *                              false otherwise; the second item is only meaningful if the first item is true, in that case
  *                              it denotes the option with which Quentier would start at login: either minimized or
- *                              minimized to tray or maximized
+ *                              minimized to tray or normal
  */
 std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin();
 

@@ -27,7 +27,7 @@ namespace quentier {
 std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
 {
     QNDEBUG(QStringLiteral("isQuentierSetToStartAtLogin"));
-    
+
     ApplicationSettings appSettings;
     appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
     bool shouldStartAutomaticallyAtLogin = appSettings.value(SHOULD_START_AUTOMATICALLY_AT_LOGIN).toBool();
@@ -53,8 +53,8 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
         case StartQuentierAtLoginOption::Minimized:
             option = StartQuentierAtLoginOption::Minimized;
             break;
-        case StartQuentierAtLoginOption::Maximized:
-            option = StartQuentierAtLoginOption::Maximized;
+        case StartQuentierAtLoginOption::Normal:
+            option = StartQuentierAtLoginOption::Normal;
             break;
         default:
             {
