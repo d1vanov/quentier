@@ -23,7 +23,7 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QDir>
-#include <QApplication>
+#include <QCoreApplication>
 
 // WinAPI headers
 #include <Windows.h>
@@ -33,8 +33,8 @@
 #include <ObjIdl.h>
 #include <ShlGuid.h>
 
-#define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH (QStringLiteral("C:\\Users\\") + QString::fromLocal8Bit(qgetenv("USERNAME")) + \
-                                               QStringLiteral("\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\quentier.lnk"))
+#define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH (QStringLiteral("C:/Users/") + QString::fromLocal8Bit(qgetenv("USERNAME")) + \
+                                               QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/quentier.lnk"))
 
 namespace quentier {
 
@@ -53,7 +53,6 @@ HRESULT createShortcut(LPCWSTR pszTargetfile, LPCWSTR pszTargetargs,
     if ( (pszTargetfile != NULL) && (wcslen(pszTargetfile) > 0) &&
          (pszTargetargs != NULL) &&
          (pszLinkfile != NULL) && (wcslen(pszLinkfile) > 0) &&
-         (pszDescription != NULL) &&
          (iShowmode >= 0) &&
          (pszCurdir != NULL) &&
          (pszIconfile != NULL) &&
@@ -70,7 +69,7 @@ HRESULT createShortcut(LPCWSTR pszTargetfile, LPCWSTR pszTargetargs,
             hRes = pShellLink->SetPath(pszTargetfile);
             hRes = pShellLink->SetArguments(pszTargetargs);
 
-            if (wcslen(pszDescription) > 0) {
+            if (pszDescription && (wcslen(pszDescription) > 0)) {
                 hRes = pShellLink->SetDescription(pszDescription);
             }
 
@@ -144,18 +143,22 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
         }
     }
 
-    QString quentierAppPath = qApp->applicationDirPath() + QStringLiteral("/quentier.exe");
+    QString quentierAppPath = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    if (quentierAppPath.contains(QStringLiteral(" "))) {
+        quentierAppPath.prepend(QStringLiteral("\""));
+        quentierAppPath.append(QStringLiteral("\""));
+    }
+
     QString args = ((option == StartQuentierAtLoginOption::MinimizedToTray)
                     ? QStringLiteral("--startMinimizedToTray")
                     : ((option == StartQuentierAtLoginOption::Minimized)
                        ? QStringLiteral("--startMinimized")
                        : QString()));
-    QString linkfileName = QStringLiteral("quentier.lnk");
 
-    HRESULT hres = createShortcut(QDir::toNativeSeparators(quentierAppPath).toStdWString().c_str(),
-                                  args.toStdWString().c_str(), linkfileName.toStdWString().c_str(), NULL, 0,
-                                  QDir::toNativeSeparators(qApp->applicationDirPath()).toStdWString().c_str(),
-                                  QDir::toNativeSeparators(quentierAppPath).toStdWString().c_str(), 0);
+    HRESULT hres = createShortcut(quentierAppPath.toStdWString().c_str(), args.toStdWString().c_str(),
+                                  QDir::toNativeSeparators(autoStartShortcutFileInfo.absoluteFilePath()).toStdWString().c_str(),
+                                  NULL, 0, QDir::toNativeSeparators(QCoreApplication::applicationDirPath()).toStdWString().c_str(),
+                                  quentierAppPath.toStdWString().c_str(), 0);
     if (!SUCCEEDED(hres)) {
         errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't create shortcut to app in startup folder"));
         QNWARNING(errorDescription);
