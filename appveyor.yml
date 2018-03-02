@@ -4,7 +4,6 @@ branches:
   only:
     - master
     - development
-    - feature/Issue-160-make-it-possible-to-start-Quentier-at-login
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 environment:
@@ -284,7 +283,7 @@ after_build:
   - 7z a %DEPLOYMENT_TARGET% c:\dev\install\*
   - move %DEPLOYMENT_TARGET% %APPVEYOR_BUILD_FOLDER%
   - cd %APPVEYOR_BUILD_FOLDER%
-    #  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe
+  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe
 
 artifacts:
   - path: '*.zip'
