@@ -66,8 +66,29 @@ int main(int argc, char *argv[])
     {
         pMainWindow.reset(new MainWindow);
 
-        const SystemTrayIconManager & systemTrayIconManager = pMainWindow->systemTrayIconManager();
-        if (!systemTrayIconManager.shouldStartMinimizedToSystemTray()) {
+        bool shouldStartMinimizedToSystemTray = false;
+        auto startMinimizedToTrayIt = parseCmdResult.m_cmdOptions.find(QStringLiteral("startMinimizedToTray"));
+        if (startMinimizedToTrayIt != parseCmdResult.m_cmdOptions.end()) {
+            shouldStartMinimizedToSystemTray = true;
+        }
+        else {
+            const SystemTrayIconManager & systemTrayIconManager = pMainWindow->systemTrayIconManager();
+            shouldStartMinimizedToSystemTray = systemTrayIconManager.shouldStartMinimizedToSystemTray();
+        }
+
+        bool shouldStartMinimized = false;
+        if (!shouldStartMinimizedToSystemTray)
+        {
+            auto startMinimizedIt = parseCmdResult.m_cmdOptions.find(QStringLiteral("startMinimized"));
+            if (startMinimizedIt != parseCmdResult.m_cmdOptions.end()) {
+                shouldStartMinimized = true;
+            }
+        }
+
+        if (shouldStartMinimized) {
+            pMainWindow->showMinimized();
+        }
+        else if (!shouldStartMinimizedToSystemTray) {
             pMainWindow->show();
         }
         else {

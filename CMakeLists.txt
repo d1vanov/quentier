@@ -102,6 +102,7 @@ set(${PROJECT_NAME}_HEADERS
     src/initialization/ParseStartupAccount.h
     src/initialization/SetupApplicationIcon.h
     src/initialization/SetupTranslations.h
+    src/initialization/SetupStartAtLogin.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
@@ -145,6 +146,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
     src/utility/ColorCodeValidator.h
+    src/utility/StartAtLogin.h
     src/views/ItemView.h
     src/views/DeletedNoteItemView.h
     src/views/FavoriteItemView.h
@@ -205,6 +207,7 @@ set(${PROJECT_NAME}_SOURCES
     src/initialization/ParseStartupAccount.cpp
     src/initialization/SetupApplicationIcon.cpp
     src/initialization/SetupTranslations.cpp
+    src/initialization/SetupStartAtLogin.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
@@ -243,6 +246,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
     src/utility/ColorCodeValidator.cpp
+    src/utility/StartAtLogin.cpp
     src/views/ItemView.cpp
     src/views/DeletedNoteItemView.cpp
     src/views/FavoriteItemView.cpp
@@ -272,6 +276,11 @@ if(WIN32)
   configure_file(src/quentier.rc.in
                  ${PROJECT_BINARY_DIR}/quentier.rc @ONLY)
   list(APPEND ${PROJECT_NAME}_SOURCES ${PROJECT_BINARY_DIR}/quentier.rc)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/StartAtLogin.cpp)
+elseif(APPLE)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/darwin/StartAtLogin.cpp)
+else()
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/linux/StartAtLogin.cpp)
 endif()
 
 set(FORMS

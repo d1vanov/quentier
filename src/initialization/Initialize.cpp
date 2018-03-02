@@ -19,6 +19,7 @@
 #include "Initialize.h"
 #include "SetupApplicationIcon.h"
 #include "SetupTranslations.h"
+#include "SetupStartAtLogin.h"
 #include "ParseStartupAccount.h"
 #include "../SettingsNames.h"
 #include "../AccountManager.h"
@@ -46,6 +47,7 @@ void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result)
     }
     else {
         result.m_responseMessage = cmdParser.responseMessage();
+        result.m_cmdOptions = cmdParser.options();
     }
 }
 
@@ -75,6 +77,8 @@ int initialize(QuentierApplication & app, const CommandLineParser::CommandLineOp
             quentier::QuentierSetMinLogLevel(static_cast<quentier::LogLevel::type>(minLogLevel));
         }
     }
+
+    setupStartQuentierAtLogin();
 
     return processCommandLineOptions(cmdOptions);
 }

@@ -69,7 +69,9 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
                                               "where <id> is user ID and <Name> is the account name")
             ("overrideSystemTrayAvailability", po::value<bool>(),
              "override the availability of the system tray\n(0 - override to false,\n"
-             "any other value - override to true)");
+             "any other value - override to true)")
+            ("startMinimizedToTray", "start Quentier minimized to system tray")
+            ("startMinimized", "start Quentier with its main window minimized to the task bar");
 
         po::variables_map varsMap;
         po::store(po::parse_command_line(argc, argv, desc), varsMap);
@@ -109,6 +111,9 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
             }
             else if (valueType == typeid(bool)) {
                 m_parsedArgs[key] = QVariant(boost::any_cast<bool>(value));
+            }
+            else {
+                m_parsedArgs[key] = QVariant();
             }
         }
     }
