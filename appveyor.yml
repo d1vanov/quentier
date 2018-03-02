@@ -11,10 +11,10 @@ environment:
   auth_token:
     secure: rLuHhO0prerqoGCYmfOoyxqcwwamCXtuZtl4Jzqeu3aGgflk0mnX1fogLq68YcRW
   matrix:
-    - prepare_mode: YES
-      name: win32-prepare
-      platform: amd64_x86
-      qt: msvc2015
+          #  - prepare_mode: YES
+          #      name: win32-prepare
+          #      platform: amd64_x86
+          #      qt: msvc2015
     - prepare_mode: NO
       name: win32
       platform: amd64_x86
