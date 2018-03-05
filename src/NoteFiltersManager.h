@@ -124,21 +124,29 @@ private:
 
     void clearFilterWidgetsItems();
 
+    void checkFiltersInitialization();
+
 private:
-    FilterByTagWidget &                 m_filterByTagWidget;
-    FilterByNotebookWidget &            m_filterByNotebookWidget;
-    NoteFilterModel &                   m_noteFilterModel;
-    FilterBySavedSearchWidget &         m_filterBySavedSearchWidget;
-    QLineEdit &                         m_searchLineEdit;
-    LocalStorageManagerAsync &          m_localStorageManagerAsync;
+    FilterByTagWidget &             m_filterByTagWidget;
+    FilterByNotebookWidget &        m_filterByNotebookWidget;
+    NoteFilterModel &               m_noteFilterModel;
+    FilterBySavedSearchWidget &     m_filterBySavedSearchWidget;
+    QLineEdit &                     m_searchLineEdit;
+    LocalStorageManagerAsync &      m_localStorageManagerAsync;
 
-    QSet<QString>                       m_filteredTagLocalUids;
-    QString                             m_filteredSavedSearchLocalUid;
+    QSet<QString>   m_filteredTagLocalUids;
+    QString         m_filteredSavedSearchLocalUid;
 
-    QString                             m_lastSearchString;
+    QString         m_lastSearchString;
 
-    QUuid                               m_findNoteLocalUidsForSearchStringRequestId;
-    QUuid                               m_findNoteLocalUidsForSavedSearchQueryRequestId;
+    QUuid           m_findNoteLocalUidsForSearchStringRequestId;
+    QUuid           m_findNoteLocalUidsForSavedSearchQueryRequestId;
+
+    bool            m_onceFilterByTagWidgetUpdated;
+    bool            m_onceFilterByNotebookWidgetUpdated;
+    bool            m_onceFilterBySavedSearchWidgetUpdated;
+
+    bool            m_onceFiltersInitialized;
 };
 
 } // namespace quentier

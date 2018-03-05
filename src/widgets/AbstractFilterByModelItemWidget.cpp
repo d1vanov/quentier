@@ -72,6 +72,7 @@ void AbstractFilterByModelItemWidget::switchAccount(const Account & account, Ite
 
     if (m_pItemModel->allItemsListed()) {
         restoreFilteredItems();
+        Q_EMIT updated();
         return;
     }
 }
@@ -400,6 +401,7 @@ void AbstractFilterByModelItemWidget::onModelReady()
     QObject::disconnect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
                         this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
     restoreFilteredItems();
+    Q_EMIT updated();
 }
 
 void AbstractFilterByModelItemWidget::persistFilteredItems()
@@ -474,9 +476,7 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
     }
 
     addNewItemWidget();
-
     QNTRACE(QStringLiteral("Updated the list of items within the filter"));
-    Q_EMIT updated();
 }
 
 void AbstractFilterByModelItemWidget::addNewItemWidget()

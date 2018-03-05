@@ -2814,6 +2814,9 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinu
     m_runSyncPeriodicallyTimerId = startTimer(SEC_TO_MSEC(runSyncEachNumMinutes * 60));
 }
 
+// FIXME: the changes of note search query are already handled by NoteFiltersManager
+// so need to move the validation of note search query there
+// and only leave the tooltip in MainWindow showing the error within the note search query
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryChanged: ") << query);
