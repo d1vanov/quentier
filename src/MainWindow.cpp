@@ -227,7 +227,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     bool createdDefaultAccount = false;
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount(&createdDefaultAccount)));
 
-
     if (createdDefaultAccount && !onceDisplayedGreeterScreen()) {
         m_pendingGreeterDialog = true;
         setOnceDisplayedGreeterScreen();
@@ -265,7 +264,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupLocalStorageManager();
     setupModels();
     setupViews();
-    setupNoteFilters();
 
     if (createdDefaultAccount) {
         setupDefaultAccount();
@@ -4105,12 +4103,7 @@ void MainWindow::setupModels()
     QObject::connect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
                      this, QNSLOT(MainWindow,onNoteModelAllNotesListed));
 
-    m_pNoteFiltersManager = new NoteFiltersManager(*m_pUI->filterByTagsWidget,
-                                                   *m_pUI->filterByNotebooksWidget,
-                                                   *m_pNoteFilterModel,
-                                                   *m_pUI->filterBySavedSearchComboBox,
-                                                   *m_pUI->searchQueryLineEdit,
-                                                   *m_pLocalStorageManagerAsync, this);
+    setupNoteFilters();
 
     m_pUI->favoritesTableView->setModel(m_pFavoritesModel);
     m_pUI->notebooksTreeView->setModel(m_pNotebookModel);
@@ -4582,8 +4575,16 @@ void MainWindow::setupNoteFilters()
 
     m_pUI->filterStatusBarLabel->hide();
 
-    // TODO: set up the object which would watch for changes in these widgets and
-    // set stuff to the NoteFilterModel accordingly
+    if (m_pNoteFiltersManager) {
+        m_pNoteFiltersManager->disconnect();
+        m_pNoteFiltersManager->deleteLater();
+    }
+    m_pNoteFiltersManager = new NoteFiltersManager(*m_pUI->filterByTagsWidget,
+                                                   *m_pUI->filterByNotebooksWidget,
+                                                   *m_pNoteFilterModel,
+                                                   *m_pUI->filterBySavedSearchComboBox,
+                                                   *m_pUI->searchQueryLineEdit,
+                                                   *m_pLocalStorageManagerAsync, this);
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("FiltersView"));
