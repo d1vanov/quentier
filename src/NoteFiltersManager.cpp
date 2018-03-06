@@ -717,6 +717,17 @@ void NoteFiltersManager::restoreSearchString()
     appSettings.endGroup();
 
     m_searchLineEdit.setText(m_lastSearchString);
+
+    if (m_lastSearchString.isEmpty()) {
+        return;
+    }
+
+    ErrorString error;
+    NoteSearchQuery query = createNoteSearchQuery(m_lastSearchString, error);
+    if (query.isEmpty()) {
+        QToolTip::showText(m_searchLineEdit.mapToGlobal(QPoint(0, m_searchLineEdit.height())),
+                           error.localizedString(), &m_searchLineEdit);
+    }
 }
 
 bool NoteFiltersManager::setFilterBySearchString()
