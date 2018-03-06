@@ -47,6 +47,7 @@ NotebookItemView::NotebookItemView(QWidget * parent) :
     m_pNotebookItemContextMenu(Q_NULLPTR),
     m_pNotebookStackItemContextMenu(Q_NULLPTR),
     m_pNoteFiltersManager(),
+    m_notebookLocalUidPendingNoteFiltersManagerReadiness(),
     m_trackingNotebookModelItemsState(false),
     m_trackingSelection(false),
     m_modelReady(false)
@@ -106,6 +107,7 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
                             this, QNSLOT(NotebookItemView,onRemovedNotebooks));
     }
 
+    m_notebookLocalUidPendingNoteFiltersManagerReadiness.clear();
     m_modelReady = false;
     m_trackingSelection = false;
     m_trackingNotebookModelItemsState = false;
@@ -768,6 +770,28 @@ void NotebookItemView::onNoteFilterChanged()
     }
 
     setCurrentIndex(notebookIndex);
+}
+
+void NotebookItemView::onNoteFiltersManagerReady()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onNoteFiltersManagerReady"));
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        QNDEBUG(QStringLiteral("Note filters manager is null"));
+        return;
+    }
+
+    QObject::disconnect(m_pNoteFiltersManager, QNSIGNAL(NoteFiltersManager,ready),
+                        this, QNSLOT(NotebookItemView,onNoteFiltersManagerReady));
+
+    if (m_notebookLocalUidPendingNoteFiltersManagerReadiness.isEmpty()) {
+        QNDEBUG(QStringLiteral("No notebook local uid to set to the filter"));
+        return;
+    }
+
+    QString notebookLocalUid = m_notebookLocalUidPendingNoteFiltersManagerReadiness;
+    m_notebookLocalUidPendingNoteFiltersManagerReadiness.clear();
+    setSelectedNotebookToNoteFilterManager(notebookLocalUid);
 }
 
 void NotebookItemView::selectionChanged(const QItemSelection & selected,
@@ -1522,6 +1546,30 @@ void NotebookItemView::setSelectedNotebookToNoteFilterManager(const QString & no
 
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
         QNDEBUG(QStringLiteral("Note filters manager is null"));
+        return;
+    }
+
+    if (!m_pNoteFiltersManager->isReady())
+    {
+        QNDEBUG(QStringLiteral("Note filters manager is not ready yet, will postpone setting the notebook to it: ")
+                << notebookLocalUid);
+
+        QObject::connect(m_pNoteFiltersManager, QNSIGNAL(NoteFiltersManager,ready),
+                         this, QNSLOT(NotebookItemView,onNoteFiltersManagerReady),
+                         Qt::UniqueConnection);
+
+        m_notebookLocalUidPendingNoteFiltersManagerReadiness = notebookLocalUid;
+        return;
+    }
+
+    if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
+        QNDEBUG(QStringLiteral("Filter by search string is active, won't reset filter to seleted notebook"));
+        return;
+    }
+
+    const QString & savedSearchLocalUidInFilter = m_pNoteFiltersManager->savedSearchLocalUidInFilter();
+    if (!savedSearchLocalUidInFilter.isEmpty()) {
+        QNDEBUG(QStringLiteral("Filter by saved search is active, won't reset filter to selected notebook"));
         return;
     }
 

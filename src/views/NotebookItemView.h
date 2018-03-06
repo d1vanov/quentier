@@ -90,6 +90,8 @@ private Q_SLOTS:
 
     void onNoteFilterChanged();
 
+    void onNoteFiltersManagerReady();
+
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
@@ -133,6 +135,8 @@ private:
     QMenu *     m_pNotebookStackItemContextMenu;
 
     QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
+
+    QString     m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 
     bool        m_trackingNotebookModelItemsState;
     bool        m_trackingSelection;
