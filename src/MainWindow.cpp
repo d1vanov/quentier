@@ -205,7 +205,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteEditorTabsAndWindowsCoordinator(Q_NULLPTR),
     m_pEditNoteDialogsManager(Q_NULLPTR),
     m_pUndoStack(new QUndoStack(this)),
-    m_noteSearchQueryValidated(false),
     m_styleSheetInfo(),
     m_currentPanelStyle(),
     m_shortcutManager(this),
@@ -527,10 +526,6 @@ void MainWindow::connectNoteSearchActionsToSlots()
 {
     QNDEBUG(QStringLiteral("MainWindow::connectNoteSearchActionsToSlots"));
 
-    QObject::connect(m_pUI->searchQueryLineEdit, QNSIGNAL(QLineEdit,textChanged,const QString&),
-                     this, QNSLOT(MainWindow,onNoteSearchQueryChanged,const QString&));
-    QObject::connect(m_pUI->searchQueryLineEdit, QNSIGNAL(QLineEdit,returnPressed),
-                     this, QNSLOT(MainWindow,onNoteSearchQueryReady));
     QObject::connect(m_pUI->saveSearchPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onSaveNoteSearchQueryButtonPressed));
 }
@@ -1020,29 +1015,6 @@ void MainWindow::scheduleSyncButtonAnimationStop()
                      this, QNSLOT(MainWindow,onSyncIconAnimationFinished));
     QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
                      this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChangedPendingFinish,int));
-}
-
-bool MainWindow::checkNoteSearchQuery(const QString & noteSearchQuery)
-{
-    QNDEBUG(QStringLiteral("MainWindow::checkNoteSearchQuery: ") << noteSearchQuery);
-
-    if (m_noteSearchQueryValidated) {
-        QNTRACE(QStringLiteral("Note search query validated"));
-        return true;
-    }
-
-    NoteSearchQuery query;
-    ErrorString errorDescription;
-    bool res = query.setQueryString(noteSearchQuery, errorDescription);
-    if (!res) {
-        QToolTip::showText(m_pUI->searchQueryLineEdit->mapToGlobal(QPoint(0, m_pUI->searchQueryLineEdit->height())),
-                           errorDescription.localizedString(), m_pUI->searchQueryLineEdit);
-        m_noteSearchQueryValidated = false;
-        return false;
-    }
-
-    m_noteSearchQueryValidated = true;
-    return true;
 }
 
 void MainWindow::startListeningForSplitterMoves()
@@ -2814,49 +2786,15 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinu
     m_runSyncPeriodicallyTimerId = startTimer(SEC_TO_MSEC(runSyncEachNumMinutes * 60));
 }
 
-// FIXME: the changes of note search query are already handled by NoteFiltersManager
-// so need to move the validation of note search query there
-// and only leave the tooltip in MainWindow showing the error within the note search query
-void MainWindow::onNoteSearchQueryChanged(const QString & query)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryChanged: ") << query);
-    m_noteSearchQueryValidated = false;
-}
-
-void MainWindow::onNoteSearchQueryReady()
-{
-    QString noteSearchQuery = m_pUI->searchQueryLineEdit->text();
-    QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryReady: query = ") << noteSearchQuery);
-
-    if (noteSearchQuery.isEmpty()) {
-        // TODO: remove search query from NoteFilterModel
-        return;
-    }
-
-    bool res = checkNoteSearchQuery(noteSearchQuery);
-    if (!res) {
-        // TODO: remove search query from NoteFilterModel
-        return;
-    }
-
-    // TODO: set the search query to the NoteFilterModel
-}
-
 void MainWindow::onSaveNoteSearchQueryButtonPressed()
 {
-    QString noteSearchQuery = m_pUI->searchQueryLineEdit->text();
-    QNDEBUG(QStringLiteral("MainWindow::onSaveNoteSearchQueryButtonPressed, query = ")
-            << noteSearchQuery);
-
-    bool res = checkNoteSearchQuery(noteSearchQuery);
-    if (!res) {
-        // TODO: remove search query from NoteFilterModel
-        return;
-    }
+    QString searchString = m_pUI->searchQueryLineEdit->text();
+    QNDEBUG(QStringLiteral("MainWindow::onSaveNoteSearchQueryButtonPressed, search string = ")
+            << searchString);
 
     QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
     pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
-    pAddSavedSearchDialog->setQuery(noteSearchQuery);
+    pAddSavedSearchDialog->setQuery(searchString);
     Q_UNUSED(pAddSavedSearchDialog->exec())
 }
 
@@ -4112,8 +4050,8 @@ void MainWindow::setupModels()
     m_pUI->notebooksTreeView->setModel(m_pNotebookModel);
     m_pUI->tagsTreeView->setModel(m_pTagModel);
     m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
-    m_pUI->noteListView->setModel(m_pNoteFilterModel);
     m_pUI->deletedNotesTableView->setModel(m_pDeletedNotesModel);
+    m_pUI->noteListView->setModel(m_pNoteFilterModel);
 
     m_pNotebookModelColumnChangeRerouter->setModel(m_pNotebookModel);
     m_pTagModelColumnChangeRerouter->setModel(m_pTagModel);
@@ -4582,7 +4520,8 @@ void MainWindow::setupNoteFilters()
         m_pNoteFiltersManager->disconnect();
         m_pNoteFiltersManager->deleteLater();
     }
-    m_pNoteFiltersManager = new NoteFiltersManager(*m_pUI->filterByTagsWidget,
+    m_pNoteFiltersManager = new NoteFiltersManager(*m_pAccount,
+                                                   *m_pUI->filterByTagsWidget,
                                                    *m_pUI->filterByNotebooksWidget,
                                                    *m_pNoteFilterModel,
                                                    *m_pUI->filterBySavedSearchComboBox,

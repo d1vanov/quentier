@@ -35,7 +35,8 @@ FilterBySavedSearchWidget::FilterBySavedSearchWidget(QWidget * parent) :
     m_availableSavedSearchesModel(),
     m_currentSavedSearchName(),
     m_currentSavedSearchLocalUid(),
-    m_settingCurrentIndex(false)
+    m_settingCurrentIndex(false),
+    m_isReady(false)
 {
     setModel(&m_availableSavedSearchesModel);
 
@@ -89,8 +90,12 @@ void FilterBySavedSearchWidget::switchAccount(const Account & account, SavedSear
         return;
     }
 
+    m_isReady = false;
+
     if (m_pSavedSearchModel->allSavedSearchesListed()) {
         restoreSelectedSavedSearch();
+        m_isReady = true;
+        Q_EMIT ready();
     }
 }
 
@@ -103,6 +108,11 @@ const SavedSearchModel * FilterBySavedSearchWidget::savedSearchModel() const
     return m_pSavedSearchModel.data();
 }
 
+bool FilterBySavedSearchWidget::isReady() const
+{
+    return m_isReady;
+}
+
 void FilterBySavedSearchWidget::onAllSavedSearchesListed()
 {
     QNDEBUG(QStringLiteral("FilterBySavedSearchWidget::onAllSavedSearchesListed"));
@@ -111,6 +121,8 @@ void FilterBySavedSearchWidget::onAllSavedSearchesListed()
                         this, QNSLOT(FilterBySavedSearchWidget,onAllSavedSearchesListed));
     connectoToSavedSearchModel();
     restoreSelectedSavedSearch();
+    m_isReady = true;
+    Q_EMIT ready();
 }
 
 void FilterBySavedSearchWidget::onModelRowsInserted(const QModelIndex & parent, int start, int end)

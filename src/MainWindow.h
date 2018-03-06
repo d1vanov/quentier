@@ -255,8 +255,6 @@ private Q_SLOTS:
     void onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes);
 
     // Note search-related slots
-    void onNoteSearchQueryChanged(const QString & query);
-    void onNoteSearchQueryReady();
     void onSaveNoteSearchQueryButtonPressed();
 
     // SystemTrayIconManager slots
@@ -380,8 +378,6 @@ private:
     void startSyncButtonAnimation();
     void stopSyncButtonAnimation();
     void scheduleSyncButtonAnimationStop();
-
-    bool checkNoteSearchQuery(const QString & noteSearchQuery);
 
     void startListeningForSplitterMoves();
     void stopListeningForSplitterMoves();
@@ -553,8 +549,6 @@ private:
     EditNoteDialogsManager *                m_pEditNoteDialogsManager;
 
     QUndoStack *            m_pUndoStack;
-
-    bool                    m_noteSearchQueryValidated;
 
     struct StyleSheetInfo
     {

@@ -41,6 +41,11 @@ public:
 
     const SavedSearchModel * savedSearchModel() const;
 
+    bool isReady() const;
+
+Q_SIGNALS:
+    void ready();
+
 private Q_SLOTS:
     void onAllSavedSearchesListed();
 
@@ -72,6 +77,8 @@ private:
     QString                     m_currentSavedSearchLocalUid;
 
     bool                        m_settingCurrentIndex;
+
+    bool                        m_isReady;
 };
 
 } // namespace quentier

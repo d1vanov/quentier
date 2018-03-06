@@ -25,6 +25,7 @@
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SavedSearch.h>
 #include <quentier/types/Note.h>
+#include <quentier/types/Account.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <QObject>
 #include <QUuid>
@@ -44,7 +45,8 @@ class NoteFiltersManager: public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteFiltersManager(FilterByTagWidget & filterByTagWidget,
+    explicit NoteFiltersManager(const Account & account,
+                                FilterByTagWidget & filterByTagWidget,
                                 FilterByNotebookWidget & filterByNotebookWidget,
                                 NoteFilterModel & noteFilterModel,
                                 FilterBySavedSearchWidget & filterBySavedSearchWidget,
@@ -60,10 +62,23 @@ public:
     void clear();
     void resetFilterToNotebookLocalUid(const QString & notebookLocalUid);
 
+    /**
+     * @return true if all filters have already been properly initialized, false otherwise
+     */
+    bool isReady() const;
+
+    static NoteSearchQuery createNoteSearchQuery(const QString & searchString,
+                                                 ErrorString & errorDescription);
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
     void filterChanged();
+
+    /**
+     * @brief ready signal is emitted when all filters become properly initialized
+     */
+    void ready();
 
     // private signals
     void findNoteLocalUidsForNoteSearchQuery(NoteSearchQuery noteSearchQuery, QUuid requestId);
@@ -74,15 +89,18 @@ private Q_SLOTS:
     void onRemovedTagFromFilter(const QString & tagName);
     void onTagsClearedFromFilter();
     void onTagsFilterUpdated();
+    void onTagsFilterReady();
 
     // Slots for FilterByNotebookWidget's signals
     void onAddedNotebookToFilter(const QString & notebookName);
     void onRemovedNotebookFromFilter(const QString & notebookName);
     void onNotebooksClearedFromFilter();
     void onNotebooksFilterUpdated();
+    void onNotebooksFilterReady();
 
     // Slots for saved search combo box
     void onSavedSearchFilterChanged(const QString & savedSearchName);
+    void onSavedSearchFilterReady();
 
     // Slots for the search line edit
     void onSearchStringEdited(const QString & text);
@@ -115,6 +133,9 @@ private:
     void createConnections();
     void evaluate();
 
+    void persistSearchString();
+    void restoreSearchString();
+
     bool setFilterBySearchString();
     bool setFilterBySavedSearch();
     void setFilterByNotebooks();
@@ -124,9 +145,10 @@ private:
 
     void clearFilterWidgetsItems();
 
-    void checkFiltersInitialization();
+    void checkFiltersReadiness();
 
 private:
+    Account                         m_account;
     FilterByTagWidget &             m_filterByTagWidget;
     FilterByNotebookWidget &        m_filterByNotebookWidget;
     NoteFilterModel &               m_noteFilterModel;
@@ -142,11 +164,9 @@ private:
     QUuid           m_findNoteLocalUidsForSearchStringRequestId;
     QUuid           m_findNoteLocalUidsForSavedSearchQueryRequestId;
 
-    bool            m_onceFilterByTagWidgetUpdated;
-    bool            m_onceFilterByNotebookWidgetUpdated;
-    bool            m_onceFilterBySavedSearchWidgetUpdated;
+    bool            m_noteSearchQueryValidated;
 
-    bool            m_onceFiltersInitialized;
+    bool            m_isReady;
 };
 
 } // namespace quentier

@@ -55,6 +55,12 @@ public:
 
     QStringList itemsInFilter() const;
 
+    /**
+     * @return true if the filter widget has been fully initialized after the most recent account switching,
+     * false otherwise
+     */
+    bool isReady() const;
+
 Q_SIGNALS:
     void notifyError(ErrorString error);
 
@@ -80,6 +86,11 @@ Q_SIGNALS:
      * so that it needs to be re-requested and re-processed
      */
     void updated();
+
+    /**
+     * @brief ready signal is emitted when the filter widget's initialization is complete
+     */
+    void ready();
 
 public Q_SLOTS:
     void addItemToFilter(const QString & localUid, const QString & itemName);
@@ -115,6 +126,7 @@ private:
     FlowLayout *                m_pLayout;
     Account                     m_account;
     QPointer<ItemModel>         m_pItemModel;
+    bool                        m_isReady;
 
     typedef boost::bimap<QString, QString> ItemLocalUidToNameBimap;
     ItemLocalUidToNameBimap     m_filteredItemsLocalUidToNameBimap;

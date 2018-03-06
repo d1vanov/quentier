@@ -26,7 +26,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <QModelIndex>
 
-#define LAST_FILTERED_ITEMS_LOCAL_UIDS_KEY QStringLiteral("LastFilteredItems")
+#define LAST_FILTERED_ITEMS_KEY QStringLiteral("LastFilteredItems")
 
 namespace quentier {
 
@@ -36,6 +36,7 @@ AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(const QString &
     m_pLayout(new FlowLayout(this)),
     m_account(),
     m_pItemModel(),
+    m_isReady(false),
     m_filteredItemsLocalUidToNameBimap()
 {}
 
@@ -72,7 +73,8 @@ void AbstractFilterByModelItemWidget::switchAccount(const Account & account, Ite
 
     if (m_pItemModel->allItemsListed()) {
         restoreFilteredItems();
-        Q_EMIT updated();
+        m_isReady = true;
+        Q_EMIT ready();
         return;
     }
 }
@@ -113,6 +115,11 @@ QStringList AbstractFilterByModelItemWidget::itemsInFilter() const
     }
 
     return result;
+}
+
+bool AbstractFilterByModelItemWidget::isReady() const
+{
+    return m_isReady;
 }
 
 void AbstractFilterByModelItemWidget::addItemToFilter(const QString & localUid, const QString & itemName)
@@ -182,8 +189,12 @@ void AbstractFilterByModelItemWidget::update()
         return;
     }
 
+    m_isReady = false;
+
     if (m_pItemModel->allItemsListed()) {
         restoreFilteredItems();
+        m_isReady = true;
+        Q_EMIT ready();
         return;
     }
 
@@ -401,7 +412,8 @@ void AbstractFilterByModelItemWidget::onModelReady()
     QObject::disconnect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
                         this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
     restoreFilteredItems();
-    Q_EMIT updated();
+    m_isReady = true;
+    Q_EMIT ready();
 }
 
 void AbstractFilterByModelItemWidget::persistFilteredItems()
@@ -424,7 +436,7 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
         filteredItemsLocalUids << localUid;
     }
 
-    appSettings.setValue(LAST_FILTERED_ITEMS_LOCAL_UIDS_KEY, filteredItemsLocalUids);
+    appSettings.setValue(LAST_FILTERED_ITEMS_KEY, filteredItemsLocalUids);
     appSettings.endGroup();
 
     QNDEBUG(QStringLiteral("Successfully persisted the local uids of filtered items: ")
@@ -447,7 +459,7 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));
-    QStringList itemLocalUids = appSettings.value(LAST_FILTERED_ITEMS_LOCAL_UIDS_KEY).toStringList();
+    QStringList itemLocalUids = appSettings.value(LAST_FILTERED_ITEMS_KEY).toStringList();
     appSettings.endGroup();
 
     if (itemLocalUids.isEmpty()) {
