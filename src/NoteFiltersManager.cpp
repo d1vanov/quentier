@@ -63,6 +63,15 @@ NoteFiltersManager::NoteFiltersManager(const Account & account,
 {
     createConnections();
     restoreSearchString();
+
+    if (setFilterBySearchString()) {
+        // As search string overrides all other filters, we are good to go
+        QNDEBUG(QStringLiteral("Was able to set the filter by search string, considering NoteFiltersManager ready"));
+        m_isReady = true;
+        Q_EMIT ready();
+        return;
+    }
+
     checkFiltersReadiness();
 }
 
@@ -277,6 +286,16 @@ void NoteFiltersManager::onSavedSearchFilterChanged(const QString & savedSearchN
 void NoteFiltersManager::onSavedSearchFilterReady()
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::onSavedSearchFilterReady"));
+
+    if (!m_isReady && setFilterBySavedSearch()) {
+        // If we were not ready, there was no valid search string; if we managed to set the filter by saved search,
+        // we are good to go because filter by saved search overrides filters by notebooks and tags anyway
+        QNDEBUG(QStringLiteral("Was able to set the filter by saved search, considering NoteFiltersManager ready"));
+        m_isReady = true;
+        Q_EMIT ready();
+        return;
+    }
+
     checkFiltersReadiness();
 }
 
@@ -287,6 +306,7 @@ void NoteFiltersManager::onSearchStringEdited(const QString & text)
     bool wasEmpty = m_lastSearchString.isEmpty();
     m_lastSearchString = text;
     if (!wasEmpty && m_lastSearchString.isEmpty()) {
+        persistSearchString();
         evaluate();
     }
 }
