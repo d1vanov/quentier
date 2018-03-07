@@ -94,6 +94,7 @@ void FilterBySavedSearchWidget::switchAccount(const Account & account, SavedSear
 
     if (m_pSavedSearchModel->allSavedSearchesListed()) {
         restoreSelectedSavedSearch();
+        updateSavedSearchesInComboBox();
         m_isReady = true;
         Q_EMIT ready();
     }
@@ -121,6 +122,7 @@ void FilterBySavedSearchWidget::onAllSavedSearchesListed()
                         this, QNSLOT(FilterBySavedSearchWidget,onAllSavedSearchesListed));
     connectoToSavedSearchModel();
     restoreSelectedSavedSearch();
+    updateSavedSearchesInComboBox();
     m_isReady = true;
     Q_EMIT ready();
 }
@@ -208,8 +210,6 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
         QNDEBUG(QStringLiteral("No last selected saved search local uid, nothing to restore"));
         return;
     }
-
-    updateSavedSearchesInComboBox();
 }
 
 void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(const QString & savedSearchName)
