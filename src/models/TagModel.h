@@ -46,13 +46,11 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModel)
-
 class TagModel: public ItemModel
 {
     Q_OBJECT
 public:
-    explicit TagModel(const Account & account, const NoteModel & noteModel,
+    explicit TagModel(const Account & account,
                       LocalStorageManagerAsync & localStorageManagerAsync,
                       TagCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~TagModel();
@@ -245,11 +243,11 @@ Q_SIGNALS:
     void addTag(Tag tag, QUuid requestId);
     void updateTag(Tag tag, QUuid requestId);
     void findTag(Tag tag, QUuid requestId);
-    void listTags(LocalStorageManager::ListObjectsOptions flag,
-                  size_t limit, size_t offset,
-                  LocalStorageManager::ListTagsOrder::type order,
-                  LocalStorageManager::OrderDirection::type orderDirection,
-                  QString linkedNotebookGuid, QUuid requestId);
+    void listTagsWithNoteLocalUids(LocalStorageManager::ListObjectsOptions flag,
+                                   size_t limit, size_t offset,
+                                   LocalStorageManager::ListTagsOrder::type order,
+                                   LocalStorageManager::OrderDirection::type orderDirection,
+                                   QString linkedNotebookGuid, QUuid requestId);
     void expungeTag(Tag tag, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
     void requestNoteCountPerTag(Tag tag, QUuid requestId);
@@ -264,9 +262,6 @@ Q_SIGNALS:
                                 const LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId);
 
 private Q_SLOTS:
-    // Slot for NoteModel's notifyAllNotesListed signal
-    void onAllNotesListed();
-
     // Slots for response to events from local storage
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
@@ -274,16 +269,18 @@ private Q_SLOTS:
     void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onFindTagComplete(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
-                            size_t limit, size_t offset,
-                            LocalStorageManager::ListTagsOrder::type order,
-                            LocalStorageManager::OrderDirection::type orderDirection,
-                            QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId);
-    void onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
-                          size_t limit, size_t offset,
-                          LocalStorageManager::ListTagsOrder::type order,
-                          LocalStorageManager::OrderDirection::type orderDirection,
-                          QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
+    void onListTagsWithNoteLocalUidsComplete(LocalStorageManager::ListObjectsOptions flag,
+                                             size_t limit, size_t offset,
+                                             LocalStorageManager::ListTagsOrder::type order,
+                                             LocalStorageManager::OrderDirection::type orderDirection,
+                                             QString linkedNotebookGuid,
+                                             QList<std::pair<Tag,QStringList> > foundTagsWithNoteLocalUids,
+                                             QUuid requestId);
+    void onListTagsWithNoteLocalUidsFailed(LocalStorageManager::ListObjectsOptions flag,
+                                           size_t limit, size_t offset,
+                                           LocalStorageManager::ListTagsOrder::type order,
+                                           LocalStorageManager::OrderDirection::type orderDirection,
+                                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
     void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
@@ -329,7 +326,7 @@ private Q_SLOTS:
                                         ErrorString errorDescription, QUuid requestId);
 
 private:
-    void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void requestTagsList();
     void requestNoteCountForTag(const Tag & tag);
     void requestTagsPerNote(const Note & note);
@@ -362,8 +359,6 @@ private:
 
     void beginRemoveTags();
     void endRemoveTags();
-
-    void buildTagLocalUidsByNoteLocalUidsHash(const NoteModel & noteModel);
 
     const TagModelItem & findOrCreateLinkedNotebookModelItem(const QString & linkedNotebookGuid);
     const TagModelItem & modelItemForTagItem(const TagItem & tagItem);
@@ -442,9 +437,9 @@ private:
     friend class RemoveRowsScopeGuard;
 
 private:
-    void onTagAddedOrUpdated(const Tag & tag);
-    void onTagAdded(const Tag & tag);
-    void onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it);
+    void onTagAddedOrUpdated(const Tag & tag, const QStringList * pTagNoteLocalUids = Q_NULLPTR);
+    void onTagAdded(const Tag & tag, const QStringList * pTagNoteLocalUids);
+    void onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it, const QStringList * pTagNoteLocalUids);
     void tagToItem(const Tag & tag, TagItem & item);
     bool canUpdateTagItem(const TagItem & item) const;
     bool canCreateTagItem(const TagModelItem & parentItem) const;
@@ -496,7 +491,6 @@ private:
     Qt::SortOrder           m_sortOrder;
 
     QHash<QString, QStringList>     m_tagLocalUidsByNoteLocalUid;
-    bool                            m_receivedTagLocalUidsForAllNotes;
 
     struct Restrictions
     {

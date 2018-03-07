@@ -4030,7 +4030,7 @@ void MainWindow::setupModels()
                                            m_notebookCache, m_tagCache, m_savedSearchCache, this);
     m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManagerAsync,
                                          m_notebookCache, this);
-    m_pTagModel = new TagModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManagerAsync, m_tagCache, this);
+    m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManagerAsync, m_tagCache, this);
     m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManagerAsync,
                                                m_savedSearchCache, this);
     m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManagerAsync, m_noteCache,

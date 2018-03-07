@@ -18,7 +18,8 @@
 
 #include "TagModelTestHelper.h"
 #include "../../models/TagModel.h"
-#include "../../models/NoteModel.h"
+#include "../../models/NoteCache.h"
+#include "../../models/NotebookCache.h"
 #include "modeltest.h"
 #include "TestMacros.h"
 #include <quentier/utility/SysInfo.h>
@@ -164,9 +165,8 @@ void TagModelTestHelper::test()
 
         NoteCache noteCache(10);
         NotebookCache notebookCache(5);
-        NoteModel noteModel(account, *m_pLocalStorageManagerAsync, noteCache, notebookCache);
 
-        TagModel * model = new TagModel(account, noteModel, *m_pLocalStorageManagerAsync, cache, this);
+        TagModel * model = new TagModel(account, *m_pLocalStorageManagerAsync, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 
