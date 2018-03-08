@@ -55,6 +55,8 @@ public:
 
     QStringList itemsInFilter() const;
 
+    QStringList localUidsOfItemsInFilter() const;
+
     /**
      * @return true if the filter widget has been fully initialized after the most recent account switching,
      * false otherwise

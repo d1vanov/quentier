@@ -114,6 +114,24 @@ bool FilterBySavedSearchWidget::isReady() const
     return m_isReady;
 }
 
+QString FilterBySavedSearchWidget::filteredSavedSearchLocalUid() const
+{
+    if (isReady()) {
+        return m_currentSavedSearchLocalUid;
+    }
+
+    if (m_account.isEmpty()) {
+        return QString();
+    }
+
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
+    QString savedSearchLocalUid = appSettings.value(LAST_FILTERED_SAVED_SEARCH_KEY).toString();
+    appSettings.endGroup();
+
+    return savedSearchLocalUid;
+}
+
 void FilterBySavedSearchWidget::onAllSavedSearchesListed()
 {
     QNDEBUG(QStringLiteral("FilterBySavedSearchWidget::onAllSavedSearchesListed"));

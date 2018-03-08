@@ -38,8 +38,8 @@ public:
     const QStringList & notebookLocalUids() const { return m_notebookLocalUids; }
     void setNotebookLocalUids(const QStringList & notebookLocalUids);
 
-    const QStringList & tagNames() const { return m_tagNames; }
-    void setTagNames(const QStringList & tagNames);
+    const QStringList & tagLocalUids() const { return m_tagLocalUids; }
+    void setTagLocalUids(const QStringList & tagLocalUids);
 
     const QStringList & noteLocalUids() const { return m_noteLocalUids; }
     void setNoteLocalUids(const QStringList & noteLocalUids);
@@ -58,7 +58,7 @@ protected:
 
 private:
     QStringList m_notebookLocalUids;
-    QStringList m_tagNames;
+    QStringList m_tagLocalUids;
     QStringList m_noteLocalUids;
     bool        m_usingNoteLocalUidsFilter;
     bool        m_pendingFilterUpdate;

@@ -25,7 +25,7 @@ namespace quentier {
 NoteFilterModel::NoteFilterModel(QObject * parent) :
     QSortFilterProxyModel(parent),
     m_notebookLocalUids(),
-    m_tagNames(),
+    m_tagLocalUids(),
     m_noteLocalUids(),
     m_usingNoteLocalUidsFilter(false),
     m_pendingFilterUpdate(false),
@@ -34,7 +34,7 @@ NoteFilterModel::NoteFilterModel(QObject * parent) :
 
 bool NoteFilterModel::hasFilters() const
 {
-    return !m_notebookLocalUids.isEmpty() || !m_tagNames.isEmpty() || !m_noteLocalUids.isEmpty();
+    return !m_notebookLocalUids.isEmpty() || !m_tagLocalUids.isEmpty() || !m_noteLocalUids.isEmpty();
 }
 
 void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids)
@@ -70,16 +70,16 @@ void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids
     }
 }
 
-void NoteFilterModel::setTagNames(const QStringList & tagNames)
+void NoteFilterModel::setTagLocalUids(const QStringList & tagLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteFilterModel::setTagNames: ") << tagNames.join(QStringLiteral(", ")));
+    QNDEBUG(QStringLiteral("NoteFilterModel::setTagLocalUids: ") << tagLocalUids.join(QStringLiteral(", ")));
 
-    if (!m_usingNoteLocalUidsFilter && (m_tagNames.size() == tagNames.size()))
+    if (!m_usingNoteLocalUidsFilter && (m_tagLocalUids.size() == tagLocalUids.size()))
     {
         bool foundDifference = false;
-        for(auto it = m_tagNames.constBegin(), end = m_tagNames.constEnd(); it != end; ++it)
+        for(auto it = m_tagLocalUids.constBegin(), end = m_tagLocalUids.constEnd(); it != end; ++it)
         {
-            if (!tagNames.contains(*it)) {
+            if (!tagLocalUids.contains(*it)) {
                 foundDifference = true;
                 break;
             }
@@ -91,7 +91,7 @@ void NoteFilterModel::setTagNames(const QStringList & tagNames)
         }
     }
 
-    m_tagNames = tagNames;
+    m_tagLocalUids = tagLocalUids;
     m_noteLocalUids.clear();
     m_usingNoteLocalUidsFilter = false;
 
@@ -177,8 +177,8 @@ QTextStream & NoteFilterModel::print(QTextStream & strm) const
     strm << QStringLiteral("    notebook local uids: ")
          << (m_notebookLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_notebookLocalUids.join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
-    strm << QStringLiteral("    tag names: ")
-         << (m_tagNames.isEmpty() ? QStringLiteral("<empty>") : m_tagNames.join(QStringLiteral(", ")))
+    strm << QStringLiteral("    tag local uids: ")
+         << (m_tagLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_tagLocalUids.join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    note local uids: ")
          << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_noteLocalUids.join(QStringLiteral(", ")))
@@ -234,12 +234,12 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
         }
     }
 
-    if (!m_tagNames.isEmpty())
+    if (!m_tagLocalUids.isEmpty())
     {
-        const QStringList & itemTagNames = pItem->tagNameList();
-        for(auto it = itemTagNames.constBegin(), end = itemTagNames.constEnd(); it != end; ++it)
+        const QStringList & itemTagLocalUids = pItem->tagLocalUids();
+        for(auto it = itemTagLocalUids.constBegin(), end = itemTagLocalUids.constEnd(); it != end; ++it)
         {
-            if (m_tagNames.contains(*it)) {
+            if (m_tagLocalUids.contains(*it)) {
                 return true;
             }
         }

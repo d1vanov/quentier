@@ -53,7 +53,6 @@ NoteFiltersManager::NoteFiltersManager(const Account & account,
     m_filterBySavedSearchWidget(filterBySavedSearchWidget),
     m_searchLineEdit(searchLineEdit),
     m_localStorageManagerAsync(localStorageManagerAsync),
-    m_filteredTagLocalUids(),
     m_filteredSavedSearchLocalUid(),
     m_lastSearchString(),
     m_findNoteLocalUidsForSearchStringRequestId(),
@@ -62,17 +61,38 @@ NoteFiltersManager::NoteFiltersManager(const Account & account,
     m_isReady(false)
 {
     createConnections();
-    restoreSearchString();
 
+    restoreSearchString();
     if (setFilterBySearchString()) {
         // As search string overrides all other filters, we are good to go
+        Q_EMIT filterChanged();
         QNDEBUG(QStringLiteral("Was able to set the filter by search string, considering NoteFiltersManager ready"));
         m_isReady = true;
         Q_EMIT ready();
         return;
     }
 
-    checkFiltersReadiness();
+    QString savedSearchLocalUid = m_filterBySavedSearchWidget.filteredSavedSearchLocalUid();
+    if (!savedSearchLocalUid.isEmpty()) {
+        // As filtered saved search's local uid is not empty, need to delay the moment of filtering evaluatuon until filter by saved search is ready
+        QNDEBUG(QStringLiteral("Filtered saved search's local uid is not empty, need to properly wait for filter's readiness"));
+        checkFiltersReadiness();
+        return;
+    }
+
+    // If we got here, there are no filters by search string and saved search
+    // We can set filters by notebooks and tags without waiting for them to be complete
+    // since local uids of notebooks and tags within the filter are known even before
+    // the filter widgets become ready
+    m_noteFilterModel.beginUpdateFilter();
+    setFilterByNotebooks();
+    setFilterByTags();
+    m_noteFilterModel.endUpdateFilter();
+
+    Q_EMIT filterChanged();
+
+    m_isReady = true;
+    Q_EMIT ready();
 }
 
 const QStringList & NoteFiltersManager::notebookLocalUidsInFilter() const
@@ -90,15 +110,7 @@ QStringList NoteFiltersManager::tagLocalUidsInFilter() const
         return QStringList();
     }
 
-    QStringList filteredTagLocalUids;
-    filteredTagLocalUids.reserve(m_filteredTagLocalUids.size());
-    for(auto it = m_filteredTagLocalUids.constBegin(),
-        end = m_filteredTagLocalUids.constEnd(); it != end; ++it)
-    {
-        filteredTagLocalUids << *it;
-    }
-
-    return filteredTagLocalUids;
+    return m_noteFilterModel.tagLocalUids();
 }
 
 const QString & NoteFiltersManager::savedSearchLocalUidInFilter() const
@@ -426,39 +438,6 @@ void NoteFiltersManager::onExpungeNotebookComplete(Notebook notebook, QUuid requ
     m_noteFilterModel.setNotebookLocalUids(notebookLocalUids);
 }
 
-void NoteFiltersManager::onUpdateTagComplete(Tag tag, QUuid requestId)
-{
-    QNDEBUG(QStringLiteral("NoteFiltersManager::onUpdateTagComplete: tag = ") << tag
-            << QStringLiteral("\nRequest id = ") << requestId);
-
-    auto it = m_filteredTagLocalUids.find(tag.localUid());
-    if (it != m_filteredTagLocalUids.end())
-    {
-        QNDEBUG(QStringLiteral("One of tags within the filter was updated"));
-
-        if (!m_filterByTagWidget.isEnabled()) {
-            QNDEBUG(QStringLiteral("The filter by tags is overridden by either search string or filter by saved search"));
-            return;
-        }
-
-        const TagModel * pTagModel = m_filterByTagWidget.tagModel();
-        if (Q_UNLIKELY(!pTagModel)) {
-            ErrorString error(QT_TR_NOOP("Internal error: can't update the filter by tags: no tag model within FilterByTagWidget"));
-            QNWARNING(error);
-            Q_EMIT notifyError(error);
-            m_noteFilterModel.setTagNames(QStringList());
-            return;
-        }
-
-        QStringList tagNames = tagNamesFromLocalUids(*pTagModel);
-
-        QNTRACE(QStringLiteral("Tag names to be used for filtering: ")
-                << tagNames.join(QStringLiteral(", ")));
-
-        m_noteFilterModel.setTagNames(tagNames);
-    }
-}
-
 void NoteFiltersManager::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::onExpungeTagComplete: tag = ") << tag
@@ -469,12 +448,19 @@ void NoteFiltersManager::onExpungeTagComplete(Tag tag, QStringList expungedChild
     expungedTagLocalUids << tag.localUid();
     expungedTagLocalUids << expungedChildTagLocalUids;
 
+    if (!m_filterByTagWidget.isEnabled()) {
+        QNDEBUG(QStringLiteral("The filter by tags is overridden by either search string or filter by saved search"));
+        return;
+    }
+
+    QStringList tagLocalUids = m_noteFilterModel.tagLocalUids();
+
     bool filteredTagsChanged = false;
     for(auto it = expungedTagLocalUids.constBegin(), end = expungedTagLocalUids.constEnd(); it != end; ++it)
     {
-        auto tagIt = m_filteredTagLocalUids.find(*it);
-        if (tagIt != m_filteredTagLocalUids.end()) {
-            Q_UNUSED(m_filteredTagLocalUids.erase(tagIt))
+        int tagIndex = tagLocalUids.indexOf(*it);
+        if (tagIndex >= 0) {
+            tagLocalUids.removeAt(tagIndex);
             filteredTagsChanged = true;
         }
     }
@@ -484,25 +470,7 @@ void NoteFiltersManager::onExpungeTagComplete(Tag tag, QStringList expungedChild
         return;
     }
 
-    if (!m_filterByTagWidget.isEnabled()) {
-        QNDEBUG(QStringLiteral("The filter by tags is overridden by either search string or filter by saved search"));
-        return;
-    }
-
-    const TagModel * pTagModel = m_filterByTagWidget.tagModel();
-    if (Q_UNLIKELY(!pTagModel)) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't update the filter by tags: no tag model within FilterByTagWidget"));
-        QNWARNING(error);
-        Q_EMIT notifyError(error);
-        m_noteFilterModel.setTagNames(QStringList());
-        return;
-    }
-
-    QStringList tagNames = tagNamesFromLocalUids(*pTagModel);
-    QNTRACE(QStringLiteral("Tag names to be used for filtering: ")
-            << tagNames.join(QStringLiteral(", ")));
-
-    m_noteFilterModel.setTagNames(tagNames);
+    m_noteFilterModel.setTagLocalUids(tagLocalUids);
 }
 
 void NoteFiltersManager::onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId)
@@ -656,9 +624,6 @@ void NoteFiltersManager::createConnections()
 
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeNotebookComplete,Notebook,QUuid),
-                     Qt::UniqueConnection);
-    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onUpdateTagComplete,Tag,QUuid),
                      Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeTagComplete,Tag,QStringList,QUuid),
@@ -871,36 +836,7 @@ void NoteFiltersManager::setFilterByNotebooks()
     // search string or saved search filters so should enable the filter by notebook widget
     m_filterByNotebookWidget.setEnabled(true);
 
-    const NotebookModel * pNotebookModel = m_filterByNotebookWidget.notebookModel();
-    if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG(QStringLiteral("Notebook model in the filter by notebook widget is null"));
-        m_noteFilterModel.setNotebookLocalUids(QStringList());
-        return;
-    }
-
-    QStringList notebookNames = m_filterByNotebookWidget.itemsInFilter();
-    if (notebookNames.isEmpty()) {
-        QNDEBUG(QStringLiteral("No filtered notebooks"));
-        m_noteFilterModel.setNotebookLocalUids(QStringList());
-        return;
-    }
-
-    QStringList notebookLocalUids;
-    notebookLocalUids.reserve(notebookNames.size());
-    for(auto it = notebookNames.constBegin(), end = notebookNames.constEnd(); it != end; ++it)
-    {
-        QString localUid = pNotebookModel->localUidForItemName(*it, /* linked notebook guid = */ QString());
-        if (Q_UNLIKELY(localUid.isEmpty())) {
-            ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by notebooks: the notebook model "
-                                         "returned empty local uid for the notebook name in the filter"));
-            QNWARNING(error << QStringLiteral(", notebook name: ") << *it);
-            Q_EMIT notifyError(error);
-            m_noteFilterModel.setNotebookLocalUids(QStringList());
-            return;
-        }
-
-        notebookLocalUids << localUid;
-    }
+    QStringList notebookLocalUids = m_filterByNotebookWidget.localUidsOfItemsInFilter();
 
     QNTRACE(QStringLiteral("Notebook local uids to be used for filtering: ")
             << (notebookLocalUids.isEmpty() ? QStringLiteral("<empty>") : notebookLocalUids.join(QStringLiteral(", "))));
@@ -912,89 +848,16 @@ void NoteFiltersManager::setFilterByTags()
 {
     QNDEBUG(QStringLiteral("NoteFiltersManager::setFilterByTags"));
 
-    const TagModel * pTagModel = m_filterByTagWidget.tagModel();
-    if (Q_UNLIKELY(!pTagModel)) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by tags: no tag model within FilterByTagWidget"));
-        QNWARNING(error);
-        Q_EMIT notifyError(error);
-        m_noteFilterModel.setTagNames(QStringList());
-        return;
-    }
-
-    QStringList tagNames = m_filterByTagWidget.itemsInFilter();
-    QNTRACE(QStringLiteral("Tag names to be used for filtering: ")
-            << (tagNames.isEmpty() ? QStringLiteral("<empty>") : tagNames.join(QStringLiteral(", "))));
-
-    QStringList tagLocalUids;
-    tagLocalUids.reserve(tagNames.size());
-
-    for(auto it = tagNames.constBegin(), end = tagNames.constEnd(); it != end; ++it)
-    {
-        QModelIndex itemIndex = pTagModel->indexForTagName(*it);
-        if (Q_UNLIKELY(!itemIndex.isValid())) {
-            ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by tags: tag model returned "
-                                         "invalid index for one of tag names"));
-            QNWARNING(error << QStringLiteral(", tag name = ") << *it);
-            Q_EMIT notifyError(error);
-            m_noteFilterModel.setTagNames(QStringList());
-            return;
-        }
-
-        const TagModelItem * pItem = pTagModel->itemForIndex(itemIndex);
-        if (Q_UNLIKELY(!pItem)) {
-            ErrorString error(QT_TR_NOOP("Internal error: can't set the filter by tags: tag model returned "
-                                         "null item for a valid index corresponding to one of tag names"));
-            QNWARNING(error << QStringLiteral(", tag name = ") << *it);
-            Q_EMIT notifyError(error);
-            m_noteFilterModel.setTagNames(QStringList());
-            return;
-        }
-
-        const TagItem * pTagItem = pItem->tagItem();
-        if (Q_UNLIKELY(!pTagItem)) {
-            continue;
-        }
-
-        tagLocalUids << pTagItem->localUid();
-    }
-
-    m_filteredTagLocalUids.clear();
-    for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it) {
-        Q_UNUSED(m_filteredTagLocalUids.insert(*it))
-    }
-
-    QNTRACE(QStringLiteral("Tag local uids to be used for filtering: ")
-            << tagLocalUids.join(QStringLiteral(", ")));
-
     // If this method got called in the first place, it means the tag filter is not overridden by either search string
     // or saved search filter so should enable the filter by tag widget
     m_filterByTagWidget.setEnabled(true);
 
-    m_noteFilterModel.setTagNames(tagNames);
-}
+    QStringList tagLocalUids = m_filterByTagWidget.localUidsOfItemsInFilter();
 
-QStringList NoteFiltersManager::tagNamesFromLocalUids(const TagModel & tagModel) const
-{
-    QStringList tagNames;
-    tagNames.reserve(m_filteredTagLocalUids.size());
+    QNTRACE(QStringLiteral("Tag local uids to be used for filtering: ")
+            << tagLocalUids.join(QStringLiteral(", ")));
 
-    for(auto it = m_filteredTagLocalUids.constBegin(), end = m_filteredTagLocalUids.constEnd(); it != end; ++it)
-    {
-        const TagModelItem * pItem = tagModel.itemForLocalUid(*it);
-        if (Q_UNLIKELY(!pItem)) {
-            QNWARNING(QStringLiteral("Can't find tag model item for local uid ") << *it);
-            continue;
-        }
-
-        const TagItem * pTagItem = pItem->tagItem();
-        if (Q_UNLIKELY(!pTagItem)) {
-            continue;
-        }
-
-        tagNames << pTagItem->name();
-    }
-
-    return tagNames;
+    m_noteFilterModel.setTagLocalUids(tagLocalUids);
 }
 
 void NoteFiltersManager::clearFilterWidgetsItems()

@@ -43,6 +43,8 @@ public:
 
     bool isReady() const;
 
+    QString filteredSavedSearchLocalUid() const;
+
 Q_SIGNALS:
     void ready();
 

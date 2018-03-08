@@ -117,6 +117,35 @@ QStringList AbstractFilterByModelItemWidget::itemsInFilter() const
     return result;
 }
 
+QStringList AbstractFilterByModelItemWidget::localUidsOfItemsInFilter() const
+{
+    QStringList result;
+
+    if (isReady())
+    {
+        result.reserve(static_cast<int>(m_filteredItemsLocalUidToNameBimap.size()));
+
+        for(auto it = m_filteredItemsLocalUidToNameBimap.left.begin(),
+            end = m_filteredItemsLocalUidToNameBimap.left.end(); it != end; ++it)
+        {
+            result << it->first;
+        }
+    }
+    else
+    {
+        if (m_account.isEmpty()) {
+            return result;
+        }
+
+        ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(m_name + QStringLiteral("Filter"));
+        result = appSettings.value(LAST_FILTERED_ITEMS_KEY).toStringList();
+        appSettings.endGroup();
+    }
+
+    return result;
+}
+
 bool AbstractFilterByModelItemWidget::isReady() const
 {
     return m_isReady;

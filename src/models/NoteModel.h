@@ -58,7 +58,7 @@ public:
         };
     };
 
-    explicit NoteModel(const Account & account,  LocalStorageManagerAsync & localStorageManagerAsync,
+    explicit NoteModel(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                        NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
                        const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
     virtual ~NoteModel();

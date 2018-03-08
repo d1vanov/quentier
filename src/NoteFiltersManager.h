@@ -119,7 +119,6 @@ private Q_SLOTS:
 
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
-    void onUpdateTagComplete(Tag tag, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
@@ -141,8 +140,6 @@ private:
     void setFilterByNotebooks();
     void setFilterByTags();
 
-    QStringList tagNamesFromLocalUids(const TagModel & tagModel) const;
-
     void clearFilterWidgetsItems();
 
     void checkFiltersReadiness();
@@ -156,7 +153,6 @@ private:
     QLineEdit &                     m_searchLineEdit;
     LocalStorageManagerAsync &      m_localStorageManagerAsync;
 
-    QSet<QString>   m_filteredTagLocalUids;
     QString         m_filteredSavedSearchLocalUid;
 
     QString         m_lastSearchString;
