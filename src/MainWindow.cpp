@@ -2341,28 +2341,28 @@ void MainWindow::onNoteSortingModeChanged(int index)
 
     switch(index)
     {
-    case NoteSortingModes::CreatedAscending:
+    case NoteModel::NoteSortingModes::CreatedAscending:
         m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp, Qt::AscendingOrder);
         break;
-    case NoteSortingModes::CreatedDescending:
+    case NoteModel::NoteSortingModes::CreatedDescending:
         m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp, Qt::DescendingOrder);
         break;
-    case NoteSortingModes::ModifiedAscending:
+    case NoteModel::NoteSortingModes::ModifiedAscending:
         m_pNoteModel->sort(NoteModel::Columns::ModificationTimestamp, Qt::AscendingOrder);
         break;
-    case NoteSortingModes::ModifiedDescending:
+    case NoteModel::NoteSortingModes::ModifiedDescending:
         m_pNoteModel->sort(NoteModel::Columns::ModificationTimestamp, Qt::DescendingOrder);
         break;
-    case NoteSortingModes::TitleAscending:
+    case NoteModel::NoteSortingModes::TitleAscending:
         m_pNoteModel->sort(NoteModel::Columns::Title, Qt::AscendingOrder);
         break;
-    case NoteSortingModes::TitleDescending:
+    case NoteModel::NoteSortingModes::TitleDescending:
         m_pNoteModel->sort(NoteModel::Columns::Title, Qt::DescendingOrder);
         break;
-    case NoteSortingModes::SizeAscending:
+    case NoteModel::NoteSortingModes::SizeAscending:
         m_pNoteModel->sort(NoteModel::Columns::Size, Qt::AscendingOrder);
         break;
-    case NoteSortingModes::SizeDescending:
+    case NoteModel::NoteSortingModes::SizeDescending:
         m_pNoteModel->sort(NoteModel::Columns::Size, Qt::DescendingOrder);
         break;
     default:
@@ -4024,8 +4024,14 @@ void MainWindow::setupModels()
 
     clearModels();
 
+    NoteModel::NoteSortingModes::type noteSortingMode = restoreNoteSortingMode();
+    if (noteSortingMode == NoteModel::NoteSortingModes::None) {
+        noteSortingMode = NoteModel::NoteSortingModes::ModifiedDescending;
+    }
+
     m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManagerAsync, m_noteCache,
-                                 m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
+                                 m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted,
+                                 noteSortingMode);
     m_pFavoritesModel = new FavoritesModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManagerAsync, m_noteCache,
                                            m_notebookCache, m_tagCache, m_savedSearchCache, this);
     m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pNoteModel, *m_pLocalStorageManagerAsync,
@@ -4393,11 +4399,14 @@ void MainWindow::setupViews()
         m_onceSetupNoteSortingModeComboBox = true;
     }
 
-    if (!restoreNoteSortingMode()) {
-        m_pUI->noteSortingModeComboBox->setCurrentIndex(NoteSortingModes::ModifiedDescending);
+    NoteModel::NoteSortingModes::type noteSortingMode = restoreNoteSortingMode();
+    if (noteSortingMode == NoteModel::NoteSortingModes::None) {
+        noteSortingMode = NoteModel::NoteSortingModes::ModifiedDescending;
         QNDEBUG(QStringLiteral("Couldn't restore the note sorting mode, fallback to the default one of ")
-                << m_pUI->noteSortingModeComboBox->currentIndex());
+                << noteSortingMode);
     }
+
+    m_pUI->noteSortingModeComboBox->setCurrentIndex(noteSortingMode);
 
     QObject::connect(m_pUI->noteSortingModeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onNoteSortingModeChanged(int)), Qt::UniqueConnection);
@@ -4957,7 +4966,7 @@ void MainWindow::persistChosenNoteSortingMode(int index)
     appSettings.endGroup();
 }
 
-bool MainWindow::restoreNoteSortingMode()
+NoteModel::NoteSortingModes::type MainWindow::restoreNoteSortingMode()
 {
     QNDEBUG(QStringLiteral("MainWindow::restoreNoteSortingMode"));
 
@@ -4965,7 +4974,8 @@ bool MainWindow::restoreNoteSortingMode()
     appSettings.beginGroup(QStringLiteral("NoteListView"));
     if (!appSettings.contains(NOTE_SORTING_MODE_KEY)) {
         QNDEBUG(QStringLiteral("No persisted note sorting mode within the settings, nothing to restore"));
-        return false;
+        appSettings.endGroup();
+        return NoteModel::NoteSortingModes::None;
     }
 
     QVariant data = appSettings.value(NOTE_SORTING_MODE_KEY);
@@ -4973,7 +4983,7 @@ bool MainWindow::restoreNoteSortingMode()
 
     if (data.isNull()) {
         QNDEBUG(QStringLiteral("No persisted note sorting mode, nothing to restore"));
-        return false;
+        return NoteModel::NoteSortingModes::None;
     }
 
     bool conversionResult = false;
@@ -4983,12 +4993,10 @@ bool MainWindow::restoreNoteSortingMode()
                                      "can't convert the persisted setting to the integer index"));
         QNWARNING(error << QStringLiteral(", persisted data: ") << data);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
-        return false;
+        return NoteModel::NoteSortingModes::None;
     }
 
-    m_pUI->noteSortingModeComboBox->setCurrentIndex(index);
-    QNDEBUG(QStringLiteral("Restored the current note sorting mode combo box index: ") << index);
-    return true;
+    return static_cast<NoteModel::NoteSortingModes::type>(index);
 }
 
 void MainWindow::persistGeometryAndState()

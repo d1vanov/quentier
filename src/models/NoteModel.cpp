@@ -74,10 +74,11 @@ namespace quentier {
 
 NoteModel::NoteModel(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                      NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent,
-                     const IncludedNotes::type includedNotes) :
+                     const IncludedNotes::type includedNotes, const NoteSortingModes::type noteSortingModes) :
     QAbstractItemModel(parent),
     m_account(account),
     m_includedNotes(includedNotes),
+    m_noteSortingModes(noteSortingModes),
     m_data(),
     m_listNotesOffset(0),
     m_listNotesRequestId(),
@@ -1278,9 +1279,41 @@ void NoteModel::requestNotesList()
     LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::NoOrder;
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
 
+    switch(m_noteSortingModes)
+    {
+    case NoteSortingModes::CreatedAscending:
+        order = LocalStorageManager::ListNotesOrder::ByCreationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Ascending;
+        break;
+    case NoteSortingModes::CreatedDescending:
+        order = LocalStorageManager::ListNotesOrder::ByCreationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Descending;
+        break;
+    case NoteSortingModes::ModifiedAscending:
+        order = LocalStorageManager::ListNotesOrder::ByModificationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Ascending;
+        break;
+    case NoteSortingModes::ModifiedDescending:
+        order = LocalStorageManager::ListNotesOrder::ByModificationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Descending;
+        break;
+    case NoteSortingModes::TitleAscending:
+        order = LocalStorageManager::ListNotesOrder::ByTitle;
+        direction = LocalStorageManager::OrderDirection::Ascending;
+        break;
+    case NoteSortingModes::TitleDescending:
+        order = LocalStorageManager::ListNotesOrder::ByTitle;
+        direction = LocalStorageManager::OrderDirection::Descending;
+        break;
+    // NOTE: no sorting by side is supported by the local storage so leaving it as is for now
+    default:
+        break;
+    }
+
     m_listNotesRequestId = QUuid::createUuid();
     NMTRACE(QStringLiteral("Emitting the request to list notes: offset = ") << m_listNotesOffset
-            << QStringLiteral(", request id = ") << m_listNotesRequestId);
+            << QStringLiteral(", request id = ") << m_listNotesRequestId << QStringLiteral(", order = ")
+            << order << QStringLiteral(", direction = ") << direction);
     Q_EMIT listNotes(flags, /* with resource binary data = */ false, NOTE_LIST_LIMIT, m_listNotesOffset, order, direction, QString(), m_listNotesRequestId);
 }
 

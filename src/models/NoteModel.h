@@ -58,9 +58,26 @@ public:
         };
     };
 
+    struct NoteSortingModes
+    {
+        enum type
+        {
+            CreatedAscending = 0,
+            CreatedDescending,
+            ModifiedAscending,
+            ModifiedDescending,
+            TitleAscending,
+            TitleDescending,
+            SizeAscending,
+            SizeDescending,
+            None
+        };
+    };
+
     explicit NoteModel(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
                        NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
-                       const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
+                       const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted,
+                       const NoteSortingModes::type noteSortingModes = NoteSortingModes::None);
     virtual ~NoteModel();
 
     const Account & account() const { return m_account; }
@@ -327,6 +344,7 @@ private:
 private:
     Account                 m_account;
     IncludedNotes::type     m_includedNotes;
+    NoteSortingModes::type  m_noteSortingModes;
     NoteData                m_data;
     size_t                  m_listNotesOffset;
     QUuid                   m_listNotesRequestId;

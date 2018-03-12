@@ -387,7 +387,7 @@ private:
     void refreshNoteEditorWidgetsSpecialIcons();
 
     void persistChosenNoteSortingMode(int index);
-    bool restoreNoteSortingMode();
+    NoteModel::NoteSortingModes::type restoreNoteSortingMode();
 
     void persistGeometryAndState();
     void restoreGeometryAndState();
@@ -525,22 +525,6 @@ private:
 
     NoteFilterModel *       m_pNoteFilterModel;
     NoteFiltersManager *    m_pNoteFiltersManager;
-
-    struct NoteSortingModes
-    {
-        // This enum defines the order in which the items are stored in the combobox determining the notes sorting order
-        enum type
-        {
-            CreatedAscending = 0,
-            CreatedDescending,
-            ModifiedAscending,
-            ModifiedDescending,
-            TitleAscending,
-            TitleDescending,
-            SizeAscending,
-            SizeDescending
-        };
-    };
 
     int                     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId;
     QString                 m_defaultAccountFirstNoteLocalUid;
