@@ -267,6 +267,8 @@ before_build:
   - md build
 
 build_script:
+  - if not %platform%==mingw cd C:\Qt\5.10.0\%qt%
+  - if not %platform%==mingw dir /s
   - cd c:\dev\quentier\build
   - if %qt%==mingw492_32 set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
