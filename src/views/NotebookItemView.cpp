@@ -1554,7 +1554,7 @@ void NotebookItemView::setSelectedNotebookToNoteFilterManager(const QString & no
         QNDEBUG(QStringLiteral("Note filters manager is not ready yet, will postpone setting the notebook to it: ")
                 << notebookLocalUid);
 
-        QObject::connect(m_pNoteFiltersManager, QNSIGNAL(NoteFiltersManager,ready),
+        QObject::connect(m_pNoteFiltersManager.data(), QNSIGNAL(NoteFiltersManager,ready),
                          this, QNSLOT(NotebookItemView,onNoteFiltersManagerReady),
                          Qt::UniqueConnection);
 
