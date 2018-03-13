@@ -209,6 +209,9 @@ install:
       mkdir libquentier &&
       git clone https://github.com/d1vanov/libquentier.git libquentier &&
       cd libquentier &&
+      if [ "${TRAVIS_BRANCH}" = "development" ]; then
+        git checkout development
+      fi
       mkdir build &&
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
