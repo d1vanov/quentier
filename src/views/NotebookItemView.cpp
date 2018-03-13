@@ -781,7 +781,7 @@ void NotebookItemView::onNoteFiltersManagerReady()
         return;
     }
 
-    QObject::disconnect(m_pNoteFiltersManager, QNSIGNAL(NoteFiltersManager,ready),
+    QObject::disconnect(m_pNoteFiltersManager.data(), QNSIGNAL(NoteFiltersManager,ready),
                         this, QNSLOT(NotebookItemView,onNoteFiltersManagerReady));
 
     if (m_notebookLocalUidPendingNoteFiltersManagerReadiness.isEmpty()) {
