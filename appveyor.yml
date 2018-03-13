@@ -32,7 +32,9 @@ clone_folder: c:\dev\quentier
 
 init:
   - if not %platform%==mingw set PATH=C:\Qt\5.10.0\%qt%\bin;%PATH%
+  - if not %platform%==mingw set CMAKE_PREFIX_PATH=C:\Qt\5.10.0\%qt%;%CMAKE_PREFIX_PATH%
   - if %platform%==mingw set PATH=C:\Qt\5.5\%qt%\bin;%PATH%
+  - if %platform%==mingw set CMAKE_PREFIX_PATH=C:\Qt\5.5\%qt%;%CMAKE_PREFIX_PATH%
   - set ORIGPATH=%PATH%
   - if %platform%==amd64 set tool=VS2017_x64
   - if %platform%==amd64_x86 set tool=VS2015_x86
