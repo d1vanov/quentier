@@ -151,13 +151,13 @@ private Q_SLOTS:
     void onSynchronizationStarted();
     void onSynchronizationStopped();
     void onSynchronizationManagerFailure(ErrorString errorDescription);
-    void onSynchronizationFinished(Account account);
+    void onSynchronizationFinished(Account account, bool somethingDownloaded, bool somethingSent);
     void onAuthenticationFinished(bool success, ErrorString errorDescription,
                                   Account account);
     void onAuthenticationRevoked(bool success, ErrorString errorDescription,
                                  qevercloud::UserID userId);
     void onRateLimitExceeded(qint32 secondsToWait);
-    void onRemoteToLocalSyncDone();
+    void onRemoteToLocalSyncDone(bool somethingDownloaded);
     void onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn, qint32 lastPreviousUsn);
     void onSyncChunksDownloaded();
     void onNotesDownloadProgress(quint32 notesDownloaded, quint32 totalNotesToDownload);

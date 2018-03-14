@@ -866,8 +866,8 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onSynchronizationStopped));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
                      this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
-                     this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account,bool,bool),
+                     this, QNSLOT(MainWindow,onSynchronizationFinished,Account,bool,bool));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,ErrorString,Account),
                      this, QNSLOT(MainWindow,onAuthenticationFinished,bool,ErrorString,Account));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,ErrorString,qevercloud::UserID),
@@ -878,8 +878,8 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onSendLocalChangesStopped));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
                      this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
-                     this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone,bool),
+                     this, QNSLOT(MainWindow,onRemoteToLocalSyncDone,bool));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloadProgress,qint32,qint32,qint32),
                      this, QNSLOT(MainWindow,onSyncChunksDownloadProgress,qint32,qint32,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloaded),
@@ -930,8 +930,8 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onSynchronizationStopped));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
                         this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
-                        this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account,bool,bool),
+                        this, QNSLOT(MainWindow,onSynchronizationFinished,Account,bool,bool));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,ErrorString,Account),
                         this, QNSLOT(MainWindow,onAuthenticationFinished,bool,ErrorString,Account));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,ErrorString,qevercloud::UserID),
@@ -942,8 +942,8 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onSendLocalChangesStopped));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
                         this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
-                        this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone,bool),
+                        this, QNSLOT(MainWindow,onRemoteToLocalSyncDone,bool));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloadProgress,qint32,qint32,qint32),
                         this, QNSLOT(MainWindow,onSyncChunksDownloadProgress,qint32,qint32,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloaded),
@@ -1795,18 +1795,27 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
     Q_EMIT stopSynchronization();
 }
 
-void MainWindow::onSynchronizationFinished(Account account)
+void MainWindow::onSynchronizationFinished(Account account, bool somethingDownloaded, bool somethingSent)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
 
-    onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
+    if (somethingDownloaded || somethingSent) {
+        onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
+    }
+    else {
+        onSetStatusBarText(QString());
+    }
+
     m_syncInProgress = false;
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
 
     QNINFO(QStringLiteral("Synchronization finished for user ") << account.name()
-           << QStringLiteral(", id ") << account.id());
+           << QStringLiteral(", id ") << account.id() << QStringLiteral(", something downloaded = ")
+           << (somethingDownloaded ? QStringLiteral("true") : QStringLiteral("false"))
+           << QStringLiteral(", something sent = ")
+           << (somethingSent ? QStringLiteral("true") : QStringLiteral("false")));
 }
 
 void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescription, Account account)
@@ -1889,12 +1898,19 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
     m_syncApiRateLimitExceeded = true;
 }
 
-void MainWindow::onRemoteToLocalSyncDone()
+void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 {
     QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
 
-    QNINFO(QStringLiteral("Remote to local sync done"));
-    onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
+    QNINFO(QStringLiteral("Remote to local sync done: something downloaded = ")
+            << (somethingDownloaded ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (somethingDownloaded) {
+        onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
+    }
+    else {
+        onSetStatusBarText(tr("No updates found on Evernote servers, sending local changes"));
+    }
 }
 
 void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn, qint32 lastPreviousUsn)
