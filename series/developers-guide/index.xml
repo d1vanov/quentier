@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Dmitry Ivanov</copyright>
-    <lastBuildDate>Fri, 19 Jan 2018 11:07:39 +0300</lastBuildDate>
+    <lastBuildDate>Thu, 15 Mar 2018 07:48:54 +0300</lastBuildDate>
     
 	<atom:link href="https://d1vanov.github.io/quentier/series/developers-guide/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Quentier local storage implementation overview</title>
+      <link>https://d1vanov.github.io/quentier/blog/quentier-local-storage-overview/</link>
+      <pubDate>Thu, 15 Mar 2018 07:48:54 +0300</pubDate>
+      
+      <guid>https://d1vanov.github.io/quentier/blog/quentier-local-storage-overview/</guid>
+      <description>This post continues the exploration of Quentier&amp;rsquo;s internals: here we&amp;rsquo;ll talk about the implementation details of Quentier&amp;rsquo;s local storage.
+As I mentioned in the brief technical overview post, the local storage within libquentier uses SQLite as its backend i.e. all the data downloaded from Evernote (or user&amp;rsquo;s own data in case of local account) is stored within a SQLite database. However, it is just an implementation detail: the fact of SQLite usage is completely opaque to any clients of local storage functionality within libquentier.</description>
+    </item>
     
     <item>
       <title>Installation of Quentier&#39;s dependencies</title>

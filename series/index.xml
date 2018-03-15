@@ -7,7 +7,7 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Dmitry Ivanov</copyright>
-    <lastBuildDate>Fri, 19 Jan 2018 11:07:39 +0300</lastBuildDate>
+    <lastBuildDate>Thu, 15 Mar 2018 07:48:54 +0300</lastBuildDate>
     
 	<atom:link href="https://d1vanov.github.io/quentier/series/index.xml" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
     <item>
       <title>Developers Guide</title>
       <link>https://d1vanov.github.io/quentier/series/developers-guide/</link>
-      <pubDate>Fri, 19 Jan 2018 11:07:39 +0300</pubDate>
+      <pubDate>Thu, 15 Mar 2018 07:48:54 +0300</pubDate>
       
       <guid>https://d1vanov.github.io/quentier/series/developers-guide/</guid>
       <description></description>

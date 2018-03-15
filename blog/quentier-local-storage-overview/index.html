@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  
+
+  <title> Quentier local storage implementation overview  &middot; Quentier </title>
+
+  
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/poole.css">
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/syntax.css">
+  <link rel="stylesheet" href="https://d1vanov.github.io/quentier/css/hyde.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/quentier/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/quentier/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/quentier/favicon-16x16.png">
+  <link rel="manifest" href="/quentier/manifest.json">
+  <link rel="mask-icon" href="/quentier/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="theme-color" content="#ffffff">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Quentier" />
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+  <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  <script src="//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ['Fira Sans']
+      }
+    });
+  </script>
+
+</head>
+
+<body class="theme-base-0d">
+
+  <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about" align=center>
+      <h1 class="brand"><a href="https://d1vanov.github.io/quentier">Quentier</a></h1>
+      <img src="/quentier/quentier_icon.svg" width=50% />
+      <p class="lead">
+         Free &amp; open source desktop Evernote client 
+      </p>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="https://d1vanov.github.io/quentier/blog">Posts</a></li>
+      <ul class="posts">
+          
+          <li><span><a href="https://d1vanov.github.io/quentier/blog/quentier-local-storage-overview/">Quentier local storage implementation overview</a></span></li>
+          
+          <li><span><a href="https://d1vanov.github.io/quentier/blog/quentier-installation-of-dependencies/">Installation of Quentier&#39;s dependencies</a></span></li>
+          
+          <li><span><a href="https://d1vanov.github.io/quentier/blog/quentier-technical-overview/">Quentier internals overview</a></span></li>
+          
+          <li><span><a href="https://d1vanov.github.io/quentier/blog/quentier-brief-overview/">Brief overview of Quentier features</a></span></li>
+          
+          <li><span><a href="https://d1vanov.github.io/quentier/blog/helloworld/">Hello world!</a></span></li>
+          
+      </ul>
+      
+      <br/> 
+    </ul>
+     
+    
+    
+    <a href="https://github.com/d1vanov"><i class="fa fa-github-square"></i></a>&nbsp;&nbsp; 
+    
+    
+      <a href="https://d1vanov.github.io/quentier/index.xml" type="application/rss+xml"><i class="fa fa-rss-square"></i></a>
+    
+
+    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2018 Dmitry Ivanov. All rights reserved.</p>
+
+  </div>
+</div>
+
+
+  <div class="content container">
+    <div class="post">
+    <h1 class="post-title">Quentier local storage implementation overview</h1>
+    <span class="post-date">Mar 15, 2018</span>
+    
+	    
+    	<p class="seriesname">Series: <a href="https://d1vanov.github.io/quentier/series/developers-guide">Developers guide</a></p>
+    
+    <p>This post continues the exploration of Quentier&rsquo;s internals: here we&rsquo;ll talk about the implementation details of Quentier&rsquo;s local storage.</p>
+
+<p>As I mentioned in the <a href="/quentier/blog/quentier-technical-overview">brief technical overview</a> post, the local storage within libquentier uses SQLite as its backend i.e. all the data downloaded from Evernote (or user&rsquo;s own data in case of local account) is stored within a SQLite database. However, it is just an implementation detail: the fact of SQLite usage is completely opaque to any clients of local storage functionality within libquentier. So in theory is is possible to change the database backend in future to whatever one is considered better - even to storage of plain files within some folder. Internally SQLite is used through Qt&rsquo;s <code>QtSql</code> module.</p>
+
+<p>Libquentier provides both synchronous and asynchronous versions of local storage management - which correspond to <code>LocalStorageManager</code> and <code>LocalStorageManagerAsync</code> classes within the public libquentier API. The asynchronous interface offers signals and slots for asynchronous communication with the local storage for clients. In Quentier local storage operations run within a separate dedicated thread of execution so the communication with the outside world via signals and slots is truly asynchronous. As such communication is asynchronous, each signal and slot involved has a special parameter of type <code>QUuid</code> which is called <code>requestId</code> in most cases. This identifiers allows the clients of local storage to identify which particular signal from the local storage is the response to their query i.e. to the invokation of some <code>LocalStorageManagerAsync</code>&rsquo;s slot - the response signal would have the same request identifier as the one passed to the slot.</p>
+
+<p><code>LocalStorageManagerAsync</code> maintains the in-memory cache of several most recently added/updated/looked up data tems following the assumption that these items would be quickly accessed again. At the time of this writing there&rsquo;s no collection of cache hit/miss statistics although it would be nice to implement it in order to see how useful that in-memory cache really is. Note that this cache is not the same as the in-memory cache of data maintained by SQLite itself - SQLite&rsquo;s in-memory cache is completely opaque to the code requesting stuff from the database; <code>LocalStorageManagerAsync</code>&rsquo;s cache is only opaque to its own clients. Libquentier&rsquo;s API makes it possible to disable <code>LocalStorageManagerAsync</code>&rsquo;s cache by calling <code>setUseCache(false)</code> on <code>LocalStorageManagerAsync</code> instance. Libquentier also allows one to customize the cache expiration function by passing an object of a custom subclass of <code>ILocalStorageCacheExpiryChecker</code> to <code>LocalStorageManagerAsync</code>&rsquo;s <code>installCacheExpiryFunction</code> method. The methods of this class evaluate when it&rsquo;s time to drop the least recently used data items from the cache.</p>
+
+<p>More involved interface for working with the cache is accessible with the help of <code>LocalStorageCacheManager</code> class the const pointer to which can be retrieved from <code>LocalStorageManagerAsync</code> via <code>localStorageCacheManager()</code> method. The returned pointer would be nullptr if the cache was disabled.</p>
+
+<p><code>LocalStorageManagerAsync</code> acts as a wrapper around synchronous <code>LocalStorageManager</code> class so its role is to implement the asynchronous interface around the synchronous one and also to maintain the cache of most recently used data items.</p>
+
+<p><code>LocalStorageManager</code>&rsquo;s interface is pretty self-explanatory and also contains quite complete Doxygen documentation: it offers the ability to add/update/search/remove/list (with limit, offset and sorting order) notes/notebooks/tags/saved searches/resources (attachments to notes).</p>
+
+<p>Now some info about the private implementation of local storage management.</p>
+
+<p>First, if you not familiar with pimpl idiom, you can read about it <a href="https://en.wikipedia.org/wiki/Opaque_pointer">here</a>. In C++/Qt/KDE the pattern is also known as d-pointer. Pimpl idiom is the way in which private local storage management implementation is hidden from the clients using the API. Is it a pretty standard pattern for shared libraries intended to prevent the breakage of <a href="https://en.wikipedia.org/wiki/Application_binary_interface">ABI</a> due to internal implementation changes.</p>
+
+<p>In context of local storage management public <code>LocalStorageManager</code> class has a single pointer to its opaque implementation class: <code>LocalStorageManagerPrivate</code>:</p>
+
+<pre><code>QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
+
+class QUENTIER_EXPORT LocalStorageManager: public QObject
+{
+    Q_OBJECT
+public:
+    &lt;...&gt;
+
+private:
+    QScopedPointer&lt;LocalStorageManagerPrivate&gt;  d_ptr;
+    Q_DECLARE_PRIVATE(LocalStorageManager)
+};
+</code></pre>
+
+<p>This private class is declared in <code>src/local_storage/LocalStorageManager_p.h</code> (and the implementation is within <code>.cpp</code> file with the same base name). The same approach is used for the implementation of <code>LocalStorageCacheManager</code>, it is declared in <code>src/local_storage/LocalStorageCacheManager_p.h</code>. The actual implementation of the cache is not very simple: it uses <a href="http://www.boost.org/doc/libs/release/libs/multi_index/doc/index.html">multi-index container</a> from <a href="http://www.boost.org">boost</a> library and one of indices is the last access timestamp. It might be a little overkill compared to some simplistic LRU cache based on a map and a linked list but several other indices are used as well so it won&rsquo;t be just a single key map anyway.</p>
+
+<p>The contents of <code>LocalStorageManagerPrivate</code> class (the one declared in <code>src/local_storage/LocalStorageManager_p.h</code>) are rougly as follows:
+ * public methods repeating those specified in the public interface of <code>LocalStorageManager</code> class - these are the methods to which the control is handed over by the public class&rsquo; methods
+ * private methods
+ * private class members</p>
+
+<p>Let&rsquo;s start from one single private method which provides the most important information about how the local storage database is organized: <code>createTables</code>. This method is called every time the account is switched as well as when the local storage manager is created for some particular account. However, this method only really does real work just once, when the account is created for the first time because in this case the tables within SQLite database are actually being created. All the next times their creation is simply skipped. Here&rsquo;s a simple example of what happens within <code>createTables</code> method:</p>
+
+<pre><code>res = query.exec(QStringLiteral(&quot;CREATE TABLE IF NOT EXISTS Users(&quot;
+                                &quot;  id                              INTEGER PRIMARY KEY     NOT NULL UNIQUE, &quot;
+                                &quot;  username                        TEXT                    DEFAULT NULL, &quot;
+                                &quot;  email                           TEXT                    DEFAULT NULL, &quot;
+                                &quot;  name                            TEXT                    DEFAULT NULL, &quot;
+                                &lt;... more rows here ...&gt;
+                                &quot;)&quot;));
+errorPrefix.setBase(QT_TR_NOOP(&quot;Can't create Users table&quot;));
+DATABASE_CHECK_AND_SET_ERROR();
+</code></pre>
+
+<p>Each table has some column serving as the primary key. For most tables such column is called <code>localUid</code>. It is the complement for Evernote&rsquo;s <code>guid</code> - globally unique identifier. Guids are assigned to data items by Evernote servers, not by the client apps. So if Quentier was to rely on guids as primary keys, it would have to contant Evernote servers each time a new note or notebook or tag or saved search or note attachment is created. Doing so would effectively kill the ability to work with the notes within Evernote account offline. So the local storage uses the unique key of its own - <code>localUid</code> or <code>local unique identifier</code>. This key is not sent to Evernote during the synchronization so only libquentier&rsquo;s client apps know about its existence. Local uid is primarily used to support data items both already synchronized with Evernote and not yet synchronized. In local accounts data items are not synchronized with Evernote at all so they would need some kind of unique identifier anyway.</p>
+
+<p>Some tables have columns referencing other tables&rsquo; columns - those are subjects to <a href="https://sqlite.org/foreignkeys.html">foreign key constraints</a> meant to help maintain the integrity of the database and reject attempts to do something which, if performed, would leave the database in some inconsistent state. One example of such a constraint is as follows:</p>
+
+<pre><code>res = query.exec(QStringLiteral(&quot;CREATE TABLE IF NOT EXISTS Notes(&quot;
+                                &quot;  localUid                        TEXT PRIMARY KEY     NOT NULL UNIQUE, &quot;
+                                &quot;  guid                            TEXT                 DEFAULT NULL UNIQUE, &quot;
+                                &quot;  updateSequenceNumber            INTEGER              DEFAULT NULL, &quot;
+                                &lt;... more rows here ...&gt;
+                                &quot;  notebookLocalUid REFERENCES Notebooks(localUid) ON UPDATE CASCADE, &quot;
+                                &quot;  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, &quot;
+                                &lt;... more rows here ...&gt;
+                                &quot;  UNIQUE(localUid, guid)&quot;
+                                &quot;)&quot;));
+errorPrefix.setBase(QT_TR_NOOP(&quot;Can't create Notes table&quot;));
+DATABASE_CHECK_AND_SET_ERROR();
+</code></pre>
+
+<p>The foreign key constraints for notes mean that they should only contain notebook local uid and/or guid which are present within the notebooks table. Otherwise it won&rsquo;t make sense - note says it is from a notebook which doesn&rsquo;t exist! The database which allowed that to happen would have to be considered corrupted. Possibly it could be repaired by manually creating such a notebook but it&rsquo;s not something the user of the app would be happy to do so it&rsquo;s better to prevent the possibility of such corruption altogether.</p>
+
+<p>Notice that the specification on notebook local uid and guid columns is <code>ON UPDATE CASCADE</code> and not <code>ON UPDATE CASCADE ON DELETE CASCADE</code>. The latter one would mean that the removal of a notebook should lead to the removal of all its notes but unfortunately this <code>ON DELETE CASCADE</code> interferes with specific kind of updates within notebooks table - the updates of <code>INSERT OR REPLACE</code> form. Apparently SQLite thinks that <code>REPLACE</code> corresponds to <code>DELETE</code> followed by <code>INSERT</code>. So on the update of a notebook it would delete the notebook and all the notes inside it and then insert the notebook back. But not the deleted notes.</p>
+
+<p>In order to prevent that, another way to maintain the consistency on notebook removal has been implemented:</p>
+
+<pre><code>res = query.exec(QStringLiteral(&quot;CREATE TRIGGER IF NOT EXISTS on_notebook_delete_trigger BEFORE DELETE ON Notebooks &quot;
+                                &quot;BEGIN &quot;
+                                &quot;DELETE FROM NotebookRestrictions WHERE NotebookRestrictions.localUid=OLD.localUid; &quot;
+                                &quot;DELETE FROM SharedNotebooks WHERE SharedNotebooks.sharedNotebookNotebookGuid=OLD.guid; &quot;
+                                &quot;DELETE FROM Notes WHERE Notes.notebookLocalUid=OLD.localUid; &quot;
+                                &quot;END&quot;));
+errorPrefix.setBase(QT_TR_NOOP(&quot;Can't create trigger to fire on notebook deletion&quot;));
+DATABASE_CHECK_AND_SET_ERROR();
+</code></pre>
+
+<p>This trigger would be executed before the <strong>actual</strong> permanent removal of a notebook and would ensure the related tables stay consistent by removing those of their rows which reference the about to be deleted notebook.</p>
+
+<p>In addition to &ldquo;usual&rdquo; tables there are also some <a href="https://sqlite.org/vtab.html">virtual tables</a> for efficient searching of stuff within the database. For example:</p>
+
+<pre><code>res = query.exec(QStringLiteral(&quot;CREATE VIRTUAL TABLE IF NOT EXISTS NotebookFTS USING FTS4(content=\&quot;Notebooks\&quot;, &quot;
+                                &quot;localUid, guid, notebookName)&quot;));
+errorPrefix.setBase(QT_TR_NOOP(&quot;Can't create virtual FTS4 NotebookFTS table&quot;));
+DATABASE_CHECK_AND_SET_ERROR();
+</code></pre>
+
+<p><a href="https://sqlite.org/fts3.html">FTS4</a> is one of SQLite&rsquo;s implementations of full text search. Although it&rsquo;s not of much importance in 2018, some Linux distros used to ship Qt4 versions with SQLite containing only FTS3 implementations - such versions of Qt4 won&rsquo;t be suitable for libquentier - it would compile but tests won&rsquo;t pass and in general things won&rsquo;t work. So if you are building libquentier with Qt4, it is strongly recommended to run libquentier&rsquo;s tests to ensure they pass and hence Qt&rsquo;s SQLite supports FTS4.</p>
+
+<p>Other private methods of <code>LocalStorageManagerPrivate</code> class serve as implementation pieces of public methods. These private methods can be roughly categorized as follows:
+ * methods running <code>INSERT OR REPLACE</code> queries which are used by methods adding items to the local storage as well as by methods updating items within the local storage
+ * methods running <code>SELECT</code> queries which are used by methods listing or searching items within the local storage
+ * methods preparing <code>INSERT OR REPLACE</code> queries - more on this in a moment
+ * other auxiliary methods</p>
+
+<p><a href="https://sqlite.org/c3ref/stmt.html">Preparing</a> a SQL query roughly means converting it from a human readable string into SQLite byte code. For certain types of queries it is easy to do the preparation step once and then run the prepared query over and over again which results in removing the duplicate work each time the query needs to run. For this reason <code>INSERT OR REPLACE</code> queries are prepared once and then run several times until the account is switched or until <code>LocalStorageManagerPrivate</code> class is destroyed (when Quentier is shut down, for example). The data members of <code>LocalStorageManagerPrivate</code> class corresponding to these queries look like this:</p>
+
+<pre><code>QSqlQuery           m_insertOrReplaceSavedSearchQuery;
+bool                m_insertOrReplaceSavedSearchQueryPrepared;
+</code></pre>
+
+<p>The bool serves for checking whether the query has already been prepared or not.</p>
+
+<p>That wraps up the introduction to the local storage management internals of Quentier. Due to the fact the code performing this management lives within libquentier library, other applications can also make use of this code which, together with libquentier&rsquo;s synchronization abilities, can enable other apps to easily perform full and incremental sync of Evernote account data to the local database.</p>
+
+    
+
+    
+        
+	    
+	    <hr/>
+    	<p><a href="" id="series"></a>This is a post in the <b>Developers guide</b> series.<br/>
+    	Other posts in this series:</p>
+        
+        
+        <ul class="series">
+        
+            <li>Mar 15, 2018 - 
+            
+                Quentier local storage implementation overview
+            
+            </li>
+        
+            <li>Jan 19, 2018 - 
+            
+                <a href="https://d1vanov.github.io/quentier/blog/quentier-installation-of-dependencies/">Installation of Quentier&#39;s dependencies </a>
+            
+            </li>
+        
+            <li>Jan 07, 2018 - 
+            
+                <a href="https://d1vanov.github.io/quentier/blog/quentier-technical-overview/">Quentier internals overview </a>
+            
+            </li>
+        
+        </ul>
+	 
+	
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+(function() {
+    
+    
+    if (window.location.hostname == "localhost") 
+        return;
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    var disqus_shortname = 'quentier';
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+<noscript>Please enable JavaScript to view the comments powered by <a href="http://disqus.com/?ref_noscript">Disqus.</a></noscript>
+
+</div>
+</div> 
+
+</body>w
+</html>
