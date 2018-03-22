@@ -654,7 +654,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     for(int i = 0; i < count; ++i)
     {
         auto it = index.begin() + row;
-        if (it->isSynchronizable()) {
+        if (!it->guid().isEmpty()) {
             REPORT_ERROR(QT_TR_NOOP("Can't remove the synchronizable note"));
             return false;
         }

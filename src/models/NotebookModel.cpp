@@ -1774,9 +1774,9 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             const NotebookItem * pNotebookItem = pChildItem->notebookItem();
 
 #define CHECK_NOTEBOOK_ITEM(pNotebookItem) \
-            if (pNotebookItem->isSynchronizable()) { \
+            if (!pNotebookItem->guid().isEmpty()) { \
                 ErrorString error(QT_TR_NOOP("One of notebooks being removed along with the stack containing it " \
-                                             "is synchronizable, it can't be removed")); \
+                                             "has non-empty guid, it can't be removed")); \
                 QNINFO(error << QStringLiteral(", notebook: ") << *pNotebookItem); \
                 Q_EMIT notifyError(error); \
                 return false; \

@@ -385,18 +385,23 @@ void NoteModelTestHelper::launchTest()
             FAIL(QStringLiteral("The note model item's deletion timestamp doesn't match the expected value of 0"));
         }
 
-        // Should not be able to remove the row with a synchronizable (non-local) notebook
-        res = model->removeRow(firstIndex.row(), QModelIndex());
-        if (res) {
-            FAIL(QStringLiteral("Was able to remove the row with a synchronizable note which is not intended"));
+        // Should not be able to remove the row corresponding to a note with non-empty guid
+        QModelIndex thirdIndex = model->indexForLocalUid(thirdNote.localUid());
+        if (!thirdIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid note model item index for local uid"));
         }
 
-        QModelIndex firstIndexAfterFailedRemoval = model->indexForLocalUid(firstNote.localUid());
-        if (!firstIndexAfterFailedRemoval.isValid()) {
+        res = model->removeRow(thirdIndex.row(), QModelIndex());
+        if (res) {
+            FAIL(QStringLiteral("Was able to remove the row corresponding to a note with non-empty guid which is not intended"));
+        }
+
+        QModelIndex thirdIndexAfterFailedRemoval = model->indexForLocalUid(thirdNote.localUid());
+        if (!thirdIndexAfterFailedRemoval.isValid()) {
             FAIL(QStringLiteral("Can't get the valid note model item index after the failed row removal attempt"));
         }
 
-        if (firstIndexAfterFailedRemoval.row() != firstIndex.row()) {
+        if (thirdIndexAfterFailedRemoval.row() != thirdIndex.row()) {
             FAIL(QStringLiteral("Note model returned item index with a different row after the failed row removal attempt"));
         }
 

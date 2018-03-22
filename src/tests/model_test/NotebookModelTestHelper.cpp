@@ -327,17 +327,24 @@ void NotebookModelTestHelper::test()
         }
 
         // Should not be able to remove the row with a synchronizable (non-local) notebook
-        res = model->removeRow(secondIndex.row(), secondParentIndex);
-        if (res) {
-            FAIL(QStringLiteral("Was able to remove the row with a synchronizable notebook which is not intended"));
+        QModelIndex thirdIndex = model->indexForLocalUid(third.localUid());
+        if (!thirdIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid notebook model item index for dirty column"));
         }
 
-        QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
-        if (!secondIndexAfterFailedRemoval.isValid()) {
+        QModelIndex thirdParentIndex = model->parent(thirdIndex);
+
+        res = model->removeRow(thirdIndex.row(), thirdParentIndex);
+        if (res) {
+            FAIL(QStringLiteral("Was able to remove the row corresponding to the notebook with non-empty guid which is not intended"));
+        }
+
+        QModelIndex thirdIndexAfterFailedRemoval = model->indexForLocalUid(third.localUid());
+        if (!thirdIndexAfterFailedRemoval.isValid()) {
             FAIL(QStringLiteral("Can't get the valid notebook model item index after the failed row removal attempt"));
         }
 
-        if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
+        if (thirdIndexAfterFailedRemoval.row() != thirdIndex.row()) {
             FAIL(QStringLiteral("Notebook model returned item index with a different row after the failed row removal attempt"));
         }
 

@@ -274,7 +274,7 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     ADD_CONTEXT_MENU_ACTION(tr("Restore note"), m_pDeletedNoteItemContextMenu,
                             onRestoreNoteAction, pItem->localUid(), true);
 
-    if (pNoteModel->account().type() == Account::Type::Local) {
+    if (pItem->guid().isEmpty()) {
         ADD_CONTEXT_MENU_ACTION(tr("Delete permanently"), m_pDeletedNoteItemContextMenu,
                                 onDeleteNotePermanentlyAction, pItem->localUid(), true);
     }

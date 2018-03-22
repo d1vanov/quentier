@@ -702,7 +702,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pTagItemContextMenu,
                             onDeleteTagAction, pTagItem->localUid(),
-                            !pTagItem->isSynchronizable());
+                            pTagItem->guid().isEmpty());
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pTagItemContextMenu, onEditTagAction,

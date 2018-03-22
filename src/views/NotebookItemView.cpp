@@ -972,7 +972,7 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
 
     ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
                             onDeleteNotebookAction, item.localUid(),
-                            !item.isSynchronizable());
+                            item.guid().isEmpty());
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNotebookItemContextMenu, onEditNotebookAction,
