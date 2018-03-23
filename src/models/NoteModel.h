@@ -165,6 +165,16 @@ public:
      */
     void unfavoriteNote(const QString & noteLocalUid);
 
+    /**
+     * @brief notebookContainsSyncronizedNotes - answers the question whether there are notes with non-empty guids
+     * within the notebook with the specified local uid
+     *
+     * @param notebookLocalUid - the local uid of the notebook to be checked for having notes with non-empty guids
+     * @return true if notes with non-empty guids were found within the notebook with the specified local uid,
+     * false otherwise
+     */
+    bool notebookContainsSyncronizedNotes(const QString & notebookLocalUid) const;
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -260,6 +270,7 @@ private:
 private:
     struct ByLocalUid{};
     struct ByIndex{};
+    struct ByNotebookLocalUid{};
 
     typedef boost::multi_index_container<
         NoteModelItem,
@@ -270,12 +281,17 @@ private:
             boost::multi_index::hashed_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<NoteModelItem,const QString&,&NoteModelItem::localUid>
+            >,
+            boost::multi_index::hashed_non_unique<
+                boost::multi_index::tag<ByNotebookLocalUid>,
+                boost::multi_index::const_mem_fun<NoteModelItem,const QString&,&NoteModelItem::notebookLocalUid>
             >
         >
     > NoteData;
 
     typedef NoteData::index<ByLocalUid>::type NoteDataByLocalUid;
     typedef NoteData::index<ByIndex>::type NoteDataByIndex;
+    typedef NoteData::index<ByNotebookLocalUid>::type NoteDataByNotebookLocalUid;
 
     class NoteComparator
     {
