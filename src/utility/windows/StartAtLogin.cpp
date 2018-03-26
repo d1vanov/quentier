@@ -33,6 +33,12 @@
 #include <ObjIdl.h>
 #include <ShlGuid.h>
 
+#ifdef __GNUC__
+#ifdef __MINGW32__
+#include <shlobj.h>
+#endif
+#endif
+
 #define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH (QStringLiteral("C:/Users/") + QString::fromLocal8Bit(qgetenv("USERNAME")) + \
                                                QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/quentier.lnk"))
 
