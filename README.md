@@ -25,10 +25,26 @@ Read the project's [blog](https://d1vanov.github.io/quentier) and [wiki](https:/
 
 ## Download / Install
 
-See [releases](https://github.com/d1vanov/quentier/releases) page with available releases and downloads for Linux (AppImage), Windows and OS X / macOS.
-Note that **Continuous-master** is the latest somewhat stable version, **Continuous-development** is the latest development one.
+Prebuilt versions of Quentier can be downloaded from the following locations:
 
-For users of **Debian/Ubuntu** and derivatives there's a [PPA repository](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-stable) from where it is easy to install Quentier:
+ * Stable version:
+   * Quentier for Windows:
+     * [Qt 5.10 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2015.Win32.exe) (built with MSVC 2015, might require admin rights to install runtime)
+     * [Qt 5.10 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2017.x64.exe) (built with MSVC 2017, might require admin rights to install runtime)
+     * [Qt 5.5 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.4.0.Qt.5.5.1.MinGW.5.3.0.Win32.exe) (built with MinGW)
+   * [Quentier for Mac](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier_mac_x86_64.zip)
+   * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-master-x86_64.AppImage)
+ * Unstable version:
+   * Quentier for Windows:
+     * [Qt 5.10 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2015.Win32.exe) (built with MSVC 2015, might require admin rights to install runtime)
+     * [Qt 5.10 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2017.x64.exe) (built with MSVC 2017, might require admin rights to install runtime)
+     * [Qt 5.5 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.4.0.Qt.5.5.1.MinGW.5.3.0.Win32.exe) (built with MinGW)
+   * [Quentier for Mac](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier_mac_x86_64.zip)
+   * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-development-x86_64.AppImage)
+
+Stable versions correspond to builds from `master` branch, unstable versions correspond to builds from `development` branch. New stuff first appears in unstable versions but for this reason they are also prone to temporary breakages.
+
+For users of **Ubuntu** and derivatives there's a [PPA repository](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-stable) from where it is easy to install Quentier:
 ```
 sudo add-apt-repository ppa:d1vanov/quentier-stable
 sudo apt-get update
@@ -38,9 +54,27 @@ Alternatively, if you run Qt4-based desktop environment (KDE 4), you might want 
 ```
 sudo apt-get install quentier-qt4
 ```
-The PPA is for daily Quentier builds from master branch. They are considered relatively stable but might lack certain newest developed functionality which has not yet been merged to master branch. If you prefer, you can use the [development PPA repository](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-development) instead of the stable one.
+This PPA is for stable Quentier builds from master branch. Alternatively, the PPA for unstable version of Quentier is [the following](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-development):
+```
+sudo add-apt-repository ppa:d1vanov/quentier-development
+sudo apt-get update
+sudo apt-get install quentier-qt5
+```
+or
+```
+sudo apt-get install quentier-qt4
+```
 
-For **Fedora** users there's the unofficial Quentier [copr repository](https://copr.fedorainfracloud.org/coprs/eclipseo/quentier/) from which Quentier can be installed as simply as
+For users of other Linux distributions there are also prepared repositories with native packages:
+
+ * Stable versions:
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier) for Fedora 26, Fedora 27, OpenSUSE Leap 42.3, OpenSUSE Tumbleweed, OpenSUSE Leap 15.0 and Arch Linux repositories
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier-qt5) for Debian 9.0 repository
+ * Unstable versions:
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier) for Fedora 26, Fedora 27, OpenSUSE Leap 42.3, OpenSUSE Tumbleweed, OpenSUSE Leap 15.0 and Arch Linux repositories
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier-qt5) for Debian 9.0 repository
+
+There is also an unofficial [copr repository](https://copr.fedorainfracloud.org/coprs/eclipseo/quentier/) for Quentier:
 ```
 sudo dnf copr enable eclipseo/quentier
 sudo dnf install quentier
