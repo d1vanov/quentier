@@ -20,6 +20,7 @@
 #include "../SettingsNames.h"
 #include "../NoteFiltersManager.h"
 #include "../models/NotebookModel.h"
+#include "../models/NoteModel.h"
 #include "../dialogs/AddOrEditNotebookDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -153,6 +154,15 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyAllNotebooksListed),
                      this, QNSLOT(NotebookItemView,onAllNotebooksListed));
+}
+
+void NotebookItemView::setNoteModel(const NoteModel * pNoteModel)
+{
+#if QT_VERSION < 0x050000
+    m_pNoteModel = const_cast<NoteModel*>(pNoteModel);
+#else
+    m_pNoteModel = pNoteModel;
+#endif
 }
 
 QModelIndex NotebookItemView::currentlySelectedItemIndex() const
@@ -970,9 +980,14 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
     ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pNotebookItemContextMenu,
                             onRenameNotebookAction, item.localUid(), canRename);
 
+    bool canDeleteNotebook = !m_pNoteModel.isNull() && item.guid().isEmpty();
+    if (canDeleteNotebook) {
+        canDeleteNotebook = !m_pNoteModel->notebookContainsSyncronizedNotes(item.localUid());
+    }
+
     ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
                             onDeleteNotebookAction, item.localUid(),
-                            item.guid().isEmpty());
+                            canDeleteNotebook);
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNotebookItemContextMenu, onEditNotebookAction,

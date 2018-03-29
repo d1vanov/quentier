@@ -4201,6 +4201,7 @@ void MainWindow::setupViews()
 
     NotebookItemView * pNotebooksTreeView = m_pUI->notebooksTreeView;
     pNotebooksTreeView->setNoteFiltersManager(*m_pNoteFiltersManager);
+    pNotebooksTreeView->setNoteModel(m_pNoteModel);
 
     QAbstractItemDelegate * pPreviousNotebookItemDelegate = pNotebooksTreeView->itemDelegate();
     NotebookItemDelegate * pNotebookItemDelegate = qobject_cast<NotebookItemDelegate*>(pPreviousNotebookItemDelegate);

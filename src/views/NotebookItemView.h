@@ -25,6 +25,7 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NotebookStackItem)
@@ -40,6 +41,8 @@ public:
     void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
+
+    void setNoteModel(const NoteModel * pNoteModel);
 
     /**
      * @return valid model index if the selection exists and contains exactly one row and invalid model index otherwise
@@ -135,6 +138,12 @@ private:
     QMenu *     m_pNotebookStackItemContextMenu;
 
     QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
+
+#if QT_VERSION < 0x050000
+    QPointer<NoteModel>         m_pNoteModel;
+#else
+    QPointer<const NoteModel>   m_pNoteModel;
+#endif
 
     QString     m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 
