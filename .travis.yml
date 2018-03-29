@@ -263,6 +263,11 @@ install:
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib
       fi
+    - |
+      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ] && [ "${TRAVIS_BRANCH}" = "development" ]; then
+        echo "Triggering build at OpenSUSE build service for development branch" &&
+        curl -X POST -H "Authorization: Token $OSC_TOKEN" https://api.opensuse.org/trigger/runservice?project=home%3Ad1vanov%3Aquentier-development&package=quentier-development
+      fi
 
 script:
     - |
