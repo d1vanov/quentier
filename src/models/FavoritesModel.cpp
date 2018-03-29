@@ -1877,8 +1877,10 @@ QVariant FavoritesModel::dataAccessibleText(const int row, const Columns::type c
         break;
     case FavoritesModelItem::Type::Tag:
         accessibleText += tr("tag");
+        break;
     case FavoritesModelItem::Type::SavedSearch:
         accessibleText += tr("saved search");
+        break;
     default:
         return QVariant();
     }
