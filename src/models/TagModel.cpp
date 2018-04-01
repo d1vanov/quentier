@@ -125,6 +125,32 @@ void TagModel::unfavoriteTag(const QModelIndex & index)
     setTagFavorited(index, false);
 }
 
+bool TagModel::tagHasSynchronizedChildTags(const QString & tagLocalUid) const
+{
+    QNDEBUG(QStringLiteral("TagModel::tagHasSynchronizedChildTags: tag local uid = ") << tagLocalUid);
+
+    const TagDataByParentLocalUid & parentLocalUidIndex = m_data.get<ByParentLocalUid>();
+    auto range = parentLocalUidIndex.equal_range(tagLocalUid);
+
+    // Breadth-first search: first check each immediate child's guid
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        if (!it->guid().isEmpty()) {
+            return true;
+        }
+    }
+
+    // Now check each child's own child tags
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        if (tagHasSynchronizedChildTags(it->localUid())) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 QString TagModel::localUidForItemName(const QString & itemName,
                                       const QString & linkedNotebookGuid) const
 {
