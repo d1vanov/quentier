@@ -786,8 +786,11 @@ void NoteTagsWidget::updateLayout()
 
     clearLayout(/* skip new tag widget = */ true);
 
-    if (!m_pTagModel->allTagsListed()) {
-        QNDEBUG(QStringLiteral("Not all tags are listed within the tag model yet"));
+    if (!m_pTagModel->allTagsListed())
+    {
+        QNDEBUG(QStringLiteral("Not all tags have been listed within the tag model yet"));
+        QObject::connect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
+                         this, QNSLOT(NoteTagsWidget,onAllTagsListed), Qt::UniqueConnection);
         return;
     }
 
@@ -888,9 +891,9 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
 
     if (!m_pTagModel->allTagsListed())
     {
-        QNTRACE(QStringLiteral("Not all tags have been listed within the model yet"));
+        QNDEBUG(QStringLiteral("Not all tags have been listed within the tag model yet"));
         QObject::connect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
-                         this, QNSLOT(NoteTagsWidget,onAllTagsListed));
+                         this, QNSLOT(NoteTagsWidget,onAllTagsListed), Qt::UniqueConnection);
         return;
     }
 
