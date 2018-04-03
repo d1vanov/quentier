@@ -782,15 +782,15 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
             return false;
         }
 
-        if (pTagItem->isSynchronizable()) {
-            ErrorString error(QT_TR_NOOP("Can't remove synchronizable tag"));
+        if (!pTagItem->guid().isEmpty()) {
+            ErrorString error(QT_TR_NOOP("Can't remove tag with non-empty guid"));
             QNINFO(error);
             Q_EMIT notifyError(error);
             return false;
         }
 
-        if (hasSynchronizableChildren(pModelItem)) {
-            ErrorString error(QT_TR_NOOP("Can't remove tag with synchronizable children"));
+        if (tagHasSynchronizedChildTags(pTagItem->localUid())) {
+            ErrorString error(QT_TR_NOOP("Can't remove tag which has some child tags with non-empty guids"));
             QNINFO(error);
             Q_EMIT notifyError(error);
             return false;

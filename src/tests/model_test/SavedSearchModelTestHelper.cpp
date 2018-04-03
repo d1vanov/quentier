@@ -62,6 +62,7 @@ void SavedSearchModelTestHelper::test()
         first.setDirty(true);
 
         SavedSearch second;
+        second.setGuid(UidGenerator::Generate());
         second.setName(QStringLiteral("Second search"));
         second.setQuery(QStringLiteral("Second search query"));
         second.setLocal(true);
@@ -238,10 +239,10 @@ void SavedSearchModelTestHelper::test()
                  << data.toString() << QStringLiteral(", expected ") << newQuery);
         }
 
-        // Should not be able to remove the row with a synchronizable (non-local) saved search
+        // Should not be able to remove the row with a saved search with non-empty guid
         res = model->removeRow(secondIndex.row(), QModelIndex());
         if (res) {
-            FAIL(QStringLiteral("Was able to remove the row with a synchronizable saved search which is not intended"));
+            FAIL(QStringLiteral("Was able to remove the row with a saved search with non-empty guid which is not intended"));
         }
 
         QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
@@ -253,7 +254,7 @@ void SavedSearchModelTestHelper::test()
             FAIL(QStringLiteral("Saved search model returned item index with a different row after the failed row removal attempt"));
         }
 
-        // Should be able to remove the row with a non-synchronizable (local) saved search
+        // Should be able to remove the row with a (local) saved search having empty guid
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid saved search item model index for local uid"));
@@ -261,7 +262,7 @@ void SavedSearchModelTestHelper::test()
 
         res = model->removeRow(firstIndex.row(), QModelIndex());
         if (!res) {
-            FAIL(QStringLiteral("Can't remove the row with a non-synchronizable saved search item from the model"));
+            FAIL(QStringLiteral("Can't remove the row with a saved search item with empty guid from the model"));
         }
 
         QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
@@ -304,10 +305,10 @@ void SavedSearchModelTestHelper::test()
             FAIL(QStringLiteral("The error description about the inability to create the saved search due to name collision is empty"));
         }
 
-        // Should be able to remove the just added local (non-synchronizable) saved search
+        // Should be able to remove the just added local saved search
         res = model->removeRow(fifthSavedSearchIndex.row(), fifthSavedSearchIndex.parent());
         if (!res) {
-            FAIL(QStringLiteral("Wasn't able to remove the non-synchronizable saved search just added to the saved search model"));
+            FAIL(QStringLiteral("Wasn't able to remove the saved search without guid just added to the saved search model"));
         }
 
         // Should again be able to create the saved search with the same name

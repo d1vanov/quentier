@@ -700,9 +700,16 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pTagItemContextMenu,
                             onRenameTagAction, pTagItem->localUid(), canUpdate);
 
-    ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pTagItemContextMenu,
-                            onDeleteTagAction, pTagItem->localUid(),
-                            pTagItem->guid().isEmpty());
+    bool canDeleteTag = pTagItem->guid().isEmpty();
+    if (canDeleteTag) {
+        canDeleteTag = !pTagModel->tagHasSynchronizedChildTags(pTagItem->localUid());
+    }
+
+    if (canDeleteTag) {
+        ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pTagItemContextMenu,
+                                onDeleteTagAction, pTagItem->localUid(),
+                                true);
+    }
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pTagItemContextMenu, onEditTagAction,

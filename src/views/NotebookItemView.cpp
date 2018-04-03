@@ -985,9 +985,11 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
         canDeleteNotebook = !m_pNoteModel->notebookContainsSyncronizedNotes(item.localUid());
     }
 
-    ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
-                            onDeleteNotebookAction, item.localUid(),
-                            canDeleteNotebook);
+    if (canDeleteNotebook) {
+        ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
+                                onDeleteNotebookAction, item.localUid(),
+                                true);
+    }
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNotebookItemContextMenu, onEditNotebookAction,
