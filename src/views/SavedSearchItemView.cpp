@@ -437,9 +437,11 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pSavedSearchItemContextMenu,
                             onRenameSavedSearchAction, pItem->m_localUid, canUpdate);
 
-    ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pSavedSearchItemContextMenu,
-                            onDeleteSavedSearchAction, pItem->m_localUid,
-                            !pItem->m_isSynchronizable);
+    if (pItem->m_guid.isEmpty()) {
+        ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pSavedSearchItemContextMenu,
+                                onDeleteSavedSearchAction, pItem->m_localUid,
+                                true);
+    }
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pSavedSearchItemContextMenu, onEditSavedSearchAction,

@@ -583,9 +583,9 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
     for(int i = 0; i < count; ++i)
     {
         SavedSearchDataByIndex::iterator it = index.begin() + row + i;
-        if (it->m_isSynchronizable) {
-            ErrorString error(QT_TR_NOOP("Can't remove the synchronizable saved search"));
-            QNINFO(error << QStringLiteral(", synchronizable note item: ") << *it);
+        if (!it->m_guid.isEmpty()) {
+            ErrorString error(QT_TR_NOOP("Can't delete saved search with non-empty guid"));
+            QNINFO(error << QStringLiteral(", saved search item: ") << *it);
             Q_EMIT notifyError(error);
             return false;
         }

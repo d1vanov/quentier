@@ -63,7 +63,6 @@ void TagModelTestHelper::test()
         first.setName(QStringLiteral("First"));
         first.setLocal(true);
         first.setDirty(true);
-        first.setGuid(UidGenerator::Generate());
 
         Tag second;
         second.setName(QStringLiteral("Second"));
@@ -347,7 +346,7 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("Tag model returned item index with a different row after the failed row removal attempt"));
         }
 
-        // Should be able to remove the row with a non-synchronizable (local) tag
+        // Should be able to remove the row with a (local) tag having empty guid
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid tag item model index for local uid"));
@@ -356,7 +355,7 @@ void TagModelTestHelper::test()
         QModelIndex firstParentIndex = model->parent(firstIndex);
         res = model->removeRow(firstIndex.row(), firstParentIndex);
         if (!res) {
-            FAIL(QStringLiteral("Can't remove the row with a non-synchronizable tag item from the model"));
+            FAIL(QStringLiteral("Can't remove the row with a tag item with empty guid from the model"));
         }
 
         QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
@@ -591,10 +590,10 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("The error description about the inability to create the tag due to name collision is empty"));
         }
 
-        // Should be able to remove the just added local (non-synchronizable) tag
+        // Should be able to remove the just added tag
         res = model->removeRow(thirteenthTagIndex.row(), thirteenthTagIndex.parent());
         if (!res) {
-            FAIL(QStringLiteral("Wasn't able to remove the non-synchronizable tag just added to the tag model"));
+            FAIL(QStringLiteral("Wasn't able to remove the tag just added to the tag model"));
         }
 
         // Should again be able to create the tag with the same name

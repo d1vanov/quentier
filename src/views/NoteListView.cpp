@@ -731,42 +731,70 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
         }
     }
 
-    bool canCreateNote = (pNotebookItem
-                          ? pNotebookItem->canCreateNotes()
-                          : false);
+    bool canCreateNotes = (pNotebookItem
+                           ? pNotebookItem->canCreateNotes()
+                           : false);
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new note"), m_pNoteItemContextMenu,
-                            onCreateNewNoteAction, QString(), canCreateNote);
+                            onCreateNewNoteAction, QString(), canCreateNotes);
 
     ADD_CONTEXT_MENU_ACTION(tr("Open in separate window"), m_pNoteItemContextMenu,
                             onOpenNoteInSeparateWindowAction, pItem->localUid(), true);
 
     m_pNoteItemContextMenu->addSeparator();
 
+    bool canUpdateNotes = (pNotebookItem
+                           ? pNotebookItem->canUpdateNotes()
+                           : false);
+
     ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNoteItemContextMenu,
                             onDeleteNoteAction, pItem->localUid(),
-                            !pItem->isSynchronizable());
+                            canUpdateNotes);
 
-    bool canUpdateNote = (pNotebookItem
-                          ? pNotebookItem->canUpdateNotes()
-                          : false);
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNoteItemContextMenu, onEditNoteAction,
-                            pItem->localUid(), canUpdateNote);
+                            pItem->localUid(), canUpdateNotes);
 
-    if (pNotebookItem)
+    if (pNotebookModel && pNotebookItem && pNotebookItem->linkedNotebookGuid().isEmpty() && canUpdateNotes)
     {
-        QStringList otherNotebookNames;
-        if (pNotebookModel)
+        QStringList otherNotebookNames = pNotebookModel->notebookNames(NotebookModel::NotebookFilters(NotebookModel::NotebookFilter::CanCreateNotes));
+        const QString & notebookName = pNotebookItem->name();
+        auto it = std::lower_bound(otherNotebookNames.constBegin(), otherNotebookNames.constEnd(), notebookName);
+        if ((it != otherNotebookNames.constEnd()) && (*it == notebookName)) {
+            int offset = static_cast<int>(std::distance(otherNotebookNames.constBegin(), it));
+            QStringList::iterator nit = otherNotebookNames.begin() + offset;
+            Q_UNUSED(otherNotebookNames.erase(nit))
+        }
+
+        // Need to filter out other notebooks which prohibit the creation of notes in them
+        // as moving the note from one notebook to another involves modifying the original notebook's note
+        // and the "creation" of a note in another notebook
+        for(auto it = otherNotebookNames.begin(); it != otherNotebookNames.end(); )
         {
-            otherNotebookNames = pNotebookModel->notebookNames(NotebookModel::NotebookFilters(NotebookModel::NotebookFilter::CanCreateNotes));
-            const QString & notebookName = pNotebookItem->name();
-            auto it = std::lower_bound(otherNotebookNames.constBegin(), otherNotebookNames.constEnd(), notebookName);
-            if ((it != otherNotebookNames.constEnd()) && (*it == notebookName)) {
-                int offset = static_cast<int>(std::distance(otherNotebookNames.constBegin(), it));
-                QStringList::iterator nit = otherNotebookNames.begin() + offset;
-                Q_UNUSED(otherNotebookNames.erase(nit))
+            QModelIndex notebookItemIndex = pNotebookModel->indexForNotebookName(*it);
+            if (Q_UNLIKELY(!notebookItemIndex.isValid())) {
+                it = otherNotebookNames.erase(it);
+                continue;
             }
+
+            const NotebookModelItem * pNotebookModelItem = pNotebookModel->itemForIndex(notebookItemIndex);
+            if (Q_UNLIKELY(!pNotebookModelItem)) {
+                it = otherNotebookNames.erase(it);
+                continue;
+            }
+
+            const NotebookItem * pOtherNotebookItem = pNotebookModelItem->notebookItem();
+            if (Q_UNLIKELY(!pOtherNotebookItem)) {
+                it = otherNotebookNames.erase(it);
+                continue;
+            }
+
+            if (!pOtherNotebookItem->canCreateNotes()) {
+                it = otherNotebookNames.erase(it);
+                continue;
+            }
+
+            ++it;
         }
 
         if (!otherNotebookNames.isEmpty())

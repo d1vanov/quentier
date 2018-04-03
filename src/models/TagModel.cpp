@@ -125,6 +125,32 @@ void TagModel::unfavoriteTag(const QModelIndex & index)
     setTagFavorited(index, false);
 }
 
+bool TagModel::tagHasSynchronizedChildTags(const QString & tagLocalUid) const
+{
+    QNDEBUG(QStringLiteral("TagModel::tagHasSynchronizedChildTags: tag local uid = ") << tagLocalUid);
+
+    const TagDataByParentLocalUid & parentLocalUidIndex = m_data.get<ByParentLocalUid>();
+    auto range = parentLocalUidIndex.equal_range(tagLocalUid);
+
+    // Breadth-first search: first check each immediate child's guid
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        if (!it->guid().isEmpty()) {
+            return true;
+        }
+    }
+
+    // Now check each child's own child tags
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        if (tagHasSynchronizedChildTags(it->localUid())) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 QString TagModel::localUidForItemName(const QString & itemName,
                                       const QString & linkedNotebookGuid) const
 {
@@ -756,15 +782,15 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
             return false;
         }
 
-        if (pTagItem->isSynchronizable()) {
-            ErrorString error(QT_TR_NOOP("Can't remove synchronizable tag"));
+        if (!pTagItem->guid().isEmpty()) {
+            ErrorString error(QT_TR_NOOP("Can't remove tag with non-empty guid"));
             QNINFO(error);
             Q_EMIT notifyError(error);
             return false;
         }
 
-        if (hasSynchronizableChildren(pModelItem)) {
-            ErrorString error(QT_TR_NOOP("Can't remove tag with synchronizable children"));
+        if (tagHasSynchronizedChildTags(pTagItem->localUid())) {
+            ErrorString error(QT_TR_NOOP("Can't remove tag which has some child tags with non-empty guids"));
             QNINFO(error);
             Q_EMIT notifyError(error);
             return false;

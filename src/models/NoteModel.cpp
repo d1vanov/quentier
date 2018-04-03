@@ -291,6 +291,25 @@ void NoteModel::unfavoriteNote(const QString & noteLocalUid)
     setNoteFavorited(noteLocalUid, false);
 }
 
+bool NoteModel::notebookContainsSyncronizedNotes(const QString & notebookLocalUid) const
+{
+    if (notebookLocalUid.isEmpty()) {
+        return false;
+    }
+
+    const NoteDataByNotebookLocalUid & indexByNotebookLocalUid = m_data.get<ByNotebookLocalUid>();
+    auto range = indexByNotebookLocalUid.equal_range(notebookLocalUid);
+    for(auto it = range.first; it != range.second; ++it)
+    {
+        const NoteModelItem & item = *it;
+        if (!item.guid().isEmpty()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 Qt::ItemFlags NoteModel::flags(const QModelIndex & modelIndex) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(modelIndex);
@@ -654,7 +673,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     for(int i = 0; i < count; ++i)
     {
         auto it = index.begin() + row;
-        if (it->isSynchronizable()) {
+        if (!it->guid().isEmpty()) {
             REPORT_ERROR(QT_TR_NOOP("Can't remove the synchronizable note"));
             return false;
         }

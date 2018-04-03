@@ -179,6 +179,18 @@ public:
      */
     void unfavoriteTag(const QModelIndex & index);
 
+    /**
+     * @brief tagHasSynchronizedChildTags - checks whether the tag with
+     * specified local uid contains child tags with non-empty guids
+     * i.e. tags which have already been synchronized with Evernote
+     *
+     * @param tagLocalUid - the local uid of the tag which is being checked
+     * for having synchronized child tags
+     * @return true if the specified tag has synchronized child tags,
+     * false otherwise
+     */
+    bool tagHasSynchronizedChildTags(const QString & tagLocalUid) const;
+
 public:
     // ItemModel interface
     virtual QString localUidForItemName(const QString & itemName,
