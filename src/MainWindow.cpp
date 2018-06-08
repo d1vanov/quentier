@@ -4657,8 +4657,7 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
 
     m_pAuthenticationManager = new AuthenticationManager(consumerKey, consumerSecret,
                                                          m_synchronizationManagerHost, this);
-    m_pSynchronizationManager = new SynchronizationManager(consumerKey, consumerSecret,
-                                                           m_synchronizationManagerHost,
+    m_pSynchronizationManager = new SynchronizationManager(m_synchronizationManagerHost,
                                                            *m_pLocalStorageManagerAsync,
                                                            *m_pAuthenticationManager);
 
