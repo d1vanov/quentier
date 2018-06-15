@@ -31,6 +31,13 @@
 #include <QRegExp>
 #include <QBasicTimer>
 
+// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
+#ifndef Q_MOC_RUN
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#endif
+
 namespace quentier {
 
 class LogViewerModel: public QAbstractTableModel
@@ -136,6 +143,81 @@ private:
 
 private:
     Q_DISABLE_COPY(LogViewerModel)
+
+private:
+    class LogFileChunk: public Printable
+    {
+    public:
+        LogFileChunk(const int number,
+                     const int startModelRow,
+                     const int endModelRow,
+                     const qint64 startLogFileOffset,
+                     const qint64 endLogFileOffset,
+                     const QVector<Data> & data,
+                     const quint64 lastAccessSequenceNumber) :
+            m_number(number),
+            m_startModelRow(startModelRow),
+            m_endModelRow(endModelRow),
+            m_startLogFileOffset(startLogFileOffset),
+            m_endLogFileOffset(endLogFileOffset),
+            m_data(data),
+            m_lastAccessSequenceNumber(lastAccessSequenceNumber)
+        {}
+
+        bool isEmpty() const { return (m_number < 0); }
+        int number() const { return m_number; }
+        int startModelRow() const { return m_startModelRow; }
+        int endModelRow() const { return m_endModelRow; }
+        qint64 startLogFileOffset() const { return m_startLogFileOffset; }
+        qint64 endLogFileOffset() const { return m_endLogFileOffset; }
+        const QVector<Data> & data() const { return m_data; }
+
+        quint64 lastAccessSequenceNumber() const { return m_lastAccessSequenceNumber; }
+        void setLastAccessSequenceNumber(const quint64 lastAccessSequenceNumber)
+        { m_lastAccessSequenceNumber = lastAccessSequenceNumber; }
+
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+    private:
+        int     m_number;
+
+        int     m_startModelRow;
+        int     m_endModelRow;
+
+        qint64  m_startLogFileOffset;
+        qint64  m_endLogFileOffset;
+
+        QVector<Data>   m_data;
+
+        quint64     m_lastAccessSequenceNumber;
+    };
+
+    struct LogFileChunkByNumber{};
+    struct LogFileChunkByStartModelRow{};
+    struct LogFileChunkByStartLogFileOffset{};
+    struct LogFileChunkByLastAccessSequenceNumber{};
+
+    typedef boost::multi_index_container<
+        LogFileChunk,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LogFileChunkByNumber>,
+                boost::multi_index::const_mem_fun<LogFileChunk,int,&LogFileChunk::number>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LogFileChunkByStartModelRow>,
+                boost::multi_index::const_mem_fun<LogFileChunk,int,&LogFileChunk::startModelRow>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LogFileChunkByStartLogFileOffset>,
+                boost::multi_index::const_mem_fun<LogFileChunk,qint64,&LogFileChunk::startLogFileOffset>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LogFileChunkByLastAccessSequenceNumber>,
+                boost::multi_index::const_mem_fun<LogFileChunk,quint64,&LogFileChunk::lastAccessSequenceNumber>
+            >
+        >
+    > LogFileChunkData;
 
 private:
     QFileInfo           m_currentLogFileInfo;

@@ -818,4 +818,17 @@ QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
     return strm;
 }
 
+QTextStream & LogViewerModel::LogFileChunk::print(QTextStream & strm) const
+{
+    strm << QStringLiteral("Log file chunk: number = ") << m_number
+         << QStringLiteral(", start model row = ") << m_startModelRow
+         << QStringLiteral(", end model row = ") << m_endModelRow
+         << QStringLiteral(", start log file offset = ") << m_startLogFileOffset
+         << QStringLiteral(", end log file offset = ") << m_endLogFileOffset
+         << QStringLiteral(", last access sequence number = ") << m_lastAccessSequenceNumber
+         << QStringLiteral(", ") << QString::number(m_data.size())
+         << QStringLiteral(" contained data elements");
+    return strm;
+}
+
 } // namespace quentier
