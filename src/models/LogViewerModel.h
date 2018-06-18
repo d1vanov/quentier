@@ -23,6 +23,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/Printable.h>
 #include <quentier/utility/FileSystemWatcher.h>
+#include <quentier/utility/LRUCache.hpp>
 #include <quentier/types/ErrorString.h>
 #include <QAbstractTableModel>
 #include <QFileInfo>
@@ -30,6 +31,7 @@
 #include <QThread>
 #include <QRegExp>
 #include <QBasicTimer>
+#include <QSet>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -106,6 +108,7 @@ Q_SIGNALS:
 
     // private signals
     void startAsyncLogFileReading();
+    void readLogFileLines(qint64 fromPos, quint32 maxLines);
     void deleteFileReaderAsync();
     void wipeCurrentLogFileFinished();
 
@@ -124,11 +127,15 @@ private Q_SLOTS:
 
     void onFileReadAsyncReady(qint64 logFilePos, QString readData, ErrorString errorDescription);
 
+    void onLogFileLinesRead(qint64 fromPos, qint64 endPos, QStringList lines, ErrorString errorDescription);
+
 private:
-    void parseFullDataFromLogFile();
-    void parseDataFromLogFileFromCurrentPos();
+    void startReadingDataFromLogFile();
+    void startReadingDataFromLogFile(const qint64 startPos);
+    void startReadingDataFromLogFileFromCurrentPos();
+
     void parseNextChunkOfLogFileLines();
-    bool parseNextChunkOfLogFileLines(const int lineNumFrom, QList<Data> & readLogFileEntries,
+    bool parseNextChunkOfLogFileLines(const int lineNumFrom, QVector<Data> & readLogFileEntries,
                                       int & lastParsedLogFileLine);
 
 private:
@@ -145,36 +152,27 @@ private:
     Q_DISABLE_COPY(LogViewerModel)
 
 private:
-    class LogFileChunk: public Printable
+    class LogFileChunkMetadata: public Printable
     {
     public:
-        LogFileChunk(const int number,
-                     const int startModelRow,
-                     const int endModelRow,
-                     const qint64 startLogFileOffset,
-                     const qint64 endLogFileOffset,
-                     const QVector<Data> & data,
-                     const quint64 lastAccessSequenceNumber) :
+        LogFileChunkMetadata(const int number,
+                             const int startModelRow,
+                             const int endModelRow,
+                             const qint64 startLogFilePos,
+                             const qint64 endLogFilePos) :
             m_number(number),
             m_startModelRow(startModelRow),
             m_endModelRow(endModelRow),
-            m_startLogFileOffset(startLogFileOffset),
-            m_endLogFileOffset(endLogFileOffset),
-            m_data(data),
-            m_lastAccessSequenceNumber(lastAccessSequenceNumber)
+            m_startLogFilePos(startLogFilePos),
+            m_endLogFilePos(endLogFilePos)
         {}
 
         bool isEmpty() const { return (m_number < 0); }
         int number() const { return m_number; }
         int startModelRow() const { return m_startModelRow; }
         int endModelRow() const { return m_endModelRow; }
-        qint64 startLogFileOffset() const { return m_startLogFileOffset; }
-        qint64 endLogFileOffset() const { return m_endLogFileOffset; }
-        const QVector<Data> & data() const { return m_data; }
-
-        quint64 lastAccessSequenceNumber() const { return m_lastAccessSequenceNumber; }
-        void setLastAccessSequenceNumber(const quint64 lastAccessSequenceNumber)
-        { m_lastAccessSequenceNumber = lastAccessSequenceNumber; }
+        qint64 startLogFilePos() const { return m_startLogFilePos; }
+        qint64 endLogFilePos() const { return m_endLogFilePos; }
 
         virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
@@ -184,40 +182,35 @@ private:
         int     m_startModelRow;
         int     m_endModelRow;
 
-        qint64  m_startLogFileOffset;
-        qint64  m_endLogFileOffset;
-
-        QVector<Data>   m_data;
-
-        quint64     m_lastAccessSequenceNumber;
+        qint64  m_startLogFilePos;
+        qint64  m_endLogFilePos;
     };
 
     struct LogFileChunkByNumber{};
     struct LogFileChunkByStartModelRow{};
-    struct LogFileChunkByStartLogFileOffset{};
-    struct LogFileChunkByLastAccessSequenceNumber{};
+    struct LogFileChunkByStartLogFilePos{};
 
     typedef boost::multi_index_container<
-        LogFileChunk,
+        LogFileChunkMetadata,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<LogFileChunkByNumber>,
-                boost::multi_index::const_mem_fun<LogFileChunk,int,&LogFileChunk::number>
+                boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::number>
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<LogFileChunkByStartModelRow>,
-                boost::multi_index::const_mem_fun<LogFileChunk,int,&LogFileChunk::startModelRow>
+                boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::startModelRow>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<LogFileChunkByStartLogFileOffset>,
-                boost::multi_index::const_mem_fun<LogFileChunk,qint64,&LogFileChunk::startLogFileOffset>
-            >,
-            boost::multi_index::ordered_unique<
-                boost::multi_index::tag<LogFileChunkByLastAccessSequenceNumber>,
-                boost::multi_index::const_mem_fun<LogFileChunk,quint64,&LogFileChunk::lastAccessSequenceNumber>
+                boost::multi_index::tag<LogFileChunkByStartLogFilePos>,
+                boost::multi_index::const_mem_fun<LogFileChunkMetadata,qint64,&LogFileChunkMetadata::startLogFilePos>
             >
         >
     > LogFileChunkData;
+
+    typedef LogFileChunkData::index<LogFileChunkByNumber>::type LogFileChunkDataByNumber;
+    typedef LogFileChunkData::index<LogFileChunkByStartModelRow>::type LogFileChunkDataByStartModelRow;
+    typedef LogFileChunkData::index<LogFileChunkByStartLogFilePos>::type LogFileChunkDataByStartLogFilePos;
 
 private:
     QFileInfo           m_currentLogFileInfo;
@@ -228,7 +221,14 @@ private:
     char                m_currentLogFileStartBytes[256];
     qint64              m_currentLogFileStartBytesRead;
 
+    LogFileChunkData    m_logFileChunkMetadata;
+    LRUCache<qint32, QVector<Data> >    m_logFileChunkDataCache;
+
+    QVector<Data>       m_lastParsedLogFileChunk;
+
     qint64              m_currentLogFilePos;
+
+    QSet<qint64>        m_logFilePosRequestedToBeRead;
 
     int                 m_currentParsedLogFileLines;
     QStringList         m_currentLogFileLines;
