@@ -63,8 +63,6 @@ public:
     QString logFileName() const;
     void setLogFileName(const QString & logFileName);
 
-    qint64 currentLogFilePos() const { return m_currentLogFilePos; }
-
     bool wipeCurrentLogFile(ErrorString & errorDescription);
     void clear();
 
@@ -125,18 +123,13 @@ private Q_SLOTS:
     void onFileChanged(const QString & path);
     void onFileRemoved(const QString & path);
 
-    void onFileReadAsyncReady(qint64 logFilePos, QString readData, ErrorString errorDescription);
-
     void onLogFileLinesRead(qint64 fromPos, qint64 endPos, QStringList lines, ErrorString errorDescription);
 
 private:
-    void startReadingDataFromLogFile();
-    void startReadingDataFromLogFile(const qint64 startPos);
-    void startReadingDataFromLogFileFromCurrentPos();
+    void requestDataChunkFromLogFile(const qint64 startPos);
 
-    void parseNextChunkOfLogFileLines();
-    bool parseNextChunkOfLogFileLines(const int lineNumFrom, QVector<Data> & readLogFileEntries,
-                                      int & lastParsedLogFileLine);
+    bool parseLogFileDataChunk(const int lineNumFrom, const QStringList & logFileDataLinesToParse,
+                               QVector<Data> & parsedLogFileDataEntries, int & lastParsedLogFileLine);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -186,31 +179,42 @@ private:
         qint64  m_endLogFilePos;
     };
 
-    struct LogFileChunkByNumber{};
-    struct LogFileChunkByStartModelRow{};
-    struct LogFileChunkByStartLogFilePos{};
+    struct LowerBoundByStartModelRowComparator
+    {
+        bool operator()(const LogFileChunkMetadata & lhs, const int row) const
+        {
+            return lhs.startModelRow() < row;
+        }
+    };
+
+    struct LogFileChunksMetadataByNumber{};
+    struct LogFileChunksMetadataByStartModelRow{};
+    struct LogFileChunksMetadataByStartLogFilePos{};
 
     typedef boost::multi_index_container<
         LogFileChunkMetadata,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<LogFileChunkByNumber>,
+                boost::multi_index::tag<LogFileChunksMetadataByNumber>,
                 boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::number>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<LogFileChunkByStartModelRow>,
+                boost::multi_index::tag<LogFileChunksMetadataByStartModelRow>,
                 boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::startModelRow>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<LogFileChunkByStartLogFilePos>,
+                boost::multi_index::tag<LogFileChunksMetadataByStartLogFilePos>,
                 boost::multi_index::const_mem_fun<LogFileChunkMetadata,qint64,&LogFileChunkMetadata::startLogFilePos>
             >
         >
-    > LogFileChunkData;
+    > LogFileChunksMetadata;
 
-    typedef LogFileChunkData::index<LogFileChunkByNumber>::type LogFileChunkDataByNumber;
-    typedef LogFileChunkData::index<LogFileChunkByStartModelRow>::type LogFileChunkDataByStartModelRow;
-    typedef LogFileChunkData::index<LogFileChunkByStartLogFilePos>::type LogFileChunkDataByStartLogFilePos;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByNumber>::type LogFileChunksMetadataIndexByNumber;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartModelRow>::type LogFileChunksMetadataIndexByStartModelRow;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartLogFilePos>::type LogFileChunksMetadataIndexByStartLogFilePos;
+
+private:
+    const LogFileChunkMetadata * findLogFileChunkMetadataByModelRow(const int row) const;
 
 private:
     QFileInfo           m_currentLogFileInfo;
@@ -221,27 +225,19 @@ private:
     char                m_currentLogFileStartBytes[256];
     qint64              m_currentLogFileStartBytesRead;
 
-    LogFileChunkData    m_logFileChunkMetadata;
+    LogFileChunksMetadata               m_logFileChunksMetadata;
     LRUCache<qint32, QVector<Data> >    m_logFileChunkDataCache;
 
     QVector<Data>       m_lastParsedLogFileChunk;
-
-    qint64              m_currentLogFilePos;
+    bool                m_canReadMoreLogFileChunks;
 
     QSet<qint64>        m_logFilePosRequestedToBeRead;
-
-    int                 m_currentParsedLogFileLines;
-    QStringList         m_currentLogFileLines;
 
     qint64              m_currentLogFileSize;
     QBasicTimer         m_currentLogFileSizePollingTimer;
 
-    bool                m_pendingLogFileReadData;
-
     QThread *           m_pReadLogFileIOThread;
     FileReaderAsync *   m_pFileReaderAsync;
-
-    QList<Data>         m_data;
 
     bool                m_pendingCurrentLogFileWipe;
     bool                m_wipeCurrentLogFileResultStatus;

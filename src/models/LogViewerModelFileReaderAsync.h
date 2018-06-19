@@ -29,23 +29,17 @@ class LogViewerModel::FileReaderAsync : public QObject
 {
     Q_OBJECT
 public:
-    explicit FileReaderAsync(QString targetFilePath, qint64 startPos,
-                             QObject * parent = Q_NULLPTR);
+    explicit FileReaderAsync(QString targetFilePath, QObject * parent = Q_NULLPTR);
     ~FileReaderAsync();
 
 Q_SIGNALS:
-    void finished(qint64 currentPos, QString readData, ErrorString errorDescription);
-
     void readLogFileLines(qint64 fromPos, qint64 endPos, QStringList lines, ErrorString errorDescription);
 
 public Q_SLOTS:
-    void onStartReading();
-
     void onReadLogFileLines(qint64 fromPos, quint32 maxLines);
 
 private:
     QFile       m_targetFile;
-    qint64      m_startPos;
 };
 
 } // namespace quentier
