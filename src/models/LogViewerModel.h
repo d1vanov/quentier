@@ -97,12 +97,19 @@ public:
 
     const Data * dataEntry(const int row) const;
 
+    const QVector<Data> * dataChunkContainingModelRow(const int row, int * pStartModelRow = Q_NULLPTR) const;
+
     QString dataEntryToString(const Data & dataEntry) const;
 
     QColor backgroundColorForLogLevel(const LogLevel::type logLevel) const;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
+
+    // This signal is emitted after either beginInsertRows/endInsertRows or dataChanged signal
+    // to notify specific listeners (not just views) about the fact that the data corresponding
+    // to the specific rows of the model has been cached and hence is present and actual
+    void notifyModelRowsCached(int from, int to);
 
     // private signals
     void startAsyncLogFileReading();

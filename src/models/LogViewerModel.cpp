@@ -217,6 +217,23 @@ void LogViewerModel::clear()
 
 const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
 {
+    int startModelRow = 0;
+    const QVector<Data> * pLogFileDataChunk = dataChunkContainingModelRow(row, &startModelRow);
+    if (!pLogFileDataChunk) {
+        return Q_NULLPTR;
+    }
+
+    int offset = row - startModelRow;
+    if (Q_UNLIKELY(pLogFileDataChunk->size() <= offset)) {
+        return Q_NULLPTR;
+    }
+
+    const Data & data = pLogFileDataChunk->at(offset);
+    return &data;
+}
+
+const QVector<LogViewerModel::Data> * LogViewerModel::dataChunkContainingModelRow(const int row, int * pStartModelRow) const
+{
     if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_logFileChunksMetadata.size())))) {
         return Q_NULLPTR;
     }
@@ -226,18 +243,11 @@ const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
         return Q_NULLPTR;
     }
 
-    const QVector<Data> * pLogFileDataChunk = m_logFileChunkDataCache.get(pLogFileChunkMetadata->number());
-    if (!pLogFileDataChunk) {
-        return Q_NULLPTR;
+    if (pStartModelRow) {
+        *pStartModelRow = pLogFileChunkMetadata->startModelRow();
     }
 
-    int offset = row - pLogFileChunkMetadata->startModelRow();
-    if (Q_UNLIKELY(pLogFileDataChunk->size() <= offset)) {
-        return Q_NULLPTR;
-    }
-
-    const Data & data = pLogFileDataChunk->at(offset);
-    return &data;
+    return m_logFileChunkDataCache.get(pLogFileChunkMetadata->number());
 }
 
 QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry) const
@@ -583,6 +593,8 @@ void LogViewerModel::onLogFileLinesRead(qint64 fromPos, qint64 endPos, QStringLi
 
         m_lastParsedLogFileChunk.erase(m_lastParsedLogFileChunk.begin(),
                                        m_lastParsedLogFileChunk.begin() + LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET);
+
+        Q_EMIT notifyModelRowsCached(startModelRow, endModelRow);
     }
 
     if (lines.size() < LOG_VIEWER_MODEL_PARSED_LINES_BUCKET_SIZE) {

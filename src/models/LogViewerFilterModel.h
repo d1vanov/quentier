@@ -19,9 +19,11 @@
 #ifndef QUENTIER_LOG_VIEWER_FILTER_MODEL_H
 #define QUENTIER_LOG_VIEWER_FILTER_MODEL_H
 
+#include "LogViewerModel.h"
 #include <quentier/utility/Macros.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QSortFilterProxyModel>
+#include <QFile>
 
 namespace quentier {
 
@@ -37,12 +39,30 @@ public:
     bool logLevelEnabled(const LogLevel::type logLevel) const;
     void setLogLevelEnabled(const LogLevel::type logLevel, const bool enabled);
 
+    // Asynchronous, emits finishedSavingDisplayedLogEntriesToFile when done
+    void saveDisplayedLogEntriesToFile(const QString & filePath);
+
 public:
     virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
+
+Q_SIGNALS:
+    void finishedSavingDisplayedLogEntriesToFile(QString filePath, bool success, ErrorString errorDescription);
+
+private Q_SLOTS:
+    void onLogViewerModelRowsCached(int from, int to);
+
+private:
+    bool filterAcceptsEntry(const LogViewerModel::Data & entry) const;
+    void processLogFileDataEntryForSavingToFile(const LogViewerModel::Data & entry);
 
 private:
     int         m_filterOutBeforeRow;
     bool        m_enabledLogLevels[6];
+
+    bool        m_savingDisplayedLogEntriesToFile;
+    QString     m_targetFilePathToSaveDisplayedLogEntriesTo;
+    QFile       m_targetFileToSaveDisplayedLogEntriesTo;
+    int         m_saveDisplayedLogEntriesToFileLastProcessedSourceModelRow;
 };
 
 } // namespace quentier
