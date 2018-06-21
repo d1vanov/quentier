@@ -4,17 +4,16 @@ branches:
   only:
     - master
     - development
-    - bugfix/fix-mingw-build-at-appveyor
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 environment:
   auth_token:
     secure: rLuHhO0prerqoGCYmfOoyxqcwwamCXtuZtl4Jzqeu3aGgflk0mnX1fogLq68YcRW
   matrix:
-      #    - prepare_mode: YES
-      #      name: win32-prepare
-      #      platform: amd64_x86
-      #      qt: msvc2015
+    - prepare_mode: YES
+      name: win32-prepare
+      platform: amd64_x86
+      qt: msvc2015
     - prepare_mode: NO
       name: win32
       platform: amd64_x86
@@ -289,7 +288,7 @@ after_build:
   - 7z a %DEPLOYMENT_TARGET% c:\dev\install\*
   - move %DEPLOYMENT_TARGET% %APPVEYOR_BUILD_FOLDER%
   - cd %APPVEYOR_BUILD_FOLDER%
-    #  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe
+  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe
 
 artifacts:
   - path: '*.zip'
