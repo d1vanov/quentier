@@ -177,19 +177,26 @@ function(CreateQuentierBundle)
       # fixup other dependencies not taken care of by windeployqt/macdeployqt
       install(CODE "
               include(CMakeParseArguments)
-              if(${CMAKE_VERSION} VERSION_LESS \"3.8.0\")
-                include(${PROJECT_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
-              else()
-                include(BundleUtilities)
-              endif()
+              include(${PROJECT_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
               include(InstallRequiredSystemLibraries)
-              fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
+              fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
               " COMPONENT Runtime)
+
+      # MinGW dlls require some special treatment
+      if(MINGW)
+        get_filename_component(MINGW_PATH ${CMAKE_CXX_COMPILER} PATH)
+        install(CODE "
+                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libgcc_s_dw2-1.dll\")
+                file(COPY \"${MINGW_PATH}/libgcc_s_dw2-1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libstdc++-6.dll\")
+                file(COPY \"${MINGW_PATH}/libstdc++-6.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                " COMPONENT Runtime)
+      endif()
     else()
       install(CODE "
               include(DeployQt4)
               include(InstallRequiredSystemLibraries)
-              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
+              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
               " COMPONENT Runtime)
     endif(USE_QT5)
 
