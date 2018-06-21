@@ -177,11 +177,7 @@ function(CreateQuentierBundle)
       # fixup other dependencies not taken care of by windeployqt/macdeployqt
       install(CODE "
               include(CMakeParseArguments)
-              if(MINGW OR ${CMAKE_VERSION} VERSION_LESS \"3.8.0\")
-                include(${PROJECT_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
-              else()
-                include(BundleUtilities)
-              endif()
+              include(${PROJECT_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
               include(InstallRequiredSystemLibraries)
               fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
               " COMPONENT Runtime)
