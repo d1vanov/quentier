@@ -24,6 +24,7 @@ environment:
       platform: amd64
       qt: msvc2017_64
     - prepare_mode: NO
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       name: win32
       platform: mingw
       qt: mingw492_32
