@@ -27,6 +27,8 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(SaveFilteredLogEntriesToFileProcessor)
+
 class LogViewerFilterModel: public QSortFilterProxyModel
 {
     Q_OBJECT
@@ -42,6 +44,8 @@ public:
     // Asynchronous, emits finishedSavingDisplayedLogEntriesToFile when done
     void saveDisplayedLogEntriesToFile(const QString & filePath);
 
+    bool filterAcceptsEntry(const LogViewerModel::Data & entry) const;
+
 public:
     virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
 
@@ -49,20 +53,12 @@ Q_SIGNALS:
     void finishedSavingDisplayedLogEntriesToFile(QString filePath, bool success, ErrorString errorDescription);
 
 private Q_SLOTS:
-    void onLogViewerModelRowsCached(int from, int to);
-
-private:
-    bool filterAcceptsEntry(const LogViewerModel::Data & entry) const;
-    void processLogFileDataEntryForSavingToFile(const LogViewerModel::Data & entry);
+    void onSavingFilteredLogEntriesToFileFinished(QString filePath, bool status, ErrorString errorDescription);
 
 private:
     int         m_filterOutBeforeRow;
     bool        m_enabledLogLevels[6];
-
-    bool        m_savingDisplayedLogEntriesToFile;
-    QString     m_targetFilePathToSaveDisplayedLogEntriesTo;
-    QFile       m_targetFileToSaveDisplayedLogEntriesTo;
-    int         m_saveDisplayedLogEntriesToFileLastProcessedSourceModelRow;
+    SaveFilteredLogEntriesToFileProcessor *     m_pSaveFilteredLogEntriesToFileProcessor;
 };
 
 } // namespace quentier

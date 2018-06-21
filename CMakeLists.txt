@@ -129,6 +129,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/LogViewerModel.h
     src/models/LogViewerModelFileReaderAsync.h
     src/models/LogViewerFilterModel.h
+    src/models/SaveFilteredLogEntriesToFileProcessor.h
     src/delegates/AbstractStyledItemDelegate.h
     src/delegates/LimitedFontsDelegate.h
     src/delegates/NoteItemDelegate.h
@@ -234,6 +235,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/LogViewerModel.cpp
     src/models/LogViewerModelFileReaderAsync.cpp
     src/models/LogViewerFilterModel.cpp
+    src/models/SaveFilteredLogEntriesToFileProcessor.cpp
     src/delegates/AbstractStyledItemDelegate.cpp
     src/delegates/LimitedFontsDelegate.cpp
     src/delegates/NoteItemDelegate.cpp

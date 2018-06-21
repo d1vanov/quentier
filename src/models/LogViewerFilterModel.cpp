@@ -17,6 +17,7 @@
  */
 
 #include "LogViewerFilterModel.h"
+#include "SaveFilteredLogEntriesToFileProcessor.h"
 
 namespace quentier {
 
@@ -24,10 +25,7 @@ LogViewerFilterModel::LogViewerFilterModel(QObject * parent) :
     QSortFilterProxyModel(parent),
     m_filterOutBeforeRow(-1),
     m_enabledLogLevels(),
-    m_savingDisplayedLogEntriesToFile(false),
-    m_targetFilePathToSaveDisplayedLogEntriesTo(),
-    m_targetFileToSaveDisplayedLogEntriesTo(),
-    m_saveDisplayedLogEntriesToFileLastProcessedSourceModelRow(-1)
+    m_pSaveFilteredLogEntriesToFileProcessor(Q_NULLPTR)
 {
     for(size_t i = 0; i < sizeof(m_enabledLogLevels); ++i) {
         m_enabledLogLevels[i] = true;
@@ -64,13 +62,16 @@ void LogViewerFilterModel::setLogLevelEnabled(const LogLevel::type logLevel, con
 
 void LogViewerFilterModel::saveDisplayedLogEntriesToFile(const QString & filePath)
 {
-    if (m_savingDisplayedLogEntriesToFile)
+    if (m_pSaveFilteredLogEntriesToFileProcessor)
     {
-        if (filePath == m_targetFilePathToSaveDisplayedLogEntriesTo) {
+        if (filePath == m_pSaveFilteredLogEntriesToFileProcessor->targetFilePath()) {
             return;
         }
 
-        // TODO: abort current saving operation
+        // Aborting the current save operation
+        m_pSaveFilteredLogEntriesToFileProcessor->stop();
+        m_pSaveFilteredLogEntriesToFileProcessor->deleteLater();
+        m_pSaveFilteredLogEntriesToFileProcessor = Q_NULLPTR;
     }
 
     const LogViewerModel * pLogViewerModel = qobject_cast<const LogViewerModel*>(sourceModel());
@@ -80,87 +81,10 @@ void LogViewerFilterModel::saveDisplayedLogEntriesToFile(const QString & filePat
         return;
     }
 
-    int numSourceModelRows = pLogViewerModel->rowCount();
-    if (Q_UNLIKELY(numSourceModelRows <= 0)) {
-        ErrorString errorDescription(QT_TR_NOOP("source model is empty"));
-        Q_EMIT finishedSavingDisplayedLogEntriesToFile(filePath, false, errorDescription);
-        return;
-    }
-
-    m_targetFileToSaveDisplayedLogEntriesTo.setFileName(filePath);
-    if (!m_targetFileToSaveDisplayedLogEntriesTo.open(QIODevice::WriteOnly)) {
-        ErrorString errorDescription(QT_TR_NOOP("can't open the target log file for writing"));
-        errorDescription.details() = QStringLiteral("error code = ") + QString::number(m_targetFileToSaveDisplayedLogEntriesTo.error());
-        Q_EMIT finishedSavingDisplayedLogEntriesToFile(filePath, false, errorDescription);
-        return;
-    }
-
-    m_targetFilePathToSaveDisplayedLogEntriesTo = filePath;
-
-    int row = 0;
-    while(row < numSourceModelRows)
-    {
-        int startModelRow = 0;
-        const QVector<LogViewerModel::Data> * pLogFileDataChunk = pLogViewerModel->dataChunkContainingModelRow(row, &startModelRow);
-        if (!pLogFileDataChunk) {
-            break;
-        }
-
-        for(int i = 0, size = pLogFileDataChunk->size(); i < size; ++i) {
-            processLogFileDataEntryForSavingToFile(pLogFileDataChunk->at(i));
-        }
-
-        row = startModelRow + pLogFileDataChunk->size();
-    }
-
-    if (row < numSourceModelRows)
-    {
-        // We left the above loop because encountered a cache miss; need to force the source model to load the data for this row
-        m_saveDisplayedLogEntriesToFileLastProcessedSourceModelRow = row;
-        QObject::connect(pLogViewerModel, QNSIGNAL(LogViewerModel,notifyModelRowsCached,int,int),
-                         this, QNSLOT(LogViewerFilterModel,onLogViewerModelRowsCached,int,int));
-        Q_UNUSED(pLogViewerModel->data(pLogViewerModel->index(row, 0)))
-        // The source model will send notifyModelRowsCached to our onLogViewerModelRowsCached slot so we'll continue the processing there
-        return;
-    }
-
-    // If we got here, we are finished
-    m_savingDisplayedLogEntriesToFile = false;
-    m_targetFilePathToSaveDisplayedLogEntriesTo.clear();
-    m_targetFileToSaveDisplayedLogEntriesTo.close();
-    m_saveDisplayedLogEntriesToFileLastProcessedSourceModelRow = -1;
-    Q_EMIT finishedSavingDisplayedLogEntriesToFile(filePath, true, ErrorString());
-}
-
-bool LogViewerFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const
-{
-    if (sourceRow < m_filterOutBeforeRow) {
-        return false;
-    }
-
-    const LogViewerModel * pLogViewerModel = qobject_cast<const LogViewerModel*>(sourceModel());
-    if (Q_UNLIKELY(!pLogViewerModel)) {
-        return false;
-    }
-
-    QModelIndex sourceIndex = pLogViewerModel->index(sourceRow, LogViewerModel::Columns::LogLevel, sourceParent);
-    if (!sourceIndex.isValid()) {
-        return false;
-    }
-
-    const LogViewerModel::Data * pDataEntry = pLogViewerModel->dataEntry(sourceIndex.row());
-    if (Q_UNLIKELY(!pDataEntry)) {
-        return false;
-    }
-
-    return filterAcceptsEntry(*pDataEntry);
-}
-
-void LogViewerFilterModel::onLogViewerModelRowsCached(int from, int to)
-{
-    // TODO: implement
-    Q_UNUSED(from)
-    Q_UNUSED(to)
+    m_pSaveFilteredLogEntriesToFileProcessor = new SaveFilteredLogEntriesToFileProcessor(filePath, *this, this);
+    QObject::connect(m_pSaveFilteredLogEntriesToFileProcessor, QNSIGNAL(SaveFilteredLogEntriesToFileProcessor,finished,QString,bool,ErrorString),
+                     this, QNSLOT(LogViewerFilterModel,onSavingFilteredLogEntriesToFileFinished,QString,bool,ErrorString));
+    m_pSaveFilteredLogEntriesToFileProcessor->start();
 }
 
 bool LogViewerFilterModel::filterAcceptsEntry(const LogViewerModel::Data & entry) const
@@ -189,20 +113,40 @@ bool LogViewerFilterModel::filterAcceptsEntry(const LogViewerModel::Data & entry
     return false;
 }
 
-void LogViewerFilterModel::processLogFileDataEntryForSavingToFile(const LogViewerModel::Data & entry)
+bool LogViewerFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const
 {
-    if (!filterAcceptsEntry(entry)) {
-        return;
+    if (sourceRow < m_filterOutBeforeRow) {
+        return false;
     }
 
     const LogViewerModel * pLogViewerModel = qobject_cast<const LogViewerModel*>(sourceModel());
     if (Q_UNLIKELY(!pLogViewerModel)) {
-        return;
+        return false;
     }
 
-    QString entryString = pLogViewerModel->dataEntryToString(entry);
-    entryString += QStringLiteral("\n");
-    Q_UNUSED(m_targetFileToSaveDisplayedLogEntriesTo.write(entryString.toUtf8()))
+    QModelIndex sourceIndex = pLogViewerModel->index(sourceRow, LogViewerModel::Columns::LogLevel, sourceParent);
+    if (!sourceIndex.isValid()) {
+        return false;
+    }
+
+    const LogViewerModel::Data * pDataEntry = pLogViewerModel->dataEntry(sourceIndex.row());
+    if (Q_UNLIKELY(!pDataEntry)) {
+        return false;
+    }
+
+    return filterAcceptsEntry(*pDataEntry);
+}
+
+void LogViewerFilterModel::onSavingFilteredLogEntriesToFileFinished(QString filePath, bool status, ErrorString errorDescription)
+{
+    if (m_pSaveFilteredLogEntriesToFileProcessor) {
+        QObject::disconnect(m_pSaveFilteredLogEntriesToFileProcessor, QNSIGNAL(SaveFilteredLogEntriesToFileProcessor,finished,QString,bool,ErrorString),
+                            this, QNSLOT(LogViewerFilterModel,onSavingFilteredLogEntriesToFileFinished,QString,bool,ErrorString));
+        m_pSaveFilteredLogEntriesToFileProcessor->deleteLater();
+        m_pSaveFilteredLogEntriesToFileProcessor = Q_NULLPTR;
+    }
+
+    Q_EMIT finishedSavingDisplayedLogEntriesToFile(filePath, status, errorDescription);
 }
 
 } // namespace quentier
