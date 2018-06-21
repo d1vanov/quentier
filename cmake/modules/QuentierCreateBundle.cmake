@@ -181,6 +181,17 @@ function(CreateQuentierBundle)
               include(InstallRequiredSystemLibraries)
               fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
               " COMPONENT Runtime)
+
+      # MinGW dlls require some special treatment
+      if(MINGW)
+        get_filename_component(MINGW_PATH ${CMAKE_CXX_COMPILER} PATH)
+        install(CODE "
+                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libgcc_s_dw2-1.dll\")
+                file(COPY \"${MINGW_PATH}/libgcc_s_dw2-1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libstdc++-6.dll\")
+                file(COPY \"${MINGW_PATH}/libstdc++-6.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                " COMPONENT Runtime)
+      endif()
     else()
       install(CODE "
               include(DeployQt4)
