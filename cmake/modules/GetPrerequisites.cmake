@@ -538,15 +538,17 @@ function(gp_resolved_file_type original_file file exepath dirs type_var)
         set(is_system 1)
       endif()
 
-      if(lower MATCHES "^libgcc_s(.+)dll")
+      if(lower MATCHES "(.*)libgcc_s(.+)dll")
         message(STATUS "Detected libgcc_s dll, considering it a system library")
         set(is_system 1)
       endif()
 
-      if(lower MATCHES "^libstdc\\+\\+(.+)dll")
+      if(lower MATCHES "(.*)libstdc\\+\\+(.+)dll")
         message(STATUS "Detected libstdc++ dll, considering it a system library")
         set(is_system 1)
       endif()
+
+      message(STATUS "Item lower = ${lower}")
 
       if(UNIX)
         # if cygwin, we can get the properly formed windows paths from cygpath
