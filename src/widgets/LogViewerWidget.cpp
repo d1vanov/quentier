@@ -94,8 +94,6 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     LogViewerDelegate * pLogViewerDelegate = new LogViewerDelegate(m_pUi->logEntriesTableView);
     m_pUi->logEntriesTableView->setItemDelegate(pLogViewerDelegate);
 
-    QObject::connect(m_pUi->copyAllToClipboardPushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(LogViewerWidget,onCopyAllToClipboardButtonPressed));
     QObject::connect(m_pUi->saveToFilePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onSaveAllToFileButtonPressed));
     QObject::connect(m_pUi->clearPushButton, QNSIGNAL(QPushButton,clicked),
@@ -321,15 +319,6 @@ void LogViewerWidget::onLogFileDirChanged(const QString & path)
     }
 }
 
-void LogViewerWidget::onCopyAllToClipboardButtonPressed()
-{
-    m_pUi->statusBarLineEdit->clear();
-    m_pUi->statusBarLineEdit->hide();
-
-    QString text = displayedLogEntriesToString();
-    copyStringToClipboard(text);
-}
-
 void LogViewerWidget::onSaveAllToFileButtonPressed()
 {
     m_pUi->statusBarLineEdit->clear();
@@ -367,27 +356,30 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
         }
     }
 
-    QString text = displayedLogEntriesToString();
-    if (text.isEmpty()) {
-        ErrorString errorDescription(QT_TR_NOOP("No logs to save"));
+    m_pUi->statusBarLineEdit->setText(QString::fromUtf8(QT_TR_NOOP("Saving the displayed log entries to the selected file, please wait")) + QStringLiteral("..."));
+    m_pUi->statusBarLineEdit->show();
+
+    QObject::connect(m_pLogViewerFilterModel, QNSIGNAL(LogViewerFilterModel,finishedSavingDisplayedLogEntriesToFile,QString,bool,ErrorString),
+                     this, QNSLOT(LogViewerWidget,onSavingToFileFinished,QString,bool,ErrorString),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+    m_pLogViewerFilterModel->saveDisplayedLogEntriesToFile(fileInfo.absoluteFilePath());
+}
+
+void LogViewerWidget::onSavingToFileFinished(QString filePath, bool status, ErrorString errorDescription)
+{
+    Q_UNUSED(filePath)
+
+    QObject::disconnect(m_pLogViewerFilterModel, QNSIGNAL(LogViewerFilterModel,finishedSavingDisplayedLogEntriesToFile,QString,bool,ErrorString),
+                        this, QNSLOT(LogViewerWidget,onSavingToFileFinished,QString,bool,ErrorString));
+
+    if (!status) {
         m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
         m_pUi->statusBarLineEdit->show();
-        Q_UNUSED(errorDescription)
-        return;
     }
-
-    QFile file(fileInfo.absoluteFilePath());
-    bool open = file.open(QIODevice::WriteOnly);
-    if (!open) {
-        ErrorString errorDescription(QT_TR_NOOP("Failed to open the target file for writing"));
-        m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
-        m_pUi->statusBarLineEdit->show();
-        Q_UNUSED(errorDescription)
-        return;
+    else {
+        m_pUi->statusBarLineEdit->setText(QString());
+        m_pUi->statusBarLineEdit->hide();
     }
-
-    Q_UNUSED(file.write(text.toLocal8Bit()))
-    file.close();
 }
 
 void LogViewerWidget::onClearButtonPressed()

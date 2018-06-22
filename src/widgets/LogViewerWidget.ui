@@ -99,7 +99,8 @@
         <string>Wipe</string>
        </property>
        <property name="icon">
-        <iconset theme="edit-delete"/>
+        <iconset theme="edit-delete">
+         <normaloff>.</normaloff>.</iconset>
        </property>
       </widget>
      </item>
@@ -214,13 +215,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="copyAllToClipboardPushButton">
-       <property name="text">
-        <string>Copy all to clipboard</string>
-       </property>
-      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="saveToFilePushButton">
