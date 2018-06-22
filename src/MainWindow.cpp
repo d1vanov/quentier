@@ -3014,10 +3014,49 @@ void MainWindow::onAccountSwitched(Account account)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAccountSwitched: ") << account);
 
-    // Now need to ask the local stortage manager to switch the account
+    if (Q_UNLIKELY(!m_pLocalStorageManagerThread)) {
+        ErrorString errorDescription(QT_TR_NOOP("internal error: no local storage manager thread exists"));
+        QNWARNING(errorDescription);
+        onSetStatusBarText(tr("Could not switch account: ") + QStringLiteral(": ") + errorDescription.localizedString(), SEC_TO_MSEC(30));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
+        ErrorString errorDescription(QT_TR_NOOP("internal error: no local storage manager exists"));
+        QNWARNING(errorDescription);
+        onSetStatusBarText(tr("Could not switch account: ") + QStringLiteral(": ") + errorDescription.localizedString(), SEC_TO_MSEC(30));
+        return;
+    }
+
+    // Since Qt 5.11 QSqlDatabase opening only works properly from the thread which has loaded the SQL drivers -
+    // which is this thread, the GUI one. However, LocalStorageManagerAsync operates in another thread. So need to stop
+    // that thread, perform the operation synchronously and then start the stopped thread again
+
+    QObject::disconnect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                        m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+    m_pLocalStorageManagerThread->quit();
+    m_pLocalStorageManagerThread->wait();
+
+    ErrorString errorDescription;
+    try {
+        m_pLocalStorageManagerAsync->localStorageManager()->switchUser(account);
+    }
+    catch(const std::exception & e) {
+        errorDescription.setBase(QT_TR_NOOP("Can't switch user in the local storage: caught exception"));
+        errorDescription.details() = QString::fromUtf8(e.what());
+    }
+
+    QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                     m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+    m_pLocalStorageManagerThread->start();
+
     m_lastLocalStorageSwitchUserRequest = QUuid::createUuid();
-    Q_EMIT localStorageSwitchUserRequest(account, /* start from scratch = */ false,
-                                         m_lastLocalStorageSwitchUserRequest);
+    if (errorDescription.isEmpty()) {
+        onLocalStorageSwitchUserRequestComplete(account, m_lastLocalStorageSwitchUserRequest);
+    }
+    else {
+        onLocalStorageSwitchUserRequestFailed(account, errorDescription, m_lastLocalStorageSwitchUserRequest);
+    }
 }
 
 void MainWindow::onAccountUpdated(Account account)
