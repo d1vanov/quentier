@@ -27,6 +27,7 @@
 #include <quentier/types/ErrorString.h>
 #include <QAbstractTableModel>
 #include <QFileInfo>
+#include <QFile>
 #include <QList>
 #include <QThread>
 #include <QRegExp>
@@ -194,6 +195,14 @@ private:
         }
     };
 
+    struct LowerBoundByStartLogFilePosComparator
+    {
+        bool operator()(const LogFileChunkMetadata & lhs, const qint64 pos) const
+        {
+            return lhs.startLogFilePos() < pos;
+        }
+    };
+
     struct LogFileChunksMetadataByNumber{};
     struct LogFileChunksMetadataByStartModelRow{};
     struct LogFileChunksMetadataByStartLogFilePos{};
@@ -222,6 +231,10 @@ private:
 
 private:
     const LogFileChunkMetadata * findLogFileChunkMetadataByModelRow(const int row) const;
+    const LogFileChunkMetadata * findLogFileChunkMetadataByLogFilePos(const qint64 pos) const;
+
+    LogFileChunksMetadataIndexByStartModelRow::const_iterator findLogFileChunkMetadataIteratorByModelRow(const int row) const;
+    LogFileChunksMetadataIndexByStartLogFilePos::const_iterator findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
 
 private:
     QFileInfo           m_currentLogFileInfo;
@@ -245,6 +258,8 @@ private:
 
     QThread *           m_pReadLogFileIOThread;
     FileReaderAsync *   m_pFileReaderAsync;
+
+    mutable QFile       m_internalLogFile;
 
     bool                m_pendingCurrentLogFileWipe;
     bool                m_wipeCurrentLogFileResultStatus;
