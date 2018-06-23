@@ -22,6 +22,8 @@
 #include "LogViewerModel.h"
 #include <QFile>
 #include <QStringList>
+#include <QVector>
+#include <QRegExp>
 
 namespace quentier {
 
@@ -34,12 +36,23 @@ public:
 
 Q_SIGNALS:
     void readLogFileLines(qint64 fromPos, qint64 endPos, QStringList lines, ErrorString errorDescription);
+    void readLogFileDataEntries(qint64 fromPos, qint64 endPos,
+                                QVector<LogViewerModel::Data> dataEntries,
+                                ErrorString errorDescription);
 
 public Q_SLOTS:
     void onReadLogFileLines(qint64 fromPos, quint32 maxLines);
+    void onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries);
+
+private:
+    bool readDataEntriesFromLogFile(const qint64 fromPos, const int maxDataEntries,
+                                    QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
+                                    ErrorString & errorDescription);
+    void appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const;
 
 private:
     QFile       m_targetFile;
+    QRegExp     m_logParsingRegex;
 };
 
 } // namespace quentier

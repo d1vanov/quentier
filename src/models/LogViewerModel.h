@@ -115,6 +115,7 @@ Q_SIGNALS:
     // private signals
     void startAsyncLogFileReading();
     void readLogFileLines(qint64 fromPos, quint32 maxLines);
+    void readLogFileDataEntries(qint64 fromPos, int maxDataEntries);
     void deleteFileReaderAsync();
     void wipeCurrentLogFileFinished();
 
@@ -132,9 +133,13 @@ private Q_SLOTS:
     void onFileRemoved(const QString & path);
 
     void onLogFileLinesRead(qint64 fromPos, qint64 endPos, QStringList lines, ErrorString errorDescription);
+    void onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
+                                  QVector<LogViewerModel::Data> dataEntries,
+                                  ErrorString errorDescription);
 
 private:
     void requestDataChunkFromLogFile(const qint64 startPos);
+    void requestDataEntriesChunkFromLogFile(const qint64 startPos);
 
     bool parseLogFileDataChunk(const int lineNumFrom, const QStringList & logFileDataLinesToParse,
                                QVector<Data> & parsedLogFileDataEntries, int & lastParsedLogFileLine);
