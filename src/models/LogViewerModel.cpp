@@ -691,6 +691,10 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
         LVMDEBUG(QStringLiteral("Emitting the request to read more log file lines from pos ") << endPos);
         Q_EMIT readLogFileDataEntries(endPos, LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET);
     }
+    else {
+        // Got out of capacity, assuming the log file has more data to process
+        m_canReadMoreLogFileChunks = true;
+    }
 }
 
 void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos)
