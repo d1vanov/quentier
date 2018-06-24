@@ -42,42 +42,6 @@ LogViewerModel::FileReaderAsync::~FileReaderAsync()
     }
 }
 
-void LogViewerModel::FileReaderAsync::onReadLogFileLines(qint64 fromPos, quint32 maxLines)
-{
-    if (!m_targetFile.isOpen() && !m_targetFile.open(QIODevice::ReadOnly)) {
-        QFileInfo targetFileInfo(m_targetFile);
-        ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
-        errorDescription.details() = targetFileInfo.absoluteFilePath();
-        QNWARNING(errorDescription);
-        Q_EMIT readLogFileLines(fromPos, -1, QStringList(), errorDescription);
-        return;
-    }
-
-    QTextStream strm(&m_targetFile);
-
-    if (!strm.seek(fromPos)) {
-        ErrorString errorDescription(QT_TR_NOOP("Failed to read the data from log file: failed to seek at position"));
-        errorDescription.details() = QString::number(fromPos);
-        QNWARNING(errorDescription);
-        Q_EMIT readLogFileLines(fromPos, -1, QStringList(), errorDescription);
-        return;
-    }
-
-    QString line;
-    QStringList lines;
-    for(quint32 lineNum = 0; (lineNum < maxLines) && !strm.atEnd(); ++lineNum)
-    {
-        line = strm.readLine();
-        if (line.isNull()) {
-            break;
-        }
-
-        lines << line;
-    }
-
-    Q_EMIT readLogFileLines(fromPos, strm.pos(), lines, ErrorString());
-}
-
 void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries)
 {
     QVector<LogViewerModel::Data> dataEntries;

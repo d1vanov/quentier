@@ -35,13 +35,11 @@ public:
     ~FileReaderAsync();
 
 Q_SIGNALS:
-    void readLogFileLines(qint64 fromPos, qint64 endPos, QStringList lines, ErrorString errorDescription);
     void readLogFileDataEntries(qint64 fromPos, qint64 endPos,
                                 QVector<LogViewerModel::Data> dataEntries,
                                 ErrorString errorDescription);
 
 public Q_SLOTS:
-    void onReadLogFileLines(qint64 fromPos, quint32 maxLines);
     void onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries);
 
 private:
