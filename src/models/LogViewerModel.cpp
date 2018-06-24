@@ -82,6 +82,7 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_logFileChunkDataCache(),
     m_lastParsedLogFileChunk(),
     m_canReadMoreLogFileChunks(false),
+    m_onceParsedFullLogFile(false),
     m_logFilePosRequestedToBeRead(),
     m_currentLogFileSize(0),
     m_currentLogFileSizePollingTimer(),
@@ -189,6 +190,9 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     }
 #endif
 
+    m_canReadMoreLogFileChunks = false;
+    m_onceParsedFullLogFile = false;
+
     requestDataEntriesChunkFromLogFile(0);
     endResetModel();
 }
@@ -255,6 +259,9 @@ void LogViewerModel::clear()
     m_pendingCurrentLogFileWipe = false;
     m_wipeCurrentLogFileResultStatus = false;
     m_wipeCurrentLogFileErrorDescription.clear();
+
+    m_canReadMoreLogFileChunks = false;
+    m_onceParsedFullLogFile = false;
 
     endResetModel();
 }
@@ -548,6 +555,9 @@ void LogViewerModel::onFileChanged(const QString & path)
         m_lastParsedLogFileChunk.clear();
         m_logFilePosRequestedToBeRead.clear();
 
+        m_canReadMoreLogFileChunks = false;
+        m_onceParsedFullLogFile = false;
+
         requestDataEntriesChunkFromLogFile(0);
 
         m_currentLogFileSize = 0;
@@ -560,6 +570,7 @@ void LogViewerModel::onFileChanged(const QString & path)
     // New log entries were appended to the log file, should now be able to fetch more
     LVMDEBUG(QStringLiteral("The initial bytes of the log file haven't changed => new log entries were added, can read more now"));
     m_canReadMoreLogFileChunks = true;
+    m_onceParsedFullLogFile = false;
 }
 
 void LogViewerModel::onFileRemoved(const QString & path)
@@ -586,6 +597,10 @@ void LogViewerModel::onFileRemoved(const QString & path)
 
     m_currentLogFileSize = 0;
     m_currentLogFileSizePollingTimer.stop();
+
+    m_canReadMoreLogFileChunks = false;
+    m_onceParsedFullLogFile = false;
+
     endResetModel();
 }
 
@@ -681,19 +696,14 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
         // It appears we've read to the end of the log file
         LVMDEBUG(QStringLiteral("It appears the end of the log file was reached"));
         m_canReadMoreLogFileChunks = false;
+        m_onceParsedFullLogFile = true;
         return;
     }
 
-    if (m_logFileChunkDataCache.size() < m_logFileChunkDataCache.max_size()) {
-        // Still have some capacity within the cache of log file chunks, the lines
-        // following the just received & parsed ones are likely to be requested soon
-        // so reading them up front
-        LVMDEBUG(QStringLiteral("Emitting the request to read more log file lines from pos ") << endPos);
-        Q_EMIT readLogFileDataEntries(endPos, LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET);
-    }
-    else {
-        // Got out of capacity, assuming the log file has more data to process
-        m_canReadMoreLogFileChunks = true;
+    m_canReadMoreLogFileChunks = true;
+
+    if (!m_onceParsedFullLogFile) {
+        requestDataEntriesChunkFromLogFile(endPos);
     }
 }
 

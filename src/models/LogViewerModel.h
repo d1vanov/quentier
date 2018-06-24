@@ -252,6 +252,7 @@ private:
 
     QVector<Data>       m_lastParsedLogFileChunk;
     bool                m_canReadMoreLogFileChunks;
+    bool                m_onceParsedFullLogFile;
 
     QSet<qint64>        m_logFilePosRequestedToBeRead;
 
