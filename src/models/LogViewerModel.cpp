@@ -38,8 +38,7 @@
 #include <algorithm>
 
 #define LOG_VIEWER_MODEL_COLUMN_COUNT (5)
-#define LOG_VIEWER_MODEL_PARSED_LINES_BUCKET_SIZE (100)
-#define LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET (100)
+#define LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET (1000)
 #define LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC (500)
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
@@ -83,7 +82,7 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_lastParsedLogFileChunk(),
     m_canReadMoreLogFileChunks(false),
     m_onceParsedFullLogFile(false),
-    m_logFilePosRequestedToBeRead(),
+    m_logFilePosRequestedToBeReadByRequestReasons(),
     m_currentLogFileSize(0),
     m_currentLogFileSizePollingTimer(),
     m_pReadLogFileIOThread(new QThread),
@@ -136,7 +135,7 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     m_logFileChunksMetadata.clear();
     m_logFileChunkDataCache.clear();
     m_lastParsedLogFileChunk.clear();
-    m_logFilePosRequestedToBeRead.clear();
+    m_logFilePosRequestedToBeReadByRequestReasons.clear();
 
     m_currentLogFileSize = 0;
     m_currentLogFileSizePollingTimer.stop();
@@ -193,7 +192,7 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     m_canReadMoreLogFileChunks = false;
     m_onceParsedFullLogFile = false;
 
-    requestDataEntriesChunkFromLogFile(0);
+    requestDataEntriesChunkFromLogFile(0, LogFileDataChunkRequestReason::InitialRead);
     endResetModel();
 }
 
@@ -425,7 +424,8 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
              << QStringLiteral(" and column ") << columnIndex << QStringLiteral(", returning empty QVariant"));
     const LogFileChunkMetadata * pLogFileChunkMetadata = findLogFileChunkMetadataByModelRow(rowIndex);
     if (pLogFileChunkMetadata) {
-        const_cast<LogViewerModel*>(this)->requestDataEntriesChunkFromLogFile(pLogFileChunkMetadata->startLogFilePos());
+        const_cast<LogViewerModel*>(this)->requestDataEntriesChunkFromLogFile(pLogFileChunkMetadata->startLogFilePos(),
+                                                                              LogFileDataChunkRequestReason::CacheMiss);
     }
 
     return QVariant();
@@ -491,7 +491,7 @@ void LogViewerModel::fetchMore(const QModelIndex & parent)
         startPos = lastIt->endLogFilePos();
     }
 
-    requestDataEntriesChunkFromLogFile(startPos);
+    requestDataEntriesChunkFromLogFile(startPos, LogFileDataChunkRequestReason::FetchMore);
 }
 
 void LogViewerModel::onFileChanged(const QString & path)
@@ -553,12 +553,12 @@ void LogViewerModel::onFileChanged(const QString & path)
         m_logFileChunksMetadata.clear();
         m_logFileChunkDataCache.clear();
         m_lastParsedLogFileChunk.clear();
-        m_logFilePosRequestedToBeRead.clear();
+        m_logFilePosRequestedToBeReadByRequestReasons.clear();
 
         m_canReadMoreLogFileChunks = false;
         m_onceParsedFullLogFile = false;
 
-        requestDataEntriesChunkFromLogFile(0);
+        requestDataEntriesChunkFromLogFile(0, LogFileDataChunkRequestReason::InitialRead);
 
         m_currentLogFileSize = 0;
 
@@ -593,7 +593,7 @@ void LogViewerModel::onFileRemoved(const QString & path)
     m_logFileChunksMetadata.clear();
     m_logFileChunkDataCache.clear();
     m_lastParsedLogFileChunk.clear();
-    m_logFilePosRequestedToBeRead.clear();
+    m_logFilePosRequestedToBeReadByRequestReasons.clear();
 
     m_currentLogFileSize = 0;
     m_currentLogFileSizePollingTimer.stop();
@@ -613,10 +613,13 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
              << QStringLiteral(", num parsed data entries = ") << dataEntries.size()
              << QStringLiteral(", error description = ") << errorDescription);
 
-    auto fromPosIt = m_logFilePosRequestedToBeRead.find(fromPos);
-    if (fromPosIt != m_logFilePosRequestedToBeRead.end()) {
-        Q_UNUSED(m_logFilePosRequestedToBeRead.erase(fromPosIt))
+    auto fromPosIt = m_logFilePosRequestedToBeReadByRequestReasons.find(fromPos);
+    if (fromPosIt == m_logFilePosRequestedToBeReadByRequestReasons.end()) {
+        return;
     }
+
+    LogFileDataChunkRequestReasons requestReasons = fromPosIt.value();
+    Q_UNUSED(m_logFilePosRequestedToBeReadByRequestReasons.erase(fromPosIt))
 
     if (!errorDescription.isEmpty()) {
         ErrorString error(QT_TR_NOOP("Failed to read a portion of log from file: "));
@@ -697,22 +700,24 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
         LVMDEBUG(QStringLiteral("It appears the end of the log file was reached"));
         m_canReadMoreLogFileChunks = false;
         m_onceParsedFullLogFile = true;
-        return;
+    }
+    else {
+        m_canReadMoreLogFileChunks = true;
     }
 
-    m_canReadMoreLogFileChunks = true;
-
-    if (!m_onceParsedFullLogFile) {
-        requestDataEntriesChunkFromLogFile(endPos);
+    if (!m_onceParsedFullLogFile && (requestReasons.testFlag(LogFileDataChunkRequestReason::InitialRead))) {
+        requestDataEntriesChunkFromLogFile(endPos, LogFileDataChunkRequestReason::InitialRead);
     }
 }
 
-void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos)
+void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos, const LogFileDataChunkRequestReason::type reason)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::requestDataEntriesChunkFromLogFile: start pos = ") << startPos);
+    LVMDEBUG(QStringLiteral("LogViewerModel::requestDataEntriesChunkFromLogFile: start pos = ") << startPos
+             << QStringLiteral(", request reason = ") << reason);
 
-    auto it = m_logFilePosRequestedToBeRead.find(startPos);
-    if (it != m_logFilePosRequestedToBeRead.end()) {
+    auto it = m_logFilePosRequestedToBeReadByRequestReasons.find(startPos);
+    if (it != m_logFilePosRequestedToBeReadByRequestReasons.end()) {
+        it.value() |= reason;
         LVMDEBUG(QStringLiteral("Have already requested log file data entries chunk from this start pos, not doing anything"));
         return;
     }
@@ -734,121 +739,10 @@ void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos)
                          m_pFileReaderAsync, QNSLOT(FileReaderAsync,deleteLater));
     }
 
-    Q_UNUSED(m_logFilePosRequestedToBeRead.insert(startPos))
+    m_logFilePosRequestedToBeReadByRequestReasons[startPos] |= reason;
     Q_EMIT readLogFileDataEntries(startPos, LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET);
     LVMDEBUG(QStringLiteral("Emitted the request to read no more than ") << LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET
              << QStringLiteral(" log file data entries starting at pos ") << startPos);
-}
-
-bool LogViewerModel::parseLogFileDataChunk(const int lineNumFrom, const QStringList & logFileDataLinesToParse,
-                                           QVector<Data> & parsedLogFileDataEntries, int & lastParsedLogFileLine)
-{
-    LVMDEBUG(QStringLiteral("LogViewerModel::parseLogFileDataChunk: line num from = ") << lineNumFrom);
-
-    int estimatedLastLine = lineNumFrom + LOG_VIEWER_MODEL_PARSED_LINES_BUCKET_SIZE;
-    LVMDEBUG(QStringLiteral("Estimated last line = ") << estimatedLastLine);
-
-    parsedLogFileDataEntries.reserve(std::max(parsedLogFileDataEntries.size(), 0) + LOG_VIEWER_MODEL_PARSED_LINES_BUCKET_SIZE / 10);  // Just a rough guess
-
-    int numFoundMatches = 0;
-    lastParsedLogFileLine = 0;
-    for(int i = lineNumFrom, numLines = logFileDataLinesToParse.size(); i < numLines; ++i)
-    {
-        const QString & line = logFileDataLinesToParse.at(i);
-        int currentIndex = m_logParsingRegex.indexIn(line);
-        if (currentIndex < 0)
-        {
-            lastParsedLogFileLine = i;
-
-            if ((numFoundMatches == 0) || parsedLogFileDataEntries.empty()) {
-                continue;
-            }
-
-            LogViewerModel::Data & lastEntry = parsedLogFileDataEntries.back();
-            appendLogEntryLine(lastEntry, line);
-            continue;
-        }
-
-        if (i >= estimatedLastLine) {
-            LVMDEBUG(QStringLiteral("Stopping parsing as we are now further than the estimated last line"));
-            break;
-        }
-
-        lastParsedLogFileLine = i;
-
-        QStringList capturedTexts = m_logParsingRegex.capturedTexts();
-
-        if (capturedTexts.size() != 7) {
-            ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: unexpected number of captures by regex"));
-            errorDescription.details() += QString::number(capturedTexts.size());
-            QNWARNING(errorDescription);
-            Q_EMIT notifyError(errorDescription);
-            return false;
-        }
-
-        bool convertedSourceLineNumberToInt = false;
-        int sourceFileLineNumber = capturedTexts[4].toInt(&convertedSourceLineNumberToInt);
-        if (!convertedSourceLineNumberToInt) {
-            ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: failed to convert the source line number to int"));
-            errorDescription.details() += capturedTexts[3];
-            QNWARNING(errorDescription);
-            Q_EMIT notifyError(errorDescription);
-            return false;
-        }
-
-        Data entry;
-        entry.m_timestamp = QDateTime::fromString(capturedTexts[1],
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-                                                  QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz")
-#else
-                                                  QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz")
-#endif
-                                                 );
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-        // Trying to add timezone info
-        QTimeZone timezone(capturedTexts[2].toLocal8Bit());
-        if (timezone.isValid()) {
-            entry.m_timestamp.setTimeZone(timezone);
-        }
-#endif
-
-        entry.m_sourceFileName = capturedTexts[3];
-        entry.m_sourceFileLineNumber = sourceFileLineNumber;
-
-        const QString & logLevel = capturedTexts[5];
-        if (logLevel == QStringLiteral("Trace")) {
-            entry.m_logLevel = LogLevel::TraceLevel;
-        }
-        else if (logLevel == QStringLiteral("Debug")) {
-            entry.m_logLevel = LogLevel::DebugLevel;
-        }
-        else if (logLevel == QStringLiteral("Info")) {
-            entry.m_logLevel = LogLevel::InfoLevel;
-        }
-        else if (logLevel == QStringLiteral("Warn")) {
-            entry.m_logLevel = LogLevel::WarnLevel;
-        }
-        else if (logLevel == QStringLiteral("Error")) {
-            entry.m_logLevel = LogLevel::ErrorLevel;
-        }
-        else
-        {
-            ErrorString errorDescription(QT_TR_NOOP("Error parsing the log file's contents: failed to parse the log level"));
-            errorDescription.details() += logLevel;
-            QNWARNING(errorDescription);
-            Q_EMIT notifyError(errorDescription);
-            return false;
-        }
-
-        appendLogEntryLine(entry, capturedTexts[6]);
-        parsedLogFileDataEntries.push_back(entry);
-        LVMDEBUG("Appended parsed log file data entry");
-        ++numFoundMatches;
-    }
-
-    LVMDEBUG(QStringLiteral("LogViewerModel::parseLogFileDataChunk: end: last parsed log file line = ") << lastParsedLogFileLine);
-    return true;
 }
 
 void LogViewerModel::timerEvent(QTimerEvent * pEvent)

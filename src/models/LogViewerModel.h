@@ -32,7 +32,8 @@
 #include <QThread>
 #include <QRegExp>
 #include <QBasicTimer>
-#include <QSet>
+#include <QHash>
+#include <QFlags>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -136,10 +137,23 @@ private Q_SLOTS:
                                   ErrorString errorDescription);
 
 private:
-    void requestDataEntriesChunkFromLogFile(const qint64 startPos);
+    /**
+     * Helper scoped enum to separate log file data chunk requests during the initial
+     * read of the file from those for cache misses and fetch more requests: the initial read ones would repeat until
+     * the entire log file has been read once, the ones for cache misses and fetch more requests would not
+     */
+    struct LogFileDataChunkRequestReason
+    {
+        enum type
+        {
+            InitialRead = 1 << 0,
+            CacheMiss   = 1 << 1,
+            FetchMore   = 1 << 2
+        };
+    };
+    Q_DECLARE_FLAGS(LogFileDataChunkRequestReasons, LogFileDataChunkRequestReason::type)
 
-    bool parseLogFileDataChunk(const int lineNumFrom, const QStringList & logFileDataLinesToParse,
-                               QVector<Data> & parsedLogFileDataEntries, int & lastParsedLogFileLine);
+    void requestDataEntriesChunkFromLogFile(const qint64 startPos, const LogFileDataChunkRequestReason::type reason);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -254,7 +268,7 @@ private:
     bool                m_canReadMoreLogFileChunks;
     bool                m_onceParsedFullLogFile;
 
-    QSet<qint64>        m_logFilePosRequestedToBeRead;
+    QHash<qint64, LogFileDataChunkRequestReasons>  m_logFilePosRequestedToBeReadByRequestReasons;
 
     qint64              m_currentLogFileSize;
     QBasicTimer         m_currentLogFileSizePollingTimer;
