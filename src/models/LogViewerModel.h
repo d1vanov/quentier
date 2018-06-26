@@ -32,8 +32,8 @@
 #include <QThread>
 #include <QRegExp>
 #include <QBasicTimer>
-#include <QHash>
-#include <QFlags>
+#include <QVector>
+#include <QSet>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -62,13 +62,48 @@ public:
         };
     };
 
+    bool isActive() const;
+
+    class FilteringOptions: public Printable
+    {
+    public:
+        FilteringOptions();
+        FilteringOptions(const FilteringOptions & other);
+        FilteringOptions & operator=(const FilteringOptions & other);
+        virtual ~FilteringOptions();
+
+        bool operator==(const FilteringOptions & other) const;
+        bool operator!=(const FilteringOptions & other) const;
+
+        bool isEmpty() const;
+        void clear();
+
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+        qevercloud::Optional<qint64>    m_startLogFileOffset;
+        QVector<LogLevel::type>         m_disabledLogLevels;
+        QString                         m_logEntryContentFilter;
+    };
+
     QString logFileName() const;
-    void setLogFileName(const QString & logFileName);
+    void setLogFileName(const QString & logFileName, const FilteringOptions & filteringOptions = FilteringOptions());
+
+    qint64 startLogFileOffset() const;
+    void setStartLogFileOffset(const qint64 startFileOffset);
+
+    const QVector<LogLevel::type> & disabledLogLevels() const;
+    void setDisabledLogLevels(QVector<LogLevel::type> disabledLogLevels);
+
+    const QString & logEntryContentFilter() const;
+    void setLogEntryContentFilter(const QString & logEntryContentFilter);
 
     bool wipeCurrentLogFile(ErrorString & errorDescription);
     void clear();
 
     static QString logLevelToString(LogLevel::type logLevel);
+
+    void setInternalLogEnabled(const bool enabled);
+    bool internalLogEnabled() const;
 
     struct Data: public Printable
     {
@@ -137,23 +172,7 @@ private Q_SLOTS:
                                   ErrorString errorDescription);
 
 private:
-    /**
-     * Helper scoped enum to separate log file data chunk requests during the initial
-     * read of the file from those for cache misses and fetch more requests: the initial read ones would repeat until
-     * the entire log file has been read once, the ones for cache misses and fetch more requests would not
-     */
-    struct LogFileDataChunkRequestReason
-    {
-        enum type
-        {
-            InitialRead = 1 << 0,
-            CacheMiss   = 1 << 1,
-            FetchMore   = 1 << 2
-        };
-    };
-    Q_DECLARE_FLAGS(LogFileDataChunkRequestReasons, LogFileDataChunkRequestReason::type)
-
-    void requestDataEntriesChunkFromLogFile(const qint64 startPos, const LogFileDataChunkRequestReason::type reason);
+    void requestDataEntriesChunkFromLogFile(const qint64 startPos);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -253,10 +272,11 @@ private:
     LogFileChunksMetadataIndexByStartLogFilePos::const_iterator findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
 
 private:
+    bool                m_isActive;
     QFileInfo           m_currentLogFileInfo;
     FileSystemWatcher   m_currentLogFileWatcher;
 
-    QRegExp             m_logParsingRegex;
+    FilteringOptions    m_filteringOptions;
 
     char                m_currentLogFileStartBytes[256];
     qint64              m_currentLogFileStartBytesRead;
@@ -264,11 +284,9 @@ private:
     LogFileChunksMetadata               m_logFileChunksMetadata;
     LRUCache<qint32, QVector<Data> >    m_logFileChunkDataCache;
 
-    QVector<Data>       m_lastParsedLogFileChunk;
     bool                m_canReadMoreLogFileChunks;
-    bool                m_onceParsedFullLogFile;
 
-    QHash<qint64, LogFileDataChunkRequestReasons>  m_logFilePosRequestedToBeReadByRequestReasons;
+    QSet<qint64>        m_logFilePosRequestedToBeRead;
 
     qint64              m_currentLogFileSize;
     QBasicTimer         m_currentLogFileSizePollingTimer;
@@ -276,6 +294,7 @@ private:
     QThread *           m_pReadLogFileIOThread;
     FileReaderAsync *   m_pFileReaderAsync;
 
+    bool                m_internalLogEnabled;
     mutable QFile       m_internalLogFile;
 
     bool                m_pendingCurrentLogFileWipe;

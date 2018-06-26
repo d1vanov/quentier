@@ -43,6 +43,7 @@
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
 #define LVMDEBUG(message) \
+    if (m_internalLogEnabled) \
     { \
         QString msg; \
         QDebug dbg(&msg); \
@@ -62,7 +63,9 @@
                 relativeSourceFileName.remove(0, prefixIndex + appName.size() + 1); \
             } \
         } \
-        QString fullMsg = relativeSourceFileName + QStringLiteral(" @ ") + QString::number(__LINE__) + \
+        DateTimePrint::Options options(DateTimePrint::IncludeMilliseconds | DateTimePrint::IncludeTimezone); \
+        QString fullMsg = printableDateTimeFromTimestamp(QDateTime::currentMSecsSinceEpoch(), options) + QStringLiteral(" ") + \
+                          relativeSourceFileName + QStringLiteral(" @ ") + QString::number(__LINE__) + \
                           QStringLiteral(": ") + msg + QStringLiteral("\n"); \
         m_internalLogFile.write(fullMsg.toUtf8()); \
     }
@@ -71,22 +74,21 @@ namespace quentier {
 
 LogViewerModel::LogViewerModel(QObject * parent) :
     QAbstractTableModel(parent),
+    m_isActive(false),
     m_currentLogFileInfo(),
     m_currentLogFileWatcher(),
-    m_logParsingRegex(QStringLiteral("^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+(\\w+)\\s+(.+)\\s+@\\s+(\\d+)\\s+\\[(\\w+)\\]:\\s(.+$)"),
-                      Qt::CaseInsensitive, QRegExp::RegExp),
+    m_filteringOptions(),
     m_currentLogFileStartBytes(),
     m_currentLogFileStartBytesRead(0),
     m_logFileChunksMetadata(),
     m_logFileChunkDataCache(),
-    m_lastParsedLogFileChunk(),
     m_canReadMoreLogFileChunks(false),
-    m_onceParsedFullLogFile(false),
-    m_logFilePosRequestedToBeReadByRequestReasons(),
+    m_logFilePosRequestedToBeRead(),
     m_currentLogFileSize(0),
     m_currentLogFileSizePollingTimer(),
     m_pReadLogFileIOThread(new QThread),
     m_pFileReaderAsync(Q_NULLPTR),
+    m_internalLogEnabled(false),
     m_internalLogFile(applicationTemporaryStoragePath() + QStringLiteral("/LogViewerModelLog.txt")),
     m_pendingCurrentLogFileWipe(false),
     m_wipeCurrentLogFileResultStatus(false),
@@ -105,11 +107,12 @@ LogViewerModel::LogViewerModel(QObject * parent) :
 
     qRegisterMetaType<QVector<LogViewerModel::Data> >("QVector<LogViewerModel::Data>");
 
-    if (m_internalLogFile.exists()) {
-        Q_UNUSED(m_internalLogFile.remove())
-    }
+    setInternalLogEnabled(true);
+}
 
-    Q_UNUSED(m_internalLogFile.open(QIODevice::WriteOnly))
+bool LogViewerModel::isActive() const
+{
+    return m_isActive;
 }
 
 LogViewerModel::~LogViewerModel()
@@ -120,59 +123,44 @@ QString LogViewerModel::logFileName() const
     return m_currentLogFileInfo.fileName();
 }
 
-void LogViewerModel::setLogFileName(const QString & logFileName)
+void LogViewerModel::setLogFileName(const QString & logFileName, const FilteringOptions & filteringOptions)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::setLogFileName: ") << logFileName);
+    LVMDEBUG(QStringLiteral("LogViewerModel::setLogFileName: ") << logFileName
+             << QStringLiteral(", filtering options = ") << filteringOptions);
 
     QFileInfo newLogFileInfo(QuentierLogFilesDirPath() + QStringLiteral("/") + logFileName);
-    if (m_currentLogFileInfo.absoluteFilePath() == newLogFileInfo.absoluteFilePath()) {
+    if (m_isActive && (m_currentLogFileInfo.absoluteFilePath() == newLogFileInfo.absoluteFilePath()))
+    {
         LVMDEBUG(QStringLiteral("The log file hasn't changed"));
-        return;
+
+        if (m_filteringOptions == filteringOptions) {
+            return;
+        }
     }
 
-    beginResetModel();
+    clear();
 
-    m_logFileChunksMetadata.clear();
-    m_logFileChunkDataCache.clear();
-    m_lastParsedLogFileChunk.clear();
-    m_logFilePosRequestedToBeReadByRequestReasons.clear();
-
-    m_currentLogFileSize = 0;
-    m_currentLogFileSizePollingTimer.stop();
-
-    QString currentLogFilePath = m_currentLogFileInfo.absoluteFilePath();
-    if (!currentLogFilePath.isEmpty()) {
-        m_currentLogFileWatcher.removePath(currentLogFilePath);
-    }
-
-    m_currentLogFileInfo = newLogFileInfo;
-
-    for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
-        m_currentLogFileStartBytes[i] = 0;
-    }
-    m_currentLogFileStartBytesRead = 0;
+    m_filteringOptions = filteringOptions;
 
     QFile currentLogFile(newLogFileInfo.absoluteFilePath());
-    if (Q_UNLIKELY(!currentLogFile.exists()))
-    {
+    if (Q_UNLIKELY(!currentLogFile.exists())) {
         ErrorString errorDescription(QT_TR_NOOP("Log file doesn't exist"));
         errorDescription.details() = m_currentLogFileInfo.absoluteFilePath();
         QNWARNING(errorDescription);
         Q_EMIT notifyError(errorDescription);
-        endResetModel();
         return;
     }
 
     bool open = currentLogFile.open(QIODevice::ReadOnly);
-    if (Q_UNLIKELY(!open))
-    {
+    if (Q_UNLIKELY(!open)) {
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
         errorDescription.details() = m_currentLogFileInfo.absoluteFilePath();
         QNWARNING(errorDescription);
         Q_EMIT notifyError(errorDescription);
-        endResetModel();
         return;
     }
+
+    m_isActive = true;
 
     m_currentLogFileStartBytesRead = currentLogFile.read(m_currentLogFileStartBytes, sizeof(m_currentLogFileStartBytes));
     currentLogFile.close();
@@ -189,11 +177,116 @@ void LogViewerModel::setLogFileName(const QString & logFileName)
     }
 #endif
 
-    m_canReadMoreLogFileChunks = false;
-    m_onceParsedFullLogFile = false;
+    requestDataEntriesChunkFromLogFile(0);
+}
 
-    requestDataEntriesChunkFromLogFile(0, LogFileDataChunkRequestReason::InitialRead);
-    endResetModel();
+qint64 LogViewerModel::startLogFileOffset() const
+{
+    return m_filteringOptions.m_startLogFileOffset.isSet()
+           ? m_filteringOptions.m_startLogFileOffset.ref()
+           : qint64(-1);
+}
+
+void LogViewerModel::setStartLogFileOffset(const qint64 startLogFileOffset)
+{
+    LVMDEBUG(QStringLiteral("LogViewerModel::setStartLogFileOffset: ") << startLogFileOffset);
+
+    if (!m_filteringOptions.m_startLogFileOffset.isSet() && (startLogFileOffset < 0)) {
+        return;
+    }
+
+    if (m_filteringOptions.m_startLogFileOffset.isSet() && (startLogFileOffset >= 0) &&
+        (m_filteringOptions.m_startLogFileOffset.ref() == startLogFileOffset))
+    {
+        return;
+    }
+
+    if (!m_isActive)
+    {
+        if (startLogFileOffset >= 0) {
+            m_filteringOptions.m_startLogFileOffset = startLogFileOffset;
+        }
+        else {
+            m_filteringOptions.m_startLogFileOffset.clear();
+        }
+
+        return;
+    }
+
+    FilteringOptions filteringOptions = m_filteringOptions;
+    if (startLogFileOffset >= 0) {
+        filteringOptions.m_startLogFileOffset = startLogFileOffset;
+    }
+    else {
+        filteringOptions.m_startLogFileOffset.clear();
+    }
+
+    QString logFilePath = m_currentLogFileInfo.absoluteFilePath();
+    clear();
+    setLogFileName(logFilePath, filteringOptions);
+}
+
+const QVector<LogLevel::type> & LogViewerModel::disabledLogLevels() const
+{
+    return m_filteringOptions.m_disabledLogLevels;
+}
+
+void LogViewerModel::setDisabledLogLevels(QVector<LogLevel::type> disabledLogLevels)
+{
+    disabledLogLevels.erase(std::unique(disabledLogLevels.begin(), disabledLogLevels.end()), disabledLogLevels.end());
+
+    if (m_filteringOptions.m_disabledLogLevels.size() == disabledLogLevels.size())
+    {
+        bool foundMismatch = false;
+        for(auto it = m_filteringOptions.m_disabledLogLevels.constBegin(),
+            end = m_filteringOptions.m_disabledLogLevels.constEnd(); it != end; ++it)
+        {
+            if (!disabledLogLevels.contains(*it)) {
+                foundMismatch = true;
+                break;
+            }
+        }
+
+        if (!foundMismatch) {
+            return;
+        }
+    }
+
+    if (!m_isActive) {
+        m_filteringOptions.m_disabledLogLevels = disabledLogLevels;
+        return;
+    }
+
+    FilteringOptions filteringOptions = m_filteringOptions;
+    filteringOptions.m_disabledLogLevels = disabledLogLevels;
+
+    QString logFilePath = m_currentLogFileInfo.absoluteFilePath();
+    clear();
+    setLogFileName(logFilePath, filteringOptions);
+}
+
+const QString & LogViewerModel::logEntryContentFilter() const
+{
+    return m_filteringOptions.m_logEntryContentFilter;
+}
+
+void LogViewerModel::setLogEntryContentFilter(const QString & logEntryContentFilter)
+{
+    if (m_filteringOptions.m_logEntryContentFilter == logEntryContentFilter) {
+        return;
+    }
+
+    if (!m_isActive) {
+        m_filteringOptions.m_logEntryContentFilter = logEntryContentFilter;
+        return;
+    }
+
+    FilteringOptions filteringOptions = m_filteringOptions;
+    filteringOptions.m_logEntryContentFilter = logEntryContentFilter;
+
+    QString logFilePath = m_currentLogFileInfo.absoluteFilePath();
+    clear();
+    setLogFileName(logFilePath, filteringOptions);
 }
 
 bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
@@ -244,23 +337,33 @@ void LogViewerModel::clear()
 
     beginResetModel();
 
-    m_currentLogFileSize = 0;
-    m_currentLogFileSizePollingTimer.stop();
-
-    m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
+    m_isActive = false;
     m_currentLogFileInfo = QFileInfo();
+    m_currentLogFileWatcher.removePath(m_currentLogFileInfo.absoluteFilePath());
+
+    m_filteringOptions.clear();
 
     for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
         m_currentLogFileStartBytes[i] = 0;
     }
     m_currentLogFileStartBytesRead = 0;
 
+    m_logFileChunksMetadata.clear();
+    m_logFileChunkDataCache.clear();
+
+    m_canReadMoreLogFileChunks = false;
+
+    m_logFilePosRequestedToBeRead.clear();
+
+    m_currentLogFileSize = 0;
+    m_currentLogFileSizePollingTimer.stop();
+
+    // NOTE: not stopping the file reader async's thread and not deleting the async reader itself
+    // NOTE: also not changing anything about the internal log
+
     m_pendingCurrentLogFileWipe = false;
     m_wipeCurrentLogFileResultStatus = false;
     m_wipeCurrentLogFileErrorDescription.clear();
-
-    m_canReadMoreLogFileChunks = false;
-    m_onceParsedFullLogFile = false;
 
     endResetModel();
 }
@@ -424,8 +527,7 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
              << QStringLiteral(" and column ") << columnIndex << QStringLiteral(", returning empty QVariant"));
     const LogFileChunkMetadata * pLogFileChunkMetadata = findLogFileChunkMetadataByModelRow(rowIndex);
     if (pLogFileChunkMetadata) {
-        const_cast<LogViewerModel*>(this)->requestDataEntriesChunkFromLogFile(pLogFileChunkMetadata->startLogFilePos(),
-                                                                              LogFileDataChunkRequestReason::CacheMiss);
+        const_cast<LogViewerModel*>(this)->requestDataEntriesChunkFromLogFile(pLogFileChunkMetadata->startLogFilePos());
     }
 
     return QVariant();
@@ -491,7 +593,7 @@ void LogViewerModel::fetchMore(const QModelIndex & parent)
         startPos = lastIt->endLogFilePos();
     }
 
-    requestDataEntriesChunkFromLogFile(startPos, LogFileDataChunkRequestReason::FetchMore);
+    requestDataEntriesChunkFromLogFile(startPos);
 }
 
 void LogViewerModel::onFileChanged(const QString & path)
@@ -552,13 +654,11 @@ void LogViewerModel::onFileChanged(const QString & path)
 
         m_logFileChunksMetadata.clear();
         m_logFileChunkDataCache.clear();
-        m_lastParsedLogFileChunk.clear();
-        m_logFilePosRequestedToBeReadByRequestReasons.clear();
+        m_logFilePosRequestedToBeRead.clear();
 
         m_canReadMoreLogFileChunks = false;
-        m_onceParsedFullLogFile = false;
 
-        requestDataEntriesChunkFromLogFile(0, LogFileDataChunkRequestReason::InitialRead);
+        requestDataEntriesChunkFromLogFile(0);
 
         m_currentLogFileSize = 0;
 
@@ -570,7 +670,6 @@ void LogViewerModel::onFileChanged(const QString & path)
     // New log entries were appended to the log file, should now be able to fetch more
     LVMDEBUG(QStringLiteral("The initial bytes of the log file haven't changed => new log entries were added, can read more now"));
     m_canReadMoreLogFileChunks = true;
-    m_onceParsedFullLogFile = false;
 }
 
 void LogViewerModel::onFileRemoved(const QString & path)
@@ -592,14 +691,12 @@ void LogViewerModel::onFileRemoved(const QString & path)
 
     m_logFileChunksMetadata.clear();
     m_logFileChunkDataCache.clear();
-    m_lastParsedLogFileChunk.clear();
-    m_logFilePosRequestedToBeReadByRequestReasons.clear();
+    m_logFilePosRequestedToBeRead.clear();
 
     m_currentLogFileSize = 0;
     m_currentLogFileSizePollingTimer.stop();
 
     m_canReadMoreLogFileChunks = false;
-    m_onceParsedFullLogFile = false;
 
     endResetModel();
 }
@@ -613,13 +710,12 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
              << QStringLiteral(", num parsed data entries = ") << dataEntries.size()
              << QStringLiteral(", error description = ") << errorDescription);
 
-    auto fromPosIt = m_logFilePosRequestedToBeReadByRequestReasons.find(fromPos);
-    if (fromPosIt == m_logFilePosRequestedToBeReadByRequestReasons.end()) {
+    auto fromPosIt = m_logFilePosRequestedToBeRead.find(fromPos);
+    if (fromPosIt == m_logFilePosRequestedToBeRead.end()) {
         return;
     }
 
-    LogFileDataChunkRequestReasons requestReasons = fromPosIt.value();
-    Q_UNUSED(m_logFilePosRequestedToBeReadByRequestReasons.erase(fromPosIt))
+    Q_UNUSED(m_logFilePosRequestedToBeRead.erase(fromPosIt))
 
     if (!errorDescription.isEmpty()) {
         ErrorString error(QT_TR_NOOP("Failed to read a portion of log from file: "));
@@ -699,25 +795,15 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
         // It appears we've read to the end of the log file
         LVMDEBUG(QStringLiteral("It appears the end of the log file was reached"));
         m_canReadMoreLogFileChunks = false;
-        m_onceParsedFullLogFile = true;
-    }
-    else {
-        m_canReadMoreLogFileChunks = true;
-    }
-
-    if (!m_onceParsedFullLogFile && (requestReasons.testFlag(LogFileDataChunkRequestReason::InitialRead))) {
-        requestDataEntriesChunkFromLogFile(endPos, LogFileDataChunkRequestReason::InitialRead);
     }
 }
 
-void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos, const LogFileDataChunkRequestReason::type reason)
+void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::requestDataEntriesChunkFromLogFile: start pos = ") << startPos
-             << QStringLiteral(", request reason = ") << reason);
+    LVMDEBUG(QStringLiteral("LogViewerModel::requestDataEntriesChunkFromLogFile: start pos = ") << startPos);
 
-    auto it = m_logFilePosRequestedToBeReadByRequestReasons.find(startPos);
-    if (it != m_logFilePosRequestedToBeReadByRequestReasons.end()) {
-        it.value() |= reason;
+    auto it = m_logFilePosRequestedToBeRead.find(startPos);
+    if (it != m_logFilePosRequestedToBeRead.end()) {
         LVMDEBUG(QStringLiteral("Have already requested log file data entries chunk from this start pos, not doing anything"));
         return;
     }
@@ -739,7 +825,7 @@ void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos, c
                          m_pFileReaderAsync, QNSLOT(FileReaderAsync,deleteLater));
     }
 
-    m_logFilePosRequestedToBeReadByRequestReasons[startPos] |= reason;
+    Q_UNUSED(m_logFilePosRequestedToBeRead.insert(startPos))
     Q_EMIT readLogFileDataEntries(startPos, LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET);
     LVMDEBUG(QStringLiteral("Emitted the request to read no more than ") << LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET
              << QStringLiteral(" log file data entries starting at pos ") << startPos);
@@ -886,6 +972,33 @@ QString LogViewerModel::logLevelToString(LogLevel::type logLevel)
     }
 }
 
+void LogViewerModel::setInternalLogEnabled(const bool enabled)
+{
+    if (m_internalLogEnabled == enabled) {
+        return;
+    }
+
+    m_internalLogEnabled = enabled;
+
+    if (m_internalLogEnabled)
+    {
+        if (m_internalLogFile.exists()) {
+            Q_UNUSED(m_internalLogFile.remove())
+        }
+
+        Q_UNUSED(m_internalLogFile.open(QIODevice::WriteOnly))
+    }
+    else
+    {
+        m_internalLogFile.close();
+    }
+}
+
+bool LogViewerModel::internalLogEnabled() const
+{
+    return m_internalLogEnabled;
+}
+
 const LogViewerModel::LogFileChunkMetadata * LogViewerModel::findLogFileChunkMetadataByModelRow(const int row) const
 {
     const LogFileChunksMetadataIndexByStartModelRow & index = m_logFileChunksMetadata.get<LogFileChunksMetadataByStartModelRow>();
@@ -984,6 +1097,133 @@ LogViewerModel::findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) c
     auto prevIt = it;
     --prevIt;
     return prevIt;
+}
+
+LogViewerModel::FilteringOptions::FilteringOptions() :
+    m_startLogFileOffset(),
+    m_disabledLogLevels(),
+    m_logEntryContentFilter()
+{}
+
+LogViewerModel::FilteringOptions::FilteringOptions(const FilteringOptions & filteringOptions) :
+    m_startLogFileOffset(filteringOptions.m_startLogFileOffset),
+    m_disabledLogLevels(filteringOptions.m_disabledLogLevels),
+    m_logEntryContentFilter(filteringOptions.m_logEntryContentFilter)
+{}
+
+LogViewerModel::FilteringOptions & LogViewerModel::FilteringOptions::operator=(const FilteringOptions & filteringOptions)
+{
+    if (this != &filteringOptions) {
+        m_startLogFileOffset = filteringOptions.m_startLogFileOffset;
+        m_disabledLogLevels = filteringOptions.m_disabledLogLevels;
+        m_logEntryContentFilter = filteringOptions.m_logEntryContentFilter;
+    }
+
+    return *this;
+}
+
+LogViewerModel::FilteringOptions::~FilteringOptions()
+{}
+
+bool LogViewerModel::FilteringOptions::operator==(const FilteringOptions & filteringOptions) const
+{
+    if (!m_startLogFileOffset.isEqual(filteringOptions.m_startLogFileOffset)) {
+        return false;
+    }
+
+    if (m_disabledLogLevels.size() != filteringOptions.m_disabledLogLevels.size()) {
+        return false;
+    }
+
+    for(auto it = m_disabledLogLevels.constBegin(), end = m_disabledLogLevels.constEnd(); it != end; ++it)
+    {
+        if (!filteringOptions.m_disabledLogLevels.contains(*it)) {
+            return false;
+        }
+    }
+
+    if (m_logEntryContentFilter != filteringOptions.m_logEntryContentFilter) {
+        return false;
+    }
+
+    return true;
+}
+
+bool LogViewerModel::FilteringOptions::operator!=(const FilteringOptions & filteringOptions) const
+{
+    return !operator==(filteringOptions);
+}
+
+bool LogViewerModel::FilteringOptions::isEmpty() const
+{
+    if (m_startLogFileOffset.isSet()) {
+        return false;
+    }
+
+    if (!m_disabledLogLevels.isEmpty()) {
+        return false;
+    }
+
+    return m_logEntryContentFilter.isEmpty();
+}
+
+void LogViewerModel::FilteringOptions::clear()
+{
+    m_startLogFileOffset.clear();
+    m_disabledLogLevels.clear();
+    m_logEntryContentFilter.clear();
+}
+
+QTextStream & LogViewerModel::FilteringOptions::print(QTextStream & strm) const
+{
+    strm << QStringLiteral("FilteringOptions: start log file offset = ");
+
+    if (m_startLogFileOffset.isSet()) {
+        strm << m_startLogFileOffset.ref();
+    }
+    else {
+        strm << QStringLiteral("<not set>");
+    }
+
+    strm << QStringLiteral(", disabled log levels: ");
+    if (!m_disabledLogLevels.isEmpty())
+    {
+        for(int i = 0, size = m_disabledLogLevels.size(); i < size; ++i)
+        {
+            switch(m_disabledLogLevels[i])
+            {
+            case LogLevel::TraceLevel:
+                strm << QStringLiteral("Trace");
+                break;
+            case LogLevel::DebugLevel:
+                strm << QStringLiteral("Debug");
+                break;
+            case LogLevel::InfoLevel:
+                strm << QStringLiteral("Info");
+                break;
+            case LogLevel::WarnLevel:
+                strm << QStringLiteral("Warning");
+                break;
+            case LogLevel::ErrorLevel:
+                strm << QStringLiteral("Error");
+                break;
+            default:
+                strm << QStringLiteral("Unknown (") << m_disabledLogLevels[i] << QStringLiteral(")");
+                break;
+            }
+
+            if (i != (size - 1)) {
+                strm << QStringLiteral(", ");
+            }
+        }
+    }
+    else
+    {
+        strm << QStringLiteral("<not set>");
+    }
+
+    strm << QStringLiteral(", log entry content filtering: ") << m_logEntryContentFilter;
+    return strm;
 }
 
 QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
