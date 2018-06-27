@@ -180,7 +180,7 @@ void LogViewerModel::setLogFileName(const QString & logFileName, const Filtering
     qint64 startPos = (m_filteringOptions.m_startLogFilePos.isSet()
                        ? m_filteringOptions.m_startLogFilePos.ref()
                        : qint64(0));
-    requestDataEntriesChunkFromLogFile(startPos);
+    requestDataEntriesChunkFromLogFile(startPos, LogFileDataEntryRequestReason::InitialRead);
 }
 
 qint64 LogViewerModel::startLogFilePos() const
@@ -537,7 +537,8 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
              << QStringLiteral(" and column ") << columnIndex << QStringLiteral(", returning empty QVariant"));
     const LogFileChunkMetadata * pLogFileChunkMetadata = findLogFileChunkMetadataByModelRow(rowIndex);
     if (pLogFileChunkMetadata) {
-        const_cast<LogViewerModel*>(this)->requestDataEntriesChunkFromLogFile(pLogFileChunkMetadata->startLogFilePos());
+        const_cast<LogViewerModel*>(this)->requestDataEntriesChunkFromLogFile(pLogFileChunkMetadata->startLogFilePos(),
+                                                                              LogFileDataEntryRequestReason::CacheMiss);
     }
 
     return QVariant();
@@ -603,7 +604,7 @@ void LogViewerModel::fetchMore(const QModelIndex & parent)
         startPos = lastIt->endLogFilePos();
     }
 
-    requestDataEntriesChunkFromLogFile(startPos);
+    requestDataEntriesChunkFromLogFile(startPos, LogFileDataEntryRequestReason::FetchMore);
 }
 
 void LogViewerModel::onFileChanged(const QString & path)
@@ -668,7 +669,7 @@ void LogViewerModel::onFileChanged(const QString & path)
 
         m_canReadMoreLogFileChunks = false;
 
-        requestDataEntriesChunkFromLogFile(0);
+        requestDataEntriesChunkFromLogFile(0, LogFileDataEntryRequestReason::InitialRead);
 
         m_currentLogFileSize = 0;
 
@@ -808,13 +809,15 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
     }
 }
 
-void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos)
+void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos, const LogFileDataEntryRequestReason::type reason)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::requestDataEntriesChunkFromLogFile: start pos = ") << startPos);
+    LVMDEBUG(QStringLiteral("LogViewerModel::requestDataEntriesChunkFromLogFile: start pos = ") << startPos
+             << QStringLiteral(", request reason = ") << reason);
 
     auto it = m_logFilePosRequestedToBeRead.find(startPos);
     if (it != m_logFilePosRequestedToBeRead.end()) {
         LVMDEBUG(QStringLiteral("Have already requested log file data entries chunk from this start pos, not doing anything"));
+        it.value() |= reason;
         return;
     }
 
@@ -837,7 +840,7 @@ void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos)
                          m_pFileReaderAsync, QNSLOT(FileReaderAsync,deleteLater));
     }
 
-    Q_UNUSED(m_logFilePosRequestedToBeRead.insert(startPos))
+    m_logFilePosRequestedToBeRead[startPos] |= reason;
     Q_EMIT readLogFileDataEntries(startPos, LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET);
     LVMDEBUG(QStringLiteral("Emitted the request to read no more than ") << LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET
              << QStringLiteral(" log file data entries starting at pos ") << startPos);

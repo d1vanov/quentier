@@ -33,7 +33,8 @@
 #include <QRegExp>
 #include <QBasicTimer>
 #include <QVector>
-#include <QSet>
+#include <QHash>
+#include <QFlags>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -172,7 +173,20 @@ private Q_SLOTS:
                                   ErrorString errorDescription);
 
 private:
-    void requestDataEntriesChunkFromLogFile(const qint64 startPos);
+    struct LogFileDataEntryRequestReason
+    {
+        enum type
+        {
+            InitialRead = 1 << 1,
+            CacheMiss = 1 << 2,
+            FetchMore = 1 << 3,
+            SaveLogEntriesToFile = 1 << 4
+        };
+    };
+    Q_DECLARE_FLAGS(LogFileDataEntryRequestReasons, LogFileDataEntryRequestReason::type)
+
+    void requestDataEntriesChunkFromLogFile(const qint64 startPos,
+                                            const LogFileDataEntryRequestReason::type reason);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -287,7 +301,7 @@ private:
 
     bool                m_canReadMoreLogFileChunks;
 
-    QSet<qint64>        m_logFilePosRequestedToBeRead;
+    QHash<qint64, LogFileDataEntryRequestReasons>   m_logFilePosRequestedToBeRead;
 
     qint64              m_currentLogFileSize;
     QBasicTimer         m_currentLogFileSizePollingTimer;
