@@ -80,7 +80,7 @@ public:
 
         virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
-        qevercloud::Optional<qint64>    m_startLogFileOffset;
+        qevercloud::Optional<qint64>    m_startLogFilePos;
         QVector<LogLevel::type>         m_disabledLogLevels;
         QString                         m_logEntryContentFilter;
     };
@@ -88,8 +88,8 @@ public:
     QString logFileName() const;
     void setLogFileName(const QString & logFileName, const FilteringOptions & filteringOptions = FilteringOptions());
 
-    qint64 startLogFileOffset() const;
-    void setStartLogFileOffset(const qint64 startFileOffset);
+    qint64 startLogFilePos() const;
+    void setStartLogFilePos(const qint64 startLogFilePos);
 
     const QVector<LogLevel::type> & disabledLogLevels() const;
     void setDisabledLogLevels(QVector<LogLevel::type> disabledLogLevels);
@@ -183,6 +183,7 @@ private:
 
 private:
     class FileReaderAsync;
+    class LogFileParser;
 
 private:
     Q_DISABLE_COPY(LogViewerModel)

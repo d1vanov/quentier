@@ -177,48 +177,51 @@ void LogViewerModel::setLogFileName(const QString & logFileName, const Filtering
     }
 #endif
 
-    requestDataEntriesChunkFromLogFile(0);
+    qint64 startPos = (m_filteringOptions.m_startLogFilePos.isSet()
+                       ? m_filteringOptions.m_startLogFilePos.ref()
+                       : qint64(0));
+    requestDataEntriesChunkFromLogFile(startPos);
 }
 
-qint64 LogViewerModel::startLogFileOffset() const
+qint64 LogViewerModel::startLogFilePos() const
 {
-    return m_filteringOptions.m_startLogFileOffset.isSet()
-           ? m_filteringOptions.m_startLogFileOffset.ref()
+    return m_filteringOptions.m_startLogFilePos.isSet()
+           ? m_filteringOptions.m_startLogFilePos.ref()
            : qint64(-1);
 }
 
-void LogViewerModel::setStartLogFileOffset(const qint64 startLogFileOffset)
+void LogViewerModel::setStartLogFilePos(const qint64 startLogFilePos)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::setStartLogFileOffset: ") << startLogFileOffset);
+    LVMDEBUG(QStringLiteral("LogViewerModel::setStartLogFilePos: ") << startLogFilePos);
 
-    if (!m_filteringOptions.m_startLogFileOffset.isSet() && (startLogFileOffset < 0)) {
+    if (!m_filteringOptions.m_startLogFilePos.isSet() && (startLogFilePos < 0)) {
         return;
     }
 
-    if (m_filteringOptions.m_startLogFileOffset.isSet() && (startLogFileOffset >= 0) &&
-        (m_filteringOptions.m_startLogFileOffset.ref() == startLogFileOffset))
+    if (m_filteringOptions.m_startLogFilePos.isSet() && (startLogFilePos >= 0) &&
+        (m_filteringOptions.m_startLogFilePos.ref() == startLogFilePos))
     {
         return;
     }
 
     if (!m_isActive)
     {
-        if (startLogFileOffset >= 0) {
-            m_filteringOptions.m_startLogFileOffset = startLogFileOffset;
+        if (startLogFilePos >= 0) {
+            m_filteringOptions.m_startLogFilePos = startLogFilePos;
         }
         else {
-            m_filteringOptions.m_startLogFileOffset.clear();
+            m_filteringOptions.m_startLogFilePos.clear();
         }
 
         return;
     }
 
     FilteringOptions filteringOptions = m_filteringOptions;
-    if (startLogFileOffset >= 0) {
-        filteringOptions.m_startLogFileOffset = startLogFileOffset;
+    if (startLogFilePos >= 0) {
+        filteringOptions.m_startLogFilePos = startLogFilePos;
     }
     else {
-        filteringOptions.m_startLogFileOffset.clear();
+        filteringOptions.m_startLogFilePos.clear();
     }
 
     QString logFilePath = m_currentLogFileInfo.absoluteFilePath();
@@ -358,8 +361,15 @@ void LogViewerModel::clear()
     m_currentLogFileSize = 0;
     m_currentLogFileSizePollingTimer.stop();
 
-    // NOTE: not stopping the file reader async's thread and not deleting the async reader itself
-    // NOTE: also not changing anything about the internal log
+    // NOTE: not stopping the file reader async's thread and not deleting the async file reader immediately,
+    // just disconnect from it, mark it for subsequent deletion when possible and lose the pointer to it
+    if (m_pFileReaderAsync) {
+        QObject::disconnect(m_pFileReaderAsync);
+        m_pFileReaderAsync->deleteLater();
+        m_pFileReaderAsync = Q_NULLPTR;
+    }
+
+    // NOTE: not changing anything about the internal log
 
     m_pendingCurrentLogFileWipe = false;
     m_wipeCurrentLogFileResultStatus = false;
@@ -808,9 +818,11 @@ void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos)
         return;
     }
 
-    if (Q_UNLIKELY(!m_pFileReaderAsync))
+    if (!m_pFileReaderAsync)
     {
-        m_pFileReaderAsync = new FileReaderAsync(m_currentLogFileInfo.absoluteFilePath());
+        m_pFileReaderAsync = new FileReaderAsync(m_currentLogFileInfo.absoluteFilePath(),
+                                                 m_filteringOptions.m_disabledLogLevels,
+                                                 m_filteringOptions.m_logEntryContentFilter);
         m_pFileReaderAsync->moveToThread(m_pReadLogFileIOThread);
 
         QObject::connect(m_pReadLogFileIOThread, QNSIGNAL(QThread,finished),
@@ -1100,13 +1112,13 @@ LogViewerModel::findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) c
 }
 
 LogViewerModel::FilteringOptions::FilteringOptions() :
-    m_startLogFileOffset(),
+    m_startLogFilePos(),
     m_disabledLogLevels(),
     m_logEntryContentFilter()
 {}
 
 LogViewerModel::FilteringOptions::FilteringOptions(const FilteringOptions & filteringOptions) :
-    m_startLogFileOffset(filteringOptions.m_startLogFileOffset),
+    m_startLogFilePos(filteringOptions.m_startLogFilePos),
     m_disabledLogLevels(filteringOptions.m_disabledLogLevels),
     m_logEntryContentFilter(filteringOptions.m_logEntryContentFilter)
 {}
@@ -1114,7 +1126,7 @@ LogViewerModel::FilteringOptions::FilteringOptions(const FilteringOptions & filt
 LogViewerModel::FilteringOptions & LogViewerModel::FilteringOptions::operator=(const FilteringOptions & filteringOptions)
 {
     if (this != &filteringOptions) {
-        m_startLogFileOffset = filteringOptions.m_startLogFileOffset;
+        m_startLogFilePos = filteringOptions.m_startLogFilePos;
         m_disabledLogLevels = filteringOptions.m_disabledLogLevels;
         m_logEntryContentFilter = filteringOptions.m_logEntryContentFilter;
     }
@@ -1127,7 +1139,7 @@ LogViewerModel::FilteringOptions::~FilteringOptions()
 
 bool LogViewerModel::FilteringOptions::operator==(const FilteringOptions & filteringOptions) const
 {
-    if (!m_startLogFileOffset.isEqual(filteringOptions.m_startLogFileOffset)) {
+    if (!m_startLogFilePos.isEqual(filteringOptions.m_startLogFilePos)) {
         return false;
     }
 
@@ -1156,7 +1168,7 @@ bool LogViewerModel::FilteringOptions::operator!=(const FilteringOptions & filte
 
 bool LogViewerModel::FilteringOptions::isEmpty() const
 {
-    if (m_startLogFileOffset.isSet()) {
+    if (m_startLogFilePos.isSet()) {
         return false;
     }
 
@@ -1169,17 +1181,17 @@ bool LogViewerModel::FilteringOptions::isEmpty() const
 
 void LogViewerModel::FilteringOptions::clear()
 {
-    m_startLogFileOffset.clear();
+    m_startLogFilePos.clear();
     m_disabledLogLevels.clear();
     m_logEntryContentFilter.clear();
 }
 
 QTextStream & LogViewerModel::FilteringOptions::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("FilteringOptions: start log file offset = ");
+    strm << QStringLiteral("FilteringOptions: start log file pos = ");
 
-    if (m_startLogFileOffset.isSet()) {
-        strm << m_startLogFileOffset.ref();
+    if (m_startLogFilePos.isSet()) {
+        strm << m_startLogFilePos.ref();
     }
     else {
         strm << QStringLiteral("<not set>");

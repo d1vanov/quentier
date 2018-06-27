@@ -20,6 +20,7 @@
 #define QUENTIER_MODELS_LOG_VIEWER_MODEL_FILE_READER_ASYNC_H
 
 #include "LogViewerModel.h"
+#include "LogViewerModelLogFileParser.h"
 #include <QFile>
 #include <QStringList>
 #include <QVector>
@@ -31,8 +32,11 @@ class LogViewerModel::FileReaderAsync : public QObject
 {
     Q_OBJECT
 public:
-    explicit FileReaderAsync(QString targetFilePath, QObject * parent = Q_NULLPTR);
-    ~FileReaderAsync();
+    explicit FileReaderAsync(const QString & targetFilePath,
+                             const QVector<LogLevel::type> & disabledLogLevels,
+                             const QString & logEntryContentFilter,
+                             QObject * parent = Q_NULLPTR);
+    virtual ~FileReaderAsync();
 
 Q_SIGNALS:
     void readLogFileDataEntries(qint64 fromPos, qint64 endPos,
@@ -43,14 +47,13 @@ public Q_SLOTS:
     void onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries);
 
 private:
-    bool readDataEntriesFromLogFile(const qint64 fromPos, const int maxDataEntries,
-                                    QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
-                                    ErrorString & errorDescription);
-    void appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const;
+    Q_DISABLE_COPY(FileReaderAsync)
 
 private:
-    QFile       m_targetFile;
-    QRegExp     m_logParsingRegex;
+    QFile                           m_targetFile;
+    QVector<LogLevel::type>         m_disabledLogLevels;
+    QRegExp                         m_filterRegExp;
+    LogViewerModel::LogFileParser   m_parser;
 };
 
 } // namespace quentier
