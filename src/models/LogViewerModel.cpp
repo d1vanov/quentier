@@ -88,6 +88,7 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_currentLogFileSizePollingTimer(),
     m_pReadLogFileIOThread(new QThread),
     m_pFileReaderAsync(Q_NULLPTR),
+    m_targetSaveFile(),
     m_internalLogEnabled(false),
     m_internalLogFile(applicationTemporaryStoragePath() + QStringLiteral("/LogViewerModelLog.txt")),
     m_pendingCurrentLogFileWipe(false),
@@ -459,6 +460,56 @@ QColor LogViewerModel::backgroundColorForLogLevel(const LogLevel::type logLevel)
     }
 }
 
+void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
+{
+    m_targetSaveFile.setFileName(targetFilePath);
+    if (!m_targetSaveFile.open(QIODevice::WriteOnly)) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't save log entries to file: could not open the selected file for writing"));
+        QNINFO(errorDescription);
+        Q_EMIT saveModelEntriesToFileFinished(errorDescription);
+        return;
+    }
+
+    const LogFileChunksMetadataIndexByNumber & indexByNumber = m_logFileChunksMetadata.get<LogFileChunksMetadataByNumber>();
+    if (indexByNumber.empty()) {
+        requestDataEntriesChunkFromLogFile(0, LogFileDataEntryRequestReason::SaveLogEntriesToFile);
+        return;
+    }
+
+    qint64 currentLogFileSize = m_currentLogFileInfo.size();
+
+    for(auto it = indexByNumber.begin(), end = indexByNumber.end(); it != end; ++it)
+    {
+        const QVector<Data> * pDataEntries = m_logFileChunkDataCache.get(it->number());
+        if (!pDataEntries) {
+            requestDataEntriesChunkFromLogFile(it->startLogFilePos(), LogFileDataEntryRequestReason::SaveLogEntriesToFile);
+            return;
+        }
+
+        for(auto dit = pDataEntries->constBegin(), dend = pDataEntries->constEnd(); dit != dend; ++dit) {
+            QString entry = dataEntryToString(*dit);
+            entry += QStringLiteral("\n");
+            m_targetSaveFile.write(entry.toUtf8());
+        }
+
+        if (currentLogFileSize > 0) {
+            double progressPercent = static_cast<double>(it->endLogFilePos()) / static_cast<double>(currentLogFileSize) * 100.0;
+            Q_EMIT saveModelEntriesToFileProgress(progressPercent);
+        }
+    }
+
+    if (canFetchMore(QModelIndex())) {
+        auto lastIt = indexByNumber.end();
+        --lastIt;
+        requestDataEntriesChunkFromLogFile(lastIt->endLogFilePos(), LogFileDataEntryRequestReason::SaveLogEntriesToFile);
+        return;
+    }
+
+    // If we got here, we found all data entries within the cache, can close the file and return
+    m_targetSaveFile.close();
+    Q_EMIT saveModelEntriesToFileFinished(ErrorString());
+}
+
 int LogViewerModel::rowCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
@@ -616,6 +667,8 @@ void LogViewerModel::onFileChanged(const QString & path)
 
     LVMDEBUG(QStringLiteral("LogViewerModel::onFileChanged"));
 
+    m_currentLogFileInfo.refresh();
+
     QFile currentLogFile(path);
     if (!currentLogFile.isOpen() && !currentLogFile.open(QIODevice::ReadOnly)) {
         ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
@@ -726,14 +779,54 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
         return;
     }
 
+    LogFileDataEntryRequestReasons reasons = fromPosIt.value();
     Q_UNUSED(m_logFilePosRequestedToBeRead.erase(fromPosIt))
 
-    if (!errorDescription.isEmpty()) {
+    if (!errorDescription.isEmpty())
+    {
         ErrorString error(QT_TR_NOOP("Failed to read a portion of log from file: "));
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
-        Q_EMIT notifyError(error);
+
+        if (reasons.testFlag(LogFileDataEntryRequestReason::SaveLogEntriesToFile)) {
+            Q_EMIT saveModelEntriesToFileFinished(error);
+        }
+        else {
+            Q_EMIT notifyError(error);
+        }
+
+        return;
+    }
+
+    if (reasons.testFlag(LogFileDataEntryRequestReason::SaveLogEntriesToFile))
+    {
+        for(auto it = dataEntries.constBegin(), end = dataEntries.constEnd(); it != end; ++it) {
+            QString entry = dataEntryToString(*it);
+            entry += QStringLiteral("\n");
+            m_targetSaveFile.write(entry.toUtf8());
+        }
+
+        if (dataEntries.size() < LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET)
+        {
+            // We must have reached the end of the log file
+            m_targetSaveFile.close();
+            Q_EMIT saveModelEntriesToFileFinished(ErrorString());
+        }
+        else
+        {
+            qint64 currentLogFileSize = m_currentLogFileInfo.size();
+            if (currentLogFileSize > 0) {
+                double progressPercent = static_cast<double>(endPos) / static_cast<double>(currentLogFileSize) * 100.0;
+                Q_EMIT saveModelEntriesToFileProgress(progressPercent);
+            }
+
+            requestDataEntriesChunkFromLogFile(endPos, LogFileDataEntryRequestReason::SaveLogEntriesToFile);
+        }
+    }
+
+    if (reasons == LogFileDataEntryRequestReasons(LogFileDataEntryRequestReason::SaveLogEntriesToFile)) {
+        // If there were no other reasons for this request, don't really need to do anything here
         return;
     }
 

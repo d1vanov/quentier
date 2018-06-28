@@ -126,9 +126,11 @@ public:
         LogLevel::type  m_logLevel;
         QString         m_logEntry;
 
-        // These two properties are useful to have in the model
-        // for the delegate's sake as it's too non-performant
-        // to compute these numbers within the delegate
+        /**
+         * These two properties are useful to have in the model
+         * for the delegate's sake as it's too non-performant
+         * to compute these numbers within the delegate
+         */
         int             m_numLogEntryLines;
         int             m_logEntryMaxNumCharsPerLine;
     };
@@ -141,13 +143,31 @@ public:
 
     QColor backgroundColorForLogLevel(const LogLevel::type logLevel) const;
 
+    void saveModelEntriesToFile(const QString & targetFilePath);
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
-    // This signal is emitted after either beginInsertRows/endInsertRows or dataChanged signal
-    // to notify specific listeners (not just views) about the fact that the data corresponding
-    // to the specific rows of the model has been cached and hence is present and actual
+    /**
+     * This signal is emitted after either beginInsertRows/endInsertRows or dataChanged signal
+     * to notify specific listeners (not just views) about the fact that the data corresponding
+     * to the specific rows of the model has been cached and hence is present and actual.
+     */
     void notifyModelRowsCached(int from, int to);
+
+    /**
+     * This signal is emitted in response to the earlier invokation of of saveModelEntriesToFile method.
+     * errorDescription is empty if no error occurred in the process, non-empty otherwise.
+     */
+    void saveModelEntriesToFileFinished(ErrorString errorDescription);
+
+    /**
+     * This signal is emitted to notify anyone interested about the progress of saving the model's log entries
+     * to a file.
+     *
+     * @param percent               The percentage of progress, from 0 to 100
+     */
+    void saveModelEntriesToFileProgress(double percent);
 
     // private signals
     void startAsyncLogFileReading();
@@ -308,6 +328,8 @@ private:
 
     QThread *           m_pReadLogFileIOThread;
     FileReaderAsync *   m_pFileReaderAsync;
+
+    QFile               m_targetSaveFile;
 
     bool                m_internalLogEnabled;
     mutable QFile       m_internalLogFile;
