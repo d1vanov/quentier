@@ -230,6 +230,11 @@ void LogViewerModel::setStartLogFilePos(const qint64 startLogFilePos)
     setLogFileName(logFilePath, filteringOptions);
 }
 
+void LogViewerModel::setStartLogFilePosAfterCurrentFileSize()
+{
+    setStartLogFilePos(m_currentLogFileInfo.size());
+}
+
 const QVector<LogLevel::type> & LogViewerModel::disabledLogLevels() const
 {
     return m_filteringOptions.m_disabledLogLevels;

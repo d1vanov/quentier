@@ -92,6 +92,8 @@ public:
     qint64 startLogFilePos() const;
     void setStartLogFilePos(const qint64 startLogFilePos);
 
+    void setStartLogFilePosAfterCurrentFileSize();
+
     const QVector<LogLevel::type> & disabledLogLevels() const;
     void setDisabledLogLevels(QVector<LogLevel::type> disabledLogLevels);
 
@@ -165,9 +167,9 @@ Q_SIGNALS:
      * This signal is emitted to notify anyone interested about the progress of saving the model's log entries
      * to a file.
      *
-     * @param percent               The percentage of progress, from 0 to 100
+     * @param progressPercent       The percentage of progress, from 0 to 100
      */
-    void saveModelEntriesToFileProgress(double percent);
+    void saveModelEntriesToFileProgress(double progressPercent);
 
     // private signals
     void startAsyncLogFileReading();

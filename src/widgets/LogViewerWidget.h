@@ -37,7 +37,6 @@ QT_FORWARD_DECLARE_CLASS(QMenu)
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LogViewerModel)
-QT_FORWARD_DECLARE_CLASS(LogViewerFilterModel)
 
 class LogViewerWidget : public QWidget
 {
@@ -63,7 +62,6 @@ private Q_SLOTS:
     void onLogFileDirChanged(const QString & path);
 
     void onSaveAllToFileButtonPressed();
-    void onSavingToFileFinished(QString filePath, bool status, ErrorString errorDescription);
 
     void onClearButtonPressed();
     void onResetButtonPressed();
@@ -72,6 +70,9 @@ private Q_SLOTS:
 
     void onModelError(ErrorString errorDescription);
     void onModelRowsInserted(const QModelIndex & parent, int first, int last);
+
+    void onSaveModelEntriesToFileFinished(ErrorString errorDescription);
+    void onSaveModelEntriesToFileProgress(double progressPercent);
 
     void onLogEntriesViewContextMenuRequested(const QPoint & pos);
     void onLogEntriesViewCopySelectedItemsAction();
@@ -85,7 +86,6 @@ private:
     void scheduleLogEntriesViewColumnsResize();
     void resizeLogEntriesViewColumns();
 
-    QString displayedLogEntriesToString() const;
     void copyStringToClipboard(const QString & text);
 
 private:
@@ -97,7 +97,6 @@ private:
     FileSystemWatcher       m_logFilesFolderWatcher;
 
     LogViewerModel *        m_pLogViewerModel;
-    LogViewerFilterModel *  m_pLogViewerFilterModel;
 
     QBasicTimer             m_modelFetchingMoreTimer;
     QBasicTimer             m_delayedSectionResizeTimer;
@@ -109,7 +108,7 @@ private:
     LogLevel::type          m_minLogLevelBeforeTracing;
     QString                 m_filterByContentBeforeTracing;
     bool                    m_filterByLogLevelBeforeTracing[6];
-    int                     m_filterOutBeforeRowBeforeTracing;
+    qint64                  m_startLogFilePosBeforeTracing;
 };
 
 } // namespace quentier
