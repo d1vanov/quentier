@@ -18,7 +18,6 @@
 
 #include "LogViewerDelegate.h"
 #include "../models/LogViewerModel.h"
-#include "../models/LogViewerFilterModel.h"
 #include <QFontMetrics>
 #include <QPainter>
 #include <cmath>
@@ -87,22 +86,12 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    const LogViewerFilterModel * pFilterModel = qobject_cast<const LogViewerFilterModel*>(index.model());
-    if (Q_UNLIKELY(!pFilterModel)) {
-        return QStyledItemDelegate::sizeHint(option, index);
-    }
-
-    const LogViewerModel * pModel = qobject_cast<const LogViewerModel*>(pFilterModel->sourceModel());
+    const LogViewerModel * pModel = qobject_cast<const LogViewerModel*>(index.model());
     if (Q_UNLIKELY(!pModel)) {
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    QModelIndex sourceIndex = pFilterModel->mapToSource(index);
-    if (Q_UNLIKELY(!sourceIndex.isValid())) {
-        return QStyledItemDelegate::sizeHint(option, index);
-    }
-
-    int row = sourceIndex.row();
+    int row = index.row();
     const LogViewerModel::Data * pDataEntry = pModel->dataEntry(row);
     if (Q_UNLIKELY(!pDataEntry)) {
         return QStyledItemDelegate::sizeHint(option, index);
@@ -141,22 +130,12 @@ bool LogViewerDelegate::paintImpl(QPainter * pPainter, const QStyleOptionViewIte
         return false;
     }
 
-    const LogViewerFilterModel * pFilterModel = qobject_cast<const LogViewerFilterModel*>(index.model());
-    if (Q_UNLIKELY(!pFilterModel)) {
-        return false;
-    }
-
-    const LogViewerModel * pModel = qobject_cast<const LogViewerModel*>(pFilterModel->sourceModel());
+    const LogViewerModel * pModel = qobject_cast<const LogViewerModel*>(index.model());
     if (Q_UNLIKELY(!pModel)) {
         return false;
     }
 
-    QModelIndex sourceIndex = pFilterModel->mapToSource(index);
-    if (Q_UNLIKELY(!sourceIndex.isValid())) {
-        return false;
-    }
-
-    int row = sourceIndex.row();
+    int row = index.row();
     const LogViewerModel::Data * pDataEntry = pModel->dataEntry(row);
     if (Q_UNLIKELY(!pDataEntry)) {
         return false;
@@ -179,7 +158,7 @@ bool LogViewerDelegate::paintImpl(QPainter * pPainter, const QStyleOptionViewIte
 
     QRect adjustedRect = option.rect.adjusted(2, 2, -2, -2);
 
-    int column = sourceIndex.column();
+    int column = index.column();
     switch(column)
     {
     case LogViewerModel::Columns::Timestamp:
