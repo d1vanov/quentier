@@ -18,7 +18,6 @@
 
 #include "LogViewerWidget.h"
 #include "ui_LogViewerWidget.h"
-#include "models/LogViewerModel.h"
 #include "delegates/LogViewerDelegate.h"
 #include "../SettingsNames.h"
 #include <quentier/utility/StandardPaths.h>
@@ -39,6 +38,7 @@
 #define QUENTIER_NUM_LOG_LEVELS (5)
 #define FETCHING_MORE_TIMER_PERIOD (200)
 #define DELAY_SECTION_RESIZE_TIMER_PERIOD (500)
+#define LOG_VIEWER_MODEL_LOADING_TIMER_PERIOD (5000)
 
 namespace quentier {
 
@@ -47,8 +47,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pUi(new Ui::LogViewerWidget),
     m_logFilesFolderWatcher(),
     m_pLogViewerModel(new LogViewerModel(this)),
-    m_modelFetchingMoreTimer(),
     m_delayedSectionResizeTimer(),
+    m_logViewerModelLoadingTimer(),
     m_logLevelEnabledCheckboxPtrs(),
     m_pLogEntriesContextMenu(Q_NULLPTR),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
@@ -190,13 +190,12 @@ void LogViewerWidget::setupLogFiles()
         return;
     }
 
-    // FIXME: need to collect and pass to the model the current filtering options
-    m_pLogViewerModel->setLogFileName(logFileName);
-    resizeLogEntriesViewColumns();
+    LogViewerModel::FilteringOptions filteringOptions;
+    collectModelFilteringOptions(filteringOptions);
+    m_pLogViewerModel->setLogFileName(logFileName, filteringOptions);
 
-    if (!m_modelFetchingMoreTimer.isActive()) {
-        m_modelFetchingMoreTimer.start(FETCHING_MORE_TIMER_PERIOD, this);
-    }
+    showLogFileIsLoadingLabel();
+    scheduleLogEntriesViewColumnsResize();
 }
 
 void LogViewerWidget::startWatchingForLogFilesFolderChanges()
@@ -264,6 +263,8 @@ void LogViewerWidget::onFilterByContentEditingFinished()
     m_pUi->statusBarLineEdit->hide();
 
     m_pLogViewerModel->setLogEntryContentFilter(m_pUi->filterByContentLineEdit->text());
+
+    showLogFileIsLoadingLabel();
     scheduleLogEntriesViewColumnsResize();
 }
 
@@ -294,13 +295,17 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
     bool currentRowWasDisabled = (rowIndex >= 0);
     if (currentRowWasDisabled && (state == Qt::Checked)) {
         disabledLogLevels.remove(rowIndex);
-        m_pLogViewerModel->setDisabledLogLevels(disabledLogLevels);
     }
     else if (!currentRowWasDisabled && (state == Qt::Unchecked)) {
         disabledLogLevels << static_cast<LogLevel::type>(checkboxRow);
-        m_pLogViewerModel->setDisabledLogLevels(disabledLogLevels);
+    }
+    else {
+        return;
     }
 
+    m_pLogViewerModel->setDisabledLogLevels(disabledLogLevels);
+
+    showLogFileIsLoadingLabel();
     scheduleLogEntriesViewColumnsResize();
 }
 
@@ -313,8 +318,10 @@ void LogViewerWidget::onCurrentLogFileChanged(const QString & currentLogFile)
         return;
     }
 
-    // FIXME: need to collect and pass to the model the current filtering options
+    LogViewerModel::FilteringOptions filteringOptions;
+    collectModelFilteringOptions(filteringOptions);
     m_pLogViewerModel->setLogFileName(currentLogFile);
+    showLogFileIsLoadingLabel();
 }
 
 void LogViewerWidget::onLogFileDirRemoved(const QString & path)
@@ -385,6 +392,7 @@ void LogViewerWidget::onClearButtonPressed()
 
     m_pLogViewerModel->setStartLogFilePosAfterCurrentFileSize();
     m_pUi->resetPushButton->setEnabled(true);
+    showLogFileIsLoadingLabel();
 }
 
 void LogViewerWidget::onResetButtonPressed()
@@ -394,6 +402,7 @@ void LogViewerWidget::onResetButtonPressed()
 
     m_pLogViewerModel->setStartLogFilePos(0);
     m_pUi->resetPushButton->setEnabled(false);
+    showLogFileIsLoadingLabel();
 }
 
 void LogViewerWidget::onTraceButtonToggled(bool checked)
@@ -485,6 +494,7 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         m_pUi->logFileWipePushButton->setEnabled(true);
     }
 
+    showLogFileIsLoadingLabel();
     scheduleLogEntriesViewColumnsResize();
 }
 
@@ -499,7 +509,13 @@ void LogViewerWidget::onModelRowsInserted(const QModelIndex & parent, int first,
     Q_UNUSED(parent)
     Q_UNUSED(first)
     Q_UNUSED(last)
+
     scheduleLogEntriesViewColumnsResize();
+
+    if (m_logViewerModelLoadingTimer.isActive()) {
+        m_logViewerModelLoadingTimer.stop();
+        m_pUi->logFilePendingLoadLabel->setText(QString());
+    }
 }
 
 void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescription)
@@ -641,8 +657,9 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
 void LogViewerWidget::clear()
 {
     m_pUi->logFileComboBox->clear();
+    m_pUi->logFilePendingLoadLabel->clear();
     m_pLogViewerModel->clear();
-    m_modelFetchingMoreTimer.stop();
+    m_logViewerModelLoadingTimer.stop();
 
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
@@ -685,26 +702,49 @@ void LogViewerWidget::copyStringToClipboard(const QString & text)
     pClipboard->setText(text);
 }
 
+void LogViewerWidget::showLogFileIsLoadingLabel()
+{
+    m_pUi->logFilePendingLoadLabel->setText(tr("Loading, please wait") + QStringLiteral("..."));
+
+    if (!m_logViewerModelLoadingTimer.isActive()) {
+        m_logViewerModelLoadingTimer.start(LOG_VIEWER_MODEL_LOADING_TIMER_PERIOD, this);
+    }
+}
+
+void LogViewerWidget::collectModelFilteringOptions(LogViewerModel::FilteringOptions & options) const
+{
+    options.clear();
+
+    options.m_logEntryContentFilter = m_pUi->filterByContentLineEdit->text();
+
+    for(int i = 0; i < 6; ++i)
+    {
+        QCheckBox * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
+        if (Q_UNLIKELY(!pCheckbox)) {
+            continue;
+        }
+
+        if (pCheckbox->isChecked()) {
+            continue;
+        }
+
+        options.m_disabledLogLevels << static_cast<LogLevel::type>(i);
+    }
+}
+
 void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
         return;
     }
 
-    if (pEvent->timerId() == m_modelFetchingMoreTimer.timerId())
-    {
-        if (m_pLogViewerModel->canFetchMore(QModelIndex())) {
-            m_pLogViewerModel->fetchMore(QModelIndex());
-            scheduleLogEntriesViewColumnsResize();
-        }
-        else {
-            m_modelFetchingMoreTimer.stop();
-        }
-    }
-    else if (pEvent->timerId() == m_delayedSectionResizeTimer.timerId())
-    {
+    if (pEvent->timerId() == m_delayedSectionResizeTimer.timerId()) {
         resizeLogEntriesViewColumns();
         m_delayedSectionResizeTimer.stop();
+    }
+    else if (pEvent->timerId() == m_logViewerModelLoadingTimer.timerId()) {
+        m_pUi->logFilePendingLoadLabel->setText(QString());
+        m_logViewerModelLoadingTimer.stop();
     }
 }
 

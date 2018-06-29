@@ -19,6 +19,7 @@
 #ifndef QUENTIER_LOG_VIEWER_WIDGET_H
 #define QUENTIER_LOG_VIEWER_WIDGET_H
 
+#include "../models/LogViewerModel.h"
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -35,8 +36,6 @@ QT_FORWARD_DECLARE_CLASS(QCheckBox)
 QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
-
-QT_FORWARD_DECLARE_CLASS(LogViewerModel)
 
 class LogViewerWidget : public QWidget
 {
@@ -87,6 +86,9 @@ private:
     void resizeLogEntriesViewColumns();
 
     void copyStringToClipboard(const QString & text);
+    void showLogFileIsLoadingLabel();
+
+    void collectModelFilteringOptions(LogViewerModel::FilteringOptions & options) const;
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -98,8 +100,8 @@ private:
 
     LogViewerModel *        m_pLogViewerModel;
 
-    QBasicTimer             m_modelFetchingMoreTimer;
     QBasicTimer             m_delayedSectionResizeTimer;
+    QBasicTimer             m_logViewerModelLoadingTimer;
 
     QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
     QMenu *                 m_pLogEntriesContextMenu;
