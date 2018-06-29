@@ -61,6 +61,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pUi->resetPushButton->setEnabled(false);
     m_pUi->tracePushButton->setCheckable(true);
 
+    m_pUi->saveToFileProgressBar->hide();
     m_pUi->statusBarLineEdit->hide();
 
     m_pUi->logEntriesTableView->verticalHeader()->hide();

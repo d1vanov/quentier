@@ -77,22 +77,6 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="4">
-      <spacer name="logFileAndLevelHorizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>10</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
      <item row="1" column="1">
       <widget class="QPushButton" name="logFileWipePushButton">
        <property name="text">
@@ -108,11 +92,21 @@
       <widget class="QLabel" name="logFilePendingLoadLabel">
        <property name="minimumSize">
         <size>
-         <width>220</width>
+         <width>190</width>
          <height>0</height>
         </size>
        </property>
       </widget>
+     </item>
+     <item row="1" column="4">
+      <widget class="QProgressBar" name="saveToFileProgressBar">
+       <property name="value">
+        <number>24</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="4">
+      <widget class="QLabel" name="saveToFileLabel"/>
      </item>
     </layout>
    </item>
