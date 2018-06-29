@@ -42,7 +42,6 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(const qint64 fro
         QFileInfo targetFileInfo(logFile);
         errorDescription.setBase(QT_TR_NOOP("Can't open log file for reading"));
         errorDescription.details() = targetFileInfo.absoluteFilePath();
-        QNWARNING(errorDescription);
         return false;
     }
 
@@ -51,7 +50,6 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(const qint64 fro
     if (!strm.seek(fromPos)) {
         errorDescription.setBase(QT_TR_NOOP("Failed to read the data from log file: failed to seek at position"));
         errorDescription.details() = QString::number(fromPos);
-        QNWARNING(errorDescription);
         return false;
     }
 
@@ -59,7 +57,7 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(const qint64 fro
     int numFoundMatches = 0;
     dataEntries.clear();
     dataEntries.reserve(maxDataEntries);
-    ParseLineStatus::type previousParseLineStatus = ParseLineStatus::Error;
+    ParseLineStatus::type previousParseLineStatus = ParseLineStatus::FilteredEntry;
     for(quint32 lineNum = 0; !strm.atEnd(); ++lineNum)
     {
         line = strm.readLine();
@@ -126,7 +124,6 @@ LogViewerModel::LogFileParser::ParseLineStatus::type LogViewerModel::LogFilePars
     if (capturedTexts.size() != 7) {
         errorDescription.setBase(QT_TR_NOOP("Error parsing the log file's contents: unexpected number of captures by regex"));
         errorDescription.details() += QString::number(capturedTexts.size());
-        QNWARNING(errorDescription);
         return ParseLineStatus::Error;
     }
 
@@ -135,7 +132,6 @@ LogViewerModel::LogFileParser::ParseLineStatus::type LogViewerModel::LogFilePars
     if (!convertedSourceLineNumberToInt) {
         errorDescription.setBase(QT_TR_NOOP("Error parsing the log file's contents: failed to convert the source line number to int"));
         errorDescription.details() += capturedTexts[3];
-        QNWARNING(errorDescription);
         return ParseLineStatus::Error;
     }
 
@@ -184,7 +180,6 @@ LogViewerModel::LogFileParser::ParseLineStatus::type LogViewerModel::LogFilePars
     {
         errorDescription.setBase(QT_TR_NOOP("Error parsing the log file's contents: failed to parse the log level"));
         errorDescription.details() += logLevel;
-        QNWARNING(errorDescription);
         return ParseLineStatus::Error;
     }
 
@@ -192,7 +187,9 @@ LogViewerModel::LogFileParser::ParseLineStatus::type LogViewerModel::LogFilePars
         return ParseLineStatus::FilteredEntry;
     }
 
-    if (filterContentRegExp.indexIn(capturedTexts[6]) >= 0) {
+    if (!filterContentRegExp.isEmpty() && filterContentRegExp.isValid() &&
+        (filterContentRegExp.indexIn(capturedTexts[6]) < 0))
+    {
         return ParseLineStatus::FilteredEntry;
     }
 
