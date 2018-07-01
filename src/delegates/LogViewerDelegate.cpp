@@ -100,8 +100,7 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
     if (index.column() == LogViewerModel::Columns::SourceFileName)
     {
         int numSubRows = 1;
-        QString sourceFileName = pDataEntry->m_sourceFileName;
-        int originalWidth = static_cast<int>(std::floor(fontMetrics.width(sourceFileName) * (1.0 + m_margin) + 0.5));
+        int originalWidth = static_cast<int>(std::floor(fontMetrics.width(pDataEntry->m_sourceFileName) * (1.0 + m_margin) + 0.5));
         int width = originalWidth;
         while(width > MAX_SOURCE_FILE_NAME_COLUMN_WIDTH) {
             ++numSubRows;
