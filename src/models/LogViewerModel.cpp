@@ -834,7 +834,6 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
     {
         for(auto it = dataEntries.constBegin(), end = dataEntries.constEnd(); it != end; ++it) {
             QString entry = dataEntryToString(*it);
-            entry += QStringLiteral("\n");
             m_targetSaveFile.write(entry.toUtf8());
         }
 
