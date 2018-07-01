@@ -34,10 +34,11 @@
 #include <QMenu>
 #include <QCloseEvent>
 #include <set>
+#include <cmath>
 
 #define QUENTIER_NUM_LOG_LEVELS (5)
 #define FETCHING_MORE_TIMER_PERIOD (200)
-#define DELAY_SECTION_RESIZE_TIMER_PERIOD (500)
+#define DELAY_SECTION_RESIZE_TIMER_PERIOD (250)
 #define LOG_VIEWER_MODEL_LOADING_TIMER_PERIOD (5000)
 
 namespace quentier {
@@ -376,8 +377,11 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
         }
     }
 
-    m_pUi->statusBarLineEdit->setText(QString::fromUtf8(QT_TR_NOOP("Saving the displayed log entries to the selected file, please wait")) + QStringLiteral("..."));
-    m_pUi->statusBarLineEdit->show();
+    m_pUi->saveToFileLabel->setText(tr("Saving the log to file") + QStringLiteral("..."));
+    m_pUi->saveToFileProgressBar->setMinimum(0);
+    m_pUi->saveToFileProgressBar->setMaximum(100);
+    m_pUi->saveToFileProgressBar->setValue(0);
+    m_pUi->saveToFileProgressBar->show();
 
     QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,saveModelEntriesToFileFinished,ErrorString),
                      this, QNSLOT(LogViewerWidget,onSaveModelEntriesToFileFinished,ErrorString));
@@ -526,6 +530,10 @@ void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescript
     QObject::disconnect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,saveModelEntriesToFileProgress,double),
                         this, QNSLOT(LogViewerWidget,onSaveModelEntriesToFileProgress,double));
 
+    m_pUi->saveToFileLabel->setText(QString());
+    m_pUi->saveToFileProgressBar->setValue(0);
+    m_pUi->saveToFileProgressBar->hide();
+
     if (!errorDescription.isEmpty()) {
         m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
         m_pUi->statusBarLineEdit->show();
@@ -538,8 +546,12 @@ void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescript
 
 void LogViewerWidget::onSaveModelEntriesToFileProgress(double progressPercent)
 {
-    // TODO: implement
-    Q_UNUSED(progressPercent)
+    int roundedPercent = static_cast<int>(std::floor(progressPercent + 0.5));
+    if (roundedPercent > 100) {
+        roundedPercent = 100;
+    }
+
+    m_pUi->saveToFileProgressBar->setValue(roundedPercent);
 }
 
 void LogViewerWidget::onLogEntriesViewContextMenuRequested(const QPoint & pos)
