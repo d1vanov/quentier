@@ -68,6 +68,7 @@
                           relativeSourceFileName + QStringLiteral(" @ ") + QString::number(__LINE__) + \
                           QStringLiteral(": ") + msg + QStringLiteral("\n"); \
         m_internalLogFile.write(fullMsg.toUtf8()); \
+        m_internalLogFile.flush(); \
     }
 
 namespace quentier {
@@ -479,30 +480,39 @@ QColor LogViewerModel::backgroundColorForLogLevel(const LogLevel::type logLevel)
 
 void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
 {
+    LVMDEBUG(QStringLiteral("LogViewerModel::saveModelEntriesToFile: ") << targetFilePath);
+
     m_targetSaveFile.setFileName(targetFilePath);
     if (!m_targetSaveFile.open(QIODevice::WriteOnly)) {
         ErrorString errorDescription(QT_TR_NOOP("Can't save log entries to file: could not open the selected file for writing"));
-        QNINFO(errorDescription);
+        LVMDEBUG(errorDescription);
         Q_EMIT saveModelEntriesToFileFinished(errorDescription);
         return;
     }
 
     const LogFileChunksMetadataIndexByNumber & indexByNumber = m_logFileChunksMetadata.get<LogFileChunksMetadataByNumber>();
     if (indexByNumber.empty()) {
+        LVMDEBUG(QStringLiteral("The index of log file chunks metadata by number is empty, requesting the chunks starting from the first"));
         requestDataEntriesChunkFromLogFile(0, LogFileDataEntryRequestReason::SaveLogEntriesToFile);
         return;
     }
 
     qint64 currentLogFileSize = m_currentLogFileInfo.size();
+    LVMDEBUG(QStringLiteral("The number of log file metadata chunks = ") << indexByNumber.size()
+             << QStringLiteral(", current log file size = ") << currentLogFileSize);
 
     for(auto it = indexByNumber.begin(), end = indexByNumber.end(); it != end; ++it)
     {
         const QVector<Data> * pDataEntries = m_logFileChunkDataCache.get(it->number());
         if (!pDataEntries) {
+            LVMDEBUG(QStringLiteral("Log data entries are not cached for log file metadata chunk with number ")
+                     << it->number() << QStringLiteral(", requesting log file data chunks starting from pos ")
+                     << it->startLogFilePos());
             requestDataEntriesChunkFromLogFile(it->startLogFilePos(), LogFileDataEntryRequestReason::SaveLogEntriesToFile);
             return;
         }
 
+        LVMDEBUG(QStringLiteral("Processing ") << pDataEntries->size() << QStringLiteral(" data entries"));
         for(auto dit = pDataEntries->constBegin(), dend = pDataEntries->constEnd(); dit != dend; ++dit) {
             QString entry = dataEntryToString(*dit);
             entry += QStringLiteral("\n");
@@ -511,6 +521,7 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
 
         if (currentLogFileSize > 0) {
             double progressPercent = static_cast<double>(it->endLogFilePos()) / static_cast<double>(currentLogFileSize) * 100.0;
+            LVMDEBUG(QStringLiteral("Emitting save log to file progress: ") << progressPercent);
             Q_EMIT saveModelEntriesToFileProgress(progressPercent);
         }
     }
@@ -518,11 +529,14 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
     if (canFetchMore(QModelIndex())) {
         auto lastIt = indexByNumber.end();
         --lastIt;
+        LVMDEBUG(QStringLiteral("The model can fetch more entries, requesting data entries starting from pos ")
+                 << lastIt->endLogFilePos());
         requestDataEntriesChunkFromLogFile(lastIt->endLogFilePos(), LogFileDataEntryRequestReason::SaveLogEntriesToFile);
         return;
     }
 
     // If we got here, we found all data entries within the cache, can close the file and return
+    LVMDEBUG(QStringLiteral("Seemingly all log entries were written to the file, reporting finish"));
     m_targetSaveFile.close();
     Q_EMIT saveModelEntriesToFileFinished(ErrorString());
 }
@@ -920,6 +934,10 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
         LVMDEBUG(QStringLiteral("It appears the end of the log file was reached"));
         m_canReadMoreLogFileChunks = false;
     }
+    else {
+        LVMDEBUG(QStringLiteral("Received precisely as many data entries as requested, probably more of them can be read"));
+        m_canReadMoreLogFileChunks = true;
+    }
 }
 
 void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos, const LogFileDataEntryRequestReason::type reason)
@@ -1108,16 +1126,10 @@ void LogViewerModel::setInternalLogEnabled(const bool enabled)
 
     m_internalLogEnabled = enabled;
 
-    if (m_internalLogEnabled)
-    {
-        if (m_internalLogFile.exists()) {
-            Q_UNUSED(m_internalLogFile.remove())
-        }
-
+    if (m_internalLogEnabled) {
         Q_UNUSED(m_internalLogFile.open(QIODevice::WriteOnly))
     }
-    else
-    {
+    else {
         m_internalLogFile.close();
     }
 }
