@@ -53,8 +53,13 @@ private:
 
     void appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const;
 
+    void setInternalLogEnabled(const bool enabled);
+
 private:
     QRegExp     m_logParsingRegex;
+
+    QFile       m_internalLogFile;
+    bool        m_internalLogEnabled;
 };
 
 } // namespace quentier
