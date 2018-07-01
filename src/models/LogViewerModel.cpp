@@ -451,8 +451,7 @@ QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry
          << QStringLiteral(" [")
          << LogViewerModel::logLevelToString(dataEntry.m_logLevel)
          << QStringLiteral("]: ")
-         << dataEntry.m_logEntry
-         << QStringLiteral("\n");
+         << dataEntry.m_logEntry;
 
     strm.flush();
     return result;
