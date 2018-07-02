@@ -258,7 +258,7 @@ LogViewerModel::LogFileParser::ParseLineStatus::type LogViewerModel::LogFilePars
 void LogViewerModel::LogFileParser::appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const
 {
     int lineSize = line.size();
-    if (lineSize < LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
+    // if (lineSize < LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
     {
         if (!data.m_logEntry.isEmpty()) {
             data.m_logEntry += QStringLiteral("\n");
@@ -274,6 +274,7 @@ void LogViewerModel::LogFileParser::appendLogEntryLine(LogViewerModel::Data & da
         return;
     }
 
+    /*
     int position = 0;
     while(position < lineSize)
     {
@@ -293,6 +294,7 @@ void LogViewerModel::LogFileParser::appendLogEntryLine(LogViewerModel::Data & da
 
         position += size;
     }
+    */
 }
 
 void LogViewerModel::LogFileParser::setInternalLogEnabled(const bool enabled)

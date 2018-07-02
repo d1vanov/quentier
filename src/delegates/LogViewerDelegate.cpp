@@ -17,10 +17,12 @@
  */
 
 #include "LogViewerDelegate.h"
-#include "../models/LogViewerModel.h"
 #include <QFontMetrics>
 #include <QPainter>
+#include <QStringRef>
 #include <cmath>
+
+#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
 namespace quentier {
 
@@ -29,7 +31,8 @@ LogViewerDelegate::LogViewerDelegate(QObject * parent) :
     m_margin(0.4),
     m_widestLogLevelName(QStringLiteral("Warning")),
     m_sampleDateTimeString(QStringLiteral("26/09/2017 19:31:23:457")),
-    m_sampleSourceFileLineNumberString(QStringLiteral("99999"))
+    m_sampleSourceFileLineNumberString(QStringLiteral("99999")),
+    m_newlineChar(QChar::fromLatin1('\n'))
 {}
 
 QWidget * LogViewerDelegate::createEditor(QWidget * pParent,
@@ -112,10 +115,42 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
         return size;
     }
 
+    int numDisplayedLines = 0;
+    int previousNewlineIndex = -1;
+    while(true)
+    {
+        int index = pDataEntry->m_logEntry.indexOf(m_newlineChar, previousNewlineIndex);
+        if (index < 0)
+        {
+            int remainingLineSize = pDataEntry->m_logEntry.size();
+            if (previousNewlineIndex >= 0) {
+                remainingLineSize -= previousNewlineIndex;
+            }
+
+            int numRemainingDisplayedLines = remainingLineSize / LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE + 1;
+            numDisplayedLines += numRemainingDisplayedLines;
+            break;
+        }
+
+        if (index == previousNewlineIndex) {
+            ++numDisplayedLines;
+            break;
+        }
+
+        int distance = index;
+        if (previousNewlineIndex >= 0) {
+            distance -= previousNewlineIndex;
+        }
+
+        int numRemainingDisplayedLines = distance / LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE + 1;
+        numDisplayedLines += numRemainingDisplayedLines;
+        previousNewlineIndex = index;
+    }
+
     size.setWidth(static_cast<int>(std::floor(fontMetrics.width(QStringLiteral("w")) *
-                                              (pDataEntry->m_logEntryMaxNumCharsPerLine + 2 + m_margin) + 0.5)));
+                                              (std::min(pDataEntry->m_logEntry.size(), LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE) + 2 + m_margin) + 0.5)));
     size.setHeight(static_cast<int>(std::floor(fontMetrics.lineSpacing() *
-                                               (pDataEntry->m_numLogEntryLines + 1 + m_margin) + 0.5)));
+                                               (numDisplayedLines + 1 + m_margin) + 0.5)));
     return size;
 }
 
@@ -187,8 +222,10 @@ bool LogViewerDelegate::paintImpl(QPainter * pPainter, const QStyleOptionViewIte
                            textOption);
         break;
     case LogViewerModel::Columns::LogEntry:
+        // pPainter->drawText(adjustedRect, pDataEntry->m_logEntry, textOption);
         {
-            pPainter->drawText(adjustedRect, pDataEntry->m_logEntry, textOption);
+            QFontMetrics fontMetrics(option.font);
+            paintLogEntry(*pPainter, adjustedRect, *pDataEntry, fontMetrics, textOption);
         }
         break;
     default:
@@ -197,6 +234,75 @@ bool LogViewerDelegate::paintImpl(QPainter * pPainter, const QStyleOptionViewIte
 
     pPainter->restore();
     return true;
+}
+
+void LogViewerDelegate::paintLogEntry(QPainter & painter, const QRect & adjustedRect,
+                                      const LogViewerModel::Data & dataEntry, const QFontMetrics & fontMetrics, const QTextOption & textOption) const
+{
+    if (Q_UNLIKELY(dataEntry.m_logEntry.isEmpty())) {
+        return;
+    }
+
+    QString logEntryLineBuffer;
+    logEntryLineBuffer.reserve(LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE + 1);
+
+    int fontHeight = fontMetrics.height();
+    if (adjustedRect.height() < fontHeight) {
+        return;
+    }
+
+    QRect currentRect(adjustedRect);
+
+    int lineStartPos = -1;
+    while(true)
+    {
+        int lineEndPos = -1;
+        int index = dataEntry.m_logEntry.indexOf(m_newlineChar, lineStartPos);
+        if (index < 0) {
+            lineEndPos = ((lineStartPos >= 0)
+                          ? (lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
+                          : LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
+        }
+        else if ((lineStartPos >= 0) && ((index - lineStartPos) > LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)) {
+            lineEndPos = lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
+        }
+        else if ((lineStartPos < 0) && (index > LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)) {
+            lineEndPos = LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
+        }
+        else {
+            lineEndPos = index;
+        }
+
+        if (lineEndPos == lineStartPos) {
+            break;
+        }
+
+        if (lineStartPos < 0) {
+            lineStartPos = 0;
+        }
+
+        bool lastIteration = false;
+        if (lineEndPos > dataEntry.m_logEntry.size()) {
+            lineEndPos = dataEntry.m_logEntry.size();
+            --lineEndPos;
+            lastIteration = true;
+        }
+
+        logEntryLineBuffer = dataEntry.m_logEntry.mid(lineStartPos, (lineEndPos - lineStartPos));
+        painter.drawText(currentRect, logEntryLineBuffer, textOption);
+
+        if (lastIteration) {
+            break;
+        }
+
+        lineStartPos = lineEndPos;
+
+        if (currentRect.height() <= 2 * fontHeight) {
+            break;
+        }
+
+        currentRect.setTop(currentRect.top() + fontHeight);
+    }
 }
 
 } // namespace quentier

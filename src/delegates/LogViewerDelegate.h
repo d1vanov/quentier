@@ -19,8 +19,10 @@
 #ifndef QUENTIER_DELEGATES_LOG_VIEWER_DELEGATE_H
 #define QUENTIER_DELEGATES_LOG_VIEWER_DELEGATE_H
 
+#include "../models/LogViewerModel.h"
 #include <quentier/utility/Macros.h>
 #include <QStyledItemDelegate>
+#include <QTextOption>
 
 #define MAX_SOURCE_FILE_NAME_COLUMN_WIDTH (200)
 
@@ -43,11 +45,15 @@ private:
 private:
     bool paintImpl(QPainter * pPainter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
+    void paintLogEntry(QPainter & painter, const QRect & adjustedRect, const LogViewerModel::Data & dataEntry,
+                       const QFontMetrics & fontMetrics, const QTextOption & textOption) const;
+
 private:
     double      m_margin;
     QString     m_widestLogLevelName;
     QString     m_sampleDateTimeString;
     QString     m_sampleSourceFileLineNumberString;
+    QChar       m_newlineChar;
 };
 
 } // namespace quentier
