@@ -39,7 +39,6 @@
 #define QUENTIER_NUM_LOG_LEVELS (5)
 #define FETCHING_MORE_TIMER_PERIOD (200)
 #define DELAY_SECTION_RESIZE_TIMER_PERIOD (250)
-#define LOG_VIEWER_MODEL_LOADING_TIMER_PERIOD (5000)
 
 namespace quentier {
 
@@ -49,7 +48,6 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_logFilesFolderWatcher(),
     m_pLogViewerModel(new LogViewerModel(this)),
     m_delayedSectionResizeTimer(),
-    m_logViewerModelLoadingTimer(),
     m_logLevelEnabledCheckboxPtrs(),
     m_pLogEntriesContextMenu(Q_NULLPTR),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
@@ -67,9 +65,6 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
 
     m_pUi->logEntriesTableView->verticalHeader()->hide();
     m_pUi->logEntriesTableView->setWordWrap(true);
-
-    LogViewerDelegate * pDelegate = new LogViewerDelegate(m_pUi->logEntriesTableView);
-    m_pUi->logEntriesTableView->setItemDelegate(pDelegate);
 
     m_pUi->filterByLogLevelTableWidget->horizontalHeader()->hide();
     m_pUi->filterByLogLevelTableWidget->verticalHeader()->hide();
@@ -358,12 +353,15 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
             return;
         }
 
+#if !defined(Q_OS_MAC)
+        // TODO: find out if it's actually needed on any platform - it certainly is not needed on macOS
         int overwriteFile = questionMessageBox(this, tr("Overwrite"),
                                                tr("File") + QStringLiteral(" ") + fileInfo.fileName() + QStringLiteral(" ") +
                                                tr("already exists"), tr("Are you sure you want to overwrite the existing file?"));
         if (overwriteFile != QMessageBox::Ok) {
             return;
         }
+#endif
     }
     else
     {
@@ -382,6 +380,8 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
     m_pUi->saveToFileProgressBar->setMaximum(100);
     m_pUi->saveToFileProgressBar->setValue(0);
     m_pUi->saveToFileProgressBar->show();
+
+    m_pUi->saveToFilePushButton->setEnabled(false);
 
     QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,saveModelEntriesToFileFinished,ErrorString),
                      this, QNSLOT(LogViewerWidget,onSaveModelEntriesToFileFinished,ErrorString));
@@ -516,11 +516,7 @@ void LogViewerWidget::onModelRowsInserted(const QModelIndex & parent, int first,
     Q_UNUSED(last)
 
     scheduleLogEntriesViewColumnsResize();
-
-    if (m_logViewerModelLoadingTimer.isActive()) {
-        m_logViewerModelLoadingTimer.stop();
-        m_pUi->logFilePendingLoadLabel->setText(QString());
-    }
+    m_pUi->logFilePendingLoadLabel->setText(QString());
 }
 
 void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescription)
@@ -533,6 +529,8 @@ void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescript
     m_pUi->saveToFileLabel->setText(QString());
     m_pUi->saveToFileProgressBar->setValue(0);
     m_pUi->saveToFileProgressBar->hide();
+
+    m_pUi->saveToFilePushButton->setEnabled(true);
 
     if (!errorDescription.isEmpty()) {
         m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
@@ -597,7 +595,7 @@ void LogViewerWidget::onLogEntriesViewCopySelectedItemsAction()
         end = selectedIndexes.constEnd(); it != end; ++it)
     {
         const QModelIndex & modelIndex = *it;
-        if (Q_UNLIKELY(modelIndex.isValid())) {
+        if (Q_UNLIKELY(!modelIndex.isValid())) {
             continue;
         }
 
@@ -672,7 +670,6 @@ void LogViewerWidget::clear()
     m_pUi->logFileComboBox->clear();
     m_pUi->logFilePendingLoadLabel->clear();
     m_pLogViewerModel->clear();
-    m_logViewerModelLoadingTimer.stop();
 
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
@@ -718,10 +715,6 @@ void LogViewerWidget::copyStringToClipboard(const QString & text)
 void LogViewerWidget::showLogFileIsLoadingLabel()
 {
     m_pUi->logFilePendingLoadLabel->setText(tr("Loading, please wait") + QStringLiteral("..."));
-
-    if (!m_logViewerModelLoadingTimer.isActive()) {
-        m_logViewerModelLoadingTimer.start(LOG_VIEWER_MODEL_LOADING_TIMER_PERIOD, this);
-    }
 }
 
 void LogViewerWidget::collectModelFilteringOptions(LogViewerModel::FilteringOptions & options) const
@@ -754,10 +747,6 @@ void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
     if (pEvent->timerId() == m_delayedSectionResizeTimer.timerId()) {
         resizeLogEntriesViewColumns();
         m_delayedSectionResizeTimer.stop();
-    }
-    else if (pEvent->timerId() == m_logViewerModelLoadingTimer.timerId()) {
-        m_pUi->logFilePendingLoadLabel->setText(QString());
-        m_logViewerModelLoadingTimer.stop();
     }
 }
 
