@@ -87,7 +87,7 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_logFilePosRequestedToBeRead(),
     m_currentLogFileSize(0),
     m_currentLogFileSizePollingTimer(),
-    m_pReadLogFileIOThread(new QThread),
+    m_pReadLogFileIOThread(Q_NULLPTR),
     m_pFileReaderAsync(Q_NULLPTR),
     m_targetSaveFile(),
     m_internalLogEnabled(false),
@@ -96,12 +96,6 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_wipeCurrentLogFileResultStatus(false),
     m_wipeCurrentLogFileErrorDescription()
 {
-    QObject::connect(m_pReadLogFileIOThread, QNSIGNAL(QThread,finished),
-                     this, QNSLOT(QThread,deleteLater));
-    QObject::connect(this, QNSIGNAL(LogViewerModel,destroyed),
-                     m_pReadLogFileIOThread, QNSLOT(QThread,quit));
-    m_pReadLogFileIOThread->start(QThread::LowPriority);
-
     QObject::connect(&m_currentLogFileWatcher, QNSIGNAL(FileSystemWatcher,fileChanged,QString),
                      this, QNSLOT(LogViewerModel,onFileChanged,QString));
     QObject::connect(&m_currentLogFileWatcher, QNSIGNAL(FileSystemWatcher,fileRemoved,QString),
@@ -121,7 +115,6 @@ LogViewerModel::~LogViewerModel()
 {
     if (m_pFileReaderAsync) {
         QObject::disconnect(m_pFileReaderAsync);
-        m_pFileReaderAsync->deleteLater();
         m_pFileReaderAsync = Q_NULLPTR;
     }
 }
@@ -384,7 +377,6 @@ void LogViewerModel::clear()
     // just disconnect from it, mark it for subsequent deletion when possible and lose the pointer to it
     if (m_pFileReaderAsync) {
         QObject::disconnect(m_pFileReaderAsync);
-        m_pFileReaderAsync->deleteLater();
         m_pFileReaderAsync = Q_NULLPTR;
     }
 
@@ -831,8 +823,14 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
 
     if (reasons.testFlag(LogFileDataEntryRequestReason::SaveLogEntriesToFile))
     {
-        for(auto it = dataEntries.constBegin(), end = dataEntries.constEnd(); it != end; ++it) {
+        QChar newline(QChar::fromLatin1('\n'));
+        for(auto it = dataEntries.constBegin(), end = dataEntries.constEnd(); it != end; ++it)
+        {
             QString entry = dataEntryToString(*it);
+            if (!entry.endsWith(newline)) {
+                entry += newline;
+            }
+
             m_targetSaveFile.write(entry.toUtf8());
         }
 
@@ -948,6 +946,17 @@ void LogViewerModel::requestDataEntriesChunkFromLogFile(const qint64 startPos, c
         LVMDEBUG(QStringLiteral("Have already requested log file data entries chunk from this start pos, not doing anything"));
         it.value() |= reason;
         return;
+    }
+
+    if (!m_pReadLogFileIOThread)
+    {
+        m_pReadLogFileIOThread = new QThread;
+
+        QObject::connect(m_pReadLogFileIOThread, QNSIGNAL(QThread,finished),
+                         this, QNSLOT(QThread,deleteLater));
+        QObject::connect(this, QNSIGNAL(LogViewerModel,destroyed),
+                         m_pReadLogFileIOThread, QNSLOT(QThread,quit));
+        m_pReadLogFileIOThread->start(QThread::LowPriority);
     }
 
     if (!m_pFileReaderAsync)
