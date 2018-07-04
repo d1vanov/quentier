@@ -115,9 +115,7 @@ public:
             m_sourceFileName(),
             m_sourceFileLineNumber(-1),
             m_logLevel(LogLevel::InfoLevel),
-            m_logEntry(),
-            m_numLogEntryLines(0),
-            m_logEntryMaxNumCharsPerLine(0)
+            m_logEntry()
         {}
 
         virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
@@ -127,14 +125,6 @@ public:
         qint64          m_sourceFileLineNumber;
         LogLevel::type  m_logLevel;
         QString         m_logEntry;
-
-        /**
-         * These two properties are useful to have in the model
-         * for the delegate's sake as it's too non-performant
-         * to compute these numbers within the delegate
-         */
-        int             m_numLogEntryLines;
-        int             m_logEntryMaxNumCharsPerLine;
     };
 
     const Data * dataEntry(const int row) const;
@@ -214,7 +204,6 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
-    void appendLogEntryLine(Data & data, const QString & line) const;
     bool wipeCurrentLogFileImpl(ErrorString & errorDescription);
 
 private:

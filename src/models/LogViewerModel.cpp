@@ -1013,46 +1013,6 @@ void LogViewerModel::timerEvent(QTimerEvent * pEvent)
     QAbstractTableModel::timerEvent(pEvent);
 }
 
-void LogViewerModel::appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const
-{
-    int lineSize = line.size();
-    if (lineSize < LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
-    {
-        if (!data.m_logEntry.isEmpty()) {
-            data.m_logEntry += QStringLiteral("\n");
-        }
-
-        data.m_logEntry += line;
-        ++data.m_numLogEntryLines;
-
-        if (data.m_logEntryMaxNumCharsPerLine < lineSize) {
-            data.m_logEntryMaxNumCharsPerLine = lineSize;
-        }
-
-        return;
-    }
-
-    int position = 0;
-    while(position < lineSize)
-    {
-        int size = std::min(lineSize - position, LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
-        QStringRef linePart(&line, position, size);
-
-        if (!data.m_logEntry.isEmpty()) {
-            data.m_logEntry += QStringLiteral("\n");
-        }
-
-        data.m_logEntry += linePart;
-        ++data.m_numLogEntryLines;
-
-        if (data.m_logEntryMaxNumCharsPerLine < size) {
-            data.m_logEntryMaxNumCharsPerLine = size;
-        }
-
-        position += size;
-    }
-}
-
 bool LogViewerModel::wipeCurrentLogFileImpl(ErrorString & errorDescription)
 {
     LVMDEBUG(QStringLiteral("LogViewerModel::wipeCurrentLogFileImpl"));
@@ -1379,9 +1339,7 @@ QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
          << QStringLiteral(", source file name = ") << m_sourceFileName
          << QStringLiteral(", line number = ") << m_sourceFileLineNumber
          << QStringLiteral(", log level = ") << m_logLevel
-         << QStringLiteral(", log entry: ") << m_logEntry
-         << QStringLiteral("\nNum log entry lines = ") << m_numLogEntryLines
-         << QStringLiteral(", log entry max num chars per line = ") << m_logEntryMaxNumCharsPerLine;
+         << QStringLiteral(", log entry: ") << m_logEntry;
     return strm;
 }
 

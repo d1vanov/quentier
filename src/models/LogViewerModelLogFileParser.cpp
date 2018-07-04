@@ -257,44 +257,11 @@ LogViewerModel::LogFileParser::ParseLineStatus::type LogViewerModel::LogFilePars
 
 void LogViewerModel::LogFileParser::appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const
 {
-    int lineSize = line.size();
-    // if (lineSize < LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
-    {
-        if (!data.m_logEntry.isEmpty()) {
-            data.m_logEntry += QStringLiteral("\n");
-        }
-
-        data.m_logEntry += line;
-        ++data.m_numLogEntryLines;
-
-        if (data.m_logEntryMaxNumCharsPerLine < lineSize) {
-            data.m_logEntryMaxNumCharsPerLine = lineSize;
-        }
-
-        return;
+    if (!data.m_logEntry.isEmpty()) {
+        data.m_logEntry += QStringLiteral("\n");
     }
 
-    /*
-    int position = 0;
-    while(position < lineSize)
-    {
-        int size = std::min(lineSize - position, LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
-        QStringRef linePart(&line, position, size);
-
-        if (!data.m_logEntry.isEmpty()) {
-            data.m_logEntry += QStringLiteral("\n");
-        }
-
-        data.m_logEntry += linePart;
-        ++data.m_numLogEntryLines;
-
-        if (data.m_logEntryMaxNumCharsPerLine < size) {
-            data.m_logEntryMaxNumCharsPerLine = size;
-        }
-
-        position += size;
-    }
-    */
+    data.m_logEntry += line;
 }
 
 void LogViewerModel::LogFileParser::setInternalLogEnabled(const bool enabled)
