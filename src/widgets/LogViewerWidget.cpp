@@ -61,6 +61,8 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pUi->tracePushButton->setCheckable(true);
 
     m_pUi->saveToFileProgressBar->hide();
+    m_pUi->saveToFileCancelButton->hide();
+
     m_pUi->statusBarLineEdit->hide();
 
     m_pUi->logEntriesTableView->verticalHeader()->hide();
@@ -89,7 +91,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pUi->logEntriesTableView->setItemDelegate(pLogViewerDelegate);
 
     QObject::connect(m_pUi->saveToFilePushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(LogViewerWidget,onSaveAllToFileButtonPressed));
+                     this, QNSLOT(LogViewerWidget,onSaveLogToFileButtonPressed));
     QObject::connect(m_pUi->clearPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onClearButtonPressed));
     QObject::connect(m_pUi->resetPushButton, QNSIGNAL(QPushButton,clicked),
@@ -335,7 +337,7 @@ void LogViewerWidget::onLogFileDirChanged(const QString & path)
     }
 }
 
-void LogViewerWidget::onSaveAllToFileButtonPressed()
+void LogViewerWidget::onSaveLogToFileButtonPressed()
 {
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
@@ -352,16 +354,6 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
             Q_UNUSED(errorDescription)
             return;
         }
-
-#if !defined(Q_OS_MAC)
-        // TODO: find out if it's actually needed on any platform - it certainly is not needed on macOS
-        int overwriteFile = questionMessageBox(this, tr("Overwrite"),
-                                               tr("File") + QStringLiteral(" ") + fileInfo.fileName() + QStringLiteral(" ") +
-                                               tr("already exists"), tr("Are you sure you want to overwrite the existing file?"));
-        if (overwriteFile != QMessageBox::Ok) {
-            return;
-        }
-#endif
     }
     else
     {
@@ -383,11 +375,34 @@ void LogViewerWidget::onSaveAllToFileButtonPressed()
 
     m_pUi->saveToFilePushButton->setEnabled(false);
 
+    QObject::connect(m_pUi->saveToFileCancelButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(LogViewerWidget,onCancelSavingTheLogToFileButtonPressed));
+    m_pUi->saveToFileCancelButton->show();
+
     QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,saveModelEntriesToFileFinished,ErrorString),
                      this, QNSLOT(LogViewerWidget,onSaveModelEntriesToFileFinished,ErrorString));
     QObject::connect(m_pLogViewerModel, QNSIGNAL(LogViewerModel,saveModelEntriesToFileProgress,double),
                      this, QNSLOT(LogViewerWidget,onSaveModelEntriesToFileProgress,double));
     m_pLogViewerModel->saveModelEntriesToFile(fileInfo.absoluteFilePath());
+}
+
+void LogViewerWidget::onCancelSavingTheLogToFileButtonPressed()
+{
+    m_pUi->statusBarLineEdit->clear();
+    m_pUi->statusBarLineEdit->hide();
+
+    m_pLogViewerModel->cancelSavingModelEntriesToFile();
+
+    m_pUi->saveToFilePushButton->setEnabled(true);
+
+    QObject::disconnect(m_pUi->saveToFileCancelButton, QNSIGNAL(QPushButton,clicked),
+                        this, QNSLOT(LogViewerWidget,onCancelSavingTheLogToFileButtonPressed));
+    m_pUi->saveToFileCancelButton->hide();
+
+    m_pUi->saveToFileProgressBar->setValue(0);
+    m_pUi->saveToFileProgressBar->hide();
+
+    m_pUi->saveToFileLabel->setText(QString());
 }
 
 void LogViewerWidget::onClearButtonPressed()
@@ -527,6 +542,11 @@ void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescript
                         this, QNSLOT(LogViewerWidget,onSaveModelEntriesToFileProgress,double));
 
     m_pUi->saveToFileLabel->setText(QString());
+
+    QObject::disconnect(m_pUi->saveToFileCancelButton, QNSIGNAL(QPushButton,clicked),
+                        this, QNSLOT(LogViewerWidget,onCancelSavingTheLogToFileButtonPressed));
+    m_pUi->saveToFileCancelButton->hide();
+
     m_pUi->saveToFileProgressBar->setValue(0);
     m_pUi->saveToFileProgressBar->hide();
 

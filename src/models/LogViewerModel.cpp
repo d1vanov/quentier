@@ -532,6 +532,36 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
     Q_EMIT saveModelEntriesToFileFinished(ErrorString());
 }
 
+bool LogViewerModel::isSavingModelEntriesToFileInProgress() const
+{
+    for(auto it = m_logFilePosRequestedToBeRead.constBegin(),
+        end = m_logFilePosRequestedToBeRead.constEnd(); it != end; ++it)
+    {
+        if (it.value() & LogFileDataEntryRequestReason::SaveLogEntriesToFile) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void LogViewerModel::cancelSavingModelEntriesToFile()
+{
+    for(auto it = m_logFilePosRequestedToBeRead.begin();
+        it != m_logFilePosRequestedToBeRead.end(); )
+    {
+        if (it.value() == LogFileDataEntryRequestReasons(LogFileDataEntryRequestReason::SaveLogEntriesToFile)) {
+            it = m_logFilePosRequestedToBeRead.erase(it);
+        }
+        else if (it.value() & LogFileDataEntryRequestReason::SaveLogEntriesToFile) {
+            it.value() &= ~LogFileDataEntryRequestReason::SaveLogEntriesToFile;
+            ++it;
+        }
+    }
+
+    m_targetSaveFile.close();
+}
+
 int LogViewerModel::rowCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
@@ -812,6 +842,7 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
         error.details() = errorDescription.details();
 
         if (reasons.testFlag(LogFileDataEntryRequestReason::SaveLogEntriesToFile)) {
+            m_targetSaveFile.close();
             Q_EMIT saveModelEntriesToFileFinished(error);
         }
         else {

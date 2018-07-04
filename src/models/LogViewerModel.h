@@ -136,6 +136,8 @@ public:
     QColor backgroundColorForLogLevel(const LogLevel::type logLevel) const;
 
     void saveModelEntriesToFile(const QString & targetFilePath);
+    bool isSavingModelEntriesToFileInProgress() const;
+    void cancelSavingModelEntriesToFile();
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);

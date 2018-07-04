@@ -60,7 +60,8 @@ private Q_SLOTS:
     void onLogFileDirRemoved(const QString & path);
     void onLogFileDirChanged(const QString & path);
 
-    void onSaveAllToFileButtonPressed();
+    void onSaveLogToFileButtonPressed();
+    void onCancelSavingTheLogToFileButtonPressed();
 
     void onClearButtonPressed();
     void onResetButtonPressed();

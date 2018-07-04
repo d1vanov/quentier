@@ -98,7 +98,7 @@
       <widget class="QLabel" name="logFilePendingLoadLabel">
        <property name="minimumSize">
         <size>
-         <width>190</width>
+         <width>180</width>
          <height>0</height>
         </size>
        </property>
@@ -145,6 +145,13 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item row="1" column="6">
+      <widget class="QPushButton" name="saveToFileCancelButton">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
