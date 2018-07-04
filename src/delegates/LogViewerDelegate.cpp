@@ -126,9 +126,6 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
         if (index < 0) {
             index = logEntrySize;
         }
-        else if (index == previousNewlineIndex) {
-            break;
-        }
 
         int lineSize = (index - previousNewlineIndex);
         if (lineSize > LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE) {
@@ -260,12 +257,12 @@ void LogViewerDelegate::paintLogEntry(QPainter & painter, const QRect & adjusted
     QTextOption textOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignTop));
     textOption.setWrapMode(QTextOption::NoWrap);
 
-    int lineStartPos = 0;
+    int lineStartPos = -1;
     const int logEntrySize = dataEntry.m_logEntry.size();
     while(true)
     {
         int lineEndPos = -1;
-        int index = dataEntry.m_logEntry.indexOf(m_newlineChar, lineStartPos);
+        int index = dataEntry.m_logEntry.indexOf(m_newlineChar, (lineStartPos + 1));
         if (index < 0)
         {
             lineEndPos = (lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
@@ -290,24 +287,20 @@ void LogViewerDelegate::paintLogEntry(QPainter & painter, const QRect & adjusted
             }
         }
 
-        if (lineEndPos == lineStartPos) {
-            break;
-        }
-
-        bool lastIteration = false;
         if (lineEndPos > logEntrySize) {
             lineEndPos = logEntrySize;
-            lastIteration = true;
         }
 
-        logEntryLineBuffer = dataEntry.m_logEntry.mid(lineStartPos, (lineEndPos - lineStartPos));
+        bool lastIteration = (lineEndPos == logEntrySize);
+
+        logEntryLineBuffer = dataEntry.m_logEntry.mid(lineStartPos, (lineEndPos - lineStartPos)).trimmed();
         painter.drawText(currentRect, logEntryLineBuffer, textOption);
 
         if (lastIteration) {
             break;
         }
 
-        lineStartPos = lineEndPos + 1;
+        lineStartPos = lineEndPos;
         currentRect.moveTop(currentRect.top() + lineSpacing);
     }
 }
