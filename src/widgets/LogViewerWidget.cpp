@@ -53,7 +53,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
     m_filterByContentBeforeTracing(),
     m_filterByLogLevelBeforeTracing(),
-    m_startLogFilePosBeforeTracing(0)
+    m_startLogFilePosBeforeTracing(-1)
 {
     m_pUi->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
@@ -467,8 +467,6 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
 
         m_startLogFilePosBeforeTracing = m_pLogViewerModel->startLogFilePos();
 
-        // Clear the currently displayed log entries to create some space for new ones
-        onClearButtonPressed();
         m_pUi->resetPushButton->setEnabled(false);
 
         // Backup the settings used before tracing
@@ -491,16 +489,24 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         m_pUi->logLevelComboBox->setEnabled(false);
 
         m_pUi->filterByContentLineEdit->setText(QString());
-        onFilterByContentEditingFinished();
 
-        for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i) {
-            m_logLevelEnabledCheckboxPtrs[i]->setChecked(true);
+        for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i)
+        {
+            QCheckBox * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
+            QObject::disconnect(pCheckbox, QNSIGNAL(QCheckBox,stateChanged,int),
+                                this, QNSLOT(LogViewerWidget,onFilterByLogLevelCheckboxToggled,int));
+            pCheckbox->setChecked(true);
+            QObject::connect(pCheckbox, QNSIGNAL(QCheckBox,stateChanged,int),
+                             this, QNSLOT(LogViewerWidget,onFilterByLogLevelCheckboxToggled,int));
         }
+
         m_pUi->filterByLogLevelTableWidget->setEnabled(false);
         m_pUi->logFileWipePushButton->setEnabled(false);
 
+        LogViewerModel::FilteringOptions filteringOptions;
+        filteringOptions.m_startLogFilePos = m_pLogViewerModel->currentLogFileSize();
         m_pLogViewerModel->setLogFileName(m_pLogViewerModel->logFileName(),
-                                          LogViewerModel::FilteringOptions());
+                                          filteringOptions);
     }
     else
     {
@@ -521,9 +527,14 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
 
         LogViewerModel::FilteringOptions filteringOptions;
 
-        filteringOptions.m_startLogFilePos = m_startLogFilePosBeforeTracing;
-        m_pUi->resetPushButton->setEnabled(m_startLogFilePosBeforeTracing != 0);
-        m_startLogFilePosBeforeTracing = 0;
+        if (m_startLogFilePosBeforeTracing > 0) {
+            filteringOptions.m_startLogFilePos = m_startLogFilePosBeforeTracing;
+            m_pUi->resetPushButton->setEnabled(true);
+        }
+        else {
+            m_pUi->resetPushButton->setEnabled(false);
+        }
+        m_startLogFilePosBeforeTracing = -1;
 
         filteringOptions.m_logEntryContentFilter = m_filterByContentBeforeTracing;
         m_pUi->filterByContentLineEdit->setText(m_filterByContentBeforeTracing);
@@ -535,8 +546,13 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
             if (!m_filterByLogLevelBeforeTracing[i]) {
                 filteringOptions.m_disabledLogLevels << static_cast<LogLevel::type>(i);
             }
+
+            QCheckBox * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
+            QObject::disconnect(pCheckbox, QNSIGNAL(QCheckBox,stateChanged,int),
+                                this, QNSLOT(LogViewerWidget,onFilterByLogLevelCheckboxToggled,int));
             m_logLevelEnabledCheckboxPtrs[i]->setChecked(m_filterByLogLevelBeforeTracing[i]);
-            m_filterByLogLevelBeforeTracing[i] = false;
+            QObject::connect(pCheckbox, QNSIGNAL(QCheckBox,stateChanged,int),
+                             this, QNSLOT(LogViewerWidget,onFilterByLogLevelCheckboxToggled,int));
         }
 
         m_pLogViewerModel->setLogFileName(m_pLogViewerModel->logFileName(), filteringOptions);
@@ -545,7 +561,6 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         m_pUi->logFileWipePushButton->setEnabled(true);
     }
 
-    showLogFileIsLoadingLabel();
     scheduleLogEntriesViewColumnsResize();
 }
 

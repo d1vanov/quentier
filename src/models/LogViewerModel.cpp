@@ -236,6 +236,11 @@ void LogViewerModel::setStartLogFilePos(const qint64 startLogFilePos)
     setLogFileName(logFileName, filteringOptions);
 }
 
+qint64 LogViewerModel::currentLogFileSize() const
+{
+    return m_currentLogFileInfo.size();
+}
+
 void LogViewerModel::setStartLogFilePosAfterCurrentFileSize()
 {
     setStartLogFilePos(m_currentLogFileInfo.size());

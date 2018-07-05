@@ -92,6 +92,7 @@ public:
     qint64 startLogFilePos() const;
     void setStartLogFilePos(const qint64 startLogFilePos);
 
+    qint64 currentLogFileSize() const;
     void setStartLogFilePosAfterCurrentFileSize();
 
     const QVector<LogLevel::type> & disabledLogLevels() const;
