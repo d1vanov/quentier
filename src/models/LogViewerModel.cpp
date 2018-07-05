@@ -580,7 +580,7 @@ int LogViewerModel::rowCount(const QModelIndex & parent) const
 
     auto lastIt = indexByNumber.end();
     --lastIt;
-    return lastIt->endModelRow();
+    return lastIt->endModelRow() + 1;
 }
 
 int LogViewerModel::columnCount(const QModelIndex & parent) const
@@ -595,7 +595,7 @@ int LogViewerModel::columnCount(const QModelIndex & parent) const
 QVariant LogViewerModel::data(const QModelIndex & index, int role) const
 {
     if (role != Qt::DisplayRole) {
-        LVMDEBUG(QStringLiteral("Not display role, returning empty QVariant"));
+        LVMDEBUG(QStringLiteral("Not display role (") << role << QStringLiteral("), returning empty QVariant"));
         return QVariant();
     }
 
@@ -945,7 +945,7 @@ void LogViewerModel::onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
 
             metadata = LogFileChunkMetadata(logFileChunkNumber, startModelRow, endModelRow, fromPos, endPos);
             Q_UNUSED(indexByStartPos.replace(it, metadata))
-                LVMDEBUG(QStringLiteral("Updated log file chunk metadata: ") << metadata);
+            LVMDEBUG(QStringLiteral("Updated log file chunk metadata: ") << metadata);
         }
 
         m_logFileChunkDataCache.put(logFileChunkNumber, dataEntries);
