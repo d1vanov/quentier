@@ -38,7 +38,7 @@
 
 #define QUENTIER_NUM_LOG_LEVELS (5)
 #define FETCHING_MORE_TIMER_PERIOD (200)
-#define DELAY_SECTION_RESIZE_TIMER_PERIOD (250)
+#define DELAY_SECTION_RESIZE_TIMER_PERIOD (100)
 
 namespace quentier {
 
@@ -241,6 +241,10 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
 {
     QNDEBUG(QStringLiteral("LogViewerWidget::onCurrentLogLevelChanged: ") << index);
 
+    if (Q_UNLIKELY(m_pLogViewerModel->isSavingModelEntriesToFileInProgress())) {
+        return;
+    }
+
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
@@ -373,7 +377,17 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
     m_pUi->saveToFileProgressBar->setValue(0);
     m_pUi->saveToFileProgressBar->show();
 
+    // Disable UI elements controlling the selected file, filtering etc
+    // in order to prevent screwing up the process of saving stuff to file
     m_pUi->saveToFilePushButton->setEnabled(false);
+    m_pUi->clearPushButton->setEnabled(false);
+    m_pUi->resetPushButton->setEnabled(false);
+    m_pUi->tracePushButton->setEnabled(false);
+    m_pUi->logFileWipePushButton->setEnabled(false);
+    m_pUi->filterByContentLineEdit->setEnabled(false);
+    m_pUi->filterByLogLevelTableWidget->setEnabled(false);
+    m_pUi->logFileComboBox->setEnabled(false);
+    m_pUi->logLevelComboBox->setEnabled(false);
 
     QObject::connect(m_pUi->saveToFileCancelButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(LogViewerWidget,onCancelSavingTheLogToFileButtonPressed));
@@ -393,7 +407,7 @@ void LogViewerWidget::onCancelSavingTheLogToFileButtonPressed()
 
     m_pLogViewerModel->cancelSavingModelEntriesToFile();
 
-    m_pUi->saveToFilePushButton->setEnabled(true);
+    m_pUi->saveToFileLabel->setText(QString());
 
     QObject::disconnect(m_pUi->saveToFileCancelButton, QNSIGNAL(QPushButton,clicked),
                         this, QNSLOT(LogViewerWidget,onCancelSavingTheLogToFileButtonPressed));
@@ -402,11 +416,21 @@ void LogViewerWidget::onCancelSavingTheLogToFileButtonPressed()
     m_pUi->saveToFileProgressBar->setValue(0);
     m_pUi->saveToFileProgressBar->hide();
 
-    m_pUi->saveToFileLabel->setText(QString());
+    enableUiElementsAfterSavingLogToFile();
+
+#ifdef Q_OS_MAC
+    // There are rendering issues on Mac, the progress bar sometimes is not properly hidden,
+    // trying to workaround through scheduling the repaint
+    repaint();
+#endif
 }
 
 void LogViewerWidget::onClearButtonPressed()
 {
+    if (Q_UNLIKELY(m_pLogViewerModel->isSavingModelEntriesToFileInProgress())) {
+        return;
+    }
+
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
@@ -417,6 +441,10 @@ void LogViewerWidget::onClearButtonPressed()
 
 void LogViewerWidget::onResetButtonPressed()
 {
+    if (Q_UNLIKELY(m_pLogViewerModel->isSavingModelEntriesToFileInProgress())) {
+        return;
+    }
+
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
@@ -427,6 +455,10 @@ void LogViewerWidget::onResetButtonPressed()
 
 void LogViewerWidget::onTraceButtonToggled(bool checked)
 {
+    if (Q_UNLIKELY(m_pLogViewerModel->isSavingModelEntriesToFileInProgress())) {
+        return;
+    }
+
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
@@ -550,7 +582,7 @@ void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescript
     m_pUi->saveToFileProgressBar->setValue(0);
     m_pUi->saveToFileProgressBar->hide();
 
-    m_pUi->saveToFilePushButton->setEnabled(true);
+    enableUiElementsAfterSavingLogToFile();
 
     if (!errorDescription.isEmpty()) {
         m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
@@ -560,6 +592,12 @@ void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescript
         m_pUi->statusBarLineEdit->setText(QString());
         m_pUi->statusBarLineEdit->hide();
     }
+
+#ifdef Q_OS_MAC
+    // There are rendering issues on Mac, the progress bar sometimes is not properly hidden,
+    // trying to workaround through scheduling the repaint
+    repaint();
+#endif
 }
 
 void LogViewerWidget::onSaveModelEntriesToFileProgress(double progressPercent)
@@ -756,6 +794,24 @@ void LogViewerWidget::collectModelFilteringOptions(LogViewerModel::FilteringOpti
 
         options.m_disabledLogLevels << static_cast<LogLevel::type>(i);
     }
+}
+
+void LogViewerWidget::enableUiElementsAfterSavingLogToFile()
+{
+    m_pUi->saveToFilePushButton->setEnabled(true);
+    m_pUi->clearPushButton->setEnabled(true);
+
+    if (m_pLogViewerModel->startLogFilePos() > 0) {
+        m_pUi->resetPushButton->setEnabled(true);
+    }
+
+    m_pUi->tracePushButton->setEnabled(true);
+    m_pUi->logFileWipePushButton->setEnabled(true);
+    m_pUi->filterByContentLineEdit->setEnabled(true);
+    m_pUi->filterByLogLevelTableWidget->setEnabled(true);
+
+    m_pUi->logFileComboBox->setEnabled(true);
+    m_pUi->logLevelComboBox->setEnabled(true);
 }
 
 void LogViewerWidget::timerEvent(QTimerEvent * pEvent)

@@ -91,6 +91,8 @@ private:
 
     void collectModelFilteringOptions(LogViewerModel::FilteringOptions & options) const;
 
+    void enableUiElementsAfterSavingLogToFile();
+
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
