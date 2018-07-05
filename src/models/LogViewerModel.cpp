@@ -114,7 +114,7 @@ bool LogViewerModel::isActive() const
 LogViewerModel::~LogViewerModel()
 {
     if (m_pFileReaderAsync) {
-        QObject::disconnect(m_pFileReaderAsync);
+        m_pFileReaderAsync->disconnect(this);
         m_pFileReaderAsync = Q_NULLPTR;
     }
 }
@@ -381,7 +381,7 @@ void LogViewerModel::clear()
     // NOTE: not stopping the file reader async's thread and not deleting the async file reader immediately,
     // just disconnect from it, mark it for subsequent deletion when possible and lose the pointer to it
     if (m_pFileReaderAsync) {
-        QObject::disconnect(m_pFileReaderAsync);
+        m_pFileReaderAsync->disconnect(this);
         m_pFileReaderAsync = Q_NULLPTR;
     }
 
