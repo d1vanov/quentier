@@ -117,36 +117,61 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option, const QMo
     }
 
     int numDisplayedLines = 0;
-    int previousNewlineIndex = -1;
-    int maxLineSize = 0;
     const int logEntrySize = pDataEntry->m_logEntry.size();
+    int maxLineSize = 0;
+    int lineStartPos = -1;
+    QString logEntryLineBuffer;
     while(true)
     {
-        int index = pDataEntry->m_logEntry.indexOf(m_newlineChar, (previousNewlineIndex + 1));
-        if (index < 0) {
-            index = logEntrySize;
+        int lineEndPos = -1;
+        int index = pDataEntry->m_logEntry.indexOf(m_newlineChar, (lineStartPos + 1));
+        if (index < 0)
+        {
+            lineEndPos = (lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
+
+            int previousWhitespaceIndex = pDataEntry->m_logEntry.lastIndexOf(m_whitespaceChar, (lineEndPos - 1));
+            if (previousWhitespaceIndex > lineStartPos) {
+                lineEndPos = previousWhitespaceIndex;
+            }
+        }
+        else
+        {
+            lineEndPos = index;
+
+            if (lineEndPos - lineStartPos > LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
+            {
+                lineEndPos = lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
+
+                int previousWhitespaceIndex = pDataEntry->m_logEntry.lastIndexOf(m_whitespaceChar, (lineEndPos - 1));
+                if (previousWhitespaceIndex > lineStartPos) {
+                    lineEndPos = previousWhitespaceIndex;
+                }
+            }
         }
 
-        int lineSize = (index - previousNewlineIndex);
-        if (lineSize > LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE) {
-            maxLineSize = LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
+        if (lineEndPos > logEntrySize) {
+            lineEndPos = logEntrySize;
         }
-        else if (lineSize > maxLineSize) {
+
+        bool lastIteration = (lineEndPos == logEntrySize);
+
+        logEntryLineBuffer = pDataEntry->m_logEntry.mid(lineStartPos, (lineEndPos - lineStartPos)).trimmed();
+        int lineSize = logEntryLineBuffer.size();
+        if (lineSize > maxLineSize) {
             maxLineSize = lineSize;
         }
 
-        numDisplayedLines += lineSize / LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE + 1;
+        ++numDisplayedLines;
 
-        if (index == logEntrySize) {
+        if (lastIteration) {
             break;
         }
 
-        previousNewlineIndex = index;
+        lineStartPos = lineEndPos;
     }
 
     size.setWidth(static_cast<int>(std::floor(fontMetrics.width(QStringLiteral("w")) * (maxLineSize + 2 + m_margin) + 0.5)));
-    size.setHeight(static_cast<int>(std::floor(fontMetrics.lineSpacing() *
-                                               (numDisplayedLines + 1 + m_margin) + 0.5)));
+    size.setHeight(static_cast<int>(std::floor((numDisplayedLines + 1) * fontMetrics.lineSpacing() + m_margin)));
     return size;
 }
 
