@@ -436,7 +436,6 @@ void LogViewerWidget::onClearButtonPressed()
 
     m_pLogViewerModel->setStartLogFilePosAfterCurrentFileSize();
     m_pUi->resetPushButton->setEnabled(true);
-    showLogFileIsLoadingLabel();
 }
 
 void LogViewerWidget::onResetButtonPressed()
