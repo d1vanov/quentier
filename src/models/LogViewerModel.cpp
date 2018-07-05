@@ -231,9 +231,9 @@ void LogViewerModel::setStartLogFilePos(const qint64 startLogFilePos)
         filteringOptions.m_startLogFilePos.clear();
     }
 
-    QString logFilePath = m_currentLogFileInfo.absoluteFilePath();
+    QString logFileName = m_currentLogFileInfo.fileName();
     clear();
-    setLogFileName(logFilePath, filteringOptions);
+    setLogFileName(logFileName, filteringOptions);
 }
 
 void LogViewerModel::setStartLogFilePosAfterCurrentFileSize()
@@ -786,6 +786,13 @@ void LogViewerModel::onFileChanged(const QString & path)
     // New log entries were appended to the log file, should now be able to fetch more
     LVMDEBUG(QStringLiteral("The initial bytes of the log file haven't changed => new log entries were added, can read more now"));
     m_canReadMoreLogFileChunks = true;
+
+    if (m_logFileChunksMetadata.empty()) {
+        qint64 startPos = (m_filteringOptions.m_startLogFilePos.isSet()
+                           ? m_filteringOptions.m_startLogFilePos.ref()
+                           : qint64(0));
+        requestDataEntriesChunkFromLogFile(startPos, LogFileDataEntryRequestReason::InitialRead);
+    }
 }
 
 void LogViewerModel::onFileRemoved(const QString & path)
