@@ -207,9 +207,6 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
-    bool wipeCurrentLogFileImpl(ErrorString & errorDescription);
-
-private:
     class FileReaderAsync;
     class LogFileParser;
 
@@ -327,10 +324,6 @@ private:
 
     bool                m_internalLogEnabled;
     mutable QFile       m_internalLogFile;
-
-    bool                m_pendingCurrentLogFileWipe;
-    bool                m_wipeCurrentLogFileResultStatus;
-    ErrorString         m_wipeCurrentLogFileErrorDescription;
 };
 
 } // namespace quentier

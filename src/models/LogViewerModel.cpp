@@ -91,10 +91,7 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_pFileReaderAsync(Q_NULLPTR),
     m_targetSaveFile(),
     m_internalLogEnabled(false),
-    m_internalLogFile(applicationTemporaryStoragePath() + QStringLiteral("/LogViewerModelLog.txt")),
-    m_pendingCurrentLogFileWipe(false),
-    m_wipeCurrentLogFileResultStatus(false),
-    m_wipeCurrentLogFileErrorDescription()
+    m_internalLogFile(applicationTemporaryStoragePath() + QStringLiteral("/LogViewerModelLog.txt"))
 {
     QObject::connect(&m_currentLogFileWatcher, QNSIGNAL(FileSystemWatcher,fileChanged,QString),
                      this, QNSLOT(LogViewerModel,onFileChanged,QString));
@@ -313,41 +310,62 @@ bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
 {
     LVMDEBUG(QStringLiteral("LogViewerModel::wipeCurrentLogFile"));
 
-    if (!m_pFileReaderAsync) {
-        return wipeCurrentLogFileImpl(errorDescription);
-    }
-
-    // Need to wait until the file reader finishes its async job
-    m_pendingCurrentLogFileWipe = true;
-
-    // Need to set up the blocking event loop to return bool from this method
-
-    int eventLoopResult = -1;
-    {
-        QTimer timer;
-        timer.setInterval(10000);
-        timer.setSingleShot(true);
-
-        EventLoopWithExitStatus loop;
-        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
-        QObject::connect(this, QNSIGNAL(LogViewerModel,wipeCurrentLogFileFinished), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-
-        timer.start();
-        eventLoopResult = loop.exec();
-    }
-
-    if (Q_UNLIKELY(eventLoopResult == EventLoopWithExitStatus::ExitStatus::Timeout)) {
-        errorDescription.setBase(QT_TR_NOOP("Wiping out the current log file failed to finish in time"));
-        m_pendingCurrentLogFileWipe = false;
+    if (!m_currentLogFileInfo.exists()) {
+        errorDescription.setBase(QT_TR_NOOP("No log file is selected"));
+        LVMDEBUG(errorDescription);
         return false;
     }
 
-    errorDescription = m_wipeCurrentLogFileErrorDescription;
-    bool res = m_wipeCurrentLogFileResultStatus;
+    if (Q_UNLIKELY(!m_currentLogFileInfo.isFile())) {
+        errorDescription.setBase(QT_TR_NOOP("Currently selected log file name does not really correspond to a file"));
+        LVMDEBUG(errorDescription);
+        return false;
+    }
 
-    m_wipeCurrentLogFileResultStatus = false;
-    m_wipeCurrentLogFileErrorDescription.clear();
+    if (Q_UNLIKELY(!m_currentLogFileInfo.isWritable())) {
+        errorDescription.setBase(QT_TR_NOOP("Currently selected log file is not writable"));
+        LVMDEBUG(errorDescription);
+        return false;
+    }
 
+    beginResetModel();
+
+    // NOTE: not stopping the file reader async's thread and not deleting the async file reader immediately,
+    // just disconnect from it, mark it for subsequent deletion when possible and lose the pointer to it
+    if (m_pFileReaderAsync) {
+        m_pFileReaderAsync->disconnect(this);
+        m_pFileReaderAsync->deleteLater();
+        m_pFileReaderAsync = Q_NULLPTR;
+    }
+
+    QFile currentLogFile(m_currentLogFileInfo.absoluteFilePath());
+    bool res = currentLogFile.resize(qint64(0));
+    if (Q_UNLIKELY(!res))
+    {
+        errorDescription.setBase(QT_TR_NOOP("Failed to clear the contents of the log file"));
+        QString errorString = currentLogFile.errorString();
+        if (!errorString.isEmpty()) {
+            errorDescription.details() = errorString;
+        }
+        LVMDEBUG(errorDescription);
+    }
+    else
+    {
+        m_currentLogFileSize = 0;
+
+        for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
+            m_currentLogFileStartBytes[i] = 0;
+        }
+        m_currentLogFileStartBytesRead = 0;
+
+        m_logFileChunksMetadata.clear();
+        m_logFileChunkDataCache.clear();
+        m_canReadMoreLogFileChunks = false;
+
+        m_logFilePosRequestedToBeRead.clear();
+    }
+
+    endResetModel();
     return res;
 }
 
@@ -382,14 +400,11 @@ void LogViewerModel::clear()
     // just disconnect from it, mark it for subsequent deletion when possible and lose the pointer to it
     if (m_pFileReaderAsync) {
         m_pFileReaderAsync->disconnect(this);
+        m_pFileReaderAsync->deleteLater();
         m_pFileReaderAsync = Q_NULLPTR;
     }
 
     // NOTE: not changing anything about the internal log
-
-    m_pendingCurrentLogFileWipe = false;
-    m_wipeCurrentLogFileResultStatus = false;
-    m_wipeCurrentLogFileErrorDescription.clear();
 
     endResetModel();
 }
@@ -1054,59 +1069,6 @@ void LogViewerModel::timerEvent(QTimerEvent * pEvent)
     }
 
     QAbstractTableModel::timerEvent(pEvent);
-}
-
-bool LogViewerModel::wipeCurrentLogFileImpl(ErrorString & errorDescription)
-{
-    LVMDEBUG(QStringLiteral("LogViewerModel::wipeCurrentLogFileImpl"));
-
-    if (!m_currentLogFileInfo.exists()) {
-        errorDescription.setBase(QT_TR_NOOP("No log file is selected"));
-        LVMDEBUG(errorDescription);
-        return false;
-    }
-
-    if (Q_UNLIKELY(!m_currentLogFileInfo.isFile())) {
-        errorDescription.setBase(QT_TR_NOOP("Currently selected log file name does not really correspond to a file"));
-        LVMDEBUG(errorDescription);
-        return false;
-    }
-
-    if (Q_UNLIKELY(!m_currentLogFileInfo.isWritable())) {
-        errorDescription.setBase(QT_TR_NOOP("Currently selected log file is not writable"));
-        LVMDEBUG(errorDescription);
-        return false;
-    }
-
-    beginResetModel();
-
-    QFile currentLogFile(m_currentLogFileInfo.absoluteFilePath());
-    bool res = currentLogFile.resize(qint64(0));
-    if (Q_UNLIKELY(!res))
-    {
-        errorDescription.setBase(QT_TR_NOOP("Failed to clear the contents of the log file"));
-        QString errorString = currentLogFile.errorString();
-        if (!errorString.isEmpty()) {
-            errorDescription.details() = errorString;
-        }
-        LVMDEBUG(errorDescription);
-    }
-    else
-    {
-        m_currentLogFileSize = 0;
-
-        for(size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
-            m_currentLogFileStartBytes[i] = 0;
-        }
-        m_currentLogFileStartBytesRead = 0;
-
-        m_pendingCurrentLogFileWipe = false;
-        m_wipeCurrentLogFileResultStatus = false;
-        m_wipeCurrentLogFileErrorDescription.clear();
-    }
-
-    endResetModel();
-    return res;
 }
 
 QString LogViewerModel::logLevelToString(LogLevel::type logLevel)
