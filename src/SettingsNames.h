@@ -86,6 +86,7 @@
 // Log level settings
 #define LOGGING_SETTINGS_GROUP QStringLiteral("LoggingSettings")
 #define CURRENT_MIN_LOG_LEVEL QStringLiteral("MinLogLevel")
+#define ENABLE_LOG_VIEWER_INTERNAL_LOGS QStringLiteral("EnableLogViewerInternalLogs")
 
 // Translations setting
 #define TRANSLATION_SETTINGS_GROUP_NAME QStringLiteral("TranslationSettings")

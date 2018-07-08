@@ -534,6 +534,17 @@ void PreferencesDialog::onNetworkProxyPasswordVisibilityToggled(bool checked)
     m_pUi->networkProxyPasswordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
 }
 
+void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings globalAppSettings;
+    globalAppSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    globalAppSettings.setValue(ENABLE_LOG_VIEWER_INTERNAL_LOGS, checked);
+    globalAppSettings.endGroup();
+}
+
 void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, ShortcutManager & shortcutManager)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
@@ -622,6 +633,19 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
 
     // 6) Shortcuts tab
     m_pUi->shortcutSettingsWidget->initialize(currentAccount, actionsInfo, &shortcutManager);
+
+    // 7) Auxiliary tab
+    ApplicationSettings globalAppSettings;
+    globalAppSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    QVariant enableLogViewerInternalLogsValue = globalAppSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+    globalAppSettings.endGroup();
+
+    bool enableLogViewerInternalLogs = false;
+    if (enableLogViewerInternalLogsValue.isValid()) {
+        enableLogViewerInternalLogs = enableLogViewerInternalLogsValue.toBool();
+    }
+
+    m_pUi->enableInternalLogViewerLogsCheckBox->setChecked(enableLogViewerInternalLogs);
 }
 
 void PreferencesDialog::setupMainWindowBorderSettings()
@@ -1063,7 +1087,8 @@ void PreferencesDialog::createConnections()
     QObject::connect(m_pUi->networkProxyPasswordShowCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onNetworkProxyPasswordVisibilityToggled,bool));
 
-    // TODO: continue
+    QObject::connect(m_pUi->enableInternalLogViewerLogsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
+                     this, QNSLOT(PreferencesDialog,onEnableLogViewerInternalLogsCheckboxToggled,bool));
 }
 
 void PreferencesDialog::checkAndSetNetworkProxy()

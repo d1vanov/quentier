@@ -17,8 +17,10 @@
  */
 
 #include "LogViewerModelLogFileParser.h"
+#include "../SettingsNames.h"
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <QTextStream>
 #include <QDebug>
 #include <QCoreApplication>
@@ -63,10 +65,20 @@ namespace quentier {
 LogViewerModel::LogFileParser::LogFileParser() :
     m_logParsingRegex(QStringLiteral("^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+(\\w+)\\s+(.+)\\s+@\\s+(\\d+)\\s+\\[(\\w+)\\]:\\s(.+$)"),
                       Qt::CaseInsensitive, QRegExp::RegExp),
-    m_internalLogFile(applicationTemporaryStoragePath() + QStringLiteral("/LogViewerModelLogFileParserLog.txt")),
+    m_internalLogFile(applicationPersistentStoragePath() + QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt")),
     m_internalLogEnabled(false)
 {
-    setInternalLogEnabled(true);
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    QVariant enableLogViewerInternalLogsValue = appSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+    appSettings.endGroup();
+
+    bool enableLogViewerInternalLogs = false;
+    if (enableLogViewerInternalLogsValue.isValid()) {
+        enableLogViewerInternalLogs = enableLogViewerInternalLogsValue.toBool();
+    }
+
+    setInternalLogEnabled(enableLogViewerInternalLogs);
 }
 
 bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(const qint64 fromPos, const int maxDataEntries,

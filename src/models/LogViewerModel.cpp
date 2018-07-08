@@ -18,9 +18,11 @@
 
 #include "LogViewerModel.h"
 #include "LogViewerModelFileReaderAsync.h"
+#include "../SettingsNames.h"
 #include <quentier/utility/Utility.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/StandardPaths.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <QFileInfo>
 #include <QStringList>
 #include <QTextStream>
@@ -91,7 +93,7 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_pFileReaderAsync(Q_NULLPTR),
     m_targetSaveFile(),
     m_internalLogEnabled(false),
-    m_internalLogFile(applicationTemporaryStoragePath() + QStringLiteral("/LogViewerModelLog.txt"))
+    m_internalLogFile(applicationPersistentStoragePath() + QStringLiteral("/logs-quentier/LogViewerModelLog.txt"))
 {
     QObject::connect(&m_currentLogFileWatcher, QNSIGNAL(FileSystemWatcher,fileChanged,QString),
                      this, QNSLOT(LogViewerModel,onFileChanged,QString));
@@ -100,7 +102,17 @@ LogViewerModel::LogViewerModel(QObject * parent) :
 
     qRegisterMetaType<QVector<LogViewerModel::Data> >("QVector<LogViewerModel::Data>");
 
-    setInternalLogEnabled(true);
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    QVariant enableLogViewerInternalLogsValue = appSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+    appSettings.endGroup();
+
+    bool enableLogViewerInternalLogs = false;
+    if (enableLogViewerInternalLogsValue.isValid()) {
+        enableLogViewerInternalLogs = enableLogViewerInternalLogsValue.toBool();
+    }
+
+    setInternalLogEnabled(enableLogViewerInternalLogs);
 }
 
 bool LogViewerModel::isActive() const
