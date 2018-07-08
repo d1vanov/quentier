@@ -243,8 +243,10 @@ LogViewerModel::LogFileParser::ParseLineStatus::type LogViewerModel::LogFilePars
         return ParseLineStatus::FilteredEntry;
     }
 
-    if (!filterContentRegExp.isEmpty() && filterContentRegExp.isValid() &&
-        (filterContentRegExp.indexIn(capturedTexts[6]) < 0))
+    if ( !filterContentRegExp.isEmpty() && filterContentRegExp.isValid() &&
+         (filterContentRegExp.indexIn(capturedTexts[6]) < 0) &&
+         (filterContentRegExp.indexIn(capturedTexts[1]) < 0) &&
+         (filterContentRegExp.indexIn(entry.m_sourceFileName) < 0) )
     {
         return ParseLineStatus::FilteredEntry;
     }
