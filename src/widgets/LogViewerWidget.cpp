@@ -193,8 +193,10 @@ void LogViewerWidget::setupLogFiles()
     collectModelFilteringOptions(filteringOptions);
     m_pLogViewerModel->setLogFileName(logFileName, filteringOptions);
 
-    showLogFileIsLoadingLabel();
-    scheduleLogEntriesViewColumnsResize();
+    if (m_pLogViewerModel->currentLogFileSize() != 0) {
+        showLogFileIsLoadingLabel();
+        scheduleLogEntriesViewColumnsResize();
+    }
 }
 
 void LogViewerWidget::startWatchingForLogFilesFolderChanges()
@@ -324,7 +326,10 @@ void LogViewerWidget::onCurrentLogFileChanged(const QString & currentLogFile)
     LogViewerModel::FilteringOptions filteringOptions;
     collectModelFilteringOptions(filteringOptions);
     m_pLogViewerModel->setLogFileName(currentLogFile);
-    showLogFileIsLoadingLabel();
+
+    if (m_pLogViewerModel->currentLogFileSize() != 0) {
+        showLogFileIsLoadingLabel();
+    }
 }
 
 void LogViewerWidget::onLogFileDirRemoved(const QString & path)
