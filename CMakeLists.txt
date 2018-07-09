@@ -313,6 +313,8 @@ set(RESOURCES
     resource/icons/app/app_icons.qrc
     resource/icons/themes/tango/tango.qrc
     resource/icons/themes/oxygen/oxygen.qrc
+    resource/icons/themes/breeze/breeze.qrc
+    resource/icons/themes/breeze-dark/breeze-dark.qrc
     resource/icons/other/icons.qrc)
 
 qt_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
