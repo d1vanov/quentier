@@ -23,13 +23,25 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/Printable.h>
 #include <quentier/utility/FileSystemWatcher.h>
+#include <quentier/utility/LRUCache.hpp>
 #include <quentier/types/ErrorString.h>
 #include <QAbstractTableModel>
 #include <QFileInfo>
+#include <QFile>
 #include <QList>
 #include <QThread>
 #include <QRegExp>
 #include <QBasicTimer>
+#include <QVector>
+#include <QHash>
+#include <QFlags>
+
+// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
+#ifndef Q_MOC_RUN
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#endif
 
 namespace quentier {
 
@@ -51,15 +63,51 @@ public:
         };
     };
 
-    QString logFileName() const;
-    void setLogFileName(const QString & logFileName);
+    bool isActive() const;
 
-    qint64 currentLogFilePos() const { return m_currentLogFilePos; }
+    class FilteringOptions: public Printable
+    {
+    public:
+        FilteringOptions();
+        FilteringOptions(const FilteringOptions & other);
+        FilteringOptions & operator=(const FilteringOptions & other);
+        virtual ~FilteringOptions();
+
+        bool operator==(const FilteringOptions & other) const;
+        bool operator!=(const FilteringOptions & other) const;
+
+        bool isEmpty() const;
+        void clear();
+
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+        qevercloud::Optional<qint64>    m_startLogFilePos;
+        QVector<LogLevel::type>         m_disabledLogLevels;
+        QString                         m_logEntryContentFilter;
+    };
+
+    QString logFileName() const;
+    void setLogFileName(const QString & logFileName, const FilteringOptions & filteringOptions = FilteringOptions());
+
+    qint64 startLogFilePos() const;
+    void setStartLogFilePos(const qint64 startLogFilePos);
+
+    qint64 currentLogFileSize() const;
+    void setStartLogFilePosAfterCurrentFileSize();
+
+    const QVector<LogLevel::type> & disabledLogLevels() const;
+    void setDisabledLogLevels(QVector<LogLevel::type> disabledLogLevels);
+
+    const QString & logEntryContentFilter() const;
+    void setLogEntryContentFilter(const QString & logEntryContentFilter);
 
     bool wipeCurrentLogFile(ErrorString & errorDescription);
     void clear();
 
     static QString logLevelToString(LogLevel::type logLevel);
+
+    void setInternalLogEnabled(const bool enabled);
+    bool internalLogEnabled() const;
 
     struct Data: public Printable
     {
@@ -68,9 +116,7 @@ public:
             m_sourceFileName(),
             m_sourceFileLineNumber(-1),
             m_logLevel(LogLevel::InfoLevel),
-            m_logEntry(),
-            m_numLogEntryLines(0),
-            m_logEntryMaxNumCharsPerLine(0)
+            m_logEntry()
         {}
 
         virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
@@ -80,25 +126,47 @@ public:
         qint64          m_sourceFileLineNumber;
         LogLevel::type  m_logLevel;
         QString         m_logEntry;
-
-        // These two properties are useful to have in the model
-        // for the delegate's sake as it's too non-performant
-        // to compute these numbers within the delegate
-        int             m_numLogEntryLines;
-        int             m_logEntryMaxNumCharsPerLine;
     };
 
     const Data * dataEntry(const int row) const;
+
+    const QVector<Data> * dataChunkContainingModelRow(const int row, int * pStartModelRow = Q_NULLPTR) const;
 
     QString dataEntryToString(const Data & dataEntry) const;
 
     QColor backgroundColorForLogLevel(const LogLevel::type logLevel) const;
 
+    void saveModelEntriesToFile(const QString & targetFilePath);
+    bool isSavingModelEntriesToFileInProgress() const;
+    void cancelSavingModelEntriesToFile();
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
+    /**
+     * This signal is emitted after either beginInsertRows/endInsertRows or dataChanged signal
+     * to notify specific listeners (not just views) about the fact that the data corresponding
+     * to the specific rows of the model has been cached and hence is present and actual.
+     */
+    void notifyModelRowsCached(int from, int to);
+
+    /**
+     * This signal is emitted in response to the earlier invokation of of saveModelEntriesToFile method.
+     * errorDescription is empty if no error occurred in the process, non-empty otherwise.
+     */
+    void saveModelEntriesToFileFinished(ErrorString errorDescription);
+
+    /**
+     * This signal is emitted to notify anyone interested about the progress of saving the model's log entries
+     * to a file.
+     *
+     * @param progressPercent       The percentage of progress, from 0 to 100
+     */
+    void saveModelEntriesToFileProgress(double progressPercent);
+
     // private signals
     void startAsyncLogFileReading();
+    void readLogFileDataEntries(qint64 fromPos, int maxDataEntries);
     void deleteFileReaderAsync();
     void wipeCurrentLogFileFinished();
 
@@ -115,55 +183,147 @@ private Q_SLOTS:
     void onFileChanged(const QString & path);
     void onFileRemoved(const QString & path);
 
-    void onFileReadAsyncReady(qint64 logFilePos, QString readData, ErrorString errorDescription);
+    void onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
+                                  QVector<LogViewerModel::Data> dataEntries,
+                                  ErrorString errorDescription);
 
 private:
-    void parseFullDataFromLogFile();
-    void parseDataFromLogFileFromCurrentPos();
-    void parseNextChunkOfLogFileLines();
-    bool parseNextChunkOfLogFileLines(const int lineNumFrom, QList<Data> & readLogFileEntries,
-                                      int & lastParsedLogFileLine);
+    struct LogFileDataEntryRequestReason
+    {
+        enum type
+        {
+            InitialRead = 1 << 1,
+            CacheMiss = 1 << 2,
+            FetchMore = 1 << 3,
+            SaveLogEntriesToFile = 1 << 4
+        };
+    };
+    Q_DECLARE_FLAGS(LogFileDataEntryRequestReasons, LogFileDataEntryRequestReason::type)
+
+    void requestDataEntriesChunkFromLogFile(const qint64 startPos,
+                                            const LogFileDataEntryRequestReason::type reason);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
-    void appendLogEntryLine(Data & data, const QString & line) const;
-    bool wipeCurrentLogFileImpl(ErrorString & errorDescription);
-
-private:
     class FileReaderAsync;
+    class LogFileParser;
 
 private:
     Q_DISABLE_COPY(LogViewerModel)
 
 private:
+    class LogFileChunkMetadata: public Printable
+    {
+    public:
+        LogFileChunkMetadata(const int number,
+                             const int startModelRow,
+                             const int endModelRow,
+                             const qint64 startLogFilePos,
+                             const qint64 endLogFilePos) :
+            m_number(number),
+            m_startModelRow(startModelRow),
+            m_endModelRow(endModelRow),
+            m_startLogFilePos(startLogFilePos),
+            m_endLogFilePos(endLogFilePos)
+        {}
+
+        bool isEmpty() const { return (m_number < 0); }
+        int number() const { return m_number; }
+        int startModelRow() const { return m_startModelRow; }
+        int endModelRow() const { return m_endModelRow; }
+        qint64 startLogFilePos() const { return m_startLogFilePos; }
+        qint64 endLogFilePos() const { return m_endLogFilePos; }
+
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+    private:
+        int     m_number;
+
+        int     m_startModelRow;
+        int     m_endModelRow;
+
+        qint64  m_startLogFilePos;
+        qint64  m_endLogFilePos;
+    };
+
+    struct LowerBoundByStartModelRowComparator
+    {
+        bool operator()(const LogFileChunkMetadata & lhs, const int row) const
+        {
+            return lhs.startModelRow() < row;
+        }
+    };
+
+    struct LowerBoundByStartLogFilePosComparator
+    {
+        bool operator()(const LogFileChunkMetadata & lhs, const qint64 pos) const
+        {
+            return lhs.startLogFilePos() < pos;
+        }
+    };
+
+    struct LogFileChunksMetadataByNumber{};
+    struct LogFileChunksMetadataByStartModelRow{};
+    struct LogFileChunksMetadataByStartLogFilePos{};
+
+    typedef boost::multi_index_container<
+        LogFileChunkMetadata,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LogFileChunksMetadataByNumber>,
+                boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::number>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LogFileChunksMetadataByStartModelRow>,
+                boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::startModelRow>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LogFileChunksMetadataByStartLogFilePos>,
+                boost::multi_index::const_mem_fun<LogFileChunkMetadata,qint64,&LogFileChunkMetadata::startLogFilePos>
+            >
+        >
+    > LogFileChunksMetadata;
+
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByNumber>::type LogFileChunksMetadataIndexByNumber;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartModelRow>::type LogFileChunksMetadataIndexByStartModelRow;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartLogFilePos>::type LogFileChunksMetadataIndexByStartLogFilePos;
+
+private:
+    const LogFileChunkMetadata * findLogFileChunkMetadataByModelRow(const int row) const;
+    const LogFileChunkMetadata * findLogFileChunkMetadataByLogFilePos(const qint64 pos) const;
+
+    LogFileChunksMetadataIndexByStartModelRow::const_iterator findLogFileChunkMetadataIteratorByModelRow(const int row) const;
+    LogFileChunksMetadataIndexByStartLogFilePos::const_iterator findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
+
+private:
+    bool                m_isActive;
     QFileInfo           m_currentLogFileInfo;
     FileSystemWatcher   m_currentLogFileWatcher;
 
-    QRegExp             m_logParsingRegex;
+    FilteringOptions    m_filteringOptions;
 
     char                m_currentLogFileStartBytes[256];
     qint64              m_currentLogFileStartBytesRead;
 
-    qint64              m_currentLogFilePos;
+    LogFileChunksMetadata               m_logFileChunksMetadata;
+    LRUCache<qint32, QVector<Data> >    m_logFileChunkDataCache;
 
-    int                 m_currentParsedLogFileLines;
-    QStringList         m_currentLogFileLines;
+    bool                m_canReadMoreLogFileChunks;
+
+    QHash<qint64, LogFileDataEntryRequestReasons>   m_logFilePosRequestedToBeRead;
 
     qint64              m_currentLogFileSize;
     QBasicTimer         m_currentLogFileSizePollingTimer;
 
-    bool                m_pendingLogFileReadData;
-
     QThread *           m_pReadLogFileIOThread;
     FileReaderAsync *   m_pFileReaderAsync;
 
-    QList<Data>         m_data;
+    QFile               m_targetSaveFile;
 
-    bool                m_pendingCurrentLogFileWipe;
-    bool                m_wipeCurrentLogFileResultStatus;
-    ErrorString         m_wipeCurrentLogFileErrorDescription;
+    bool                m_internalLogEnabled;
+    mutable QFile       m_internalLogFile;
 };
 
 } // namespace quentier

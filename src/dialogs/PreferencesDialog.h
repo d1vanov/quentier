@@ -103,6 +103,9 @@ private Q_SLOTS:
     void onNetworkProxyPasswordChanged();
     void onNetworkProxyPasswordVisibilityToggled(bool checked);
 
+    // Auxiliary tab
+    void onEnableLogViewerInternalLogsCheckboxToggled(bool checked);
+
 private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);

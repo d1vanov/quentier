@@ -18,14 +18,25 @@
 
 #include "LogViewerModelFileReaderAsync.h"
 #include <QFileInfo>
+#include <QTextStream>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+#include <QTimeZone>
+#endif
+
+#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
 namespace quentier {
 
-LogViewerModel::FileReaderAsync::FileReaderAsync(QString targetFilePath,
-                                                 qint64 startPos, QObject * parent) :
+LogViewerModel::FileReaderAsync::FileReaderAsync(const QString & targetFilePath,
+                                                 const QVector<LogLevel::type> & disabledLogLevels,
+                                                 const QString & logEntryContentFilter,
+                                                 QObject * parent) :
     QObject(parent),
     m_targetFile(targetFilePath),
-    m_startPos(startPos)
+    m_disabledLogLevels(disabledLogLevels),
+    m_filterRegExp(logEntryContentFilter, Qt::CaseSensitive, QRegExp::Wildcard),
+    m_parser()
 {}
 
 LogViewerModel::FileReaderAsync::~FileReaderAsync()
@@ -35,55 +46,20 @@ LogViewerModel::FileReaderAsync::~FileReaderAsync()
     }
 }
 
-void LogViewerModel::FileReaderAsync::onStartReading()
+void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries)
 {
-    if (!m_targetFile.isOpen() && !m_targetFile.open(QIODevice::ReadOnly)) {
-        QFileInfo targetFileInfo(m_targetFile);
-        ErrorString errorDescription(QT_TR_NOOP("Can't open log file for reading"));
-        errorDescription.details() = targetFileInfo.absoluteFilePath();
-        QNWARNING(errorDescription);
-        Q_EMIT finished(-1, QString(), errorDescription);
-        return;
+    QVector<LogViewerModel::Data> dataEntries;
+    qint64 endPos = -1;
+    ErrorString errorDescription;
+    bool res = m_parser.parseDataEntriesFromLogFile(fromPos, maxDataEntries, m_disabledLogLevels,
+                                                    m_filterRegExp, m_targetFile, dataEntries, endPos,
+                                                    errorDescription);
+    if (res) {
+        Q_EMIT readLogFileDataEntries(fromPos, endPos, dataEntries, ErrorString());
     }
-
-    if (!m_targetFile.seek(m_startPos)) {
-        ErrorString errorDescription(QT_TR_NOOP("Failed to read the data from log file: failed to seek at position"));
-        errorDescription.details() = QString::number(m_startPos);
-        QNWARNING(errorDescription);
-        Q_EMIT finished(-1, QString(), errorDescription);
-        return;
+    else {
+        Q_EMIT readLogFileDataEntries(fromPos, -1, QVector<LogViewerModel::Data>(), errorDescription);
     }
-
-    const qint64 bufSize = 1024;
-    char buf[bufSize];
-    QByteArray readData;
-
-    qint64 currentPos = m_startPos;
-    while(true)
-    {
-        qint64 bytesRead = m_targetFile.read(buf, bufSize);
-        if (bytesRead == -1)
-        {
-            ErrorString errorDescription(QT_TR_NOOP("Failed to read the data from log file"));
-            QString logFileError = m_targetFile.errorString();
-            if (!logFileError.isEmpty()) {
-                errorDescription.details() = logFileError;
-            }
-
-            QNWARNING(errorDescription);
-            Q_EMIT finished(-1, QString(), errorDescription);
-            return;
-        }
-        else if (bytesRead == 0)
-        {
-            break;
-        }
-
-        readData.append(buf, static_cast<int>(bytesRead));
-        currentPos = m_targetFile.pos();
-    }
-
-    Q_EMIT finished(currentPos, QString::fromUtf8(readData), ErrorString());
 }
 
 } // namespace quentier

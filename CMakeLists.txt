@@ -128,7 +128,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/FavoritesModelItem.h
     src/models/LogViewerModel.h
     src/models/LogViewerModelFileReaderAsync.h
-    src/models/LogViewerFilterModel.h
+    src/models/LogViewerModelLogFileParser.h
     src/delegates/AbstractStyledItemDelegate.h
     src/delegates/LimitedFontsDelegate.h
     src/delegates/NoteItemDelegate.h
@@ -233,7 +233,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/FavoritesModelItem.cpp
     src/models/LogViewerModel.cpp
     src/models/LogViewerModelFileReaderAsync.cpp
-    src/models/LogViewerFilterModel.cpp
+    src/models/LogViewerModelLogFileParser.cpp
     src/delegates/AbstractStyledItemDelegate.cpp
     src/delegates/LimitedFontsDelegate.cpp
     src/delegates/NoteItemDelegate.cpp

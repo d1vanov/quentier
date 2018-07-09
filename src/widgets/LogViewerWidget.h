@@ -19,6 +19,7 @@
 #ifndef QUENTIER_LOG_VIEWER_WIDGET_H
 #define QUENTIER_LOG_VIEWER_WIDGET_H
 
+#include "../models/LogViewerModel.h"
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -35,9 +36,6 @@ QT_FORWARD_DECLARE_CLASS(QCheckBox)
 QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
-
-QT_FORWARD_DECLARE_CLASS(LogViewerModel)
-QT_FORWARD_DECLARE_CLASS(LogViewerFilterModel)
 
 class LogViewerWidget : public QWidget
 {
@@ -62,8 +60,8 @@ private Q_SLOTS:
     void onLogFileDirRemoved(const QString & path);
     void onLogFileDirChanged(const QString & path);
 
-    void onCopyAllToClipboardButtonPressed();
-    void onSaveAllToFileButtonPressed();
+    void onSaveLogToFileButtonPressed();
+    void onCancelSavingTheLogToFileButtonPressed();
 
     void onClearButtonPressed();
     void onResetButtonPressed();
@@ -72,6 +70,9 @@ private Q_SLOTS:
 
     void onModelError(ErrorString errorDescription);
     void onModelRowsInserted(const QModelIndex & parent, int first, int last);
+
+    void onSaveModelEntriesToFileFinished(ErrorString errorDescription);
+    void onSaveModelEntriesToFileProgress(double progressPercent);
 
     void onLogEntriesViewContextMenuRequested(const QPoint & pos);
     void onLogEntriesViewCopySelectedItemsAction();
@@ -85,8 +86,12 @@ private:
     void scheduleLogEntriesViewColumnsResize();
     void resizeLogEntriesViewColumns();
 
-    QString displayedLogEntriesToString() const;
     void copyStringToClipboard(const QString & text);
+    void showLogFileIsLoadingLabel();
+
+    void collectModelFilteringOptions(LogViewerModel::FilteringOptions & options) const;
+
+    void enableUiElementsAfterSavingLogToFile();
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -97,10 +102,9 @@ private:
     FileSystemWatcher       m_logFilesFolderWatcher;
 
     LogViewerModel *        m_pLogViewerModel;
-    LogViewerFilterModel *  m_pLogViewerFilterModel;
 
-    QBasicTimer             m_modelFetchingMoreTimer;
     QBasicTimer             m_delayedSectionResizeTimer;
+    QBasicTimer             m_logViewerModelLoadingTimer;
 
     QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
     QMenu *                 m_pLogEntriesContextMenu;
@@ -109,7 +113,7 @@ private:
     LogLevel::type          m_minLogLevelBeforeTracing;
     QString                 m_filterByContentBeforeTracing;
     bool                    m_filterByLogLevelBeforeTracing[6];
-    int                     m_filterOutBeforeRowBeforeTracing;
+    qint64                  m_startLogFilePosBeforeTracing;
 };
 
 } // namespace quentier
