@@ -44,6 +44,8 @@ set(RESOURCES
     resource/icons/app/app_icons.qrc
     resource/icons/themes/tango/tango.qrc
     resource/icons/themes/oxygen/oxygen.qrc
+    resource/icons/themes/breeze/breeze.qrc
+    resource/icons/themes/breeze-dark/breeze-dark.qrc
     resource/icons/other/icons.qrc)
 
 prepend_path(RESOURCES_FULL_PATH "${RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}")
