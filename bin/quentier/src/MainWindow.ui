@@ -3168,7 +3168,7 @@ border-bottom: 1px solid black;
   </action>
   <action name="ActionPrint">
    <property name="icon">
-    <iconset theme="printer">
+    <iconset theme="document-print">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
