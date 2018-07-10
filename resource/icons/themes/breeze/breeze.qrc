@@ -42,7 +42,6 @@
         <file>16x16/actions/mail-send.svg</file>
         <file>16x16/actions/system-search.svg</file>
         <file>16x16/actions/tools-check-spelling.svg</file>
-        <file>16x16/devices/printer.svg</file>
         <file>16x16/mimetypes/application-enex.svg</file>
         <file>16x16/mimetypes/application-pdf.svg</file>
         <file>16x16/places/folder.svg</file>
@@ -89,7 +88,6 @@
         <file>22x22/actions/mail-send.svg</file>
         <file>22x22/actions/system-search.svg</file>
         <file>22x22/actions/tools-check-spelling.svg</file>
-        <file>22x22/devices/printer.svg</file>
         <file>22x22/mimetypes/application-enex.svg</file>
         <file>22x22/mimetypes/application-pdf.svg</file>
         <file>22x22/places/folder.svg</file>
@@ -136,7 +134,6 @@
         <file>32x32/actions/mail-send.svg</file>
         <file>32x32/actions/system-search.svg</file>
         <file>32x32/actions/tools-check-spelling.svg</file>
-        <file>32x32/devices/printer.svg</file>
         <file>32x32/mimetypes/application-enex.svg</file>
         <file>32x32/mimetypes/application-pdf.svg</file>
         <file>32x32/places/folder.svg</file>
