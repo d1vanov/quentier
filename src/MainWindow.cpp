@@ -2675,7 +2675,7 @@ void MainWindow::onExportedNotesToEnex(QString enex)
         return;
     }
 
-    QByteArray enexRawData = enex.toLocal8Bit();
+    QByteArray enexRawData = enex.toUtf8();
 
     AsyncFileWriter * pAsyncFileWriter = new AsyncFileWriter(enexFilePath, enexRawData);
     QObject::connect(pAsyncFileWriter, QNSIGNAL(AsyncFileWriter,fileSuccessfullyWritten,QString),

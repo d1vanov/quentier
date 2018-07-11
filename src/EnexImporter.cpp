@@ -131,7 +131,7 @@ void EnexImporter::start()
         return;
     }
 
-    QString enex = QString::fromLocal8Bit(enexFile.readAll());
+    QString enex = QString::fromUtf8(enexFile.readAll());
     enexFile.close();
 
     QVector<Note> importedNotes;
