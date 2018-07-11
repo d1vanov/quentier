@@ -38,8 +38,8 @@ init:
   - if %platform%==amd64 set tool=VS2017_x64
   - if %platform%==amd64_x86 set tool=VS2015_x86
   - if %platform%==mingw set tool=MinGW_x86
-  - if %platform%==mingw set DEPLOYMENT_TARGET=Quentier-windows-qt55-%tool%-%APPVEYOR_REPO_COMMIT:~0,7%.zip
-  - if not %platform%==mingw set DEPLOYMENT_TARGET=Quentier-windows-qt510-%tool%-%APPVEYOR_REPO_COMMIT:~0,7%.zip
+  - if %platform%==mingw set DEPLOYMENT_TARGET=Quentier-0.4.0-windows-portable-qt55-%tool%.zip
+  - if not %platform%==mingw set DEPLOYMENT_TARGET=Quentier-0.4.0-windows-portable-qt510-%tool%.zip
   - if %platform%==amd64 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - if %platform%==amd64_x86 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %platform%
   - if not %platform%==mingw (set makefiles="NMake Makefiles") else (set makefiles="MinGW Makefiles")
@@ -288,7 +288,7 @@ after_build:
   - 7z a %DEPLOYMENT_TARGET% c:\dev\install\*
   - move %DEPLOYMENT_TARGET% %APPVEYOR_BUILD_FOLDER%
   - cd %APPVEYOR_BUILD_FOLDER%
-  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe
+  - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe Quentier-*.zip
 
 artifacts:
   - path: '*.zip'
