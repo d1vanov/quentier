@@ -192,6 +192,8 @@ private Q_SLOTS:
     void onSwitchIconsToNativeAction();
     void onSwitchIconsToTangoAction();
     void onSwitchIconsToOxygenAction();
+    void onSwitchIconsToBreezeAction();
+    void onSwitchIconsToBreezeDarkAction();
 
     void onSwitchPanelStyleToBuiltIn();
     void onSwitchPanelStyleToLighter();

@@ -466,6 +466,10 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchIconsToOxygenAction));
     QObject::connect(m_pUI->ActionIconsTango, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchIconsToTangoAction));
+    QObject::connect(m_pUI->ActionIconsBreeze, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconsToBreezeAction));
+    QObject::connect(m_pUI->ActionIconsBreezeDark, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconsToBreezeDarkAction));
     QObject::connect(m_pUI->ActionPanelStyleBuiltIn, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToBuiltIn));
     QObject::connect(m_pUI->ActionPanelStyleLighter, QNSIGNAL(QAction,triggered),
@@ -3307,6 +3311,42 @@ void MainWindow::onSwitchIconsToOxygenAction()
     refreshChildWidgetsThemeIcons();
 }
 
+void MainWindow::onSwitchIconsToBreezeAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToBreezeAction"));
+
+    QString breeze = QStringLiteral("breeze");
+
+    if (QIcon::themeName() == breeze) {
+        ErrorString error(QT_TR_NOOP("Already using breeze icon theme"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
+        return;
+    }
+
+    QIcon::setThemeName(breeze);
+    persistChosenIconTheme(breeze);
+    refreshChildWidgetsThemeIcons();
+}
+
+void MainWindow::onSwitchIconsToBreezeDarkAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToBreezeDarkAction"));
+
+    QString breezeDark = QStringLiteral("breeze-dark");
+
+    if (QIcon::themeName() == breezeDark) {
+        ErrorString error(QT_TR_NOOP("Already using breeze-dark icon theme"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
+        return;
+    }
+
+    QIcon::setThemeName(breezeDark);
+    persistChosenIconTheme(breezeDark);
+    refreshChildWidgetsThemeIcons();
+}
+
 void MainWindow::onSwitchPanelStyleToBuiltIn()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToBuiltIn"));
@@ -4000,9 +4040,9 @@ void MainWindow::setupThemeIcons()
     m_nativeIconThemeName = QIcon::themeName();
     QNDEBUG(QStringLiteral("Native icon theme name: ") << m_nativeIconThemeName);
 
-    if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
         QNDEBUG(QStringLiteral("There seems to be no native icon theme available: "
-                               "document-open icon is not present within the theme"));
+                               "document-new icon is not present within the theme"));
         m_nativeIconThemeName.clear();
     }
 

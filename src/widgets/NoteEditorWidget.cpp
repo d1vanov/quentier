@@ -2437,16 +2437,38 @@ void NoteEditorWidget::setupSpecialIcons()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::setupSpecialIcons"));
 
-    QString enexIconName = QStringLiteral("application-enex");
+    const QString enexIconName = QStringLiteral("application-enex");
+    if (!QIcon::hasThemeIcon(enexIconName))
+    {
+        QString fallbackIconThemeForEnexIcon = QStringLiteral("oxygen");
+        const QString iconThemeName = QIcon::themeName();
+        if (iconThemeName.contains(QStringLiteral("breeze")) ||
+            (iconThemeName == QStringLiteral("tango")))
+        {
+            fallbackIconThemeForEnexIcon = iconThemeName;
+        }
 
-    if (!QIcon::hasThemeIcon(enexIconName)) {
+        QString fallbackIconExtension = QStringLiteral("png");
+        if (fallbackIconThemeForEnexIcon.contains(QStringLiteral("breeze"))) {
+            fallbackIconExtension = QStringLiteral("svg");
+        }
+
+        QNINFO(QStringLiteral("Fallback icon theme for enex icon = ") << fallbackIconThemeForEnexIcon);
+
         QIcon fallbackIcon = QIcon::fromTheme(enexIconName);    // NOTE: it is necessary for the icon to have a name in order to ensure the logic of icon switching works properly
-        fallbackIcon.addFile(QStringLiteral(":/icons/oxygen/16x16/mimetypes/application-enex.png"), QSize(16, 16), QIcon::Normal, QIcon::Off);
-        fallbackIcon.addFile(QStringLiteral(":/icons/oxygen/22x22/mimetypes/application-enex.png"), QSize(22, 22), QIcon::Normal, QIcon::Off);
-        fallbackIcon.addFile(QStringLiteral(":/icons/oxygen/32x32/mimetypes/application-enex.png"), QSize(32, 32), QIcon::Normal, QIcon::Off);
+        fallbackIcon.addFile(QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
+                             QStringLiteral("/16x16/mimetypes/application-enex.") +
+                             fallbackIconExtension, QSize(16, 16), QIcon::Normal, QIcon::Off);
+        fallbackIcon.addFile(QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
+                             QStringLiteral("/22x22/mimetypes/application-enex.") +
+                             fallbackIconExtension, QSize(22, 22), QIcon::Normal, QIcon::Off);
+        fallbackIcon.addFile(QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
+                             QStringLiteral("/32x32/mimetypes/application-enex.") +
+                             fallbackIconExtension, QSize(32, 32), QIcon::Normal, QIcon::Off);
         m_pUi->exportNoteToEnexPushButton->setIcon(fallbackIcon);
     }
-    else {
+    else
+    {
         QIcon themeIcon = QIcon::fromTheme(enexIconName);
         m_pUi->exportNoteToEnexPushButton->setIcon(themeIcon);
     }
