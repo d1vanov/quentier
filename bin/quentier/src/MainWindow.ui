@@ -2872,6 +2872,8 @@ border-bottom: 1px solid black;
       <addaction name="ActionIconsNative"/>
       <addaction name="ActionIconsTango"/>
       <addaction name="ActionIconsOxygen"/>
+      <addaction name="ActionIconsBreeze"/>
+      <addaction name="ActionIconsBreezeDark"/>
      </widget>
      <widget class="QMenu" name="menuPanels">
       <property name="title">
@@ -4248,6 +4250,16 @@ border-bottom: 1px solid black;
   <action name="ActionShowNoteSource">
    <property name="text">
     <string>&amp;Show note source</string>
+   </property>
+  </action>
+  <action name="ActionIconsBreeze">
+   <property name="text">
+    <string>&amp;Breeze</string>
+   </property>
+  </action>
+  <action name="ActionIconsBreezeDark">
+   <property name="text">
+    <string>Breeze &amp;dark</string>
    </property>
   </action>
  </widget>

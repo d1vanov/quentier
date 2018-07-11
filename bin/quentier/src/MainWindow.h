@@ -216,6 +216,8 @@ private Q_SLOTS:
     void onSwitchIconThemeToNativeAction();
     void onSwitchIconThemeToTangoAction();
     void onSwitchIconThemeToOxygenAction();
+    void onSwitchIconThemeToBreezeAction();
+    void onSwitchIconThemeToBreezeDarkAction();
 
     void onSwitchPanelStyle(const QString & panelStyle);
     void onSwitchPanelStyleToBuiltIn();
