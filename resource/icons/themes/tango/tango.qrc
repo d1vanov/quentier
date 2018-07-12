@@ -1,149 +1,149 @@
 <RCC>
     <qresource prefix="/icons/tango">
         <file alias="index.theme">index.theme</file>
-        <file>16x16/actions/checkbox.png</file>
-        <file>16x16/actions/document-new.png</file>
-        <file>16x16/actions/document-print.png</file>
-        <file>16x16/actions/document-save.png</file>
-        <file>16x16/actions/edit-clear.png</file>
-        <file>16x16/actions/edit-copy.png</file>
-        <file>16x16/actions/edit-cut.png</file>
-        <file>16x16/actions/edit-delete.png</file>
-        <file>16x16/actions/edit-find-replace.png</file>
-        <file>16x16/actions/edit-find.png</file>
-        <file>16x16/actions/edit-paste.png</file>
-        <file>16x16/actions/edit-redo.png</file>
-        <file>16x16/actions/edit-select-all.png</file>
-        <file>16x16/actions/edit-undo.png</file>
-        <file>16x16/actions/fill-color.png</file>
-        <file>16x16/actions/folder-new.png</file>
-        <file>16x16/actions/format-indent-less.png</file>
-        <file>16x16/actions/format-indent-more.png</file>
-        <file>16x16/actions/format-justify-center.png</file>
-        <file>16x16/actions/format-justify-fill.png</file>
-        <file>16x16/actions/format-justify-left.png</file>
-        <file>16x16/actions/format-justify-right.png</file>
-        <file>16x16/actions/format-list-ordered.png</file>
-        <file>16x16/actions/format-list-unordered.png</file>
-        <file>16x16/actions/format-text-bold.png</file>
-        <file>16x16/actions/format-text-color.png</file>
-        <file>16x16/actions/format-text-italic.png</file>
-        <file>16x16/actions/format-text-strikethrough.png</file>
-        <file>16x16/actions/format-text-underline.png</file>
-        <file>16x16/actions/go-bottom.png</file>
-        <file>16x16/actions/go-down.png</file>
-        <file>16x16/actions/go-next.png</file>
-        <file>16x16/actions/go-previous.png</file>
-        <file>16x16/actions/go-top.png</file>
-        <file>16x16/actions/go-up.png</file>
-        <file>16x16/actions/insert-horizontal-rule.png</file>
-        <file>16x16/actions/insert-table.png</file>
-        <file>16x16/actions/list-add.png</file>
-        <file>16x16/actions/mail-send.png</file>
-        <file>16x16/actions/system-search.png</file>
-        <file>16x16/actions/tools-check-spelling.png</file>
-        <file>16x16/mimetypes/application-enex.png</file>
-        <file>16x16/mimetypes/application-pdf.png</file>
-        <file>16x16/mimetypes/x-office-address-book.png</file>
-        <file>16x16/mimetypes/x-office-document.png</file>
-        <file>16x16/places/folder.png</file>
-        <file>16x16/places/user-trash.png</file>
-        <file>16x16/status/dialog-information.png</file>
-        <file>22x22/actions/checkbox.png</file>
-        <file>22x22/actions/document-new.png</file>
-        <file>22x22/actions/document-print.png</file>
-        <file>22x22/actions/document-save.png</file>
-        <file>22x22/actions/edit-clear.png</file>
-        <file>22x22/actions/edit-copy.png</file>
-        <file>22x22/actions/edit-cut.png</file>
-        <file>22x22/actions/edit-delete.png</file>
-        <file>22x22/actions/edit-find-replace.png</file>
-        <file>22x22/actions/edit-find.png</file>
-        <file>22x22/actions/edit-paste.png</file>
-        <file>22x22/actions/edit-redo.png</file>
-        <file>22x22/actions/edit-select-all.png</file>
-        <file>22x22/actions/edit-undo.png</file>
-        <file>22x22/actions/fill-color.png</file>
-        <file>22x22/actions/folder-new.png</file>
-        <file>22x22/actions/format-indent-less.png</file>
-        <file>22x22/actions/format-indent-more.png</file>
-        <file>22x22/actions/format-justify-center.png</file>
-        <file>22x22/actions/format-justify-fill.png</file>
-        <file>22x22/actions/format-justify-left.png</file>
-        <file>22x22/actions/format-justify-right.png</file>
-        <file>22x22/actions/format-list-ordered.png</file>
-        <file>22x22/actions/format-list-unordered.png</file>
-        <file>22x22/actions/format-text-bold.png</file>
-        <file>22x22/actions/format-text-color.png</file>
-        <file>22x22/actions/format-text-italic.png</file>
-        <file>22x22/actions/format-text-strikethrough.png</file>
-        <file>22x22/actions/format-text-underline.png</file>
-        <file>22x22/actions/go-bottom.png</file>
-        <file>22x22/actions/go-down.png</file>
-        <file>22x22/actions/go-next.png</file>
-        <file>22x22/actions/go-previous.png</file>
-        <file>22x22/actions/go-top.png</file>
-        <file>22x22/actions/go-up.png</file>
-        <file>22x22/actions/insert-horizontal-rule.png</file>
-        <file>22x22/actions/insert-table.png</file>
-        <file>22x22/actions/list-add.png</file>
-        <file>22x22/actions/mail-send.png</file>
-        <file>22x22/actions/system-search.png</file>
-        <file>22x22/actions/tools-check-spelling.png</file>
-        <file>22x22/mimetypes/application-enex.png</file>
-        <file>22x22/mimetypes/application-pdf.png</file>
-        <file>22x22/mimetypes/x-office-address-book.png</file>
-        <file>22x22/mimetypes/x-office-document.png</file>
-        <file>22x22/places/folder.png</file>
-        <file>22x22/places/user-trash.png</file>
-        <file>22x22/status/dialog-information.png</file>
-        <file>32x32/actions/checkbox.png</file>
-        <file>32x32/actions/document-new.png</file>
-        <file>32x32/actions/document-print.png</file>
-        <file>32x32/actions/document-save.png</file>
-        <file>32x32/actions/edit-clear.png</file>
-        <file>32x32/actions/edit-copy.png</file>
-        <file>32x32/actions/edit-cut.png</file>
-        <file>32x32/actions/edit-delete.png</file>
-        <file>32x32/actions/edit-find-replace.png</file>
-        <file>32x32/actions/edit-find.png</file>
-        <file>32x32/actions/edit-paste.png</file>
-        <file>32x32/actions/edit-redo.png</file>
-        <file>32x32/actions/edit-select-all.png</file>
-        <file>32x32/actions/edit-undo.png</file>
-        <file>32x32/actions/fill-color.png</file>
-        <file>32x32/actions/folder-new.png</file>
-        <file>32x32/actions/format-indent-less.png</file>
-        <file>32x32/actions/format-indent-more.png</file>
-        <file>32x32/actions/format-justify-center.png</file>
-        <file>32x32/actions/format-justify-fill.png</file>
-        <file>32x32/actions/format-justify-left.png</file>
-        <file>32x32/actions/format-justify-right.png</file>
-        <file>32x32/actions/format-list-ordered.png</file>
-        <file>32x32/actions/format-list-unordered.png</file>
-        <file>32x32/actions/format-text-bold.png</file>
-        <file>32x32/actions/format-text-color.png</file>
-        <file>32x32/actions/format-text-italic.png</file>
-        <file>32x32/actions/format-text-strikethrough.png</file>
-        <file>32x32/actions/format-text-underline.png</file>
-        <file>32x32/actions/go-bottom.png</file>
-        <file>32x32/actions/go-down.png</file>
-        <file>32x32/actions/go-next.png</file>
-        <file>32x32/actions/go-previous.png</file>
-        <file>32x32/actions/go-top.png</file>
-        <file>32x32/actions/go-up.png</file>
-        <file>32x32/actions/insert-horizontal-rule.png</file>
-        <file>32x32/actions/insert-table.png</file>
-        <file>32x32/actions/list-add.png</file>
-        <file>32x32/actions/mail-send.png</file>
-        <file>32x32/actions/system-search.png</file>
-        <file>32x32/actions/tools-check-spelling.png</file>
-        <file>32x32/mimetypes/application-enex.png</file>
-        <file>32x32/mimetypes/application-pdf.png</file>
-        <file>32x32/mimetypes/x-office-address-book.png</file>
-        <file>32x32/mimetypes/x-office-document.png</file>
-        <file>32x32/places/folder.png</file>
-        <file>32x32/places/user-trash.png</file>
-        <file>32x32/status/dialog-information.png</file>
+        <file alias="16x16/checkbox.png">16x16/actions/checkbox.png</file>
+        <file alias="16x16/document-new.png">16x16/actions/document-new.png</file>
+        <file alias="16x16/document-print.png">16x16/actions/document-print.png</file>
+        <file alias="16x16/document-save.png">16x16/actions/document-save.png</file>
+        <file alias="16x16/edit-clear.png">16x16/actions/edit-clear.png</file>
+        <file alias="16x16/edit-copy.png">16x16/actions/edit-copy.png</file>
+        <file alias="16x16/edit-cut.png">16x16/actions/edit-cut.png</file>
+        <file alias="16x16/edit-delete.png">16x16/actions/edit-delete.png</file>
+        <file alias="16x16/edit-find-replace.png">16x16/actions/edit-find-replace.png</file>
+        <file alias="16x16/edit-find.png">16x16/actions/edit-find.png</file>
+        <file alias="16x16/edit-paste.png">16x16/actions/edit-paste.png</file>
+        <file alias="16x16/edit-redo.png">16x16/actions/edit-redo.png</file>
+        <file alias="16x16/edit-select-all.png">16x16/actions/edit-select-all.png</file>
+        <file alias="16x16/edit-undo.png">16x16/actions/edit-undo.png</file>
+        <file alias="16x16/fill-color.png">16x16/actions/fill-color.png</file>
+        <file alias="16x16/folder-new.png">16x16/actions/folder-new.png</file>
+        <file alias="16x16/format-indent-less.png">16x16/actions/format-indent-less.png</file>
+        <file alias="16x16/format-indent-more.png">16x16/actions/format-indent-more.png</file>
+        <file alias="16x16/format-justify-center.png">16x16/actions/format-justify-center.png</file>
+        <file alias="16x16/format-justify-fill.png">16x16/actions/format-justify-fill.png</file>
+        <file alias="16x16/format-justify-left.png">16x16/actions/format-justify-left.png</file>
+        <file alias="16x16/format-justify-right.png">16x16/actions/format-justify-right.png</file>
+        <file alias="16x16/format-list-ordered.png">16x16/actions/format-list-ordered.png</file>
+        <file alias="16x16/format-list-unordered.png">16x16/actions/format-list-unordered.png</file>
+        <file alias="16x16/format-text-bold.png">16x16/actions/format-text-bold.png</file>
+        <file alias="16x16/format-text-color.png">16x16/actions/format-text-color.png</file>
+        <file alias="16x16/format-text-italic.png">16x16/actions/format-text-italic.png</file>
+        <file alias="16x16/format-text-strikethrough.png">16x16/actions/format-text-strikethrough.png</file>
+        <file alias="16x16/format-text-underline.png">16x16/actions/format-text-underline.png</file>
+        <file alias="16x16/go-bottom.png">16x16/actions/go-bottom.png</file>
+        <file alias="16x16/go-down.png">16x16/actions/go-down.png</file>
+        <file alias="16x16/go-next.png">16x16/actions/go-next.png</file>
+        <file alias="16x16/go-previous.png">16x16/actions/go-previous.png</file>
+        <file alias="16x16/go-top.png">16x16/actions/go-top.png</file>
+        <file alias="16x16/go-up.png">16x16/actions/go-up.png</file>
+        <file alias="16x16/insert-horizontal-rule.png">16x16/actions/insert-horizontal-rule.png</file>
+        <file alias="16x16/insert-table.png">16x16/actions/insert-table.png</file>
+        <file alias="16x16/list-add.png">16x16/actions/list-add.png</file>
+        <file alias="16x16/mail-send.png">16x16/actions/mail-send.png</file>
+        <file alias="16x16/system-search.png">16x16/actions/system-search.png</file>
+        <file alias="16x16/tools-check-spelling.png">16x16/actions/tools-check-spelling.png</file>
+        <file alias="16x16/application-enex.png">16x16/mimetypes/application-enex.png</file>
+        <file alias="16x16/application-pdf.png">16x16/mimetypes/application-pdf.png</file>
+        <file alias="16x16/x-office-address-book.png">16x16/mimetypes/x-office-address-book.png</file>
+        <file alias="16x16/x-office-document.png">16x16/mimetypes/x-office-document.png</file>
+        <file alias="16x16/folder.png">16x16/places/folder.png</file>
+        <file alias="16x16/user-trash.png">16x16/places/user-trash.png</file>
+        <file alias="16x16/dialog-information.png">16x16/status/dialog-information.png</file>
+        <file alias="22x22/checkbox.png">22x22/actions/checkbox.png</file>
+        <file alias="22x22/document-new.png">22x22/actions/document-new.png</file>
+        <file alias="22x22/document-print.png">22x22/actions/document-print.png</file>
+        <file alias="22x22/document-save.png">22x22/actions/document-save.png</file>
+        <file alias="22x22/edit-clear.png">22x22/actions/edit-clear.png</file>
+        <file alias="22x22/edit-copy.png">22x22/actions/edit-copy.png</file>
+        <file alias="22x22/edit-cut.png">22x22/actions/edit-cut.png</file>
+        <file alias="22x22/edit-delete.png">22x22/actions/edit-delete.png</file>
+        <file alias="22x22/edit-find-replace.png">22x22/actions/edit-find-replace.png</file>
+        <file alias="22x22/edit-find.png">22x22/actions/edit-find.png</file>
+        <file alias="22x22/edit-paste.png">22x22/actions/edit-paste.png</file>
+        <file alias="22x22/edit-redo.png">22x22/actions/edit-redo.png</file>
+        <file alias="22x22/edit-select-all.png">22x22/actions/edit-select-all.png</file>
+        <file alias="22x22/edit-undo.png">22x22/actions/edit-undo.png</file>
+        <file alias="22x22/fill-color.png">22x22/actions/fill-color.png</file>
+        <file alias="22x22/folder-new.png">22x22/actions/folder-new.png</file>
+        <file alias="22x22/format-indent-less.png">22x22/actions/format-indent-less.png</file>
+        <file alias="22x22/format-indent-more.png">22x22/actions/format-indent-more.png</file>
+        <file alias="22x22/format-justify-center.png">22x22/actions/format-justify-center.png</file>
+        <file alias="22x22/format-justify-fill.png">22x22/actions/format-justify-fill.png</file>
+        <file alias="22x22/format-justify-left.png">22x22/actions/format-justify-left.png</file>
+        <file alias="22x22/format-justify-right.png">22x22/actions/format-justify-right.png</file>
+        <file alias="22x22/format-list-ordered.png">22x22/actions/format-list-ordered.png</file>
+        <file alias="22x22/format-list-unordered.png">22x22/actions/format-list-unordered.png</file>
+        <file alias="22x22/format-text-bold.png">22x22/actions/format-text-bold.png</file>
+        <file alias="22x22/format-text-color.png">22x22/actions/format-text-color.png</file>
+        <file alias="22x22/format-text-italic.png">22x22/actions/format-text-italic.png</file>
+        <file alias="22x22/format-text-strikethrough.png">22x22/actions/format-text-strikethrough.png</file>
+        <file alias="22x22/format-text-underline.png">22x22/actions/format-text-underline.png</file>
+        <file alias="22x22/go-bottom.png">22x22/actions/go-bottom.png</file>
+        <file alias="22x22/go-down.png">22x22/actions/go-down.png</file>
+        <file alias="22x22/go-next.png">22x22/actions/go-next.png</file>
+        <file alias="22x22/go-previous.png">22x22/actions/go-previous.png</file>
+        <file alias="22x22/go-top.png">22x22/actions/go-top.png</file>
+        <file alias="22x22/go-up.png">22x22/actions/go-up.png</file>
+        <file alias="22x22/insert-horizontal-rule.png">22x22/actions/insert-horizontal-rule.png</file>
+        <file alias="22x22/insert-table.png">22x22/actions/insert-table.png</file>
+        <file alias="22x22/list-add.png">22x22/actions/list-add.png</file>
+        <file alias="22x22/mail-send.png">22x22/actions/mail-send.png</file>
+        <file alias="22x22/system-search.png">22x22/actions/system-search.png</file>
+        <file alias="22x22/tools-check-spelling.png">22x22/actions/tools-check-spelling.png</file>
+        <file alias="22x22/application-enex.png">22x22/mimetypes/application-enex.png</file>
+        <file alias="22x22/application-pdf.png">22x22/mimetypes/application-pdf.png</file>
+        <file alias="22x22/x-office-address-book.png">22x22/mimetypes/x-office-address-book.png</file>
+        <file alias="22x22/x-office-document.png">22x22/mimetypes/x-office-document.png</file>
+        <file alias="22x22/folder.png">22x22/places/folder.png</file>
+        <file alias="22x22/user-trash.png">22x22/places/user-trash.png</file>
+        <file alias="22x22/dialog-information.png">22x22/status/dialog-information.png</file>
+        <file alias="32x32/checkbox.png">32x32/actions/checkbox.png</file>
+        <file alias="32x32/document-new.png">32x32/actions/document-new.png</file>
+        <file alias="32x32/document-print.png">32x32/actions/document-print.png</file>
+        <file alias="32x32/document-save.png">32x32/actions/document-save.png</file>
+        <file alias="32x32/edit-clear.png">32x32/actions/edit-clear.png</file>
+        <file alias="32x32/edit-copy.png">32x32/actions/edit-copy.png</file>
+        <file alias="32x32/edit-cut.png">32x32/actions/edit-cut.png</file>
+        <file alias="32x32/edit-delete.png">32x32/actions/edit-delete.png</file>
+        <file alias="32x32/edit-find-replace.png">32x32/actions/edit-find-replace.png</file>
+        <file alias="32x32/edit-find.png">32x32/actions/edit-find.png</file>
+        <file alias="32x32/edit-paste.png">32x32/actions/edit-paste.png</file>
+        <file alias="32x32/edit-redo.png">32x32/actions/edit-redo.png</file>
+        <file alias="32x32/edit-select-all.png">32x32/actions/edit-select-all.png</file>
+        <file alias="32x32/edit-undo.png">32x32/actions/edit-undo.png</file>
+        <file alias="32x32/fill-color.png">32x32/actions/fill-color.png</file>
+        <file alias="32x32/folder-new.png">32x32/actions/folder-new.png</file>
+        <file alias="32x32/format-indent-less.png">32x32/actions/format-indent-less.png</file>
+        <file alias="32x32/format-indent-more.png">32x32/actions/format-indent-more.png</file>
+        <file alias="32x32/format-justify-center.png">32x32/actions/format-justify-center.png</file>
+        <file alias="32x32/format-justify-fill.png">32x32/actions/format-justify-fill.png</file>
+        <file alias="32x32/format-justify-left.png">32x32/actions/format-justify-left.png</file>
+        <file alias="32x32/format-justify-right.png">32x32/actions/format-justify-right.png</file>
+        <file alias="32x32/format-list-ordered.png">32x32/actions/format-list-ordered.png</file>
+        <file alias="32x32/format-list-unordered.png">32x32/actions/format-list-unordered.png</file>
+        <file alias="32x32/format-text-bold.png">32x32/actions/format-text-bold.png</file>
+        <file alias="32x32/format-text-color.png">32x32/actions/format-text-color.png</file>
+        <file alias="32x32/format-text-italic.png">32x32/actions/format-text-italic.png</file>
+        <file alias="32x32/format-text-strikethrough.png">32x32/actions/format-text-strikethrough.png</file>
+        <file alias="32x32/format-text-underline.png">32x32/actions/format-text-underline.png</file>
+        <file alias="32x32/go-bottom.png">32x32/actions/go-bottom.png</file>
+        <file alias="32x32/go-down.png">32x32/actions/go-down.png</file>
+        <file alias="32x32/go-next.png">32x32/actions/go-next.png</file>
+        <file alias="32x32/go-previous.png">32x32/actions/go-previous.png</file>
+        <file alias="32x32/go-top.png">32x32/actions/go-top.png</file>
+        <file alias="32x32/go-up.png">32x32/actions/go-up.png</file>
+        <file alias="32x32/insert-horizontal-rule.png">32x32/actions/insert-horizontal-rule.png</file>
+        <file alias="32x32/insert-table.png">32x32/actions/insert-table.png</file>
+        <file alias="32x32/list-add.png">32x32/actions/list-add.png</file>
+        <file alias="32x32/mail-send.png">32x32/actions/mail-send.png</file>
+        <file alias="32x32/system-search.png">32x32/actions/system-search.png</file>
+        <file alias="32x32/tools-check-spelling.png">32x32/actions/tools-check-spelling.png</file>
+        <file alias="32x32/application-enex.png">32x32/mimetypes/application-enex.png</file>
+        <file alias="32x32/application-pdf.png">32x32/mimetypes/application-pdf.png</file>
+        <file alias="32x32/x-office-address-book.png">32x32/mimetypes/x-office-address-book.png</file>
+        <file alias="32x32/x-office-document.png">32x32/mimetypes/x-office-document.png</file>
+        <file alias="32x32/folder.png">32x32/places/folder.png</file>
+        <file alias="32x32/user-trash.png">32x32/places/user-trash.png</file>
+        <file alias="32x32/dialog-information.png">32x32/status/dialog-information.png</file>
     </qresource>
 </RCC>
