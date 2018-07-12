@@ -76,6 +76,7 @@ set(${PROJECT_NAME}_HEADERS
     src/BasicXMLSyntaxHighlighter.h
     src/EditNoteDialogsManager.h
     src/EnexImporter.h
+    src/IconThemeManager.h
     src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
     src/EnexExporter.h
@@ -182,6 +183,7 @@ set(${PROJECT_NAME}_SOURCES
     src/BasicXMLSyntaxHighlighter.cpp
     src/EditNoteDialogsManager.cpp
     src/EnexImporter.cpp
+    src/IconThemeManager.cpp
     src/NoteEditorTabsAndWindowsCoordinator.cpp
     src/NoteFiltersManager.cpp
     src/EnexExporter.cpp
