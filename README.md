@@ -30,7 +30,7 @@ Prebuilt versions of Quentier can be downloaded from the following locations:
  * Stable version:
    * Quentier for Windows:
      * [Qt 5.10 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2015.Win32.exe) (built with MSVC 2015, might require admin rights to install runtime)
-     * [Qt 5.10 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-0.4.0-windows-portable-qt510-VS2015_x86.zip] (built with MSVC 2015, doesn't contain runtime which might need to be installed separately)
+     * [Qt 5.10 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-0.4.0-windows-portable-qt510-VS2015_x86.zip) (built with MSVC 2015, doesn't contain runtime which might need to be installed separately)
      * [Qt 5.10 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2017.x64.exe) (built with MSVC 2017, might require admin rights to install runtime)
      * [Qt 5.10 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-0.4.0-windows-portable-qt510-VS2017_x64.zip) (built with MSVC 2017, doesn't contain runtime which might need to be installed separately)
      * [Qt 5.5 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.4.0.Qt.5.5.1.MinGW.5.3.0.Win32.exe) (built with MinGW)
@@ -40,7 +40,7 @@ Prebuilt versions of Quentier can be downloaded from the following locations:
  * Unstable version:
    * Quentier for Windows:
      * [Qt 5.10 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2015.Win32.exe) (built with MSVC 2015, might require admin rights to install runtime)
-     * [Qt 5.10 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-0.4.0-windows-portable-qt510-VS2015_x86.zip] (built with MSVC 2015, doesn't contain runtime which might need to be installed separately)
+     * [Qt 5.10 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-0.4.0-windows-portable-qt510-VS2015_x86.zip) (built with MSVC 2015, doesn't contain runtime which might need to be installed separately)
      * [Qt 5.10 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.4.0.Qt.5.10.1.MSVC2017.x64.exe) (built with MSVC 2017, might require admin rights to install runtime)
      * [Qt 5.10 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-0.4.0-windows-portable-qt510-VS2017_x64.zip) (built with MSVC 2017, doesn't contain runtime which might need to be installed separately)
      * [Qt 5.5 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.4.0.Qt.5.5.1.MinGW.5.3.0.Win32.exe) (built with MinGW)
