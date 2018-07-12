@@ -285,7 +285,7 @@ build_script:
 
 after_build:
   - cd c:\dev\install
-  - 7z a %DEPLOYMENT_TARGET% c:\dev\install\*
+  - 7z a -tzip -mx=9 -mfb=128 -mpass=10 %DEPLOYMENT_TARGET% c:\dev\install\*
   - move %DEPLOYMENT_TARGET% %APPVEYOR_BUILD_FOLDER%
   - cd %APPVEYOR_BUILD_FOLDER%
   - c:\dev\ciuploadtool\ciuploadtool.exe -suffix="%APPVEYOR_REPO_BRANCH%" Setup*.exe Quentier-*.zip
