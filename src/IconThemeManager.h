@@ -34,33 +34,51 @@ class IconThemeManager: public QObject
 public:
     explicit IconThemeManager(QObject * parent = Q_NULLPTR);
 
+    struct BuiltInIconTheme
+    {
+        enum type
+        {
+            Oxygen = 0,
+            Tango,
+            Breeze,
+            BreezeDark
+        };
+    };
+
     QString iconThemeName() const;
-    bool setIconThemeName(const QString & name);
+    void setIconThemeName(const QString & name, const BuiltInIconTheme::type fallbackIconTheme);
 
     QIcon overrideThemeIcon(const QString & name) const;
-    void setOverrideThemeIcon(const QString & name, const QIcon & icon);
+    bool setOverrideThemeIcon(const QString & name, const QString & overrideIconFilePath,
+                              ErrorString & errorDescription);
 
     const Account & currentAccount() const;
     void setCurrentAccount(const Account & account);
 
+    QIcon iconFromTheme(const QString & name) const;
+
 Q_SIGNALS:
-    void iconThemeChanged(QString iconThemeName);
+    void iconThemeChanged(QString iconThemeName, QString fallbackIconTheme);
     void overrideIconChanged(QString name, QIcon icon);
 
     void notifyError(ErrorString errorDescription);
 
 private:
-    void persistIconTheme(const QString & name);
+    void persistIconTheme(const QString & name, const BuiltInIconTheme::type fallbackIconTheme);
     void restoreIconTheme();
 
-    void persistOverrideIcon(const QString & name, const QIcon & icon);
+    bool persistOverrideIcon(const QString & name, const QString & overrideIconFilePath,
+                             ErrorString & errorDescription);
     void restoreOverrideIcons();
+
+    QString builtInIconThemeName(const BuiltInIconTheme::type builtInIconTheme) const;
 
 private:
     Q_DISABLE_COPY(IconThemeManager)
 
 private:
     Account                 m_currentAccount;
+    BuiltInIconTheme::type  m_fallbackIconTheme;
     QHash<QString,QIcon>    m_overrideIcons;
 };
 

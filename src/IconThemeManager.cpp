@@ -22,12 +22,19 @@
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QDir>
+#include <QFileInfo>
+
+#define OXYGEN_FALLBACK_ICON_THEME_NAME QStringLiteral("oxygen")
+#define TANGO_FALLBACK_ICON_THEME_NAME QStringLiteral("tango")
+#define BREEZE_FALLBACK_ICON_THEME_NAME QStringLiteral("breeze")
+#define BREEZE_DARK_FALLBACK_ICON_THEME_NAME QStringLiteral("breeze-dark")
 
 namespace quentier {
 
 IconThemeManager::IconThemeManager(QObject * parent) :
     QObject(parent),
     m_currentAccount(),
+    m_fallbackIconTheme(BuiltInIconTheme::Oxygen),
     m_overrideIcons()
 {}
 
@@ -36,26 +43,38 @@ QString IconThemeManager::iconThemeName() const
     return QIcon::themeName();
 }
 
-bool IconThemeManager::setIconThemeName(const QString & name)
+void IconThemeManager::setIconThemeName(const QString & name, const BuiltInIconTheme::type fallbackIconTheme)
 {
-    QNDEBUG(QStringLiteral("IconThemeManager::setIconThemeName: ") << name);
+    QNDEBUG(QStringLiteral("IconThemeManager::setIconThemeName: ") << name
+            << QStringLiteral(", fallback icon theme = ") << fallbackIconTheme);
 
-    QString previousIconName = QIcon::themeName();
-    if (previousIconName == name) {
-        QNDEBUG(QStringLiteral("Already using this icon theme"));
-        return true;
+    QString previousIconThemeName = QIcon::themeName();
+    if ((previousIconThemeName == name) && (fallbackIconTheme == m_fallbackIconTheme)) {
+        QNDEBUG(QStringLiteral("Already using these icon theme and fallback"));
+        return;
     }
 
     QIcon::setThemeName(name);
-    if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
-        QNDEBUG(QStringLiteral("Refusing to switch to the icon theme, it doesn't contain document-new icon and is thus considered invalid"));
-        QIcon::setThemeName(previousIconName);
-        return false;
+
+    QString fallbackIconThemeName = builtInIconThemeName(fallbackIconTheme);
+    if (Q_UNLIKELY(fallbackIconThemeName.isEmpty()))
+    {
+        QNINFO(QStringLiteral("Fallback icon theme seems incorrect, fallback to oxygen"));
+        fallbackIconThemeName = OXYGEN_FALLBACK_ICON_THEME_NAME;
+        if ((previousIconThemeName == name) && (m_fallbackIconTheme == BuiltInIconTheme::Oxygen)) {
+            QNDEBUG(QStringLiteral("Icon theme is already used with Oxygen fallback"));
+            return;
+        }
+
+        m_fallbackIconTheme = BuiltInIconTheme::Oxygen;
+    }
+    else
+    {
+        m_fallbackIconTheme = fallbackIconTheme;
     }
 
-    persistIconTheme(name);
-    Q_EMIT iconThemeChanged(name);
-    return true;
+    persistIconTheme(name, m_fallbackIconTheme);
+    Q_EMIT iconThemeChanged(name, fallbackIconThemeName);
 }
 
 QIcon IconThemeManager::overrideThemeIcon(const QString & name) const
@@ -69,13 +88,26 @@ QIcon IconThemeManager::overrideThemeIcon(const QString & name) const
     return it.value();
 }
 
-void IconThemeManager::setOverrideThemeIcon(const QString & name, const QIcon & icon)
+bool IconThemeManager::setOverrideThemeIcon(const QString & name, const QString & overrideIconFilePath,
+                                            ErrorString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("IconThemeManager::setOverrideThemeIcon: name = ") << name);
+    QNDEBUG(QStringLiteral("IconThemeManager::setOverrideThemeIcon: name = ") << name
+            << QStringLiteral(", override icon file path = ") << QDir::toNativeSeparators(overrideIconFilePath));
 
-    m_overrideIcons[name] = icon;
-    persistOverrideIcon(name, icon);
-    Q_EMIT overrideIconChanged(name, icon);
+    QIcon overrideIcon(overrideIconFilePath);
+    if (overrideIcon.isNull()) {
+        errorDescription.setBase(QT_TR_NOOP("can't load icon from the specified file"));
+        QNDEBUG(errorDescription);
+        return false;
+    }
+
+    if (!persistOverrideIcon(name, overrideIconFilePath, errorDescription)) {
+        return false;
+    }
+
+    m_overrideIcons[name] = overrideIcon;
+    Q_EMIT overrideIconChanged(name, overrideIcon);
+    return true;
 }
 
 const Account & IconThemeManager::currentAccount() const
@@ -102,9 +134,34 @@ void IconThemeManager::setCurrentAccount(const Account & account)
     restoreOverrideIcons();
 }
 
-void IconThemeManager::persistIconTheme(const QString & name)
+QIcon IconThemeManager::iconFromTheme(const QString & name) const
 {
-    QNDEBUG(QStringLiteral("IconThemeManager::persistIconTheme: ") << name);
+    auto overrideIt = m_overrideIcons.find(name);
+    if (overrideIt != m_overrideIcons.end()) {
+        return overrideIt.value();
+    }
+
+    QIcon icon = QIcon::fromTheme(name);
+    if (!icon.isNull()) {
+        return icon;
+    }
+
+    QString fallbackIconThemeName = builtInIconThemeName(m_fallbackIconTheme);
+    if (Q_UNLIKELY(fallbackIconThemeName.isEmpty())) {
+        fallbackIconThemeName = OXYGEN_FALLBACK_ICON_THEME_NAME;
+    }
+
+    QString originalIconThemeName = QIcon::themeName();
+    QIcon::setThemeName(fallbackIconThemeName);
+    icon = QIcon::fromTheme(name);
+    QIcon::setThemeName(originalIconThemeName);
+    return icon;
+}
+
+void IconThemeManager::persistIconTheme(const QString & name, const BuiltInIconTheme::type fallbackIconTheme)
+{
+    QNDEBUG(QStringLiteral("IconThemeManager::persistIconTheme: ") << name
+            << QStringLiteral(", fallback icon theme = ") << fallbackIconTheme);
 
     if (Q_UNLIKELY(m_currentAccount.isEmpty())) {
         QNDEBUG(QStringLiteral("Won't persist the icon theme: account is empty"));
@@ -114,33 +171,59 @@ void IconThemeManager::persistIconTheme(const QString & name)
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     appSettings.setValue(ICON_THEME_SETTINGS_KEY, name);
+    appSettings.setValue(FALLBACK_ICON_THEME_SETTINGS_KEY, fallbackIconTheme);
     appSettings.endGroup();
 }
 
 void IconThemeManager::restoreIconTheme()
 {
+    QNDEBUG(QStringLiteral("IconThemeManager::restoreIconTheme"));
+
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     QString iconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
+
+    bool conversionResult = false;
+    BuiltInIconTheme::type fallbackIconTheme = static_cast<BuiltInIconTheme::type>(appSettings.value(FALLBACK_ICON_THEME_SETTINGS_KEY).toInt(&conversionResult));
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNDEBUG(QStringLiteral("Can't convert fallback icon theme to int, fallback to oxygen"));
+        fallbackIconTheme = BuiltInIconTheme::Oxygen;
+    }
+
     appSettings.endGroup();
 
-    Q_UNUSED(setIconThemeName(iconThemeName))
+    setIconThemeName(iconThemeName, fallbackIconTheme);
 }
 
-void IconThemeManager::persistOverrideIcon(const QString & name, const QIcon & icon)
+bool IconThemeManager::persistOverrideIcon(const QString & name, const QString & overrideIconFilePath, ErrorString & errorDescription)
 {
     QString iconThemeName = QIcon::themeName();
 
     QNDEBUG(QStringLiteral("IconThemeManager::persistOverrideIcon: icon name = ") << name
+            << QStringLiteral(", icon file path = ") << QDir::toNativeSeparators(overrideIconFilePath)
             << QStringLiteral(", icon theme name = ") << iconThemeName);
 
     if (Q_UNLIKELY(m_currentAccount.isEmpty())) {
-        QNDEBUG(QStringLiteral("Won't persist the override icon: current account is empty"));
-        return;
+        errorDescription.setBase(QT_TR_NOOP("current account is empty"));
+        QNDEBUG(errorDescription);
+        return false;
+    }
+
+    if (Q_UNLIKELY(name.isEmpty())) {
+        errorDescription.setBase(QT_TR_NOOP("icon name from the theme is empty"));
+        QNDEBUG(errorDescription);
+        return false;
+    }
+
+    QFileInfo iconFileInfo(overrideIconFilePath);
+    if (!iconFileInfo.exists() || !iconFileInfo.isFile() || !iconFileInfo.isReadable()) {
+        errorDescription.setBase(QT_TR_NOOP("can't read the override icon from the specified file"));
+        QNDEBUG(errorDescription);
+        return false;
     }
 
     QString overrideIconsStoragePath = accountPersistentStoragePath(m_currentAccount);
-    overrideIconsStoragePath += QStringLiteral("OverrideIcons/");
+    overrideIconsStoragePath += QStringLiteral("/OverrideIcons/");
     overrideIconsStoragePath += iconThemeName;
 
     QDir overrideIconsStorageDir(overrideIconsStoragePath);
@@ -148,21 +231,90 @@ void IconThemeManager::persistOverrideIcon(const QString & name, const QIcon & i
     {
         bool res = overrideIconsStorageDir.mkpath(overrideIconsStoragePath);
         if (!res) {
-            ErrorString errorDescription(QT_TR_NOOP("Failed to create the storage dir for the persistence of override icons"));
-            errorDescription.details() = overrideIconsStoragePath;
+            errorDescription.setBase(QT_TR_NOOP("can't create the storage dir to persist the override icons"));
+            errorDescription.details() = QDir::toNativeSeparators(overrideIconsStoragePath);
             QNWARNING(errorDescription);
-            Q_EMIT notifyError(errorDescription);
-            return;
+            return false;
         }
     }
 
-    // TODO: implement further
-    Q_UNUSED(icon)
+    QString persistentIconFilePath = overrideIconsStoragePath + QStringLiteral("/") + name + QStringLiteral(".") + iconFileInfo.completeSuffix();
+    QFileInfo persistentIconFileInfo(persistentIconFilePath);
+    if (persistentIconFileInfo.exists() && !QFile::remove(persistentIconFilePath)) {
+        errorDescription.setBase(QT_TR_NOOP("can't remove the previous override icon within the persistent storage area"));
+        QNWARNING(errorDescription);
+        return false;
+    }
+
+    if (!QFile::copy(overrideIconFilePath, persistentIconFilePath)) {
+        errorDescription.setBase(QT_TR_NOOP("can't copy the override icon to the persistent storage area"));
+        QNWARNING(errorDescription);
+        return false;
+    }
+
+    return true;
 }
 
 void IconThemeManager::restoreOverrideIcons()
 {
-    // TODO: implement
+    QString iconThemeName = QIcon::themeName();
+    QNDEBUG(QStringLiteral("IconThemeManager::restoreOverrideIcons: icon theme name = ") << iconThemeName);
+
+    m_overrideIcons.clear();
+
+    if (Q_UNLIKELY(m_currentAccount.isEmpty())) {
+        QNDEBUG(QStringLiteral("Can't restore the override icons: current account is empty"));
+        return;
+    }
+
+    QString overrideIconsStoragePath = accountPersistentStoragePath(m_currentAccount);
+    overrideIconsStoragePath += QStringLiteral("/OverrideIcons/");
+    overrideIconsStoragePath += iconThemeName;
+
+    QDir overrideIconsStorageDir(overrideIconsStoragePath);
+    if (!overrideIconsStorageDir.exists()) {
+        QNDEBUG(QStringLiteral("Override icons storage folder doesn't exist for the current theme, nothing to restore"));
+        return;
+    }
+
+    QFileInfoList iconFileInfos = overrideIconsStorageDir.entryInfoList(QDir::Filters(QDir::Files | QDir::NoDotAndDotDot));
+    for(auto it = iconFileInfos.constBegin(), end = iconFileInfos.constEnd(); it != end; ++it)
+    {
+        const QFileInfo & iconFileInfo = *it;
+
+        if (!iconFileInfo.exists() || !iconFileInfo.isFile() || !iconFileInfo.isReadable()) {
+            QNDEBUG(QStringLiteral("Skipping ") << iconFileInfo.fileName() << QStringLiteral(" as it's either not a file or is not readable"));
+            continue;
+        }
+
+        QIcon icon(iconFileInfo.absoluteFilePath());
+        if (Q_UNLIKELY(icon.isNull())) {
+            QNDEBUG(QStringLiteral("Skipping ") << iconFileInfo.fileName() << QStringLiteral(", can't load icon from it"));
+            continue;
+        }
+
+        QString iconName = iconFileInfo.baseName();
+
+        m_overrideIcons[iconName] = icon;
+        Q_EMIT overrideIconChanged(iconName, icon);
+    }
+}
+
+QString IconThemeManager::builtInIconThemeName(const BuiltInIconTheme::type builtInIconTheme) const
+{
+    switch(builtInIconTheme)
+    {
+    case BuiltInIconTheme::Oxygen:
+        return OXYGEN_FALLBACK_ICON_THEME_NAME;
+    case BuiltInIconTheme::Tango:
+        return TANGO_FALLBACK_ICON_THEME_NAME;
+    case BuiltInIconTheme::Breeze:
+        return BREEZE_FALLBACK_ICON_THEME_NAME;
+    case BuiltInIconTheme::BreezeDark:
+        return BREEZE_DARK_FALLBACK_ICON_THEME_NAME;
+    default:
+        return QString();
+    }
 }
 
 } // namespace quentier
