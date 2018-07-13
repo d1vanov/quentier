@@ -35,7 +35,11 @@ IconThemeManager::IconThemeManager(QObject * parent) :
     QObject(parent),
     m_currentAccount(),
     m_fallbackIconTheme(BuiltInIconTheme::Oxygen),
-    m_overrideIcons()
+    m_overrideIcons(),
+    m_manualIconThemeSearchPaths(),
+    // Assuming IconThemeManager is created once and before something messes up with the icon theme search paths
+    // (i.e. this constructor is called before QIcon::themeSearchPaths is called anywhere)
+    m_defaultIconThemeSearchPaths(QIcon::themeSearchPaths())
 {}
 
 QString IconThemeManager::iconThemeName() const
@@ -110,6 +114,140 @@ bool IconThemeManager::setOverrideThemeIcon(const QString & name, const QString 
     return true;
 }
 
+QIcon IconThemeManager::iconFromTheme(const QString & name) const
+{
+    QIcon overrideIcon = overrideIconFromTheme(name);
+    if (!overrideIcon.isNull()) {
+        return overrideIcon;
+    }
+
+    QIcon icon = QIcon::fromTheme(name);
+    if (!icon.isNull()) {
+        return icon;
+    }
+
+    return iconFromFallbackTheme(name);
+}
+
+QIcon IconThemeManager::overrideIconFromTheme(const QString & name) const
+{
+    auto overrideIt = m_overrideIcons.find(name);
+    if (overrideIt != m_overrideIcons.end()) {
+        return overrideIt.value();
+    }
+
+    return QIcon();
+}
+
+QIcon IconThemeManager::iconFromFallbackTheme(const QString & name) const
+{
+    QString fallbackIconThemeName = builtInIconThemeName(m_fallbackIconTheme);
+    if (Q_UNLIKELY(fallbackIconThemeName.isEmpty())) {
+        fallbackIconThemeName = OXYGEN_FALLBACK_ICON_THEME_NAME;
+    }
+
+    QString originalIconThemeName = QIcon::themeName();
+    QIcon::setThemeName(fallbackIconThemeName);
+    QIcon icon = QIcon::fromTheme(name);
+    QIcon::setThemeName(originalIconThemeName);
+    return icon;
+}
+
+QStringList IconThemeManager::iconThemeSearchPaths(const IconThemeSearchPathKinds kinds) const
+{
+    QStringList paths;
+
+    if (kinds.testFlag(IconThemeSearchPathKind::Default)) {
+        paths = m_defaultIconThemeSearchPaths;
+    }
+
+    if (kinds.testFlag(IconThemeSearchPathKind::Manual))
+    {
+        paths.reserve(paths.size() + m_manualIconThemeSearchPaths.size());
+        for(auto it = m_manualIconThemeSearchPaths.constBegin(),
+            end = m_manualIconThemeSearchPaths.constEnd(); it != end; ++it)
+        {
+            paths << *it;
+        }
+    }
+
+    return paths;
+}
+
+void IconThemeManager::addIconThemeSearchPath(const QString & path)
+{
+    QNDEBUG(QStringLiteral("IconThemeManager::addIconThemeSearchPath: ") << path);
+
+    if (Q_UNLIKELY(path.isEmpty())) {
+        return;
+    }
+
+    if (m_manualIconThemeSearchPaths.contains(path)) {
+        QNDEBUG(QStringLiteral("This search path has already been registered once"));
+        return;
+    }
+
+    Q_UNUSED(m_manualIconThemeSearchPaths.insert(path))
+
+    updateIconThemeSearchPaths();
+    persistIconThemeSearchPaths();
+}
+
+void IconThemeManager::addIconThemeSearchPaths(const QStringList & paths)
+{
+    QNDEBUG(QStringLiteral("IconThemeManager::addIconThemeSearchPaths: ") << paths.join(QStringLiteral(", ")));
+
+    if (paths.isEmpty()) {
+        return;
+    }
+
+    for(auto it = paths.constBegin(), end = paths.constEnd(); it != end; ++it) {
+        Q_UNUSED(m_manualIconThemeSearchPaths.insert(*it))
+    }
+
+    updateIconThemeSearchPaths();
+    persistIconThemeSearchPaths();
+}
+
+void IconThemeManager::removeIconThemeSearchPath(const QString & path)
+{
+    QNDEBUG(QStringLiteral("IconThemeManager::removeIconThemeSearchPath: ") << path);
+
+    if (Q_UNLIKELY(path.isEmpty())) {
+        return;
+    }
+
+    if (!m_manualIconThemeSearchPaths.remove(path)) {
+        QNDEBUG(QStringLiteral("Path was not found within manually added icon theme search paths"));
+        return;
+    }
+
+    updateIconThemeSearchPaths();
+    persistIconThemeSearchPaths();
+}
+
+void IconThemeManager::removeIconThemeSearchPaths(const QStringList & paths)
+{
+    QNDEBUG(QStringLiteral("IconThemeManager::removeIconThemeSearchPaths: ") << paths.join(QStringLiteral(", ")));
+
+    if (Q_UNLIKELY(paths.isEmpty())) {
+        return;
+    }
+
+    bool removed = false;
+    for(auto it = paths.constBegin(), end = paths.constEnd(); it != end; ++it) {
+        removed |= m_manualIconThemeSearchPaths.remove(*it);
+    }
+
+    if (!removed) {
+        QNDEBUG(QStringLiteral("None of paths were found within manually added icon theme search paths"));
+        return;
+    }
+
+    updateIconThemeSearchPaths();
+    persistIconThemeSearchPaths();
+}
+
 const Account & IconThemeManager::currentAccount() const
 {
     return m_currentAccount;
@@ -130,32 +268,9 @@ void IconThemeManager::setCurrentAccount(const Account & account)
         return;
     }
 
+    restoreIconThemeSearchPaths();
     restoreIconTheme();
     restoreOverrideIcons();
-}
-
-QIcon IconThemeManager::iconFromTheme(const QString & name) const
-{
-    auto overrideIt = m_overrideIcons.find(name);
-    if (overrideIt != m_overrideIcons.end()) {
-        return overrideIt.value();
-    }
-
-    QIcon icon = QIcon::fromTheme(name);
-    if (!icon.isNull()) {
-        return icon;
-    }
-
-    QString fallbackIconThemeName = builtInIconThemeName(m_fallbackIconTheme);
-    if (Q_UNLIKELY(fallbackIconThemeName.isEmpty())) {
-        fallbackIconThemeName = OXYGEN_FALLBACK_ICON_THEME_NAME;
-    }
-
-    QString originalIconThemeName = QIcon::themeName();
-    QIcon::setThemeName(fallbackIconThemeName);
-    icon = QIcon::fromTheme(name);
-    QIcon::setThemeName(originalIconThemeName);
-    return icon;
 }
 
 void IconThemeManager::persistIconTheme(const QString & name, const BuiltInIconTheme::type fallbackIconTheme)
@@ -164,7 +279,7 @@ void IconThemeManager::persistIconTheme(const QString & name, const BuiltInIconT
             << QStringLiteral(", fallback icon theme = ") << fallbackIconTheme);
 
     if (Q_UNLIKELY(m_currentAccount.isEmpty())) {
-        QNDEBUG(QStringLiteral("Won't persist the icon theme: account is empty"));
+        QNDEBUG(QStringLiteral("Won't persist the icon theme: current account is empty"));
         return;
     }
 
@@ -178,6 +293,11 @@ void IconThemeManager::persistIconTheme(const QString & name, const BuiltInIconT
 void IconThemeManager::restoreIconTheme()
 {
     QNDEBUG(QStringLiteral("IconThemeManager::restoreIconTheme"));
+
+    if (Q_UNLIKELY(m_currentAccount.isEmpty())) {
+        QNDEBUG(QStringLiteral("Won't restore the icon theme: current account is empty"));
+        return;
+    }
 
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
@@ -300,6 +420,59 @@ void IconThemeManager::restoreOverrideIcons()
     }
 }
 
+void IconThemeManager::persistIconThemeSearchPaths()
+{
+    QNDEBUG(QStringLiteral("IconThemeManager::persistIconThemeSearchPaths"));
+
+    if (Q_UNLIKELY(m_currentAccount.isEmpty())) {
+        QNDEBUG(QStringLiteral("Won't persist the icon theme search paths: account is empty"));
+        return;
+    }
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(ICON_THEME_SEARCH_PATHS_SETTINGS_KEY, QStringList(m_manualIconThemeSearchPaths.toList()));;
+    appSettings.endGroup();
+}
+
+void IconThemeManager::restoreIconThemeSearchPaths()
+{
+    QNDEBUG(QStringLiteral("IconThemeManager::restoreIconThemeSearchPaths"));
+
+    if (Q_UNLIKELY(m_currentAccount.isEmpty())) {
+        QNDEBUG(QStringLiteral("Won't restore the icon theme search paths: current account is empty"));
+        return;
+    }
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    m_manualIconThemeSearchPaths = QSet<QString>::fromList(appSettings.value(ICON_THEME_SEARCH_PATHS_SETTINGS_KEY).toStringList());
+    appSettings.endGroup();
+
+    updateIconThemeSearchPaths();
+}
+
+void IconThemeManager::updateIconThemeSearchPaths()
+{
+    QSet<QString> subdirPaths = m_manualIconThemeSearchPaths;
+    for(auto it = m_manualIconThemeSearchPaths.constBegin(),
+        end = m_manualIconThemeSearchPaths.constEnd(); it != end; ++it)
+    {
+        appendSubdirs(*it, subdirPaths);
+    }
+
+    QStringList paths = m_defaultIconThemeSearchPaths;
+    paths.reserve(paths.size() + m_manualIconThemeSearchPaths.size());
+    for(auto it = m_manualIconThemeSearchPaths.constBegin(),
+        end = m_manualIconThemeSearchPaths.constEnd(); it != end; ++it)
+    {
+        paths << *it;
+    }
+
+    QIcon::setThemeSearchPaths(paths);
+    Q_EMIT iconThemeSearchPathsChanged();
+}
+
 QString IconThemeManager::builtInIconThemeName(const BuiltInIconTheme::type builtInIconTheme) const
 {
     switch(builtInIconTheme)
@@ -314,6 +487,27 @@ QString IconThemeManager::builtInIconThemeName(const BuiltInIconTheme::type buil
         return BREEZE_DARK_FALLBACK_ICON_THEME_NAME;
     default:
         return QString();
+    }
+}
+
+void IconThemeManager::appendSubdirs(const QString & dirPath, QSet<QString> & paths) const
+{
+    QDir dir(dirPath);
+    if (!dir.exists()) {
+        return;
+    }
+
+    QFileInfoList subdirs = dir.entryInfoList(QDir::Filters(QDir::Dirs | QDir::NoDotAndDotDot));
+    for(auto it = subdirs.constBegin(), end = subdirs.constEnd(); it != end; ++it)
+    {
+        const QFileInfo & subdirInfo = *it;
+        if (!subdirInfo.isDir()) {
+            continue;
+        }
+
+        QString subdirPath = subdirInfo.absoluteFilePath();
+        Q_UNUSED(paths.insert(subdirPath))
+        appendSubdirs(subdirPath, paths);
     }
 }
 

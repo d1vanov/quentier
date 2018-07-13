@@ -42,6 +42,7 @@
 #define LOOK_AND_FEEL_SETTINGS_GROUP_NAME QStringLiteral("LookAndFeel")
 #define ICON_THEME_SETTINGS_KEY QStringLiteral("IconTheme")
 #define FALLBACK_ICON_THEME_SETTINGS_KEY QStringLiteral("FallbackIconTheme")
+#define ICON_THEME_SEARCH_PATHS_SETTINGS_KEY QStringLiteral("IconThemeSearchPaths")
 #define PANELS_STYLE_SETTINGS_KEY QStringLiteral("PanelStyle")
 #define SHOW_NOTE_THUMBNAILS_SETTINGS_KEY QStringLiteral("ShowNoteThumbnails")
 
