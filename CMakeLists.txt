@@ -105,6 +105,7 @@ set(${PROJECT_NAME}_HEADERS
     src/initialization/SetupTranslations.h
     src/initialization/SetupStartAtLogin.h
     src/models/ColumnChangeRerouter.h
+    src/models/IconManagementModel.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
     src/models/SavedSearchModel.h
@@ -216,6 +217,7 @@ set(${PROJECT_NAME}_SOURCES
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
     src/models/ColumnChangeRerouter.cpp
+    src/models/IconManagementModel.cpp
     src/models/ItemModel.cpp
     src/models/SavedSearchModel.cpp
     src/models/SavedSearchModelItem.cpp
