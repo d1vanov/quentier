@@ -2797,7 +2797,7 @@ margin: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3011,11 +3011,6 @@ border-bottom: 1px solid black;</string>
      <string>&amp;Service</string>
     </property>
     <addaction name="ActionSynchronize"/>
-    <addaction name="separator"/>
-    <addaction name="ActionAccountInfo"/>
-    <addaction name="ActionLocalStorageStatus"/>
-    <addaction name="separator"/>
-    <addaction name="ActionImportFolders"/>
     <addaction name="separator"/>
     <addaction name="ActionPreferences"/>
    </widget>

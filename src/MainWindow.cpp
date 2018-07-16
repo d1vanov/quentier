@@ -4564,6 +4564,8 @@ void MainWindow::setupAccountSpecificUiElements()
 
     m_pUI->syncPushButton->setHidden(isLocal);
     m_pUI->syncPushButton->setDisabled(isLocal);
+
+    m_pUI->ActionSynchronize->setVisible(!isLocal);
 }
 
 void MainWindow::setupNoteFilters()
