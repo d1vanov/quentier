@@ -341,10 +341,10 @@ script:
           export VERSION=$(git rev-parse --short HEAD)
         fi
         make DESTDIR=appdir install &&
-        linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -exclude-libs="libnss3.so,libnssutil3.so" -show-exclude-list &&
+        linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -exclude-libs="libnss3.so,libnssutil3.so" -show-exclude-libs &&
         mkdir -p appdir/usr/share/libquentier/translations &&
         cp -r ../../libquentier/build/installdir/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/ &&
-        linuxdeployqt appdir/usr/share/applications/*.desktop -appimage -exclude-libs="libnss3.so,libnssutil3.so" -show-exclude-list &&
+        linuxdeployqt appdir/usr/share/applications/*.desktop -appimage -exclude-libs="libnss3.so,libnssutil3.so" -show-exclude-libs &&
         find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
       else
         make install
