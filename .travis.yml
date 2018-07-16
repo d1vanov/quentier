@@ -342,6 +342,8 @@ script:
         fi
         make DESTDIR=appdir install &&
         linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs &&
+        mkdir -p appdir/lib &&
+        cp -r /usr/lib/x86_64-linux-gnu/nss/* appdir/lib &&
         mkdir -p appdir/usr/share/libquentier/translations &&
         cp -r ../../libquentier/build/installdir/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/ &&
         linuxdeployqt appdir/usr/share/applications/*.desktop -appimage &&
