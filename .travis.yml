@@ -336,9 +336,7 @@ script:
           export VERSION=$(git rev-parse --short HEAD)
         fi
         make DESTDIR=appdir install &&
-        linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs &&
-        mkdir -p appdir/lib &&
-        cp -r /usr/lib/x86_64-linux-gnu/nss/* appdir/lib &&
+        linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -exclude-libs="libnss3.so,libnssutil3.so" &&
         mkdir -p appdir/usr/share/libquentier/translations &&
         cp -r ../../libquentier/build/installdir/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/ &&
         linuxdeployqt appdir/usr/share/applications/*.desktop -appimage &&
