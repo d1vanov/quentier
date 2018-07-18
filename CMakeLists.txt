@@ -161,6 +161,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/FilterBySavedSearchWidget.h
     src/widgets/FilterByTagWidget.h
     src/widgets/FlowLayout.h
+    src/widgets/IconManagementWidget.h
     src/widgets/ListItemWidget.h
     src/widgets/LogViewerWidget.h
     src/widgets/NewListItemLineEdit.h
@@ -263,6 +264,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/FilterBySavedSearchWidget.cpp
     src/widgets/FilterByTagWidget.cpp
     src/widgets/FlowLayout.cpp
+    src/widgets/IconManagementWidget.cpp
     src/widgets/ListItemWidget.cpp
     src/widgets/LogViewerWidget.cpp
     src/widgets/NewListItemLineEdit.cpp
@@ -303,6 +305,7 @@ set(FORMS
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/AboutQuentierWidget.ui
     src/widgets/FindAndReplaceWidget.ui
+    src/widgets/IconManagementWidget.ui
     src/widgets/ListItemWidget.ui
     src/widgets/LogViewerWidget.ui
     src/widgets/NewListItemLineEdit.ui
