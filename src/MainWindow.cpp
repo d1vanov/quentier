@@ -162,7 +162,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pLocalStorageManagerThread(Q_NULLPTR),
     m_pLocalStorageManagerAsync(Q_NULLPTR),
     m_lastLocalStorageSwitchUserRequest(),
-    m_pSynchronizationManagerThread(Q_NULLPTR),
     m_pAuthenticationManager(Q_NULLPTR),
     m_pSynchronizationManager(Q_NULLPTR),
     m_synchronizationManagerHost(),
@@ -845,57 +844,80 @@ void MainWindow::connectSynchronizationManager()
 
     // Connect local signals to SynchronizationManager slots
     QObject::connect(this, QNSIGNAL(MainWindow,authenticate),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronize),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,stopSynchronization),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,stop));
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,stop),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronizationSetAccount,Account),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account));
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool));
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadInkNoteImages,bool));
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadInkNoteImages,bool),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronizationSetInkNoteImagesStoragePath,QString),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setInkNoteImagesStoragePath,QString));
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setInkNoteImagesStoragePath,QString),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
     // Connect SynchronizationManager signals to local slots
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
-                     this, QNSLOT(MainWindow,onSynchronizationStarted));
+                     this, QNSLOT(MainWindow,onSynchronizationStarted),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,stopped),
-                     this, QNSLOT(MainWindow,onSynchronizationStopped));
+                     this, QNSLOT(MainWindow,onSynchronizationStopped),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
-                     this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
+                     this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account,bool,bool),
-                     this, QNSLOT(MainWindow,onSynchronizationFinished,Account,bool,bool));
+                     this, QNSLOT(MainWindow,onSynchronizationFinished,Account,bool,bool),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,ErrorString,Account),
-                     this, QNSLOT(MainWindow,onAuthenticationFinished,bool,ErrorString,Account));
+                     this, QNSLOT(MainWindow,onAuthenticationFinished,bool,ErrorString,Account),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,ErrorString,qevercloud::UserID),
-                     this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,ErrorString,qevercloud::UserID));
+                     this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,ErrorString,qevercloud::UserID),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
-                     this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
+                     this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
-                     this, QNSLOT(MainWindow,onSendLocalChangesStopped));
+                     this, QNSLOT(MainWindow,onSendLocalChangesStopped),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
-                     this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
+                     this, QNSLOT(MainWindow,onRateLimitExceeded,qint32),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone,bool),
-                     this, QNSLOT(MainWindow,onRemoteToLocalSyncDone,bool));
+                     this, QNSLOT(MainWindow,onRemoteToLocalSyncDone,bool),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloadProgress,qint32,qint32,qint32),
-                     this, QNSLOT(MainWindow,onSyncChunksDownloadProgress,qint32,qint32,qint32));
+                     this, QNSLOT(MainWindow,onSyncChunksDownloadProgress,qint32,qint32,qint32),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,syncChunksDownloaded),
-                     this, QNSLOT(MainWindow,onSyncChunksDownloaded));
+                     this, QNSLOT(MainWindow,onSyncChunksDownloaded),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,notesDownloadProgress,quint32,quint32),
-                     this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32));
+                     this, QNSLOT(MainWindow,onNotesDownloadProgress,quint32,quint32),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,resourcesDownloadProgress,quint32,quint32),
-                     this, QNSLOT(MainWindow,onResourcesDownloadProgress,quint32,quint32));
+                     this, QNSLOT(MainWindow,onResourcesDownloadProgress,quint32,quint32),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager,
                      QNSIGNAL(SynchronizationManager,linkedNotebookSyncChunksDownloadProgress,qint32,qint32,qint32,LinkedNotebook),
-                     this,
-                     QNSLOT(MainWindow,onLinkedNotebookSyncChunksDownloadProgress,qint32,qint32,qint32,LinkedNotebook));
+                     this, QNSLOT(MainWindow,onLinkedNotebookSyncChunksDownloadProgress,qint32,qint32,qint32,LinkedNotebook),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksSyncChunksDownloaded),
-                     this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded));
+                     this, QNSLOT(MainWindow,onLinkedNotebooksSyncChunksDownloaded),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,linkedNotebooksNotesDownloadProgress,quint32,quint32),
-                     this, QNSLOT(MainWindow,onLinkedNotebooksNotesDownloadProgress,quint32,quint32));
+                     this, QNSLOT(MainWindow,onLinkedNotebooksNotesDownloadProgress,quint32,quint32),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 }
 
 void MainWindow::disconnectSynchronizationManager()
@@ -3015,6 +3037,9 @@ void MainWindow::onAccountSwitched(Account account)
     m_pLocalStorageManagerThread->quit();
     m_pLocalStorageManagerThread->wait();
 
+    bool cacheIsUsed = (m_pLocalStorageManagerAsync->localStorageCacheManager() != Q_NULLPTR);
+    m_pLocalStorageManagerAsync->setUseCache(false);
+
     ErrorString errorDescription;
     try {
         m_pLocalStorageManagerAsync->localStorageManager()->switchUser(account);
@@ -3023,6 +3048,8 @@ void MainWindow::onAccountSwitched(Account account)
         errorDescription.setBase(QT_TR_NOOP("Can't switch user in the local storage: caught exception"));
         errorDescription.details() = QString::fromUtf8(e.what());
     }
+
+    m_pLocalStorageManagerAsync->setUseCache(cacheIsUsed);
 
     QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
                      m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
@@ -4691,11 +4718,6 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
         return;
     }
 
-    m_pSynchronizationManagerThread = new QThread;
-    QObject::connect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
-                     m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
-    m_pSynchronizationManagerThread->start();
-
     m_pAuthenticationManager = new AuthenticationManager(consumerKey, consumerSecret,
                                                          m_synchronizationManagerHost, this);
     m_pSynchronizationManager = new SynchronizationManager(m_synchronizationManagerHost,
@@ -4706,7 +4728,6 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
         m_pSynchronizationManager->setAccount(*m_pAccount);
     }
 
-    m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
     connectSynchronizationManager();
 
     setupRunSyncPeriodicallyTimer();
@@ -4721,11 +4742,6 @@ void MainWindow::clearSynchronizationManager()
     if (m_pSynchronizationManager) {
         m_pSynchronizationManager->deleteLater();
         m_pSynchronizationManager = Q_NULLPTR;
-    }
-
-    if (m_pSynchronizationManagerThread) {
-        m_pSynchronizationManagerThread->quit();    // The thread would delete itself after it's finished
-        m_pSynchronizationManagerThread = Q_NULLPTR;
     }
 
     if (m_pAuthenticationManager) {

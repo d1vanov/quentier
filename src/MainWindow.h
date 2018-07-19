@@ -482,7 +482,6 @@ private:
 
     QUuid                       m_lastLocalStorageSwitchUserRequest;
 
-    QThread *                   m_pSynchronizationManagerThread;
     AuthenticationManager *     m_pAuthenticationManager;
     SynchronizationManager *    m_pSynchronizationManager;
     QString                     m_synchronizationManagerHost;
