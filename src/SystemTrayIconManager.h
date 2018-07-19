@@ -55,6 +55,12 @@ public:
     bool shouldMinimizeToSystemTray() const;
     bool shouldStartMinimizedToSystemTray() const;
 
+    /**
+     * @brief setPreferenceCloseToSystemTray
+     * Set user preference about closing to tray to given value.
+     */
+    void setPreferenceCloseToSystemTray(bool value) const;
+
     enum TrayAction
     {
         TrayActionDoNothing = 0,
@@ -111,6 +117,13 @@ private:
 
     void persistTrayIconState();
     void restoreTrayIconState();
+
+    /**
+     * @brief isSystemTrayAvailable
+     * @return User preference about closing to tray to given value. If no valid value is found, default value
+     * is returned.
+     */
+    bool getPreferenceCloseToSystemTray() const;
 
 private:
     AccountManager &            m_accountManager;

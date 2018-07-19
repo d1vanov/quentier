@@ -46,6 +46,7 @@
 #include "dialogs/AddOrEditSavedSearchDialog.h"
 #include "dialogs/EnexExportDialog.h"
 #include "dialogs/EnexImportDialog.h"
+#include "dialogs/FirstShutdownDialog.h"
 #include "dialogs/PreferencesDialog.h"
 #include "dialogs/WelcomeToQuentierDialog.h"
 #include "initialization/DefaultAccountFirstNotebookAndNoteCreator.h"
@@ -234,6 +235,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     m_pSystemTrayIconManager = new SystemTrayIconManager(*m_pAccountManager, this);
+    m_pendingFirstShutdownDialog = m_pendingGreeterDialog && m_pSystemTrayIconManager->isSystemTrayAvailable();
 
     setupThemeIcons();
 
@@ -3785,9 +3787,18 @@ void MainWindow::resizeEvent(QResizeEvent * pEvent)
 void MainWindow::closeEvent(QCloseEvent * pEvent)
 {
     QNDEBUG(QStringLiteral("MainWindow::closeEvent"));
+    if (m_pendingFirstShutdownDialog) {
+        QNDEBUG(QStringLiteral("About to display FirstShutdownDialog"));
+        m_pendingFirstShutdownDialog = false;
+
+        QScopedPointer<FirstShutdownDialog> pDialog(new FirstShutdownDialog(this));
+        pDialog->setWindowModality(Qt::WindowModal);
+        bool shouldCloseToSystemTray = pDialog->exec() == QDialog::Accepted;
+        m_pSystemTrayIconManager->setPreferenceCloseToSystemTray(shouldCloseToSystemTray);
+    }
 
     if (pEvent && m_pSystemTrayIconManager->shouldCloseToSystemTray()) {
-        QNDEBUG(QStringLiteral("Hiding to system tray instead of closing"));
+        QNINFO(QStringLiteral("Hiding to system tray instead of closing"));
         pEvent->ignore();
         hide();
         return;
@@ -3798,7 +3809,9 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
     }
 
     persistGeometryAndState();
+    QNINFO(QStringLiteral("Closing application"));
     QMainWindow::closeEvent(pEvent);
+    onQuitAction();
 }
 
 void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
