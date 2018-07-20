@@ -3793,7 +3793,7 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
 
         QScopedPointer<FirstShutdownDialog> pDialog(new FirstShutdownDialog(this));
         pDialog->setWindowModality(Qt::WindowModal);
-        bool shouldCloseToSystemTray = pDialog->exec() == QDialog::Accepted;
+        bool shouldCloseToSystemTray = (pDialog->exec() == QDialog::Accepted);
         m_pSystemTrayIconManager->setPreferenceCloseToSystemTray(shouldCloseToSystemTray);
     }
 

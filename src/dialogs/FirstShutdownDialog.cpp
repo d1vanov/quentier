@@ -8,7 +8,7 @@ FirstShutdownDialog::FirstShutdownDialog(QWidget * parent) :
     m_pUi(new Ui::FirstShutdownDialog)
 {
     m_pUi->setupUi(this);
-    setWindowTitle(tr("First Quentier Shutdown"));
+    setWindowTitle(tr("Keep the app running or quit?"));
 
     QObject::connect(m_pUi->closeToTrayPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(FirstShutdownDialog,onCloseToTrayPushButtonPressed));

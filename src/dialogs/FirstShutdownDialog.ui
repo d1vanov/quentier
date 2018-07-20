@@ -26,7 +26,7 @@
       </size>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;left&quot;&gt;You are about to close Quentier for the first time...&lt;br/&gt;&lt;br/&gt;You can now decide whenever you want to minimize application into system tray, where you can easily quicky reopen it, or you want to close it (terminate). &lt;br/&gt;&lt;br/&gt;Your decision will be persisted your Preferences and can be there later changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;left&quot;&gt;You are about to close Quentier for the first time...&lt;br/&gt;&lt;br/&gt;You can now decide whenever you want to minimize application into system tray, where you can easily quickly reopen it, or you want to close it (Quit). &lt;br/&gt;&lt;br/&gt;Your decision will be persisted your Preferences and can be there later changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -43,7 +43,7 @@
    <item>
     <widget class="QPushButton" name="closePushButton">
      <property name="text">
-      <string>&amp;Close application</string>
+      <string>&amp;Quit</string>
      </property>
     </widget>
    </item>
