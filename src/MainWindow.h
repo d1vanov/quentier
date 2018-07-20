@@ -549,6 +549,7 @@ private:
     QHash<QString, QAction*>    m_nonStandardShortcutKeyToAction;
 
     bool                    m_pendingGreeterDialog;
+    bool                    m_pendingFirstShutdownDialog;
 
     bool                    m_filtersViewExpanded;
     bool                    m_onceSetupNoteSortingModeComboBox;
