@@ -82,6 +82,8 @@ Q_SIGNALS:
 
     void enexExportRequested(QStringList noteLocalUids);
 
+    void toggleThumbnailsPreference();
+
 public Q_SLOTS:
     /**
      * The slot which can watch for external changes of current note
@@ -122,6 +124,9 @@ protected Q_SLOTS:
 
     void onShowNoteInfoAction();
     void onCopyInAppNoteLinkAction();
+
+    void onToggleThumbnailsPreference();
+
 
     void onExportSingleNoteToEnexAction();
     void onExportSeveralNotesToEnexAction();

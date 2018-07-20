@@ -227,6 +227,7 @@ private Q_SLOTS:
     void onNoteSortingModeChanged(int index);
     void onNewNoteCreationRequested();
     void onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid);
+    void onToggleThumbnailsPreference();
 
     void onNoteModelAllNotesListed();
 
@@ -251,7 +252,7 @@ private Q_SLOTS:
 
     // Preferences dialog slots
     void onUseLimitedFontsPreferenceChanged(bool flag);
-    void onShowNoteThumbnailsPreferenceChanged(bool flag);
+    void onShowNoteThumbnailsPreferenceChanged();
     void onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes);
 
     // Note search-related slots
@@ -455,6 +456,8 @@ private:
 
     bool isInsideStyleBlock(const QString & styleSheet, const QString & styleBlockStartSearchString,
                             const int currentIndex, bool & error) const;
+
+    bool                    getShowNoteThumbnails() const;
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     // Qt4 has a problem with zero-size QSplitter handles - they don't work that way.
