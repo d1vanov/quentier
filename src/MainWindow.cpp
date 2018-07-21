@@ -2820,7 +2820,6 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
         return;
     }
 
-    //pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
     m_pUI->noteListView->update();
 }
 
