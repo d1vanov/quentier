@@ -538,9 +538,7 @@ QString NoteItemDelegate::timestampToString(const qint64 timestamp, const qint64
 
 void NoteItemDelegate::setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, const QSet<QString> & hideThumbnailsLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteItemDelegate::setShowNoteThumbnailsState: showThumbnailsForAllNotes=")
-                << showThumbnailsForAllNotes << QStringLiteral(", ")
-                << hideThumbnailsLocalUids.values().join(QStringLiteral(", ")));
+    QNDEBUG(QStringLiteral("NoteItemDelegate::setShowNoteThumbnailsState"));
     m_showThumbnailsForAllNotes = showThumbnailsForAllNotes;
     m_hideThumbnailsLocalUids = hideThumbnailsLocalUids;
 }

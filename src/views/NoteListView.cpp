@@ -174,9 +174,7 @@ void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
 
 void NoteListView::setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, const QSet<QString> & hideThumbnailsLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteListView::setShowNoteThumbnailsState: showThumbnailsForAllNotes=")
-                << showThumbnailsForAllNotes << QStringLiteral(", ")
-                << hideThumbnailsLocalUids.values().join(QStringLiteral(", ")));
+    QNDEBUG(QStringLiteral("NoteListView::setShowNoteThumbnailsState"));
 
     m_showThumbnailsForAllNotes = showThumbnailsForAllNotes;
     m_hideThumbnailsLocalUids = hideThumbnailsLocalUids;
