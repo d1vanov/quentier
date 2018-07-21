@@ -376,7 +376,7 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionReplaceInNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
     QObject::connect(m_pUI->ActionPreferences, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onShowSettingsDialogAction));
+                     this, QNSLOT(MainWindow,onShowPreferencesDialogAction));
 
     // Undo/redo actions
     QObject::connect(m_pUI->ActionUndo, QNSIGNAL(QAction,triggered),
@@ -2342,9 +2342,15 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
     appSettings.endGroup();
 }
 
-void MainWindow::onShowSettingsDialogAction()
+void MainWindow::onShowPreferencesDialogAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowSettingsDialogAction"));
+    QNDEBUG(QStringLiteral("MainWindow::onShowPreferencesDialogAction"));
+
+    PreferencesDialog * pExistingPreferencesDialog = findChild<PreferencesDialog*>();
+    if (pExistingPreferencesDialog) {
+        QNDEBUG(QStringLiteral("Preferences dialog already exists, won't show another one"));
+        return;
+    }
 
     QList<QMenu*> menus = m_pUI->menuBar->findChildren<QMenu*>();
     ActionsInfo actionsInfo(menus);
@@ -4622,6 +4628,7 @@ void MainWindow::setupAccountSpecificUiElements()
     m_pUI->syncPushButton->setDisabled(isLocal);
 
     m_pUI->ActionSynchronize->setVisible(!isLocal);
+    m_pUI->menuService->menuAction()->setVisible(!isLocal);
 }
 
 void MainWindow::setupNoteFilters()

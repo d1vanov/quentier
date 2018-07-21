@@ -221,7 +221,7 @@ private Q_SLOTS:
 
     void onFiltersViewTogglePushButtonPressed();
 
-    void onShowSettingsDialogAction();
+    void onShowPreferencesDialogAction();
 
     // Various note-related slots
     void onNoteSortingModeChanged(int index);
