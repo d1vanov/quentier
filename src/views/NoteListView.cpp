@@ -171,6 +171,17 @@ void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
     QNDEBUG(QStringLiteral("Updated last current note local uid to ") << noteLocalUid);
 }
 
+
+void NoteListView::setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, const QSet<QString> & hideThumbnailsLocalUids)
+{
+    QNDEBUG(QStringLiteral("NoteListView::setShowNoteThumbnailsState: showThumbnailsForAllNotes=")
+                << showThumbnailsForAllNotes << QStringLiteral(", ")
+                << hideThumbnailsLocalUids.values().join(QStringLiteral(", ")));
+
+    m_showThumbnailsForAllNotes = showThumbnailsForAllNotes;
+    m_hideThumbnailsLocalUids = hideThumbnailsLocalUids;
+}
+
 void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 {
     QNDEBUG(QStringLiteral("NoteListView::selectNotesByLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
@@ -486,11 +497,15 @@ void NoteListView::onShowNoteInfoAction()
 }
 
 
-void NoteListView::onToggleThumbnailsPreference()
-{
-    QNDEBUG(QStringLiteral("NoteListView::onToggleThumbnailsPreference"));
-
-    Q_EMIT toggleThumbnailsPreference();
+void NoteListView::onToggleThumbnailPreference() {
+    QNDEBUG(QStringLiteral("NoteListView::onToggleThumbnailPreference noteLocalUid="));
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR(QT_TR_NOOP("Can't get data"));
+        return;
+    }
+    QString noteLocalUid = pAction->data().toString();
+    Q_EMIT toggleThumbnailsPreference(noteLocalUid);
 }
 
 void NoteListView::onCopyInAppNoteLinkAction()
@@ -686,6 +701,15 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & glo
     }
 }
 
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
+    { \
+        QAction * pAction = new QAction(name, menu); \
+        pAction->setData(data); \
+        pAction->setEnabled(enabled); \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteListView,slot)); \
+        menu->addAction(pAction); \
+    }
+
 void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & globalPos,
                                              const NoteFilterModel & noteFilterModel, const NoteModel & noteModel)
 {
@@ -720,14 +744,7 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
     delete m_pNoteItemContextMenu;
     m_pNoteItemContextMenu = new QMenu(this);
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
-    { \
-        QAction * pAction = new QAction(name, menu); \
-        pAction->setData(data); \
-        pAction->setEnabled(enabled); \
-        QObject::connect(pAction, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteListView,slot)); \
-        menu->addAction(pAction); \
-    }
+
 
     const NotebookItem * pNotebookItem = Q_NULLPTR;
     if (pNotebookModel)
@@ -746,8 +763,9 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
     ADD_CONTEXT_MENU_ACTION(tr("Create new note"), m_pNoteItemContextMenu,
                             onCreateNewNoteAction, QString(), canCreateNotes);
 
+    const QString & noteLocalUid = pItem->localUid();
     ADD_CONTEXT_MENU_ACTION(tr("Open in separate window"), m_pNoteItemContextMenu,
-                            onOpenNoteInSeparateWindowAction, pItem->localUid(), true);
+                            onOpenNoteInSeparateWindowAction, noteLocalUid, true);
 
     m_pNoteItemContextMenu->addSeparator();
 
@@ -756,12 +774,12 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
                            : false);
 
     ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNoteItemContextMenu,
-                            onDeleteNoteAction, pItem->localUid(),
+                            onDeleteNoteAction, noteLocalUid,
                             canUpdateNotes);
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNoteItemContextMenu, onEditNoteAction,
-                            pItem->localUid(), canUpdateNotes);
+                            noteLocalUid, canUpdateNotes);
 
     if (pNotebookModel && pNotebookItem && pNotebookItem->linkedNotebookGuid().isEmpty() && canUpdateNotes)
     {
@@ -812,7 +830,7 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
             {
                 QStringList dataPair;
                 dataPair.reserve(2);
-                dataPair << pItem->localUid();
+                dataPair << noteLocalUid;
                 dataPair << *it;
                 ADD_CONTEXT_MENU_ACTION(*it, pTargetNotebooksSubMenu, onMoveToOtherNotebookAction,
                                         dataPair, true);
@@ -822,32 +840,43 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
 
     if (pItem->isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(tr("Unfavorite"), m_pNoteItemContextMenu,
-                                onUnfavoriteAction, pItem->localUid(), true);
+                                onUnfavoriteAction, noteLocalUid, true);
     }
     else {
         ADD_CONTEXT_MENU_ACTION(tr("Favorite"), m_pNoteItemContextMenu,
-                                onFavoriteAction, pItem->localUid(), true);
+                                onFavoriteAction, noteLocalUid, true);
     }
 
     m_pNoteItemContextMenu->addSeparator();
 
     ADD_CONTEXT_MENU_ACTION(tr("Export to enex") + QStringLiteral("..."), m_pNoteItemContextMenu,
-                            onExportSingleNoteToEnexAction, pItem->localUid(), true);
+                            onExportSingleNoteToEnexAction, noteLocalUid, true);
 
     ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pNoteItemContextMenu,
-                            onShowNoteInfoAction, pItem->localUid(), true);
+                            onShowNoteInfoAction, noteLocalUid, true);
 
     if (!pItem->guid().isEmpty()) {
         QStringList localUidAndGuid;
         localUidAndGuid.reserve(2);
-        localUidAndGuid << pItem->localUid();
+        localUidAndGuid << noteLocalUid;
         localUidAndGuid << pItem->guid();
         ADD_CONTEXT_MENU_ACTION(tr("Copy in-app note link"), m_pNoteItemContextMenu,
                                 onCopyInAppNoteLinkAction, localUidAndGuid, true);
     }
 
     QMenu * pThumbnailsSubMenu = m_pNoteItemContextMenu->addMenu(tr("Thumbnails"));
-    ADD_CONTEXT_MENU_ACTION(tr("Toggle all"), pThumbnailsSubMenu, onToggleThumbnailsPreference, QVariant(), true);
+    QString showHideForAllNotes = m_showThumbnailsForAllNotes ? tr("Hide for all notes") : tr("Show for all notes");
+    ADD_CONTEXT_MENU_ACTION(showHideForAllNotes, pThumbnailsSubMenu, onToggleThumbnailPreference,
+                            QVariant::fromValue(QStringLiteral("")), true);
+
+    const QByteArray & thumbnailData = pItem->thumbnailData();
+    bool hasThumbnail = !thumbnailData.isEmpty();
+    bool canToggleThumbnail = hasThumbnail && m_showThumbnailsForAllNotes;
+    if (canToggleThumbnail) {
+        bool isHiddenForCurrentNote = m_hideThumbnailsLocalUids.contains(noteLocalUid);
+        QString showHideForCurrent = isHiddenForCurrentNote ? tr("Show for current note") : tr("Hide for current note");
+        ADD_CONTEXT_MENU_ACTION( showHideForCurrent, pThumbnailsSubMenu, onToggleThumbnailPreference, noteLocalUid, true);
+    }
 
     m_pNoteItemContextMenu->show();
     m_pNoteItemContextMenu->exec(globalPos);

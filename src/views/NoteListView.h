@@ -82,7 +82,7 @@ Q_SIGNALS:
 
     void enexExportRequested(QStringList noteLocalUids);
 
-    void toggleThumbnailsPreference();
+    void toggleThumbnailsPreference(QString noteLocalUid);
 
 public Q_SLOTS:
     /**
@@ -90,6 +90,14 @@ public Q_SLOTS:
      * and reflect the change of the current item in the view
      */
     void setCurrentNoteByLocalUid(QString noteLocalUid);
+
+    /**
+     * The slot which can watch for external changes in thumbnail display state.
+     * @param showThumbnailsForAllNotes Global flag for all notes.
+     * @param hideThumbnailsLocalUids  Map with local uids where the thumbails was manually hidden.
+     */
+    void setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, const QSet<QString> & hideThumbnailsLocalUids);
+
 
     /**
      * The slot which can watch for external changes of selected notes
@@ -125,8 +133,11 @@ protected Q_SLOTS:
     void onShowNoteInfoAction();
     void onCopyInAppNoteLinkAction();
 
-    void onToggleThumbnailsPreference();
-
+    /**
+     * Toggle thumbnail preference on all notes (when passed data is empty)
+     * or one given note (passed in data).
+     */
+    void onToggleThumbnailPreference();
 
     void onExportSingleNoteToEnexAction();
     void onExportSeveralNotesToEnexAction();
@@ -157,6 +168,15 @@ protected:
     Account             m_currentAccount;
 
     QString             m_lastCurrentNoteLocalUid;
+
+    /**
+     * Current value of "shown thumbnails for all notes".
+     */
+    bool                m_showThumbnailsForAllNotes;
+    /**
+     * Set with local uids of notes where thumbnail was manually hidden.
+     */
+    QSet<QString>       m_hideThumbnailsLocalUids;
 };
 
 } // namespace quentier

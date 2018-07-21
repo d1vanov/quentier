@@ -43,6 +43,9 @@
 #define ICON_THEME_SETTINGS_KEY QStringLiteral("IconTheme")
 #define PANELS_STYLE_SETTINGS_KEY QStringLiteral("PanelStyle")
 #define SHOW_NOTE_THUMBNAILS_SETTINGS_KEY QStringLiteral("ShowNoteThumbnails")
+#define HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY QStringLiteral("HideNoteThumbnailsFor")
+// max.allowed count of keys in HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY
+#define HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY_MAX_CNT 100
 
 #define DARKER_PANEL_STYLE_NAME QStringLiteral("Darker")
 #define LIGHTER_PANEL_STYLE_NAME QStringLiteral("Lighter")

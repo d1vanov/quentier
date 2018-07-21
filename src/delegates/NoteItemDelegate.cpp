@@ -35,7 +35,7 @@ namespace quentier {
 
 NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
-    m_showNoteThumbnails(DEFAULT_SHOW_NOTE_THUMBNAILS),
+    m_showThumbnailsForAllNotes(DEFAULT_SHOW_NOTE_THUMBNAILS),
     m_minWidth(220),
     m_minHeight(120),
     m_leftMargin(6),
@@ -148,7 +148,10 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
 
     int left = option.rect.left() + m_leftMargin;
     int width = option.rect.width() - m_leftMargin - m_rightMargin;
-    if (m_showNoteThumbnails && !thumbnailData.isEmpty() && pItem->hasResources()) {
+
+    const QString & noteLocalUid = pItem->localUid();
+    bool showThumbnail = m_showThumbnailsForAllNotes && (!m_hideThumbnailsLocalUids.contains(noteLocalUid));
+    if (showThumbnail && !thumbnailData.isEmpty() && pItem->hasResources()) {
         width -= 104; // 100 is the width of the thumbnail and 4 is a little margin
     }
 
@@ -319,7 +322,7 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
     pPainter->drawText(QRectF(previewTextRect), text, textOption);
 
     // Painting the thumbnail (if any)
-    if (m_showNoteThumbnails && !thumbnailData.isEmpty() && pItem->hasResources())
+    if (showThumbnail && !thumbnailData.isEmpty() && pItem->hasResources())
     {
         int top = option.rect.top() + m_topMargin;
         int bottom = option.rect.bottom() - m_bottomMargin;
@@ -531,6 +534,15 @@ QString NoteItemDelegate::timestampToString(const qint64 timestamp, const qint64
     }
 
     return text;
+}
+
+void NoteItemDelegate::setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, const QSet<QString> & hideThumbnailsLocalUids)
+{
+    QNDEBUG(QStringLiteral("NoteItemDelegate::setShowNoteThumbnailsState: showThumbnailsForAllNotes=")
+                << showThumbnailsForAllNotes << QStringLiteral(", ")
+                << hideThumbnailsLocalUids.values().join(QStringLiteral(", ")));
+    m_showThumbnailsForAllNotes = showThumbnailsForAllNotes;
+    m_hideThumbnailsLocalUids = hideThumbnailsLocalUids;
 }
 
 } // namespace quentier

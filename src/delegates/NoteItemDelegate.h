@@ -31,9 +31,6 @@ class NoteItemDelegate: public QStyledItemDelegate
 public:
     explicit NoteItemDelegate(QObject * parent = Q_NULLPTR);
 
-    bool showNoteThumbnails() const { return m_showNoteThumbnails; }
-    void setShowNoteThumbnails(const bool showNoteThumbnails) { m_showNoteThumbnails = showNoteThumbnails; }
-
     /**
      * @brief returns null pointer as NoteItemDelegate doesn't allow editing
      */
@@ -60,6 +57,15 @@ public:
      */
     virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
 
+public Q_SLOTS:
+    /**
+     * The slot which can watch for external changes in thumbnail display state.
+     * @param showThumbnailsForAllNotes Global flag for all notes.
+     * @param hideThumbnailsLocalUids  Map with local uids where the thumbails was manually hidden.
+     */
+    void setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, const QSet<QString> & hideThumbnailsLocalUids);
+
+
 Q_SIGNALS:
     void notifyError(ErrorString error) const;  // clazy:exclude=const-signal-or-slot
 
@@ -67,7 +73,15 @@ private:
     QString timestampToString(const qint64 timestamp, const qint64 timePassed) const;
 
 private:
-    bool                    m_showNoteThumbnails;
+    /**
+     * Current value of "shown thumbnails for all notes".
+     */
+    bool                m_showThumbnailsForAllNotes;
+    /**
+     * Set with local uids of notes where thumbnail was manually hidden.
+     */
+    QSet<QString>       m_hideThumbnailsLocalUids;
+
     int                     m_minWidth;
     int                     m_minHeight;
     int                     m_leftMargin;

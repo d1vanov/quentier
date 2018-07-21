@@ -293,6 +293,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     restoreGeometryAndState();
     startListeningForSplitterMoves();
+
+    // this will emit event with initial thumbnail show/hide state
+    onShowNoteThumbnailsPreferenceChanged();
 }
 
 MainWindow::~MainWindow()
@@ -2425,11 +2428,16 @@ void MainWindow::onNewNoteCreationRequested()
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
-void MainWindow::onToggleThumbnailsPreference()
+void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
 {
-    bool newValue = !getShowNoteThumbnails();
-    setApplicationSetting(*m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
-                          SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(newValue));
+    QNDEBUG(QStringLiteral("MainWindow::onToggleThumbnailsPreference noteLocalUid=") << noteLocalUid);
+    bool toggleForAllNotes = noteLocalUid.isEmpty();
+    if (toggleForAllNotes) {
+        toggleShowNoteThumbnails();
+    } else {
+        toggleHideNoteThumbnailFor(noteLocalUid);
+    }
+    
     onShowNoteThumbnailsPreferenceChanged();
 }
 
@@ -2802,9 +2810,9 @@ void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
 
 void MainWindow::onShowNoteThumbnailsPreferenceChanged()
 {
+    QNDEBUG(QStringLiteral("MainWindow::onShowNoteThumbnailsPreferenceChanged"));
     bool showNoteThumbnails = getShowNoteThumbnails();
-    QNDEBUG(QStringLiteral("MainWindow::onToggleThumbnailsPreference: showNoteThumbnails=")
-            << (showNoteThumbnails));
+    Q_EMIT showNoteThumbnailsStateChanged(showNoteThumbnails, getHideNoteThumbnailsFor());
 
     NoteItemDelegate * pNoteItemDelegate = qobject_cast<NoteItemDelegate*>(m_pUI->noteListView->itemDelegate());
     if (Q_UNLIKELY(!pNoteItemDelegate)) {
@@ -2812,7 +2820,7 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
         return;
     }
 
-    pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
+    //pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
     m_pUI->noteListView->update();
 }
 
@@ -4447,12 +4455,6 @@ void MainWindow::setupViews()
     {
         pNoteItemDelegate = new NoteItemDelegate(pNoteListView);
 
-        if (m_pAccount)
-        {
-            bool showNoteThumbnails = getShowNoteThumbnails();
-            pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
-        }
-
         pNoteListView->setModelColumn(NoteModel::Columns::Title);
         pNoteListView->setItemDelegate(pNoteItemDelegate);
 
@@ -4480,8 +4482,15 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onNewNoteCreationRequested), Qt::UniqueConnection);
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,copyInAppNoteLinkRequested,QString,QString),
                      this, QNSLOT(MainWindow,onCopyInAppLinkNoteRequested,QString,QString), Qt::UniqueConnection);
-    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,toggleThumbnailsPreference),
-                     this, QNSLOT(MainWindow,onToggleThumbnailsPreference), Qt::UniqueConnection);
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,toggleThumbnailsPreference,QString),
+                     this, QNSLOT(MainWindow,onToggleThumbnailsPreference,QString), Qt::UniqueConnection);
+    QObject::connect(this, QNSIGNAL(MainWindow, showNoteThumbnailsStateChanged, bool, QSet<QString>),
+                     pNoteListView, QNSLOT(NoteListView, setShowNoteThumbnailsState, bool, QSet<QString>),
+                     Qt::UniqueConnection);
+    QObject::connect(this, QNSIGNAL(MainWindow, showNoteThumbnailsStateChanged, bool, QSet<QString>),
+                     pNoteItemDelegate, QNSLOT(NoteItemDelegate, setShowNoteThumbnailsState, bool, QSet<QString>),
+                     Qt::UniqueConnection);
+
 
     if (!m_onceSetupNoteSortingModeComboBox)
     {
@@ -4576,6 +4585,44 @@ bool MainWindow::getShowNoteThumbnails() const {
         SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
         QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
     return showThumbnails.toBool();
+}
+
+QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
+{
+    QVariant hideThumbnailsFor = getApplicationSetting(
+        *m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
+        HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
+        QStringLiteral(""));
+
+    // there is QSet::fromList but could nt figure out how to use it with QStringList
+    QSet<QString> hideThumbnailsForSet;
+    const QStringList & values = hideThumbnailsFor.toStringList();
+    foreach (const QString & value, values) {
+        hideThumbnailsForSet.insert(value);
+    }
+    return hideThumbnailsForSet;
+}
+
+void MainWindow::toggleShowNoteThumbnails() const
+{
+    bool newValue = !getShowNoteThumbnails();
+    setApplicationSetting(*m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
+                          SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(newValue));
+}
+
+void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
+{
+    QSet<QString> hideThumbnailsForSet = getHideNoteThumbnailsFor();
+    if (hideThumbnailsForSet.contains(noteLocalUid)) {
+        hideThumbnailsForSet.remove(noteLocalUid);
+    } else {
+        // after max. count is reached we ignore further requests
+        if (hideThumbnailsForSet.size() <= HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY_MAX_CNT) {
+            hideThumbnailsForSet.insert(noteLocalUid);
+        }
+    }
+    setApplicationSetting(*m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
+                          HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY, QStringList(hideThumbnailsForSet.values()));
 }
 
 void MainWindow::clearViews()
