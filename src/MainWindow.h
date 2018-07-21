@@ -313,6 +313,7 @@ private:
 
 private:
     void centerWidget(QWidget & widget);
+    void centerDialog(QDialog & dialog);
 
     void setupThemeIcons();
     void setupAccountManager();

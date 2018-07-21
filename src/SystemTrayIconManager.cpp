@@ -106,7 +106,7 @@ void SystemTrayIconManager::hide()
 
 void SystemTrayIconManager::setPreferenceCloseToSystemTray(bool value) const
 {
-    QNTRACE(QStringLiteral("SystemTrayIconManager::setPreferenceCloseToSystemTray"));
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::setPreferenceCloseToSystemTray"));
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -114,7 +114,7 @@ void SystemTrayIconManager::setPreferenceCloseToSystemTray(bool value) const
     appSettings.setValue(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY, value);
     appSettings.endGroup();
     QNDEBUG(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY << QStringLiteral(" preference value for the current account set to: ")
-                                              << (value ? QStringLiteral("true") : QStringLiteral("false")));
+            << (value ? QStringLiteral("true") : QStringLiteral("false")));
 }
 
 bool SystemTrayIconManager::getPreferenceCloseToSystemTray() const
@@ -128,8 +128,8 @@ bool SystemTrayIconManager::getPreferenceCloseToSystemTray() const
     appSettings.endGroup();
 
     bool value = resultData.isValid() ? resultData.toBool() : DEFAULT_CLOSE_TO_SYSTEM_TRAY;
-    QNDEBUG(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY << QStringLiteral(" preference value for the current account: ")
-               << (value ? QStringLiteral("true") : QStringLiteral("false")));
+    QNTRACE(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY << QStringLiteral(" preference value for the current account: ")
+            << (value ? QStringLiteral("true") : QStringLiteral("false")));
     return value;
 }
 
