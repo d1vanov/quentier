@@ -79,6 +79,8 @@ using quentier::LogViewerWidget;
 #include "widgets/SavedSearchModelItemInfoWidget.h"
 #include "widgets/AboutQuentierWidget.h"
 #include "dialogs/EditNoteDialog.h"
+#include "utility/ApplicationSettingsUtil.h"
+
 
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -2368,8 +2370,8 @@ void MainWindow::onShowPreferencesDialogAction()
                      this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool));
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,synchronizationDownloadInkNoteImagesOptionChanged,bool),
                      this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool));
-    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged,bool),
-                     this, QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged,bool));
+    QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged),
+                     this, QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged));
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,runSyncPeriodicallyOptionChanged,int),
                      this, QNSLOT(MainWindow,onRunSyncEachNumMinitesPreferenceChanged,int));
 
@@ -2433,6 +2435,14 @@ void MainWindow::onNewNoteCreationRequested()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNewNoteCreationRequested"));
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
+}
+
+void MainWindow::onToggleThumbnailsPreference()
+{
+    bool newValue = !getShowNoteThumbnails();
+    setApplicationSetting(*m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
+                          SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(newValue));
+    onShowNoteThumbnailsPreferenceChanged();
 }
 
 void MainWindow::onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid)
@@ -2803,10 +2813,11 @@ void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
     }
 }
 
-void MainWindow::onShowNoteThumbnailsPreferenceChanged(bool flag)
+void MainWindow::onShowNoteThumbnailsPreferenceChanged()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowNoteThumbnailsPreferenceChanged: ")
-            << (flag ? QStringLiteral("enabled") : QStringLiteral("disabled")));
+    bool showNoteThumbnails = getShowNoteThumbnails();
+    QNDEBUG(QStringLiteral("MainWindow::onToggleThumbnailsPreference: showNoteThumbnails=")
+            << (showNoteThumbnails));
 
     NoteItemDelegate * pNoteItemDelegate = qobject_cast<NoteItemDelegate*>(m_pUI->noteListView->itemDelegate());
     if (Q_UNLIKELY(!pNoteItemDelegate)) {
@@ -2814,7 +2825,7 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged(bool flag)
         return;
     }
 
-    pNoteItemDelegate->setShowNoteThumbnails(flag);
+    pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
     m_pUI->noteListView->update();
 }
 
@@ -4460,13 +4471,8 @@ void MainWindow::setupViews()
 
         if (m_pAccount)
         {
-            ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-            appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-            if (appSettings.contains(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY)) {
-                bool showNoteThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY).toBool();
-                pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
-            }
-            appSettings.endGroup();
+            bool showNoteThumbnails = getShowNoteThumbnails();
+            pNoteItemDelegate->setShowNoteThumbnails(showNoteThumbnails);
         }
 
         pNoteListView->setModelColumn(NoteModel::Columns::Title);
@@ -4496,6 +4502,8 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onNewNoteCreationRequested), Qt::UniqueConnection);
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,copyInAppNoteLinkRequested,QString,QString),
                      this, QNSLOT(MainWindow,onCopyInAppLinkNoteRequested,QString,QString), Qt::UniqueConnection);
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,toggleThumbnailsPreference),
+                     this, QNSLOT(MainWindow,onToggleThumbnailsPreference), Qt::UniqueConnection);
 
     if (!m_onceSetupNoteSortingModeComboBox)
     {
@@ -4582,6 +4590,14 @@ void MainWindow::setupViews()
     }
 
     showHideViewColumnsForAccountType(currentAccountType);
+}
+
+bool MainWindow::getShowNoteThumbnails() const {
+    QVariant showThumbnails = getApplicationSetting(
+        *m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
+        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
+        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    return showThumbnails.toBool();
 }
 
 void MainWindow::clearViews()

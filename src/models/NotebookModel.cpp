@@ -4080,7 +4080,8 @@ const NotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(con
 
 const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
 {
-    QNDEBUG(QStringLiteral("NotebookModelItem * NotebookModel::itemForId: ") << id);
+    // this is called too often to be DEBUG level
+    QNTRACE(QStringLiteral("NotebookModelItem * NotebookModel::itemForId: ") << id);
 
     auto localUidIt = m_indexIdToLocalUidBimap.left.find(id);
     if (localUidIt != m_indexIdToLocalUidBimap.left.end())

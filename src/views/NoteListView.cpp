@@ -485,6 +485,14 @@ void NoteListView::onShowNoteInfoAction()
     Q_EMIT noteInfoDialogRequested(noteLocalUid);
 }
 
+
+void NoteListView::onToggleThumbnailsPreference()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onToggleThumbnailsPreference"));
+
+    Q_EMIT toggleThumbnailsPreference();
+}
+
 void NoteListView::onCopyInAppNoteLinkAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onCopyInAppNoteLinkAction"));
@@ -837,6 +845,9 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos, const QPoint & 
         ADD_CONTEXT_MENU_ACTION(tr("Copy in-app note link"), m_pNoteItemContextMenu,
                                 onCopyInAppNoteLinkAction, localUidAndGuid, true);
     }
+
+    QMenu * pThumbnailsSubMenu = m_pNoteItemContextMenu->addMenu(tr("Thumbnails"));
+    ADD_CONTEXT_MENU_ACTION(tr("Toggle all"), pThumbnailsSubMenu, onToggleThumbnailsPreference, QVariant(), true);
 
     m_pNoteItemContextMenu->show();
     m_pNoteItemContextMenu->exec(globalPos);

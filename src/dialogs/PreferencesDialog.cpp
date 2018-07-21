@@ -31,6 +31,7 @@ using quentier::ShortcutSettingsWidget;
 #include "../MainWindowSideBorderOption.h"
 #include "../utility/ColorCodeValidator.h"
 #include "../utility/StartAtLogin.h"
+#include "../utility/ApplicationSettingsUtil.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
@@ -225,13 +226,10 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
     QNDEBUG(QStringLiteral("PreferencesDialog::onShowNoteThumbnailsCheckboxToggled: checked = ")
             << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, checked);
-    appSettings.endGroup();
+    setApplicationSetting(m_accountManager.currentAccount(), QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
+                          SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(checked));
 
-    Q_EMIT showNoteThumbnailsOptionChanged(checked);
+    Q_EMIT showNoteThumbnailsOptionChanged();
 }
 
 void PreferencesDialog::onShowMainWindowLeftBorderOptionChanged(int option)
@@ -553,7 +551,6 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     setupSystemTraySettings();
 
     // 2) Note editor tab
-
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
 
@@ -564,17 +561,10 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 
     // 3) Appearance tab
-
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-
-    bool showNoteThumbnails = DEFAULT_SHOW_NOTE_THUMBNAILS;
-    if (appSettings.contains(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY)) {
-        showNoteThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY).toBool();
-    }
-
-    appSettings.endGroup();
-
-    m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
+    QVariant showThumbnails = getApplicationSetting(
+        appSettings, LOOK_AND_FEEL_SETTINGS_GROUP_NAME, SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
+        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
 
     setupMainWindowBorderSettings();
 
@@ -582,7 +572,6 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     setupStartAtLoginSettings();
 
     // 5) Synchronization tab
-
     if (currentAccount.type() == Account::Type::Local)
     {
         // Remove the synchronization tab entirely

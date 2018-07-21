@@ -50,7 +50,7 @@ Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
-    void showNoteThumbnailsOptionChanged(bool enabled);
+    void showNoteThumbnailsOptionChanged();
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
     void showMainWindowLeftBorderOptionChanged(int option);
