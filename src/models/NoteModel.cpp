@@ -567,6 +567,8 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
 
             dirty |= (timestamp != item.deletionTimestamp());
             item.setDeletionTimestamp(timestamp);
+            bool isActive = (timestamp < 0);
+            item.setActive(isActive);
             break;
         }
     case Columns::CreationTimestamp:
@@ -1691,6 +1693,7 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item, const bool 
     note.setLocal(!item.isSynchronizable());
     note.setDirty(item.isDirty());
     note.setFavorited(item.isFavorited());
+    note.setActive(item.isActive());
 
     QUuid requestId = QUuid::createUuid();
 
@@ -2272,6 +2275,7 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
     item.setSynchronizable(!note.isLocal());
     item.setDirty(note.isDirty());
     item.setFavorited(note.isFavorited());
+    item.setActive(note.hasActive() ? note.active() : true);
     item.setHasResources(note.hasResources() && (note.numResources() > 0));
 
     if (note.hasNoteRestrictions()) {

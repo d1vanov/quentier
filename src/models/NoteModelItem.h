@@ -97,6 +97,9 @@ public:
     bool isFavorited() const { return m_isFavorited; }
     void setFavorited(const bool favorited) { m_isFavorited = favorited; }
 
+    bool isActive() const { return m_isActive; }
+    void setActive(const bool active) { m_isActive = active; }
+
     bool hasResources() const { return m_hasResources; }
     void setHasResources(const bool hasResources) { m_hasResources = hasResources; }
 
@@ -136,6 +139,7 @@ private:
     bool        m_isSynchronizable;
     bool        m_isDirty;
     bool        m_isFavorited;
+    bool        m_isActive;
     bool        m_hasResources;
     bool        m_canUpdateTitle;
     bool        m_canUpdateContent;
