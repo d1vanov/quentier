@@ -156,6 +156,30 @@ QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName,
         return QModelIndex();
     }
 
+    if (savedSearchName != savedSearchName.trimmed()) {
+        errorDescription.setBase(QT_TR_NOOP("Saved search name should not start or end with whitespace"));
+        return QModelIndex();
+    }
+
+    if (searchQuery.isEmpty()) {
+        errorDescription.setBase(QT_TR_NOOP("Saved search query is empty"));
+        return QModelIndex();
+    }
+
+    int searchQuerySize = searchQuery.size();
+
+    if (searchQuerySize < qevercloud::EDAM_SEARCH_QUERY_LEN_MIN) {
+        errorDescription.setBase(QT_TR_NOOP("Saved search query size is below the minimal acceptable length"));
+        errorDescription.details() = QString::number(qevercloud::EDAM_SEARCH_QUERY_LEN_MIN);
+        return QModelIndex();
+    }
+
+    if (searchQuerySize > qevercloud::EDAM_SEARCH_QUERY_LEN_MAX) {
+        errorDescription.setBase(QT_TR_NOOP("Saved search query size is above the maximal acceptable length"));
+        errorDescription.details() = QString::number(qevercloud::EDAM_SEARCH_QUERY_LEN_MAX);
+        return QModelIndex();
+    }
+
     QModelIndex existingItemIndex = indexForSavedSearchName(savedSearchName);
     if (existingItemIndex.isValid()) {
         errorDescription.setBase(QT_TR_NOOP("Saved search with such name already exists"));
@@ -1273,13 +1297,13 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
 void SavedSearchModel::setSavedSearchFavorited(const QModelIndex & index, const bool favorited)
 {
     if (Q_UNLIKELY(!index.isValid())) {
-        REPORT_ERROR("Can't set favorited flag for the saved search: model index is invalid");
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the saved search: model index is invalid"));
         return;
     }
 
     const SavedSearchModelItem * pItem = itemForIndex(index);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR("Can't set favorited flag for the saved search: can't find the model item corresponding to index");
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the saved search: can't find the model item corresponding to index"));
         return;
     }
 
@@ -1292,7 +1316,7 @@ void SavedSearchModel::setSavedSearchFavorited(const QModelIndex & index, const 
 
     auto it = localUidIndex.find(pItem->m_localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        REPORT_ERROR("Can't set favorited flag for the saved search: the modified saved search entry was not found within the model");
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the saved search: the modified saved search entry was not found within the model"));
         return;
     }
 

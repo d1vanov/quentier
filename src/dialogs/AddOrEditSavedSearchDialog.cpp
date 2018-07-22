@@ -79,7 +79,7 @@ void AddOrEditSavedSearchDialog::accept()
     m_pUi->statusBar->setHidden(false)
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
-        REPORT_ERROR("Can't accept new saved search or edit the existing one: saved search model is gone");
+        REPORT_ERROR(QT_TR_NOOP("Can't accept new saved search or edit the existing one: saved search model is gone"));
         return;
     }
 
@@ -104,7 +104,7 @@ void AddOrEditSavedSearchDialog::accept()
         QModelIndex index = m_pSavedSearchModel->indexForLocalUid(m_editedSavedSearchLocalUid);
         const SavedSearchModelItem * pItem = m_pSavedSearchModel->itemForIndex(index);
         if (Q_UNLIKELY(!pItem)) {
-            REPORT_ERROR("Can't edit saved search: saved search was not found in the model");
+            REPORT_ERROR(QT_TR_NOOP("Can't edit saved search: saved search was not found in the model"));
             return;
         }
 
@@ -114,7 +114,7 @@ void AddOrEditSavedSearchDialog::accept()
         {
             bool res = m_pSavedSearchModel->setData(queryIndex, savedSearchQuery);
             if (Q_UNLIKELY(!res)) {
-                REPORT_ERROR("Failed to set the saved search query to the model");
+                REPORT_ERROR(QT_TR_NOOP("Failed to set the saved search query to the model"));
             }
         }
 
@@ -133,12 +133,12 @@ void AddOrEditSavedSearchDialog::accept()
                      (existingItemIndex.parent() != nameIndex.parent())))
                 {
                     // The new name collides with some existing saved search and now with the currently edited one
-                    REPORT_ERROR("The saved search name must be unique in case insensitive manner");
+                    REPORT_ERROR(QT_TR_NOOP("The saved search name must be unique in case insensitive manner"));
                 }
                 else
                 {
                     // Don't really know what happened...
-                    REPORT_ERROR("Can't set this name for the saved search");
+                    REPORT_ERROR(QT_TR_NOOP("Can't set this name for the saved search"));
                 }
             }
         }
