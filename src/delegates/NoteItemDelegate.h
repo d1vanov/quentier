@@ -76,11 +76,11 @@ private:
     /**
      * Current value of "shown thumbnails for all notes".
      */
-    bool                m_showThumbnailsForAllNotes;
+    bool                    m_showThumbnailsForAllNotes;
     /**
      * Set with local uids of notes where thumbnail was manually hidden.
      */
-    QSet<QString>       m_hideThumbnailsLocalUids;
+    QSet<QString>           m_hideThumbnailsLocalUids;
 
     int                     m_minWidth;
     int                     m_minHeight;

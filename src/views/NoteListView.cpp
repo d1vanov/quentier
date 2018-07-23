@@ -494,10 +494,11 @@ void NoteListView::onShowNoteInfoAction()
     Q_EMIT noteInfoDialogRequested(noteLocalUid);
 }
 
+void NoteListView::onToggleThumbnailPreference()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onToggleThumbnailPreference"));
 
-void NoteListView::onToggleThumbnailPreference() {
-    QNDEBUG(QStringLiteral("NoteListView::onToggleThumbnailPreference noteLocalUid="));
-    QAction * pAction = qobject_cast<QAction*>(sender());
+    QAction *pAction = qobject_cast<QAction *>(sender());
     if (Q_UNLIKELY(!pAction)) {
         REPORT_ERROR(QT_TR_NOOP("Can't get data"));
         return;

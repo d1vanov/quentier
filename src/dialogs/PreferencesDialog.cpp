@@ -31,7 +31,6 @@ using quentier::ShortcutSettingsWidget;
 #include "../MainWindowSideBorderOption.h"
 #include "../utility/ColorCodeValidator.h"
 #include "../utility/StartAtLogin.h"
-#include "../utility/ApplicationSettingsUtil.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
@@ -226,8 +225,10 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
     QNDEBUG(QStringLiteral("PreferencesDialog::onShowNoteThumbnailsCheckboxToggled: checked = ")
             << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
 
-    setApplicationSetting(m_accountManager.currentAccount(), QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
-                          SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(checked));
+    ApplicationSettings appSettings(m_accountManager.currentAccount(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(checked));
+    appSettings.endGroup();
 
     Q_EMIT showNoteThumbnailsOptionChanged();
 }
@@ -561,9 +562,10 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 
     // 3) Appearance tab
-    QVariant showThumbnails = getApplicationSetting(
-        appSettings, LOOK_AND_FEEL_SETTINGS_GROUP_NAME, SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
-        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QVariant showThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    appSettings.endGroup();
+
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
 
     setupMainWindowBorderSettings();

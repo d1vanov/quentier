@@ -79,8 +79,6 @@ using quentier::LogViewerWidget;
 #include "widgets/SavedSearchModelItemInfoWidget.h"
 #include "widgets/AboutQuentierWidget.h"
 #include "dialogs/EditNoteDialog.h"
-#include "utility/ApplicationSettingsUtil.h"
-
 
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -2434,7 +2432,8 @@ void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
     bool toggleForAllNotes = noteLocalUid.isEmpty();
     if (toggleForAllNotes) {
         toggleShowNoteThumbnails();
-    } else {
+    }
+    else {
         toggleHideNoteThumbnailFor(noteLocalUid);
     }
     
@@ -2811,6 +2810,7 @@ void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
 void MainWindow::onShowNoteThumbnailsPreferenceChanged()
 {
     QNDEBUG(QStringLiteral("MainWindow::onShowNoteThumbnailsPreferenceChanged"));
+
     bool showNoteThumbnails = getShowNoteThumbnails();
     Q_EMIT showNoteThumbnailsStateChanged(showNoteThumbnails, getHideNoteThumbnailsFor());
 
@@ -4578,35 +4578,34 @@ void MainWindow::setupViews()
     showHideViewColumnsForAccountType(currentAccountType);
 }
 
-bool MainWindow::getShowNoteThumbnails() const {
-    QVariant showThumbnails = getApplicationSetting(
-        *m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
-        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
+bool MainWindow::getShowNoteThumbnails() const
+{
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QVariant showThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
         QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    appSettings.endGroup();
+
     return showThumbnails.toBool();
 }
 
 QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
 {
-    QVariant hideThumbnailsFor = getApplicationSetting(
-        *m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
-        HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
-        QStringLiteral(""));
+   ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QVariant hideThumbnailsFor = appSettings.value(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY, QStringLiteral(""));
+    appSettings.endGroup();
 
-    // there is QSet::fromList but could nt figure out how to use it with QStringList
-    QSet<QString> hideThumbnailsForSet;
-    const QStringList & values = hideThumbnailsFor.toStringList();
-    foreach (const QString & value, values) {
-        hideThumbnailsForSet.insert(value);
-    }
-    return hideThumbnailsForSet;
+    return QSet<QString>::fromList(hideThumbnailsFor.toStringList());
 }
 
 void MainWindow::toggleShowNoteThumbnails() const
 {
     bool newValue = !getShowNoteThumbnails();
-    setApplicationSetting(*m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
-                          SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(newValue));
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(newValue));
+    appSettings.endGroup();
 }
 
 void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
@@ -4614,14 +4613,17 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
     QSet<QString> hideThumbnailsForSet = getHideNoteThumbnailsFor();
     if (hideThumbnailsForSet.contains(noteLocalUid)) {
         hideThumbnailsForSet.remove(noteLocalUid);
-    } else {
+    }
+    else {
         // after max. count is reached we ignore further requests
-        if (hideThumbnailsForSet.size() <= HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY_MAX_CNT) {
+        if (hideThumbnailsForSet.size() <= HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY_MAX_COUNT) {
             hideThumbnailsForSet.insert(noteLocalUid);
         }
     }
-    setApplicationSetting(*m_pAccount, QUENTIER_UI_SETTINGS, LOOK_AND_FEEL_SETTINGS_GROUP_NAME,
-                          HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY, QStringList(hideThumbnailsForSet.values()));
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY, QStringList(hideThumbnailsForSet.values()));
+    appSettings.endGroup();
 }
 
 void MainWindow::clearViews()
