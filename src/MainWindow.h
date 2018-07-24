@@ -222,7 +222,7 @@ private Q_SLOTS:
 
     void onFiltersViewTogglePushButtonPressed();
 
-    void onShowSettingsDialogAction();
+    void onShowPreferencesDialogAction();
 
     // Various note-related slots
     void onNoteSortingModeChanged(int index);
@@ -321,6 +321,7 @@ private:
 
 private:
     void centerWidget(QWidget & widget);
+    void centerDialog(QDialog & dialog);
 
     void setupThemeIcons();
     void setupAccountManager();

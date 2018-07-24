@@ -336,6 +336,7 @@ void MainWindow::show()
 
         QScopedPointer<WelcomeToQuentierDialog> pDialog(new WelcomeToQuentierDialog(this));
         pDialog->setWindowModality(Qt::WindowModal);
+        centerDialog(*pDialog);
         if (pDialog->exec() == QDialog::Accepted) {
             QNDEBUG(QStringLiteral("Log in to Evernote account option was chosen on the greeter screen"));
             onEvernoteAccountAuthenticationRequested(QStringLiteral("www.evernote.com"), QNetworkProxy(QNetworkProxy::NoProxy));
@@ -378,7 +379,7 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionReplaceInNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
     QObject::connect(m_pUI->ActionPreferences, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onShowSettingsDialogAction));
+                     this, QNSLOT(MainWindow,onShowPreferencesDialogAction));
 
     // Undo/redo actions
     QObject::connect(m_pUI->ActionUndo, QNSIGNAL(QAction,triggered),
@@ -1755,6 +1756,7 @@ void MainWindow::onImportEnexAction()
 
     QScopedPointer<EnexImportDialog> pEnexImportDialog(new EnexImportDialog(*m_pAccount, *m_pNotebookModel, this));
     pEnexImportDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*pEnexImportDialog);
     if (pEnexImportDialog->exec() != QDialog::Accepted) {
         QNDEBUG(QStringLiteral("The import of ENEX was cancelled"));
         return;
@@ -2133,6 +2135,7 @@ void MainWindow::onNewNotebookCreationRequested()
 
     QScopedPointer<AddOrEditNotebookDialog> pAddNotebookDialog(new AddOrEditNotebookDialog(m_pNotebookModel, this));
     pAddNotebookDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*pAddNotebookDialog);
     Q_UNUSED(pAddNotebookDialog->exec())
 }
 
@@ -2164,6 +2167,7 @@ void MainWindow::onNewTagCreationRequested()
 
     QScopedPointer<AddOrEditTagDialog> pAddTagDialog(new AddOrEditTagDialog(m_pTagModel, this));
     pAddTagDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*pAddTagDialog);
     Q_UNUSED(pAddTagDialog->exec())
 }
 
@@ -2195,6 +2199,7 @@ void MainWindow::onNewSavedSearchCreationRequested()
 
     QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
     pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*pAddSavedSearchDialog);
     Q_UNUSED(pAddSavedSearchDialog->exec())
 }
 
@@ -2340,9 +2345,15 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
     appSettings.endGroup();
 }
 
-void MainWindow::onShowSettingsDialogAction()
+void MainWindow::onShowPreferencesDialogAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowSettingsDialogAction"));
+    QNDEBUG(QStringLiteral("MainWindow::onShowPreferencesDialogAction"));
+
+    PreferencesDialog * pExistingPreferencesDialog = findChild<PreferencesDialog*>();
+    if (pExistingPreferencesDialog) {
+        QNDEBUG(QStringLiteral("Preferences dialog already exists, won't show another one"));
+        return;
+    }
 
     QList<QMenu*> menus = m_pUI->menuBar->findChildren<QMenu*>();
     ActionsInfo actionsInfo(menus);
@@ -2352,6 +2363,7 @@ void MainWindow::onShowSettingsDialogAction()
                                                                                *m_pSystemTrayIconManager,
                                                                                actionsInfo, this));
     pPreferencesDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*pPreferencesDialog);
 
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,noteEditorUseLimitedFontsOptionChanged,bool),
                      this, QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
@@ -2648,6 +2660,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
 
     QScopedPointer<EnexExportDialog> pExportEnexDialog(new EnexExportDialog(*m_pAccount, this));
     pExportEnexDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*pExportEnexDialog);
     if (pExportEnexDialog->exec() != QDialog::Accepted) {
         QNDEBUG(QStringLiteral("Enex export was not confirmed"));
         return;
@@ -2852,6 +2865,7 @@ void MainWindow::onSaveNoteSearchQueryButtonPressed()
 
     QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
     pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*pAddSavedSearchDialog);
     pAddSavedSearchDialog->setQuery(searchString);
     Q_UNUSED(pAddSavedSearchDialog->exec())
 }
@@ -3838,6 +3852,7 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
 
         QScopedPointer<FirstShutdownDialog> pDialog(new FirstShutdownDialog(this));
         pDialog->setWindowModality(Qt::WindowModal);
+        centerDialog(*pDialog);
         bool shouldCloseToSystemTray = (pDialog->exec() == QDialog::Accepted);
         m_pSystemTrayIconManager->setPreferenceCloseToSystemTray(shouldCloseToSystemTray);
     }
@@ -4049,6 +4064,15 @@ void MainWindow::centerWidget(QWidget & widget)
         int y = center.y() - widgetGeometryRect.height() / 2;
         widget.move(x, y);
     }
+}
+
+void MainWindow::centerDialog(QDialog & dialog)
+{
+#ifndef Q_OS_MAC
+    centerWidget(dialog);
+#else
+    Q_UNUSED(dialog)
+#endif
 }
 
 void MainWindow::setupThemeIcons()
@@ -4670,6 +4694,7 @@ void MainWindow::setupAccountSpecificUiElements()
     m_pUI->syncPushButton->setDisabled(isLocal);
 
     m_pUI->ActionSynchronize->setVisible(!isLocal);
+    m_pUI->menuService->menuAction()->setVisible(!isLocal);
 }
 
 void MainWindow::setupNoteFilters()

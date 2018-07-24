@@ -2797,7 +2797,7 @@ margin: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -2864,6 +2864,7 @@ border-bottom: 1px solid black;</string>
     <addaction name="ActionSpellCheck"/>
     <addaction name="separator"/>
     <addaction name="ActionSaveNote"/>
+    <addaction name="ActionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="locale">
@@ -3012,7 +3013,6 @@ border-bottom: 1px solid black;</string>
     </property>
     <addaction name="ActionSynchronize"/>
     <addaction name="separator"/>
-    <addaction name="ActionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="locale">
@@ -3337,7 +3337,7 @@ border-bottom: 1px solid black;</string>
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>S&amp;ettings</string>
+    <string>P&amp;references</string>
    </property>
   </action>
   <action name="ActionShowNoteInfo">

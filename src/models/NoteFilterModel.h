@@ -41,7 +41,8 @@ public:
     const QStringList & tagLocalUids() const { return m_tagLocalUids; }
     void setTagLocalUids(const QStringList & tagLocalUids);
 
-    const QStringList & noteLocalUids() const { return m_noteLocalUids; }
+    const QSet<QString> & noteLocalUids() const { return m_noteLocalUids; }
+    void setNoteLocalUids(const QSet<QString> & noteLocalUids);
     void setNoteLocalUids(const QStringList & noteLocalUids);
     void clearNoteLocalUids();
 
@@ -57,12 +58,14 @@ protected:
     virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
 
 private:
-    QStringList m_notebookLocalUids;
-    QStringList m_tagLocalUids;
-    QStringList m_noteLocalUids;
-    bool        m_usingNoteLocalUidsFilter;
-    bool        m_pendingFilterUpdate;
-    bool        m_modifiedWhilePendingFilterUpdate;
+    QStringList     m_notebookLocalUids;
+    QStringList     m_tagLocalUids;
+
+    QSet<QString>   m_noteLocalUids;
+
+    bool            m_usingNoteLocalUidsFilter;
+    bool            m_pendingFilterUpdate;
+    bool            m_modifiedWhilePendingFilterUpdate;
 };
 
 } // namespace quentier

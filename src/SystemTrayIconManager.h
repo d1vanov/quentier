@@ -119,7 +119,7 @@ private:
     void restoreTrayIconState();
 
     /**
-     * @brief isSystemTrayAvailable
+     * @brief getPreferenceCloseToSystemTray
      * @return User preference about closing to tray to given value. If no valid value is found, default value
      * is returned.
      */
