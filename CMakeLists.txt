@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/sanitizers ${CMAKE_MODULE_PATH})
 
 include(QuentierCMakePolicies)
 SET_POLICIES()
@@ -41,6 +42,8 @@ if(NOT APPLE)
 endif()
 
 include(PrependPath)
+
+find_package(Sanitizers)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
@@ -461,6 +464,8 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${${PROJECT_NAME}_FORMS_HEADERS}
                ${${PROJECT_NAME}_RESOURCES_RCC})
 
+add_sanitizers(${PROJECT_NAME})
+
 get_filename_component(LIBQUENTIER_FILE_NAME "${LIBQUENTIER_LIBRARIES}" NAME)
 
 if(BREAKPAD_FOUND)
@@ -552,6 +557,7 @@ set(MODEL_TEST_SOURCES
     src/models/FavoritesModelItem.cpp)
 
 add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
+add_sanitizers(${PROJECT_NAME}_model_test)
 add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)
 target_link_libraries(${PROJECT_NAME}_model_test ${THIRDPARTY_LIBS})
 
