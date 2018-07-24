@@ -465,21 +465,22 @@ private:
     bool isInsideStyleBlock(const QString & styleSheet, const QString & styleBlockStartSearchString,
                             const int currentIndex, bool & error) const;
 
-    bool                    getShowNoteThumbnails() const;
+    bool getShowNoteThumbnails() const;
 
     /**
      * Get a set with note local uids.
      */
-    QSet<QString>           getHideNoteThumbnailsFor() const;
+    QSet<QString> getHideNoteThumbnailsFor() const;
 
     /**
      * Toggle value of "hide current note thumbnail".
      */
-    void                    toggleHideNoteThumbnailFor(QString noteLocalUid) const;
+    void toggleHideNoteThumbnailFor(QString noteLocalUid) const;
+
     /**
      * Toggle value of "show note thumbnails".
      */
-    void                    toggleShowNoteThumbnails() const;
+    void toggleShowNoteThumbnails() const;
 
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)

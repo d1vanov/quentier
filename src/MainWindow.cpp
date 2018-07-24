@@ -4615,7 +4615,7 @@ bool MainWindow::getShowNoteThumbnails() const
 
 QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
 {
-   ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     QVariant hideThumbnailsFor = appSettings.value(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY, QStringLiteral(""));
     appSettings.endGroup();
