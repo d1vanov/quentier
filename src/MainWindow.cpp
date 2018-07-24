@@ -4052,6 +4052,8 @@ void MainWindow::centerDialog(QDialog & dialog)
 {
 #ifndef Q_OS_MAC
     centerWidget(dialog);
+#else
+    Q_UNUSED(dialog)
 #endif
 }
 

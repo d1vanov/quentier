@@ -103,28 +103,16 @@ void NoteFilterModel::setTagLocalUids(const QStringList & tagLocalUids)
     }
 }
 
-void NoteFilterModel::setNoteLocalUids(const QStringList & noteLocalUids)
+void NoteFilterModel::setNoteLocalUids(const QSet<QString> & noteLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteFilterModel::setNoteLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
+    QNDEBUG(QStringLiteral("NoteFilterModel::setNoteLocalUids"));
+    QNTRACE(QStringList(noteLocalUids.toList()).join(QStringLiteral(", ")));
 
-    bool wasUsingNoteLocalUidsFilter = m_usingNoteLocalUidsFilter;
     m_usingNoteLocalUidsFilter = true;
 
-    if (wasUsingNoteLocalUidsFilter && (m_noteLocalUids.size() == noteLocalUids.size()))
-    {
-        bool foundDifference = false;
-        for(auto it = m_noteLocalUids.constBegin(), end = m_noteLocalUids.constEnd(); it != end; ++it)
-        {
-            if (!noteLocalUids.contains(*it)) {
-                foundDifference = true;
-                break;
-            }
-        }
-
-        if (!foundDifference) {
-            QNTRACE(QStringLiteral("The same set of note local uids is set currently, nothing has changed"));
-            return;
-        }
+    if (noteLocalUids == m_noteLocalUids) {
+        QNTRACE(QStringLiteral("The same set of note local uids is set currently, nothing has changed"));
+        return;
     }
 
     m_noteLocalUids = noteLocalUids;
@@ -135,6 +123,11 @@ void NoteFilterModel::setNoteLocalUids(const QStringList & noteLocalUids)
     else {
         m_modifiedWhilePendingFilterUpdate = true;
     }
+}
+
+void NoteFilterModel::setNoteLocalUids(const QStringList & noteLocalUids)
+{
+    setNoteLocalUids(QSet<QString>::fromList(noteLocalUids));
 }
 
 void NoteFilterModel::clearNoteLocalUids()
@@ -181,7 +174,7 @@ QTextStream & NoteFilterModel::print(QTextStream & strm) const
          << (m_tagLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_tagLocalUids.join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    note local uids: ")
-         << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_noteLocalUids.join(QStringLiteral(", ")))
+         << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : QStringList(m_noteLocalUids.toList()).join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    using note local uids filter: ")
          << (m_usingNoteLocalUidsFilter ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
