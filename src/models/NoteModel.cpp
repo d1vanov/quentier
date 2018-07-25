@@ -2079,7 +2079,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
 
 void NoteModel::findTagNamesForItem(NoteModelItem & item)
 {
-    NMDEBUG(QStringLiteral("NoteModel::findTagNamesForItem: ") << item);
+    NMTRACE(QStringLiteral("NoteModel::findTagNamesForItem: ") << item);
 
     const QStringList & tagLocalUids = item.tagLocalUids();
     for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it)
