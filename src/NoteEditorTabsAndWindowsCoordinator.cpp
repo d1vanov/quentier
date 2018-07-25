@@ -448,7 +448,7 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(const QString & notebook
     newNote.setNotebookLocalUid(notebookLocalUid);
     newNote.setLocal(m_currentAccount.type() == Account::Type::Local);
     newNote.setDirty(true);
-    newNote.setContent(QStringLiteral("<en-note><div></div></en-note>"));
+    newNote.setContent(QStringLiteral("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\"><en-note><div></div></en-note>"));
 
     qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
     newNote.setCreationTimestamp(timestamp);
@@ -535,6 +535,26 @@ void NoteEditorTabsAndWindowsCoordinator::refreshNoteEditorWidgetsSpecialIcons()
     }
 }
 
+void NoteEditorTabsAndWindowsCoordinator::saveAllNoteEditorsContents()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::saveAllNoteEditorsContents"));
+
+    ErrorString errorDescription;
+    QList<NoteEditorWidget*> noteEditorWidgets = m_pTabWidget->findChildren<NoteEditorWidget*>();
+    for(auto it = noteEditorWidgets.begin(), end = noteEditorWidgets.end(); it != end; ++it)
+    {
+        NoteEditorWidget * pNoteEditorWidget = *it;
+        if (pNoteEditorWidget->noteLocalUid().isEmpty()) {
+            continue;
+        }
+
+        NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+        if (status != NoteEditorWidget::NoteSaveStatus::Ok) {
+            Q_EMIT notifyError(errorDescription);
+        }
+    }
+}
+
 bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
@@ -591,6 +611,22 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
         if (pNoteEditorWidget && pNoteEditorWidget->isSeparateWindow()) {
             QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
             scheduleNoteEditorWindowGeometrySave(noteLocalUid);
+        }
+    }
+    else if (pEvent && (pEvent->type() == QEvent::FocusOut))
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(pWatched);
+        if (pNoteEditorWidget)
+        {
+            QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+            if (!noteLocalUid.isEmpty())
+            {
+                ErrorString errorDescription;
+                NoteEditorWidget::NoteSaveStatus::type noteSaveStatus = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+                if (noteSaveStatus != NoteEditorWidget::NoteSaveStatus::Ok) {
+                    Q_EMIT notifyError(errorDescription);
+                }
+            }
         }
     }
 

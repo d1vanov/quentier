@@ -94,6 +94,8 @@ public:
 
     void refreshNoteEditorWidgetsSpecialIcons();
 
+    void saveAllNoteEditorsContents();
+
 Q_SIGNALS:
     void notifyError(ErrorString error);
 

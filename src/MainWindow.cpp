@@ -2448,7 +2448,7 @@ void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
     else {
         toggleHideNoteThumbnailFor(noteLocalUid);
     }
-    
+
     onShowNoteThumbnailsPreferenceChanged();
 }
 
@@ -3653,6 +3653,10 @@ void MainWindow::onSyncButtonPressed()
     if (Q_UNLIKELY(m_pAccount->type() == Account::Type::Local)) {
         QNDEBUG(QStringLiteral("The current account is of local type, won't do anything on attempt to sync it"));
         return;
+    }
+
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        m_pNoteEditorTabsAndWindowsCoordinator->saveAllNoteEditorsContents();
     }
 
     if (m_syncInProgress) {
