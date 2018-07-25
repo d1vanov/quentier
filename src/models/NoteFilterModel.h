@@ -58,6 +58,9 @@ protected:
     virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
 
 private:
+    QString noteLocalUidsToString() const;
+
+private:
     QStringList     m_notebookLocalUids;
     QStringList     m_tagLocalUids;
 

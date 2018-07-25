@@ -106,7 +106,10 @@ void NoteFilterModel::setTagLocalUids(const QStringList & tagLocalUids)
 void NoteFilterModel::setNoteLocalUids(const QSet<QString> & noteLocalUids)
 {
     QNDEBUG(QStringLiteral("NoteFilterModel::setNoteLocalUids"));
-    QNTRACE(QStringList(noteLocalUids.toList()).join(QStringLiteral(", ")));
+
+    if (QuentierIsLogLevelActive(LogLevel::TraceLevel)) {
+        QNTRACE(noteLocalUidsToString());
+    }
 
     m_usingNoteLocalUidsFilter = true;
 
@@ -174,7 +177,7 @@ QTextStream & NoteFilterModel::print(QTextStream & strm) const
          << (m_tagLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_tagLocalUids.join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    note local uids: ")
-         << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : QStringList(m_noteLocalUids.toList()).join(QStringLiteral(", ")))
+         << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : noteLocalUidsToString())
          << QStringLiteral(";\n");
     strm << QStringLiteral("    using note local uids filter: ")
          << (m_usingNoteLocalUidsFilter ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
@@ -241,6 +244,18 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
     }
 
     return true;
+}
+
+QString NoteFilterModel::noteLocalUidsToString() const
+{
+    QString str;
+    for(auto it = m_noteLocalUids.constBegin(), end = m_noteLocalUids.constEnd(); it != end; ++it) {
+        str += *it;
+        str += QStringLiteral(", ");
+    }
+    str.chop(2);
+
+    return str;
 }
 
 } // namespace quentier
