@@ -107,6 +107,7 @@ Q_SIGNALS:
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void synchronizationSetInkNoteImagesStoragePath(QString path);
+    void showNoteThumbnailsStateChanged(bool showThumbnailsForAllNotes, QSet<QString> hideThumbnailsLocalUids);
 
 private Q_SLOTS:
     void onUndoAction();
@@ -228,6 +229,13 @@ private Q_SLOTS:
     void onNewNoteCreationRequested();
     void onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid);
 
+    /**
+     * Toggle thumbnail preference on all notes (when noteLocalUid is empty)
+     * or one given note.
+     * @param noteLocalUid Either empty for all notes or local uid.
+     */
+    void onToggleThumbnailsPreference(QString noteLocalUid);
+
     void onNoteModelAllNotesListed();
 
     void onCurrentNoteInListChanged(QString noteLocalUid);
@@ -251,7 +259,7 @@ private Q_SLOTS:
 
     // Preferences dialog slots
     void onUseLimitedFontsPreferenceChanged(bool flag);
-    void onShowNoteThumbnailsPreferenceChanged(bool flag);
+    void onShowNoteThumbnailsPreferenceChanged();
     void onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes);
 
     // Note search-related slots
@@ -456,6 +464,24 @@ private:
 
     bool isInsideStyleBlock(const QString & styleSheet, const QString & styleBlockStartSearchString,
                             const int currentIndex, bool & error) const;
+
+    bool getShowNoteThumbnails() const;
+
+    /**
+     * Get a set with note local uids.
+     */
+    QSet<QString> getHideNoteThumbnailsFor() const;
+
+    /**
+     * Toggle value of "hide current note thumbnail".
+     */
+    void toggleHideNoteThumbnailFor(QString noteLocalUid) const;
+
+    /**
+     * Toggle value of "show note thumbnails".
+     */
+    void toggleShowNoteThumbnails() const;
+
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     // Qt4 has a problem with zero-size QSplitter handles - they don't work that way.

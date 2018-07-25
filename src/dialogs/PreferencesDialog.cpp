@@ -225,13 +225,12 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
     QNDEBUG(QStringLiteral("PreferencesDialog::onShowNoteThumbnailsCheckboxToggled: checked = ")
             << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(m_accountManager.currentAccount(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, checked);
+    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(checked));
     appSettings.endGroup();
 
-    Q_EMIT showNoteThumbnailsOptionChanged(checked);
+    Q_EMIT showNoteThumbnailsOptionChanged();
 }
 
 void PreferencesDialog::onShowMainWindowLeftBorderOptionChanged(int option)
@@ -553,7 +552,6 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     setupSystemTraySettings();
 
     // 2) Note editor tab
-
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
 
@@ -564,17 +562,11 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 
     // 3) Appearance tab
-
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-
-    bool showNoteThumbnails = DEFAULT_SHOW_NOTE_THUMBNAILS;
-    if (appSettings.contains(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY)) {
-        showNoteThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY).toBool();
-    }
-
+    QVariant showThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
     appSettings.endGroup();
 
-    m_pUi->showNoteThumbnailsCheckBox->setChecked(showNoteThumbnails);
+    m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
 
     setupMainWindowBorderSettings();
 
@@ -582,7 +574,6 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     setupStartAtLoginSettings();
 
     // 5) Synchronization tab
-
     if (currentAccount.type() == Account::Type::Local)
     {
         // Remove the synchronization tab entirely
