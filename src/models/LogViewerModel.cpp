@@ -1224,12 +1224,14 @@ LogViewerModel::findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) c
 }
 
 LogViewerModel::FilteringOptions::FilteringOptions() :
+    Printable(),
     m_startLogFilePos(),
     m_disabledLogLevels(),
     m_logEntryContentFilter()
 {}
 
 LogViewerModel::FilteringOptions::FilteringOptions(const FilteringOptions & filteringOptions) :
+    Printable(),
     m_startLogFilePos(filteringOptions.m_startLogFilePos),
     m_disabledLogLevels(filteringOptions.m_disabledLogLevels),
     m_logEntryContentFilter(filteringOptions.m_logEntryContentFilter)
