@@ -1809,7 +1809,7 @@ void MainWindow::onSynchronizationStarted()
 
 void MainWindow::onSynchronizationStopped()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStopped"));
+    QNWARNING(QStringLiteral("MainWindow::onSynchronizationStopped"));
 
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncApiRateLimitExceeded = false;
@@ -1819,14 +1819,14 @@ void MainWindow::onSynchronizationStopped()
 
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
+    QNERROR(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
     Q_EMIT stopSynchronization();
 }
 
 void MainWindow::onSynchronizationFinished(Account account, bool somethingDownloaded, bool somethingSent)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
+    QNINFO(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
 
     if (somethingDownloaded || somethingSent) {
         onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
@@ -1849,7 +1849,7 @@ void MainWindow::onSynchronizationFinished(Account account, bool somethingDownlo
 
 void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescription, Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
+    QNINFO(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
             << (success ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description = ") << errorDescription
             << QStringLiteral(", account = ") << account);
@@ -1883,7 +1883,7 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
 void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescription,
                                          qevercloud::UserID userId)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
+    QNINFO(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
             << (success ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description = ") << errorDescription
             << QStringLiteral(", user id = ") << userId);
@@ -1899,7 +1899,7 @@ void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescript
 
 void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRateLimitExceeded: seconds to wait = ")
+    QNINFO(QStringLiteral("MainWindow::onRateLimitExceeded: seconds to wait = ")
             << secondsToWait);
 
     qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
@@ -1929,10 +1929,11 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 
 void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
+    QNTRACE(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
 
-    QNINFO(QStringLiteral("Remote to local sync done: something downloaded = ")
-            << (somethingDownloaded ? QStringLiteral("true") : QStringLiteral("false")));
+    QNINFO(QStringLiteral("Remote to local sync done: ")
+            << (somethingDownloaded ? QStringLiteral("received all updates from Evernote")
+                                    : QStringLiteral("no updates found on Evernote side")));
 
     if (somethingDownloaded) {
         onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
@@ -1944,7 +1945,7 @@ void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 
 void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn, qint32 lastPreviousUsn)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSyncChunksDownloadProgress: highest downloaded USN = ")
+    QNINFO(QStringLiteral("MainWindow::onSyncChunksDownloadProgress: highest downloaded USN = ")
             << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
             << highestServerUsn << QStringLiteral(", last previous USN = ")
             << lastPreviousUsn);
