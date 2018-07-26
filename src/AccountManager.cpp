@@ -109,7 +109,7 @@ void AccountManager::raiseManageAccountsDialog()
 
 void AccountManager::switchAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
+    QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account.name());
 
     // See whether this account is within a list of already available accounts, if not, add it there
     bool accountIsAvailable = false;
@@ -192,7 +192,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
 
 void AccountManager::onAccountDisplayNameChanged(Account account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::onAccountDisplayNameChanged: ") << account);
+    QNDEBUG(QStringLiteral("AccountManager::onAccountDisplayNameChanged: ") << account.name());
 
     int index = m_availableAccounts.indexOf(account);
     if (Q_UNLIKELY(index < 0)) {
@@ -381,7 +381,7 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
 
 bool AccountManager::createAccountInfo(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::createAccountInfo: ") << account);
+    QNDEBUG(QStringLiteral("AccountManager::createAccountInfo: ") << account.name());
 
     bool isLocal = (account.type() == Account::Type::Local);
 
@@ -517,21 +517,21 @@ QString AccountManager::evernoteAccountTypeToString(const Account::EvernoteAccou
 
 void AccountManager::readComplementaryAccountInfo(Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::readComplementaryAccountInfo: ") << account);
+    QNTRACE(QStringLiteral("AccountManager::readComplementaryAccountInfo: ") << account.name());
 
     if (Q_UNLIKELY(account.isEmpty())) {
-        QNDEBUG(QStringLiteral("The account is empty"));
+        QNDEBUG(QStringLiteral("The account is empty ") << account.name());
         return;
     }
 
     if (Q_UNLIKELY(account.name().isEmpty())) {
-        QNDEBUG(QStringLiteral("The account name is empty"));
+        QNDEBUG(QStringLiteral("The account name is empty ") << account.name());
         return;
     }
 
     QDir accountPersistentStorageDir(accountPersistentStoragePath(account));
     if (!accountPersistentStorageDir.exists()) {
-        QNDEBUG(QStringLiteral("No persistent storage dir exists for this account"));
+        QNDEBUG(QStringLiteral("No persistent storage dir exists for this account ") << account.name());
         return;
     }
 
@@ -625,7 +625,7 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
 
     accountInfo.close();
 
-    QNDEBUG(QStringLiteral("Account after reading in the complementary info: ") << account);
+    QNTRACE(QStringLiteral("Account after reading in the complementary info: ") << account);
 }
 
 QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
@@ -806,7 +806,7 @@ QSharedPointer<Account> AccountManager::findAccount(const bool isLocal,
 
 void AccountManager::updateLastUsedAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::updateLastUsedAccount: ") << account);
+    QNDEBUG(QStringLiteral("AccountManager::updateLastUsedAccount: ") << account.name());
 
     ApplicationSettings appSettings;
 

@@ -42,7 +42,7 @@ AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(const QString &
 
 void AbstractFilterByModelItemWidget::switchAccount(const Account & account, ItemModel * pItemModel)
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::switchAccount: ") << account);
+    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::switchAccount: ") << account.name());
 
     if (!m_pItemModel.isNull() && (m_pItemModel.data() != pItemModel)) {
         QObject::disconnect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
@@ -448,7 +448,7 @@ void AbstractFilterByModelItemWidget::onModelReady()
 void AbstractFilterByModelItemWidget::persistFilteredItems()
 {
     QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::persistFilteredItems: account = ")
-            << m_account);
+            << m_account.name());
 
     if (m_account.isEmpty()) {
         QNDEBUG(QStringLiteral("The account is empty, nothing to persist"));

@@ -720,7 +720,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
 void MainWindow::setWindowTitleForAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::setWindowTitleForAccount: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::setWindowTitleForAccount: ") << account.name());
 
     bool nonStandardPersistencePath = false;
     Q_UNUSED(applicationPersistentStoragePath(&nonStandardPersistencePath))
@@ -1826,7 +1826,7 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 
 void MainWindow::onSynchronizationFinished(Account account, bool somethingDownloaded, bool somethingSent)
 {
-    QNINFO(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
+    QNINFO(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account.name());
 
     if (somethingDownloaded || somethingSent) {
         onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
@@ -1852,7 +1852,7 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
     QNINFO(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
             << (success ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description = ") << errorDescription
-            << QStringLiteral(", account = ") << account);
+            << QStringLiteral(", account = ") << account.name());
 
     bool wasPendingNewEvernoteAccountAuthentication = m_pendingNewEvernoteAccountAuthentication;
     m_pendingNewEvernoteAccountAuthentication = false;
@@ -2893,7 +2893,7 @@ void MainWindow::onQuitRequestedFromSystemTrayIcon()
 
 void MainWindow::onAccountSwitchRequestedFromSystemTrayIcon(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequestedFromSystemTrayIcon: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequestedFromSystemTrayIcon: ") << account.name());
 
     stopListeningForSplitterMoves();
     m_pAccountManager->switchAccount(account);
@@ -3047,7 +3047,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
 void MainWindow::onAccountSwitched(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitched: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitched: ") << account.name());
 
     if (Q_UNLIKELY(!m_pLocalStorageManagerThread)) {
         ErrorString errorDescription(QT_TR_NOOP("internal error: no local storage manager thread exists"));
@@ -3101,7 +3101,7 @@ void MainWindow::onAccountSwitched(Account account)
 
 void MainWindow::onAccountUpdated(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountUpdated: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountUpdated: ") << account.name());
 
     if (!m_pAccount) {
         QNDEBUG(QStringLiteral("No account is current at the moment"));
@@ -3136,7 +3136,7 @@ void MainWindow::onAccountUpdated(Account account)
 
 void MainWindow::onAccountAdded(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountAdded: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountAdded: ") << account.name());
     updateSubMenuWithAvailableAccounts();
 }
 
@@ -3451,7 +3451,8 @@ void MainWindow::onSwitchPanelStyleToDarker()
 void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestComplete: account = ")
-            << account << QStringLiteral(", request id = ") << requestId);
+            << account.name() << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(account);
 
     bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
     m_lastLocalStorageSwitchUserRequest = QUuid();
@@ -3571,8 +3572,9 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
         return;
     }
 
-    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ") << account << QStringLiteral("\nError description: ")
+    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ") << account.name() << QStringLiteral("\nError description: ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(account);
 
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
@@ -3696,7 +3698,7 @@ void MainWindow::onSyncIconAnimationFinished()
 
 void MainWindow::onSynchronizationManagerSetAccountDone(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetAccountDone: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetAccountDone: ") << account.name());
 
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setAccountDone,Account),
                         this, QNSLOT(MainWindow,onSynchronizationManagerSetAccountDone,Account));
@@ -3756,7 +3758,7 @@ void MainWindow::onShortcutChanged(int key, QKeySequence shortcut, const Account
 {
     QNDEBUG(QStringLiteral("MainWindow::onShortcutChanged: key = ") << key << QStringLiteral(", shortcut: ")
             << shortcut.toString(QKeySequence::PortableText) << QStringLiteral(", context: ")
-            << context << QStringLiteral(", account: ") << account);
+            << context << QStringLiteral(", account: ") << account.name());
 
     auto it = m_shortcutKeyToAction.find(key);
     if (it == m_shortcutKeyToAction.end()) {
@@ -3775,7 +3777,7 @@ void MainWindow::onNonStandardShortcutChanged(QString nonStandardKey, QKeySequen
 {
     QNDEBUG(QStringLiteral("MainWindow::onNonStandardShortcutChanged: non-standard key = ")
             << nonStandardKey << QStringLiteral(", shortcut: ") << shortcut.toString(QKeySequence::PortableText)
-            << QStringLiteral(", context: ") << context << QStringLiteral(", account: ") << account);
+            << QStringLiteral(", context: ") << context << QStringLiteral(", account: ") << account.name());
 
     auto it = m_nonStandardShortcutKeyToAction.find(nonStandardKey);
     if (it == m_nonStandardShortcutKeyToAction.end()) {
@@ -4910,7 +4912,7 @@ void MainWindow::setSynchronizationOptions(const Account & account)
     QString inkNoteImagesStoragePath = accountPersistentStoragePath(account);
     inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
     QNTRACE(QStringLiteral("Ink note images storage path: ") << inkNoteImagesStoragePath
-            << QStringLiteral("; account: ") << account);
+            << QStringLiteral("; account: ") << account.name());
 
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = true;
     Q_EMIT synchronizationSetInkNoteImagesStoragePath(inkNoteImagesStoragePath);
