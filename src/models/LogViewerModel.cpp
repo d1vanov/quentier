@@ -67,7 +67,7 @@
         } \
         DateTimePrint::Options options(DateTimePrint::IncludeMilliseconds | DateTimePrint::IncludeTimezone); \
         QString fullMsg = printableDateTimeFromTimestamp(QDateTime::currentMSecsSinceEpoch(), options) + QStringLiteral(" ") + \
-                          relativeSourceFileName + QStringLiteral(" @ ") + QString::number(__LINE__) + \
+                          relativeSourceFileName + QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER) + QString::number(__LINE__) + \
                           QStringLiteral(": ") + msg + QStringLiteral("\n"); \
         m_internalLogFile.write(fullMsg.toUtf8()); \
         m_internalLogFile.flush(); \
@@ -470,7 +470,7 @@ QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry
                                              )
          << QStringLiteral(" ")
          << dataEntry.m_sourceFileName
-         << QStringLiteral(" @ ")
+         << QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER)
          << QString::number(dataEntry.m_sourceFileLineNumber)
          << QStringLiteral(" [")
          << LogViewerModel::logLevelToString(dataEntry.m_logLevel)
