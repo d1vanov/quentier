@@ -50,13 +50,13 @@ NoteListView::NoteListView(QWidget * parent) :
 
 void NoteListView::setNotebookItemView(NotebookItemView * pNotebookItemView)
 {
-    QNDEBUG(QStringLiteral("NoteListView::setNotebookItemView"));
+    QNTRACE(QStringLiteral("NoteListView::setNotebookItemView"));
     m_pNotebookItemView = pNotebookItemView;
 }
 
 void NoteListView::setAutoSelectNoteOnNextAddition()
 {
-    QNDEBUG(QStringLiteral("NoteListView::setAutoSelectNoteOnNextAddition"));
+    QNTRACE(QStringLiteral("NoteListView::setAutoSelectNoteOnNextAddition"));
     m_shouldSelectFirstNoteOnNextNoteAddition = true;
 }
 
@@ -145,7 +145,7 @@ void NoteListView::setCurrentAccount(const Account & account)
 
 void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteListView::setCurrentNoteByLocalUid: ") << noteLocalUid);
+    QNTRACE(QStringLiteral("NoteListView::setCurrentNoteByLocalUid: ") << noteLocalUid);
 
     NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
@@ -182,7 +182,7 @@ void NoteListView::setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, co
 
 void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteListView::selectNotesByLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
+    QNTRACE(QStringLiteral("NoteListView::selectNotesByLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
 
     NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
@@ -248,7 +248,7 @@ void NoteListView::dataChanged(const QModelIndex & topLeft, const QModelIndex & 
 
 void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG(QStringLiteral("NoteListView::rowsAboutToBeRemoved: start = ") << start << QStringLiteral(", end = ") << end);
+    QNTRACE(QStringLiteral("NoteListView::rowsAboutToBeRemoved: start = ") << start << QStringLiteral(", end = ") << end);
 
     QModelIndex current = currentIndex();
     if (current.isValid())
@@ -272,7 +272,7 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start, i
 
 void NoteListView::rowsInserted(const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG(QStringLiteral("NoteListView::rowsInserted: start = ") << start << QStringLiteral(", end = ") << end);
+    QNTRACE(QStringLiteral("NoteListView::rowsInserted: start = ") << start << QStringLiteral(", end = ") << end);
 
     QListView::rowsInserted(parent, start, end);
 
@@ -373,7 +373,7 @@ void NoteListView::onEditNoteAction()
 
 void NoteListView::onMoveToOtherNotebookAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onMoveToOtherNotebookAction"));
+    QNTRACE(QStringLiteral("NoteListView::onMoveToOtherNotebookAction"));
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {

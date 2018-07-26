@@ -1904,7 +1904,7 @@ QVariant FavoritesModel::dataAccessibleText(const int row, const Columns::type c
 
 void FavoritesModel::removeItemByLocalUid(const QString & localUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::removeItemByLocalUid: local uid = ") << localUid);
+    QNTRACE(QStringLiteral("FavoritesModel::removeItemByLocalUid: local uid = ") << localUid);
 
     FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(localUid);
@@ -2606,7 +2606,7 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
 void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onTagAddedOrUpdated: local uid = ") << tag.localUid());
+    QNTRACE(QStringLiteral("FavoritesModel::onTagAddedOrUpdated: local uid = ") << tag.localUid());
 
     m_tagCache.put(tag.localUid(), tag);
 

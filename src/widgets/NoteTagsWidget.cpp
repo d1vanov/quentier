@@ -63,7 +63,7 @@ void NoteTagsWidget::setTagModel(TagModel * pTagModel)
 
 void NoteTagsWidget::setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::setCurrentNoteAndNotebook: note local uid = ") << note
+    QNTRACE(QStringLiteral("NoteTagsWidget::setCurrentNoteAndNotebook: note local uid = ") << note
             << QStringLiteral(", notebook: ") << notebook);
 
     bool changed = (note.localUid() != m_currentNote.localUid());
@@ -152,7 +152,7 @@ void NoteTagsWidget::clear()
 
 void NoteTagsWidget::onTagRemoved(QString tagName)
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onTagRemoved: tag name = ") << tagName);
+    QNTRACE(QStringLiteral("NoteTagsWidget::onTagRemoved: tag name = ") << tagName);
 
     if (Q_UNLIKELY(m_currentNote.localUid().isEmpty())) {
         QNDEBUG(QStringLiteral("No current note is set, ignoring the tag removal event"));
@@ -218,7 +218,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 
 void NoteTagsWidget::onNewTagNameEntered()
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onNewTagNameEntered"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::onNewTagNameEntered"));
 
     NewListItemLineEdit * pNewItemLineEdit = qobject_cast<NewListItemLineEdit*>(sender());
     if (Q_UNLIKELY(!pNewItemLineEdit)) {
@@ -343,7 +343,7 @@ void NoteTagsWidget::onNewTagNameEntered()
 
 void NoteTagsWidget::onAllTagsListed()
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onAllTagsListed"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::onAllTagsListed"));
 
     if (m_pTagModel.isNull()) {
         return;
@@ -367,7 +367,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onUpdateNoteComplete: note local uid = ") << note.localUid()
+    QNTRACE(QStringLiteral("NoteTagsWidget::onUpdateNoteComplete: note local uid = ") << note.localUid()
             << QStringLiteral(", request id = ") << requestId);
 
     if (updateResources) {
@@ -585,7 +585,7 @@ void NoteTagsWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onUpdateNotebookComplete: notebook = ") << notebook
+    QNTRACE(QStringLiteral("NoteTagsWidget::onUpdateNotebookComplete: notebook = ") << notebook
             << QStringLiteral("\nRequest id = ") << requestId);
 
     bool changed = false;
@@ -627,7 +627,7 @@ void NoteTagsWidget::onExpungeNotebookComplete(Notebook notebook, QUuid requestI
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onExpungeNotebookComplete: notebook = ") << notebook
+    QNTRACE(QStringLiteral("NoteTagsWidget::onExpungeNotebookComplete: notebook = ") << notebook
             << QStringLiteral("\nRequest id = ") << requestId);
 
     clear();
@@ -696,7 +696,7 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
 
 void NoteTagsWidget::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onExpungeTagComplete: tag = ") << tag
+    QNTRACE(QStringLiteral("NoteTagsWidget::onExpungeTagComplete: tag = ") << tag
             << QStringLiteral("\nRequest id = ") << requestId);
 
     Q_UNUSED(requestId)
@@ -738,7 +738,7 @@ void NoteTagsWidget::clearLayout(const bool skipNewTagWidget)
 
 void NoteTagsWidget::updateLayout()
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::updateLayout"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::updateLayout"));
 
     const QString & noteLocalUid = m_currentNote.localUid();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
@@ -852,7 +852,7 @@ void NoteTagsWidget::updateLayout()
 
 void NoteTagsWidget::addTagIconToLayout()
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::addTagIconToLayout"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::addTagIconToLayout"));
 
     QPixmap tagIconImage(QStringLiteral(":/tag/tag.png"));
     QLabel * pTagIconLabel = new QLabel(this);
@@ -863,7 +863,7 @@ void NoteTagsWidget::addTagIconToLayout()
 
 void NoteTagsWidget::addNewTagWidgetToLayout()
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::addNewTagWidgetToLayout"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::addNewTagWidgetToLayout"));
 
     const int numItems = m_pLayout->count();
     for(int i = 0; i < numItems; ++i)
@@ -916,7 +916,7 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
 
 void NoteTagsWidget::removeNewTagWidgetFromLayout()
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::removeNewTagWidgetFromLayout"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::removeNewTagWidgetFromLayout"));
 
     int numItems = m_pLayout->count();
     for(int i = 0; i < numItems; ++i)
@@ -940,7 +940,7 @@ void NoteTagsWidget::removeNewTagWidgetFromLayout()
 
 void NoteTagsWidget::removeTagWidgetFromLayout(const QString & tagLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::removeTagWidgetFromLayout: tag local uid = ") << tagLocalUid);
+    QNTRACE(QStringLiteral("NoteTagsWidget::removeTagWidgetFromLayout: tag local uid = ") << tagLocalUid);
 
     int tagIndex = m_lastDisplayedTagLocalUids.indexOf(tagLocalUid);
     if (tagIndex < 0) {
@@ -989,7 +989,7 @@ void NoteTagsWidget::removeTagWidgetFromLayout(const QString & tagLocalUid)
 
 void NoteTagsWidget::setTagItemsRemovable(const bool removable)
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::setTagItemsRemovable: removable = ")
+    QNTRACE(QStringLiteral("NoteTagsWidget::setTagItemsRemovable: removable = ")
             << (removable ? QStringLiteral("true") : QStringLiteral("false")));
 
     int numItems = m_pLayout->count();
@@ -1011,7 +1011,7 @@ void NoteTagsWidget::setTagItemsRemovable(const bool removable)
 
 void NoteTagsWidget::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::createConnections"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::createConnections"));
 
     // Connect local storage signals to local slots
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
@@ -1062,7 +1062,7 @@ bool NoteTagsWidget::isActive() const
 
 QStringList NoteTagsWidget::tagNames() const
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::tagNames"));
+    QNTRACE(QStringLiteral("NoteTagsWidget::tagNames"));
 
     if (!isActive()) {
         QNDEBUG(QStringLiteral("NoteTagsWidget is not active"));

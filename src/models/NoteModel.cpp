@@ -224,7 +224,7 @@ QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 
 bool NoteModel::deleteNote(const QString & noteLocalUid)
 {
-    NMDEBUG(QStringLiteral("NoteModel::deleteNote: ") << noteLocalUid);
+    NMINFO(QStringLiteral("NoteModel::deleteNote: ") << noteLocalUid);
 
     QModelIndex itemIndex = indexForLocalUid(noteLocalUid);
     if (!itemIndex.isValid()) {
@@ -710,7 +710,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
 
 void NoteModel::sort(int column, Qt::SortOrder order)
 {
-    NMDEBUG(QStringLiteral("NoteModel::sort: column = ") << column << QStringLiteral(", order = ") << order
+    NMTRACE(QStringLiteral("NoteModel::sort: column = ") << column << QStringLiteral(", order = ") << order
             << QStringLiteral(" (") << (order == Qt::AscendingOrder ? QStringLiteral("ascending") : QStringLiteral("descending"))
             << QStringLiteral(")"));
 
@@ -811,7 +811,7 @@ void NoteModel::sort(int column, Qt::SortOrder order)
 
 void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onAddNoteComplete: ") << note << QStringLiteral("\nRequest id = ") << requestId);
+    NMTRACE(QStringLiteral("NoteModel::onAddNoteComplete: ") << note << QStringLiteral("\nRequest id = ") << requestId);
 
     ++m_numberOfNotesPerAccount;
 
@@ -831,7 +831,7 @@ void NoteModel::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid r
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onAddNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
+    NMTRACE(QStringLiteral("NoteModel::onAddNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_addNoteRequestIds.erase(it))
@@ -842,7 +842,7 @@ void NoteModel::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid r
 
 void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onUpdateNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
+    NMTRACE(QStringLiteral("NoteModel::onUpdateNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
 
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
@@ -866,7 +866,7 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
             const NoteModelItem & item = *itemIt;
             note.setTagLocalUids(item.tagLocalUids());
             note.setTagGuids(item.tagGuids());
-            NMDEBUG(QStringLiteral("Complemented the note with tag local uids and guids: ") << note);
+            NMTRACE(QStringLiteral("Complemented the note with tag local uids and guids: ") << note);
         }
 
         m_cache.put(note.localUid(), note);
@@ -874,7 +874,7 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
         return;
     }
 
-    NMDEBUG(QStringLiteral("This update was not initiated by the note model: ") << note
+    NMTRACE(QStringLiteral("This update was not initiated by the note model: ") << note
             << QStringLiteral(", request id = ") << requestId << QStringLiteral(", update tags = ")
             << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", should remove note from model = ")
@@ -890,7 +890,7 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
                 const NoteModelItem & item = *noteItemIt;
                 note.setTagGuids(item.tagGuids());
                 note.setTagLocalUids(item.tagLocalUids());
-                NMDEBUG(QStringLiteral("Complemented the note with tag local uids and guids: ") << note);
+                NMTRACE(QStringLiteral("Complemented the note with tag local uids and guids: ") << note);
             }
         }
 
@@ -909,7 +909,7 @@ void NoteModel::onUpdateNoteFailed(Note note, bool updateResources, bool updateT
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onUpdateNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
+    NMTRACE(QStringLiteral("NoteModel::onUpdateNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_updateNoteRequestIds.erase(it))
@@ -934,7 +934,7 @@ void NoteModel::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onFindNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
+    NMTRACE(QStringLiteral("NoteModel::onFindNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
 
     if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end())
     {
@@ -966,7 +966,7 @@ void NoteModel::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorSt
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onFindNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
+    NMTRACE(QStringLiteral("NoteModel::onFindNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end()) {
@@ -988,7 +988,7 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onListNotesComplete: flag = ") << flag << QStringLiteral(", with resource binary data = ")
+    NMTRACE(QStringLiteral("NoteModel::onListNotesComplete: flag = ") << flag << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ") << limit
             << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
             << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid << QStringLiteral(", num found notes = ")
@@ -1020,7 +1020,7 @@ void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, 
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource binary data = ")
+    NMTRACE(QStringLiteral("NoteModel::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
             << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
             << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
@@ -1032,7 +1032,7 @@ void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, 
 
 void NoteModel::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onExpungeNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
+    NMTRACE(QStringLiteral("NoteModel::onExpungeNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
 
     --m_numberOfNotesPerAccount;
 
@@ -1052,7 +1052,7 @@ void NoteModel::onExpungeNoteFailed(Note note, ErrorString errorDescription, QUu
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onExpungeNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
+    NMTRACE(QStringLiteral("NoteModel::onExpungeNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_expungeNoteRequestIds.erase(it))
@@ -1073,7 +1073,7 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onFindNotebookComplete: notebook: ") << notebook << QStringLiteral("\nRequest id = ")
+    NMTRACE(QStringLiteral("NoteModel::onFindNotebookComplete: notebook: ") << notebook << QStringLiteral("\nRequest id = ")
             << requestId);
 
     m_notebookCache.put(notebook.localUid(), notebook);
@@ -1145,7 +1145,7 @@ void NoteModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)
 
 void NoteModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onUpdateNotebookComplete: local uid = ") << notebook.localUid());
+    NMTRACE(QStringLiteral("NoteModel::onUpdateNotebookComplete: local uid = ") << notebook.localUid());
     Q_UNUSED(requestId)
     m_notebookCache.put(notebook.localUid(), notebook);
     updateNotebookData(notebook);
@@ -1153,7 +1153,7 @@ void NoteModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 
 void NoteModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onExpungeNotebookComplete: local uid = ") << notebook.localUid());
+    NMTRACE(QStringLiteral("NoteModel::onExpungeNotebookComplete: local uid = ") << notebook.localUid());
 
     Q_UNUSED(requestId)
     Q_UNUSED(m_notebookCache.remove(notebook.localUid()))
@@ -1171,7 +1171,7 @@ void NoteModel::onFindTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    NMDEBUG(QStringLiteral("NoteModel::onFindTagComplete: tag: ") << tag << QStringLiteral("\nRequest id = ") << requestId);
+    NMTRACE(QStringLiteral("NoteModel::onFindTagComplete: tag: ") << tag << QStringLiteral("\nRequest id = ") << requestId);
 
     Q_UNUSED(m_findTagRequestForTagLocalUid.right.erase(it))
     updateTagData(tag);
@@ -1196,19 +1196,19 @@ void NoteModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid req
 
 void NoteModel::onAddTagComplete(Tag tag, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onAddTagComplete: tag = ") << tag << QStringLiteral(", request id = ") << requestId);
+    NMTRACE(QStringLiteral("NoteModel::onAddTagComplete: tag = ") << tag << QStringLiteral(", request id = ") << requestId);
     updateTagData(tag);
 }
 
 void NoteModel::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onUpdateTagComplete: tag = ") << tag << QStringLiteral(", request id = ") << requestId);
+    NMTRACE(QStringLiteral("NoteModel::onUpdateTagComplete: tag = ") << tag << QStringLiteral(", request id = ") << requestId);
     updateTagData(tag);
 }
 
 void NoteModel::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onExpungeTagComplete: tag = ") << tag
+    NMTRACE(QStringLiteral("NoteModel::onExpungeTagComplete: tag = ") << tag
             << QStringLiteral("\nExpunged child tag local uids = ") << expungedChildTagLocalUids.join(QStringLiteral(", "))
             << QStringLiteral(", request id = ") << requestId);
 
@@ -1222,7 +1222,7 @@ void NoteModel::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalU
 
 void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    NMDEBUG(QStringLiteral("NoteModel::createConnections"));
+    NMTRACE(QStringLiteral("NoteModel::createConnections"));
 
     // Local signals to localStorageManagerAsync's slots
     QObject::connect(this, QNSIGNAL(NoteModel,addNote,Note,QUuid),
@@ -1294,7 +1294,7 @@ void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManager
 
 void NoteModel::requestNotesList()
 {
-    NMDEBUG(QStringLiteral("NoteModel::requestNotesList: offset = ") << m_listNotesOffset);
+    NMTRACE(QStringLiteral("NoteModel::requestNotesList: offset = ") << m_listNotesOffset);
 
     LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
     LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::NoOrder;
@@ -1504,7 +1504,7 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
 
 void NoteModel::processTagExpunging(const QString & tagLocalUid)
 {
-    NMDEBUG(QStringLiteral("NoteModel::processTagExpunging: tag local uid = ") << tagLocalUid);
+    NMTRACE(QStringLiteral("NoteModel::processTagExpunging: tag local uid = ") << tagLocalUid);
 
     auto tagDataIt = m_tagDataByTagLocalUid.find(tagLocalUid);
     if (tagDataIt == m_tagDataByTagLocalUid.end()) {
@@ -1537,7 +1537,7 @@ void NoteModel::processTagExpunging(const QString & tagLocalUid)
 
     Q_UNUSED(m_tagLocalUidToNoteLocalUid.remove(tagLocalUid))
 
-    NMDEBUG("Affected notes local uids: " << affectedNotesLocalUids.join(QStringLiteral(", ")));
+    NMTRACE("Affected notes local uids: " << affectedNotesLocalUids.join(QStringLiteral(", ")));
     for(auto it = affectedNotesLocalUids.constBegin(), end = affectedNotesLocalUids.constEnd(); it != end; ++it)
     {
         auto noteItemIt = localUidIndex.find(*it);
@@ -1653,7 +1653,7 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
 
 void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item, const bool updateTags)
 {
-    NMDEBUG(QStringLiteral("NoteModel::updateNoteInLocalStorage: local uid = ")
+    NMTRACE(QStringLiteral("NoteModel::updateNoteInLocalStorage: local uid = ")
             << item.localUid() << QStringLiteral(", update tags = ")
             << (updateTags ? QStringLiteral("true") : QStringLiteral("false")));
 
@@ -1662,7 +1662,7 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item, const bool 
     auto notYetSavedItemIt = m_noteItemsNotYetInLocalStorageUids.find(item.localUid());
     if (notYetSavedItemIt == m_noteItemsNotYetInLocalStorageUids.end())
     {
-        NMDEBUG(QStringLiteral("Updating the note"));
+        NMTRACE(QStringLiteral("Updating the note"));
 
         const Note * pCachedNote = m_cache.get(item.localUid());
         if (Q_UNLIKELY(!pCachedNote))
@@ -1762,7 +1762,7 @@ bool NoteModel::canCreateNoteItem(const QString & notebookLocalUid) const
 
 void NoteModel::updateNotebookData(const Notebook & notebook)
 {
-    NMDEBUG(QStringLiteral("NoteModel::updateNotebookData: local uid = ") << notebook.localUid());
+    NMTRACE(QStringLiteral("NoteModel::updateNotebookData: local uid = ") << notebook.localUid());
 
     NotebookData & notebookData = m_notebookDataByNotebookLocalUid[notebook.localUid()];
 
@@ -1790,7 +1790,7 @@ void NoteModel::updateNotebookData(const Notebook & notebook)
         notebookData.m_guid = notebook.guid();
     }
 
-    NMDEBUG(QStringLiteral("Collected notebook data from notebook with local uid ") << notebook.localUid()
+    NMTRACE(QStringLiteral("Collected notebook data from notebook with local uid ") << notebook.localUid()
             << QStringLiteral(": guid = ") << notebookData.m_guid << QStringLiteral("; name = ") << notebookData.m_name
             << QStringLiteral(": can create notes = ") << (notebookData.m_canCreateNotes ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(": can update notes = ") << (notebookData.m_canUpdateNotes ? QStringLiteral("true") : QStringLiteral("false")));
@@ -1800,7 +1800,7 @@ void NoteModel::updateNotebookData(const Notebook & notebook)
 
 void NoteModel::updateTagData(const Tag & tag)
 {
-    NMDEBUG(QStringLiteral("NoteModel::updateTagData: tag local uid = ") << tag.localUid());
+    NMTRACE(QStringLiteral("NoteModel::updateTagData: tag local uid = ") << tag.localUid());
 
     bool hasName = tag.hasName();
     bool hasGuid = tag.hasGuid();
@@ -1839,7 +1839,7 @@ void NoteModel::updateTagData(const Tag & tag)
         ++noteIt;
     }
 
-    NMDEBUG("Affected notes local uids: " << affectedNotesLocalUids.join(QStringLiteral(", ")));
+    NMTRACE("Affected notes local uids: " << affectedNotesLocalUids.join(QStringLiteral(", ")));
     for(auto it = affectedNotesLocalUids.constBegin(), end = affectedNotesLocalUids.constEnd(); it != end; ++it)
     {
         auto noteItemIt = localUidIndex.find(*it);
@@ -1923,8 +1923,7 @@ void NoteModel::checkAddedNoteItemsPendingNotebookData(const QString & notebookL
 
 void NoteModel::onNoteAddedOrUpdated(const Note & note)
 {
-    NMDEBUG(QStringLiteral("NoteModel::onNoteAddedOrUpdated: note local uid = ") << note.localUid());
-    NMTRACE(note);
+    NMTRACE(QStringLiteral("NoteModel::onNoteAddedOrUpdated: note local uid = ") << note);
 
     m_cache.put(note.localUid(), note);
 
@@ -1979,7 +1978,7 @@ void NoteModel::onNoteAddedOrUpdated(const Note & note)
 
 void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & notebookData)
 {
-    NMDEBUG(QStringLiteral("NoteModel::addOrUpdateNoteItem: note local uid = ") << item.localUid()
+    NMTRACE(QStringLiteral("NoteModel::addOrUpdateNoteItem: note local uid = ") << item.localUid()
             << QStringLiteral(", notebook local uid = ") << item.notebookLocalUid()
             << QStringLiteral(", notebook name = ") << notebookData.m_name);
 
@@ -1997,7 +1996,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
         case IncludedNotes::Deleted:
             {
                 if (item.deletionTimestamp() < 0) {
-                    NMDEBUG(QStringLiteral("Won't add note as it's not deleted and the model instance only considers the deleted notes"));
+                    NMTRACE(QStringLiteral("Won't add note as it's not deleted and the model instance only considers the deleted notes"));
                     return;
                 }
                 break;
@@ -2142,7 +2141,7 @@ void NoteModel::moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const No
 {
     NoteModelItem item = *it;
 
-    NMDEBUG(QStringLiteral("NoteModel::moveNoteToNotebookImpl: notebook = ") << notebook
+    NMTRACE(QStringLiteral("NoteModel::moveNoteToNotebookImpl: notebook = ") << notebook
             << QStringLiteral(", note item: ") << item);
 
     if (Q_UNLIKELY(item.notebookLocalUid() == notebook.localUid())) {
@@ -2178,7 +2177,7 @@ void NoteModel::moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const No
 
 void NoteModel::checkAndNotifyAllNotesListed()
 {
-    NMDEBUG(QStringLiteral("NoteModel::checkAndNotifyAllNotesListed"));
+    NMTRACE(QStringLiteral("NoteModel::checkAndNotifyAllNotesListed"));
 
     if (m_allNotesListed) {
         NMDEBUG(QStringLiteral("All notes are already listed"));

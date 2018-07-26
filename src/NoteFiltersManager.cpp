@@ -535,7 +535,7 @@ void NoteFiltersManager::onExpungeSavedSearchComplete(SavedSearch search, QUuid 
 
 void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NoteFiltersManager::onAddNoteComplete: note = ") << note
+    QNTRACE(QStringLiteral("NoteFiltersManager::onAddNoteComplete: note = ") << note
             << QStringLiteral("\nRequest id = ") << requestId);
 
     m_noteFilterModel.invalidate();
@@ -543,7 +543,7 @@ void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
 
 void NoteFiltersManager::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NoteFiltersManager::onUpdateNoteComplete: note = ") << note
+    QNTRACE(QStringLiteral("NoteFiltersManager::onUpdateNoteComplete: note = ") << note
             << QStringLiteral("\nUpdate resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", request id = ") << requestId);
@@ -553,7 +553,7 @@ void NoteFiltersManager::onUpdateNoteComplete(Note note, bool updateResources, b
 
 void NoteFiltersManager::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NoteFiltersManager::onExpungeNoteComplete: note = ") << note
+    QNTRACE(QStringLiteral("NoteFiltersManager::onExpungeNoteComplete: note = ") << note
             << QStringLiteral("\nRequest id = ") << requestId);
 
     m_noteFilterModel.invalidate();
