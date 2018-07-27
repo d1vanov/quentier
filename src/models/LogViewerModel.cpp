@@ -67,7 +67,7 @@
         } \
         DateTimePrint::Options options(DateTimePrint::IncludeMilliseconds | DateTimePrint::IncludeTimezone); \
         QString fullMsg = printableDateTimeFromTimestamp(QDateTime::currentMSecsSinceEpoch(), options) + QStringLiteral(" ") + \
-                          relativeSourceFileName + QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER) + QString::number(__LINE__) + \
+                          relativeSourceFileName + QString::fromUtf8(QNLOG_FILE_LINENUMBER_DELIMITER) + QString::number(__LINE__) + \
                           QStringLiteral(": ") + msg + QStringLiteral("\n"); \
         m_internalLogFile.write(fullMsg.toUtf8()); \
         m_internalLogFile.flush(); \
