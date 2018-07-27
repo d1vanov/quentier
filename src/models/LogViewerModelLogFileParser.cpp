@@ -54,7 +54,7 @@
         } \
         DateTimePrint::Options options(DateTimePrint::IncludeMilliseconds | DateTimePrint::IncludeTimezone); \
         QString fullMsg = printableDateTimeFromTimestamp(QDateTime::currentMSecsSinceEpoch(), options) + QStringLiteral(" ") + \
-                          relativeSourceFileName + QStringLiteral(" @ ") + QString::number(__LINE__) + \
+                          relativeSourceFileName + QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER) + QString::number(__LINE__) + \
                           QStringLiteral(": ") + msg + QStringLiteral("\n"); \
         m_internalLogFile.write(fullMsg.toUtf8()); \
         m_internalLogFile.flush(); \
@@ -62,9 +62,21 @@
 
 namespace quentier {
 
+#define REGEX_QNLOG_DATE               "^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+(\\w+)"
+
+// note: QNLOG_FILE_LINENUMBER_DELIMITER is here incorporated into regex
+#define REGEX_QNLOG_SOURCE_LINENUMBER  "(.+):(\\d+)"
+
+// full logline regex
+#define REGEX_QNLOG_LINE               REGEX_QNLOG_DATE \
+                                       "\\s+" \
+                                       REGEX_QNLOG_SOURCE_LINENUMBER \
+                                       "\\s+" \
+                                       "\\[(\\w+)\\]:\\s(.+$)"
+
+
 LogViewerModel::LogFileParser::LogFileParser() :
-    m_logParsingRegex(QStringLiteral("^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+(\\w+)\\s+(.+)\\s+@\\s+(\\d+)\\s+\\[(\\w+)\\]:\\s(.+$)"),
-                      Qt::CaseInsensitive, QRegExp::RegExp),
+    m_logParsingRegex(QStringLiteral(REGEX_QNLOG_LINE), Qt::CaseInsensitive, QRegExp::RegExp),
     m_internalLogFile(applicationPersistentStoragePath() + QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt")),
     m_internalLogEnabled(false)
 {

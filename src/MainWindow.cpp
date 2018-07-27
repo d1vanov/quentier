@@ -720,7 +720,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
 void MainWindow::setWindowTitleForAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::setWindowTitleForAccount: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::setWindowTitleForAccount: ") << account.name());
 
     bool nonStandardPersistencePath = false;
     Q_UNUSED(applicationPersistentStoragePath(&nonStandardPersistencePath))
@@ -1809,7 +1809,7 @@ void MainWindow::onSynchronizationStarted()
 
 void MainWindow::onSynchronizationStopped()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStopped"));
+    QNWARNING(QStringLiteral("MainWindow::onSynchronizationStopped"));
 
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncApiRateLimitExceeded = false;
@@ -1819,14 +1819,14 @@ void MainWindow::onSynchronizationStopped()
 
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
+    QNERROR(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
     Q_EMIT stopSynchronization();
 }
 
 void MainWindow::onSynchronizationFinished(Account account, bool somethingDownloaded, bool somethingSent)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
+    QNINFO(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account.name());
 
     if (somethingDownloaded || somethingSent) {
         onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
@@ -1849,10 +1849,10 @@ void MainWindow::onSynchronizationFinished(Account account, bool somethingDownlo
 
 void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescription, Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
+    QNINFO(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
             << (success ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description = ") << errorDescription
-            << QStringLiteral(", account = ") << account);
+            << QStringLiteral(", account = ") << account.name());
 
     bool wasPendingNewEvernoteAccountAuthentication = m_pendingNewEvernoteAccountAuthentication;
     m_pendingNewEvernoteAccountAuthentication = false;
@@ -1883,7 +1883,7 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
 void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescription,
                                          qevercloud::UserID userId)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
+    QNINFO(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
             << (success ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description = ") << errorDescription
             << QStringLiteral(", user id = ") << userId);
@@ -1899,7 +1899,7 @@ void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescript
 
 void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRateLimitExceeded: seconds to wait = ")
+    QNINFO(QStringLiteral("MainWindow::onRateLimitExceeded: seconds to wait = ")
             << secondsToWait);
 
     qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
@@ -1929,10 +1929,11 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 
 void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
+    QNTRACE(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
 
-    QNINFO(QStringLiteral("Remote to local sync done: something downloaded = ")
-            << (somethingDownloaded ? QStringLiteral("true") : QStringLiteral("false")));
+    QNINFO(QStringLiteral("Remote to local sync done: ")
+            << (somethingDownloaded ? QStringLiteral("received all updates from Evernote")
+                                    : QStringLiteral("no updates found on Evernote side")));
 
     if (somethingDownloaded) {
         onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
@@ -1944,7 +1945,7 @@ void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 
 void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn, qint32 lastPreviousUsn)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSyncChunksDownloadProgress: highest downloaded USN = ")
+    QNINFO(QStringLiteral("MainWindow::onSyncChunksDownloadProgress: highest downloaded USN = ")
             << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
             << highestServerUsn << QStringLiteral(", last previous USN = ")
             << lastPreviousUsn);
@@ -2892,7 +2893,7 @@ void MainWindow::onQuitRequestedFromSystemTrayIcon()
 
 void MainWindow::onAccountSwitchRequestedFromSystemTrayIcon(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequestedFromSystemTrayIcon: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequestedFromSystemTrayIcon: ") << account.name());
 
     stopListeningForSplitterMoves();
     m_pAccountManager->switchAccount(account);
@@ -3046,7 +3047,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
 void MainWindow::onAccountSwitched(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitched: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitched: ") << account.name());
 
     if (Q_UNLIKELY(!m_pLocalStorageManagerThread)) {
         ErrorString errorDescription(QT_TR_NOOP("internal error: no local storage manager thread exists"));
@@ -3100,7 +3101,7 @@ void MainWindow::onAccountSwitched(Account account)
 
 void MainWindow::onAccountUpdated(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountUpdated: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountUpdated: ") << account.name());
 
     if (!m_pAccount) {
         QNDEBUG(QStringLiteral("No account is current at the moment"));
@@ -3135,7 +3136,7 @@ void MainWindow::onAccountUpdated(Account account)
 
 void MainWindow::onAccountAdded(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountAdded: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountAdded: ") << account.name());
     updateSubMenuWithAvailableAccounts();
 }
 
@@ -3450,7 +3451,8 @@ void MainWindow::onSwitchPanelStyleToDarker()
 void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestComplete: account = ")
-            << account << QStringLiteral(", request id = ") << requestId);
+            << account.name() << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(account);
 
     bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
     m_lastLocalStorageSwitchUserRequest = QUuid();
@@ -3570,8 +3572,9 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
         return;
     }
 
-    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ") << account << QStringLiteral("\nError description: ")
+    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ") << account.name() << QStringLiteral("\nError description: ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(account);
 
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
@@ -3695,7 +3698,7 @@ void MainWindow::onSyncIconAnimationFinished()
 
 void MainWindow::onSynchronizationManagerSetAccountDone(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetAccountDone: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetAccountDone: ") << account.name());
 
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setAccountDone,Account),
                         this, QNSLOT(MainWindow,onSynchronizationManagerSetAccountDone,Account));
@@ -3755,7 +3758,7 @@ void MainWindow::onShortcutChanged(int key, QKeySequence shortcut, const Account
 {
     QNDEBUG(QStringLiteral("MainWindow::onShortcutChanged: key = ") << key << QStringLiteral(", shortcut: ")
             << shortcut.toString(QKeySequence::PortableText) << QStringLiteral(", context: ")
-            << context << QStringLiteral(", account: ") << account);
+            << context << QStringLiteral(", account: ") << account.name());
 
     auto it = m_shortcutKeyToAction.find(key);
     if (it == m_shortcutKeyToAction.end()) {
@@ -3774,7 +3777,7 @@ void MainWindow::onNonStandardShortcutChanged(QString nonStandardKey, QKeySequen
 {
     QNDEBUG(QStringLiteral("MainWindow::onNonStandardShortcutChanged: non-standard key = ")
             << nonStandardKey << QStringLiteral(", shortcut: ") << shortcut.toString(QKeySequence::PortableText)
-            << QStringLiteral(", context: ") << context << QStringLiteral(", account: ") << account);
+            << QStringLiteral(", context: ") << context << QStringLiteral(", account: ") << account.name());
 
     auto it = m_nonStandardShortcutKeyToAction.find(nonStandardKey);
     if (it == m_nonStandardShortcutKeyToAction.end()) {
@@ -4909,7 +4912,7 @@ void MainWindow::setSynchronizationOptions(const Account & account)
     QString inkNoteImagesStoragePath = accountPersistentStoragePath(account);
     inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
     QNTRACE(QStringLiteral("Ink note images storage path: ") << inkNoteImagesStoragePath
-            << QStringLiteral("; account: ") << account);
+            << QStringLiteral("; account: ") << account.name());
 
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = true;
     Q_EMIT synchronizationSetInkNoteImagesStoragePath(inkNoteImagesStoragePath);

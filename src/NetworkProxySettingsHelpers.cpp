@@ -171,7 +171,7 @@ void parseNetworkProxySettings(const Account & currentAccount,
 
 void persistNetworkProxySettingsForAccount(const Account & account, const QNetworkProxy & proxy)
 {
-    QNDEBUG(QStringLiteral("persistNetworkProxySettingsForAccount: account = ") << account
+    QNDEBUG(QStringLiteral("persistNetworkProxySettingsForAccount: account = ") << account.name()
             << QStringLiteral("\nProxy type = ") << proxy.type() << QStringLiteral(", proxy host = ")
             << proxy.hostName() << QStringLiteral(", proxy port = ") << proxy.port()
             << QStringLiteral(", proxy user = ") << proxy.user());
@@ -199,7 +199,7 @@ void persistNetworkProxySettingsForAccount(const Account & account, const QNetwo
 
 void restoreNetworkProxySettingsForAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("restoreNetworkProxySettingsForAccount: account = ") << account);
+    QNDEBUG(QStringLiteral("restoreNetworkProxySettingsForAccount: account = ") << account.name());
 
     QNetworkProxy::ProxyType type = QNetworkProxy::NoProxy;
     QString host;
