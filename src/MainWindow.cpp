@@ -1809,7 +1809,7 @@ void MainWindow::onSynchronizationStarted()
 
 void MainWindow::onSynchronizationStopped()
 {
-    QNWARNING(QStringLiteral("MainWindow::onSynchronizationStopped"));
+    QNINFO(QStringLiteral("MainWindow::onSynchronizationStopped"));
 
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncApiRateLimitExceeded = false;
@@ -1850,9 +1850,9 @@ void MainWindow::onSynchronizationFinished(Account account, bool somethingDownlo
 void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescription, Account account)
 {
     QNINFO(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
-            << (success ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description = ") << errorDescription
-            << QStringLiteral(", account = ") << account.name());
+           << (success ? QStringLiteral("true") : QStringLiteral("false"))
+           << QStringLiteral(", error description = ") << errorDescription
+           << QStringLiteral(", account = ") << account.name());
 
     bool wasPendingNewEvernoteAccountAuthentication = m_pendingNewEvernoteAccountAuthentication;
     m_pendingNewEvernoteAccountAuthentication = false;
@@ -1884,9 +1884,9 @@ void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescript
                                          qevercloud::UserID userId)
 {
     QNINFO(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
-            << (success ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description = ") << errorDescription
-            << QStringLiteral(", user id = ") << userId);
+           << (success ? QStringLiteral("true") : QStringLiteral("false"))
+           << QStringLiteral(", error description = ") << errorDescription
+           << QStringLiteral(", user id = ") << userId);
 
     if (!success) {
         onSetStatusBarText(tr("Couldn't revoke the authentication") + QStringLiteral(": ") +
@@ -1900,7 +1900,7 @@ void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescript
 void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 {
     QNINFO(QStringLiteral("MainWindow::onRateLimitExceeded: seconds to wait = ")
-            << secondsToWait);
+           << secondsToWait);
 
     qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
     qint64 futureTimestamp = currentTimestamp + secondsToWait * 1000;
@@ -1932,7 +1932,7 @@ void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
     QNTRACE(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
 
     QNINFO(QStringLiteral("Remote to local sync done: ")
-            << (somethingDownloaded ? QStringLiteral("received all updates from Evernote")
+           << (somethingDownloaded ? QStringLiteral("received all updates from Evernote")
                                     : QStringLiteral("no updates found on Evernote side")));
 
     if (somethingDownloaded) {
@@ -1946,9 +1946,9 @@ void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn, qint32 highestServerUsn, qint32 lastPreviousUsn)
 {
     QNINFO(QStringLiteral("MainWindow::onSyncChunksDownloadProgress: highest downloaded USN = ")
-            << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
-            << highestServerUsn << QStringLiteral(", last previous USN = ")
-            << lastPreviousUsn);
+           << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
+           << highestServerUsn << QStringLiteral(", last previous USN = ")
+           << lastPreviousUsn);
 
     if (Q_UNLIKELY((highestServerUsn <= lastPreviousUsn) || (highestDownloadedUsn <= lastPreviousUsn))) {
         QNWARNING(QStringLiteral("Received incorrect sync chunks download progress state: highest downloaded USN = ")

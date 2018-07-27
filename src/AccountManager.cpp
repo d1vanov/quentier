@@ -109,7 +109,9 @@ void AccountManager::raiseManageAccountsDialog()
 
 void AccountManager::switchAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account.name());
+    // print the entire account because here not only the name but also the type of the account we are switching to
+    // matters a lot
+    QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
 
     // See whether this account is within a list of already available accounts, if not, add it there
     bool accountIsAvailable = false;
@@ -520,18 +522,18 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
     QNTRACE(QStringLiteral("AccountManager::readComplementaryAccountInfo: ") << account.name());
 
     if (Q_UNLIKELY(account.isEmpty())) {
-        QNDEBUG(QStringLiteral("The account is empty ") << account.name());
+        QNDEBUG(QStringLiteral("The account is empty: ") << account.name());
         return;
     }
 
     if (Q_UNLIKELY(account.name().isEmpty())) {
-        QNDEBUG(QStringLiteral("The account name is empty ") << account.name());
+        QNDEBUG(QStringLiteral("The account name is empty: ") << account.name());
         return;
     }
 
     QDir accountPersistentStorageDir(accountPersistentStoragePath(account));
     if (!accountPersistentStorageDir.exists()) {
-        QNDEBUG(QStringLiteral("No persistent storage dir exists for this account ") << account.name());
+        QNDEBUG(QStringLiteral("No persistent storage dir exists for this account: ") << account.name());
         return;
     }
 
