@@ -160,6 +160,22 @@ protected:
                                    const NoteFilterModel & noteFilterModel, const NoteModel & noteModel);
     void showMultipleNotesContextMenu(const QPoint & globalPos, const QStringList & noteLocalUids);
 
+private:
+    /**
+     * Return note filter model for given model.
+     */
+    NoteFilterModel * noteFilterModel(QAbstractItemModel * model) const;
+
+    /**
+     * Return note filter model for current model.
+     */
+    NoteFilterModel * noteFilterModel() const;
+
+    /**
+     * Return note model for given filter model.
+     */
+    NoteModel * noteModel(NoteFilterModel * pNoteFilterModel) const;
+
 protected:
     QMenu *             m_pNoteItemContextMenu;
     NotebookItemView *  m_pNotebookItemView;

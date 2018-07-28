@@ -64,17 +64,9 @@ QStringList NoteListView::selectedNotesLocalUids() const
 {
     QStringList result;
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNDEBUG(QStringLiteral("Can't return the list of selected note local uids: "
-                               "wrong model connected to the note list view"));
-        return result;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("Can't return the list of selected note local uids: can't get the source model "
-                               "from the note filter model connected to the note list view"));
         return result;
     }
 
@@ -103,17 +95,9 @@ QStringList NoteListView::selectedNotesLocalUids() const
 
 QString NoteListView::currentNoteLocalUid() const
 {
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNDEBUG(QStringLiteral("Can't return the current note local uid: "
-                               "wrong model connected to the note list view"));
-        return QString();
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("Can't return the current note local uid: can't get the source model "
-                               "from the note filter model connected to the note list view"));
         return QString();
     }
 
@@ -147,16 +131,9 @@ void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
 {
     QNTRACE(QStringLiteral("NoteListView::setCurrentNoteByLocalUid: ") << noteLocalUid);
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNDEBUG(QStringLiteral("Can't react on the change of current note: wrong model connected to the note list view"));
-        return;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("Can't react on the change: can't get the source model from the note filter model "
-                               "connected to the note list view"));
         return;
     }
 
@@ -184,16 +161,9 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 {
     QNTRACE(QStringLiteral("NoteListView::selectNotesByLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNDEBUG(QStringLiteral("Can't select notes by local uids: wrong model connected to the note list view"));
-        return;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("Can't select notes by local uids: can't get the source model from the note filter model "
-                               "connected to the note list view"));
         return;
     }
 
@@ -333,15 +303,9 @@ void NoteListView::onDeleteNoteAction()
         return;
     }
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't delete note: wrong model connected to the note list view"));
-        return;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't delete note: can't get the source model from the note filter model connected to the note list view"));
         return;
     }
 
@@ -389,16 +353,9 @@ void NoteListView::onMoveToOtherNotebookAction()
         return;
     }
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: wrong model connected to the note list view"));
-        return;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: can't get the source model "
-                                "from the note filter model connected to the note list view"));
         return;
     }
 
@@ -433,16 +390,9 @@ void NoteListView::onUnfavoriteAction()
         return;
     }
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't unfavorite note: wrong model connected to the note list view"));
-        return;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't unfavorite note: can't get the source model from the note filter model "
-                                "connected to the note list view"));
         return;
     }
 
@@ -459,16 +409,9 @@ void NoteListView::onFavoriteAction()
         return;
     }
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't favorite note: wrong model connected to the note list view"));
-        return;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't favorite note: can't get the source model from the note filter model "
-                                "connected to the note list view"));
         return;
     }
 
@@ -584,7 +527,7 @@ void NoteListView::onSelectFirstNoteEvent()
 
     const QAbstractItemModel * pModel = model();
     if (Q_UNLIKELY(!pModel)) {
-        QNDEBUG(QStringLiteral("No model"));
+        QNERROR(QStringLiteral("No model"));
         return;
     }
 
@@ -595,16 +538,9 @@ void NoteListView::onTrySetLastCurrentNoteByLocalUidEvent()
 {
     QNDEBUG(QStringLiteral("NoteListView::onTrySetLastCurrentNoteByLocalUidEvent"));
 
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNDEBUG(QStringLiteral("Can't restore the last current note local uid: wrong model connected to the note list view"));
-        return;
-    }
-
-    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("Can't restore the last current note local uid: can't get the source model from the note "
-                               "filter model connected to the note list view"));
         return;
     }
 
@@ -643,16 +579,9 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & glo
 {
     QNDEBUG(QStringLiteral("NoteListView::showContextMenuAtPoint"));
 
-    const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't show the note item's context menu: wrong model connected to the note list view"));
-        return;
-    }
-
-    const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel();
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't show the note item's context menu: can't get the source model from the note filter model "
-                                "connected to the note list view"));
         return;
     }
 
@@ -906,16 +835,10 @@ void NoteListView::currentChanged(const QModelIndex & current,
         return;
     }
 
-    const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(current.model());
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: wrong model connected to the note list view"));
-        return;
-    }
 
-    const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
+    auto * pNoteFilterModel = noteFilterModel((QAbstractItemModel *) current.model());
+    auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't get the source model from the note filter model "
-                                "connected to the note list view"));
         return;
     }
 
@@ -984,5 +907,36 @@ const NotebookItem * NoteListView::currentNotebookItem()
 
     return pNotebookItem;
 }
+
+NoteFilterModel * NoteListView::noteFilterModel(QAbstractItemModel * model) const
+{
+    auto * pNoteFilterModel = qobject_cast<NoteFilterModel *>(model);
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        QNERROR(QStringLiteral("Wrong model connected to the note list view"));
+    }
+    return pNoteFilterModel;
+}
+
+
+NoteFilterModel * NoteListView::noteFilterModel() const
+{
+    return noteFilterModel(model());
+}
+
+NoteModel * NoteListView::noteModel(NoteFilterModel * pNoteFilterModel) const
+{
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        return Q_NULLPTR;
+    }
+
+    auto *pNoteModel = qobject_cast<NoteModel *>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Can't get the source model "
+                               "from the note filter model connected to the note list view"));
+        return Q_NULLPTR;
+    }
+    return pNoteModel;
+}
+
 
 } // namespace quentier
