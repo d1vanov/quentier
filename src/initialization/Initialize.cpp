@@ -54,9 +54,9 @@ void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result)
 int initialize(QuentierApplication & app, const CommandLineParser::CommandLineOptions & cmdOptions)
 {
     // we need to check for override of "storage dir path" command line option before doing anything else
-    int errCode = processStorageDirCommandLineOption(cmdOptions);
-    if (!errCode) {
-        return errCode;
+    int result = processStorageDirCommandLineOption(cmdOptions);
+    if (result) {
+        return result;
     }
 
     // Initialize logging
