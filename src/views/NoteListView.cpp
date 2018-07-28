@@ -296,20 +296,18 @@ void NoteListView::onDeleteNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onDeleteNoteAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't delete note, "
-                                "can't cast the slot invoker to QAction"))
-        return;
-    }
-
     auto * pNoteFilterModel = noteFilterModel();
     auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
 
-    bool res = pNoteModel->deleteNote(pAction->data().toString());
+    const QString noteLocalUid = actionDataString();
+    if (noteLocalUid.isEmpty()) {
+        return;
+    }
+
+    bool res = pNoteModel->deleteNote(noteLocalUid);
     if (!res) {
         REPORT_ERROR(QT_TR_NOOP("Can't delete note: can't find the item to be deleted within the model"));
         return;
@@ -320,18 +318,10 @@ void NoteListView::onEditNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onEditNoteAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't edit note: internal error, can't cast the slot invoker to QAction"));
+    const QString noteLocalUid = actionDataString();
+    if (noteLocalUid.isEmpty()) {
         return;
     }
-
-    QString noteLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TR_NOOP("Can't edit note: internal error, the local uid of the note to be edited is empty"));
-        return;
-    }
-
     Q_EMIT editNoteDialogRequested(noteLocalUid);
 }
 
@@ -339,14 +329,7 @@ void NoteListView::onMoveToOtherNotebookAction()
 {
     QNTRACE(QStringLiteral("NoteListView::onMoveToOtherNotebookAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: internal error, "
-                                "can't cast the slot invoker to QAction"));
-        return;
-    }
-
-    QStringList actionData = pAction->data().toStringList();
+    QStringList actionData = actionDataStringList();
     if (actionData.isEmpty() || (actionData.size() != 2)) {
         REPORT_ERROR(QT_TR_NOOP("Can't move note to another notebook: internal error, "
                                 "wrong action data"));
@@ -369,71 +352,57 @@ void NoteListView::onOpenNoteInSeparateWindowAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onOpenNoteInSeparateWindowAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't open note in a separate window: internal error, "
-                                "can't cast the slot invoker to QAction"));
+    const QString noteLocalUid = actionDataString();
+    if (noteLocalUid.isEmpty()) {
         return;
     }
 
-    Q_EMIT openNoteInSeparateWindowRequested(pAction->data().toString());
+    Q_EMIT openNoteInSeparateWindowRequested(noteLocalUid);
 }
 
 void NoteListView::onUnfavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onUnfavoriteAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't unfavorite note: internal error, "
-                                "can't cast the slot invoker to QAction"));
-        return;
-    }
-
     auto * pNoteFilterModel = noteFilterModel();
     auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
 
-    pNoteModel->unfavoriteNote(pAction->data().toString());
+    const QString noteLocalUid = actionDataString();
+    if (noteLocalUid.isEmpty()) {
+        return;
+    }
+
+    pNoteModel->unfavoriteNote(noteLocalUid);
 }
 
 void NoteListView::onFavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onFavoriteAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't favorite note: internal error, can't cast the slot invoker to QAction"));
-        return;
-    }
-
     auto * pNoteFilterModel = noteFilterModel();
     auto * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
 
-    pNoteModel->favoriteNote(pAction->data().toString());
+    const QString noteLocalUid = actionDataString();
+    if (noteLocalUid.isEmpty()) {
+        return;
+    }
+    pNoteModel->favoriteNote(noteLocalUid);
 }
 
 void NoteListView::onShowNoteInfoAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onShowNoteInfoAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't show note info: internal error, can't cast the slot invoker to QAction"));
+    const QString noteLocalUid = actionDataString();
+    if (noteLocalUid.isEmpty()) {
         return;
     }
-
-    QString noteLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TR_NOOP("Can't show note info: internal error, the local uid of the note to be edited is empty"));
-        return;
-    }
-
     Q_EMIT noteInfoDialogRequested(noteLocalUid);
 }
 
@@ -441,12 +410,8 @@ void NoteListView::onToggleThumbnailPreference()
 {
     QNDEBUG(QStringLiteral("NoteListView::onToggleThumbnailPreference"));
 
-    QAction *pAction = qobject_cast<QAction *>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't get data"));
-        return;
-    }
-    QString noteLocalUid = pAction->data().toString();
+    // note here empty string is OK (means all notes)
+    const QString noteLocalUid = actionDataString();
     Q_EMIT toggleThumbnailsPreference(noteLocalUid);
 }
 
@@ -454,14 +419,7 @@ void NoteListView::onCopyInAppNoteLinkAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onCopyInAppNoteLinkAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't copy in-app note link: internal error, "
-                                "can't cast the slot invoker to QAction"));
-        return;
-    }
-
-    QStringList noteLocalUidAndGuid = pAction->data().toStringList();
+    QStringList noteLocalUidAndGuid = actionDataStringList();
     if (Q_UNLIKELY(noteLocalUidAndGuid.isEmpty())) {
         REPORT_ERROR(QT_TR_NOOP("Can't copy in-app note link: internal error, "
                                 "no note local uid and guid were passed to the action handler"));
@@ -483,16 +441,8 @@ void NoteListView::onExportSingleNoteToEnexAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onExportSingleNoteToEnexAction"));
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't export note to ENEX: internal error, can't cast the slot invoker to QAction"));
-        return;
-    }
-
-    QString noteLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TR_NOOP("Can't export note to ENEX: internal error, "
-                                "the local uid of the note to be exported is empty"));
+    const QString noteLocalUid = actionDataString();
+    if (noteLocalUid.isEmpty()) {
         return;
     }
 
@@ -931,11 +881,44 @@ NoteModel * NoteListView::noteModel(NoteFilterModel * pNoteFilterModel) const
 
     auto *pNoteModel = qobject_cast<NoteModel *>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("Can't get the source model "
+        QNERROR(QStringLiteral("Can't get the source model "
                                "from the note filter model connected to the note list view"));
         return Q_NULLPTR;
     }
     return pNoteModel;
+}
+
+
+QVariant NoteListView::actionData()
+{
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR(QT_TR_NOOP("Can't cast the slot invoker to QAction"))
+        return QVariant();
+    }
+
+    return pAction->data();
+}
+
+QString NoteListView::actionDataString()
+{
+    QVariant value = actionData();
+    if (Q_UNLIKELY(!value.isValid())) {
+        REPORT_ERROR(QT_TR_NOOP("Can't cast action string"))
+        return QString();
+    }
+
+    return value.toString();
+}
+
+QStringList NoteListView::actionDataStringList()
+{
+    QVariant value = actionData();
+    if (Q_UNLIKELY(!value.isValid())) {
+        return QStringList();
+    }
+
+    return value.toStringList();
 }
 
 

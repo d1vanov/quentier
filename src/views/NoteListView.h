@@ -176,6 +176,24 @@ private:
      */
     NoteModel * noteModel(NoteFilterModel * pNoteFilterModel) const;
 
+    /**
+     * Convenience method called in slots invoked by QAction's signals.
+     * @return variant data from QAction sender's data (invalid variant in case of error).
+     */
+    QVariant actionData();
+
+    /**
+     * Convenience method called in slots invoked by QAction's signals.
+     * @return string data from QAction sender's data (empty string in case of error).
+     */
+    QString actionDataString();
+
+    /**
+     * Convenience method called in slots invoked by QAction's signals.
+     * @return string list data from QAction sender's data (empty list in case of error).
+     */
+    QStringList actionDataStringList();
+
 protected:
     QMenu *             m_pNoteItemContextMenu;
     NotebookItemView *  m_pNotebookItemView;
