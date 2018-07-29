@@ -160,6 +160,40 @@ protected:
                                    const NoteFilterModel & noteFilterModel, const NoteModel & noteModel);
     void showMultipleNotesContextMenu(const QPoint & globalPos, const QStringList & noteLocalUids);
 
+private:
+    /**
+     * Return note filter model for given model.
+     */
+    NoteFilterModel * noteFilterModel(QAbstractItemModel * model) const;
+
+    /**
+     * Return note filter model for current model.
+     */
+    NoteFilterModel * noteFilterModel() const;
+
+    /**
+     * Return note model for given filter model.
+     */
+    NoteModel * noteModel(NoteFilterModel * pNoteFilterModel) const;
+
+    /**
+     * Convenience method called in slots invoked by QAction's signals.
+     * @return variant data from QAction sender's data (invalid variant in case of error).
+     */
+    QVariant actionData();
+
+    /**
+     * Convenience method called in slots invoked by QAction's signals.
+     * @return string data from QAction sender's data (empty string in case of error).
+     */
+    QString actionDataString();
+
+    /**
+     * Convenience method called in slots invoked by QAction's signals.
+     * @return string list data from QAction sender's data (empty list in case of error).
+     */
+    QStringList actionDataStringList();
+
 protected:
     QMenu *             m_pNoteItemContextMenu;
     NotebookItemView *  m_pNotebookItemView;
