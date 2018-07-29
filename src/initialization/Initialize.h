@@ -41,27 +41,37 @@ public:
     CommandLineParser::CommandLineOptions   m_cmdOptions;
 };
 
+
 void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result);
 
-int initialize(QuentierApplication & app, const CommandLineParser::CommandLineOptions & cmdOptions);
+/**
+ * Processes "storageDir" command line option. This command line option is special because
+ * if it is present, it changes the base path where app stores nearly all of its persistent data.
+ * Therefore this command line option needs to be processed separately from others very early
+ * during the app initialization routine.
+ *
+ * @param options           Command line arguments being searched for "storageDir"
+ * @return true if no error was detected during the processing of "storageDir" command line argument, false otherwise
+ */
+bool processStorageDirCommandLineOption(const CommandLineParser::CommandLineOptions & options);
 
 /**
- * Checks and processes "storageDir" command line options. This is special because it changes
- * the base path there app is searching for other things. Therefore it *must* be processed
- * very early. Other options may need be checked later.
+ * Processes command line options other than "storageDir".
  *
- * @param options Parsed command line arguments.
- * @return 0=OK, anything else is error code
+ * @param options           Command line arguments being parsed
+ * @return true if no error was detected during the processing of command line arguments, false otherwise
  */
-int processStorageDirCommandLineOption(const CommandLineParser::CommandLineOptions & options);
+bool processCommandLineOptions(const CommandLineParser::CommandLineOptions & options);
 
 /**
- * Checks and processes rest of command line options. See processStorageDirCommandLineOption().
+ * Initializes various things Quentier requires before actually launching the app, including
+ * parsing of command line arguments
  *
- * @param options Parsed command line arguments.
- * @return 0=OK, anything else is error code
+ * @param app               Quentier app instance
+ * @param cmdOptions        Command line arguments to be parsed
+ * @return true if no error was detected during the initialization, false otherwise
  */
-int processCommandLineOptions(const CommandLineParser::CommandLineOptions & options);
+bool initialize(QuentierApplication & app, const CommandLineParser::CommandLineOptions & cmdOptions);
 
 } // namespace quentier
 
