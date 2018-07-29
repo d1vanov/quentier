@@ -53,6 +53,12 @@ void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result)
 
 int initialize(QuentierApplication & app, const CommandLineParser::CommandLineOptions & cmdOptions)
 {
+    // we need to check for override of "storage dir path" command line option before doing anything else
+    int result = processStorageDirCommandLineOption(cmdOptions);
+    if (result) {
+        return result;
+    }
+
     // Initialize logging
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Info);
@@ -80,19 +86,25 @@ int initialize(QuentierApplication & app, const CommandLineParser::CommandLineOp
 
     setupStartQuentierAtLogin();
 
+    // here rest of command line arguments is processed
     return processCommandLineOptions(cmdOptions);
 }
 
-int processCommandLineOptions(const CommandLineParser::CommandLineOptions & cmdOptions)
-{
-    typedef CommandLineParser::CommandLineOptions CmdOptions;
+typedef CommandLineParser::CommandLineOptions CmdOptions;
 
+int processStorageDirCommandLineOption(const CommandLineParser::CommandLineOptions & cmdOptions)
+{
     CmdOptions::const_iterator storageDirIt = cmdOptions.find(QStringLiteral("storageDir"));
     if (storageDirIt != cmdOptions.constEnd()) {
         QString storageDir = storageDirIt.value().toString();
         qputenv(LIBQUENTIER_PERSISTENCE_STORAGE_PATH, storageDir.toLocal8Bit());
     }
+    return 0;
+}
 
+
+int processCommandLineOptions(const CommandLineParser::CommandLineOptions & cmdOptions)
+{
     CmdOptions::const_iterator accountIt = cmdOptions.find(QStringLiteral("account"));
     if (accountIt != cmdOptions.constEnd())
     {

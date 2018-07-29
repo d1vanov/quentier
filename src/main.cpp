@@ -55,9 +55,10 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
-    int res = initialize(app, parseCmdResult.m_cmdOptions);
-    if (res != 0) {
-        return res;
+    int result = initialize(app, parseCmdResult.m_cmdOptions);
+    if (result != 0) {
+        return result;
+        return result;
     }
 
     QScopedPointer<MainWindow> pMainWindow;
