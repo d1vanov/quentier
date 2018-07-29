@@ -64,8 +64,8 @@ QStringList NoteListView::selectedNotesLocalUids() const
 {
     QStringList result;
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return result;
     }
@@ -95,8 +95,8 @@ QStringList NoteListView::selectedNotesLocalUids() const
 
 QString NoteListView::currentNoteLocalUid() const
 {
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return QString();
     }
@@ -131,8 +131,8 @@ void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
 {
     QNTRACE(QStringLiteral("NoteListView::setCurrentNoteByLocalUid: ") << noteLocalUid);
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -161,8 +161,8 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 {
     QNTRACE(QStringLiteral("NoteListView::selectNotesByLocalUids: ") << noteLocalUids.join(QStringLiteral(", ")));
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -296,8 +296,8 @@ void NoteListView::onDeleteNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onDeleteNoteAction"));
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -336,8 +336,8 @@ void NoteListView::onMoveToOtherNotebookAction()
         return;
     }
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -364,8 +364,8 @@ void NoteListView::onUnfavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onUnfavoriteAction"));
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -382,8 +382,8 @@ void NoteListView::onFavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onFavoriteAction"));
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -477,7 +477,7 @@ void NoteListView::onSelectFirstNoteEvent()
 
     const QAbstractItemModel * pModel = model();
     if (Q_UNLIKELY(!pModel)) {
-        QNERROR(QStringLiteral("No model"));
+        QNERROR(QStringLiteral("No model is set to note list view on select first note event"));
         return;
     }
 
@@ -488,8 +488,8 @@ void NoteListView::onTrySetLastCurrentNoteByLocalUidEvent()
 {
     QNDEBUG(QStringLiteral("NoteListView::onTrySetLastCurrentNoteByLocalUidEvent"));
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -529,8 +529,8 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos, const QPoint & glo
 {
     QNDEBUG(QStringLiteral("NoteListView::showContextMenuAtPoint"));
 
-    auto * pNoteFilterModel = noteFilterModel();
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel();
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -785,9 +785,8 @@ void NoteListView::currentChanged(const QModelIndex & current,
         return;
     }
 
-
-    auto * pNoteFilterModel = noteFilterModel((QAbstractItemModel *) current.model());
-    auto * pNoteModel = noteModel(pNoteFilterModel);
+    NoteFilterModel * pNoteFilterModel = noteFilterModel((QAbstractItemModel *) current.model());
+    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -860,7 +859,7 @@ const NotebookItem * NoteListView::currentNotebookItem()
 
 NoteFilterModel * NoteListView::noteFilterModel(QAbstractItemModel * model) const
 {
-    auto * pNoteFilterModel = qobject_cast<NoteFilterModel *>(model);
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel *>(model);
     if (Q_UNLIKELY(!pNoteFilterModel)) {
         QNERROR(QStringLiteral("Wrong model connected to the note list view"));
     }
@@ -879,7 +878,7 @@ NoteModel * NoteListView::noteModel(NoteFilterModel * pNoteFilterModel) const
         return Q_NULLPTR;
     }
 
-    auto *pNoteModel = qobject_cast<NoteModel *>(pNoteFilterModel->sourceModel());
+    NoteModel * pNoteModel = qobject_cast<NoteModel *>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
         QNERROR(QStringLiteral("Can't get the source model "
                                "from the note filter model connected to the note list view"));

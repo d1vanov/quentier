@@ -162,17 +162,17 @@ protected:
 
 private:
     /**
-     * Return note filter model for given model.
+     * Attempts to cast the given model to note filter model.
      */
     NoteFilterModel * noteFilterModel(QAbstractItemModel * model) const;
 
     /**
-     * Return note filter model for current model.
+     * Return current model as note filter model.
      */
     NoteFilterModel * noteFilterModel() const;
 
     /**
-     * Return note model for given filter model.
+     * Attempts to cast the source model of given note filter model to note model.
      */
     NoteModel * noteModel(NoteFilterModel * pNoteFilterModel) const;
 
@@ -207,6 +207,7 @@ protected:
      * Current value of "shown thumbnails for all notes".
      */
     bool                m_showThumbnailsForAllNotes;
+
     /**
      * Set with local uids of notes where thumbnail was manually hidden.
      */
