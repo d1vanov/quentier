@@ -105,7 +105,7 @@ Q_SIGNALS:
     void requestAddNote(Note note, QUuid requestId);
     void requestExpungeNote(Note note, QUuid requestId);
 
-    void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
+    void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
 
     void noteExpungedFromLocalStorage();
     void noteExpungeFromLocalStorageFailed();
@@ -123,8 +123,9 @@ private Q_SLOTS:
     void onAddNoteComplete(Note note, QUuid requestId);
     void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
-    void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
+    void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+                          ErrorString errorDescription, QUuid requestId);
 
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);

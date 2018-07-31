@@ -49,7 +49,7 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
     // private signals:
-    void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
+    void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
 
 public Q_SLOTS:
@@ -57,8 +57,9 @@ public Q_SLOTS:
     void onNoteInfoDialogRequested(QString noteLocalUid);
 
 private Q_SLOTS:
-    void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
+    void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+                          ErrorString errorDescription, QUuid requestId);
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                             ErrorString errorDescription, QUuid requestId);

@@ -187,7 +187,7 @@ void EnexExporter::clear()
     m_connectedToLocalStorage = false;
 }
 
-void EnexExporter::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
+void EnexExporter::onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId)
 {
     auto it = m_findNoteRequestIds.find(requestId);
     if (it == m_findNoteRequestIds.end()) {
@@ -197,6 +197,7 @@ void EnexExporter::onFindNoteComplete(Note note, bool withResourceBinaryData, QU
     QNDEBUG(QStringLiteral("EnexExporter::onFindNoteComplete: request id = ")
             << requestId << QStringLiteral(", note: ") << note);
 
+    Q_UNUSED(withResourceMetadata)
     Q_UNUSED(withResourceBinaryData)
 
     m_notesByLocalUid[note.localUid()] = note;
@@ -234,7 +235,7 @@ void EnexExporter::onFindNoteComplete(Note note, bool withResourceBinaryData, QU
     Q_EMIT notesExportedToEnex(enex);
 }
 
-void EnexExporter::onFindNoteFailed(Note note, bool withResourceBinaryData,
+void EnexExporter::onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
                                     ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_findNoteRequestIds.find(requestId);
@@ -246,6 +247,7 @@ void EnexExporter::onFindNoteFailed(Note note, bool withResourceBinaryData,
             << requestId << QStringLiteral(", error: ") << errorDescription
             << QStringLiteral(", note: ") << note);
 
+    Q_UNUSED(withResourceMetadata)
     Q_UNUSED(withResourceBinaryData)
 
     ErrorString error(QT_TR_NOOP("Can't export note(s) to ENEX: can't find one of notes in the local storage"));
@@ -300,7 +302,7 @@ void EnexExporter::findNoteInLocalStorage(const QString & noteLocalUid)
 
     QNTRACE(QStringLiteral("Emitting the request to find note in the local storage: note local uid = ")
             << noteLocalUid << QStringLiteral(", request id = ") << requestId);
-    Q_EMIT findNote(dummyNote, /* with resource binary data */ true, requestId);
+    Q_EMIT findNote(dummyNote, /* with resource metadata = */ true, /* with resource binary data */ true, requestId);
 }
 
 QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
@@ -394,12 +396,12 @@ void EnexExporter::connectToLocalStorage()
         return;
     }
 
-    QObject::connect(this, QNSIGNAL(EnexExporter,findNote,Note,bool,QUuid),
-                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
-    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
-                     this, QNSLOT(EnexExporter,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
-                     this, QNSLOT(EnexExporter,onFindNoteFailed,Note,bool,ErrorString,QUuid));
+    QObject::connect(this, QNSIGNAL(EnexExporter,findNote,Note,bool,bool,QUuid),
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
+                     this, QNSLOT(EnexExporter,onFindNoteComplete,Note,bool,bool,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                     this, QNSLOT(EnexExporter,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
 
     m_connectedToLocalStorage = true;
 }
@@ -413,12 +415,12 @@ void EnexExporter::disconnectFromLocalStorage()
         return;
     }
 
-    QObject::disconnect(this, QNSIGNAL(EnexExporter,findNote,Note,bool,QUuid),
-                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
-    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
-                        this, QNSLOT(EnexExporter,onFindNoteComplete,Note,bool,QUuid));
-    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
-                        this, QNSLOT(EnexExporter,onFindNoteFailed,Note,bool,ErrorString,QUuid));
+    QObject::disconnect(this, QNSIGNAL(EnexExporter,findNote,Note,bool,bool,QUuid),
+                        &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
+                        this, QNSLOT(EnexExporter,onFindNoteComplete,Note,bool,bool,QUuid));
+    QObject::disconnect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                        this, QNSLOT(EnexExporter,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
 
     m_connectedToLocalStorage = false;
 }

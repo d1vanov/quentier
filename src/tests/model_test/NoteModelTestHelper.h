@@ -46,9 +46,11 @@ private Q_SLOTS:
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                             ErrorString errorDescription, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
-    void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
-                           size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+                          ErrorString errorDescription, QUuid requestId);
+    void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceMetadata,
+                           bool withResourceBinaryData, size_t limit, size_t offset,
+                           LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
                            QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);

@@ -195,7 +195,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
         dummy.setLocalUid(noteLocalUid);
         QNTRACE(QStringLiteral("Emitting the request to find the current note: local uid = ") << noteLocalUid
                 << QStringLiteral(", request id = ") << m_findCurrentNoteRequestId);
-        Q_EMIT findNote(dummy, /* with resource binary data = */ true, m_findCurrentNoteRequestId);
+        Q_EMIT findNote(dummy, /* with resource metadata = */ true, /* with resource binary data = */ true, m_findCurrentNoteRequestId);
         return;
     }
 
@@ -1252,7 +1252,7 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
     Q_EMIT noteSaveInLocalStorageFailed();
 }
 
-void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
+void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId)
 {
     bool isFindCurrentNoteRequestId = (requestId == m_findCurrentNoteRequestId);
     auto noteLinkInfoIt = (isFindCurrentNoteRequestId
@@ -1263,6 +1263,7 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     }
 
     QNDEBUG(QStringLiteral("NoteEditorWidget::onFindNoteComplete: request id = ") << requestId
+            << QStringLiteral(", with resource metadata = ") << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", with resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")));
     QNTRACE(QStringLiteral("Note: ") << note);
 
@@ -1291,8 +1292,8 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(noteLinkInfoIt))
 }
 
-void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription,
-                                        QUuid requestId)
+void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+                                        ErrorString errorDescription, QUuid requestId)
 {
     bool isFindCurrentNoteRequestId = (requestId == m_findCurrentNoteRequestId);
     auto noteLinkInfoIt = (isFindCurrentNoteRequestId
@@ -1302,7 +1303,8 @@ void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, 
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindNoteFailed: request id = ") << requestId << QStringLiteral(", with resource binary data = ")
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindNoteFailed: request id = ") << requestId << QStringLiteral(", with resource metadata = ")
+            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error description: ")
             << errorDescription);
     QNTRACE(QStringLiteral("Note: ") << note);
@@ -1606,7 +1608,7 @@ void NoteEditorWidget::onEditorInAppLinkPasteRequested(QString url, QString user
     dummyNote.setGuid(noteGuid);
     QNTRACE(QStringLiteral("Emitting the request to find note by guid for the purpose of in-app note link insertion: request id = ")
             << requestId << QStringLiteral(", note guid = ") << noteGuid);
-    Q_EMIT findNote(dummyNote, /* with resource binary data = */ false, requestId);
+    Q_EMIT findNote(dummyNote, /* with resource metadata = */ true, /* with resource binary data = */ false, requestId);
 }
 
 void NoteEditorWidget::onEditorTextBoldStateChanged(bool state)
@@ -2187,8 +2189,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
     // Local signals to localStorageManagerAsync's slots
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,updateNote,Note,bool,bool,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNote,Note,bool,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNote,Note,bool,bool,QUuid),
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNotebook,Notebook,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,Notebook,QUuid));
 
@@ -2201,10 +2203,10 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
                      this, QNSLOT(NoteEditorWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onFindNoteFailed,Note,bool,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onFindNoteComplete,Note,bool,bool,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNoteComplete,Note,QUuid));
 

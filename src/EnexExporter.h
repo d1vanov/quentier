@@ -44,11 +44,11 @@ Q_SIGNALS:
     void failedToExportNotesToEnex(ErrorString errorDescription);
 
 // private signals:
-    void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
+    void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
 
 private Q_SLOTS:
-    void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData,
+    void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
                           ErrorString errorDescription, QUuid requestId);
 
     void onAllTagsListed();

@@ -151,7 +151,7 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
 
     const QString & noteLocalUid = pItem->localUid();
     bool showThumbnail = m_showThumbnailsForAllNotes && (!m_hideThumbnailsLocalUids.contains(noteLocalUid));
-    if (showThumbnail && !thumbnailData.isEmpty() && pItem->hasResources()) {
+    if (showThumbnail && !thumbnailData.isEmpty()) {
         width -= 104; // 100 is the width of the thumbnail and 4 is a little margin
     }
 
@@ -322,7 +322,7 @@ void NoteItemDelegate::paint(QPainter * pPainter, const QStyleOptionViewItem & o
     pPainter->drawText(QRectF(previewTextRect), text, textOption);
 
     // Painting the thumbnail (if any)
-    if (showThumbnail && !thumbnailData.isEmpty() && pItem->hasResources())
+    if (showThumbnail && !thumbnailData.isEmpty())
     {
         int top = option.rect.top() + m_topMargin;
         int bottom = option.rect.bottom() - m_bottomMargin;

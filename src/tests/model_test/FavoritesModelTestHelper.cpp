@@ -62,13 +62,13 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerAsync * pL
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onFindNoteFailed,Note,bool,ErrorString,QUuid));
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
-                                                           LocalStorageManager::ListObjectsOptions,bool,
+                                                           LocalStorageManager::ListObjectsOptions,bool,bool,
                                                            size_t,size_t,LocalStorageManager::ListNotesOrder::type,
                                                            LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,
+                     this, QNSLOT(FavoritesModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,bool,
                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
                                   QString,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
@@ -731,21 +731,25 @@ void FavoritesModelTestHelper::onUpdateNoteFailed(Note note, bool updateResource
     notifyFailureWithStackTrace(errorDescription);
 }
 
-void FavoritesModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+                                                ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onFindNoteFailed: note = ") << note << QStringLiteral("\nWith resource binary data = ")
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onFindNoteFailed: note = ") << note << QStringLiteral("\nWith resource metadata = ")
+            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
 
-void FavoritesModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
-                                                 size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+void FavoritesModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceMetadata,
+                                                 bool withResourceBinaryData, size_t limit, size_t offset,
+                                                 LocalStorageManager::ListNotesOrder::type order,
                                                  LocalStorageManager::OrderDirection::type orderDirection,
                                                  QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource binary data = ")
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource metadata = ")
+            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
             << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
             << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
