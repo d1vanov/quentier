@@ -1,7 +1,6 @@
 #include "EditNoteDialogsManager.h"
 #include "dialogs/EditNoteDialog.h"
 #include "models/NotebookModel.h"
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QScopedPointer>
 
@@ -89,7 +88,7 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceMetada
     Q_EMIT notifyError(error);
 }
 
-void EditNoteDialogsManager::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+void EditNoteDialogsManager::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -97,14 +96,18 @@ void EditNoteDialogsManager::onUpdateNoteComplete(Note note, bool updateResource
     }
 
     QNDEBUG(QStringLiteral("EditNoteDialogsManager::onUpdateNoteComplete: request id = ") << requestId
-            << QStringLiteral(", update resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource metadata = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource binary data = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", note: ") << note);
 
     m_noteCache.put(note.localUid(), note);
 }
 
-void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+void EditNoteDialogsManager::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                                                 ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_updateNoteRequestIds.find(requestId);
@@ -113,8 +116,12 @@ void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources,
     }
 
     QNWARNING(QStringLiteral("EditNoteDialogsManager::onUpdateNoteFailed: request id = ") << requestId
-              << QStringLiteral(", update resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
-              << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+              << QStringLiteral(", update resource metadata = ")
+              << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+              << QStringLiteral(", update resource binary data = ")
+              << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+              << QStringLiteral(", update tags = ")
+              << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
               << QStringLiteral(", error: ") << errorDescription << QStringLiteral("; note: ") << note);
 
     ErrorString error(QT_TR_NOOP("Note update has failed"));
@@ -130,13 +137,17 @@ void EditNoteDialogsManager::createConnections()
 
     QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,findNote,Note,bool,bool,QUuid),
                      &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
-    QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,updateNote,Note,bool,bool,QUuid),
-                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
 
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(EditNoteDialogsManager,onFindNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(EditNoteDialogsManager,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(EditNoteDialogsManager,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(EditNoteDialogsManager,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
 }
 
 void EditNoteDialogsManager::findNoteAndRaiseEditNoteDialog(const QString & noteLocalUid, const bool readOnlyFlag)
@@ -198,7 +209,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool r
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId);
-    Q_EMIT updateNote(editedNote, /* update resources = */ false, /* update tags = */ false, requestId);
+    Q_EMIT updateNote(editedNote, LocalStorageManager::UpdateNoteOptions(0), requestId);
 }
 
 } // namespace quentier

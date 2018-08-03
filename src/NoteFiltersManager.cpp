@@ -26,7 +26,6 @@
 #include "models/NotebookModel.h"
 #include "models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <QComboBox>
 #include <QLineEdit>
@@ -541,11 +540,15 @@ void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
     m_noteFilterModel.invalidate();
 }
 
-void NoteFiltersManager::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+void NoteFiltersManager::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     QNTRACE(QStringLiteral("NoteFiltersManager::onUpdateNoteComplete: note = ") << note
-            << QStringLiteral("\nUpdate resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral("\nUpdate resource metadata = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource binary data = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", request id = ") << requestId);
 
     m_noteFilterModel.invalidate();
@@ -637,8 +640,8 @@ void NoteFiltersManager::createConnections()
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteFiltersManager,onAddNoteComplete,Note,QUuid),
                      Qt::UniqueConnection);
-    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onUpdateNoteComplete,Note,bool,bool,QUuid),
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(NoteFiltersManager,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
                      Qt::UniqueConnection);
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteFiltersManager,onExpungeNoteComplete,Note,QUuid),

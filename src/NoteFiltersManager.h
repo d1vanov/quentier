@@ -20,13 +20,8 @@
 #define QUENTIER_NOTE_FILTERS_MANAGER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/types/ErrorString.h>
-#include <quentier/types/Tag.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/SavedSearch.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Account.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <QObject>
 #include <QUuid>
 
@@ -39,7 +34,6 @@ QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
 QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
 class NoteFiltersManager: public QObject
 {
@@ -125,7 +119,7 @@ private Q_SLOTS:
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
 private:

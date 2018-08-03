@@ -42,10 +42,10 @@ NoteModelTestHelper::NoteModelTestHelper(LocalStorageManagerAsync * pLocalStorag
                      this, QNSLOT(NoteModelTestHelper,onAddNoteComplete,Note,QUuid));
     QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onAddNoteFailed,Note,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
@@ -498,10 +498,9 @@ void NoteModelTestHelper::onAddNoteFailed(Note note, ErrorString errorDescriptio
     notifyFailureWithStackTrace(errorDescription);
 }
 
-void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+void NoteModelTestHelper::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
+    Q_UNUSED(options)
     Q_UNUSED(requestId)
 
     if (m_expectingNoteUpdateFromLocalStorage)
@@ -589,14 +588,13 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
     }
 }
 
-void NoteModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+void NoteModelTestHelper::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                                              ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NoteModelTestHelper::onUpdateNoteFailed: note = ") << note << QStringLiteral("\nUpdate resources = ")
-            << (updateResources ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", update tags = ")
-            << (updateTags ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error description = ")
+    QNDEBUG(QStringLiteral("NoteModelTestHelper::onUpdateNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
+    Q_UNUSED(options)
     notifyFailureWithStackTrace(errorDescription);
 }
 

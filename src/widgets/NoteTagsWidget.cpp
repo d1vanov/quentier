@@ -213,7 +213,8 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in the local storage: request id = ")
             << updateNoteRequestId << QStringLiteral(", note = ") << m_currentNote);
-    Q_EMIT updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true, updateNoteRequestId);
+    Q_EMIT updateNote(m_currentNote, LocalStorageManager::UpdateNoteOptions(LocalStorageManager::UpdateNoteOption::UpdateTags),
+                      updateNoteRequestId);
 }
 
 void NoteTagsWidget::onNewTagNameEntered()
@@ -338,7 +339,8 @@ void NoteTagsWidget::onNewTagNameEntered()
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in the local storage: request id = ")
             << updateNoteRequestId << QStringLiteral(", note = ") << m_currentNote);
-    Q_EMIT updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true, updateNoteRequestId);
+    Q_EMIT updateNote(m_currentNote, LocalStorageManager::UpdateNoteOptions(LocalStorageManager::UpdateNoteOption::UpdateTags),
+                      updateNoteRequestId);
 }
 
 void NoteTagsWidget::onAllTagsListed()
@@ -354,12 +356,12 @@ void NoteTagsWidget::onAllTagsListed()
     updateLayout();
 }
 
-void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
-                                          bool updateTags, QUuid requestId)
+void NoteTagsWidget::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options,
+                                          QUuid requestId)
 {
     Q_UNUSED(requestId)
 
-    if (!updateTags) {
+    if (!(options & LocalStorageManager::UpdateNoteOption::UpdateTags)) {
         return;
     }
 
@@ -370,10 +372,13 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
     QNTRACE(QStringLiteral("NoteTagsWidget::onUpdateNoteComplete: note local uid = ") << note.localUid()
             << QStringLiteral(", request id = ") << requestId);
 
-    if (updateResources) {
+    if ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) &&
+        (options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData))
+    {
         m_currentNote = note;
     }
-    else {
+    else
+    {
         QList<Resource> resources = m_currentNote.resources();
         m_currentNote = note;
         m_currentNote.setResources(resources);
@@ -516,11 +521,10 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
     updateLayout();
 }
 
-void NoteTagsWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+void NoteTagsWidget::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                                         ErrorString errorDescription, QUuid requestId)
 {
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
+    Q_UNUSED(options)
 
     auto rit = m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.find(requestId);
     auto ait = m_updateNoteRequestIdToAddedTagLocalUidAndGuid.end();
@@ -1014,10 +1018,10 @@ void NoteTagsWidget::createConnections(LocalStorageManagerAsync & localStorageMa
     QNTRACE(QStringLiteral("NoteTagsWidget::createConnections"));
 
     // Connect local storage signals to local slots
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(NoteTagsWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(NoteTagsWidget,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
@@ -1030,8 +1034,8 @@ void NoteTagsWidget::createConnections(LocalStorageManagerAsync & localStorageMa
                      this, QNSLOT(NoteTagsWidget,onExpungeTagComplete,Tag,QStringList,QUuid));
 
     // Connect local signals to local storage slots
-    QObject::connect(this, QNSIGNAL(NoteTagsWidget,updateNote,Note,bool,bool,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteTagsWidget,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
 }
 
 NewListItemLineEdit * NoteTagsWidget::findNewItemWidget()

@@ -20,9 +20,7 @@
 #define QUENTIER_EDIT_NOTE_DIALOGS_MANAGER_H
 
 #include "models/NoteCache.h"
-#include <quentier/types/Note.h>
-#include <quentier/utility/Macros.h>
-#include <quentier/types/ErrorString.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <QObject>
 #include <QUuid>
 #include <QSet>
@@ -31,7 +29,6 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
 class EditNoteDialogsManager: public QObject
@@ -50,7 +47,7 @@ Q_SIGNALS:
 
     // private signals:
     void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
-    void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
 
 public Q_SLOTS:
     void onEditNoteDialogRequested(QString noteLocalUid);
@@ -60,8 +57,8 @@ private Q_SLOTS:
     void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
                           ErrorString errorDescription, QUuid requestId);
-    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
-    void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                             ErrorString errorDescription, QUuid requestId);
 
 private:

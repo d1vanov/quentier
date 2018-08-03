@@ -22,13 +22,8 @@
 #include "../models/NoteCache.h"
 #include "../models/NotebookCache.h"
 #include "../models/TagCache.h"
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
-#include <quentier/types/ErrorString.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Tag.h>
-#include <quentier/types/Account.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <QWidget>
 #include <QUuid>
 #include <QScopedPointer>
@@ -271,7 +266,7 @@ Q_SIGNALS:
     void inAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid);
 
 // private signals
-    void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
     void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
 
@@ -346,8 +341,8 @@ private Q_SLOTS:
     void onFontSizesComboBoxCurrentIndexChanged(int index);
 
     // Slots for events from local storage
-    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
-    void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                             ErrorString errorDescription, QUuid requestId);
     void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,

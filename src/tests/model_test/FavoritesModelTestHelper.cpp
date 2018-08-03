@@ -58,10 +58,10 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerAsync * pL
     m_expectingTagUnfavoriteFromLocalStorage(false),
     m_expectingSavedSearchUnfavoriteFromLocalStorage(false)
 {
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
@@ -421,8 +421,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_fourthNote.setFavorited(true);
-        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_fourthNote, /* update resources = */ false,
-                                                                /* update tags = */ false, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_fourthNote, LocalStorageManager::UpdateNoteOptions(0), QUuid());
         fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
         if (!fourthNoteIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid model index for the favorites model item corresponding to just favorited note"));
@@ -506,8 +505,7 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_thirdNote.setFavorited(false);
-        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false,
-                                                         /* update tags = */ false, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_thirdNote, LocalStorageManager::UpdateNoteOptions(0), QUuid());
 
         thirdNoteIndex = model->indexForLocalUid(m_thirdNote.localUid());
         if (thirdNoteIndex.isValid()) {
@@ -527,7 +525,7 @@ void FavoritesModelTestHelper::launchTest()
         m_pLocalStorageManagerAsync->onUpdateTagRequest(m_thirdTag, QUuid());
 
         m_thirdNote.setFavorited(true);
-        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false, /* update tags = */ false, QUuid());
+        m_pLocalStorageManagerAsync->onUpdateNoteRequest(m_thirdNote, LocalStorageManager::UpdateNoteOptions(0), QUuid());
 
         thirdNotebookIndex = model->indexForLocalUid(m_thirdNotebook.localUid());
         if (!thirdNotebookIndex.isValid()) {
@@ -683,11 +681,15 @@ void FavoritesModelTestHelper::launchTest()
     Q_EMIT failure(errorDescription);
 }
 
-void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onUpdateNoteComplete: note = ") << note
-            << QStringLiteral(", update resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral("\nUpdate resource metadata = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource binary data = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", request id = ") << requestId);
 
     if (m_expectingNoteUpdateFromLocalStorage)
@@ -720,12 +722,16 @@ void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, bool updateResour
     }
 }
 
-void FavoritesModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+void FavoritesModelTestHelper::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                                                   ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onUpdateNoteFailed: note = ") << note << QStringLiteral("\nUpdate resources = ")
-            << (updateResources ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", update tags = ")
-            << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onUpdateNoteFailed: note = ") << note
+            << QStringLiteral("\nUpdate resource metadata = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource binary data = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description: ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     notifyFailureWithStackTrace(errorDescription);

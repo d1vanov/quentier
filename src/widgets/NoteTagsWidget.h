@@ -82,7 +82,7 @@ Q_SIGNALS:
     void newTagLineEditReceivedFocusFromWindowSystem();
 
 // private signals
-    void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
 
 private Q_SLOTS:
     void onTagRemoved(QString tagName);
@@ -92,8 +92,8 @@ private Q_SLOTS:
     // Slots for response to events from local storage
 
     // Slots for notes events: finding, updating & expunging
-    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
-    void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                             ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 

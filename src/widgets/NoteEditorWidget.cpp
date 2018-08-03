@@ -38,7 +38,6 @@ using quentier::NoteEditor;
 using quentier::NoteTagsWidget;
 #include "ui_NoteEditorWidget.h"
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Resource.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
@@ -1108,16 +1107,19 @@ void NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged(int index)
     m_pUi->noteEditor->setFontHeight(fontSize);
 }
 
-void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+void NoteEditorWidget::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     if (!m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())) {
         return;
     }
 
     QNDEBUG(QStringLiteral("NoteEditorWidget::onUpdateNoteComplete: note local uid = ") << note.localUid()
-            << QStringLiteral(", request id = ") << requestId << QStringLiteral(", update resources = ")
-            << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false")));
+            << QStringLiteral(", request id = ") << requestId << QStringLiteral(", update resource metadata = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource binary data = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false")));
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
@@ -1127,6 +1129,10 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
     }
 
     QNTRACE(QStringLiteral("External update, note: ") << note);
+
+    bool updateResources = (options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) &&
+                           (options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
+    bool updateTags = (options & LocalStorageManager::UpdateNoteOption::UpdateTags);
 
     QList<Resource> backupResources;
     if (!updateResources) {
@@ -1227,7 +1233,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
-void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+void NoteEditorWidget::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                                           ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_updateNoteRequestIds.find(requestId);
@@ -1235,9 +1241,13 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
         return;
     }
 
-    QNWARNING(QStringLiteral("NoteEditorWidget::onUpdateNoteFailed: ") << note << QStringLiteral(", update resoures = ")
-              << (updateResources ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", update tags = ")
-              << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+    QNWARNING(QStringLiteral("NoteEditorWidget::onUpdateNoteFailed: ") << note
+              << QStringLiteral(", update resoure metadata = ")
+              << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+              << QStringLiteral(", update resource binary data = ")
+              << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+              << QStringLiteral(", update tags = ")
+              << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
               << QStringLiteral(", error description: ") << errorDescription << QStringLiteral("\nRequest id = ") << requestId);
 
     m_pUi->saveNotePushButton->setEnabled(true);
@@ -1550,9 +1560,11 @@ void NoteEditorWidget::onNoteTitleUpdated()
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
+    LocalStorageManager::UpdateNoteOptions options(LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata |
+                                                   LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
     QNTRACE(QStringLiteral("Emitting the request to update note due to note title update: request id = ") << requestId
             << QStringLiteral(", note = ") << *m_pCurrentNote);
-    Q_EMIT updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
+    Q_EMIT updateNote(*m_pCurrentNote, options, requestId);
 
     Q_EMIT titleOrPreviewChanged(titleOrPreview());
 }
@@ -2141,7 +2153,9 @@ void NoteEditorWidget::updateNoteInLocalStorage()
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId
             << QStringLiteral(", note = ") << *m_pCurrentNote);
-    Q_EMIT updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
+    LocalStorageManager::UpdateNoteOptions options(LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata |
+                                                   LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
+    Q_EMIT updateNote(*m_pCurrentNote, options, requestId);
 }
 
 void NoteEditorWidget::onPrintNoteButtonPressed()
@@ -2199,10 +2213,10 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
                      m_pUi->noteEditor, QNSLOT(NoteEditor,insertInAppNoteLink,QString,QString,QString,QString));
 
     // localStorageManagerAsync's signals to local slots
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),

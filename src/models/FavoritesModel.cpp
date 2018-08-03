@@ -679,11 +679,16 @@ void FavoritesModel::onAddNoteComplete(Note note, QUuid requestId)
     onNoteAddedOrUpdated(note);
 }
 
-void FavoritesModel::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+void FavoritesModel::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNoteComplete: note = ") << note << QStringLiteral("\nUpdate resources = ")
-            << (updateResources ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", update tags = ")
-            << (updateTags ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNoteComplete: note = ") << note
+            << QStringLiteral("\nUpdate resource metadata = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource binary data = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", request id = ") << requestId);
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
@@ -691,10 +696,10 @@ void FavoritesModel::onUpdateNoteComplete(Note note, bool updateResources, bool 
         return;
     }
 
-    onNoteAddedOrUpdated(note, updateTags);
+    onNoteAddedOrUpdated(note, (options & LocalStorageManager::UpdateNoteOption::UpdateTags));
 }
 
-void FavoritesModel::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+void FavoritesModel::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                                         ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_updateNoteRequestIds.find(requestId);
@@ -702,9 +707,14 @@ void FavoritesModel::onUpdateNoteFailed(Note note, bool updateResources, bool up
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNoteFailed: note = ") << note << QStringLiteral("\nUpdate resources = ")
-            << (updateResources ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", update tags = ")
-            << (updateTags ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error descrition: ")
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNoteFailed: note = ") << note
+            << QStringLiteral("\nUpdate resource metadata = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update resource binary data = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", error descrition: ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_updateNoteRequestIds.erase(it))
@@ -1451,8 +1461,8 @@ void FavoritesModel::createConnections(const NoteModel & noteModel, LocalStorage
     }
 
     // Local signals to localStorageManagerAsync's slots
-    QObject::connect(this, QNSIGNAL(FavoritesModel,updateNote,Note,bool,bool,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(FavoritesModel,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,findNote,Note,bool,bool,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(FavoritesModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
@@ -1500,10 +1510,10 @@ void FavoritesModel::createConnections(const NoteModel & noteModel, LocalStorage
     // localStorageManagerAsync's signals to local slots
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(FavoritesModel,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(FavoritesModel,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(FavoritesModel,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(FavoritesModel,onFindNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
@@ -2089,7 +2099,7 @@ void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in local storage: id = ")
             << requestId << QStringLiteral(", note: ") << note);
-    Q_EMIT updateNote(note, /* update resources = */ false, /* update tags = */ false, requestId);
+    Q_EMIT updateNote(note, LocalStorageManager::UpdateNoteOptions(0), requestId);
 }
 
 void FavoritesModel::updateNotebookInLocalStorage(const FavoritesModelItem & item)
@@ -2291,7 +2301,7 @@ void FavoritesModel::unfavoriteNote(const QString & localUid)
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in local storage: id = ") << requestId
             << QStringLiteral(", note: ") << note);
-    Q_EMIT updateNote(note, /* update resources = */ false, /* update tags = */ false, requestId);
+    Q_EMIT updateNote(note, LocalStorageManager::UpdateNoteOptions(0), requestId);
 }
 
 void FavoritesModel::unfavoriteNotebook(const QString & localUid)

@@ -840,12 +840,9 @@ void NoteModel::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid r
     removeItemByLocalUid(note.localUid());
 }
 
-void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+void NoteModel::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     NMTRACE(QStringLiteral("NoteModel::onUpdateNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
-
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
 
     bool shouldRemoveNoteFromModel = (note.hasDeletionTimestamp() && (m_includedNotes == IncludedNotes::NonDeleted));
     shouldRemoveNoteFromModel |= (!note.hasDeletionTimestamp() && (m_includedNotes == IncludedNotes::Deleted));
@@ -876,13 +873,13 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
 
     NMTRACE(QStringLiteral("This update was not initiated by the note model: ") << note
             << QStringLiteral(", request id = ") << requestId << QStringLiteral(", update tags = ")
-            << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", should remove note from model = ")
             << (shouldRemoveNoteFromModel ? QStringLiteral("true") : QStringLiteral("false")));
 
     if (!shouldRemoveNoteFromModel)
     {
-        if (!updateTags)
+        if (!(options & LocalStorageManager::UpdateNoteOption::UpdateTags))
         {
             const NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
             auto noteItemIt = localUidIndex.find(note.localUid());
@@ -898,11 +895,10 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
     }
 }
 
-void NoteModel::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
+void NoteModel::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                                    ErrorString errorDescription, QUuid requestId)
 {
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
+    Q_UNUSED(options)
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -1235,8 +1231,8 @@ void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManager
     // Local signals to localStorageManagerAsync's slots
     QObject::connect(this, QNSIGNAL(NoteModel,addNote,Note,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,bool,bool,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNote,Note,bool,bool,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
@@ -1257,10 +1253,10 @@ void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManager
                      this, QNSLOT(NoteModel,onAddNoteComplete,Note,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
                      this, QNSLOT(NoteModel,onAddNoteFailed,Note,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(NoteModel,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(NoteModel,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteModel,onFindNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
@@ -1725,7 +1721,11 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item, const bool 
 
         NMTRACE(QStringLiteral("Emitting the request to update the note in local storage: id = ") << requestId
                 << QStringLiteral(", note: ") << note);
-        Q_EMIT updateNote(note, /* update resources = */ false, /* update tags = */ updateTags, requestId);
+        LocalStorageManager::UpdateNoteOptions options(0);
+        if (updateTags) {
+            options |= LocalStorageManager::UpdateNoteOption::UpdateTags;
+        }
+        Q_EMIT updateNote(note, options, requestId);
     }
 }
 
