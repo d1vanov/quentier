@@ -88,6 +88,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/EditNoteDialog.h
     src/dialogs/EnexExportDialog.h
     src/dialogs/EnexImportDialog.h
+    src/dialogs/LocalStorageVersionTooHighDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/dialogs/PreferencesDialog.h
     src/dialogs/WelcomeToQuentierDialog.h
@@ -189,6 +190,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/EditNoteDialog.cpp
     src/dialogs/EnexExportDialog.cpp
     src/dialogs/EnexImportDialog.cpp
+    src/dialogs/LocalStorageVersionTooHighDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/dialogs/PreferencesDialog.cpp
     src/dialogs/WelcomeToQuentierDialog.cpp
@@ -278,6 +280,7 @@ set(FORMS
     src/dialogs/EditNoteDialog.ui
     src/dialogs/EnexExportDialog.ui
     src/dialogs/EnexImportDialog.ui
+    src/dialogs/LocalStorageVersionTooHighDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/dialogs/PreferencesDialog.ui
     src/dialogs/WelcomeToQuentierDialog.ui

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LocalStorageVersionTooHighDialog</class>
+ <widget class="QWidget" name="LocalStorageVersionTooHighDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>626</width>
+    <height>581</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="descriptionLabel">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The version of local storage persistence for the account you are trying to open is higher than the version supported by the currently used build of libquentier. It means that this account's data has already been opened using a more recent version of libquentier which has changed the data layout somehow. The current version of libquentier cannot work with this version of data as it doesn't know what exactly has changed in the data layout and how to work with it.&lt;/p&gt;&lt;p&gt;Please upgrade your versions of libquentier and Quentier and try again. Alternatively, you can select another account for which the version of local storage persistence might be still supported (i.e. no upgrade took place yet) or you can create a new account or you can quit the app.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="detailsLabel">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Technical details about local storage version mismatch:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="detailsPlainTextEdit">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="pickAnotherAccountLabel">
+     <property name="text">
+      <string>Pick another account:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableView" name="accountsTableView"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonsHorizontalLayout">
+     <item>
+      <widget class="QPushButton" name="switchToAnotherAccountPushButton">
+       <property name="text">
+        <string>Switch to selected account</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="createNewAccountPushButton">
+       <property name="text">
+        <string>Create new account</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="quitAppPushButton">
+       <property name="text">
+        <string>Quit app</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
