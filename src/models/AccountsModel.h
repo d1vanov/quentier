@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_MODELS_AVAILABLE_ACCOUNTS_MODEL_H
-#define QUENTIER_MODELS_AVAILABLE_ACCOUNTS_MODEL_H
+#ifndef QUENTIER_MODELS_ACCOUNTS_MODEL_H
+#define QUENTIER_MODELS_ACCOUNTS_MODEL_H
 
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
@@ -28,15 +28,22 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountManager)
-
-class AvailableAccountsModel: public QAbstractTableModel
+/**
+ * @brief The AccountsModel class wraps a vector of Account objects into a full fledged table model
+ * inheriting from QAbstractTableModel.
+ *
+ * In a way AccountsModel is a convenience model akin to QStringListModel - if you have a vector of accounts,
+ * you can easily create a model around this vector and use it along with any appropriate view.
+ *
+ * AccountsModel is mostly read-only model: it only allows editing of display names of accounts it works on.
+ * The signal is emitted for anyone interested in the change of account display name.
+ */
+class AccountsModel: public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit AvailableAccountsModel(AccountManager & accountManager,
-                                    QObject * parent = Q_NULLPTR);
-    ~AvailableAccountsModel();
+    explicit AccountsModel(QObject * parent = Q_NULLPTR);
+    ~AccountsModel();
 
     struct Columns
     {
@@ -48,8 +55,22 @@ public:
         };
     };
 
+    const QVector<Account> & accounts() const { return m_accounts; }
+    void setAccounts(const QVector<Account> & accounts);
+
+    bool addAccount(const Account & account);
+    bool removeAccount(const Account & account);
+
 Q_SIGNALS:
+    /**
+     * badAccountDisplayName signal is emitted when the attempt is made to change the account's display name
+     * in somewhat inappropriate way so that the display name is not really changed
+     */
     void badAccountDisplayName(ErrorString errorDescription, int row);
+
+    /**
+     * accountDisplayNameChanged signal is emitted when the display name is changed for some account
+     */
     void accountDisplayNameChanged(Account account);
 
 private:
@@ -62,13 +83,13 @@ private:
     virtual bool setData(const QModelIndex & index, const QVariant & value, int role) Q_DECL_OVERRIDE;
 
 private:
-    Q_DISABLE_COPY(AvailableAccountsModel)
+    Q_DISABLE_COPY(AccountsModel)
 
 private:
-    QPointer<AccountManager>   m_pAccountManager;
-    StringUtils                m_stringUtils;
+    QVector<Account>            m_accounts;
+    StringUtils                 m_stringUtils;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_MODELS_AVAILABLE_ACCOUNTS_MODEL_H
+#endif // QUENTIER_MODELS_ACCOUNTS_MODEL_H

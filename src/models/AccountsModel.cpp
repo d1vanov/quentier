@@ -16,40 +16,135 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AvailableAccountsModel.h"
-#include "../AccountManager.h"
+#include "AccountsModel.h"
 #include <quentier/logging/QuentierLogger.h>
+#include <QTextStream>
+#include <iterator>
 
 #define NUM_ACCOUNTS_MODEL_COLUMNS (3)
 
 namespace quentier {
 
-AvailableAccountsModel::AvailableAccountsModel(AccountManager & accountManager, QObject * parent) :
+AccountsModel::AccountsModel(QObject * parent) :
     QAbstractTableModel(parent),
-    m_pAccountManager(&accountManager),
+    m_accounts(),
     m_stringUtils()
 {}
 
-AvailableAccountsModel::~AvailableAccountsModel()
+AccountsModel::~AccountsModel()
 {}
 
-Qt::ItemFlags AvailableAccountsModel::flags(const QModelIndex & index) const
+void AccountsModel::setAccounts(const QVector<Account> & accounts)
+{
+    QNDEBUG(QStringLiteral("AccountsModel::setAccounts"));
+
+    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+    {
+        QString str;
+        QTextStream strm(&str);
+
+        strm << "\n";
+        for(auto it = accounts.constBegin(), end = accounts.constEnd(); it != end; ++it) {
+            strm << *it << "\n";
+        }
+
+        strm.flush();
+        QNTRACE(str);
+    }
+
+    if (m_accounts == accounts) {
+        QNDEBUG(QStringLiteral("Accounts haven't changed"));
+        return;
+    }
+
+    Q_EMIT layoutAboutToBeChanged();
+    m_accounts = accounts;
+    Q_EMIT layoutChanged();
+}
+
+bool AccountsModel::addAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("AccountsModel::addAccount: ") << account);
+
+    // Check whether this account is already within the list of accounts
+    bool foundExistingAccount = false;
+    Account::Type::type type = account.type();
+    bool isLocal = (account.type() == Account::Type::Local);
+    for(auto it = m_accounts.constBegin(), end = m_accounts.constEnd(); it != end; ++it)
+    {
+        const Account & availableAccount = *it;
+
+        if (availableAccount.type() != type) {
+            continue;
+        }
+
+        if (!isLocal && (availableAccount.id() != account.id())) {
+            continue;
+        }
+        else if (isLocal && (availableAccount.name() != account.name())) {
+            continue;
+        }
+
+        foundExistingAccount = true;
+        break;
+    }
+
+    if (foundExistingAccount) {
+        QNDEBUG(QStringLiteral("Account already exists"));
+        return false;
+    }
+
+    int newRow = m_accounts.size();
+    beginInsertRows(QModelIndex(), newRow, newRow);
+    m_accounts << account;
+    endInsertRows();
+
+    return true;
+}
+
+bool AccountsModel::removeAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("AccountsModel::removeAccount: ") << account);
+
+    Account::Type::type type = account.type();
+    bool isLocal = (account.type() == Account::Type::Local);
+    int index = 0;
+    for(auto it = m_accounts.constBegin(), end = m_accounts.constEnd(); it != end; ++it, ++index)
+    {
+        const Account & availableAccount = *it;
+
+        if (availableAccount.type() != type) {
+            continue;
+        }
+
+        if (!isLocal && (availableAccount.id() != account.id())) {
+            continue;
+        }
+        else if (isLocal && (availableAccount.name() != account.name())) {
+            continue;
+        }
+
+        beginRemoveRows(QModelIndex(), index, index);
+        m_accounts.remove(index);
+        endRemoveRows();
+
+        return true;
+    }
+
+    return false;
+}
+
+Qt::ItemFlags AccountsModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractTableModel::flags(index);
     if (!index.isValid()) {
         return indexFlags;
     }
 
-    if (m_pAccountManager.isNull()) {
-        return indexFlags;
-    }
-
-    const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
-
     int row = index.row();
     int column = index.column();
 
-    if ((row < 0) || (row >= availableAccounts.size()) ||
+    if ((row < 0) || (row >= m_accounts.size()) ||
         (column < 0) || (column >= NUM_ACCOUNTS_MODEL_COLUMNS))
     {
         return indexFlags;
@@ -58,27 +153,23 @@ Qt::ItemFlags AvailableAccountsModel::flags(const QModelIndex & index) const
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
 
-    if (column == AvailableAccountsModel::Columns::DisplayName) {
+    if (column == AccountsModel::Columns::DisplayName) {
         indexFlags |= Qt::ItemIsEditable;
     }
 
     return indexFlags;
 }
 
-int AvailableAccountsModel::rowCount(const QModelIndex & parent) const
+int AccountsModel::rowCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
         return 0;
     }
 
-    if (m_pAccountManager.isNull()) {
-        return 0;
-    }
-
-    return m_pAccountManager->availableAccounts().size();
+    return m_accounts.size();
 }
 
-int AvailableAccountsModel::columnCount(const QModelIndex & parent) const
+int AccountsModel::columnCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
         return 0;
@@ -87,7 +178,7 @@ int AvailableAccountsModel::columnCount(const QModelIndex & parent) const
     return NUM_ACCOUNTS_MODEL_COLUMNS;
 }
 
-QVariant AvailableAccountsModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant AccountsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole) {
         return QVariant();
@@ -110,7 +201,7 @@ QVariant AvailableAccountsModel::headerData(int section, Qt::Orientation orienta
     }
 }
 
-QVariant AvailableAccountsModel::data(const QModelIndex & index, int role) const
+QVariant AccountsModel::data(const QModelIndex & index, int role) const
 {
     if (!index.isValid()) {
         return QVariant();
@@ -120,21 +211,15 @@ QVariant AvailableAccountsModel::data(const QModelIndex & index, int role) const
         return QVariant();
     }
 
-    if (m_pAccountManager.isNull()) {
-        return QVariant();
-    }
-
-    const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
-
     int row = index.row();
     int column = index.column();
 
-    int numRows = availableAccounts.size();
+    int numRows = m_accounts.size();
     if (Q_UNLIKELY((row < 0) || (row >= numRows))) {
         return QVariant();
     }
 
-    const Account & account = availableAccounts[row];
+    const Account & account = m_accounts.at(row);
 
     switch(column)
     {
@@ -156,8 +241,8 @@ QVariant AvailableAccountsModel::data(const QModelIndex & index, int role) const
     }
 }
 
-bool AvailableAccountsModel::setData(const QModelIndex & index,
-                                     const QVariant & value, int role)
+bool AccountsModel::setData(const QModelIndex & index,
+                            const QVariant & value, int role)
 {
     if (!index.isValid()) {
         return false;
@@ -167,21 +252,13 @@ bool AvailableAccountsModel::setData(const QModelIndex & index,
         return false;
     }
 
-    if (m_pAccountManager.isNull()) {
-        return false;
-    }
-
-    QVector<Account> availableAccounts = m_pAccountManager->availableAccounts();
-
     int row = index.row();
     int column = index.column();
 
-    int numRows = availableAccounts.size();
+    int numRows = m_accounts.size();
     if (Q_UNLIKELY((row < 0) || (row >= numRows))) {
         return false;
     }
-
-    Account & account = availableAccounts[row];
 
     switch(column)
     {
@@ -193,6 +270,8 @@ bool AvailableAccountsModel::setData(const QModelIndex & index,
         {
             QString displayName = value.toString().trimmed();
             m_stringUtils.removeNewlines(displayName);
+
+            const Account & account = m_accounts.at(row);
 
             if (account.type() == Account::Type::Evernote)
             {
@@ -228,7 +307,8 @@ bool AvailableAccountsModel::setData(const QModelIndex & index,
                 return true;
             }
 
-            account.setDisplayName(displayName);
+            m_accounts[row].setDisplayName(displayName);
+
             Q_EMIT accountDisplayNameChanged(account);
             return true;
         }
@@ -236,6 +316,5 @@ bool AvailableAccountsModel::setData(const QModelIndex & index,
         return false;
     }
 }
-
 
 } // namespace quentier
