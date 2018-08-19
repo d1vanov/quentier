@@ -33,6 +33,8 @@ class ManageAccountsDialog;
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(AccountsModel)
+
 class ManageAccountsDialog: public QDialog
 {
     Q_OBJECT
@@ -59,12 +61,7 @@ private:
     void updateAvailableAccountsInView(const int currentRow);
 
 private:
-    class AccountsModel;
-    class AccountsModelDelegate;
-
-private:
     Ui::ManageAccountsDialog *          m_pUi;
-    QSharedPointer<QVector<Account> >   m_pAvailableAccounts;
     QScopedPointer<AccountsModel>       m_pAccountsModel;
 };
 
