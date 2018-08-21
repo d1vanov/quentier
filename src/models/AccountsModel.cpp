@@ -99,6 +99,7 @@ bool AccountsModel::addAccount(const Account & account)
     m_accounts << account;
     endInsertRows();
 
+    Q_EMIT accountAdded(account);
     return true;
 }
 
@@ -128,6 +129,7 @@ bool AccountsModel::removeAccount(const Account & account)
         m_accounts.remove(index);
         endRemoveRows();
 
+        Q_EMIT accountRemoved(account);
         return true;
     }
 

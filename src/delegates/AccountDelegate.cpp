@@ -18,6 +18,7 @@
 
 #include "AccountDelegate.h"
 #include "../models/AccountsModel.h"
+#include <QLineEdit>
 
 namespace quentier {
 
@@ -29,12 +30,25 @@ QWidget * AccountDelegate::createEditor(QWidget * parent,
                                         const QStyleOptionViewItem & option,
                                         const QModelIndex & index) const
 {
-    // Don't allow to edit username and account type
-    if (index.isValid() && (index.column() != AccountsModel::Columns::DisplayName)) {
+    if (!index.isValid() || (index.column() != AccountsModel::Columns::DisplayName)) {
         return Q_NULLPTR;
     }
 
     return QStyledItemDelegate::createEditor(parent, option, index);
+}
+
+void AccountDelegate::setEditorData(QWidget * pEditor, const QModelIndex & index) const
+{
+    if (!index.isValid() || (index.column() != AccountsModel::Columns::DisplayName)) {
+        return;
+    }
+
+    QLineEdit * pLineEdit = qobject_cast<QLineEdit*>(pEditor);
+    if (pLineEdit) {
+        QString displayName = index.data().toString();
+        pLineEdit->setText(displayName);
+        pLineEdit->selectAll();
+    }
 }
 
 } // namespace quentier

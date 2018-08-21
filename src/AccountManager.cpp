@@ -20,6 +20,7 @@
 #include "SettingsNames.h"
 #include "dialogs/AddAccountDialog.h"
 #include "dialogs/ManageAccountsDialog.h"
+#include "models/AccountsModel.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
@@ -35,9 +36,27 @@ namespace quentier {
 
 AccountManager::AccountManager(QObject * parent) :
     QObject(parent),
-    m_availableAccounts()
+    m_pAccountsModel(new AccountsModel(this))
 {
+    QObject::connect(m_pAccountsModel.data(), QNSIGNAL(AccountsModel,accountAdded,Account),
+                     this, QNSIGNAL(AccountManager,accountAdded,Account));
+    QObject::connect(m_pAccountsModel.data(), QNSIGNAL(AccountsModel,accountDisplayNameChanged,Account),
+                     this, QNSLOT(AccountManager,onAccountDisplayNameChanged,Account));
+
     detectAvailableAccounts();
+}
+
+AccountManager::~AccountManager()
+{}
+
+const QVector<Account> & AccountManager::availableAccounts() const
+{
+    return m_pAccountsModel->accounts();
+}
+
+AccountsModel & AccountManager::accountsModel()
+{
+    return *m_pAccountsModel;
 }
 
 Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
@@ -78,7 +97,7 @@ void AccountManager::raiseAddAccountDialog()
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
-    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_availableAccounts, parentWidget));
+    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_pAccountsModel->accounts(), parentWidget));
     addAccountDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
@@ -92,18 +111,17 @@ void AccountManager::raiseManageAccountsDialog()
     QNDEBUG(QStringLiteral("AccountManager::raiseManageAccountsDialog"));
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
 
     Account account = currentAccount();
-    int currentAccountRow = m_availableAccounts.indexOf(account);
+    int currentAccountRow = availableAccounts.indexOf(account);
 
-    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(m_availableAccounts, currentAccountRow, parentWidget));
+    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(*m_pAccountsModel, currentAccountRow, parentWidget));
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
-    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,accountDisplayNameChanged,QString),
-                     this, QNSLOT(AccountManager,onAccountDisplayNameChanged,QString));
     Q_UNUSED(manageAccountsDialog->exec())
 }
 
@@ -115,7 +133,8 @@ void AccountManager::switchAccount(const Account & account)
     bool accountIsAvailable = false;
     Account::Type::type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
-    for(auto it = m_availableAccounts.constBegin(), end = m_availableAccounts.constEnd(); it != end; ++it)
+    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
+    for(auto it = availableAccounts.constBegin(), end = availableAccounts.constEnd(); it != end; ++it)
     {
         const Account & availableAccount = *it;
 
@@ -142,8 +161,9 @@ void AccountManager::switchAccount(const Account & account)
             return;
         }
 
-        m_availableAccounts << account;
-        Q_EMIT accountAdded(account);
+        if (m_pAccountsModel->addAccount(account)) {
+            Q_EMIT accountAdded(account);
+        }
     }
     else
     {
@@ -160,7 +180,8 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
             << name << QStringLiteral(", full name = ") << fullName);
 
     // Double-check that no local account with such name already exists
-    for(auto it = m_availableAccounts.constBegin(), end = m_availableAccounts.constEnd(); it != end; ++it)
+    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
+    for(auto it = availableAccounts.constBegin(), end = availableAccounts.constEnd(); it != end; ++it)
     {
         const Account & availableAccount = *it;
         if (availableAccount.type() != Account::Type::Local) {
@@ -194,33 +215,12 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
 {
     QNDEBUG(QStringLiteral("AccountManager::onAccountDisplayNameChanged: ") << account);
 
-    int index = m_availableAccounts.indexOf(account);
-    if (Q_UNLIKELY(index < 0)) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't process the change of account's display name, "
-                                     "can't find the account within the list of available ones"));
-        QNWARNING(error);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
-    QString evernoteAccountType = evernoteAccountTypeToString(account.evernoteAccountType());
-
+    bool isLocal = (account.type() ==  Account::Type::Local);
     ErrorString errorDescription;
-    bool res = writeAccountInfo(account.name(), account.displayName(),
-                                (account.type() == Account::Type::Local),
-                                account.id(), evernoteAccountType,
-                                account.evernoteHost(), account.shardId(), errorDescription);
-    if (Q_UNLIKELY(!res)) {
-        ErrorString error(QT_TR_NOOP("Can't save the changed account display name"));
-        error.appendBase(errorDescription.base());
-        error.appendBase(errorDescription.additionalBases());
-        error.details() = errorDescription.details();
-        QNWARNING(error);
-        Q_EMIT notifyError(error);
-        return;
-    }
+    Q_UNUSED(writeAccountInfo(account.name(), account.displayName(), isLocal, account.id(),
+                              evernoteAccountTypeToString(account.evernoteAccountType()),
+                              account.evernoteHost(), account.shardId(), errorDescription))
 
-    m_availableAccounts[index].setDisplayName(account.displayName());
     Q_EMIT accountUpdated(account);
 }
 
@@ -241,7 +241,9 @@ void AccountManager::detectAvailableAccounts()
     int numPotentialLocalAccountDirs = localAccountsDirInfos.size();
     int numPotentialEvernoteAccountDirs = evernoteAccountsDirInfos.size();
     int numPotentialAccountDirs = numPotentialLocalAccountDirs + numPotentialEvernoteAccountDirs;
-    m_availableAccounts.reserve(numPotentialAccountDirs);
+
+    QVector<Account> availableAccounts;
+    availableAccounts.reserve(numPotentialAccountDirs);
 
     for(int i = 0; i < numPotentialLocalAccountDirs; ++i)
     {
@@ -259,7 +261,7 @@ void AccountManager::detectAvailableAccounts()
 
         Account availableAccount(accountName, Account::Type::Local, userId);
         readComplementaryAccountInfo(availableAccount);
-        m_availableAccounts << availableAccount;
+        availableAccounts << availableAccount;
         QNDEBUG(QStringLiteral("Found available local account: name = ") << accountName
                 << QStringLiteral(", dir ") << accountDirInfo.absoluteFilePath());
     }
@@ -314,12 +316,14 @@ void AccountManager::detectAvailableAccounts()
 
         Account availableAccount(accountName, Account::Type::Evernote, userId, Account::EvernoteAccountType::Free, evernoteHost);
         readComplementaryAccountInfo(availableAccount);
-        m_availableAccounts << availableAccount;
+        availableAccounts << availableAccount;
         QNDEBUG(QStringLiteral("Found available Evernote account: name = ") << accountName
                 << QStringLiteral(", user id = ") << userId << QStringLiteral(", Evernote account type = ")
                 << availableAccount.evernoteAccountType() << QStringLiteral(", Evernote host = ")
                 << availableAccount.evernoteHost() << QStringLiteral(", dir ") << accountDirInfo.absoluteFilePath());
     }
+
+    m_pAccountsModel->setAccounts(availableAccounts);
 }
 
 QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & errorDescription, bool * pCreatedDefaultAccount)
@@ -345,7 +349,9 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & error
     // Need to check whether the default account already exists
     QSharedPointer<Account> pDefaultAccount(new Account(username, Account::Type::Local, qevercloud::UserID(-1)));
     pDefaultAccount->setDisplayName(fullName);
-    if (m_availableAccounts.contains(*pDefaultAccount)) {
+
+    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
+    if (availableAccounts.contains(*pDefaultAccount)) {
         QNDEBUG(QStringLiteral("The default account already exists"));
         return pDefaultAccount;
     }
@@ -373,7 +379,7 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
 
     Account availableAccount(name, Account::Type::Local, qevercloud::UserID(-1));
     availableAccount.setDisplayName(displayName);
-    m_availableAccounts << availableAccount;
+    m_pAccountsModel->addAccount(availableAccount);
 
     QSharedPointer<Account> result(new Account(name, Account::Type::Local));
     return result;

@@ -73,7 +73,10 @@ Q_SIGNALS:
      */
     void accountDisplayNameChanged(Account account);
 
-private:
+    void accountAdded(const Account & account);
+    void accountRemoved(const Account & account);
+
+public:
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
     virtual int rowCount(const QModelIndex & parent) const Q_DECL_OVERRIDE;
     virtual int columnCount(const QModelIndex & parent) const Q_DECL_OVERRIDE;

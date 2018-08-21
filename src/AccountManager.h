@@ -30,6 +30,8 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(AccountsModel)
+
 class AccountManager: public QObject
 {
     Q_OBJECT
@@ -45,9 +47,11 @@ public:
 
 public:
     AccountManager(QObject * parent = Q_NULLPTR);
+    ~AccountManager();
 
-    const QVector<Account> & availableAccounts() const
-    { return m_availableAccounts; }
+    const QVector<Account> & availableAccounts() const;
+
+    AccountsModel & accountsModel();
 
     /**
      * Attempts to retrieve the last used account from the app settings, in case of failure creates and returns
@@ -108,7 +112,7 @@ private:
     void updateLastUsedAccount(const Account & account);
 
 private:
-    QVector<Account>   m_availableAccounts;
+    QScopedPointer<AccountsModel>   m_pAccountsModel;
 };
 
 } // namespace quentier

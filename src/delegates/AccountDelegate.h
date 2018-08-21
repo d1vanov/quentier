@@ -33,6 +33,7 @@ public:
     virtual QWidget * createEditor(QWidget * parent,
                                    const QStyleOptionViewItem & option,
                                    const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void setEditorData(QWidget * pEditor, const QModelIndex & index) const Q_DECL_OVERRIDE;
 };
 
 } // namespace quentier
