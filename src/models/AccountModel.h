@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_MODELS_ACCOUNTS_MODEL_H
-#define QUENTIER_MODELS_ACCOUNTS_MODEL_H
+#ifndef QUENTIER_MODELS_ACCOUNT_MODEL_H
+#define QUENTIER_MODELS_ACCOUNT_MODEL_H
 
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
@@ -29,21 +29,21 @@
 namespace quentier {
 
 /**
- * @brief The AccountsModel class wraps a vector of Account objects into a full fledged table model
+ * @brief The AccountModel class wraps a vector of Account objects into a full fledged table model
  * inheriting from QAbstractTableModel.
  *
- * In a way AccountsModel is a convenience model akin to QStringListModel - if you have a vector of accounts,
+ * In a way AccountModel is a convenience model akin to QStringListModel - if you have a vector of accounts,
  * you can easily create a model around this vector and use it along with any appropriate view.
  *
- * AccountsModel is mostly read-only model: it only allows editing of display names of accounts it works on.
+ * AccountModel is mostly read-only model: it only allows editing of display names of accounts it works on.
  * The signal is emitted for anyone interested in the change of account display name.
  */
-class AccountsModel: public QAbstractTableModel
+class AccountModel: public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit AccountsModel(QObject * parent = Q_NULLPTR);
-    ~AccountsModel();
+    explicit AccountModel(QObject * parent = Q_NULLPTR);
+    ~AccountModel();
 
     struct Columns
     {
@@ -86,7 +86,7 @@ public:
     virtual bool setData(const QModelIndex & index, const QVariant & value, int role) Q_DECL_OVERRIDE;
 
 private:
-    Q_DISABLE_COPY(AccountsModel)
+    Q_DISABLE_COPY(AccountModel)
 
 private:
     QVector<Account>            m_accounts;
@@ -95,4 +95,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_MODELS_ACCOUNTS_MODEL_H
+#endif // QUENTIER_MODELS_ACCOUNT_MODEL_H

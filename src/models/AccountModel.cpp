@@ -16,7 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AccountsModel.h"
+#include "AccountModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QTextStream>
 #include <iterator>
@@ -25,18 +25,18 @@
 
 namespace quentier {
 
-AccountsModel::AccountsModel(QObject * parent) :
+AccountModel::AccountModel(QObject * parent) :
     QAbstractTableModel(parent),
     m_accounts(),
     m_stringUtils()
 {}
 
-AccountsModel::~AccountsModel()
+AccountModel::~AccountModel()
 {}
 
-void AccountsModel::setAccounts(const QVector<Account> & accounts)
+void AccountModel::setAccounts(const QVector<Account> & accounts)
 {
-    QNDEBUG(QStringLiteral("AccountsModel::setAccounts"));
+    QNDEBUG(QStringLiteral("AccountModel::setAccounts"));
 
     if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
     {
@@ -62,9 +62,9 @@ void AccountsModel::setAccounts(const QVector<Account> & accounts)
     Q_EMIT layoutChanged();
 }
 
-bool AccountsModel::addAccount(const Account & account)
+bool AccountModel::addAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountsModel::addAccount: ") << account);
+    QNDEBUG(QStringLiteral("AccountModel::addAccount: ") << account);
 
     // Check whether this account is already within the list of accounts
     bool foundExistingAccount = false;
@@ -103,9 +103,9 @@ bool AccountsModel::addAccount(const Account & account)
     return true;
 }
 
-bool AccountsModel::removeAccount(const Account & account)
+bool AccountModel::removeAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountsModel::removeAccount: ") << account);
+    QNDEBUG(QStringLiteral("AccountModel::removeAccount: ") << account);
 
     Account::Type::type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
@@ -136,7 +136,7 @@ bool AccountsModel::removeAccount(const Account & account)
     return false;
 }
 
-Qt::ItemFlags AccountsModel::flags(const QModelIndex & index) const
+Qt::ItemFlags AccountModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractTableModel::flags(index);
     if (!index.isValid()) {
@@ -155,14 +155,14 @@ Qt::ItemFlags AccountsModel::flags(const QModelIndex & index) const
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
 
-    if (column == AccountsModel::Columns::DisplayName) {
+    if (column == AccountModel::Columns::DisplayName) {
         indexFlags |= Qt::ItemIsEditable;
     }
 
     return indexFlags;
 }
 
-int AccountsModel::rowCount(const QModelIndex & parent) const
+int AccountModel::rowCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
         return 0;
@@ -171,7 +171,7 @@ int AccountsModel::rowCount(const QModelIndex & parent) const
     return m_accounts.size();
 }
 
-int AccountsModel::columnCount(const QModelIndex & parent) const
+int AccountModel::columnCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
         return 0;
@@ -180,7 +180,7 @@ int AccountsModel::columnCount(const QModelIndex & parent) const
     return NUM_ACCOUNTS_MODEL_COLUMNS;
 }
 
-QVariant AccountsModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant AccountModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole) {
         return QVariant();
@@ -203,7 +203,7 @@ QVariant AccountsModel::headerData(int section, Qt::Orientation orientation, int
     }
 }
 
-QVariant AccountsModel::data(const QModelIndex & index, int role) const
+QVariant AccountModel::data(const QModelIndex & index, int role) const
 {
     if (!index.isValid()) {
         return QVariant();
@@ -243,8 +243,8 @@ QVariant AccountsModel::data(const QModelIndex & index, int role) const
     }
 }
 
-bool AccountsModel::setData(const QModelIndex & index,
-                            const QVariant & value, int role)
+bool AccountModel::setData(const QModelIndex & index,
+                           const QVariant & value, int role)
 {
     if (!index.isValid()) {
         return false;

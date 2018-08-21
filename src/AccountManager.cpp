@@ -20,7 +20,7 @@
 #include "SettingsNames.h"
 #include "dialogs/AddAccountDialog.h"
 #include "dialogs/ManageAccountsDialog.h"
-#include "models/AccountsModel.h"
+#include "models/AccountModel.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
@@ -36,11 +36,11 @@ namespace quentier {
 
 AccountManager::AccountManager(QObject * parent) :
     QObject(parent),
-    m_pAccountsModel(new AccountsModel(this))
+    m_pAccountModel(new AccountModel(this))
 {
-    QObject::connect(m_pAccountsModel.data(), QNSIGNAL(AccountsModel,accountAdded,Account),
+    QObject::connect(m_pAccountModel.data(), QNSIGNAL(AccountModel,accountAdded,Account),
                      this, QNSIGNAL(AccountManager,accountAdded,Account));
-    QObject::connect(m_pAccountsModel.data(), QNSIGNAL(AccountsModel,accountDisplayNameChanged,Account),
+    QObject::connect(m_pAccountModel.data(), QNSIGNAL(AccountModel,accountDisplayNameChanged,Account),
                      this, QNSLOT(AccountManager,onAccountDisplayNameChanged,Account));
 
     detectAvailableAccounts();
@@ -51,12 +51,12 @@ AccountManager::~AccountManager()
 
 const QVector<Account> & AccountManager::availableAccounts() const
 {
-    return m_pAccountsModel->accounts();
+    return m_pAccountModel->accounts();
 }
 
-AccountsModel & AccountManager::accountsModel()
+AccountModel & AccountManager::accountModel()
 {
-    return *m_pAccountsModel;
+    return *m_pAccountModel;
 }
 
 Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
@@ -97,7 +97,7 @@ void AccountManager::raiseAddAccountDialog()
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
-    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_pAccountsModel->accounts(), parentWidget));
+    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_pAccountModel->accounts(), parentWidget));
     addAccountDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
@@ -111,12 +111,12 @@ void AccountManager::raiseManageAccountsDialog()
     QNDEBUG(QStringLiteral("AccountManager::raiseManageAccountsDialog"));
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
-    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
+    const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
 
     Account account = currentAccount();
     int currentAccountRow = availableAccounts.indexOf(account);
 
-    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(*m_pAccountsModel, currentAccountRow, parentWidget));
+    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(*m_pAccountModel, currentAccountRow, parentWidget));
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
@@ -133,7 +133,7 @@ void AccountManager::switchAccount(const Account & account)
     bool accountIsAvailable = false;
     Account::Type::type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
-    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
+    const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
     for(auto it = availableAccounts.constBegin(), end = availableAccounts.constEnd(); it != end; ++it)
     {
         const Account & availableAccount = *it;
@@ -161,7 +161,7 @@ void AccountManager::switchAccount(const Account & account)
             return;
         }
 
-        if (m_pAccountsModel->addAccount(account)) {
+        if (m_pAccountModel->addAccount(account)) {
             Q_EMIT accountAdded(account);
         }
     }
@@ -180,7 +180,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
             << name << QStringLiteral(", full name = ") << fullName);
 
     // Double-check that no local account with such name already exists
-    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
+    const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
     for(auto it = availableAccounts.constBegin(), end = availableAccounts.constEnd(); it != end; ++it)
     {
         const Account & availableAccount = *it;
@@ -323,7 +323,7 @@ void AccountManager::detectAvailableAccounts()
                 << availableAccount.evernoteHost() << QStringLiteral(", dir ") << accountDirInfo.absoluteFilePath());
     }
 
-    m_pAccountsModel->setAccounts(availableAccounts);
+    m_pAccountModel->setAccounts(availableAccounts);
 }
 
 QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & errorDescription, bool * pCreatedDefaultAccount)
@@ -350,7 +350,7 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & error
     QSharedPointer<Account> pDefaultAccount(new Account(username, Account::Type::Local, qevercloud::UserID(-1)));
     pDefaultAccount->setDisplayName(fullName);
 
-    const QVector<Account> & availableAccounts = m_pAccountsModel->accounts();
+    const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
     if (availableAccounts.contains(*pDefaultAccount)) {
         QNDEBUG(QStringLiteral("The default account already exists"));
         return pDefaultAccount;
@@ -379,7 +379,7 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
 
     Account availableAccount(name, Account::Type::Local, qevercloud::UserID(-1));
     availableAccount.setDisplayName(displayName);
-    m_pAccountsModel->addAccount(availableAccount);
+    m_pAccountModel->addAccount(availableAccount);
 
     QSharedPointer<Account> result(new Account(name, Account::Type::Local));
     return result;

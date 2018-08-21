@@ -17,7 +17,7 @@
  */
 
 #include "AccountDelegate.h"
-#include "../models/AccountsModel.h"
+#include "../models/AccountModel.h"
 #include <QLineEdit>
 
 namespace quentier {
@@ -30,7 +30,7 @@ QWidget * AccountDelegate::createEditor(QWidget * parent,
                                         const QStyleOptionViewItem & option,
                                         const QModelIndex & index) const
 {
-    if (!index.isValid() || (index.column() != AccountsModel::Columns::DisplayName)) {
+    if (!index.isValid() || (index.column() != AccountModel::Columns::DisplayName)) {
         return Q_NULLPTR;
     }
 
@@ -39,7 +39,7 @@ QWidget * AccountDelegate::createEditor(QWidget * parent,
 
 void AccountDelegate::setEditorData(QWidget * pEditor, const QModelIndex & index) const
 {
-    if (!index.isValid() || (index.column() != AccountsModel::Columns::DisplayName)) {
+    if (!index.isValid() || (index.column() != AccountModel::Columns::DisplayName)) {
         return;
     }
 

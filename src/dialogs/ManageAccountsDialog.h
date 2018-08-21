@@ -30,13 +30,13 @@ class ManageAccountsDialog;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountsModel)
+QT_FORWARD_DECLARE_CLASS(AccountModel)
 
 class ManageAccountsDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ManageAccountsDialog(AccountsModel & accountsModel, const int currentAccountRow = -1, QWidget * parent = Q_NULLPTR);
+    explicit ManageAccountsDialog(AccountModel & accountModel, const int currentAccountRow = -1, QWidget * parent = Q_NULLPTR);
     virtual ~ManageAccountsDialog();
 
 Q_SIGNALS:
@@ -51,7 +51,7 @@ private Q_SLOTS:
 
 private:
     Ui::ManageAccountsDialog *  m_pUi;
-    AccountsModel &             m_accountsModel;
+    AccountModel &              m_accountModel;
 };
 
 } // namespace quentier

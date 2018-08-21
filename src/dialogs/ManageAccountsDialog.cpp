@@ -18,7 +18,7 @@
 
 #include "ManageAccountsDialog.h"
 #include "ui_ManageAccountsDialog.h"
-#include "../models/AccountsModel.h"
+#include "../models/AccountModel.h"
 #include "../delegates/AccountDelegate.h"
 #include "AddAccountDialog.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -32,16 +32,16 @@
 
 namespace quentier {
 
-ManageAccountsDialog::ManageAccountsDialog(AccountsModel & accountsModel,
+ManageAccountsDialog::ManageAccountsDialog(AccountModel & accountModel,
                                            const int currentAccountRow, QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::ManageAccountsDialog),
-    m_accountsModel(accountsModel)
+    m_accountModel(accountModel)
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Manage accounts"));
 
-    m_pUi->tableView->setModel(&m_accountsModel);
+    m_pUi->tableView->setModel(&m_accountModel);
     AccountDelegate * pDelegate = new AccountDelegate(this);
     m_pUi->tableView->setItemDelegate(pDelegate);
 
@@ -51,13 +51,13 @@ ManageAccountsDialog::ManageAccountsDialog(AccountsModel & accountsModel,
     m_pUi->tableView->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
 #endif
 
-    int numAvailableAccounts = m_accountsModel.accounts().size();
+    int numAvailableAccounts = m_accountModel.accounts().size();
     if ((currentAccountRow >= 0) && (currentAccountRow < numAvailableAccounts)) {
-        QModelIndex index = m_accountsModel.index(currentAccountRow, AccountsModel::Columns::Username);
+        QModelIndex index = m_accountModel.index(currentAccountRow, AccountModel::Columns::Username);
         m_pUi->tableView->setCurrentIndex(index);
     }
 
-    QObject::connect(&m_accountsModel, QNSIGNAL(AccountsModel,badAccountDisplayName,ErrorString,int),
+    QObject::connect(&m_accountModel, QNSIGNAL(AccountModel,badAccountDisplayName,ErrorString,int),
                      this, QNSLOT(ManageAccountsDialog,onBadAccountDisplayNameEntered,ErrorString,int));
     QObject::connect(m_pUi->addNewAccountButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(ManageAccountsDialog,onAddAccountButtonPressed));
@@ -74,7 +74,7 @@ void ManageAccountsDialog::onAddAccountButtonPressed()
 {
     QNDEBUG(QStringLiteral("ManageAccountsDialog::onAddAccountButtonPressed"));
 
-    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_accountsModel.accounts(), this));
+    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_accountModel.accounts(), this));
     addAccountDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
                      this, QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy));
@@ -99,7 +99,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
         return;
     }
 
-    const QVector<Account> & availableAccounts = m_accountsModel.accounts();
+    const QVector<Account> & availableAccounts = m_accountModel.accounts();
 
     if (Q_UNLIKELY(currentRow >= availableAccounts.size())) {
         QNTRACE(QStringLiteral("Current row is larger than the number of available accounts"));
@@ -120,7 +120,7 @@ void ManageAccountsDialog::onBadAccountDisplayNameEntered(ErrorString errorDescr
     QNINFO(QStringLiteral("Bad account display name entered: ")
            << errorDescription << QStringLiteral("; row = ") << row);
 
-    QModelIndex index = m_accountsModel.index(row, AccountsModel::Columns::DisplayName);
+    QModelIndex index = m_accountModel.index(row, AccountModel::Columns::DisplayName);
     QRect rect = m_pUi->tableView->visualRect(index);
     QPoint pos = m_pUi->tableView->mapToGlobal(rect.bottomLeft());
     QToolTip::showText(pos, errorDescription.localizedString(), m_pUi->tableView);
