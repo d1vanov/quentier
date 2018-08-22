@@ -45,6 +45,7 @@
 #include "dialogs/AddOrEditSavedSearchDialog.h"
 #include "dialogs/EnexExportDialog.h"
 #include "dialogs/EnexImportDialog.h"
+#include "dialogs/LocalStorageVersionTooHighDialog.h"
 #include "dialogs/PreferencesDialog.h"
 #include "dialogs/WelcomeToQuentierDialog.h"
 #include "initialization/DefaultAccountFirstNotebookAndNoteCreator.h"
@@ -288,6 +289,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     restoreGeometryAndState();
     startListeningForSplitterMoves();
+
+    Q_UNUSED(checkLocalStorageVersion(*m_pAccount))
 }
 
 MainWindow::~MainWindow()
@@ -559,7 +562,7 @@ void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
     QObject::connect(m_pSystemTrayIconManager, QNSIGNAL(SystemTrayIconManager,quitRequested),
                      this, QNSLOT(MainWindow,onQuitRequestedFromSystemTrayIcon));
     QObject::connect(m_pSystemTrayIconManager, QNSIGNAL(SystemTrayIconManager,accountSwitchRequested,Account),
-                     this, QNSLOT(MainWindow,onAccountSwitchRequestedFromSystemTrayIcon,Account));
+                     this, QNSLOT(MainWindow,onAccountSwitchRequested,Account));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -2856,9 +2859,9 @@ void MainWindow::onQuitRequestedFromSystemTrayIcon()
     onQuitAction();
 }
 
-void MainWindow::onAccountSwitchRequestedFromSystemTrayIcon(Account account)
+void MainWindow::onAccountSwitchRequested(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequestedFromSystemTrayIcon: ") << account);
+    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequested: ") << account);
 
     stopListeningForSplitterMoves();
     m_pAccountManager->switchAccount(account);
@@ -3032,10 +3035,12 @@ void MainWindow::onAccountSwitched(Account account)
     // which is this thread, the GUI one. However, LocalStorageManagerAsync operates in another thread. So need to stop
     // that thread, perform the operation synchronously and then start the stopped thread again
 
-    QObject::disconnect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
-                        m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
-    m_pLocalStorageManagerThread->quit();
-    m_pLocalStorageManagerThread->wait();
+    if (m_pLocalStorageManagerThread->isRunning()) {
+        QObject::disconnect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                            m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+        m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+    }
 
     ErrorString errorDescription;
     try {
@@ -3044,6 +3049,10 @@ void MainWindow::onAccountSwitched(Account account)
     catch(const std::exception & e) {
         errorDescription.setBase(QT_TR_NOOP("Can't switch user in the local storage: caught exception"));
         errorDescription.details() = QString::fromUtf8(e.what());
+    }
+
+    if (!checkLocalStorageVersion(account)) {
+        return;
     }
 
     QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
@@ -3668,6 +3677,12 @@ void MainWindow::onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString
 
     m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = false;
     checkAndLaunchPendingSync();
+}
+
+void MainWindow::onNewAccountCreationRequested()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNewAccountCreationRequested"));
+    m_pAccountManager->raiseAddAccountDialog();
 }
 
 void MainWindow::onQuitAction()
@@ -4581,6 +4596,37 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
                      this, QNSLOT(MainWindow,onNoteEditorError,ErrorString));
     QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,currentNoteChanged,QString),
                      m_pUI->noteListView, QNSLOT(NoteListView,setCurrentNoteByLocalUid,QString));
+}
+
+bool MainWindow::checkLocalStorageVersion(const Account & account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::checkLocalStorageVersion: account = ") << account);
+
+    ErrorString versionErrorDescription;
+    if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(versionErrorDescription))
+    {
+        QNINFO(QStringLiteral("Detected too high local storage version: ") << versionErrorDescription
+               << QStringLiteral("; account: ") << account);
+
+        QScopedPointer<LocalStorageVersionTooHighDialog> pVersionTooHighDialog(new LocalStorageVersionTooHighDialog(account,
+                                                                                                                    m_pAccountManager->accountModel(),
+                                                                                                                    *(m_pLocalStorageManagerAsync->localStorageManager()),
+                                                                                                                    this));
+
+        QObject::connect(pVersionTooHighDialog.data(), QNSIGNAL(LocalStorageVersionTooHighDialog,shouldSwitchToAccount,Account),
+                         this, QNSLOT(MainWindow,onAccountSwitchRequested,Account),
+                         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        QObject::connect(pVersionTooHighDialog.data(), QNSIGNAL(LocalStorageVersionTooHighDialog,shouldCreateNewAccount),
+                         this, QNSLOT(MainWindow,onNewAccountCreationRequested),
+                         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        QObject::connect(pVersionTooHighDialog.data(), QNSIGNAL(LocalStorageVersionTooHighDialog,shouldQuitApp),
+                         this, QNSLOT(MainWindow,onQuitAction),
+                         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        Q_UNUSED(pVersionTooHighDialog->exec())
+        return false;
+    }
+
+    return true;
 }
 
 bool MainWindow::onceDisplayedGreeterScreen() const
