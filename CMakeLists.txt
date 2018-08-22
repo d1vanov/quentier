@@ -102,6 +102,7 @@ set(${PROJECT_NAME}_HEADERS
     src/initialization/SetupApplicationIcon.h
     src/initialization/SetupTranslations.h
     src/models/AccountModel.h
+    src/models/AccountFilterModel.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
@@ -211,6 +212,7 @@ set(${PROJECT_NAME}_SOURCES
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
     src/models/AccountModel.cpp
+    src/models/AccountFilterModel.cpp
     src/models/ColumnChangeRerouter.cpp
     src/models/ItemModel.cpp
     src/models/SavedSearchModel.cpp
