@@ -268,7 +268,6 @@ private Q_SLOTS:
     // SystemTrayIconManager slots
     void onNewNoteRequestedFromSystemTrayIcon();
     void onQuitRequestedFromSystemTrayIcon();
-    void onAccountSwitchRequestedFromSystemTrayIcon(Account account);
     void onSystemTrayIconManagerError(ErrorString errorDescription);
 
     void onViewLogsActionTriggered();
@@ -300,6 +299,8 @@ private Q_SLOTS:
     void onSynchronizationManagerSetDownloadInkNoteImagesDone(bool flag);
     void onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString path);
 
+    void onNewAccountCreationRequested();
+    void onAccountSwitchRequested(Account account);
     void onQuitAction();
 
     void onShortcutChanged(int key, QKeySequence shortcut, const Account & account, QString context);
@@ -340,6 +341,11 @@ private:
     void setupNoteFilters();
     void setupNoteEditorTabWidgetsCoordinator();
 
+    bool checkLocalStorageVersion(const Account & account);
+
+    bool onceDisplayedGreeterScreen() const;
+    void setOnceDisplayedGreeterScreen();
+
     struct SetAccountOption
     {
         enum type
@@ -348,9 +354,6 @@ private:
             DontSet
         };
     };
-
-    bool onceDisplayedGreeterScreen() const;
-    void setOnceDisplayedGreeterScreen();
 
     void setupSynchronizationManager(const SetAccountOption::type = SetAccountOption::DontSet);
     void clearSynchronizationManager();
