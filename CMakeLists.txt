@@ -17,7 +17,7 @@ else()
 endif()
 
 set(PROJECT_VENDOR "Dmitry Ivanov")
-set(PROJECT_COPYRIGHT_YEAR "2017")
+set(PROJECT_COPYRIGHT_YEAR "2018")
 set(PROJECT_DOMAIN_FIRST "quentier")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
@@ -88,11 +88,13 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/EditNoteDialog.h
     src/dialogs/EnexExportDialog.h
     src/dialogs/EnexImportDialog.h
+    src/dialogs/LocalStorageVersionTooHighDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/dialogs/PreferencesDialog.h
     src/dialogs/WelcomeToQuentierDialog.h
     src/dialogs/shortcut_settings/ShortcutButton.h
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.h
+    src/exception/LocalStorageVersionTooHighException.h
     src/initialization/CommandLineParser.h
     src/initialization/DefaultAccountFirstNotebookAndNoteCreator.h
     src/initialization/Initialize.h
@@ -100,6 +102,8 @@ set(${PROJECT_NAME}_HEADERS
     src/initialization/ParseStartupAccount.h
     src/initialization/SetupApplicationIcon.h
     src/initialization/SetupTranslations.h
+    src/models/AccountModel.h
+    src/models/AccountFilterModel.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
@@ -127,6 +131,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/LogViewerModelFileReaderAsync.h
     src/models/LogViewerFilterModel.h
     src/delegates/AbstractStyledItemDelegate.h
+    src/delegates/AccountDelegate.h
     src/delegates/LimitedFontsDelegate.h
     src/delegates/NoteItemDelegate.h
     src/delegates/NotebookItemDelegate.h
@@ -189,11 +194,13 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/EditNoteDialog.cpp
     src/dialogs/EnexExportDialog.cpp
     src/dialogs/EnexImportDialog.cpp
+    src/dialogs/LocalStorageVersionTooHighDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/dialogs/PreferencesDialog.cpp
     src/dialogs/WelcomeToQuentierDialog.cpp
     src/dialogs/shortcut_settings/ShortcutButton.cpp
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.cpp
+    src/exception/LocalStorageVersionTooHighException.cpp
     src/initialization/CommandLineParser.cpp
     src/initialization/DefaultAccountFirstNotebookAndNoteCreator.cpp
     src/initialization/Initialize.cpp
@@ -206,6 +213,8 @@ set(${PROJECT_NAME}_SOURCES
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
+    src/models/AccountModel.cpp
+    src/models/AccountFilterModel.cpp
     src/models/ColumnChangeRerouter.cpp
     src/models/ItemModel.cpp
     src/models/SavedSearchModel.cpp
@@ -228,6 +237,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/LogViewerModelFileReaderAsync.cpp
     src/models/LogViewerFilterModel.cpp
     src/delegates/AbstractStyledItemDelegate.cpp
+    src/delegates/AccountDelegate.cpp
     src/delegates/LimitedFontsDelegate.cpp
     src/delegates/NoteItemDelegate.cpp
     src/delegates/NotebookItemDelegate.cpp
@@ -278,6 +288,7 @@ set(FORMS
     src/dialogs/EditNoteDialog.ui
     src/dialogs/EnexExportDialog.ui
     src/dialogs/EnexImportDialog.ui
+    src/dialogs/LocalStorageVersionTooHighDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/dialogs/PreferencesDialog.ui
     src/dialogs/WelcomeToQuentierDialog.ui
