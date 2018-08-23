@@ -91,9 +91,9 @@ Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
     return *pLastUsedAccount;
 }
 
-void AccountManager::raiseAddAccountDialog()
+int AccountManager::execAddAccountDialog()
 {
-    QNDEBUG(QStringLiteral("AccountManager::raiseAddAccountDialog"));
+    QNDEBUG(QStringLiteral("AccountManager::execAddAccountDialog"));
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
@@ -103,12 +103,12 @@ void AccountManager::raiseAddAccountDialog()
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
-    Q_UNUSED(addAccountDialog->exec())
+    return addAccountDialog->exec();
 }
 
-void AccountManager::raiseManageAccountsDialog()
+int AccountManager::execManageAccountsDialog()
 {
-    QNDEBUG(QStringLiteral("AccountManager::raiseManageAccountsDialog"));
+    QNDEBUG(QStringLiteral("AccountManager::execManageAccountsDialog"));
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
     const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
@@ -122,7 +122,7 @@ void AccountManager::raiseManageAccountsDialog()
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
-    Q_UNUSED(manageAccountsDialog->exec())
+    return manageAccountsDialog->exec();
 }
 
 void AccountManager::switchAccount(const Account & account)

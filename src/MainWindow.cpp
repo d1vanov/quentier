@@ -2957,10 +2957,8 @@ void MainWindow::onNoteEditorSpellCheckerReady()
 void MainWindow::onAddAccountActionTriggered(bool checked)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAddAccountActionTriggered"));
-
     Q_UNUSED(checked)
-
-    m_pAccountManager->raiseAddAccountDialog();
+    onNewAccountCreationRequested();
 }
 
 void MainWindow::onManageAccountsActionTriggered(bool checked)
@@ -2968,8 +2966,7 @@ void MainWindow::onManageAccountsActionTriggered(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onManageAccountsActionTriggered"));
 
     Q_UNUSED(checked)
-
-    m_pAccountManager->raiseManageAccountsDialog();
+    Q_UNUSED(m_pAccountManager->execManageAccountsDialog());
 }
 
 void MainWindow::onSwitchAccountActionToggled(bool checked)
@@ -3035,11 +3032,13 @@ void MainWindow::onAccountSwitched(Account account)
     // which is this thread, the GUI one. However, LocalStorageManagerAsync operates in another thread. So need to stop
     // that thread, perform the operation synchronously and then start the stopped thread again
 
+    bool localStorageThreadWasStopped = false;
     if (m_pLocalStorageManagerThread->isRunning()) {
         QObject::disconnect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
                             m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
         m_pLocalStorageManagerThread->quit();
         m_pLocalStorageManagerThread->wait();
+        localStorageThreadWasStopped = true;
     }
 
     ErrorString errorDescription;
@@ -3051,13 +3050,17 @@ void MainWindow::onAccountSwitched(Account account)
         errorDescription.details() = QString::fromUtf8(e.what());
     }
 
-    if (!checkLocalStorageVersion(account)) {
-        return;
+    bool checkRes = checkLocalStorageVersion(account);
+
+    if (localStorageThreadWasStopped) {
+        QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                         m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+        m_pLocalStorageManagerThread->start();
     }
 
-    QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
-                     m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
-    m_pLocalStorageManagerThread->start();
+    if (!checkRes) {
+        return;
+    }
 
     m_lastLocalStorageSwitchUserRequest = QUuid::createUuid();
     if (errorDescription.isEmpty()) {
@@ -3682,7 +3685,33 @@ void MainWindow::onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString
 void MainWindow::onNewAccountCreationRequested()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNewAccountCreationRequested"));
-    m_pAccountManager->raiseAddAccountDialog();
+
+    int res = m_pAccountManager->execAddAccountDialog();
+    if (res == QDialog::Accepted) {
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
+        QNWARNING(QStringLiteral("Local storage manager async unexpectedly doesn't exist, can't check local storage version"));
+        return;
+    }
+
+    bool localStorageThreadWasStopped = false;
+    if (m_pLocalStorageManagerThread && m_pLocalStorageManagerThread->isRunning()) {
+        QObject::disconnect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                            m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+        m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+        localStorageThreadWasStopped = true;
+    }
+
+    Q_UNUSED(checkLocalStorageVersion(*m_pAccount))
+
+    if (localStorageThreadWasStopped) {
+        QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                         m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+        m_pLocalStorageManagerThread->start();
+    }
 }
 
 void MainWindow::onQuitAction()

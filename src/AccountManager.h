@@ -62,8 +62,8 @@ public:
      */
     Account currentAccount(bool * pCreatedDefaultAccount = Q_NULLPTR);
 
-    void raiseAddAccountDialog();
-    void raiseManageAccountsDialog();
+    int execAddAccountDialog();
+    int execManageAccountsDialog();
 
 Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host, QNetworkProxy proxy);
