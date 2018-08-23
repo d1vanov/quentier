@@ -48,6 +48,7 @@
 #include "dialogs/LocalStorageVersionTooHighDialog.h"
 #include "dialogs/PreferencesDialog.h"
 #include "dialogs/WelcomeToQuentierDialog.h"
+#include "exception/LocalStorageVersionTooHighException.h"
 #include "initialization/DefaultAccountFirstNotebookAndNoteCreator.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
@@ -289,8 +290,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     restoreGeometryAndState();
     startListeningForSplitterMoves();
-
-    Q_UNUSED(checkLocalStorageVersion(*m_pAccount))
 }
 
 MainWindow::~MainWindow()
@@ -4069,6 +4068,12 @@ void MainWindow::setupLocalStorageManager()
     m_pLocalStorageManagerAsync = new LocalStorageManagerAsync(*m_pAccount, /* start from scratch = */ false,
                                                                /* override lock = */ false);
     m_pLocalStorageManagerAsync->init();
+
+    ErrorString versionErrorDescription;
+    if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(versionErrorDescription)) {
+        throw quentier::LocalStorageVersionTooHighException(versionErrorDescription);
+    }
+
     m_pLocalStorageManagerAsync->moveToThread(m_pLocalStorageManagerThread);
 
     QObject::connect(this, QNSIGNAL(MainWindow,localStorageSwitchUserRequest,Account,bool,QUuid),

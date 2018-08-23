@@ -17,7 +17,7 @@ else()
 endif()
 
 set(PROJECT_VENDOR "Dmitry Ivanov")
-set(PROJECT_COPYRIGHT_YEAR "2017")
+set(PROJECT_COPYRIGHT_YEAR "2018")
 set(PROJECT_DOMAIN_FIRST "quentier")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
@@ -94,6 +94,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/WelcomeToQuentierDialog.h
     src/dialogs/shortcut_settings/ShortcutButton.h
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.h
+    src/exception/LocalStorageVersionTooHighException.h
     src/initialization/CommandLineParser.h
     src/initialization/DefaultAccountFirstNotebookAndNoteCreator.h
     src/initialization/Initialize.h
@@ -199,6 +200,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/WelcomeToQuentierDialog.cpp
     src/dialogs/shortcut_settings/ShortcutButton.cpp
     src/dialogs/shortcut_settings/ShortcutSettingsWidget.cpp
+    src/exception/LocalStorageVersionTooHighException.cpp
     src/initialization/CommandLineParser.cpp
     src/initialization/DefaultAccountFirstNotebookAndNoteCreator.cpp
     src/initialization/Initialize.cpp
