@@ -17,8 +17,10 @@
  */
 
 #include "CommandLineParser.h"
+#include "../utility/HumanReadableVersionInfo.h"
 #include <string>
 #include <sstream>
+#include <QtGlobal>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef QT_MOC_RUN
@@ -85,8 +87,14 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
             return;
         }
 
-        if (varsMap.count("version")) {
-            m_responseMessage = QStringLiteral("Version information output is not implemented yet but will be shortly :)\n");
+        if (varsMap.count("version"))
+        {
+            m_responseMessage = quentierVersion() + QStringLiteral(", build info: ") + quentierBuildInfo() +
+                                QStringLiteral("\nBuilt with Qt ") + QStringLiteral(QT_VERSION_STR) +
+                                QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()) +
+                                QStringLiteral("\nBuilt with libquentier: ") + libquentierBuildTimeInfo() +
+                                QStringLiteral("\nUses libquentier: ") + libquentierRuntimeInfo() +
+                                QStringLiteral("\n");
             m_shouldQuit = true;
             return;
         }

@@ -18,8 +18,8 @@
 
 #include "AboutQuentierWidget.h"
 #include "ui_AboutQuentierWidget.h"
-#include <VersionInfo.h>
-#include <quentier/utility/VersionInfo.h>
+#include "../utility/HumanReadableVersionInfo.h"
+#include <QtGlobal>
 
 namespace quentier {
 
@@ -29,36 +29,16 @@ AboutQuentierWidget::AboutQuentierWidget(QWidget * parent) :
 {
     m_pUi->setupUi(this);
 
-    m_pUi->quentierHeaderLabel->setText(QStringLiteral("Quentier ") +
-                                        QStringLiteral(QUENTIER_MAJOR_VERSION) +
-                                        QStringLiteral(".") +
-                                        QStringLiteral(QUENTIER_MINOR_VERSION) +
-                                        QStringLiteral(".") +
-                                        QStringLiteral(QUENTIER_PATCH_VERSION));
+    m_pUi->quentierHeaderLabel->setText(quentierVersion());
 
-    m_pUi->quentierQtVersionLabel->setText(QStringLiteral("Qt ") + QStringLiteral(QT_VERSION_STR));
+    m_pUi->quentierQtVersionLabel->setText(QStringLiteral("Built with Qt ") + QStringLiteral(QT_VERSION_STR) +
+                                           QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()));
 
-    int libquentierVersion = quentier::libraryVersion();
-    int libquentierMajorVersion = libquentierVersion / 10000;
-    int libquentierMinorVersion = (libquentierVersion - libquentierMajorVersion * 10000) / 100;
-    int libquentierPatchVersion = (libquentierVersion - libquentierMajorVersion * 10000 - libquentierMinorVersion * 100);
+    QString libBuildInfo = QStringLiteral("Built with libquentier: ") + libquentierBuildTimeInfo();
+    QString libRuntimeInfo = QStringLiteral("Uses libquentier: ") + libquentierRuntimeInfo();
+    m_pUi->libquentierVersionLabel->setText(libBuildInfo + QStringLiteral("\n\n") + libRuntimeInfo);
 
-    QString libquentierVersionInfo = QStringLiteral("libquentier: ") +
-                                     QStringLiteral(QUENTIER_LIBQUENTIER_BINARY_NAME) +
-                                     QStringLiteral("; version") + QString::number(libquentierMajorVersion) +
-                                     QStringLiteral(".") + QString::number(libquentierMinorVersion) +
-                                     QStringLiteral(".") + QString::number(libquentierPatchVersion);
-
-#if LIB_QUENTIER_USE_QT_WEB_ENGINE
-    libquentierVersionInfo += QStringLiteral("; uses QtWebEngine");
-#endif
-
-    libquentierVersionInfo += QStringLiteral("; build info: ");
-    libquentierVersionInfo += QStringLiteral(LIB_QUENTIER_BUILD_INFO);
-    m_pUi->libquentierVersionLabel->setText(libquentierVersionInfo);
-
-    m_pUi->quentierBuildVersionLabel->setText(QStringLiteral("Quentier build info: ") +
-                                              QStringLiteral(QUENTIER_BUILD_INFO));
+    m_pUi->quentierBuildVersionLabel->setText(QStringLiteral("Quentier build info: ") + quentierBuildInfo());
 }
 
 AboutQuentierWidget::~AboutQuentierWidget()

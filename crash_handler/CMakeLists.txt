@@ -22,12 +22,14 @@ set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/Utility.h
-    src/SymbolsUnpacker.h)
+    src/SymbolsUnpacker.h
+    ../src/utility/HumanReadableVersionInfo.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
     src/Utility.cpp
     src/SymbolsUnpacker.cpp
+    ../src/utility/HumanReadableVersionInfo.cpp
     src/main.cpp)
 
 set(FORMS
@@ -65,7 +67,7 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${${PROJECT_NAME}_FORMS_HEADERS}
                ${${PROJECT_NAME}_RESOURCES_RCC})
 
-target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
+target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS} ${LIBQUENTIER_LIBRARIES})
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
 if(USE_QT5)
