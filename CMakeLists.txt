@@ -169,7 +169,8 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/TagModelItemInfoWidget.h
     src/widgets/AbstractFilterByModelItemWidget.h
     src/widgets/AboutQuentierWidget.h
-    src/widgets/TabWidget.h)
+    src/widgets/TabWidget.h
+    src/utility/HumanReadableVersionInfo.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
@@ -271,6 +272,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/AbstractFilterByModelItemWidget.cpp
     src/widgets/AboutQuentierWidget.cpp
     src/widgets/TabWidget.cpp
+    src/utility/HumanReadableVersionInfo.cpp
     src/main.cpp)
 
 if(WIN32)

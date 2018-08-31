@@ -20,6 +20,7 @@
 #include "ui_MainWindow.h"
 #include "Utility.h"
 #include "SymbolsUnpacker.h"
+#include "../src/utility/HumanReadableVersionInfo.h"
 #include <VersionInfo.h>
 #include <quentier/utility/VersionInfo.h>
 #include <QDir>
@@ -223,34 +224,18 @@ QString MainWindow::readData(QProcess & process, const bool fromStdout)
 QString MainWindow::versionInfos() const
 {
     QString result = QString::fromUtf8("libquentier: ");
-    result += QString::fromUtf8(QUENTIER_LIBQUENTIER_BINARY_NAME);
 
-    int libquentierVersion = quentier::libraryVersion();
-    int libquentierMajorVersion = libquentierVersion / 10000;
-    int libquentierMinorVersion = (libquentierVersion - libquentierMajorVersion * 10000) / 100;
-    int libquentierPatchVersion = (libquentierVersion - libquentierMajorVersion * 10000 - libquentierMinorVersion * 100);
-
-    result += QString::fromUtf8("; version ") + QString::number(libquentierMajorVersion) +
-              QString::fromUtf8(".") + QString::number(libquentierMinorVersion) +
-              QString::fromUtf8(".") + QString::number(libquentierPatchVersion);
-
-#if LIB_QUENTIER_USE_QT_WEB_ENGINE
-    result += QString::fromUtf8("; uses QtWebEngine");
-#endif
-
-    result += QString::fromUtf8("; build info: ");
-    result += QString::fromUtf8(LIB_QUENTIER_BUILD_INFO);
+    result += quentier::libquentierRuntimeInfo();
     result += QString::fromUtf8("\n");
 
-    result += QString::fromUtf8("Quentier: version ");
-    result += QString::fromUtf8(QUENTIER_MAJOR_VERSION);
-    result += QString::fromUtf8(".");
-    result += QString::fromUtf8(QUENTIER_MINOR_VERSION);
-    result += QString::fromUtf8(".");
-    result += QString::fromUtf8(QUENTIER_PATCH_VERSION);
-    result += QString::fromUtf8("; build info: ");
-    result += QString::fromUtf8(QUENTIER_BUILD_INFO);
-    result += QString::fromUtf8("\n\nQt version: ");
+    result += QString::fromUtf8("Quentier: ");
+    result += quentier::quentierVersion();
+    result += QString::fromUtf8(", build info: ");
+    result += quentier::quentierBuildInfo();
+
+    result += QString::fromUtf8("\n\nBuilt with Qt ");
     result += QString::fromUtf8(QT_VERSION_STR);
+    result += QString::fromUtf8(", uses Qt ");
+    result += QString::fromUtf8(qVersion());
     return result;
 }

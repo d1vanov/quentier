@@ -72,6 +72,19 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="quentierBuildVersionLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Quentier build version</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="quentierQtVersionLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -101,19 +114,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="quentierBuildVersionLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Quentier build version</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="quentierCopyrightLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -122,7 +122,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>2013-2017 (c) Quentier authors</string>
+          <string>2013-2018 (c) Quentier authors</string>
          </property>
         </widget>
        </item>
