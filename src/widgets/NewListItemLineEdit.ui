@@ -35,6 +35,7 @@ border-radius: 4px;
 padding: 0px;
 background-color: rgb(223, 231, 236);
 border-color: rgb(182, 189, 195);
+color: rgb(153, 153, 153)
 }
 
 QLineEdit#NewListItemLineEdit:hover {
