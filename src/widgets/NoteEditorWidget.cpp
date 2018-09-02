@@ -1005,13 +1005,7 @@ void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
     QNDEBUG(QStringLiteral("NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem"));
 
     QWidget * pFocusWidget = qApp->focusWidget();
-    if (pFocusWidget)
-    {
-        NewListItemLineEdit * pNewTagLineEdit = qobject_cast<NewListItemLineEdit*>(pFocusWidget);
-        if (pNewTagLineEdit) {
-            pNewTagLineEdit->setExpectFocusOut();
-        }
-
+    if (pFocusWidget) {
         QNTRACE(QStringLiteral("Clearing the focus from the widget having it currently: ") << pFocusWidget);
         pFocusWidget->clearFocus();
     }
