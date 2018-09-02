@@ -52,15 +52,12 @@ public:
     virtual QSize sizeHint() const Q_DECL_OVERRIDE;
     virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
 
-    void setExpectFocusOut();
-
 Q_SIGNALS:
     void receivedFocusFromWindowSystem();
 
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void focusInEvent(QFocusEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void focusOutEvent(QFocusEvent * pEvent) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void onModelRowsInserted(const QModelIndex & parent, int start, int end);
@@ -83,7 +80,6 @@ private:
     QString                     m_linkedNotebookGuid;
     QStringListModel *          m_pItemNamesModel;
     QCompleter *                m_pCompleter;
-    bool                        m_expectFocusOut;
 };
 
 } // namespace quentier
