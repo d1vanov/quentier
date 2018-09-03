@@ -31,7 +31,7 @@ LocalStorageVersionTooHighDialog::LocalStorageVersionTooHighDialog(const Account
                                                                    QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::LocalStorageVersionTooHighDialog),
-    m_pAccountFilterModel(new AccountFilterModel)
+    m_pAccountFilterModel(new AccountFilterModel(this))
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->hide();
