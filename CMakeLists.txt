@@ -95,6 +95,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/EnexImportDialog.h
     src/dialogs/FirstShutdownDialog.h
     src/dialogs/LocalStorageVersionTooHighDialog.h
+    src/dialogs/LocalStorageUpgradeDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/dialogs/PreferencesDialog.h
     src/dialogs/WelcomeToQuentierDialog.h
@@ -207,6 +208,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/EnexImportDialog.cpp
     src/dialogs/FirstShutdownDialog.cpp
     src/dialogs/LocalStorageVersionTooHighDialog.cpp
+    src/dialogs/LocalStorageUpgradeDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/dialogs/PreferencesDialog.cpp
     src/dialogs/WelcomeToQuentierDialog.cpp
@@ -311,6 +313,7 @@ set(FORMS
     src/dialogs/EnexImportDialog.ui
     src/dialogs/FirstShutdownDialog.ui
     src/dialogs/LocalStorageVersionTooHighDialog.ui
+    src/dialogs/LocalStorageUpgradeDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/dialogs/PreferencesDialog.ui
     src/dialogs/WelcomeToQuentierDialog.ui

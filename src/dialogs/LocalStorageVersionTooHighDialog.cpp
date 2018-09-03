@@ -20,6 +20,7 @@
 #include "ui_LocalStorageVersionTooHighDialog.h"
 #include "../models/AccountFilterModel.h"
 #include "../models/AccountModel.h"
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/logging/QuentierLogger.h>
 
@@ -31,7 +32,7 @@ LocalStorageVersionTooHighDialog::LocalStorageVersionTooHighDialog(const Account
                                                                    QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::LocalStorageVersionTooHighDialog),
-    m_pAccountFilterModel(new AccountFilterModel)
+    m_pAccountFilterModel(new AccountFilterModel(this))
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->hide();
