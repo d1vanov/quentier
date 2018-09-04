@@ -88,6 +88,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="applyPatchPushButton">
+       <property name="text">
+        <string>Apply</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="quitAppPushButton">
        <property name="text">
         <string>Quit app</string>

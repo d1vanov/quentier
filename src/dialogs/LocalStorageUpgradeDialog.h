@@ -54,8 +54,13 @@ private Q_SLOTS:
     void onSwitchToAccountPushButtonPressed();
     void onCreateNewAccountButtonPressed();
     void onQuitAppButtonPressed();
+    void onApplyPatchButtonPressed();
+
+    void onApplyPatchProgressUpdate(double progress);
 
 private:
+    void createConnections();
+    void setPatchInfoLabel();
     void setErrorToStatusBar(const ErrorString & error);
 
 private:
@@ -65,6 +70,7 @@ private:
     Ui::LocalStorageUpgradeDialog * m_pUi;
     QVector<ILocalStoragePatch*>    m_patches;
     AccountFilterModel *            m_pAccountFilterModel;
+    int                             m_currentPatchIndex;
 };
 
 } // namespace quentier
