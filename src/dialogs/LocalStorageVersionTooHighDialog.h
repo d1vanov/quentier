@@ -27,6 +27,8 @@ namespace Ui {
 class LocalStorageVersionTooHighDialog;
 }
 
+QT_FORWARD_DECLARE_CLASS(QItemSelection)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(ErrorString)
@@ -53,6 +55,9 @@ private Q_SLOTS:
     void onSwitchToAccountPushButtonPressed();
     void onCreateNewAccountButtonPressed();
     void onQuitAppButtonPressed();
+
+    void onAccountViewSelectionChanged(const QItemSelection & selected,
+                                       const QItemSelection & deselected);
 
 private:
     virtual void reject() Q_DECL_OVERRIDE;
