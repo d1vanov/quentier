@@ -29,6 +29,8 @@ namespace Ui {
 class LocalStorageUpgradeDialog;
 }
 
+QT_FORWARD_DECLARE_CLASS(QItemSelection)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(ErrorString)
@@ -69,6 +71,9 @@ private Q_SLOTS:
     void onApplyPatchButtonPressed();
 
     void onApplyPatchProgressUpdate(double progress);
+
+    void onAccountViewSelectionChanged(const QItemSelection & selected,
+                                       const QItemSelection & deselected);
 
 private:
     void createConnections();

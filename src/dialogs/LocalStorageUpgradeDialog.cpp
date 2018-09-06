@@ -25,6 +25,7 @@
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QDir>
+#include <QItemSelection>
 #include <cmath>
 
 namespace quentier {
@@ -44,6 +45,7 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAcco
     m_pUi->setupUi(this);
     m_pUi->statusBar->hide();
     m_pUi->accountsTableView->verticalHeader()->hide();
+    m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
 
     showHideDialogPartsAccordingToOptions();
 
@@ -175,6 +177,27 @@ void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
     m_pUi->upgradeProgressBar->setValue(std::min(value, 100));
 }
 
+void LocalStorageUpgradeDialog::onAccountViewSelectionChanged(const QItemSelection & selected,
+                                                              const QItemSelection & deselected)
+{
+    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::onAccountViewSelectionChanged"));
+
+    Q_UNUSED(deselected)
+
+    if (!(m_options & Option::SwitchToAnotherAccount)) {
+        QNDEBUG(QStringLiteral("The option of switching to another account is not available"));
+        return;
+    }
+
+    if (selected.isEmpty()) {
+        QNDEBUG(QStringLiteral("No selection, disabling switch to selected account button"));
+        m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
+        return;
+    }
+
+    m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
+}
+
 void LocalStorageUpgradeDialog::createConnections()
 {
     QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::createConnections"));
@@ -182,6 +205,9 @@ void LocalStorageUpgradeDialog::createConnections()
     if (m_options & Option::SwitchToAnotherAccount) {
         QObject::connect(m_pUi->switchToAnotherAccountPushButton, QNSIGNAL(QPushButton,pressed),
                          this, QNSLOT(LocalStorageUpgradeDialog,onSwitchToAccountPushButtonPressed));
+        QObject::connect(m_pUi->accountsTableView->selectionModel(),
+                         QNSIGNAL(QItemSelectionModel,selectionChanged,QItemSelection,QItemSelection),
+                         this, QNSLOT(LocalStorageUpgradeDialog,onAccountViewSelectionChanged,QItemSelection,QItemSelection));
     }
 
     if (m_options & Option::AddAccount) {
