@@ -23,6 +23,7 @@
 #include <quentier/types/Account.h>
 #include <QDialog>
 #include <QVector>
+#include <QFlags>
 
 namespace Ui {
 class LocalStorageUpgradeDialog;
@@ -39,9 +40,20 @@ class LocalStorageUpgradeDialog : public QDialog
 {
     Q_OBJECT
 public:
+    struct Option
+    {
+        enum type
+        {
+            AddAccount = 1 << 1,
+            SwitchToAnotherAccount = 1 << 2
+        };
+    };
+    Q_DECLARE_FLAGS(Options, Option::type)
+
     explicit LocalStorageUpgradeDialog(const Account & currentAccount,
                                        AccountModel & accountModel,
                                        const QVector<ILocalStoragePatch*> & patches,
+                                       const Options options,
                                        QWidget * parent = Q_NULLPTR);
     virtual ~LocalStorageUpgradeDialog();
 
@@ -64,14 +76,20 @@ private:
     void setErrorToStatusBar(const ErrorString & error);
 
 private:
+    void showHideDialogPartsAccordingToOptions();
+
+private:
     virtual void reject() Q_DECL_OVERRIDE;
 
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;
     QVector<ILocalStoragePatch*>    m_patches;
-    AccountFilterModel *            m_pAccountFilterModel;
-    int                             m_currentPatchIndex;
+    AccountFilterModel *    m_pAccountFilterModel;
+    Options     m_options;
+    int         m_currentPatchIndex;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(LocalStorageUpgradeDialog::Options)
 
 } // namespace quentier
 

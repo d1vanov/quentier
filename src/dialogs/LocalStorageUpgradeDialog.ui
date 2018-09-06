@@ -90,7 +90,7 @@
      <item>
       <widget class="QPushButton" name="applyPatchPushButton">
        <property name="text">
-        <string>Apply</string>
+        <string>Upgrade</string>
        </property>
       </widget>
      </item>
