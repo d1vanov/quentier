@@ -174,6 +174,7 @@ private Q_SLOTS:
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
     void onAccountAdded(Account account);
+    void onAccountRemoved(Account account);
     void onAccountManagerError(ErrorString errorDescription);
 
     // Toggle view slots

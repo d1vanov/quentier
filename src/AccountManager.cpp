@@ -42,6 +42,8 @@ AccountManager::AccountManager(QObject * parent) :
                      this, QNSIGNAL(AccountManager,accountAdded,Account));
     QObject::connect(m_pAccountModel.data(), QNSIGNAL(AccountModel,accountDisplayNameChanged,Account),
                      this, QNSLOT(AccountManager,onAccountDisplayNameChanged,Account));
+    QObject::connect(m_pAccountModel.data(), QNSIGNAL(AccountModel,accountRemoved,Account),
+                     this, QNSIGNAL(AccountManager,accountRemoved,Account));
 
     detectAvailableAccounts();
 }
@@ -116,7 +118,7 @@ int AccountManager::execManageAccountsDialog()
     Account account = currentAccount();
     int currentAccountRow = availableAccounts.indexOf(account);
 
-    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(*m_pAccountModel, currentAccountRow, parentWidget));
+    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(*this, currentAccountRow, parentWidget));
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));

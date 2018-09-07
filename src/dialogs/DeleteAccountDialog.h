@@ -22,6 +22,7 @@
 #include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
 #include <QDialog>
+#include <QPointer>
 
 namespace Ui {
 class DeleteAccountDialog;
@@ -29,11 +30,13 @@ class DeleteAccountDialog;
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(AccountModel)
+
 class DeleteAccountDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit DeleteAccountDialog(const Account & account,
+    explicit DeleteAccountDialog(const Account & account, AccountModel & model,
                                  QWidget * parent = Q_NULLPTR);
     virtual ~DeleteAccountDialog();
 
@@ -44,8 +47,12 @@ private:
     virtual void accept() Q_DECL_OVERRIDE;
 
 private:
+    void setStatusBarText(const QString & text);
+
+private:
     Ui::DeleteAccountDialog *   m_pUi;
-    Account     m_account;
+    Account         m_account;
+    AccountModel &  m_model;
 };
 
 } // namespace quentier

@@ -82,6 +82,9 @@
      </item>
     </layout>
    </item>
+   <item>
+    <widget class="QLabel" name="statusBarLabel"/>
+   </item>
   </layout>
  </widget>
  <resources/>

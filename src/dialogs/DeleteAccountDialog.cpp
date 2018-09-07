@@ -18,8 +18,10 @@
 
 #include "DeleteAccountDialog.h"
 #include "ui_DeleteAccountDialog.h"
+#include "../models/AccountModel.h"
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QPushButton>
 #include <QDir>
@@ -27,14 +29,18 @@
 
 namespace quentier {
 
-DeleteAccountDialog::DeleteAccountDialog(const Account & account,
+DeleteAccountDialog::DeleteAccountDialog(const Account & account, AccountModel & model,
                                          QWidget *parent) :
     QDialog(parent),
     m_pUi(new Ui::DeleteAccountDialog),
-    m_account(account)
+    m_account(account),
+    m_model(model)
 {
     m_pUi->setupUi(this);
+    setWindowTitle(tr("Delete account"));
+
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    m_pUi->statusBarLabel->hide();
 
     QString warning = QStringLiteral("<html><head/><body><p><span style=\"font-size:12pt; font-weight:600; color:#ff0000;\">");
     warning += tr("WARNING! The account deletion is permanent and cannot be reverted!");
@@ -104,34 +110,58 @@ DeleteAccountDialog::DeleteAccountDialog(const Account & account,
                      this, SLOT(onConfirmationLineEditTextEdited(QString)));
 }
 
+DeleteAccountDialog::~DeleteAccountDialog()
+{
+    delete m_pUi;
+}
+
 void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
 {
     QNDEBUG(QStringLiteral("DeleteAccountDialog::onConfirmationLineEditTextEdited: ") << text);
 
-    bool confirmed = (text == QStringLiteral("Yes"));
+    bool confirmed = (text.toLower() == QStringLiteral("yes"));
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(confirmed);
 }
 
 void DeleteAccountDialog::accept()
 {
+    QNINFO(QStringLiteral("DeleteAccountDialog::accept: account = ") << m_account);
+
+    m_pUi->statusBarLabel->setText(QString());
+    m_pUi->statusBarLabel->hide();
+
+    bool res = m_model.removeAccount(m_account);
+    if (Q_UNLIKELY(!res)) {
+        ErrorString error(QT_TR_NOOP("Internal error: failed to remove the account from account model"));
+        QNWARNING(error);
+        setStatusBarText(error.localizedString());
+        return;
+    }
+
     QString path = accountPersistentStoragePath(m_account);
-    bool res = removeDir(path);
+    res = removeDir(path);
     if (Q_UNLIKELY(!res))
     {
         // Double check
         QFileInfo pathInfo(path);
         if (pathInfo.exists()) {
-            QNWARNING(QStringLiteral("Failed to remove account's persistence storage: ")
-                      << QDir::toNativeSeparators(path));
+            QNWARNING(QStringLiteral("Failed to remove account's persistence storage: ") << QDir::toNativeSeparators(path));
         }
     }
 
     QDialog::accept();
 }
 
-DeleteAccountDialog::~DeleteAccountDialog()
+void DeleteAccountDialog::setStatusBarText(const QString & text)
 {
-    delete m_pUi;
+    m_pUi->statusBarLabel->setText(text);
+
+    if (text.isEmpty()) {
+        m_pUi->statusBarLabel->hide();
+    }
+    else {
+        m_pUi->statusBarLabel->show();
+    }
 }
 
 } // namespace quentier

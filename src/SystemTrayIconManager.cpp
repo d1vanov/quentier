@@ -453,6 +453,12 @@ void SystemTrayIconManager::onAccountAdded(Account account)
     setupAccountsSubMenu();
 }
 
+void SystemTrayIconManager::onAccountRemoved(Account account)
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onAccountRemoved: ") << account);
+    setupAccountsSubMenu();
+}
+
 void SystemTrayIconManager::onNewTextNoteContextMenuAction()
 {
     QNDEBUG(QStringLiteral("SystemTrayIconManager::onNewTextNoteContextMenuAction"));
@@ -577,6 +583,8 @@ void SystemTrayIconManager::createConnections()
                      this, QNSLOT(SystemTrayIconManager,onAccountUpdated,Account));
     QObject::connect(&m_accountManager, QNSIGNAL(AccountManager,accountAdded,Account),
                      this, QNSLOT(SystemTrayIconManager,onAccountAdded,Account));
+    QObject::connect(&m_accountManager, QNSIGNAL(AccountManager,accountRemoved,Account),
+                     this, QNSLOT(SystemTrayIconManager,onAccountRemoved,Account));
 
     // MainWindow connections
     MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
