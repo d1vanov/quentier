@@ -19,6 +19,7 @@
 #include "AccountDelegate.h"
 #include "../models/AccountModel.h"
 #include <QLineEdit>
+#include <QFontMetrics>
 
 namespace quentier {
 
@@ -49,6 +50,19 @@ void AccountDelegate::setEditorData(QWidget * pEditor, const QModelIndex & index
         pLineEdit->setText(displayName);
         pLineEdit->selectAll();
     }
+}
+
+QSize AccountDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
+{
+    if (!index.isValid()) {
+        return QSize();
+    }
+
+    QString str = index.data().toString();
+    QSize size = option.fontMetrics.size(Qt::TextSingleLine, str);
+    size.rheight() += 2;
+    size.rwidth() += 2;
+    return size;
 }
 
 } // namespace quentier

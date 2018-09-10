@@ -30,7 +30,7 @@
 namespace quentier {
 
 DeleteAccountDialog::DeleteAccountDialog(const Account & account, AccountModel & model,
-                                         QWidget *parent) :
+                                         QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::DeleteAccountDialog),
     m_account(account),
@@ -44,19 +44,19 @@ DeleteAccountDialog::DeleteAccountDialog(const Account & account, AccountModel &
 
     QString warning = QStringLiteral("<html><head/><body><p><span style=\"font-size:12pt; font-weight:600; color:#ff0000;\">");
     warning += tr("WARNING! The account deletion is permanent and cannot be reverted!");
-    warning += QStringLiteral("</span></p><p><br/></p><p><span style=\" font-weight:600; color:#000000;\">");
+    warning += QStringLiteral("</span></p><p>");
 
     if (m_account.type() == Account::Type::Evernote) {
-        warning += QStringLiteral("</p><p><br/></p>");
         warning += tr("The account to be deleted is Evernote one; only Quentier's locally synchronized account "
                       "data would be deleted, your Evernote account itself won't be touched");
-        warning += QStringLiteral("<p><br/></p>");
+        warning += QStringLiteral("</p><p>");
     }
 
+    warning += QStringLiteral("<span style=\"font-weight:600;\">");
     warning += tr("Enter");
-    warning += QStringLiteral(" &quotYes&quot ");
+    warning += QStringLiteral(" \"Yes\" ");
     warning += tr("to the below form to confirm your intention to delete the account data");
-    warning += QStringLiteral(".</span></p><p><br/></p><p><span style=\" font-weight:600; color:#000000;\">");
+    warning += QStringLiteral(".</span></p><p><span style=\" font-weight:600;\">");
     warning += tr("Account details");
     warning += QStringLiteral(": </span></p><p>");
 
@@ -101,6 +101,11 @@ DeleteAccountDialog::DeleteAccountDialog(const Account & account, AccountModel &
             warning += QStringLiteral(": ");
             warning += evernoteAccountType;
         }
+
+        warning += QStringLiteral("</p><p>");
+        warning += tr("Evernote host");
+        warning += QStringLiteral(": ");
+        warning += m_account.evernoteHost();
     }
 
     warning += QStringLiteral("</p></body></html>");

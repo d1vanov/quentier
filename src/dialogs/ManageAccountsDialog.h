@@ -28,6 +28,8 @@ namespace Ui {
 class ManageAccountsDialog;
 }
 
+QT_FORWARD_DECLARE_CLASS(QItemSelection)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
@@ -51,6 +53,9 @@ private Q_SLOTS:
     void onRevokeAuthenticationButtonPressed();
     void onDeleteAccountButtonPressed();
     void onBadAccountDisplayNameEntered(ErrorString errorDescription, int row);
+
+    void onAccountSelectionChanged(const QItemSelection & selected,
+                                   const QItemSelection & deselected);
 
 private:
     void setStatusBarText(const QString & text);

@@ -118,13 +118,13 @@ int AccountManager::execManageAccountsDialog()
     Account account = currentAccount();
     int currentAccountRow = availableAccounts.indexOf(account);
 
-    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(*this, currentAccountRow, parentWidget));
-    manageAccountsDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
+    QScopedPointer<ManageAccountsDialog> pManageAccountsDialog(new ManageAccountsDialog(*this, currentAccountRow, parentWidget));
+    pManageAccountsDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pManageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString,QNetworkProxy));
-    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString),
+    QObject::connect(pManageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
-    return manageAccountsDialog->exec();
+    return pManageAccountsDialog->exec();
 }
 
 void AccountManager::switchAccount(const Account & account)
