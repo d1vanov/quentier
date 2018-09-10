@@ -90,6 +90,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/AddOrEditNotebookDialog.h
     src/dialogs/AddOrEditTagDialog.h
     src/dialogs/AddOrEditSavedSearchDialog.h
+    src/dialogs/DeleteAccountDialog.h
     src/dialogs/EditNoteDialog.h
     src/dialogs/EnexExportDialog.h
     src/dialogs/EnexImportDialog.h
@@ -202,6 +203,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/AddOrEditNotebookDialog.cpp
     src/dialogs/AddOrEditTagDialog.cpp
     src/dialogs/AddOrEditSavedSearchDialog.cpp
+    src/dialogs/DeleteAccountDialog.cpp
     src/dialogs/EditNoteDialog.cpp
     src/dialogs/EnexExportDialog.cpp
     src/dialogs/EnexImportDialog.cpp
@@ -306,6 +308,7 @@ set(FORMS
     src/dialogs/AddOrEditNotebookDialog.ui
     src/dialogs/AddOrEditTagDialog.ui
     src/dialogs/AddOrEditSavedSearchDialog.ui
+    src/dialogs/DeleteAccountDialog.ui
     src/dialogs/EditNoteDialog.ui
     src/dialogs/EnexExportDialog.ui
     src/dialogs/EnexImportDialog.ui
