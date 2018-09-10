@@ -1,7 +1,3 @@
-if(POLICY CMP0054)
-  cmake_policy(SET CMP0054 OLD)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCXX)
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
   message(STATUS "Using GNU C++ compiler, version ${GCC_VERSION}")

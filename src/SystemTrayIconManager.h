@@ -85,6 +85,7 @@ private Q_SLOTS:
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
     void onAccountAdded(Account account);
+    void onAccountRemoved(Account account);
 
     // Slots for context menu actions
     void onNewTextNoteContextMenuAction();

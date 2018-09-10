@@ -50,6 +50,7 @@ public:
         enum type
         {
             Type = 0,
+            EvernoteHost,
             Username,
             DisplayName
         };
