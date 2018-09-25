@@ -32,7 +32,7 @@ namespace quentier {
 
 LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAccount,
                                                      AccountModel & accountModel,
-                                                     const QVector<ILocalStoragePatch *> & patches,
+                                                     const QVector<QSharedPointer<ILocalStoragePatch> > & patches,
                                                      const Options options,
                                                      QWidget * parent) :
     QDialog(parent),
@@ -46,6 +46,12 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAcco
     m_pUi->statusBar->hide();
     m_pUi->accountsTableView->verticalHeader()->hide();
     m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
+
+    m_pUi->backupLocalStorageLabel->hide();
+    m_pUi->backupLocalStorageProgressBar->hide();
+
+    m_pUi->restoreLocalStorageFromBackupLabel->hide();
+    m_pUi->restoreLocalStorageFromBackupProgressBar->hide();
 
     showHideDialogPartsAccordingToOptions();
 
@@ -132,12 +138,42 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
 {
     QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::onApplyPatchButtonPressed"));
 
+    m_pUi->statusBar->setText(QString());
+    m_pUi->statusBar->hide();
+    m_pUi->restoreLocalStorageFromBackupLabel->hide();
+
     if (m_currentPatchIndex >= m_patches.size()) {
         setErrorToStatusBar(ErrorString(QT_TR_NOOP("No patch to apply")));
         return;
     }
 
-    ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex];
+    ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].data();
+    if (m_pUi->backupLocalStorageCheckBox->isChecked())
+    {
+        QObject::connect(pPatch, QNSIGNAL(ILocalStoragePatch,backupProgress,double),
+                         this, QNSLOT(LocalStorageUpgradeDialog,onBackupLocalStorageProgressUpdate,double));
+        QObject::connect(this, QNSIGNAL(LocalStorageUpgradeDialog,backupLocalStorageProgress,int),
+                         m_pUi->backupLocalStorageProgressBar, QNSLOT(QProgressBar,setValue,int));
+        m_pUi->backupLocalStorageLabel->show();
+        m_pUi->backupLocalStorageProgressBar->show();
+
+        ErrorString errorDescription;
+        bool res = pPatch->backupLocalStorage(errorDescription);
+
+        QObject::disconnect(pPatch, QNSIGNAL(ILocalStoragePatch,backupProgress,double),
+                            this, QNSLOT(LocalStorageUpgradeDialog,onBackupLocalStorageProgressUpdate,double));
+        QObject::disconnect(this, QNSIGNAL(LocalStorageUpgradeDialog,backupLocalStorageProgress,int),
+                            m_pUi->backupLocalStorageProgressBar, QNSLOT(QProgressBar,setValue,int));
+        m_pUi->backupLocalStorageLabel->hide();
+        m_pUi->backupLocalStorageProgressBar->setValue(0);
+        m_pUi->backupLocalStorageProgressBar->hide();
+
+        if (Q_UNLIKELY(!res)) {
+            setErrorToStatusBar(errorDescription);
+            return;
+        }
+    }
+
     QObject::connect(pPatch, QNSIGNAL(ILocalStoragePatch,progress,double),
                      this, QNSLOT(LocalStorageUpgradeDialog,onApplyPatchProgressUpdate,double),
                      Qt::ConnectionType(Qt::DirectConnection | Qt::UniqueConnection));
@@ -148,16 +184,49 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
     QObject::disconnect(pPatch, QNSIGNAL(ILocalStoragePatch,progress,double),
                         this, QNSLOT(LocalStorageUpgradeDialog,onApplyPatchProgressUpdate,double));
 
-    if (Q_UNLIKELY(!res)) {
-        ErrorString error(QT_TR_NOOP("Failed to upgrade local storage, please report issue to "
-                                     "<a href=\"https://github.com/d1vanov/quentier/issues/new\">Quentier issue tracker</a>"));
+    if (Q_UNLIKELY(!res))
+    {
+        ErrorString error(QT_TR_NOOP("Failed to upgrade local storage"));
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
         QNWARNING(error);
         setErrorToStatusBar(error);
+
+        if (m_pUi->backupLocalStorageCheckBox->isChecked())
+        {
+            QObject::connect(pPatch, QNSIGNAL(ILocalStoragePatch,restoreBackupProgress,double),
+                             this, QNSLOT(LocalStorageUpgradeDialog,onRestoreLocalStorageFromBackupProgressUpdate,double));
+            QObject::connect(this, QNSIGNAL(LocalStorageUpgradeDialog,restoreLocalStorageFromBackupProgress,int),
+                             m_pUi->restoreLocalStorageFromBackupProgressBar, QNSLOT(QProgressBar,setValue,int));
+            m_pUi->restoreLocalStorageFromBackupLabel->show();
+            m_pUi->restoreLocalStorageFromBackupProgressBar->show();
+
+            errorDescription.clear();
+            res = pPatch->restoreLocalStorageFromBackup(errorDescription);
+
+            QObject::disconnect(pPatch, QNSIGNAL(ILocalStoragePatch,restoreBackupProgress,double),
+                                this, QNSLOT(LocalStorageUpgradeDialog,onRestoreLocalStorageFromBackupProgressUpdate,double));
+            QObject::disconnect(this, QNSIGNAL(LocalStorageUpgradeDialog,restoreLocalStorageFromBackupProgress,int),
+                                m_pUi->restoreLocalStorageFromBackupProgressBar, QNSLOT(QProgressBar,setValue,int));
+
+            m_pUi->restoreLocalStorageFromBackupLabel->hide();
+            m_pUi->restoreLocalStorageFromBackupProgressBar->setValue(0);
+            m_pUi->restoreLocalStorageFromBackupProgressBar->hide();
+
+            if (Q_UNLIKELY(!res)) {
+                QString message = QStringLiteral("<html><head/><body><p><span style=\" font-size:12pt; color:#ff0000;\">");
+                message += errorDescription.localizedString();
+                message += QStringLiteral("</span></p></body></html>");
+                m_pUi->restoreLocalStorageFromBackupLabel->setText(message);
+                m_pUi->restoreLocalStorageFromBackupLabel->show();
+            }
+        }
+
         return;
     }
+
+    // TODO: cleanup the no longer needed backup of local storage
 
     QNINFO(QStringLiteral("Successfully applied local storage patch from version ")
            << pPatch->fromVersion() << QStringLiteral(" to version ") << pPatch->toVersion());
@@ -196,6 +265,34 @@ void LocalStorageUpgradeDialog::onAccountViewSelectionChanged(const QItemSelecti
     }
 
     m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
+}
+
+void LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate(double progress)
+{
+    QNTRACE(QStringLiteral("LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate: ") << progress);
+
+    int scaledProgress = std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
+    Q_EMIT backupLocalStorageProgress(scaledProgress);
+
+    if (scaledProgress == 100) {
+        m_pUi->backupLocalStorageLabel->hide();
+        m_pUi->backupLocalStorageProgressBar->setValue(0);
+        m_pUi->backupLocalStorageProgressBar->hide();
+    }
+}
+
+void LocalStorageUpgradeDialog::onRestoreLocalStorageFromBackupProgressUpdate(double progress)
+{
+    QNTRACE(QStringLiteral("LocalStorageUpgradeDialog::onRestoreLocalStorageFromBackupProgressUpdate: ") << progress);
+
+    int scaledProgress = std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
+    Q_EMIT restoreLocalStorageFromBackupProgress(scaledProgress);
+
+    if (scaledProgress == 100) {
+        m_pUi->restoreLocalStorageFromBackupLabel->hide();
+        m_pUi->restoreLocalStorageFromBackupProgressBar->setValue(0);
+        m_pUi->restoreLocalStorageFromBackupProgressBar->hide();
+    }
 }
 
 void LocalStorageUpgradeDialog::createConnections()
@@ -263,7 +360,15 @@ void LocalStorageUpgradeDialog::setPatchInfoLabel()
 void LocalStorageUpgradeDialog::setErrorToStatusBar(const ErrorString & error)
 {
     QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::setErrorToStatusBar: ") << error);
-    m_pUi->statusBar->setText(error.localizedString());
+    QString message = QStringLiteral("<html><head/><body><p><span style=\" font-size:12pt; color:#ff0000;\">");
+    message += error.localizedString();
+    message += QStringLiteral("</span></p><p>");
+    message += tr("Please report issue to");
+    message += QStringLiteral(" <a href=\"https://github.com/d1vanov/quentier/issues\">");
+    message += tr("Quentier issue tracker");
+    message += QStringLiteral("</a></p></body></html>");
+
+    m_pUi->statusBar->setText(message);
     m_pUi->statusBar->show();
 }
 

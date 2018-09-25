@@ -45,9 +45,56 @@
     </widget>
    </item>
    <item>
-    <widget class="QProgressBar" name="upgradeProgressBar">
+    <widget class="QCheckBox" name="backupLocalStorageCheckBox">
+     <property name="text">
+      <string>Backup local storage before the upgrade</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="backupLocalStorageLabel">
+     <property name="text">
+      <string>Creating backup of local storage...</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="backupLocalStorageProgressBar">
+     <property name="maximum">
+      <number>100</number>
+     </property>
      <property name="value">
-      <number>24</number>
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="restoreLocalStorageFromBackupLabel">
+     <property name="text">
+      <string>Restoring local storage from backup</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="restoreLocalStorageFromBackupProgressBar">
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="upgradeProgressBar">
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="value">
+      <number>0</number>
      </property>
     </widget>
    </item>

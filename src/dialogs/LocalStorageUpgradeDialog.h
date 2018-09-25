@@ -23,6 +23,7 @@
 #include <quentier/types/Account.h>
 #include <QDialog>
 #include <QVector>
+#include <QSharedPointer>
 #include <QFlags>
 
 namespace Ui {
@@ -54,15 +55,18 @@ public:
 
     explicit LocalStorageUpgradeDialog(const Account & currentAccount,
                                        AccountModel & accountModel,
-                                       const QVector<ILocalStoragePatch*> & patches,
-                                       const Options options,
-                                       QWidget * parent = Q_NULLPTR);
+                                       const QVector<QSharedPointer<ILocalStoragePatch> > & patches,
+                                       const Options options, QWidget * parent = Q_NULLPTR);
     virtual ~LocalStorageUpgradeDialog();
 
 Q_SIGNALS:
     void shouldSwitchToAccount(Account account);
     void shouldCreateNewAccount();
     void shouldQuitApp();
+
+// private signals:
+    void backupLocalStorageProgress(int progress);
+    void restoreLocalStorageFromBackupProgress(int progress);
 
 private Q_SLOTS:
     void onSwitchToAccountPushButtonPressed();
@@ -74,6 +78,9 @@ private Q_SLOTS:
 
     void onAccountViewSelectionChanged(const QItemSelection & selected,
                                        const QItemSelection & deselected);
+
+    void onBackupLocalStorageProgressUpdate(double progress);
+    void onRestoreLocalStorageFromBackupProgressUpdate(double progress);
 
 private:
     void createConnections();
@@ -88,7 +95,7 @@ private:
 
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;
-    QVector<ILocalStoragePatch*>    m_patches;
+    QVector<QSharedPointer<ILocalStoragePatch> >    m_patches;
     AccountFilterModel *    m_pAccountFilterModel;
     Options     m_options;
     int         m_currentPatchIndex;
