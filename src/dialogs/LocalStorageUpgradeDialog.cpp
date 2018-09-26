@@ -40,7 +40,8 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAcco
     m_patches(patches),
     m_pAccountFilterModel(new AccountFilterModel(this)),
     m_options(options),
-    m_currentPatchIndex(0)
+    m_currentPatchIndex(0),
+    m_upgradeDone(false)
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->hide();
@@ -81,6 +82,11 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAcco
 
     createConnections();
     setPatchInfoLabel();
+
+    if (!m_patches.isEmpty()) {
+        ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].data();
+        setPatchDescriptions(*pPatch);
+    }
 }
 
 LocalStorageUpgradeDialog::~LocalStorageUpgradeDialog()
@@ -152,6 +158,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
     }
 
     ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].data();
+
     if (m_pUi->backupLocalStorageCheckBox->isChecked())
     {
         QObject::connect(pPatch, QNSIGNAL(ILocalStoragePatch,backupProgress,double),
@@ -240,10 +247,16 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
            << pPatch->fromVersion() << QStringLiteral(" to version ") << pPatch->toVersion());
 
     ++m_currentPatchIndex;
+
     if (m_currentPatchIndex == m_patches.size()) {
         QNINFO(QStringLiteral("No more local storage patches are required"));
+        m_upgradeDone = true;
         QDialog::accept();
+        return;
     }
+
+    // Otherwise set patch descriptions
+    setPatchDescriptions(*m_patches[m_currentPatchIndex].data());
 }
 
 void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
@@ -336,7 +349,13 @@ void LocalStorageUpgradeDialog::setPatchInfoLabel()
         return;
     }
 
-    QString introInfo = tr("Please backup your account's local storage at");
+    QString introInfo = tr("The layout of data kept within the local storage requires to be upgraded.");
+    introInfo += QStringLiteral("\n");
+    introInfo += tr("That means that older versions of Quentier (and/or libquentier) will no longer be able to work "
+                    "with changed local storage data layout. But these changes are required in order to continue using "
+                    "the current versions of Quentier and libquentier.");
+    introInfo += QStringLiteral("\n");
+    introInfo += tr("It is recommended to keep the \"Create local storage backup\" option enabled in order to backup the local storage at");
     introInfo += QStringLiteral(" ");
     introInfo += QDir::toNativeSeparators(accountPersistentStoragePath(m_pAccountFilterModel->filteredAccounts()[0]));
     introInfo += QStringLiteral(" ");
@@ -378,6 +397,20 @@ void LocalStorageUpgradeDialog::setErrorToStatusBar(const ErrorString & error)
 
     m_pUi->statusBar->setText(message);
     m_pUi->statusBar->show();
+}
+
+void LocalStorageUpgradeDialog::setPatchDescriptions(const ILocalStoragePatch & patch)
+{
+    m_pUi->shortDescriptionLabel->setText(patch.patchShortDescription());
+
+    QString longDescription;
+    QStringList longDescriptionList = patch.patchLongDescription();
+    for(auto it = longDescriptionList.constBegin(), end = longDescriptionList.constEnd(); it != end; ++it) {
+        longDescription += *it;
+        longDescription += QStringLiteral("\n");
+    }
+
+    m_pUi->longDescriptionLabel->setText(longDescription);
 }
 
 void LocalStorageUpgradeDialog::showHideDialogPartsAccordingToOptions()

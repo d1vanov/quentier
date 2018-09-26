@@ -22,6 +22,9 @@
        <height>40</height>
       </size>
      </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
@@ -32,6 +35,9 @@
        <height>40</height>
       </size>
      </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
@@ -41,6 +47,9 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -151,7 +160,11 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="statusBar"/>
+    <widget class="QLabel" name="statusBar">
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

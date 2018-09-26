@@ -59,6 +59,8 @@ public:
                                        const Options options, QWidget * parent = Q_NULLPTR);
     virtual ~LocalStorageUpgradeDialog();
 
+    bool isUpgradeDone() const { return m_upgradeDone; }
+
 Q_SIGNALS:
     void shouldSwitchToAccount(Account account);
     void shouldCreateNewAccount();
@@ -86,6 +88,7 @@ private:
     void createConnections();
     void setPatchInfoLabel();
     void setErrorToStatusBar(const ErrorString & error);
+    void setPatchDescriptions(const ILocalStoragePatch & patch);
 
 private:
     void showHideDialogPartsAccordingToOptions();
@@ -99,6 +102,7 @@ private:
     AccountFilterModel *    m_pAccountFilterModel;
     Options     m_options;
     int         m_currentPatchIndex;
+    bool        m_upgradeDone;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(LocalStorageUpgradeDialog::Options)
