@@ -49,9 +49,13 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAcco
 
     m_pUi->backupLocalStorageLabel->hide();
     m_pUi->backupLocalStorageProgressBar->hide();
+    m_pUi->backupLocalStorageProgressBar->setMinimum(0);
+    m_pUi->backupLocalStorageProgressBar->setMaximum(100);
 
     m_pUi->restoreLocalStorageFromBackupLabel->hide();
     m_pUi->restoreLocalStorageFromBackupProgressBar->hide();
+    m_pUi->restoreLocalStorageFromBackupProgressBar->setMinimum(0);
+    m_pUi->restoreLocalStorageFromBackupProgressBar->setMaximum(100);
 
     showHideDialogPartsAccordingToOptions();
 
@@ -221,12 +225,16 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
                 m_pUi->restoreLocalStorageFromBackupLabel->setText(message);
                 m_pUi->restoreLocalStorageFromBackupLabel->show();
             }
+
+            errorDescription.clear();
+            Q_UNUSED(!pPatch->removeLocalStorageBackup(errorDescription))
         }
 
         return;
     }
 
-    // TODO: cleanup the no longer needed backup of local storage
+    errorDescription.clear();
+    Q_UNUSED(pPatch->removeLocalStorageBackup(errorDescription))
 
     QNINFO(QStringLiteral("Successfully applied local storage patch from version ")
            << pPatch->fromVersion() << QStringLiteral(" to version ") << pPatch->toVersion());
