@@ -16,12 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="introInfoLabel">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>40</height>
-      </size>
-     </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
@@ -29,12 +23,6 @@
    </item>
    <item>
     <widget class="QLabel" name="shortDescriptionLabel">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>40</height>
-      </size>
-     </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
@@ -129,6 +117,19 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="buttonsHorizontalLayout">
+     <item>
+      <spacer name="buttonsHorizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>10</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <widget class="QPushButton" name="switchToAnotherAccountPushButton">
        <property name="text">

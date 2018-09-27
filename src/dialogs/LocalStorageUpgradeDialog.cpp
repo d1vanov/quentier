@@ -402,15 +402,7 @@ void LocalStorageUpgradeDialog::setErrorToStatusBar(const ErrorString & error)
 void LocalStorageUpgradeDialog::setPatchDescriptions(const ILocalStoragePatch & patch)
 {
     m_pUi->shortDescriptionLabel->setText(patch.patchShortDescription());
-
-    QString longDescription;
-    QStringList longDescriptionList = patch.patchLongDescription();
-    for(auto it = longDescriptionList.constBegin(), end = longDescriptionList.constEnd(); it != end; ++it) {
-        longDescription += *it;
-        longDescription += QStringLiteral("\n");
-    }
-
-    m_pUi->longDescriptionLabel->setText(longDescription);
+    m_pUi->longDescriptionLabel->setText(patch.patchLongDescription());
 }
 
 void LocalStorageUpgradeDialog::showHideDialogPartsAccordingToOptions()
