@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>547</width>
-    <height>604</height>
+    <height>684</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,9 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="accountInfoLabel"/>
+   </item>
+   <item>
     <widget class="QLabel" name="shortDescriptionLabel">
      <property name="wordWrap">
       <bool>true</bool>
@@ -31,7 +34,7 @@
    <item>
     <widget class="QLabel" name="longDescriptionLabel">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>

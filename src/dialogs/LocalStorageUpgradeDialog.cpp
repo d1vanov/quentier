@@ -58,6 +58,7 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAcco
     m_pUi->restoreLocalStorageFromBackupProgressBar->setMinimum(0);
     m_pUi->restoreLocalStorageFromBackupProgressBar->setMaximum(100);
 
+    showAccountInfo(currentAccount);
     showHideDialogPartsAccordingToOptions();
 
     m_pUi->upgradeProgressBar->setMinimum(0);
@@ -87,6 +88,8 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(const Account & currentAcco
         ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].data();
         setPatchDescriptions(*pPatch);
     }
+
+    adjustSize();
 }
 
 LocalStorageUpgradeDialog::~LocalStorageUpgradeDialog()
@@ -157,6 +160,8 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
         return;
     }
 
+    lockControls();
+
     ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].data();
 
     if (m_pUi->backupLocalStorageCheckBox->isChecked())
@@ -181,6 +186,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
 
         if (Q_UNLIKELY(!res)) {
             setErrorToStatusBar(errorDescription);
+            unlockControls();
             return;
         }
     }
@@ -237,6 +243,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
             Q_UNUSED(!pPatch->removeLocalStorageBackup(errorDescription))
         }
 
+        unlockControls();
         return;
     }
 
@@ -257,6 +264,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
 
     // Otherwise set patch descriptions
     setPatchDescriptions(*m_patches[m_currentPatchIndex].data());
+    unlockControls();
 }
 
 void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
@@ -403,6 +411,56 @@ void LocalStorageUpgradeDialog::setPatchDescriptions(const ILocalStoragePatch & 
 {
     m_pUi->shortDescriptionLabel->setText(patch.patchShortDescription());
     m_pUi->longDescriptionLabel->setText(patch.patchLongDescription());
+}
+
+void LocalStorageUpgradeDialog::lockControls()
+{
+    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::lockControls"));
+
+    m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
+    m_pUi->createNewAccountPushButton->setEnabled(false);
+    m_pUi->applyPatchPushButton->setEnabled(false);
+    m_pUi->quitAppPushButton->setEnabled(false);
+    m_pUi->accountsTableView->setEnabled(false);
+}
+
+void LocalStorageUpgradeDialog::unlockControls()
+{
+    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::unlockControls"));
+
+    m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
+    m_pUi->createNewAccountPushButton->setEnabled(true);
+    m_pUi->applyPatchPushButton->setEnabled(true);
+    m_pUi->quitAppPushButton->setEnabled(true);
+    m_pUi->accountsTableView->setEnabled(true);
+}
+
+void LocalStorageUpgradeDialog::showAccountInfo(const Account & account)
+{
+    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::showAccountInfo: ") << account);
+
+    QString message = tr("Account");
+    message += QStringLiteral(": ");
+    if (account.type() == Account::Type::Evernote) {
+        message += QStringLiteral("Evernote");
+    }
+    else {
+        message += tr("local");
+    }
+
+    message += QStringLiteral(", ");
+    message += tr("name");
+    message += QStringLiteral(" = ");
+    message += account.name();
+
+    if (account.type() == Account::Type::Evernote) {
+        message += QStringLiteral(", ");
+        message += tr("server");
+        message += QStringLiteral(" = ");
+        message += account.evernoteHost();
+    }
+
+    m_pUi->accountInfoLabel->setText(message);
 }
 
 void LocalStorageUpgradeDialog::showHideDialogPartsAccordingToOptions()

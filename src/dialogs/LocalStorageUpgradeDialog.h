@@ -90,7 +90,11 @@ private:
     void setErrorToStatusBar(const ErrorString & error);
     void setPatchDescriptions(const ILocalStoragePatch & patch);
 
+    void lockControls();
+    void unlockControls();
+
 private:
+    void showAccountInfo(const Account & account);
     void showHideDialogPartsAccordingToOptions();
 
 private:
