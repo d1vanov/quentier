@@ -2201,8 +2201,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
     QNDEBUG(QStringLiteral("NoteEditorWidget::createConnections"));
 
     // Local signals to localStorageManagerAsync's slots
-    QObject::connect(this, QNSIGNAL(NoteEditorWidget,updateNote,Note,bool,bool,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorWidget,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNote,Note,bool,bool,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNotebook,Notebook,QUuid),
