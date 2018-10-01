@@ -4855,7 +4855,7 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
         QNDEBUG(QStringLiteral("Local storage requires upgrade: detected ") << localStoragePatches.size()
                 << QStringLiteral(" pending local storage patches"));
         LocalStorageUpgradeDialog::Options options(LocalStorageUpgradeDialog::Option::AddAccount | LocalStorageUpgradeDialog::Option::SwitchToAnotherAccount);
-        QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(new LocalStorageUpgradeDialog(*m_pAccount, m_pAccountManager->accountModel(),
+        QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(new LocalStorageUpgradeDialog(account, m_pAccountManager->accountModel(),
                                                                                                localStoragePatches, options, this));
         QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldSwitchToAccount,Account),
                          this, QNSLOT(MainWindow,onAccountSwitchRequested,Account),
