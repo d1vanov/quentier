@@ -21,7 +21,7 @@
 #include <QTextStream>
 #include <iterator>
 
-#define NUM_ACCOUNTS_MODEL_COLUMNS (3)
+#define NUM_ACCOUNTS_MODEL_COLUMNS (4)
 
 namespace quentier {
 
@@ -193,11 +193,13 @@ QVariant AccountModel::headerData(int section, Qt::Orientation orientation, int 
     switch(section)
     {
     case Columns::Type:
-        return QStringLiteral("Type");
+        return tr("Type");
     case Columns::Username:
-        return QStringLiteral("Username");
+        return tr("Username");
     case Columns::DisplayName:
-        return QStringLiteral("Display name");
+        return tr("Display name");
+    case Columns::Server:
+        return tr("Server");
     default:
         return QVariant();
     }
@@ -238,6 +240,22 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
         return account.name();
     case Columns::DisplayName:
         return account.displayName();
+    case Columns::Server:
+        {
+            if (account.type() == Account::Type::Local) {
+                return QString();
+            }
+
+            if (account.evernoteHost() == QStringLiteral("sandbox.evernote.com")) {
+                return QStringLiteral("Evernote sandbox");
+            }
+            else if (account.evernoteHost() == QStringLiteral("app.yinxiang.com")) {
+                return QStringLiteral("Yinxiang Biji");
+            }
+            else {
+                return QStringLiteral("Evernote");
+            }
+        }
     default:
         return QVariant();
     }
@@ -314,6 +332,8 @@ bool AccountModel::setData(const QModelIndex & index,
             Q_EMIT accountDisplayNameChanged(account);
             return true;
         }
+    case Columns::Server:
+        return false;
     default:
         return false;
     }

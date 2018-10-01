@@ -51,7 +51,8 @@ public:
         {
             Type = 0,
             Username,
-            DisplayName
+            DisplayName,
+            Server
         };
     };
 
