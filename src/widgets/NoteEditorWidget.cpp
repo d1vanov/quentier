@@ -42,13 +42,13 @@ using quentier::NoteTagsWidget;
 #include <quentier/types/Resource.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/FileIOProcessorAsync.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/note_editor/SpellChecker.h>
 #include <QDateTime>
 #include <QFontDatabase>
 #include <QScopedPointer>
+#include <QThread>
 #include <QColor>
 #include <QPalette>
 #include <QTimer>
@@ -67,7 +67,7 @@ using quentier::NoteTagsWidget;
 namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
-                                   FileIOProcessorAsync & fileIOProcessorAsync, SpellChecker & spellChecker,
+                                   SpellChecker & spellChecker, QThread * pBackgroundJobsThread,
                                    NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                                    TagModel & tagModel, QUndoStack * pUndoStack, QWidget * parent) :
     QWidget(parent),
@@ -75,8 +75,6 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
-    m_fileIOProcessorAsync(fileIOProcessorAsync),
-    m_spellChecker(spellChecker),
     m_pLimitedFontsListModel(Q_NULLPTR),
     m_noteLocalUid(),
     m_pCurrentNote(),
@@ -114,7 +112,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_pUi->printNotePushButton->setHidden(true);
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
 
-    m_pUi->noteEditor->initialize(m_fileIOProcessorAsync, m_spellChecker, m_currentAccount);
+    m_pUi->noteEditor->initialize(localStorageManagerAsync, spellChecker, m_currentAccount, pBackgroundJobsThread);
     m_pUi->saveNotePushButton->setEnabled(false);
 
     m_pUi->noteNameLineEdit->installEventFilter(this);
@@ -151,14 +149,13 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
     QNDEBUG(QStringLiteral("NoteEditorWidget::setNoteLocalUid: ") << noteLocalUid
             << QStringLiteral(", is new note = ") << (isNewNote ? QStringLiteral("true") : QStringLiteral("false")));
 
-    m_noteLocalUid = noteLocalUid;
-
-    if (!m_pCurrentNote.isNull() && (m_pCurrentNote->localUid() == noteLocalUid)) {
-        QNDEBUG(QStringLiteral("This note is already set to the editor, nothing to do"));
+    if (m_noteLocalUid == noteLocalUid) {
+        QNDEBUG(QStringLiteral("Note local uid is already set to the editor, nothing to do"));
         return;
     }
 
     clear();
+    m_noteLocalUid = noteLocalUid;
 
     if (noteLocalUid.isEmpty()) {
         setupBlankEditor();
@@ -168,33 +165,15 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
     m_isNewNote = isNewNote;
 
     const Note * pCachedNote = m_noteCache.get(noteLocalUid);
-
-    // The cache might contain the note without resource binary data, need to check for this
-    bool hasMissingResources = false;
-    if (Q_LIKELY(pCachedNote))
-    {
-        QList<Resource> resources = pCachedNote->resources();
-        if (!resources.isEmpty())
-        {
-            for(int i = 0, size = resources.size(); i < size; ++i)
-            {
-                const Resource & resource = resources[i];
-                if (resource.hasDataHash() && !resource.hasDataBody()) {
-                    hasMissingResources = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (Q_UNLIKELY(!pCachedNote || hasMissingResources))
+    if (Q_UNLIKELY(!pCachedNote))
     {
         m_findCurrentNoteRequestId = QUuid::createUuid();
         Note dummy;
         dummy.setLocalUid(noteLocalUid);
         QNTRACE(QStringLiteral("Emitting the request to find the current note: local uid = ") << noteLocalUid
                 << QStringLiteral(", request id = ") << m_findCurrentNoteRequestId);
-        Q_EMIT findNote(dummy, /* with resource metadata = */ true, /* with resource binary data = */ true, m_findCurrentNoteRequestId);
+        Q_EMIT findNote(dummy, /* with resource metadata = */ true,
+                        /* with resource binary data = */ false, m_findCurrentNoteRequestId);
         return;
     }
 
@@ -1381,7 +1360,6 @@ void NoteEditorWidget::onAddResourceComplete(Resource resource, QUuid requestId)
 
     // Haven't found the added resource within the note's resources, need to add it and update the note editor
     m_pCurrentNote->addResource(resource);
-    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onUpdateResourceComplete(Resource resource, QUuid requestId)
@@ -1399,9 +1377,7 @@ void NoteEditorWidget::onUpdateResourceComplete(Resource resource, QUuid request
 
     // TODO: ideally should allow the choice to either leave the current version of the note or to reload it
 
-    if (m_pCurrentNote->updateResource(resource)) {
-        m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-    }
+    Q_UNUSED(m_pCurrentNote->updateResource(resource))
 }
 
 void NoteEditorWidget::onExpungeResourceComplete(Resource resource, QUuid requestId)
@@ -1419,9 +1395,7 @@ void NoteEditorWidget::onExpungeResourceComplete(Resource resource, QUuid reques
 
     // TODO: ideally should allow the choice to either leave the current version of the note or to reload it
 
-    if (m_pCurrentNote->removeResource(resource)) {
-        m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-    }
+    Q_UNUSED(m_pCurrentNote->removeResource(resource))
 }
 
 void NoteEditorWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
@@ -2710,7 +2684,7 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
         }
     }
 
-    m_pUi->noteEditor->setNoteAndNotebook(note, notebook);
+    m_pUi->noteEditor->setCurrentNoteLocalUid(note.localUid());
     m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(note, notebook);
 
     m_pUi->printNotePushButton->setDisabled(false);
@@ -2773,7 +2747,7 @@ void NoteEditorWidget::setupBlankEditor()
     m_pUi->tagNameLabelsContainer->hide();
 
     QString initialHtml = blankPageHtml();
-    m_pUi->noteEditor->setBlankPageHtml(initialHtml);
+    m_pUi->noteEditor->setInitialPageHtml(initialHtml);
 
     m_pUi->findAndReplaceWidget->setHidden(true);
     m_pUi->noteSourceView->setHidden(true);

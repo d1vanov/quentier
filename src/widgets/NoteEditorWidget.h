@@ -37,13 +37,13 @@ class NoteEditorWidget;
 }
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
+QT_FORWARD_DECLARE_CLASS(QThread)
 QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(FileIOProcessorAsync)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 /**
@@ -56,9 +56,9 @@ class NoteEditorWidget: public QWidget
     Q_OBJECT
 public:
     explicit NoteEditorWidget(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
-                              FileIOProcessorAsync & fileIOProcessorAsync, SpellChecker & spellChecker,
-                              NoteCache & noteCache, NotebookCache & notebookCache,
-                              TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
+                              SpellChecker & spellChecker, QThread * pBackgroundJobsThread,
+                              NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
+                              TagModel & tagModel, QUndoStack * pUndoStack,
                               QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditorWidget();
 
@@ -444,9 +444,6 @@ private:
     NoteCache &                 m_noteCache;
     NotebookCache &             m_notebookCache;
     TagCache &                  m_tagCache;
-
-    FileIOProcessorAsync &      m_fileIOProcessorAsync;
-    SpellChecker &              m_spellChecker;
 
     QStringListModel *          m_pLimitedFontsListModel;
 

@@ -114,7 +114,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
 
     QUndoStack * pUndoStack = new QUndoStack;
     m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount, m_localStorageManagerAsync,
-                                              *m_pFileIOProcessorAsync, *m_pSpellChecker,
+                                              *m_pSpellChecker, m_pIOThread,
                                               m_noteCache, m_notebookCache, m_tagCache,
                                               *m_pTagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(m_pBlankNoteEditor);
@@ -428,7 +428,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
 
     QUndoStack * pUndoStack = new QUndoStack;
     NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(m_currentAccount, m_localStorageManagerAsync,
-                                                                *m_pFileIOProcessorAsync, *m_pSpellChecker,
+                                                                *m_pSpellChecker, m_pIOThread,
                                                                 m_noteCache, m_notebookCache, m_tagCache,
                                                                 *m_pTagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
