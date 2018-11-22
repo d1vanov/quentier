@@ -30,9 +30,11 @@ namespace quentier {
 
 NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     QWidget(parent),
-    m_currentNote(),
+    m_pCurrentNote(),
     m_currentNotebookLocalUid(),
     m_currentLinkedNotebookGuid(),
+    m_pNoteCache(Q_NULLPTR),
+    m_pNotebookCache(Q_NULLPTR),
     m_lastDisplayedTagLocalUids(),
     m_currentNoteTagLocalUidToNameBimap(),
     m_pTagModel(),
@@ -44,6 +46,24 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
 {
     addTagIconToLayout();
     setLayout(m_pLayout);
+}
+
+NoteTagsWidget::~NoteTagsWidget()
+{}
+
+void NoteTagsWidget::initialize(LocalStorageManagerAsync & localStorageManagerAsync, NoteCache & noteCache,
+                                NotebookCache & notebookCache, TagModel * pTagModel)
+{
+    m_pNoteCache = &noteCache;
+    m_pNotebookCache = &notebookCache;
+    createConnections(localStorageManagerAsync);
+
+    if (!m_pTagModel.isNull()) {
+        QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
+                            this, QNSLOT(NoteTagsWidget,onAllTagsListed));
+    }
+
+    m_pTagModel = QPointer<TagModel>(pTagModel);
 }
 
 void NoteTagsWidget::setLocalStorageManagerThreadWorker(LocalStorageManagerAsync & localStorageManagerAsync)
@@ -66,42 +86,53 @@ void NoteTagsWidget::setCurrentNoteAndNotebook(const Note & note, const Notebook
     QNTRACE(QStringLiteral("NoteTagsWidget::setCurrentNoteAndNotebook: note local uid = ") << note
             << QStringLiteral(", notebook: ") << notebook);
 
-    bool changed = (note.localUid() != m_currentNote.localUid());
-    if (!changed)
+    bool changed = false;
+
+    if (!m_pCurrentNote)
     {
-        QNDEBUG(QStringLiteral("The note is the same as the current one already, checking whether the tag information has changed"));
-
-        changed |= (note.hasTagLocalUids() != m_currentNote.hasTagLocalUids());
-        changed |= (note.hasTagGuids() != m_currentNote.hasTagGuids());
-
-        if (note.hasTagLocalUids() && m_currentNote.hasTagLocalUids()) {
-            changed |= (note.tagLocalUids() != m_currentNote.tagLocalUids());
-        }
-
-        if (note.hasTagGuids() && m_currentNote.hasTagGuids()) {
-            changed |= (note.tagGuids() != m_currentNote.tagGuids());
-        }
-
-        if (!changed) {
-            QNDEBUG(QStringLiteral("Tag info hasn't changed"));
-        }
-        else {
-            clear();
-        }
-
-        m_currentNote = note;   // Accepting the update just in case
+        m_pCurrentNote.reset(new Note(note));
+        changed = true;
     }
     else
     {
-        clear();
+        changed = (note.localUid() != m_pCurrentNote->localUid());
+        if (!changed)
+        {
+            QNDEBUG(QStringLiteral("The note is the same as the current one already, checking whether the tag information has changed"));
 
-        if (Q_UNLIKELY(note.localUid().isEmpty())) {
-            QNWARNING(QStringLiteral("Skipping the note with empty local uid"));
-            return;
+            changed |= (note.hasTagLocalUids() != m_pCurrentNote->hasTagLocalUids());
+            changed |= (note.hasTagGuids() != m_pCurrentNote->hasTagGuids());
+
+            if (note.hasTagLocalUids() && m_pCurrentNote->hasTagLocalUids()) {
+                changed |= (note.tagLocalUids() != m_pCurrentNote->tagLocalUids());
+            }
+
+            if (note.hasTagGuids() && m_pCurrentNote->hasTagGuids()) {
+                changed |= (note.tagGuids() != m_pCurrentNote->tagGuids());
+            }
+
+            if (!changed) {
+                QNDEBUG(QStringLiteral("Tag info hasn't changed"));
+            }
+            else {
+                clear();
+            }
+
+            *m_pCurrentNote = note;   // Accepting the update just in case
         }
+        else
+        {
+            clear();
 
-        m_currentNote = note;
+            if (Q_UNLIKELY(note.localUid().isEmpty())) {
+                QNWARNING(QStringLiteral("Skipping the note with empty local uid"));
+                return;
+            }
+
+            *m_pCurrentNote = note;
+        }
     }
+
 
     changed |= (m_currentNotebookLocalUid != notebook.localUid());
 
@@ -136,10 +167,29 @@ void NoteTagsWidget::setCurrentNoteAndNotebook(const Note & note, const Notebook
     }
 }
 
+void NoteTagsWidget::setCurrentNoteLocalUid(const QString & localUid)
+{
+    QNDEBUG(QStringLiteral("NoteTagsWidget::setCurrentNoteLocalUid: ") << localUid);
+
+    if (!m_pCurrentNote.isNull() && (localUid == m_pCurrentNote->localUid())) {
+        QNDEBUG(QStringLiteral("This note is already set to note tags widget, nothing to do"));
+        return;
+    }
+
+    clear();
+
+    const Note * pCachedNote = Q_NULLPTR;
+    if (m_pNoteCache) {
+        pCachedNote = m_pNoteCache->get(localUid);
+    }
+
+    // TODO: implement
+}
+
 void NoteTagsWidget::clear()
 {
-    m_currentNote.clear();
-    m_currentNote.setLocalUid(QString());
+    m_pCurrentNote.reset(Q_NULLPTR);
+
     m_lastDisplayedTagLocalUids.clear();
 
     m_currentNotebookLocalUid.clear();
@@ -154,7 +204,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 {
     QNTRACE(QStringLiteral("NoteTagsWidget::onTagRemoved: tag name = ") << tagName);
 
-    if (Q_UNLIKELY(m_currentNote.localUid().isEmpty())) {
+    if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
         QNDEBUG(QStringLiteral("No current note is set, ignoring the tag removal event"));
         return;
     }
@@ -197,23 +247,23 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         return;
     }
 
-    m_currentNote.removeTagLocalUid(tagLocalUid);
+    m_pCurrentNote->removeTagLocalUid(tagLocalUid);
 
     const QString & tagGuid = pTagItem->guid();
     if (!tagGuid.isEmpty()) {
-        m_currentNote.removeTagGuid(tagGuid);
+        m_pCurrentNote->removeTagGuid(tagGuid);
     }
 
-    m_currentNote.setDirty(true);
-    m_currentNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    m_pCurrentNote->setDirty(true);
+    m_pCurrentNote->setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
 
     QUuid updateNoteRequestId = QUuid::createUuid();
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid[updateNoteRequestId] =
             std::pair<QString, QString>(tagLocalUid, tagGuid);
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in the local storage: request id = ")
-            << updateNoteRequestId << QStringLiteral(", note = ") << m_currentNote);
-    Q_EMIT updateNote(m_currentNote, LocalStorageManager::UpdateNoteOptions(LocalStorageManager::UpdateNoteOption::UpdateTags),
+            << updateNoteRequestId << QStringLiteral(", note = ") << *m_pCurrentNote);
+    Q_EMIT updateNote(*m_pCurrentNote, LocalStorageManager::UpdateNoteOptions(LocalStorageManager::UpdateNoteOption::UpdateTags),
                       updateNoteRequestId);
 }
 
@@ -256,7 +306,7 @@ void NoteTagsWidget::onNewTagNameEntered()
         return;
     }
 
-    if (Q_UNLIKELY(m_currentNote.localUid().isEmpty())) {
+    if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
         QNDEBUG(QStringLiteral("No current note is set, ignoring the tag addition event"));
         return;
     }
@@ -313,9 +363,9 @@ void NoteTagsWidget::onNewTagNameEntered()
         return;
     }
 
-    if (m_currentNote.hasTagLocalUids())
+    if (m_pCurrentNote->hasTagLocalUids())
     {
-        const QStringList & tagLocalUids = m_currentNote.tagLocalUids();
+        const QStringList & tagLocalUids = m_pCurrentNote->tagLocalUids();
         if (tagLocalUids.contains(pTagItem->localUid())) {
             QNDEBUG(QStringLiteral("The current note already contains tag local uid ")
                     << pTagItem->localUid());
@@ -323,23 +373,23 @@ void NoteTagsWidget::onNewTagNameEntered()
         }
     }
 
-    m_currentNote.addTagLocalUid(pTagItem->localUid());
+    m_pCurrentNote->addTagLocalUid(pTagItem->localUid());
 
     const QString & tagGuid = pTagItem->guid();
     if (!tagGuid.isEmpty()) {
-        m_currentNote.addTagGuid(pTagItem->guid());
+        m_pCurrentNote->addTagGuid(pTagItem->guid());
     }
 
-    m_currentNote.setDirty(true);
-    m_currentNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    m_pCurrentNote->setDirty(true);
+    m_pCurrentNote->setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
 
     QUuid updateNoteRequestId = QUuid::createUuid();
     m_updateNoteRequestIdToAddedTagLocalUidAndGuid[updateNoteRequestId] =
             std::pair<QString, QString>(pTagItem->localUid(), pTagItem->guid());
 
     QNTRACE(QStringLiteral("Emitting the request to update the note in the local storage: request id = ")
-            << updateNoteRequestId << QStringLiteral(", note = ") << m_currentNote);
-    Q_EMIT updateNote(m_currentNote, LocalStorageManager::UpdateNoteOptions(LocalStorageManager::UpdateNoteOption::UpdateTags),
+            << updateNoteRequestId << QStringLiteral(", note = ") << *m_pCurrentNote);
+    Q_EMIT updateNote(*m_pCurrentNote, LocalStorageManager::UpdateNoteOptions(LocalStorageManager::UpdateNoteOption::UpdateTags),
                       updateNoteRequestId);
 }
 
@@ -365,7 +415,11 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, LocalStorageManager::Update
         return;
     }
 
-    if (note.localUid() != m_currentNote.localUid()) {
+    if (m_pCurrentNote.isNull()) {
+        return;
+    }
+
+    if (note.localUid() != m_pCurrentNote->localUid()) {
         return;
     }
 
@@ -375,13 +429,13 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, LocalStorageManager::Update
     if ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) &&
         (options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData))
     {
-        m_currentNote = note;
+        *m_pCurrentNote = note;
     }
     else
     {
-        QList<Resource> resources = m_currentNote.resources();
-        m_currentNote = note;
-        m_currentNote.setResources(resources);
+        QList<Resource> resources = m_pCurrentNote->resources();
+        *m_pCurrentNote = note;
+        m_pCurrentNote->setResources(resources);
     }
 
     auto ait = m_updateNoteRequestIdToAddedTagLocalUidAndGuid.find(requestId);
@@ -526,6 +580,10 @@ void NoteTagsWidget::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNo
 {
     Q_UNUSED(options)
 
+    if (m_pCurrentNote.isNull()) {
+        return;
+    }
+
     auto rit = m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.find(requestId);
     auto ait = m_updateNoteRequestIdToAddedTagLocalUidAndGuid.end();
     if (rit == m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.end()) {
@@ -546,9 +604,9 @@ void NoteTagsWidget::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNo
     {
         const auto & idsPair = rit.value();
 
-        m_currentNote.addTagLocalUid(idsPair.first);
+        m_pCurrentNote->addTagLocalUid(idsPair.first);
         if (!idsPair.second.isEmpty()) {
-            m_currentNote.addTagGuid(idsPair.second);
+            m_pCurrentNote->addTagGuid(idsPair.second);
         }
 
         Q_UNUSED(m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.erase(rit))
@@ -557,9 +615,9 @@ void NoteTagsWidget::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNo
     {
         const auto & idsPair = ait.value();
 
-        m_currentNote.removeTagLocalUid(idsPair.first);
+        m_pCurrentNote->removeTagLocalUid(idsPair.first);
         if (!idsPair.second.isEmpty()) {
-            m_currentNote.removeTagGuid(idsPair.second);
+            m_pCurrentNote->removeTagGuid(idsPair.second);
         }
 
         Q_UNUSED(m_updateNoteRequestIdToAddedTagLocalUidAndGuid.erase(ait))
@@ -570,7 +628,7 @@ void NoteTagsWidget::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNo
 
 void NoteTagsWidget::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    if (note.localUid() != m_currentNote.localUid()) {
+    if (m_pCurrentNote.isNull() || (note.localUid() != m_pCurrentNote->localUid())) {
         return;
     }
 
@@ -726,7 +784,7 @@ void NoteTagsWidget::clearLayout(const bool skipNewTagWidget)
 
     addTagIconToLayout();
 
-    if (skipNewTagWidget || m_currentNote.localUid().isEmpty() ||
+    if (skipNewTagWidget || m_pCurrentNote.isNull() ||
         m_currentNotebookLocalUid.isEmpty() || !m_tagRestrictions.m_canUpdateNote)
     {
         setTagItemsRemovable(false);
@@ -744,13 +802,12 @@ void NoteTagsWidget::updateLayout()
 {
     QNTRACE(QStringLiteral("NoteTagsWidget::updateLayout"));
 
-    const QString & noteLocalUid = m_currentNote.localUid();
-    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        QNTRACE(QStringLiteral("Note local uid is empty, nothing to do"));
+    if (m_pCurrentNote.isNull()) {
+        QNTRACE(QStringLiteral("No note is set to note tags widget, nothing to do"));
         return;
     }
 
-    if (!m_currentNote.hasTagLocalUids())
+    if (!m_pCurrentNote->hasTagLocalUids())
     {
         if (m_lastDisplayedTagLocalUids.isEmpty()) {
             QNTRACE(QStringLiteral("Note tags are still empty, nothing to do"));
@@ -765,7 +822,7 @@ void NoteTagsWidget::updateLayout()
 
     bool shouldUpdateLayout = false;
 
-    const QStringList & tagLocalUids = m_currentNote.tagLocalUids();
+    const QStringList & tagLocalUids = m_pCurrentNote->tagLocalUids();
     int numTags = tagLocalUids.size();
     if (numTags == m_lastDisplayedTagLocalUids.size())
     {
@@ -1061,7 +1118,7 @@ NewListItemLineEdit * NoteTagsWidget::findNewItemWidget()
 
 bool NoteTagsWidget::isActive() const
 {
-    return !m_currentNote.localUid().isEmpty();
+    return !m_pCurrentNote.isNull();
 }
 
 QStringList NoteTagsWidget::tagNames() const

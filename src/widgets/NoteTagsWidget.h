@@ -19,10 +19,13 @@
 #ifndef QUENTIER_WIDGETS_NOTE_TAGS_WIDGET_H
 #define QUENTIER_WIDGETS_NOTE_TAGS_WIDGET_H
 
+#include "../models/NoteCache.h"
+#include "../models/NotebookCache.h"
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/StringUtils.h>
 #include <QWidget>
 #include <QPointer>
+#include <QScopedPointer>
 #include <QHash>
 #include <QSet>
 
@@ -50,13 +53,20 @@ class NoteTagsWidget: public QWidget
     Q_OBJECT
 public:
     explicit NoteTagsWidget(QWidget * parent = Q_NULLPTR);
+    virtual ~NoteTagsWidget();
+
+    void initialize(LocalStorageManagerAsync & localStorageManagerAsync,
+                    NoteCache & noteCache, NotebookCache & notebookCache,
+                    TagModel * pTagModel);
 
     void setLocalStorageManagerThreadWorker(LocalStorageManagerAsync & localStorageManagerAsync);
 
     void setTagModel(TagModel * pTagModel);
 
-    const Note & currentNote() const { return m_currentNote; }
+    const Note * currentNote() const { return m_pCurrentNote.data(); }
     void setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook);
+
+    void setCurrentNoteLocalUid(const QString & localUid);
 
     const QString & currentNotebookLocalUid() const { return m_currentNotebookLocalUid; }
 
@@ -122,9 +132,12 @@ private:
     NewListItemLineEdit * findNewItemWidget();
 
 private:
-    Note                    m_currentNote;
+    QScopedPointer<Note>    m_pCurrentNote;
     QString                 m_currentNotebookLocalUid;
     QString                 m_currentLinkedNotebookGuid;
+
+    NoteCache *             m_pNoteCache;
+    NotebookCache *         m_pNotebookCache;
 
     QStringList             m_lastDisplayedTagLocalUids;
 
