@@ -59,14 +59,11 @@ public:
                     NoteCache & noteCache, NotebookCache & notebookCache,
                     TagModel * pTagModel);
 
-    void setLocalStorageManagerThreadWorker(LocalStorageManagerAsync & localStorageManagerAsync);
-
     void setTagModel(TagModel * pTagModel);
 
     const Note * currentNote() const { return m_pCurrentNote.data(); }
-    void setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook);
 
-    void setCurrentNoteLocalUid(const QString & localUid);
+    void setCurrentNoteLocalUid(const QString & noteLocalUid);
 
     const QString & currentNotebookLocalUid() const { return m_currentNotebookLocalUid; }
 
@@ -92,6 +89,8 @@ Q_SIGNALS:
     void newTagLineEditReceivedFocusFromWindowSystem();
 
 // private signals
+    void findNotebook(Notebook notebook, QUuid requestId);
+    void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
 
 private Q_SLOTS:
@@ -99,9 +98,10 @@ private Q_SLOTS:
     void onNewTagNameEntered();
     void onAllTagsListed();
 
-    // Slots for response to events from local storage
-
     // Slots for notes events: finding, updating & expunging
+    void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+                          ErrorString errorDescription, QUuid requestId);
     void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
     void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                             ErrorString errorDescription, QUuid requestId);
@@ -109,6 +109,8 @@ private Q_SLOTS:
 
     // Slots for notebook events: updating and expunging
     // The notebooks are important  because they hold the information about the note restrictions
+    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
@@ -117,6 +119,9 @@ private Q_SLOTS:
     void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
 private:
+    void setCurrentNote(const Note & note);
+    void setCurrentNotebook(const Notebook & notebook);
+
     void clearLayout(const bool skipNewTagWidget = false);
     void updateLayout();
 
@@ -127,7 +132,7 @@ private:
 
     void setTagItemsRemovable(const bool removable);
 
-    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
+    void createConnections();
 
     NewListItemLineEdit * findNewItemWidget();
 
@@ -136,8 +141,12 @@ private:
     QString                 m_currentNotebookLocalUid;
     QString                 m_currentLinkedNotebookGuid;
 
+    QUuid                   m_findCurrentNoteRequestId;
+    QUuid                   m_findCurrentNotebookRequestId;
+
     NoteCache *             m_pNoteCache;
     NotebookCache *         m_pNotebookCache;
+    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
 
     QStringList             m_lastDisplayedTagLocalUids;
 
