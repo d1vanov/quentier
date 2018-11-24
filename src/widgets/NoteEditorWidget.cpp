@@ -83,7 +83,6 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_currentAccount(account),
     m_pUndoStack(pUndoStack),
     m_pConvertToNoteDeadlineTimer(Q_NULLPTR),
-    m_findCurrentNoteRequestId(),
     m_findCurrentNotebookRequestId(),
     m_updateNoteRequestIds(),
     m_noteLinkInfoByFindNoteRequestIds(),
@@ -164,61 +163,14 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid, const bool 
 
     m_isNewNote = isNewNote;
 
-    const Note * pCachedNote = m_noteCache.get(noteLocalUid);
-    if (Q_UNLIKELY(!pCachedNote))
-    {
-        m_findCurrentNoteRequestId = QUuid::createUuid();
-        Note dummy;
-        dummy.setLocalUid(noteLocalUid);
-        QNTRACE(QStringLiteral("Emitting the request to find the current note: local uid = ") << noteLocalUid
-                << QStringLiteral(", request id = ") << m_findCurrentNoteRequestId);
-        Q_EMIT findNote(dummy, /* with resource metadata = */ true,
-                        /* with resource binary data = */ false, m_findCurrentNoteRequestId);
-        return;
-    }
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteAndNotebookFoundInLocalStorage,Note,Notebook),
+                     this, QNSLOT(NoteEditorWidget,onFoundNoteAndNotebookInLocalStorage,Note,Notebook),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteNotFound,QString),
+                     this, QNSLOT(NoteEditorWidget,onNoteNotFoundInLocalStorage,QString),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
-    QNTRACE(QStringLiteral("Found the cached note"));
-
-    if (Q_UNLIKELY(!pCachedNote->hasNotebookLocalUid() && !pCachedNote->hasNotebookGuid())) {
-        ErrorString error(QT_TR_NOOP("Can't set the note to the editor: the note has no linkage to any notebook"));
-        QNWARNING(error);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
-    m_pCurrentNote.reset(new Note(*pCachedNote));
-    QNTRACE(QStringLiteral("Note: ") << *m_pCurrentNote);
-
-    const Notebook * pCachedNotebook = Q_NULLPTR;
-    if (m_pCurrentNote->hasNotebookLocalUid()) {
-        pCachedNotebook = m_notebookCache.get(m_pCurrentNote->notebookLocalUid());
-    }
-
-    if (Q_UNLIKELY(!pCachedNotebook))
-    {
-        m_findCurrentNotebookRequestId = QUuid::createUuid();
-        Notebook dummy;
-        if (m_pCurrentNote->hasNotebookLocalUid()) {
-            dummy.setLocalUid(m_pCurrentNote->notebookLocalUid());
-        }
-        else {
-            dummy.setLocalUid(QString());
-            dummy.setGuid(m_pCurrentNote->notebookGuid());
-        }
-
-        QNTRACE(QStringLiteral("Emitting the request to find the notebook for note: ") << dummy
-                << QStringLiteral("\nRequest id = ") << m_findCurrentNotebookRequestId);
-        Q_EMIT findNotebook(dummy, m_findCurrentNotebookRequestId);
-        return;
-    }
-
-    m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
-    QNTRACE(QStringLiteral("Notebook: ") << *m_pCurrentNotebook);
-
-    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-
-    QNTRACE(QStringLiteral("Emitting resolved signal, note local uid = ") << m_noteLocalUid);
-    Q_EMIT resolved();
+    m_pUi->noteEditor->setCurrentNoteLocalUid(noteLocalUid);
 }
 
 bool NoteEditorWidget::isResolved() const
@@ -1243,11 +1195,8 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, LocalStorageManager::Update
 
 void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId)
 {
-    bool isFindCurrentNoteRequestId = (requestId == m_findCurrentNoteRequestId);
-    auto noteLinkInfoIt = (isFindCurrentNoteRequestId
-                           ? m_noteLinkInfoByFindNoteRequestIds.end()
-                           : m_noteLinkInfoByFindNoteRequestIds.find(requestId));
-    if (!isFindCurrentNoteRequestId && (noteLinkInfoIt == m_noteLinkInfoByFindNoteRequestIds.end())) {
+    auto it = m_noteLinkInfoByFindNoteRequestIds.find(requestId);
+    if (it == m_noteLinkInfoByFindNoteRequestIds.end()) {
         return;
     }
 
@@ -1256,13 +1205,7 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceMetadata, 
             << QStringLiteral(", with resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")));
     QNTRACE(QStringLiteral("Note: ") << note);
 
-    if (isFindCurrentNoteRequestId) {
-        m_findCurrentNoteRequestId = QUuid();
-        onCurrentNoteFound(note);
-        return;
-    }
-
-    const NoteLinkInfo & noteLinkInfo = noteLinkInfoIt.value();
+    const NoteLinkInfo & noteLinkInfo = it.value();
 
     QString titleOrPreview;
     if (note.hasTitle()) {
@@ -1278,17 +1221,14 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceMetadata, 
             << noteLinkInfo.m_noteGuid << QStringLiteral(", title or preview = ") << titleOrPreview);
     Q_EMIT insertInAppNoteLink(noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid, titleOrPreview);
 
-    Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(noteLinkInfoIt))
+    Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(it))
 }
 
 void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
                                         ErrorString errorDescription, QUuid requestId)
 {
-    bool isFindCurrentNoteRequestId = (requestId == m_findCurrentNoteRequestId);
-    auto noteLinkInfoIt = (isFindCurrentNoteRequestId
-                           ? m_noteLinkInfoByFindNoteRequestIds.end()
-                           : m_noteLinkInfoByFindNoteRequestIds.find(requestId));
-    if (!isFindCurrentNoteRequestId && (noteLinkInfoIt == m_noteLinkInfoByFindNoteRequestIds.end())) {
+    auto it = m_noteLinkInfoByFindNoteRequestIds.find(requestId);
+    if (it == m_noteLinkInfoByFindNoteRequestIds.end()) {
         return;
     }
 
@@ -1298,21 +1238,14 @@ void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceMetadata, bo
             << errorDescription);
     QNTRACE(QStringLiteral("Note: ") << note);
 
-    if (isFindCurrentNoteRequestId) {
-        m_findCurrentNoteRequestId = QUuid();
-        clear();
-        Q_EMIT notifyError(ErrorString(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor")));
-        return;
-    }
-
-    const NoteLinkInfo & noteLinkInfo = noteLinkInfoIt.value();
+    const NoteLinkInfo & noteLinkInfo = it.value();
 
     QNTRACE(QStringLiteral("Emitting the request to insert the in-app note link without the link text as the note was not found: user id = ")
             << noteLinkInfo.m_userId << QStringLiteral(", shard id = ") << noteLinkInfo.m_shardId
             << QStringLiteral(", note guid = ") << noteLinkInfo.m_noteGuid);
     Q_EMIT insertInAppNoteLink(noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid, QString());
 
-    Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(noteLinkInfoIt))
+    Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(it))
 }
 
 void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
@@ -2024,6 +1957,33 @@ void NoteEditorWidget::onReplaceInsideNoteAction()
                         m_pUi->findAndReplaceWidget->matchCase());
 }
 
+void NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage(Note note, Notebook notebook)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage"));
+    QNTRACE(QStringLiteral("Note: ") << note << QStringLiteral("\nNotebook: ") << notebook);
+
+    QObject::disconnect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteAndNotebookFoundInLocalStorage,Note,Notebook),
+                        this, QNSLOT(NoteEditorWidget,onFoundNoteAndNotebookInLocalStorage,Note,Notebook));
+    QObject::disconnect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteNotFound,QString),
+                        this, QNSLOT(NoteEditorWidget,onNoteNotFoundInLocalStorage,QString));
+
+    setNoteAndNotebook(note, notebook);
+
+    QNTRACE(QStringLiteral("Emitting resolved signal, note local uid = ") << m_noteLocalUid);
+    Q_EMIT resolved();
+}
+
+void NoteEditorWidget::onNoteNotFoundInLocalStorage(QString noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteNotFoundInLocalStorage: note local uid = ") << noteLocalUid);
+
+    clear();
+
+    ErrorString errorDescription(QT_TR_NOOP("Can't display note: either note or its notebook were not found within the local storage"));
+    QNWARNING(errorDescription);
+    Q_EMIT notifyError(errorDescription);
+}
+
 void NoteEditorWidget::onFindAndReplaceWidgetClosed()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onFindAndReplaceWidgetClosed"));
@@ -2365,13 +2325,18 @@ void NoteEditorWidget::clear()
 
     m_pCurrentNote.reset(Q_NULLPTR);
     m_pCurrentNotebook.reset(Q_NULLPTR);
+
+    QObject::disconnect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteAndNotebookFoundInLocalStorage,Note,Notebook),
+                        this, QNSLOT(NoteEditorWidget,onFoundNoteAndNotebookInLocalStorage,Note,Notebook));
+    QObject::disconnect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteNotFound,QString),
+                        this, QNSLOT(NoteEditorWidget,onNoteNotFoundInLocalStorage,QString));
     m_pUi->noteEditor->clear();
+
     m_pUi->tagNameLabelsContainer->clear();
     m_pUi->noteNameLineEdit->clear();
 
     m_lastNoteTitleOrPreviewText.clear();
 
-    m_findCurrentNoteRequestId = QUuid();
     m_findCurrentNotebookRequestId = QUuid();
     m_updateNoteRequestIds.clear();
     m_noteLinkInfoByFindNoteRequestIds.clear();
@@ -2379,48 +2344,6 @@ void NoteEditorWidget::clear()
     m_pendingEditorSpellChecker = false;
     m_currentNoteWasExpunged = false;
     m_noteHasBeenModified = false;
-}
-
-void NoteEditorWidget::onCurrentNoteFound(const Note & note)
-{
-    QNDEBUG(QStringLiteral("NoteEditorWidget::onCurrentNoteFound"));
-
-    m_pCurrentNote.reset(new Note(note));
-
-    const Notebook * pCachedNotebook = Q_NULLPTR;
-    if (m_pCurrentNote->hasNotebookLocalUid()) {
-        pCachedNotebook = m_notebookCache.get(m_pCurrentNote->notebookLocalUid());
-    }
-
-    if (Q_UNLIKELY(!pCachedNotebook))
-    {
-        if (!m_findCurrentNotebookRequestId.isNull()) {
-            QNDEBUG(QStringLiteral("Couldn't find the notebook in the cache and the request to find it is already active"));
-            return;
-        }
-
-        m_findCurrentNotebookRequestId = QUuid::createUuid();
-        Notebook dummy;
-        if (m_pCurrentNote->hasNotebookLocalUid()) {
-            dummy.setLocalUid(m_pCurrentNote->notebookLocalUid());
-        }
-        else {
-            dummy.setLocalUid(QString());
-            dummy.setGuid(m_pCurrentNote->notebookGuid());
-        }
-
-        QNTRACE(QStringLiteral("Emitting the request to find the current notebook: ") << dummy
-                << QStringLiteral("\nRequest id = ") << m_findCurrentNotebookRequestId);
-        Q_EMIT findNotebook(dummy, m_findCurrentNotebookRequestId);
-        return;
-    }
-
-    m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
-
-    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-
-    QNTRACE(QStringLiteral("Emitting resolved signal, note local uid = ") << m_noteLocalUid);
-    Q_EMIT resolved();
 }
 
 void NoteEditorWidget::setupSpecialIcons()

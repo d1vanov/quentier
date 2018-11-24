@@ -399,6 +399,9 @@ private Q_SLOTS:
 
     void onEditorHtmlUpdate(QString html);
 
+    void onFoundNoteAndNotebookInLocalStorage(Note note, Notebook notebook);
+    void onNoteNotFoundInLocalStorage(QString noteLocalUid);
+
     // Slots for find & replace widget events
     void onFindAndReplaceWidgetClosed();
     void onTextToFindInsideNoteEdited(const QString & textToFind);
@@ -419,8 +422,6 @@ private Q_SLOTS:
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
-
-    void onCurrentNoteFound(const Note & note);
 
     void setupSpecialIcons();
     void setupFontsComboBox();
@@ -462,7 +463,6 @@ private:
 
     QTimer *                    m_pConvertToNoteDeadlineTimer;
 
-    QUuid                       m_findCurrentNoteRequestId;
     QUuid                       m_findCurrentNotebookRequestId;
     QSet<QUuid>                 m_updateNoteRequestIds;
 
