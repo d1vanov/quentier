@@ -124,7 +124,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUi->noteSourceView->document());
     Q_UNUSED(highlighter);
 
-    m_pUi->tagNameLabelsContainer->initialize(localStorageManagerAsync, m_noteCache, m_notebookCache, &tagModel);
+    m_pUi->tagNameLabelsContainer->setTagModel(&tagModel);
+    m_pUi->tagNameLabelsContainer->setLocalStorageManagerThreadWorker(localStorageManagerAsync);
     createConnections(localStorageManagerAsync);
 
     QWidget::setAttribute(Qt::WA_DeleteOnClose, /* on = */ true);
@@ -1558,6 +1559,12 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
     *m_pCurrentNote = note;
     m_pCurrentNote->setTitle(noteTitle);
 
+    if (Q_LIKELY(m_pCurrentNotebook)) {
+        // Update the note within the tag names container just to avoid any potential race with updates from it
+        // messing with other note's parts than tags
+        m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    }
+
     updateNoteInLocalStorage();
 }
 
@@ -2646,7 +2653,7 @@ void NoteEditorWidget::updateNoteSourceView(const QString & html)
 
 void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
-    QNDEBUG(QStringLiteral("NoteEditorWidget::setNoteAndNotebook"));
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setCurrentNoteAndNotebook"));
     QNTRACE(QStringLiteral("Note: ") << note << QStringLiteral("\nNotebook: ") << notebook);
 
     m_pUi->noteNameLineEdit->show();
@@ -2677,9 +2684,8 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
         }
     }
 
-    QString noteLocalUid = note.localUid();
-    m_pUi->noteEditor->setCurrentNoteLocalUid(noteLocalUid);
-    m_pUi->tagNameLabelsContainer->setCurrentNoteLocalUid(noteLocalUid);
+    m_pUi->noteEditor->setCurrentNoteLocalUid(note.localUid());
+    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(note, notebook);
 
     m_pUi->printNotePushButton->setDisabled(false);
     m_pUi->exportNoteToPdfPushButton->setDisabled(false);

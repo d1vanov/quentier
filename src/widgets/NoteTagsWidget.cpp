@@ -33,11 +33,8 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     m_pCurrentNote(),
     m_currentNotebookLocalUid(),
     m_currentLinkedNotebookGuid(),
-    m_findCurrentNoteRequestId(),
-    m_findCurrentNotebookRequestId(),
     m_pNoteCache(Q_NULLPTR),
     m_pNotebookCache(Q_NULLPTR),
-    m_pLocalStorageManagerAsync(Q_NULLPTR),
     m_lastDisplayedTagLocalUids(),
     m_currentNoteTagLocalUidToNameBimap(),
     m_pTagModel(),
@@ -59,11 +56,19 @@ void NoteTagsWidget::initialize(LocalStorageManagerAsync & localStorageManagerAs
 {
     m_pNoteCache = &noteCache;
     m_pNotebookCache = &notebookCache;
-    m_pLocalStorageManagerAsync = &localStorageManagerAsync;
+    createConnections(localStorageManagerAsync);
 
-    createConnections();
+    if (!m_pTagModel.isNull()) {
+        QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
+                            this, QNSLOT(NoteTagsWidget,onAllTagsListed));
+    }
 
-    setTagModel(pTagModel);
+    m_pTagModel = QPointer<TagModel>(pTagModel);
+}
+
+void NoteTagsWidget::setLocalStorageManagerThreadWorker(LocalStorageManagerAsync & localStorageManagerAsync)
+{
+    createConnections(localStorageManagerAsync);
 }
 
 void NoteTagsWidget::setTagModel(TagModel * pTagModel)
@@ -76,11 +81,97 @@ void NoteTagsWidget::setTagModel(TagModel * pTagModel)
     m_pTagModel = QPointer<TagModel>(pTagModel);
 }
 
-void NoteTagsWidget::setCurrentNoteLocalUid(const QString & noteLocalUid)
+void NoteTagsWidget::setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
-    QNDEBUG(QStringLiteral("NoteTagsWidget::setCurrentNoteLocalUid: ") << noteLocalUid);
+    QNTRACE(QStringLiteral("NoteTagsWidget::setCurrentNoteAndNotebook: note local uid = ") << note
+            << QStringLiteral(", notebook: ") << notebook);
 
-    if (!m_pCurrentNote.isNull() && (noteLocalUid == m_pCurrentNote->localUid())) {
+    bool changed = false;
+
+    if (!m_pCurrentNote)
+    {
+        m_pCurrentNote.reset(new Note(note));
+        changed = true;
+    }
+    else
+    {
+        changed = (note.localUid() != m_pCurrentNote->localUid());
+        if (!changed)
+        {
+            QNDEBUG(QStringLiteral("The note is the same as the current one already, checking whether the tag information has changed"));
+
+            changed |= (note.hasTagLocalUids() != m_pCurrentNote->hasTagLocalUids());
+            changed |= (note.hasTagGuids() != m_pCurrentNote->hasTagGuids());
+
+            if (note.hasTagLocalUids() && m_pCurrentNote->hasTagLocalUids()) {
+                changed |= (note.tagLocalUids() != m_pCurrentNote->tagLocalUids());
+            }
+
+            if (note.hasTagGuids() && m_pCurrentNote->hasTagGuids()) {
+                changed |= (note.tagGuids() != m_pCurrentNote->tagGuids());
+            }
+
+            if (!changed) {
+                QNDEBUG(QStringLiteral("Tag info hasn't changed"));
+            }
+            else {
+                clear();
+            }
+
+            *m_pCurrentNote = note;   // Accepting the update just in case
+        }
+        else
+        {
+            clear();
+
+            if (Q_UNLIKELY(note.localUid().isEmpty())) {
+                QNWARNING(QStringLiteral("Skipping the note with empty local uid"));
+                return;
+            }
+
+            *m_pCurrentNote = note;
+        }
+    }
+
+
+    changed |= (m_currentNotebookLocalUid != notebook.localUid());
+
+    QString linkedNotebookGuid;
+    if (notebook.hasLinkedNotebookGuid()) {
+        linkedNotebookGuid = notebook.linkedNotebookGuid();
+    }
+
+    changed |= (m_currentLinkedNotebookGuid != linkedNotebookGuid);
+
+    m_currentNotebookLocalUid = notebook.localUid();
+    m_currentLinkedNotebookGuid = linkedNotebookGuid;
+
+    bool couldUpdateNote = m_tagRestrictions.m_canUpdateNote;
+    bool couldUpdateTags = m_tagRestrictions.m_canUpdateTags;
+
+    if (notebook.hasRestrictions()) {
+        const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
+        m_tagRestrictions.m_canUpdateNote = !(restrictions.noCreateTags.isSet() && restrictions.noCreateTags.ref());
+        m_tagRestrictions.m_canUpdateTags = !(restrictions.noUpdateTags.isSet() && restrictions.noUpdateTags.ref());
+    }
+    else {
+        m_tagRestrictions.m_canUpdateNote = true;
+        m_tagRestrictions.m_canUpdateTags = true;
+    }
+
+    changed |= (couldUpdateNote != m_tagRestrictions.m_canUpdateNote);
+    changed |= (couldUpdateTags != m_tagRestrictions.m_canUpdateTags);
+
+    if (changed) {
+        updateLayout();
+    }
+}
+
+void NoteTagsWidget::setCurrentNoteLocalUid(const QString & localUid)
+{
+    QNDEBUG(QStringLiteral("NoteTagsWidget::setCurrentNoteLocalUid: ") << localUid);
+
+    if (!m_pCurrentNote.isNull() && (localUid == m_pCurrentNote->localUid())) {
         QNDEBUG(QStringLiteral("This note is already set to note tags widget, nothing to do"));
         return;
     }
@@ -89,33 +180,10 @@ void NoteTagsWidget::setCurrentNoteLocalUid(const QString & noteLocalUid)
 
     const Note * pCachedNote = Q_NULLPTR;
     if (m_pNoteCache) {
-        pCachedNote = m_pNoteCache->get(noteLocalUid);
+        pCachedNote = m_pNoteCache->get(localUid);
     }
 
-    if (Q_UNLIKELY(!pCachedNote || !pCachedNote->hasNotebookLocalUid()))
-    {
-        m_findCurrentNoteRequestId = QUuid::createUuid();
-
-        Note dummy;
-        dummy.setLocalUid(noteLocalUid);
-
-        QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
-                         this, QNSLOT(NoteTagsWidget,onFindNoteComplete,Note,bool,bool,QUuid),
-                         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-        QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                         this, QNSLOT(NoteTagsWidget,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-
-        QNTRACE(QStringLiteral("Emitting the request to find the current note: local uid = ") << noteLocalUid
-                << QStringLiteral(", request id = ") << m_findCurrentNoteRequestId);
-        Q_EMIT findNote(dummy, /* with resource metadata = */ false,
-                        /* with resource binary data = */ false, m_findCurrentNoteRequestId);
-        return;
-    }
-
-    QNTRACE(QStringLiteral("Found the cached note: ") << *pCachedNote);
-
-    setCurrentNote(*pCachedNote);
+    // TODO: implement
 }
 
 void NoteTagsWidget::clear()
@@ -126,21 +194,6 @@ void NoteTagsWidget::clear()
 
     m_currentNotebookLocalUid.clear();
     m_currentLinkedNotebookGuid.clear();
-
-    m_findCurrentNoteRequestId = QUuid();
-
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNoteComplete,Note,bool,bool,QUuid));
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
-
-    m_findCurrentNotebookRequestId = QUuid();
-
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNotebookComplete,Notebook,QUuid));
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-
     m_currentNoteTagLocalUidToNameBimap.clear();
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.clear();
     m_updateNoteRequestIdToAddedTagLocalUidAndGuid.clear();
@@ -351,62 +404,6 @@ void NoteTagsWidget::onAllTagsListed()
     QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
                         this, QNSLOT(NoteTagsWidget,onAllTagsListed));
     updateLayout();
-}
-
-void NoteTagsWidget::onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId)
-{
-    if (requestId != m_findCurrentNoteRequestId) {
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onFindNoteComplete: request id = ") << requestId
-            << QStringLiteral(", with resource metadata = ")
-            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", with resource binary data = ")
-            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", note: ") << note);
-
-    // NOTE: deliberately not putting this note into the cache as we requested it without resource metadata
-    // and notes within the cache are intended to contain the resource metadata
-
-    m_findCurrentNoteRequestId = QUuid();
-
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNoteComplete,Note,bool,bool,QUuid));
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
-
-    setCurrentNote(note);
-}
-
-void NoteTagsWidget::onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
-                                      ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_findCurrentNoteRequestId) {
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onFindNoteFailed: request id = ") << requestId
-            << QStringLiteral(", with resource metadata = ")
-            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", with resource binary data = ")
-            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description: ") << errorDescription
-            << QStringLiteral("; note: ") << note);
-
-    m_findCurrentNoteRequestId = QUuid();
-
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNoteComplete,Note,bool,bool,QUuid));
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
-
-    QNWARNING(QStringLiteral("Can't display the list of tags for current note, note not found: ") << errorDescription
-              << QStringLiteral(", note local uid = ") << note.localUid());
-    Q_EMIT notifyError(errorDescription);
-
-    clear();
-    clearLayout();
 }
 
 void NoteTagsWidget::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options,
@@ -642,55 +639,6 @@ void NoteTagsWidget::onExpungeNoteComplete(Note note, QUuid requestId)
     clearLayout();
 }
 
-void NoteTagsWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId)
-{
-    if (requestId != m_findCurrentNotebookRequestId) {
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onFindNotebookComplete: request id = ") << requestId
-            << QStringLiteral(", notebook: ") << notebook);
-
-    m_findCurrentNotebookRequestId = QUuid();
-
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNotebookComplete,Notebook,QUuid));
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-
-    if (m_pNotebookCache) {
-        m_pNotebookCache->put(notebook.localUid(), notebook);
-    }
-
-    setCurrentNotebook(notebook);
-    updateLayout();
-}
-
-void NoteTagsWidget::onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_findCurrentNotebookRequestId) {
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("NoteTagsWidget::onFindNotebookFailed: request id = ") << requestId
-            << QStringLiteral(", error description: ") << errorDescription
-            << QStringLiteral("; notebook: ") << notebook);
-
-    m_findCurrentNotebookRequestId = QUuid();
-
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNotebookComplete,Notebook,QUuid));
-    QObject::disconnect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
-                        this, QNSLOT(NoteTagsWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-
-    QNWARNING(QStringLiteral("Can't display the list of tags for current note, note's notebook not found: ") << errorDescription
-              << QStringLiteral(", notebook: ") << notebook);
-    Q_EMIT notifyError(errorDescription);
-
-    clear();
-    clearLayout();
-}
-
 void NoteTagsWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
     Q_UNUSED(requestId)
@@ -820,93 +768,6 @@ void NoteTagsWidget::onExpungeTagComplete(Tag tag, QStringList expungedChildTagL
     expungedTagLocalUids << expungedChildTagLocalUids;
     for(auto it = expungedTagLocalUids.constBegin(), end = expungedTagLocalUids.constEnd(); it != end; ++it) {
         removeTagWidgetFromLayout(*it);
-    }
-}
-
-void NoteTagsWidget::setCurrentNote(const Note & note)
-{
-    QNDEBUG(QStringLiteral("NoteTagsWidget::setCurrentNote: ") << note.localUid());
-
-    if (Q_UNLIKELY(!note.hasNotebookLocalUid() && !note.hasNotebookGuid()))
-    {
-        ErrorString errorDescription(QT_TR_NOOP("Can't display tags for the current note: note has neither notebook local uid nor notebook guid"));
-        if (note.hasTitle())
-        {
-            errorDescription.details() = note.title();
-        }
-        else if (note.hasContent())
-        {
-            QString previewText = note.plainText();
-            if (!previewText.isEmpty()) {
-                previewText.truncate(30);
-                errorDescription.details() = previewText;
-            }
-        }
-        QNWARNING(errorDescription);
-        Q_EMIT notifyError(errorDescription);
-        clearLayout();
-        return;
-    }
-
-    m_pCurrentNote.reset(new Note(note));
-
-    const Notebook * pCachedNotebook = Q_NULLPTR;
-    if (m_pNotebookCache) {
-        pCachedNotebook = m_pNotebookCache->get(m_currentNotebookLocalUid);
-    }
-
-    if (Q_UNLIKELY(!pCachedNotebook))
-    {
-        m_findCurrentNotebookRequestId = QUuid::createUuid();
-        Notebook dummy;
-        if (m_pCurrentNote->hasNotebookLocalUid()) {
-            dummy.setLocalUid(m_pCurrentNote->notebookLocalUid());
-        }
-        else {
-            dummy.setLocalUid(QString());
-            dummy.setGuid(m_pCurrentNote->notebookGuid());
-        }
-
-        QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
-                         this, QNSLOT(NoteTagsWidget,onFindNotebookComplete,Notebook,QUuid),
-                         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-        QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
-                         this, QNSLOT(NoteTagsWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid),
-                         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-
-        QNTRACE(QStringLiteral("Emitting the request to find the notebook for note: ") << dummy
-                << QStringLiteral("\nRequest id = ") << m_findCurrentNotebookRequestId);
-        Q_EMIT findNotebook(dummy, m_findCurrentNotebookRequestId);
-        return;
-    }
-
-    QNTRACE(QStringLiteral("Found the cached notebook: ") << *pCachedNotebook);
-
-    setCurrentNotebook(*pCachedNotebook);
-    updateLayout();
-}
-
-void NoteTagsWidget::setCurrentNotebook(const Notebook & notebook)
-{
-    QNDEBUG(QStringLiteral("NoteTagsWidget::setCurrentNotebook: ") << notebook.localUid());
-
-    m_currentNotebookLocalUid = notebook.localUid();
-
-    if (notebook.hasLinkedNotebookGuid()) {
-        m_currentLinkedNotebookGuid = notebook.linkedNotebookGuid();
-    }
-    else {
-        m_currentLinkedNotebookGuid.clear();
-    }
-
-    if (notebook.hasRestrictions()) {
-        const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
-        m_tagRestrictions.m_canUpdateNote = !(restrictions.noCreateTags.isSet() && restrictions.noCreateTags.ref());
-        m_tagRestrictions.m_canUpdateTags = !(restrictions.noUpdateTags.isSet() && restrictions.noUpdateTags.ref());
-    }
-    else {
-        m_tagRestrictions.m_canUpdateNote = true;
-        m_tagRestrictions.m_canUpdateTags = true;
     }
 }
 
@@ -1209,33 +1070,29 @@ void NoteTagsWidget::setTagItemsRemovable(const bool removable)
     }
 }
 
-void NoteTagsWidget::createConnections()
+void NoteTagsWidget::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNTRACE(QStringLiteral("NoteTagsWidget::createConnections"));
 
     // Connect local storage signals to local slots
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeTagComplete,Tag,QStringList,QUuid));
 
     // Connect local signals to local storage slots
-    QObject::connect(this, QNSIGNAL(NoteTagsWidget,findNote,Note,bool,bool,QUuid),
-                     m_pLocalStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteTagsWidget,findNotebook,Notebook,QUuid),
-                     m_pLocalStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(NoteTagsWidget,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     m_pLocalStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
 }
 
 NewListItemLineEdit * NoteTagsWidget::findNewItemWidget()
