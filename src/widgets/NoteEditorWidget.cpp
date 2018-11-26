@@ -84,7 +84,6 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
     m_pUndoStack(pUndoStack),
     m_pConvertToNoteDeadlineTimer(Q_NULLPTR),
     m_findCurrentNotebookRequestId(),
-    m_updateNoteRequestIds(),
     m_noteLinkInfoByFindNoteRequestIds(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
@@ -1038,6 +1037,38 @@ void NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged(int index)
     m_pUi->noteEditor->setFontHeight(fontSize);
 }
 
+void NoteEditorWidget::onNoteSavedToLocalStorage(QString noteLocalUid)
+{
+    if (Q_UNLIKELY(!m_pCurrentNote || (m_pCurrentNote->localUid() != noteLocalUid))) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteSavedToLocalStorage: note local uid = ") << noteLocalUid);
+
+    Q_EMIT noteSavedInLocalStorage();
+}
+
+void NoteEditorWidget::onFailedToSaveNoteToLocalStorage(ErrorString errorDescription, QString noteLocalUid)
+{
+    if (Q_UNLIKELY(!m_pCurrentNote || (m_pCurrentNote->localUid() != noteLocalUid))) {
+        return;
+    }
+
+    QNWARNING(QStringLiteral("NoteEditorWidget::onFailedToSaveNoteToLocalStorage: note local uid = ")
+              << errorDescription << QStringLiteral(", error description: ") << errorDescription);
+
+    m_pUi->saveNotePushButton->setEnabled(true);
+
+    ErrorString error(QT_TR_NOOP("Failed to save the updated note"));
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
+    Q_EMIT notifyError(error);
+    // NOTE: not clearing out the unsaved stuff because it may be of value to the user
+
+    Q_EMIT noteSaveInLocalStorageFailed();
+}
+
 void NoteEditorWidget::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     if (!m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())) {
@@ -1051,15 +1082,6 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, LocalStorageManager::Upda
             << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", update tags = ")
             << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false")));
-
-    auto it = m_updateNoteRequestIds.find(requestId);
-    if (it != m_updateNoteRequestIds.end()) {
-        Q_UNUSED(m_updateNoteRequestIds.erase(it))
-        Q_EMIT noteSavedInLocalStorage();
-        return;
-    }
-
-    QNTRACE(QStringLiteral("External update, note: ") << note);
 
     bool updateResources = (options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) &&
                            (options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
@@ -1162,35 +1184,6 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, LocalStorageManager::Upda
     }
 
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-}
-
-void NoteEditorWidget::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
-                                          ErrorString errorDescription, QUuid requestId)
-{
-    auto it = m_updateNoteRequestIds.find(requestId);
-    if (it == m_updateNoteRequestIds.end()) {
-        return;
-    }
-
-    QNWARNING(QStringLiteral("NoteEditorWidget::onUpdateNoteFailed: ") << note
-              << QStringLiteral(", update resoure metadata = ")
-              << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
-              << QStringLiteral(", update resource binary data = ")
-              << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
-              << QStringLiteral(", update tags = ")
-              << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
-              << QStringLiteral(", error description: ") << errorDescription << QStringLiteral("\nRequest id = ") << requestId);
-
-    m_pUi->saveNotePushButton->setEnabled(true);
-
-    ErrorString error(QT_TR_NOOP("Failed to save the updated note"));
-    error.appendBase(errorDescription.base());
-    error.appendBase(errorDescription.additionalBases());
-    error.details() = errorDescription.details();
-    Q_EMIT notifyError(error);
-    // NOTE: not clearing out the unsaved stuff because it may be of value to the user
-
-    Q_EMIT noteSaveInLocalStorageFailed();
 }
 
 void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId)
@@ -1452,28 +1445,13 @@ void NoteEditorWidget::onNoteTitleUpdated()
     }
 
     m_pCurrentNote->setTitle(noteTitle);
-
-    // NOTE: indicate early that the note's title has been changed manually
-    // and not generated automatically
-    qevercloud::NoteAttributes & attributes = m_pCurrentNote->noteAttributes();
-    attributes.noteTitleQuality.clear();
-
-    qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
-    m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
-
-    m_pCurrentNote->setDirty(true);
-
     m_isNewNote = false;
 
-    QUuid requestId = QUuid::createUuid();
-    Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
-    LocalStorageManager::UpdateNoteOptions options(LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata |
-                                                   LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
-    QNTRACE(QStringLiteral("Emitting the request to update note due to note title update: request id = ") << requestId
-            << QStringLiteral(", note = ") << *m_pCurrentNote);
-    Q_EMIT updateNote(*m_pCurrentNote, options, requestId);
+    m_pUi->noteEditor->setNoteTitle(noteTitle);
 
     Q_EMIT titleOrPreviewChanged(titleOrPreview());
+
+    updateNoteInLocalStorage();
 }
 
 void NoteEditorWidget::onEditorNoteUpdate(Note note)
@@ -2076,20 +2054,9 @@ void NoteEditorWidget::updateNoteInLocalStorage()
 
     m_pUi->saveNotePushButton->setEnabled(false);
 
-    qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
-    m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
-
-    m_pCurrentNote->setDirty(true);
-
     m_isNewNote = false;
 
-    QUuid requestId = QUuid::createUuid();
-    Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId
-            << QStringLiteral(", note = ") << *m_pCurrentNote);
-    LocalStorageManager::UpdateNoteOptions options(LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata |
-                                                   LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
-    Q_EMIT updateNote(*m_pCurrentNote, options, requestId);
+    m_pUi->noteEditor->saveNoteToLocalStorage();
 }
 
 void NoteEditorWidget::onPrintNoteButtonPressed()
@@ -2135,8 +2102,6 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
     QNDEBUG(QStringLiteral("NoteEditorWidget::createConnections"));
 
     // Local signals to localStorageManagerAsync's slots
-    QObject::connect(this, QNSIGNAL(NoteEditorWidget,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNote,Note,bool,bool,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNotebook,Notebook,QUuid),
@@ -2149,8 +2114,6 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
     // localStorageManagerAsync's signals to local slots
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNoteComplete,Note,bool,bool,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
@@ -2338,7 +2301,6 @@ void NoteEditorWidget::clear()
     m_lastNoteTitleOrPreviewText.clear();
 
     m_findCurrentNotebookRequestId = QUuid();
-    m_updateNoteRequestIds.clear();
     m_noteLinkInfoByFindNoteRequestIds.clear();
 
     m_pendingEditorSpellChecker = false;

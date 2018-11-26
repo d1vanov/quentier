@@ -266,7 +266,6 @@ Q_SIGNALS:
     void inAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid);
 
 // private signals
-    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
     void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
 
@@ -340,10 +339,11 @@ private Q_SLOTS:
 
     void onFontSizesComboBoxCurrentIndexChanged(int index);
 
+    void onNoteSavedToLocalStorage(QString noteLocalUid);
+    void onFailedToSaveNoteToLocalStorage(ErrorString errorDescription, QString noteLocalUid);
+
     // Slots for events from local storage
     void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
-    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
-                            ErrorString errorDescription, QUuid requestId);
     void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
                           ErrorString errorDescription, QUuid requestId);
@@ -411,7 +411,6 @@ private Q_SLOTS:
     void onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
     void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
-    // Helper slot called from QTimer::singleShot
     void updateNoteInLocalStorage();
 
     // Slots for print/export buttons
@@ -464,7 +463,6 @@ private:
     QTimer *                    m_pConvertToNoteDeadlineTimer;
 
     QUuid                       m_findCurrentNotebookRequestId;
-    QSet<QUuid>                 m_updateNoteRequestIds;
 
     class NoteLinkInfo: public Printable
     {
