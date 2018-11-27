@@ -332,6 +332,7 @@ public Q_SLOTS:
     void onReplaceInsideNoteAction();
 
 private Q_SLOTS:
+    void onNoteTagsListChanged(Note note);
     void onNewTagLineEditReceivedFocusFromWindowSystem();
 
     void onFontComboBoxFontChanged(const QFont & font);

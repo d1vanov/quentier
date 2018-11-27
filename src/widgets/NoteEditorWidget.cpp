@@ -929,6 +929,22 @@ void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
     }
 }
 
+void NoteEditorWidget::onNoteTagsListChanged(Note note)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteTagsListChanged"));
+
+    QStringList tagLocalUids;
+    if (note.hasTagLocalUids()) {
+        tagLocalUids = note.tagLocalUids();
+    }
+
+    m_pUi->noteEditor->setTagIds(tagLocalUids, QStringList());
+
+    if (m_pUi->noteEditor->isModified()) {
+        m_pUi->noteEditor->saveNoteToLocalStorage();
+    }
+}
+
 void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem"));
@@ -1469,12 +1485,6 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
     QString noteTitle = (m_pCurrentNote->hasTitle() ? m_pCurrentNote->title() : QString());
     *m_pCurrentNote = note;
     m_pCurrentNote->setTitle(noteTitle);
-
-    if (Q_LIKELY(m_pCurrentNotebook)) {
-        // Update the note within the tag names container just to avoid any potential race with updates from it
-        // messing with other note's parts than tags
-        m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-    }
 
     updateNoteInLocalStorage();
 }
@@ -2143,6 +2153,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
                      Qt::UniqueConnection);
 
     // Connect to note tags widget's signals
+    QObject::connect(m_pUi->tagNameLabelsContainer, QNSIGNAL(NoteTagsWidget,noteTagsListChanged,Note),
+                     this, QNSLOT(NoteEditorWidget,onNoteTagsListChanged,Note));
     QObject::connect(m_pUi->tagNameLabelsContainer, QNSIGNAL(NoteTagsWidget,newTagLineEditReceivedFocusFromWindowSystem),
                      this, QNSLOT(NoteEditorWidget,onNewTagLineEditReceivedFocusFromWindowSystem));
 
