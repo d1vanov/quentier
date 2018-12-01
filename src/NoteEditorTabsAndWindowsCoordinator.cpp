@@ -1640,8 +1640,10 @@ void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
 
     if (!m_pIOThread) {
         m_pIOThread = new QThread;
+        m_pIOThread->setObjectName(QStringLiteral("NoteEditorsIOThread"));
         QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
         m_pIOThread->start(QThread::LowPriority);
+        QNTRACE(QStringLiteral("Started background thread for note editors' IO: ") << m_pIOThread->objectName());
     }
 
     if (!m_pFileIOProcessorAsync) {
