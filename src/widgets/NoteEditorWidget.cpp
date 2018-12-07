@@ -881,7 +881,7 @@ void NoteEditorWidget::onSaveNoteAction()
     }
 
     m_pUi->saveNotePushButton->setEnabled(false);
-    m_pUi->noteEditor->convertToNote();
+    m_pUi->noteEditor->saveNoteToLocalStorage();
 }
 
 void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
@@ -1349,7 +1349,7 @@ void NoteEditorWidget::onUpdateNotebookComplete(Notebook notebook, QUuid request
     QNDEBUG(QStringLiteral("NoteEditorWidget::onUpdateNotebookComplete: notebook = ") << notebook << QStringLiteral("\nRequest id = ")
             << requestId);
 
-    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    setNoteAndNotebook(*m_pCurrentNote, notebook);
 }
 
 void NoteEditorWidget::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
@@ -1362,6 +1362,10 @@ void NoteEditorWidget::onExpungeNotebookComplete(Notebook notebook, QUuid reques
             << QStringLiteral("\nRequest id = ") << requestId);
 
     clear();
+
+    QNINFO(QStringLiteral("The notebook containing the note loaded into the editor was expunged from the local storage: ")
+           << *m_pCurrentNotebook);
+    Q_EMIT invalidated();
 }
 
 void NoteEditorWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId)
@@ -2552,6 +2556,20 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::setCurrentNoteAndNotebook"));
     QNTRACE(QStringLiteral("Note: ") << note << QStringLiteral("\nNotebook: ") << notebook);
+
+    if (m_pCurrentNote.isNull()) {
+        m_pCurrentNote.reset(new Note(note));
+    }
+    else {
+        *m_pCurrentNote = note;
+    }
+
+    if (m_pCurrentNotebook.isNull()) {
+        m_pCurrentNotebook.reset(new Notebook(notebook));
+    }
+    else {
+        *m_pCurrentNotebook = notebook;
+    }
 
     m_pUi->noteNameLineEdit->show();
     m_pUi->tagNameLabelsContainer->show();
