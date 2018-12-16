@@ -2177,6 +2177,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerAsync & localStorage
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,cantConvertToNote,ErrorString),
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdateFailed,ErrorString));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteSavedToLocalStorage,QString),
+                     this, QNSLOT(NoteEditorWidget,onNoteSavedToLocalStorage,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
                      this, QNSLOT(NoteEditorWidget,onEditorHtmlUpdate,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteLoaded),
