@@ -4199,6 +4199,7 @@ void MainWindow::setupLocalStorageManager()
                                                                                                this));
         QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldQuitApp),
                          this, QNSLOT(MainWindow,onQuitAction), Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        pUpgradeDialog->adjustSize();
         Q_UNUSED(pUpgradeDialog->exec())
     }
 
@@ -4866,6 +4867,7 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
         QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldQuitApp),
                          this, QNSLOT(MainWindow,onQuitAction),
                          Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        pUpgradeDialog->adjustSize();
         Q_UNUSED(pUpgradeDialog->exec())
 
         if (!pUpgradeDialog->isUpgradeDone()) {

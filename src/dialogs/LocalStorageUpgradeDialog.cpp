@@ -359,16 +359,16 @@ void LocalStorageUpgradeDialog::setPatchInfoLabel()
 
     QString introInfo = tr("The layout of data kept within the local storage requires to be upgraded.");
     introInfo += QStringLiteral("\n");
-    introInfo += tr("That means that older versions of Quentier (and/or libquentier) will no longer be able to work "
+    introInfo += tr("It means that older versions of Quentier (and/or libquentier) will no longer be able to work "
                     "with changed local storage data layout. But these changes are required in order to continue using "
                     "the current versions of Quentier and libquentier.");
     introInfo += QStringLiteral("\n");
-    introInfo += tr("It is recommended to keep the \"Create local storage backup\" option enabled in order to backup the local storage at");
+    introInfo += tr("It is recommended to keep the \"Backup local storage before the upgrade\" option enabled in order to backup the local storage at");
     introInfo += QStringLiteral(" ");
     introInfo += QDir::toNativeSeparators(accountPersistentStoragePath(m_pAccountFilterModel->filteredAccounts()[0]));
     introInfo += QStringLiteral(" ");
     introInfo += tr("before performing the upgrade");
-    introInfo += QStringLiteral("\n\n");
+    introInfo += QStringLiteral(".\n\n");
 
     introInfo += tr("Local storage upgrade info: patch");
     introInfo += QStringLiteral(" ");
