@@ -325,12 +325,7 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
 
         m_pConvertToNoteDeadlineTimer->start(editorConvertToNoteTimeout);
 
-        if (noteContentModified) {
-            QTimer::singleShot(0, m_pUi->noteEditor, SLOT(convertToNote()));
-        }
-        else {
-            QTimer::singleShot(0, this, SLOT(updateNoteInLocalStorage()));
-        }
+        QTimer::singleShot(0, this, SLOT(updateNoteInLocalStorage()));
 
         int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
 
