@@ -7,11 +7,11 @@ include(QuentierCMakePolicies)
 SET_POLICIES()
 
 if("${CMAKE_MAJOR_VERSION}" GREATER "2")
-  project(quentier VERSION 0.4.0)
+  project(quentier VERSION 0.5.0)
 else()
   project(quentier)
   set(PROJECT_VERSION_MAJOR "0")
-  set(PROJECT_VERSION_MINOR "4")
+  set(PROJECT_VERSION_MINOR "5")
   set(PROJECT_VERSION_PATCH "0")
   set(PROJECT_VERSION_COUNT 3)
   set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
@@ -96,6 +96,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/EnexImportDialog.h
     src/dialogs/FirstShutdownDialog.h
     src/dialogs/LocalStorageVersionTooHighDialog.h
+    src/dialogs/LocalStorageUpgradeDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/dialogs/PreferencesDialog.h
     src/dialogs/WelcomeToQuentierDialog.h
@@ -209,6 +210,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/EnexImportDialog.cpp
     src/dialogs/FirstShutdownDialog.cpp
     src/dialogs/LocalStorageVersionTooHighDialog.cpp
+    src/dialogs/LocalStorageUpgradeDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/dialogs/PreferencesDialog.cpp
     src/dialogs/WelcomeToQuentierDialog.cpp
@@ -314,6 +316,7 @@ set(FORMS
     src/dialogs/EnexImportDialog.ui
     src/dialogs/FirstShutdownDialog.ui
     src/dialogs/LocalStorageVersionTooHighDialog.ui
+    src/dialogs/LocalStorageUpgradeDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/dialogs/PreferencesDialog.ui
     src/dialogs/WelcomeToQuentierDialog.ui

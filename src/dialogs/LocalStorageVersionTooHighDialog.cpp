@@ -20,8 +20,10 @@
 #include "ui_LocalStorageVersionTooHighDialog.h"
 #include "../models/AccountFilterModel.h"
 #include "../models/AccountModel.h"
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <QItemSelection>
 
 namespace quentier {
 
@@ -36,6 +38,7 @@ LocalStorageVersionTooHighDialog::LocalStorageVersionTooHighDialog(const Account
     m_pUi->setupUi(this);
     m_pUi->statusBar->hide();
     m_pUi->accountsTableView->verticalHeader()->hide();
+    m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
 
     m_pAccountFilterModel->setSourceModel(&accountModel);
     m_pAccountFilterModel->addFilteredAccount(currentAccount);
@@ -115,6 +118,22 @@ void LocalStorageVersionTooHighDialog::onQuitAppButtonPressed()
     QDialog::accept();
 }
 
+void LocalStorageVersionTooHighDialog::onAccountViewSelectionChanged(const QItemSelection & selected,
+                                                                     const QItemSelection & deselected)
+{
+    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::onAccountViewSelectionChanged"));
+
+    Q_UNUSED(deselected)
+
+    if (selected.isEmpty()) {
+        QNDEBUG(QStringLiteral("No selection, disabling switch to selected account button"));
+        m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
+        return;
+    }
+
+    m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
+}
+
 void LocalStorageVersionTooHighDialog::reject()
 {
     // NOTE: doing nothing intentionally: LocalStorageVersionTooHighDialog cannot be rejected
@@ -126,6 +145,9 @@ void LocalStorageVersionTooHighDialog::createConnections()
 
     QObject::connect(m_pUi->switchToAnotherAccountPushButton, QNSIGNAL(QPushButton,pressed),
                      this, QNSLOT(LocalStorageVersionTooHighDialog,onSwitchToAccountPushButtonPressed));
+    QObject::connect(m_pUi->accountsTableView->selectionModel(),
+                     QNSIGNAL(QItemSelectionModel,selectionChanged,QItemSelection,QItemSelection),
+                     this, QNSLOT(LocalStorageVersionTooHighDialog,onAccountViewSelectionChanged,QItemSelection,QItemSelection));
     QObject::connect(m_pUi->createNewAccountPushButton, QNSIGNAL(QPushButton,pressed),
                      this, QNSLOT(LocalStorageVersionTooHighDialog,onCreateNewAccountButtonPressed));
     QObject::connect(m_pUi->quitAppPushButton, QNSIGNAL(QPushButton,pressed),

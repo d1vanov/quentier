@@ -47,6 +47,7 @@
 #include "dialogs/EnexExportDialog.h"
 #include "dialogs/EnexImportDialog.h"
 #include "dialogs/FirstShutdownDialog.h"
+#include "dialogs/LocalStorageUpgradeDialog.h"
 #include "dialogs/LocalStorageVersionTooHighDialog.h"
 #include "dialogs/PreferencesDialog.h"
 #include "dialogs/WelcomeToQuentierDialog.h"
@@ -4191,9 +4192,23 @@ void MainWindow::setupLocalStorageManager()
                                                                /* override lock = */ false);
     m_pLocalStorageManagerAsync->init();
 
-    ErrorString versionErrorDescription;
-    if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(versionErrorDescription)) {
-        throw quentier::LocalStorageVersionTooHighException(versionErrorDescription);
+    ErrorString errorDescription;
+    if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(errorDescription)) {
+        throw quentier::LocalStorageVersionTooHighException(errorDescription);
+    }
+
+    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches = m_pLocalStorageManagerAsync->localStorageManager()->requiredLocalStoragePatches();
+    if (!localStoragePatches.isEmpty())
+    {
+        QNDEBUG(QStringLiteral("Local storage requires upgrade: detected ") << localStoragePatches.size()
+                << QStringLiteral(" pending local storage patches"));
+        QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(new LocalStorageUpgradeDialog(*m_pAccount, m_pAccountManager->accountModel(),
+                                                                                               localStoragePatches, LocalStorageUpgradeDialog::Options(0),
+                                                                                               this));
+        QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldQuitApp),
+                         this, QNSLOT(MainWindow,onQuitAction), Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        pUpgradeDialog->adjustSize();
+        Q_UNUSED(pUpgradeDialog->exec())
     }
 
     m_pLocalStorageManagerAsync->moveToThread(m_pLocalStorageManagerThread);
@@ -4819,17 +4834,16 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
 {
     QNDEBUG(QStringLiteral("MainWindow::checkLocalStorageVersion: account = ") << account);
 
-    ErrorString versionErrorDescription;
-    if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(versionErrorDescription))
+    ErrorString errorDescription;
+    if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(errorDescription))
     {
-        QNINFO(QStringLiteral("Detected too high local storage version: ") << versionErrorDescription
+        QNINFO(QStringLiteral("Detected too high local storage version: ") << errorDescription
                << QStringLiteral("; account: ") << account);
 
         QScopedPointer<LocalStorageVersionTooHighDialog> pVersionTooHighDialog(new LocalStorageVersionTooHighDialog(account,
                                                                                                                     m_pAccountManager->accountModel(),
                                                                                                                     *(m_pLocalStorageManagerAsync->localStorageManager()),
                                                                                                                     this));
-
         QObject::connect(pVersionTooHighDialog.data(), QNSIGNAL(LocalStorageVersionTooHighDialog,shouldSwitchToAccount,Account),
                          this, QNSLOT(MainWindow,onAccountSwitchRequested,Account),
                          Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
@@ -4841,6 +4855,32 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
                          Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
         Q_UNUSED(pVersionTooHighDialog->exec())
         return false;
+    }
+
+    errorDescription.clear();
+    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches = m_pLocalStorageManagerAsync->localStorageManager()->requiredLocalStoragePatches();
+    if (!localStoragePatches.isEmpty())
+    {
+        QNDEBUG(QStringLiteral("Local storage requires upgrade: detected ") << localStoragePatches.size()
+                << QStringLiteral(" pending local storage patches"));
+        LocalStorageUpgradeDialog::Options options(LocalStorageUpgradeDialog::Option::AddAccount | LocalStorageUpgradeDialog::Option::SwitchToAnotherAccount);
+        QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(new LocalStorageUpgradeDialog(account, m_pAccountManager->accountModel(),
+                                                                                               localStoragePatches, options, this));
+        QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldSwitchToAccount,Account),
+                         this, QNSLOT(MainWindow,onAccountSwitchRequested,Account),
+                         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldCreateNewAccount),
+                         this, QNSLOT(MainWindow,onNewAccountCreationRequested),
+                         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldQuitApp),
+                         this, QNSLOT(MainWindow,onQuitAction),
+                         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        pUpgradeDialog->adjustSize();
+        Q_UNUSED(pUpgradeDialog->exec())
+
+        if (!pUpgradeDialog->isUpgradeDone()) {
+            return false;
+        }
     }
 
     return true;

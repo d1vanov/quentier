@@ -1,4 +1,4 @@
-version: '0.4.0-{build}'
+version: '0.5.0-{build}'
 
 branches:
   only:
@@ -315,6 +315,7 @@ artifacts:
     name: installer
 
 matrix:
-  fast_finish: true
   allow_failures:
     - prepare_mode: YES
+  # Disable until https://github.com/appveyor/ci/issues/1231 is fixed
+  # fast_finish: true

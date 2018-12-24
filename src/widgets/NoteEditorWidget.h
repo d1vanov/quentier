@@ -37,13 +37,13 @@ class NoteEditorWidget;
 }
 
 QT_FORWARD_DECLARE_CLASS(QTimer)
+QT_FORWARD_DECLARE_CLASS(QThread)
 QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(FileIOProcessorAsync)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 /**
@@ -56,9 +56,9 @@ class NoteEditorWidget: public QWidget
     Q_OBJECT
 public:
     explicit NoteEditorWidget(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
-                              FileIOProcessorAsync & fileIOProcessorAsync, SpellChecker & spellChecker,
-                              NoteCache & noteCache, NotebookCache & notebookCache,
-                              TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
+                              SpellChecker & spellChecker, QThread * pBackgroundJobsThread,
+                              NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
+                              TagModel & tagModel, QUndoStack * pUndoStack,
                               QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditorWidget();
 
@@ -266,7 +266,6 @@ Q_SIGNALS:
     void inAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid);
 
 // private signals
-    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
     void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
 
@@ -333,6 +332,7 @@ public Q_SLOTS:
     void onReplaceInsideNoteAction();
 
 private Q_SLOTS:
+    void onNoteTagsListChanged(Note note);
     void onNewTagLineEditReceivedFocusFromWindowSystem();
 
     void onFontComboBoxFontChanged(const QFont & font);
@@ -340,10 +340,11 @@ private Q_SLOTS:
 
     void onFontSizesComboBoxCurrentIndexChanged(int index);
 
+    void onNoteSavedToLocalStorage(QString noteLocalUid);
+    void onFailedToSaveNoteToLocalStorage(ErrorString errorDescription, QString noteLocalUid);
+
     // Slots for events from local storage
     void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
-    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
-                            ErrorString errorDescription, QUuid requestId);
     void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
     void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
                           ErrorString errorDescription, QUuid requestId);
@@ -399,6 +400,9 @@ private Q_SLOTS:
 
     void onEditorHtmlUpdate(QString html);
 
+    void onFoundNoteAndNotebookInLocalStorage(Note note, Notebook notebook);
+    void onNoteNotFoundInLocalStorage(QString noteLocalUid);
+
     // Slots for find & replace widget events
     void onFindAndReplaceWidgetClosed();
     void onTextToFindInsideNoteEdited(const QString & textToFind);
@@ -408,7 +412,6 @@ private Q_SLOTS:
     void onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
     void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
-    // Helper slot called from QTimer::singleShot
     void updateNoteInLocalStorage();
 
     // Slots for print/export buttons
@@ -419,8 +422,6 @@ private Q_SLOTS:
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
-
-    void onCurrentNoteFound(const Note & note);
 
     void setupSpecialIcons();
     void setupFontsComboBox();
@@ -445,9 +446,6 @@ private:
     NotebookCache &             m_notebookCache;
     TagCache &                  m_tagCache;
 
-    FileIOProcessorAsync &      m_fileIOProcessorAsync;
-    SpellChecker &              m_spellChecker;
-
     QStringListModel *          m_pLimitedFontsListModel;
 
     // This data piece separate from m_pCurrentNote is needed in order to handle
@@ -465,9 +463,7 @@ private:
 
     QTimer *                    m_pConvertToNoteDeadlineTimer;
 
-    QUuid                       m_findCurrentNoteRequestId;
     QUuid                       m_findCurrentNotebookRequestId;
-    QSet<QUuid>                 m_updateNoteRequestIds;
 
     class NoteLinkInfo: public Printable
     {

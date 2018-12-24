@@ -52,7 +52,8 @@ public:
             Type = 0,
             EvernoteHost,
             Username,
-            DisplayName
+            DisplayName,
+            Server
         };
     };
 

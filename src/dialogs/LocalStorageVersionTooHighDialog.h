@@ -20,16 +20,18 @@
 #define QUENTIER_DIALOGS_LOCAL_STORAGE_VERSION_TOO_HIGH_DIALOG_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/types/ErrorString.h>
+#include <quentier/types/Account.h>
 #include <QDialog>
 
 namespace Ui {
 class LocalStorageVersionTooHighDialog;
 }
 
+QT_FORWARD_DECLARE_CLASS(QItemSelection)
+
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
+QT_FORWARD_DECLARE_CLASS(ErrorString)
 QT_FORWARD_DECLARE_CLASS(AccountModel)
 QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
@@ -53,6 +55,9 @@ private Q_SLOTS:
     void onSwitchToAccountPushButtonPressed();
     void onCreateNewAccountButtonPressed();
     void onQuitAppButtonPressed();
+
+    void onAccountViewSelectionChanged(const QItemSelection & selected,
+                                       const QItemSelection & deselected);
 
 private:
     virtual void reject() Q_DECL_OVERRIDE;

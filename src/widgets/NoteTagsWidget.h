@@ -79,10 +79,9 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
     void canUpdateNoteRestrictionChanged(bool canUpdateNote);
 
-    void newTagLineEditReceivedFocusFromWindowSystem();
+    void noteTagsListChanged(Note note);
 
-// private signals
-    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void newTagLineEditReceivedFocusFromWindowSystem();
 
 private Q_SLOTS:
     void onTagRemoved(QString tagName);
@@ -91,10 +90,8 @@ private Q_SLOTS:
 
     // Slots for response to events from local storage
 
-    // Slots for notes events: finding, updating & expunging
+    // Slots for notes events: updating & expunging
     void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
-    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
-                            ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
     // Slots for notebook events: updating and expunging
@@ -132,10 +129,6 @@ private:
     TagLocalUidToNameBimap  m_currentNoteTagLocalUidToNameBimap;
 
     QPointer<TagModel>      m_pTagModel;
-
-    typedef QHash<QUuid, std::pair<QString, QString> > RequestIdToTagLocalUidAndGuid;
-    RequestIdToTagLocalUidAndGuid   m_updateNoteRequestIdToRemovedTagLocalUidAndGuid;
-    RequestIdToTagLocalUidAndGuid   m_updateNoteRequestIdToAddedTagLocalUidAndGuid;
 
     struct Restrictions
     {

@@ -44,7 +44,10 @@
    <item>
     <widget class="QLabel" name="pickAnotherAccountLabel">
      <property name="text">
-      <string>Pick another account:</string>
+      <string>Pick &amp;another account:</string>
+     </property>
+     <property name="buddy">
+      <cstring>accountsTableView</cstring>
      </property>
     </widget>
    </item>
