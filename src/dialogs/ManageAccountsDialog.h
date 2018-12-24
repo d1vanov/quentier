@@ -28,15 +28,19 @@ namespace Ui {
 class ManageAccountsDialog;
 }
 
+QT_FORWARD_DECLARE_CLASS(QItemSelection)
+
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountModel)
+QT_FORWARD_DECLARE_CLASS(AccountManager)
 
 class ManageAccountsDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ManageAccountsDialog(AccountModel & accountModel, const int currentAccountRow = -1, QWidget * parent = Q_NULLPTR);
+    explicit ManageAccountsDialog(AccountManager & accountManager,
+                                  const int currentAccountRow = -1,
+                                  QWidget * parent = Q_NULLPTR);
     virtual ~ManageAccountsDialog();
 
 Q_SIGNALS:
@@ -47,11 +51,18 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onAddAccountButtonPressed();
     void onRevokeAuthenticationButtonPressed();
+    void onDeleteAccountButtonPressed();
     void onBadAccountDisplayNameEntered(ErrorString errorDescription, int row);
+
+    void onAccountSelectionChanged(const QItemSelection & selected,
+                                   const QItemSelection & deselected);
+
+private:
+    void setStatusBarText(const QString & text);
 
 private:
     Ui::ManageAccountsDialog *  m_pUi;
-    AccountModel &              m_accountModel;
+    AccountManager &            m_accountManager;
 };
 
 } // namespace quentier

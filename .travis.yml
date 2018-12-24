@@ -32,6 +32,26 @@ matrix:
           env: CMAKE_BUILD_TYPE=RelWithDebInfo
           compiler: clang
 
+before_install:
+    - |
+      export CHANGED_FILES=($(git diff --name-only ${TRAVIS_COMMIT_RANGE})) &&
+      echo "Changed files: ${CHANGED_FILES}" &&
+      export DETECTED_CHANGES_AFFECTING_BUILD=False &&
+      for CHANGED_FILE in ${CHANGED_FILES}; do
+        echo "Checking file ${CHANGED_FILE}" &&
+        if ! [[ ${CHANGED_FILE} =~ "*.md" ]] && [[ "${CHANGED_FILE}" != "COPYING" ]]; then
+          echo "Detected changes affecting build: file ${CHANGED_FILE}" &&
+          DETECTED_CHANGES_AFFECTING_BUILD=True &&
+          break
+        fi
+      done
+    - |
+      if [[ ${DETECTED_CHANGES_AFFECTING_BUILD} == False ]]; then
+        echo "No changes affecting build detected, exiting" &&
+        travis_terminate 0 &&
+        exit 1
+      fi
+
 install:
     - |
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then

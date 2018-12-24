@@ -194,6 +194,8 @@ QVariant AccountModel::headerData(int section, Qt::Orientation orientation, int 
     {
     case Columns::Type:
         return tr("Type");
+    case Columns::EvernoteHost:
+        return tr("Evernote host");
     case Columns::Username:
         return tr("Username");
     case Columns::DisplayName:
@@ -234,6 +236,15 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
             }
             else {
                 return QStringLiteral("Evernote");
+            }
+        }
+    case Columns::EvernoteHost:
+        {
+            if (account.type() == Account::Type::Evernote) {
+                return account.evernoteHost();
+            }
+            else {
+                return QString();
             }
         }
     case Columns::Username:
@@ -283,6 +294,8 @@ bool AccountModel::setData(const QModelIndex & index,
     switch(column)
     {
     case Columns::Type:
+        return false;
+    case Columns::EvernoteHost:
         return false;
     case Columns::Username:
         return false;

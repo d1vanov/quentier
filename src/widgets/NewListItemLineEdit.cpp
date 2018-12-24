@@ -40,8 +40,7 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
     m_reservedItemNames(reservedItemNames),
     m_linkedNotebookGuid(linkedNotebookGuid),
     m_pItemNamesModel(new QStringListModel(this)),
-    m_pCompleter(new QCompleter(this)),
-    m_expectFocusOut(false)
+    m_pCompleter(new QCompleter(this))
 {
     m_pUi->setupUi(this);
     setPlaceholderText(tr("Click here to add") + QStringLiteral("..."));
@@ -106,12 +105,6 @@ QSize NewListItemLineEdit::minimumSizeHint() const
     return QLineEdit::minimumSizeHint();
 }
 
-void NewListItemLineEdit::setExpectFocusOut()
-{
-    QNDEBUG(QStringLiteral("NewListItemLineEdit::setExpectFocusOut"));
-    m_expectFocusOut = true;
-}
-
 void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
@@ -142,31 +135,6 @@ void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
         QNTRACE(QStringLiteral("Received focus from the window system"));
         Q_EMIT receivedFocusFromWindowSystem();
     }
-}
-
-void NewListItemLineEdit::focusOutEvent(QFocusEvent * pEvent)
-{
-    QNTRACE(QStringLiteral("NewListItemLineEdit::focusOutEvent: ") << this
-            << QStringLiteral(", event type = ") << pEvent->type()
-            << QStringLiteral(", reason = ") << pEvent->reason());
-
-    QLineEdit::focusOutEvent(pEvent);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    // NOTE: I don't know why but sometimes only in Qt5 version of the app this widget loses focus for "other focus reason"
-    // The attempt to ignore such event is not fruitful as the keyboard focus still ends up lost
-    // so accepting the event and immediately moving the focus back
-    if (pEvent && (pEvent->type() == QEvent::FocusOut) && (pEvent->reason() == Qt::OtherFocusReason))
-    {
-        if (!m_expectFocusOut) {
-            QNDEBUG(QStringLiteral("Working around the glitch in Qt5 with focus lost for \"other focus reason\": moving the focus back"));
-            setFocus();
-        }
-        else {
-            m_expectFocusOut = false;
-        }
-    }
-#endif
 }
 
 void NewListItemLineEdit::onModelRowsInserted(const QModelIndex & parent, int start, int end)

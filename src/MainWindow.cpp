@@ -3152,6 +3152,12 @@ void MainWindow::onAccountAdded(Account account)
     updateSubMenuWithAvailableAccounts();
 }
 
+void MainWindow::onAccountRemoved(Account account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAccountRemoved: ") << account);
+    updateSubMenuWithAvailableAccounts();
+}
+
 void MainWindow::onAccountManagerError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAccountManagerError: ") << errorDescription);
@@ -4167,6 +4173,8 @@ void MainWindow::setupAccountManager()
                      this, QNSLOT(MainWindow,onAccountUpdated,Account));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,accountAdded,Account),
                      this, QNSLOT(MainWindow,onAccountAdded,Account));
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,accountRemoved,Account),
+                     this, QNSLOT(MainWindow,onAccountRemoved,Account));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,notifyError,ErrorString),
                      this, QNSLOT(MainWindow,onAccountManagerError,ErrorString));
 }

@@ -81,6 +81,10 @@ border-color: rgb(182, 189, 195);
 
 #frame:hover {
 background-color: rgb(205, 221, 229);
+}
+
+#itemNameLabel {
+color: black;
 }</string>
      </property>
      <property name="frameShape">
