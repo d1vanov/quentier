@@ -43,8 +43,8 @@ init:
   - if %platform%==amd64 set tool=VS2017_x64
   - if %platform%==amd64_x86 set tool=VS2015_x86
   - if %platform%==mingw set tool=MinGW_x86
-  - if %platform%==mingw set DEPLOYMENT_TARGET=Quentier-0.4.0-windows-portable-qt55-%tool%.zip
-  - if not %platform%==mingw set DEPLOYMENT_TARGET=Quentier-0.4.0-windows-portable-qt510-%tool%.zip
+  - if %platform%==mingw set DEPLOYMENT_TARGET=Quentier-0.5.0-windows-portable-qt55-%tool%.zip
+  - if not %platform%==mingw set DEPLOYMENT_TARGET=Quentier-0.5.0-windows-portable-qt510-%tool%.zip
   - if %platform%==amd64 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - if %platform%==amd64_x86 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %platform%
   - if not %platform%==mingw (set makefiles="NMake Makefiles") else (set makefiles="MinGW Makefiles")
