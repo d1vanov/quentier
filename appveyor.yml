@@ -315,6 +315,7 @@ artifacts:
     name: installer
 
 matrix:
-  fast_finish: true
   allow_failures:
     - prepare_mode: YES
+  # Disable until https://github.com/appveyor/ci/issues/1231 is fixed
+  # fast_finish: true
