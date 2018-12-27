@@ -1874,22 +1874,10 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
 
     if (wasPendingCurrentEvernoteAccountAuthentication)
     {
-        // Authenticated the current account, now can move the sync activities to a separate thread
-        m_pSynchronizationManagerThread = new QThread;
-        m_pSynchronizationManagerThread->setObjectName(QStringLiteral("SynchronizationManagerThread"));
-        QObject::connect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
-                        m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
-        m_pSynchronizationManagerThread->start();
-
-        m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
-        m_pAuthenticationManager->moveToThread(m_pSynchronizationManagerThread);
-
-        // NOTE: moving QEverCloud's network access manager to synchronization manager's thread as well
-        QNetworkAccessManager * pQEverCloudNetworkAccessManager = qevercloud::evernoteNetworkAccessManager();
-        pQEverCloudNetworkAccessManager->moveToThread(m_pSynchronizationManagerThread);
-
+        setupSynchronizationManagerThread();
         m_authenticatedCurrentEvernoteAccount = true;
 
+        QNDEBUG(QStringLiteral("Emitting synchronize signal"));
         Q_EMIT synchronize();
         return;
     }
@@ -3571,12 +3559,14 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     startListeningForSplitterMoves();
 
     if (m_pAccount->type() != Account::Type::Evernote) {
+        QNTRACE(QStringLiteral("Not an Evernote account, no need to bother setting up sync"));
         return;
     }
 
     // TODO: should also start the sync if the corresponding setting is set
     // to sync stuff when one switches to the Evernote account
     if (!wasPendingSwitchToNewEvernoteAccount) {
+        QNTRACE(QStringLiteral("Not an account switch after authenticating new Evernote account"));
         return;
     }
 
@@ -3584,8 +3574,11 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     // automatically opens in the note editor
     m_pUI->noteListView->setAutoSelectNoteOnNextAddition();
 
-    m_pendingCurrentEvernoteAccountAuthentication = true;
-    Q_EMIT authenticateCurrentAccount();
+    setupSynchronizationManagerThread();
+    m_authenticatedCurrentEvernoteAccount = true;
+
+    QNDEBUG(QStringLiteral("Emitting synchronize signal"));
+    Q_EMIT synchronize();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId)
@@ -3690,10 +3683,15 @@ void MainWindow::onSyncButtonPressed()
         Q_EMIT stopSynchronization();
     }
     else if (m_authenticatedCurrentEvernoteAccount) {
+        QNDEBUG(QStringLiteral("Current Evernote account already has authentication, emitting synchronize signal"));
         Q_EMIT synchronize();
     }
     else if (!m_pendingCurrentEvernoteAccountAuthentication) {
+        QNDEBUG(QStringLiteral("Emitting authenticateCurrentAccount signal"));
         Q_EMIT authenticateCurrentAccount();
+    }
+    else {
+        QNDEBUG(QStringLiteral("Already pending current Evernte account authentication"));
     }
 }
 
@@ -3966,9 +3964,11 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         QNDEBUG(QStringLiteral("Starting the periodically run sync"));
 
         if (!m_authenticatedCurrentEvernoteAccount) {
+            QNDEBUG(QStringLiteral("Emitting authenticateCurrentAccount signal"));
             Q_EMIT authenticateCurrentAccount();
         }
         else {
+            QNDEBUG(QStringLiteral("Emitting synchronize signal"));
             Q_EMIT synchronize();
         }
     }
@@ -4957,9 +4957,13 @@ void MainWindow::clearSynchronizationManager()
         m_pAuthenticationManager = Q_NULLPTR;
     }
 
-    if (m_pSynchronizationManagerThread)
+    if (m_pSynchronizationManagerThread && m_pSynchronizationManagerThread->isRunning())
     {
-        m_pSynchronizationManagerThread->quit();    // NOTE: the thread will delete itself when it's finished
+        QObject::disconnect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
+                            m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
+        m_pSynchronizationManagerThread->quit();
+        m_pSynchronizationManagerThread->wait();
+        m_pSynchronizationManagerThread->deleteLater();
         m_pSynchronizationManagerThread = Q_NULLPTR;
 
         QNetworkAccessManager * pQEverCloudNetworkAccessManager = qevercloud::evernoteNetworkAccessManager();
@@ -5003,6 +5007,24 @@ void MainWindow::setSynchronizationOptions(const Account & account)
             << QStringLiteral("; account: ") << account.name());
 
     m_pSynchronizationManager->setInkNoteImagesStoragePath(inkNoteImagesStoragePath);
+}
+
+void MainWindow::setupSynchronizationManagerThread()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManagerThread"));
+
+    m_pSynchronizationManagerThread = new QThread;
+    m_pSynchronizationManagerThread->setObjectName(QStringLiteral("SynchronizationManagerThread"));
+    QObject::connect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
+                     m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
+    m_pSynchronizationManagerThread->start();
+
+    m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
+    m_pAuthenticationManager->moveToThread(m_pSynchronizationManagerThread);
+
+    // NOTE: moving QEverCloud's network access manager to synchronization manager's thread as well
+    QNetworkAccessManager * pQEverCloudNetworkAccessManager = qevercloud::evernoteNetworkAccessManager();
+    pQEverCloudNetworkAccessManager->moveToThread(m_pSynchronizationManagerThread);
 }
 
 void MainWindow::setupRunSyncPeriodicallyTimer()

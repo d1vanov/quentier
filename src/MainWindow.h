@@ -355,6 +355,7 @@ private:
     void setupSynchronizationManager(const SetAccountOption::type = SetAccountOption::DontSet);
     void clearSynchronizationManager();
     void setSynchronizationOptions(const Account & account);
+    void setupSynchronizationManagerThread();
     void setupRunSyncPeriodicallyTimer();
 
     void setupDefaultShortcuts();
