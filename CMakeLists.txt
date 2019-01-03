@@ -158,6 +158,8 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelector.h
     src/utility/ColorCodeValidator.h
     src/utility/StartAtLogin.h
+    src/utility/QObjectThreadMover.h
+    src/utility/QObjectThreadMover_p.h
     src/views/ItemView.h
     src/views/DeletedNoteItemView.h
     src/views/FavoriteItemView.h
@@ -267,6 +269,8 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/TagItemDelegate.cpp
     src/utility/ColorCodeValidator.cpp
     src/utility/StartAtLogin.cpp
+    src/utility/QObjectThreadMover.cpp
+    src/utility/QObjectThreadMover_p.cpp
     src/views/ItemView.cpp
     src/views/DeletedNoteItemView.cpp
     src/views/FavoriteItemView.cpp

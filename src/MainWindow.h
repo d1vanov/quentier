@@ -357,6 +357,7 @@ private:
     void setSynchronizationOptions(const Account & account);
     void setupSynchronizationManagerThread();
     void setupRunSyncPeriodicallyTimer();
+    void launchSynchronization();
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
