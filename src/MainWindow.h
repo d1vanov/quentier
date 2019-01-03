@@ -99,6 +99,7 @@ Q_SIGNALS:
     // private signals
     void localStorageSwitchUserRequest(Account account, bool startFromScratch, QUuid requestId);
     void authenticate();
+    void authenticateCurrentAccount();
     void noteInfoDialogRequested(QString noteLocalUid);
     void synchronize();
     void stopSynchronization();
@@ -295,11 +296,6 @@ private Q_SLOTS:
     void onAnimatedSyncIconFrameChangedPendingFinish(int frame);
     void onSyncIconAnimationFinished();
 
-    void onSynchronizationManagerSetAccountDone(Account account);
-    void onSynchronizationManagerSetDownloadNoteThumbnailsDone(bool flag);
-    void onSynchronizationManagerSetDownloadInkNoteImagesDone(bool flag);
-    void onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString path);
-
     void onNewAccountCreationRequested();
     void onAccountSwitchRequested(Account account);
     void onQuitAction();
@@ -358,10 +354,10 @@ private:
 
     void setupSynchronizationManager(const SetAccountOption::type = SetAccountOption::DontSet);
     void clearSynchronizationManager();
-    void setAccountToSyncManager(const Account & account);
     void setSynchronizationOptions(const Account & account);
-    void checkAndLaunchPendingSync();
+    void setupSynchronizationManagerThread();
     void setupRunSyncPeriodicallyTimer();
+    void launchSynchronization();
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
@@ -513,19 +509,17 @@ private:
 
     QUuid                       m_lastLocalStorageSwitchUserRequest;
 
+    QThread *                   m_pSynchronizationManagerThread;
     AuthenticationManager *     m_pAuthenticationManager;
     SynchronizationManager *    m_pSynchronizationManager;
     QString                     m_synchronizationManagerHost;
     QNetworkProxy               m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest;
     bool                        m_pendingNewEvernoteAccountAuthentication;
+    bool                        m_pendingCurrentEvernoteAccountAuthentication;
+    bool                        m_authenticatedCurrentEvernoteAccount;
     bool                        m_pendingSwitchToNewEvernoteAccount;
 
     bool                        m_syncInProgress;
-    bool                        m_pendingSynchronizationManagerSetAccount;
-    bool                        m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption;
-    bool                        m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption;
-    bool                        m_pendingSynchronizationManagerSetInkNoteImagesStoragePath;
-    bool                        m_pendingSynchronizationManagerResponseToStartSync;
     bool                        m_syncApiRateLimitExceeded;
 
     QMovie                      m_animatedSyncButtonIcon;

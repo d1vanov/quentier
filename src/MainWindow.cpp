@@ -82,6 +82,7 @@ using quentier::LogViewerWidget;
 #include "widgets/SavedSearchModelItemInfoWidget.h"
 #include "widgets/AboutQuentierWidget.h"
 #include "dialogs/EditNoteDialog.h"
+#include "utility/QObjectThreadMover.h"
 
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -95,7 +96,13 @@ using quentier::LogViewerWidget;
 #include <quentier/utility/Utility.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <cmath>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
+
 #include <QPushButton>
 #include <QIcon>
 #include <QLabel>
@@ -123,12 +130,18 @@ using quentier::LogViewerWidget;
 #include <QThreadPool>
 #include <QDir>
 #include <QClipboard>
+#include <QNetworkAccessManager>
+
 #include <cmath>
 #include <algorithm>
 
 #define NOTIFY_ERROR(error) \
-    QNWARNING(error); \
-    onSetStatusBarText(error, SEC_TO_MSEC(30))
+    QNWARNING(QString::fromUtf8(error)); \
+    onSetStatusBarText(QString::fromUtf8(error), SEC_TO_MSEC(30)); \
+
+#define NOTIFY_DEBUG(message) \
+    QNDEBUG(QString::fromUtf8(message)); \
+    onSetStatusBarText(QString::fromUtf8(message), SEC_TO_MSEC(30))
 
 #define FILTERS_VIEW_STATUS_KEY QStringLiteral("ViewExpandedStatus")
 #define NOTE_SORTING_MODE_KEY QStringLiteral("NoteSortingMode")
@@ -166,18 +179,16 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pLocalStorageManagerThread(Q_NULLPTR),
     m_pLocalStorageManagerAsync(Q_NULLPTR),
     m_lastLocalStorageSwitchUserRequest(),
+    m_pSynchronizationManagerThread(Q_NULLPTR),
     m_pAuthenticationManager(Q_NULLPTR),
     m_pSynchronizationManager(Q_NULLPTR),
     m_synchronizationManagerHost(),
     m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest(),
     m_pendingNewEvernoteAccountAuthentication(false),
+    m_pendingCurrentEvernoteAccountAuthentication(false),
+    m_authenticatedCurrentEvernoteAccount(false),
     m_pendingSwitchToNewEvernoteAccount(false),
     m_syncInProgress(false),
-    m_pendingSynchronizationManagerSetAccount(false),
-    m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption(false),
-    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption(false),
-    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath(false),
-    m_pendingSynchronizationManagerResponseToStartSync(false),
     m_syncApiRateLimitExceeded(false),
     m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
     m_runSyncPeriodicallyTimerId(0),
@@ -301,6 +312,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
 MainWindow::~MainWindow()
 {
+    clearSynchronizationManager();
+
     if (m_pLocalStorageManagerThread) {
         m_pLocalStorageManagerThread->quit();
     }
@@ -855,23 +868,14 @@ void MainWindow::connectSynchronizationManager()
     QObject::connect(this, QNSIGNAL(MainWindow,authenticate),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate),
                      Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+    QObject::connect(this, QNSIGNAL(MainWindow,authenticateCurrentAccount),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticateCurrentAccount),
+                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronize),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize),
                      Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(this, QNSIGNAL(MainWindow,stopSynchronization),
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,stop),
-                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationSetAccount,Account),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account),
-                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool),
-                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadInkNoteImages,bool),
-                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-    QObject::connect(this, QNSIGNAL(MainWindow,synchronizationSetInkNoteImagesStoragePath,QString),
-                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,setInkNoteImagesStoragePath,QString),
                      Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
     // Connect SynchronizationManager signals to local slots
@@ -941,18 +945,12 @@ void MainWindow::disconnectSynchronizationManager()
     // Disconnect local signals from SynchronizationManager slots
     QObject::disconnect(this, QNSIGNAL(MainWindow,authenticate),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
+    QObject::disconnect(this, QNSIGNAL(MainWindow,authenticateCurrentAccount),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticateCurrentAccount));
     QObject::disconnect(this, QNSIGNAL(MainWindow,synchronize),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,synchronize));
     QObject::disconnect(this, QNSIGNAL(MainWindow,stopSynchronization),
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,stop));
-    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationSetAccount,Account),
-                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setAccount,Account));
-    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationDownloadNoteThumbnailsOptionChanged,bool),
-                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadNoteThumbnails,bool));
-    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationDownloadInkNoteImagesOptionChanged,bool),
-                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setDownloadInkNoteImages,bool));
-    QObject::disconnect(this, QNSIGNAL(MainWindow,synchronizationSetInkNoteImagesStoragePath,QString),
-                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,setInkNoteImagesStoragePath,QString));
 
     // Disconnect SynchronizationManager signals from local slots
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,started),
@@ -1043,9 +1041,11 @@ void MainWindow::scheduleSyncButtonAnimationStop()
     // is naturally looped, the frame count coming to max value (or zero after max value)
     // would serve as a sign that full animation loop has finished
     QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
-                     this, QNSLOT(MainWindow,onSyncIconAnimationFinished));
+                     this, QNSLOT(MainWindow,onSyncIconAnimationFinished),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
     QObject::connect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,frameChanged,int),
-                     this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChangedPendingFinish,int));
+                     this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChangedPendingFinish,int),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 }
 
 void MainWindow::startListeningForSplitterMoves()
@@ -1860,6 +1860,9 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
     bool wasPendingNewEvernoteAccountAuthentication = m_pendingNewEvernoteAccountAuthentication;
     m_pendingNewEvernoteAccountAuthentication = false;
 
+    bool wasPendingCurrentEvernoteAccountAuthentication = m_pendingCurrentEvernoteAccountAuthentication;
+    m_pendingCurrentEvernoteAccountAuthentication = false;
+
     if (!success)
     {
         // Restore the network proxy which was active before the authentication
@@ -1876,11 +1879,17 @@ void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescrip
 
     m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest = QNetworkProxy(QNetworkProxy::NoProxy);
 
-    if (wasPendingNewEvernoteAccountAuthentication) {
-        m_pendingSwitchToNewEvernoteAccount = true;
+    if (wasPendingCurrentEvernoteAccountAuthentication) {
+        setupSynchronizationManagerThread();
+        m_authenticatedCurrentEvernoteAccount = true;
+        launchSynchronization();
+        return;
     }
 
-    m_pAccountManager->switchAccount(account);
+    if (wasPendingNewEvernoteAccountAuthentication) {
+        m_pendingSwitchToNewEvernoteAccount = true;
+        m_pAccountManager->switchAccount(account);
+    }
 }
 
 void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescription,
@@ -2066,10 +2075,8 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(QString host, QNetwork
             << proxy.hostName() << QStringLiteral(", proxy port = ") << proxy.port()
             << QStringLiteral(", proxy user = ") << proxy.user());
 
-    if ((host != m_synchronizationManagerHost) || !m_pSynchronizationManager) {
-        m_synchronizationManagerHost = host;
-        setupSynchronizationManager();
-    }
+    m_synchronizationManagerHost = host;
+    setupSynchronizationManager();
 
     // Set the proxy specified within the slot argument but remember the previous application proxy
     // so that it can be restored in case of authentication failure
@@ -3016,7 +3023,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
     QAction * action = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!action)) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Internal error: account switching action is unexpectedly null")));
+        NOTIFY_ERROR(QT_TR_NOOP("Internal error: account switching action is unexpectedly null"));
         return;
     }
 
@@ -3024,8 +3031,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     bool conversionResult = false;
     int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Internal error: can't get identification data "
-                                                  "from the account switching action")));
+        NOTIFY_ERROR(QT_TR_NOOP("Internal error: can't get identification data "
+                                "from the account switching action"));
         return;
     }
 
@@ -3033,8 +3040,28 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     const int numAvailableAccounts = availableAccounts.size();
 
     if ((index < 0) || (index >= numAvailableAccounts)) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Internal error: wrong index into available accounts "
-                                                  "in account switching action")));
+        NOTIFY_ERROR(QT_TR_NOOP("Internal error: wrong index into available accounts "
+                                "in account switching action"));
+        return;
+    }
+
+    if (m_syncInProgress) {
+        NOTIFY_DEBUG(QT_TR_NOOP("Can't switch account while the synchronization is in progress"));
+        return;
+    }
+
+    if (m_pendingNewEvernoteAccountAuthentication) {
+        NOTIFY_DEBUG(QT_TR_NOOP("Can't switch account while the authentication of new Evernote accont is in progress"));
+        return;
+    }
+
+    if (m_pendingCurrentEvernoteAccountAuthentication) {
+        NOTIFY_DEBUG(QT_TR_NOOP("Can't switch account while the authentication of Evernote account is in progress"));
+        return;
+    }
+
+    if (m_pendingSwitchToNewEvernoteAccount) {
+        NOTIFY_DEBUG(QT_TR_NOOP("Can't switch account: account switching operation is already in progress"));
         return;
     }
 
@@ -3042,7 +3069,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
     stopListeningForSplitterMoves();
     m_pAccountManager->switchAccount(availableAccount);
-    // Will continue in slot connected to AccountManager's switchedAccount signal
+    // The continuation is in onAccountSwitched slot connected to AccountManager's switchedAccount signal
 }
 
 void MainWindow::onAccountSwitched(Account account)
@@ -3063,9 +3090,14 @@ void MainWindow::onAccountSwitched(Account account)
         return;
     }
 
+    // This stops SynchronizationManager's thread and moves QEverCloud's QNetworkAccessManager instance to the GUI thread
+    // which is required for proper work of OAuth. If the account being switched to is Evernote one, that would be required
+    clearSynchronizationManager();
+
     // Since Qt 5.11 QSqlDatabase opening only works properly from the thread which has loaded the SQL drivers -
     // which is this thread, the GUI one. However, LocalStorageManagerAsync operates in another thread. So need to stop
-    // that thread, perform the operation synchronously and then start the stopped thread again
+    // that thread, perform the account switching operation synchronously and then start the stopped thread again.
+    // See https://bugreports.qt.io/browse/QTBUG-72545 for reference.
 
     bool localStorageThreadWasStopped = false;
     if (m_pLocalStorageManagerThread->isRunning()) {
@@ -3090,7 +3122,10 @@ void MainWindow::onAccountSwitched(Account account)
 
     m_pLocalStorageManagerAsync->setUseCache(cacheIsUsed);
 
-    bool checkRes = checkLocalStorageVersion(account);
+    bool checkRes = true;
+    if (errorDescription.isEmpty()) {
+        checkRes = checkLocalStorageVersion(account);
+    }
 
     if (localStorageThreadWasStopped) {
         QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
@@ -3479,7 +3514,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     m_pendingSwitchToNewEvernoteAccount = false;
 
     if (!expected) {
-        NOTIFY_ERROR(QString::fromUtf8(QT_TR_NOOP("Local storage user was switched without explicit user action")));
+        NOTIFY_ERROR(QT_TR_NOOP("Local storage user was switched without explicit user action"));
         // Trying to undo it
         m_pAccountManager->switchAccount(*m_pAccount); // This should trigger the switch in local storage as well
         startListeningForSplitterMoves();
@@ -3524,27 +3559,12 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
-    if (m_pAccount->type() == Account::Type::Local)
-    {
+    if (m_pAccount->type() == Account::Type::Local) {
         clearSynchronizationManager();
     }
-    else
-    {
-        if (m_synchronizationManagerHost == m_pAccount->evernoteHost())
-        {
-            if (!m_pSynchronizationManager) {
-                setupSynchronizationManager(SetAccountOption::Set);
-            }
-            else {
-                setAccountToSyncManager(*m_pAccount);
-            }
-        }
-        else
-        {
-            m_synchronizationManagerHost = m_pAccount->evernoteHost();
-            setupSynchronizationManager(SetAccountOption::Set);
-        }
-
+    else {
+        m_synchronizationManagerHost.clear();
+        setupSynchronizationManager(SetAccountOption::Set);
         setSynchronizationOptions(*m_pAccount);
     }
 
@@ -3567,20 +3587,30 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     restoreGeometryAndState();
     startListeningForSplitterMoves();
 
-    if (m_pAccount->type() == Account::Type::Evernote)
-    {
-        // TODO: should also start the sync if the corresponding setting is set
-        // to sync stuff when one switches to the Evernote account
-        if (wasPendingSwitchToNewEvernoteAccount)
-        {
-            // For new Evernote account is is convenient if the first note to be synchronized
-            // automatically opens in the note editor
-            m_pUI->noteListView->setAutoSelectNoteOnNextAddition();
-
-            m_pendingSynchronizationManagerResponseToStartSync = true;
-            checkAndLaunchPendingSync();
-        }
+    if (m_pAccount->type() != Account::Type::Evernote) {
+        QNTRACE(QStringLiteral("Not an Evernote account, no need to bother setting up sync"));
+        return;
     }
+
+    // TODO: should also start the sync if the corresponding setting is set
+    // to sync stuff when one switches to the Evernote account
+    if (!wasPendingSwitchToNewEvernoteAccount) {
+        QNTRACE(QStringLiteral("Not an account switch after authenticating new Evernote account"));
+        return;
+    }
+
+    // For new Evernote account is is convenient if the first note to be synchronized
+    // automatically opens in the note editor
+    m_pUI->noteListView->setAutoSelectNoteOnNextAddition();
+
+    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
+        QNWARNING(QStringLiteral("Detected unexpectedly missing SynchronizationManager, trying to workaround"));
+        setupSynchronizationManager();
+    }
+
+    setupSynchronizationManagerThread();
+    m_authenticatedCurrentEvernoteAccount = true;
+    launchSynchronization();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId)
@@ -3685,7 +3715,7 @@ void MainWindow::onSyncButtonPressed()
         Q_EMIT stopSynchronization();
     }
     else {
-        Q_EMIT synchronize();
+        launchSynchronization();
     }
 }
 
@@ -3712,52 +3742,6 @@ void MainWindow::onSyncIconAnimationFinished()
                         this, QNSLOT(MainWindow,onAnimatedSyncIconFrameChangedPendingFinish,int));
 
     stopSyncButtonAnimation();
-}
-
-void MainWindow::onSynchronizationManagerSetAccountDone(Account account)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetAccountDone: ") << account.name());
-
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setAccountDone,Account),
-                        this, QNSLOT(MainWindow,onSynchronizationManagerSetAccountDone,Account));
-
-    m_pendingSynchronizationManagerSetAccount = false;
-    checkAndLaunchPendingSync();
-}
-
-void MainWindow::onSynchronizationManagerSetDownloadNoteThumbnailsDone(bool flag)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetDownloadNoteThumbnailsDone: ")
-            << (flag ? QStringLiteral("true") : QStringLiteral("false")));
-
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setDownloadNoteThumbnailsDone,bool),
-                        this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadNoteThumbnailsDone,bool));
-
-    m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption = false;
-    checkAndLaunchPendingSync();
-}
-
-void MainWindow::onSynchronizationManagerSetDownloadInkNoteImagesDone(bool flag)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetDownloadInkNoteImagesDone: ")
-            << (flag ? QStringLiteral("true") : QStringLiteral("false")));
-
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setDownloadInkNoteImagesDone,bool),
-                        this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadInkNoteImagesDone,bool));
-
-    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = false;
-    checkAndLaunchPendingSync();
-}
-
-void MainWindow::onSynchronizationManagerSetInkNoteImagesStoragePathDone(QString path)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerSetInkNoteImagesStoragePathDone: ") << path);
-
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setInkNoteImagesStoragePathDone,QString),
-                        this, QNSLOT(MainWindow,onSynchronizationManagerSetInkNoteImagesStoragePathDone,QString));
-
-    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = false;
-    checkAndLaunchPendingSync();
 }
 
 void MainWindow::onNewAccountCreationRequested()
@@ -3984,6 +3968,7 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
 
         if (m_syncInProgress ||
             m_pendingNewEvernoteAccountAuthentication ||
+            m_pendingCurrentEvernoteAccountAuthentication ||
             m_pendingSwitchToNewEvernoteAccount ||
             m_syncApiRateLimitExceeded)
         {
@@ -3991,6 +3976,8 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
                     << (m_syncInProgress ? QStringLiteral("true") : QStringLiteral("false"))
                     << QStringLiteral(", pending new Evernote account authentication = ")
                     << (m_pendingNewEvernoteAccountAuthentication ? QStringLiteral("true") : QStringLiteral("false"))
+                    << QStringLiteral(", pending current Evernote account authentication = ")
+                    << (m_pendingCurrentEvernoteAccountAuthentication ? QStringLiteral("true") : QStringLiteral("false"))
                     << QStringLiteral(", pending switch to new Evernote account = ")
                     << (m_pendingSwitchToNewEvernoteAccount ? QStringLiteral("true") : QStringLiteral("false"))
                     << QStringLiteral(", sync API rate limit exceeded = ")
@@ -3999,7 +3986,7 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         }
 
         QNDEBUG(QStringLiteral("Starting the periodically run sync"));
-        Q_EMIT synchronize();
+        launchSynchronization();
     }
     else if (pTimerEvent->timerId() == m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId)
     {
@@ -4184,6 +4171,7 @@ void MainWindow::setupLocalStorageManager()
     QNDEBUG(QStringLiteral("MainWindow::setupLocalStorageManager"));
 
     m_pLocalStorageManagerThread = new QThread;
+    m_pLocalStorageManagerThread->setObjectName(QStringLiteral("LocalStorageManagerThread"));
     QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
                      m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
     m_pLocalStorageManagerThread->start();
@@ -4956,7 +4944,7 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
     }
 
     m_pAuthenticationManager = new AuthenticationManager(consumerKey, consumerSecret,
-                                                         m_synchronizationManagerHost, this);
+                                                         m_synchronizationManagerHost);
     m_pSynchronizationManager = new SynchronizationManager(m_synchronizationManagerHost,
                                                            *m_pLocalStorageManagerAsync,
                                                            *m_pAuthenticationManager);
@@ -4966,7 +4954,6 @@ void MainWindow::setupSynchronizationManager(const SetAccountOption::type setAcc
     }
 
     connectSynchronizationManager();
-
     setupRunSyncPeriodicallyTimer();
 }
 
@@ -4977,6 +4964,7 @@ void MainWindow::clearSynchronizationManager()
     disconnectSynchronizationManager();
 
     if (m_pSynchronizationManager) {
+        m_pSynchronizationManager->disconnect(this);
         m_pSynchronizationManager->deleteLater();
         m_pSynchronizationManager = Q_NULLPTR;
     }
@@ -4986,11 +4974,26 @@ void MainWindow::clearSynchronizationManager()
         m_pAuthenticationManager = Q_NULLPTR;
     }
 
-    m_pendingSynchronizationManagerSetAccount = false;
-    m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption = false;
-    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = false;
-    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = false;
-    m_pendingSynchronizationManagerResponseToStartSync = false;
+    if (m_pSynchronizationManagerThread && m_pSynchronizationManagerThread->isRunning())
+    {
+        QNetworkAccessManager * pQEverCloudNetworkAccessManager = qevercloud::evernoteNetworkAccessManager();
+
+        ErrorString errorDescription;
+        bool res = quentier::moveObjectToThread(*pQEverCloudNetworkAccessManager,
+                                                *QThread::currentThread(),
+                                                errorDescription);
+        if (Q_UNLIKELY(!res)) {
+            QNWARNING(errorDescription);
+        }
+
+        QObject::disconnect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
+                            m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
+        m_pSynchronizationManagerThread->quit();
+        m_pSynchronizationManagerThread->wait();
+        m_pSynchronizationManagerThread->deleteLater();
+        m_pSynchronizationManagerThread = Q_NULLPTR;
+
+    }
 
     m_syncApiRateLimitExceeded = false;
     scheduleSyncButtonAnimationStop();
@@ -5001,25 +5004,14 @@ void MainWindow::clearSynchronizationManager()
     }
 }
 
-void MainWindow::setAccountToSyncManager(const Account & account)
-{
-    QNDEBUG(QStringLiteral("MainWindow::setAccountToSyncManager"));
-
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setAccountDone,Account),
-                     this, QNSLOT(MainWindow,onSynchronizationManagerSetAccountDone,Account));
-    Q_EMIT synchronizationSetAccount(account);
-}
-
 void MainWindow::setSynchronizationOptions(const Account & account)
 {
     QNDEBUG(QStringLiteral("MainWindow::setSynchronizationOptions"));
 
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setDownloadNoteThumbnailsDone,bool),
-                     this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadNoteThumbnailsDone,bool));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setDownloadInkNoteImagesDone,bool),
-                     this, QNSLOT(MainWindow,onSynchronizationManagerSetDownloadInkNoteImagesDone,bool));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,setInkNoteImagesStoragePathDone,QString),
-                     this, QNSLOT(MainWindow,onSynchronizationManagerSetInkNoteImagesStoragePathDone,QString));
+    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
+        QNWARNING(QStringLiteral("Can't set synchronization options: no synchronization manager"));
+        return;
+    }
 
     ApplicationSettings appSettings(account, QUENTIER_SYNC_SETTINGS);
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
@@ -5031,53 +5023,33 @@ void MainWindow::setSynchronizationOptions(const Account & account)
                                         : DEFAULT_DOWNLOAD_INK_NOTE_IMAGES);
     appSettings.endGroup();
 
-    m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption = true;
-    Q_EMIT synchronizationDownloadNoteThumbnailsOptionChanged(downloadNoteThumbnailsOption);
-
-    m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption = true;
-    Q_EMIT synchronizationDownloadInkNoteImagesOptionChanged(downloadInkNoteImagesOption);
+    m_pSynchronizationManager->setDownloadNoteThumbnails(downloadNoteThumbnailsOption);
+    m_pSynchronizationManager->setDownloadInkNoteImages(downloadInkNoteImagesOption);
 
     QString inkNoteImagesStoragePath = accountPersistentStoragePath(account);
     inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
     QNTRACE(QStringLiteral("Ink note images storage path: ") << inkNoteImagesStoragePath
             << QStringLiteral("; account: ") << account.name());
 
-    m_pendingSynchronizationManagerSetInkNoteImagesStoragePath = true;
-    Q_EMIT synchronizationSetInkNoteImagesStoragePath(inkNoteImagesStoragePath);
+    m_pSynchronizationManager->setInkNoteImagesStoragePath(inkNoteImagesStoragePath);
 }
 
-void MainWindow::checkAndLaunchPendingSync()
+void MainWindow::setupSynchronizationManagerThread()
 {
-    QNDEBUG(QStringLiteral("MainWindow::checkAndLaunchPendingSync"));
+    QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManagerThread"));
 
-    if (!m_pendingSynchronizationManagerResponseToStartSync) {
-        QNDEBUG(QStringLiteral("No sync is pending"));
-        return;
-    }
+    m_pSynchronizationManagerThread = new QThread;
+    m_pSynchronizationManagerThread->setObjectName(QStringLiteral("SynchronizationManagerThread"));
+    QObject::connect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
+                     m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
+    m_pSynchronizationManagerThread->start();
 
-    if (m_pendingSynchronizationManagerSetAccount) {
-        QNDEBUG(QStringLiteral("Pending the response to setAccount from SynchronizationManager"));
-        return;
-    }
+    m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
+    m_pAuthenticationManager->moveToThread(m_pSynchronizationManagerThread);
 
-    if (m_pendingSynchronizationManagerSetDownloadNoteThumbnailsOption) {
-        QNDEBUG(QStringLiteral("Pending the response to setDownloadNoteThumbnails from SynchronizationManager"));
-        return;
-    }
-
-    if (m_pendingSynchronizationManagerSetDownloadInkNoteImagesOption) {
-        QNDEBUG(QStringLiteral("Pending the response to setDownloadInkNoteImages from SynchronizationManager"));
-        return;
-    }
-
-    if (m_pendingSynchronizationManagerSetInkNoteImagesStoragePath) {
-        QNDEBUG(QStringLiteral("Pending the response to setInkNoteImagesStoragePath from SynchronizationManager"));
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("Everything is ready, starting the sync"));
-    m_pendingSynchronizationManagerResponseToStartSync = false;
-    Q_EMIT synchronize();
+    // NOTE: moving QEverCloud's network access manager to synchronization manager's thread as well
+    QNetworkAccessManager * pQEverCloudNetworkAccessManager = qevercloud::evernoteNetworkAccessManager();
+    pQEverCloudNetworkAccessManager->moveToThread(m_pSynchronizationManagerThread);
 }
 
 void MainWindow::setupRunSyncPeriodicallyTimer()
@@ -5116,6 +5088,48 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
     syncSettings.endGroup();
 
     onRunSyncEachNumMinitesPreferenceChanged(runSyncEachNumMinutes);
+}
+
+void MainWindow::launchSynchronization()
+{
+    QNDEBUG(QStringLiteral("MainWindow::launchSynchronization"));
+
+    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
+        ErrorString error(QT_TR_NOOP("Can't start synchronization: internal error, no synchronization manager is set up"));
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        return;
+    }
+
+    if (m_syncInProgress) {
+        QNDEBUG(QStringLiteral("Synchronization is already in progress"));
+        return;
+    }
+
+    if (m_pendingNewEvernoteAccountAuthentication) {
+        QNDEBUG(QStringLiteral("Pending new Evernote account authentication"));
+        return;
+    }
+
+    if (m_pendingCurrentEvernoteAccountAuthentication) {
+        QNDEBUG(QStringLiteral("Pending current Evernote account authentication"));
+        return;
+    }
+
+    if (m_pendingSwitchToNewEvernoteAccount) {
+        QNDEBUG(QStringLiteral("Pending switch to new Evernote account"));
+        return;
+    }
+
+    if (m_authenticatedCurrentEvernoteAccount) {
+        QNDEBUG(QStringLiteral("Emitting synchronize signal"));
+        Q_EMIT synchronize();
+        return;
+    }
+
+    m_pendingCurrentEvernoteAccountAuthentication = true;
+    QNDEBUG(QStringLiteral("Emitting authenticate current account signal"));
+    Q_EMIT authenticateCurrentAccount();
 }
 
 void MainWindow::setupDefaultShortcuts()

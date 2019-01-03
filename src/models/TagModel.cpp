@@ -1454,9 +1454,8 @@ void TagModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid reques
 
     auto itemIt = localUidIndex.find(tag.localUid());
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        ErrorString error(QT_TR_NOOP("No tag receiving the note count update was found in the model"));
-        QNWARNING(error << QStringLiteral(", tag: ") << tag);
-        Q_EMIT notifyError(error);
+        // Probably this tag was expunged
+        QNDEBUG("No tag receiving the note count update was found in the model: " << tag);
         return;
     }
 
