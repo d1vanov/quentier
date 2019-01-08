@@ -18,7 +18,6 @@
 
 #include "NotebookModelTestHelper.h"
 #include "../../models/NotebookModel.h"
-#include "../../models/NoteModel.h"
 #include "modeltest.h"
 #include "TestMacros.h"
 #include <quentier/utility/SysInfo.h>
@@ -157,10 +156,7 @@ void NotebookModelTestHelper::test()
         NotebookCache cache(5);
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        NoteCache noteCache(10);
-        NoteModel noteModel(account, *m_pLocalStorageManagerAsync, noteCache, cache);
-
-        NotebookModel * model = new NotebookModel(account, noteModel, *m_pLocalStorageManagerAsync, cache, this);
+        NotebookModel * model = new NotebookModel(account, *m_pLocalStorageManagerAsync, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

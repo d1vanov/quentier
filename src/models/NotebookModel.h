@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -46,13 +46,11 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModel)
-
 class NotebookModel: public ItemModel
 {
     Q_OBJECT
 public:
-    explicit NotebookModel(const Account & account, const NoteModel & noteModel,
+    explicit NotebookModel(const Account & account,
                            LocalStorageManagerAsync & localStorageManagerAsync,
                            NotebookCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~NotebookModel();
@@ -328,8 +326,6 @@ Q_SIGNALS:
                                 const LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId);
 
 private Q_SLOTS:
-    void onAllNotesListed();
-
     // Slots for response to events from local storage
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
     void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
@@ -355,7 +351,7 @@ private Q_SLOTS:
     void onGetNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onNoteMovedToAnotherNotebook(QString noteLocalUid, QString previousNotebookLocalUid, QString newNotebookLocalUid);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
     void onAddLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
@@ -373,7 +369,7 @@ private Q_SLOTS:
                                         ErrorString errorDescription, QUuid requestId);
 
 private:
-    void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void requestNotebooksList();
     void requestNoteCountForNotebook(const Notebook & notebook);
     void requestNoteCountForAllNotebooks();
@@ -402,10 +398,10 @@ private:
     void updatePersistentModelIndices();
 
     // Returns true if successfully incremented the note count for the notebook item with the corresponding local uid
-    bool onAddNoteWithNotebookLocalUid(const QString & notebookLocalUid);
+    bool incrementNoteCountForNotebook(const QString & notebookLocalUid);
 
     // Returns true if successfully decremented the note count for the notebook item with the corresponding local uid
-    bool onExpungeNoteWithNotebookLocalUid(const QString & notebookLocalUid);
+    bool decrementNoteCountForNotebook(const QString & notebookLocalUid);
 
     void switchDefaultNotebookLocalUid(const QString & localUid);
     void switchLastUsedNotebookLocalUid(const QString & localUid);
@@ -416,8 +412,6 @@ private:
 
     void beginRemoveNotebooks();
     void endRemoveNotebooks();
-
-    void buildNotebookLocalUidByNoteLocalUidsHash(const NoteModel & noteModel);
 
     const NotebookModelItem & findOrCreateLinkedNotebookModelItem(const QString & linkedNotebookGuid);
 
@@ -565,9 +559,6 @@ private:
     QSet<QUuid>             m_findNotebookToPerformUpdateRequestIds;
 
     QSet<QUuid>             m_noteCountPerNotebookRequestIds;
-
-    QHash<QString, QString> m_notebookLocalUidByNoteLocalUid;
-    bool                    m_receivedNotebookLocalUidsForAllNotes;
 
     QHash<QString,QString>  m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids;
     size_t                  m_listLinkedNotebooksOffset;
