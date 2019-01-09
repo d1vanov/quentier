@@ -23,6 +23,7 @@
 #include <QMimeData>
 #include <limits>
 #include <vector>
+#include <algorithm>
 
 // Limit for the queries to the local storage
 #define TAG_LIST_LIMIT (100)
@@ -73,7 +74,6 @@ TagModel::TagModel(const Account & account,
     m_listLinkedNotebooksRequestId(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
-    m_tagLocalUidsByNoteLocalUid(),
     m_tagRestrictionsByLinkedNotebookGuid(),
     m_findNotebookRequestForLinkedNotebookGuid(),
     m_lastNewTagNameCounter(0),
@@ -1329,50 +1329,31 @@ void TagModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requ
     Q_EMIT notifyError(errorDescription);
 }
 
-void TagModel::onListTagsWithNoteLocalUidsComplete(LocalStorageManager::ListObjectsOptions flag,
-                                                   size_t limit, size_t offset,
-                                                   LocalStorageManager::ListTagsOrder::type order,
-                                                   LocalStorageManager::OrderDirection::type orderDirection,
-                                                   QString linkedNotebookGuid,
-                                                   QList<std::pair<Tag,QStringList> > foundTagsWithNoteLocalUids,
-                                                   QUuid requestId)
+void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
+                                  size_t limit, size_t offset,
+                                  LocalStorageManager::ListTagsOrder::type order,
+                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                  QString linkedNotebookGuid, QList<Tag> tags, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
         return;
     }
 
-    QNTRACE(QStringLiteral("TagModel::onListTagsWithNoteLocalUidsComplete: flag = ") << flag << QStringLiteral(", limit = ") << limit
+    QNTRACE(QStringLiteral("TagModel::onListTagsComplete: flag = ") << flag << QStringLiteral(", limit = ") << limit
             << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
             << orderDirection << QStringLiteral(", linked notebook guid = ")
             << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid)
-            << QStringLiteral(", num found tags = ") << foundTagsWithNoteLocalUids.size() << QStringLiteral(", request id = ") << requestId);
+            << QStringLiteral(", num found tags = ") << tags.size() << QStringLiteral(", request id = ") << requestId);
 
-    for(auto it = foundTagsWithNoteLocalUids.constBegin(), end = foundTagsWithNoteLocalUids.constEnd(); it != end; ++it)
-    {
-        const Tag & tag = it->first;
-        const QStringList & noteLocalUids = it->second;
-
-        onTagAddedOrUpdated(tag, &noteLocalUids);
-
-        for(auto nit = noteLocalUids.constBegin(), nend = noteLocalUids.constEnd(); nit != nend; ++nit)
-        {
-            const QString & noteLocalUid = *nit;
-            if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-                continue;
-            }
-
-            QStringList & tagLocalUids = m_tagLocalUidsByNoteLocalUid[noteLocalUid];
-            if (!tagLocalUids.contains(tag.localUid())) {
-                tagLocalUids << tag.localUid();
-            }
-        }
+    for(auto it = tags.constBegin(), end = tags.constEnd(); it != end; ++it) {
+        onTagAddedOrUpdated(*it);
     }
 
     m_listTagsRequestId = QUuid();
 
-    if (!foundTagsWithNoteLocalUids.isEmpty()) {
+    if (!tags.isEmpty()) {
         QNTRACE(QStringLiteral("The number of found tags is greater than zero, requesting more tags from the local storage"));
-        m_listTagsOffset += static_cast<size_t>(foundTagsWithNoteLocalUids.size());
+        m_listTagsOffset += static_cast<size_t>(tags.size());
         requestTagsList();
         return;
     }
@@ -1385,17 +1366,17 @@ void TagModel::onListTagsWithNoteLocalUidsComplete(LocalStorageManager::ListObje
     }
 }
 
-void TagModel::onListTagsWithNoteLocalUidsFailed(LocalStorageManager::ListObjectsOptions flag,
-                                                 size_t limit, size_t offset,
-                                                 LocalStorageManager::ListTagsOrder::type order,
-                                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                                 QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
+                                size_t limit, size_t offset,
+                                LocalStorageManager::ListTagsOrder::type order,
+                                LocalStorageManager::OrderDirection::type orderDirection,
+                                QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("TagModel::onListTagsWithNoteLocalUidsFailed: flag = ") << flag << QStringLiteral(", limit = ") << limit
+    QNDEBUG(QStringLiteral("TagModel::onListTagsFailed: flag = ") << flag << QStringLiteral(", limit = ") << limit
             << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
             << orderDirection << QStringLiteral(", linked notebook guid = ")
             << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid)
@@ -1449,53 +1430,7 @@ void TagModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid reques
             << requestId << QStringLiteral(", note count = ") << noteCount);
 
     Q_UNUSED(m_noteCountPerTagRequestIds.erase(it))
-
-    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-
-    auto itemIt = localUidIndex.find(tag.localUid());
-    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        // Probably this tag was expunged
-        QNDEBUG("No tag receiving the note count update was found in the model: " << tag);
-        return;
-    }
-
-    auto modelItemIt = m_modelItemsByLocalUid.find(itemIt->localUid());
-    if (Q_UNLIKELY(modelItemIt == m_modelItemsByLocalUid.end())) {
-        ErrorString error(QT_TR_NOOP("No tag model item corresponding to a receiving the note count update "
-                                     "was found in the model"));
-        QNWARNING(error << QStringLiteral(", tag: ") << tag);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
-    const TagModelItem * pModelItem = &(modelItemIt.value());
-    const TagModelItem * pParentItem = pModelItem->parent();
-    if (Q_UNLIKELY(!pParentItem)) {
-        ErrorString error(QT_TR_NOOP("The tag model item being updated with the note count "
-                                     "does not have a parent item linked with it"));
-        QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag item: ") << *itemIt);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
-    int row = pParentItem->rowForChild(pModelItem);
-    if (Q_UNLIKELY(row < 0)) {
-        ErrorString error(QT_TR_NOOP("Can't find the row of tag model item being updated with the note count "
-                                     "within its parent"));
-        QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag model item: ") << *pModelItem);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
-    TagItem itemCopy = *itemIt;
-    itemCopy.setNumNotesPerTag(noteCount);
-    Q_UNUSED(localUidIndex.replace(itemIt, itemCopy))
-
-    IndexId id = idForItem(*pModelItem);
-    QModelIndex index = createIndex(row, Columns::NumNotesPerTag, id);
-    Q_EMIT dataChanged(index, index);
-
-    // NOTE: in future, if/when sorting by note count is supported, will need to check if need to re-sort and Q_EMIT the layout changed signal
+    setNoteCountForTag(tag.localUid(), noteCount);
 }
 
 void TagModel::onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId)
@@ -1695,7 +1630,6 @@ void TagModel::onAddNoteComplete(Note note, QUuid requestId)
     }
 
     const QStringList & tagLocalUids = note.tagLocalUids();
-    m_tagLocalUidsByNoteLocalUid[note.localUid()] = tagLocalUids;
 
     for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it) {
         Tag dummy;
@@ -1704,76 +1638,60 @@ void TagModel::onAddNoteComplete(Note note, QUuid requestId)
     }
 }
 
-void TagModel::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
+void TagModel::onNoteTagListChanged(QString noteLocalUid, QStringList previousNoteTagLocalUids, QStringList newNoteTagLocalUids)
 {
-    if (!(options & LocalStorageManager::UpdateNoteOption::UpdateTags)) {
-        return;
-    }
+    QNDEBUG(QStringLiteral("TagModel::onNoteTagListChanged: note local uid = ") << noteLocalUid
+            << QStringLiteral(", previous note tag local uids = ") << previousNoteTagLocalUids.join(QStringLiteral(","))
+            << QStringLiteral(", new note tag local uids = ") << newNoteTagLocalUids.join(QStringLiteral(",")));
 
-    QNTRACE(QStringLiteral("TagModel::onUpdateNoteComplete: note = ") << note
-            << QStringLiteral("\nUpdate resource metadata = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", update resource binary data = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", update tags = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", request id = ") << requestId);
+    std::sort(previousNoteTagLocalUids.begin(), previousNoteTagLocalUids.end());
+    std::sort(newNoteTagLocalUids.begin(), newNoteTagLocalUids.end());
 
-    QStringList oldTagLocalUids;
-    auto it = m_tagLocalUidsByNoteLocalUid.find(note.localUid());
-    if (it != m_tagLocalUidsByNoteLocalUid.end()) {
-        oldTagLocalUids = it.value();
-    }
+    std::vector<QString> commonTagLocalUids;
 
-    QStringList newTagLocalUids = (note.hasTagLocalUids() ? note.tagLocalUids() : QStringList());
+    std::set_intersection(previousNoteTagLocalUids.begin(), previousNoteTagLocalUids.end(),
+                          newNoteTagLocalUids.begin(), newNoteTagLocalUids.end(),
+                          std::back_inserter(commonTagLocalUids));
 
-    bool sameTags = (oldTagLocalUids.size() == newTagLocalUids.size());
-    if (sameTags)
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    for(auto it = previousNoteTagLocalUids.constBegin(), end = previousNoteTagLocalUids.constEnd(); it != end; ++it)
     {
-        for(auto oldTagIt = oldTagLocalUids.constBegin(), end = oldTagLocalUids.constEnd(); oldTagIt != end; ++oldTagIt)
-        {
-            if (!newTagLocalUids.contains(*oldTagIt)) {
-                sameTags = false;
-                break;
-            }
+        const QString & tagLocalUid = *it;
+        if (std::find(commonTagLocalUids.begin(), commonTagLocalUids.end(), tagLocalUid) != commonTagLocalUids.end()) {
+            continue;
         }
+
+        auto itemIt = localUidIndex.find(tagLocalUid);
+        if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+            // Probably this tag was expunged
+            QNDEBUG("No tag was found in the model: " << tagLocalUid);
+            return;
+        }
+
+        int noteCount = itemIt->numNotesPerTag();
+        --noteCount;
+        noteCount = std::max(0, noteCount);
+        setNoteCountForTag(tagLocalUid, noteCount);
     }
 
-    if (sameTags) {
-        QNDEBUG(QStringLiteral("The list of this note's tags hasn't changed, no need to update the note count per any tag: ")
-                << oldTagLocalUids.join(QStringLiteral(", ")));
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("The list of this note's tags has changed, need to update the note count per both old and new tags"));
-    QNTRACE(QStringLiteral("Old tags: ") << oldTagLocalUids.join(QStringLiteral(", "))
-            << QStringLiteral("; new tags: ") << newTagLocalUids.join(QStringLiteral(", ")));
-
-    QStringList tagsToUpdate = oldTagLocalUids;
-    tagsToUpdate << newTagLocalUids;
-    Q_UNUSED(tagsToUpdate.removeDuplicates())
-    QNTRACE(QStringLiteral("Local uids of tags for which the update of note count is needed: ")
-            << tagsToUpdate.join(QStringLiteral(", ")));
-
-    for(auto tagIt = tagsToUpdate.constBegin(), end = tagsToUpdate.constEnd(); tagIt != end; ++tagIt) {
-        Tag dummy;
-        dummy.setLocalUid(*tagIt);
-        requestNoteCountForTag(dummy);
-    }
-
-    // Finally, update tag local uids per note local uid in our own hash
-    if (it != m_tagLocalUidsByNoteLocalUid.end())
+    for(auto it = newNoteTagLocalUids.constBegin(), end = newNoteTagLocalUids.constEnd(); it != end; ++it)
     {
-        if (!newTagLocalUids.isEmpty()) {
-            it.value() = newTagLocalUids;
+        const QString & tagLocalUid = *it;
+        if (std::find(commonTagLocalUids.begin(), commonTagLocalUids.end(), tagLocalUid) != commonTagLocalUids.end()) {
+            continue;
         }
-        else {
-            Q_UNUSED(m_tagLocalUidsByNoteLocalUid.erase(it))
+
+        auto itemIt = localUidIndex.find(tagLocalUid);
+        if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+            // Probably this tag was expunged
+            QNDEBUG("No tag was found in the model: " << tagLocalUid);
+            return;
         }
-    }
-    else if (!newTagLocalUids.isEmpty())
-    {
-        m_tagLocalUidsByNoteLocalUid[note.localUid()] = newTagLocalUids;
+
+        int noteCount = itemIt->numNotesPerTag();
+        ++noteCount;
+        setNoteCountForTag(tagLocalUid, noteCount);
     }
 }
 
@@ -1797,29 +1715,6 @@ void TagModel::onExpungeNoteComplete(Note note, QUuid requestId)
     }
 
     QNDEBUG(QStringLiteral("Note has no tag local uids"));
-
-    auto it = m_tagLocalUidsByNoteLocalUid.find(note.localUid());
-    if (it != m_tagLocalUidsByNoteLocalUid.end())
-    {
-        const QStringList & tagLocalUids = it.value();
-        QNTRACE(QStringLiteral("Last known tag local uids for the expunged note: ")
-                << tagLocalUids.join(QStringLiteral(", ")));
-
-        for(auto tagIt = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); tagIt != end; ++tagIt) {
-            Tag dummy;
-            dummy.setLocalUid(*tagIt);
-            requestNoteCountForTag(dummy);
-        }
-
-        // Finally, erasing the entry for this note from our hash since the note was expunged
-        Q_UNUSED(m_tagLocalUidsByNoteLocalUid.erase(it))
-
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("Found no cached tag local uids for this note"));
-
-    // Inefficient fallback which should be used rarely if at all
     requestNoteCountsPerAllTags();
 }
 
@@ -2004,9 +1899,9 @@ void TagModel::createConnections(LocalStorageManagerAsync & localStorageManagerA
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateTagRequest,Tag,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,findTag,Tag,QUuid),
                      &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
-    QObject::connect(this, QNSIGNAL(TagModel,listTagsWithNoteLocalUids,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+    QObject::connect(this, QNSIGNAL(TagModel,listTags,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                     LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListTagsWithNoteLocalUidsRequest,LocalStorageManager::ListObjectsOptions,
+                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListTagsRequest,LocalStorageManager::ListObjectsOptions,
                                                        size_t,size_t,LocalStorageManager::ListTagsOrder::type,
                                                        LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,expungeTag,Tag,QUuid),
@@ -2042,15 +1937,15 @@ void TagModel::createConnections(LocalStorageManagerAsync & localStorageManagerA
                      this, QNSLOT(TagModel,onFindTagComplete,Tag,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findTagFailed,Tag,ErrorString,QUuid),
                      this, QNSLOT(TagModel,onFindTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsWithNoteLocalUidsComplete,LocalStorageManager::ListObjectsOptions,
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsComplete,LocalStorageManager::ListObjectsOptions,
                                                          size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
-                                                         QString,QList<std::pair<Tag,QStringList> >,QUuid),
-                     this, QNSLOT(TagModel,onListTagsWithNoteLocalUidsComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                  LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<std::pair<Tag,QStringList> >,QUuid));
+                                                         QString,QList<Tag>,QUuid),
+                     this, QNSLOT(TagModel,onListTagsComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                  LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Tag>,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsWithNoteLocalUidsFailed,LocalStorageManager::ListObjectsOptions,
                                                          size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
                                                          QString,ErrorString,QUuid),
-                     this, QNSLOT(TagModel,onListTagsWithNoteLocalUidsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                     this, QNSLOT(TagModel,onListTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                   LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
                      this, QNSLOT(TagModel,onExpungeTagComplete,Tag,QStringList,QUuid));
@@ -2076,8 +1971,8 @@ void TagModel::createConnections(LocalStorageManagerAsync & localStorageManagerA
                      this, QNSLOT(TagModel,onExpungeNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
                      this, QNSLOT(TagModel,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     this, QNSLOT(TagModel,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteTagListChanged,QString,QStringList,QStringList),
+                     this, QNSLOT(TagModel,onNoteTagListChanged,QString,QStringList,QStringList));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(TagModel,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addLinkedNotebookComplete,LinkedNotebook,QUuid),
@@ -2118,7 +2013,7 @@ void TagModel::requestTagsList()
     m_listTagsRequestId = QUuid::createUuid();
     QNTRACE(QStringLiteral("Emitting the request to list tags: offset = ") << m_listTagsOffset << QStringLiteral(", request id = ")
             << m_listTagsRequestId);
-    Q_EMIT listTagsWithNoteLocalUids(flags, TAG_LIST_LIMIT, m_listTagsOffset, order, direction, QString(), m_listTagsRequestId);
+    Q_EMIT listTags(flags, TAG_LIST_LIMIT, m_listTagsOffset, order, direction, QString(), m_listTagsRequestId);
 }
 
 void TagModel::requestNoteCountForTag(const Tag & tag)
@@ -3873,6 +3768,56 @@ void TagModel::tagFromItem(const TagItem & item, Tag & tag) const
     tag.setFavorited(item.isFavorited());
     tag.setParentLocalUid(item.parentLocalUid());
     tag.setParentGuid(item.parentGuid());
+}
+
+void TagModel::setNoteCountForTag(const QString & tagLocalUid, const int noteCount)
+{
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto itemIt = localUidIndex.find(tagLocalUid);
+    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+        // Probably this tag was expunged
+        QNDEBUG("No tag receiving the note count update was found in the model: " << tagLocalUid);
+        return;
+    }
+
+    auto modelItemIt = m_modelItemsByLocalUid.find(itemIt->localUid());
+    if (Q_UNLIKELY(modelItemIt == m_modelItemsByLocalUid.end())) {
+        ErrorString error(QT_TR_NOOP("No tag model item corresponding to a receiving the note count update "
+                                     "was found in the model"));
+        QNWARNING(error << QStringLiteral(", tag local uid: ") << tagLocalUid);
+        Q_EMIT notifyError(error);
+        return;
+    }
+
+    const TagModelItem * pModelItem = &(modelItemIt.value());
+    const TagModelItem * pParentItem = pModelItem->parent();
+    if (Q_UNLIKELY(!pParentItem)) {
+        ErrorString error(QT_TR_NOOP("The tag model item being updated with the note count "
+                                     "does not have a parent item linked with it"));
+        QNWARNING(error << QStringLiteral(", tag local uid: ") << tagLocalUid << QStringLiteral("\nTag item: ") << *itemIt);
+        Q_EMIT notifyError(error);
+        return;
+    }
+
+    int row = pParentItem->rowForChild(pModelItem);
+    if (Q_UNLIKELY(row < 0)) {
+        ErrorString error(QT_TR_NOOP("Can't find the row of tag model item being updated with the note count "
+                                     "within its parent"));
+        QNWARNING(error << QStringLiteral(", tag local uid: ") << tagLocalUid << QStringLiteral("\nTag model item: ") << *pModelItem);
+        Q_EMIT notifyError(error);
+        return;
+    }
+
+    TagItem itemCopy = *itemIt;
+    itemCopy.setNumNotesPerTag(noteCount);
+    Q_UNUSED(localUidIndex.replace(itemIt, itemCopy))
+
+    IndexId id = idForItem(*pModelItem);
+    QModelIndex index = createIndex(row, Columns::NumNotesPerTag, id);
+    Q_EMIT dataChanged(index, index);
+
+    // NOTE: in future, if/when sorting by note count is supported, will need to check if need to re-sort and Q_EMIT the layout changed signal
 }
 
 void TagModel::setTagFavorited(const QModelIndex & index, const bool favorited)
