@@ -1667,7 +1667,7 @@ void TagModel::onNoteTagListChanged(QString noteLocalUid, QStringList previousNo
         if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
             // Probably this tag was expunged
             QNDEBUG("No tag was found in the model: " << tagLocalUid);
-            return;
+            continue;
         }
 
         int noteCount = itemIt->numNotesPerTag();
@@ -1687,7 +1687,7 @@ void TagModel::onNoteTagListChanged(QString noteLocalUid, QStringList previousNo
         if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
             // Probably this tag was expunged
             QNDEBUG("No tag was found in the model: " << tagLocalUid);
-            return;
+            continue;
         }
 
         int noteCount = itemIt->numNotesPerTag();
