@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -161,9 +161,6 @@ void TagModelTestHelper::test()
 
         TagCache cache(20);
         Account account(QStringLiteral("Default user"), Account::Type::Local);
-
-        NoteCache noteCache(10);
-        NotebookCache notebookCache(5);
 
         TagModel * model = new TagModel(account, *m_pLocalStorageManagerAsync, cache, this);
         ModelTest t1(model);

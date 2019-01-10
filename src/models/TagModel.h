@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -255,11 +255,11 @@ Q_SIGNALS:
     void addTag(Tag tag, QUuid requestId);
     void updateTag(Tag tag, QUuid requestId);
     void findTag(Tag tag, QUuid requestId);
-    void listTagsWithNoteLocalUids(LocalStorageManager::ListObjectsOptions flag,
-                                   size_t limit, size_t offset,
-                                   LocalStorageManager::ListTagsOrder::type order,
-                                   LocalStorageManager::OrderDirection::type orderDirection,
-                                   QString linkedNotebookGuid, QUuid requestId);
+    void listTags(LocalStorageManager::ListObjectsOptions flag,
+                  size_t limit, size_t offset,
+                  LocalStorageManager::ListTagsOrder::type order,
+                  LocalStorageManager::OrderDirection::type orderDirection,
+                  QString linkedNotebookGuid, QUuid requestId);
     void expungeTag(Tag tag, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
     void requestNoteCountPerTag(Tag tag, QUuid requestId);
@@ -281,18 +281,16 @@ private Q_SLOTS:
     void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onFindTagComplete(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onListTagsWithNoteLocalUidsComplete(LocalStorageManager::ListObjectsOptions flag,
-                                             size_t limit, size_t offset,
-                                             LocalStorageManager::ListTagsOrder::type order,
-                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                             QString linkedNotebookGuid,
-                                             QList<std::pair<Tag,QStringList> > foundTagsWithNoteLocalUids,
-                                             QUuid requestId);
-    void onListTagsWithNoteLocalUidsFailed(LocalStorageManager::ListObjectsOptions flag,
-                                           size_t limit, size_t offset,
-                                           LocalStorageManager::ListTagsOrder::type order,
-                                           LocalStorageManager::OrderDirection::type orderDirection,
-                                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
+    void onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
+                            size_t limit, size_t offset,
+                            LocalStorageManager::ListTagsOrder::type order,
+                            LocalStorageManager::OrderDirection::type orderDirection,
+                            QString linkedNotebookGuid, QList<Tag> tags, QUuid requestId);
+    void onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
+                          size_t limit, size_t offset,
+                          LocalStorageManager::ListTagsOrder::type order,
+                          LocalStorageManager::OrderDirection::type orderDirection,
+                          QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
     void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
@@ -308,7 +306,7 @@ private Q_SLOTS:
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onNoteTagListChanged(QString noteLocalUid, QStringList previousNoteTagLocalUids, QStringList newNoteTagLocalUids);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
     void onAddLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId);
@@ -367,6 +365,7 @@ private:
 
     void tagFromItem(const TagItem & item, Tag & tag) const;
 
+    void setNoteCountForTag(const QString & tagLocalUid, const int noteCount);
     void setTagFavorited(const QModelIndex & index, const bool favorited);
 
     void beginRemoveTags();
@@ -501,8 +500,6 @@ private:
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
-
-    QHash<QString, QStringList>     m_tagLocalUidsByNoteLocalUid;
 
     struct Restrictions
     {
