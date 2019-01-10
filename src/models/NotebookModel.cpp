@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,7 +17,6 @@
  */
 
 #include "NotebookModel.h"
-#include "NoteModel.h"
 #include "NewItemNameGenerator.hpp"
 #include <quentier/logging/QuentierLogger.h>
 #include <QMimeData>
