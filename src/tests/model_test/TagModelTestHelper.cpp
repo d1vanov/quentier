@@ -162,9 +162,6 @@ void TagModelTestHelper::test()
         TagCache cache(20);
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        NoteCache noteCache(10);
-        NotebookCache notebookCache(5);
-
         TagModel * model = new TagModel(account, *m_pLocalStorageManagerAsync, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
