@@ -1359,6 +1359,7 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
     }
 
     m_allTagsListed = true;
+    requestNoteCountsPerAllTags();
 
     if (m_allLinkedNotebooksListed) {
         Q_EMIT notifyAllTagsListed();
