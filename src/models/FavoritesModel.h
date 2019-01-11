@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -48,13 +48,11 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModel)
-
 class FavoritesModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit FavoritesModel(const Account & account, const NoteModel & noteModel,
+    explicit FavoritesModel(const Account & account,
                             LocalStorageManagerAsync & localStorageManagerAsync,
                             NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                             SavedSearchCache & savedSearchCache, QObject * parent = Q_NULLPTR);
@@ -158,13 +156,14 @@ Q_SIGNALS:
     void noteCountPerTag(Tag tag, QUuid requestId);
 
 private Q_SLOTS:
-    void onAllNotesListed();
-
     // Slots for response to events from local storage
 
     // For notes:
     void onAddNoteComplete(Note note, QUuid requestId);
     void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onNoteMovedToAnotherNotebook(QString noteLocalUid, QString previousNotebookLocalUid,
+                                      QString newNotebookLocalUid);
+    void onNoteTagListChanged(QString noteLocalUid, QStringList previousNoteTagLocalUids, QStringList newNoteTagLocalUids);
     void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
                             ErrorString errorDescription, QUuid requestId);
     void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
@@ -244,7 +243,7 @@ private Q_SLOTS:
     void onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
 
 private:
-    void createConnections(const NoteModel & noteModel, LocalStorageManagerAsync & localStorageManagerAsync);
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void requestNotesList();
     void requestNotebooksList();
     void requestTagsList();
@@ -299,17 +298,9 @@ private:
     void onTagAddedOrUpdated(const Tag & tag);
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
-    void checkNotebookUpdateForNote(const QString & noteLocalUid, const QString & notebookLocalUid);
-    void checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(const Note & note);
-    void checkTagsUpdateForNote(const Note & note);
-    void checkAndUpdateNoteCountPerTagAfterNoteExpunge(const Note & note);
-
     void updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column);
 
     void checkAllItemsListed();
-
-    void buildTagLocalUidsByNoteLocalUidsHash(const NoteModel & noteModel);
-    void buildNotebookLocalUidByNoteLocalUidsHash(const NoteModel & noteModel);
 
 private:
     struct ByLocalUid{};
@@ -410,10 +401,6 @@ private:
     QHash<QString, QString> m_notebookLocalUidToGuid;
 
     QHash<QString, QString> m_notebookLocalUidByNoteLocalUid;
-    bool                    m_receivedNotebookLocalUidsForAllNotes;
-
-    QHash<QString, QStringList>     m_tagLocalUidsByNoteLocalUid;
-    bool                            m_receivedTagLocalUidsForAllNotes;
 
     LocalUidToRequestIdBimap        m_notebookLocalUidToNoteCountRequestIdBimap;
     LocalUidToRequestIdBimap        m_tagLocalUidToNoteCountRequestIdBimap;

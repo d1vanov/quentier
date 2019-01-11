@@ -273,9 +273,7 @@ void FavoritesModelTestHelper::launchTest()
 
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        NoteModel noteModel(account, *m_pLocalStorageManagerAsync, noteCache, notebookCache);
-
-        FavoritesModel * model = new FavoritesModel(account, noteModel, *m_pLocalStorageManagerAsync,
+        FavoritesModel * model = new FavoritesModel(account, *m_pLocalStorageManagerAsync,
                                                     noteCache, notebookCache, tagCache, savedSearchCache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
