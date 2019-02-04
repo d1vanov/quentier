@@ -4171,30 +4171,43 @@ void MainWindow::setupLocalStorageManager()
     QNDEBUG(QStringLiteral("MainWindow::setupLocalStorageManager"));
 
     m_pLocalStorageManagerThread = new QThread;
-    m_pLocalStorageManagerThread->setObjectName(QStringLiteral("LocalStorageManagerThread"));
+    m_pLocalStorageManagerThread->setObjectName(
+        QStringLiteral("LocalStorageManagerThread"));
     QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
                      m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
     m_pLocalStorageManagerThread->start();
 
-    m_pLocalStorageManagerAsync = new LocalStorageManagerAsync(*m_pAccount, /* start from scratch = */ false,
-                                                               /* override lock = */ false);
+    m_pLocalStorageManagerAsync = new LocalStorageManagerAsync(
+        *m_pAccount,
+        LocalStorageManager::StartupOptions(0));
+
     m_pLocalStorageManagerAsync->init();
 
     ErrorString errorDescription;
-    if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(errorDescription)) {
+    auto & localStorageManager = *m_pLocalStorageManagerAsync->localStorageManager();
+    if (localStorageManager.isLocalStorageVersionTooHigh(errorDescription)) {
         throw quentier::LocalStorageVersionTooHighException(errorDescription);
     }
 
-    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches = m_pLocalStorageManagerAsync->localStorageManager()->requiredLocalStoragePatches();
+    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches =
+        localStorageManager.requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty())
     {
-        QNDEBUG(QStringLiteral("Local storage requires upgrade: detected ") << localStoragePatches.size()
+        QNDEBUG(QStringLiteral("Local storage requires upgrade: detected ")
+                << localStoragePatches.size()
                 << QStringLiteral(" pending local storage patches"));
-        QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(new LocalStorageUpgradeDialog(*m_pAccount, m_pAccountManager->accountModel(),
-                                                                                               localStoragePatches, LocalStorageUpgradeDialog::Options(0),
-                                                                                               this));
-        QObject::connect(pUpgradeDialog.data(), QNSIGNAL(LocalStorageUpgradeDialog,shouldQuitApp),
-                         this, QNSLOT(MainWindow,onQuitAction), Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+        QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(
+            new LocalStorageUpgradeDialog(*m_pAccount,
+                                          m_pAccountManager->accountModel(),
+                                          localStoragePatches,
+                                          LocalStorageUpgradeDialog::Options(0),
+                                          this));
+        QObject::connect(pUpgradeDialog.data(),
+                         QNSIGNAL(LocalStorageUpgradeDialog,shouldQuitApp),
+                         this,
+                         QNSLOT(MainWindow,onQuitAction),
+                         Qt::ConnectionType(Qt::UniqueConnection |
+                                            Qt::QueuedConnection));
         pUpgradeDialog->adjustSize();
         Q_UNUSED(pUpgradeDialog->exec())
     }
