@@ -36,16 +36,22 @@ void EditNoteDialogsManager::onNoteInfoDialogRequested(QString noteLocalUid)
     findNoteAndRaiseEditNoteDialog(noteLocalUid, /* read only ode = */ true);
 }
 
-void EditNoteDialogsManager::onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId)
+void EditNoteDialogsManager::onFindNoteComplete(Note note, LocalStorageManager::GetNoteOptions options, QUuid requestId)
 {
     auto it = m_findNoteRequestIds.find(requestId);
     if (it == m_findNoteRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onFindNoteComplete: request id = ") << requestId
-            << QStringLiteral(", with resource metadata = ") << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", with resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
+    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onFindNoteComplete: request id = ")
+            << requestId << QStringLiteral(", with resource metadata = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", with resource binary data = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", note: ") << note);
 
     bool readOnlyFlag = it.value();
@@ -56,7 +62,7 @@ void EditNoteDialogsManager::onFindNoteComplete(Note note, bool withResourceMeta
     raiseEditNoteDialog(note, readOnlyFlag);
 }
 
-void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+void EditNoteDialogsManager::onFindNoteFailed(Note note, LocalStorageManager::GetNoteOptions options,
                                               ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_findNoteRequestIds.find(requestId);
@@ -64,10 +70,17 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceMetada
         return;
     }
 
-    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onFindNoteFailed: request id = ") << requestId
-            << QStringLiteral(", with resource metadata = ") << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", with resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral("; note: ") << note);
+    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onFindNoteFailed: request id = ")
+            << requestId << QStringLiteral(", with resource metadata = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", with resource binary data = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral("; note: ") << note);
 
     bool readOnlyFlag = it.value();
 
@@ -135,15 +148,15 @@ void EditNoteDialogsManager::createConnections()
 {
     QNDEBUG(QStringLiteral("EditNoteDialogsManager::createConnections"));
 
-    QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,findNote,Note,bool,bool,QUuid),
-                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,findNote,Note,LocalStorageManager::GetNoteOptions,QUuid),
+                     &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,LocalStorageManager::GetNoteOptions,QUuid));
     QObject::connect(this, QNSIGNAL(EditNoteDialogsManager,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
                      &m_localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
 
-    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(EditNoteDialogsManager,onFindNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(EditNoteDialogsManager,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,LocalStorageManager::GetNoteOptions,QUuid),
+                     this, QNSLOT(EditNoteDialogsManager,onFindNoteComplete,Note,LocalStorageManager::GetNoteOptions,QUuid));
+    QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,LocalStorageManager::GetNoteOptions,ErrorString,QUuid),
+                     this, QNSLOT(EditNoteDialogsManager,onFindNoteFailed,Note,LocalStorageManager::GetNoteOptions,ErrorString,QUuid));
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
                      this, QNSLOT(EditNoteDialogsManager,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
     QObject::connect(&m_localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
@@ -166,7 +179,9 @@ void EditNoteDialogsManager::findNoteAndRaiseEditNoteDialog(const QString & note
     note.setLocalUid(noteLocalUid);
     QNTRACE(QStringLiteral("Emitting the request to find note: requets id = ") << requestId
             << QStringLiteral(", note local uid = ") << noteLocalUid);
-    Q_EMIT findNote(note, /* with resource metadata = */ true, /* with resource binary data = */ false, requestId);
+    LocalStorageManager::GetNoteOptions options(
+        LocalStorageManager::GetNoteOption::WithResourceMetadata);
+    Q_EMIT findNote(note, options, requestId);
 }
 
 void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool readOnlyFlag)

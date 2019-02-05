@@ -4214,12 +4214,24 @@ void MainWindow::setupLocalStorageManager()
 
     m_pLocalStorageManagerAsync->moveToThread(m_pLocalStorageManagerThread);
 
-    QObject::connect(this, QNSIGNAL(MainWindow,localStorageSwitchUserRequest,Account,bool,QUuid),
-                     m_pLocalStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onSwitchUserRequest,Account,bool,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,switchUserComplete,Account,QUuid),
-                     this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestComplete,Account,QUuid));
-    QObject::connect(m_pLocalStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,switchUserFailed,Account,ErrorString,QUuid),
-                     this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,Account,ErrorString,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(MainWindow,localStorageSwitchUserRequest,
+                              Account,LocalStorageManager::StartupOptions,QUuid),
+                     m_pLocalStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onSwitchUserRequest,
+                            Account,LocalStorageManager::StartupOptions,QUuid));
+    QObject::connect(m_pLocalStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,switchUserComplete,
+                              Account,QUuid),
+                     this,
+                     QNSLOT(MainWindow,onLocalStorageSwitchUserRequestComplete,
+                            Account,QUuid));
+    QObject::connect(m_pLocalStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,switchUserFailed,
+                              Account,ErrorString,QUuid),
+                     this,
+                     QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,
+                            Account,ErrorString,QUuid));
 }
 
 void MainWindow::setupDefaultAccount()
