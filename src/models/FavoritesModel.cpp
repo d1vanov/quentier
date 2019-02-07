@@ -1717,7 +1717,7 @@ void FavoritesModel::createConnections(LocalStorageManagerAsync & localStorageMa
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
                             LocalStorageManager::ListObjectsOptions,
-                            bool,bool,size_t,size_t,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(this,

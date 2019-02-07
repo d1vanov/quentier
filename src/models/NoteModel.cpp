@@ -1362,10 +1362,11 @@ void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManager
                      QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,
                             Note,LocalStorageManager::UpdateNoteOptions,QUuid));
     QObject::connect(this,
-                     QNSIGNAL(NoteModel,findNote,Note,bool,bool,QUuid),
+                     QNSIGNAL(NoteModel,findNote,
+                              Note,LocalStorageManager::GetNoteOptions,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,
-                            Note,bool,bool,QUuid));
+                            Note,LocalStorageManager::GetNoteOptions,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NoteModel,listNotes,
                               LocalStorageManager::ListObjectsOptions,
