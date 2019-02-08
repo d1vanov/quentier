@@ -1,3 +1,21 @@
+/*
+ * Copyright 2017-2019 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "FromLinkedNotebookColumnDelegate.h"
 #include <QPainter>
 #include <algorithm>
@@ -7,7 +25,8 @@
 
 namespace quentier {
 
-FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(QObject * parent) :
+FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(
+        QObject * parent) :
     AbstractStyledItemDelegate(parent),
     m_icon(),
     m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
@@ -20,15 +39,17 @@ int FromLinkedNotebookColumnDelegate::sideSize() const
     return qRound(ICON_SIDE_SIZE * 1.25);
 }
 
-QString FromLinkedNotebookColumnDelegate::displayText(const QVariant & value, const QLocale & locale) const
+QString FromLinkedNotebookColumnDelegate::displayText(
+    const QVariant & value, const QLocale & locale) const
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
     return QString();
 }
 
-QWidget * FromLinkedNotebookColumnDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
-                                                         const QModelIndex & index) const
+QWidget * FromLinkedNotebookColumnDelegate::createEditor(
+    QWidget * parent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     Q_UNUSED(parent)
     Q_UNUSED(option)
@@ -36,8 +57,9 @@ QWidget * FromLinkedNotebookColumnDelegate::createEditor(QWidget * parent, const
     return Q_NULLPTR;
 }
 
-void FromLinkedNotebookColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
-                                             const QModelIndex & index) const
+void FromLinkedNotebookColumnDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
@@ -53,8 +75,9 @@ void FromLinkedNotebookColumnDelegate::paint(QPainter * painter, const QStyleOpt
     {
         QVariant data = model->data(index);
 
-        // The data here might be a string - linked notebook guid - or just a bool
-        // indicating whether the corresponding item is from linked notebook or not
+        // The data here might be a string - linked notebook guid - or just
+        // a bool indicating whether the corresponding item is from linked
+        // notebook or not
         if (data.type() == QVariant::String) {
             fromLinkedNotebook = !data.toString().isEmpty();
         }
@@ -70,22 +93,24 @@ void FromLinkedNotebookColumnDelegate::paint(QPainter * painter, const QStyleOpt
     painter->restore();
 }
 
-void FromLinkedNotebookColumnDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
+void FromLinkedNotebookColumnDelegate::setEditorData(
+    QWidget * editor, const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(index)
 }
 
-void FromLinkedNotebookColumnDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
-                                                    const QModelIndex & index) const
+void FromLinkedNotebookColumnDelegate::setModelData(
+    QWidget * editor, QAbstractItemModel * model,
+    const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(model)
     Q_UNUSED(index)
 }
 
-QSize FromLinkedNotebookColumnDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                                 const QModelIndex & index) const
+QSize FromLinkedNotebookColumnDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     Q_UNUSED(option)
 
@@ -98,8 +123,9 @@ QSize FromLinkedNotebookColumnDelegate::sizeHint(const QStyleOptionViewItem & op
     return QSize(width, m_iconSize.height());
 }
 
-void FromLinkedNotebookColumnDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
-                                                            const QModelIndex & index) const
+void FromLinkedNotebookColumnDelegate::updateEditorGeometry(
+    QWidget * editor, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(option)

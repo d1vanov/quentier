@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,8 @@ BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :
 
 void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 {
-    // Special treatment for xml element regex as we use captured text to emulate lookbehind
+    // Special treatment for xml element regex as we use captured text to emulate
+    // lookbehind
     int xmlElementIndex = m_xmlElementRegex.indexIn(text);
     while(xmlElementIndex >= 0)
     {
@@ -36,11 +37,15 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
         int matchedLength = m_xmlElementRegex.cap(1).length();
         setFormat(matchedPos, matchedLength, m_xmlElementFormat);
 
-        xmlElementIndex = m_xmlElementRegex.indexIn(text, matchedPos + matchedLength);
+        xmlElementIndex =
+            m_xmlElementRegex.indexIn(text, matchedPos + matchedLength);
     }
 
-    // Highlight xml keywords *after* xml elements to fix any occasional / captured into the enclosing element
-    for(auto it = m_xmlKeywordRegexes.begin(), end = m_xmlKeywordRegexes.end(); it != end; ++it) {
+    // Highlight xml keywords *after* xml elements to fix any occasional /
+    // captured into the enclosing element
+    for(auto it = m_xmlKeywordRegexes.begin(),
+        end = m_xmlKeywordRegexes.end(); it != end; ++it)
+    {
         const QRegExp & regex = *it;
         highlightByRegex(m_xmlKeywordFormat, regex, text);
     }
@@ -51,7 +56,8 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 }
 
 void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
-                                                 const QRegExp & regex, const QString & text)
+                                                 const QRegExp & regex,
+                                                 const QString & text)
 {
     int index = regex.indexIn(text);
 
@@ -66,14 +72,19 @@ void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
 
 void BasicXMLSyntaxHighlighter::setRegexes()
 {
-    m_xmlElementRegex.setPattern(QStringLiteral("<[\\s]*[/]?[\\s]*([^\\n]\\w*)(?=[\\s/>])"));
-    m_xmlAttributeRegex.setPattern(QStringLiteral("\\w+(?=\\=)"));
-    m_xmlValueRegex.setPattern(QStringLiteral("\"[^\\n\"]+\"(?=[\\s/>])"));
-    m_xmlCommentRegex.setPattern(QStringLiteral("<!--[^\\n]*-->"));
+    m_xmlElementRegex.setPattern(
+        QStringLiteral("<[\\s]*[/]?[\\s]*([^\\n]\\w*)(?=[\\s/>])"));
+    m_xmlAttributeRegex.setPattern(
+        QStringLiteral("\\w+(?=\\=)"));
+    m_xmlValueRegex.setPattern(
+        QStringLiteral("\"[^\\n\"]+\"(?=[\\s/>])"));
+    m_xmlCommentRegex.setPattern(
+        QStringLiteral("<!--[^\\n]*-->"));
 
-    m_xmlKeywordRegexes = QList<QRegExp>() << QRegExp(QStringLiteral("<\\?")) << QRegExp(QStringLiteral("/>"))
-                                           << QRegExp(QStringLiteral(">")) << QRegExp(QStringLiteral("<"))
-                                           << QRegExp(QStringLiteral("</")) << QRegExp(QStringLiteral("\\?>"));
+    m_xmlKeywordRegexes = QList<QRegExp>()
+        << QRegExp(QStringLiteral("<\\?")) << QRegExp(QStringLiteral("/>"))
+        << QRegExp(QStringLiteral(">")) << QRegExp(QStringLiteral("<"))
+        << QRegExp(QStringLiteral("</")) << QRegExp(QStringLiteral("\\?>"));
 }
 
 void BasicXMLSyntaxHighlighter::setFormats()

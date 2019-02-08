@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,16 +31,21 @@ QWidget * AccountDelegate::createEditor(QWidget * parent,
                                         const QStyleOptionViewItem & option,
                                         const QModelIndex & index) const
 {
-    if (!index.isValid() || (index.column() != AccountModel::Columns::DisplayName)) {
+    if (!index.isValid() ||
+        (index.column() != AccountModel::Columns::DisplayName))
+    {
         return Q_NULLPTR;
     }
 
     return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
-void AccountDelegate::setEditorData(QWidget * pEditor, const QModelIndex & index) const
+void AccountDelegate::setEditorData(QWidget * pEditor,
+                                    const QModelIndex & index) const
 {
-    if (!index.isValid() || (index.column() != AccountModel::Columns::DisplayName)) {
+    if (!index.isValid() ||
+        (index.column() != AccountModel::Columns::DisplayName))
+    {
         return;
     }
 
@@ -52,7 +57,8 @@ void AccountDelegate::setEditorData(QWidget * pEditor, const QModelIndex & index
     }
 }
 
-QSize AccountDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
+QSize AccountDelegate::sizeHint(const QStyleOptionViewItem & option,
+                                const QModelIndex & index) const
 {
     if (!index.isValid()) {
         return QSize();

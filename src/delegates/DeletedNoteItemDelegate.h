@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,8 @@ public:
     /**
      * @brief returns null pointer as DeletedNoteItemDelegate doesn't allow editing
      */
-    virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option,
+    virtual QWidget * createEditor(QWidget * parent,
+                                   const QStyleOptionViewItem & option,
                                    const QModelIndex & index) const Q_DECL_OVERRIDE;
 
     virtual void paint(QPainter * painter, const QStyleOptionViewItem & option,
@@ -43,28 +44,37 @@ public:
     /**
      * @brief does nothing
      */
-    virtual void setEditorData(QWidget * editor, const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void setEditorData(QWidget * editor,
+                               const QModelIndex & index) const Q_DECL_OVERRIDE;
 
     /**
      * @brief does nothing
      */
-    virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void setModelData(QWidget * editor, QAbstractItemModel * model,
+                              const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QSize sizeHint(const QStyleOptionViewItem & option,
+                           const QModelIndex & index) const Q_DECL_OVERRIDE;
 
     /**
      * @brief does nothing
      */
-    virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void updateEditorGeometry(QWidget * editor,
+                                      const QStyleOptionViewItem & option,
+                                      const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
-    void doPaint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
-    void drawDeletedNoteTitleOrPreviewText(QPainter * painter, const QStyleOptionViewItem & option,
+    void doPaint(QPainter * painter, const QStyleOptionViewItem & option,
+                 const QModelIndex & index) const;
+    void drawDeletedNoteTitleOrPreviewText(QPainter * painter,
+                                           const QStyleOptionViewItem & option,
                                            const NoteModelItem & item) const;
-    void drawDeletionDateTime(QPainter * painter, const QStyleOptionViewItem & option,
+    void drawDeletionDateTime(QPainter * painter,
+                              const QStyleOptionViewItem & option,
                               const NoteModelItem & item) const;
 
-    QSize doSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const;
+    QSize doSizeHint(const QStyleOptionViewItem & option,
+                     const QModelIndex & index) const;
 
 private:
     QString     m_deletionDateTimeReplacementText;

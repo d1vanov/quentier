@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -46,7 +46,8 @@ public:
     bool localAccountAlreadyExists(const QString & name) const;
 
 Q_SIGNALS:
-    void evernoteAccountAdditionRequested(QString evernoteServer, QNetworkProxy proxy);
+    void evernoteAccountAdditionRequested(QString evernoteServer,
+                                          QNetworkProxy proxy);
     void localAccountAdditionRequested(QString name, QString fullName);
 
 private Q_SLOTS:

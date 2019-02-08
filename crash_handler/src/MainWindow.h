@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,7 +41,8 @@ public:
 private Q_SLOTS:
     void onMinidumpStackwalkReadyReadStandardOutput();
     void onMinidumpStackwalkReadyReadStandardError();
-    void onMinidumpStackwalkProcessFinished(int exitCode, QProcess::ExitStatus ExitStatus);
+    void onMinidumpStackwalkProcessFinished(int exitCode,
+                                            QProcess::ExitStatus ExitStatus);
 
     void onSymbolsUnpackerFinished(bool status, QString errorDescription);
 

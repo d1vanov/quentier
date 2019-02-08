@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -63,35 +63,47 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
     m_stackwalkBinary = nativePathToUnixPath(stackwalkBinaryLocation);
     QFileInfo stackwalkBinaryInfo(m_stackwalkBinary);
     if (Q_UNLIKELY(!stackwalkBinaryInfo.exists())) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: minidump stackwalk utility file doesn't exist") +
-                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
+        m_pUi->stackTracePlainTextEdit->setPlainText(
+            tr("Error: minidump stackwalk utility file doesn't exist") +
+            QString::fromUtf8(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
         return;
     }
     else if (Q_UNLIKELY(!stackwalkBinaryInfo.isFile())) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: the path to minidump stackwalk utility doesn't point to an actual file") +
-                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
+        m_pUi->stackTracePlainTextEdit->setPlainText(
+            tr("Error: the path to minidump stackwalk utility doesn't point to "
+               "an actual file") +
+            QString::fromUtf8(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
         return;
     }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    QString tmpDirPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    QString tmpDirPath =
+        QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 #else
-    QString tmpDirPath = QDesktopServices::storageLocation(QDesktopServices::TempLocation);
+    QString tmpDirPath =
+        QDesktopServices::storageLocation(QDesktopServices::TempLocation);
 #endif
 
-    m_unpackedSymbolsRootPath = tmpDirPath + QString::fromUtf8("/Quentier_debugging_symbols/symbols");
+    m_unpackedSymbolsRootPath =
+        tmpDirPath + QString::fromUtf8("/Quentier_debugging_symbols/symbols");
     bool res = removeDir(m_unpackedSymbolsRootPath);
     if (Q_UNLIKELY(!res)) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: the directory containing the unpacked debugging symbols already exists and can't be removed") +
-                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(m_unpackedSymbolsRootPath));
+        m_pUi->stackTracePlainTextEdit->setPlainText(
+            tr("Error: the directory containing the unpacked debugging symbols "
+               "already exists and can't be removed") +
+            QString::fromUtf8(": ") +
+            QDir::toNativeSeparators(m_unpackedSymbolsRootPath));
         return;
     }
 
     QDir unpackRootDir(m_unpackedSymbolsRootPath);
     res = unpackRootDir.mkpath(m_unpackedSymbolsRootPath);
     if (!res) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: the directory for the unpacked debugging symbols can't be created") +
-                                                     QString::fromUtf8(": ") + QDir::toNativeSeparators(m_unpackedSymbolsRootPath));
+        m_pUi->stackTracePlainTextEdit->setPlainText(
+            tr("Error: the directory for the unpacked debugging symbols can't "
+               "be created") +
+            QString::fromUtf8(": ") +
+            QDir::toNativeSeparators(m_unpackedSymbolsRootPath));
         return;
     }
 
@@ -102,16 +114,20 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
     output += QString::fromUtf8("...");
     m_pUi->stackTracePlainTextEdit->setPlainText(output);
 
-    SymbolsUnpacker * pQuentierSymbolsUnpacker = new SymbolsUnpacker(quentierSymbolsFileLocation,
-                                                                     m_unpackedSymbolsRootPath);
-    QObject::connect(pQuentierSymbolsUnpacker, QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
-                     this, QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
+    SymbolsUnpacker * pQuentierSymbolsUnpacker =
+        new SymbolsUnpacker(quentierSymbolsFileLocation, m_unpackedSymbolsRootPath);
+    QObject::connect(pQuentierSymbolsUnpacker,
+                     QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
+                     this,
+                     QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
     ++m_numPendingSymbolsUnpackers;
 
-    SymbolsUnpacker * pLibquentierSymbolsUnpacker = new SymbolsUnpacker(libquentierSymbolsFileLocation,
-                                                                        m_unpackedSymbolsRootPath);
-    QObject::connect(pLibquentierSymbolsUnpacker, QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
-                     this, QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
+    SymbolsUnpacker * pLibquentierSymbolsUnpacker =
+        new SymbolsUnpacker(libquentierSymbolsFileLocation, m_unpackedSymbolsRootPath);
+    QObject::connect(pLibquentierSymbolsUnpacker,
+                     QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
+                     this,
+                     QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
     ++m_numPendingSymbolsUnpackers;
 
     QThreadPool::globalInstance()->start(pQuentierSymbolsUnpacker);
@@ -127,7 +143,9 @@ void MainWindow::onMinidumpStackwalkReadyReadStandardOutput()
 {
     QProcess * pStackwalkProcess = qobject_cast<QProcess*>(sender());
     if (Q_UNLIKELY(!pStackwalkProcess)) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't cast the invoker of minidump stackwalk stdout update to QProcess"));
+        m_pUi->stackTracePlainTextEdit->setPlainText(
+            tr("Error: can't cast the invoker of minidump stackwalk stdout "
+               "update to QProcess"));
         return;
     }
 
@@ -148,14 +166,17 @@ void MainWindow::onMinidumpStackwalkReadyReadStandardError()
 {
     QProcess * pStackwalkProcess = qobject_cast<QProcess*>(sender());
     if (Q_UNLIKELY(!pStackwalkProcess)) {
-        m_pUi->stackTracePlainTextEdit->setPlainText(tr("Error: can't cast the invoker of minidump stackwalk stderr update to QProcess"));
+        m_pUi->stackTracePlainTextEdit->setPlainText(
+            tr("Error: can't cast the invoker of minidump stackwalk stderr "
+               "update to QProcess"));
         return;
     }
 
     m_error += readData(*pStackwalkProcess, /* from stdout = */ false);
 }
 
-void MainWindow::onMinidumpStackwalkProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
+void MainWindow::onMinidumpStackwalkProcessFinished(
+    int exitCode, QProcess::ExitStatus exitStatus)
 {
     Q_UNUSED(exitStatus)
 
@@ -169,7 +190,10 @@ void MainWindow::onMinidumpStackwalkProcessFinished(int exitCode, QProcess::Exit
     output += QString::fromUtf8("Version info:\n\n");
     output += versionInfos();
     output += QString::fromUtf8("\n\n");
-    output += tr("Stacktrace extraction finished, exit code") + QString::fromUtf8(": ") + QString::number(exitCode) + QString::fromUtf8("\n");
+    output += tr("Stacktrace extraction finished, exit code") +
+              QString::fromUtf8(": ") +
+              QString::number(exitCode) +
+              QString::fromUtf8("\n");
     output += m_output;
     output += QString::fromUtf8("\n\n");
     output += m_error;
@@ -186,7 +210,8 @@ void MainWindow::onSymbolsUnpackerFinished(bool status, QString errorDescription
     if (!status)
     {
         if (m_symbolsUnpackingErrors.isEmpty()) {
-            m_symbolsUnpackingErrors = tr("Errors detected during symbols unpacking") + QString::fromUtf8(":\n\n");
+            m_symbolsUnpackingErrors = tr("Errors detected during symbols unpacking") +
+                                       QString::fromUtf8(":\n\n");
         }
 
         m_symbolsUnpackingErrors += errorDescription;
@@ -198,12 +223,18 @@ void MainWindow::onSymbolsUnpackerFinished(bool status, QString errorDescription
     }
 
     QProcess * pStackwalkProcess = new QProcess(this);
-    QObject::connect(pStackwalkProcess, QNSIGNAL(QProcess,readyReadStandardOutput),
-                     this, QNSLOT(MainWindow,onMinidumpStackwalkReadyReadStandardOutput));
-    QObject::connect(pStackwalkProcess, QNSIGNAL(QProcess,readyReadStandardError),
-                     this, QNSLOT(MainWindow,onMinidumpStackwalkReadyReadStandardError));
-    QObject::connect(pStackwalkProcess, SIGNAL(finished(int,QProcess::ExitStatus)),
-                     this, SLOT(onMinidumpStackwalkProcessFinished(int,QProcess::ExitStatus)));
+    QObject::connect(pStackwalkProcess,
+                     QNSIGNAL(QProcess,readyReadStandardOutput),
+                     this,
+                     QNSLOT(MainWindow,onMinidumpStackwalkReadyReadStandardOutput));
+    QObject::connect(pStackwalkProcess,
+                     QNSIGNAL(QProcess,readyReadStandardError),
+                     this,
+                     QNSLOT(MainWindow,onMinidumpStackwalkReadyReadStandardError));
+    QObject::connect(pStackwalkProcess,
+                     SIGNAL(finished(int,QProcess::ExitStatus)),
+                     this,
+                     SLOT(onMinidumpStackwalkProcessFinished(int,QProcess::ExitStatus)));
 
     QStringList stackwalkArgs;
     stackwalkArgs.reserve(2);
