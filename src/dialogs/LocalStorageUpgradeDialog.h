@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -53,10 +53,12 @@ public:
     };
     Q_DECLARE_FLAGS(Options, Option::type)
 
-    explicit LocalStorageUpgradeDialog(const Account & currentAccount,
-                                       AccountModel & accountModel,
-                                       const QVector<QSharedPointer<ILocalStoragePatch> > & patches,
-                                       const Options options, QWidget * parent = Q_NULLPTR);
+    explicit LocalStorageUpgradeDialog(
+        const Account & currentAccount,
+        AccountModel & accountModel,
+        const QVector<QSharedPointer<ILocalStoragePatch> > & patches,
+        const Options options, QWidget * parent = Q_NULLPTR);
+
     virtual ~LocalStorageUpgradeDialog();
 
     bool isUpgradeDone() const { return m_upgradeDone; }

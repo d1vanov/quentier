@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,7 +38,8 @@
 namespace quentier {
 
 ManageAccountsDialog::ManageAccountsDialog(AccountManager & accountManager,
-                                           const int currentAccountRow, QWidget * parent) :
+                                           const int currentAccountRow,
+                                           QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::ManageAccountsDialog),
     m_accountManager(accountManager)
@@ -62,20 +63,36 @@ ManageAccountsDialog::ManageAccountsDialog(AccountManager & accountManager,
 
     int numAvailableAccounts = accountModel.accounts().size();
     if ((currentAccountRow >= 0) && (currentAccountRow < numAvailableAccounts)) {
-        QModelIndex index = accountModel.index(currentAccountRow, AccountModel::Columns::Username);
+        QModelIndex index = accountModel.index(currentAccountRow,
+                                               AccountModel::Columns::Username);
         m_pUi->tableView->setCurrentIndex(index);
     }
 
-    QObject::connect(&accountModel, QNSIGNAL(AccountModel,badAccountDisplayName,ErrorString,int),
-                     this, QNSLOT(ManageAccountsDialog,onBadAccountDisplayNameEntered,ErrorString,int));
-    QObject::connect(m_pUi->addNewAccountButton, QNSIGNAL(QPushButton,pressed),
-                     this, QNSLOT(ManageAccountsDialog,onAddAccountButtonPressed));
-    QObject::connect(m_pUi->revokeAuthenticationButton, QNSIGNAL(QPushButton,pressed),
-                     this, QNSLOT(ManageAccountsDialog,onRevokeAuthenticationButtonPressed));
-    QObject::connect(m_pUi->deleteAccountButton, QNSIGNAL(QPushButton,pressed),
-                     this, QNSLOT(ManageAccountsDialog,onDeleteAccountButtonPressed));
-    QObject::connect(m_pUi->tableView->selectionModel(), QNSIGNAL(QItemSelectionModel,selectionChanged,QItemSelection,QItemSelection),
-                     this, QNSLOT(ManageAccountsDialog,onAccountSelectionChanged,QItemSelection,QItemSelection));
+    QObject::connect(&accountModel,
+                     QNSIGNAL(AccountModel,badAccountDisplayName,
+                              ErrorString,int),
+                     this,
+                     QNSLOT(ManageAccountsDialog,onBadAccountDisplayNameEntered,
+                            ErrorString,int));
+    QObject::connect(m_pUi->addNewAccountButton,
+                     QNSIGNAL(QPushButton,pressed),
+                     this,
+                     QNSLOT(ManageAccountsDialog,onAddAccountButtonPressed));
+    QObject::connect(m_pUi->revokeAuthenticationButton,
+                     QNSIGNAL(QPushButton,pressed),
+                     this,
+                     QNSLOT(ManageAccountsDialog,
+                            onRevokeAuthenticationButtonPressed));
+    QObject::connect(m_pUi->deleteAccountButton,
+                     QNSIGNAL(QPushButton,pressed),
+                     this,
+                     QNSLOT(ManageAccountsDialog,onDeleteAccountButtonPressed));
+    QObject::connect(m_pUi->tableView->selectionModel(),
+                     QNSIGNAL(QItemSelectionModel,selectionChanged,
+                              QItemSelection,QItemSelection),
+                     this,
+                     QNSLOT(ManageAccountsDialog,onAccountSelectionChanged,
+                            QItemSelection,QItemSelection));
 }
 
 ManageAccountsDialog::~ManageAccountsDialog()
@@ -89,18 +106,28 @@ void ManageAccountsDialog::onAddAccountButtonPressed()
 
     setStatusBarText(QString());
 
-    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_accountManager.accountModel().accounts(), this));
+    QScopedPointer<AddAccountDialog> addAccountDialog(
+        new AddAccountDialog(m_accountManager.accountModel().accounts(), this));
     addAccountDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy),
-                     this, QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString,QNetworkProxy));
-    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString,QString),
-                     this, QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString));
+    QObject::connect(addAccountDialog.data(),
+                     QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,
+                              QString,QNetworkProxy),
+                     this,
+                     QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,
+                              QString,QNetworkProxy));
+    QObject::connect(addAccountDialog.data(),
+                     QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,
+                              QString,QString),
+                     this,
+                     QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,
+                              QString,QString));
     Q_UNUSED(addAccountDialog->exec())
 }
 
 void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 {
-    QNDEBUG(QStringLiteral("ManageAccountsDialog::onRevokeAuthenticationButtonPressed"));
+    QNDEBUG(QStringLiteral("ManageAccountsDialog::"
+                           "onRevokeAuthenticationButtonPressed"));
 
     setStatusBarText(QString());
 
@@ -120,11 +147,13 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
         return;
     }
 
-    const QVector<Account> & availableAccounts = m_accountManager.accountModel().accounts();
+    const QVector<Account> & availableAccounts =
+        m_accountManager.accountModel().accounts();
 
     if (Q_UNLIKELY(currentRow >= availableAccounts.size())) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
-        QNDEBUG(error << QStringLiteral(" (current row is larger than the number of available accounts)"));
+        QNDEBUG(error << QStringLiteral(" (current row is larger than the number "
+                                        "of available accounts)"));
         setStatusBarText(error.localizedString());
         return;
     }
@@ -160,11 +189,13 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
         return;
     }
 
-    const QVector<Account> & availableAccounts = m_accountManager.accountModel().accounts();
+    const QVector<Account> & availableAccounts =
+        m_accountManager.accountModel().accounts();
 
     if (Q_UNLIKELY(currentRow >= availableAccounts.size())) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
-        QNDEBUG(error << QStringLiteral(" (current row is larger than the number of available accounts)"));
+        QNDEBUG(error << QStringLiteral(" (current row is larger than the number "
+                                        "of available accounts)"));
         setStatusBarText(error.localizedString());
         return;
     }
@@ -180,7 +211,8 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
     {
         ErrorString error;
         if (availableAccounts.size() != 1) {
-            error.setBase(QT_TR_NOOP("Can't delete the currently used account, please switch to another account first"));
+            error.setBase(QT_TR_NOOP("Can't delete the currently used account, "
+                                     "please switch to another account first"));
         }
         else {
             error.setBase(QT_TR_NOOP("Can't delete the last remaining account"));
@@ -201,28 +233,31 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
         return;
     }
 
-    QScopedPointer<DeleteAccountDialog> pDeleteAccountDialog(new DeleteAccountDialog(accountToDelete,
-                                                                                     m_accountManager.accountModel(),
-                                                                                     this));
+    QScopedPointer<DeleteAccountDialog> pDeleteAccountDialog(
+        new DeleteAccountDialog(accountToDelete, m_accountManager.accountModel(),
+                                this));
     pDeleteAccountDialog->setWindowModality(Qt::WindowModal);
     Q_UNUSED(pDeleteAccountDialog->exec())
 }
 
-void ManageAccountsDialog::onBadAccountDisplayNameEntered(ErrorString errorDescription, int row)
+void ManageAccountsDialog::onBadAccountDisplayNameEntered(
+    ErrorString errorDescription, int row)
 {
     QNINFO(QStringLiteral("Bad account display name entered: ")
            << errorDescription << QStringLiteral("; row = ") << row);
 
     setStatusBarText(QString());
 
-    QModelIndex index = m_accountManager.accountModel().index(row, AccountModel::Columns::DisplayName);
+    QModelIndex index =
+        m_accountManager.accountModel().index(row,
+                                              AccountModel::Columns::DisplayName);
     QRect rect = m_pUi->tableView->visualRect(index);
     QPoint pos = m_pUi->tableView->mapToGlobal(rect.bottomLeft());
     QToolTip::showText(pos, errorDescription.localizedString(), m_pUi->tableView);
 }
 
-void ManageAccountsDialog::onAccountSelectionChanged(const QItemSelection & selected,
-                                                     const QItemSelection & deselected)
+void ManageAccountsDialog::onAccountSelectionChanged(
+    const QItemSelection & selected, const QItemSelection & deselected)
 {
     QNDEBUG(QStringLiteral("ManageAccountsDialog::onAccountSelectionChanged"));
 
