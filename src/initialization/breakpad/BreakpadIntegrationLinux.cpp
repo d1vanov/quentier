@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -81,7 +81,8 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor & descriptor,
         QString * pQuentierCrashHandlerFilePath = &quentierCrashHandlerFilePath;
 #endif
 
-        Q_UNUSED(pProcessHandle->start(*pQuentierCrashHandlerFilePath, crashHandlerArgs))
+        Q_UNUSED(pProcessHandle->start(*pQuentierCrashHandlerFilePath,
+                                       crashHandlerArgs))
         pProcessHandle->waitForFinished(-1);
         return true;
     }
@@ -101,17 +102,33 @@ void setupBreakpad(const QApplication & app)
     QFileInfo appFileInfo(appFilePath);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    *quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
-    *quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
-    findCompressedSymbolsFiles(app, *quentierSymbolsFilePath, *libquentierSymbolsFilePath);
+    *quentierCrashHandlerFilePath =
+        appFileInfo.absolutePath() +
+        QString::fromUtf8("/quentier_crash_handler");
+
+    *quentierMinidumpStackwalkFilePath =
+        appFileInfo.absolutePath() +
+        QString::fromUtf8("/quentier_minidump_stackwalk");
+
+    findCompressedSymbolsFiles(app, *quentierSymbolsFilePath,
+                               *libquentierSymbolsFilePath);
 #else
-    quentierCrashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler");
-    quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk");
-    findCompressedSymbolsFiles(app, quentierSymbolsFilePath, libquentierSymbolsFilePath);
+    quentierCrashHandlerFilePath =
+        appFileInfo.absolutePath() +
+        QString::fromUtf8("/quentier_crash_handler");
+
+    quentierMinidumpStackwalkFilePath =
+        appFileInfo.absolutePath() +
+        QString::fromUtf8("/quentier_minidump_stackwalk");
+
+    findCompressedSymbolsFiles(app, quentierSymbolsFilePath,
+                               libquentierSymbolsFilePath);
 #endif
 
     pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
-    pBreakpadHandler = new google_breakpad::ExceptionHandler(*pBreakpadDescriptor, NULL, dumpCallback, NULL, true, -1);
+    pBreakpadHandler = new google_breakpad::ExceptionHandler(*pBreakpadDescriptor,
+                                                             NULL, dumpCallback,
+                                                             NULL, true, -1);
 }
 
 } // namespace quentier

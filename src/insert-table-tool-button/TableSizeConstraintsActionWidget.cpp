@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,7 +22,8 @@
 #include <QDoubleSpinBox>
 #include <QComboBox>
 
-TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(QWidget * parent) :
+TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
+        QWidget * parent) :
     QWidgetAction(parent),
     m_currentWidth(400.0),
     m_currentWidthTypeIsRelative(false)
@@ -48,8 +49,10 @@ TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(QWidget * par
     layoutContainer->setLayout(layout);
     setDefaultWidget(layoutContainer);
 
-    QObject::connect(widthSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onWidthChange(double)));
-    QObject::connect(widthTypeComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(onWidthTypeChange(QString)));
+    QObject::connect(widthSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(onWidthChange(double)));
+    QObject::connect(widthTypeComboBox, SIGNAL(currentIndexChanged(QString)),
+                     this, SLOT(onWidthTypeChange(QString)));
 }
 
 double TableSizeConstraintsActionWidget::width() const

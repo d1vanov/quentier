@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,10 +26,12 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(Account)
 
 /**
- * @brief parseNetworkProxySettings     Helper function collecting and returning network proxy settings
- *                                      read from application settings
+ * @brief parseNetworkProxySettings     Helper function collecting and returning
+ *                                      network proxy settings read from
+ *                                      application settings
  *
- * @param currentAccount                Current account; if empty, application-wise settings are parsed
+ * @param currentAccount                Current account; if empty,
+ *                                      application-wise settings are parsed
  * @param type                          Network proxy type
  * @param host                          Network proxy host
  * @param port                          Network proxy port
@@ -37,23 +39,35 @@ QT_FORWARD_DECLARE_CLASS(Account)
  * @param password                      Network proxy password
  */
 void parseNetworkProxySettings(const Account & currentAccount,
-                               QNetworkProxy::ProxyType & type, QString & host, int & port,
+                               QNetworkProxy::ProxyType & type,
+                               QString & host, int & port,
                                QString & user, QString & password);
 /**
- * @brief persistNetworkProxySettingsForAccount     Helper function persisting the settings of provided proxy
- *                                                  for the given account
+ * @brief persistNetworkProxySettingsForAccount     Helper function persisting
+ *                                                  the settings of provided
+ *                                                  proxy for the given account
  *
- * @param account                                   Account for which the settings are persisted; if empty,
- *                                                  the application-wise settings are persisted
- * @param proxy                                     Network proxy which setttings are to be persisted
+ * @param account                                   Account for which the settings
+ *                                                  are persisted; if empty,
+ *                                                  the application-wise settings
+ *                                                  are persisted
+ * @param proxy                                     Network proxy which setttings
+ *                                                  are to be persisted
  */
-void persistNetworkProxySettingsForAccount(const Account & account, const QNetworkProxy & proxy);
+void persistNetworkProxySettingsForAccount(const Account & account,
+                                           const QNetworkProxy & proxy);
 
 /**
- * @brief restoreNetworkProxySettingsForAccount     Helper function setting the application network proxy
- *                                                  built from persisted settings for the given account
- *                                                  or application-wise settings if the passed in account is empty
- * @param account                                   Account for which the network proxy settings are to be restored
+ * @brief restoreNetworkProxySettingsForAccount     Helper function setting
+ *                                                  the application network proxy
+ *                                                  built from persisted settings
+ *                                                  for the given account
+ *                                                  or application-wise settings
+ *                                                  if the passed in account is
+ *                                                  empty
+ * @param account                                   Account for which the network
+ *                                                  proxy settings are to be
+ *                                                  restored
  */
 void restoreNetworkProxySettingsForAccount(const Account & account);
 

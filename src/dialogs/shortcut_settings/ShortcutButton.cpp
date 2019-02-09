@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,8 +18,9 @@
 
 /**
  * The contents of this file were heavily inspired by the source code of Qt Creator,
- * a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code is licensed under GNU GPL v.3
- * license with two permissive exceptions although they don't apply to this derived work.
+ * a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code is licensed
+ * under GNU GPL v.3 license with two permissive exceptions although they
+ * don't apply to this derived work.
  */
 
 #include "ShortcutButton.h"
@@ -133,13 +134,15 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
     {
         QKeyEvent * pKeyEvent = dynamic_cast<QKeyEvent*>(pEvent);
         if (Q_UNLIKELY(!pKeyEvent)) {
-            QNWARNING(QStringLiteral("Failed to cast QEvent of KeyPress type to QKeyEvent"));
+            QNWARNING(QStringLiteral("Failed to cast QEvent of KeyPress type "
+                                     "to QKeyEvent"));
             return true;
         }
 
         int nextKey = pKeyEvent->key();
-        if ((m_keyNum > 3) || (nextKey == Qt::Key_Control) || (nextKey == Qt::Key_Shift) ||
-            (nextKey == Qt::Key_Meta) || (nextKey == Qt::Key_Alt))
+        if ((m_keyNum > 3) || (nextKey == Qt::Key_Control) ||
+            (nextKey == Qt::Key_Shift) || (nextKey == Qt::Key_Meta) ||
+            (nextKey == Qt::Key_Alt))
         {
             return false;
         }
@@ -164,7 +167,8 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
 
         ++m_keyNum;
         pKeyEvent->accept();
-        Q_EMIT keySequenceChanged(QKeySequence(m_key[0], m_key[1], m_key[2], m_key[3]));
+        Q_EMIT keySequenceChanged(QKeySequence(m_key[0], m_key[1],
+                                               m_key[2], m_key[3]));
 
         if (m_keyNum > 3) {
             setChecked(false);

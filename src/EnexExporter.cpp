@@ -133,7 +133,8 @@ void EnexExporter::start()
             continue;
         }
 
-        QNTRACE(QStringLiteral("Found note editor with loaded note ") << noteLocalUid);
+        QNTRACE(QStringLiteral("Found note editor with loaded note ")
+                << noteLocalUid);
 
         const Note * pNote = pNoteEditorWidget->currentNote();
         if (Q_UNLIKELY(!pNote)) {
@@ -254,7 +255,8 @@ void EnexExporter::onFindNoteComplete(
         }
 
         if (!m_pTagModel->allTagsListed()) {
-            QNDEBUG(QStringLiteral("Not all tags were listed within the tag model yet"));
+            QNDEBUG(QStringLiteral("Not all tags were listed within the tag "
+                                   "model yet"));
             return;
         }
     }
@@ -325,7 +327,8 @@ void EnexExporter::onAllTagsListed()
 
 void EnexExporter::findNoteInLocalStorage(const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("EnexExporter::findNoteInLocalStorage: ") << noteLocalUid);
+    QNDEBUG(QStringLiteral("EnexExporter::findNoteInLocalStorage: ")
+            << noteLocalUid);
 
     Note dummyNote;
     dummyNote.setLocalUid(noteLocalUid);
@@ -385,8 +388,9 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
                         QT_TR_NOOP("Can't export notes to ENEX: internal error, "
                                    "detected note with tag local uid for which "
                                    "no tag model item was found"));
-                    QNWARNING(errorDescription << QStringLiteral(", tag local uid = ")
-                              << *tagIt << QStringLiteral(", note: ") << currentNote);
+                    QNWARNING(errorDescription
+                              << QStringLiteral(", tag local uid = ") << *tagIt
+                              << QStringLiteral(", note: ") << currentNote);
                     return QString();
                 }
 
@@ -396,8 +400,9 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
                         QT_TR_NOOP("Can't export notes to ENEX: internal error, "
                                    "detected tag model item corresponding to tag "
                                    "local uid but not of a tag type"));
-                    QNWARNING(errorDescription << QStringLiteral(", tag local uid = ")
-                              << *tagIt << QStringLiteral(", tag model item: ")
+                    QNWARNING(errorDescription
+                              << QStringLiteral(", tag local uid = ") << *tagIt
+                              << QStringLiteral(", tag model item: ")
                               << *pModelItem << QStringLiteral("\nNote: ")
                               << currentNote);
                     return QString();
@@ -411,8 +416,9 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
                                    "detected tag model item corresponding to tag "
                                    "local uid and of a tag type but containing "
                                    "no actual tag item"));
-                    QNWARNING(errorDescription << QStringLiteral(", tag local uid = ")
-                              << *tagIt << QStringLiteral(", tag model item: ")
+                    QNWARNING(errorDescription
+                              << QStringLiteral(", tag local uid = ") << *tagIt
+                              << QStringLiteral(", tag model item: ")
                               << *pModelItem << QStringLiteral("\nNote: ")
                               << currentNote);
                     return QString();
@@ -433,7 +439,8 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
          : ENMLConverter::EnexExportTags::No);
     bool res = converter.exportNotesToEnex(notes, tagNameByTagLocalUid,
                                            exportTagsOption, enex,
-                                           errorDescription, QUENTIER_ENEX_VERSION);
+                                           errorDescription,
+                                           QUENTIER_ENEX_VERSION);
     if (!res) {
         return QString();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,8 +18,9 @@
 
 /**
  * The contents of this file were heavily inspired by the source code of Qt Creator,
- * a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code is licensed under GNU GPL v.3
- * license with two permissive exceptions although they don't apply to this derived work.
+ * a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code is licensed
+ * under GNU GPL v.3 license with two permissive exceptions although they
+ * don't apply to this derived work.
  */
 
 #ifndef QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H

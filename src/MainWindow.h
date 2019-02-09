@@ -184,7 +184,8 @@ private Q_SLOTS:
     void onSendLocalChangesStopped();
 
     // AccountManager slots
-    void onEvernoteAccountAuthenticationRequested(QString host, QNetworkProxy proxy);
+    void onEvernoteAccountAuthenticationRequested(QString host,
+                                                  QNetworkProxy proxy);
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
     void onAccountAdded(Account account);
@@ -319,8 +320,10 @@ private Q_SLOTS:
     void onNonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut,
                                       const Account & account, QString context);
 
-    void onDefaultAccountFirstNotebookAndNoteCreatorFinished(QString createdNoteLocalUid);
-    void onDefaultAccountFirstNotebookAndNoteCreatorError(ErrorString errorDescription);
+    void onDefaultAccountFirstNotebookAndNoteCreatorFinished(
+        QString createdNoteLocalUid);
+    void onDefaultAccountFirstNotebookAndNoteCreatorError(
+        ErrorString errorDescription);
 
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
@@ -380,7 +383,8 @@ private:
     void startListeningForShortcutChanges();
     void stopListeningForShortcutChanges();
 
-    void setupConsumerKeyAndSecret(QString & consumerKey, QString & consumerSecret);
+    void setupConsumerKeyAndSecret(QString & consumerKey,
+                                   QString & consumerSecret);
 
     void connectActionsToSlots();
     void connectViewButtonsToSlots();

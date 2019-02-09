@@ -1,3 +1,21 @@
+/*
+ * Copyright 2017-2019 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef QUENTIER_SETTINGS_NAMES_H
 #define QUENTIER_SETTINGS_NAMES_H
 
@@ -7,10 +25,13 @@
 #define QUENTIER_SYNC_SETTINGS QStringLiteral("Synchronization")
 
 // Start automatically at login settings keys
-#define START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME QStringLiteral("StartAutomaticallyAtLogin")
+#define START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME \
+    QStringLiteral("StartAutomaticallyAtLogin")
 
-#define SHOULD_START_AUTOMATICALLY_AT_LOGIN QStringLiteral("ShouldStartAutomaticallyAtLogin")
-#define START_AUTOMATICALLY_AT_LOGIN_OPTION QStringLiteral("StartAutomaticallyAtLoginOption")
+#define SHOULD_START_AUTOMATICALLY_AT_LOGIN \
+    QStringLiteral("ShouldStartAutomaticallyAtLogin")
+#define START_AUTOMATICALLY_AT_LOGIN_OPTION \
+    QStringLiteral("StartAutomaticallyAtLoginOption")
 
 // System tray related settings keys
 #define SYSTEM_TRAY_SETTINGS_GROUP_NAME QStringLiteral("SystemTray")
@@ -18,10 +39,12 @@
 #define SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY QStringLiteral("ShowSystemTrayIcon")
 #define CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY QStringLiteral("CloseToSystemTray")
 #define MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY QStringLiteral("MinimizeToSystemTray")
-#define START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY QStringLiteral("StartMinimizedToSystemTray")
+#define START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY \
+    QStringLiteral("StartMinimizedToSystemTray")
 
 // The name of the environment variable allowing to override the system tray availability
-#define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR "QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY"
+#define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR \
+    "QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY"
 
 #define SYSTEM_TRAY_ICON_KIND_KEY QStringLiteral("TrayIconKind")
 
@@ -33,8 +56,10 @@
 #define NOTE_EDITOR_SETTINGS_GROUP_NAME QStringLiteral("NoteEditor")
 
 #define USE_LIMITED_SET_OF_FONTS QStringLiteral("UseLimitedSetOfFonts")
-#define REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY QStringLiteral("RemoveEmptyUneditedNotes")
-#define LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY QStringLiteral("LastExportNoteToPdfPath")
+#define REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY \
+    QStringLiteral("RemoveEmptyUneditedNotes")
+#define LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY \
+    QStringLiteral("LastExportNoteToPdfPath")
 #define CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY QStringLiteral("ConvertToNoteTimeout")
 #define EXPUNGE_NOTE_TIMEOUT_SETTINGS_KEY QStringLiteral("ExpungeNoteTimeout")
 
@@ -52,21 +77,30 @@
 
 // Left/right main window borders settings
 
-#define SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowLeftMainWindowBorderOption")
-#define LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY QStringLiteral("LeftMainWindowBorderWidth")
-#define LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR QStringLiteral("LeftMainWindowBorderOverrideColor")
+#define SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY \
+    QStringLiteral("ShowLeftMainWindowBorderOption")
+#define LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY \
+    QStringLiteral("LeftMainWindowBorderWidth")
+#define LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR \
+    QStringLiteral("LeftMainWindowBorderOverrideColor")
 
-#define SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY QStringLiteral("ShowRightMainWindowBorderOption")
-#define RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY QStringLiteral("RightMainWindowBorderWidth")
-#define RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR QStringLiteral("RightMainWindowBorderOverrideColor")
+#define SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY \
+    QStringLiteral("ShowRightMainWindowBorderOption")
+#define RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY \
+    QStringLiteral("RightMainWindowBorderWidth")
+#define RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR \
+    QStringLiteral("RightMainWindowBorderOverrideColor")
 
 // ENEX export/import related settings keys
 #define ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME QStringLiteral("EnexExportImport")
 
-#define LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY QStringLiteral("LastExportNotesToEnexPath")
-#define LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY QStringLiteral("LastExportNotesToEnexExportTags")
+#define LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY \
+    QStringLiteral("LastExportNotesToEnexPath")
+#define LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY \
+    QStringLiteral("LastExportNotesToEnexExportTags")
 #define LAST_IMPORT_ENEX_PATH_SETTINGS_KEY QStringLiteral("LastImportEnexPath")
-#define LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY QStringLiteral("LastImportEnexNotebookName")
+#define LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY \
+    QStringLiteral("LastImportEnexNotebookName")
 
 // Account-related settings keys
 #define ACCOUNT_SETTINGS_GROUP QStringLiteral("AccountSettings")
@@ -74,7 +108,8 @@
 #define LAST_USED_ACCOUNT_NAME QStringLiteral("LastUsedAccountName")
 #define LAST_USED_ACCOUNT_TYPE QStringLiteral("LastUsedAccountType")
 #define LAST_USED_ACCOUNT_ID QStringLiteral("LastUsedAccountId")
-#define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE QStringLiteral("LastUsedAccountEvernoteAccountType")
+#define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE \
+    QStringLiteral("LastUsedAccountEvernoteAccountType")
 #define LAST_USED_ACCOUNT_EVERNOTE_HOST QStringLiteral("LastUsedAccountEvernoteHost")
 
 #define ONCE_DISPLAYED_GREETER_SCREEN QStringLiteral("OnceDisplayedGreeterScreen")
@@ -94,8 +129,10 @@
 // Translations setting
 #define TRANSLATION_SETTINGS_GROUP_NAME QStringLiteral("TranslationSettings")
 
-#define LIBQUENTIER_TRANSLATIONS_SEARCH_PATH QStringLiteral("LibquentierTranslationsSearchPath")
-#define QUENTIER_TRANSLATIONS_SEARCH_PATH QStringLiteral("QuentierTranslationsSearchPath")
+#define LIBQUENTIER_TRANSLATIONS_SEARCH_PATH \
+    QStringLiteral("LibquentierTranslationsSearchPath")
+#define QUENTIER_TRANSLATIONS_SEARCH_PATH \
+    QStringLiteral("QuentierTranslationsSearchPath")
 
 // Synchronization settings
 #define SYNCHRONIZATION_SETTINGS_GROUP_NAME QStringLiteral("SynchronizationSettings")
@@ -103,11 +140,17 @@
 #define SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES QStringLiteral("DownloadInkNoteImages")
 #define SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES QStringLiteral("RunSyncEachNumMinutes")
 
-#define SYNCHRONIZATION_NETWORK_PROXY_SETTINGS QStringLiteral("SynchronizationNetworkProxySettings")
-#define SYNCHRONIZATION_NETWORK_PROXY_TYPE QStringLiteral("SynchronizationNetworkProxyType")
-#define SYNCHRONIZATION_NETWORK_PROXY_HOST QStringLiteral("SynchronizationNetworkProxyHost")
-#define SYNCHRONIZATION_NETWORK_PROXY_PORT QStringLiteral("SynchronizationNetworkProxyPort")
-#define SYNCHRONIZATION_NETWORK_PROXY_USER QStringLiteral("SynchronizationNetworkProxyUser")
-#define SYNCHRONIZATION_NETWORK_PROXY_PASSWORD QStringLiteral("SynchronizationNetworkProxyPassword")
+#define SYNCHRONIZATION_NETWORK_PROXY_SETTINGS \
+    QStringLiteral("SynchronizationNetworkProxySettings")
+#define SYNCHRONIZATION_NETWORK_PROXY_TYPE \
+    QStringLiteral("SynchronizationNetworkProxyType")
+#define SYNCHRONIZATION_NETWORK_PROXY_HOST \
+    QStringLiteral("SynchronizationNetworkProxyHost")
+#define SYNCHRONIZATION_NETWORK_PROXY_PORT \
+    QStringLiteral("SynchronizationNetworkProxyPort")
+#define SYNCHRONIZATION_NETWORK_PROXY_USER \
+    QStringLiteral("SynchronizationNetworkProxyUser")
+#define SYNCHRONIZATION_NETWORK_PROXY_PASSWORD \
+    QStringLiteral("SynchronizationNetworkProxyPassword")
 
 #endif // QUENTIER_SETTINGS_NAMES_H

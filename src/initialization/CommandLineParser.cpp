@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,8 +27,10 @@
 #include <boost/program_options.hpp>
 #endif
 
-// Overloaded function required in order to use boost::program_options along with QString
-void validate(boost::any & value, const std::vector<std::string> & values, QString *, int)
+// Overloaded function required in order to use boost::program_options along
+// with QString
+void validate(boost::any & value, const std::vector<std::string> & values,
+              QString *, int)
 {
     using namespace boost::program_options;
 
@@ -62,18 +64,21 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
         desc.add_options()
             ("help,h", "show help message")
             ("version,v", "show version info")
-            ("storageDir", po::value<QString>(), "set directory with the app's persistence")
-            ("account", po::value<QString>(), "set the account to use by default:\n"
-                                              "local_<Name>\n"
-                                              "evernote_<id>_<Name>\n"
-                                              "evernotesandbox_<id>_<Name>\n"
-                                              "yinxiangbiji_<id>_<Name>\n"
-                                              "where <id> is user ID and <Name> is the account name")
+            ("storageDir", po::value<QString>(),
+             "set directory with the app's persistence")
+            ("account", po::value<QString>(),
+             "set the account to use by default:\n"
+             "local_<Name>\n"
+             "evernote_<id>_<Name>\n"
+             "evernotesandbox_<id>_<Name>\n"
+             "yinxiangbiji_<id>_<Name>\n"
+             "where <id> is user ID and <Name> is the account name")
             ("overrideSystemTrayAvailability", po::value<bool>(),
-             "override the availability of the system tray\n(0 - override to false,\n"
-             "any other value - override to true)")
+             "override the availability of the system tray\n(0 - override to "
+             "false,\nany other value - override to true)")
             ("startMinimizedToTray", "start Quentier minimized to system tray")
-            ("startMinimized", "start Quentier with its main window minimized to the task bar");
+            ("startMinimized",
+             "start Quentier with its main window minimized to the task bar");
 
         po::variables_map varsMap;
         po::store(po::parse_command_line(argc, argv, desc), varsMap);
@@ -89,12 +94,16 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
 
         if (varsMap.count("version"))
         {
-            m_responseMessage = quentierVersion() + QStringLiteral(", build info: ") + quentierBuildInfo() +
-                                QStringLiteral("\nBuilt with Qt ") + QStringLiteral(QT_VERSION_STR) +
-                                QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()) +
-                                QStringLiteral("\nBuilt with libquentier: ") + libquentierBuildTimeInfo() +
-                                QStringLiteral("\nUses libquentier: ") + libquentierRuntimeInfo() +
-                                QStringLiteral("\n");
+            m_responseMessage =
+                quentierVersion() + QStringLiteral(", build info: ") +
+                quentierBuildInfo() + QStringLiteral("\nBuilt with Qt ") +
+                QStringLiteral(QT_VERSION_STR) + QStringLiteral(", uses Qt ") +
+                QString::fromUtf8(qVersion()) +
+                QStringLiteral("\nBuilt with libquentier: ") +
+                libquentierBuildTimeInfo() +
+                QStringLiteral("\nUses libquentier: ") +
+                libquentierRuntimeInfo() +
+                QStringLiteral("\n");
             m_shouldQuit = true;
             return;
         }
@@ -127,7 +136,9 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
     }
     catch(const po::error & error)
     {
-        m_errorDescription.setBase(QT_TRANSLATE_NOOP("CommandLineParser", "Error parsing the command line arguments"));
+        m_errorDescription.setBase(
+            QT_TRANSLATE_NOOP("CommandLineParser",
+                              "Error parsing the command line arguments"));
         m_errorDescription.details() = QString::fromLocal8Bit(error.what());
     }
 }

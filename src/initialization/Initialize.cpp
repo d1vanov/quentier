@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -53,10 +53,12 @@ void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result)
     }
 }
 
-bool initialize(QuentierApplication & app, const CommandLineParser::CommandLineOptions & cmdOptions)
+bool initialize(QuentierApplication & app,
+                const CommandLineParser::CommandLineOptions & cmdOptions)
 {
-    // NOTE: need to check for "storageDir" command line option first, before doing any other part of initialization routine
-    // because this option affects the path to Quentier's persistent storage folder
+    // NOTE: need to check for "storageDir" command line option first, before
+    // doing any other part of initialization routine because this option affects
+    // the path to Quentier's persistent storage folder
     if (!processStorageDirCommandLineOption(cmdOptions)) {
         return false;
     }
@@ -80,9 +82,12 @@ bool initialize(QuentierApplication & app, const CommandLineParser::CommandLineO
     if (appSettings.contains(CURRENT_MIN_LOG_LEVEL))
     {
         bool conversionResult = false;
-        int minLogLevel = appSettings.value(CURRENT_MIN_LOG_LEVEL).toInt(&conversionResult);
-        if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6)) {
-            quentier::QuentierSetMinLogLevel(static_cast<quentier::LogLevel::type>(minLogLevel));
+        int minLogLevel = appSettings.value(CURRENT_MIN_LOG_LEVEL)
+                          .toInt(&conversionResult);
+        if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6))
+        {
+            quentier::QuentierSetMinLogLevel(
+                static_cast<quentier::LogLevel::type>(minLogLevel));
         }
     }
 
@@ -93,9 +98,11 @@ bool initialize(QuentierApplication & app, const CommandLineParser::CommandLineO
 
 typedef CommandLineParser::CommandLineOptions CmdOptions;
 
-bool processStorageDirCommandLineOption(const CommandLineParser::CommandLineOptions & cmdOptions)
+bool processStorageDirCommandLineOption(
+    const CommandLineParser::CommandLineOptions & cmdOptions)
 {
-    CmdOptions::const_iterator storageDirIt = cmdOptions.find(QStringLiteral("storageDir"));
+    CmdOptions::const_iterator storageDirIt =
+        cmdOptions.find(QStringLiteral("storageDir"));
     if (storageDirIt == cmdOptions.constEnd()) {
         return true;
     }
@@ -105,28 +112,39 @@ bool processStorageDirCommandLineOption(const CommandLineParser::CommandLineOpti
     if (!storageDirInfo.exists())
     {
         QDir dir(storageDir);
-        if (!dir.mkpath(storageDir)) {
+        if (!dir.mkpath(storageDir))
+        {
             criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
-                               QObject::tr("Cannot create directory for persistent storage pointed to by \"storageDir\" command line option"),
+                               QObject::tr("Cannot create directory for persistent "
+                                           "storage pointed to by \"storageDir\" "
+                                           "command line option"),
                                QDir::toNativeSeparators(storageDir));
             return false;
         }
     }
-    else if (Q_UNLIKELY(!storageDirInfo.isDir())) {
+    else if (Q_UNLIKELY(!storageDirInfo.isDir()))
+    {
         criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
-                           QObject::tr("\"storageDir\" command line option doesn't point to a directory"),
+                           QObject::tr("\"storageDir\" command line option "
+                                       "doesn't point to a directory"),
                            QDir::toNativeSeparators(storageDir));
         return false;
     }
-    else if (Q_UNLIKELY(!storageDirInfo.isReadable())) {
+    else if (Q_UNLIKELY(!storageDirInfo.isReadable()))
+    {
         criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
-                           QObject::tr("The directory for persistent storage pointed to by \"storageDir\" command line option is not readable"),
+                           QObject::tr("The directory for persistent storage "
+                                       "pointed to by \"storageDir\" command "
+                                       "line option is not readable"),
                            QDir::toNativeSeparators(storageDir));
         return false;
     }
-    else if (Q_UNLIKELY(!storageDirInfo.isWritable())) {
+    else if (Q_UNLIKELY(!storageDirInfo.isWritable()))
+    {
         criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
-                           QObject::tr("The directory for persistent storage pointed to by \"storageDir\" command line option is not writable"),
+                           QObject::tr("The directory for persistent storage "
+                                       "pointed to by \"storageDir\" command "
+                                       "line option is not writable"),
                            QDir::toNativeSeparators(storageDir));
         return false;
     }
@@ -136,9 +154,11 @@ bool processStorageDirCommandLineOption(const CommandLineParser::CommandLineOpti
 }
 
 
-bool processCommandLineOptions(const CommandLineParser::CommandLineOptions & cmdOptions)
+bool processCommandLineOptions(
+    const CommandLineParser::CommandLineOptions & cmdOptions)
 {
-    CmdOptions::const_iterator accountIt = cmdOptions.find(QStringLiteral("account"));
+    CmdOptions::const_iterator accountIt =
+        cmdOptions.find(QStringLiteral("account"));
     if (accountIt != cmdOptions.constEnd())
     {
         QString accountStr = accountIt.value().toString();
@@ -149,7 +169,8 @@ bool processCommandLineOptions(const CommandLineParser::CommandLineOptions & cmd
         QString accountName;
 
         ErrorString errorDescription;
-        bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost, accountName, errorDescription);
+        bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost,
+                                       accountName, errorDescription);
         if (!res) {
             criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
                                QObject::tr("Unable to parse the startup account"),
@@ -158,11 +179,14 @@ bool processCommandLineOptions(const CommandLineParser::CommandLineOptions & cmd
         }
 
         bool foundAccount = false;
-        Account::EvernoteAccountType::type evernoteAccountType = Account::EvernoteAccountType::Free;
+        Account::EvernoteAccountType::type evernoteAccountType =
+            Account::EvernoteAccountType::Free;
 
         AccountManager accountManager;
-        const QVector<Account> & availableAccounts = accountManager.availableAccounts();
-        for(int i = 0, numAvailableAccounts = availableAccounts.size(); i < numAvailableAccounts; ++i)
+        const QVector<Account> & availableAccounts =
+            accountManager.availableAccounts();
+        for(int i = 0, numAvailableAccounts = availableAccounts.size();
+            i < numAvailableAccounts; ++i)
         {
             const Account & availableAccount = availableAccounts.at(i);
             if (isLocal != (availableAccount.type() == Account::Type::Local)) {
@@ -188,18 +212,23 @@ bool processCommandLineOptions(const CommandLineParser::CommandLineOptions & cmd
             break;
         }
 
-        if (!foundAccount) {
+        if (!foundAccount)
+        {
             criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
                                QObject::tr("Wrong startup account"),
-                               QObject::tr("The startup account specified on the command line does not correspond "
+                               QObject::tr("The startup account specified on "
+                                           "the command line does not correspond "
                                            "to any already existing account"));
             return false;
         }
 
         qputenv(ACCOUNT_NAME_ENV_VAR, accountName.toLocal8Bit());
-        qputenv(ACCOUNT_TYPE_ENV_VAR, (isLocal ? QByteArray("1") : QByteArray("0")));
+        qputenv(ACCOUNT_TYPE_ENV_VAR, (isLocal
+                                       ? QByteArray("1")
+                                       : QByteArray("0")));
         qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(userId));
-        qputenv(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR, QByteArray::number(evernoteAccountType));
+        qputenv(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
+                QByteArray::number(evernoteAccountType));
         qputenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR, evernoteHost.toLocal8Bit());
     }
 
@@ -207,9 +236,12 @@ bool processCommandLineOptions(const CommandLineParser::CommandLineOptions & cmd
             cmdOptions.find(QStringLiteral("overrideSystemTrayAvailability"));
     if (overrideSystemTrayAvailabilityIt != cmdOptions.constEnd())
     {
-        bool overrideSystemTrayAvailability = overrideSystemTrayAvailabilityIt.value().toBool();
+        bool overrideSystemTrayAvailability =
+            overrideSystemTrayAvailabilityIt.value().toBool();
         qputenv(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR,
-                (overrideSystemTrayAvailability ? QByteArray("1") : QByteArray("0")));
+                (overrideSystemTrayAvailability
+                 ? QByteArray("1")
+                 : QByteArray("0")));
     }
 
     return true;

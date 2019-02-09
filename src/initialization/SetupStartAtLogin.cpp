@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,14 +33,17 @@ void setupStartQuentierAtLogin()
     ApplicationSettings appSettings;
     appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
     if (appSettings.contains(SHOULD_START_AUTOMATICALLY_AT_LOGIN)) {
-        QNDEBUG(QStringLiteral("Start automatically at login setting is present within settings, nothing to do"));
+        QNDEBUG(QStringLiteral("Start automatically at login setting is present "
+                               "within settings, nothing to do"));
         appSettings.endGroup();
         return;
     }
 
-    QNDEBUG(QStringLiteral("Start automatically at login setting is not present, will set it to the default value"));
+    QNDEBUG(QStringLiteral("Start automatically at login setting is not present, "
+                           "will set it to the default value"));
 
-    bool shouldStartAutomaticallyAtLogin = DEFAULT_SHOULD_START_AUTOMATICALLY_AT_LOGIN_OPTION;
+    bool shouldStartAutomaticallyAtLogin =
+        DEFAULT_SHOULD_START_AUTOMATICALLY_AT_LOGIN_OPTION;
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG(QStringLiteral("Should not start automatically at login by default"));
         appSettings.endGroup();
@@ -49,12 +52,15 @@ void setupStartQuentierAtLogin()
 
     appSettings.endGroup();
 
-    StartQuentierAtLoginOption::type option = DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
+    StartQuentierAtLoginOption::type option =
+        DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
 
     ErrorString errorDescription;
-    bool res = setStartQuentierAtLoginOption(shouldStartAutomaticallyAtLogin, errorDescription, option);
+    bool res = setStartQuentierAtLoginOption(shouldStartAutomaticallyAtLogin,
+                                             errorDescription, option);
     if (Q_UNLIKELY(!res)) {
-        QNWARNING(QStringLiteral("Failed to set Quentier to start automatically at login: ") << errorDescription);
+        QNWARNING(QStringLiteral("Failed to set Quentier to start automatically ")
+                  << QStringLiteral("at login: ") << errorDescription);
     }
 }
 

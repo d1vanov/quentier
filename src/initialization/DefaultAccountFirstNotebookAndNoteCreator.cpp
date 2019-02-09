@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,8 +23,8 @@
 
 namespace quentier {
 
-DefaultAccountFirstNotebookAndNoteCreator::DefaultAccountFirstNotebookAndNoteCreator(LocalStorageManagerAsync & localStorageManagerAsync,
-                                                                                     QObject * parent) :
+DefaultAccountFirstNotebookAndNoteCreator::DefaultAccountFirstNotebookAndNoteCreator(
+        LocalStorageManagerAsync & localStorageManagerAsync, QObject * parent) :
     QObject(parent),
     m_addNotebookRequestId(),
     m_addNoteRequestId()
@@ -49,55 +49,61 @@ void DefaultAccountFirstNotebookAndNoteCreator::start()
     emitAddNotebookRequest();
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(Notebook notebook, QUuid requestId)
+void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
+    Notebook notebook, QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete: notebook = ")
+    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
+            << QStringLiteral("onAddNotebookComplete: notebook = ")
             << notebook << QStringLiteral("\nRequest id = ") << requestId);
 
     m_addNotebookRequestId = QUuid();
     emitAddNoteRequest(notebook);
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed(Notebook notebook,
-                                                                    ErrorString errorDescription,
-                                                                    QUuid requestId)
+void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed(
+    Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
         return;
     }
 
-    QNWARNING(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed: notebook = ")
-              << notebook << QStringLiteral("\nError description = ") << errorDescription
+    QNWARNING(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
+              << QStringLiteral("onAddNotebookFailed: notebook = ") << notebook
+              << QStringLiteral("\nError description = ") << errorDescription
               << QStringLiteral("\nRequest id = ") << requestId);
 
     m_addNotebookRequestId = QUuid();
     Q_EMIT notifyError(errorDescription);
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(Note note, QUuid requestId)
+void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(Note note,
+                                                                  QUuid requestId)
 {
     if (requestId != m_addNoteRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete: note = ")
-            << note << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
+            << QStringLiteral("onAddNoteComplete: note = ") << note
+            << QStringLiteral("\nRequest id = ") << requestId);
 
     m_addNoteRequestId = QUuid();
     Q_EMIT finished(note.localUid());
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
+void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(
+    Note note, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_addNoteRequestId) {
         return;
     }
 
-    QNWARNING(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed: note = ") << note
+    QNWARNING(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
+              << QStringLiteral("onAddNoteFailed: note = ") << note
               << QStringLiteral("\nError description = ") << errorDescription
               << QStringLiteral("\nRequest id = ") << requestId);
 
@@ -105,30 +111,57 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(Note note, Error
     Q_EMIT notifyError(errorDescription);
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage(LocalStorageManagerAsync & localStorageManagerAsync)
+void DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage(
+    LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage"));
+    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::"
+                           "connectToLocalStorage"));
 
     // Connect local signals to LocalStorageManagerAsync slots
-    QObject::connect(this, QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,addNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNotebookRequest,Notebook,QUuid));
-    QObject::connect(this, QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,addNote,Note,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,
+                              addNotebook,Notebook,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onAddNotebookRequest,
+                            Notebook,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,
+                              addNote,Note,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,
+                            Note,QUuid));
 
     // Connect LocalStorageManagerAsync signals to local slots
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,onAddNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNotebookFailed,Notebook,ErrorString,QUuid),
-                     this, QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,onAddNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
-                     this, QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,Note,ErrorString,QUuid),
-                     this, QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,onAddNoteFailed,Note,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,
+                            onAddNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNotebookFailed,
+                              Notebook,ErrorString,QUuid),
+                     this,
+                     QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,
+                            onAddNotebookFailed,Notebook,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,
+                              Note,QUuid),
+                     this,
+                     QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,
+                            onAddNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,
+                              Note,ErrorString,QUuid),
+                     this,
+                     QNSLOT(DefaultAccountFirstNotebookAndNoteCreator,
+                            onAddNoteFailed,Note,ErrorString,QUuid));
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
 {
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest"));
+    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::"
+                           "emitAddNotebookRequest"));
 
     QString notebookName;
 
@@ -146,34 +179,45 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
     notebook.setName(notebookName);
 
     m_addNotebookRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to add first notebook to the default account: ")
-            << notebook << QStringLiteral("\nRequest id = ") << m_addNotebookRequestId);
+    QNTRACE(QStringLiteral("Emitting the request to add first notebook to ")
+            << QStringLiteral("the default account: ") << notebook
+            << QStringLiteral("\nRequest id = ") << m_addNotebookRequestId);
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest(const Notebook & notebook)
+void DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest(
+    const Notebook & notebook)
 {
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest"));
+    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::"
+                           "emitAddNoteRequest"));
 
     Note note;
     note.setTitle(tr("Welcome to Quentier"));
 
-    note.setContent(QStringLiteral("<en-note><h3>") + note.title() + QStringLiteral("</h3><div>") +
-                    tr("You are currently using the default account which is local to this computer and doesn't synchronize with Evernote. "
-                       "At any time you can create another account, either another local one or Evernote one - for this use \"File\" menu -> "
-                       "\"Switch account\" -> \"Add account\".") + QStringLiteral("</div><br/><div>") +
-                    tr("The local account can be used precisely as Evernote account - you can create notebooks, notes, tags, "
-                       "move notes between notebooks, assign different tags to notes, perform and save searches of notes (Evernote search syntax "
-                       "is fully supported). The difference is that your data doesn't synchronize with Evernote. And another difference "
-                       "is that you have more freedom than when using Evernote account: you can permanently delete notes, notebooks, tags and saved searches. "
-                       "Permanently deleted data cannot be restored so use this freedom with care.") +
-                    QStringLiteral("</div></en-note>"));
+    note.setContent(
+        QStringLiteral("<en-note><h3>") + note.title() +
+        QStringLiteral("</h3><div>") +
+        tr("You are currently using the default account which is local to this "
+           "computer and doesn't synchronize with Evernote. At any time you can "
+           "create another account, either another local one or Evernote one - "
+           "for this use \"File\" menu -> \"Switch account\" -> \"Add account\".") +
+        QStringLiteral("</div><br/><div>") +
+        tr("The local account can be used precisely as Evernote account - you can "
+           "create notebooks, notes, tags, move notes between notebooks, assign "
+           "different tags to notes, perform and save searches of notes (Evernote "
+           "search syntax is fully supported). The difference is that your data "
+           "doesn't synchronize with Evernote. And another difference is that you "
+           "have more freedom than when using Evernote account: you can permanently "
+           "delete notes, notebooks, tags and saved searches. Permanently deleted "
+           "data cannot be restored so use this freedom with care.") +
+        QStringLiteral("</div></en-note>"));
 
     note.setNotebookLocalUid(notebook.localUid());
 
     m_addNoteRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to add first note to the default account: ")
-            << note << QStringLiteral("\nRequest id = ") << m_addNoteRequestId);
+    QNTRACE(QStringLiteral("Emitting the request to add first note to the default ")
+            << QStringLiteral("account: ") << note
+            << QStringLiteral("\nRequest id = ") << m_addNoteRequestId);
     Q_EMIT addNote(note, m_addNoteRequestId);
 }
 

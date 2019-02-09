@@ -1,7 +1,7 @@
 /*
 * The MIT License (MIT)
 *
-* Copyright (c) 2015 Dmitry Ivanov
+* Copyright (c) 2015-2019 Dmitry Ivanov
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -34,21 +34,26 @@ InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
     m_currentWidthIsRelative(false),
     m_menu(new QMenu(this))
 {
-    TableSizeSelectorActionWidget * sizeSelectorAction = new TableSizeSelectorActionWidget(this);
+    TableSizeSelectorActionWidget * sizeSelectorAction =
+        new TableSizeSelectorActionWidget(this);
     m_menu->addAction(sizeSelectorAction);
 
-    TableSizeConstraintsActionWidget * constraintsSelectorAction = new TableSizeConstraintsActionWidget(this);
+    TableSizeConstraintsActionWidget * constraintsSelectorAction =
+        new TableSizeConstraintsActionWidget(this);
     m_menu->addAction(constraintsSelectorAction);
 
     setMenu(m_menu);
 
     QAction * showTableSettingsDialogAction = new QAction(this);
-    QObject::connect(showTableSettingsDialogAction, SIGNAL(triggered(bool)), this, SLOT(onTableSettingsDialogAction()));
+    QObject::connect(showTableSettingsDialogAction, SIGNAL(triggered(bool)),
+                     this, SLOT(onTableSettingsDialogAction()));
 
     setDefaultAction(showTableSettingsDialogAction);
 
-    QObject::connect(sizeSelectorAction, SIGNAL(tableSizeSelected(int,int)), this, SLOT(onTableSizeChosen(int,int)));
-    QObject::connect(constraintsSelectorAction, SIGNAL(chosenTableWidthConstraints(double,bool)),
+    QObject::connect(sizeSelectorAction, SIGNAL(tableSizeSelected(int,int)),
+                     this, SLOT(onTableSizeChosen(int,int)));
+    QObject::connect(constraintsSelectorAction,
+                     SIGNAL(chosenTableWidthConstraints(double,bool)),
                      this, SLOT(onTableSizeConstraintsChosen(double,bool)));
 
     m_currentWidth = constraintsSelectorAction->width();
@@ -57,7 +62,8 @@ InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
 
 void InsertTableToolButton::onTableSettingsDialogAction()
 {
-    QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(new TableSettingsDialog(this));
+    QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(
+        new TableSettingsDialog(this));
     TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
     if (tableSettingsDialog->exec() == QDialog::Accepted)
     {

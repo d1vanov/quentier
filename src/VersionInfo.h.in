@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -49,7 +49,8 @@
 @QUENTIER_PATCH_VERSION@
 
 /**
- * This macro is set to a string holding the information about the current Quenrier build
+ * This macro is set to a string holding the information about the current
+ * Quentier build
  */
 @QUENTIER_BUILD_INFO@
 
