@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,7 +44,9 @@ void AccountModel::setAccounts(const QVector<Account> & accounts)
         QTextStream strm(&str);
 
         strm << "\n";
-        for(auto it = accounts.constBegin(), end = accounts.constEnd(); it != end; ++it) {
+        for(auto it = accounts.constBegin(),
+            end = accounts.constEnd(); it != end; ++it)
+        {
             strm << *it << "\n";
         }
 
@@ -70,7 +72,8 @@ bool AccountModel::addAccount(const Account & account)
     bool foundExistingAccount = false;
     Account::Type::type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
-    for(auto it = m_accounts.constBegin(), end = m_accounts.constEnd(); it != end; ++it)
+    for(auto it = m_accounts.constBegin(),
+        end = m_accounts.constEnd(); it != end; ++it)
     {
         const Account & availableAccount = *it;
 
@@ -110,7 +113,8 @@ bool AccountModel::removeAccount(const Account & account)
     Account::Type::type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
     int index = 0;
-    for(auto it = m_accounts.constBegin(), end = m_accounts.constEnd(); it != end; ++it, ++index)
+    for(auto it = m_accounts.constBegin(),
+        end = m_accounts.constEnd(); it != end; ++it, ++index)
     {
         const Account & availableAccount = *it;
 
@@ -180,7 +184,8 @@ int AccountModel::columnCount(const QModelIndex & parent) const
     return NUM_ACCOUNTS_MODEL_COLUMNS;
 }
 
-QVariant AccountModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant AccountModel::headerData(int section, Qt::Orientation orientation,
+                                  int role) const
 {
     if (role != Qt::DisplayRole) {
         return QVariant();
@@ -310,33 +315,44 @@ bool AccountModel::setData(const QModelIndex & index,
             {
                 int displayNameSize = displayName.size();
 
-                if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
-                    ErrorString error(QT_TR_NOOP("Account name length is below the acceptable level"));
-                    error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
+                if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN)
+                {
+                    ErrorString error(QT_TR_NOOP("Account name length is below "
+                                                 "the acceptable level"));
+                    error.details() =
+                        QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
                     Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
 
-                if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) {
-                    ErrorString error(QT_TR_NOOP("Account name length is above the acceptable level"));
-                    error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+                if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX)
+                {
+                    ErrorString error(QT_TR_NOOP("Account name length is above "
+                                                 "the acceptable level"));
+                    error.details() =
+                        QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
                     Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
 
                 QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
                 int matchIndex = regex.indexIn(displayName);
-                if (matchIndex < 0) {
-                    ErrorString error(QT_TR_NOOP("Account name doesn't match the Evernote's regular expression "
-                                                 "for user names; consider simplifying the entered name"));
-                    error.details() = QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+                if (matchIndex < 0)
+                {
+                    ErrorString error(
+                        QT_TR_NOOP("Account name doesn't match the Evernote's "
+                                   "regular expression for user names; consider "
+                                   "simplifying the entered name"));
+                    error.details() =
+                        QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
                     Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
             }
 
             if (account.displayName() == displayName) {
-                QNDEBUG(QStringLiteral("The account display name has not really changed"));
+                QNDEBUG(QStringLiteral("The account display name has not really "
+                                       "changed"));
                 return true;
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,14 +29,16 @@
 namespace quentier {
 
 /**
- * @brief The AccountModel class wraps a vector of Account objects into a full fledged table model
- * inheriting from QAbstractTableModel.
+ * @brief The AccountModel class wraps a vector of Account objects into a full
+ * fledged table model inheriting from QAbstractTableModel.
  *
- * In a way AccountModel is a convenience model akin to QStringListModel - if you have a vector of accounts,
- * you can easily create a model around this vector and use it along with any appropriate view.
+ * In a way AccountModel is a convenience model akin to QStringListModel -
+ * if you have a vector of accounts, you can easily create a model around this
+ * vector and use it along with any appropriate view.
  *
- * AccountModel is mostly read-only model: it only allows editing of display names of accounts it works on.
- * The signal is emitted for anyone interested in the change of account display name.
+ * AccountModel is mostly read-only model: it only allows editing of display
+ * names of accounts it works on. The signal is emitted for anyone interested
+ * in the change of account display name.
  */
 class AccountModel: public QAbstractTableModel
 {
@@ -65,13 +67,15 @@ public:
 
 Q_SIGNALS:
     /**
-     * badAccountDisplayName signal is emitted when the attempt is made to change the account's display name
-     * in somewhat inappropriate way so that the display name is not really changed
+     * badAccountDisplayName signal is emitted when the attempt is made to
+     * change the account's display name in somewhat inappropriate way so that
+     * the display name is not really changed
      */
     void badAccountDisplayName(ErrorString errorDescription, int row);
 
     /**
-     * accountDisplayNameChanged signal is emitted when the display name is changed for some account
+     * accountDisplayNameChanged signal is emitted when the display name is
+     * changed for some account
      */
     void accountDisplayNameChanged(Account account);
 
@@ -84,8 +88,10 @@ public:
     virtual int columnCount(const QModelIndex & parent) const Q_DECL_OVERRIDE;
     virtual QVariant headerData(int section, Qt::Orientation orientation,
                                 int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    virtual bool setData(const QModelIndex & index, const QVariant & value, int role) Q_DECL_OVERRIDE;
+    virtual QVariant data(const QModelIndex & index,
+                          int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    virtual bool setData(const QModelIndex & index, const QVariant & value,
+                         int role) Q_DECL_OVERRIDE;
 
 private:
     Q_DISABLE_COPY(AccountModel)
