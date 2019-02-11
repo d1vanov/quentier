@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,11 +20,12 @@
 
 namespace quentier {
 
-NotebookModelItem::NotebookModelItem(const Type::type type,
-                                     const NotebookItem * notebookItem,
-                                     const NotebookStackItem * notebookStackItem,
-                                     const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem,
-                                     const NotebookModelItem * parent) :
+NotebookModelItem::NotebookModelItem(
+        const Type::type type,
+        const NotebookItem * notebookItem,
+        const NotebookStackItem * notebookStackItem,
+        const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem,
+        const NotebookModelItem * parent) :
     m_type(type),
     m_pNotebookItem(notebookItem),
     m_pNotebookStackItem(notebookStackItem),
@@ -63,7 +64,8 @@ int NotebookModelItem::rowForChild(const NotebookModelItem * child) const
     return m_children.indexOf(child);
 }
 
-void NotebookModelItem::insertChild(const int row, const NotebookModelItem * item) const
+void NotebookModelItem::insertChild(const int row,
+                                    const NotebookModelItem * item) const
 {
     if (Q_UNLIKELY(!item)) {
         return;
@@ -150,16 +152,24 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
             strm << QStringLiteral("<unknown type>");
         }
 
-        if (m_pParent->notebookItem()) {
-            strm << QStringLiteral(", notebook local uid = ") << m_pParent->notebookItem()->localUid()
-                 << QStringLiteral(", notebook name = ") << m_pParent->notebookItem()->name();
+        if (m_pParent->notebookItem())
+        {
+            strm << QStringLiteral(", notebook local uid = ")
+                 << m_pParent->notebookItem()->localUid()
+                 << QStringLiteral(", notebook name = ")
+                 << m_pParent->notebookItem()->name();
         }
-        else if (m_pParent->notebookStackItem()) {
-            strm << QStringLiteral(", stack name = ") << m_pParent->notebookStackItem()->name();
+        else if (m_pParent->notebookStackItem())
+        {
+            strm << QStringLiteral(", stack name = ")
+                 << m_pParent->notebookStackItem()->name();
         }
-        else if (m_pParent->notebookLinkedNotebookItem()) {
-            strm << QStringLiteral(", linked notebook guid = ") << m_pParent->notebookLinkedNotebookItem()->linkedNotebookGuid()
-                 << QStringLiteral(", owner username = ") << m_pParent->notebookLinkedNotebookItem()->username();
+        else if (m_pParent->notebookLinkedNotebookItem())
+        {
+            strm << QStringLiteral(", linked notebook guid = ")
+                 << m_pParent->notebookLinkedNotebookItem()->linkedNotebookGuid()
+                 << QStringLiteral(", owner username = ")
+                 << m_pParent->notebookLinkedNotebookItem()->username();
         }
 
         strm << QStringLiteral("\n");
@@ -195,16 +205,24 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
             strm << QStringLiteral("<unknown type>");
         }
 
-        if (childItem->notebookItem()) {
-            strm << QStringLiteral(", notebook local uid = ") << childItem->notebookItem()->localUid()
-                 << QStringLiteral(", notebook name = ") << childItem->notebookItem()->name();
+        if (childItem->notebookItem())
+        {
+            strm << QStringLiteral(", notebook local uid = ")
+                 << childItem->notebookItem()->localUid()
+                 << QStringLiteral(", notebook name = ")
+                 << childItem->notebookItem()->name();
         }
-        else if (childItem->notebookStackItem()) {
-            strm << QStringLiteral(", stack = ") << childItem->notebookStackItem()->name();
+        else if (childItem->notebookStackItem())
+        {
+            strm << QStringLiteral(", stack = ")
+                 << childItem->notebookStackItem()->name();
         }
-        else if (childItem->notebookLinkedNotebookItem()) {
-            strm << QStringLiteral(", linked notebook guid = ") << childItem->notebookLinkedNotebookItem()->linkedNotebookGuid()
-                 << QStringLiteral(", owner username = ") << childItem->notebookLinkedNotebookItem()->username();
+        else if (childItem->notebookLinkedNotebookItem())
+        {
+            strm << QStringLiteral(", linked notebook guid = ")
+                 << childItem->notebookLinkedNotebookItem()->linkedNotebookGuid()
+                 << QStringLiteral(", owner username = ")
+                 << childItem->notebookLinkedNotebookItem()->username();
         }
 
         strm << QStringLiteral("\n");
@@ -218,13 +236,16 @@ QDataStream & operator<<(QDataStream & out, const NotebookModelItem & item)
     qint32 type = item.m_type;
     out << type;
 
-    qulonglong notebookItemPtr = reinterpret_cast<qulonglong>(item.m_pNotebookItem);
+    qulonglong notebookItemPtr =
+        reinterpret_cast<qulonglong>(item.m_pNotebookItem);
     out << notebookItemPtr;
 
-    qulonglong notebookStackItemPtr = reinterpret_cast<qulonglong>(item.m_pNotebookStackItem);
+    qulonglong notebookStackItemPtr =
+        reinterpret_cast<qulonglong>(item.m_pNotebookStackItem);
     out << notebookStackItemPtr;
 
-    qulonglong notebookLinkedNotebookItemPtr = reinterpret_cast<qulonglong>(item.m_pNotebookLinkedNotebookItem);
+    qulonglong notebookLinkedNotebookItemPtr =
+        reinterpret_cast<qulonglong>(item.m_pNotebookLinkedNotebookItem);
     out << notebookLinkedNotebookItemPtr;
 
     qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.m_pParent);
@@ -245,23 +266,30 @@ QDataStream & operator>>(QDataStream & in, NotebookModelItem & item)
 {
     qint32 type = 0;
     in >> type;
-    item.m_type = (type == NotebookModelItem::Type::Notebook ? NotebookModelItem::Type::Notebook : NotebookModelItem::Type::Stack);
+    item.m_type = (type == NotebookModelItem::Type::Notebook
+                   ? NotebookModelItem::Type::Notebook
+                   : NotebookModelItem::Type::Stack);
 
     qulonglong notebookItemPtr = 0;
     in >> notebookItemPtr;
-    item.m_pNotebookItem = reinterpret_cast<const NotebookItem*>(notebookItemPtr);
+    item.m_pNotebookItem =
+        reinterpret_cast<const NotebookItem*>(notebookItemPtr);
 
     qulonglong notebookStackItemPtr = 0;
     in >> notebookStackItemPtr;
-    item.m_pNotebookStackItem = reinterpret_cast<const NotebookStackItem*>(notebookStackItemPtr);
+    item.m_pNotebookStackItem =
+        reinterpret_cast<const NotebookStackItem*>(notebookStackItemPtr);
 
     qulonglong notebookLinkedNotebookItemPtr = 0;
     in >> notebookLinkedNotebookItemPtr;
-    item.m_pNotebookLinkedNotebookItem = reinterpret_cast<const NotebookLinkedNotebookRootItem*>(notebookLinkedNotebookItemPtr);
+    item.m_pNotebookLinkedNotebookItem =
+        reinterpret_cast<const NotebookLinkedNotebookRootItem*>(
+            notebookLinkedNotebookItemPtr);
 
     qulonglong notebookParentItemPtr = 0;
     in >> notebookParentItemPtr;
-    item.m_pParent = reinterpret_cast<const NotebookModelItem*>(notebookParentItemPtr);
+    item.m_pParent =
+        reinterpret_cast<const NotebookModelItem*>(notebookParentItemPtr);
 
     qint32 numChildren = 0;
     in >> numChildren;
@@ -271,7 +299,8 @@ QDataStream & operator>>(QDataStream & in, NotebookModelItem & item)
     for(qint32 i = 0; i < numChildren; ++i) {
         qulonglong childItemPtr = 0;
         in >> childItemPtr;
-        item.m_children << reinterpret_cast<const NotebookModelItem*>(childItemPtr);
+        item.m_children
+            << reinterpret_cast<const NotebookModelItem*>(childItemPtr);
     }
 
     return in;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 20162-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -52,7 +52,8 @@ public:
     void setGuid(const QString & guid) { m_guid = guid; }
 
     const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
-    void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
+    void setLinkedNotebookGuid(const QString & linkedNotebookGuid)
+    { m_linkedNotebookGuid = linkedNotebookGuid; }
 
     const QString & name() const { return m_name; }
     void setName(const QString & name) { m_name = name; }
@@ -93,7 +94,8 @@ public:
     void setCanUpdateNotes(const bool flag);
 
     int numNotesPerNotebook() const { return m_numNotesPerNotebook; }
-    void setNumNotesPerNotebook(const int numNotesPerNotebook) { m_numNotesPerNotebook = numNotesPerNotebook; }
+    void setNumNotesPerNotebook(const int numNotesPerNotebook)
+    { m_numNotesPerNotebook = numNotesPerNotebook; }
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
@@ -104,7 +106,8 @@ private:
     QString     m_name;
     QString     m_stack;
 
-    // Will use a bitset here to save some space from the more straigforward alternative of using booleans
+    // Will use a bitset here to save some space from the more straigforward
+    // alternative of using booleans
     struct Flags
     {
         enum type

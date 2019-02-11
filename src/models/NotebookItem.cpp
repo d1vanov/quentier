@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -163,8 +163,10 @@ void NotebookItem::setCanUpdateNotes(const bool flag)
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
     strm << QStringLiteral("Notebook item: local uid = ") << m_localUid
-         << QStringLiteral(", guid = ") << m_guid << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
-         << QStringLiteral(", name = ") << m_name << QStringLiteral(", stack = ") << m_stack
+         << QStringLiteral(", guid = ") << m_guid
+         << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
+         << QStringLiteral(", name = ") << m_name
+         << QStringLiteral(", stack = ") << m_stack
          << QStringLiteral(", is synchronizable = ")
          << (isSynchronizable() ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is updatable = ")

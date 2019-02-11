@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,11 +29,12 @@ class LogViewerModel::LogFileParser
 public:
     LogFileParser();
 
-    bool parseDataEntriesFromLogFile(const qint64 fromPos, const int maxDataEntries,
-                                     const QVector<LogLevel::type> & disabledLogLevels,
-                                     const QRegExp & filterContentRegExp,
-                                     QFile & logFile, QVector<LogViewerModel::Data> & dataEntries,
-                                     qint64 & endPos, ErrorString & errorDescription);
+    bool parseDataEntriesFromLogFile(
+        const qint64 fromPos, const int maxDataEntries,
+        const QVector<LogLevel::type> & disabledLogLevels,
+        const QRegExp & filterContentRegExp,
+        QFile & logFile, QVector<LogViewerModel::Data> & dataEntries,
+        qint64 & endPos, ErrorString & errorDescription);
 
 private:
     struct ParseLineStatus
@@ -47,11 +48,16 @@ private:
         };
     };
 
-    ParseLineStatus::type parseLogFileLine(const QString & line, const ParseLineStatus::type previousParseLineStatus,
-                                           const QVector<LogLevel::type> & disabledLogLevels, const QRegExp & filterContentRegExp,
-                                           QVector<LogViewerModel::Data> & dataEntries, ErrorString & errorDescription);
+    ParseLineStatus::type parseLogFileLine(
+        const QString & line,
+        const ParseLineStatus::type previousParseLineStatus,
+        const QVector<LogLevel::type> & disabledLogLevels,
+        const QRegExp & filterContentRegExp,
+        QVector<LogViewerModel::Data> & dataEntries,
+        ErrorString & errorDescription);
 
-    void appendLogEntryLine(LogViewerModel::Data & data, const QString & line) const;
+    void appendLogEntryLine(LogViewerModel::Data & data,
+                            const QString & line) const;
 
     void setInternalLogEnabled(const bool enabled);
 
