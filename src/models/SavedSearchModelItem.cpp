@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -40,10 +40,13 @@ QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
 {
     strm << QStringLiteral("Saved search model item: local uid = ") << m_localUid
          << QStringLiteral(", guid = ") << m_guid
-         << QStringLiteral(", name = ") << m_name << QStringLiteral(", query = ") << m_query
-         << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ") << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", name = ") << m_name << QStringLiteral(", query = ")
+         << m_query << QStringLiteral(", is synchronizable = ")
+         << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is dirty = ")
+         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is favorited = ")
+         << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral("\n");
 
     return strm;

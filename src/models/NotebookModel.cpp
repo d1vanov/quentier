@@ -3574,7 +3574,8 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
 
     Notebook notebook;
 
-    auto notYetSavedItemIt = m_notebookItemsNotYetInLocalStorageUids.find(item.localUid());
+    auto notYetSavedItemIt =
+        m_notebookItemsNotYetInLocalStorageUids.find(item.localUid());
     if (notYetSavedItemIt == m_notebookItemsNotYetInLocalStorageUids.end())
     {
         QNDEBUG(QStringLiteral("Updating the notebook"));
@@ -3587,7 +3588,8 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
             Notebook dummy;
             dummy.setLocalUid(item.localUid());
             Q_EMIT findNotebook(dummy, requestId);
-            QNTRACE(QStringLiteral("Emitted the request to find the notebook: local uid = ") << item.localUid()
+            QNTRACE(QStringLiteral("Emitted the request to find the notebook: ")
+                    << QStringLiteral("local uid = ") << item.localUid()
                     << QStringLiteral(", request id = ") << requestId);
             return;
         }
@@ -3607,9 +3609,10 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     notebook.setFavorited(item.isFavorited());
     notebook.setStack(item.stack());
 
-    // If all item's properties related to the restrictions are "true", there's no real need for the restrictions;
-    // Otherwise need to set the restrictions
-    if (!item.canCreateNotes() || !item.canUpdateNotes() || !item.isUpdatable() || !item.nameIsUpdatable())
+    // If all item's properties related to the restrictions are "true", there's
+    // no real need for the restrictions; otherwise need to set the restrictions
+    if (!item.canCreateNotes() || !item.canUpdateNotes() ||
+        !item.isUpdatable() || !item.nameIsUpdatable())
     {
         notebook.setCanCreateNotes(item.canCreateNotes());
         notebook.setCanUpdateNotes(item.canUpdateNotes());
@@ -3628,8 +3631,9 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     {
         Q_UNUSED(m_addNotebookRequestIds.insert(requestId))
 
-        QNTRACE(QStringLiteral("Emitting the request to add the notebook to local storage: id = ")
-                << requestId << QStringLiteral(", notebook = ") << notebook);
+        QNTRACE(QStringLiteral("Emitting the request to add the notebook ")
+                << QStringLiteral("to the local storage: id = ") << requestId
+                << QStringLiteral(", notebook = ") << notebook);
         Q_EMIT addNotebook(notebook, requestId);
 
         Q_UNUSED(m_notebookItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
@@ -3642,16 +3646,17 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
         // remove its stale copy from the cache
         Q_UNUSED(m_cache.remove(notebook.localUid()))
 
-        QNTRACE(QStringLiteral("Emitting the request to update notebook in the local storage: id = ")
-                << requestId << QStringLiteral(", notebook = ") << notebook);
+        QNTRACE(QStringLiteral("Emitting the request to update notebook in ")
+                << QStringLiteral("the local storage: id = ") << requestId
+                << QStringLiteral(", notebook = ") << notebook);
         Q_EMIT updateNotebook(notebook, requestId);
     }
 }
 
 void NotebookModel::expungeNotebookFromLocalStorage(const QString & localUid)
 {
-    QNTRACE(QStringLiteral("NotebookModel::expungeNotebookFromLocalStorage: local uid = ")
-            << localUid);
+    QNTRACE(QStringLiteral("NotebookModel::expungeNotebookFromLocalStorage: ")
+            << QStringLiteral("local uid = ") << localUid);
 
     Notebook dummyNotebook;
     dummyNotebook.setLocalUid(localUid);
@@ -3660,8 +3665,8 @@ void NotebookModel::expungeNotebookFromLocalStorage(const QString & localUid)
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_expungeNotebookRequestIds.insert(requestId))
-    QNDEBUG(QStringLiteral("Emitting the request to expunge the notebook from local storage: "
-                           "request id = ") << requestId
+    QNDEBUG(QStringLiteral("Emitting the request to expunge the notebook from ")
+            << QStringLiteral("the local storage: request id = ") << requestId
             << QStringLiteral(", local uid = ") << localUid);
     Q_EMIT expungeNotebook(dummyNotebook, requestId);
 }
@@ -3670,7 +3675,9 @@ QString NotebookModel::nameForNewNotebook() const
 {
     QString baseName = tr("New notebook");
     const NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
-    return newItemName<NotebookDataByNameUpper>(nameIndex, m_lastNewNotebookNameCounter, baseName);
+    return newItemName<NotebookDataByNameUpper>(nameIndex,
+                                                m_lastNewNotebookNameCounter,
+                                                baseName);
 }
 
 NotebookModel::RemoveRowsScopeGuard::RemoveRowsScopeGuard(NotebookModel & model) :
@@ -3715,7 +3722,8 @@ void NotebookModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
 void NotebookModel::onNotebookAdded(const Notebook & notebook)
 {
-    QNTRACE(QStringLiteral("NotebookModel::onNotebookAdded: notebook local uid = ") << notebook.localUid());
+    QNTRACE(QStringLiteral("NotebookModel::onNotebookAdded: notebook local uid = ")
+            << notebook.localUid());
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -3731,23 +3739,28 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
         StackItems * pStackItems = Q_NULLPTR;
         const NotebookModelItem * pGrandParentItem = Q_NULLPTR;
 
-        if (!notebook.hasLinkedNotebookGuid()) {
+        if (!notebook.hasLinkedNotebookGuid())
+        {
             pModelItemsByStack = &m_modelItemsByStack;
             pStackItems = &m_stackItems;
             pGrandParentItem = m_fakeRootItem;
         }
-        else {
+        else
+        {
             const QString & linkedNotebookGuid = notebook.linkedNotebookGuid();
-            pModelItemsByStack = &(m_modelItemsByStackByLinkedNotebookGuid[linkedNotebookGuid]);
+            pModelItemsByStack =
+                &(m_modelItemsByStackByLinkedNotebookGuid[linkedNotebookGuid]);
             pStackItems = &(m_stackItemsByLinkedNotebookGuid[linkedNotebookGuid]);
-            pGrandParentItem = &(findOrCreateLinkedNotebookModelItem(linkedNotebookGuid));
+            pGrandParentItem =
+                &(findOrCreateLinkedNotebookModelItem(linkedNotebookGuid));
         }
 
         const QString & stack = notebook.stack();
         auto it = pModelItemsByStack->find(stack);
         if (it == pModelItemsByStack->end()) {
             auto stackItemIt = pStackItems->insert(stack, NotebookStackItem(stack));
-            it = addNewStackModelItem(stackItemIt.value(), *pGrandParentItem, *pModelItemsByStack);
+            it = addNewStackModelItem(stackItemIt.value(), *pGrandParentItem,
+                                      *pModelItemsByStack);
         }
 
         pParentItem = &(*it);
@@ -3758,7 +3771,8 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     }
     else
     {
-        pParentItem = &(findOrCreateLinkedNotebookModelItem(notebook.linkedNotebookGuid()));
+        pParentItem =
+            &(findOrCreateLinkedNotebookModelItem(notebook.linkedNotebookGuid()));
     }
 
     QModelIndex parentIndex = indexForItem(pParentItem);
@@ -3772,9 +3786,10 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     auto it = insertionResult.first;
     const NotebookItem * insertedItem = &(*it);
 
-    auto modelItemIt = m_modelItemsByLocalUid.insert(item.localUid(),
-                                                     NotebookModelItem(NotebookModelItem::Type::Notebook,
-                                                                       insertedItem, Q_NULLPTR));
+    auto modelItemIt = m_modelItemsByLocalUid.insert(
+        item.localUid(),
+        NotebookModelItem(NotebookModelItem::Type::Notebook,
+                          insertedItem, Q_NULLPTR));
     const NotebookModelItem * insertedModelItem = &(*modelItemIt);
 
     beginInsertRows(parentIndex, row, row);
@@ -3784,7 +3799,8 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     updateItemRowWithRespectToSorting(*insertedModelItem);
 }
 
-void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it)
+void NotebookModel::onNotebookUpdated(const Notebook & notebook,
+                                      NotebookDataByLocalUid::iterator it)
 {
     QNTRACE(QStringLiteral("NotebookModel::onNotebookUpdated: notebook local uid = ")
             << notebook.localUid());
@@ -3794,7 +3810,8 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
 
     auto modelItemIt = m_modelItemsByLocalUid.find(notebook.localUid());
     if (Q_UNLIKELY(modelItemIt == m_modelItemsByLocalUid.end())) {
-        QNWARNING(QStringLiteral("Can't find the notebook model item corresponding to the updated notebook item: ")
+        QNWARNING(QStringLiteral("Can't find the notebook model item ")
+                  << QStringLiteral("corresponding to the updated notebook item: ")
                   << notebookItemCopy);
         return;
     }
@@ -3803,13 +3820,15 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
 
     const NotebookModelItem * pParentItem = pModelItem->parent();
     if (Q_UNLIKELY(!pParentItem)) {
-        QNWARNING(QStringLiteral("Can't find the parent notebook model item for updated notebook item: ") << *pModelItem);
+        QNWARNING(QStringLiteral("Can't find the parent notebook model item for ")
+                  << QStringLiteral("updated notebook item: ") << *pModelItem);
         return;
     }
 
     int row = pParentItem->rowForChild(pModelItem);
     if (Q_UNLIKELY(row < 0)) {
-        QNWARNING(QStringLiteral("Can't find the row of the child notebook model item within its parent model item: parent item = ")
+        QNWARNING(QStringLiteral("Can't find the row of the child notebook model ")
+                  << QStringLiteral("item within its parent model item: parent item = ")
                   << *pParentItem << QStringLiteral("\nChild item = ") << *pModelItem);
         return;
     }
@@ -3821,8 +3840,9 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     {
         const NotebookStackItem * parentStackItem = pParentItem->notebookStackItem();
         if (Q_UNLIKELY(!parentStackItem)) {
-            QNWARNING(QStringLiteral("Detected null pointer to notebook stack item in the parent item for the updated notebook item: ")
-                      << *pParentItem);
+            QNWARNING(QStringLiteral("Detected null pointer to notebook stack ")
+                      << QStringLiteral("item in the parent item for the updated ")
+                      << QStringLiteral("notebook item: ") << *pParentItem);
             return;
         }
 
@@ -3831,7 +3851,8 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
 
     if (!notebook.hasStack() && !previousStackName.isEmpty())
     {
-        // Need to remove the notebook model item from the current stack and set the fake root item as the parent
+        // Need to remove the notebook model item from the current stack and
+        // set the fake root item as the parent
         QModelIndex parentIndex = indexForItem(pParentItem);
         beginRemoveRows(parentIndex, row, row);
         Q_UNUSED(pParentItem->takeChild(row))
@@ -3846,8 +3867,8 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     }
     else if (notebook.hasStack() && (notebook.stack() != previousStackName))
     {
-        // Need to remove the notebook from its current parent and insert it under the stack item,
-        // either existing or new
+        // Need to remove the notebook from its current parent and insert it
+        // under the stack item, either existing or new
         QModelIndex parentIndex = indexForItem(pParentItem);
         beginRemoveRows(parentIndex, row, row);
         Q_UNUSED(pParentItem->takeChild(row))
@@ -3856,15 +3877,19 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
         auto stackModelItemIt = m_modelItemsByStack.find(notebook.stack());
         if (stackModelItemIt == m_modelItemsByStack.end())
         {
-            auto stackItemIt = m_stackItems.insert(notebook.stack(), NotebookStackItem(notebook.stack()));
+            auto stackItemIt = m_stackItems.insert(
+                notebook.stack(),
+                NotebookStackItem(notebook.stack()));
             const NotebookStackItem * pNewStackItem = &(stackItemIt.value());
 
             if (!m_fakeRootItem) {
                 m_fakeRootItem = new NotebookModelItem;
             }
 
-            NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, pNewStackItem);
-            stackModelItemIt = m_modelItemsByStack.insert(notebook.stack(), newStackModelItem);
+            NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack,
+                                                Q_NULLPTR, pNewStackItem);
+            stackModelItemIt = m_modelItemsByStack.insert(notebook.stack(),
+                                                          newStackModelItem);
             int newRow = m_fakeRootItem->numChildren();
             beginInsertRows(QModelIndex(), newRow, newRow);
             stackModelItemIt->setParent(m_fakeRootItem);
@@ -3888,8 +3913,10 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
 
         row = pParentItem->rowForChild(pModelItem);
         if (Q_UNLIKELY(row < 0)) {
-            QNWARNING(QStringLiteral("Can't find the row for the child notebook item within its parent right after setting "
-                                     "the parent item to the child item! Parent item = ") << *pParentItem
+            QNWARNING(QStringLiteral("Can't find the row for the child notebook ")
+                      << QStringLiteral("item within its parent right after ")
+                      << QStringLiteral("setting the parent item to the child ")
+                      << QStringLiteral("item! Parent item = ") << *pParentItem
                       << QStringLiteral("\nChild item = ") << *pModelItem);
             return;
         }
@@ -3906,7 +3933,8 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     IndexId modelItemId = idForItem(*pModelItem);
 
     QModelIndex modelIndexFrom = createIndex(row, 0, modelItemId);
-    QModelIndex modelIndexTo = createIndex(row, NUM_NOTEBOOK_MODEL_COLUMNS - 1, modelItemId);
+    QModelIndex modelIndexTo = createIndex(row, NUM_NOTEBOOK_MODEL_COLUMNS - 1,
+                                           modelItemId);
     Q_EMIT dataChanged(modelIndexFrom, modelIndexTo);
 
     if (m_sortedColumn != Columns::Name) {
@@ -3921,25 +3949,30 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     }
 }
 
-void NotebookModel::onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linkedNotebook)
+void NotebookModel::onLinkedNotebookAddedOrUpdated(
+    const LinkedNotebook & linkedNotebook)
 {
-    QNTRACE(QStringLiteral("NotebookModel::onLinkedNotebookAddedOrUpdated: ") << linkedNotebook);
+    QNTRACE(QStringLiteral("NotebookModel::onLinkedNotebookAddedOrUpdated: ")
+            << linkedNotebook);
 
     if (Q_UNLIKELY(!linkedNotebook.hasGuid())) {
-        QNWARNING(QStringLiteral("Can't process the addition or update of a linked notebook without guid: ")
+        QNWARNING(QStringLiteral("Can't process the addition or update of ")
+                  << QStringLiteral("a linked notebook without guid: ")
                   << linkedNotebook);
         return;
     }
 
     if (Q_UNLIKELY(!linkedNotebook.hasUsername())) {
-        QNWARNING(QStringLiteral("Can't process the addition or update of a linked notebook without username: ")
+        QNWARNING(QStringLiteral("Can't process the addition or update of ")
+                  << QStringLiteral("a linked notebook without username: ")
                   << linkedNotebook);
         return;
     }
 
     const QString & linkedNotebookGuid = linkedNotebook.guid();
 
-    auto it = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.find(linkedNotebookGuid);
+    auto it = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.find(
+        linkedNotebookGuid);
     if (it != m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.end())
     {
         if (it.value() == linkedNotebook.username()) {
@@ -3948,49 +3981,63 @@ void NotebookModel::onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linked
         }
 
         it.value() = linkedNotebook.username();
-        QNDEBUG(QStringLiteral("Updated the username corresponding to linked notebook guid ") << linkedNotebookGuid
+        QNDEBUG(QStringLiteral("Updated the username corresponding to linked ")
+                << QStringLiteral("notebook guid ") << linkedNotebookGuid
                 << QStringLiteral(" to ") << linkedNotebook.username());
     }
     else
     {
         QNDEBUG(QStringLiteral("Adding new username ") << linkedNotebook.username()
-                << QStringLiteral(" corresponding to linked notebook guid ") << linkedNotebookGuid);
-        it = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.insert(linkedNotebookGuid, linkedNotebook.username());
+                << QStringLiteral(" corresponding to linked notebook guid ")
+                << linkedNotebookGuid);
+        it = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.insert(
+            linkedNotebookGuid,
+            linkedNotebook.username());
     }
 
     auto modelItemIt = m_modelItemsByLinkedNotebookGuid.find(linkedNotebookGuid);
     if (modelItemIt == m_modelItemsByLinkedNotebookGuid.end()) {
-        QNDEBUG(QStringLiteral("Found no model item corresponding to linked notebook guid ") << linkedNotebookGuid);
+        QNDEBUG(QStringLiteral("Found no model item corresponding to linked ")
+                << QStringLiteral("notebook guid ") << linkedNotebookGuid);
         return;
     }
 
     auto linkedNotebookItemIt = m_linkedNotebookItems.find(linkedNotebookGuid);
     if (linkedNotebookItemIt == m_linkedNotebookItems.end())
     {
-        QNWARNING(QStringLiteral("Found linked notebook model item for linked notebook guid ") << linkedNotebookGuid
-                  << QStringLiteral(" but no linked notebook item; will try to correct"));
-        linkedNotebookItemIt = m_linkedNotebookItems.insert(linkedNotebookGuid, NotebookLinkedNotebookRootItem(linkedNotebook.username(), linkedNotebookGuid));
+        QNWARNING(QStringLiteral("Found linked notebook model item for linked ")
+                  << QStringLiteral("notebook guid ") << linkedNotebookGuid
+                  << QStringLiteral(" but no linked notebook item; will try to "
+                                    "correct"));
+        linkedNotebookItemIt = m_linkedNotebookItems.insert(
+            linkedNotebookGuid,
+            NotebookLinkedNotebookRootItem(linkedNotebook.username(),
+                                           linkedNotebookGuid));
     }
     else
     {
         linkedNotebookItemIt->setUsername(linkedNotebook.username());
         QNTRACE(QStringLiteral("Updated the linked notebook username to ")
                 << linkedNotebook.username()
-                << QStringLiteral(" for linked notebook item corresponding to linked notebook guid ")
-                << linkedNotebookGuid);
+                << QStringLiteral(" for linked notebook item corresponding to ")
+                << QStringLiteral("linked notebook guid ") << linkedNotebookGuid);
     }
 
-    QModelIndex linkedNotebookItemIndex = indexForLinkedNotebookGuid(linkedNotebookGuid);
+    QModelIndex linkedNotebookItemIndex =
+        indexForLinkedNotebookGuid(linkedNotebookGuid);
     Q_EMIT dataChanged(linkedNotebookItemIndex, linkedNotebookItemIndex);
 }
 
-NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const NotebookStackItem & stackItem,
-                                                                        const NotebookModelItem & parentItem,
-                                                                        ModelItems & modelItemsByStack)
+NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(
+    const NotebookStackItem & stackItem,
+    const NotebookModelItem & parentItem,
+    ModelItems & modelItemsByStack)
 {
-    QNTRACE(QStringLiteral("NotebookModel::addNewStackModelItem: stack item = ") << stackItem);
+    QNTRACE(QStringLiteral("NotebookModel::addNewStackModelItem: stack item = ")
+            << stackItem);
 
-    NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, &stackItem);
+    NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack,
+                                        Q_NULLPTR, &stackItem);
     QNTRACE(QStringLiteral("Created new stack model item: ") << newStackModelItem);
     auto it = modelItemsByStack.insert(stackItem.name(), newStackModelItem);
 
@@ -4003,14 +4050,16 @@ NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const No
     parentItem.insertChild(row, &(it.value()));
     endInsertRows();
 
-    QNTRACE(QStringLiteral("New stack model item after inserting into the parent item: ")
-            << it.value() << QStringLiteral("\nParent item: ") << parentItem);
+    QNTRACE(QStringLiteral("New stack model item after inserting into the parent ")
+            << QStringLiteral("item: ") << it.value()
+            << QStringLiteral("\nParent item: ") << parentItem);
     return it;
 }
 
 void NotebookModel::removeItemByLocalUid(const QString & localUid)
 {
-    QNTRACE(QStringLiteral("NotebookModel::removeItemByLocalUid: local uid = ") << localUid);
+    QNTRACE(QStringLiteral("NotebookModel::removeItemByLocalUid: local uid = ")
+            << localUid);
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(localUid);
@@ -4023,7 +4072,8 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
 
     auto notebookModelItemIt = m_modelItemsByLocalUid.find(item.localUid());
     if (Q_UNLIKELY(notebookModelItemIt == m_modelItemsByLocalUid.end())) {
-        QNWARNING(QStringLiteral("Can't find the notebook model item corresponding the the notebook item with local uid ")
+        QNWARNING(QStringLiteral("Can't find the notebook model item corresponding ")
+                  << QStringLiteral("the the notebook item with local uid ")
                   << item.localUid());
         return;
     }
@@ -4031,15 +4081,19 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     const NotebookModelItem * pModelItem = &(*notebookModelItemIt);
     const NotebookModelItem * pParentItem = pModelItem->parent();
     if (Q_UNLIKELY(!pParentItem)) {
-        QNWARNING(QStringLiteral("Can't find the parent notebook model item for the notebook being removed from the model: local uid = ")
+        QNWARNING(QStringLiteral("Can't find the parent notebook model item for ")
+                  << QStringLiteral("the notebook being removed from the model: ")
+                  << QStringLiteral("local uid = ")
                   << item.localUid());
         return;
     }
 
     int row = pParentItem->rowForChild(pModelItem);
     if (Q_UNLIKELY(row < 0)) {
-        QNWARNING(QStringLiteral("Can't find the notebook item's row within its parent model item: notebook item = ") << *pModelItem
-                  << QStringLiteral("\nStack item = ") << *pParentItem);
+        QNWARNING(QStringLiteral("Can't find the notebook item's row within its ")
+                  << QStringLiteral("parent model item: notebook item = ")
+                  << *pModelItem << QStringLiteral("\nStack item = ")
+                  << *pParentItem);
         return;
     }
 
@@ -4097,11 +4151,16 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
     }
 
     if (notebook.hasRestrictions()) {
-        const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
-        item.setUpdatable(!restrictions.noUpdateNotebook.isSet() || !restrictions.noUpdateNotebook.ref());
-        item.setNameIsUpdatable(!restrictions.noRenameNotebook.isSet() || !restrictions.noRenameNotebook.ref());
-        item.setCanCreateNotes(!restrictions.noCreateNotes.isSet() || !restrictions.noCreateNotes.ref());
-        item.setCanUpdateNotes(!restrictions.noUpdateNotes.isSet() || !restrictions.noUpdateNotes.ref());
+        const qevercloud::NotebookRestrictions & restrictions =
+            notebook.restrictions();
+        item.setUpdatable(!restrictions.noUpdateNotebook.isSet() ||
+                          !restrictions.noUpdateNotebook.ref());
+        item.setNameIsUpdatable(!restrictions.noRenameNotebook.isSet() ||
+                                !restrictions.noRenameNotebook.ref());
+        item.setCanCreateNotes(!restrictions.noCreateNotes.isSet() ||
+                               !restrictions.noCreateNotes.ref());
+        item.setCanUpdateNotes(!restrictions.noUpdateNotes.isSet() ||
+                               !restrictions.noUpdateNotes.ref());
     }
     else {
         item.setUpdatable(true);
@@ -4117,7 +4176,8 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
 
 void NotebookModel::removeModelItemFromParent(const NotebookModelItem & modelItem)
 {
-    QNTRACE(QStringLiteral("NotebookModel::removeModelItemFromParent: ") << modelItem);
+    QNTRACE(QStringLiteral("NotebookModel::removeModelItemFromParent: ")
+            << modelItem);
 
     const NotebookModelItem * pParentItem = modelItem.parent();
     if (Q_UNLIKELY(!pParentItem)) {
@@ -4128,8 +4188,10 @@ void NotebookModel::removeModelItemFromParent(const NotebookModelItem & modelIte
     QNTRACE(QStringLiteral("Parent item: ") << *pParentItem);
     int row = pParentItem->rowForChild(&modelItem);
     if (Q_UNLIKELY(row < 0)) {
-        QNWARNING(QStringLiteral("Can't find the child notebook model item's row within its parent; child item = ")
-                  << modelItem << QStringLiteral(", parent item = ") << *pParentItem);
+        QNWARNING(QStringLiteral("Can't find the child notebook model item's ")
+                  << QStringLiteral("row within its parent; child item = ")
+                  << modelItem << QStringLiteral(", parent item = ")
+                  << *pParentItem);
         return;
     }
 
@@ -4141,7 +4203,8 @@ void NotebookModel::removeModelItemFromParent(const NotebookModelItem & modelIte
     endRemoveRows();
 }
 
-int NotebookModel::rowForNewItem(const NotebookModelItem & parentItem, const NotebookModelItem & newItem) const
+int NotebookModel::rowForNewItem(const NotebookModelItem & parentItem,
+                                 const NotebookModelItem & newItem) const
 {
     if (m_sortedColumn != Columns::Name) {
         // Sorting by other columns is not yet implemented
@@ -4152,10 +4215,12 @@ int NotebookModel::rowForNewItem(const NotebookModelItem & parentItem, const Not
     auto it = children.end();
 
     if (m_sortOrder == Qt::AscendingOrder) {
-        it = std::lower_bound(children.begin(), children.end(), &newItem, LessByName());
+        it = std::lower_bound(children.begin(), children.end(),
+                              &newItem, LessByName());
     }
     else {
-        it = std::lower_bound(children.begin(), children.end(), &newItem, GreaterByName());
+        it = std::lower_bound(children.begin(), children.end(),
+                              &newItem, GreaterByName());
     }
 
     if (it == children.end()) {
@@ -4166,7 +4231,8 @@ int NotebookModel::rowForNewItem(const NotebookModelItem & parentItem, const Not
     return row;
 }
 
-void NotebookModel::updateItemRowWithRespectToSorting(const NotebookModelItem & modelItem)
+void NotebookModel::updateItemRowWithRespectToSorting(
+    const NotebookModelItem & modelItem)
 {
     QNTRACE(QStringLiteral("NotebookModel::updateItemRowWithRespectToSorting"));
 
@@ -4193,7 +4259,8 @@ void NotebookModel::updateItemRowWithRespectToSorting(const NotebookModelItem & 
 
     int currentItemRow = pParentItem->rowForChild(&modelItem);
     if (Q_UNLIKELY(currentItemRow < 0)) {
-        QNWARNING(QStringLiteral("Can't update notebook model item's row: can't find its original row within parent: ")
+        QNWARNING(QStringLiteral("Can't update notebook model item's row: can't ")
+                  << QStringLiteral("find its original row within parent: ")
                   << modelItem);
         return;
     }
@@ -4209,7 +4276,8 @@ void NotebookModel::updateItemRowWithRespectToSorting(const NotebookModelItem & 
     pParentItem->insertChild(appropriateRow, &modelItem);
     endInsertRows();
 
-    QNTRACE(QStringLiteral("Moved item from row ") << currentItemRow << QStringLiteral(" to row ") << appropriateRow
+    QNTRACE(QStringLiteral("Moved item from row ") << currentItemRow
+            << QStringLiteral(" to row ") << appropriateRow
             << QStringLiteral("; item: ") << modelItem);
 }
 
@@ -4222,7 +4290,8 @@ void NotebookModel::updatePersistentModelIndices()
     for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
     {
         const QModelIndex & index = *it;
-        const NotebookModelItem * pItem = itemForId(static_cast<IndexId>(index.internalId()));
+        const NotebookModelItem * pItem =
+            itemForId(static_cast<IndexId>(index.internalId()));
         QModelIndex replacementIndex = indexForItem(pItem);
         changePersistentIndex(index, replacementIndex);
     }
@@ -4230,12 +4299,14 @@ void NotebookModel::updatePersistentModelIndices()
 
 bool NotebookModel::incrementNoteCountForNotebook(const QString & notebookLocalUid)
 {
-    QNTRACE(QStringLiteral("NotebookModel::incrementNoteCountForNotebook: ") << notebookLocalUid);
+    QNTRACE(QStringLiteral("NotebookModel::incrementNoteCountForNotebook: ")
+            << notebookLocalUid);
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(notebookLocalUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNDEBUG(QStringLiteral("Wasn't able to find the notebook item by the specified local uid"));
+        QNDEBUG(QStringLiteral("Wasn't able to find the notebook item by "
+                               "the specified local uid"));
         return false;
     }
 
@@ -4249,12 +4320,14 @@ bool NotebookModel::incrementNoteCountForNotebook(const QString & notebookLocalU
 
 bool NotebookModel::decrementNoteCountForNotebook(const QString & notebookLocalUid)
 {
-    QNTRACE(QStringLiteral("NotebookModel::decrementNoteCountForNotebook: ") << notebookLocalUid);
+    QNTRACE(QStringLiteral("NotebookModel::decrementNoteCountForNotebook: ")
+            << notebookLocalUid);
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(notebookLocalUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNDEBUG(QStringLiteral("Wasn't able to find the notebook item by the specified local uid"));
+        QNDEBUG(QStringLiteral("Wasn't able to find the notebook item by "
+                               "the specified local uid"));
         return false;
     }
 
@@ -4269,12 +4342,14 @@ bool NotebookModel::decrementNoteCountForNotebook(const QString & notebookLocalU
 
 void NotebookModel::switchDefaultNotebookLocalUid(const QString & localUid)
 {
-    QNTRACE(QStringLiteral("NotebookModel::switchDefaultNotebookLocalUid: ") << localUid);
+    QNTRACE(QStringLiteral("NotebookModel::switchDefaultNotebookLocalUid: ")
+            << localUid);
 
     if (!m_defaultNotebookLocalUid.isEmpty())
     {
-        QNTRACE(QStringLiteral("There has already been some notebook chosen as the default, "
-                               "switching the default flag off for it"));
+        QNTRACE(QStringLiteral("There has already been some notebook chosen as "
+                               "the default, switching the default flag off "
+                               "for it"));
 
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -4282,7 +4357,8 @@ void NotebookModel::switchDefaultNotebookLocalUid(const QString & localUid)
         if (previousDefaultItemIt != localUidIndex.end())
         {
             NotebookItem previousDefaultItemCopy(*previousDefaultItemIt);
-            QNTRACE(QStringLiteral("Previous default notebook item: ") << previousDefaultItemCopy);
+            QNTRACE(QStringLiteral("Previous default notebook item: ")
+                    << previousDefaultItemCopy);
 
             previousDefaultItemCopy.setDefault(false);
             bool wasDirty = previousDefaultItemCopy.isDirty();
@@ -4290,12 +4366,17 @@ void NotebookModel::switchDefaultNotebookLocalUid(const QString & localUid)
 
             localUidIndex.replace(previousDefaultItemIt, previousDefaultItemCopy);
 
-            QModelIndex previousDefaultItemIndex = indexForLocalUid(m_defaultNotebookLocalUid);
+            QModelIndex previousDefaultItemIndex =
+                indexForLocalUid(m_defaultNotebookLocalUid);
             Q_EMIT dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
 
-            if (!wasDirty) {
-                previousDefaultItemIndex = index(previousDefaultItemIndex.row(), Columns::Dirty, previousDefaultItemIndex.parent());
-                Q_EMIT dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
+            if (!wasDirty)
+            {
+                previousDefaultItemIndex = index(previousDefaultItemIndex.row(),
+                                                 Columns::Dirty,
+                                                 previousDefaultItemIndex.parent());
+                Q_EMIT dataChanged(previousDefaultItemIndex,
+                                   previousDefaultItemIndex);
             }
 
             updateNotebookInLocalStorage(previousDefaultItemCopy);
@@ -4312,8 +4393,9 @@ void NotebookModel::switchLastUsedNotebookLocalUid(const QString & localUid)
 
     if (!m_lastUsedNotebookLocalUid.isEmpty())
     {
-        QNTRACE(QStringLiteral("There has already been some notebook chosen as the last used one, "
-                               "switching the last used flag off for it"));
+        QNTRACE(QStringLiteral("There has already been some notebook chosen as "
+                               "the last used one, switching the last used flag "
+                               "off for it"));
 
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -4321,7 +4403,8 @@ void NotebookModel::switchLastUsedNotebookLocalUid(const QString & localUid)
         if (previousLastUsedItemIt != localUidIndex.end())
         {
             NotebookItem previousLastUsedItemCopy(*previousLastUsedItemIt);
-            QNTRACE(QStringLiteral("Previous last used notebook item: ") << previousLastUsedItemCopy);
+            QNTRACE(QStringLiteral("Previous last used notebook item: ")
+                    << previousLastUsedItemCopy);
 
             previousLastUsedItemCopy.setLastUsed(false);
             bool wasDirty = previousLastUsedItemCopy.isDirty();
@@ -4329,12 +4412,17 @@ void NotebookModel::switchLastUsedNotebookLocalUid(const QString & localUid)
 
             localUidIndex.replace(previousLastUsedItemIt, previousLastUsedItemCopy);
 
-            QModelIndex previousLastUsedItemIndex = indexForLocalUid(m_lastUsedNotebookLocalUid);
+            QModelIndex previousLastUsedItemIndex =
+                indexForLocalUid(m_lastUsedNotebookLocalUid);
             Q_EMIT dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
 
-            if (!wasDirty) {
-                previousLastUsedItemIndex = index(previousLastUsedItemIndex.row(), Columns::Dirty, previousLastUsedItemIndex.parent());
-                Q_EMIT dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
+            if (!wasDirty)
+            {
+                previousLastUsedItemIndex = index(previousLastUsedItemIndex.row(),
+                                                  Columns::Dirty,
+                                                  previousLastUsedItemIndex.parent());
+                Q_EMIT dataChanged(previousLastUsedItemIndex,
+                                   previousLastUsedItemIndex);
             }
 
             updateNotebookInLocalStorage(previousLastUsedItemCopy);
@@ -4347,7 +4435,8 @@ void NotebookModel::switchLastUsedNotebookLocalUid(const QString & localUid)
 
 void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & modelItem)
 {
-    QNTRACE(QStringLiteral("NotebookModel::checkAndRemoveEmptyStackItem: ") << modelItem);
+    QNTRACE(QStringLiteral("NotebookModel::checkAndRemoveEmptyStackItem: ")
+            << modelItem);
 
     if (&modelItem == m_fakeRootItem) {
         QNDEBUG(QStringLiteral("Won't remove the fake root item"));
@@ -4360,7 +4449,8 @@ void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & model
     }
 
     if (Q_UNLIKELY(!modelItem.notebookStackItem())) {
-        QNWARNING(QStringLiteral("Detected notebook model item of stack type but without the actual stack item: ")
+        QNWARNING(QStringLiteral("Detected notebook model item of stack type but ")
+                  << QStringLiteral("without the actual stack item: ")
                   << modelItem);
         return;
     }
@@ -4370,18 +4460,20 @@ void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & model
         return;
     }
 
-    QNDEBUG(QStringLiteral("Removed the last child of the previous notebook's stack, "
-                           "need to remove the stack item itself"));
+    QNDEBUG(QStringLiteral("Removed the last child of the previous notebook's "
+                           "stack, need to remove the stack item itself"));
 
     const NotebookStackItem * pStackItem = modelItem.notebookStackItem();
     QString previousStack = pStackItem->name();
 
     QString linkedNotebookGuid;
     const NotebookModelItem * pParentItem = modelItem.parent();
-    if (pParentItem && (pParentItem->type() == NotebookModelItem::Type::LinkedNotebook) &&
+    if (pParentItem &&
+        (pParentItem->type() == NotebookModelItem::Type::LinkedNotebook) &&
         pParentItem->notebookLinkedNotebookItem())
     {
-        linkedNotebookGuid = pParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
+        linkedNotebookGuid =
+            pParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
     }
 
     removeModelItemFromParent(modelItem);
@@ -4396,19 +4488,26 @@ void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & model
     }
     else
     {
-        auto modelItemsByStackIt = m_modelItemsByStackByLinkedNotebookGuid.find(linkedNotebookGuid);
-        if (Q_UNLIKELY(modelItemsByStackIt == m_modelItemsByStackByLinkedNotebookGuid.end())) {
-            QNWARNING(QStringLiteral("Can't properly remove the notebook stack item without children: "
-                                     "can't find the map of model items by stack for linked notebook guid ")
+        auto modelItemsByStackIt =
+            m_modelItemsByStackByLinkedNotebookGuid.find(linkedNotebookGuid);
+        if (Q_UNLIKELY(modelItemsByStackIt ==
+                       m_modelItemsByStackByLinkedNotebookGuid.end()))
+        {
+            QNWARNING(QStringLiteral("Can't properly remove the notebook stack ")
+                      << QStringLiteral("item without children: can't find ")
+                      << QStringLiteral("the map of model items by stack for ")
+                      << QStringLiteral("linked notebook guid ")
                       << linkedNotebookGuid);
             return;
         }
 
         auto stackItemsIt = m_stackItemsByLinkedNotebookGuid.find(linkedNotebookGuid);
-        if (Q_UNLIKELY(stackItemsIt == m_stackItemsByLinkedNotebookGuid.end())) {
-            QNWARNING(QStringLiteral("Can't properly remove the notebook stack item without children: "
-                                     "can't find the map of stack items for linked notebook guid ")
-                      << linkedNotebookGuid);
+        if (Q_UNLIKELY(stackItemsIt == m_stackItemsByLinkedNotebookGuid.end()))
+        {
+            QNWARNING(QStringLiteral("Can't properly remove the notebook stack ")
+                      << QStringLiteral("item without children: can't find ")
+                      << QStringLiteral("the map of stack items for linked ")
+                      << QStringLiteral("notebook guid ") << linkedNotebookGuid);
             return;
         }
 
@@ -4426,38 +4525,45 @@ void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & model
             Q_UNUSED(pStackItems->erase(stackIt))
         }
         else {
-            QNWARNING(QStringLiteral("Can't find stack item to remove, stack ") << previousStack);
+            QNWARNING(QStringLiteral("Can't find stack item to remove, stack ")
+                      << previousStack);
         }
     }
     else
     {
-        QNWARNING(QStringLiteral("Can't find stack model item to remove, stack ") << previousStack);
+        QNWARNING(QStringLiteral("Can't find stack model item to remove, stack ")
+                  << previousStack);
     }
 }
 
-void NotebookModel::setNotebookFavorited(const QModelIndex & index, const bool favorited)
+void NotebookModel::setNotebookFavorited(const QModelIndex & index,
+                                         const bool favorited)
 {
     if (Q_UNLIKELY(!index.isValid())) {
-        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: the model index is invalid"));
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: "
+                                "the model index is invalid"));
         return;
     }
 
     const NotebookModelItem * pModelItem = itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: failed to find the model item "
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: "
+                                "failed to find the model item "
                                 "corresponding to the model index"));
         return;
     }
 
     if (Q_UNLIKELY(pModelItem->type() != NotebookModelItem::Type::Notebook)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: the item attempted to be favorited "
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: "
+                                "the item attempted to be favorited "
                                 "or unfavorited is not a notebook"));
         return;
     }
 
     const NotebookItem * pNotebookItem = pModelItem->notebookItem();
     if (Q_UNLIKELY(!pNotebookItem)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: internal error, the model item "
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: "
+                                "internal error, the model item "
                                 "has null pointer to the notebook item"));
         return;
     }
@@ -4471,13 +4577,15 @@ void NotebookModel::setNotebookFavorited(const QModelIndex & index, const bool f
 
     auto it = localUidIndex.find(pNotebookItem->localUid());
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: the notebook item was not found within the model"));
+        REPORT_ERROR(QT_TR_NOOP("Can't set favorited flag for the notebook: "
+                                "the notebook item was not found within the model"));
         return;
     }
 
     NotebookItem itemCopy(*pNotebookItem);
     itemCopy.setFavorited(favorited);
-    // NOTE: won't mark the notebook as dirty as favorited property is not included into the synchronization protocol
+    // NOTE: won't mark the notebook as dirty as favorited property is
+    // not included into the synchronization protocol
 
     localUidIndex.replace(it, itemCopy);
 
@@ -4494,54 +4602,77 @@ void NotebookModel::endRemoveNotebooks()
     Q_EMIT removedNotebooks();
 }
 
-const NotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(const QString & linkedNotebookGuid)
+const NotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(
+    const QString & linkedNotebookGuid)
 {
-    QNTRACE(QStringLiteral("NotebookModel::findOrCreateLinkedNotebookModelItem: ") << linkedNotebookGuid);
+    QNTRACE(QStringLiteral("NotebookModel::findOrCreateLinkedNotebookModelItem: ")
+            << linkedNotebookGuid);
 
     if (Q_UNLIKELY(!m_fakeRootItem)) {
         m_fakeRootItem = new NotebookModelItem;
     }
 
     if (Q_UNLIKELY(linkedNotebookGuid.isEmpty())) {
-        QNWARNING(QStringLiteral("Detected the request for finding of creation of a linked notebook model item for empty linked notebook guid"));
+        QNWARNING(QStringLiteral("Detected the request for finding of creation "
+                                 "of a linked notebook model item for empty "
+                                 "linked notebook guid"));
         return *m_fakeRootItem;
     }
 
-    auto linkedNotebookModelItemIt = m_modelItemsByLinkedNotebookGuid.find(linkedNotebookGuid);
-    if (linkedNotebookModelItemIt != m_modelItemsByLinkedNotebookGuid.end()) {
-        QNDEBUG(QStringLiteral("Found existing linked notebook model item for linked notebook guid ")
-                << linkedNotebookGuid);
+    auto linkedNotebookModelItemIt =
+        m_modelItemsByLinkedNotebookGuid.find(linkedNotebookGuid);
+    if (linkedNotebookModelItemIt != m_modelItemsByLinkedNotebookGuid.end())
+    {
+        QNDEBUG(QStringLiteral("Found existing linked notebook model item for ")
+                << QStringLiteral("linked notebook guid ") << linkedNotebookGuid);
         return linkedNotebookModelItemIt.value();
     }
 
-    QNDEBUG(QStringLiteral("Found no existing model item corresponding to linked notebook guid ")
-            << linkedNotebookGuid << QStringLiteral(", will create one"));
+    QNDEBUG(QStringLiteral("Found no existing model item corresponding to ")
+            << QStringLiteral("linked notebook guid ") << linkedNotebookGuid
+            << QStringLiteral(", will create one"));
 
     const NotebookLinkedNotebookRootItem * pLinkedNotebookItem = Q_NULLPTR;
     auto linkedNotebookItemIt = m_linkedNotebookItems.find(linkedNotebookGuid);
     if (linkedNotebookItemIt == m_linkedNotebookItems.end())
     {
-        QNDEBUG(QStringLiteral("Found no existing linked notebook root item, will create one"));
+        QNDEBUG(QStringLiteral("Found no existing linked notebook root item, "
+                               "will create one"));
 
-        auto linkedNotebookOwnerUsernameIt = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.find(linkedNotebookGuid);
-        if (Q_UNLIKELY(linkedNotebookOwnerUsernameIt == m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.end())) {
-            QNDEBUG(QStringLiteral("Found no linked notebook owner's username for linked notebook guid ")
+        auto linkedNotebookOwnerUsernameIt =
+            m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.find(
+                linkedNotebookGuid);
+        if (Q_UNLIKELY(linkedNotebookOwnerUsernameIt ==
+                       m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.end()))
+        {
+            QNDEBUG(QStringLiteral("Found no linked notebook owner's username ")
+                    << QStringLiteral("for linked notebook guid ")
                       << linkedNotebookGuid);
-            linkedNotebookOwnerUsernameIt = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.insert(linkedNotebookGuid, QString());
+            linkedNotebookOwnerUsernameIt =
+                m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.insert(
+                    linkedNotebookGuid, QString());
         }
 
-        const QString & linkedNotebookOwnerUsername = linkedNotebookOwnerUsernameIt.value();
+        const QString & linkedNotebookOwnerUsername =
+            linkedNotebookOwnerUsernameIt.value();
 
-        NotebookLinkedNotebookRootItem linkedNotebookItem(linkedNotebookOwnerUsername, linkedNotebookGuid);
-        linkedNotebookItemIt = m_linkedNotebookItems.insert(linkedNotebookGuid, linkedNotebookItem);
+        NotebookLinkedNotebookRootItem linkedNotebookItem(
+            linkedNotebookOwnerUsername,
+            linkedNotebookGuid);
+
+        linkedNotebookItemIt = m_linkedNotebookItems.insert(
+            linkedNotebookGuid,
+            linkedNotebookItem);
     }
 
     pLinkedNotebookItem = &(linkedNotebookItemIt.value());
     QNTRACE(QStringLiteral("Linked notebook root item: ") << *pLinkedNotebookItem);
 
-    linkedNotebookModelItemIt = m_modelItemsByLinkedNotebookGuid.insert(linkedNotebookGuid,
-                                                                        NotebookModelItem(NotebookModelItem::Type::LinkedNotebook,
-                                                                                          Q_NULLPTR, Q_NULLPTR, pLinkedNotebookItem));
+    linkedNotebookModelItemIt = m_modelItemsByLinkedNotebookGuid.insert(
+        linkedNotebookGuid,
+        NotebookModelItem(NotebookModelItem::Type::LinkedNotebook,
+                          Q_NULLPTR, Q_NULLPTR, pLinkedNotebookItem));
+
     const NotebookModelItem * pModelItem = &(linkedNotebookModelItemIt.value());
     int row = rowForNewItem(*m_fakeRootItem, *pModelItem);
     beginInsertRows(QModelIndex(), row, row);
@@ -4554,21 +4685,25 @@ const NotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(con
 const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
 {
     // this is called too often to be DEBUG level
-    QNTRACE(QStringLiteral("NotebookModelItem * NotebookModel::itemForId: ") << id);
+    QNTRACE(QStringLiteral("NotebookModelItem * NotebookModel::itemForId: ")
+            << id);
 
     auto localUidIt = m_indexIdToLocalUidBimap.left.find(id);
     if (localUidIt != m_indexIdToLocalUidBimap.left.end())
     {
         const QString & localUid = localUidIt->second;
-        QNTRACE(QStringLiteral("Found notebook local uid corresponding to model index internal id: ") << localUid);
+        QNTRACE(QStringLiteral("Found notebook local uid corresponding to model ")
+                << QStringLiteral("index internal id: ") << localUid);
 
         auto itemIt = m_modelItemsByLocalUid.find(localUid);
         if (itemIt != m_modelItemsByLocalUid.end()) {
-            QNTRACE(QStringLiteral("Found notebook model item corresponding to local uid: ") << itemIt.value());
+            QNTRACE(QStringLiteral("Found notebook model item corresponding to ")
+                    << QStringLiteral("local uid: ") << itemIt.value());
             return &(itemIt.value());
         }
         else {
-            QNTRACE(QStringLiteral("Found no notebook model item corresponding to local uid"));
+            QNTRACE(QStringLiteral("Found no notebook model item corresponding ")
+                    << QStringLiteral("to local uid"));
             return Q_NULLPTR;
         }
     }
@@ -4578,8 +4713,10 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
     {
         const QString & stack = stackIt->second.first;
         const QString & linkedNotebookGuid = stackIt->second.second;
-        QNTRACE(QStringLiteral("Found notebook stack corresponding to model index internal id: ") << stack
-                << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid);
+        QNTRACE(QStringLiteral("Found notebook stack corresponding to model ")
+                << QStringLiteral("index internal id: ") << stack
+                << QStringLiteral(", linked notebook guid = ")
+                << linkedNotebookGuid);
 
         const ModelItems * pModelItemsByStack = Q_NULLPTR;
         if (linkedNotebookGuid.isEmpty())
@@ -4588,9 +4725,13 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
         }
         else
         {
-            auto modelItemsByStackIt = m_modelItemsByStackByLinkedNotebookGuid.find(linkedNotebookGuid);
-            if (Q_UNLIKELY(modelItemsByStackIt == m_modelItemsByStackByLinkedNotebookGuid.end())) {
-                QNWARNING(QStringLiteral("Found no model items by stack map corresponding to linked notebook guid ")
+            auto modelItemsByStackIt =
+                m_modelItemsByStackByLinkedNotebookGuid.find(linkedNotebookGuid);
+            if (Q_UNLIKELY(modelItemsByStackIt ==
+                           m_modelItemsByStackByLinkedNotebookGuid.end()))
+            {
+                QNWARNING(QStringLiteral("Found no model items by stack map ")
+                          << QStringLiteral("corresponding to linked notebook guid ")
                           << linkedNotebookGuid);
                 return Q_NULLPTR;
             }
@@ -4600,7 +4741,8 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
 
         auto itemIt = pModelItemsByStack->find(stack);
         if (itemIt != pModelItemsByStack->end()) {
-            QNTRACE(QStringLiteral("Found notebook model item corresponding to stack: ") << itemIt.value());
+            QNTRACE(QStringLiteral("Found notebook model item corresponding ")
+                    << QStringLiteral("to stack: ") << itemIt.value());
             return &(itemIt.value());
         }
     }
@@ -4609,20 +4751,25 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
     if (linkedNotebookIt != m_indexIdToLinkedNotebookGuidBimap.left.end())
     {
         const QString & linkedNotebookGuid = linkedNotebookIt->second;
-        QNTRACE(QStringLiteral("Found linked notebook guid corresponding to model index internal id: ") << linkedNotebookGuid);
+        QNTRACE(QStringLiteral("Found linked notebook guid corresponding to ")
+                << QStringLiteral("model index internal id: ")
+                << linkedNotebookGuid);
 
         auto itemIt = m_modelItemsByLinkedNotebookGuid.find(linkedNotebookGuid);
         if (itemIt != m_modelItemsByLinkedNotebookGuid.end()) {
-            QNTRACE(QStringLiteral("Found notebook model item corresponding to linked notebook guid: ") << itemIt.value());
+            QNTRACE(QStringLiteral("Found notebook model item corresponding to ")
+                    << QStringLiteral("linked notebook guid: ") << itemIt.value());
             return &(itemIt.value());
         }
         else {
-            QNTRACE(QStringLiteral("Found no notebook model item corresponding to linked notebook guid"));
+            QNTRACE(QStringLiteral("Found no notebook model item corresponding "
+                                   "to linked notebook guid"));
             return Q_NULLPTR;
         }
     }
 
-    QNDEBUG(QStringLiteral("Found no notebook model items corresponding to model index id"));
+    QNDEBUG(QStringLiteral("Found no notebook model items corresponding to "
+                           "model index id"));
     return Q_NULLPTR;
 }
 
@@ -4633,56 +4780,76 @@ NotebookModel::IndexId NotebookModel::idForItem(const NotebookModelItem & item) 
         auto it = m_indexIdToLocalUidBimap.right.find(item.notebookItem()->localUid());
         if (it == m_indexIdToLocalUidBimap.right.end()) {
             IndexId id = m_lastFreeIndexId++;
-            Q_UNUSED(m_indexIdToLocalUidBimap.insert(IndexIdToLocalUidBimap::value_type(id, item.notebookItem()->localUid())))
+            Q_UNUSED(m_indexIdToLocalUidBimap.insert(
+                IndexIdToLocalUidBimap::value_type(id,
+                                                   item.notebookItem()->localUid())))
             return id;
         }
 
         return it->second;
     }
-    else if ((item.type() == NotebookModelItem::Type::Stack) && item.notebookStackItem())
+    else if ((item.type() == NotebookModelItem::Type::Stack) &&
+             item.notebookStackItem())
     {
         QString linkedNotebookGuid;
         const NotebookModelItem * pParentItem = item.parent();
-        if (pParentItem && (pParentItem->type() == NotebookModelItem::Type::LinkedNotebook) && pParentItem->notebookLinkedNotebookItem()) {
-            linkedNotebookGuid = pParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
+        if (pParentItem &&
+            (pParentItem->type() == NotebookModelItem::Type::LinkedNotebook) &&
+            pParentItem->notebookLinkedNotebookItem())
+        {
+            linkedNotebookGuid =
+                pParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
         }
 
-        std::pair<QString,QString> pair(item.notebookStackItem()->name(), linkedNotebookGuid);
+        std::pair<QString,QString> pair(item.notebookStackItem()->name(),
+                                        linkedNotebookGuid);
         auto it = m_indexIdToStackAndLinkedNotebookGuidBimap.right.find(pair);
-        if (it == m_indexIdToStackAndLinkedNotebookGuidBimap.right.end()) {
+        if (it == m_indexIdToStackAndLinkedNotebookGuidBimap.right.end())
+        {
             IndexId id = m_lastFreeIndexId++;
-            Q_UNUSED(m_indexIdToStackAndLinkedNotebookGuidBimap.insert(IndexIdToStackAndLinkedNotebookGuidBimap::value_type(id, pair)))
+            Q_UNUSED(m_indexIdToStackAndLinkedNotebookGuidBimap.insert(
+                    IndexIdToStackAndLinkedNotebookGuidBimap::value_type(id, pair)))
             return id;
         }
 
         return it->second;
     }
-    else if ((item.type() == NotebookModelItem::Type::LinkedNotebook) && item.notebookLinkedNotebookItem())
+    else if ((item.type() == NotebookModelItem::Type::LinkedNotebook) &&
+             item.notebookLinkedNotebookItem())
     {
-        auto it = m_indexIdToLinkedNotebookGuidBimap.right.find(item.notebookLinkedNotebookItem()->linkedNotebookGuid());
-        if (it == m_indexIdToLinkedNotebookGuidBimap.right.end()) {
+        auto it = m_indexIdToLinkedNotebookGuidBimap.right.find(
+            item.notebookLinkedNotebookItem()->linkedNotebookGuid());
+        if (it == m_indexIdToLinkedNotebookGuidBimap.right.end())
+        {
             IndexId id = m_lastFreeIndexId++;
-            Q_UNUSED(m_indexIdToLinkedNotebookGuidBimap.insert(IndexIdToLinkedNotebookGuidBimap::value_type(id, item.notebookLinkedNotebookItem()->linkedNotebookGuid())))
+            Q_UNUSED(m_indexIdToLinkedNotebookGuidBimap.insert(
+                IndexIdToLinkedNotebookGuidBimap::value_type(
+                    id,
+                    item.notebookLinkedNotebookItem()->linkedNotebookGuid())))
             return id;
         }
 
         return it->second;
     }
 
-    QNWARNING(QStringLiteral("Detected attempt to assign id to unidentified notebook model item: ") << item);
+    QNWARNING(QStringLiteral("Detected attempt to assign id to unidentified ")
+              << QStringLiteral("notebook model item: ") << item);
     return 0;
 }
 
-bool NotebookModel::updateNoteCountPerNotebookIndex(const NotebookItem & item, const NotebookDataByLocalUid::iterator it)
+bool NotebookModel::updateNoteCountPerNotebookIndex(
+    const NotebookItem & item, const NotebookDataByLocalUid::iterator it)
 {
-    QNTRACE(QStringLiteral("NotebookModel::updateNoteCountPerNotebookIndex: ") << item);
+    QNTRACE(QStringLiteral("NotebookModel::updateNoteCountPerNotebookIndex: ")
+            << item);
 
     const QString & notebookLocalUid = item.localUid();
 
     auto modelItemIt = m_modelItemsByLocalUid.find(notebookLocalUid);
     if (Q_UNLIKELY(modelItemIt == m_modelItemsByLocalUid.end())) {
-        QNWARNING(QStringLiteral("Can't find the notebook model item corresponding to the notebook into which the note was inserted: ")
-                  << item);
+        QNWARNING(QStringLiteral("Can't find the notebook model item corresponding ")
+                  << QStringLiteral("to the notebook into which the note was ")
+                  << QStringLiteral("inserted: ") << item);
         return false;
     }
 
@@ -4690,15 +4857,18 @@ bool NotebookModel::updateNoteCountPerNotebookIndex(const NotebookItem & item, c
 
     const NotebookModelItem * pParentItem = pModelItem->parent();
     if (Q_UNLIKELY(!pParentItem)) {
-        QNWARNING(QStringLiteral("Can't find the parent notebook model item for the notebook item into which the note was inserted: ")
-                  << *pModelItem);
+        QNWARNING(QStringLiteral("Can't find the parent notebook model item for ")
+                  << QStringLiteral("the notebook item into which the note was ")
+                  << QStringLiteral("inserted: ") << *pModelItem);
         return false;
     }
 
     int row = pParentItem->rowForChild(pModelItem);
     if (Q_UNLIKELY(row < 0)) {
-        QNWARNING(QStringLiteral("Can't find the row of the child notebook model item within its parent model item: parent item = ")
-                  << *pParentItem << QStringLiteral("\nChild item = ") << *pModelItem);
+        QNWARNING(QStringLiteral("Can't find the row of the child notebook model ")
+                  << QStringLiteral("item within its parent model item: parent ")
+                  << QStringLiteral("item = ") << *pParentItem
+                  << QStringLiteral("\nChild item = ") << *pModelItem);
         return false;
     }
 
@@ -4707,15 +4877,19 @@ bool NotebookModel::updateNoteCountPerNotebookIndex(const NotebookItem & item, c
 
     IndexId modelItemId = idForItem(*pModelItem);
 
-    QNTRACE(QStringLiteral("Emitting num notes per notebook update dataChanged signal: row = ") << row
+    QNTRACE(QStringLiteral("Emitting num notes per notebook update dataChanged ")
+            << QStringLiteral("signal: row = ") << row
             << QStringLiteral(", model item: ") << *pModelItem);
-    QModelIndex modelIndexFrom = createIndex(row, Columns::NumNotesPerNotebook, modelItemId);
-    QModelIndex modelIndexTo = createIndex(row, Columns::NumNotesPerNotebook, modelItemId);
+    QModelIndex modelIndexFrom = createIndex(row, Columns::NumNotesPerNotebook,
+                                             modelItemId);
+    QModelIndex modelIndexTo = createIndex(row, Columns::NumNotesPerNotebook,
+                                           modelItemId);
     Q_EMIT dataChanged(modelIndexFrom, modelIndexTo);
     return true;
 }
 
-bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookItem & lhs,
+                                           const NotebookItem & rhs) const
 {
     return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) <= 0);
 }
@@ -4731,25 +4905,33 @@ bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const Noteb
         return this->operator()(*lhs, *rhs); \
     }
 
-bool NotebookModel::LessByName::operator()(const NotebookItem * lhs, const NotebookItem * rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookItem * lhs,
+                                           const NotebookItem * rhs) const
 {
     ITEM_PTR_LESS(lhs, rhs)
 }
 
 #define MODEL_ITEM_NAME(item, itemName) \
-    if ((item.type() == NotebookModelItem::Type::Notebook) && item.notebookItem()) { \
+    if ((item.type() == NotebookModelItem::Type::Notebook) && item.notebookItem()) \
+    { \
         itemName = item.notebookItem()->nameUpper(); \
     } \
-    else if ((item.type() == NotebookModelItem::Type::Stack) && item.notebookStackItem()) { \
+    else if ((item.type() == NotebookModelItem::Type::Stack) && \
+             item.notebookStackItem()) \
+    { \
         itemName = item.notebookStackItem()->name().toUpper(); \
     } \
-    else if ((item.type() == NotebookModelItem::Type::LinkedNotebook) && item.notebookLinkedNotebookItem()) { \
+    else if ((item.type() == NotebookModelItem::Type::LinkedNotebook) && \
+             item.notebookLinkedNotebookItem()) \
+    { \
         itemName = item.notebookLinkedNotebookItem()->username().toUpper(); \
     }
 
-bool NotebookModel::LessByName::operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookModelItem & lhs,
+                                           const NotebookModelItem & rhs) const
 {
-    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    // NOTE: treating linked notebook item as the one always going after
+    // the non-linked notebook item
     if ((lhs.type() == NotebookModelItem::Type::LinkedNotebook) &&
         (rhs.type() != NotebookModelItem::Type::LinkedNotebook))
     {
@@ -4770,32 +4952,38 @@ bool NotebookModel::LessByName::operator()(const NotebookModelItem & lhs, const 
     return (lhsName.localeAwareCompare(rhsName) <= 0);
 }
 
-bool NotebookModel::LessByName::operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookModelItem * lhs,
+                                           const NotebookModelItem * rhs) const
 {
     ITEM_PTR_LESS(lhs, rhs)
 }
 
-bool NotebookModel::LessByName::operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookStackItem & lhs,
+                                           const NotebookStackItem & rhs) const
 {
     return (lhs.name().toUpper().localeAwareCompare(rhs.name().toUpper()) <= 0);
 }
 
-bool NotebookModel::LessByName::operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookStackItem * lhs,
+                                           const NotebookStackItem * rhs) const
 {
     ITEM_PTR_LESS(lhs, rhs)
 }
 
-bool NotebookModel::LessByName::operator()(const NotebookLinkedNotebookRootItem & lhs, const NotebookLinkedNotebookRootItem & rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookLinkedNotebookRootItem & lhs,
+                                           const NotebookLinkedNotebookRootItem & rhs) const
 {
     return (lhs.username().toUpper().localeAwareCompare(rhs.username().toUpper()) <= 0);
 }
 
-bool NotebookModel::LessByName::operator()(const NotebookLinkedNotebookRootItem * lhs, const NotebookLinkedNotebookRootItem * rhs) const
+bool NotebookModel::LessByName::operator()(const NotebookLinkedNotebookRootItem * lhs,
+                                           const NotebookLinkedNotebookRootItem * rhs) const
 {
     ITEM_PTR_LESS(lhs, rhs)
 }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const
+bool NotebookModel::GreaterByName::operator()(const NotebookItem & lhs,
+                                              const NotebookItem & rhs) const
 {
     return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) > 0);
 }
@@ -4811,34 +4999,43 @@ bool NotebookModel::GreaterByName::operator()(const NotebookItem & lhs, const No
         return this->operator()(*lhs, *rhs); \
     }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookItem * lhs, const NotebookItem * rhs) const
+bool NotebookModel::GreaterByName::operator()(const NotebookItem * lhs,
+                                              const NotebookItem * rhs) const
 {
     ITEM_PTR_GREATER(lhs, rhs)
 }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const
+bool NotebookModel::GreaterByName::operator()(const NotebookStackItem & lhs,
+                                              const NotebookStackItem & rhs) const
 {
     return (lhs.name().toUpper().localeAwareCompare(rhs.name().toUpper()) > 0);
 }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const
+bool NotebookModel::GreaterByName::operator()(const NotebookStackItem * lhs,
+                                              const NotebookStackItem * rhs) const
 {
     ITEM_PTR_GREATER(lhs, rhs)
 }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookLinkedNotebookRootItem & lhs, const NotebookLinkedNotebookRootItem & rhs) const
+bool NotebookModel::GreaterByName::operator()(
+    const NotebookLinkedNotebookRootItem & lhs,
+    const NotebookLinkedNotebookRootItem & rhs) const
 {
     return (lhs.username().toUpper().localeAwareCompare(rhs.username().toUpper()) > 0);
 }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookLinkedNotebookRootItem * lhs, const NotebookLinkedNotebookRootItem * rhs) const
+bool NotebookModel::GreaterByName::operator()(
+    const NotebookLinkedNotebookRootItem * lhs,
+    const NotebookLinkedNotebookRootItem * rhs) const
 {
     ITEM_PTR_GREATER(lhs, rhs)
 }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const
+bool NotebookModel::GreaterByName::operator()(const NotebookModelItem & lhs,
+                                              const NotebookModelItem & rhs) const
 {
-    // NOTE: treating linked notebook item as the one always going after the non-linked notebook item
+    // NOTE: treating linked notebook item as the one always going after
+    // the non-linked notebook item
     if ((lhs.type() == NotebookModelItem::Type::LinkedNotebook) &&
         (rhs.type() != NotebookModelItem::Type::LinkedNotebook))
     {
@@ -4859,7 +5056,8 @@ bool NotebookModel::GreaterByName::operator()(const NotebookModelItem & lhs, con
     return (lhsName.localeAwareCompare(rhsName) > 0);
 }
 
-bool NotebookModel::GreaterByName::operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
+bool NotebookModel::GreaterByName::operator()(const NotebookModelItem * lhs,
+                                              const NotebookModelItem * rhs) const
 {
     ITEM_PTR_GREATER(lhs, rhs)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -55,7 +55,8 @@ Q_SIGNALS:
     void notifyError(ErrorString error) const;  // clazy:exclude=const-signal-or-slot
 
 protected:
-    virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
+    virtual bool filterAcceptsRow(int sourceRow,
+                                  const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
 
 private:
     QString noteLocalUidsToString() const;

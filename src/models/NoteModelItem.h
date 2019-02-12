@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,25 +38,32 @@ public:
     void setGuid(const QString & guid) { m_guid = guid; }
 
     const QString & notebookLocalUid() const { return m_notebookLocalUid; }
-    void setNotebookLocalUid(const QString & notebookLocalUid) { m_notebookLocalUid = notebookLocalUid; }
+    void setNotebookLocalUid(const QString & notebookLocalUid)
+    { m_notebookLocalUid = notebookLocalUid; }
 
     const QString & notebookGuid() const { return m_notebookGuid; }
-    void setNotebookGuid(const QString & notebookGuid) { m_notebookGuid = notebookGuid; }
+    void setNotebookGuid(const QString & notebookGuid)
+    { m_notebookGuid = notebookGuid; }
 
     const QString & title() const { return m_title; }
     void setTitle(const QString & title) { m_title = title; }
 
     const QString & previewText() const { return m_previewText; }
-    void setPreviewText(const QString & previewText) { m_previewText = previewText; }
+    void setPreviewText(const QString & previewText)
+    { m_previewText = previewText; }
 
     const QByteArray & thumbnailData() const { return m_thumbnailData; }
-    void setThumbnailData(const QByteArray & thumbnailData) { m_thumbnailData = thumbnailData; }
+    void setThumbnailData(const QByteArray & thumbnailData)
+    { m_thumbnailData = thumbnailData; }
 
     const QString & notebookName() const { return m_notebookName; }
-    void setNotebookName(const QString & notebookName) { m_notebookName = notebookName; }
+    void setNotebookName(const QString & notebookName)
+    { m_notebookName = notebookName; }
 
     const QStringList & tagLocalUids() const { return m_tagLocalUids; }
-    void setTagLocalUids(const QStringList & tagLocalUids) { m_tagLocalUids = tagLocalUids; }
+    void setTagLocalUids(const QStringList & tagLocalUids)
+    { m_tagLocalUids = tagLocalUids; }
+
     void addTagLocalUid(const QString & tagLocalUid);
     void removeTagLocalUid(const QString & tagLocalUid);
     bool hasTagLocalUid(const QString & tagLocalUid) const;
@@ -70,26 +77,32 @@ public:
     int numTagGuids() const;
 
     const QStringList & tagNameList() const { return m_tagNameList; }
-    void setTagNameList(const QStringList & tagNameList) { m_tagNameList = tagNameList; }
+    void setTagNameList(const QStringList & tagNameList)
+    { m_tagNameList = tagNameList; }
+
     void addTagName(const QString & tagName);
     void removeTagName(const QString & tagName);
     bool hasTagName(const QString & tagName) const;
     int numTagNames() const;
 
     qint64 creationTimestamp() const { return m_creationTimestamp; }
-    void setCreationTimestamp(const qint64 creationTimestamp) { m_creationTimestamp = creationTimestamp; }
+    void setCreationTimestamp(const qint64 creationTimestamp)
+    { m_creationTimestamp = creationTimestamp; }
 
     qint64 modificationTimestamp() const { return m_modificationTimestamp; }
-    void setModificationTimestamp(const qint64 modificationTimestamp) { m_modificationTimestamp = modificationTimestamp; }
+    void setModificationTimestamp(const qint64 modificationTimestamp)
+    { m_modificationTimestamp = modificationTimestamp; }
 
     qint64 deletionTimestamp() const { return m_deletionTimestamp; }
-    void setDeletionTimestamp(const qint64 deletionTimestamp) { m_deletionTimestamp = deletionTimestamp; }
+    void setDeletionTimestamp(const qint64 deletionTimestamp)
+    { m_deletionTimestamp = deletionTimestamp; }
 
     quint64 sizeInBytes() const { return m_sizeInBytes; }
     void setSizeInBytes(const quint64 sizeInBytes) { m_sizeInBytes = sizeInBytes; }
 
     bool isSynchronizable() const { return m_isSynchronizable; }
-    void setSynchronizable(const bool synchronizable) { m_isSynchronizable = synchronizable; }
+    void setSynchronizable(const bool synchronizable)
+    { m_isSynchronizable = synchronizable; }
 
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
@@ -101,13 +114,16 @@ public:
     void setActive(const bool active) { m_isActive = active; }
 
     bool hasResources() const { return m_hasResources; }
-    void setHasResources(const bool hasResources) { m_hasResources = hasResources; }
+    void setHasResources(const bool hasResources)
+    { m_hasResources = hasResources; }
 
     bool canUpdateTitle() const { return m_canUpdateTitle; }
-    void setCanUpdateTitle(const bool canUpdateTitle) { m_canUpdateTitle = canUpdateTitle; }
+    void setCanUpdateTitle(const bool canUpdateTitle)
+    { m_canUpdateTitle = canUpdateTitle; }
 
     bool canUpdateContent() const { return m_canUpdateContent; }
-    void setCanUpdateContent(const bool canUpdateContent) { m_canUpdateContent = canUpdateContent; }
+    void setCanUpdateContent(const bool canUpdateContent)
+    { m_canUpdateContent = canUpdateContent; }
 
     bool canEmail() const { return m_canEmail; }
     void setCanEmail(const bool canEmail) { m_canEmail = canEmail; }
@@ -116,7 +132,8 @@ public:
     void setCanShare(const bool canShare) { m_canShare = canShare; }
 
     bool canSharePublicly() const { return m_canSharePublicly; }
-    void setCanSharePublicly(const bool canSharePublicly) { m_canSharePublicly = canSharePublicly; }
+    void setCanSharePublicly(const bool canSharePublicly)
+    { m_canSharePublicly = canSharePublicly; }
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
