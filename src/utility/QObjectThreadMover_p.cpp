@@ -21,7 +21,8 @@
 
 namespace quentier {
 
-ThreadMover::ThreadMover(QObject & object, QThread & targetThread, QObject * parent) :
+ThreadMover::ThreadMover(QObject & object, QThread & targetThread,
+                         QObject * parent) :
     QObject(parent),
     m_object(object),
     m_targetThread(targetThread)
@@ -31,13 +32,15 @@ void ThreadMover::start()
 {
     QThread * pCurrentThread = QObject::thread();
     if (Q_UNLIKELY(!pCurrentThread || !pCurrentThread->isRunning())) {
-        ErrorString error(QT_TR_NOOP("Can't move object to another thread: current object's thread is not running"));
+        ErrorString error(QT_TR_NOOP("Can't move object to another thread: "
+                                     "current object's thread is not running"));
         Q_EMIT notifyError(error);
         return;
     }
 
     if (!m_targetThread.isRunning()) {
-        ErrorString error(QT_TR_NOOP("Can't move object to another thread: target thread is not running"));
+        ErrorString error(QT_TR_NOOP("Can't move object to another thread: "
+                                     "target thread is not running"));
         Q_EMIT notifyError(error);
         return;
     }

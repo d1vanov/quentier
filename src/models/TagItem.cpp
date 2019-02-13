@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -47,13 +47,19 @@ TagItem::~TagItem()
 
 QTextStream & TagItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Tag item: local uid = ") << m_localUid << QStringLiteral(", guid = ") << m_guid
+    strm << QStringLiteral("Tag item: local uid = ") << m_localUid
+         << QStringLiteral(", guid = ") << m_guid
          << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
-         << QStringLiteral(", name = ") << m_name << QStringLiteral(", parent local uid = ") << m_parentLocalUid
-         << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ") << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", num notes per tag = ") << m_numNotesPerTag << QStringLiteral(";");
+         << QStringLiteral(", name = ") << m_name
+         << QStringLiteral(", parent local uid = ") << m_parentLocalUid
+         << QStringLiteral(", is synchronizable = ")
+         << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is dirty = ")
+         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is favorited = ")
+         << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", num notes per tag = ") << m_numNotesPerTag
+         << QStringLiteral(";");
     return strm;
 }
 

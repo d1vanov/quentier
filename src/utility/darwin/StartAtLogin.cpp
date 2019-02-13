@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,9 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#define QUENTIER_LAUNCH_PLIST_FILE_PATH QDir::homePath() + QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")
+#define QUENTIER_LAUNCH_PLIST_FILE_PATH \
+    QDir::homePath() + \
+    QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")
 
 namespace quentier {
 
@@ -36,8 +38,11 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
                                    ErrorString & errorDescription,
                                    const StartQuentierAtLoginOption::type option)
 {
-    QNDEBUG(QStringLiteral("setStartQuentierAtLoginOption (Darwin): should start at login = ")
-            << (shouldStartAtLogin ? QStringLiteral("true") : QStringLiteral("false"))
+    QNDEBUG(QStringLiteral("setStartQuentierAtLoginOption (Darwin): ")
+            << QStringLiteral("should start at login = ")
+            << (shouldStartAtLogin
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", option = ") << option);
 
     QFileInfo plistFileInfo(QUENTIER_LAUNCH_PLIST_FILE_PATH);
@@ -50,24 +55,37 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
         args << QStringLiteral("~/Library/LaunchAgents/") + plistFileInfo.fileName();
         int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
         if (res == -2) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't execute launchd to unload previous configuration"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                       "can't execute launchd "
+                                                       "to unload previous "
+                                                       "configuration"));
             QNWARNING(errorDescription);
             return false;
         }
         else if (res == -1) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd crashed during the attempt to unload previous configuration"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                       "launchd crashed during "
+                                                       "the attempt to unload "
+                                                       "previous configuration"));
             QNWARNING(errorDescription);
             return false;
         }
         else if (res != 0) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd returned with error during the attempt to unload previous configuration"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                       "launchd returned with "
+                                                       "error during the attempt "
+                                                       "to unload previous "
+                                                       "configuration"));
             QNWARNING(errorDescription);
             return false;
         }
 
         // Now can remove the launchd config file
         if (!QFile::remove(QUENTIER_LAUNCH_PLIST_FILE_PATH)) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous launchd configuration file"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                       "failed to remove previous "
+                                                       "launchd configuration "
+                                                       "file"));
             QNWARNING(errorDescription);
             return false;
         }
@@ -87,14 +105,17 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     {
         bool res = plistFileDir.mkpath(plistFileDir.absolutePath());
         if (Q_UNLIKELY(!res)) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't create directory for app's launchd config"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                       "can't create directory "
+                                                       "for app's launchd config"));
             errorDescription.details() = plistFileDir.absolutePath();
             QNWARNING(errorDescription);
             return false;
         }
     }
 
-    // Now compose the new plist file with start at login option set to the relevant value
+    // Now compose the new plist file with start at login option set to
+    // the relevant value
     QSettings plist(QUENTIER_LAUNCH_PLIST_FILE_PATH, QSettings::NativeFormat);
     plist.setValue(QStringLiteral("Label"), plistFileInfo.completeBaseName());
 
@@ -118,20 +139,29 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     // Now need to tell launchd to load the new configuration
     QStringList args;
     args << QStringLiteral("load");
-    args << QDir::homePath() + QStringLiteral("/Library/LaunchAgents/") + plistFileInfo.fileName();
+    args << QDir::homePath() + QStringLiteral("/Library/LaunchAgents/") +
+            plistFileInfo.fileName();
     int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
     if (res == -2) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't execute launchd to load the new configuration"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                   "can't execute launchd to "
+                                                   "load the new configuration"));
         QNWARNING(errorDescription);
         return false;
     }
     else if (res == -1) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd crashed during the attempt to load new configuration"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                   "launchd crashed during "
+                                                   "the attempt to load new "
+                                                   "configuration"));
         QNWARNING(errorDescription);
         return false;
     }
     else if (res != 0) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "launchd returned with error during the attempt to load new configuration"));
+        errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin",
+                                                   "launchd returned with error "
+                                                   "during the attempt to load "
+                                                   "new configuration"));
         QNWARNING(errorDescription);
         return false;
     }

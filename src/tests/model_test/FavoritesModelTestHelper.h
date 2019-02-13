@@ -100,32 +100,38 @@ private:
 private:
     struct LessByType
     {
-        bool operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const;
+        bool operator()(const FavoritesModelItem & lhs,
+                        const FavoritesModelItem & rhs) const;
     };
 
     struct GreaterByType
     {
-        bool operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const;
+        bool operator()(const FavoritesModelItem & lhs,
+                        const FavoritesModelItem & rhs) const;
     };
 
     struct LessByDisplayName
     {
-        bool operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const;
+        bool operator()(const FavoritesModelItem & lhs,
+                        const FavoritesModelItem & rhs) const;
     };
 
     struct GreaterByDisplayName
     {
-        bool operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const;
+        bool operator()(const FavoritesModelItem & lhs,
+                        const FavoritesModelItem & rhs) const;
     };
 
     struct LessByNumNotesTargeted
     {
-        bool operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const;
+        bool operator()(const FavoritesModelItem & lhs,
+                        const FavoritesModelItem & rhs) const;
     };
 
     struct GreaterByNumNotesTargeted
     {
-        bool operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const;
+        bool operator()(const FavoritesModelItem & lhs,
+                        const FavoritesModelItem & rhs) const;
     };
 
 private:

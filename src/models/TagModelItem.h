@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,10 +37,12 @@ public:
         };
     };
 
-    explicit TagModelItem(const Type::type type = Type::Tag,
-                          const TagItem * pTagItem = Q_NULLPTR,
-                          const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem = Q_NULLPTR,
-                          TagModelItem * parent = Q_NULLPTR);
+    explicit TagModelItem(
+        const Type::type type = Type::Tag,
+        const TagItem * pTagItem = Q_NULLPTR,
+        const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem = Q_NULLPTR,
+        TagModelItem * parent = Q_NULLPTR);
+
     virtual ~TagModelItem();
 
     Type::type type() const { return m_type; }
@@ -49,9 +51,14 @@ public:
     const TagItem * tagItem() const { return m_pTagItem; }
     void setTagItem(const TagItem * pTagItem) { m_pTagItem = pTagItem; }
 
-    const TagLinkedNotebookRootItem * tagLinkedNotebookItem() const { return m_pTagLinkedNotebookRootItem; }
-    void setTagLinkedNotebookItem(const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem)
-    { m_pTagLinkedNotebookRootItem = pTagLinkedNotebookRootItem; }
+    const TagLinkedNotebookRootItem * tagLinkedNotebookItem() const
+    { return m_pTagLinkedNotebookRootItem; }
+
+    void setTagLinkedNotebookItem(
+        const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem)
+    {
+        m_pTagLinkedNotebookRootItem = pTagLinkedNotebookRootItem;
+    }
 
     const TagModelItem * parent() const { return m_pParent; }
     void setParent(const TagModelItem * parent) const;

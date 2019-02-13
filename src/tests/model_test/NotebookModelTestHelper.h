@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,8 +30,9 @@ class NotebookModelTestHelper: public QObject
 {
     Q_OBJECT
 public:
-    explicit NotebookModelTestHelper(LocalStorageManagerAsync * pLocalStorageManagerAsync,
-                                     QObject * parent = Q_NULLPTR);
+    explicit NotebookModelTestHelper(
+        LocalStorageManagerAsync * pLocalStorageManagerAsync,
+        QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
@@ -41,27 +42,38 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
-    void onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-                               LocalStorageManager::ListNotebooksOrder::type order,
-                               LocalStorageManager::OrderDirection::type orderDirection,
-                               QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
-    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                             QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                                QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                              QUuid requestId);
+
+    void onListNotebooksFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotebooksOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
+
+    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                                 QUuid requestId);
 
 private:
-    bool checkSorting(const NotebookModel & model, const NotebookModelItem * item) const;
+    bool checkSorting(const NotebookModel & model,
+                      const NotebookModelItem * item) const;
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
     {
-        bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+        bool operator()(const NotebookModelItem * lhs,
+                        const NotebookModelItem * rhs) const;
     };
 
     struct GreaterByName
     {
-        bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+        bool operator()(const NotebookModelItem * lhs,
+                        const NotebookModelItem * rhs) const;
     };
 
 private:

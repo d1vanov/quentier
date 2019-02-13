@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,8 +30,9 @@ class TagModelTestHelper: public QObject
 {
     Q_OBJECT
 public:
-    explicit TagModelTestHelper(LocalStorageManagerAsync * pLocalStorageManagerAsync,
-                                QObject * parent = Q_NULLPTR);
+    explicit TagModelTestHelper(
+        LocalStorageManagerAsync * pLocalStorageManagerAsync,
+        QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
