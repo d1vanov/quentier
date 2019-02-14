@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,8 +39,10 @@
 #endif
 #endif
 
-#define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH (QStringLiteral("C:/Users/") + QString::fromLocal8Bit(qgetenv("USERNAME")) + \
-                                               QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/quentier.lnk"))
+#define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH \
+    (QStringLiteral("C:/Users/") + QString::fromLocal8Bit(qgetenv("USERNAME")) + \
+     QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/"\
+                    "Startup/quentier.lnk"))
 
 namespace quentier {
 
@@ -64,11 +66,16 @@ HRESULT createShortcut(LPCWSTR pszTargetfile, LPCWSTR pszTargetargs,
          (pszIconfile != NULL) &&
          (iIconindex >= 0) )
     {
-        hRes = CoCreateInstance(CLSID_ShellLink, // pre-defined CLSID of the IShellLink object
-                                NULL, // pointer to parent interface if part of aggregate
-                                CLSCTX_INPROC_SERVER, // caller and called code are in same process
-                                IID_IShellLink, // pre-defined interface of the IShellLink object
-                                (LPVOID*)&pShellLink); // Returns a pointer to the IShellLink object
+        hRes = CoCreateInstance(CLSID_ShellLink, // pre-defined CLSID of
+                                                 // the IShellLink object
+                                NULL, // pointer to parent interface if part
+                                      // of aggregate
+                                CLSCTX_INPROC_SERVER, // caller and called code
+                                                      // are in same process
+                                IID_IShellLink, // pre-defined interface of
+                                                // the IShellLink object
+                                (LPVOID*)&pShellLink); // Returns a pointer to
+                                                       // the IShellLink object
         if (SUCCEEDED(hRes))
         {
             // Set the fields in the IShellLink object
@@ -92,8 +99,15 @@ HRESULT createShortcut(LPCWSTR pszTargetfile, LPCWSTR pszTargetargs,
             }
 
             // Use the IPersistFile object to save the shell link
-            hRes = pShellLink->QueryInterface(IID_IPersistFile, // pre-defined interface of the IPersistFile object
-                                              (LPVOID*)&pPersistFile); // returns a pointer to the IPersistFile object
+            hRes = pShellLink->QueryInterface(IID_IPersistFile, // pre-defined
+                                                                // interface of
+                                                                // the IPersistFile
+                                                                // object
+                                              (LPVOID*)&pPersistFile); // returns
+                                                                       // a pointer
+                                                                       // to the
+                                                                       // IPersistFile
+                                                                       // object
             if (SUCCEEDED(hRes)) {
                 hRes = pPersistFile->Save(pszLinkfile, TRUE);
                 pPersistFile->Release();
@@ -113,8 +127,10 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
                                    ErrorString & errorDescription,
                                    const StartQuentierAtLoginOption::type option)
 {
-    QNDEBUG(QStringLiteral("setStartQuentierAtLoginOption (Windows): should start at login = ")
-            << (shouldStartAtLogin ? QStringLiteral("true") : QStringLiteral("false"))
+    QNDEBUG(QStringLiteral("setStartQuentierAtLoginOption (Windows): ")
+            << QStringLiteral("should start at login = ") << (shouldStartAtLogin
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", option = ") << option);
 
     QFileInfo autoStartShortcutFileInfo(QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH);
@@ -122,7 +138,9 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     {
         // First need to remove any existing autostart configuration
         if (!QFile::remove(QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH)) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous autostart configuration"));
+            errorDescription.setBase(
+                QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous "
+                                                  "autostart configuration"));
             QNWARNING(errorDescription);
             return false;
         }
@@ -140,16 +158,20 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
     QDir autoStartShortcutFileDir = autoStartShortcutFileInfo.absoluteDir();
     if (Q_UNLIKELY(!autoStartShortcutFileDir.exists()))
     {
-        bool res = autoStartShortcutFileDir.mkpath(autoStartShortcutFileDir.absolutePath());
+        bool res = autoStartShortcutFileDir.mkpath(
+            autoStartShortcutFileDir.absolutePath());
         if (Q_UNLIKELY(!res)) {
-            errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't create directory for app's autostart config"));
+            errorDescription.setBase(
+                QT_TRANSLATE_NOOP("StartAtLogin", "can't create directory for "
+                                                  "app's autostart config"));
             errorDescription.details() = autoStartShortcutFileDir.absolutePath();
             QNWARNING(errorDescription);
             return false;
         }
     }
 
-    QString quentierAppPath = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    QString quentierAppPath =
+        QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
     if (quentierAppPath.contains(QStringLiteral(" "))) {
         quentierAppPath.prepend(QStringLiteral("\""));
         quentierAppPath.append(QStringLiteral("\""));
@@ -161,12 +183,22 @@ bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
                        ? QStringLiteral("--startMinimized")
                        : QString()));
 
-    HRESULT hres = createShortcut(quentierAppPath.toStdWString().c_str(), args.toStdWString().c_str(),
-                                  QDir::toNativeSeparators(autoStartShortcutFileInfo.absoluteFilePath()).toStdWString().c_str(),
-                                  NULL, 0, QDir::toNativeSeparators(QCoreApplication::applicationDirPath()).toStdWString().c_str(),
-                                  quentierAppPath.toStdWString().c_str(), 0);
+    HRESULT hres = createShortcut(
+        quentierAppPath.toStdWString().c_str(),
+        args.toStdWString().c_str(),
+        QDir::toNativeSeparators(autoStartShortcutFileInfo.absoluteFilePath())
+        .toStdWString().c_str(),
+        NULL,
+        0,
+        QDir::toNativeSeparators(QCoreApplication::applicationDirPath())
+        .toStdWString().c_str(),
+        quentierAppPath.toStdWString().c_str(),
+        0);
+
     if (!SUCCEEDED(hres)) {
-        errorDescription.setBase(QT_TRANSLATE_NOOP("StartAtLogin", "can't create shortcut to app in startup folder"));
+        errorDescription.setBase(
+            QT_TRANSLATE_NOOP("StartAtLogin", "can't create shortcut to app "
+                                              "in startup folder"));
         QNWARNING(errorDescription);
         return false;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,16 +25,19 @@ ItemView::ItemView(QWidget * parent) :
     QTreeView(parent)
 {}
 
-void ItemView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+void ItemView::dataChanged(const QModelIndex & topLeft,
+                           const QModelIndex & bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                            )
 #else
                            , const QVector<int> & roles)
 #endif
 {
-    QNTRACE(QStringLiteral("ItemView::dataChanged: top left: row = ") << topLeft.row()
-            << QStringLiteral(", column = ") << topLeft.column() << QStringLiteral(", bottom right: row = ")
-            << bottomRight.row() << QStringLiteral(", column = ") << bottomRight.column());
+    QNTRACE(QStringLiteral("ItemView::dataChanged: top left: row = ")
+            << topLeft.row() << QStringLiteral(", column = ") << topLeft.column()
+            << QStringLiteral(", bottom right: row = ")
+            << bottomRight.row() << QStringLiteral(", column = ")
+            << bottomRight.column());
 
     QTreeView::dataChanged(topLeft, bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
@@ -44,10 +47,12 @@ void ItemView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bott
 #endif
 
     /**
-     * The default implementation of QTreeView doesn't resize the columns after the data change has been processed,
-     * regardless of the resize mode used. In the ideal world the affected columns should only be automatically resized
-     * if they don't have enough space to display the changed data but for now, as a shortcut, the affected columns
-     * are always resized to ensure their width is enough to display the changed data
+     * The default implementation of QTreeView doesn't resize the columns after
+     * the data change has been processed, regardless of the resize mode used.
+     * In the ideal world the affected columns should only be automatically resized
+     * if they don't have enough space to display the changed data but for now,
+     * as a shortcut, the affected columns are always resized to ensure their
+     * width is enough to display the changed data
      */
 
     if (Q_UNLIKELY(!topLeft.isValid() || !bottomRight.isValid())) {
@@ -61,7 +66,8 @@ void ItemView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bott
     }
 }
 
-QModelIndex ItemView::singleRow(const QModelIndexList & indexes, const QAbstractItemModel & model,
+QModelIndex ItemView::singleRow(const QModelIndexList & indexes,
+                                const QAbstractItemModel & model,
                                 const int column) const
 {
     int row = -1;
