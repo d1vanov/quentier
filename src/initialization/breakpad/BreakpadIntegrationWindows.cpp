@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -84,7 +84,8 @@ bool ShowDumpResults(const wchar_t * dump_path,
     pQuentierCrashHandlerArgs = &quentierCrashHandlerArgs;
 #endif
 
-    // Hope it doesn't cause the resize; it shouldn't unless the dump_path is unexpectedly huge
+    // Hope it doesn't cause the resize; it shouldn't unless the dump_path
+    // is unexpectedly huge
     pQuentierCrashHandlerArgs->append(dump_path);
     pQuentierCrashHandlerArgs->append(L"\\\\");
     pQuentierCrashHandlerArgs->append(minidump_id);
@@ -124,9 +125,11 @@ void setupBreakpad(const QApplication & app)
     path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"))
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    QString minidumpsStorageFolderPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    QString minidumpsStorageFolderPath =
+        QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 #else
-    QString minidumpsStorageFolderPath = QDesktopServices::storageLocation(QDesktopServices::TempLocation);
+    QString minidumpsStorageFolderPath =
+        QDesktopServices::storageLocation(QDesktopServices::TempLocation);
 #endif
 
     CONVERT_PATH(minidumpsStorageFolderPath);
@@ -137,7 +140,10 @@ void setupBreakpad(const QApplication & app)
     quentierMinidumpsStorageFolderPath = minidumpsStorageFolderPath.toStdWString();
 #endif
 
-    QString crashHandlerFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_crash_handler.exe");
+    QString crashHandlerFilePath =
+        appFileInfo.absolutePath() +
+        QString::fromUtf8("/quentier_crash_handler.exe");
+
     CONVERT_PATH(crashHandlerFilePath);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
@@ -147,20 +153,26 @@ void setupBreakpad(const QApplication & app)
 #endif
 
     QString quentierSymbolsFilePath, libquentierSymbolsFilePath;
-    findCompressedSymbolsFiles(app, quentierSymbolsFilePath, libquentierSymbolsFilePath);
+    findCompressedSymbolsFiles(app, quentierSymbolsFilePath,
+                               libquentierSymbolsFilePath);
     CONVERT_PATH(quentierSymbolsFilePath);
     CONVERT_PATH(libquentierSymbolsFilePath);
 
-    QString minidumpStackwalkFilePath = appFileInfo.absolutePath() + QString::fromUtf8("/quentier_minidump_stackwalk.exe");
+    QString minidumpStackwalkFilePath =
+        appFileInfo.absolutePath() +
+        QString::fromUtf8("/quentier_minidump_stackwalk.exe");
+
     CONVERT_PATH(minidumpStackwalkFilePath);
 
     std::wstring * pQuentierCrashHandlerArgs = NULL;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     pQuentierCrashHandlerArgs = quentierCrashHandlerArgs;
-    const wchar_t * minidumpsStorageFolderPathData = quentierMinidumpsStorageFolderPath->c_str();
+    const wchar_t * minidumpsStorageFolderPathData =
+        quentierMinidumpsStorageFolderPath->c_str();
 #else
     pQuentierCrashHandlerArgs = &quentierCrashHandlerArgs;
-    const wchar_t * minidumpsStorageFolderPathData = quentierMinidumpsStorageFolderPath.c_str();
+    const wchar_t * minidumpsStorageFolderPathData =
+        quentierMinidumpsStorageFolderPath.c_str();
 #endif
 
     *pQuentierCrashHandlerArgs = quentierSymbolsFilePath.toStdWString();
@@ -170,19 +182,17 @@ void setupBreakpad(const QApplication & app)
     pQuentierCrashHandlerArgs->append(minidumpStackwalkFilePath.toStdWString());
     pQuentierCrashHandlerArgs->append(L" ");
 
-    // NOTE: will need to append the path to generated minidump to this byte array => will increase its reserved buffer
-    // and pray that the appending of the path to generated minidump won't cause the resize; or, if it does, that
-    // the resize succeeds and doesn't break the program about to crash
-    pQuentierCrashHandlerArgs->reserve(static_cast<size_t>(pQuentierCrashHandlerArgs->size() + 1000));
+    // NOTE: will need to append the path to generated minidump to this byte
+    // array => will increase its reserved buffer and pray that the appending
+    // of the path to generated minidump won't cause the resize; or, if it does,
+    // that the resize succeeds and doesn't break the program about to crash
+    pQuentierCrashHandlerArgs->reserve(
+        static_cast<size_t>(pQuentierCrashHandlerArgs->size() + 1000));
 
-    pBreakpadHandler = new google_breakpad::ExceptionHandler(std::wstring(minidumpsStorageFolderPathData),
-                                                             NULL,
-                                                             ShowDumpResults,
-                                                             NULL,
-                                                             google_breakpad::ExceptionHandler::HANDLER_ALL,
-                                                             MiniDumpNormal,
-                                                             (const wchar_t*)NULL,
-                                                             NULL);
+    pBreakpadHandler = new google_breakpad::ExceptionHandler(
+        std::wstring(minidumpsStorageFolderPathData), NULL, ShowDumpResults,
+        NULL, google_breakpad::ExceptionHandler::HANDLER_ALL, MiniDumpNormal,
+        (const wchar_t*)NULL, NULL);
 }
 
 } // namespace quentier

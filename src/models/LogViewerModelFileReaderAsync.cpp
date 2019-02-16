@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,10 +28,10 @@
 
 namespace quentier {
 
-LogViewerModel::FileReaderAsync::FileReaderAsync(const QString & targetFilePath,
-                                                 const QVector<LogLevel::type> & disabledLogLevels,
-                                                 const QString & logEntryContentFilter,
-                                                 QObject * parent) :
+LogViewerModel::FileReaderAsync::FileReaderAsync(
+        const QString & targetFilePath,
+        const QVector<LogLevel::type> & disabledLogLevels,
+        const QString & logEntryContentFilter, QObject * parent) :
     QObject(parent),
     m_targetFile(targetFilePath),
     m_disabledLogLevels(disabledLogLevels),
@@ -46,19 +46,23 @@ LogViewerModel::FileReaderAsync::~FileReaderAsync()
     }
 }
 
-void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries)
+void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(
+    qint64 fromPos, int maxDataEntries)
 {
     QVector<LogViewerModel::Data> dataEntries;
     qint64 endPos = -1;
     ErrorString errorDescription;
-    bool res = m_parser.parseDataEntriesFromLogFile(fromPos, maxDataEntries, m_disabledLogLevels,
-                                                    m_filterRegExp, m_targetFile, dataEntries, endPos,
+    bool res = m_parser.parseDataEntriesFromLogFile(fromPos, maxDataEntries,
+                                                    m_disabledLogLevels,
+                                                    m_filterRegExp, m_targetFile,
+                                                    dataEntries, endPos,
                                                     errorDescription);
     if (res) {
         Q_EMIT readLogFileDataEntries(fromPos, endPos, dataEntries, ErrorString());
     }
     else {
-        Q_EMIT readLogFileDataEntries(fromPos, -1, QVector<LogViewerModel::Data>(), errorDescription);
+        Q_EMIT readLogFileDataEntries(fromPos, -1, QVector<LogViewerModel::Data>(),
+                                      errorDescription);
     }
 }
 

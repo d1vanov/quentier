@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -53,8 +53,10 @@ QTextStream & FavoritesModelItem::print(QTextStream & strm) const
         break;
     }
 
-    strm << QStringLiteral("; local uid = ") << m_localUid << QStringLiteral(", display name = ") << m_displayName
-         << QStringLiteral(", num notes targeted = ") << m_numNotesTargeted << QStringLiteral(";");
+    strm << QStringLiteral("; local uid = ") << m_localUid
+         << QStringLiteral(", display name = ") << m_displayName
+         << QStringLiteral(", num notes targeted = ") << m_numNotesTargeted
+         << QStringLiteral(";");
 
     return strm;
 }

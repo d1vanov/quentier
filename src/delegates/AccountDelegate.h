@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,11 +30,15 @@ class AccountDelegate: public QStyledItemDelegate
 public:
     explicit AccountDelegate(QObject * parent = Q_NULLPTR);
 
-    virtual QWidget * createEditor(QWidget * parent,
-                                   const QStyleOptionViewItem & option,
-                                   const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual void setEditorData(QWidget * pEditor, const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QWidget * createEditor(
+        QWidget * parent, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
+
+    virtual void setEditorData(QWidget * pEditor,
+                               const QModelIndex & index) const Q_DECL_OVERRIDE;
+
+    virtual QSize sizeHint(const QStyleOptionViewItem & option,
+                           const QModelIndex & index) const Q_DECL_OVERRIDE;
 };
 
 } // namespace quentier

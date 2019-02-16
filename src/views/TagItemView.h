@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,7 +35,8 @@ public:
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
 
     /**
-     * @return valid model index if the selection exists and contains exactly one row and invalid model index otherwise
+     * @return      Valid model index if the selection exists and contains
+     *              exactly one row and invalid model index otherwise
      */
     QModelIndex currentlySelectedItemIndex() const;
 
@@ -88,7 +89,8 @@ private:
     void saveTagItemsState();
     void restoreTagItemsState(const TagModel & model);
     void setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model);
-    void setLinkedNotebooksExpanded(const QStringList & linkedNotebookGuids, const TagModel & model);
+    void setLinkedNotebooksExpanded(const QStringList & linkedNotebookGuids,
+                                    const TagModel & model);
 
     void restoreLastSavedSelection(const TagModel & model);
 

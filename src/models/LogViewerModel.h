@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -87,7 +87,9 @@ public:
     };
 
     QString logFileName() const;
-    void setLogFileName(const QString & logFileName, const FilteringOptions & filteringOptions = FilteringOptions());
+    void setLogFileName(const QString & logFileName,
+                        const FilteringOptions & filteringOptions =
+                        FilteringOptions());
 
     qint64 startLogFilePos() const;
     void setStartLogFilePos(const qint64 startLogFilePos);
@@ -130,7 +132,8 @@ public:
 
     const Data * dataEntry(const int row) const;
 
-    const QVector<Data> * dataChunkContainingModelRow(const int row, int * pStartModelRow = Q_NULLPTR) const;
+    const QVector<Data> * dataChunkContainingModelRow(
+        const int row, int * pStartModelRow = Q_NULLPTR) const;
 
     QString dataEntryToString(const Data & dataEntry) const;
 
@@ -144,21 +147,23 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
     /**
-     * This signal is emitted after either beginInsertRows/endInsertRows or dataChanged signal
-     * to notify specific listeners (not just views) about the fact that the data corresponding
-     * to the specific rows of the model has been cached and hence is present and actual.
+     * This signal is emitted after either beginInsertRows/endInsertRows or
+     * dataChanged signal to notify specific listeners (not just views) about
+     * the fact that the data corresponding to the specific rows of the model
+     * has been cached and hence is present and actual.
      */
     void notifyModelRowsCached(int from, int to);
 
     /**
-     * This signal is emitted in response to the earlier invokation of of saveModelEntriesToFile method.
-     * errorDescription is empty if no error occurred in the process, non-empty otherwise.
+     * This signal is emitted in response to the earlier invokation of of
+     * saveModelEntriesToFile method. errorDescription is empty if no error
+     * occurred in the process, non-empty otherwise.
      */
     void saveModelEntriesToFileFinished(ErrorString errorDescription);
 
     /**
-     * This signal is emitted to notify anyone interested about the progress of saving the model's log entries
-     * to a file.
+     * This signal is emitted to notify anyone interested about the progress of
+     * saving the model's log entries to a file.
      *
      * @param progressPercent       The percentage of progress, from 0 to 100
      */
@@ -174,8 +179,10 @@ public:
     // QAbstractTableModel interface
     virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
     virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    virtual QVariant data(const QModelIndex & index,
+                          int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    virtual QVariant headerData(int section, Qt::Orientation orientation,
+                                int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
     virtual bool canFetchMore(const QModelIndex & parent) const Q_DECL_OVERRIDE;
     virtual void fetchMore(const QModelIndex & parent) Q_DECL_OVERRIDE;
 
@@ -198,10 +205,11 @@ private:
             SaveLogEntriesToFile = 1 << 4
         };
     };
-    Q_DECLARE_FLAGS(LogFileDataEntryRequestReasons, LogFileDataEntryRequestReason::type)
+    Q_DECLARE_FLAGS(LogFileDataEntryRequestReasons,
+                    LogFileDataEntryRequestReason::type)
 
-    void requestDataEntriesChunkFromLogFile(const qint64 startPos,
-                                            const LogFileDataEntryRequestReason::type reason);
+    void requestDataEntriesChunkFromLogFile(
+        const qint64 startPos, const LogFileDataEntryRequestReason::type reason);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -273,29 +281,41 @@ private:
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<LogFileChunksMetadataByNumber>,
-                boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::number>
+                boost::multi_index::const_mem_fun<
+                    LogFileChunkMetadata,int,&LogFileChunkMetadata::number>
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<LogFileChunksMetadataByStartModelRow>,
-                boost::multi_index::const_mem_fun<LogFileChunkMetadata,int,&LogFileChunkMetadata::startModelRow>
+                boost::multi_index::const_mem_fun<
+                    LogFileChunkMetadata,int,&LogFileChunkMetadata::startModelRow>
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<LogFileChunksMetadataByStartLogFilePos>,
-                boost::multi_index::const_mem_fun<LogFileChunkMetadata,qint64,&LogFileChunkMetadata::startLogFilePos>
+                boost::multi_index::const_mem_fun<
+                    LogFileChunkMetadata,qint64,&LogFileChunkMetadata::startLogFilePos>
             >
         >
     > LogFileChunksMetadata;
 
-    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByNumber>::type LogFileChunksMetadataIndexByNumber;
-    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartModelRow>::type LogFileChunksMetadataIndexByStartModelRow;
-    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartLogFilePos>::type LogFileChunksMetadataIndexByStartLogFilePos;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByNumber>::type
+        LogFileChunksMetadataIndexByNumber;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartModelRow>::type
+        LogFileChunksMetadataIndexByStartModelRow;
+    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartLogFilePos>::type
+        LogFileChunksMetadataIndexByStartLogFilePos;
 
 private:
-    const LogFileChunkMetadata * findLogFileChunkMetadataByModelRow(const int row) const;
-    const LogFileChunkMetadata * findLogFileChunkMetadataByLogFilePos(const qint64 pos) const;
+    const LogFileChunkMetadata *
+    findLogFileChunkMetadataByModelRow(const int row) const;
 
-    LogFileChunksMetadataIndexByStartModelRow::const_iterator findLogFileChunkMetadataIteratorByModelRow(const int row) const;
-    LogFileChunksMetadataIndexByStartLogFilePos::const_iterator findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
+    const LogFileChunkMetadata *
+    findLogFileChunkMetadataByLogFilePos(const qint64 pos) const;
+
+    LogFileChunksMetadataIndexByStartModelRow::const_iterator
+    findLogFileChunkMetadataIteratorByModelRow(const int row) const;
+
+    LogFileChunksMetadataIndexByStartLogFilePos::const_iterator
+    findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
 
 private:
     bool                m_isActive;

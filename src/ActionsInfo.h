@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -67,12 +67,14 @@ public:
 public:
     ActionsInfo(const QList<QMenu*> & menus);
 
-    const ActionInfo findActionInfo(const QString & actionName, const QString & context) const;
+    const ActionInfo findActionInfo(const QString & actionName,
+                                    const QString & context) const;
 
     class Iterator
     {
     public:
-        Iterator(const int menuIndex, const int actionIndex, const ActionsInfo & actionsInfo);
+        Iterator(const int menuIndex, const int actionIndex,
+                 const ActionsInfo & actionsInfo);
 
         const ActionInfo actionInfo() const;
 

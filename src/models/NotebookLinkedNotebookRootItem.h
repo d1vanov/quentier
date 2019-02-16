@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,7 +36,8 @@ public:
     void setUsername(const QString & username) { m_username = username; }
 
     const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
-    void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
+    void setLinkedNotebookGuid(const QString & linkedNotebookGuid)
+    { m_linkedNotebookGuid = linkedNotebookGuid; }
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

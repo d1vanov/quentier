@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,8 +34,8 @@ QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 
 /**
- * @brief The NoteListView is a simple subclass of QListView which adds some bits of functionality specific to note list
- * on top of it
+ * @brief The NoteListView is a simple subclass of QListView which adds some bits
+ * of functionality specific to note list on top of it
  */
 class NoteListView: public QListView
 {
@@ -46,10 +46,12 @@ public:
     void setNotebookItemView(NotebookItemView * pNotebookItemView);
 
     /**
-     * After this method is called, NoteListView would automatically select the first note of the model
-     * after the next event of note item addition. It would happen only once.
+     * After this method is called, NoteListView would automatically select
+     * the first note of the model after the next event of note item addition.
+     * It would happen only once.
      *
-     * This method is handy to run before starting the synchronization of a fresh Evernote account
+     * This method is handy to run before starting the synchronization of
+     * a fresh Evernote account
      */
     void setAutoSelectNoteOnNextAddition();
 
@@ -93,10 +95,12 @@ public Q_SLOTS:
 
     /**
      * The slot which can watch for external changes in thumbnail display state.
-     * @param showThumbnailsForAllNotes Global flag for all notes.
-     * @param hideThumbnailsLocalUids  Map with local uids where the thumbails was manually hidden.
+     * @param showThumbnailsForAllNotes     Global flag for all notes.
+     * @param hideThumbnailsLocalUids       Map with local uids where
+     *                                      the thumbails was manually hidden.
      */
-    void setShowNoteThumbnailsState(bool showThumbnailsForAllNotes, const QSet<QString> & hideThumbnailsLocalUids);
+    void setShowNoteThumbnailsState(bool showThumbnailsForAllNotes,
+                                    const QSet<QString> & hideThumbnailsLocalUids);
 
 
     /**
@@ -106,10 +110,12 @@ public Q_SLOTS:
     void selectNotesByLocalUids(const QStringList & noteLocalUids);
 
     /**
-     * @brief The dataChanged method is redefined in NoteListView for the sole reason of being a public slot
-     * instead of protected; it calls the implementation of QListView's dataChanged protected slot
+     * @brief The dataChanged method is redefined in NoteListView for the sole
+     * reason of being a public slot instead of protected; it calls
+     * the implementation of QListView's dataChanged protected slot
      */
-    virtual void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+    virtual void dataChanged(const QModelIndex & topLeft,
+                             const QModelIndex & bottomRight
 #if QT_VERSION < 0x050000
                             )
 #else
@@ -117,8 +123,10 @@ public Q_SLOTS:
 #endif
                             Q_DECL_OVERRIDE;
 
-    virtual void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
-    virtual void rowsInserted(const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
+    virtual void rowsAboutToBeRemoved(const QModelIndex & parent,
+                                      int start, int end) Q_DECL_OVERRIDE;
+    virtual void rowsInserted(const QModelIndex & parent,
+                              int start, int end) Q_DECL_OVERRIDE;
 
 protected Q_SLOTS:
     void onCreateNewNoteAction();
@@ -157,8 +165,10 @@ protected:
 protected:
     void showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos);
     void showSingleNoteContextMenu(const QPoint & pos, const QPoint & globalPos,
-                                   const NoteFilterModel & noteFilterModel, const NoteModel & noteModel);
-    void showMultipleNotesContextMenu(const QPoint & globalPos, const QStringList & noteLocalUids);
+                                   const NoteFilterModel & noteFilterModel,
+                                   const NoteModel & noteModel);
+    void showMultipleNotesContextMenu(const QPoint & globalPos,
+                                      const QStringList & noteLocalUids);
 
 private:
     /**
@@ -178,19 +188,22 @@ private:
 
     /**
      * Convenience method called in slots invoked by QAction's signals.
-     * @return variant data from QAction sender's data (invalid variant in case of error).
+     * @return      Variant data from QAction sender's data (invalid variant in
+     *              case of error).
      */
     QVariant actionData();
 
     /**
      * Convenience method called in slots invoked by QAction's signals.
-     * @return string data from QAction sender's data (empty string in case of error).
+     * @return      String data from QAction sender's data (empty string in case
+     *              of error).
      */
     QString actionDataString();
 
     /**
      * Convenience method called in slots invoked by QAction's signals.
-     * @return string list data from QAction sender's data (empty list in case of error).
+     * @return      String list data from QAction sender's data (empty list in
+     *              case of error).
      */
     QStringList actionDataStringList();
 

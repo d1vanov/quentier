@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,7 +39,8 @@ public:
     bool removeFilteredAccount(const Account & account);
 
 protected:
-    virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
+    virtual bool filterAcceptsRow(int sourceRow,
+                                  const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
 
 private:
     QVector<Account>    m_filteredAccounts;

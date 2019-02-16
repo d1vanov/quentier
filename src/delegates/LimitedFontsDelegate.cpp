@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,7 +26,8 @@ LimitedFontsDelegate::LimitedFontsDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
 
-void LimitedFontsDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
+void LimitedFontsDelegate::paint(QPainter * painter,
+                                 const QStyleOptionViewItem & option,
                                  const QModelIndex & index) const
 {
     painter->save();
@@ -46,7 +47,8 @@ void LimitedFontsDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
     painter->restore();
 }
 
-bool LimitedFontsDelegate::doPaint(QPainter * painter, const QStyleOptionViewItem & option,
+bool LimitedFontsDelegate::doPaint(QPainter * painter,
+                                   const QStyleOptionViewItem & option,
                                    const QModelIndex & index) const
 {
     if (!index.isValid()) {
@@ -71,7 +73,8 @@ bool LimitedFontsDelegate::doPaint(QPainter * painter, const QStyleOptionViewIte
                     ? option.palette.highlightedText().color()
                     : option.palette.windowText().color());
 
-    painter->drawText(option.rect, fontFamily, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    painter->drawText(option.rect, fontFamily,
+                      QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
     return true;
 }
 

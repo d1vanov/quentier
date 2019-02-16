@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,9 +20,10 @@
 
 namespace quentier {
 
-TagModelItem::TagModelItem(const Type::type type, const TagItem * pTagItem,
-                           const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem,
-                           TagModelItem * pParent) :
+TagModelItem::TagModelItem(
+        const Type::type type, const TagItem * pTagItem,
+        const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem,
+        TagModelItem * pParent) :
     m_type(type),
     m_pTagItem(pTagItem),
     m_pTagLinkedNotebookRootItem(pTagLinkedNotebookRootItem),
@@ -140,12 +141,16 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
         }
 
         if (m_pParent->tagItem()) {
-            strm << QStringLiteral(", tag local uid = ") << m_pParent->tagItem()->localUid()
-                 << QStringLiteral(", tag name = ") << m_pParent->tagItem()->name();
+            strm << QStringLiteral(", tag local uid = ")
+                 << m_pParent->tagItem()->localUid()
+                 << QStringLiteral(", tag name = ")
+                 << m_pParent->tagItem()->name();
         }
         else if (m_pParent->tagLinkedNotebookItem()) {
-            strm << QStringLiteral(", linked notebook guid = ") << m_pParent->tagLinkedNotebookItem()->linkedNotebookGuid()
-                 << QStringLiteral(", linked notebook owner username = ") << m_pParent->tagLinkedNotebookItem()->username();
+            strm << QStringLiteral(", linked notebook guid = ")
+                 << m_pParent->tagLinkedNotebookItem()->linkedNotebookGuid()
+                 << QStringLiteral(", linked notebook owner username = ")
+                 << m_pParent->tagLinkedNotebookItem()->username();
         }
 
         strm << QStringLiteral("\n");
@@ -179,13 +184,18 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
         }
 
         if (pChildItem->tagItem()) {
-            strm << QStringLiteral(", tag local uid = ") << pChildItem->tagItem()->localUid()
-                 << QStringLiteral(", tag guid = ") << pChildItem->tagItem()->guid()
-                 << QStringLiteral(", tag name = ") << pChildItem->tagItem()->name();
+            strm << QStringLiteral(", tag local uid = ")
+                 << pChildItem->tagItem()->localUid()
+                 << QStringLiteral(", tag guid = ")
+                 << pChildItem->tagItem()->guid()
+                 << QStringLiteral(", tag name = ")
+                 << pChildItem->tagItem()->name();
         }
         else if (pChildItem->tagLinkedNotebookItem()) {
-            strm << QStringLiteral(", linked notebook guid = ") << pChildItem->tagLinkedNotebookItem()->linkedNotebookGuid()
-                 << QStringLiteral(", owner username = ") << pChildItem->tagLinkedNotebookItem()->username();
+            strm << QStringLiteral(", linked notebook guid = ")
+                 << pChildItem->tagLinkedNotebookItem()->linkedNotebookGuid()
+                 << QStringLiteral(", owner username = ")
+                 << pChildItem->tagLinkedNotebookItem()->username();
         }
 
         strm << QStringLiteral("\n");
@@ -202,7 +212,8 @@ QDataStream & operator<<(QDataStream & out, const TagModelItem & modelItem)
     qulonglong tagItemPtr = reinterpret_cast<qulonglong>(modelItem.tagItem());
     out << tagItemPtr;
 
-    qulonglong tagLinkedNotebookItemPtr = reinterpret_cast<qulonglong>(modelItem.tagLinkedNotebookItem());
+    qulonglong tagLinkedNotebookItemPtr =
+        reinterpret_cast<qulonglong>(modelItem.tagLinkedNotebookItem());
     out << tagLinkedNotebookItemPtr;
 
     qulonglong parentItemPtr = reinterpret_cast<qulonglong>(modelItem.parent());
@@ -231,7 +242,8 @@ QDataStream & operator>>(QDataStream & in, TagModelItem & modelItem)
 
     qulonglong tagLinkedNotebookItemPtr = 0;
     in >> tagLinkedNotebookItemPtr;
-    modelItem.m_pTagLinkedNotebookRootItem = reinterpret_cast<const TagLinkedNotebookRootItem*>(tagLinkedNotebookItemPtr);
+    modelItem.m_pTagLinkedNotebookRootItem =
+        reinterpret_cast<const TagLinkedNotebookRootItem*>(tagLinkedNotebookItemPtr);
 
     qulonglong parentItemPtr = 0;
     in >> parentItemPtr;

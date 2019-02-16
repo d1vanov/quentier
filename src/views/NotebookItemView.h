@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -45,7 +45,8 @@ public:
     void setNoteModel(const NoteModel * pNoteModel);
 
     /**
-     * @return valid model index if the selection exists and contains exactly one row and invalid model index otherwise
+     * @return          Valid model index if the selection exists and contains
+     *                  exactly one row and invalid model index otherwise
      */
     QModelIndex currentlySelectedItemIndex() const;
 
@@ -87,7 +88,8 @@ private Q_SLOTS:
 
     void onNotebookModelItemCollapsedOrExpanded(const QModelIndex & index);
 
-    void onNotebookStackRenamed(const QString & previousStackName, const QString & newStackName,
+    void onNotebookStackRenamed(const QString & previousStackName,
+                                const QString & newStackName,
                                 const QString & linkedNotebookGuid);
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
@@ -102,15 +104,18 @@ private Q_SLOTS:
 private:
     void deleteItem(const QModelIndex & itemIndex, NotebookModel & model);
     void showNotebookItemContextMenu(const NotebookItem & item,
-                                     const QPoint & point, NotebookModel & model);
+                                     const QPoint & point,
+                                     NotebookModel & model);
     void showNotebookStackItemContextMenu(const NotebookStackItem & item,
                                           const NotebookModelItem & modelItem,
-                                          const QPoint & point, NotebookModel & model);
+                                          const QPoint & point,
+                                          NotebookModel & model);
 
     void saveNotebookModelItemsState();
     void restoreNotebookModelItemsState(const NotebookModel & model);
 
-    void setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model,
+    void setStacksExpanded(const QStringList & expandedStackNames,
+                           const NotebookModel & model,
                            const QString & linkedNotebookGuid);
     void setLinkedNotebooksExpanded(const QStringList & expandedLinkedNotebookGuids,
                                     const NotebookModel & model);

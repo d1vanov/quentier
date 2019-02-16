@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,8 +34,10 @@ TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
     pTableWidthModeComboBox->addItem(tr("% of page width"));
     pTableWidthModeComboBox->setCurrentIndex(1);
 
-    QObject::connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(onOkButtonPressed()));
-    QObject::connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(onCancelButtonPressed()));
+    QObject::connect(ui->buttonBox, SIGNAL(accepted()),
+                     this, SLOT(onOkButtonPressed()));
+    QObject::connect(ui->buttonBox, SIGNAL(rejected()),
+                     this, SLOT(onCancelButtonPressed()));
 }
 
 TableSettingsDialog::~TableSettingsDialog()
@@ -71,7 +73,8 @@ void TableSettingsDialog::onOkButtonPressed()
     bool res = verifySettings(error);
     if (!res) {
         QNTRACE(QStringLiteral("Error: ") << error);
-        ui->warningLine->setText(QStringLiteral("<font color=red>") + error + QStringLiteral("</font>"));
+        ui->warningLine->setText(QStringLiteral("<font color=red>") + error +
+                                 QStringLiteral("</font>"));
         ui->warningLine->setHidden(false);
         return;
     }
@@ -86,9 +89,14 @@ void TableSettingsDialog::onOkButtonPressed()
     m_tableWidth = ui->tableWidthDoubleSpinBox->value();
     m_relativeWidth = checkRelativeWidth();
 
-    QNTRACE(QStringLiteral("Accepted: num rows = ") << m_numRows << QStringLiteral(", num columns = ") << m_numColumns
-            << QStringLiteral(", table width = ") << m_tableWidth << QStringLiteral(", ")
-            << (m_relativeWidth ? QStringLiteral("relative") : QStringLiteral("absolute")) << QStringLiteral(" width"));
+    QNTRACE(QStringLiteral("Accepted: num rows = ") << m_numRows
+            << QStringLiteral(", num columns = ") << m_numColumns
+            << QStringLiteral(", table width = ") << m_tableWidth
+            << QStringLiteral(", ")
+            << (m_relativeWidth
+                ? QStringLiteral("relative")
+                : QStringLiteral("absolute"))
+            << QStringLiteral(" width"));
     accept();
 }
 

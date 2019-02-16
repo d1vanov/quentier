@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -40,10 +40,12 @@ class LocalStorageVersionTooHighDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit LocalStorageVersionTooHighDialog(const Account & currentAccount,
-                                              AccountModel & accountModel,
-                                              LocalStorageManager & localStorageManager,
-                                              QWidget * parent = Q_NULLPTR);
+    explicit LocalStorageVersionTooHighDialog(
+        const Account & currentAccount,
+        AccountModel & accountModel,
+        LocalStorageManager & localStorageManager,
+        QWidget * parent = Q_NULLPTR);
+
     ~LocalStorageVersionTooHighDialog();
 
 Q_SIGNALS:

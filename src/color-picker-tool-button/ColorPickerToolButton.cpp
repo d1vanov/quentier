@@ -1,7 +1,7 @@
 /*
 * The MIT License (MIT)
 *
-* Copyright (c) 2015 Dmitry Ivanov
+* Copyright (c) 2015-2019 Dmitry Ivanov
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,8 @@ ColorPickerToolButton::ColorPickerToolButton(QWidget * parent) :
     QToolButton(parent),
     m_menu(new QMenu(this))
 {
-    ColorPickerActionWidget * colorPickerActionWidget = new ColorPickerActionWidget(this);
+    ColorPickerActionWidget * colorPickerActionWidget =
+        new ColorPickerActionWidget(this);
     m_menu->addAction(colorPickerActionWidget);
 
     setMenu(m_menu);
@@ -40,7 +41,8 @@ ColorPickerToolButton::ColorPickerToolButton(QWidget * parent) :
     QAction * colorDialogAction = new QAction(this);
     setDefaultAction(colorDialogAction);
 
-    QObject::connect(colorDialogAction, SIGNAL(triggered(bool)), this, SLOT(onColorDialogAction()));
+    QObject::connect(colorDialogAction, SIGNAL(triggered(bool)),
+                     this, SLOT(onColorDialogAction()));
 
     QObject::connect(colorPickerActionWidget, SIGNAL(colorSelected(QColor)),
                      this, SIGNAL(colorSelected(QColor)));
@@ -52,15 +54,18 @@ ColorPickerToolButton::ColorPickerToolButton(QWidget * parent) :
     QObject::connect(colorPickerActionWidget, SIGNAL(rejected()),
                      m_menu, SLOT(hide()));
 
-    QObject::connect(m_menu, SIGNAL(aboutToShow()), colorPickerActionWidget, SLOT(aboutToShow()));
-    QObject::connect(m_menu, SIGNAL(aboutToHide()), colorPickerActionWidget, SLOT(aboutToHide()));
+    QObject::connect(m_menu, SIGNAL(aboutToShow()),
+                     colorPickerActionWidget, SLOT(aboutToShow()));
+    QObject::connect(m_menu, SIGNAL(aboutToHide()),
+                     colorPickerActionWidget, SLOT(aboutToHide()));
 }
 
 void ColorPickerToolButton::onColorDialogAction()
 {
     QScopedPointer<QColorDialog> colorDialogPtr(new QColorDialog(this));
     QColorDialog * colorDialog = colorDialogPtr.data();
-    colorDialog->setOptions(QColorDialog::DontUseNativeDialog | QColorDialog::ShowAlphaChannel);
+    colorDialog->setOptions(QColorDialog::DontUseNativeDialog |
+                            QColorDialog::ShowAlphaChannel);
 
     QColor currentColor = colorDialog->currentColor();
     currentColor.setAlpha(255);

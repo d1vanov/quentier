@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,26 +35,37 @@ struct StartQuentierAtLoginOption
 };
 
 /**
- * @return                      Pair the first item of which is true if Quentier is set up to start automatically at login,
- *                              false otherwise; the second item is only meaningful if the first item is true, in that case
- *                              it denotes the option with which Quentier would start at login: either minimized or
- *                              minimized to tray or normal
+ * @return                      Pair the first item of which is true if Quentier
+ *                              is set up to start automatically at login, false
+ *                              otherwise; the second item is only meaningful if
+ *                              the first item is true, in that case it denotes
+ *                              the option with which Quentier would start at
+ *                              login: either minimized or minimized to tray or
+ *                              normal
  */
 std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin();
 
 /**
- * Specify whether Quentier should start automatically at login and if so, how exactly
+ * Specify whether Quentier should start automatically at login and if so, how
+ * exactly
  *
- * @param shouldStartAtLogin    True if Quentier should start automatically at login, false otherwise
- * @param errorDescription      The textual description of the error if the command meant to make Quentier start at login
+ * @param shouldStartAtLogin    True if Quentier should start automatically at
+ *                              login, false otherwise
+ * @param errorDescription      The textual description of the error if
+ *                              the command meant to make Quentier start at login
  *                              or to stop doing so has failed
- * @param option                The option specifying how exactly Quentier shoudl start automatically at login,
- *                              only meaningful if shouldStartAtLogin is true
- * @return                      True if the option to start or not to start Quentier at login automatically
- *                              was set successfully, false otherwise
+ * @param option                The option specifying how exactly Quentier should
+ *                              start automatically at login, only meaningful if
+ *                              shouldStartAtLogin is true
+ * @return                      True if the option to start or not to start
+ *                              Quentier at login automatically was set
+ *                              successfully, false otherwise
  */
-bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin, ErrorString & errorDescription,
-                                   const StartQuentierAtLoginOption::type option = StartQuentierAtLoginOption::MinimizedToTray);
+bool setStartQuentierAtLoginOption(
+    const bool shouldStartAtLogin,
+    ErrorString & errorDescription,
+    const StartQuentierAtLoginOption::type option =
+    StartQuentierAtLoginOption::MinimizedToTray);
 
 } // namespace quentier
 

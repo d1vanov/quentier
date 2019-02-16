@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -50,13 +50,19 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
     accountTypes << tr("Local");
     m_pUi->accountTypeComboBox->setModel(new QStringListModel(accountTypes, this));
 
-    QObject::connect(m_pUi->accountTypeComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(onCurrentAccountTypeChanged(int)));
+    QObject::connect(m_pUi->accountTypeComboBox,
+                     SIGNAL(currentIndexChanged(int)),
+                     this,
+                     SLOT(onCurrentAccountTypeChanged(int)));
 
-    QObject::connect(m_pUi->accountUsernameLineEdit, QNSIGNAL(QLineEdit,editingFinished),
-                     this, QNSLOT(AddAccountDialog,onLocalAccountNameChosen));
-    QObject::connect(m_pUi->accountUsernameLineEdit, QNSIGNAL(QLineEdit,textEdited,QString),
-                     this, QNSLOT(AddAccountDialog,onLocalAccountUsernameEdited,QString));
+    QObject::connect(m_pUi->accountUsernameLineEdit,
+                     QNSIGNAL(QLineEdit,editingFinished),
+                     this,
+                     QNSLOT(AddAccountDialog,onLocalAccountNameChosen));
+    QObject::connect(m_pUi->accountUsernameLineEdit,
+                     QNSIGNAL(QLineEdit,textEdited,QString),
+                     this,
+                     QNSLOT(AddAccountDialog,onLocalAccountUsernameEdited,QString));
 
     QStringList evernoteServers;
     evernoteServers.reserve(3);
@@ -113,12 +119,14 @@ QString AddAccountDialog::userFullName() const
 
 void AddAccountDialog::onCurrentAccountTypeChanged(int index)
 {
-    QNDEBUG(QStringLiteral("AddAccountDialog::onCurrentAccountTypeChanged: index = ") << index);
+    QNDEBUG(QStringLiteral("AddAccountDialog::onCurrentAccountTypeChanged: ")
+            << QStringLiteral("index = ") << index);
 
     bool isLocal = (index != 0);
 
     m_pUi->useNetworkProxyCheckBox->setHidden(isLocal);
-    m_pUi->networkProxyFrame->setHidden(isLocal || !m_pUi->useNetworkProxyCheckBox->isChecked());
+    m_pUi->networkProxyFrame->setHidden(
+        isLocal || !m_pUi->useNetworkProxyCheckBox->isChecked());
 
     m_pUi->evernoteServerComboBox->setHidden(isLocal);
     m_pUi->evernoteServerLabel->setHidden(isLocal);
@@ -134,7 +142,8 @@ void AddAccountDialog::onCurrentAccountTypeChanged(int index)
     {
         m_onceSuggestedFullName = true;
         QString fullName = getCurrentUserFullName();
-        QNTRACE(QStringLiteral("Suggesting the current user's full name: ") << fullName);
+        QNTRACE(QStringLiteral("Suggesting the current user's full name: ")
+                << fullName);
         m_pUi->accountFullNameLineEdit->setText(fullName);
     }
 }
@@ -179,11 +188,13 @@ bool AddAccountDialog::localAccountAlreadyExists(const QString & name) const
 
 void AddAccountDialog::onLocalAccountUsernameEdited(const QString & username)
 {
-    QNDEBUG(QStringLiteral("AddAccountDialog::onLocalAccountUsernameEdited: ") << username);
+    QNDEBUG(QStringLiteral("AddAccountDialog::onLocalAccountUsernameEdited: ")
+            << username);
 
     bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
     if (!isLocal) {
-        QNTRACE(QStringLiteral("The chosen account type is not local, won't do anything"));
+        QNTRACE(QStringLiteral("The chosen account type is not local, won't do "
+                               "anything"));
         return;
     }
 
@@ -222,7 +233,8 @@ void AddAccountDialog::onUseNetworkProxyToggled(bool checked)
 
 void AddAccountDialog::onNetworkProxyTypeChanged(int index)
 {
-    QNDEBUG(QStringLiteral("AddAccountDialog::onNetworkProxyTypeChanged: index = ") << index);
+    QNDEBUG(QStringLiteral("AddAccountDialog::onNetworkProxyTypeChanged: index = ")
+            << index);
     evaluateNetworkProxySettingsValidity();
 }
 
@@ -234,15 +246,19 @@ void AddAccountDialog::onNetworkProxyHostChanged()
 
 void AddAccountDialog::onNetworkProxyPortChanged(int port)
 {
-    QNDEBUG(QStringLiteral("AddAccountDialog::onNetworkProxyPortChanged: port = ") << port);
+    QNDEBUG(QStringLiteral("AddAccountDialog::onNetworkProxyPortChanged: port = ")
+            << port);
     evaluateNetworkProxySettingsValidity();
 }
 
 void AddAccountDialog::onNetworkProxyShowPasswordToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("AddAccountDialog::onNetworkProxyShowPasswordToggled: checked = ")
+    QNDEBUG(QStringLiteral("AddAccountDialog::onNetworkProxyShowPasswordToggled: ")
+            << QStringLiteral("checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUi->networkProxyPasswordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
+    m_pUi->networkProxyPasswordLineEdit->setEchoMode(checked
+                                                     ? QLineEdit::Normal
+                                                     : QLineEdit::Password);
 }
 
 void AddAccountDialog::accept()
@@ -297,8 +313,10 @@ void AddAccountDialog::setupNetworkProxySettingsFrame()
     m_pUi->networkProxyFrame->hide();
 
     // 2) Setup use network proxy checkbox
-    QObject::connect(m_pUi->useNetworkProxyCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
-                     this, QNSLOT(AddAccountDialog,onUseNetworkProxyToggled,bool));
+    QObject::connect(m_pUi->useNetworkProxyCheckBox,
+                     QNSIGNAL(QCheckBox,toggled,bool),
+                     this,
+                     QNSLOT(AddAccountDialog,onUseNetworkProxyToggled,bool));
 
     // 3) Setup the network proxy types combo box
     QStringList networkProxyTypes;
@@ -306,8 +324,8 @@ void AddAccountDialog::setupNetworkProxySettingsFrame()
 
     // Allow only "No proxy", "Http proxy" and "Socks5 proxy"
     // If proxy type parsed from the settings is different, fall back to "No proxy"
-    // Also treat QNetworkProxy::DefaultProxy as "No proxy" because the default proxy type
-    // of QNetworkProxy is QNetworkProxy::NoProxy
+    // Also treat QNetworkProxy::DefaultProxy as "No proxy" because the default
+    // proxy type of QNetworkProxy is QNetworkProxy::NoProxy
 
     QString noProxyItem = tr("No proxy");
     QString httpProxyItem = tr("Http proxy");
@@ -317,27 +335,37 @@ void AddAccountDialog::setupNetworkProxySettingsFrame()
     networkProxyTypes << httpProxyItem;
     networkProxyTypes << socks5ProxyItem;
 
-    m_pUi->networkProxyTypeComboBox->setModel(new QStringListModel(networkProxyTypes, this));
+    m_pUi->networkProxyTypeComboBox->setModel(
+        new QStringListModel(networkProxyTypes, this));
 
-    QObject::connect(m_pUi->networkProxyTypeComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(onNetworkProxyTypeChanged(int)));
+    QObject::connect(m_pUi->networkProxyTypeComboBox,
+                     SIGNAL(currentIndexChanged(int)),
+                     this,
+                     SLOT(onNetworkProxyTypeChanged(int)));
 
     // 4) Setup the valid range for port spin box
     m_pUi->networkProxyPortSpinBox->setMinimum(0);
-    m_pUi->networkProxyPortSpinBox->setMaximum(std::max(std::numeric_limits<quint16>::max()-1, 0));
+    m_pUi->networkProxyPortSpinBox->setMaximum(
+        std::max(std::numeric_limits<quint16>::max()-1, 0));
 
     // 5) Connect to other editors of network proxy pieces
 
-    QObject::connect(m_pUi->networkProxyHostLineEdit, QNSIGNAL(QLineEdit,editingFinished),
-                     this, QNSLOT(AddAccountDialog,onNetworkProxyHostChanged));
-    QObject::connect(m_pUi->networkProxyPortSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(onNetworkProxyPortChanged(int)));
+    QObject::connect(m_pUi->networkProxyHostLineEdit,
+                     QNSIGNAL(QLineEdit,editingFinished),
+                     this,
+                     QNSLOT(AddAccountDialog,onNetworkProxyHostChanged));
+    QObject::connect(m_pUi->networkProxyPortSpinBox,
+                     SIGNAL(valueChanged(int)),
+                     this,
+                     SLOT(onNetworkProxyPortChanged(int)));
 
-    QObject::connect(m_pUi->networkProxyPasswordShowCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
-                     this, QNSLOT(AddAccountDialog,onNetworkProxyShowPasswordToggled,bool));
+    QObject::connect(m_pUi->networkProxyPasswordShowCheckBox,
+                     QNSIGNAL(QCheckBox,toggled,bool),
+                     this,
+                     QNSLOT(AddAccountDialog,onNetworkProxyShowPasswordToggled,bool));
 
-    // NOTE: don't need to watch for edits of network proxy username and password since can't judge their influence
-    // on the validity of network proxy anyway
+    // NOTE: don't need to watch for edits of network proxy username and password
+    // since can't judge their influence on the validity of network proxy anyway
 }
 
 void AddAccountDialog::showLocalAccountAlreadyExistsMessage()
@@ -418,7 +446,9 @@ QNetworkProxy AddAccountDialog::networkProxy(ErrorString & errorDescription) con
     proxy.setHostName(host);
 
     int proxyPort = m_pUi->networkProxyPortSpinBox->value();
-    if (Q_UNLIKELY((proxyPort < 0) || (proxyPort >= std::numeric_limits<quint16>::max()))) {
+    if (Q_UNLIKELY((proxyPort < 0) ||
+                   (proxyPort >= std::numeric_limits<quint16>::max())))
+    {
         errorDescription.setBase(QT_TR_NOOP("Network proxy port is not valid"));
         errorDescription.setDetails(QString::number(proxyPort));
         QNDEBUG(errorDescription);

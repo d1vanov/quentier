@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -45,8 +45,10 @@ QString libquentierBuildTimeInfo()
                    QString::number(LIB_QUENTIER_VERSION_MAJOR) +
                    QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_MINOR) +
                    QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_PATCH) +
-                   QStringLiteral(", build info: ") + QStringLiteral(LIB_QUENTIER_BUILD_INFO) +
-                   QStringLiteral(", built with Qt ") + quentier::libquentierBuiltWithQtVersion();
+                   QStringLiteral(", build info: ") +
+                   QStringLiteral(LIB_QUENTIER_BUILD_INFO) +
+                   QStringLiteral(", built with Qt ") +
+                   quentier::libquentierBuiltWithQtVersion();
 
 #if LIB_QUENTIER_USE_QT_WEB_ENGINE
     info += QStringLiteral("; uses QtWebEngine");
@@ -57,11 +59,16 @@ QString libquentierBuildTimeInfo()
 
 QString libquentierRuntimeInfo()
 {
-    QString info = QStringLiteral("version ") + QString::number(quentier::libquentierVersionMajor()) +
-                   QStringLiteral(".") + QString::number(quentier::libquentierVersionMinor()) +
-                   QStringLiteral(".") + QString::number(quentier::libquentierVersionPatch()) +
-                   QStringLiteral(", build info: ") + quentier::libquentierBuildInfo() +
-                   QStringLiteral(", built with Qt ") + quentier::libquentierBuiltWithQtVersion();
+    QString info = QStringLiteral("version ") +
+                   QString::number(quentier::libquentierVersionMajor()) +
+                   QStringLiteral(".") +
+                   QString::number(quentier::libquentierVersionMinor()) +
+                   QStringLiteral(".") +
+                   QString::number(quentier::libquentierVersionPatch()) +
+                   QStringLiteral(", build info: ") +
+                   quentier::libquentierBuildInfo() +
+                   QStringLiteral(", built with Qt ") +
+                   quentier::libquentierBuiltWithQtVersion();
 
     if (quentier::libquentierUsesQtWebEngine()) {
         info += QStringLiteral("; uses QtWebEngine");

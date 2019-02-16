@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -43,21 +43,29 @@ public Q_SLOTS:
 private Q_SLOTS:
     void onAddNoteComplete(Note note, QUuid requestId);
     void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
-    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
-    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
+    void onUpdateNoteComplete(Note note,
+                              LocalStorageManager::UpdateNoteOptions options,
+                              QUuid requestId);
+    void onUpdateNoteFailed(Note note,
+                            LocalStorageManager::UpdateNoteOptions options,
                             ErrorString errorDescription, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+    void onFindNoteFailed(Note note,
+                          LocalStorageManager::GetNoteOptions options,
                           ErrorString errorDescription, QUuid requestId);
-    void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceMetadata,
-                           bool withResourceBinaryData, size_t limit, size_t offset,
+    void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag,
+                           LocalStorageManager::GetNoteOptions options,
+                           size_t limit, size_t offset,
                            LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
-                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
+                           QString linkedNotebookGuid, ErrorString errorDescription,
+                           QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                             QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                                QUuid requestId);
 
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,7 +41,8 @@ class EditNoteDialog: public QDialog
     Q_OBJECT
 public:
     explicit EditNoteDialog(const Note & note, NotebookModel * pNotebookModel,
-                            QWidget * parent = Q_NULLPTR, const bool readOnlyMode = false);
+                            QWidget * parent = Q_NULLPTR,
+                            const bool readOnlyMode = false);
     virtual ~EditNoteDialog();
 
     const Note & note() const { return m_note; }
@@ -60,10 +61,12 @@ private Q_SLOTS:
     void rowsInserted(const QModelIndex & parent, int start, int end);
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);
 
-    // Slots for QDateTimeEdit and QDoubleSpinBox edits capturing. Unfortunately, Qt doesn't offer a simple way
-    // to have null/empty values in these editor, instead they have some default value on creation; workaround:
-    // capture editing events from these editors, treat each editing event as setting the value to some 'non-empty' one;
-    // otherwise treat the value from the editor as an empty one
+    // Slots for QDateTimeEdit and QDoubleSpinBox edits capturing. Unfortunately,
+    // Qt doesn't offer a simple way to have null/empty values in these editors,
+    // instead they have some default value on creation; workaround:
+    // capture editing events from these editors, treat each editing event as
+    // setting the value to some 'non-empty' one; otherwise treat the value from
+    // the editor as an empty one
     void onCreationDateTimeEdited(const QDateTime & dateTime);
     void onModificationDateTimeEdited(const QDateTime & dateTime);
     void onDeletionDateTimeEdited(const QDateTime & dateTime);

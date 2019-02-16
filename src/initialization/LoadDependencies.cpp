@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,7 +38,8 @@ void loadDependencies()
     paths.append(QStringLiteral("sqldrivers"));
     QCoreApplication::setLibraryPaths(paths);
 
-    // Need to load the SQL drivers manually, for some reason Qt doesn't wish to load them on its own
+    // Need to load the SQL drivers manually, for some reason Qt doesn't wish
+    // to load them on its own
     QDirIterator sqlDriversIter(QStringLiteral("sqldrivers"));
     while(sqlDriversIter.hasNext())
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,19 +32,25 @@
 #define CATCH_EXCEPTION() \
     catch(const IQuentierException & exception) { \
         SysInfo sysInfo; \
-        QString error = QStringLiteral("Caught Quentier exception: ") + exception.nonLocalizedErrorMessage() + \
-                        QStringLiteral(", what: ") + QString::fromUtf8(exception.what()) + QStringLiteral("; stack trace: ") + \
+        QString error = QStringLiteral("Caught Quentier exception: ") + \
+                        exception.nonLocalizedErrorMessage() + \
+                        QStringLiteral(", what: ") + \
+                        QString::fromUtf8(exception.what()) + \
+                        QStringLiteral("; stack trace: ") + \
                         sysInfo.stackTrace(); \
         errorDescription = ErrorString(error); \
     } \
     catch(const std::exception & exception) { \
         SysInfo sysInfo; \
-        QString error = QStringLiteral("Caught std::exception: ") + QString::fromUtf8(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.stackTrace(); \
+        QString error = QStringLiteral("Caught std::exception: ") + \
+        QString::fromUtf8(exception.what()) + \
+        QStringLiteral("; stack trace: ") + sysInfo.stackTrace(); \
         errorDescription = ErrorString(error); \
     } \
     catch(...) { \
         SysInfo sysInfo; \
-        QString error = QStringLiteral("Caught some unknown exception; stack trace: ") + sysInfo.stackTrace(); \
+        QString error = QStringLiteral("Caught some unknown exception; ") + \
+                        QStringLiteral("stack trace: ") + sysInfo.stackTrace(); \
         errorDescription = ErrorString(error); \
     }
 

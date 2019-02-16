@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,15 +31,17 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
 /**
- * @brief The DefaultAccountFirstNotebookAndNoteCreator class encapsulates a couple of asynchronous
- * events related to setting up the default notebook and note for the newly created default account
+ * @brief The DefaultAccountFirstNotebookAndNoteCreator class encapsulates
+ * a couple of asynchronous events related to setting up the default notebook
+ * and note for the newly created default account
  */
 class DefaultAccountFirstNotebookAndNoteCreator: public QObject
 {
     Q_OBJECT
 public:
-    explicit DefaultAccountFirstNotebookAndNoteCreator(LocalStorageManagerAsync & localStorageManagerAsync,
-                                                       QObject * parent = Q_NULLPTR);
+    explicit DefaultAccountFirstNotebookAndNoteCreator(
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
     void finished(QString createdNoteLocalUid);
@@ -54,10 +56,12 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                             QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription,
+                         QUuid requestId);
 
 private:
     void connectToLocalStorage(LocalStorageManagerAsync & localStorageManagerAsync);

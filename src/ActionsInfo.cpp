@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,10 +28,12 @@ ActionsInfo::ActionsInfo(const QList<QMenu*> & menus) :
     m_menus(menus)
 {}
 
-const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(const QString & actionName, const QString & context) const
+const ActionsInfo::ActionInfo
+ActionsInfo::findActionInfo(const QString & actionName,
+                            const QString & context) const
 {
-    QNDEBUG(QStringLiteral("ActionsInfo::findActionInfo: action name = ") << actionName
-            << QStringLiteral(", context = ") << context);
+    QNDEBUG(QStringLiteral("ActionsInfo::findActionInfo: action name = ")
+            << actionName << QStringLiteral(", context = ") << context);
 
     // First look for menu whose name matches the "context"
     const QMenu * pTargetMenu = Q_NULLPTR;
@@ -73,7 +75,8 @@ const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(const QString & action
     return ActionInfo();
 }
 
-ActionsInfo::ActionInfo ActionsInfo::fromAction(const QAction * pAction, const QString & category) const
+ActionsInfo::ActionInfo ActionsInfo::fromAction(const QAction * pAction,
+                                                const QString & category) const
 {
     if (Q_UNLIKELY(!pAction)) {
         return ActionInfo();
@@ -89,14 +92,18 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(const QAction * pAction, const Q
 
     QVariant actionData = pAction->data();
 
-    if (actionData.canConvert<ActionKeyWithContext>()) {
+    if (actionData.canConvert<ActionKeyWithContext>())
+    {
         ActionKeyWithContext keyWithContext = actionData.value<ActionKeyWithContext>();
         info.m_shortcutKey = keyWithContext.m_key;
         info.m_context = keyWithContext.m_context;
     }
-    else if (actionData.canConvert<ActionNonStandardKeyWithContext>()) {
-        ActionNonStandardKeyWithContext nonStandardKeyWithContext = actionData.value<ActionNonStandardKeyWithContext>();
-        info.m_nonStandardShortcutKey = nonStandardKeyWithContext.m_nonStandardActionKey;
+    else if (actionData.canConvert<ActionNonStandardKeyWithContext>())
+    {
+        ActionNonStandardKeyWithContext nonStandardKeyWithContext =
+            actionData.value<ActionNonStandardKeyWithContext>();
+        info.m_nonStandardShortcutKey =
+            nonStandardKeyWithContext.m_nonStandardActionKey;
         info.m_context = nonStandardKeyWithContext.m_context;
     }
 
@@ -204,14 +211,17 @@ QTextStream & ActionsInfo::ActionInfo::print(QTextStream & strm) const
          << QStringLiteral(", localized name = ") << m_localizedName
          << QStringLiteral(", context = ") << m_context
          << QStringLiteral(", shortcut key = ") << m_shortcutKey
-         << QStringLiteral(", non-standard shortcut key = ") << m_nonStandardShortcutKey
-         << QStringLiteral(", shortcut = ") << m_shortcut.toString(QKeySequence::PortableText);
+         << QStringLiteral(", non-standard shortcut key = ")
+         << m_nonStandardShortcutKey
+         << QStringLiteral(", shortcut = ") <<
+         m_shortcut.toString(QKeySequence::PortableText);
     return strm;
 }
 
 bool ActionsInfo::ActionInfo::isEmpty() const
 {
-    return m_name.isEmpty() || m_context.isEmpty() || (m_shortcutKey < 0 && m_nonStandardShortcutKey.isEmpty());
+    return m_name.isEmpty() || m_context.isEmpty() ||
+           (m_shortcutKey < 0 && m_nonStandardShortcutKey.isEmpty());
 }
 
 } // namespace quentier

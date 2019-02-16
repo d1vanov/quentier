@@ -1,3 +1,21 @@
+/*
+ * Copyright 2017-2019 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "EnexExportDialog.h"
 #include "ui_EnexExportDialog.h"
 #include "../SettingsNames.h"
@@ -20,12 +38,15 @@ EnexExportDialog::EnexExportDialog(const Account & account,
 {
     m_pUi->setupUi(this);
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+    ApplicationSettings appSettings(m_currentAccount,
+                                    QUENTIER_AUXILIARY_SETTINGS);
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
-    QString lastEnexExportPath = appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY).toString();
-    bool exportTags = (appSettings.contains(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY)
-                       ? appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY).toBool()
-                       : true);
+    QString lastEnexExportPath =
+        appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY).toString();
+    bool exportTags =
+        (appSettings.contains(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY)
+         ? appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY).toBool()
+         : true);
     appSettings.endGroup();
 
     if (lastEnexExportPath.isEmpty()) {
@@ -33,9 +54,13 @@ EnexExportDialog::EnexExportDialog(const Account & account,
     }
 
     QFileInfo lastEnexExportPathInfo(lastEnexExportPath);
-    if (lastEnexExportPathInfo.exists() && lastEnexExportPathInfo.isDir() && lastEnexExportPathInfo.isWritable()) {
+    if (lastEnexExportPathInfo.exists() &&
+        lastEnexExportPathInfo.isDir() &&
+        lastEnexExportPathInfo.isWritable())
+    {
         m_pUi->folderLineEdit->setText(lastEnexExportPath);
-        QNDEBUG(QStringLiteral("EnexExportDialog: initialized folder path to ") << lastEnexExportPath);
+        QNDEBUG(QStringLiteral("EnexExportDialog: initialized folder path to ")
+                << lastEnexExportPath);
     }
 
     m_pUi->exportTagsCheckBox->setChecked(exportTags);
@@ -64,8 +89,9 @@ QString EnexExportDialog::exportEnexFilePath() const
     QString fileName = m_pUi->fileNameLineEdit->text();
 
     QNDEBUG(QStringLiteral("EnexExportDialog::exportEnexFilePath: folder path = ")
-            << folderPath << QStringLiteral(", converted folder path = ") << convertedFolderPath
-            << QStringLiteral(", file name = ") << fileName);
+            << folderPath << QStringLiteral(", converted folder path = ")
+            << convertedFolderPath << QStringLiteral(", file name = ")
+            << fileName);
 
     if (convertedFolderPath.isEmpty()) {
         QNDEBUG(QStringLiteral("No folder path was specified"));
@@ -102,13 +128,15 @@ QString EnexExportDialog::exportEnexFilePath() const
     }
 
     convertedFolderPath += fileName;
-    QNDEBUG(QStringLiteral("Absolute ENEX export file path: ") << convertedFolderPath);
+    QNDEBUG(QStringLiteral("Absolute ENEX export file path: ")
+            << convertedFolderPath);
     return convertedFolderPath;
 }
 
 void EnexExportDialog::onExportTagsOptionChanged(int state)
 {
-    QNDEBUG(QStringLiteral("EnexExportDialog::onExportTagsOptionChanged: state = ") << state);
+    QNDEBUG(QStringLiteral("EnexExportDialog::onExportTagsOptionChanged: state = ")
+            << state);
 
     bool checked = (state == Qt::Checked);
 
@@ -135,9 +163,11 @@ void EnexExportDialog::onBrowseFolderButtonPressed()
         }
     }
 
-    QScopedPointer<QFileDialog> pFileDialog(new QFileDialog(this,
-                                                            tr("Please select the folder in which to store the output ENEX file"),
-                                                            currentExportDir));
+    QScopedPointer<QFileDialog> pFileDialog(
+        new QFileDialog(this,
+                        tr("Please select the folder in which to store "
+                           "the output ENEX file"),
+                        currentExportDir));
     pFileDialog->setWindowModality(Qt::WindowModal);
     pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
     pFileDialog->setFileMode(QFileDialog::DirectoryOnly);
@@ -159,7 +189,8 @@ void EnexExportDialog::onBrowseFolderButtonPressed()
 
     QFileInfo dirInfo(dir);
     if (!dirInfo.exists()) {
-        QNDEBUG(QStringLiteral("Nonexistent directory or file was selected: ") << dir);
+        QNDEBUG(QStringLiteral("Nonexistent directory or file was selected: ")
+                << dir);
         setStatusText(tr("No existing directory was selected"));
         return;
     }
@@ -176,7 +207,8 @@ void EnexExportDialog::onBrowseFolderButtonPressed()
         return;
     }
 
-    m_pUi->folderLineEdit->setText(QDir::toNativeSeparators(dirInfo.absoluteFilePath()));
+    m_pUi->folderLineEdit->setText(
+        QDir::toNativeSeparators(dirInfo.absoluteFilePath()));
     persistExportFolderSetting();
     checkConditionsAndEnableDisableOkButton();
 }
@@ -199,14 +231,22 @@ void EnexExportDialog::createConnections()
 {
     QNDEBUG(QStringLiteral("EnexExportDialog::createConnections"));
 
-    QObject::connect(m_pUi->exportTagsCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
-                     this, QNSLOT(EnexExportDialog,onExportTagsOptionChanged,int));
-    QObject::connect(m_pUi->browseFolderPushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(EnexExportDialog,onBrowseFolderButtonPressed));
-    QObject::connect(m_pUi->fileNameLineEdit, QNSIGNAL(QLineEdit,textEdited,QString),
-                     this, QNSLOT(EnexExportDialog,onFileNameEdited,QString));
-    QObject::connect(m_pUi->folderLineEdit, QNSIGNAL(QLineEdit,textEdited,QString),
-                     this, QNSLOT(EnexExportDialog,onFolderEdited,QString));
+    QObject::connect(m_pUi->exportTagsCheckBox,
+                     QNSIGNAL(QCheckBox,stateChanged,int),
+                     this,
+                     QNSLOT(EnexExportDialog,onExportTagsOptionChanged,int));
+    QObject::connect(m_pUi->browseFolderPushButton,
+                     QNSIGNAL(QPushButton,clicked),
+                     this,
+                     QNSLOT(EnexExportDialog,onBrowseFolderButtonPressed));
+    QObject::connect(m_pUi->fileNameLineEdit,
+                     QNSIGNAL(QLineEdit,textEdited,QString),
+                     this,
+                     QNSLOT(EnexExportDialog,onFileNameEdited,QString));
+    QObject::connect(m_pUi->folderLineEdit,
+                     QNSIGNAL(QLineEdit,textEdited,QString),
+                     this,
+                     QNSLOT(EnexExportDialog,onFolderEdited,QString));
 }
 
 void EnexExportDialog::persistExportFolderSetting()

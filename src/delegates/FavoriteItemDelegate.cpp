@@ -1,3 +1,21 @@
+/*
+ * Copyright 2017-2019 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "FavoriteItemDelegate.h"
 #include "../models/FavoritesModel.h"
 #include "../models/FavoritesModelItem.h"
@@ -28,15 +46,18 @@ int FavoriteItemDelegate::sideSize() const
     return ICON_SIDE_SIZE;
 }
 
-QString FavoriteItemDelegate::displayText(const QVariant & value, const QLocale & locale) const
+QString FavoriteItemDelegate::displayText(const QVariant & value,
+                                          const QLocale & locale) const
 {
     return AbstractStyledItemDelegate::displayText(value, locale);
 }
 
-QWidget * FavoriteItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
+QWidget * FavoriteItemDelegate::createEditor(QWidget * parent,
+                                             const QStyleOptionViewItem & option,
                                              const QModelIndex & index) const
 {
-    // Only allow to edit the favorited item's display name but no other favorites model columns
+    // Only allow to edit the favorited item's display name but no other favorites
+    // model columns
     if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
         return AbstractStyledItemDelegate::createEditor(parent, option, index);
     }
@@ -45,7 +66,8 @@ QWidget * FavoriteItemDelegate::createEditor(QWidget * parent, const QStyleOptio
     }
 }
 
-void FavoriteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
+void FavoriteItemDelegate::paint(QPainter * painter,
+                                 const QStyleOptionViewItem & option,
                                  const QModelIndex & index) const
 {
     const QAbstractItemModel * model = index.model();
@@ -98,15 +120,20 @@ void FavoriteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
 
 void FavoriteItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
 {
-    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+    if (index.isValid() &&
+        (index.column() == FavoritesModel::Columns::DisplayName))
+    {
         AbstractStyledItemDelegate::setEditorData(editor, index);
     }
 }
 
-void FavoriteItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
+void FavoriteItemDelegate::setModelData(QWidget * editor,
+                                        QAbstractItemModel * model,
                                         const QModelIndex & index) const
 {
-    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+    if (index.isValid() &&
+        (index.column() == FavoritesModel::Columns::DisplayName))
+    {
         AbstractStyledItemDelegate::setModelData(editor, model, index);
     }
 }
@@ -117,7 +144,8 @@ QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
     int column = index.column();
     if (column == FavoritesModel::Columns::Type) {
         QSize size = m_iconSize;
-        size.setWidth(size.width() + 15);    // Some margin so that the icon is not tightly near the text
+        // Some margin so that the icon is not tightly near the text
+        size.setWidth(size.width() + 15);
         return size;
     }
     else {
@@ -125,15 +153,19 @@ QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
     }
 }
 
-void FavoriteItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
+void FavoriteItemDelegate::updateEditorGeometry(QWidget * editor,
+                                                const QStyleOptionViewItem & option,
                                                 const QModelIndex & index) const
 {
-    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+    if (index.isValid() &&
+        (index.column() == FavoritesModel::Columns::DisplayName))
+    {
         AbstractStyledItemDelegate::updateEditorGeometry(editor, option, index);
     }
 }
 
-QSize FavoriteItemDelegate::favoriteItemNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
+QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
@@ -147,15 +179,19 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(const QStyleOptionViewItem 
 
     QString nameSuffix;
 
-    QModelIndex itemTypeIndex = model->index(index.row(), FavoritesModel::Columns::Type, index.parent());
+    QModelIndex itemTypeIndex =
+        model->index(index.row(), FavoritesModel::Columns::Type, index.parent());
     QVariant itemType = model->data(itemTypeIndex);
     bool conversionResult = false;
-    FavoritesModelItem::Type::type itemTypeInt = static_cast<FavoritesModelItem::Type::type>(itemType.toInt(&conversionResult));
+    FavoritesModelItem::Type::type itemTypeInt =
+        static_cast<FavoritesModelItem::Type::type>(itemType.toInt(&conversionResult));
     if (conversionResult &&
         ((itemTypeInt == FavoritesModelItem::Type::Notebook) ||
          (itemTypeInt == FavoritesModelItem::Type::Tag)))
     {
-        QModelIndex numNotesIndex = model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted, index.parent());
+        QModelIndex numNotesIndex =
+            model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted,
+                         index.parent());
         QVariant numNotes = model->data(numNotesIndex);
         conversionResult = false;
         int numNotesInt = numNotes.toInt(&conversionResult);
@@ -171,11 +207,14 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(const QStyleOptionViewItem 
     int fontHeight = fontMetrics.height();
 
     double margin = 1.1;
-    return QSize(std::max(static_cast<int>(std::floor(nameWidth * margin + 0.5)), option.rect.width()),
-                 std::max(static_cast<int>(std::floor(fontHeight * margin + 0.5)), option.rect.height()));
+    return QSize(std::max(static_cast<int>(std::floor(nameWidth * margin + 0.5)),
+                          option.rect.width()),
+                 std::max(static_cast<int>(std::floor(fontHeight * margin + 0.5)),
+                          option.rect.height()));
 }
 
-void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter, const QModelIndex & index,
+void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter,
+                                                const QModelIndex & index,
                                                 const QStyleOptionViewItem & option) const
 {
     const QAbstractItemModel * model = index.model();
@@ -189,13 +228,16 @@ void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter, const QModel
 
     QString name = model->data(index).toString().simplified();
     if (name.isEmpty()) {
-        QNDEBUG(QStringLiteral("FavoriteItemDelegate::drawFavoriteItemName: item name is empty"));
+        QNDEBUG(QStringLiteral("FavoriteItemDelegate::drawFavoriteItemName: "
+                               "item name is empty"));
         return;
     }
 
     QString nameSuffix;
 
-    QModelIndex numNotesPerItemIndex = model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted, index.parent());
+    QModelIndex numNotesPerItemIndex =
+        model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted,
+                     index.parent());
     QVariant numNotesPerItem = model->data(numNotesPerItemIndex);
     bool conversionResult = false;
     int numNotesPerItemInt = numNotesPerItem.toInt(&conversionResult);
@@ -210,7 +252,8 @@ void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter, const QModel
     painter->setPen(option.state & QStyle::State_Selected
                     ? option.palette.highlightedText().color()
                     : option.palette.windowText().color());
-    painter->drawText(option.rect, name, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    painter->drawText(option.rect, name,
+                      QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     if (nameSuffix.isEmpty()) {
         return;
@@ -222,7 +265,8 @@ void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter, const QModel
     painter->setPen(option.state & QStyle::State_Selected
                     ? option.palette.color(QPalette::Active, QPalette::WindowText)
                     : option.palette.color(QPalette::Active, QPalette::Highlight));
-    painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix,
+                      QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
 } // namespace quentier

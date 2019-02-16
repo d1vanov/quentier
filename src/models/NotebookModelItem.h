@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -49,13 +49,20 @@ public:
     void setType(const Type::type type) { m_type = type; }
 
     const NotebookItem * notebookItem() const { return m_pNotebookItem; }
-    void setNotebookItem(const NotebookItem * notebookItem) { m_pNotebookItem = notebookItem; }
+    void setNotebookItem(const NotebookItem * notebookItem)
+    { m_pNotebookItem = notebookItem; }
 
-    const NotebookStackItem * notebookStackItem() const { return m_pNotebookStackItem; }
-    void setNotebookStackItem(const NotebookStackItem * notebookStackItem) { m_pNotebookStackItem = notebookStackItem; }
+    const NotebookStackItem * notebookStackItem() const
+    { return m_pNotebookStackItem; }
 
-    const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem() const { return m_pNotebookLinkedNotebookItem; }
-    void setNotebookLinkedNotebookItem(const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem)
+    void setNotebookStackItem(const NotebookStackItem * notebookStackItem)
+    { m_pNotebookStackItem = notebookStackItem; }
+
+    const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem() const
+    { return m_pNotebookLinkedNotebookItem; }
+
+    void setNotebookLinkedNotebookItem(
+        const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem)
     { m_pNotebookLinkedNotebookItem = notebookLinkedNotebookItem; }
 
     const NotebookModelItem * parent() const { return m_pParent; }

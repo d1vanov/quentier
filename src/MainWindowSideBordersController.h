@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,8 +44,11 @@ class MainWindowSideBordersController: public QObject
 {
     Q_OBJECT
 public:
-    explicit MainWindowSideBordersController(const Account & account, QWidget & leftBorder, QWidget & rightBorder,
-                                             QSplitter & horizontalLayoutSplitter, QWidget & parent);
+    explicit MainWindowSideBordersController(const Account & account,
+                                             QWidget & leftBorder,
+                                             QWidget & rightBorder,
+                                             QSplitter & horizontalLayoutSplitter,
+                                             QWidget & parent);
 
     void connectToPreferencesDialog(PreferencesDialog & dialog);
 
@@ -80,12 +83,14 @@ private:
     void onBorderColorChanged(const QString & colorCode, QWidget & border);
     void setBorderStyleSheet(const QString & colorCode, QWidget & border);
 
-    void onBorderContextMenuRequested(QWidget & border, QMenu & menu, const QPoint & pos);
+    void onBorderContextMenuRequested(QWidget & border, QMenu & menu,
+                                      const QPoint & pos);
 
     void initializeBordersState();
     void initializeBorderColor(const QString & panelStyle, QWidget & border);
     void setBorderDisplayedState(const MainWindowSideBorderOption::type option,
-                                 const bool mainWindowIsMaximized, QWidget & border);
+                                 const bool mainWindowIsMaximized,
+                                 QWidget & border);
 
     int sanitizeWidth(const int width) const;
 

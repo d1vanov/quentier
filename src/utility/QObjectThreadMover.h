@@ -29,8 +29,8 @@ namespace quentier {
  * object to some thread but you cannot "pull" it from some other thread
  * into the current thread (or some yet another thread). The workaround is to call
  * QObject::moveToThread from the thread which is currently assigned to the object.
- * This is what this function does using an intermediate QObject waiting in a blocking fashion
- * for the thread affinity change to happen before returning.
+ * This is what this function does using an intermediate QObject waiting in a
+ * blocking fashion for the thread affinity change to happen before returning.
  *
  * @param object                The object which needs to be moved from its
  *                              assigned thread to the target thread; the
@@ -42,6 +42,7 @@ namespace quentier {
  * @return                      True if the object was successfully moved to
  *                              another thread, false otherwise
  */
-bool moveObjectToThread(QObject & object, QThread & targetThread, ErrorString & errorDescription);
+bool moveObjectToThread(QObject & object, QThread & targetThread,
+                        ErrorString & errorDescription);
 
 } // namespace quentier

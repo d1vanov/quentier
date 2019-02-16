@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,10 +35,12 @@ class EditNoteDialogsManager: public QObject
 {
     Q_OBJECT
 public:
-    // NOTE: as dialogs need a widget to be their parent, this class' parent must be a QWidget instance
-    explicit EditNoteDialogsManager(LocalStorageManagerAsync & localStorageManagerAsync,
-                                    NoteCache & noteCache, NotebookModel * pNotebookModel,
-                                    QWidget * parent = Q_NULLPTR);
+    // NOTE: as dialogs need a widget to be their parent, this class' parent
+    // must be a QWidget instance
+    explicit EditNoteDialogsManager(
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        NoteCache & noteCache, NotebookModel * pNotebookModel,
+        QWidget * parent = Q_NULLPTR);
 
     void setNotebookModel(NotebookModel * pNotebookModel);
 
@@ -46,24 +48,31 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
     // private signals:
-    void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
-    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void findNote(Note note, LocalStorageManager::GetNoteOptions options,
+                  QUuid requestId);
+    void updateNote(Note note, LocalStorageManager::UpdateNoteOptions options,
+                    QUuid requestId);
 
 public Q_SLOTS:
     void onEditNoteDialogRequested(QString noteLocalUid);
     void onNoteInfoDialogRequested(QString noteLocalUid);
 
 private Q_SLOTS:
-    void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+    void onFindNoteComplete(Note note, LocalStorageManager::GetNoteOptions options,
+                            QUuid requestId);
+    void onFindNoteFailed(Note note, LocalStorageManager::GetNoteOptions options,
                           ErrorString errorDescription, QUuid requestId);
-    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
-    void onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
+    void onUpdateNoteComplete(Note note,
+                              LocalStorageManager::UpdateNoteOptions options,
+                              QUuid requestId);
+    void onUpdateNoteFailed(Note note,
+                            LocalStorageManager::UpdateNoteOptions options,
                             ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
-    void findNoteAndRaiseEditNoteDialog(const QString & noteLocalUid, const bool readOnlyFlag);
+    void findNoteAndRaiseEditNoteDialog(const QString & noteLocalUid,
+                                        const bool readOnlyFlag);
     void raiseEditNoteDialog(const Note & note, const bool readOnlyFlag);
 
 private:

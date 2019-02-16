@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,16 +35,24 @@ public:
 
 private:
     // QStyledItemDelegate interface
-    virtual QWidget * createEditor(QWidget * pParent, const QStyleOptionViewItem & option,
+    virtual QWidget * createEditor(QWidget * pParent,
+                                   const QStyleOptionViewItem & option,
                                    const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual void paint(QPainter * pPainter, const QStyleOptionViewItem & option,
+
+    virtual void paint(QPainter * pPainter,
+                       const QStyleOptionViewItem & option,
                        const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
+
+    virtual QSize sizeHint(const QStyleOptionViewItem & option,
+                           const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
-    bool paintImpl(QPainter * pPainter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+    bool paintImpl(QPainter * pPainter,
+                   const QStyleOptionViewItem & option,
+                   const QModelIndex & index) const;
 
-    void paintLogEntry(QPainter & painter, const QRect & adjustedRect, const LogViewerModel::Data & dataEntry,
+    void paintLogEntry(QPainter & painter, const QRect & adjustedRect,
+                       const LogViewerModel::Data & dataEntry,
                        const QFontMetrics & fontMetrics) const;
 
 private:

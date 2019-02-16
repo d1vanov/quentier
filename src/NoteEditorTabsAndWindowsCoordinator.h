@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,6 +25,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/types/Note.h>
+#include <quentier/local_storage/LocalStorageManager.h>
 #include <QTabWidget>
 #include <QSet>
 #include <QHash>
@@ -56,14 +57,16 @@ class NoteEditorTabsAndWindowsCoordinator: public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteEditorTabsAndWindowsCoordinator(const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
-                                                 NoteCache & noteCache, NotebookCache & notebookCache,
-                                                 TagCache & tagCache, TagModel & tagModel,
-                                                 TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
+    explicit NoteEditorTabsAndWindowsCoordinator(
+        const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
+        NoteCache & noteCache, NotebookCache & notebookCache,
+        TagCache & tagCache, TagModel & tagModel,
+        TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
+
     ~NoteEditorTabsAndWindowsCoordinator();
 
-    // Closes all note editor windows and tabs;
-    // should be called when the app is about to quit, called automatically when the account is switched
+    // Closes all note editor windows and tabs; should be called when the app is
+    // about to quit, called automatically when the account is switched
     void clear();
 
     void switchAccount(const Account & account, quentier::TagModel & tagModel);
@@ -84,10 +87,12 @@ public:
         };
     };
 
-    void addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any,
+    void addNote(const QString & noteLocalUid,
+                 const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any,
                  const bool isNewNote = false);
 
-    void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid,
+    void createNewNote(const QString & notebookLocalUid,
+                       const QString & notebookGuid,
                        const NoteEditorMode::type noteEditorMode);
 
     void setUseLimitedFonts(const bool flag);
@@ -105,7 +110,8 @@ Q_SIGNALS:
     void requestAddNote(Note note, QUuid requestId);
     void requestExpungeNote(Note note, QUuid requestId);
 
-    void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
+    void findNote(Note note, LocalStorageManager::GetNoteOptions options,
+                  QUuid requestId);
 
     void noteExpungedFromLocalStorage();
     void noteExpungeFromLocalStorageFailed();
@@ -115,20 +121,26 @@ private Q_SLOTS:
     void onNoteEditorWidgetInvalidated();
     void onNoteTitleOrPreviewTextChanged(QString titleOrPreview);
     void onNoteEditorTabCloseRequested(int tabIndex);
-    void onInAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid);
+    void onInAppNoteLinkClicked(QString userId, QString shardId,
+                                QString noteGuid);
 
     void onNoteLoadedInEditor();
     void onNoteEditorError(ErrorString errorDescription);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription,
+                         QUuid requestId);
 
-    void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+    void onFindNoteComplete(Note note,
+                            LocalStorageManager::GetNoteOptions options,
+                            QUuid requestId);
+    void onFindNoteFailed(Note note,
+                          LocalStorageManager::GetNoteOptions options,
                           ErrorString errorDescription, QUuid requestId);
 
     void onExpungeNoteComplete(Note note, QUuid requestId);
-    void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
+    void onExpungeNoteFailed(Note note, ErrorString errorDescription,
+                             QUuid requestId);
 
     void onCurrentTabChanged(int currentIndex);
 
@@ -144,7 +156,8 @@ private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) Q_DECL_OVERRIDE;
 
 private:
-    void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget, const NoteEditorMode::type noteEditorMode);
+    void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget,
+                                const NoteEditorMode::type noteEditorMode);
 
     void removeNoteEditorTab(int tabIndex, const bool closeEditor);
     void checkAndCloseOlderNoteEditorTabs();

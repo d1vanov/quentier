@@ -1,7 +1,7 @@
 /*
 * The MIT License (MIT)
 *
-* Copyright (c) 2015 Dmitry Ivanov
+* Copyright (c) 2015-2019 Dmitry Ivanov
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,17 @@ ColorPickerActionWidget::ColorPickerActionWidget(QWidget * parent) :
     m_colorDialog(new QColorDialog(parent))
 {
     m_colorDialog->setWindowFlags(Qt::Widget);
-    m_colorDialog->setOptions(QColorDialog::DontUseNativeDialog | QColorDialog::ShowAlphaChannel);
+    m_colorDialog->setOptions(QColorDialog::DontUseNativeDialog |
+                              QColorDialog::ShowAlphaChannel);
 
     QColor currentColor = m_colorDialog->currentColor();
     currentColor.setAlpha(255);
     m_colorDialog->setCurrentColor(currentColor);
 
-    QObject::connect(m_colorDialog, SIGNAL(colorSelected(QColor)), this, SIGNAL(colorSelected(QColor)));
-    QObject::connect(m_colorDialog, SIGNAL(rejected()), this, SIGNAL(rejected()));
+    QObject::connect(m_colorDialog, SIGNAL(colorSelected(QColor)),
+                     this, SIGNAL(colorSelected(QColor)));
+    QObject::connect(m_colorDialog, SIGNAL(rejected()),
+                     this, SIGNAL(rejected()));
 
     setDefaultWidget(m_colorDialog);
 }

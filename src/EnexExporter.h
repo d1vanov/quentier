@@ -1,9 +1,28 @@
+/*
+ * Copyright 2017-2019 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef QUENTIER_ENEX_EXPORTER_H
 #define QUENTIER_ENEX_EXPORTER_H
 
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
+#include <quentier/local_storage/LocalStorageManager.h>
 #include <QObject>
 #include <QStringList>
 #include <QSet>
@@ -25,13 +44,20 @@ public:
                           NoteEditorTabsAndWindowsCoordinator & coordinator,
                           TagModel & tagModel, QObject * parent = Q_NULLPTR);
 
-    const QString & targetEnexFilePath() const { return m_targetEnexFilePath; }
-    void setTargetEnexFilePath(const QString & path) { m_targetEnexFilePath = path; }
+    const QString & targetEnexFilePath() const
+    { return m_targetEnexFilePath; }
 
-    const QStringList & noteLocalUids() const { return m_noteLocalUids; }
+    void setTargetEnexFilePath(const QString & path)
+    { m_targetEnexFilePath = path; }
+
+    const QStringList & noteLocalUids() const
+    { return m_noteLocalUids; }
+
     void setNoteLocalUids(const QStringList & noteLocalUids);
 
-    bool includeTags() const { return m_includeTags; }
+    bool includeTags() const
+    { return m_includeTags; }
+
     void setIncludeTags(const bool includeTags);
 
     bool isInProgress() const;
@@ -44,11 +70,13 @@ Q_SIGNALS:
     void failedToExportNotesToEnex(ErrorString errorDescription);
 
 // private signals:
-    void findNote(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
+    void findNote(Note note, LocalStorageManager::GetNoteOptions options,
+                  QUuid requestId);
 
 private Q_SLOTS:
-    void onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
+    void onFindNoteComplete(Note note, LocalStorageManager::GetNoteOptions options,
+                            QUuid requestId);
+    void onFindNoteFailed(Note note, LocalStorageManager::GetNoteOptions options,
                           ErrorString errorDescription, QUuid requestId);
 
     void onAllTagsListed();

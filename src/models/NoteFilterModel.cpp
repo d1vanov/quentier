@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,17 +34,22 @@ NoteFilterModel::NoteFilterModel(QObject * parent) :
 
 bool NoteFilterModel::hasFilters() const
 {
-    return !m_notebookLocalUids.isEmpty() || !m_tagLocalUids.isEmpty() || !m_noteLocalUids.isEmpty();
+    return !m_notebookLocalUids.isEmpty() ||
+           !m_tagLocalUids.isEmpty() ||
+           !m_noteLocalUids.isEmpty();
 }
 
 void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteFilterModel::setNotebookLocalUids: ") << notebookLocalUids.join(QStringLiteral(", ")));
+    QNDEBUG(QStringLiteral("NoteFilterModel::setNotebookLocalUids: ")
+            << notebookLocalUids.join(QStringLiteral(", ")));
 
-    if (!m_usingNoteLocalUidsFilter && (m_notebookLocalUids.size() == notebookLocalUids.size()))
+    if (!m_usingNoteLocalUidsFilter &&
+        (m_notebookLocalUids.size() == notebookLocalUids.size()))
     {
         bool foundDifference = false;
-        for(auto it = m_notebookLocalUids.constBegin(), end = m_notebookLocalUids.constEnd(); it != end; ++it)
+        for(auto it = m_notebookLocalUids.constBegin(),
+            end = m_notebookLocalUids.constEnd(); it != end; ++it)
         {
             if (!notebookLocalUids.contains(*it)) {
                 foundDifference = true;
@@ -53,7 +58,8 @@ void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids
         }
 
         if (!foundDifference) {
-            QNTRACE(QStringLiteral("The same set of notebook local uids is set currently, nothing has changed"));
+            QNTRACE(QStringLiteral("The same set of notebook local uids is set "
+                                   "currently, nothing has changed"));
             return;
         }
     }
@@ -72,12 +78,15 @@ void NoteFilterModel::setNotebookLocalUids(const QStringList & notebookLocalUids
 
 void NoteFilterModel::setTagLocalUids(const QStringList & tagLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteFilterModel::setTagLocalUids: ") << tagLocalUids.join(QStringLiteral(", ")));
+    QNDEBUG(QStringLiteral("NoteFilterModel::setTagLocalUids: ")
+            << tagLocalUids.join(QStringLiteral(", ")));
 
-    if (!m_usingNoteLocalUidsFilter && (m_tagLocalUids.size() == tagLocalUids.size()))
+    if (!m_usingNoteLocalUidsFilter &&
+        (m_tagLocalUids.size() == tagLocalUids.size()))
     {
         bool foundDifference = false;
-        for(auto it = m_tagLocalUids.constBegin(), end = m_tagLocalUids.constEnd(); it != end; ++it)
+        for(auto it = m_tagLocalUids.constBegin(),
+            end = m_tagLocalUids.constEnd(); it != end; ++it)
         {
             if (!tagLocalUids.contains(*it)) {
                 foundDifference = true;
@@ -86,7 +95,8 @@ void NoteFilterModel::setTagLocalUids(const QStringList & tagLocalUids)
         }
 
         if (!foundDifference) {
-            QNTRACE(QStringLiteral("The same set of tag names is set currently, nothing has changed"));
+            QNTRACE(QStringLiteral("The same set of tag names is set currently, "
+                                   "nothing has changed"));
             return;
         }
     }
@@ -114,7 +124,8 @@ void NoteFilterModel::setNoteLocalUids(const QSet<QString> & noteLocalUids)
     m_usingNoteLocalUidsFilter = true;
 
     if (noteLocalUids == m_noteLocalUids) {
-        QNTRACE(QStringLiteral("The same set of note local uids is set currently, nothing has changed"));
+        QNTRACE(QStringLiteral("The same set of note local uids is set currently, "
+                               "nothing has changed"));
         return;
     }
 
@@ -171,40 +182,60 @@ QTextStream & NoteFilterModel::print(QTextStream & strm) const
 {
     strm << QStringLiteral("NoteFilterModel: {\n");
     strm << QStringLiteral("    notebook local uids: ")
-         << (m_notebookLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_notebookLocalUids.join(QStringLiteral(", ")))
+         << (m_notebookLocalUids.isEmpty()
+             ? QStringLiteral("<empty>")
+             : m_notebookLocalUids.join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    tag local uids: ")
-         << (m_tagLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_tagLocalUids.join(QStringLiteral(", ")))
+         << (m_tagLocalUids.isEmpty()
+             ? QStringLiteral("<empty>")
+             : m_tagLocalUids.join(QStringLiteral(", ")))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    note local uids: ")
-         << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : noteLocalUidsToString())
+         << (m_noteLocalUids.isEmpty()
+             ? QStringLiteral("<empty>")
+             : noteLocalUidsToString())
          << QStringLiteral(";\n");
     strm << QStringLiteral("    using note local uids filter: ")
-         << (m_usingNoteLocalUidsFilter ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
-    strm << QStringLiteral("    pending filter update: ") << (m_pendingFilterUpdate ? QStringLiteral("true") : QStringLiteral("false"))
+         << (m_usingNoteLocalUidsFilter
+             ? QStringLiteral("true")
+             : QStringLiteral("false"))
+         << QStringLiteral(";\n");
+    strm << QStringLiteral("    pending filter update: ")
+        << (m_pendingFilterUpdate
+            ? QStringLiteral("true")
+            : QStringLiteral("false"))
          << QStringLiteral(";\n");
     strm << QStringLiteral("    modified while pending filter update: ")
-         << (m_modifiedWhilePendingFilterUpdate ? QStringLiteral("true") : QStringLiteral("false"))
+         << (m_modifiedWhilePendingFilterUpdate
+             ? QStringLiteral("true")
+             : QStringLiteral("false"))
          << QStringLiteral(";\n");
     strm << QStringLiteral("};\n");
     return strm;
 }
 
-bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const
+bool NoteFilterModel::filterAcceptsRow(int sourceRow,
+                                       const QModelIndex & sourceParent) const
 {
     Q_UNUSED(sourceParent);
 
-    const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(QSortFilterProxyModel::sourceModel());
-    if (Q_UNLIKELY(!pNoteModel)) {
-        ErrorString error(QT_TR_NOOP("Internal error: failed to get the note model from its proxy filter model"));
+    const NoteModel * pNoteModel =
+        qobject_cast<const NoteModel*>(QSortFilterProxyModel::sourceModel());
+    if (Q_UNLIKELY(!pNoteModel))
+    {
+        ErrorString error(QT_TR_NOOP("Internal error: failed to get the note "
+                                     "model from its proxy filter model"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
         return false;
     }
 
     const NoteModelItem * pItem = pNoteModel->itemAtRow(sourceRow);
-    if (Q_UNLIKELY(!pItem)) {
-        ErrorString error(QT_TR_NOOP("Failed to get get note model item at the specified row"));
+    if (Q_UNLIKELY(!pItem))
+    {
+        ErrorString error(QT_TR_NOOP("Failed to get get note model item at "
+                                     "the specified row"));
         error.details() = QString::number(sourceRow);
         QNWARNING(error);
         Q_EMIT notifyError(error);
@@ -216,15 +247,17 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
         return m_noteLocalUids.contains(pItem->localUid());
     }
 
-    // NOTE: filtering by notebooks and tags is cumulative: the row is only accepted if it's accepted by both
-    // notebook and tag filters (if both are set)
+    // NOTE: filtering by notebooks and tags is cumulative: the row is only
+    // accepted if it's accepted by both notebook and tag filters (if both are set)
 
     if (!m_notebookLocalUids.isEmpty())
     {
         bool filteredIn = m_notebookLocalUids.contains(pItem->notebookLocalUid());
         if (!filteredIn) {
-            QNTRACE(QStringLiteral("Note's notebook uid is not one of those to be filtered in: ")
-                    << pItem->notebookLocalUid() << QStringLiteral("; ") << m_notebookLocalUids.join(QStringLiteral(", "))
+            QNTRACE(QStringLiteral("Note's notebook uid is not one of those to ")
+                    << QStringLiteral("be filtered in: ")
+                    << pItem->notebookLocalUid() << QStringLiteral("; ")
+                    << m_notebookLocalUids.join(QStringLiteral(", "))
                     << QStringLiteral("; item: ") << *pItem);
             return false;
         }
@@ -233,7 +266,8 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
     if (!m_tagLocalUids.isEmpty())
     {
         const QStringList & itemTagLocalUids = pItem->tagLocalUids();
-        for(auto it = itemTagLocalUids.constBegin(), end = itemTagLocalUids.constEnd(); it != end; ++it)
+        for(auto it = itemTagLocalUids.constBegin(),
+            end = itemTagLocalUids.constEnd(); it != end; ++it)
         {
             if (m_tagLocalUids.contains(*it)) {
                 return true;
@@ -249,7 +283,9 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
 QString NoteFilterModel::noteLocalUidsToString() const
 {
     QString str;
-    for(auto it = m_noteLocalUids.constBegin(), end = m_noteLocalUids.constEnd(); it != end; ++it) {
+    for(auto it = m_noteLocalUids.constBegin(),
+        end = m_noteLocalUids.constEnd(); it != end; ++it)
+    {
         str += *it;
         str += QStringLiteral(", ");
     }

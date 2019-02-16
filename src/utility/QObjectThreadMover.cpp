@@ -24,7 +24,8 @@
 
 namespace quentier {
 
-bool moveObjectToThread(QObject & object, QThread & targetThread, ErrorString & errorDescription)
+bool moveObjectToThread(QObject & object, QThread & targetThread,
+                        ErrorString & errorDescription)
 {
     ThreadMover * pThreadMover = new ThreadMover(object, targetThread);
     pThreadMover->moveToThread(object.thread());
@@ -32,8 +33,11 @@ bool moveObjectToThread(QObject & object, QThread & targetThread, ErrorString & 
     EventLoopWithExitStatus loop;
     QObject::connect(pThreadMover, QNSIGNAL(ThreadMover,finished),
                      &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-    QObject::connect(pThreadMover, QNSIGNAL(ThreadMover,notifyError,ErrorString),
-                     &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithErrorString,ErrorString));
+    QObject::connect(pThreadMover,
+                     QNSIGNAL(ThreadMover,notifyError,ErrorString),
+                     &loop,
+                     QNSLOT(EventLoopWithExitStatus,
+                            exitAsFailureWithErrorString,ErrorString));
 
     QTimer slotInvokingTimer;
     slotInvokingTimer.singleShot(0, pThreadMover, SLOT(start()));

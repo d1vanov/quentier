@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -43,8 +43,14 @@ bool removeDir(const QString & dirPath)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
         res = dir.removeRecursively();
 #else
-        QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst);
-        for(auto it = entries.constBegin(), end = entries.constEnd(); it != end; ++it)
+        QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot |
+                                                  QDir::System |
+                                                  QDir::Hidden |
+                                                  QDir::AllDirs |
+                                                  QDir::Files,
+                                                  QDir::DirsFirst);
+        for(auto it = entries.constBegin(),
+            end = entries.constEnd(); it != end; ++it)
         {
             QFileInfo info(*it);
             if (info.isDir()) {

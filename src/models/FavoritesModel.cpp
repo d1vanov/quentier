@@ -33,8 +33,9 @@ namespace quentier {
 
 FavoritesModel::FavoritesModel(const Account & account,
                                LocalStorageManagerAsync & localStorageManagerAsync,
-                               NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
-                               SavedSearchCache & savedSearchCache, QObject * parent) :
+                               NoteCache & noteCache, NotebookCache & notebookCache,
+                               TagCache & tagCache, SavedSearchCache & savedSearchCache,
+                               QObject * parent) :
     QAbstractItemModel(parent),
     m_account(account),
     m_data(),
@@ -100,14 +101,16 @@ QModelIndex FavoritesModel::indexForLocalUid(const QString & localUid) const
     const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNDEBUG(QStringLiteral("Can't find favorites model item by local uid: ") << localUid);
+        QNDEBUG(QStringLiteral("Can't find favorites model item by local uid: ")
+                << localUid);
         return QModelIndex();
     }
 
     const FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
     auto indexIt = m_data.project<ByIndex>(it);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        QNWARNING(QStringLiteral("Can't find the indexed reference to the favorites model item: ") << *it);
+        QNWARNING(QStringLiteral("Can't find the indexed reference to the favorites ")
+                  << QStringLiteral("model item: ") << *it);
         return QModelIndex();
     }
 
@@ -115,12 +118,14 @@ QModelIndex FavoritesModel::indexForLocalUid(const QString & localUid) const
     return createIndex(row, Columns::DisplayName);
 }
 
-const FavoritesModelItem * FavoritesModel::itemForLocalUid(const QString & localUid) const
+const FavoritesModelItem * FavoritesModel::itemForLocalUid(
+    const QString & localUid) const
 {
     const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNDEBUG(QStringLiteral("Can't find favorites model item by local uid: ") << localUid);
+        QNDEBUG(QStringLiteral("Can't find favorites model item by local uid: ")
+                << localUid);
         return Q_NULLPTR;
     }
 
@@ -131,7 +136,8 @@ const FavoritesModelItem * FavoritesModel::itemAtRow(const int row) const
 {
     const FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
     if (Q_UNLIKELY((row < 0) || (rowIndex.size() <= static_cast<size_t>(row)))) {
-        QNDEBUG(QStringLiteral("Detected attempt to get the favorites model item for non-existing row"));
+        QNDEBUG(QStringLiteral("Detected attempt to get the favorites model item "
+                               "for non-existing row"));
         return Q_NULLPTR;
     }
 
@@ -220,7 +226,9 @@ QVariant FavoritesModel::data(const QModelIndex & index, int role) const
     }
 }
 
-QVariant FavoritesModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant FavoritesModel::headerData(int section,
+                                    Qt::Orientation orientation,
+                                    int role) const
 {
     if (role != Qt::DisplayRole) {
         return QVariant();
@@ -233,13 +241,17 @@ QVariant FavoritesModel::headerData(int section, Qt::Orientation orientation, in
     switch(section)
     {
     case Columns::Type:
-        // TRANSLATOR: the type of the favorites model item - note, notebook, tag or saved search
+        // TRANSLATOR: the type of the favorites model item - note, notebook,
+        // TRANSLATOR: tag or saved search
         return QVariant(tr("Type"));
     case Columns::DisplayName:
-        // TRANSLATOR: the displayed name of the favorites model item - the name of a notebook or tag or saved search of the note's title
+        // TRANSLATOR: the displayed name of the favorites model item - the name
+        // TRANSLATOR: of a notebook or tag or saved search of the note's title
         return QVariant(tr("Name"));
     case Columns::NumNotesTargeted:
-        // TRANSLATOR: the number of items targeted by the favorites model item, in particular, the number of notes targeted by the notebook or tag
+        // TRANSLATOR: the number of items targeted by the favorites model item,
+        // TRANSLATOR: in particular, the number of notes targeted by the notebook
+        // TRANSLATOR: or tag
         return QVariant(tr("N items"));
     default:
         return QVariant();
@@ -285,7 +297,8 @@ QModelIndex FavoritesModel::parent(const QModelIndex & index) const
     return QModelIndex();
 }
 
-bool FavoritesModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant & value, int role)
+bool FavoritesModel::setHeaderData(int section, Qt::Orientation orientation,
+                                   const QVariant & value, int role)
 {
     Q_UNUSED(section)
     Q_UNUSED(orientation)
@@ -294,7 +307,8 @@ bool FavoritesModel::setHeaderData(int section, Qt::Orientation orientation, con
     return false;
 }
 
-bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, int role)
+bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value,
+                             int role)
 {
     if (!index.isValid()) {
         return false;
@@ -349,9 +363,13 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
             case FavoritesModelItem::Type::Notebook:
                 {
                     auto it = m_lowerCaseNotebookNames.find(newDisplayName.toLower());
-                    if (it != m_lowerCaseNotebookNames.end()) {
-                        ErrorString error(QT_TR_NOOP("Can't rename the notebook: no two notebooks within the account "
-                                                     "are allowed to have the same name in case-insensitive manner"));
+                    if (it != m_lowerCaseNotebookNames.end())
+                    {
+                        ErrorString error(QT_TR_NOOP("Can't rename the notebook: "
+                                                     "no two notebooks within "
+                                                     "the account are allowed "
+                                                     "to have the same name in "
+                                                     "case-insensitive manner"));
                         error.details() = newDisplayName;
                         QNINFO(error);
                         Q_EMIT notifyError(error);
@@ -359,12 +377,14 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
                     }
 
                     ErrorString errorDescription;
-                    if (!Notebook::validateName(newDisplayName, &errorDescription)) {
+                    if (!Notebook::validateName(newDisplayName, &errorDescription))
+                    {
                         ErrorString error(QT_TR_NOOP("Can't rename the notebook"));
                         error.appendBase(errorDescription.base());
                         error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
-                        QNINFO(error << QStringLiteral(", suggested new name = ") << newDisplayName);
+                        QNINFO(error << QStringLiteral(", suggested new name = ")
+                               << newDisplayName);
                         Q_EMIT notifyError(error);
                         return false;
                     }
@@ -382,21 +402,27 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
             case FavoritesModelItem::Type::Tag:
                 {
                     auto it = m_lowerCaseTagNames.find(newDisplayName.toLower());
-                    if (it != m_lowerCaseTagNames.end()) {
-                        ErrorString error(QT_TR_NOOP("Can't rename the tag: no two tags within the account are allowed "
-                                                     "to have the same name in case-insensitive manner"));
+                    if (it != m_lowerCaseTagNames.end())
+                    {
+                        ErrorString error(QT_TR_NOOP("Can't rename the tag: no "
+                                                     "two tags within the account "
+                                                     "are allowed to have the same "
+                                                     "name in case-insensitive "
+                                                     "manner"));
                         QNINFO(error);
                         Q_EMIT notifyError(error);
                         return false;
                     }
 
                     ErrorString errorDescription;
-                    if (!Tag::validateName(newDisplayName, &errorDescription)) {
+                    if (!Tag::validateName(newDisplayName, &errorDescription))
+                    {
                         ErrorString error(QT_TR_NOOP("Can't rename the tag"));
                         error.appendBase(errorDescription.base());
                         error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
-                        QNINFO(error << QStringLiteral(", suggested new name = ") << newDisplayName);
+                        QNINFO(error << QStringLiteral(", suggested new name = ")
+                               << newDisplayName);
                         Q_EMIT notifyError(error);
                         return false;
                     }
@@ -414,21 +440,28 @@ bool FavoritesModel::setData(const QModelIndex & index, const QVariant & value, 
             case FavoritesModelItem::Type::SavedSearch:
                 {
                     auto it = m_lowerCaseSavedSearchNames.find(newDisplayName.toLower());
-                    if (it != m_lowerCaseSavedSearchNames.end()) {
-                        ErrorString error(QT_TR_NOOP("Can't rename the saved search: no two saved searches within the account "
-                                                     "are allowed to have the same name in case-insensitive manner"));
+                    if (it != m_lowerCaseSavedSearchNames.end())
+                    {
+                        ErrorString error(QT_TR_NOOP("Can't rename the saved "
+                                                     "search: no two saved searches "
+                                                     "within the account are "
+                                                     "allowed to have the same "
+                                                     "name in case-insensitive "
+                                                     "manner"));
                         QNINFO(error);
                         Q_EMIT notifyError(error);
                         return false;
                     }
 
                     ErrorString errorDescription;
-                    if (!SavedSearch::validateName(newDisplayName, &errorDescription)) {
+                    if (!SavedSearch::validateName(newDisplayName, &errorDescription))
+                    {
                         ErrorString error(QT_TR_NOOP("Can't rename the saved search"));
                         error.appendBase(errorDescription.base());
                         error.appendBase(errorDescription.additionalBases());
                         error.details() = errorDescription.details();
-                        QNINFO(error << QStringLiteral(", suggested new name = ") << newDisplayName);
+                        QNINFO(error << QStringLiteral(", suggested new name = ")
+                               << newDisplayName);
                         Q_EMIT notifyError(error);
                         return false;
                     }
@@ -475,14 +508,18 @@ bool FavoritesModel::insertRows(int row, int count, const QModelIndex & parent)
 bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
 {
     if (Q_UNLIKELY(parent.isValid())) {
-        QNDEBUG(QStringLiteral("Ignoring the attempt to remove rows from favorites model for valid parent model index"));
+        QNDEBUG(QStringLiteral("Ignoring the attempt to remove rows from favorites "
+                               "model for valid parent model index"));
         return false;
     }
 
     if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size()))) {
-        ErrorString error(QT_TR_NOOP("Detected attempt to remove more rows than the favorites model contains"));
-        QNINFO(error << QStringLiteral(", row = ") << row << QStringLiteral(", count = ") << count
-               << QStringLiteral(", number of favorites model items = ") << m_data.size());
+        ErrorString error(QT_TR_NOOP("Detected attempt to remove more rows than "
+                                     "the favorites model contains"));
+        QNINFO(error << QStringLiteral(", row = ") << row
+               << QStringLiteral(", count = ") << count
+               << QStringLiteral(", number of favorites model items = ")
+               << m_data.size());
         Q_EMIT notifyError(error);
         return false;
     }
@@ -523,7 +560,8 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
             break;
         default:
             {
-                QNDEBUG(QStringLiteral("Favorites model item with unknown type detected: ") << item);
+                QNDEBUG(QStringLiteral("Favorites model item with unknown type ")
+                        << QStringLiteral("detected: ") << item);
                 break;
             }
         }
@@ -531,19 +569,27 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
 
     Q_UNUSED(rowIndex.erase(rowIndex.begin() + row, rowIndex.begin() + row + count))
 
-    for(auto it = notebookLocalUidsToRemove.begin(), end = notebookLocalUidsToRemove.end(); it != end; ++it) {
+    for(auto it = notebookLocalUidsToRemove.begin(),
+        end = notebookLocalUidsToRemove.end(); it != end; ++it)
+    {
         unfavoriteNotebook(*it);
     }
 
-    for(auto it = noteLocalUidsToRemove.begin(), end = noteLocalUidsToRemove.end(); it != end; ++it) {
+    for(auto it = noteLocalUidsToRemove.begin(),
+        end = noteLocalUidsToRemove.end(); it != end; ++it)
+    {
         unfavoriteNote(*it);
     }
 
-    for(auto it = tagLocalUidsToRemove.begin(), end = tagLocalUidsToRemove.end(); it != end; ++it) {
+    for(auto it = tagLocalUidsToRemove.begin(),
+        end = tagLocalUidsToRemove.end(); it != end; ++it)
+    {
         unfavoriteTag(*it);
     }
 
-    for(auto it = savedSearchLocalUidsToRemove.begin(), end = savedSearchLocalUidsToRemove.end(); it != end; ++it) {
+    for(auto it = savedSearchLocalUidsToRemove.begin(),
+        end = savedSearchLocalUidsToRemove.end(); it != end; ++it)
+    {
         unfavoriteSavedSearch(*it);
     }
 
@@ -554,8 +600,11 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
 
 void FavoritesModel::sort(int column, Qt::SortOrder order)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::sort: column = ") << column << QStringLiteral(", order = ") << order
-            << QStringLiteral(" (") << (order == Qt::AscendingOrder ? QStringLiteral("ascending") : QStringLiteral("descending"))
+    QNDEBUG(QStringLiteral("FavoritesModel::sort: column = ") << column
+            << QStringLiteral(", order = ") << order << QStringLiteral(" (")
+            << (order == Qt::AscendingOrder
+                ? QStringLiteral("ascending")
+                : QStringLiteral("descending"))
             << QStringLiteral(")"));
 
     if (Q_UNLIKELY((column < 0) || (column >= NUM_FAVORITES_MODEL_COLUMNS))) {
@@ -567,7 +616,8 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
     if (column == m_sortedColumn)
     {
         if (order == m_sortOrder) {
-            QNDEBUG(QStringLiteral("Neither sorted column nor sort order have changed, nothing to do"));
+            QNDEBUG(QStringLiteral("Neither sorted column nor sort order have "
+                                   "changed, nothing to do"));
             return;
         }
 
@@ -592,7 +642,8 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
     localUidsToUpdateWithColumns.reserve(persistentIndices.size());
 
     QStringList localUidsToUpdate;
-    for(auto it = persistentIndices.begin(), end = persistentIndices.end(); it != end; ++it)
+    for(auto it = persistentIndices.begin(),
+        end = persistentIndices.end(); it != end; ++it)
     {
         const QModelIndex & modelIndex = *it;
         int column = modelIndex.column();
@@ -615,13 +666,15 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
         localUidsToUpdateWithColumns << std::pair<QString, int>(item.localUid(), column);
     }
 
-    std::vector<boost::reference_wrapper<const FavoritesModelItem> > items(rowIndex.begin(), rowIndex.end());
+    std::vector<boost::reference_wrapper<const FavoritesModelItem> > items(rowIndex.begin(),
+                                                                           rowIndex.end());
     std::sort(items.begin(), items.end(), Comparator(m_sortedColumn, m_sortOrder));
     rowIndex.rearrange(items.begin());
 
     QModelIndexList replacementIndices;
     replacementIndices.reserve(std::max(localUidsToUpdateWithColumns.size(), 0));
-    for(auto it = localUidsToUpdateWithColumns.begin(), end = localUidsToUpdateWithColumns.end(); it != end; ++it)
+    for(auto it = localUidsToUpdateWithColumns.begin(),
+        end = localUidsToUpdateWithColumns.end(); it != end; ++it)
     {
         const QString & localUid = it->first;
         const int column = it->second;
@@ -648,19 +701,27 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
 
 void FavoritesModel::onAddNoteComplete(Note note, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onAddNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onAddNoteComplete: note = ") << note
+            << QStringLiteral("\nRequest id = ") << requestId);
     onNoteAddedOrUpdated(note);
 }
 
-void FavoritesModel::onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
+void FavoritesModel::onUpdateNoteComplete(
+    Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNoteComplete: note = ") << note
             << QStringLiteral("\nUpdate resource metadata = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", update resource binary data = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", update tags = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", request id = ") << requestId);
 
     auto it = m_updateNoteRequestIds.find(requestId);
@@ -669,10 +730,12 @@ void FavoritesModel::onUpdateNoteComplete(Note note, LocalStorageManager::Update
         return;
     }
 
-    onNoteAddedOrUpdated(note, (options & LocalStorageManager::UpdateNoteOption::UpdateTags));
+    onNoteAddedOrUpdated(
+        note, (options & LocalStorageManager::UpdateNoteOption::UpdateTags));
 }
 
-void FavoritesModel::onNoteMovedToAnotherNotebook(QString noteLocalUid, QString previousNotebookLocalUid,
+void FavoritesModel::onNoteMovedToAnotherNotebook(QString noteLocalUid,
+                                                  QString previousNotebookLocalUid,
                                                   QString newNotebookLocalUid)
 {
     QNDEBUG(QStringLiteral("FavoritesModel::onNoteMovedToAnotherNotebook: note local uid = ")
@@ -684,12 +747,14 @@ void FavoritesModel::onNoteMovedToAnotherNotebook(QString noteLocalUid, QString 
     checkAndIncrementNoteCountPerNotebook(newNotebookLocalUid);
 }
 
-void FavoritesModel::onNoteTagListChanged(QString noteLocalUid, QStringList previousNoteTagLocalUids,
+void FavoritesModel::onNoteTagListChanged(QString noteLocalUid,
+                                          QStringList previousNoteTagLocalUids,
                                           QStringList newNoteTagLocalUids)
 {
     QNDEBUG(QStringLiteral("FavoritesModel::onNoteTagListChanged: note local uid = ")
             << noteLocalUid << QStringLiteral(", previous tag local uids = ")
-            << previousNoteTagLocalUids.join(QStringLiteral(",")) << QStringLiteral(", new tag local uids = ")
+            << previousNoteTagLocalUids.join(QStringLiteral(","))
+            << QStringLiteral(", new tag local uids = ")
             << newNoteTagLocalUids.join(QStringLiteral(",")));
 
     std::sort(previousNoteTagLocalUids.begin(), previousNoteTagLocalUids.end());
@@ -697,24 +762,35 @@ void FavoritesModel::onNoteTagListChanged(QString noteLocalUid, QStringList prev
 
     std::vector<QString> commonTagLocalUids;
 
-    std::set_intersection(previousNoteTagLocalUids.begin(), previousNoteTagLocalUids.end(),
+    std::set_intersection(previousNoteTagLocalUids.begin(),
+                          previousNoteTagLocalUids.end(),
                           newNoteTagLocalUids.begin(), newNoteTagLocalUids.end(),
                           std::back_inserter(commonTagLocalUids));
 
-    for(auto it = previousNoteTagLocalUids.constBegin(), end = previousNoteTagLocalUids.constEnd(); it != end; ++it)
+    for(auto it = previousNoteTagLocalUids.constBegin(),
+        end = previousNoteTagLocalUids.constEnd(); it != end; ++it)
     {
         const QString & tagLocalUid = *it;
-        if (std::find(commonTagLocalUids.begin(), commonTagLocalUids.end(), tagLocalUid) != commonTagLocalUids.end()) {
+        if (std::find(commonTagLocalUids.begin(),
+                      commonTagLocalUids.end(),
+                      tagLocalUid) !=
+            commonTagLocalUids.end())
+        {
             continue;
         }
 
         checkAndDecrementNoteCountPerTag(tagLocalUid);
     }
 
-    for(auto it = newNoteTagLocalUids.constBegin(), end = newNoteTagLocalUids.constEnd(); it != end; ++it)
+    for(auto it = newNoteTagLocalUids.constBegin(),
+        end = newNoteTagLocalUids.constEnd(); it != end; ++it)
     {
         const QString & tagLocalUid = *it;
-        if (std::find(commonTagLocalUids.begin(), commonTagLocalUids.end(), tagLocalUid) != commonTagLocalUids.end()) {
+        if (std::find(commonTagLocalUids.begin(),
+                      commonTagLocalUids.end(),
+                      tagLocalUid) !=
+            commonTagLocalUids.end())
+        {
             continue;
         }
 
@@ -722,8 +798,9 @@ void FavoritesModel::onNoteTagListChanged(QString noteLocalUid, QStringList prev
     }
 }
 
-void FavoritesModel::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNoteOptions options,
-                                        ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onUpdateNoteFailed(
+    Note note, LocalStorageManager::UpdateNoteOptions options,
+    ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -732,11 +809,17 @@ void FavoritesModel::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNo
 
     QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNoteFailed: note = ") << note
             << QStringLiteral("\nUpdate resource metadata = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) ? QStringLiteral("true") : QStringLiteral("false"))
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", update resource binary data = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData) ? QStringLiteral("true") : QStringLiteral("false"))
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", update tags = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags) ? QStringLiteral("true") : QStringLiteral("false"))
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
             << QStringLiteral(", error descrition: ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
@@ -744,12 +827,16 @@ void FavoritesModel::onUpdateNoteFailed(Note note, LocalStorageManager::UpdateNo
 
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findNoteToRestoreFailedUpdateRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to find a note: local uid = ") << note.localUid()
-            << QStringLiteral(", request id = ") << requestId);
-    Q_EMIT findNote(note, /* with resource metadata = */ true, /* with resource binary data = */ false, requestId);
+    QNTRACE(QStringLiteral("Emitting the request to find a note: local uid = ")
+            << note.localUid() << QStringLiteral(", request id = ") << requestId);
+    LocalStorageManager::GetNoteOptions getNoteOptions(
+        LocalStorageManager::GetNoteOption::WithResourceMetadata);
+    Q_EMIT findNote(note, getNoteOptions, requestId);
 }
 
-void FavoritesModel::onFindNoteComplete(Note note, bool withResourceMetadata, bool withResourceBinaryData, QUuid requestId)
+void FavoritesModel::onFindNoteComplete(Note note,
+                                        LocalStorageManager::GetNoteOptions options,
+                                        QUuid requestId)
 {
     auto restoreUpdateIt = m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findNoteToPerformUpdateRequestIds.find(requestId);
@@ -762,9 +849,16 @@ void FavoritesModel::onFindNoteComplete(Note note, bool withResourceMetadata, bo
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onFindNoteComplete: note = ") << note << QStringLiteral(", with resource metadata = ")
-            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", with resource binary data = ")
-            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onFindNoteComplete: note = ") << note
+            << QStringLiteral(", with resource metadata = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", with resource binary data = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", request id = ") << requestId);
 
     if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end())
     {
@@ -790,8 +884,9 @@ void FavoritesModel::onFindNoteComplete(Note note, bool withResourceMetadata, bo
     }
 }
 
-void FavoritesModel::onFindNoteFailed(Note note, bool withResourceMetadata, bool withResourceBinaryData,
-                                      ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onFindNoteFailed(
+    Note note, LocalStorageManager::GetNoteOptions options,
+    ErrorString errorDescription, QUuid requestId)
 {
     auto restoreUpdateIt = m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findNoteToPerformUpdateRequestIds.find(requestId);
@@ -804,10 +899,17 @@ void FavoritesModel::onFindNoteFailed(Note note, bool withResourceMetadata, bool
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onFindNoteFailed: note = ") << note << QStringLiteral(", with resource metadata = ")
-            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", with resource binary data = ")
-            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error description: ")
-            << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onFindNoteFailed: note = ") << note
+            << QStringLiteral(", with resource metadata = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", with resource binary data = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", error description: ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
 
     if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end()) {
         Q_UNUSED(m_findNoteToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
@@ -822,22 +924,34 @@ void FavoritesModel::onFindNoteFailed(Note note, bool withResourceMetadata, bool
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag, bool withResourceMetadata,
-                                         bool withResourceBinaryData, size_t limit, size_t offset,
+void FavoritesModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag,
+                                         LocalStorageManager::GetNoteOptions options,
+                                         size_t limit, size_t offset,
                                          LocalStorageManager::ListNotesOrder::type order,
-                                         LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
+                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                         QString linkedNotebookGuid,
                                          QList<Note> foundNotes, QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListNotesComplete: flag = ") << flag << QStringLiteral(", with resource metadata = ")
-            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", with resource binary data = ")
-            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
-            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
-            << QStringLiteral(", num found notes = ") << foundNotes.size() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListNotesComplete: flag = ") << flag
+            << QStringLiteral(", with resource metadata = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", with resource binary data = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
+            << QStringLiteral(", num found notes = ") << foundNotes.size()
+            << QStringLiteral(", request id = ") << requestId);
 
     for(auto it = foundNotes.begin(), end = foundNotes.end(); it != end; ++it) {
         onNoteAddedOrUpdated(*it);
@@ -846,7 +960,8 @@ void FavoritesModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions
     m_listNotesRequestId = QUuid();
 
     if (!foundNotes.isEmpty()) {
-        QNTRACE(QStringLiteral("The number of found notes is greater than zero, requesting more notes from the local storage"));
+        QNTRACE(QStringLiteral("The number of found notes is greater than zero, "
+                               "requesting more notes from the local storage"));
         m_listNotesOffset += static_cast<size_t>(foundNotes.size());
         requestNotesList();
         return;
@@ -855,22 +970,34 @@ void FavoritesModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions
     checkAllItemsListed();
 }
 
-void FavoritesModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceMetadata,
-                                       bool withResourceBinaryData, size_t limit, size_t offset,
+void FavoritesModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                       LocalStorageManager::GetNoteOptions options,
+                                       size_t limit, size_t offset,
                                        LocalStorageManager::ListNotesOrder::type order,
-                                       LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
+                                       LocalStorageManager::OrderDirection::type orderDirection,
+                                       QString linkedNotebookGuid,
                                        ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource metadata = ")
-            << (withResourceMetadata ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", with resource binary data = ")
-            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
-            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
-            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListNotesFailed: flag = ") << flag
+            << QStringLiteral(", with resource metadata = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", with resource binary data = ")
+            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                ? QStringLiteral("true")
+                : QStringLiteral("false"))
+            << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
 
     m_listNotesRequestId = QUuid();
 
@@ -879,28 +1006,28 @@ void FavoritesModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions f
 
 void FavoritesModel::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeNoteComplete: note = ") << note << QStringLiteral("\nRequest id = ")
-            << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeNoteComplete: note = ")
+            << note << QStringLiteral("\nRequest id = ") << requestId);
 
     removeItemByLocalUid(note.localUid());
 
-    // Since it's unclear whether some notebook within the favorites model was affected,
-    // need to check and re-subscribe to the note counts for all notebooks
+    // Since it's unclear whether some notebook within the favorites model was
+    // affected, need to check and re-subscribe to the note counts for all notebooks
     requestNoteCountForAllNotebooks(NoteCountRequestOption::Force);
     requestNoteCountForAllTags(NoteCountRequestOption::Force);
 }
 
 void FavoritesModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onAddNotebookComplete: notebook = ") << notebook << QStringLiteral(", request id = ")
-            << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onAddNotebookComplete: notebook = ")
+            << notebook << QStringLiteral(", request id = ") << requestId);
     onNotebookAddedOrUpdated(notebook);
 }
 
 void FavoritesModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNotebookComplete: notebook = ") << notebook
-            << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNotebookComplete: notebook = ")
+            << notebook << QStringLiteral(", request id = ") << requestId);
 
     auto it = m_updateNotebookRequestIds.find(requestId);
     if (it != m_updateNotebookRequestIds.end()) {
@@ -911,22 +1038,25 @@ void FavoritesModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId
     onNotebookAddedOrUpdated(notebook);
 }
 
-void FavoritesModel::onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onUpdateNotebookFailed(Notebook notebook,
+                                            ErrorString errorDescription,
+                                            QUuid requestId)
 {
     auto it = m_updateNotebookRequestIds.find(requestId);
     if (it == m_updateNotebookRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateNotebookFailed: notebook = ")
+            << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_updateNotebookRequestIds.erase(it))
 
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findNotebookToRestoreFailedUpdateRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to find a notebook: local uid = ") << notebook.localUid()
-            << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(QStringLiteral("Emitting the request to find a notebook: local uid = ")
+            << notebook.localUid() << QStringLiteral(", request id = ") << requestId);
     Q_EMIT findNotebook(notebook, requestId);
 }
 
@@ -943,8 +1073,8 @@ void FavoritesModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onFindNotebookComplete: notebook = ") << notebook << QStringLiteral("\nRequest id = ")
-            << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onFindNotebookComplete: notebook = ")
+            << notebook << QStringLiteral("\nRequest id = ") << requestId);
 
     if (restoreUpdateIt != m_findNotebookToRestoreFailedUpdateRequestIds.end())
     {
@@ -969,7 +1099,9 @@ void FavoritesModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
     }
 }
 
-void FavoritesModel::onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onFindNotebookFailed(Notebook notebook,
+                                          ErrorString errorDescription,
+                                          QUuid requestId)
 {
     auto restoreUpdateIt = m_findNotebookToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findNotebookToPerformUpdateRequestIds.find(requestId);
@@ -982,7 +1114,8 @@ void FavoritesModel::onFindNotebookFailed(Notebook notebook, ErrorString errorDe
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onFindNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
+    QNDEBUG(QStringLiteral("FavoritesModel::onFindNotebookFailed: notebook = ")
+            << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     if (restoreUpdateIt != m_findNotebookToRestoreFailedUpdateRequestIds.end()) {
@@ -998,31 +1131,41 @@ void FavoritesModel::onFindNotebookFailed(Notebook notebook, ErrorString errorDe
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
-                                             size_t limit, size_t offset,
-                                             LocalStorageManager::ListNotebooksOrder::type order,
-                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                             QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
-                                             QUuid requestId)
+void FavoritesModel::onListNotebooksComplete(
+    LocalStorageManager::ListObjectsOptions flag,
+    size_t limit, size_t offset,
+    LocalStorageManager::ListNotebooksOrder::type order,
+    LocalStorageManager::OrderDirection::type orderDirection,
+    QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
+    QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListNotebooksComplete: flag = ") << flag << QStringLiteral(", limit = ")
-            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
-            << QStringLiteral(", direction = ") << orderDirection << QStringLiteral(", linked notebook guid = ")
-            << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid) << QStringLiteral(", num found notebooks = ")
-            << foundNotebooks.size() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListNotebooksComplete: flag = ")
+            << flag << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", linked notebook guid = ")
+            << (linkedNotebookGuid.isNull()
+                ? QStringLiteral("<null>")
+                : linkedNotebookGuid)
+            << QStringLiteral(", num found notebooks = ") << foundNotebooks.size()
+            << QStringLiteral(", request id = ") << requestId);
 
-    for(auto it = foundNotebooks.begin(), end = foundNotebooks.end(); it != end; ++it) {
+    for(auto it = foundNotebooks.begin(),
+        end = foundNotebooks.end(); it != end; ++it)
+    {
         onNotebookAddedOrUpdated(*it);
     }
 
     m_listNotebooksRequestId = QUuid();
 
     if (!foundNotebooks.isEmpty()) {
-        QNTRACE(QStringLiteral("The number of found notebooks is greater than zero, requesting more notebooks from the local storage"));
+        QNTRACE(QStringLiteral("The number of found notebooks is greater than zero, "
+                               "requesting more notebooks from the local storage"));
         m_listNotebooksOffset += static_cast<size_t>(foundNotebooks.size());
         requestNotebooksList();
         return;
@@ -1031,21 +1174,28 @@ void FavoritesModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpt
     checkAllItemsListed();
 }
 
-void FavoritesModel::onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
-                                           size_t limit, size_t offset,
-                                           LocalStorageManager::ListNotebooksOrder::type order,
-                                           LocalStorageManager::OrderDirection::type orderDirection,
-                                           QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onListNotebooksFailed(
+    LocalStorageManager::ListObjectsOptions flag,
+    size_t limit, size_t offset,
+    LocalStorageManager::ListNotebooksOrder::type order,
+    LocalStorageManager::OrderDirection::type orderDirection,
+    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListNotebooksFailed: flag = ") << flag << QStringLiteral(", limit = ")
-            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
-            << QStringLiteral(", direction = ") << orderDirection << QStringLiteral(", linked notebook guid = ")
-            << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid) << QStringLiteral(", error description = ")
-            << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListNotebooksFailed: flag = ")
+            << flag << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", linked notebook guid = ")
+            << (linkedNotebookGuid.isNull()
+                ? QStringLiteral("<null>")
+                : linkedNotebookGuid)
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
 
     m_listNotebooksRequestId = QUuid();
 
@@ -1054,20 +1204,22 @@ void FavoritesModel::onListNotebooksFailed(LocalStorageManager::ListObjectsOptio
 
 void FavoritesModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeNotebookComplete: notebook = ") << notebook
-            << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeNotebookComplete: notebook = ")
+            << notebook << QStringLiteral("\nRequest id = ") << requestId);
     removeItemByLocalUid(notebook.localUid());
 }
 
 void FavoritesModel::onAddTagComplete(Tag tag, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onAddTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onAddTagComplete: tag = ") << tag
+            << QStringLiteral("\nRequest id = ") << requestId);
     onTagAddedOrUpdated(tag);
 }
 
 void FavoritesModel::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateTagComplete: tag = ") << tag
+            << QStringLiteral("\nRequest id = ") << requestId);
 
     auto it = m_updateTagRequestIds.find(requestId);
     if (it != m_updateTagRequestIds.end()) {
@@ -1078,22 +1230,24 @@ void FavoritesModel::onUpdateTagComplete(Tag tag, QUuid requestId)
     onTagAddedOrUpdated(tag);
 }
 
-void FavoritesModel::onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onUpdateTagFailed(Tag tag, ErrorString errorDescription,
+                                       QUuid requestId)
 {
     auto it = m_updateTagRequestIds.find(requestId);
     if (it == m_updateTagRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
-            << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateTagFailed: tag = ") << tag
+            << QStringLiteral("\nError description = ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_updateTagRequestIds.erase(it))
 
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to find a tag: local uid = ") << tag.localUid()
-            << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(QStringLiteral("Emitting the request to find a tag: local uid = ")
+            << tag.localUid() << QStringLiteral(", request id = ") << requestId);
     Q_EMIT findTag(tag, requestId);
 }
 
@@ -1110,7 +1264,8 @@ void FavoritesModel::onFindTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onFindTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onFindTagComplete: tag = ") << tag
+            << QStringLiteral("\nRequest id = ") << requestId);
 
     if (restoreUpdateIt != m_findTagToRestoreFailedUpdateRequestIds.end())
     {
@@ -1135,9 +1290,9 @@ void FavoritesModel::onFindTagComplete(Tag tag, QUuid requestId)
     }
 }
 
-void FavoritesModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onFindTagFailed(Tag tag, ErrorString errorDescription,
+                                     QUuid requestId)
 {
-
     auto restoreUpdateIt = m_findTagToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findTagToPerformUpdateRequestIds.find(requestId);
     auto unfavoriteIt = m_findTagToUnfavoriteRequestIds.find(requestId);
@@ -1149,8 +1304,9 @@ void FavoritesModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUui
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onFindTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
-            << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onFindTagFailed: tag = ") << tag
+            << QStringLiteral("\nError description = ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
 
     if (restoreUpdateIt != m_findTagToRestoreFailedUpdateRequestIds.end()) {
         Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
@@ -1165,21 +1321,28 @@ void FavoritesModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUui
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
-                                        size_t limit, size_t offset,
-                                        LocalStorageManager::ListTagsOrder::type order,
-                                        LocalStorageManager::OrderDirection::type orderDirection,
-                                        QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId)
+void FavoritesModel::onListTagsComplete(
+    LocalStorageManager::ListObjectsOptions flag,
+    size_t limit, size_t offset,
+    LocalStorageManager::ListTagsOrder::type order,
+    LocalStorageManager::OrderDirection::type orderDirection,
+    QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListTagsComplete: flag = ") << flag << QStringLiteral(", limit = ")
-            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
-            << QStringLiteral(", direction = ") << orderDirection << QStringLiteral(", linked notebook guid = ")
-            << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid)
-            << QStringLiteral(", num found tags = ") << foundTags.size() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListTagsComplete: flag = ") << flag
+            << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", linked notebook guid = ")
+            << (linkedNotebookGuid.isNull()
+                ? QStringLiteral("<null>")
+                : linkedNotebookGuid)
+            << QStringLiteral(", num found tags = ") << foundTags.size()
+            << QStringLiteral(", request id = ") << requestId);
 
     for(auto it = foundTags.begin(), end = foundTags.end(); it != end; ++it) {
         onTagAddedOrUpdated(*it);
@@ -1188,7 +1351,8 @@ void FavoritesModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions 
     m_listTagsRequestId = QUuid();
 
     if (!foundTags.isEmpty()) {
-        QNTRACE(QStringLiteral("The number of found tags is greater than zero, requesting more tags from the local storage"));
+        QNTRACE(QStringLiteral("The number of found tags is greater than zero, "
+                               "requesting more tags from the local storage"));
         m_listTagsOffset += static_cast<size_t>(foundTags.size());
         requestTagsList();
         return;
@@ -1197,34 +1361,46 @@ void FavoritesModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions 
     checkAllItemsListed();
 }
 
-void FavoritesModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
-                                      size_t limit, size_t offset,
-                                      LocalStorageManager::ListTagsOrder::type order,
-                                      LocalStorageManager::OrderDirection::type orderDirection,
-                                      QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onListTagsFailed(
+    LocalStorageManager::ListObjectsOptions flag,
+    size_t limit, size_t offset,
+    LocalStorageManager::ListTagsOrder::type order,
+    LocalStorageManager::OrderDirection::type orderDirection,
+    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListTagsFailed: flag = ") << flag << QStringLiteral(", limit = ") << limit
-            << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", linked notebook guid = ")
-            << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid)
-            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListTagsFailed: flag = ") << flag
+            << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", linked notebook guid = ")
+            << (linkedNotebookGuid.isNull()
+                ? QStringLiteral("<null>")
+                : linkedNotebookGuid)
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
 
     m_listTagsRequestId = QUuid();
 
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
+void FavoritesModel::onExpungeTagComplete(Tag tag,
+                                          QStringList expungedChildTagLocalUids,
+                                          QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeTagComplete: tag = ") << tag
-            << QStringLiteral("\nExpunged child tag local uids: ") << expungedChildTagLocalUids.join(QStringLiteral(", "))
+    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeTagComplete: tag = ")
+            << tag << QStringLiteral("\nExpunged child tag local uids: ")
+            << expungedChildTagLocalUids.join(QStringLiteral(", "))
             << QStringLiteral(", request id = ") << requestId);
 
-    for(auto it = expungedChildTagLocalUids.constBegin(), end = expungedChildTagLocalUids.constEnd(); it != end; ++it) {
+    for(auto it = expungedChildTagLocalUids.constBegin(),
+        end = expungedChildTagLocalUids.constEnd(); it != end; ++it)
+    {
         removeItemByLocalUid(*it);
     }
 
@@ -1233,13 +1409,15 @@ void FavoritesModel::onExpungeTagComplete(Tag tag, QStringList expungedChildTagL
 
 void FavoritesModel::onAddSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onAddSavedSearchComplete: ") << search << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onAddSavedSearchComplete: ")
+            << search << QStringLiteral("\nRequest id = ") << requestId);
     onSavedSearchAddedOrUpdated(search);
 }
 
 void FavoritesModel::onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateSavedSearchComplete: ") << search << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateSavedSearchComplete: ")
+            << search << QStringLiteral("\nRequest id = ") << requestId);
 
     auto it = m_updateSavedSearchRequestIds.find(requestId);
     if (it != m_updateSavedSearchRequestIds.end()) {
@@ -1250,22 +1428,25 @@ void FavoritesModel::onUpdateSavedSearchComplete(SavedSearch search, QUuid reque
     onSavedSearchAddedOrUpdated(search);
 }
 
-void FavoritesModel::onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onUpdateSavedSearchFailed(SavedSearch search,
+                                               ErrorString errorDescription,
+                                               QUuid requestId)
 {
     auto it = m_updateSavedSearchRequestIds.find(requestId);
     if (it == m_updateSavedSearchRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateSavedSearchFailed: search = ") << search << QStringLiteral("\nError description = ")
+    QNDEBUG(QStringLiteral("FavoritesModel::onUpdateSavedSearchFailed: search = ")
+            << search << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_updateSavedSearchRequestIds.erase(it))
 
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to find the saved search: local uid = ") << search.localUid()
-            << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(QStringLiteral("Emitting the request to find the saved search: local uid = ")
+            << search.localUid() << QStringLiteral(", request id = ") << requestId);
     Q_EMIT findSavedSearch(search, requestId);
 }
 
@@ -1282,8 +1463,8 @@ void FavoritesModel::onFindSavedSearchComplete(SavedSearch search, QUuid request
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onFindSavedSearchComplete: search = ") << search
-            << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onFindSavedSearchComplete: search = ")
+            << search << QStringLiteral("\nRequest id = ") << requestId);
 
     if (restoreUpdateIt != m_findSavedSearchToRestoreFailedUpdateRequestIds.end())
     {
@@ -1308,7 +1489,9 @@ void FavoritesModel::onFindSavedSearchComplete(SavedSearch search, QUuid request
     }
 }
 
-void FavoritesModel::onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onFindSavedSearchFailed(SavedSearch search,
+                                             ErrorString errorDescription,
+                                             QUuid requestId)
 {
     auto restoreUpdateIt = m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findSavedSearchToPerformUpdateRequestIds.find(requestId);
@@ -1321,7 +1504,8 @@ void FavoritesModel::onFindSavedSearchFailed(SavedSearch search, ErrorString err
         return;
     }
 
-    QNWARNING(QStringLiteral("FavoritesModel::onFindSavedSearchFailed: search = ") << search << QStringLiteral("\nError description = ")
+    QNWARNING(QStringLiteral("FavoritesModel::onFindSavedSearchFailed: search = ")
+              << search << QStringLiteral("\nError description = ")
               << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     if (restoreUpdateIt != m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) {
@@ -1337,29 +1521,37 @@ void FavoritesModel::onFindSavedSearchFailed(SavedSearch search, ErrorString err
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onListSavedSearchesComplete(LocalStorageManager::ListObjectsOptions flag,
-                                                 size_t limit, size_t offset,
-                                                 LocalStorageManager::ListSavedSearchesOrder::type order,
-                                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                                 QList<SavedSearch> foundSearches, QUuid requestId)
+void FavoritesModel::onListSavedSearchesComplete(
+    LocalStorageManager::ListObjectsOptions flag,
+    size_t limit, size_t offset,
+    LocalStorageManager::ListSavedSearchesOrder::type order,
+    LocalStorageManager::OrderDirection::type orderDirection,
+    QList<SavedSearch> foundSearches, QUuid requestId)
 {
     if (requestId != m_listSavedSearchesRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListSavedSearchesComplete: flag = ") << flag << QStringLiteral(", limit = ")
-            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
-            << QStringLiteral(", direction = ") << orderDirection << QStringLiteral(", num found searches = ")
-            << foundSearches.size() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListSavedSearchesComplete: flag = ")
+            << flag << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", num found searches = ") << foundSearches.size()
+            << QStringLiteral(", request id = ") << requestId);
 
-    for(auto it = foundSearches.begin(), end = foundSearches.end(); it != end; ++it) {
+    for(auto it = foundSearches.begin(),
+        end = foundSearches.end(); it != end; ++it)
+    {
         onSavedSearchAddedOrUpdated(*it);
     }
 
     m_listSavedSearchesRequestId = QUuid();
 
     if (!foundSearches.isEmpty()) {
-        QNTRACE(QStringLiteral("The number of found saved searches is not empty, requesting more saved searches from the local storage"));
+        QNTRACE(QStringLiteral("The number of found saved searches is not empty, "
+                               "requesting more saved searches from the local "
+                               "storage"));
         m_listSavedSearchesOffset += static_cast<size_t>(foundSearches.size());
         requestSavedSearchesList();
         return;
@@ -1368,48 +1560,59 @@ void FavoritesModel::onListSavedSearchesComplete(LocalStorageManager::ListObject
     checkAllItemsListed();
 }
 
-void FavoritesModel::onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
-                                               size_t limit, size_t offset,
-                                               LocalStorageManager::ListSavedSearchesOrder::type order,
-                                               LocalStorageManager::OrderDirection::type orderDirection,
-                                               ErrorString errorDescription, QUuid requestId)
+void FavoritesModel::onListSavedSearchesFailed(
+    LocalStorageManager::ListObjectsOptions flag,
+    size_t limit, size_t offset,
+    LocalStorageManager::ListSavedSearchesOrder::type order,
+    LocalStorageManager::OrderDirection::type orderDirection,
+    ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listSavedSearchesRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onListSavedSearchesFailed: flag = ") << flag << QStringLiteral(", limit = ")
-            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
-            << orderDirection << QStringLiteral(", error: ") << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onListSavedSearchesFailed: flag = ")
+            << flag << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", error: ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
 
     m_listSavedSearchesRequestId = QUuid();
 
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId)
+void FavoritesModel::onExpungeSavedSearchComplete(SavedSearch search,
+                                                  QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeSavedSearchComplete: search = ") << search
-            << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onExpungeSavedSearchComplete: search = ")
+            << search << QStringLiteral("\nRequest id = ") << requestId);
     removeItemByLocalUid(search.localUid());
 }
 
-void FavoritesModel::onGetNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId)
+void FavoritesModel::onGetNoteCountPerNotebookComplete(int noteCount,
+                                                       Notebook notebook,
+                                                       QUuid requestId)
 {
     auto it = m_notebookLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_notebookLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerNotebookComplete: note count = ") << noteCount
-            << QStringLiteral(", notebook local uid = ") << notebook.localUid() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerNotebookComplete: ")
+            << QStringLiteral("note count = ") << noteCount
+            << QStringLiteral(", notebook local uid = ") << notebook.localUid()
+            << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_notebookLocalUidToNoteCountRequestIdBimap.right.erase(it))
 
     FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(notebook.localUid());
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        QNDEBUG(QStringLiteral("Can't find the notebook item within the favorites model for which the note count was received"));
+        QNDEBUG(QStringLiteral("Can't find the notebook item within the favorites "
+                               "model for which the note count was received"));
         return;
     }
 
@@ -1419,15 +1622,19 @@ void FavoritesModel::onGetNoteCountPerNotebookComplete(int noteCount, Notebook n
     updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
-void FavoritesModel::onGetNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId)
+void FavoritesModel::onGetNoteCountPerNotebookFailed(ErrorString errorDescription,
+                                                     Notebook notebook,
+                                                     QUuid requestId)
 {
     auto it = m_notebookLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_notebookLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerNotebookFailed: error description = ") << errorDescription
-            << QStringLiteral("\nNotebook local uid = ") << notebook.localUid() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerNotebookFailed: ")
+            << QStringLiteral("error description = ") << errorDescription
+            << QStringLiteral("\nNotebook local uid = ") << notebook.localUid()
+            << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_notebookLocalUidToNoteCountRequestIdBimap.right.erase(it))
 
@@ -1435,22 +1642,26 @@ void FavoritesModel::onGetNoteCountPerNotebookFailed(ErrorString errorDescriptio
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId)
+void FavoritesModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag,
+                                                  QUuid requestId)
 {
     auto it = m_tagLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_tagLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerTagComplete: note count = ") << noteCount
-            << QStringLiteral(", tag local uid = ") << tag.localUid() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerTagComplete: ")
+            << QStringLiteral("note count = ") << noteCount
+            << QStringLiteral(", tag local uid = ") << tag.localUid()
+            << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_tagLocalUidToNoteCountRequestIdBimap.right.erase(it))
 
     FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(tag.localUid());
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        QNDEBUG(QStringLiteral("Can't find the tag item within the favorites model for which the note count was received"));
+        QNDEBUG(QStringLiteral("Can't find the tag item within the favorites "
+                               "model for which the note count was received"));
         return;
     }
 
@@ -1460,15 +1671,18 @@ void FavoritesModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid 
     updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
-void FavoritesModel::onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId)
+void FavoritesModel::onGetNoteCountPerTagFailed(ErrorString errorDescription,
+                                                Tag tag, QUuid requestId)
 {
     auto it = m_tagLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_tagLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerTagFailed: error description = ") << errorDescription
-            << QStringLiteral("\nTag local uid = ") << tag.localUid() << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModel::onGetNoteCountPerTagFailed: ")
+            << QStringLiteral("error description = ") << errorDescription
+            << QStringLiteral("\nTag local uid = ") << tag.localUid()
+            << QStringLiteral(", request id = ") << requestId);
 
     Q_UNUSED(m_tagLocalUidToNoteCountRequestIdBimap.right.erase(it))
 
@@ -1480,258 +1694,507 @@ void FavoritesModel::createConnections(LocalStorageManagerAsync & localStorageMa
 {
     QNDEBUG(QStringLiteral("FavoritesModel::createConnections"));
 
-    // Local signals to localStorageManagerAsync's slots
-    QObject::connect(this, QNSIGNAL(FavoritesModel,updateNote,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,findNote,Note,bool,bool,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,Note,bool,bool,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
-                                    LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
-                                                       LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
-                                                       LocalStorageManager::ListNotesOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,updateNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateNotebookRequest,Notebook,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,findNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,Notebook,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,listNotebooks,LocalStorageManager::ListObjectsOptions,
-                                    size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                    LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListNotebooksRequest,
-                                                       LocalStorageManager::ListObjectsOptions,
-                                                       size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,updateTag,Tag,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateTagRequest,Tag,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,findTag,Tag,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,listTags,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                    LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListTagsRequest,LocalStorageManager::ListObjectsOptions,
-                                                       size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,updateSavedSearch,SavedSearch,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onUpdateSavedSearchRequest,SavedSearch,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,findSavedSearch,SavedSearch,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onFindSavedSearchRequest,SavedSearch,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,listSavedSearches,LocalStorageManager::ListObjectsOptions,
-                                    size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                    LocalStorageManager::OrderDirection::type,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onListSavedSearchesRequest,
-                                                       LocalStorageManager::ListObjectsOptions,
-                                                       size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,noteCountPerNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerNotebookRequest,Notebook,QUuid));
-    QObject::connect(this, QNSIGNAL(FavoritesModel,noteCountPerTag,Tag,QUuid),
-                     &localStorageManagerAsync, QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerTagRequest,Tag,QUuid));
+    // Connect local signals to localStorageManagerAsync's slots
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,updateNote,
+                              Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,
+                            Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,findNote,
+                              Note,LocalStorageManager::GetNoteOptions,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,
+                            Note,LocalStorageManager::GetNoteOptions,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,listNotes,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QString,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,updateNotebook,Notebook,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onUpdateNotebookRequest,
+                            Notebook,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,findNotebook,Notebook,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,
+                            Notebook,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,listNotebooks,
+                              LocalStorageManager::ListObjectsOptions,size_t,
+                              size_t,LocalStorageManager::ListNotebooksOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onListNotebooksRequest,
+                            LocalStorageManager::ListObjectsOptions,size_t,
+                            size_t,LocalStorageManager::ListNotebooksOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,updateTag,Tag,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onUpdateTagRequest,
+                            Tag,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,findTag,Tag,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,listTags,
+                              LocalStorageManager::ListObjectsOptions,size_t,
+                              size_t,LocalStorageManager::ListTagsOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onListTagsRequest,
+                            LocalStorageManager::ListObjectsOptions,size_t,
+                            size_t,LocalStorageManager::ListTagsOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,updateSavedSearch,SavedSearch,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onUpdateSavedSearchRequest,
+                            SavedSearch,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,findSavedSearch,SavedSearch,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindSavedSearchRequest,
+                            SavedSearch,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,listSavedSearches,
+                              LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListSavedSearchesOrder::type,
+                              LocalStorageManager::OrderDirection::type,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onListSavedSearchesRequest,
+                            LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListSavedSearchesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,noteCountPerNotebook,Notebook,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,
+                            onGetNoteCountPerNotebookRequest,Notebook,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(FavoritesModel,noteCountPerTag,Tag,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerTagRequest,
+                            Tag,QUuid));
 
-    // localStorageManagerAsync's signals to local slots
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
-                     this, QNSLOT(FavoritesModel,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateNoteComplete,Note,LocalStorageManager::UpdateNoteOptions,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteMovedToAnotherNotebook,QString,QString,QString),
-                     this, QNSLOT(FavoritesModel,onNoteMovedToAnotherNotebook,QString,QString,QString));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,noteTagListChanged,QString,QStringList,QStringList),
-                     this, QNSLOT(FavoritesModel,onNoteTagListChanged,QString,QStringList,QStringList));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateNoteFailed,Note,LocalStorageManager::UpdateNoteOptions,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,Note,bool,bool,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,Note,bool,bool,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindNoteFailed,Note,bool,bool,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
-                                                                LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
-                                                                QString,QList<Note>,QUuid),
-                     this, QNSLOT(FavoritesModel,onListNotesComplete,LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
-                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Note>,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
-                                                                LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,bool,size_t,size_t,
-                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,Note,QUuid),
-                     this, QNSLOT(FavoritesModel,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(FavoritesModel,onAddNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateNotebookFailed,Notebook,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,Notebook,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindNotebookFailed,Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotebooksComplete,
-                                                         LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                         LocalStorageManager::ListNotebooksOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,QString,
-                                                         QList<Notebook>,QUuid),
-                     this, QNSLOT(FavoritesModel,onListNotebooksComplete,LocalStorageManager::ListObjectsOptions,
-                                  size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                  LocalStorageManager::OrderDirection::type,QString,QList<Notebook>,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listNotebooksFailed,
-                                                         LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                         LocalStorageManager::ListNotebooksOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,
-                                                         QString,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onListNotebooksFailed,LocalStorageManager::ListObjectsOptions,
-                                  size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                  LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(FavoritesModel,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
-                     this, QNSLOT(FavoritesModel,onAddTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateTagFailed,Tag,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findTagComplete,Tag,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findTagFailed,Tag,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsComplete,LocalStorageManager::ListObjectsOptions,
-                                                         size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
-                                                         QString,QList<Tag>,QUuid),
-                     this, QNSLOT(FavoritesModel,onListTagsComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                  LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Tag>,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listTagsFailed,LocalStorageManager::ListObjectsOptions,
-                                                         size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,
-                                                         QString,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onListTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                  LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
-                     this, QNSLOT(FavoritesModel,onExpungeTagComplete,Tag,QStringList,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,addSavedSearchComplete,SavedSearch,QUuid),
-                     this, QNSLOT(FavoritesModel,onAddSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchComplete,SavedSearch,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onUpdateSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findSavedSearchComplete,SavedSearch,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onFindSavedSearchFailed,SavedSearch,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
-                                                         size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid),
-                     this, QNSLOT(FavoritesModel,onListSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
-                                  size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type, LocalStorageManager::OrderDirection::type,
-                                  QList<SavedSearch>,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesFailed,
-                                                         LocalStorageManager::ListObjectsOptions,
-                                                         size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
-                     this, QNSLOT(FavoritesModel,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
-                                  size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchComplete,SavedSearch,QUuid),
-                     this, QNSLOT(FavoritesModel,onExpungeSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookComplete,int,Notebook,QUuid),
-                     this, QNSLOT(FavoritesModel,onGetNoteCountPerNotebookComplete,int,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid),
-                     this, QNSLOT(FavoritesModel,onGetNoteCountPerNotebookFailed,ErrorString,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagComplete,int,Tag,QUuid),
-                     this, QNSLOT(FavoritesModel,onGetNoteCountPerTagComplete,int,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync, QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagFailed,ErrorString,Tag,QUuid),
-                     this, QNSLOT(FavoritesModel,onGetNoteCountPerTagFailed,ErrorString,Tag,QUuid));
+    // Connect localStorageManagerAsync's signals to local slots
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onAddNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,
+                              Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateNoteComplete,
+                            Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,noteMovedToAnotherNotebook,
+                              QString,QString,QString),
+                     this,
+                     QNSLOT(FavoritesModel,onNoteMovedToAnotherNotebook,
+                            QString,QString,QString));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,noteTagListChanged,
+                              QString,QStringList,QStringList),
+                     this,
+                     QNSLOT(FavoritesModel,onNoteTagListChanged,
+                            QString,QStringList,QStringList));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,
+                              Note,LocalStorageManager::UpdateNoteOptions,
+                              ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateNoteFailed,
+                            Note,LocalStorageManager::UpdateNoteOptions,
+                            ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,
+                              Note,LocalStorageManager::GetNoteOptions,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindNoteComplete,
+                            Note,LocalStorageManager::GetNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,
+                              Note,LocalStorageManager::GetNoteOptions,
+                              ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindNoteFailed,
+                            Note,LocalStorageManager::GetNoteOptions,
+                            ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listNotesComplete,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,QList<Note>,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListNotesComplete,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::ListObjectsOptions,
+                            size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,QList<Note>,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListNotesFailed,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,
+                              Note,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onExpungeNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onAddNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNotebookFailed,
+                              Notebook,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateNotebookFailed,
+                            Notebook,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,
+                              Notebook,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindNotebookFailed,
+                            Notebook,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listNotebooksComplete,
+                              LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListNotebooksOrder::type,
+                              LocalStorageManager::OrderDirection::type,QString,
+                              QList<Notebook>,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListNotebooksComplete,
+                            LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListNotebooksOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,QList<Notebook>,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listNotebooksFailed,
+                              LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListNotebooksOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListNotebooksFailed,
+                            LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListNotebooksOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onExpungeNotebookComplete,
+                            Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onAddTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,
+                              Tag,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateTagFailed,
+                              Tag,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateTagFailed,Tag,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findTagComplete,Tag,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findTagFailed,
+                              Tag,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindTagFailed,Tag,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listTagsComplete,
+                              LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListTagsOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,QList<Tag>,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListTagsComplete,
+                            LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListTagsOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,QList<Tag>,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listTagsFailed,
+                              LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListTagsOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListTagsFailed,
+                            LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListTagsOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,
+                              Tag,QStringList,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onExpungeTagComplete,
+                            Tag,QStringList,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addSavedSearchComplete,
+                              SavedSearch,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onAddSavedSearchComplete,
+                            SavedSearch,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchComplete,
+                              SavedSearch,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateSavedSearchComplete,
+                            SavedSearch,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateSavedSearchFailed,
+                              SavedSearch,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onUpdateSavedSearchFailed,
+                            SavedSearch,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findSavedSearchComplete,
+                              SavedSearch,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindSavedSearchComplete,
+                            SavedSearch,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findSavedSearchFailed,
+                              SavedSearch,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onFindSavedSearchFailed,
+                            SavedSearch,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesComplete,
+                              LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListSavedSearchesOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QList<SavedSearch>,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListSavedSearchesComplete,
+                            LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListSavedSearchesOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QList<SavedSearch>,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesFailed,
+                              LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListSavedSearchesOrder::type,
+                              LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onListSavedSearchesFailed,
+                            LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListSavedSearchesOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchComplete,
+                              SavedSearch,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onExpungeSavedSearchComplete,
+                            SavedSearch,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookComplete,
+                              int,Notebook,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onGetNoteCountPerNotebookComplete,
+                            int,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookFailed,
+                              ErrorString,Notebook,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onGetNoteCountPerNotebookFailed,
+                            ErrorString,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagComplete,
+                              int,Tag,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onGetNoteCountPerTagComplete,
+                            int,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagFailed,
+                              ErrorString,Tag,QUuid),
+                     this,
+                     QNSLOT(FavoritesModel,onGetNoteCountPerTagFailed,
+                            ErrorString,Tag,QUuid));
 }
 
 void FavoritesModel::requestNotesList()
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestNotesList: offset = ") << m_listNotesOffset);
+    QNDEBUG(QStringLiteral("FavoritesModel::requestNotesList: offset = ")
+            << m_listNotesOffset);
 
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListFavoritedElements;
-    LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+    LocalStorageManager::ListObjectsOptions flags =
+        LocalStorageManager::ListFavoritedElements;
+    LocalStorageManager::ListNotesOrder::type order =
+        LocalStorageManager::ListNotesOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction =
+        LocalStorageManager::OrderDirection::Ascending;
 
     m_listNotesRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to list notes: offset = ") << m_listNotesOffset << QStringLiteral(", request id = ") << m_listNotesRequestId);
-    Q_EMIT listNotes(flags, /* with resource metadata = */ false, /* with resource binary data = */ false,
-                     NOTE_LIST_LIMIT, m_listNotesOffset, order, direction, QString(), m_listNotesRequestId);
+    QNTRACE(QStringLiteral("Emitting the request to list notes: offset = ")
+            << m_listNotesOffset << QStringLiteral(", request id = ")
+            << m_listNotesRequestId);
+    Q_EMIT listNotes(flags, LocalStorageManager::GetNoteOptions(0),
+                     NOTE_LIST_LIMIT, m_listNotesOffset, order, direction,
+                     QString(), m_listNotesRequestId);
 }
 
 void FavoritesModel::requestNotebooksList()
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestNotebooksList: offset = ") << m_listNotebooksOffset);
+    QNDEBUG(QStringLiteral("FavoritesModel::requestNotebooksList: offset = ")
+            << m_listNotebooksOffset);
 
-    // NOTE: the subscription to all notebooks is necessary in order to receive the information about the restrictions for various notebooks +
-    // for the collection of notebook names to forbid any two notebooks within the account to have the same name in a case-insensitive manner
+    // NOTE: the subscription to all notebooks is necessary in order to receive
+    // the information about the restrictions for various notebooks + for
+    // the collection of notebook names to forbid any two notebooks within
+    // the account to have the same name in a case-insensitive manner
     LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
-    LocalStorageManager::ListNotebooksOrder::type order = LocalStorageManager::ListNotebooksOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+    LocalStorageManager::ListNotebooksOrder::type order =
+        LocalStorageManager::ListNotebooksOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction =
+        LocalStorageManager::OrderDirection::Ascending;
 
     m_listNotebooksRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to list notebooks: offset = ") << m_listNotebooksOffset
-            << QStringLiteral(", request id = ") << m_listNotebooksRequestId);
-    Q_EMIT listNotebooks(flags, NOTEBOOK_LIST_LIMIT, m_listNotebooksOffset, order, direction, QString(), m_listNotebooksRequestId);
+    QNTRACE(QStringLiteral("Emitting the request to list notebooks: offset = ")
+            << m_listNotebooksOffset << QStringLiteral(", request id = ")
+            << m_listNotebooksRequestId);
+    Q_EMIT listNotebooks(flags, NOTEBOOK_LIST_LIMIT, m_listNotebooksOffset,
+                         order, direction, QString(), m_listNotebooksRequestId);
 }
 
 void FavoritesModel::requestTagsList()
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestTagsList: offset = ") << m_listTagsOffset);
+    QNDEBUG(QStringLiteral("FavoritesModel::requestTagsList: offset = ")
+            << m_listTagsOffset);
 
-    // NOTE: the subscription to all tags is necessary for the collection of tag names to forbid any two tags
-    // within the account to have the same name in a case-insensitive manner
+    // NOTE: the subscription to all tags is necessary for the collection of tag
+    // names to forbid any two tags within the account to have the same name
+    // in a case-insensitive manner
     LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
-    LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+    LocalStorageManager::ListTagsOrder::type order =
+        LocalStorageManager::ListTagsOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction =
+        LocalStorageManager::OrderDirection::Ascending;
 
     m_listTagsRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to list tags: offset = ") << m_listTagsOffset
-            << QStringLiteral(", request id = ") << m_listTagsRequestId);
-    Q_EMIT listTags(flags, TAG_LIST_LIMIT, m_listTagsOffset, order, direction, QString(), m_listTagsRequestId);
+    QNTRACE(QStringLiteral("Emitting the request to list tags: offset = ")
+            << m_listTagsOffset << QStringLiteral(", request id = ")
+            << m_listTagsRequestId);
+    Q_EMIT listTags(flags, TAG_LIST_LIMIT, m_listTagsOffset, order, direction,
+                    QString(), m_listTagsRequestId);
 }
 
 void FavoritesModel::requestSavedSearchesList()
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestSavedSearchesList: offset = ") << m_listSavedSearchesOffset);
+    QNDEBUG(QStringLiteral("FavoritesModel::requestSavedSearchesList: offset = ")
+            << m_listSavedSearchesOffset);
 
-    // NOTE: the subscription to all saved searches is necessary for the collection of saved search names to forbid any two saved searches
-    // within the account to have the same name in a case-insensitive manner
+    // NOTE: the subscription to all saved searches is necessary for the collection
+    // of saved search names to forbid any two saved searches within the account
+    // to have the same name in a case-insensitive manner
     LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
-    LocalStorageManager::ListSavedSearchesOrder::type order = LocalStorageManager::ListSavedSearchesOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+    LocalStorageManager::ListSavedSearchesOrder::type order =
+        LocalStorageManager::ListSavedSearchesOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction =
+        LocalStorageManager::OrderDirection::Ascending;
 
     m_listSavedSearchesRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to list saved searches: offset = ") << m_listSavedSearchesOffset
-            << QStringLiteral(", request id = ") << m_listSavedSearchesRequestId);
-    Q_EMIT listSavedSearches(flags, SAVED_SEARCH_LIST_LIMIT, m_listSavedSearchesOffset,
-                           order, direction, m_listSavedSearchesRequestId);
+    QNTRACE(QStringLiteral("Emitting the request to list saved searches: offset = ")
+            << m_listSavedSearchesOffset << QStringLiteral(", request id = ")
+            << m_listSavedSearchesRequestId);
+    Q_EMIT listSavedSearches(flags, SAVED_SEARCH_LIST_LIMIT,
+                             m_listSavedSearchesOffset, order, direction,
+                             m_listSavedSearchesRequestId);
 }
 
-void FavoritesModel::requestNoteCountForNotebook(const QString & notebookLocalUid, const NoteCountRequestOption::type option)
+void FavoritesModel::requestNoteCountForNotebook(const QString & notebookLocalUid,
+                                                 const NoteCountRequestOption::type option)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForNotebook: notebook lcoal uid = ") << notebookLocalUid
+    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForNotebook: ")
+            << QStringLiteral("notebook lcoal uid = ") << notebookLocalUid
             << QStringLiteral(", note count request option = ") << option);
 
     if (option != NoteCountRequestOption::Force)
     {
         auto it = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
         if (it != m_notebookLocalUidToNoteCountRequestIdBimap.left.end()) {
-            QNDEBUG(QStringLiteral("There's an active request to fetch the note count for this notebook local uid"));
+            QNDEBUG(QStringLiteral("There's an active request to fetch the note "
+                                   "count for this notebook local uid"));
             return;
         }
     }
 
     QUuid requestId = QUuid::createUuid();
-    m_notebookLocalUidToNoteCountRequestIdBimap.insert(LocalUidToRequestIdBimap::value_type(notebookLocalUid, requestId));
+    m_notebookLocalUidToNoteCountRequestIdBimap.insert(
+        LocalUidToRequestIdBimap::value_type(notebookLocalUid, requestId));
     Notebook dummyNotebook;
     dummyNotebook.setLocalUid(notebookLocalUid);
-    QNTRACE(QStringLiteral("Emitting the request to get the note count per notebook: notebook local uid = ")
-            << notebookLocalUid << QStringLiteral(", request id = ") << requestId);
+    QNTRACE(QStringLiteral("Emitting the request to get the note count per notebook: ")
+            << QStringLiteral("notebook local uid = ") << notebookLocalUid
+            << QStringLiteral(", request id = ") << requestId);
     Q_EMIT noteCountPerNotebook(dummyNotebook, requestId);
 }
 
-void FavoritesModel::requestNoteCountForAllNotebooks(const NoteCountRequestOption::type option)
+void FavoritesModel::requestNoteCountForAllNotebooks(
+    const NoteCountRequestOption::type option)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForAllNotebooks: note count request option = ")
-            << option);
+    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForAllNotebooks: ")
+            << QStringLiteral("note count request option = ") << option);
 
     const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
-    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it)
+    for(auto it = localUidIndex.begin(),
+        end = localUidIndex.end(); it != end; ++it)
     {
         const FavoritesModelItem & item = *it;
         if (item.type() != FavoritesModelItem::Type::Notebook) {
@@ -1742,25 +2205,33 @@ void FavoritesModel::requestNoteCountForAllNotebooks(const NoteCountRequestOptio
     }
 }
 
-void FavoritesModel::checkAndIncrementNoteCountPerNotebook(const QString & notebookLocalUid)
+void FavoritesModel::checkAndIncrementNoteCountPerNotebook(
+    const QString & notebookLocalUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::checkAndIncrementNoteCountPerNotebook: ") << notebookLocalUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::checkAndIncrementNoteCountPerNotebook: ")
+            << notebookLocalUid);
     checkAndAdjustNoteCountPerNotebook(notebookLocalUid, /* increment = */ true);
 }
 
-void FavoritesModel::checkAndDecrementNoteCountPerNotebook(const QString & notebookLocalUid)
+void FavoritesModel::checkAndDecrementNoteCountPerNotebook(
+    const QString & notebookLocalUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::checkAndDecrementNoteCountPerNotebook: ") << notebookLocalUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::checkAndDecrementNoteCountPerNotebook: ")
+            << notebookLocalUid);
     checkAndAdjustNoteCountPerNotebook(notebookLocalUid, /* increment = */ false);
 }
 
-void FavoritesModel::checkAndAdjustNoteCountPerNotebook(const QString & notebookLocalUid, const bool increment)
+void FavoritesModel::checkAndAdjustNoteCountPerNotebook(
+    const QString & notebookLocalUid, const bool increment)
 {
-    auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
+    auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(
+        notebookLocalUid);
     if (requestIt != m_notebookLocalUidToNoteCountRequestIdBimap.left.end()) {
-        QNDEBUG(QStringLiteral("There's an active request to fetch the note count for notebook ")
-                << notebookLocalUid << QStringLiteral(": ") << requestIt->second
-                << QStringLiteral(", need to restart it to ensure the proper number of notes per notebook"));
+        QNDEBUG(QStringLiteral("There's an active request to fetch the note ")
+                << QStringLiteral("count for notebook ") << notebookLocalUid
+                << QStringLiteral(": ") << requestIt->second
+                << QStringLiteral(", need to restart it to ensure the proper "
+                                  "number of notes per notebook"));
         requestNoteCountForNotebook(notebookLocalUid, NoteCountRequestOption::Force);
         return;
     }
@@ -1788,25 +2259,30 @@ void FavoritesModel::checkAndAdjustNoteCountPerNotebook(const QString & notebook
     updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
-void FavoritesModel::requestNoteCountForTag(const QString & tagLocalUid, const NoteCountRequestOption::type option)
+void FavoritesModel::requestNoteCountForTag(const QString & tagLocalUid,
+                                            const NoteCountRequestOption::type option)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForTag: tag local uid = ") << tagLocalUid
-            << QStringLiteral(", note count request option = ") << option);
+    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForTag: tag local uid = ")
+            << tagLocalUid << QStringLiteral(", note count request option = ")
+            << option);
 
     if (option != NoteCountRequestOption::Force)
     {
         auto it = m_tagLocalUidToNoteCountRequestIdBimap.left.find(tagLocalUid);
         if (it != m_tagLocalUidToNoteCountRequestIdBimap.left.end()) {
-            QNDEBUG(QStringLiteral("There's an active request to fetch the note count for this tag local uid"));
+            QNDEBUG(QStringLiteral("There's an active request to fetch the note "
+                                   "count for this tag local uid"));
             return;
         }
     }
 
     QUuid requestId = QUuid::createUuid();
-    m_tagLocalUidToNoteCountRequestIdBimap.insert(LocalUidToRequestIdBimap::value_type(tagLocalUid, requestId));
+    m_tagLocalUidToNoteCountRequestIdBimap.insert(
+        LocalUidToRequestIdBimap::value_type(tagLocalUid, requestId));
     Tag dummyTag;
     dummyTag.setLocalUid(tagLocalUid);
-    QNTRACE(QStringLiteral("Emitting the request to get the note count per tag: tag local uid = ") << tagLocalUid
+    QNTRACE(QStringLiteral("Emitting the request to get the note count per tag: ")
+            << QStringLiteral("tag local uid = ") << tagLocalUid
             << QStringLiteral(", request id = ") << requestId);
     Q_EMIT noteCountPerTag(dummyTag, requestId);
 }
@@ -1817,7 +2293,8 @@ void FavoritesModel::requestNoteCountForAllTags(const NoteCountRequestOption::ty
 
     const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
-    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it)
+    for(auto it = localUidIndex.begin(),
+        end = localUidIndex.end(); it != end; ++it)
     {
         const FavoritesModelItem & item = *it;
         if (item.type() != FavoritesModelItem::Type::Tag) {
@@ -1830,23 +2307,28 @@ void FavoritesModel::requestNoteCountForAllTags(const NoteCountRequestOption::ty
 
 void FavoritesModel::checkAndIncrementNoteCountPerTag(const QString & tagLocalUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::checkAndIncrementNoteCountPerTag: ") << tagLocalUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::checkAndIncrementNoteCountPerTag: ")
+            << tagLocalUid);
     checkAndAdjustNoteCountPerTag(tagLocalUid, /* increment = */ true);
 }
 
 void FavoritesModel::checkAndDecrementNoteCountPerTag(const QString & tagLocalUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::checkAndDecrementNoteCountPerTag: ") << tagLocalUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::checkAndDecrementNoteCountPerTag: ")
+            << tagLocalUid);
     checkAndAdjustNoteCountPerTag(tagLocalUid, /* increment = */ false);
 }
 
-void FavoritesModel::checkAndAdjustNoteCountPerTag(const QString & tagLocalUid, const bool increment)
+void FavoritesModel::checkAndAdjustNoteCountPerTag(const QString & tagLocalUid,
+                                                   const bool increment)
 {
     auto requestIt = m_tagLocalUidToNoteCountRequestIdBimap.left.find(tagLocalUid);
     if (requestIt != m_tagLocalUidToNoteCountRequestIdBimap.left.end()) {
-        QNDEBUG(QStringLiteral("There's an active request to fetch the note count for tag ")
-                << tagLocalUid << QStringLiteral(": ") << requestIt->second
-                << QStringLiteral(", need to restart it to ensure the proper number of notes per tag"));
+        QNDEBUG(QStringLiteral("There's an active request to fetch the note ")
+                << QStringLiteral("count for tag ") << tagLocalUid
+                << QStringLiteral(": ") << requestIt->second
+                << QStringLiteral(", need to restart it to ensure the proper "
+                                  "number of notes per tag"));
         requestNoteCountForTag(tagLocalUid, NoteCountRequestOption::Force);
         return;
     }
@@ -1896,7 +2378,8 @@ QVariant FavoritesModel::dataImpl(const int row, const Columns::type column) con
     }
 }
 
-QVariant FavoritesModel::dataAccessibleText(const int row, const Columns::type column) const
+QVariant FavoritesModel::dataAccessibleText(const int row,
+                                            const Columns::type column) const
 {
     if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
         return QVariant();
@@ -1935,7 +2418,8 @@ QVariant FavoritesModel::dataAccessibleText(const int row, const Columns::type c
         accessibleText += colon + space + item.displayName();
         break;
     case Columns::NumNotesTargeted:
-        accessibleText += colon + space + tr("number of targeted notes is") + space + QString::number(item.numNotesTargeted());
+        accessibleText += colon + space + tr("number of targeted notes is") +
+                          space + QString::number(item.numNotesTargeted());
         break;
     default:
         return QVariant();
@@ -1946,7 +2430,8 @@ QVariant FavoritesModel::dataAccessibleText(const int row, const Columns::type c
 
 void FavoritesModel::removeItemByLocalUid(const QString & localUid)
 {
-    QNTRACE(QStringLiteral("FavoritesModel::removeItemByLocalUid: local uid = ") << localUid);
+    QNTRACE(QStringLiteral("FavoritesModel::removeItemByLocalUid: local uid = ")
+            << localUid);
 
     FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(localUid);
@@ -1993,13 +2478,15 @@ void FavoritesModel::removeItemByLocalUid(const QString & localUid)
     FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        QNWARNING(QStringLiteral("Can't determine the row index for the favorites model item to remove: ") << item);
+        QNWARNING(QStringLiteral("Can't determine the row index for the favorites ")
+                  << QStringLiteral("model item to remove: ") << item);
         return;
     }
 
     int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
     if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
-        QNWARNING(QStringLiteral("Invalid row index for the favorites model item to remove: index = ") << row
+        QNWARNING(QStringLiteral("Invalid row index for the favorites model item ")
+                  << QStringLiteral("to remove: index = ") << row
                   << QStringLiteral(", item: ") << item);
         return;
     }
@@ -2023,21 +2510,29 @@ void FavoritesModel::updateItemRowWithRespectToSorting(const FavoritesModelItem 
     FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto localUidIt = localUidIndex.find(item.localUid());
     if (Q_UNLIKELY(localUidIt == localUidIndex.end())) {
-        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: can't find the item within the model: ") << item);
+        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: ")
+                  << QStringLiteral("can't find the item within the model: ")
+                  << item);
         return;
     }
 
     FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
     auto it = m_data.project<ByIndex>(localUidIt);
     if (Q_UNLIKELY(it == rowIndex.end())) {
-        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: can't find item's original row; item: ") << item);
+        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: ")
+                  << QStringLiteral("can't find item's original row; item: ")
+                  << item);
         return;
     }
 
     int originalRow = static_cast<int>(std::distance(rowIndex.begin(), it));
-    if (Q_UNLIKELY((originalRow < 0) || (originalRow >= static_cast<int>(m_data.size())))) {
-        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: item's original row is beyond the acceptable range: ")
-                  << originalRow << QStringLiteral(", item: ") << item);
+    if (Q_UNLIKELY((originalRow < 0) ||
+                   (originalRow >= static_cast<int>(m_data.size()))))
+    {
+        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: ")
+                  << QStringLiteral("item's original row is beyond the acceptable ")
+                  << QStringLiteral("range: ") << originalRow
+                  << QStringLiteral(", item: ") << item);
         return;
     }
 
@@ -2082,7 +2577,9 @@ void FavoritesModel::updateItemInLocalStorage(const FavoritesModelItem & item)
         break;
     default:
         {
-            QNWARNING(QStringLiteral("Detected attempt to update favorites model item in local storage for wrong favorited model item's type: ")
+            QNWARNING(QStringLiteral("Detected attempt to update favorites model ")
+                      << QStringLiteral("item in the local storage for wrong favorited ")
+                      << QStringLiteral("model item's type: ")
                       << item);
             break;
         }
@@ -2091,8 +2588,8 @@ void FavoritesModel::updateItemInLocalStorage(const FavoritesModelItem & item)
 
 void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::updateNoteInLocalStorage: local uid = ") << item.localUid()
-            << QStringLiteral(", title = ") << item.displayName());
+    QNDEBUG(QStringLiteral("FavoritesModel::updateNoteInLocalStorage: local uid = ")
+            << item.localUid() << QStringLiteral(", title = ") << item.displayName());
 
     const Note * pCachedNote = m_noteCache.get(item.localUid());
     if (Q_UNLIKELY(!pCachedNote))
@@ -2101,16 +2598,19 @@ void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
         Q_UNUSED(m_findNoteToPerformUpdateRequestIds.insert(requestId))
         Note dummy;
         dummy.setLocalUid(item.localUid());
-        QNTRACE(QStringLiteral("Emitting the request to find a note: local uid = ") << item.localUid()
-                << QStringLiteral(", request id = ") << requestId);
-        Q_EMIT findNote(dummy, /* with resource metadata = */ true, /* with resource binary data = */ false, requestId);
+        QNTRACE(QStringLiteral("Emitting the request to find a note: local uid = ")
+                << item.localUid() << QStringLiteral(", request id = ") << requestId);
+        LocalStorageManager::GetNoteOptions options(
+            LocalStorageManager::GetNoteOption::WithResourceMetadata);
+        Q_EMIT findNote(dummy, options, requestId);
         return;
     }
 
     Note note = *pCachedNote;
 
     note.setLocalUid(item.localUid());
-    bool dirty = note.isDirty() || !note.hasTitle() || (note.title() != item.displayName());
+    bool dirty = note.isDirty() || !note.hasTitle() ||
+                 (note.title() != item.displayName());
     note.setDirty(dirty);
     note.setTitle(item.displayName());
 
@@ -2121,15 +2621,16 @@ void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
     // remove its stale copy from the cache
     Q_UNUSED(m_noteCache.remove(note.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the note in local storage: id = ")
-            << requestId << QStringLiteral(", note: ") << note);
+    QNTRACE(QStringLiteral("Emitting the request to update the note in the local ")
+            << QStringLiteral("storage: id = ") << requestId
+            << QStringLiteral(", note: ") << note);
     Q_EMIT updateNote(note, LocalStorageManager::UpdateNoteOptions(0), requestId);
 }
 
 void FavoritesModel::updateNotebookInLocalStorage(const FavoritesModelItem & item)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::updateNotebookInLocalStorage: local uid = ") << item.localUid()
-            << QStringLiteral(", name = ") << item.displayName());
+    QNDEBUG(QStringLiteral("FavoritesModel::updateNotebookInLocalStorage: local uid = ")
+            << item.localUid() << QStringLiteral(", name = ") << item.displayName());
 
     const Notebook * pCachedNotebook = m_notebookCache.get(item.localUid());
     if (Q_UNLIKELY(!pCachedNotebook))
@@ -2138,8 +2639,8 @@ void FavoritesModel::updateNotebookInLocalStorage(const FavoritesModelItem & ite
         Q_UNUSED(m_findNotebookToPerformUpdateRequestIds.insert(requestId))
         Notebook dummy;
         dummy.setLocalUid(item.localUid());
-        QNTRACE(QStringLiteral("Emitting the request to find a notebook: local uid = ") << item.localUid()
-                << QStringLiteral(", request id = ") << requestId);
+        QNTRACE(QStringLiteral("Emitting the request to find a notebook: local uid = ")
+                << item.localUid() << QStringLiteral(", request id = ") << requestId);
         Q_EMIT findNotebook(dummy, requestId);
         return;
     }
@@ -2147,7 +2648,8 @@ void FavoritesModel::updateNotebookInLocalStorage(const FavoritesModelItem & ite
     Notebook notebook = *pCachedNotebook;
 
     notebook.setLocalUid(item.localUid());
-    bool dirty = notebook.isDirty() || !notebook.hasName() || (notebook.name() != item.displayName());
+    bool dirty = notebook.isDirty() || !notebook.hasName() ||
+                 (notebook.name() != item.displayName());
     notebook.setDirty(dirty);
     notebook.setName(item.displayName());
 
@@ -2158,15 +2660,16 @@ void FavoritesModel::updateNotebookInLocalStorage(const FavoritesModelItem & ite
     // remove its stale copy from the cache
     Q_UNUSED(m_notebookCache.remove(notebook.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the notebook in local storage: id = ") << requestId
+    QNTRACE(QStringLiteral("Emitting the request to update the notebook in ")
+            << QStringLiteral("the local storage: id = ") << requestId
             << QStringLiteral(", notebook: ") << notebook);
     Q_EMIT updateNotebook(notebook, requestId);
 }
 
 void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::updateTagInLocalStorage: local uid = ") << item.localUid()
-            << QStringLiteral(", name = ") << item.displayName());
+    QNDEBUG(QStringLiteral("FavoritesModel::updateTagInLocalStorage: local uid = ")
+            << item.localUid() << QStringLiteral(", name = ") << item.displayName());
 
     const Tag * pCachedTag = m_tagCache.get(item.localUid());
     if (Q_UNLIKELY(!pCachedTag))
@@ -2175,8 +2678,8 @@ void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
         Q_UNUSED(m_findTagToPerformUpdateRequestIds.insert(requestId))
         Tag dummy;
         dummy.setLocalUid(item.localUid());
-        QNTRACE(QStringLiteral("Emitting the request to find a tag: local uid = ") << item.localUid()
-                << QStringLiteral(", request id = ") << requestId);
+        QNTRACE(QStringLiteral("Emitting the request to find a tag: local uid = ")
+                << item.localUid() << QStringLiteral(", request id = ") << requestId);
         Q_EMIT findTag(dummy, requestId);
         return;
     }
@@ -2184,7 +2687,8 @@ void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
     Tag tag = *pCachedTag;
 
     tag.setLocalUid(item.localUid());
-    bool dirty = tag.isDirty() || !tag.hasName() || (tag.name() != item.displayName());
+    bool dirty = tag.isDirty() || !tag.hasName() ||
+                 (tag.name() != item.displayName());
     tag.setDirty(dirty);
     tag.setName(item.displayName());
 
@@ -2195,15 +2699,16 @@ void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
     // remove its stale copy from the cache
     Q_UNUSED(m_tagCache.remove(tag.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the tag in local storage: id = ") << requestId
+    QNTRACE(QStringLiteral("Emitting the request to update the tag in the local ")
+            << QStringLiteral("storage: id = ") << requestId
             << QStringLiteral(", tag: ") << tag);
     Q_EMIT updateTag(tag, requestId);
 }
 
 void FavoritesModel::updateSavedSearchInLocalStorage(const FavoritesModelItem & item)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::updateSavedSearchInLocalStorage: local uid = ") << item.localUid()
-            << QStringLiteral(", display name = ") << item.displayName());
+    QNDEBUG(QStringLiteral("FavoritesModel::updateSavedSearchInLocalStorage: local uid = ")
+            << item.localUid() << QStringLiteral(", display name = ") << item.displayName());
 
     const SavedSearch * pCachedSearch = m_savedSearchCache.get(item.localUid());
     if (Q_UNLIKELY(!pCachedSearch))
@@ -2212,8 +2717,8 @@ void FavoritesModel::updateSavedSearchInLocalStorage(const FavoritesModelItem & 
         Q_UNUSED(m_findSavedSearchToPerformUpdateRequestIds.insert(requestId))
         SavedSearch dummy;
         dummy.setLocalUid(item.localUid());
-        QNTRACE(QStringLiteral("Emitting the request to find a saved search: local uid = ") << item.localUid()
-                << QStringLiteral(", request id = ") << requestId);
+        QNTRACE(QStringLiteral("Emitting the request to find a saved search: local uid = ")
+                << item.localUid() << QStringLiteral(", request id = ") << requestId);
         Q_EMIT findSavedSearch(dummy, requestId);
         return;
     }
@@ -2221,7 +2726,8 @@ void FavoritesModel::updateSavedSearchInLocalStorage(const FavoritesModelItem & 
     SavedSearch search = *pCachedSearch;
 
     search.setLocalUid(item.localUid());
-    bool dirty = search.isDirty() || !search.hasName() || (search.name() != item.displayName());
+    bool dirty = search.isDirty() || !search.hasName() ||
+                 (search.name() != item.displayName());
     search.setDirty(dirty);
     search.setName(item.displayName());
 
@@ -2232,8 +2738,9 @@ void FavoritesModel::updateSavedSearchInLocalStorage(const FavoritesModelItem & 
     // remove its stale copy from the cache
     Q_UNUSED(m_savedSearchCache.remove(search.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the saved search in local storage: id = ")
-            << requestId << QStringLiteral(", saved search: ") << search);
+    QNTRACE(QStringLiteral("Emitting the request to update the saved search in ")
+            << QStringLiteral("the local storage: id = ") << requestId
+            << QStringLiteral(", saved search: ") << search);
     Q_EMIT updateSavedSearch(search, requestId);
 }
 
@@ -2246,16 +2753,19 @@ bool FavoritesModel::canUpdateNote(const QString & localUid) const
 
     auto notebookGuidIt = m_notebookLocalUidToGuid.find(notebookLocalUidIt.value());
     if (notebookGuidIt == m_notebookLocalUidToGuid.end()) {
-        // NOTE: this must be the local, non-synchronizable notebook as it doesn't have the Evernote service's guid;
+        // NOTE: this must be the local, non-synchronizable notebook as it
+        // doesn't have the Evernote service's guid;
         return true;
     }
 
-    auto notebookRestrictionsDataIt = m_notebookRestrictionsData.find(notebookGuidIt.value());
+    auto notebookRestrictionsDataIt =
+        m_notebookRestrictionsData.find(notebookGuidIt.value());
     if (notebookRestrictionsDataIt == m_notebookRestrictionsData.end()) {
         return true;
     }
 
-    const NotebookRestrictionsData & restrictionsData = notebookRestrictionsDataIt.value();
+    const NotebookRestrictionsData & restrictionsData =
+        notebookRestrictionsDataIt.value();
     return restrictionsData.m_canUpdateNotes;
 }
 
@@ -2263,16 +2773,19 @@ bool FavoritesModel::canUpdateNotebook(const QString & localUid) const
 {
     auto notebookGuidIt = m_notebookLocalUidToGuid.find(localUid);
     if (notebookGuidIt == m_notebookLocalUidToGuid.end()) {
-        // NOTE: this must be the local, non-synchronizable notebook as it doesn't have the Evernote service's guid;
+        // NOTE: this must be the local, non-synchronizable notebook as it
+        // doesn't have the Evernote service's guid;
         return true;
     }
 
-    auto notebookRestrictionsDataIt = m_notebookRestrictionsData.find(notebookGuidIt.value());
+    auto notebookRestrictionsDataIt =
+        m_notebookRestrictionsData.find(notebookGuidIt.value());
     if (notebookRestrictionsDataIt == m_notebookRestrictionsData.end()) {
         return true;
     }
 
-    const NotebookRestrictionsData & restrictionsData = notebookRestrictionsDataIt.value();
+    const NotebookRestrictionsData & restrictionsData =
+        notebookRestrictionsDataIt.value();
     return restrictionsData.m_canUpdateNotebook;
 }
 
@@ -2283,18 +2796,21 @@ bool FavoritesModel::canUpdateTag(const QString & localUid) const
         return true;
     }
 
-    auto notebookRestrictionsDataIt = m_notebookRestrictionsData.find(notebookGuidIt.value());
+    auto notebookRestrictionsDataIt =
+        m_notebookRestrictionsData.find(notebookGuidIt.value());
     if (notebookRestrictionsDataIt == m_notebookRestrictionsData.end()) {
         return true;
     }
 
-    const NotebookRestrictionsData & restrictionsData = notebookRestrictionsDataIt.value();
+    const NotebookRestrictionsData & restrictionsData =
+        notebookRestrictionsDataIt.value();
     return restrictionsData.m_canUpdateTags;
 }
 
 void FavoritesModel::unfavoriteNote(const QString & localUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteNote: local uid = ") << localUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteNote: local uid = ")
+            << localUid);
 
     const Note * pCachedNote = m_noteCache.get(localUid);
     if (Q_UNLIKELY(!pCachedNote))
@@ -2303,9 +2819,11 @@ void FavoritesModel::unfavoriteNote(const QString & localUid)
         Q_UNUSED(m_findNoteToUnfavoriteRequestIds.insert(requestId))
         Note dummy;
         dummy.setLocalUid(localUid);
-        QNTRACE(QStringLiteral("Emitting the request to find a note: local uid = ") << localUid
-                << QStringLiteral(", request id = ") << requestId);
-        Q_EMIT findNote(dummy, /* with resource metadata = */ true, /* with resource binary data = */ false, requestId);
+        QNTRACE(QStringLiteral("Emitting the request to find a note: local uid = ")
+                << localUid << QStringLiteral(", request id = ") << requestId);
+        LocalStorageManager::GetNoteOptions options(
+            LocalStorageManager::GetNoteOption::WithResourceMetadata);
+        Q_EMIT findNote(dummy, options, requestId);
         return;
     }
 
@@ -2323,14 +2841,16 @@ void FavoritesModel::unfavoriteNote(const QString & localUid)
     // remove its stale copy from the cache
     Q_UNUSED(m_noteCache.remove(note.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the note in local storage: id = ") << requestId
+    QNTRACE(QStringLiteral("Emitting the request to update the note in the local ")
+            << QStringLiteral("storage: id = ") << requestId
             << QStringLiteral(", note: ") << note);
     Q_EMIT updateNote(note, LocalStorageManager::UpdateNoteOptions(0), requestId);
 }
 
 void FavoritesModel::unfavoriteNotebook(const QString & localUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteNotebook: local uid = ") << localUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteNotebook: local uid = ")
+            << localUid);
 
     const Notebook * pCachedNotebook = m_notebookCache.get(localUid);
     if (Q_UNLIKELY(!pCachedNotebook))
@@ -2339,8 +2859,8 @@ void FavoritesModel::unfavoriteNotebook(const QString & localUid)
         Q_UNUSED(m_findNotebookToUnfavoriteRequestIds.insert(requestId))
         Notebook dummy;
         dummy.setLocalUid(localUid);
-        QNTRACE(QStringLiteral("Emitting the request to find a notebook: local uid = ") << localUid
-                << QStringLiteral(", request id = ") << requestId);
+        QNTRACE(QStringLiteral("Emitting the request to find a notebook: local uid = ")
+                << localUid << QStringLiteral(", request id = ") << requestId);
         Q_EMIT findNotebook(dummy, requestId);
         return;
     }
@@ -2359,14 +2879,16 @@ void FavoritesModel::unfavoriteNotebook(const QString & localUid)
     // remove its stale copy from the cache
     Q_UNUSED(m_notebookCache.remove(notebook.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the notebook in local storage: id = ") << requestId
+    QNTRACE(QStringLiteral("Emitting the request to update the notebook in ")
+            << QStringLiteral("the local storage: id = ") << requestId
             << QStringLiteral(", notebook: ") << notebook);
     Q_EMIT updateNotebook(notebook, requestId);
 }
 
 void FavoritesModel::unfavoriteTag(const QString & localUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteTag: local uid = ") << localUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteTag: local uid = ")
+            << localUid);
 
     const Tag * pCachedTag = m_tagCache.get(localUid);
     if (Q_UNLIKELY(!pCachedTag))
@@ -2375,8 +2897,8 @@ void FavoritesModel::unfavoriteTag(const QString & localUid)
         Q_UNUSED(m_findTagToUnfavoriteRequestIds.insert(requestId))
         Tag dummy;
         dummy.setLocalUid(localUid);
-        QNTRACE(QStringLiteral("Emitting the request to find a tag: local uid = ") << localUid
-                << QStringLiteral(", request id = ") << requestId);
+        QNTRACE(QStringLiteral("Emitting the request to find a tag: local uid = ")
+                << localUid << QStringLiteral(", request id = ") << requestId);
         Q_EMIT findTag(dummy, requestId);
         return;
     }
@@ -2395,14 +2917,16 @@ void FavoritesModel::unfavoriteTag(const QString & localUid)
     // remove its stale copy from the cache
     Q_UNUSED(m_tagCache.remove(tag.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the tag in local storage: id = ") << requestId
+    QNTRACE(QStringLiteral("Emitting the request to update the tag in the local ")
+            << QStringLiteral("storage: id = ") << requestId
             << QStringLiteral(", tag: ") << tag);
     Q_EMIT updateTag(tag, requestId);
 }
 
 void FavoritesModel::unfavoriteSavedSearch(const QString & localUid)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteSavedSearch: local uid = ") << localUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::unfavoriteSavedSearch: local uid = ")
+            << localUid);
 
     const SavedSearch * pCachedSearch = m_savedSearchCache.get(localUid);
     if (Q_UNLIKELY(!pCachedSearch))
@@ -2411,7 +2935,8 @@ void FavoritesModel::unfavoriteSavedSearch(const QString & localUid)
         Q_UNUSED(m_findSavedSearchToUnfavoriteRequestIds.insert(requestId))
         SavedSearch dummy;
         dummy.setLocalUid(localUid);
-        QNTRACE(QStringLiteral("Emitting the request to find a saved search: local uid = ") << localUid
+        QNTRACE(QStringLiteral("Emitting the request to find a saved search: ")
+                << QStringLiteral("local uid = ") << localUid
                 << QStringLiteral(", request id = ") << requestId);
         Q_EMIT findSavedSearch(dummy, requestId);
         return;
@@ -2431,22 +2956,25 @@ void FavoritesModel::unfavoriteSavedSearch(const QString & localUid)
     // remove its stale copy from the cache
     Q_UNUSED(m_savedSearchCache.remove(search.localUid()))
 
-    QNTRACE(QStringLiteral("Emitting the request to update the saved search in local storage: id = ") << requestId
+    QNTRACE(QStringLiteral("Emitting the request to update the saved search in ")
+            << QStringLiteral("the local storage: id = ") << requestId
             << QStringLiteral(", saved search: ") << search);
     Q_EMIT updateSavedSearch(search, requestId);
 }
 
 void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpdated)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onNoteAddedOrUpdated: note local uid = ") << note.localUid()
-            << QStringLiteral(", tags updated = ") << (tagsUpdated ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG(QStringLiteral("FavoritesModel::onNoteAddedOrUpdated: note local uid = ")
+            << note.localUid() << QStringLiteral(", tags updated = ")
+            << (tagsUpdated ? QStringLiteral("true") : QStringLiteral("false")));
 
     if (tagsUpdated) {
         m_noteCache.put(note.localUid(), note);
     }
 
     if (!note.hasNotebookLocalUid()) {
-        QNWARNING(QStringLiteral("Skipping the note not having the notebook local uid: ") << note);
+        QNWARNING(QStringLiteral("Skipping the note not having the notebook local ")
+                  << QStringLiteral("uid: ") << note);
         return;
     }
 
@@ -2469,7 +2997,8 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
         QString plainText = note.plainText();
         plainText.truncate(160);
         item.setDisplayName(plainText);
-        // NOTE: using the text preview in this way means updating the favorites item's display name would actually create the title for the note
+        // NOTE: using the text preview in this way means updating the favorites
+        // item's display name would actually create the title for the note
     }
 
     m_notebookLocalUidByNoteLocalUid[note.localUid()] = note.notebookLocalUid();
@@ -2500,8 +3029,9 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
-                                     "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid "
+                                     "index iterator to the random access index "
+                                     "iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         Q_EMIT notifyError(error);
         return;
@@ -2524,7 +3054,8 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
 
 void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onNotebookAddedOrUpdated: local uid = ") << notebook.localUid());
+    QNDEBUG(QStringLiteral("FavoritesModel::onNotebookAddedOrUpdated: local uid = ")
+            << notebook.localUid());
 
     m_notebookCache.put(notebook.localUid(), notebook);
 
@@ -2546,15 +3077,23 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
     if (notebook.hasGuid())
     {
-        NotebookRestrictionsData & notebookRestrictionsData = m_notebookRestrictionsData[notebook.guid()];
+        NotebookRestrictionsData & notebookRestrictionsData =
+            m_notebookRestrictionsData[notebook.guid()];
 
         if (notebook.hasRestrictions())
         {
-            const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
+            const qevercloud::NotebookRestrictions & restrictions =
+                notebook.restrictions();
 
-            notebookRestrictionsData.m_canUpdateNotebook = !restrictions.noUpdateNotebook.isSet() || !restrictions.noUpdateNotebook.ref();
-            notebookRestrictionsData.m_canUpdateNotes = !restrictions.noUpdateNotes.isSet() || !restrictions.noUpdateNotes.ref();
-            notebookRestrictionsData.m_canUpdateTags = !restrictions.noUpdateTags.isSet() || !restrictions.noUpdateTags.ref();
+            notebookRestrictionsData.m_canUpdateNotebook =
+                !restrictions.noUpdateNotebook.isSet() ||
+                !restrictions.noUpdateNotebook.ref();
+            notebookRestrictionsData.m_canUpdateNotes =
+                !restrictions.noUpdateNotes.isSet() ||
+                !restrictions.noUpdateNotes.ref();
+            notebookRestrictionsData.m_canUpdateTags =
+                !restrictions.noUpdateTags.isSet() ||
+                !restrictions.noUpdateTags.ref();
         }
         else
         {
@@ -2563,14 +3102,24 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
             notebookRestrictionsData.m_canUpdateTags = true;
         }
 
-        QNTRACE(QStringLiteral("Updated restrictions data for notebook ") << notebook.localUid() << QStringLiteral(", name ")
-                << (notebook.hasName() ? QStringLiteral("\"") + notebook.name() + QStringLiteral("\"") : QStringLiteral("<not set>"))
-                << QStringLiteral(", guid = ") << notebook.guid() << QStringLiteral(": can update notebook = ")
-                << (notebookRestrictionsData.m_canUpdateNotebook ? QStringLiteral("true") : QStringLiteral("false"))
+        QNTRACE(QStringLiteral("Updated restrictions data for notebook ")
+                << notebook.localUid() << QStringLiteral(", name ")
+                << (notebook.hasName()
+                    ? QStringLiteral("\"") + notebook.name() + QStringLiteral("\"")
+                    : QStringLiteral("<not set>"))
+                << QStringLiteral(", guid = ") << notebook.guid()
+                << QStringLiteral(": can update notebook = ")
+                << (notebookRestrictionsData.m_canUpdateNotebook
+                    ? QStringLiteral("true")
+                    : QStringLiteral("false"))
                 << QStringLiteral(", can update notes = ")
-                << (notebookRestrictionsData.m_canUpdateNotes ? QStringLiteral("true") : QStringLiteral("false"))
+                << (notebookRestrictionsData.m_canUpdateNotes
+                    ? QStringLiteral("true")
+                    : QStringLiteral("false"))
                 << QStringLiteral(", can update tags = ")
-                << (notebookRestrictionsData.m_canUpdateTags ? QStringLiteral("true") : QStringLiteral("false")));
+                << (notebookRestrictionsData.m_canUpdateTags
+                    ? QStringLiteral("true")
+                    : QStringLiteral("false")));
     }
 
     if (!notebook.hasName()) {
@@ -2610,7 +3159,8 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
         Q_EMIT addedItem(addedNotebookIndex);
 
         // Need to figure out how many notes this notebook targets
-        requestNoteCountForNotebook(notebook.localUid(), NoteCountRequestOption::IfNotAlreadyRunning);
+        requestNoteCountForNotebook(notebook.localUid(),
+                                    NoteCountRequestOption::IfNotAlreadyRunning);
 
         return;
     }
@@ -2622,8 +3172,9 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
-                                     "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid "
+                                     "index iterator to the random access index "
+                                     "iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         Q_EMIT notifyError(error);
         return;
@@ -2645,7 +3196,8 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
 void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 {
-    QNTRACE(QStringLiteral("FavoritesModel::onTagAddedOrUpdated: local uid = ") << tag.localUid());
+    QNTRACE(QStringLiteral("FavoritesModel::onTagAddedOrUpdated: local uid = ")
+            << tag.localUid());
 
     m_tagCache.put(tag.localUid(), tag);
 
@@ -2701,7 +3253,8 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
         Q_EMIT addedItem(addedTagIndex);
 
         // Need to figure out how many notes this tag targets
-        requestNoteCountForTag(tag.localUid(), NoteCountRequestOption::IfNotAlreadyRunning);
+        requestNoteCountForTag(tag.localUid(),
+                               NoteCountRequestOption::IfNotAlreadyRunning);
 
         return;
     }
@@ -2713,8 +3266,9 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
-                                     "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid "
+                                     "index iterator to the random access index "
+                                     "iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         Q_EMIT notifyError(error);
         return;
@@ -2736,7 +3290,8 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 
 void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::onSavedSearchAddedOrUpdated: local uid = ") << search.localUid());
+    QNDEBUG(QStringLiteral("FavoritesModel::onSavedSearchAddedOrUpdated: local uid = ")
+            << search.localUid());
 
     m_savedSearchCache.put(search.localUid(), search);
 
@@ -2798,8 +3353,9 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
-                                     "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid "
+                                     "index iterator to the random access index "
+                                     "iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         Q_EMIT notifyError(error);
         return;
@@ -2819,9 +3375,11 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     Q_EMIT updatedItem(modelIndex);
 }
 
-void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column)
+void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item,
+                                            const Columns::type column)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::updateItemColumnInView: item = ") << item << QStringLiteral("\nColumn = ") << column);
+    QNDEBUG(QStringLiteral("FavoritesModel::updateItemColumnInView: item = ")
+            << item << QStringLiteral("\nColumn = ") << column);
 
     const FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
     const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
@@ -2838,14 +3396,15 @@ void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, con
         if (Q_LIKELY(itemIndexIt != rowIndex.end())) {
             int row = static_cast<int>(std::distance(rowIndex.begin(), itemIndexIt));
             QModelIndex modelIndex = createIndex(row, column);
-            QNTRACE(QStringLiteral("Emitting dataChanged signal for row ") << row
-                    << QStringLiteral(" and column ") << column);
+            QNTRACE(QStringLiteral("Emitting dataChanged signal for row ")
+                    << row << QStringLiteral(" and column ") << column);
             Q_EMIT dataChanged(modelIndex, modelIndex);
             return;
         }
 
-        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid index iterator "
-                                     "to the random access index iterator within the favorites model"));
+        ErrorString error(QT_TR_NOOP("Internal error: can't project the local uid "
+                                     "index iterator to the random access index "
+                                     "iterator within the favorites model"));
         QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
         Q_EMIT notifyError(error);
     }
@@ -2859,14 +3418,17 @@ void FavoritesModel::checkAllItemsListed()
         return;
     }
 
-    if (m_listNotesRequestId.isNull() && m_listNotebooksRequestId.isNull() && m_listTagsRequestId.isNull() && m_listSavedSearchesRequestId.isNull()) {
+    if (m_listNotesRequestId.isNull() && m_listNotebooksRequestId.isNull() &&
+        m_listTagsRequestId.isNull() && m_listSavedSearchesRequestId.isNull())
+    {
         QNDEBUG(QStringLiteral("Listed all favorites model's items"));
         m_allItemsListed = true;
         Q_EMIT notifyAllItemsListed();
     }
 }
 
-bool FavoritesModel::Comparator::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+bool FavoritesModel::Comparator::operator()(const FavoritesModelItem & lhs,
+                                            const FavoritesModelItem & rhs) const
 {
     bool less = false;
     bool greater = false;

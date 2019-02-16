@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,9 +38,11 @@ class AddOrEditSavedSearchDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit AddOrEditSavedSearchDialog(SavedSearchModel * pSavedSearchModel,
-                                        QWidget * parent = Q_NULLPTR,
-                                        const QString & editedSavedSearchLocalUid = QString());
+    explicit AddOrEditSavedSearchDialog(
+        SavedSearchModel * pSavedSearchModel,
+        QWidget * parent = Q_NULLPTR,
+        const QString & editedSavedSearchLocalUid = QString());
+
     ~AddOrEditSavedSearchDialog();
 
     void setQuery(const QString & query);

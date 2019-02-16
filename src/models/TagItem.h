@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -45,7 +45,8 @@ public:
     void setGuid(const QString & guid) { m_guid = guid; }
 
     const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
-    void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
+    void setLinkedNotebookGuid(const QString & linkedNotebookGuid)
+    { m_linkedNotebookGuid = linkedNotebookGuid; }
 
     QString nameUpper() const { return m_name.toUpper(); }
 
@@ -56,10 +57,12 @@ public:
     void setParentGuid(const QString & parentGuid) { m_parentGuid = parentGuid; }
 
     const QString & parentLocalUid() const { return m_parentLocalUid; }
-    void setParentLocalUid(const QString & parentLocalUid) { m_parentLocalUid = parentLocalUid; }
+    void setParentLocalUid(const QString & parentLocalUid)
+    { m_parentLocalUid = parentLocalUid; }
 
     bool isSynchronizable() const { return m_isSynchronizable; }
-    void setSynchronizable(const bool synchronizable) { m_isSynchronizable = synchronizable; }
+    void setSynchronizable(const bool synchronizable)
+    { m_isSynchronizable = synchronizable; }
 
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
@@ -68,7 +71,8 @@ public:
     void setFavorited(const bool favorited) { m_isFavorited = favorited; }
 
     int numNotesPerTag() const { return m_numNotesPerTag; }
-    void setNumNotesPerTag(const int numNotesPerTag) { m_numNotesPerTag = numNotesPerTag; }
+    void setNumNotesPerTag(const int numNotesPerTag)
+    { m_numNotesPerTag = numNotesPerTag; }
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

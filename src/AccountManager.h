@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -54,11 +54,13 @@ public:
     AccountModel & accountModel();
 
     /**
-     * Attempts to retrieve the last used account from the app settings, in case of failure creates and returns
-     * the default local account
+     * Attempts to retrieve the last used account from the app settings, in case
+     * of failure creates and returns the default local account
      *
-     * @param pCreatedDefaultAccount - optional pointer to bool parameter which, if not null,
-     * is used to report whether no existing account was found so the default account was created
+     * @param pCreatedDefaultAccount        Optional pointer to bool parameter
+     *                                      which, if not null, is used to report
+     *                                      whether no existing account was found
+     *                                      so the default account was created
      */
     Account currentAccount(bool * pCreatedDefaultAccount = Q_NULLPTR);
 
@@ -83,31 +85,45 @@ private Q_SLOTS:
 private:
     void detectAvailableAccounts();
 
-    QSharedPointer<Account> createDefaultAccount(ErrorString & errorDescription, bool * pCreatedDefaultAccount);
-    QSharedPointer<Account> createLocalAccount(const QString & name, const QString & displayName,
+    QSharedPointer<Account> createDefaultAccount(ErrorString & errorDescription,
+                                                 bool * pCreatedDefaultAccount);
+    QSharedPointer<Account> createLocalAccount(const QString & name,
+                                               const QString & displayName,
                                                ErrorString & errorDescription);
     bool createAccountInfo(const Account & account);
 
-    bool writeAccountInfo(const QString & name, const QString & displayName, const bool isLocal,
-                          const qevercloud::UserID id, const QString & evernoteAccountType,
+    bool writeAccountInfo(const QString & name, const QString & displayName,
+                          const bool isLocal, const qevercloud::UserID id,
+                          const QString & evernoteAccountType,
                           const QString & evernoteHost, const QString & shardId,
                           ErrorString & errorDescription);
 
-    QString evernoteAccountTypeToString(const Account::EvernoteAccountType::type type) const;
+    QString evernoteAccountTypeToString(
+        const Account::EvernoteAccountType::type type) const;
 
     void readComplementaryAccountInfo(Account & account);
 
-    // Tries to find the account corresponding to the specified environment variables
-    // specifying the details of the account; in case of success returns
-    // non-null pointer to the account, null otherwise
+    /**
+     * Tries to find the account corresponding to the specified environment
+     * variables specifying the details of the account
+     *
+     * @return              Non-null pointer to the account in case of success,
+     *                      null pointer otherwise
+     */
     QSharedPointer<Account> accountFromEnvVarHints();
 
-    // Tries to restore the last used account from the app settings;
-    // in case of success returns non-null pointer to account, null otherwise
+    /**
+     * Tries to restore the last used account from the app settings
+     *
+     * @return              Non-null pointer to the account in case of success,
+     *                      null pointer otherwise
+     */
     QSharedPointer<Account> lastUsedAccount();
 
-    QSharedPointer<Account> findAccount(const bool isLocal, const QString & accountName,
-                                        const qevercloud::UserID id, const Account::EvernoteAccountType::type type,
+    QSharedPointer<Account> findAccount(const bool isLocal,
+                                        const QString & accountName,
+                                        const qevercloud::UserID id,
+                                        const Account::EvernoteAccountType::type type,
                                         const QString & evernoteHost);
 
     void updateLastUsedAccount(const Account & account);

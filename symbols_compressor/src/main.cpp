@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,8 +29,8 @@ int main(int argc, char * argv[])
     QStringList args = app.arguments();
 
     if (args.size() < 2) {
-        qWarning() << QString::fromUtf8("Usage: ") << argv[0] << QString::fromUtf8(" ")
-                   << QString::fromUtf8("<symbols file location>") << QString::fromUtf8(", args: ")
+        qWarning() << QString::fromUtf8("Usage: ") << argv[0]
+                   << QString::fromUtf8(" <symbols file location>, args: ")
                    << QString::number(args.size());
         return 1;
     }
@@ -48,11 +48,14 @@ int main(int argc, char * argv[])
     fileContents = qCompress(fileContents, 9);
 
     QFileInfo symbolsFileInfo(args[1]);
-    QFile compressedSymbolsFile(symbolsFileInfo.absolutePath() + QString::fromUtf8("/") +
-                                symbolsFileInfo.fileName() + QString::fromUtf8(".compressed"));
+    QFile compressedSymbolsFile(symbolsFileInfo.absolutePath() +
+                                QString::fromUtf8("/") +
+                                symbolsFileInfo.fileName() +
+                                QString::fromUtf8(".compressed"));
     res = compressedSymbolsFile.open(QIODevice::WriteOnly);
     if (!res) {
-        qWarning() << QString::fromUtf8("Can't open the compressed symbols file for writing");
+        qWarning() << QString::fromUtf8("Can't open the compressed symbols file "
+                                        "for writing");
         return 1;
     }
 

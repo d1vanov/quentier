@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,7 +44,8 @@ public:
     virtual ~ManageAccountsDialog();
 
 Q_SIGNALS:
-    void evernoteAccountAdditionRequested(QString evernoteServer, QNetworkProxy proxy);
+    void evernoteAccountAdditionRequested(QString evernoteServer,
+                                          QNetworkProxy proxy);
     void localAccountAdditionRequested(QString name, QString fullName);
     void revokeAuthentication(qevercloud::UserID id);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -57,7 +57,8 @@ public:
     void resetFilterToNotebookLocalUid(const QString & notebookLocalUid);
 
     /**
-     * @return true if all filters have already been properly initialized, false otherwise
+     * @return              True if all filters have already been properly
+     *                      initialized, false otherwise
      */
     bool isReady() const;
 
@@ -75,7 +76,8 @@ Q_SIGNALS:
     void ready();
 
     // private signals
-    void findNoteLocalUidsForNoteSearchQuery(NoteSearchQuery noteSearchQuery, QUuid requestId);
+    void findNoteLocalUidsForNoteSearchQuery(NoteSearchQuery noteSearchQuery,
+                                             QUuid requestId);
 
 private Q_SLOTS:
     // Slots for FilterByTagWidget's signals
@@ -113,13 +115,16 @@ private Q_SLOTS:
 
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
-    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids,
+                              QUuid requestId);
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onUpdateNoteComplete(Note note,
+                              LocalStorageManager::UpdateNoteOptions options,
+                              QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
 private:

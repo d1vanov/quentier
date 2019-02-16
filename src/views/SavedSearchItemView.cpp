@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,8 @@
 #include <QContextMenuEvent>
 #include <QScopedPointer>
 
-#define LAST_SELECTED_SAVED_SEARCH_KEY QStringLiteral("LastSelectedSavedSearchLocalUid")
+#define LAST_SELECTED_SAVED_SEARCH_KEY \
+    QStringLiteral("LastSelectedSavedSearchLocalUid")
 
 #define REPORT_ERROR(error) \
     { \
@@ -52,22 +53,44 @@ void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
     SavedSearchModel * pPreviousModel = qobject_cast<SavedSearchModel*>(model());
     if (pPreviousModel)
     {
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,notifyError,ErrorString),
-                            this, QNSIGNAL(SavedSearchItemView,notifyError,ErrorString));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
-                            this, QNSLOT(SavedSearchItemView,onAllSavedSearchesListed));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,aboutToAddSavedSearch),
-                            this, QNSLOT(SavedSearchItemView,onAboutToAddSavedSearch));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,addedSavedSearch,const QModelIndex&),
-                            this, QNSLOT(SavedSearchItemView,onAddedSavedSearch,const QModelIndex&));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,aboutToUpdateSavedSearch,const QModelIndex&),
-                            this, QNSLOT(SavedSearchItemView,onAboutToUpdateSavedSearch,const QModelIndex&));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,updatedSavedSearch,const QModelIndex&),
-                            this, QNSLOT(SavedSearchItemView,onUpdatedSavedSearch,const QModelIndex&));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,aboutToRemoveSavedSearches),
-                            this, QNSLOT(SavedSearchItemView,onAboutToRemoveSavedSearches));
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,removedSavedSearches),
-                            this, QNSLOT(SavedSearchItemView,onRemovedSavedSearches));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,notifyError,ErrorString),
+                            this,
+                            QNSIGNAL(SavedSearchItemView,notifyError,ErrorString));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
+                            this,
+                            QNSLOT(SavedSearchItemView,onAllSavedSearchesListed));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,aboutToAddSavedSearch),
+                            this,
+                            QNSLOT(SavedSearchItemView,onAboutToAddSavedSearch));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,addedSavedSearch,
+                                     const QModelIndex&),
+                            this,
+                            QNSLOT(SavedSearchItemView,onAddedSavedSearch,
+                                   const QModelIndex&));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,aboutToUpdateSavedSearch,
+                                     const QModelIndex&),
+                            this,
+                            QNSLOT(SavedSearchItemView,onAboutToUpdateSavedSearch,
+                                   const QModelIndex&));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,updatedSavedSearch,
+                                     const QModelIndex&),
+                            this,
+                            QNSLOT(SavedSearchItemView,onUpdatedSavedSearch,
+                                   const QModelIndex&));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,aboutToRemoveSavedSearches),
+                            this,
+                            QNSLOT(SavedSearchItemView,onAboutToRemoveSavedSearches));
+        QObject::disconnect(pPreviousModel,
+                            QNSIGNAL(SavedSearchModel,removedSavedSearches),
+                            this,
+                            QNSLOT(SavedSearchItemView,onRemovedSavedSearches));
     }
 
     m_modelReady = false;
@@ -75,38 +98,62 @@ void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(pModel);
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model has been set to the saved search item view"));
+        QNDEBUG(QStringLiteral("Non-saved search model has been set to the saved "
+                               "search item view"));
         ItemView::setModel(pModel);
         return;
     }
 
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,notifyError,ErrorString),
-                     this, QNSIGNAL(SavedSearchItemView,notifyError,ErrorString));
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,aboutToAddSavedSearch),
-                     this, QNSLOT(SavedSearchItemView,onAboutToAddSavedSearch));
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,addedSavedSearch,const QModelIndex&),
-                     this, QNSLOT(SavedSearchItemView,onAddedSavedSearch,const QModelIndex&));
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,aboutToUpdateSavedSearch,const QModelIndex&),
-                     this, QNSLOT(SavedSearchItemView,onAboutToUpdateSavedSearch,const QModelIndex&));
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,updatedSavedSearch,const QModelIndex&),
-                     this, QNSLOT(SavedSearchItemView,onUpdatedSavedSearch,const QModelIndex&));
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,aboutToRemoveSavedSearches),
-                     this, QNSLOT(SavedSearchItemView,onAboutToRemoveSavedSearches));
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,removedSavedSearches),
-                     this, QNSLOT(SavedSearchItemView,onRemovedSavedSearches));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,notifyError,ErrorString),
+                     this,
+                     QNSIGNAL(SavedSearchItemView,notifyError,ErrorString));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,aboutToAddSavedSearch),
+                     this,
+                     QNSLOT(SavedSearchItemView,onAboutToAddSavedSearch));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,addedSavedSearch,
+                              const QModelIndex&),
+                     this,
+                     QNSLOT(SavedSearchItemView,onAddedSavedSearch,
+                            const QModelIndex&));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,aboutToUpdateSavedSearch,
+                              const QModelIndex&),
+                     this,
+                     QNSLOT(SavedSearchItemView,onAboutToUpdateSavedSearch,
+                            const QModelIndex&));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,updatedSavedSearch,
+                              const QModelIndex&),
+                     this,
+                     QNSLOT(SavedSearchItemView,onUpdatedSavedSearch,
+                            const QModelIndex&));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,aboutToRemoveSavedSearches),
+                     this,
+                     QNSLOT(SavedSearchItemView,onAboutToRemoveSavedSearches));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,removedSavedSearches),
+                     this,
+                     QNSLOT(SavedSearchItemView,onRemovedSavedSearches));
 
     ItemView::setModel(pModel);
 
     if (pSavedSearchModel->allSavedSearchesListed()) {
-        QNDEBUG(QStringLiteral("All saved searches are already listed within the model"));
+        QNDEBUG(QStringLiteral("All saved searches are already listed within "
+                               "the model"));
         restoreLastSavedSelection(*pSavedSearchModel);
         m_modelReady = true;
         m_trackingSelection = true;
         return;
     }
 
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
-                     this, QNSLOT(SavedSearchItemView,onAllSavedSearchesListed));
+    QObject::connect(pSavedSearchModel,
+                     QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
+                     this,
+                     QNSLOT(SavedSearchItemView,onAllSavedSearchesListed));
 }
 
 QModelIndex SavedSearchItemView::currentlySelectedItemIndex() const
@@ -149,16 +196,21 @@ void SavedSearchItemView::deleteSelectedItem()
         QNDEBUG(QStringLiteral("No saved searches are selected, nothing to delete"));
         Q_UNUSED(informationMessageBox(this, tr("Cannot delete current saved search"),
                                        tr("No saved search is selected currently"),
-                                       tr("Please select the saved search you want to delete")))
+                                       tr("Please select the saved search you "
+                                          "want to delete")))
         return;
     }
 
-    QModelIndex index = singleRow(indexes, *pSavedSearchModel, SavedSearchModel::Columns::Name);
+    QModelIndex index = singleRow(indexes, *pSavedSearchModel,
+                                  SavedSearchModel::Columns::Name);
     if (!index.isValid()) {
         QNDEBUG(QStringLiteral("Not exactly one saved search within the selection"));
-        Q_UNUSED(informationMessageBox(this, tr("Cannot delete current saved search"),
-                                       tr("More than one saved search is currently selected"),
-                                       tr("Please select only the saved search you want to delete")))
+        Q_UNUSED(informationMessageBox(this,
+                                       tr("Cannot delete current saved search"),
+                                       tr("More than one saved search is currently "
+                                          "selected"),
+                                       tr("Please select only the saved search "
+                                          "you want to delete")))
         return;
     }
 
@@ -171,13 +223,15 @@ void SavedSearchItemView::onAllSavedSearchesListed()
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't cast the model set to the saved search item view "
-                                "to the saved search model"))
+        REPORT_ERROR(QT_TR_NOOP("Can't cast the model set to the saved search "
+                                "item view to the saved search model"))
         return;
     }
 
-    QObject::disconnect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
-                        this, QNSLOT(SavedSearchItemView,onAllSavedSearchesListed));
+    QObject::disconnect(pSavedSearchModel,
+                        QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
+                        this,
+                        QNSLOT(SavedSearchItemView,onAllSavedSearchesListed));
 
     restoreLastSavedSelection(*pSavedSearchModel);
     m_modelReady = true;
@@ -258,8 +312,9 @@ void SavedSearchItemView::onRenameSavedSearchAction()
 
     QModelIndex itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't rename saved search: the model returned invalid "
-                                "index for the saved search's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't rename saved search: "
+                                "the model returned invalid index for the saved "
+                                "search's local uid"))
         return;
     }
 
@@ -292,8 +347,9 @@ void SavedSearchItemView::onDeleteSavedSearchAction()
 
     QModelIndex itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't delete saved search: the model returned invalid "
-                                "index for the saved search's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't delete saved search: "
+                                "the model returned invalid index for the saved "
+                                "search's local uid"))
         return;
     }
 
@@ -324,7 +380,8 @@ void SavedSearchItemView::onEditSavedSearchAction()
         return;
     }
 
-    QScopedPointer<AddOrEditSavedSearchDialog> pEditSavedSearchDialog(new AddOrEditSavedSearchDialog(pSavedSearchModel, this, itemLocalUid));
+    QScopedPointer<AddOrEditSavedSearchDialog> pEditSavedSearchDialog(
+        new AddOrEditSavedSearchDialog(pSavedSearchModel, this, itemLocalUid));
     pEditSavedSearchDialog->setWindowModality(Qt::WindowModal);
     Q_UNUSED(pEditSavedSearchDialog->exec())
 }
@@ -341,7 +398,8 @@ void SavedSearchItemView::onDeselectAction()
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't clear the saved search selection: no selection model in the view"))
+        REPORT_ERROR(QT_TR_NOOP("Can't clear the saved search selection: "
+                                "no selection model in the view"))
         return;
     }
 
@@ -390,8 +448,8 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     QNDEBUG(QStringLiteral("SavedSearchItemView::contextMenuEvent"));
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING(QStringLiteral("Detected Qt error: saved search item view received "
-                                 "context menu event with null pointer "
+        QNWARNING(QStringLiteral("Detected Qt error: saved search item view "
+                                 "received context menu event with null pointer "
                                  "to the context menu event"));
         return;
     }
@@ -408,10 +466,12 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    const SavedSearchModelItem * pItem = pSavedSearchModel->itemForIndex(clickedItemIndex);
+    const SavedSearchModelItem * pItem =
+        pSavedSearchModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't show the context menu for the saved search model item: "
-                                "no item corresponding to the clicked item's index"))
+        REPORT_ERROR(QT_TR_NOOP("Can't show the context menu for the saved search "
+                                "model item: no item corresponding to the clicked "
+                                "item's index"))
         return;
     }
 
@@ -423,19 +483,22 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         QAction * pAction = new QAction(name, menu); \
         pAction->setData(data); \
         pAction->setEnabled(enabled); \
-        QObject::connect(pAction, QNSIGNAL(QAction,triggered), this, QNSLOT(SavedSearchItemView,slot)); \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered), \
+                         this, QNSLOT(SavedSearchItemView,slot)); \
         menu->addAction(pAction); \
     }
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new saved search") + QStringLiteral("..."),
-                            m_pSavedSearchItemContextMenu, onCreateNewSavedSearchAction,
-                            pItem->m_localUid, true);
+                            m_pSavedSearchItemContextMenu,
+                            onCreateNewSavedSearchAction, pItem->m_localUid, true);
 
     m_pSavedSearchItemContextMenu->addSeparator();
 
-    bool canUpdate = (pSavedSearchModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
+    bool canUpdate =
+        (pSavedSearchModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
     ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pSavedSearchItemContextMenu,
-                            onRenameSavedSearchAction, pItem->m_localUid, canUpdate);
+                            onRenameSavedSearchAction, pItem->m_localUid,
+                            canUpdate);
 
     if (pItem->m_guid.isEmpty()) {
         ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pSavedSearchItemContextMenu,
@@ -444,8 +507,8 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     }
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
-                            m_pSavedSearchItemContextMenu, onEditSavedSearchAction,
-                            pItem->m_localUid, canUpdate);
+                            m_pSavedSearchItemContextMenu,
+                            onEditSavedSearchAction, pItem->m_localUid, canUpdate);
 
     if (!pItem->m_isFavorited) {
         ADD_CONTEXT_MENU_ACTION(tr("Favorite"), m_pSavedSearchItemContextMenu,
@@ -461,25 +524,29 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     ADD_CONTEXT_MENU_ACTION(tr("Clear selection"), m_pSavedSearchItemContextMenu,
                             onDeselectAction, QString(), true);
 
-    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
+    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."),
+                            m_pSavedSearchItemContextMenu,
                             onShowSavedSearchInfoAction, pItem->m_localUid, true);
 
     m_pSavedSearchItemContextMenu->show();
     m_pSavedSearchItemContextMenu->exec(pEvent->globalPos());
 }
 
-void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex, SavedSearchModel & model)
+void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex,
+                                     SavedSearchModel & model)
 {
     QNDEBUG(QStringLiteral("SavedSearchItemView::deleteItem"));
 
     const SavedSearchModelItem * pItem = model.itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the saved search model item meant to be deleted"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the saved search "
+                                "model item meant to be deleted"))
         return;
     }
 
     int confirm = warningMessageBox(this, tr("Confirm the saved search deletion"),
-                                    tr("Are you sure you want to delete this saved search?"),
+                                    tr("Are you sure you want to delete this "
+                                       "saved search?"),
                                     tr("Note that this action is not reversible!"),
                                     QMessageBox::Ok | QMessageBox::No);
     if (confirm != QMessageBox::Ok) {
@@ -493,9 +560,12 @@ void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex, SavedSearchM
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(this, tr("The saved search model refused to delete the saved search; "
-                                              "Check the status bar for message from the saved search model "
-                                              "explaining why the saved search could not be deleted")))
+    Q_UNUSED(internalErrorMessageBox(this, tr("The saved search model refused "
+                                              "to delete the saved search; "
+                                              "Check the status bar for message "
+                                              "from the saved search model "
+                                              "explaining why the saved search "
+                                              "could not be deleted")))
 }
 
 void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & model)
@@ -504,13 +574,15 @@ void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & mod
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't restore the last selected saved search: no selection model in the view"))
+        REPORT_ERROR(QT_TR_NOOP("Can't restore the last selected saved search: "
+                                "no selection model in the view"))
         return;
     }
 
     ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("SavedSearchItemView"));
-    QString lastSelectedSavedSearchLocalUid = appSettings.value(LAST_SELECTED_SAVED_SEARCH_KEY).toString();
+    QString lastSelectedSavedSearchLocalUid =
+        appSettings.value(LAST_SELECTED_SAVED_SEARCH_KEY).toString();
     appSettings.endGroup();
 
     if (lastSelectedSavedSearchLocalUid.isEmpty()) {
@@ -518,17 +590,21 @@ void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & mod
         return;
     }
 
-    QNTRACE(QStringLiteral("Last selected saved search local uid: ") << lastSelectedSavedSearchLocalUid);
+    QNTRACE(QStringLiteral("Last selected saved search local uid: ")
+            << lastSelectedSavedSearchLocalUid);
 
-    QModelIndex lastSelectedSavedSearchIndex = model.indexForLocalUid(lastSelectedSavedSearchLocalUid);
+    QModelIndex lastSelectedSavedSearchIndex =
+        model.indexForLocalUid(lastSelectedSavedSearchLocalUid);
     if (!lastSelectedSavedSearchIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Saved search model returned invalid index for the last selected saved search local uid"));
+        QNDEBUG(QStringLiteral("Saved search model returned invalid index for "
+                               "the last selected saved search local uid"));
         return;
     }
 
-    pSelectionModel->select(lastSelectedSavedSearchIndex, QItemSelectionModel::ClearAndSelect |
-                                                          QItemSelectionModel::Rows |
-                                                          QItemSelectionModel::Current);
+    pSelectionModel->select(lastSelectedSavedSearchIndex,
+                            QItemSelectionModel::ClearAndSelect |
+                            QItemSelectionModel::Rows |
+                            QItemSelectionModel::Current);
 }
 
 void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
@@ -558,20 +634,23 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
 
     // Need to figure out how many rows the new selection covers; if exactly 1,
     // persist this selection so that it can be resurrected on the next startup
-    QModelIndex sourceIndex = singleRow(selectedIndexes, *pSavedSearchModel, SavedSearchModel::Columns::Name);
+    QModelIndex sourceIndex = singleRow(selectedIndexes, *pSavedSearchModel,
+                                        SavedSearchModel::Columns::Name);
     if (!sourceIndex.isValid()) {
         QNDEBUG(QStringLiteral("Not exactly one row is selected"));
         return;
     }
 
-    const SavedSearchModelItem * pSavedSearchItem = pSavedSearchModel->itemForIndex(sourceIndex);
+    const SavedSearchModelItem * pSavedSearchItem =
+        pSavedSearchModel->itemForIndex(sourceIndex);
     if (Q_UNLIKELY(!pSavedSearchItem)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the saved search model item corresponding "
-                                "to the selected index"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the saved search "
+                                "model item corresponding to the selected index"))
         return;
     }
 
-    QNTRACE(QStringLiteral("Currently selected saved search item: ") << *pSavedSearchItem);
+    QNTRACE(QStringLiteral("Currently selected saved search item: ")
+            << *pSavedSearchItem);
 
     ApplicationSettings appSettings(pSavedSearchModel->account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("SavedSearchItemView"));
@@ -582,7 +661,8 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
             << pSavedSearchItem->m_localUid);
 }
 
-void SavedSearchItemView::setFavoritedFlag(const QAction & action, const bool favorited)
+void SavedSearchItemView::setFavoritedFlag(const QAction & action,
+                                           const bool favorited)
 {
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
@@ -592,15 +672,17 @@ void SavedSearchItemView::setFavoritedFlag(const QAction & action, const bool fa
 
     QString itemLocalUid = action.data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag for the saved search, "
-                                "can't get saved search's local uid from QAction"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag "
+                                "for the saved search, can't get saved search's "
+                                "local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag for the saved search, the model "
-                                "returned invalid index for the saved search's local uid"))
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag "
+                                "for the saved search, the model returned "
+                                "invalid index for the saved search's local uid"))
         return;
     }
 

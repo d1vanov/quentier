@@ -1,3 +1,21 @@
+/*
+ * Copyright 2017-2019 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "DirtyColumnDelegate.h"
 #include <QPainter>
 #include <algorithm>
@@ -16,14 +34,16 @@ int DirtyColumnDelegate::sideSize() const
     return qRound(DIRTY_CIRCLE_RADIUS * 2.1125);
 }
 
-QString DirtyColumnDelegate::displayText(const QVariant & value, const QLocale & locale) const
+QString DirtyColumnDelegate::displayText(const QVariant & value,
+                                         const QLocale & locale) const
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
     return QString();
 }
 
-QWidget * DirtyColumnDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
+QWidget * DirtyColumnDelegate::createEditor(QWidget * parent,
+                                            const QStyleOptionViewItem & option,
                                             const QModelIndex & index) const
 {
     Q_UNUSED(parent)
@@ -32,7 +52,8 @@ QWidget * DirtyColumnDelegate::createEditor(QWidget * parent, const QStyleOption
     return Q_NULLPTR;
 }
 
-void DirtyColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
+void DirtyColumnDelegate::paint(QPainter * painter,
+                                const QStyleOptionViewItem & option,
                                 const QModelIndex & index) const
 {
     painter->save();
@@ -61,20 +82,25 @@ void DirtyColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem &
     int radius = std::min(side, DIRTY_CIRCLE_RADIUS);
     int diameter = 2 * radius;
     QPoint center = option.rect.center();
-    center.setX(std::min(center.x(), (option.rect.left() + std::max(colNameWidth, side)/2 + 1)));
+    center.setX(std::min(center.x(), (option.rect.left() +
+                                      std::max(colNameWidth, side)/2 + 1)));
     painter->setPen(QColor());
-    painter->drawEllipse(QRectF(center.x() - radius, center.y() - radius, diameter, diameter));
+    painter->drawEllipse(QRectF(center.x() - radius,
+                                center.y() - radius,
+                                diameter, diameter));
 
     painter->restore();
 }
 
-void DirtyColumnDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
+void DirtyColumnDelegate::setEditorData(QWidget * editor,
+                                        const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(index)
 }
 
-void DirtyColumnDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
+void DirtyColumnDelegate::setModelData(QWidget * editor,
+                                       QAbstractItemModel * model,
                                        const QModelIndex & index) const
 {
     Q_UNUSED(editor)
@@ -82,7 +108,8 @@ void DirtyColumnDelegate::setModelData(QWidget * editor, QAbstractItemModel * mo
     Q_UNUSED(index)
 }
 
-QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
+QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option,
+                                    const QModelIndex & index) const
 {
     Q_UNUSED(option)
 
@@ -101,7 +128,8 @@ QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option, const Q
 
     QFontMetrics fontMetrics(option.font);
     double margin = 0.1;
-    int columnNameWidth = static_cast<int>(std::floor(fontMetrics.width(columnName) * (1.0 + margin) + 0.5));
+    int columnNameWidth = static_cast<int>(
+        std::floor(fontMetrics.width(columnName) * (1.0 + margin) + 0.5));
 
     int side = DIRTY_CIRCLE_RADIUS;
     side += 1;
@@ -110,7 +138,8 @@ QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option, const Q
     return QSize(width, side);
 }
 
-void DirtyColumnDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
+void DirtyColumnDelegate::updateEditorGeometry(QWidget * editor,
+                                               const QStyleOptionViewItem & option,
                                                const QModelIndex & index) const
 {
     Q_UNUSED(editor)

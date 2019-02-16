@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -121,8 +121,8 @@ private:
 
     /**
      * @brief getPreferenceCloseToSystemTray
-     * @return User preference about closing to tray to given value. If no valid value is found, default value
-     * is returned.
+     * @return          User preference about closing to tray to given value.
+     *                  If no valid value is found, default value is returned.
      */
     bool getPreferenceCloseToSystemTray() const;
 
