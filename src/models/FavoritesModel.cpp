@@ -1849,7 +1849,7 @@ void FavoritesModel::createConnections(LocalStorageManagerAsync & localStorageMa
                      this,
                      QNSLOT(FavoritesModel,onListNotesComplete,
                             LocalStorageManager::ListObjectsOptions,
-                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,
                             size_t,size_t,
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,
