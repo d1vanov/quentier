@@ -31,7 +31,6 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/bimap.hpp>
@@ -197,6 +196,23 @@ public:
      * @param noteLocalUid          The local uid of the note to be unfavorited
      */
     void unfavoriteNote(const QString & noteLocalUid);
+
+public:
+    /**
+     * @brief The NoteModel2 does not store all the notes it has listed from
+     * the local storage inside it, instead, only a rather small subset of most
+     * recently used notes is stored; maxCachedNotes tells the max number of
+     * cached notes which the model actually stores in memory at any given time.
+     */
+    size_t maxCachedNotes() const;
+
+    /**
+     * @brief setMaxCachedNotes method can be used to adjust the max number of
+     * cached notes stored by NoteModel2.
+     *
+     * @param maxCachedNotes            The max number of notes to cache
+     */
+    void setMaxCachedNotes(const size_t maxCachedNotes);
 
 public:
     // QAbstractItemModel interface
@@ -368,16 +384,12 @@ private:
 
 private:
     struct ByLocalUid{};
-    struct ByIndex{};
     struct ByNotebookLocalUid{};
 
     typedef boost::multi_index_container<
         NoteModelItem,
         boost::multi_index::indexed_by<
             boost::multi_index::sequenced<>,
-            boost::multi_index::random_access<
-                boost::multi_index::tag<ByIndex>
-            >,
             boost::multi_index::hashed_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
@@ -392,7 +404,6 @@ private:
     > NoteData;
 
     typedef NoteData::index<ByLocalUid>::type NoteDataByLocalUid;
-    typedef NoteData::index<ByIndex>::type NoteDataByIndex;
     typedef NoteData::index<ByNotebookLocalUid>::type NoteDataByNotebookLocalUid;
 
     class NoteComparator
@@ -463,7 +474,14 @@ private:
     IncludedNotes::type     m_includedNotes;
     NoteSortingMode::type   m_noteSortingMode;
 
+    // LRU cache of note model items
     NoteData                m_data;
+
+    // Max number of note model items stored within the LRU cache
+    size_t                  m_maxStoredNotes;
+
+    // Note local uids by row
+    QStringList             m_noteLocalUidsAtRows;
 
     NoteCache &             m_cache;
     NotebookCache &         m_notebookCache;
