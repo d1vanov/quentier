@@ -31,8 +31,8 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
 #include <boost/bimap.hpp>
 #endif
 
@@ -126,8 +126,7 @@ public:
     /**
      * @brief Total number of notes confrming to the specified filters
      * within the local storage database (not necessarily equal to the number
-     * of notes loaded by the model - it's typically smaller due to lazy
-     * loading)
+     * of rows within the model - it's typically smaller due to lazy loading)
      */
     int totalNoteCount() const;
 
@@ -196,23 +195,6 @@ public:
      * @param noteLocalUid          The local uid of the note to be unfavorited
      */
     void unfavoriteNote(const QString & noteLocalUid);
-
-public:
-    /**
-     * @brief The NoteModel2 does not store all the notes it has listed from
-     * the local storage inside it, instead, only a rather small subset of most
-     * recently used notes is stored; maxCachedNotes tells the max number of
-     * cached notes which the model actually stores in memory at any given time.
-     */
-    size_t maxCachedNotes() const;
-
-    /**
-     * @brief setMaxCachedNotes method can be used to adjust the max number of
-     * cached notes stored by NoteModel2.
-     *
-     * @param maxCachedNotes            The max number of notes to cache
-     */
-    void setMaxCachedNotes(const size_t maxCachedNotes);
 
 public:
     // QAbstractItemModel interface
@@ -284,6 +266,9 @@ Q_SIGNALS:
         LocalStorageManager::ListNotesOrder::type order,
         LocalStorageManager::OrderDirection::type orderDirection,
         QUuid requestId);
+
+    void requestNoteCount(LocalStorageManager::NoteCountOptions options,
+                          QUuid requestId);
 
     void expungeNote(Note note, QUuid requestId);
 
@@ -363,6 +348,14 @@ private Q_SLOTS:
         LocalStorageManager::OrderDirection::type orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
+    void onGetNoteCountComplete(
+        int noteCount, LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
+    void onGetNoteCountFailed(
+        ErrorString errorDescription,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
+
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, ErrorString errorDescription,
                              QUuid requestId);
@@ -383,13 +376,16 @@ private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
 
 private:
+    struct ByIndex{};
     struct ByLocalUid{};
     struct ByNotebookLocalUid{};
 
     typedef boost::multi_index_container<
         NoteModelItem,
         boost::multi_index::indexed_by<
-            boost::multi_index::sequenced<>,
+            boost::multi_index::random_access<
+                boost::multi_index::tag<ByIndex>
+            >,
             boost::multi_index::hashed_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
@@ -403,6 +399,7 @@ private:
         >
     > NoteData;
 
+    typedef NoteData::index<ByIndex>::type NoteDataByIndex;
     typedef NoteData::index<ByLocalUid>::type NoteDataByLocalUid;
     typedef NoteData::index<ByNotebookLocalUid>::type NoteDataByNotebookLocalUid;
 
@@ -474,14 +471,7 @@ private:
     IncludedNotes::type     m_includedNotes;
     NoteSortingMode::type   m_noteSortingMode;
 
-    // LRU cache of note model items
     NoteData                m_data;
-
-    // Max number of note model items stored within the LRU cache
-    size_t                  m_maxStoredNotes;
-
-    // Note local uids by row
-    QStringList             m_noteLocalUidsAtRows;
 
     NoteCache &             m_cache;
     NotebookCache &         m_notebookCache;
