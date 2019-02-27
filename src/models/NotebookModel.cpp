@@ -2754,10 +2754,13 @@ void NotebookModel::onExpungeNotebookFailed(Notebook notebook,
     requestNoteCountForNotebook(notebook);
 }
 
-void NotebookModel::onGetNoteCountPerNotebookComplete(int noteCount,
-                                                      Notebook notebook,
-                                                      QUuid requestId)
+void NotebookModel::onGetNoteCountPerNotebookComplete(
+    int noteCount, Notebook notebook,
+    LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
 {
+    Q_UNUSED(options)
+
     auto it = m_noteCountPerNotebookRequestIds.find(requestId);
     if (it == m_noteCountPerNotebookRequestIds.end()) {
         return;
@@ -2786,10 +2789,13 @@ void NotebookModel::onGetNoteCountPerNotebookComplete(int noteCount,
     Q_UNUSED(updateNoteCountPerNotebookIndex(item, itemIt))
 }
 
-void NotebookModel::onGetNoteCountPerNotebookFailed(ErrorString errorDescription,
-                                                    Notebook notebook,
-                                                    QUuid requestId)
+void NotebookModel::onGetNoteCountPerNotebookFailed(
+    ErrorString errorDescription, Notebook notebook,
+    LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
 {
+    Q_UNUSED(options)
+
     auto it = m_noteCountPerNotebookRequestIds.find(requestId);
     if (it == m_noteCountPerNotebookRequestIds.end()) {
         return;
@@ -3098,10 +3104,11 @@ void NotebookModel::createConnections(LocalStorageManagerAsync & localStorageMan
                             Notebook,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NotebookModel,requestNoteCountPerNotebook,
-                              Notebook,QUuid),
+                              Notebook,LocalStorageManager::NoteCountOptions,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,
-                            onGetNoteCountPerNotebookRequest,Notebook,QUuid));
+                            onGetNoteCountPerNotebookRequest,
+                            Notebook,LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NotebookModel,listAllLinkedNotebooks,size_t,size_t,
                               LocalStorageManager::ListLinkedNotebooksOrder::type,
@@ -3205,17 +3212,22 @@ void NotebookModel::createConnections(LocalStorageManagerAsync & localStorageMan
                      QNSLOT(NotebookModel,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
-                              getNoteCountPerNotebookComplete,int,Notebook,QUuid),
+                              getNoteCountPerNotebookComplete,
+                              int,Notebook,
+                              LocalStorageManager::NoteCountOptions,QUuid),
                      this,
                      QNSLOT(NotebookModel,onGetNoteCountPerNotebookComplete,
-                            int,Notebook,QUuid));
+                            int,Notebook,
+                            LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               getNoteCountPerNotebookFailed,
-                              ErrorString,Notebook,QUuid),
+                              ErrorString,Notebook,
+                              LocalStorageManager::NoteCountOptions,QUuid),
                      this,
                      QNSLOT(NotebookModel,onGetNoteCountPerNotebookFailed,
-                            ErrorString,Notebook,QUuid));
+                            ErrorString,Notebook,
+                            LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               addLinkedNotebookComplete,LinkedNotebook,QUuid),
@@ -3289,7 +3301,9 @@ void NotebookModel::requestNoteCountForNotebook(const Notebook & notebook)
     Q_UNUSED(m_noteCountPerNotebookRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting request to get the note count per notebook: ")
             << QStringLiteral("request id = ") << requestId);
-    Q_EMIT requestNoteCountPerNotebook(notebook, requestId);
+    LocalStorageManager::NoteCountOptions options(
+        LocalStorageManager::NoteCountOption::IncludeNonDeletedNotes);
+    Q_EMIT requestNoteCountPerNotebook(notebook, options, requestId);
 }
 
 void NotebookModel::requestNoteCountForAllNotebooks()

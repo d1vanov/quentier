@@ -164,8 +164,12 @@ Q_SIGNALS:
                            LocalStorageManager::OrderDirection::type orderDirection,
                            QUuid requestId);
 
-    void noteCountPerNotebook(Notebook notebook, QUuid requestId);
-    void noteCountPerTag(Tag tag, QUuid requestId);
+    void noteCountPerNotebook(Notebook notebook,
+                              LocalStorageManager::NoteCountOptions options,
+                              QUuid requestId);
+    void noteCountPerTag(Tag tag,
+                         LocalStorageManager::NoteCountOptions options,
+                         QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -273,13 +277,22 @@ private Q_SLOTS:
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
 
     // For note counts:
-    void onGetNoteCountPerNotebookComplete(int noteCount, Notebook notebook,
-                                           QUuid requestId);
-    void onGetNoteCountPerNotebookFailed(ErrorString errorDescription,
-                                         Notebook notebook, QUuid requestId);
-    void onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
-    void onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag,
-                                    QUuid requestId);
+    void onGetNoteCountPerNotebookComplete(
+        int noteCount, Notebook notebook,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
+    void onGetNoteCountPerNotebookFailed(
+        ErrorString errorDescription, Notebook notebook,
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
+
+    void onGetNoteCountPerTagComplete(
+        int noteCount, Tag tag,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
+    void onGetNoteCountPerTagFailed(
+        ErrorString errorDescription, Tag tag,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);

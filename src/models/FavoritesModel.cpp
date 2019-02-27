@@ -1592,10 +1592,13 @@ void FavoritesModel::onExpungeSavedSearchComplete(SavedSearch search,
     removeItemByLocalUid(search.localUid());
 }
 
-void FavoritesModel::onGetNoteCountPerNotebookComplete(int noteCount,
-                                                       Notebook notebook,
-                                                       QUuid requestId)
+void FavoritesModel::onGetNoteCountPerNotebookComplete(
+    int noteCount, Notebook notebook,
+    LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
 {
+    Q_UNUSED(options)
+
     auto it = m_notebookLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_notebookLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
@@ -1622,10 +1625,13 @@ void FavoritesModel::onGetNoteCountPerNotebookComplete(int noteCount,
     updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
-void FavoritesModel::onGetNoteCountPerNotebookFailed(ErrorString errorDescription,
-                                                     Notebook notebook,
-                                                     QUuid requestId)
+void FavoritesModel::onGetNoteCountPerNotebookFailed(
+    ErrorString errorDescription, Notebook notebook,
+    LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
 {
+    Q_UNUSED(options)
+
     auto it = m_notebookLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_notebookLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
@@ -1642,9 +1648,13 @@ void FavoritesModel::onGetNoteCountPerNotebookFailed(ErrorString errorDescriptio
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag,
-                                                  QUuid requestId)
+void FavoritesModel::onGetNoteCountPerTagComplete(
+    int noteCount, Tag tag,
+    LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
 {
+    Q_UNUSED(options)
+
     auto it = m_tagLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_tagLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
@@ -1671,9 +1681,13 @@ void FavoritesModel::onGetNoteCountPerTagComplete(int noteCount, Tag tag,
     updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
-void FavoritesModel::onGetNoteCountPerTagFailed(ErrorString errorDescription,
-                                                Tag tag, QUuid requestId)
+void FavoritesModel::onGetNoteCountPerTagFailed(
+    ErrorString errorDescription,
+    Tag tag, LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
 {
+    Q_UNUSED(options)
+
     auto it = m_tagLocalUidToNoteCountRequestIdBimap.right.find(requestId);
     if (it == m_tagLocalUidToNoteCountRequestIdBimap.right.end()) {
         return;
@@ -1784,15 +1798,18 @@ void FavoritesModel::createConnections(LocalStorageManagerAsync & localStorageMa
                             LocalStorageManager::ListSavedSearchesOrder::type,
                             LocalStorageManager::OrderDirection::type,QUuid));
     QObject::connect(this,
-                     QNSIGNAL(FavoritesModel,noteCountPerNotebook,Notebook,QUuid),
+                     QNSIGNAL(FavoritesModel,noteCountPerNotebook,
+                              Notebook,LocalStorageManager::NoteCountOptions,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,
-                            onGetNoteCountPerNotebookRequest,Notebook,QUuid));
+                            onGetNoteCountPerNotebookRequest,
+                            Notebook,LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(this,
-                     QNSIGNAL(FavoritesModel,noteCountPerTag,Tag,QUuid),
+                     QNSIGNAL(FavoritesModel,noteCountPerTag,
+                              Tag,LocalStorageManager::NoteCountOptions,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onGetNoteCountPerTagRequest,
-                            Tag,QUuid));
+                            Tag,LocalStorageManager::NoteCountOptions,QUuid));
 
     // Connect localStorageManagerAsync's signals to local slots
     QObject::connect(&localStorageManagerAsync,
@@ -2044,28 +2061,34 @@ void FavoritesModel::createConnections(LocalStorageManagerAsync & localStorageMa
                             SavedSearch,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookComplete,
-                              int,Notebook,QUuid),
+                              int,Notebook,LocalStorageManager::NoteCountOptions,
+                              QUuid),
                      this,
                      QNSLOT(FavoritesModel,onGetNoteCountPerNotebookComplete,
-                            int,Notebook,QUuid));
+                            int,Notebook,LocalStorageManager::NoteCountOptions,
+                            QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerNotebookFailed,
-                              ErrorString,Notebook,QUuid),
+                              ErrorString,Notebook,
+                              LocalStorageManager::NoteCountOptions,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onGetNoteCountPerNotebookFailed,
-                            ErrorString,Notebook,QUuid));
+                            ErrorString,Notebook,
+                            LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagComplete,
-                              int,Tag,QUuid),
+                              int,Tag,LocalStorageManager::NoteCountOptions,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onGetNoteCountPerTagComplete,
-                            int,Tag,QUuid));
+                            int,Tag,LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,getNoteCountPerTagFailed,
-                              ErrorString,Tag,QUuid),
+                              ErrorString,Tag,
+                              LocalStorageManager::NoteCountOptions,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onGetNoteCountPerTagFailed,
-                            ErrorString,Tag,QUuid));
+                            ErrorString,Tag,
+                            LocalStorageManager::NoteCountOptions,QUuid));
 }
 
 void FavoritesModel::requestNotesList()
@@ -2182,7 +2205,9 @@ void FavoritesModel::requestNoteCountForNotebook(const QString & notebookLocalUi
     QNTRACE(QStringLiteral("Emitting the request to get the note count per notebook: ")
             << QStringLiteral("notebook local uid = ") << notebookLocalUid
             << QStringLiteral(", request id = ") << requestId);
-    Q_EMIT noteCountPerNotebook(dummyNotebook, requestId);
+    LocalStorageManager::NoteCountOptions options(
+        LocalStorageManager::NoteCountOption::IncludeNonDeletedNotes);
+    Q_EMIT noteCountPerNotebook(dummyNotebook, options, requestId);
 }
 
 void FavoritesModel::requestNoteCountForAllNotebooks(
@@ -2284,7 +2309,9 @@ void FavoritesModel::requestNoteCountForTag(const QString & tagLocalUid,
     QNTRACE(QStringLiteral("Emitting the request to get the note count per tag: ")
             << QStringLiteral("tag local uid = ") << tagLocalUid
             << QStringLiteral(", request id = ") << requestId);
-    Q_EMIT noteCountPerTag(dummyTag, requestId);
+    LocalStorageManager::NoteCountOptions options(
+        LocalStorageManager::NoteCountOption::IncludeNonDeletedNotes);
+    Q_EMIT noteCountPerTag(dummyTag, options, requestId);
 }
 
 void FavoritesModel::requestNoteCountForAllTags(const NoteCountRequestOption::type option)
