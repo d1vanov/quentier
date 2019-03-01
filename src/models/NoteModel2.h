@@ -69,7 +69,8 @@ public:
 
     struct Columns
     {
-        enum type {
+        enum type
+        {
             CreationTimestamp = 0,
             ModificationTimestamp,
             DeletionTimestamp,
@@ -85,13 +86,49 @@ public:
         };
     };
 
+    class NoteFilters
+    {
+    public:
+        NoteFilters();
+
+        bool isEmpty() const;
+
+        const QStringList & filteredNotebookLocalUids() const;
+        void setFilteredNotebookLocalUids(const QStringList & notebookLocalUids);
+
+        const QStringList & filteredTagLocalUids() const;
+        void setFilteredTagLocalUids(const QStringList & tagLocalUids);
+
+        const QStringList & filteredNoteLocalUids() const;
+        void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
+
+        void beginUpdateFilter();
+        void endUpdateFilter();
+
+    private:
+        Q_DISABLE_COPY(NoteFilters);
+
+    private:
+        QStringList             m_filteredNotebookLocalUids;
+        QStringList             m_filteredTagLocalUids;
+        QStringList             m_filteredNoteLocalUids;
+
+        QStringList             m_updatedFilteredNotebookLocalUids;
+        QStringList             m_updatedFilteredTagLocalUids;
+        QStringList             m_updatedFilteredNoteLocalUids;
+
+        bool                    m_updatingFilters;
+    };
+
+
     explicit NoteModel2(
         const Account & account,
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteCache & noteCache, NotebookCache & notebookCache,
         QObject * parent = Q_NULLPTR,
         const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted,
-        const NoteSortingMode::type noteSortingMode = NoteSortingMode::ModifiedAscending);
+        const NoteSortingMode::type noteSortingMode = NoteSortingMode::ModifiedAscending,
+        NoteFilters * pFilters = Q_NULLPTR);
 
     virtual ~NoteModel2();
 
@@ -267,8 +304,14 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection::type orderDirection,
         QUuid requestId);
 
-    void requestNoteCount(LocalStorageManager::NoteCountOptions options,
-                          QUuid requestId);
+    void getNoteCount(LocalStorageManager::NoteCountOptions options,
+                      QUuid requestId);
+
+    void getNoteCountPerNotebooksAndTags(
+        QStringList notebookLocalUids,
+        QStringList tagLocalUids,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
 
     void expungeNote(Note note, QUuid requestId);
 
@@ -356,10 +399,22 @@ private Q_SLOTS:
         LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
 
+    void onGetNoteCountPerNotebooksAndTagsComplete(
+        int noteCount, QStringList notebookLocalUids, QStringList tagLocalUids,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
+    void onGetNoteCountPerNotebooksAndTagsFailed(
+        ErrorString errorDescription,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
+
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, ErrorString errorDescription,
                              QUuid requestId);
 
+    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                              QUuid requestId);
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
@@ -374,6 +429,7 @@ private Q_SLOTS:
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
+    void requestNotesListAndCount();
 
 private:
     struct ByIndex{};
@@ -434,38 +490,6 @@ private:
         bool    m_canUpdateNotes;
     };
 
-    class NoteFilters
-    {
-    public:
-        NoteFilters();
-
-        const QStringList & filteredNotebookLocalUids() const;
-        void setFilteredNotebookLocalUids(const QStringList & notebookLocalUids);
-
-        const QStringList & filteredTagLocalUids() const;
-        void setFilteredTagLocalUids(const QStringList & tagLocalUids);
-
-        const QStringList & filteredNoteLocalUids() const;
-        void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
-
-        void beginUpdateFilter();
-        void endUpdateFilter();
-
-    private:
-        Q_DISABLE_COPY(NoteFilters);
-
-    private:
-        QStringList             m_filteredNotebookLocalUids;
-        QStringList             m_filteredTagLocalUids;
-        QStringList             m_filteredNoteLocalUids;
-
-        QStringList             m_updatedFilteredNotebookLocalUids;
-        QStringList             m_updatedFilteredTagLocalUids;
-        QStringList             m_updatedFilteredNoteLocalUids;
-
-        bool                    m_updatingFilters;
-    };
-
 private:
     Account                 m_account;
     IncludedNotes::type     m_includedNotes;
@@ -476,7 +500,11 @@ private:
     NoteCache &             m_cache;
     NotebookCache &         m_notebookCache;
 
-    NoteFilters             m_filters;
+    NoteFilters *           m_pFilters;
+
+    size_t                  m_listNotesOffset;
+    QUuid                   m_listNotesRequestId;
+
 };
 
 } // namespace quentier

@@ -17,6 +17,52 @@
  */
 
 #include "NoteModel2.h"
+#include <quentier/logging/QuentierLogger.h>
+
+// Separate logging macros for the note model - to distinguish the one
+// for deleted notes from the one for non-deleted notes
+
+inline QString includedNotesStr(
+    const quentier::NoteModel2::IncludedNotes::type includedNotes)
+{
+    if (includedNotes == quentier::NoteModel2::IncludedNotes::All) {
+        return QStringLiteral("[all notes] ");
+    }
+
+    if (includedNotes == quentier::NoteModel2::IncludedNotes::NonDeleted) {
+        return QStringLiteral("[non-deleted notes] ");
+    }
+
+    return QStringLiteral("[deleted notes] ");
+}
+
+#define NMTRACE(message) \
+    QNTRACE(includedNotesStr(m_includedNotes) << message)
+
+#define NMDEBUG(message) \
+    QNDEBUG(includedNotesStr(m_includedNotes) << message)
+
+#define NMINFO(message) \
+    QNINFO(includedNotesStr(m_includedNotes) << message)
+
+#define NMWARNING(message) \
+    QNWARNING(includedNotesStr(m_includedNotes) << message)
+
+#define NMCRITICAL(message) \
+    QNCRITICAL(includedNotesStr(m_includedNotes) << message)
+
+#define NMFATAL(message) \
+    QNFATAL(includedNotesStr(m_includedNotes) << message)
+
+// Limit for the queries to the local storage
+#define NOTE_LIST_LIMIT (100)
+
+#define NUM_NOTE_MODEL_COLUMNS (12)
+
+#define REPORT_ERROR(error, ...) \
+    ErrorString errorDescription(error); \
+    NMWARNING(errorDescription << QStringLiteral("" __VA_ARGS__ "")); \
+    Q_EMIT notifyError(errorDescription)
 
 namespace quentier {
 
@@ -25,20 +71,30 @@ NoteModel2::NoteModel2(const Account & account,
                        NoteCache & noteCache, NotebookCache & notebookCache,
                        QObject * parent,
                        const IncludedNotes::type includedNotes,
-                       const NoteSortingMode::type noteSortingMode) :
+                       const NoteSortingMode::type noteSortingMode,
+                       NoteFilters * pFilters) :
     QAbstractItemModel(parent),
     m_account(account),
     m_includedNotes(includedNotes),
     m_noteSortingMode(noteSortingMode),
     m_cache(noteCache),
     m_notebookCache(notebookCache),
-    m_filters()
+    m_pFilters(pFilters),
+    m_listNotesRequestId()
 {
-    // TODO: implement
+    if (!m_pFilters) {
+        m_pFilters = new NoteFilters;
+    }
+
+    createConnections(localStorageManagerAsync);
+
+    requestNotesListAndCount();
 }
 
 NoteModel2::~NoteModel2()
-{}
+{
+    delete m_pFilters;
+}
 
 int NoteModel2::sortingColumn() const
 {
@@ -73,6 +129,381 @@ Qt::SortOrder NoteModel2::sortOrder() const
     default:
         return Qt::AscendingOrder;
     }
+}
+
+void NoteModel2::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
+{
+    NMDEBUG(QStringLiteral("NoteModel2::createConnections"));
+
+    // Local signals to localStorageManagerAsync's slots
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,addNote,Note,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,
+                            onAddNoteRequest,Note,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,updateNote,
+                              Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,
+                            Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,findNote,
+                              Note,LocalStorageManager::GetNoteOptions,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,
+                            Note,LocalStorageManager::GetNoteOptions,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,listNotes,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,listNotesPerNotebooksAndTags,
+                              QStringList,QStringList,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,
+                            onListNotesPerNotebooksAndTagsRequest,
+                            QStringList,QStringList,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,listNotesByLocalUids,
+                              QStringList,LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,
+                            onListNotesByLocalUidsRequest,
+                            QStringList,LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,expungeNote,Note,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onExpungeNoteRequest,
+                            Note,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,findNotebook,Notebook,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,
+                            Notebook,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(NoteModel2,findTag,Tag,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
+
+    // localStorageManagerAsync's signals to local slots
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,
+                              Note,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onAddNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,
+                              Note,ErrorString,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onAddNoteFailed,Note,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,
+                              Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onUpdateNoteComplete,
+                            Note,LocalStorageManager::UpdateNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,
+                              Note,LocalStorageManager::UpdateNoteOptions,
+                              ErrorString,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onUpdateNoteFailed,
+                            Note,LocalStorageManager::UpdateNoteOptions,
+                            ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,
+                              Note,LocalStorageManager::GetNoteOptions,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onFindNoteComplete,
+                            Note,LocalStorageManager::GetNoteOptions,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,
+                              Note,LocalStorageManager::GetNoteOptions,
+                              ErrorString,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onFindNoteFailed,
+                            Note,LocalStorageManager::GetNoteOptions,
+                            ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listNotesComplete,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,QList<Note>,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onListNotesComplete,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,QList<Note>,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,
+                              QString,ErrorString,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onListNotesFailed,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,
+                            QString,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,
+                              listNotesPerNotebooksAndTagsComplete,
+                              int,QStringList,QStringList,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onListNotesPerNotebooksAndTagsComplete,
+                            int,QStringList,QStringList,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,
+                              listNotesPerNotebooksAndTagsFailed,
+                              ErrorString,QStringList,QStringList,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onListNotesPerNotebooksAndTagsFailed,
+                            ErrorString,QStringList,QStringList,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,
+                              listNotesByLocalUidsComplete,
+                              int,QString,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onListNotesByLocalUidsComplete,
+                            int,QString,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,
+                              listNotesByLocalUidsFailed,
+                              ErrorString,QString,
+                              LocalStorageManager::ListObjectsOptions,
+                              LocalStorageManager::GetNoteOptions,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,
+                              LocalStorageManager::OrderDirection::type,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onListNotesByLocalUidsFailed,
+                            ErrorString,QString,
+                            LocalStorageManager::ListObjectsOptions,
+                            LocalStorageManager::GetNoteOptions,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,
+                            LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,
+                              Note,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onExpungeNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,
+                              Note,ErrorString,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onExpungeNoteFailed,
+                            Note,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onFindNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,
+                              Notebook,ErrorString,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onFindNotebookFailed,
+                            Notebook,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onAddNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onUpdateNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,
+                              Notebook,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onExpungeNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findTagComplete,Tag,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onFindTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findTagFailed,
+                              Tag,ErrorString,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onFindTagFailed,Tag,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onAddTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,
+                              Tag,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onUpdateTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,
+                              Tag,QStringList,QUuid),
+                     this,
+                     QNSLOT(NoteModel2,onExpungeTagComplete,Tag,QStringList,QUuid));
+}
+
+void NoteModel2::requestNotesListAndCount()
+{
+    NMDEBUG(QStringLiteral("NoteModel2::requestNotesListAndCount"));
+
+    LocalStorageManager::ListObjectsOptions flags =
+        LocalStorageManager::ListAll;
+    LocalStorageManager::ListNotesOrder::type order =
+        LocalStorageManager::ListNotesOrder::ByModificationTimestamp;
+    LocalStorageManager::OrderDirection::type direction =
+        LocalStorageManager::OrderDirection::Ascending;
+
+    switch(m_noteSortingMode)
+    {
+    case NoteSortingMode::CreatedAscending:
+        order = LocalStorageManager::ListNotesOrder::ByCreationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Ascending;
+        break;
+    case NoteSortingMode::CreatedDescending:
+        order = LocalStorageManager::ListNotesOrder::ByCreationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Descending;
+        break;
+    case NoteSortingMode::ModifiedAscending:
+        order = LocalStorageManager::ListNotesOrder::ByModificationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Ascending;
+        break;
+    case NoteSortingMode::ModifiedDescending:
+        order = LocalStorageManager::ListNotesOrder::ByModificationTimestamp;
+        direction = LocalStorageManager::OrderDirection::Descending;
+        break;
+    case NoteSortingMode::TitleAscending:
+        order = LocalStorageManager::ListNotesOrder::ByTitle;
+        direction = LocalStorageManager::OrderDirection::Ascending;
+        break;
+    case NoteSortingMode::TitleDescending:
+        order = LocalStorageManager::ListNotesOrder::ByTitle;
+        direction = LocalStorageManager::OrderDirection::Descending;
+        break;
+    // NOTE: no sorting by side is supported by the local storage so leaving
+    // it as is for now
+    default:
+        break;
+    }
+
+    m_listNotesRequestId = QUuid::createUuid();
+
+    if (!hasFilters())
+    {
+        NMTRACE(QStringLiteral("Emitting the request to list notes: offset = ")
+                << m_listNotesOffset << QStringLiteral(", request id = ")
+                << m_listNotesRequestId << QStringLiteral(", order = ")
+                << order << QStringLiteral(", direction = ") << direction);
+
+        Q_EMIT listNotes(flags, LocalStorageManager::GetNoteOptions(0),
+                         NOTE_LIST_LIMIT, m_listNotesOffset, order, direction,
+                         QString(), m_listNotesRequestId);
+
+        // TODO: if notes count is zero, request notes count as well
+        return;
+    }
+
+    const QStringList & filteredNoteLocalUids = m_pFilters->filteredNoteLocalUids();
+    if (!filteredNoteLocalUids.isEmpty())
+    {
+        int end = static_cast<int>(m_listNotesOffset) + NOTE_LIST_LIMIT;
+        end = std::min(end, filteredNoteLocalUids.size());
+
+        QStringList noteLocalUids;
+        noteLocalUids.reserve(std::max((end - static_cast<int>(m_listNotesOffset)), 0));
+        for(int i = m_listNotesOffset; i < end; ++i) {
+            noteLocalUids << filteredNoteLocalUids[i];
+        }
+
+        NMTRACE(QStringLiteral("Emitting the request to list notes by local uids: ")
+                << QStringLiteral(", request id = ") << m_listNotesRequestId
+                << QStringLiteral(", order = ") << order
+                << QStringLiteral(", direction = ") << direction
+                << QStringLiteral(", note local uids: ")
+                << noteLocalUids.join(QStringLiteral(", ")));
+
+        Q_EMIT listNotesByLocalUids(noteLocalUids,
+                                    LocalStorageManager::GetNoteOptions(0),
+                                    flags, NOTE_LIST_LIMIT, 0, order, direction,
+                                    m_listNotesRequestId);
+        return;
+    }
+
+    const QStringList & notebookLocalUids = m_pFilters->filteredNotebookLocalUids();
+    const QStringList & tagLocalUids = m_pFilters->filteredTagLocalUids();
+
+    NMTRACE(QStringLiteral("Emitting the request to list notes per notebooks ")
+            << QStringLiteral("and tags: offset = ") << m_listNotesOffset
+            << QStringLiteral(", request id = ") << m_listNotesRequestId
+            << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << direction
+            << QStringLiteral(", notebook local uids: ")
+            << notebookLocalUids.join(QStringLiteral(", "))
+            << QStringLiteral("; tag local uids: ")
+            << tagLocalUids.join(QStringLiteral(", ")));
+
+    Q_EMIT listNotesPerNotebooksAndTags(notebookLocalUids, tagLocalUids,
+                                        LocalStorageManager::GetNoteOptions(0),
+                                        flags, NOTE_LIST_LIMIT, m_listNotesOffset,
+                                        order, direction, m_listNotesRequestId);
+
+    // TODO: if notes count is zero, request notes count per notebooks and tags as well
 }
 
 } // namespace quentier
