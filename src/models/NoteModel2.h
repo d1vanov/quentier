@@ -133,7 +133,7 @@ public:
     const Account & account() const { return m_account; }
     void updateAccount(const Account & account);
 
-    int sortingColumn() const;
+    Columns::type sortingColumn() const;
     Qt::SortOrder sortOrder() const;
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
@@ -190,25 +190,38 @@ public:
      * uid. In that case the deletion won't be successful.
      *
      * @param noteLocalUid          The local uid of note to be marked as deleted
+     * @param errorDescription      Textual description of the error if the note
+     *                              could not be marked as deleted
      * @return                      True if the note was deleted successfully,
      *                              false otherwise
      */
-    bool deleteNote(const QString & noteLocalUid);
+    bool deleteNote(const QString & noteLocalUid,
+                    ErrorString & errorDescription);
 
     /**
-     * @brief moveNoteToNotebook - attempts to move the note to a different notebook
+     * @brief moveNoteToNotebook - attempts to move the note to a different
+     * notebook
      *
-     * The method doesn't have a return code because it might have to do its job
-     * asynchronously; if the error happens during the process (for example,
-     * the target notebook was not found by name), notifyError signal is emitted
+     * The method only checks the prerequisites and in case of no obstacles
+     * sends the request to update the note-notebook binding within the local
+     * storage but returns before the completion of this request. So if the
+     * method returned successfully, it doesn't necessarily mean the note was
+     * actually moved to another notebook - it only means the request to do so
+     * was sent. If that request yields failure as a result, notifyError signal
+     * is emitted upon the local storage response receipt.
      *
      * @param noteLocalUid          The local uid of note to be moved to another
      *                              notebook
      * @param notebookName          The name of the notebook into which the note
      *                              needs to be moved
+     * @param errorDescription      Textual description of the error if the note
+     *                              could not be moved to the specified notebook
+     * @return                      True if the note was moved to the specified
+     *                              notebook successfully, false otherwise
      */
-    void moveNoteToNotebook(const QString & noteLocalUid,
-                            const QString & notebookName);
+    bool moveNoteToNotebook(const QString & noteLocalUid,
+                            const QString & notebookName,
+                            ErrorString & errorDescription);
 
     /**
      * @brief favoriteNote - attempts to mark the note with the specified local
@@ -216,11 +229,24 @@ public:
      *
      * Favorited property of Note class is not represented as a column within
      * the NoteModel2 so this method doesn't change anything in the model but
-     * only the underlying note object persisted in the local storage
+     * only the underlying note object persisted in the local storage.
+     *
+     * The method only checks the prerequisites and in case of no obstacles
+     * sends the request to update the note's favorited state within the local
+     * storage but returns before the completion of this request. So if
+     * the method returned successfully, it doesn't necessarily mean the note
+     * was actually favorited - it only means the request to do so was sent. If
+     * that request yields failure as a result, notifyError signal is emitted
+     * upon the local storage response receipt.
      *
      * @param noteLocalUid          The local uid of the note to be favorited
+     * @param errorDescription      Textual description of the error if the note
+     *                              could not be favorited
+     * @return                      True if the note was favorited successfully,
+     *                              false otherwise
      */
-    void favoriteNote(const QString & noteLocalUid);
+    bool favoriteNote(const QString & noteLocalUid,
+                      ErrorString & errorDescription);
 
     /**
      * @brief unfavoriteNote - attempts to remove the favorited mark from
@@ -228,11 +254,24 @@ public:
      *
      * Favorited property of Note class is not represented as a column within
      * the NoteModel2 so this method doesn't change anything in the model but
-     * only the underlying note object persisted in the local storage
+     * only the underlying note object persisted in the local storage.
+     *
+     * The method only checks the prerequisites and in case of no obstacles
+     * sends the request to update the note's favorited state within the local
+     * storage but returns before the completion of this request. So if
+     * the method returned successfully, it doesn't necessarily mean the note
+     * was actually unfavorited - it only means the request to do so was sent.
+     * If that request yields failure as a result, notifyError signal is emitted
+     * upon the local storage response receipt.
      *
      * @param noteLocalUid          The local uid of the note to be unfavorited
+     * @param errorDescription      Textual description of the error if the note
+     *                              could not be unfavorited
+     * @return                      True if the note was unfavorited successfully,
+     *                              false otherwise
      */
-    void unfavoriteNote(const QString & noteLocalUid);
+    bool unfavoriteNote(const QString & noteLocalUid,
+                        ErrorString & errorDescription);
 
 public:
     // QAbstractItemModel interface
@@ -436,6 +475,27 @@ private:
 
     LocalStorageManager::NoteCountOptions noteCountOptions() const;
 
+    /**
+     * @param newItem       New note model item about to be inserted into
+     *                      the model
+     * @return              The appropriate row before which the new item should
+     *                      be inserted according to the current sorting criteria
+     *                      and column
+     */
+    int rowForNewItem(const NoteModelItem & newItem) const;
+
+    bool updateItemRowWithRespectToSorting(const NoteModelItem & item,
+                                           ErrorString & errorDescription);
+
+    void saveNoteInLocalStorage(const NoteModelItem & item,
+                                const bool saveTags = false);
+
+    bool setDataImpl(const QModelIndex & index, const QVariant & value,
+                     ErrorString & errorDescription);
+
+    bool setNoteFavorited(const QString & noteLocalUid, const bool favorited,
+                          ErrorString & errorDescription);
+
 private:
     struct ByIndex{};
     struct ByLocalUid{};
@@ -495,6 +555,15 @@ private:
         bool    m_canUpdateNotes;
     };
 
+    typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
+
+private:
+    // WARNING: this method assumes the iterator passed to it is not end()
+    bool moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it,
+                                const Notebook & notebook,
+                                ErrorString & errorDescription);
+
+
 private:
     Account                     m_account;
     const IncludedNotes::type   m_includedNotes;
@@ -515,6 +584,13 @@ private:
 
     qint32                      m_totalAccountNotesCount;
     QUuid                       m_getFullNoteCountPerAccountRequestId;
+
+    QHash<QString, NotebookData>    m_notebookDataByNotebookLocalUid;
+    LocalUidToRequestIdBimap        m_findNotebookRequestForNotebookLocalUid;
+
+    QSet<QUuid>     m_localUidsOfNewNotesBeingAddedToLocalStorage;
+
+    LocalUidToRequestIdBimap    m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap;
 };
 
 } // namespace quentier

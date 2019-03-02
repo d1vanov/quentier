@@ -105,7 +105,7 @@ void NoteModel2::updateAccount(const Account & account)
     m_account = account;
 }
 
-int NoteModel2::sortingColumn() const
+NoteModel2::Columns::type NoteModel2::sortingColumn() const
 {
     switch(m_noteSortingMode)
     {
@@ -312,8 +312,136 @@ QModelIndex NoteModel2::createNoteItem(const QString & notebookLocalUid,
         return QModelIndex();
     }
 
-    // TODO: implement further
-    return QModelIndex();
+    auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
+    if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
+        errorDescription.setBase(QT_TR_NOOP("Can't create a new note: internal "
+                                            "error, can't identify the notebook "
+                                            "in which the note needs to be created"));
+        NMINFO(errorDescription);
+        return QModelIndex();
+    }
+
+    const NotebookData & notebookData = notebookIt.value();
+    if (!notebookData.m_canCreateNotes) {
+        errorDescription.setBase(QT_TR_NOOP("Can't create a new note: notebook "
+                                            "restrictions apply"));
+        NMDEBUG(errorDescription);
+        return QModelIndex();
+    }
+
+    NoteModelItem item;
+    item.setLocalUid(UidGenerator::Generate());
+    item.setNotebookLocalUid(notebookLocalUid);
+    item.setNotebookGuid(notebookData.m_guid);
+    item.setNotebookName(notebookData.m_name);
+    item.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    item.setModificationTimestamp(item.creationTimestamp());
+    item.setDirty(true);
+    item.setSynchronizable(m_account.type() != Account::Type::Local);
+
+    int row = rowForNewItem(item);
+    beginInsertRows(QModelIndex(), row, row);
+
+    NoteDataByIndex & index = m_data.get<ByIndex>();
+    NoteDataByIndex::iterator indexIt = index.begin() + row;
+    Q_UNUSED(index.insert(indexIt, item))
+
+    endInsertRows();
+
+    Q_UNUSED(m_localUidsOfNewNotesBeingAddedToLocalStorage.insert(item.localUid()))
+    saveNoteInLocalStorage(item);
+
+    return createIndex(row, Columns::Title);
+}
+
+bool NoteModel2::deleteNote(const QString & noteLocalUid,
+                            ErrorString & errorDescription)
+{
+    NMDEBUG(QStringLiteral("NoteModel2::deleteNote: ") << noteLocalUid);
+
+    QModelIndex itemIndex = indexForLocalUid(noteLocalUid);
+    if (!itemIndex.isValid()) {
+        errorDescription.setBase(QT_TR_NOOP("note to be deleted was not found"));
+        NMDEBUG(errorDescription);
+        return false;
+    }
+
+    itemIndex = index(itemIndex.row(), Columns::DeletionTimestamp,
+                      itemIndex.parent());
+    qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
+    return setDataImpl(itemIndex, timestamp, errorDescription);
+}
+
+bool NoteModel2::moveNoteToNotebook(const QString & noteLocalUid,
+                                    const QString & notebookName,
+                                    ErrorString & errorDescription)
+{
+    NMDEBUG(QStringLiteral("NoteModel2::moveNoteToNotebook: note local uid = ")
+            << noteLocalUid << QStringLiteral(", notebook name = ")
+            << notebookName);
+
+    if (Q_UNLIKELY(notebookName.isEmpty())) {
+        errorDescription.setBase(QT_TR_NOOP("the name of the target notebook "
+                                            "is empty"));
+        return false;
+    }
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(noteLocalUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        errorDescription.setBase(QT_TR_NOOP("can't find the note to be moved to "
+                                            "another notebook"));
+        return false;
+    }
+
+    /**
+     * First try to find the notebook in the cache; the cache is indexed by
+     * local uid, not by name so need to do the linear search. It should be OK
+     * since the cache is intended to be small
+     */
+    for(auto nit = m_notebookCache.begin(),
+        end = m_notebookCache.end(); nit != end; ++nit)
+    {
+        const Notebook & notebook = nit->second;
+        if (notebook.hasName() && (notebook.name() == notebookName)) {
+            return moveNoteToNotebookImpl(it, notebook, errorDescription);
+        }
+    }
+
+    /**
+     * 2) No such notebook in the cache; attempt to find it within the local
+     * storage asynchronously then
+     */
+    Notebook dummy;
+    dummy.setName(notebookName);
+
+    // Set empty local uid as a hint for local storage to search the notebook
+    // by name
+    dummy.setLocalUid(QString());
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap.insert(
+             LocalUidToRequestIdBimap::value_type(noteLocalUid, requestId)))
+    NMTRACE(QStringLiteral("Emitting the request to find a notebook by name for ")
+            << QStringLiteral("moving the note to it: request id = ")
+            << requestId << QStringLiteral(", notebook name = ") << notebookName
+            << QStringLiteral(", note local uid = ") << noteLocalUid);
+    Q_EMIT findNotebook(dummy, requestId);
+
+    return true;
+}
+
+bool NoteModel2::favoriteNote(const QString & noteLocalUid,
+                              ErrorString & errorDescription)
+{
+    NMDEBUG(QStringLiteral("NoteModel2::favoriteNote: ") << noteLocalUid);
+    return setNoteFavorited(noteLocalUid, true, errorDescription);
+}
+
+bool NoteModel2::unfavoriteNote(const QString & noteLocalUid,
+                                ErrorString & errorDescription)
+{
+    NMDEBUG(QStringLiteral("NoteModel2::unfavoriteNote: ") << noteLocalUid);
+    return setNoteFavorited(noteLocalUid, false, errorDescription);
 }
 
 void NoteModel2::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
@@ -758,6 +886,155 @@ LocalStorageManager::NoteCountOptions NoteModel2::noteCountOptions() const
     }
 
     return noteCountOptions;
+}
+
+bool NoteModel2::updateItemRowWithRespectToSorting(const NoteModelItem & item,
+                                                   ErrorString & errorDescription)
+{
+    NMDEBUG(QStringLiteral("NoteModel2::updateItemRowWithRespectToSorting: ")
+            << QStringLiteral("item local uid = ") << item.localUid());
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto localUidIt = localUidIndex.find(item.localUid());
+    if (Q_UNLIKELY(localUidIt == localUidIndex.end())) {
+        errorDescription.setBase(QT_TR_NOOP("can't find appropriate position "
+                                            "for note within the model: can't "
+                                            "find the note by local uid"));
+        NMWARNING(errorDescription << QStringLiteral(": ") << item);
+        return false;
+    }
+
+    NoteDataByIndex & index = m_data.get<ByIndex>();
+
+    auto it = m_data.project<ByIndex>(localUidIt);
+    if (Q_UNLIKELY(it == index.end())) {
+        errorDescription.setBase(QT_TR_NOOP("can't find appropriate position for "
+                                            "note within the model: internal "
+                                            "error, can't find note's current "
+                                            "position"));
+        NMWARNING(errorDescription << QStringLiteral(": ") << item);
+        return false;
+    }
+
+    int originalRow = static_cast<int>(std::distance(index.begin(), it));
+    if (Q_UNLIKELY((originalRow < 0) ||
+                   (originalRow >= static_cast<int>(m_data.size()))))
+    {
+        errorDescription.setBase(QT_TR_NOOP("can't find appropriate position for ")
+                                            "note within the model: internal "
+                                            "error, note's current position is "
+                                            "beyond the acceptable range");
+        NMWARNING(errorDescription << QStringLiteral(": current row = ")
+                  << originalRow << QStringLiteral(", item: ") << item);
+        return false;
+    }
+
+    NoteModelItem itemCopy(item);
+
+    NMTRACE(QStringLiteral("Removing the moved item from the original row ")
+            << originalRow);
+    beginRemoveRows(QModelIndex(), originalRow, originalRow);
+    Q_UNUSED(index.erase(it))
+    endRemoveRows();
+
+    auto positionIter = std::lower_bound(index.begin(), index.end(), itemCopy,
+                                         NoteComparator(sortingColumn(), sortOrder()));
+    if (positionIter == index.end())
+    {
+        int newRow = static_cast<int>(index.size());
+
+        NMTRACE(QStringLiteral("Inserting the moved item at row ") << newRow);
+        beginInsertRows(QModelIndex(), newRow, newRow);
+        index.push_back(itemCopy);
+        endInsertRows();
+
+        return true;
+    }
+
+    int newRow = static_cast<int>(std::distance(index.begin(), positionIter));
+
+    NMTRACE(QStringLiteral("Inserting the moved item at row ") << newRow);
+    beginInsertRows(QModelIndex(), newRow, newRow);
+    Q_UNUSED(index.insert(positionIter, itemCopy))
+    endInsertRows();
+
+    return true;
+}
+
+bool NoteModel2::setNoteFavorited(const QString & noteLocalUid,
+                                  const bool favorited,
+                                  ErrorString & errorDescription)
+{
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(noteLocalUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        errorDescription.setBase(QT_TR_NOOP("internal error, the note to be "
+                                            "favorited/unfavorited was "
+                                            "not found within the model"));
+        NMWARNING(errorDescription);
+        return false;
+    }
+
+    const NoteModelItem & item = *it;
+
+    if (favorited == item.isFavorited()) {
+        NMDEBUG(QStringLiteral("Favorited flag's value hasn't changed"));
+        return true;
+    }
+
+    NoteModelItem itemCopy(item);
+    itemCopy.setFavorited(favorited);
+
+    localUidIndex.replace(it, itemCopy);
+    saveNoteInLocalStorage(itemCopy);
+
+    return true;
+}
+
+// WARNING: this method assumes the iterator passed to it is not end()
+bool NoteModel2::moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it,
+                                        const Notebook & notebook,
+                                        ErrorString & errorDescription)
+{
+    NoteModelItem item = *it;
+
+    NMTRACE(QStringLiteral("NoteModel2::moveNoteToNotebookImpl: notebook = ")
+            << notebook << QStringLiteral(", note item: ") << item);
+
+    if (Q_UNLIKELY(item.notebookLocalUid() == notebook.localUid())) {
+        NMDEBUG(QStringLiteral("The note is already within its target notebook, "
+                               "nothing to do"));
+        return true;
+    }
+
+    if (!notebook.canCreateNotes()) {
+        errorDescription.setBase(QT_TR_NOOP("the target notebook doesn't allow "
+                                            "to create notes in it"));
+        NMINFO(errorDescription << QStringLiteral(", notebook: ") << notebook);
+        return false;
+    }
+
+    item.setNotebookLocalUid(notebook.localUid());
+    item.setNotebookName(notebook.hasName() ? notebook.name() : QString());
+    item.setNotebookGuid(notebook.hasGuid() ? notebook.guid() : QString());
+
+    item.setDirty(true);
+    item.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+
+    QModelIndex itemIndex = indexForLocalUid(item.localUid());
+    itemIndex = index(itemIndex.row(), Columns::NotebookName, itemIndex.parent());
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    localUidIndex.replace(it, item);
+    Q_EMIT dataChanged(itemIndex, itemIndex);
+
+    // NOTE: deliberately ignoring the returned result as it's too late
+    // to undo the change anyway
+    Q_UNUSED(updateItemRowWithRespectToSorting(*it, errorDescription))
+
+    saveNoteInLocalStorage(item);
+
+    return true;
 }
 
 } // namespace quentier
