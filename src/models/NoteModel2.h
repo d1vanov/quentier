@@ -25,6 +25,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <QAbstractItemModel>
+#include <QScopedPointer>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -102,9 +103,6 @@ public:
         const QStringList & filteredNoteLocalUids() const;
         void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
 
-        void beginUpdateFilter();
-        void endUpdateFilter();
-
     private:
         Q_DISABLE_COPY(NoteFilters);
 
@@ -161,11 +159,11 @@ public:
     void endUpdateFilter();
 
     /**
-     * @brief Total number of notes confrming to the specified filters
+     * @brief Total number of notes conforming with the specified filters
      * within the local storage database (not necessarily equal to the number
      * of rows within the model - it's typically smaller due to lazy loading)
      */
-    int totalNoteCount() const;
+    int totalFilteredNotesCount() const;
 
 public:
     /**
@@ -173,11 +171,14 @@ public:
      * specified by local uid
      * @param notebookLocalUid      The local uid of notebook in which the new
      *                              note is to be created
+     * @param errorDescription      Textual description of the error in case
+     *                              the new note cannot be created
      * @return                      The model index of the newly created note
      *                              item or invalid modex index if the new note
      *                              could not be created
      */
-    QModelIndex createNoteItem(const QString & notebookLocalUid);
+    QModelIndex createNoteItem(const QString & notebookLocalUid,
+                               ErrorString & erroDescription);
 
     /**
      * @brief deleteNote - attempts to mark the note with the specified
@@ -430,6 +431,10 @@ private Q_SLOTS:
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void requestNotesListAndCount();
+    void clearModel();
+    void resetModel();
+
+    LocalStorageManager::NoteCountOptions noteCountOptions() const;
 
 private:
     struct ByIndex{};
@@ -491,20 +496,25 @@ private:
     };
 
 private:
-    Account                 m_account;
-    IncludedNotes::type     m_includedNotes;
-    NoteSortingMode::type   m_noteSortingMode;
+    Account                     m_account;
+    const IncludedNotes::type   m_includedNotes;
+    NoteSortingMode::type       m_noteSortingMode;
 
-    NoteData                m_data;
+    NoteData                    m_data;
+    int                         m_totalFilteredNotesCount;
 
-    NoteCache &             m_cache;
-    NotebookCache &         m_notebookCache;
+    NoteCache &                 m_cache;
+    NotebookCache &             m_notebookCache;
 
-    NoteFilters *           m_pFilters;
+    QScopedPointer<NoteFilters> m_pFilters;
+    QScopedPointer<NoteFilters> m_pUpdatedNoteFilters;
 
-    size_t                  m_listNotesOffset;
-    QUuid                   m_listNotesRequestId;
+    size_t                      m_listNotesOffset;
+    QUuid                       m_listNotesRequestId;
+    QUuid                       m_getNoteCountRequestId;
 
+    qint32                      m_totalAccountNotesCount;
+    QUuid                       m_getFullNoteCountPerAccountRequestId;
 };
 
 } // namespace quentier
