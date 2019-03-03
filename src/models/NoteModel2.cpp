@@ -444,6 +444,237 @@ bool NoteModel2::unfavoriteNote(const QString & noteLocalUid,
     return setNoteFavorited(noteLocalUid, false, errorDescription);
 }
 
+Qt::ItemFlags NoteModel2::flags(const QModelIndex & modelIndex) const
+{
+    Qt::ItemFlags indexFlags = QAbstractItemModel::flags(modelIndex);
+    if (!modelIndex.isValid()) {
+        return indexFlags;
+    }
+
+    int row = modelIndex.row();
+    int column = modelIndex.column();
+
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
+        (column < 0) || (column >= NUM_NOTE_MODEL_COLUMNS))
+    {
+        return indexFlags;
+    }
+
+    indexFlags |= Qt::ItemIsSelectable;
+    indexFlags |= Qt::ItemIsEnabled;
+
+    if ((column == Columns::Dirty) ||
+        (column == Columns::Size) ||
+        (column == Columns::Synchronizable) ||
+        (column == Columns::HasResources))
+
+    {
+        return indexFlags;
+    }
+
+    const NoteDataByIndex & index = m_data.get<ByIndex>();
+    const NoteModelItem & item = index.at(static_cast<size_t>(row));
+    if (!canUpdateNoteItem(item)) {
+        return indexFlags;
+    }
+
+    indexFlags |= Qt::ItemIsEditable;
+    return indexFlags;
+}
+
+QVariant NoteModel2::data(const QModelIndex & index, int role) const
+{
+    if (!index.isValid()) {
+        return QVariant();
+    }
+
+    int rowIndex = index.row();
+    int columnIndex = index.column();
+
+    if ((rowIndex < 0) || (rowIndex >= static_cast<int>(m_data.size())) ||
+        (columnIndex < 0) || (columnIndex >= NUM_NOTE_MODEL_COLUMNS))
+    {
+        return QVariant();
+    }
+
+    if (role == Qt::ToolTipRole) {
+        return dataImpl(rowIndex, Columns::Title);
+    }
+
+    Columns::type column;
+    switch(columnIndex)
+    {
+    case Columns::CreationTimestamp:
+    case Columns::ModificationTimestamp:
+    case Columns::DeletionTimestamp:
+    case Columns::Title:
+    case Columns::PreviewText:
+    case Columns::ThumbnailImage:
+    case Columns::NotebookName:
+    case Columns::TagNameList:
+    case Columns::Size:
+    case Columns::Synchronizable:
+    case Columns::Dirty:
+    case Columns::HasResources:
+        column = static_cast<Columns::type>(columnIndex);
+        break;
+    default:
+        return QVariant();
+    }
+
+    switch(role)
+    {
+    case Qt::DisplayRole:
+    case Qt::EditRole:
+    case Qt::ToolTipRole:
+        return dataImpl(rowIndex, column);
+    case Qt::AccessibleTextRole:
+    case Qt::AccessibleDescriptionRole:
+        return dataAccessibleText(rowIndex, column);
+    default:
+        return QVariant();
+    }
+}
+
+QVariant NoteModel2::headerData(int section, Qt::Orientation orientation,
+                                int role) const
+{
+    if (role != Qt::DisplayRole) {
+        return QVariant();
+    }
+
+    if (orientation == Qt::Vertical) {
+        return QVariant(section + 1);
+    }
+
+    switch(section)
+    {
+    case Columns::CreationTimestamp:
+        // TRANSLATOR: note's creation timestamp
+        return QVariant(tr("Created"));
+    case Columns::ModificationTimestamp:
+        // TRANSLATOR: note's modification timestamp
+        return QVariant(tr("Modified"));
+    case Columns::DeletionTimestamp:
+        // TRANSLATOR: note's deletion timestamp
+        return QVariant(tr("Deleted"));
+    case Columns::Title:
+        return QVariant(tr("Title"));
+    case Columns::PreviewText:
+        // TRANSLATOR: a short excerpt of note's text
+        return QVariant(tr("Preview"));
+    case Columns::NotebookName:
+        return QVariant(tr("Notebook"));
+    case Columns::TagNameList:
+        // TRANSLATOR: the list of note's tags
+        return QVariant(tr("Tags"));
+    case Columns::Size:
+        // TRANSLATOR: size of note in bytes
+        return QVariant(tr("Size"));
+    case Columns::Synchronizable:
+        return QVariant(tr("Synchronizable"));
+    case Columns::Dirty:
+        return QVariant(tr("Dirty"));
+    case Columns::HasResources:
+        return QVariant(tr("Has attachments"));
+    // NOTE: intentional fall-through
+    case Columns::ThumbnailImage:
+    default:
+        return QVariant();
+    }
+}
+
+int NoteModel2::rowCount(const QModelIndex & parent) const
+{
+    if (parent.isValid()) {
+        return 0;
+    }
+
+    return static_cast<int>(m_data.size());
+}
+
+int NoteModel2::columnCount(const QModelIndex & parent) const
+{
+    if (parent.isValid()) {
+        return 0;
+    }
+
+    return NUM_NOTE_MODEL_COLUMNS;
+}
+
+QModelIndex NoteModel2::index(int row, int column, const QModelIndex & parent) const
+{
+    if (parent.isValid()) {
+        return QModelIndex();
+    }
+
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
+        (column < 0) || (column >= NUM_NOTE_MODEL_COLUMNS))
+    {
+        return QModelIndex();
+    }
+
+    return createIndex(row, column);
+}
+
+QModelIndex NoteModel2::parent(const QModelIndex & index) const
+{
+    Q_UNUSED(index)
+    return QModelIndex();
+}
+
+bool NoteModel2::setHeaderData(int section, Qt::Orientation orientation,
+                               const QVariant & value, int role)
+{
+    Q_UNUSED(section)
+    Q_UNUSED(orientation)
+    Q_UNUSED(value)
+    Q_UNUSED(role)
+    return false;
+}
+
+bool NoteModel2::setData(const QModelIndex & modelIndex,
+                         const QVariant & value, int role)
+{
+    if (role != Qt::EditRole) {
+        return false;
+    }
+
+    ErrorString errorDescription;
+    bool res = setDataImpl(modelIndex, value, errorDescription);
+    if (!res) {
+        Q_EMIT notifyError(errorDescription);
+    }
+
+    return res;
+}
+
+bool NoteModel2::insertRows(int row, int count, const QModelIndex & parent)
+{
+    // NOTE: NoteModel2's own API is used to create new note items
+    Q_UNUSED(row)
+    Q_UNUSED(count)
+    Q_UNUSED(parent)
+    return false;
+}
+
+bool NoteModel2::removeRows(int row, int count, const QModelIndex & parent)
+{
+    if (Q_UNLIKELY(parent.isValid())) {
+        NMDEBUG(QStringLiteral("Ignoring the attempt to remove rows from note "
+                               "model for valid parent model index"));
+        return false;
+    }
+
+    ErrorString errorDescription;
+    bool res = removeRowsImpl(row, count, errorDescription);
+    if (!res) {
+        Q_EMIT notifyError(errorDescription);
+    }
+
+    return res;
+}
+
 void NoteModel2::createConnections(LocalStorageManagerAsync & localStorageManagerAsync)
 {
     NMDEBUG(QStringLiteral("NoteModel2::createConnections"));
@@ -957,6 +1188,232 @@ bool NoteModel2::updateItemRowWithRespectToSorting(const NoteModelItem & item,
     beginInsertRows(QModelIndex(), newRow, newRow);
     Q_UNUSED(index.insert(positionIter, itemCopy))
     endInsertRows();
+
+    return true;
+}
+
+bool NoteModel2::setDataImpl(const QModelIndex & modelIndex,
+                             const QVariant & value,
+                             ErrorString & errorDescription)
+{
+    if (!modelIndex.isValid()) {
+        return false;
+    }
+
+    int row = modelIndex.row();
+    int column = modelIndex.column();
+
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
+        (column < 0) || (column >= NUM_NOTE_MODEL_COLUMNS))
+    {
+        return false;
+    }
+
+    NoteDataByIndex & index = m_data.get<ByIndex>();
+    NoteModelItem item = index.at(static_cast<size_t>(row));
+
+    if (!canUpdateNoteItem(item)) {
+        return false;
+    }
+
+    bool dirty = item.isDirty();
+    switch(column)
+    {
+    case Columns::Title:
+        {
+            if (!item.canUpdateTitle()) {
+                errorDescription.setBase(QT_TR_NOOP("Can't update the note title: "
+                                                    "note restrictions apply"));
+                NMINFO(errorDescription << QStringLiteral(", item: ") << item);
+                return false;
+            }
+
+            QString title = value.toString();
+            dirty |= (title != item.title());
+            item.setTitle(title);
+            break;
+        }
+    case Columns::Synchronizable:
+        {
+            if (item.isSynchronizable()) {
+                errorDescription.setBase(QT_TR_NOOP("Can't make already "
+                                                    "synchronizable note not "
+                                                    "synchronizable"));
+                NMDEBUG(errorDescription << QStringLiteral(", item: ") << item);
+                return false;
+            }
+
+            dirty |= (value.toBool() != item.isSynchronizable());
+            item.setSynchronizable(value.toBool());
+            break;
+        }
+    case Columns::DeletionTimestamp:
+        {
+            qint64 timestamp = -1;
+
+            if (!value.isNull())
+            {
+                bool conversionResult = false;
+                timestamp = value.toLongLong(&conversionResult);
+
+                if (!conversionResult) {
+                    errorDescription.setBase(QT_TR_NOOP("Can't change note's "
+                                                        "deleted state: wrong "
+                                                        "deletion timestamp value"));
+                    NMDEBUG(errorDescription << QStringLiteral(", item: ")
+                            << item << QStringLiteral("\nTimestamp: ")
+                            << value);
+                    return false;
+                }
+            }
+
+            dirty |= (timestamp != item.deletionTimestamp());
+            item.setDeletionTimestamp(timestamp);
+            bool isActive = (timestamp < 0);
+            item.setActive(isActive);
+            break;
+        }
+    case Columns::CreationTimestamp:
+        {
+            qint64 timestamp = -1;
+
+            if (!value.isNull())
+            {
+                bool conversionResult = false;
+                timestamp = value.toLongLong(&conversionResult);
+
+                if (!conversionResult) {
+                    errorDescription.setBase(QT_TR_NOOP("Can't update note's "
+                                                        "creation datetime: "
+                                                        "wrong creation timestamp "
+                                                        "value"));
+                    NMDEBUG(errorDescription << QStringLiteral(", item: ")
+                            << item << QStringLiteral("\nTimestamp: ") << value);
+                    return false;
+                }
+            }
+
+            dirty |= (timestamp != item.creationTimestamp());
+            item.setCreationTimestamp(timestamp);
+            break;
+        }
+    case Columns::ModificationTimestamp:
+        {
+            qint64 timestamp = -1;
+
+            if (!value.isNull())
+            {
+                bool conversionResult = false;
+                timestamp = value.toLongLong(&conversionResult);
+
+                if (!conversionResult) {
+                    errorDescription.setBase(QT_TR_NOOP("Can't update note's "
+                                                        "modification datetime: "
+                                                        "wrong modification "
+                                                        "timestamp value"));
+                    NMDEBUG(errorDescription << QStringLiteral(", item: ")
+                            << item << QStringLiteral("\nTimestamp: ") << value);
+                    return false;
+                }
+            }
+
+            dirty |= (timestamp != item.modificationTimestamp());
+            item.setModificationTimestamp(timestamp);
+            break;
+        }
+    default:
+        return false;
+    }
+
+    bool dirtyFlagChanged = (item.isDirty() != dirty);
+    item.setDirty(dirty);
+
+    if ( (m_includedNotes != IncludedNotes::NonDeleted) ||
+         ((column != Columns::DeletionTimestamp) &&
+          (column != Columns::CreationTimestamp)) )
+    {
+        item.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    }
+
+    index.replace(index.begin() + row, item);
+
+    int firstColumn = column;
+    if (firstColumn > Columns::ModificationTimestamp) {
+        firstColumn = Columns::ModificationTimestamp;
+    }
+    if (dirtyFlagChanged && (firstColumn > Columns::Dirty)) {
+        firstColumn = Columns::Dirty;
+    }
+
+    int lastColumn = column;
+    if (lastColumn < Columns::ModificationTimestamp) {
+        lastColumn = Columns::ModificationTimestamp;
+    }
+    if (dirtyFlagChanged && (lastColumn < Columns::Dirty)) {
+        lastColumn = Columns::Dirty;
+    }
+
+    QModelIndex topLeftChangedIndex = createIndex(modelIndex.row(), firstColumn);
+    QModelIndex bottomRightChangedIndex = createIndex(modelIndex.row(), lastColumn);
+    Q_EMIT dataChanged(topLeftChangedIndex, bottomRightChangedIndex);
+
+    if (!updateItemRowWithRespectToSorting(item, errorDescription)) {
+        NMWARNING(QStringLiteral("Failed to update note item's row with respect ")
+                  << QStringLiteral("to sorting: ") << errorDescription
+                  << QStringLiteral(", note item: ") << item);
+    }
+
+    saveNoteInLocalStorage(item);
+    return true;
+}
+
+bool NoteModel2::removeRowsImpl(int row, int count, ErrorString & errorDescription)
+{
+    if (Q_UNLIKELY((row + count) > static_cast<int>(m_data.size()))) {
+        errorDescription.setBase(QT_TR_NOOP("Detected attempt to remove more "
+                                            "rows than the note model contains"));
+        NMDEBUG(errorDescription);
+        return false;
+    }
+
+    NoteDataByIndex & index = m_data.get<ByIndex>();
+
+    for(int i = 0; i < count; ++i)
+    {
+        auto it = index.begin() + row;
+        if (!it->guid().isEmpty()) {
+            errorDescription.setBase(QT_TR_NOOP("Can't remove the synchronizable "
+                                                "note"));
+            NMDEBUG(errorDescription);
+            return false;
+        }
+    }
+
+    beginRemoveRows(QModelIndex(), row, row + count - 1);
+
+    QStringList localUidsToRemove;
+    localUidsToRemove.reserve(count);
+    for(int i = 0; i < count; ++i) {
+        auto it = index.begin() + row + i;
+        localUidsToRemove << it->localUid();
+    }
+    Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
+
+    for(auto it = localUidsToRemove.begin(),
+        end = localUidsToRemove.end(); it != end; ++it)
+    {
+        Note note;
+        note.setLocalUid(*it);
+
+        QUuid requestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeNoteRequestIds.insert(requestId))
+        NMTRACE(QStringLiteral("Emitting the request to expunge the note from ")
+                << QStringLiteral("the local storage: request id = ")
+                << requestId << QStringLiteral(", note local uid: ") << *it);
+        Q_EMIT expungeNote(note, requestId);
+    }
+
+    endRemoveRows();
 
     return true;
 }

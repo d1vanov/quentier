@@ -275,7 +275,7 @@ public:
 
 public:
     // QAbstractItemModel interface
-    virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual Qt::ItemFlags flags(const QModelIndex & modelIndex) const Q_DECL_OVERRIDE;
     virtual QVariant data(const QModelIndex & index,
                           int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
     virtual QVariant headerData(int section,
@@ -295,11 +295,9 @@ public:
     virtual bool setData(const QModelIndex & index,
                          const QVariant & value,
                          int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    virtual bool insertRows(int row,
-                            int count,
+    virtual bool insertRows(int row, int count,
                             const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
-    virtual bool removeRows(int row,
-                            int count,
+    virtual bool removeRows(int row, int count,
                             const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
@@ -490,8 +488,16 @@ private:
     void saveNoteInLocalStorage(const NoteModelItem & item,
                                 const bool saveTags = false);
 
+    QVariant dataImpl(const int row, const Columns::type column) const;
+    QVariant dataAccessibleText(const int row, const Columns::type column) const;
+
     bool setDataImpl(const QModelIndex & index, const QVariant & value,
                      ErrorString & errorDescription);
+
+    bool removeRowsImpl(int row, int count, ErrorString & errorDescription);
+
+    bool canUpdateNoteItem(const NoteModelItem & item) const;
+    bool canCreateNoteItem(const QString & notebookLocalUid) const;
 
     bool setNoteFavorited(const QString & noteLocalUid, const bool favorited,
                           ErrorString & errorDescription);
@@ -589,6 +595,10 @@ private:
     LocalUidToRequestIdBimap        m_findNotebookRequestForNotebookLocalUid;
 
     QSet<QUuid>     m_localUidsOfNewNotesBeingAddedToLocalStorage;
+
+    QSet<QUuid>                 m_addNoteRequestIds;
+    QSet<QUuid>                 m_updateNoteRequestIds;
+    QSet<QUuid>                 m_expungeNoteRequestIds;
 
     LocalUidToRequestIdBimap    m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap;
 };
