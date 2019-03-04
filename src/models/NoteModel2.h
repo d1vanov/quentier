@@ -467,7 +467,17 @@ private Q_SLOTS:
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
+
+    void onNoteAddedOrUpdated(const Note & note,
+                              const bool fromNotesListing = false);
+    void noteToItem(const Note & note, NoteModelItem & item);
+
+    void onListNotesCompleteImpl(const QList<Note> foundNotes);
+
     void requestNotesListAndCount();
+    void requestNotesList();
+    void requestNotesCount();
+
     void clearModel();
     void resetModel();
 
@@ -481,6 +491,8 @@ private:
      *                      and column
      */
     int rowForNewItem(const NoteModelItem & newItem) const;
+
+    void removeItemByLocalUid(const QString & localUid);
 
     bool updateItemRowWithRespectToSorting(const NoteModelItem & item,
                                            ErrorString & errorDescription);
@@ -501,6 +513,10 @@ private:
 
     bool setNoteFavorited(const QString & noteLocalUid, const bool favorited,
                           ErrorString & errorDescription);
+
+    void setSortingColumnAndOrder(const int column,
+                                  const Qt::SortOrder order);
+    void setSortingOrder(const Qt::SortOrder order);
 
 private:
     struct ByIndex{};
@@ -561,6 +577,12 @@ private:
         bool    m_canUpdateNotes;
     };
 
+    struct TagData
+    {
+        QString m_name;
+        QString m_guid;
+    };
+
     typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
 
 private:
@@ -569,6 +591,11 @@ private:
                                 const Notebook & notebook,
                                 ErrorString & errorDescription);
 
+    void addOrUpdateNoteItem(NoteModelItem & item,
+                             const NotebookData & notebookData,
+                             const bool fromNotesListing);
+
+    void findTagNamesForItem(NoteModelItem & item);
 
 private:
     Account                     m_account;
@@ -594,13 +621,24 @@ private:
     QHash<QString, NotebookData>    m_notebookDataByNotebookLocalUid;
     LocalUidToRequestIdBimap        m_findNotebookRequestForNotebookLocalUid;
 
-    QSet<QUuid>     m_localUidsOfNewNotesBeingAddedToLocalStorage;
+    QSet<QUuid>                 m_localUidsOfNewNotesBeingAddedToLocalStorage;
 
     QSet<QUuid>                 m_addNoteRequestIds;
     QSet<QUuid>                 m_updateNoteRequestIds;
     QSet<QUuid>                 m_expungeNoteRequestIds;
 
+    QSet<QUuid>                 m_findNoteToRestoreFailedUpdateRequestIds;
+    QSet<QUuid>                 m_findNoteToPerformUpdateRequestIds;
+
+    // The key is notebook local uid
+    QMultiHash<QString, NoteModelItem>  m_noteItemsPendingNotebookDataUpdate;
+
     LocalUidToRequestIdBimap    m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap;
+
+    QHash<QString, TagData>     m_tagDataByTagLocalUid;
+
+    LocalUidToRequestIdBimap        m_findTagRequestForTagLocalUid;
+    QMultiHash<QString, QString>    m_tagLocalUidToNoteLocalUid;
 };
 
 } // namespace quentier
