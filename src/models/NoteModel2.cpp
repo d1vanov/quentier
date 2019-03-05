@@ -18,6 +18,7 @@
 
 #include "NoteModel2.h"
 #include <quentier/logging/QuentierLogger.h>
+#include <iterator>
 
 // Separate logging macros for the note model - to distinguish the one
 // for deleted notes from the one for non-deleted notes
@@ -55,7 +56,11 @@ inline QString includedNotesStr(
     QNFATAL(includedNotesStr(m_includedNotes) << message)
 
 // Limit for the queries to the local storage
-#define NOTE_LIST_LIMIT (100)
+#define NOTE_LIST_QUERY_LIMIT (20)
+
+// Minimum number of notes which the model attempts to load from the local
+// storage
+#define NOTE_MIN_CACHE_SIZE (60)
 
 #define NOTE_PREVIEW_TEXT_SIZE (500)
 
@@ -83,12 +88,26 @@ NoteModel2::NoteModel2(const Account & account,
     m_totalFilteredNotesCount(0),
     m_cache(noteCache),
     m_notebookCache(notebookCache),
-    m_totalAccountNotesCount(0),
     m_pFilters(pFilters),
     m_pUpdatedNoteFilters(Q_NULLPTR),
     m_listNotesOffset(0),
     m_listNotesRequestId(),
-    m_getNoteCountRequestId()
+    m_getNoteCountRequestId(),
+    m_totalAccountNotesCount(0),
+    m_getFullNoteCountPerAccountRequestId(),
+    m_notebookDataByNotebookLocalUid(),
+    m_findNotebookRequestForNotebookLocalUid(),
+    m_localUidsOfNewNotesBeingAddedToLocalStorage(),
+    m_addNoteRequestIds(),
+    m_updateNoteRequestIds(),
+    m_expungeNoteRequestIds(),
+    m_findNoteToRestoreFailedUpdateRequestIds(),
+    m_findNoteToPerformUpdateRequestIds(),
+    m_noteItemsPendingNotebookDataUpdate(),
+    m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap(),
+    m_tagDataByTagLocalUid(),
+    m_findTagRequestForTagLocalUid(),
+    m_tagLocalUidToNoteLocalUid()
 {
     if (m_pFilters.isNull()) {
         m_pFilters.reset(new NoteFilters);
@@ -241,9 +260,37 @@ void NoteModel2::setFilteredTagLocalUids(const QStringList & tagLocalUids)
     resetModel();
 }
 
-const QStringList & NoteModel2::filteredNoteLocalUids() const
+const QSet<QString> & NoteModel2::filteredNoteLocalUids() const
 {
     return m_pFilters->filteredNoteLocalUids();
+}
+
+void NoteModel2::setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids)
+{
+    if (QuentierIsLogLevelActive(LogLevel::DebugLevel))
+    {
+        QString str;
+        QTextStream strm(&str);
+        strm << QStringLiteral("NoteModel2::setFilteredNoteLocalUids: ");
+        for(auto it = noteLocalUids.constBegin(),
+            end = noteLocalUids.constEnd(); it != end; ++it)
+        {
+            if (it != noteLocalUids.constBegin()) {
+                strm << QStringLiteral(", ");
+            }
+            strm << *it;
+        }
+        strm.flush();
+        NMDEBUG(str);
+    }
+
+    if (!m_pUpdatedNoteFilters.isNull()) {
+        m_pUpdatedNoteFilters->setFilteredNoteLocalUids(noteLocalUids);
+        return;
+    }
+
+    m_pFilters->setFilteredNoteLocalUids(noteLocalUids);
+    resetModel();
 }
 
 void NoteModel2::setFilteredNoteLocalUids(const QStringList & noteLocalUids)
@@ -1418,6 +1465,12 @@ void NoteModel2::onNoteAddedOrUpdated(const Note & note, const bool fromNotesLis
         return;
     }
 
+    if (!fromNotesListing && !noteConformsToFilter(note)) {
+        NMDEBUG(QStringLiteral("Skipping the note not conforming to ")
+                << QStringLiteral("the specified filter: ") << note);
+        return;
+    }
+
     NoteModelItem item;
     noteToItem(note, item);
 
@@ -1595,6 +1648,53 @@ void NoteModel2::noteToItem(const Note & note, NoteModelItem & item)
     item.setSizeInBytes(static_cast<quint64>(sizeInBytes));
 }
 
+bool NoteModel2::noteConformsToFilter(const Note & note) const
+{
+    if (Q_UNLIKELY(!note.hasNotebookLocalUid())) {
+        return false;
+    }
+
+    if (!m_pFilters) {
+        return true;
+    }
+
+    const QSet<QString> & filteredNoteLocalUids = m_pFilters->filteredNoteLocalUids();
+    if (!filteredNoteLocalUids.isEmpty() &&
+        !filteredNoteLocalUids.contains(note.localUid()))
+    {
+        return false;
+    }
+
+    const QStringList & filteredNotebookLocalUids =
+        m_pFilters->filteredNotebookLocalUids();
+    if (!filteredNotebookLocalUids.isEmpty() &&
+        !filteredNotebookLocalUids.contains(note.notebookLocalUid()))
+    {
+        return false;
+    }
+
+    const QStringList & filteredTagLocalUids = m_pFilters->filteredTagLocalUids();
+    if (!filteredTagLocalUids.isEmpty())
+    {
+        bool foundTag = false;
+        const QStringList & tagLocalUids = note.tagLocalUids();
+        for(auto it = tagLocalUids.constBegin(),
+            end = tagLocalUids.end(); it != end; ++it)
+        {
+            if (filteredTagLocalUids.contains(*it)) {
+                foundTag = true;
+                break;
+            }
+        }
+
+        if (!foundTag) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void NoteModel2::onListNotesCompleteImpl(const QList<Note> foundNotes)
 {
     bool fromNotesListing = true;
@@ -1604,7 +1704,7 @@ void NoteModel2::onListNotesCompleteImpl(const QList<Note> foundNotes)
 
     m_listNotesRequestId = QUuid();
 
-    if (!foundNotes.isEmpty()) {
+    if (!foundNotes.isEmpty() && (m_data.size() < NOTE_MIN_CACHE_SIZE)) {
         NMTRACE(QStringLiteral("The number of found notes is greater than zero, "
                                "requesting more notes from the local storage"));
         m_listNotesOffset += static_cast<size_t>(foundNotes.size());
@@ -1673,21 +1773,27 @@ void NoteModel2::requestNotesList()
                 << order << QStringLiteral(", direction = ") << direction);
 
         Q_EMIT listNotes(flags, LocalStorageManager::GetNoteOptions(0),
-                         NOTE_LIST_LIMIT, m_listNotesOffset, order, direction,
+                         NOTE_LIST_QUERY_LIMIT, m_listNotesOffset, order, direction,
                          QString(), m_listNotesRequestId);
         return;
     }
 
-    const QStringList & filteredNoteLocalUids = m_pFilters->filteredNoteLocalUids();
+    const QSet<QString> & filteredNoteLocalUids = m_pFilters->filteredNoteLocalUids();
     if (!filteredNoteLocalUids.isEmpty())
     {
-        int end = static_cast<int>(m_listNotesOffset) + NOTE_LIST_LIMIT;
+        int end = static_cast<int>(m_listNotesOffset) + NOTE_LIST_QUERY_LIMIT;
         end = std::min(end, filteredNoteLocalUids.size());
+
+        auto beginIt = filteredNoteLocalUids.begin();
+        std::advance(beginIt, m_listNotesOffset);
+
+        auto endIt = filteredNoteLocalUids.begin();
+        std::advance(endIt, end);
 
         QStringList noteLocalUids;
         noteLocalUids.reserve(std::max((end - static_cast<int>(m_listNotesOffset)), 0));
-        for(int i = m_listNotesOffset; i < end; ++i) {
-            noteLocalUids << filteredNoteLocalUids[i];
+        for(auto it = beginIt; it != endIt; ++it) {
+            noteLocalUids << *it;
         }
 
         NMDEBUG(QStringLiteral("Emitting the request to list notes by local uids: ")
@@ -1699,7 +1805,7 @@ void NoteModel2::requestNotesList()
 
         Q_EMIT listNotesByLocalUids(noteLocalUids,
                                     LocalStorageManager::GetNoteOptions(0),
-                                    flags, NOTE_LIST_LIMIT, 0, order, direction,
+                                    flags, NOTE_LIST_QUERY_LIMIT, 0, order, direction,
                                     m_listNotesRequestId);
         return;
     }
@@ -1719,7 +1825,7 @@ void NoteModel2::requestNotesList()
 
     Q_EMIT listNotesPerNotebooksAndTags(notebookLocalUids, tagLocalUids,
                                         LocalStorageManager::GetNoteOptions(0),
-                                        flags, NOTE_LIST_LIMIT, m_listNotesOffset,
+                                        flags, NOTE_LIST_QUERY_LIMIT, m_listNotesOffset,
                                         order, direction, m_listNotesRequestId);
 }
 
@@ -1780,7 +1886,30 @@ void NoteModel2::clearModel()
 {
     NMDEBUG(QStringLiteral("NoteModel2::clearModel"));
 
-    // TODO: implement
+    beginResetModel();
+
+    m_data.clear();
+    m_totalFilteredNotesCount = 0;
+    m_listNotesOffset = 0;
+    m_listNotesRequestId = QUuid();
+    m_getNoteCountRequestId = QUuid();
+    m_totalAccountNotesCount = 0;
+    m_getFullNoteCountPerAccountRequestId = QUuid();
+    m_notebookDataByNotebookLocalUid.clear();
+    m_findNotebookRequestForNotebookLocalUid.clear();
+    m_localUidsOfNewNotesBeingAddedToLocalStorage.clear();
+    m_addNoteRequestIds.clear();
+    m_updateNoteRequestIds.clear();
+    m_expungeNoteRequestIds.clear();
+    m_findNoteToRestoreFailedUpdateRequestIds.clear();
+    m_findNoteToPerformUpdateRequestIds.clear();
+    m_noteItemsPendingNotebookDataUpdate.clear();
+    m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap.clear();
+    m_tagDataByTagLocalUid.clear();
+    m_findTagRequestForTagLocalUid.clear();
+    m_tagLocalUidToNoteLocalUid.clear();
+
+    endResetModel();
 }
 
 void NoteModel2::resetModel()
@@ -2519,6 +2648,58 @@ void NoteModel2::findTagNamesForItem(NoteModelItem & item)
                 << tagLocalUid << QStringLiteral(", request id = ") << requestId);
         Q_EMIT findTag(tag, requestId);
     }
+}
+
+NoteModel2::NoteFilters::NoteFilters() :
+    m_filteredNotebookLocalUids(),
+    m_filteredTagLocalUids(),
+    m_filteredNoteLocalUids()
+{}
+
+bool NoteModel2::NoteFilters::isEmpty() const
+{
+    return m_filteredNotebookLocalUids.isEmpty() &&
+           m_filteredTagLocalUids.isEmpty() &&
+           m_filteredNoteLocalUids.isEmpty();
+}
+
+const QStringList & NoteModel2::NoteFilters::filteredNotebookLocalUids() const
+{
+    return m_filteredNotebookLocalUids;
+}
+
+void NoteModel2::NoteFilters::setFilteredNotebookLocalUids(
+    const QStringList & notebookLocalUids)
+{
+    m_filteredNotebookLocalUids = notebookLocalUids;
+}
+
+const QStringList & NoteModel2::NoteFilters::filteredTagLocalUids() const
+{
+    return m_filteredTagLocalUids;
+}
+
+void NoteModel2::NoteFilters::setFilteredTagLocalUids(
+    const QStringList & tagLocalUids)
+{
+    m_filteredTagLocalUids = tagLocalUids;
+}
+
+const QSet<QString> & NoteModel2::NoteFilters::filteredNoteLocalUids() const
+{
+    return m_filteredNoteLocalUids;
+}
+
+void NoteModel2::NoteFilters::setFilteredNoteLocalUids(
+    const QSet<QString> & noteLocalUids)
+{
+    m_filteredNoteLocalUids = noteLocalUids;
+}
+
+void NoteModel2::NoteFilters::setFilteredNoteLocalUids(
+    const QStringList & noteLocalUids)
+{
+    m_filteredNoteLocalUids = QSet<QString>::fromList(noteLocalUids);
 }
 
 } // namespace quentier

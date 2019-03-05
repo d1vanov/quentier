@@ -100,7 +100,8 @@ public:
         const QStringList & filteredTagLocalUids() const;
         void setFilteredTagLocalUids(const QStringList & tagLocalUids);
 
-        const QStringList & filteredNoteLocalUids() const;
+        const QSet<QString> & filteredNoteLocalUids() const;
+        void setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids);
         void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
 
     private:
@@ -109,13 +110,7 @@ public:
     private:
         QStringList             m_filteredNotebookLocalUids;
         QStringList             m_filteredTagLocalUids;
-        QStringList             m_filteredNoteLocalUids;
-
-        QStringList             m_updatedFilteredNotebookLocalUids;
-        QStringList             m_updatedFilteredTagLocalUids;
-        QStringList             m_updatedFilteredNoteLocalUids;
-
-        bool                    m_updatingFilters;
+        QSet<QString>           m_filteredNoteLocalUids;
     };
 
 
@@ -152,7 +147,8 @@ public:
     const QStringList & filteredTagLocalUids() const;
     void setFilteredTagLocalUids(const QStringList & tagLocalUids);
 
-    const QStringList & filteredNoteLocalUids() const;
+    const QSet<QString> & filteredNoteLocalUids() const;
+    void setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids);
     void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
 
     void beginUpdateFilter();
@@ -471,6 +467,7 @@ private:
     void onNoteAddedOrUpdated(const Note & note,
                               const bool fromNotesListing = false);
     void noteToItem(const Note & note, NoteModelItem & item);
+    bool noteConformsToFilter(const Note & note) const;
 
     void onListNotesCompleteImpl(const QList<Note> foundNotes);
 
