@@ -327,7 +327,7 @@ void NoteModel2::endUpdateFilter()
     resetModel();
 }
 
-int NoteModel2::totalFilteredNotesCount() const
+qint32 NoteModel2::totalFilteredNotesCount() const
 {
     return m_totalFilteredNotesCount;
 }
@@ -790,8 +790,33 @@ void NoteModel2::fetchMore(const QModelIndex & parent)
 
 void NoteModel2::onAddNoteComplete(Note note, QUuid requestId)
 {
-    NMTRACE(QStringLiteral("NoteModel2::onAddNoteComplete: ") << note
+    NMDEBUG(QStringLiteral("NoteModel2::onAddNoteComplete: ") << note
             << QStringLiteral("\nRequest id = ") << requestId);
+
+    bool noteIncluded = false;
+    if (note.hasDeletionTimestamp()) {
+        noteIncluded |= (m_includedNotes != IncludedNotes::NonDeleted);
+    }
+    else {
+        noteIncluded |= (m_includedNotes != IncludedNotes::Deleted);
+    }
+
+    if (noteIncluded && (m_getFullNoteCountPerAccountRequestId == QUuid())) {
+        ++m_totalAccountNotesCount;
+        NMTRACE(QStringLiteral("Note count per account increased to ")
+                << m_totalAccountNotesCount);
+        Q_EMIT noteCountPerAccountUpdated(m_totalAccountNotesCount);
+    }
+
+    if (noteIncluded &&
+        (m_getNoteCountRequestId == QUuid()) &&
+        noteConformsToFilter(note))
+    {
+        ++m_totalFilteredNotesCount;
+        NMTRACE(QStringLiteral("Filtered notes count increased to ")
+                << m_totalFilteredNotesCount);
+        Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
+    }
 
     auto it = m_addNoteRequestIds.find(requestId);
     if (it != m_addNoteRequestIds.end()) {
@@ -810,7 +835,7 @@ void NoteModel2::onAddNoteFailed(Note note, ErrorString errorDescription,
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel::onAddNoteFailed: note = ") << note
+    NMDEBUG(QStringLiteral("NoteModel::onAddNoteFailed: note = ") << note
             << QStringLiteral("\nError description = ") << errorDescription
             << QStringLiteral(", request id = ") << requestId);
 
@@ -823,7 +848,7 @@ void NoteModel2::onAddNoteFailed(Note note, ErrorString errorDescription,
 void NoteModel2::onUpdateNoteComplete(
     Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
-    NMTRACE(QStringLiteral("NoteModel2::onUpdateNoteComplete: note = ") << note
+    NMDEBUG(QStringLiteral("NoteModel2::onUpdateNoteComplete: note = ") << note
             << QStringLiteral("\nRequest id = ") << requestId);
 
     bool shouldRemoveNoteFromModel = (note.hasDeletionTimestamp() &&
@@ -897,7 +922,7 @@ void NoteModel2::onUpdateNoteFailed(
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onUpdateNoteFailed: note = ") << note
+    NMDEBUG(QStringLiteral("NoteModel2::onUpdateNoteFailed: note = ") << note
             << QStringLiteral("\nError description = ") << errorDescription
             << QStringLiteral(", request id = ") << requestId);
 
@@ -927,7 +952,7 @@ void NoteModel2::onFindNoteComplete(Note note,
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onFindNoteComplete: note = ") << note
+    NMDEBUG(QStringLiteral("NoteModel2::onFindNoteComplete: note = ") << note
             << QStringLiteral("\nRequest id = ") << requestId);
 
     if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end())
@@ -963,7 +988,7 @@ void NoteModel2::onFindNoteFailed(Note note,
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onFindNoteFailed: note = ") << note
+    NMDEBUG(QStringLiteral("NoteModel2::onFindNoteFailed: note = ") << note
             << QStringLiteral("\nError description = ") << errorDescription
             << QStringLiteral(", request id = ") << requestId);
 
@@ -990,7 +1015,7 @@ void NoteModel2::onListNotesComplete(
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onListNotesComplete: flag = ") << flag
+    NMDEBUG(QStringLiteral("NoteModel2::onListNotesComplete: flag = ") << flag
             << QStringLiteral(", with resource metadata = ")
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
                 ? QStringLiteral("true")
@@ -1022,7 +1047,7 @@ void NoteModel2::onListNotesFailed(
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onListNotesFailed: flag = ") << flag
+    NMDEBUG(QStringLiteral("NoteModel2::onListNotesFailed: flag = ") << flag
             << QStringLiteral(", with resource metadata = ")
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
                 ? QStringLiteral("true")
@@ -1057,7 +1082,7 @@ void NoteModel2::onListNotesPerNotebooksAndTagsComplete(
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onListNotesPerNotebooksAndTagsComplete: ")
+    NMDEBUG(QStringLiteral("NoteModel2::onListNotesPerNotebooksAndTagsComplete: ")
             << QStringLiteral("flag = ") << flag
             << QStringLiteral(", with resource metadata = ")
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
@@ -1094,7 +1119,7 @@ void NoteModel2::onListNotesPerNotebooksAndTagsFailed(
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onListNotesPerNotebooksAndTagsFailed: ")
+    NMDEBUG(QStringLiteral("NoteModel2::onListNotesPerNotebooksAndTagsFailed: ")
             << QStringLiteral("flag = ") << flag
             << QStringLiteral(", with resource metadata = ")
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
@@ -1132,7 +1157,7 @@ void NoteModel2::onListNotesByLocalUidsComplete(
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onListNotesByLocalUidsComplete: ")
+    NMDEBUG(QStringLiteral("NoteModel2::onListNotesByLocalUidsComplete: ")
             << QStringLiteral("flag = ") << flag
             << QStringLiteral(", with resource metadata = ")
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
@@ -1166,7 +1191,7 @@ void NoteModel2::onListNotesByLocalUidsFailed(
         return;
     }
 
-    NMTRACE(QStringLiteral("NoteModel2::onListNotesByLocalUidsFailed: ")
+    NMDEBUG(QStringLiteral("NoteModel2::onListNotesByLocalUidsFailed: ")
             << QStringLiteral("flag = ") << flag
             << QStringLiteral(", with resource metadata = ")
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
@@ -1186,6 +1211,126 @@ void NoteModel2::onListNotesByLocalUidsFailed(
             << QStringLiteral(", request id = ") << requestId);
 
     m_listNotesRequestId = QUuid();
+    Q_EMIT notifyError(errorDescription);
+}
+
+void NoteModel2::onGetNoteCountComplete(
+    int noteCount, LocalStorageManager::NoteCountOptions options, QUuid requestId)
+{
+    if (m_getFullNoteCountPerAccountRequestId == requestId)
+    {
+        NMDEBUG(QStringLiteral("NoteModel2::onGetNoteCountComplete: received total "
+                               "note count per account: ") << noteCount);
+
+        m_getFullNoteCountPerAccountRequestId = QUuid();
+
+        m_totalAccountNotesCount = noteCount;
+        Q_EMIT noteCountPerAccountUpdated(m_totalAccountNotesCount);
+
+        return;
+    }
+
+    if (m_getNoteCountRequestId == requestId)
+    {
+        NMDEBUG(QStringLiteral("NoteModel2::onGetNoteCountComplete: received "
+                               "filtered notes count: ") << noteCount);
+
+        m_getNoteCountRequestId = QUuid();
+
+        m_totalFilteredNotesCount = noteCount;
+        Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
+
+        return;
+    }
+}
+
+void NoteModel2::onGetNoteCountFailed(
+    ErrorString errorDescription, LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
+{
+    if (m_getFullNoteCountPerAccountRequestId == requestId)
+    {
+        NMWARNING(QStringLiteral("NoteModel2::onGetNoteCountFailed: failed to get "
+                                 "total note count per account: ") << errorDescription);
+
+        m_getFullNoteCountPerAccountRequestId = QUuid();
+
+        m_totalAccountNotesCount = 0;
+        Q_EMIT noteCountPerAccountUpdated(m_totalAccountNotesCount);
+
+        Q_EMIT notifyError(errorDescription);
+        return;
+    }
+
+    if (m_getNoteCountRequestId == requestId)
+    {
+        NMWARNING(QStringLiteral("NoteModel2::onGetNoteCountFailed: failed to get "
+                                 "filtered notes count: ") << errorDescription);
+
+        m_getNoteCountRequestId = QUuid();
+
+        m_totalFilteredNotesCount = 0;
+        Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
+
+        Q_EMIT notifyError(errorDescription);
+        return;
+    }
+}
+
+void NoteModel2::onGetNoteCountPerNotebooksAndTagsComplete(
+    int noteCount, QStringList notebookLocalUids, QStringList tagLocalUids,
+    LocalStorageManager::NoteCountOptions options, QUuid requestId)
+{
+    if (m_getNoteCountRequestId != requestId) {
+        return;
+    }
+
+    if ( (m_pFilters->filteredNotebookLocalUids() != notebookLocalUids) ||
+         (m_pFilters->filteredTagLocalUids() != tagLocalUids) )
+    {
+        NMDEBUG(QStringLiteral("NoteModel2::onGetNoteCountPerNotebooksAndTagsComplete: ")
+                << QStringLiteral(" filters changed, skipping"));
+        return;
+    }
+
+    NMDEBUG(QStringLiteral("NoteModel2::onGetNoteCountPerNotebooksAndTagsComplete: ")
+            << QStringLiteral(" note count = ") << noteCount
+            << QStringLiteral(", notebook local uids: ")
+            << notebookLocalUids.join(QStringLiteral(", "))
+            << QStringLiteral(", tag local uids: ")
+            << tagLocalUids.join(QStringLiteral(", ")));
+
+    m_totalFilteredNotesCount = noteCount;
+    Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
+}
+
+void NoteModel2::onGetNoteCountPerNotebooksAndTagsFailed(
+    ErrorString errorDescription,
+    QStringList notebookLocalUids, QStringList tagLocalUids,
+    LocalStorageManager::NoteCountOptions options,
+    QUuid requestId)
+{
+    if (m_getNoteCountRequestId != requestId) {
+        return;
+    }
+
+    if ( (m_pFilters->filteredNotebookLocalUids() != notebookLocalUids) ||
+         (m_pFilters->filteredTagLocalUids() != tagLocalUids) )
+    {
+        NMDEBUG(QStringLiteral("NoteModel2::onGetNoteCountPerNotebooksAndTagsFailed: ")
+                << QStringLiteral(" filters changed, skipping"));
+        return;
+    }
+
+    NMWARNING(QStringLiteral("NoteModel2::onGetNoteCountPerNotebooksAndTagsFailed: ")
+              << errorDescription << QStringLiteral(", notebook local uids: ")
+              << notebookLocalUids.join(QStringLiteral(", "))
+              << QStringLiteral(", tag local uids: ")
+              << tagLocalUids.join(QStringLiteral(", ")));
+
+    m_totalFilteredNotesCount = 0;
+    Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
+
     Q_EMIT notifyError(errorDescription);
 }
 

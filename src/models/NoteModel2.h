@@ -159,7 +159,7 @@ public:
      * within the local storage database (not necessarily equal to the number
      * of rows within the model - it's typically smaller due to lazy loading)
      */
-    int totalFilteredNotesCount() const;
+    qint32 totalFilteredNotesCount() const;
 
 public:
     /**
@@ -304,6 +304,24 @@ public:
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
+    /**
+     * @brief noteCountPerAccountUpdated signal is emitted when NoteModel2
+     * detects the change of total notes count per account considering
+     * included notes setting (deleted/non-deleted/all)
+     *
+     * @param noteCount         Updated total number of notes per account
+     */
+    void noteCountPerAccountUpdated(qint32 noteCount);
+
+    /**
+     * @brief filteredNotesCountUpdated signal is emitted when NoteModel2
+     * detects the change of filtered notes according to the current filtering
+     * criteria
+     *
+     * @param noteCount         Updated filtered notes count
+     */
+    void filteredNotesCountUpdated(qint32 noteCount);
+
 // private signals
     void addNote(Note note, QUuid requestId);
     void updateNote(Note note,
@@ -439,6 +457,7 @@ private Q_SLOTS:
         QUuid requestId);
     void onGetNoteCountPerNotebooksAndTagsFailed(
         ErrorString errorDescription,
+        QStringList notebookLocalUids, QStringList tagLocalUids,
         LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
 
@@ -600,7 +619,7 @@ private:
     NoteSortingMode::type       m_noteSortingMode;
 
     NoteData                    m_data;
-    int                         m_totalFilteredNotesCount;
+    qint32                      m_totalFilteredNotesCount;
 
     NoteCache &                 m_cache;
     NotebookCache &             m_notebookCache;
