@@ -487,12 +487,15 @@ private:
                               const bool fromNotesListing = false);
     void noteToItem(const Note & note, NoteModelItem & item);
     bool noteConformsToFilter(const Note & note) const;
-
     void onListNotesCompleteImpl(const QList<Note> foundNotes);
 
     void requestNotesListAndCount();
     void requestNotesList();
     void requestNotesCount();
+    void requestTotalNotesCountPerAccount();
+    void requestTotalFilteredNotesCount();
+
+    void findNoteToRestoreFailedUpdate(const Note & note);
 
     void clearModel();
     void resetModel();
@@ -507,6 +510,8 @@ private:
      *                      and column
      */
     int rowForNewItem(const NoteModelItem & newItem) const;
+
+    void processTagExpunging(const QString & tagLocalUid);
 
     void removeItemByLocalUid(const QString & localUid);
 
@@ -526,6 +531,7 @@ private:
 
     bool canUpdateNoteItem(const NoteModelItem & item) const;
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
+    void updateNotebookData(const Notebook & notebook);
 
     bool setNoteFavorited(const QString & noteLocalUid, const bool favorited,
                           ErrorString & errorDescription);
@@ -611,7 +617,12 @@ private:
                              const NotebookData & notebookData,
                              const bool fromNotesListing);
 
+    void checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid,
+                                                const NotebookData & notebookData);
+
     void findTagNamesForItem(NoteModelItem & item);
+
+    void updateTagData(const Tag & tag);
 
 private:
     Account                     m_account;
