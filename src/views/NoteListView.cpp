@@ -338,10 +338,15 @@ void NoteListView::onDeleteNoteAction()
         return;
     }
 
-    bool res = pNoteModel->deleteNote(noteLocalUid);
+    ErrorString error;
+    bool res = pNoteModel->deleteNote(noteLocalUid, error);
     if (!res) {
-        REPORT_ERROR(QT_TR_NOOP("Can't delete note: can't find the item to be "
-                                "deleted within the model"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't delete note: "));
+        errorDescription.appendBase(error.base());
+        errorDescription.appendBase(error.additionalBases());
+        errorDescription.details() = error.details();
+        QNWARNING(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return;
     }
 }
@@ -377,7 +382,16 @@ void NoteListView::onMoveToOtherNotebookAction()
     QString noteLocalUid = actionData[0];
     QString notebookName = actionData[1];
 
-    pNoteModel->moveNoteToNotebook(noteLocalUid, notebookName);
+    ErrorString error;
+    bool res = pNoteModel->moveNoteToNotebook(noteLocalUid, notebookName, error);
+    if (!res) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't note to another notebookL "));
+        errorDescription.appendBase(error.base());
+        errorDescription.appendBase(error.additionalBases());
+        errorDescription.details() = error.details();
+        QNWARNING(errorDescription);
+        Q_EMIT notifyError(errorDescription);
+    }
 }
 
 void NoteListView::onOpenNoteInSeparateWindowAction()
@@ -407,7 +421,15 @@ void NoteListView::onUnfavoriteAction()
         return;
     }
 
-    pNoteModel->unfavoriteNote(noteLocalUid);
+    ErrorString error;
+    if (!pNoteModel->unfavoriteNote(noteLocalUid, error)) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't unfavorite note: "));
+        errorDescription.appendBase(error.base());
+        errorDescription.appendBase(error.additionalBases());
+        errorDescription.details() = error.details();
+        QNWARNING(errorDescription);
+        Q_EMIT notifyError(errorDescription);
+    }
 }
 
 void NoteListView::onFavoriteAction()
@@ -424,7 +446,16 @@ void NoteListView::onFavoriteAction()
     if (noteLocalUid.isEmpty()) {
         return;
     }
-    pNoteModel->favoriteNote(noteLocalUid);
+
+    ErrorString error;
+    if (!pNoteModel->favoriteNote(noteLocalUid, error)) {
+        ErrorString errorDescription(QT_TR_NOOP("Can't favorite note: "));
+        errorDescription.appendBase(error.base());
+        errorDescription.appendBase(error.additionalBases());
+        errorDescription.details() = error.details();
+        QNWARNING(errorDescription);
+        Q_EMIT notifyError(errorDescription);
+    }
 }
 
 void NoteListView::onShowNoteInfoAction()

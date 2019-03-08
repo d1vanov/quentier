@@ -250,8 +250,6 @@ private Q_SLOTS:
      */
     void onToggleThumbnailsPreference(QString noteLocalUid);
 
-    void onNoteModelAllNotesListed();
-
     void onCurrentNoteInListChanged(QString noteLocalUid);
     void onOpenNoteInSeparateWindow(QString noteLocalUid);
 
@@ -417,7 +415,7 @@ private:
     void refreshNoteEditorWidgetsSpecialIcons();
 
     void persistChosenNoteSortingMode(int index);
-    NoteModel::NoteSortingModes::type restoreNoteSortingMode();
+    NoteModel::NoteSortingMode::type restoreNoteSortingMode();
 
     void persistGeometryAndState();
     void restoreGeometryAndState();

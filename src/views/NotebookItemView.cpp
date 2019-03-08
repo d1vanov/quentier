@@ -1126,10 +1126,14 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
                             onRenameNotebookAction, item.localUid(), canRename);
 
     bool canDeleteNotebook = !m_pNoteModel.isNull() && item.guid().isEmpty();
+
+    // FIXME: figure out how to solve this
+    /*
     if (canDeleteNotebook) {
         canDeleteNotebook =
             !m_pNoteModel->notebookContainsSyncronizedNotes(item.localUid());
     }
+    */
 
     if (canDeleteNotebook) {
         ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,

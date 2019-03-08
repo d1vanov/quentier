@@ -2809,32 +2809,32 @@ void MainWindow::onNoteSortingModeChanged(int index)
 
     switch(index)
     {
-    case NoteModel::NoteSortingModes::CreatedAscending:
+    case NoteModel::NoteSortingMode::CreatedAscending:
         m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp,
                            Qt::AscendingOrder);
         break;
-    case NoteModel::NoteSortingModes::CreatedDescending:
+    case NoteModel::NoteSortingMode::CreatedDescending:
         m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp,
                            Qt::DescendingOrder);
         break;
-    case NoteModel::NoteSortingModes::ModifiedAscending:
+    case NoteModel::NoteSortingMode::ModifiedAscending:
         m_pNoteModel->sort(NoteModel::Columns::ModificationTimestamp,
                            Qt::AscendingOrder);
         break;
-    case NoteModel::NoteSortingModes::ModifiedDescending:
+    case NoteModel::NoteSortingMode::ModifiedDescending:
         m_pNoteModel->sort(NoteModel::Columns::ModificationTimestamp,
                            Qt::DescendingOrder);
         break;
-    case NoteModel::NoteSortingModes::TitleAscending:
+    case NoteModel::NoteSortingMode::TitleAscending:
         m_pNoteModel->sort(NoteModel::Columns::Title, Qt::AscendingOrder);
         break;
-    case NoteModel::NoteSortingModes::TitleDescending:
+    case NoteModel::NoteSortingMode::TitleDescending:
         m_pNoteModel->sort(NoteModel::Columns::Title, Qt::DescendingOrder);
         break;
-    case NoteModel::NoteSortingModes::SizeAscending:
+    case NoteModel::NoteSortingMode::SizeAscending:
         m_pNoteModel->sort(NoteModel::Columns::Size, Qt::AscendingOrder);
         break;
-    case NoteModel::NoteSortingModes::SizeDescending:
+    case NoteModel::NoteSortingMode::SizeDescending:
         m_pNoteModel->sort(NoteModel::Columns::Size, Qt::DescendingOrder);
         break;
     default:
@@ -2923,26 +2923,6 @@ void MainWindow::onCopyInAppLinkNoteRequested(QString noteLocalUid,
     }
 }
 
-void MainWindow::onNoteModelAllNotesListed()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteModelAllNotesListed"));
-
-    // NOTE: the task of this slot is to ensure that the note selected within
-    // the note list view is the same as the one in the current note editor tab
-
-    QObject::disconnect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
-                        this, QNSLOT(MainWindow,onNoteModelAllNotesListed));
-
-    NoteEditorWidget * pCurrentNoteEditorTab = currentNoteEditorTab();
-    if (!pCurrentNoteEditorTab) {
-        QNDEBUG(QStringLiteral("No current note editor tab"));
-        return;
-    }
-
-    QString noteLocalUid = pCurrentNoteEditorTab->noteLocalUid();
-    m_pUI->noteListView->setCurrentNoteByLocalUid(noteLocalUid);
-}
-
 void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
 {
     QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteInListChanged: ")
@@ -2980,10 +2960,13 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         return;
     }
 
-    bool res = m_pNoteModel->deleteNote(pNoteEditorWidget->noteLocalUid());
+    ErrorString error;
+    bool res = m_pNoteModel->deleteNote(pNoteEditorWidget->noteLocalUid(), error);
     if (Q_UNLIKELY(!res)) {
-        ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note: "
-                                                "can't find the note to be deleted"));
+        ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note: "));
+        errorDescription.appendBase(error.base());
+        errorDescription.appendBase(error.additionalBases());
+        errorDescription.details() = error.details();
         QNDEBUG(errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
@@ -4853,9 +4836,9 @@ void MainWindow::setupModels()
 
     clearModels();
 
-    NoteModel::NoteSortingModes::type noteSortingMode = restoreNoteSortingMode();
-    if (noteSortingMode == NoteModel::NoteSortingModes::None) {
-        noteSortingMode = NoteModel::NoteSortingModes::ModifiedDescending;
+    NoteModel::NoteSortingMode::type noteSortingMode = restoreNoteSortingMode();
+    if (noteSortingMode == NoteModel::NoteSortingMode::None) {
+        noteSortingMode = NoteModel::NoteSortingMode::ModifiedDescending;
     }
 
     m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManagerAsync,
@@ -4880,11 +4863,6 @@ void MainWindow::setupModels()
 
     m_pNoteFilterModel = new NoteFilterModel(this);
     m_pNoteFilterModel->setSourceModel(m_pNoteModel);
-
-    QObject::connect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
-                     m_pNoteFilterModel, QNSLOT(NoteFilterModel,invalidate));
-    QObject::connect(m_pNoteModel, QNSIGNAL(NoteModel,notifyAllNotesListed),
-                     this, QNSLOT(MainWindow,onNoteModelAllNotesListed));
 
     setupNoteFilters();
 
@@ -5364,9 +5342,9 @@ void MainWindow::setupViews()
         m_onceSetupNoteSortingModeComboBox = true;
     }
 
-    NoteModel::NoteSortingModes::type noteSortingMode = restoreNoteSortingMode();
-    if (noteSortingMode == NoteModel::NoteSortingModes::None) {
-        noteSortingMode = NoteModel::NoteSortingModes::ModifiedDescending;
+    NoteModel::NoteSortingMode::type noteSortingMode = restoreNoteSortingMode();
+    if (noteSortingMode == NoteModel::NoteSortingMode::None) {
+        noteSortingMode = NoteModel::NoteSortingMode::ModifiedDescending;
         QNDEBUG(QStringLiteral("Couldn't restore the note sorting mode, fallback ")
                 << QStringLiteral("to the default one of ") << noteSortingMode);
     }
@@ -6173,7 +6151,7 @@ void MainWindow::persistChosenNoteSortingMode(int index)
     appSettings.endGroup();
 }
 
-NoteModel::NoteSortingModes::type MainWindow::restoreNoteSortingMode()
+NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
 {
     QNDEBUG(QStringLiteral("MainWindow::restoreNoteSortingMode"));
 
@@ -6183,7 +6161,7 @@ NoteModel::NoteSortingModes::type MainWindow::restoreNoteSortingMode()
         QNDEBUG(QStringLiteral("No persisted note sorting mode within "
                                "the settings, nothing to restore"));
         appSettings.endGroup();
-        return NoteModel::NoteSortingModes::None;
+        return NoteModel::NoteSortingMode::None;
     }
 
     QVariant data = appSettings.value(NOTE_SORTING_MODE_KEY);
@@ -6191,7 +6169,7 @@ NoteModel::NoteSortingModes::type MainWindow::restoreNoteSortingMode()
 
     if (data.isNull()) {
         QNDEBUG(QStringLiteral("No persisted note sorting mode, nothing to restore"));
-        return NoteModel::NoteSortingModes::None;
+        return NoteModel::NoteSortingMode::None;
     }
 
     bool conversionResult = false;
@@ -6203,10 +6181,10 @@ NoteModel::NoteSortingModes::type MainWindow::restoreNoteSortingMode()
                                      "the persisted setting to the integer index"));
         QNWARNING(error << QStringLiteral(", persisted data: ") << data);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
-        return NoteModel::NoteSortingModes::None;
+        return NoteModel::NoteSortingMode::None;
     }
 
-    return static_cast<NoteModel::NoteSortingModes::type>(index);
+    return static_cast<NoteModel::NoteSortingMode::type>(index);
 }
 
 void MainWindow::persistGeometryAndState()
