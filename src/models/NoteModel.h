@@ -655,8 +655,6 @@ private:
     QSet<QUuid>                 m_updateNoteRequestIds;
     QSet<QUuid>                 m_expungeNoteRequestIds;
 
-    QSet<QUuid>                 m_noteItemsNotYetInLocalStorageUids;
-
     QSet<QUuid>                 m_findNoteToRestoreFailedUpdateRequestIds;
     QSet<QUuid>                 m_findNoteToPerformUpdateRequestIds;
 

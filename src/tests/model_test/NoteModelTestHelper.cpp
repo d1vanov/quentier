@@ -269,6 +269,7 @@ void NoteModelTestHelper::launchTest()
         NoteModel * model = new NoteModel(account, *m_pLocalStorageManagerAsync,
                                           noteCache, notebookCache, this,
                                           NoteModel::IncludedNotes::All);
+
         ModelTest t1(model);
         Q_UNUSED(t1)
 
@@ -555,7 +556,8 @@ void NoteModelTestHelper::launchTest()
         QModelIndex newItemIndex = model->createNoteItem(firstNotebook.localUid(),
                                                          errorDescription);
         if (!newItemIndex.isValid()) {
-            FAIL(QStringLiteral("Failed to create new note model item"));
+            FAIL(QStringLiteral("Failed to create new note model item: ") +
+                 errorDescription.nonLocalizedString());
         }
 
         return;
