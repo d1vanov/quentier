@@ -329,6 +329,15 @@ Q_SIGNALS:
      */
     void filteredNotesCountUpdated(qint32 noteCount);
 
+    /**
+     * @brief minimalNotesBatchLoaded signal is emitted when NoteModel has
+     * loaded a bunch of notes corresponding to the specified included notes
+     * condition and filters (if any) and stopped loading the rest of conformant
+     * notes - these would be loaded as necessary with the help of canFetchMore
+     * and fetchMore methods
+     */
+    void minimalNotesBatchLoaded();
+
 // private signals
     void addNote(Note note, QUuid requestId);
     void updateNote(Note note,

@@ -2186,6 +2186,10 @@ void NoteModel::onListNotesCompleteImpl(const QList<Note> foundNotes)
         m_listNotesOffset += static_cast<size_t>(foundNotes.size());
         requestNotesList();
     }
+    else {
+        NMDEBUG(QStringLiteral("Emitting minimalNotesBatchLoaded signal"));
+        Q_EMIT minimalNotesBatchLoaded();
+    }
 }
 
 void NoteModel::requestNotesListAndCount()
