@@ -18,7 +18,6 @@
 
 #include "NoteListView.h"
 #include "NotebookItemView.h"
-#include "../models/NoteFilterModel.h"
 #include "../models/NoteModel.h"
 #include "../models/NotebookModel.h"
 #include "../models/NotebookItem.h"
@@ -64,8 +63,7 @@ QStringList NoteListView::selectedNotesLocalUids() const
 {
     QStringList result;
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return result;
     }
@@ -75,13 +73,10 @@ QStringList NoteListView::selectedNotesLocalUids() const
 
     for(auto it = indexes.constBegin(), end = indexes.constEnd(); it != end; ++it)
     {
-        const QModelIndex & filterModelIndex = *it;
-        QModelIndex sourceModelIndex = pNoteFilterModel->mapToSource(filterModelIndex);
-        const NoteModelItem * pItem = pNoteModel->itemForIndex(sourceModelIndex);
+        const QModelIndex & modelIndex = *it;
+        const NoteModelItem * pItem = pNoteModel->itemForIndex(modelIndex);
         if (Q_UNLIKELY(!pItem)) {
-            QNWARNING(QStringLiteral("Found no note model item for selected "
-                                     "index mapped from filter model to source "
-                                     "model"));
+            QNWARNING(QStringLiteral("Found no note model item for selected index"));
             continue;
         }
 
@@ -99,24 +94,20 @@ QStringList NoteListView::selectedNotesLocalUids() const
 
 QString NoteListView::currentNoteLocalUid() const
 {
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return QString();
     }
 
-    QModelIndex currentFilterModelIndex = currentIndex();
-    if (!currentFilterModelIndex.isValid()) {
+    QModelIndex currentModelIndex = currentIndex();
+    if (!currentModelIndex.isValid()) {
         QNDEBUG(QStringLiteral("Note view has no valid current index"));
         return QString();
     }
 
-    QModelIndex currentSourceModelIndex =
-        pNoteFilterModel->mapToSource(currentFilterModelIndex);
-    const NoteModelItem * pItem = pNoteModel->itemForIndex(currentSourceModelIndex);
+    const NoteModelItem * pItem = pNoteModel->itemForIndex(currentModelIndex);
     if (Q_UNLIKELY(!pItem)) {
-        QNWARNING(QStringLiteral("Found no note model item for the current index "
-                                 "mapped from filter model to source model"));
+        QNWARNING(QStringLiteral("Found no note model item for the current index"));
         return QString();
     }
 
@@ -138,17 +129,12 @@ void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
     QNTRACE(QStringLiteral("NoteListView::setCurrentNoteByLocalUid: ")
             << noteLocalUid);
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
 
     QModelIndex index = pNoteModel->indexForLocalUid(noteLocalUid);
-    if (index.isValid()) {
-        index = pNoteFilterModel->mapFromSource(index);
-    }
-
     setCurrentIndex(index);
 
     m_lastCurrentNoteLocalUid = noteLocalUid;
@@ -172,8 +158,7 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
     QNTRACE(QStringLiteral("NoteListView::selectNotesByLocalUids: ")
             << noteLocalUids.join(QStringLiteral(", ")));
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -191,25 +176,15 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
     for(auto it = noteLocalUids.constBegin(),
         end = noteLocalUids.constEnd(); it != end; ++it)
     {
-        QModelIndex sourceModelIndex = pNoteModel->indexForLocalUid(*it);
-        if (Q_UNLIKELY(!sourceModelIndex.isValid())) {
-            QNDEBUG(QStringLiteral("The source model index for note local uid ") << *it
+        QModelIndex modelIndex = pNoteModel->indexForLocalUid(*it);
+        if (Q_UNLIKELY(!modelIndex.isValid())) {
+            QNDEBUG(QStringLiteral("The model index for note local uid ") << *it
                     << QStringLiteral(" is invalid, skipping"));
             continue;
         }
 
-        QModelIndex filterModelIndex =
-            pNoteFilterModel->mapFromSource(sourceModelIndex);
-        if (!filterModelIndex.isValid()) {
-            QNDEBUG(QStringLiteral("It looks like note with local uid ") << *it
-                    << QStringLiteral(" is filtered out by the note filter model "
-                                      "because the index in the note filter model "
-                                      "is invalid"));
-            continue;
-        }
-
         QItemSelection currentSelection;
-        currentSelection.select(filterModelIndex, filterModelIndex);
+        currentSelection.select(modelIndex, modelIndex);
         selection.merge(currentSelection, selectionFlags);
     }
 
@@ -327,8 +302,7 @@ void NoteListView::onDeleteNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onDeleteNoteAction"));
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -373,8 +347,7 @@ void NoteListView::onMoveToOtherNotebookAction()
         return;
     }
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -410,8 +383,7 @@ void NoteListView::onUnfavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onUnfavoriteAction"));
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -436,8 +408,7 @@ void NoteListView::onFavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onFavoriteAction"));
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -558,31 +529,21 @@ void NoteListView::onTrySetLastCurrentNoteByLocalUidEvent()
 {
     QNDEBUG(QStringLiteral("NoteListView::onTrySetLastCurrentNoteByLocalUidEvent"));
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
 
-    QModelIndex sourceModelIndex =
+    QModelIndex modelIndex =
         pNoteModel->indexForLocalUid(m_lastCurrentNoteLocalUid);
-    if (!sourceModelIndex.isValid()) {
+    if (!modelIndex.isValid()) {
         QNTRACE(QStringLiteral("No valid model index within the note model for ")
                 << QStringLiteral("the last current note local uid ")
                 << m_lastCurrentNoteLocalUid);
         return;
     }
 
-    QModelIndex filterModelIndex =
-        pNoteFilterModel->mapFromSource(sourceModelIndex);
-    if (!filterModelIndex.isValid()) {
-        QNTRACE(QStringLiteral("It appears the last current note model item is "
-                               "filtered out, at least the model index "
-                               "within the note filter model is invalid"));
-        return;
-    }
-
-    setCurrentIndex(filterModelIndex);
+    setCurrentIndex(modelIndex);
 }
 
 void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
@@ -604,8 +565,7 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos,
 {
     QNDEBUG(QStringLiteral("NoteListView::showContextMenuAtPoint"));
 
-    NoteFilterModel * pNoteFilterModel = noteFilterModel();
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
@@ -626,11 +586,7 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos,
     for(auto it = selectedRowIndexes.constBegin(),
         end = selectedRowIndexes.constEnd(); it != end; ++it)
     {
-        const QModelIndex & proxyModelIndex = *it;
-        QNTRACE(QStringLiteral("Inspecting proxy model index at row ")
-                << proxyModelIndex.row());
-
-        QModelIndex modelIndex = pNoteFilterModel->mapToSource(proxyModelIndex);
+        const QModelIndex & modelIndex = *it;
         const NoteModelItem * pNoteModelItem = pNoteModel->itemForIndex(modelIndex);
         if (Q_UNLIKELY(!pNoteModelItem)) {
             QNWARNING(QStringLiteral("Detected selected model index for which "
@@ -653,7 +609,7 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos,
     }
 
     if (noteLocalUids.size() == 1) {
-        showSingleNoteContextMenu(pos, globalPos, *pNoteFilterModel, *pNoteModel);
+        showSingleNoteContextMenu(pos, globalPos, *pNoteModel);
     }
     else {
         showMultipleNotesContextMenu(globalPos, noteLocalUids);
@@ -672,22 +628,13 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos,
 
 void NoteListView::showSingleNoteContextMenu(const QPoint & pos,
                                              const QPoint & globalPos,
-                                             const NoteFilterModel & noteFilterModel,
                                              const NoteModel & noteModel)
 {
     QNDEBUG(QStringLiteral("NoteListView::showSingleNoteContextMenu"));
 
-    QModelIndex clickedFilterModelItemIndex = indexAt(pos);
-    if (Q_UNLIKELY(!clickedFilterModelItemIndex.isValid())) {
-        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
-        return;
-    }
-
-    QModelIndex clickedItemIndex =
-        noteFilterModel.mapToSource(clickedFilterModelItemIndex);
+    QModelIndex clickedItemIndex = indexAt(pos);
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: note item index mapped from "
-                                "the proxy index of note filter model is invalid"));
+        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
         return;
     }
 
@@ -710,8 +657,6 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos,
 
     delete m_pNoteItemContextMenu;
     m_pNoteItemContextMenu = new QMenu(this);
-
-
 
     const NotebookItem * pNotebookItem = Q_NULLPTR;
     if (pNotebookModel)
@@ -903,15 +848,12 @@ void NoteListView::currentChanged(const QModelIndex & current,
         return;
     }
 
-    NoteFilterModel * pNoteFilterModel =
-        noteFilterModel((QAbstractItemModel *) current.model());
-    NoteModel * pNoteModel = noteModel(pNoteFilterModel);
+    NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
         return;
     }
 
-    QModelIndex sourceIndex = pNoteFilterModel->mapToSource(current);
-    const NoteModelItem * pItem = pNoteModel->itemForIndex(sourceIndex);
+    const NoteModelItem * pItem = pNoteModel->itemForIndex(current);
     if (Q_UNLIKELY(!pItem)) {
         REPORT_ERROR(QT_TR_NOOP("Internal error: can't retrieve the new current "
                                 "note item for note model index"));
@@ -984,37 +926,20 @@ const NotebookItem * NoteListView::currentNotebookItem()
     return pNotebookItem;
 }
 
-NoteFilterModel * NoteListView::noteFilterModel(QAbstractItemModel * model) const
+NoteModel * NoteListView::noteModel() const
 {
-    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel *>(model);
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNERROR(QStringLiteral("Wrong model connected to the note list view"));
-    }
-    return pNoteFilterModel;
-}
-
-
-NoteFilterModel * NoteListView::noteFilterModel() const
-{
-    return noteFilterModel(model());
-}
-
-NoteModel * NoteListView::noteModel(NoteFilterModel * pNoteFilterModel) const
-{
-    if (Q_UNLIKELY(!pNoteFilterModel)) {
+    QAbstractItemModel * pModel = model();
+    if (Q_UNLIKELY(!pModel)) {
         return Q_NULLPTR;
     }
 
-    NoteModel * pNoteModel =
-        qobject_cast<NoteModel *>(pNoteFilterModel->sourceModel());
+    NoteModel * pNoteModel = qobject_cast<NoteModel *>(pModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNERROR(QStringLiteral("Can't get the source model from the note filter "
-                               "model connected to the note list view"));
+        QNERROR(QStringLiteral("Wrong model connected to the note list view"));
         return Q_NULLPTR;
     }
     return pNoteModel;
 }
-
 
 QVariant NoteListView::actionData()
 {

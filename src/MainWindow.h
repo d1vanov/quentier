@@ -69,7 +69,6 @@ QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
-QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
@@ -569,7 +568,6 @@ private:
 
     QStandardItemModel      m_blankModel;
 
-    NoteFilterModel *       m_pNoteFilterModel;
     NoteFiltersManager *    m_pNoteFiltersManager;
 
     int                     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId;

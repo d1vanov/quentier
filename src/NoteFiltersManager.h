@@ -32,7 +32,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
 QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
-QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
+QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
 class NoteFiltersManager: public QObject
@@ -42,7 +42,7 @@ public:
     explicit NoteFiltersManager(const Account & account,
                                 FilterByTagWidget & filterByTagWidget,
                                 FilterByNotebookWidget & filterByNotebookWidget,
-                                NoteFilterModel & noteFilterModel,
+                                NoteModel & noteModel,
                                 FilterBySavedSearchWidget & filterBySavedSearchWidget,
                                 QLineEdit & searchLineEdit,
                                 LocalStorageManagerAsync & localStorageManagerAsync,
@@ -121,12 +121,6 @@ private Q_SLOTS:
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
 
-    void onAddNoteComplete(Note note, QUuid requestId);
-    void onUpdateNoteComplete(Note note,
-                              LocalStorageManager::UpdateNoteOptions options,
-                              QUuid requestId);
-    void onExpungeNoteComplete(Note note, QUuid requestId);
-
 private:
     void createConnections();
     void evaluate();
@@ -147,7 +141,7 @@ private:
     Account                         m_account;
     FilterByTagWidget &             m_filterByTagWidget;
     FilterByNotebookWidget &        m_filterByNotebookWidget;
-    NoteFilterModel &               m_noteFilterModel;
+    NoteModel &                     m_noteModel;
     FilterBySavedSearchWidget &     m_filterBySavedSearchWidget;
     QLineEdit &                     m_searchLineEdit;
     LocalStorageManagerAsync &      m_localStorageManagerAsync;

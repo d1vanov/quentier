@@ -97,13 +97,16 @@ public:
 
         const QStringList & filteredNotebookLocalUids() const;
         void setFilteredNotebookLocalUids(const QStringList & notebookLocalUids);
+        void clearFilteredNotebookLocalUids();
 
         const QStringList & filteredTagLocalUids() const;
         void setFilteredTagLocalUids(const QStringList & tagLocalUids);
+        void clearFilteredTagLocalUids();
 
         const QSet<QString> & filteredNoteLocalUids() const;
         void setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids);
         void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
+        void clearFilteredNoteLocalUids();
 
     private:
         Q_DISABLE_COPY(NoteFilters);
@@ -144,13 +147,16 @@ public:
 
     const QStringList & filteredNotebookLocalUids() const;
     void setFilteredNotebookLocalUids(const QStringList & notebookLocalUids);
+    void clearFilteredNotebookLocalUids();
 
     const QStringList & filteredTagLocalUids() const;
     void setFilteredTagLocalUids(const QStringList & tagLocalUids);
+    void clearFilteredTagLocalUids();
 
     const QSet<QString> & filteredNoteLocalUids() const;
     void setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids);
     void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
+    void clearFilteredNoteLocalUids();
 
     void beginUpdateFilter();
     void endUpdateFilter();

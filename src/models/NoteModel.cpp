@@ -242,6 +242,19 @@ void NoteModel::setFilteredNotebookLocalUids(const QStringList & notebookLocalUi
     resetModel();
 }
 
+void NoteModel::clearFilteredNotebookLocalUids()
+{
+    NMDEBUG(QStringLiteral("NoteModel::clearFilteredNotebookLocalUids"));
+
+    if (!m_pUpdatedNoteFilters.isNull()) {
+        m_pUpdatedNoteFilters->clearFilteredNotebookLocalUids();
+        return;
+    }
+
+    m_pFilters->clearFilteredNotebookLocalUids();
+    resetModel();
+}
+
 const QStringList & NoteModel::filteredTagLocalUids() const
 {
     return m_pFilters->filteredTagLocalUids();
@@ -258,6 +271,19 @@ void NoteModel::setFilteredTagLocalUids(const QStringList & tagLocalUids)
     }
 
     m_pFilters->setFilteredTagLocalUids(tagLocalUids);
+    resetModel();
+}
+
+void NoteModel::clearFilteredTagLocalUids()
+{
+    NMDEBUG(QStringLiteral("NoteModel::clearFilteredTagLocalUids"));
+
+    if (!m_pUpdatedNoteFilters.isNull()) {
+        m_pUpdatedNoteFilters->clearFilteredTagLocalUids();
+        return;
+    }
+
+    m_pFilters->clearFilteredTagLocalUids();
     resetModel();
 }
 
@@ -305,6 +331,19 @@ void NoteModel::setFilteredNoteLocalUids(const QStringList & noteLocalUids)
     }
 
     m_pFilters->setFilteredNoteLocalUids(noteLocalUids);
+    resetModel();
+}
+
+void NoteModel::clearFilteredNoteLocalUids()
+{
+    NMDEBUG(QStringLiteral("NoteModel::clearFilteredNoteLocalUids"));
+
+    if (!m_pUpdatedNoteFilters.isNull()) {
+        m_pUpdatedNoteFilters->clearFilteredNoteLocalUids();
+        return;
+    }
+
+    m_pFilters->clearFilteredNoteLocalUids();
     resetModel();
 }
 
@@ -2313,6 +2352,14 @@ void NoteModel::requestTotalFilteredNotesCount()
         return;
     }
 
+    const QSet<QString> & filteredNoteLocalUids = m_pFilters->filteredNoteLocalUids();
+    if (filteredNoteLocalUids.isEmpty()) {
+        m_getNoteCountRequestId = QUuid();
+        m_totalFilteredNotesCount = filteredNoteLocalUids.size();
+        Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
+        return;
+    }
+
     const QStringList & notebookLocalUids = m_pFilters->filteredNotebookLocalUids();
     const QStringList & tagLocalUids = m_pFilters->filteredTagLocalUids();
 
@@ -2542,10 +2589,10 @@ bool NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item,
     if (Q_UNLIKELY((originalRow < 0) ||
                    (originalRow >= static_cast<int>(m_data.size()))))
     {
-        errorDescription.setBase(QT_TR_NOOP("can't find appropriate position for ")
+        errorDescription.setBase(QT_TR_NOOP("can't find appropriate position for "
                                             "note within the model: internal "
                                             "error, note's current position is "
-                                            "beyond the acceptable range");
+                                            "beyond the acceptable range"));
         NMWARNING(errorDescription << QStringLiteral(": current row = ")
                   << originalRow << QStringLiteral(", item: ") << item);
         return false;
@@ -3638,6 +3685,11 @@ void NoteModel::NoteFilters::setFilteredNotebookLocalUids(
     m_filteredNotebookLocalUids = notebookLocalUids;
 }
 
+void NoteModel::NoteFilters::clearFilteredNotebookLocalUids()
+{
+    m_filteredNotebookLocalUids.clear();
+}
+
 const QStringList & NoteModel::NoteFilters::filteredTagLocalUids() const
 {
     return m_filteredTagLocalUids;
@@ -3647,6 +3699,11 @@ void NoteModel::NoteFilters::setFilteredTagLocalUids(
     const QStringList & tagLocalUids)
 {
     m_filteredTagLocalUids = tagLocalUids;
+}
+
+void NoteModel::NoteFilters::clearFilteredTagLocalUids()
+{
+    m_filteredTagLocalUids.clear();
 }
 
 const QSet<QString> & NoteModel::NoteFilters::filteredNoteLocalUids() const
@@ -3664,6 +3721,11 @@ void NoteModel::NoteFilters::setFilteredNoteLocalUids(
     const QStringList & noteLocalUids)
 {
     m_filteredNoteLocalUids = QSet<QString>::fromList(noteLocalUids);
+}
+
+void NoteModel::NoteFilters::clearFilteredNoteLocalUids()
+{
+    m_filteredNoteLocalUids.clear();
 }
 
 bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs,

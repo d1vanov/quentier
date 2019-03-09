@@ -31,7 +31,6 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NotebookItemView)
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
-QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 
 /**
  * @brief The NoteListView is a simple subclass of QListView which adds some bits
@@ -165,26 +164,15 @@ protected:
 protected:
     void showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos);
     void showSingleNoteContextMenu(const QPoint & pos, const QPoint & globalPos,
-                                   const NoteFilterModel & noteFilterModel,
                                    const NoteModel & noteModel);
     void showMultipleNotesContextMenu(const QPoint & globalPos,
                                       const QStringList & noteLocalUids);
 
 private:
     /**
-     * Attempts to cast the given model to note filter model.
+     * @return current model as note filter model.
      */
-    NoteFilterModel * noteFilterModel(QAbstractItemModel * model) const;
-
-    /**
-     * Return current model as note filter model.
-     */
-    NoteFilterModel * noteFilterModel() const;
-
-    /**
-     * Attempts to cast the source model of given note filter model to note model.
-     */
-    NoteModel * noteModel(NoteFilterModel * pNoteFilterModel) const;
+    NoteModel * noteModel() const;
 
     /**
      * Convenience method called in slots invoked by QAction's signals.

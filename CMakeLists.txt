@@ -131,7 +131,6 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NotebookLinkedNotebookRootItem.h
     src/models/NotebookCache.h
     src/models/NoteModelItem.h
-    src/models/NoteFilterModel.h
     src/models/NoteModel.h
     src/models/NoteCache.h
     src/models/FavoritesModel.h
@@ -248,7 +247,6 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NotebookStackItem.cpp
     src/models/NotebookLinkedNotebookRootItem.cpp
     src/models/NoteModelItem.cpp
-    src/models/NoteFilterModel.cpp
     src/models/NoteModel.cpp
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
@@ -547,7 +545,6 @@ set(MODEL_TEST_HEADERS
     src/models/NotebookLinkedNotebookRootItem.h
     src/models/NotebookCache.h
     src/models/NoteModelItem.h
-    src/models/NoteFilterModel.h
     src/models/NoteModel.h
     src/models/NoteCache.h
     src/models/FavoritesModel.h
@@ -574,7 +571,6 @@ set(MODEL_TEST_SOURCES
     src/models/NotebookStackItem.cpp
     src/models/NotebookLinkedNotebookRootItem.cpp
     src/models/NoteModelItem.cpp
-    src/models/NoteFilterModel.cpp
     src/models/NoteModel.cpp
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp)

@@ -28,7 +28,6 @@
 #include "EnexExporter.h"
 #include "EnexImporter.h"
 #include "NetworkProxySettingsHelpers.h"
-#include "models/NoteFilterModel.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
@@ -218,7 +217,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pDeletedNotesModel(Q_NULLPTR),
     m_pFavoritesModel(Q_NULLPTR),
     m_blankModel(),
-    m_pNoteFilterModel(Q_NULLPTR),
     m_pNoteFiltersManager(Q_NULLPTR),
     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId(0),
     m_defaultAccountFirstNoteLocalUid(),
@@ -3800,7 +3798,7 @@ void MainWindow::onShowNoteListActionToggled(bool checked)
     appSettings.endGroup();
 
     if (checked) {
-        m_pUI->noteListView->setModel(m_pNoteFilterModel);
+        m_pUI->noteListView->setModel(m_pNoteModel);
         m_pUI->notesListAndFiltersFrame->show();
     }
     else {
@@ -4861,9 +4859,6 @@ void MainWindow::setupModels()
                                          m_noteCache, m_notebookCache, this,
                                          NoteModel::IncludedNotes::Deleted);
 
-    m_pNoteFilterModel = new NoteFilterModel(this);
-    m_pNoteFilterModel->setSourceModel(m_pNoteModel);
-
     setupNoteFilters();
 
     m_pUI->favoritesTableView->setModel(m_pFavoritesModel);
@@ -4871,11 +4866,11 @@ void MainWindow::setupModels()
     m_pUI->tagsTreeView->setModel(m_pTagModel);
     m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
     m_pUI->deletedNotesTableView->setModel(m_pDeletedNotesModel);
-    m_pUI->noteListView->setModel(m_pNoteFilterModel);
+    m_pUI->noteListView->setModel(m_pNoteModel);
 
     m_pNotebookModelColumnChangeRerouter->setModel(m_pNotebookModel);
     m_pTagModelColumnChangeRerouter->setModel(m_pTagModel);
-    m_pNoteModelColumnChangeRerouter->setModel(m_pNoteFilterModel);
+    m_pNoteModelColumnChangeRerouter->setModel(m_pNoteModel);
     m_pFavoritesModelColumnChangeRerouter->setModel(m_pFavoritesModel);
 
     if (m_pEditNoteDialogsManager) {
@@ -5562,7 +5557,7 @@ void MainWindow::setupNoteFilters()
     m_pNoteFiltersManager =
         new NoteFiltersManager(*m_pAccount, *m_pUI->filterByTagsWidget,
                                *m_pUI->filterByNotebooksWidget,
-                               *m_pNoteFilterModel,
+                               *m_pNoteModel,
                                *m_pUI->filterBySavedSearchComboBox,
                                *m_pUI->searchQueryLineEdit,
                                *m_pLocalStorageManagerAsync, this);
