@@ -810,15 +810,23 @@ bool NoteModel::canFetchMore(const QModelIndex & parent) const
         return false;
     }
 
-    if (m_totalAccountNotesCount > 0) {
-        return (m_data.size() < static_cast<size_t>(m_totalAccountNotesCount));
+    NMDEBUG(QStringLiteral("NoteModel::canFetchMore"));
+
+    if (m_totalFilteredNotesCount > 0) {
+        NMDEBUG(QStringLiteral("Total filtered notes count = ")
+                << m_totalFilteredNotesCount
+                << QStringLiteral(", num loaded notes = ")
+                << m_data.size());
+        return (m_data.size() < static_cast<size_t>(m_totalFilteredNotesCount));
     }
 
     if (m_getNoteCountRequestId != QUuid()) {
+        NMDEBUG(QStringLiteral("Still pending get note count request"));
         return false;
     }
 
     if (m_listNotesRequestId != QUuid()) {
+        NMDEBUG(QStringLiteral("Still pending list notes request"));
         return false;
     }
 
@@ -1334,20 +1342,14 @@ void NoteModel::onGetNoteCountPerNotebooksAndTagsComplete(
         return;
     }
 
-    if ( (m_pFilters->filteredNotebookLocalUids() != notebookLocalUids) ||
-         (m_pFilters->filteredTagLocalUids() != tagLocalUids) )
-    {
-        NMDEBUG(QStringLiteral("NoteModel::onGetNoteCountPerNotebooksAndTagsComplete: ")
-                << QStringLiteral(" filters changed, skipping"));
-        return;
-    }
-
     NMDEBUG(QStringLiteral("NoteModel::onGetNoteCountPerNotebooksAndTagsComplete: ")
             << QStringLiteral(" note count = ") << noteCount
             << QStringLiteral(", notebook local uids: ")
             << notebookLocalUids.join(QStringLiteral(", "))
             << QStringLiteral(", tag local uids: ")
             << tagLocalUids.join(QStringLiteral(", ")));
+
+    m_getNoteCountRequestId = QUuid();
 
     m_totalFilteredNotesCount = noteCount;
     Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
@@ -1365,19 +1367,13 @@ void NoteModel::onGetNoteCountPerNotebooksAndTagsFailed(
         return;
     }
 
-    if ( (m_pFilters->filteredNotebookLocalUids() != notebookLocalUids) ||
-         (m_pFilters->filteredTagLocalUids() != tagLocalUids) )
-    {
-        NMDEBUG(QStringLiteral("NoteModel::onGetNoteCountPerNotebooksAndTagsFailed: ")
-                << QStringLiteral(" filters changed, skipping"));
-        return;
-    }
-
     NMWARNING(QStringLiteral("NoteModel::onGetNoteCountPerNotebooksAndTagsFailed: ")
               << errorDescription << QStringLiteral(", notebook local uids: ")
               << notebookLocalUids.join(QStringLiteral(", "))
               << QStringLiteral(", tag local uids: ")
               << tagLocalUids.join(QStringLiteral(", ")));
+
+    m_getNoteCountRequestId = QUuid();
 
     m_totalFilteredNotesCount = 0;
     Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
@@ -2177,13 +2173,13 @@ void NoteModel::onListNotesCompleteImpl(const QList<Note> foundNotes)
     for(auto it = foundNotes.begin(), end = foundNotes.end(); it != end; ++it) {
         onNoteAddedOrUpdated(*it, fromNotesListing);
     }
+    m_listNotesOffset += static_cast<size_t>(foundNotes.size());
 
     m_listNotesRequestId = QUuid();
 
     if (!foundNotes.isEmpty() && (m_data.size() < NOTE_MIN_CACHE_SIZE)) {
         NMTRACE(QStringLiteral("The number of found notes is greater than zero, "
                                "requesting more notes from the local storage"));
-        m_listNotesOffset += static_cast<size_t>(foundNotes.size());
         requestNotesList();
     }
     else {
@@ -2357,7 +2353,7 @@ void NoteModel::requestTotalFilteredNotesCount()
     }
 
     const QSet<QString> & filteredNoteLocalUids = m_pFilters->filteredNoteLocalUids();
-    if (filteredNoteLocalUids.isEmpty()) {
+    if (!filteredNoteLocalUids.isEmpty()) {
         m_getNoteCountRequestId = QUuid();
         m_totalFilteredNotesCount = filteredNoteLocalUids.size();
         Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
@@ -3385,6 +3381,8 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item,
             }
         }
 
+        NMDEBUG(QStringLiteral("Adding new item to the note model"));
+
         if (fromNotesListing)
         {
             findTagNamesForItem(item);
@@ -3416,7 +3414,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item,
 
         int newRow = static_cast<int>(std::distance(index.begin(), positionIter));
 
-        NMTRACE(QStringLiteral("Inserting the moved item at row ") << newRow);
+        NMTRACE(QStringLiteral("Inserting new item at row ") << newRow);
         beginInsertRows(QModelIndex(), newRow, newRow);
         Q_UNUSED(index.insert(positionIter, item))
         endInsertRows();
