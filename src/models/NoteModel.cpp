@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -1460,7 +1460,7 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 
         ErrorString error;
         if (!moveNoteToNotebookImpl(it, notebook, error)) {
-            ErrorString errorDescription(QT_TR_NOOP("Can't move note to another notebook: "));
+            ErrorString errorDescription(QT_TR_NOOP("Can't move note to another notebook"));
             errorDescription.appendBase(error.base());
             errorDescription.appendBase(error.additionalBases());
             errorDescription.details() = error.details();

@@ -2961,7 +2961,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
     ErrorString error;
     bool res = m_pNoteModel->deleteNote(pNoteEditorWidget->noteLocalUid(), error);
     if (Q_UNLIKELY(!res)) {
-        ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note: "));
+        ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note"));
         errorDescription.appendBase(error.base());
         errorDescription.appendBase(error.additionalBases());
         errorDescription.details() = error.details();
