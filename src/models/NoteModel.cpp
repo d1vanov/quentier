@@ -57,11 +57,11 @@ inline QString includedNotesStr(
     QNFATAL(includedNotesStr(m_includedNotes) << message)
 
 // Limit for the queries to the local storage
-#define NOTE_LIST_QUERY_LIMIT (20)
+#define NOTE_LIST_QUERY_LIMIT (10)
 
 // Minimum number of notes which the model attempts to load from the local
 // storage
-#define NOTE_MIN_CACHE_SIZE (60)
+#define NOTE_MIN_CACHE_SIZE (30)
 
 #define NOTE_PREVIEW_TEXT_SIZE (500)
 
