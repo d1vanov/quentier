@@ -21,7 +21,7 @@
 #include "widgets/FilterByTagWidget.h"
 #include "widgets/FilterByNotebookWidget.h"
 #include "widgets/FilterBySavedSearchWidget.h"
-#include "models/NoteFilterModel.h"
+#include "models/NoteModel.h"
 #include "models/SavedSearchModel.h"
 #include "models/NotebookModel.h"
 #include "models/TagModel.h"
@@ -40,7 +40,7 @@ NoteFiltersManager::NoteFiltersManager(
         const Account & account,
         FilterByTagWidget & filterByTagWidget,
         FilterByNotebookWidget & filterByNotebookWidget,
-        NoteFilterModel & noteFilterModel,
+        NoteModel & noteModel,
         FilterBySavedSearchWidget & filterBySavedSearchWidget,
         QLineEdit & searchLineEdit,
         LocalStorageManagerAsync & localStorageManagerAsync,
@@ -49,7 +49,7 @@ NoteFiltersManager::NoteFiltersManager(
     m_account(account),
     m_filterByTagWidget(filterByTagWidget),
     m_filterByNotebookWidget(filterByNotebookWidget),
-    m_noteFilterModel(noteFilterModel),
+    m_noteModel(noteModel),
     m_filterBySavedSearchWidget(filterBySavedSearchWidget),
     m_searchLineEdit(searchLineEdit),
     m_localStorageManagerAsync(localStorageManagerAsync),
@@ -90,10 +90,10 @@ NoteFiltersManager::NoteFiltersManager(
     // We can set filters by notebooks and tags without waiting for them to be
     // complete since local uids of notebooks and tags within the filter are known
     // even before the filter widgets become ready
-    m_noteFilterModel.beginUpdateFilter();
+    m_noteModel.beginUpdateFilter();
     setFilterByNotebooks();
     setFilterByTags();
-    m_noteFilterModel.endUpdateFilter();
+    m_noteModel.endUpdateFilter();
 
     Q_EMIT filterChanged();
 
@@ -103,7 +103,7 @@ NoteFiltersManager::NoteFiltersManager(
 
 const QStringList & NoteFiltersManager::notebookLocalUidsInFilter() const
 {
-    return m_noteFilterModel.notebookLocalUids();
+    return m_noteModel.filteredNotebookLocalUids();
 }
 
 QStringList NoteFiltersManager::tagLocalUidsInFilter() const
@@ -116,7 +116,7 @@ QStringList NoteFiltersManager::tagLocalUidsInFilter() const
         return QStringList();
     }
 
-    return m_noteFilterModel.tagLocalUids();
+    return m_noteModel.filteredTagLocalUids();
 }
 
 const QString & NoteFiltersManager::savedSearchLocalUidInFilter() const
@@ -309,12 +309,12 @@ void NoteFiltersManager::onSavedSearchFilterChanged(
     // If we got here, the saved search is either empty or invalid
     m_filteredSavedSearchLocalUid.clear();
 
-    m_noteFilterModel.beginUpdateFilter();
+    m_noteModel.beginUpdateFilter();
 
     setFilterByTags();
     setFilterByNotebooks();
 
-    m_noteFilterModel.endUpdateFilter();
+    m_noteModel.endUpdateFilter();
 }
 
 void NoteFiltersManager::onSavedSearchFilterReady()
@@ -392,7 +392,7 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted(
         return;
     }
 
-    m_noteFilterModel.setNoteLocalUids(noteLocalUids);
+    m_noteModel.setFilteredNoteLocalUids(noteLocalUids);
 }
 
 void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(
@@ -443,12 +443,12 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(
         Q_EMIT notifyError(error);
     }
 
-    m_noteFilterModel.beginUpdateFilter();
+    m_noteModel.beginUpdateFilter();
 
     setFilterByNotebooks();
     setFilterByTags();
 
-    m_noteFilterModel.endUpdateFilter();
+    m_noteModel.endUpdateFilter();
 
     Q_EMIT filterChanged();
 }
@@ -466,7 +466,7 @@ void NoteFiltersManager::onExpungeNotebookComplete(Notebook notebook,
         return;
     }
 
-    QStringList notebookLocalUids = m_noteFilterModel.notebookLocalUids();
+    QStringList notebookLocalUids = m_noteModel.filteredNotebookLocalUids();
     int index = notebookLocalUids.indexOf(notebook.localUid());
     if (index < 0) {
         QNDEBUG(QStringLiteral("The expunged notebook was not used within the filter"));
@@ -476,7 +476,7 @@ void NoteFiltersManager::onExpungeNotebookComplete(Notebook notebook,
     QNDEBUG(QStringLiteral("The expunged notebook was used within the filter"));
     notebookLocalUids.removeAt(index);
 
-    m_noteFilterModel.setNotebookLocalUids(notebookLocalUids);
+    m_noteModel.setFilteredNotebookLocalUids(notebookLocalUids);
 }
 
 void NoteFiltersManager::onExpungeTagComplete(
@@ -497,7 +497,7 @@ void NoteFiltersManager::onExpungeTagComplete(
         return;
     }
 
-    QStringList tagLocalUids = m_noteFilterModel.tagLocalUids();
+    QStringList tagLocalUids = m_noteModel.filteredTagLocalUids();
 
     bool filteredTagsChanged = false;
     for(auto it = expungedTagLocalUids.constBegin(),
@@ -516,7 +516,7 @@ void NoteFiltersManager::onExpungeTagComplete(
         return;
     }
 
-    m_noteFilterModel.setTagLocalUids(tagLocalUids);
+    m_noteModel.setFilteredTagLocalUids(tagLocalUids);
 }
 
 void NoteFiltersManager::onUpdateSavedSearchComplete(SavedSearch search,
@@ -592,43 +592,6 @@ void NoteFiltersManager::onExpungeSavedSearchComplete(SavedSearch search,
 
         return;
     }
-}
-
-void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
-{
-    QNTRACE(QStringLiteral("NoteFiltersManager::onAddNoteComplete: note = ")
-            << note << QStringLiteral("\nRequest id = ") << requestId);
-
-    m_noteFilterModel.invalidate();
-}
-
-void NoteFiltersManager::onUpdateNoteComplete(
-    Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
-{
-    QNTRACE(QStringLiteral("NoteFiltersManager::onUpdateNoteComplete: note = ")
-            << note << QStringLiteral("\nUpdate resource metadata = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata)
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", update resource binary data = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData)
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", update tags = ")
-            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags)
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", request id = ") << requestId);
-
-    m_noteFilterModel.invalidate();
-}
-
-void NoteFiltersManager::onExpungeNoteComplete(Note note, QUuid requestId)
-{
-    QNTRACE(QStringLiteral("NoteFiltersManager::onExpungeNoteComplete: note = ")
-            << note << QStringLiteral("\nRequest id = ") << requestId);
-
-    m_noteFilterModel.invalidate();
 }
 
 void NoteFiltersManager::createConnections()
@@ -765,24 +728,6 @@ void NoteFiltersManager::createConnections()
                      QNSLOT(NoteFiltersManager,onExpungeSavedSearchComplete,
                             SavedSearch,QUuid),
                      Qt::UniqueConnection);
-    QObject::connect(&m_localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
-                     this,
-                     QNSLOT(NoteFiltersManager,onAddNoteComplete,Note,QUuid),
-                     Qt::UniqueConnection);
-    QObject::connect(&m_localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,
-                              Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     this,
-                     QNSLOT(NoteFiltersManager,onUpdateNoteComplete,
-                            Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     Qt::UniqueConnection);
-    QObject::connect(&m_localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,
-                              Note,QUuid),
-                     this,
-                     QNSLOT(NoteFiltersManager,onExpungeNoteComplete,Note,QUuid),
-                     Qt::UniqueConnection);
 }
 
 void NoteFiltersManager::evaluate()
@@ -817,12 +762,12 @@ void NoteFiltersManager::evaluate()
         return;
     }
 
-    m_noteFilterModel.beginUpdateFilter();
+    m_noteModel.beginUpdateFilter();
 
     setFilterByNotebooks();
     setFilterByTags();
 
-    m_noteFilterModel.endUpdateFilter();
+    m_noteModel.endUpdateFilter();
 
     Q_EMIT filterChanged();
 }
@@ -912,7 +857,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     QString currentSavedSearchName = m_filterBySavedSearchWidget.currentText();
     if (currentSavedSearchName.isEmpty()) {
         QNDEBUG(QStringLiteral("No saved search name is set to the filter"));
-        m_noteFilterModel.clearNoteLocalUids();
+        m_noteModel.clearFilteredNoteLocalUids();
         return false;
     }
 
@@ -921,7 +866,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         QNDEBUG(QStringLiteral("Saved search model in the filter by saved search "
                                "widget is null"));
-        m_noteFilterModel.clearNoteLocalUids();
+        m_noteModel.clearFilteredNoteLocalUids();
         return false;
     }
 
@@ -935,7 +880,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
                                      "saved search name"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
-        m_noteFilterModel.clearNoteLocalUids();
+        m_noteModel.clearFilteredNoteLocalUids();
         return false;
     }
 
@@ -948,7 +893,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
                                      "model index"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
-        m_noteFilterModel.clearNoteLocalUids();
+        m_noteModel.clearFilteredNoteLocalUids();
         return false;
     }
 
@@ -958,7 +903,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
                                      "saved search's query is empty"));
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
         Q_EMIT notifyError(error);
-        m_noteFilterModel.clearNoteLocalUids();
+        m_noteModel.clearFilteredNoteLocalUids();
         return false;
     }
 
@@ -974,7 +919,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         error.details() = errorDescription.details();
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
         Q_EMIT notifyError(error);
-        m_noteFilterModel.clearNoteLocalUids();
+        m_noteModel.clearFilteredNoteLocalUids();
         return false;
     }
 
@@ -1011,7 +956,7 @@ void NoteFiltersManager::setFilterByNotebooks()
                 ? QStringLiteral("<empty>")
                 : notebookLocalUids.join(QStringLiteral(", "))));
 
-    m_noteFilterModel.setNotebookLocalUids(notebookLocalUids);
+    m_noteModel.setFilteredNotebookLocalUids(notebookLocalUids);
 }
 
 void NoteFiltersManager::setFilterByTags()
@@ -1028,7 +973,7 @@ void NoteFiltersManager::setFilterByTags()
     QNTRACE(QStringLiteral("Tag local uids to be used for filtering: ")
             << tagLocalUids.join(QStringLiteral(", ")));
 
-    m_noteFilterModel.setTagLocalUids(tagLocalUids);
+    m_noteModel.setFilteredTagLocalUids(tagLocalUids);
 }
 
 void NoteFiltersManager::clearFilterWidgetsItems()

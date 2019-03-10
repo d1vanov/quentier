@@ -308,8 +308,11 @@ Q_SIGNALS:
                   QString linkedNotebookGuid, QUuid requestId);
     void expungeTag(Tag tag, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
-    void requestNoteCountPerTag(Tag tag, QUuid requestId);
-    void requestNoteCountsForAllTags(QUuid requestId);
+    void requestNoteCountPerTag(Tag tag,
+                                LocalStorageManager::NoteCountOptions options,
+                                QUuid requestId);
+    void requestNoteCountsForAllTags(LocalStorageManager::NoteCountOptions options,
+                                     QUuid requestId);
     void listAllTagsPerNote(Note note, LocalStorageManager::ListObjectsOptions flag,
                             size_t limit, size_t offset,
                             LocalStorageManager::ListTagsOrder::type order,
@@ -345,15 +348,22 @@ private Q_SLOTS:
     void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids,
                               QUuid requestId);
     void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onGetNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
+
+    void onGetNoteCountPerTagComplete(int noteCount, Tag tag,
+                                      LocalStorageManager::NoteCountOptions options,
+                                      QUuid requestId);
     void onGetNoteCountPerTagFailed(ErrorString errorDescription, Tag tag,
+                                    LocalStorageManager::NoteCountOptions options,
                                     QUuid requestId);
+
     void onGetNoteCountsPerAllTagsComplete(
         QHash<QString, int> noteCountsPerTagLocalUid,
+        LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
-
-    void onGetNoteCountsPerAllTagsFailed(ErrorString errorDescription,
-                                         QUuid requestId);
+    void onGetNoteCountsPerAllTagsFailed(
+        ErrorString errorDescription,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
 
     void onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId);
 

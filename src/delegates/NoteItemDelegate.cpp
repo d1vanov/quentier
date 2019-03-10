@@ -18,7 +18,6 @@
 
 #include "NoteItemDelegate.h"
 #include "../models/NoteModel.h"
-#include "../models/NoteFilterModel.h"
 #include "../views/NoteListView.h"
 #include "../DefaultSettings.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -58,9 +57,9 @@ void NoteItemDelegate::paint(QPainter * pPainter,
                              const QStyleOptionViewItem & option,
                              const QModelIndex & index) const
 {
-    const NoteFilterModel * pNoteFilterModel =
-        qobject_cast<const NoteFilterModel*>(index.model());
-    if (Q_UNLIKELY(!pNoteFilterModel))
+    const NoteModel * pNoteModel =
+        qobject_cast<const NoteModel*>(index.model());
+    if (Q_UNLIKELY(!pNoteModel))
     {
         ErrorString error(QT_TR_NOOP("Wrong model is connected to the note item "
                                      "delegate"));
@@ -69,20 +68,7 @@ void NoteItemDelegate::paint(QPainter * pPainter,
         return;
     }
 
-    const NoteModel * pNoteModel =
-        qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
-    if (Q_UNLIKELY(!pNoteModel))
-    {
-        ErrorString error(QT_TR_NOOP("Can't get the source model from the note "
-                                     "filter model connected to the note item "
-                                     "delegate"));
-        QNWARNING(error);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
-    QModelIndex sourceIndex = pNoteFilterModel->mapToSource(index);
-    const NoteModelItem * pItem = pNoteModel->itemForIndex(sourceIndex);
+    const NoteModelItem * pItem = pNoteModel->itemForIndex(index);
     if (Q_UNLIKELY(!pItem))
     {
         ErrorString error(QT_TR_NOOP("Can't retrieve the item to paint for note "
@@ -108,7 +94,7 @@ void NoteItemDelegate::paint(QPainter * pPainter,
     if (pView)
     {
         QModelIndex currentIndex = pView->currentIndex();
-        if (currentIndex.isValid() && (sourceIndex.row() == currentIndex.row()))
+        if (currentIndex.isValid() && (index.row() == currentIndex.row()))
         {
             QPen pen(Qt::SolidLine);
             pen.setWidth(2);
@@ -494,19 +480,16 @@ void NoteItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model
 QSize NoteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
                                  const QModelIndex & index) const
 {
-    QModelIndex sourceIndex;
-    const NoteFilterModel * pNoteFilterModel =
-        qobject_cast<const NoteFilterModel*>(index.model());
-    if (pNoteFilterModel) {
-        sourceIndex = pNoteFilterModel->mapToSource(index);
-    }
+    Q_UNUSED(index)
 
     int width = std::max(m_minWidth, option.rect.width());
 
-    // Computing height: need to compute all its components as if we were painting
-    // and ensure the integer number of preview text lines would correspond
-    // to the preview text's part of the overall height - this way note items
-    // look better
+    /**
+     * Computing height: need to compute all its components as if we were painting
+     * and ensure the integer number of preview text lines would correspond
+     * to the preview text's part of the overall height - this way note items
+     * look better
+     */
 
     QFont boldFont = option.font;
     boldFont.setBold(true);

@@ -269,6 +269,7 @@ void NoteModelTestHelper::launchTest()
         NoteModel * model = new NoteModel(account, *m_pLocalStorageManagerAsync,
                                           noteCache, notebookCache, this,
                                           NoteModel::IncludedNotes::All);
+
         ModelTest t1(model);
         Q_UNUSED(t1)
 
@@ -551,7 +552,13 @@ void NoteModelTestHelper::launchTest()
         // Should be able to add the new note model item and get the asynchonous
         // acknowledgement from the local storage about that
         m_expectingNewNoteFromLocalStorage = true;
-        Q_UNUSED(model->createNoteItem(firstNotebook.localUid()))
+        ErrorString errorDescription;
+        QModelIndex newItemIndex = model->createNoteItem(firstNotebook.localUid(),
+                                                         errorDescription);
+        if (!newItemIndex.isValid()) {
+            FAIL(QStringLiteral("Failed to create new note model item: ") +
+                 errorDescription.nonLocalizedString());
+        }
 
         return;
     }
@@ -964,8 +971,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
             }
             break;
         }
-    case NoteModel::Columns::ThumbnailImage:
-    case NoteModel::Columns::TagNameList:
+    default:
         break;
     }
 

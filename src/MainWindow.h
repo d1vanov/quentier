@@ -69,7 +69,6 @@ QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
-QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
@@ -250,8 +249,6 @@ private Q_SLOTS:
      */
     void onToggleThumbnailsPreference(QString noteLocalUid);
 
-    void onNoteModelAllNotesListed();
-
     void onCurrentNoteInListChanged(QString noteLocalUid);
     void onOpenNoteInSeparateWindow(QString noteLocalUid);
 
@@ -417,7 +414,7 @@ private:
     void refreshNoteEditorWidgetsSpecialIcons();
 
     void persistChosenNoteSortingMode(int index);
-    NoteModel::NoteSortingModes::type restoreNoteSortingMode();
+    NoteModel::NoteSortingMode::type restoreNoteSortingMode();
 
     void persistGeometryAndState();
     void restoreGeometryAndState();
@@ -571,7 +568,6 @@ private:
 
     QStandardItemModel      m_blankModel;
 
-    NoteFilterModel *       m_pNoteFilterModel;
     NoteFiltersManager *    m_pNoteFiltersManager;
 
     int                     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId;

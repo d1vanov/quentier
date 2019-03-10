@@ -377,7 +377,9 @@ Q_SIGNALS:
                        LocalStorageManager::OrderDirection::type orderDirection,
                        QString linkedNotebookGuid, QUuid requestId);
     void expungeNotebook(Notebook notebook, QUuid requestId);
-    void requestNoteCountPerNotebook(Notebook notebook, QUuid requestId);
+    void requestNoteCountPerNotebook(Notebook notebook,
+                                     LocalStorageManager::NoteCountOptions options,
+                                     QUuid requestId);
 
     void listAllLinkedNotebooks(
         const size_t limit, const size_t offset,
@@ -417,10 +419,14 @@ private Q_SLOTS:
     void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription,
                                  QUuid requestId);
 
-    void onGetNoteCountPerNotebookComplete(int noteCount, Notebook notebook,
-                                           QUuid requestId);
-    void onGetNoteCountPerNotebookFailed(ErrorString errorDescription,
-                                         Notebook notebook, QUuid requestId);
+    void onGetNoteCountPerNotebookComplete(
+        int noteCount, Notebook notebook,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
+    void onGetNoteCountPerNotebookFailed(
+        ErrorString errorDescription, Notebook notebook,
+        LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
     void onNoteMovedToAnotherNotebook(QString noteLocalUid,
