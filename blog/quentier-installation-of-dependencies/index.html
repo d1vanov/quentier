@@ -80,7 +80,7 @@
       <a href="https://d1vanov.github.io/quentier/index.xml" type="application/rss+xml"><i class="fa fa-rss-square"></i></a>
     
 
-    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2018 Dmitry Ivanov. All rights reserved.</p>
+    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2019 Dmitry Ivanov. All rights reserved.</p>
 
   </div>
 </div>
@@ -567,10 +567,10 @@ set PATH=%cd%\installdir\bin;%PATH%
 <pre><code>git clone https://github.com/kiyolee/libxml2-win-build.git
 cd libxml2-win-build
 cd build-VS2015
-msbuild libxml2.sln /p:Configuration=&quot;Release&quot; /p:Platform=&quot;x86&quot;
+msbuild libxml2.sln /p:Configuration=&quot;Release&quot; /p:Platform=&quot;Win32&quot;
 </code></pre>
 
-<p>Slight difference from libiconv and zlib: the 32 bit platform is &ldquo;x86&rdquo; instead of &ldquo;Win32&rdquo;. As with libiconv and zlib, the resulting binaries would be in &ldquo;Release&rdquo; folder for 32 bit build and in &ldquo;x64\Release&rdquo; folder for 64 bit build. The recommended approach is to put the built <code>.lib</code> and <code>.dll</code> files into relevant folders, as with libiconv (see above). The environment variables making it simple for CMake to locate the libraries are as follows:</p>
+<p>As with libiconv and zlib, the resulting binaries would be in &ldquo;Release&rdquo; folder for 32 bit build and in &ldquo;x64\Release&rdquo; folder for 64 bit build. The recommended approach is to put the built <code>.lib</code> and <code>.dll</code> files into relevant folders, as with libiconv (see above). The environment variables making it simple for CMake to locate the libraries are as follows:</p>
 
 <pre><code>set INCLUDE=%cd%\..\include;%INCLUDE%
 set LIB=%cd%\installdir\lib;%LIB%
@@ -801,7 +801,7 @@ C:\MinGW\bin\mingw32-make.exe install -f win32\Makefile.gcc INCLUDE_PATH=%cd%\in
 
 <h5 id="building-libxml2-1">Building libxml2</h5>
 
-<pre><code>git clone git://git.gnome.org/libxml2
+<pre><code>git clone https://gitlab.gnome.org/GNOME/libxml2.git
 cd libxml2
 git checkout v2.9.7
 cd win32
