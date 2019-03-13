@@ -56,6 +56,7 @@
 #include <QStringList>
 #include <QMovie>
 #include <QNetworkProxy>
+#include <QScopedPointer>
 
 namespace Ui {
 class MainWindow;
@@ -73,6 +74,7 @@ QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
 QT_FORWARD_DECLARE_CLASS(MainWindowSideBordersController)
+QT_FORWARD_DECLARE_CLASS(NoteCountLabelController)
 }
 
 using namespace quentier;
@@ -557,6 +559,8 @@ private:
     TagModel *              m_pTagModel;
     SavedSearchModel *      m_pSavedSearchModel;
     NoteModel *             m_pNoteModel;
+
+    NoteCountLabelController *  m_pNoteCountLabelController;
 
     ColumnChangeRerouter *  m_pNotebookModelColumnChangeRerouter;
     ColumnChangeRerouter *  m_pTagModelColumnChangeRerouter;

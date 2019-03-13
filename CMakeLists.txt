@@ -81,6 +81,7 @@ set(${PROJECT_NAME}_HEADERS
     src/EnexImporter.h
     src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
+    src/NoteCountLabelController.h
     src/EnexExporter.h
     src/NetworkProxySettingsHelpers.h
     src/SettingsNames.h
@@ -197,6 +198,7 @@ set(${PROJECT_NAME}_SOURCES
     src/EnexImporter.cpp
     src/NoteEditorTabsAndWindowsCoordinator.cpp
     src/NoteFiltersManager.cpp
+    src/NoteCountLabelController.cpp
     src/EnexExporter.cpp
     src/NetworkProxySettingsHelpers.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp

@@ -168,6 +168,12 @@ public:
      */
     qint32 totalFilteredNotesCount() const;
 
+    /**
+     * @brief Total number of notes per account within the local storage
+     * database not considering the filters set to the note model
+     */
+    qint32 totalAccountNotesCount() const;
+
 public:
     /**
      * @brief createNoteItem - attempts to create a new note within the notebook

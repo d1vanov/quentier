@@ -372,6 +372,11 @@ qint32 NoteModel::totalFilteredNotesCount() const
     return m_totalFilteredNotesCount;
 }
 
+qint32 NoteModel::totalAccountNotesCount() const
+{
+    return m_totalAccountNotesCount;
+}
+
 QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid,
                                        ErrorString & errorDescription)
 {
