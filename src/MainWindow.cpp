@@ -31,6 +31,7 @@
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
+#include "NoteCountLabelController.h"
 #include "widgets/FindAndReplaceWidget.h"
 #include "delegates/NotebookItemDelegate.h"
 #include "delegates/SynchronizableColumnDelegate.h"
@@ -202,6 +203,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pTagModel(Q_NULLPTR),
     m_pSavedSearchModel(Q_NULLPTR),
     m_pNoteModel(Q_NULLPTR),
+    m_pNoteCountLabelController(Q_NULLPTR),
     m_pNotebookModelColumnChangeRerouter(
         new ColumnChangeRerouter(NotebookModel::Columns::NumNotesPerNotebook,
                                  NotebookModel::Columns::Name, this)),
@@ -4858,6 +4860,13 @@ void MainWindow::setupModels()
                                          *m_pLocalStorageManagerAsync,
                                          m_noteCache, m_notebookCache, this,
                                          NoteModel::IncludedNotes::Deleted);
+
+    if (m_pNoteCountLabelController == Q_NULLPTR) {
+        m_pNoteCountLabelController =
+            new NoteCountLabelController(*m_pUI->notesCountLabelPanel, this);
+    }
+
+    m_pNoteCountLabelController->setNoteModel(*m_pNoteModel);
 
     setupNoteFilters();
 

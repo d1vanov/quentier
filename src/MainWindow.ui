@@ -2592,7 +2592,7 @@ padding-left: 2px;
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>20</height>
+                   <height>16777215</height>
                   </size>
                  </property>
                  <property name="lineWidth">
@@ -2613,9 +2613,9 @@ padding-left: 2px;
                  <property name="childrenCollapsible">
                   <bool>false</bool>
                  </property>
-                 <widget class="QLabel" name="noteSortingModeLabelPanel">
+                 <widget class="QLabel" name="notesCountLabelPanel">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -2626,11 +2626,25 @@ padding-left: 2px;
                     <height>20</height>
                    </size>
                   </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>140</width>
-                    <height>20</height>
-                   </size>
+                  <property name="lineWidth">
+                   <number>0</number>
+                  </property>
+                  <property name="text">
+                   <string>Notes:</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="buddy">
+                   <cstring>noteSortingModeComboBox</cstring>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="noteSortingModeLabelPanel">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
                   </property>
                   <property name="lineWidth">
                    <number>0</number>
@@ -2654,7 +2668,7 @@ padding-left: 2px;
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>140</width>
+                    <width>180</width>
                     <height>0</height>
                    </size>
                   </property>
@@ -2797,7 +2811,7 @@ margin: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>30</height>
     </rect>
    </property>
    <property name="styleSheet">

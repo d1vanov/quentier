@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
-#define QUENTIER_WIDGETS_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
+#ifndef QUENTIER_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
+#define QUENTIER_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
 
 #include "models/NoteCache.h"
 #include "models/NotebookCache.h"
@@ -232,4 +232,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_WIDGETS_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
+#endif // QUENTIER_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
