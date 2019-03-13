@@ -2615,14 +2615,14 @@ padding-left: 2px;
                  </property>
                  <widget class="QLabel" name="notesCountLabelPanel">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>80</width>
+                    <width>90</width>
                     <height>20</height>
                    </size>
                   </property>
