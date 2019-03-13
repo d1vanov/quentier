@@ -1819,14 +1819,16 @@ void NoteModel::createConnections(LocalStorageManagerAsync & localStorageManager
                               LocalStorageManager::ListObjectsOptions,
                               size_t,size_t,
                               LocalStorageManager::ListNotesOrder::type,
-                              LocalStorageManager::OrderDirection::type,QUuid),
+                              LocalStorageManager::OrderDirection::type,
+                              QList<Note>,QUuid),
                      this,
                      QNSLOT(NoteModel,onListNotesByLocalUidsComplete,
                             QStringList,LocalStorageManager::GetNoteOptions,
                             LocalStorageManager::ListObjectsOptions,
                             size_t,size_t,
                             LocalStorageManager::ListNotesOrder::type,
-                            LocalStorageManager::OrderDirection::type,QUuid));
+                            LocalStorageManager::OrderDirection::type,
+                            QList<Note>,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               listNotesByLocalUidsFailed,
