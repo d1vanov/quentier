@@ -19,9 +19,9 @@
 #include "ManageAccountsDialog.h"
 #include "ui_ManageAccountsDialog.h"
 #include "DeleteAccountDialog.h"
-#include "../AccountManager.h"
-#include "../models/AccountModel.h"
-#include "../delegates/AccountDelegate.h"
+#include "AccountManager.h"
+#include "AccountModel.h"
+#include "AccountDelegate.h"
 #include "AddAccountDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/StringUtils.h>

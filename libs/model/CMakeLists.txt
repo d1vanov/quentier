@@ -2,11 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 SET_POLICIES()
 
-project(quentier_models)
+project(quentier_model)
 
 set(HEADERS
-    ../../src/models/AccountModel.h
-    ../../src/models/AccountFilterModel.h
     ../../src/models/ColumnChangeRerouter.h
     ../../src/models/ItemModel.h
     ../../src/models/NewItemNameGenerator.hpp
@@ -34,8 +32,6 @@ set(HEADERS
     ../../src/models/LogViewerModelLogFileParser.h)
 
 set(SOURCES
-    ../../src/models/AccountModel.cpp
-    ../../src/models/AccountFilterModel.cpp
     ../../src/models/ColumnChangeRerouter.cpp
     ../../src/models/ItemModel.cpp
     ../../src/models/SavedSearchModel.cpp
@@ -58,3 +54,9 @@ set(SOURCES
     ../../src/models/LogViewerModelLogFileParser.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+
+set(TRANSLATABLE_SOURCES
+    ${HEADERS}
+    ${SOURCES})
+
+COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, "")

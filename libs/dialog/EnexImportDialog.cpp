@@ -18,7 +18,7 @@
 
 #include "EnexImportDialog.h"
 #include "ui_EnexImportDialog.h"
-#include "../models/NotebookModel.h"
+#include <libs/model/NotebookModel.h>
 #include "../SettingsNames.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>

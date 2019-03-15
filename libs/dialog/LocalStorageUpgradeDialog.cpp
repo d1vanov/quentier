@@ -18,8 +18,8 @@
 
 #include "LocalStorageUpgradeDialog.h"
 #include "ui_LocalStorageUpgradeDialog.h"
-#include "../models/AccountFilterModel.h"
-#include "../models/AccountModel.h"
+#include <libs/account/AccountFilterModel.h>
+#include <libs/account/AccountModel.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/ILocalStoragePatch.h>
 #include <quentier/utility/StandardPaths.h>

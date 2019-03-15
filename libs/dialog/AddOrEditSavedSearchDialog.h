@@ -19,7 +19,7 @@
 #ifndef QUENTIER_DIALOGS_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
 #define QUENTIER_DIALOGS_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
 
-#include "../models/SavedSearchModel.h"
+#include <libs/model/SavedSearchModel.h>
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 #include <QDialog>

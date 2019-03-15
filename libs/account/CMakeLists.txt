@@ -5,9 +5,34 @@ SET_POLICIES()
 project(quentier_account)
 
 set(HEADERS
-    ../../src/AccountManager.h)
+    AccountManager.h
+    AddAccountDialog.h
+    DeleteAccountDialog.h
+    ManageAccountsDialog.h
+    AccountModel.h
+    AccountFilterModel.h
+    AccountDelegate.h
 
 set(SOURCES
-    ../../src/AccountManager.cpp)
+    AccountManager.cpp
+    AddAccountDialog.cpp
+    DeleteAccountDialog.cpp
+    ManageAccountsDialog.cpp
+    AccountModel.cpp
+    AccountFilterModel.cpp
+    AccountDelegate.cpp
 
-add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+set(FORMS
+    AddAccountDialog.ui
+    DeleteAccountDialog.ui
+    ManageAccountsDialog.ui)
+
+qt_wrap_ui(FORMS_HEADERS ${FORMS})
+
+add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
+
+set(TRANSLATABLE_SOURCES
+    ${HEADERS}
+    ${SOURCES})
+
+COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, ${FORMS})

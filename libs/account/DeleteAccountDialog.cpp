@@ -18,7 +18,7 @@
 
 #include "DeleteAccountDialog.h"
 #include "ui_DeleteAccountDialog.h"
-#include "../models/AccountModel.h"
+#include "AccountModel.h"
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/types/ErrorString.h>

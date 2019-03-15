@@ -18,7 +18,7 @@
 
 #include "EditNoteDialog.h"
 #include "ui_EditNoteDialog.h"
-#include "../models/NotebookModel.h"
+#include <libs/model/NotebookModel.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QStringListModel>
 #include <QCompleter>

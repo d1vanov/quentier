@@ -18,8 +18,8 @@
 
 #include "LocalStorageVersionTooHighDialog.h"
 #include "ui_LocalStorageVersionTooHighDialog.h"
-#include "../models/AccountFilterModel.h"
-#include "../models/AccountModel.h"
+#include <libs/account/AccountFilterModel.h>
+#include <libs/account/AccountModel.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/logging/QuentierLogger.h>

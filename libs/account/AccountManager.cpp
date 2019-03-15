@@ -18,9 +18,9 @@
 
 #include "AccountManager.h"
 #include "SettingsNames.h"
-#include "dialogs/AddAccountDialog.h"
-#include "dialogs/ManageAccountsDialog.h"
-#include "models/AccountModel.h"
+#include "AddAccountDialog.h"
+#include "ManageAccountsDialog.h"
+#include "AccountModel.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>

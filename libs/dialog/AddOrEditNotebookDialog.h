@@ -19,7 +19,7 @@
 #ifndef QUENTIER_DIALOGS_ADD_NOTEBOOK_DIALOG_H
 #define QUENTIER_DIALOGS_ADD_NOTEBOOK_DIALOG_H
 
-#include "../models/NotebookModel.h"
+#include <libs/model/NotebookModel.h>
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 #include <QDialog>

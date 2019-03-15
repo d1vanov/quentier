@@ -17,7 +17,7 @@
  */
 
 #include "AccountDelegate.h"
-#include "../models/AccountModel.h"
+#include "AccountModel.h"
 #include <QLineEdit>
 #include <QFontMetrics>
 

@@ -25,3 +25,9 @@ set(SOURCES
     ../../src/initialization/SetupStartAtLogin.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+
+set(TRANSLATABLE_SOURCES
+    ${HEADERS}
+    ${SOURCES})
+
+COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, "")

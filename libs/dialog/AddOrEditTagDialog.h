@@ -19,7 +19,7 @@
 #ifndef QUENTIER_DIALOGS_ADD_OR_EDIT_TAG_DIALOG_H
 #define QUENTIER_DIALOGS_ADD_OR_EDIT_TAG_DIALOG_H
 
-#include "../models/TagModel.h"
+#include <libs/model/TagModel.h>
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 #include <QDialog>

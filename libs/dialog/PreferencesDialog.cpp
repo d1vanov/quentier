@@ -22,15 +22,15 @@
 using quentier::ShortcutSettingsWidget;
 #include "ui_PreferencesDialog.h"
 
-#include "../AccountManager.h"
+#include <libs/account/AccountManager.h>
 #include "../SystemTrayIconManager.h"
 #include "../ActionsInfo.h"
 #include "../SettingsNames.h"
 #include "../DefaultSettings.h"
 #include "../NetworkProxySettingsHelpers.h"
 #include "../MainWindowSideBorderOption.h"
-#include "../utility/ColorCodeValidator.h"
-#include "../utility/StartAtLogin.h"
+#include <libs/utility/ColorCodeValidator.h>
+#include <libs/utility/StartAtLogin.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/ShortcutManager.h>
