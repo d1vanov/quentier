@@ -257,6 +257,15 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pSystemTrayIconManager =
         new SystemTrayIconManager(*m_pAccountManager, this);
 
+    QObject::connect(this,
+                     QNSIGNAL(MainWindow,shown),
+                     m_pSystemTrayIconManager,
+                     QNSLOT(SystemTrayIconManager,onMainWindowShown));
+    QObject::connect(this,
+                     QNSIGNAL(MainWindow,hidden),
+                     m_pSystemTrayIconManager,
+                     QNSLOT(SystemTrayIconManager,onMainWindowHidden));
+
     m_pendingFirstShutdownDialog =
         m_pendingGreeterDialog &&
         m_pSystemTrayIconManager->isSystemTrayAvailable();
