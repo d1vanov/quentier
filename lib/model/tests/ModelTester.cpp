@@ -17,19 +17,22 @@
  */
 
 #include "ModelTester.h"
-#include "../../models/SavedSearchModel.h"
-#include "../../models/TagModel.h"
 #include "SavedSearchModelTestHelper.h"
 #include "TagModelTestHelper.h"
 #include "NotebookModelTestHelper.h"
 #include "NoteModelTestHelper.h"
 #include "FavoritesModelTestHelper.h"
+
+#include <lib/model/SavedSearchModel.h>
+#include <lib/model/TagModel.h>
+
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/UidGenerator.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
+
 #include <QtTest/QtTest>
 #include <QtGui/QtGui>
 #include <QTreeWidget>

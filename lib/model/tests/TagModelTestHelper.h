@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_TESTS_MODEL_TEST_TAG_MODEL_TEST_HELPER_H
-#define QUENTIER_TESTS_MODEL_TEST_TAG_MODEL_TEST_HELPER_H
+#ifndef QUENTIER_LIB_MODEL_TESTS_TAG_MODEL_TEST_HELPER_H
+#define QUENTIER_LIB_MODEL_TESTS_TAG_MODEL_TEST_HELPER_H
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 
@@ -74,4 +74,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_TESTS_MODEL_TEST_TAG_MODEL_TEST_HELPER_H
+#endif // QUENTIER_LIB_MODEL_TESTS_TAG_MODEL_TEST_HELPER_H

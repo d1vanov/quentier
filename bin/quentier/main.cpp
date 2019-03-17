@@ -17,17 +17,21 @@
  */
 
 #include "MainWindow.h"
-#include "SystemTrayIconManager.h"
-#include "exception/LocalStorageVersionTooHighException.h"
-#include "initialization/Initialize.h"
-#include "initialization/LoadDependencies.h"
+
+#include <lib/tray/SystemTrayIconManager.h>
+#include <lib/exception/LocalStorageVersionTooHighException.h>
+#include <lib/initialization/Initialize.h>
+#include <lib/initialization/LoadDependencies.h>
+
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/exception/DatabaseLockedException.h>
 #include <quentier/exception/DatabaseOpeningException.h>
 #include <quentier/exception/IQuentierException.h>
+
 #include <QScopedPointer>
+
 #include <iostream>
 #include <exception>
 

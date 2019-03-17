@@ -17,11 +17,13 @@
  */
 
 #include "TagModelTestHelper.h"
-#include "../../models/TagModel.h"
-#include "../../models/NoteCache.h"
-#include "../../models/NotebookCache.h"
 #include "modeltest.h"
 #include "TestMacros.h"
+
+#include <lib/model/TagModel.h>
+#include <lib/model/NoteCache.h>
+#include <lib/model/NotebookCache.h>
+
 #include <quentier/utility/SysInfo.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/UidGenerator.h>

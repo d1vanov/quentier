@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
-#define QUENTIER_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
+#ifndef QUENTIER_LIB_MODEL_TESTS_NOTE_MODEL_TEST_HELPER_H
+#define QUENTIER_LIB_MODEL_TESTS_NOTE_MODEL_TEST_HELPER_H
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 
@@ -165,16 +165,16 @@ private:
     };
 
 private:
-    LocalStorageManagerAsync *          m_pLocalStorageManagerAsync;
-    NoteModel *                         m_model;
-    Notebook                            m_firstNotebook;
-    QString                             m_noteToExpungeLocalUid;
-    bool                                m_expectingNewNoteFromLocalStorage;
-    bool                                m_expectingNoteUpdateFromLocalStorage;
-    bool                                m_expectingNoteDeletionFromLocalStorage;
-    bool                                m_expectingNoteExpungeFromLocalStorage;
+    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
+    NoteModel *     m_model;
+    Notebook        m_firstNotebook;
+    QString         m_noteToExpungeLocalUid;
+    bool            m_expectingNewNoteFromLocalStorage;
+    bool            m_expectingNoteUpdateFromLocalStorage;
+    bool            m_expectingNoteDeletionFromLocalStorage;
+    bool            m_expectingNoteExpungeFromLocalStorage;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
+#endif // QUENTIER_LIB_MODEL_TESTS_NOTE_MODEL_TEST_HELPER_H

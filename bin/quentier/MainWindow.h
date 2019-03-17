@@ -19,18 +19,19 @@
 #ifndef QUENTIER_MAINWINDOW_H
 #define QUENTIER_MAINWINDOW_H
 
-#include "AccountManager.h"
-#include "NoteEditorTabsAndWindowsCoordinator.h"
-#include "models/NotebookCache.h"
-#include "models/TagCache.h"
-#include "models/SavedSearchCache.h"
-#include "models/NoteCache.h"
-#include "models/NotebookModel.h"
-#include "models/TagModel.h"
-#include "models/SavedSearchModel.h"
-#include "models/NoteModel.h"
-#include "models/FavoritesModel.h"
-#include "widgets/NoteEditorWidget.h"
+#include <lib/account/AccountManager.h>
+#include <lib/model/NotebookCache.h>
+#include <lib/model/TagCache.h>
+#include <lib/model/SavedSearchCache.h>
+#include <lib/model/NoteCache.h>
+#include <lib/model/NotebookModel.h>
+#include <lib/model/TagModel.h>
+#include <lib/model/SavedSearchModel.h>
+#include <lib/model/NoteModel.h>
+#include <lib/model/FavoritesModel.h>
+#include <lib/widget/NoteEditorWidget.h>
+#include <lib/widget/NoteEditorTabsAndWindowsCoordinator.h>
+
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/synchronization/SynchronizationManager.h>

@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_TESTS_MODEL_TEST_FAVORITES_MODEL_TEST_HELPER_H
-#define QUENTIER_TESTS_MODEL_TEST_FAVORITES_MODEL_TEST_HELPER_H
+#ifndef QUENTIER_LIB_MODEL_TESTS_FAVORITES_MODEL_TEST_HELPER_H
+#define QUENTIER_LIB_MODEL_TESTS_FAVORITES_MODEL_TEST_HELPER_H
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 
@@ -135,41 +135,41 @@ private:
     };
 
 private:
-    LocalStorageManagerAsync *          m_pLocalStorageManagerAsync;
-    FavoritesModel *                    m_model;
+    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
+    FavoritesModel *            m_model;
 
-    Notebook                            m_firstNotebook;
-    Notebook                            m_secondNotebook;
-    Notebook                            m_thirdNotebook;
+    Notebook        m_firstNotebook;
+    Notebook        m_secondNotebook;
+    Notebook        m_thirdNotebook;
 
-    Note                                m_firstNote;
-    Note                                m_secondNote;
-    Note                                m_thirdNote;
-    Note                                m_fourthNote;
-    Note                                m_fifthNote;
-    Note                                m_sixthNote;
+    Note            m_firstNote;
+    Note            m_secondNote;
+    Note            m_thirdNote;
+    Note            m_fourthNote;
+    Note            m_fifthNote;
+    Note            m_sixthNote;
 
-    Tag                                 m_firstTag;
-    Tag                                 m_secondTag;
-    Tag                                 m_thirdTag;
-    Tag                                 m_fourthTag;
+    Tag             m_firstTag;
+    Tag             m_secondTag;
+    Tag             m_thirdTag;
+    Tag             m_fourthTag;
 
-    SavedSearch                         m_firstSavedSearch;
-    SavedSearch                         m_secondSavedSearch;
-    SavedSearch                         m_thirdSavedSearch;
-    SavedSearch                         m_fourthSavedSearch;
+    SavedSearch     m_firstSavedSearch;
+    SavedSearch     m_secondSavedSearch;
+    SavedSearch     m_thirdSavedSearch;
+    SavedSearch     m_fourthSavedSearch;
 
-    bool                                m_expectingNoteUpdateFromLocalStorage;
-    bool                                m_expectingNotebookUpdateFromLocalStorage;
-    bool                                m_expectingTagUpdateFromLocalStorage;
-    bool                                m_expectingSavedSearchUpdateFromLocalStorage;
+    bool            m_expectingNoteUpdateFromLocalStorage;
+    bool            m_expectingNotebookUpdateFromLocalStorage;
+    bool            m_expectingTagUpdateFromLocalStorage;
+    bool            m_expectingSavedSearchUpdateFromLocalStorage;
 
-    bool                                m_expectingNoteUnfavoriteFromLocalStorage;
-    bool                                m_expectingNotebookUnfavoriteFromLocalStorage;
-    bool                                m_expectingTagUnfavoriteFromLocalStorage;
-    bool                                m_expectingSavedSearchUnfavoriteFromLocalStorage;
+    bool            m_expectingNoteUnfavoriteFromLocalStorage;
+    bool            m_expectingNotebookUnfavoriteFromLocalStorage;
+    bool            m_expectingTagUnfavoriteFromLocalStorage;
+    bool            m_expectingSavedSearchUnfavoriteFromLocalStorage;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_TESTS_MODEL_TEST_FAVORITES_MODEL_TEST_HELPER_H
+#endif // QUENTIER_LIB_MODEL_TESTS_FAVORITES_MODEL_TEST_HELPER_H

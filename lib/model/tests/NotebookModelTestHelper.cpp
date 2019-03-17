@@ -17,9 +17,11 @@
  */
 
 #include "NotebookModelTestHelper.h"
-#include "../../models/NotebookModel.h"
 #include "modeltest.h"
 #include "TestMacros.h"
+
+#include <lib/model/NotebookModel.h>
+
 #include <quentier/utility/SysInfo.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/UidGenerator.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,10 +16,11 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_SRC_TESTS_MODEL_TEST_MODEL_TESTER_H
-#define QUENTIER_SRC_TESTS_MODEL_TEST_MODEL_TESTER_H
+#ifndef QUENTIER_LIB_MODEL_TESTS_MODEL_TESTER_H
+#define QUENTIER_LIB_MODEL_TESTS_MODEL_TESTER_H
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
+
 #include <QObject>
 
 class ModelTester: public QObject
@@ -41,4 +42,4 @@ private:
     quentier::LocalStorageManagerAsync *    m_pLocalStorageManagerAsync;
 };
 
-#endif // QUENTIER_SRC_TESTS_MODEL_TEST_MODEL_TESTER_H
+#endif // QUENTIER_LIB_MODEL_TESTS_MODEL_TESTER_H

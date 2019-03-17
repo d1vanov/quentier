@@ -16,21 +16,20 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_TESTS_MODEL_TEST_NOTEBOOK_MODEL_TEST_HELPER_H
-#define QUENTIER_TESTS_MODEL_TEST_NOTEBOOK_MODEL_TEST_HELPER_H
+#ifndef QUENTIER_LIB_MODEL_TESTS_SAVED_SEARCH_MODEL_TEST_HELPER_H
+#define QUENTIER_LIB_MODEL_TESTS_SAVED_SEARCH_MODEL_TEST_HELPER_H
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
-QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
+QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class NotebookModelTestHelper: public QObject
+class SavedSearchModelTestHelper: public QObject
 {
     Q_OBJECT
 public:
-    explicit NotebookModelTestHelper(
+    explicit SavedSearchModelTestHelper(
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = Q_NULLPTR);
 
@@ -42,38 +41,36 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                             QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription,
+    void onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
                                 QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                              QUuid requestId);
-
-    void onListNotebooksFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
-        QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
-
-    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription,
+    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
+                                   QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
                                  QUuid requestId);
 
+    void onListSavedSearchesFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListSavedSearchesOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        ErrorString errorDescription, QUuid requestId);
+
+    void onExpungeSavedSearchFailed(SavedSearch search,
+                                    ErrorString errorDescription,
+                                    QUuid requestId);
+
 private:
-    bool checkSorting(const NotebookModel & model,
-                      const NotebookModelItem * item) const;
+    bool checkSorting(const SavedSearchModel & model) const;
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
     {
-        bool operator()(const NotebookModelItem * lhs,
-                        const NotebookModelItem * rhs) const;
+        bool operator()(const QString & lhs, const QString & rhs) const;
     };
 
     struct GreaterByName
     {
-        bool operator()(const NotebookModelItem * lhs,
-                        const NotebookModelItem * rhs) const;
+        bool operator()(const QString & lhs, const QString & rhs) const;
     };
 
 private:
@@ -82,4 +79,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_TESTS_MODEL_TEST_NOTEBOOK_MODEL_TEST_HELPER_H
+#endif // QUENTIER_LIB_MODEL_TESTS_SAVED_SEARCH_MODEL_TEST_HELPER_H

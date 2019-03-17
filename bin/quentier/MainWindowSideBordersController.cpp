@@ -17,15 +17,19 @@
  */
 
 #include "MainWindowSideBordersController.h"
-#include "SettingsNames.h"
-#include "DefaultSettings.h"
-#include "dialogs/PreferencesDialog.h"
+
+#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/PreferencesDialog.h>
+
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+
 #include <QColor>
 #include <QWidget>
 #include <QSplitter>
 #include <QMenu>
+
 #include <cmath>
 #include <cstdlib>
 

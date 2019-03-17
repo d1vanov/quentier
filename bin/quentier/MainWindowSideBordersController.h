@@ -19,9 +19,11 @@
 #ifndef QUENTIER_MAIN_WINDOW_SIDE_BORDERS_CONTROLLER_H
 #define QUENTIER_MAIN_WINDOW_SIDE_BORDERS_CONTROLLER_H
 
-#include "MainWindowSideBorderOption.h"
+#include <lib/utility/MainWindowSideBorderOption.h>
+
 #include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
+
 #include <QObject>
 
 QT_FORWARD_DECLARE_CLASS(QWidget)

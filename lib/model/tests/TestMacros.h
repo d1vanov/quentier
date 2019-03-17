@@ -16,10 +16,11 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_TESTS_MODEL_TEST_TEST_MACROS_H
-#define QUENTIER_TESTS_MODEL_TEST_TEST_MACROS_H
+#ifndef QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
+#define QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
 
 #include <quentier/utility/Macros.h>
+
 #include <QTextStream>
 
 #define FAIL(text) \
@@ -54,4 +55,4 @@
         errorDescription = ErrorString(error); \
     }
 
-#endif // QUENTIER_TESTS_MODEL_TEST_TEST_MACROS_H
+#endif // QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
