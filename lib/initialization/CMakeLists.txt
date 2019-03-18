@@ -24,6 +24,24 @@ set(SOURCES
     SetupTranslations.cpp
     SetupStartAtLogin.cpp)
 
+if(BREAKPAD_FOUND)
+  list(APPEND HEADERS breakpad/BreakpadIntegration.h)
+  list(APPEND SOURCES breakpad/BreakpadIntegration.cpp)
+  if(WIN32)
+    list(APPEND SOURCES breakpad/BreakpadIntegrationWindows.cpp)
+  else()
+    list(APPEND SOURCES breakpad/BreakpadIntegrationLinux.cpp)
+  endif()
+
+  # workaround: cppcheck fails to parse some macros used within Breakpad integration sources so need to exclude them
+  list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/breakpad/BreakpadIntegration.cpp)
+  if(WIN32)
+    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/breakpad/BreakpadIntegrationWindows.cpp)
+  else()
+    list(REMOVE_ITEM QUENTIER_CPPCHECKABLE_SOURCES ${PROJECT_SOURCE_DIR}/breakpad/BreakpadIntegrationLinux.cpp)
+  endif()
+endif()
+
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
 add_dependencies(${PROJECT_NAME} quentier_utility quentier_account)
@@ -33,3 +51,8 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, "")
+
+COLLECT_SOURCES_FOR_CPPCHECK(${SOURCES})
+
+set(DIRS . breakpad)
+COLLECT_INCLUDE_DIRS(DIRS)
