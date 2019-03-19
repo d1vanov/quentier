@@ -19,6 +19,8 @@
 #ifndef QUENTIER_CRASH_HANDLER_MAINWINDOW_H
 #define QUENTIER_CRASH_HANDLER_MAINWINDOW_H
 
+#include <quentier/utility/Macros.h>
+
 #include <QMainWindow>
 #include <QString>
 #include <QProcess>
@@ -35,7 +37,7 @@ public:
                         const QString & libquentierSymbolsFileLocation,
                         const QString & stackwalkBinaryLocation,
                         const QString & minidumpLocation,
-                        QWidget * parent = NULL);
+                        QWidget * parent = Q_NULLPTR);
     ~MainWindow();
 
 private Q_SLOTS:

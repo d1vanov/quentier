@@ -31,6 +31,19 @@
 #include <QWidget>
 #include <QStringList>
 
+#ifdef Q_WS_MAC
+#define DEFAULT_SINGLE_CLICK_TRAY_ACTION \
+    (SystemTrayIconManager::TrayActionDoNothing)
+#else
+#define DEFAULT_SINGLE_CLICK_TRAY_ACTION \
+    (SystemTrayIconManager::TrayActionShowContextMenu)
+#endif
+
+#define DEFAULT_MIDDLE_CLICK_TRAY_ACTION \
+    (SystemTrayIconManager::TrayActionShowHide)
+#define DEFAULT_DOUBLE_CLICK_TRAY_ACTION \
+    (SystemTrayIconManager::TrayActionDoNothing)
+
 namespace quentier {
 
 SystemTrayIconManager::SystemTrayIconManager(AccountManager & accountManager,
@@ -734,7 +747,7 @@ void SystemTrayIconManager::setupContextMenu()
     }
 
     if (!m_pTrayIconContextMenu) {
-        m_pTrayIconContextMenu = new QMenu(qobject_cast<QWidget*>(parent());
+        m_pTrayIconContextMenu = new QMenu(qobject_cast<QWidget*>(parent()));
     }
     else {
         m_pTrayIconContextMenu->clear();

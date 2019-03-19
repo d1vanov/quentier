@@ -37,6 +37,8 @@
 using quentier::FindAndReplaceWidget;
 using quentier::NoteEditor;
 using quentier::NoteTagsWidget;
+using quentier::ColorPickerToolButton;
+using quentier::InsertTableToolButton;
 #include "ui_NoteEditorWidget.h"
 
 #include <quentier/logging/QuentierLogger.h>

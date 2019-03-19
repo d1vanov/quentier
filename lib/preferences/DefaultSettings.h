@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H
 #define QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H
 
-#include "SystemTrayIconManager.h"
-
 #include <lib/utility/StartAtLogin.h>
 
 #include <QtGlobal>
@@ -42,19 +40,6 @@
 #else
 #define DEFAULT_TRAY_ICON_KIND QStringLiteral("colored")
 #endif
-
-#ifdef Q_WS_MAC
-#define DEFAULT_SINGLE_CLICK_TRAY_ACTION \
-    (SystemTrayIconManager::TrayActionDoNothing)
-#else
-#define DEFAULT_SINGLE_CLICK_TRAY_ACTION \
-    (SystemTrayIconManager::TrayActionShowContextMenu)
-#endif
-
-#define DEFAULT_MIDDLE_CLICK_TRAY_ACTION \
-    (SystemTrayIconManager::TrayActionShowHide)
-#define DEFAULT_DOUBLE_CLICK_TRAY_ACTION \
-    (SystemTrayIconManager::TrayActionDoNothing)
 
 #define DEFAULT_REMOVE_EMPTY_UNEDITED_NOTES (true)
 #define DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT (500)

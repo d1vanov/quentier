@@ -17,9 +17,11 @@
  */
 
 #include "SetupStartAtLogin.h"
-#include "../SettingsNames.h"
-#include "../DefaultSettings.h"
-#include "../utility/StartAtLogin.h"
+
+#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/DefaultSettings.h>
+#include <lib/utility/StartAtLogin.h>
+
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>

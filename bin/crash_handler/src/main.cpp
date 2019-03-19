@@ -17,6 +17,7 @@
  */
 
 #include "MainWindow.h"
+
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QStringList>
@@ -30,34 +31,34 @@ int main(int argc, char * argv[])
 
     // NOTE: on Windows args.at(0) might contain the application name or it might
     // not. Need to figure this out.
-    if (args.at(0).contains(QString::fromUtf8("quentier_crash_handler"))) {
+    if (args.at(0).contains(QStringLiteral("quentier_crash_handler"))) {
         args.pop_front();
     }
 
     if (args.size() < 4)  {
         qWarning()
-            << QString::fromUtf8("Usage: quentier_crash_handler <compressed "
-                                 "quentier symbols file location> "
-                                 "<compressed libquentier symbols file location> "
-                                 "<stackwalker tool location> "
-                                 "<minidump file location>");
+            << QStringLiteral("Usage: quentier_crash_handler <compressed "
+                              "quentier symbols file location> "
+                              "<compressed libquentier symbols file location> "
+                              "<stackwalker tool location> "
+                              "<minidump file location>");
         return 1;
     }
 
     QIcon icon;
-    icon.addFile(QString::fromUtf8(":/app_icons/quentier_icon_512.png"),
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon_512.png"),
                  QSize(512, 512));
-    icon.addFile(QString::fromUtf8(":/app_icons/quentier_icon_256.png"),
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon_256.png"),
                  QSize(256, 256));
-    icon.addFile(QString::fromUtf8(":/app_icons/quentier_icon_128.png"),
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon_128.png"),
                  QSize(128, 128));
-    icon.addFile(QString::fromUtf8(":/app_icons/quentier_icon_64.png"),
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon_64.png"),
                  QSize(64, 64));
-    icon.addFile(QString::fromUtf8(":/app_icons/quentier_icon_48.png"),
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon_48.png"),
                  QSize(48, 48));
-    icon.addFile(QString::fromUtf8(":/app_icons/quentier_icon_32.png"),
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon_32.png"),
                  QSize(32, 32));
-    icon.addFile(QString::fromUtf8(":/app_icons/quentier_icon_16.png"),
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon_16.png"),
                  QSize(16, 16));
 
     app.setWindowIcon(icon);

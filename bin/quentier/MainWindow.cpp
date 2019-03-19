@@ -32,13 +32,12 @@
 #include <lib/dialog/AddOrEditNotebookDialog.h>
 #include <lib/dialog/AddOrEditTagDialog.h>
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
-#include <lib/dialog/EnexExportDialog.h>
-#include <lib/dialog/EnexImportDialog.h>
 #include <lib/dialog/FirstShutdownDialog.h>
 #include <lib/dialog/LocalStorageUpgradeDialog.h>
 #include <lib/dialog/LocalStorageVersionTooHighDialog.h>
-#include <lib/dialog/PreferencesDialog.h>
 #include <lib/dialog/WelcomeToQuentierDialog.h>
+#include <lib/enex/EnexExportDialog.h>
+#include <lib/enex/EnexImportDialog.h>
 #include <lib/enex/EnexExporter.h>
 #include <lib/enex/EnexImporter.h>
 #include <lib/exception/LocalStorageVersionTooHighException.h>
@@ -46,6 +45,7 @@
 #include <lib/model/ColumnChangeRerouter.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/PreferencesDialog.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/AsyncFileWriter.h>
 #include <lib/utility/ActionsInfo.h>

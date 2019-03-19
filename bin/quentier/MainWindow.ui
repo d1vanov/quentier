@@ -4296,59 +4296,59 @@ border-bottom: 1px solid black;</string>
   <customwidget>
    <class>TabWidget</class>
    <extends>QTabWidget</extends>
-   <header>widgets/TabWidget.h</header>
+   <header>lib/widget/TabWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>NotebookItemView</class>
    <extends>QTreeView</extends>
-   <header>views/NotebookItemView.h</header>
+   <header>lib/view/NotebookItemView.h</header>
   </customwidget>
   <customwidget>
    <class>TagItemView</class>
    <extends>QTreeView</extends>
-   <header>views/TagItemView.h</header>
+   <header>lib/view/TagItemView.h</header>
   </customwidget>
   <customwidget>
    <class>SavedSearchItemView</class>
    <extends>QTreeView</extends>
-   <header>views/SavedSearchItemView.h</header>
+   <header>lib/view/SavedSearchItemView.h</header>
   </customwidget>
   <customwidget>
    <class>FavoriteItemView</class>
    <extends>QTreeView</extends>
-   <header>views/FavoriteItemView.h</header>
+   <header>lib/view/FavoriteItemView.h</header>
   </customwidget>
   <customwidget>
    <class>FilterByNotebookWidget</class>
    <extends>QWidget</extends>
-   <header>widgets/FilterByNotebookWidget.h</header>
+   <header>lib/widget/FilterByNotebookWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>FilterByTagWidget</class>
    <extends>QWidget</extends>
-   <header>widgets/FilterByTagWidget.h</header>
+   <header>lib/widget/FilterByTagWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>FilterBySavedSearchWidget</class>
    <extends>QComboBox</extends>
-   <header>widgets/FilterBySavedSearchWidget.h</header>
+   <header>lib/widget/FilterBySavedSearchWidget.h</header>
   </customwidget>
   <customwidget>
    <class>NoteListView</class>
    <extends>QListView</extends>
-   <header>views/NoteListView.h</header>
+   <header>lib/view/NoteListView.h</header>
   </customwidget>
   <customwidget>
    <class>DeletedNoteItemView</class>
    <extends>QTreeView</extends>
-   <header>views/DeletedNoteItemView.h</header>
+   <header>lib/view/DeletedNoteItemView.h</header>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../resource/icons/other/icons.qrc"/>
+  <include location="../../resource/icons/other/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

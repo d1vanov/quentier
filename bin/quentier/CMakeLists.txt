@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+SET_POLICIES()
+
 if("${CMAKE_MAJOR_VERSION}" GREATER "2")
   project(quentier VERSION 0.5.0)
 else()

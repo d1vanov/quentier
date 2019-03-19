@@ -153,20 +153,11 @@ set(QUENTIER_PATCH_VERSION "#define QUENTIER_PATCH_VERSION \"${QUENTIER_VERSION_
 
 set(QUENTIER_TRANSLATABLE_SOURCES "")
 set(QUENTIER_TRANSLATABLE_FORMS "")
+include(QuentierCollectSourcesForTranslation)
 
 set(QUENTIER_CPPCHECKABLE_SOURCES "")
 set(QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "")
 include(QuentierCollectSourcesForCppcheck)
-
-get_filename_component(LIBQUENTIER_FILE_NAME "${LIBQUENTIER_LIBRARIES}" NAME)
-
-add_subdirectory(lib)
-add_subdirectory(bin)
-
-add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
-if(USE_QT5)
-  add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
-endif()
 
 # installation settings
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
@@ -184,6 +175,13 @@ else()
   if(NOT CMAKE_INSTALL_TRANSLATIONSDIR)
     set(CMAKE_INSTALL_TRANSLATIONSDIR "${CMAKE_INSTALL_PREFIX}/share/quentier/translations")
   endif()
+endif()
+
+get_filename_component(LIBQUENTIER_FILE_NAME "${LIBQUENTIER_LIBRARIES}" NAME)
+
+add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
+if(USE_QT5)
+  add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
 endif()
 
 # install translations
@@ -262,6 +260,9 @@ if(NOT WIN32 AND NOT APPLE)
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/metainfo"
           RENAME org.quentier.Quentier.appdata.xml)
 endif()
+
+add_subdirectory(lib)
+add_subdirectory(bin)
 
 if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
   include(QuentierFindLinuxdeployqt)

@@ -11,7 +11,7 @@ set(HEADERS
     ManageAccountsDialog.h
     AccountModel.h
     AccountFilterModel.h
-    AccountDelegate.h
+    AccountDelegate.h)
 
 set(SOURCES
     AccountManager.cpp
@@ -20,7 +20,7 @@ set(SOURCES
     ManageAccountsDialog.cpp
     AccountModel.cpp
     AccountFilterModel.cpp
-    AccountDelegate.cpp
+    AccountDelegate.cpp)
 
 set(FORMS
     AddAccountDialog.ui

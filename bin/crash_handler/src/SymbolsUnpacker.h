@@ -19,6 +19,8 @@
 #ifndef QUENTIER_CRASH_HANDLER_SYMBOLS_UNPACKER_H
 #define QUENTIER_CRASH_HANDLER_SYMBOLS_UNPACKER_H
 
+#include <quentier/utility/Macros.h>
+
 #include <QObject>
 #include <QRunnable>
 #include <QString>
@@ -31,7 +33,7 @@ class SymbolsUnpacker: public QObject,
 public:
     explicit SymbolsUnpacker(const QString & compressedSymbolsFilePath,
                              const QString & unpackedSymbolsRootPath,
-                             QObject * parent = 0);
+                             QObject * parent = Q_NULLPTR);
 
     virtual void run();
 

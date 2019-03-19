@@ -19,40 +19,32 @@ set(PROJECT_DOMAIN_FIRST "quentier")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
-set(${PROJECT_NAME}_HEADERS
+set(HEADERS
     src/MainWindow.h
     src/Utility.h
-    src/SymbolsUnpacker.h
-    ../src/utility/HumanReadableVersionInfo.h)
+    src/SymbolsUnpacker.h)
 
-set(${PROJECT_NAME}_SOURCES
+set(SOURCES
     src/MainWindow.cpp
     src/Utility.cpp
     src/SymbolsUnpacker.cpp
-    ../src/utility/HumanReadableVersionInfo.cpp
     src/main.cpp)
 
 set(FORMS
     src/MainWindow.ui)
 
-qt_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
+qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
-set(RESOURCES
-    ../resource/icons/app/app_icons.qrc)
+qt_add_resources(RESOURCES_RCC ${RESOURCES_FULL_PATH})
 
-qt_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
+set(TRANSLATABLE_SOURCES
+    ${HEADERS}
+    ${SOURCES})
 
-set(${PROJECT_NAME}_TR_SOURCES
-    ${${PROJECT_NAME}_HEADERS}
-    ${${PROJECT_NAME}_SOURCES})
-
-set(${PROJECT_NAME}_TR_FILES
-    ../translations/quentier_crash_handler_ru.ts)
-
-set(THIRDPARTY_LIBS ${QT_LIBRARIES})
+COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, ${FORMS})
 
 if(APPLE)
-  set(APPLICATION_ICON ${CMAKE_CURRENT_SOURCE_DIR}/../resource/icons/app/quentier_icon.icns)
+  set(APPLICATION_ICON ${CMAKE_CURRENT_SOURCE_DIR}/../../resource/icons/app/quentier_icon.icns)
   set_source_files_properties(${APPLICATION_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 else()
   set(APPLICATION_ICON "")
@@ -62,12 +54,12 @@ list(APPEND ${PROJECT_NAME}_HEADERS ${QUENTIER_VERSION_INFO_HEADER})
 
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}
-               ${${PROJECT_NAME}_HEADERS}
-               ${${PROJECT_NAME}_SOURCES}
-               ${${PROJECT_NAME}_FORMS_HEADERS}
-               ${${PROJECT_NAME}_RESOURCES_RCC})
+               ${HEADERS}
+               ${FORMS_HEADERS}
+               ${SOURCES}
+               ${RESOURCES_RCC})
 
-target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS} ${LIBQUENTIER_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} quentier_utility ${LIBQUENTIER_LIBRARIES} ${QT_LIBRARIES})
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
 if(USE_QT5)

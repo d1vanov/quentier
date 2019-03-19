@@ -17,6 +17,7 @@
  */
 
 #include "Utility.h"
+
 #include <QDir>
 #include <QFileInfoList>
 #include <QFile>
@@ -26,47 +27,9 @@ QString nativePathToUnixPath(const QString & path)
     QString result = path;
 
 #ifdef Q_OS_WIN
-    result.replace(QString::fromUtf8("\\\\"), QString::fromUtf8("\\"));
+    result.replace(QStringLiteral("\\\\"), QStringLiteral("\\"));
     result = QDir::fromNativeSeparators(result);
 #endif
 
     return result;
-}
-
-bool removeDir(const QString & dirPath)
-{
-    bool res = true;
-    QDir dir(dirPath);
-
-    if (dir.exists())
-    {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-        res = dir.removeRecursively();
-#else
-        QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot |
-                                                  QDir::System |
-                                                  QDir::Hidden |
-                                                  QDir::AllDirs |
-                                                  QDir::Files,
-                                                  QDir::DirsFirst);
-        for(auto it = entries.constBegin(),
-            end = entries.constEnd(); it != end; ++it)
-        {
-            QFileInfo info(*it);
-            if (info.isDir()) {
-                res = removeDir(info.absoluteFilePath());
-            }
-            else {
-                res = QFile::remove(info.absoluteFilePath());
-            }
-
-            if (!res) {
-                return res;
-            }
-        }
-        res = QDir().rmdir(dirPath);
-#endif
-    }
-
-    return res;
 }

@@ -23,6 +23,4 @@
 
 QString nativePathToUnixPath(const QString & path);
 
-bool removeDir(const QString & dirPath);
-
 #endif // QUENTIER_CRASH_HANDLER_UTILITY_H

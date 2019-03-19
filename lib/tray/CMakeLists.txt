@@ -12,8 +12,6 @@ set(SOURCES
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
-add_dependencies(${PROJECT_NAME} quentier_account)
-
 set(TRANSLATABLE_SOURCES
     ${HEADERS}
     ${SOURCES})

@@ -25,7 +25,6 @@
 #include <QPluginLoader>
 #include <QStringList>
 #include <QDirIterator>
-#include <QSqlDatabase>
 #include <QDebug>
 
 namespace quentier {

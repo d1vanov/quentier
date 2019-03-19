@@ -24,8 +24,6 @@ qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
-add_dependencies(${PROJECT_NAME} quentier_model quentier_widget)
-
 set(TRANSLATABLE_SOURCES
     ${HEADERS}
     ${SOURCES})

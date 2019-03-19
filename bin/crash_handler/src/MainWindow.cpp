@@ -20,9 +20,12 @@
 #include "ui_MainWindow.h"
 #include "Utility.h"
 #include "SymbolsUnpacker.h"
-#include "../src/utility/HumanReadableVersionInfo.h"
+
+#include <lib/utility/HumanReadableVersionInfo.h>
 #include <VersionInfo.h>
+
 #include <quentier/utility/VersionInfo.h>
+
 #include <QDir>
 #include <QDesktopServices>
 #include <QThreadPool>
@@ -65,14 +68,14 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
     if (Q_UNLIKELY(!stackwalkBinaryInfo.exists())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: minidump stackwalk utility file doesn't exist") +
-            QString::fromUtf8(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
+            QStringLiteral(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
         return;
     }
     else if (Q_UNLIKELY(!stackwalkBinaryInfo.isFile())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: the path to minidump stackwalk utility doesn't point to "
                "an actual file") +
-            QString::fromUtf8(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
+            QStringLiteral(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
         return;
     }
 
@@ -85,13 +88,13 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
 #endif
 
     m_unpackedSymbolsRootPath =
-        tmpDirPath + QString::fromUtf8("/Quentier_debugging_symbols/symbols");
+        tmpDirPath + QStringLiteral("/Quentier_debugging_symbols/symbols");
     bool res = removeDir(m_unpackedSymbolsRootPath);
     if (Q_UNLIKELY(!res)) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: the directory containing the unpacked debugging symbols "
                "already exists and can't be removed") +
-            QString::fromUtf8(": ") +
+            QStringLiteral(": ") +
             QDir::toNativeSeparators(m_unpackedSymbolsRootPath));
         return;
     }
@@ -102,16 +105,16 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: the directory for the unpacked debugging symbols can't "
                "be created") +
-            QString::fromUtf8(": ") +
+            QStringLiteral(": ") +
             QDir::toNativeSeparators(m_unpackedSymbolsRootPath));
         return;
     }
 
-    QString output = QString::fromUtf8("Version info:\n\n");
+    QString output = QStringLiteral("Version info:\n\n");
     output += versionInfos();
-    output += QString::fromUtf8("\n\n");
+    output += QStringLiteral("\n\n");
     output += tr("Loading debugging symbols, please wait");
-    output += QString::fromUtf8("...");
+    output += QStringLiteral("...");
     m_pUi->stackTracePlainTextEdit->setPlainText(output);
 
     SymbolsUnpacker * pQuentierSymbolsUnpacker =
@@ -184,18 +187,18 @@ void MainWindow::onMinidumpStackwalkProcessFinished(
 
     if (!m_symbolsUnpackingErrors.isEmpty()) {
         output = m_symbolsUnpackingErrors;
-        output += QString::fromUtf8("\n");
+        output += QStringLiteral("\n");
     }
 
-    output += QString::fromUtf8("Version info:\n\n");
+    output += QStringLiteral("Version info:\n\n");
     output += versionInfos();
-    output += QString::fromUtf8("\n\n");
+    output += QStringLiteral("\n\n");
     output += tr("Stacktrace extraction finished, exit code") +
-              QString::fromUtf8(": ") +
+              QStringLiteral(": ") +
               QString::number(exitCode) +
-              QString::fromUtf8("\n");
+              QStringLiteral("\n");
     output += m_output;
-    output += QString::fromUtf8("\n\n");
+    output += QStringLiteral("\n\n");
     output += m_error;
 
     m_pUi->stackTracePlainTextEdit->setPlainText(output);
@@ -211,11 +214,11 @@ void MainWindow::onSymbolsUnpackerFinished(bool status, QString errorDescription
     {
         if (m_symbolsUnpackingErrors.isEmpty()) {
             m_symbolsUnpackingErrors = tr("Errors detected during symbols unpacking") +
-                                       QString::fromUtf8(":\n\n");
+                                       QStringLiteral(":\n\n");
         }
 
         m_symbolsUnpackingErrors += errorDescription;
-        m_symbolsUnpackingErrors += QString::fromUtf8("\n");
+        m_symbolsUnpackingErrors += QStringLiteral("\n");
     }
 
     if (m_numPendingSymbolsUnpackers != 0) {
@@ -254,19 +257,19 @@ QString MainWindow::readData(QProcess & process, const bool fromStdout)
 
 QString MainWindow::versionInfos() const
 {
-    QString result = QString::fromUtf8("libquentier: ");
+    QString result = QStringLiteral("libquentier: ");
 
     result += quentier::libquentierRuntimeInfo();
-    result += QString::fromUtf8("\n");
+    result += QStringLiteral("\n");
 
-    result += QString::fromUtf8("Quentier: ");
+    result += QStringLiteral("Quentier: ");
     result += quentier::quentierVersion();
-    result += QString::fromUtf8(", build info: ");
+    result += QStringLiteral(", build info: ");
     result += quentier::quentierBuildInfo();
 
-    result += QString::fromUtf8("\n\nBuilt with Qt ");
+    result += QStringLiteral("\n\nBuilt with Qt ");
     result += QString::fromUtf8(QT_VERSION_STR);
-    result += QString::fromUtf8(", uses Qt ");
+    result += QStringLiteral(", uses Qt ");
     result += QString::fromUtf8(qVersion());
     return result;
 }

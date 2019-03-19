@@ -6,7 +6,7 @@ project(quentier_model_tests)
 
 set(HEADERS
     modeltest.h
-    Macros.h
+    TestMacros.h
     SavedSearchModelTestHelper.h
     TagModelTestHelper.h
     NotebookModelTestHelper.h

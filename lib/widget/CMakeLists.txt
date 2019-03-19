@@ -17,7 +17,7 @@ set(HEADERS
     SavedSearchModelItemInfoWidget.h
     NoteCountLabelController.h
     NoteEditorWidget.h
-    NoteEditorsTabsAndWindowsCoordinator.h
+    NoteEditorTabsAndWindowsCoordinator.h
     NoteFiltersManager.h
     NoteTagsWidget.h
     TagModelItemInfoWidget.h
@@ -45,7 +45,7 @@ set(SOURCES
     SavedSearchModelItemInfoWidget.cpp
     NoteCountLabelController.cpp
     NoteEditorWidget.cpp
-    NoteEditorsTabsAndWindowsCoordinator.cpp
+    NoteEditorTabsAndWindowsCoordinator.cpp
     NoteFiltersManager.cpp
     NoteTagsWidget.cpp
     TagModelItemInfoWidget.cpp
@@ -75,12 +75,6 @@ set(FORMS
 qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
-
-add_dependencies(${PROJECT_NAME}
-                 quentier_enex
-                 quentier_model
-                 quentier_utility
-                 quentier_delegate)
 
 set(TRANSLATABLE_SOURCES
     ${HEADERS}

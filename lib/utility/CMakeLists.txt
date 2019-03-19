@@ -36,8 +36,9 @@ else()
   list(APPEND SOURCES linux/StartAtLogin.cpp)
 endif()
 
-set_property(GLOBAL PROPERTY QUENTIER_VERSION_INFO_HEADER
-             "${PROJECT_BINARY_DIR}/VersionInfo.h")
+set(QUENTIER_VERSION_INFO_HEADER
+    "${CMAKE_CURRENT_BINARY_DIR}/VersionInfo.h"
+    CACHE INTERNAL "QUENTIER_VERSION_INFO_HEADER")
 configure_file(VersionInfo.h.in
                ${QUENTIER_VERSION_INFO_HEADER} @ONLY)
 list(APPEND HEADERS ${QUENTIER_VERSION_INFO_HEADER})
