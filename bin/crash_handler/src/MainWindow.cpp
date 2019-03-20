@@ -25,6 +25,7 @@
 #include <VersionInfo.h>
 
 #include <quentier/utility/VersionInfo.h>
+#include <quentier/utility/Utility.h>
 
 #include <QDir>
 #include <QDesktopServices>
@@ -89,7 +90,7 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
 
     m_unpackedSymbolsRootPath =
         tmpDirPath + QStringLiteral("/Quentier_debugging_symbols/symbols");
-    bool res = removeDir(m_unpackedSymbolsRootPath);
+    bool res = quentier::removeDir(m_unpackedSymbolsRootPath);
     if (Q_UNLIKELY(!res)) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: the directory containing the unpacked debugging symbols "

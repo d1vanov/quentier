@@ -907,7 +907,7 @@ padding: 0 3px;
   <customwidget>
    <class>ShortcutSettingsWidget</class>
    <extends>QWidget</extends>
-   <header location="global">dialogs/shortcut_settings/ShortcutSettingsWidget.h</header>
+   <header>shortcut_settings/ShortcutSettingsWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

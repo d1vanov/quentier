@@ -18,7 +18,7 @@
 
 #include "BreakpadIntegration.h"
 
-#include "SuppressWarningsMacro.h"
+#include <lib/utility/SuppressWarningsMacro.h>
 
 SUPPRESS_WARNINGS
 #include <client/windows/handler/exception_handler.h>

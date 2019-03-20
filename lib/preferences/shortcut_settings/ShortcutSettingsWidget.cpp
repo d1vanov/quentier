@@ -29,10 +29,12 @@
 using quentier::ShortcutButton;
 #include "ui_ShortcutSettingsWidget.h"
 
-#include "../../ActionsInfo.h"
+#include <lib/utility/ActionsInfo.h>
+
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/logging/QuentierLogger.h>
+
 #include <QtAlgorithms>
 
 Q_DECLARE_METATYPE(quentier::ShortcutItem*)

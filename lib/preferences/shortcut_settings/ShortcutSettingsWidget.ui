@@ -167,7 +167,7 @@
   <customwidget>
    <class>ShortcutButton</class>
    <extends>QPushButton</extends>
-   <header location="global">dialogs/shortcut_settings/ShortcutButton.h</header>
+   <header>shortcut_settings/ShortcutButton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

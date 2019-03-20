@@ -66,21 +66,23 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${FORMS_HEADERS}
                ${RESOURCES_RCC})
 
+add_dependencies(${PROJECT_NAME} ${symbols_compressor})
+
 add_sanitizers(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME}
-                      quentier_account
-                      quentier_delegate
-                      quentier_dialog
-                      quentier_enex
-                      quentier_exception
-                      quentier_initialization
-                      quentier_model
-                      quentier_preferences
-                      quentier_tray
-                      quentier_utility
-                      quentier_view
-                      quentier_widget
+                      ${quentier_account}
+                      ${quentier_delegate}
+                      ${quentier_dialog}
+                      ${quentier_enex}
+                      ${quentier_exception}
+                      ${quentier_initialization}
+                      ${quentier_model}
+                      ${quentier_preferences}
+                      ${quentier_tray}
+                      ${quentier_utility}
+                      ${quentier_view}
+                      ${quentier_widget}
                       ${THIRDPARTY_LIBS})
 
 if(BREAKPAD_FOUND)
@@ -119,9 +121,9 @@ if(BREAKPAD_FOUND)
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
   if(WIN32)
-    set(CRASH_HANDLER_BINARY "${PROJECT_BINARY_DIR}/crash_handler/quentier_crash_handler.exe")
+    set(CRASH_HANDLER_BINARY "${PROJECT_BINARY_DIR}/../crash_handler/quentier_crash_handler.exe")
   else()
-    set(CRASH_HANDLER_BINARY "${PROJECT_BINARY_DIR}/crash_handler/quentier_crash_handler")
+    set(CRASH_HANDLER_BINARY "${PROJECT_BINARY_DIR}/../crash_handler/quentier_crash_handler")
   endif()
 
   install(FILES ${CRASH_HANDLER_BINARY}

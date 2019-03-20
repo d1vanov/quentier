@@ -76,13 +76,18 @@ qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
+set(quentier_widget ${PROJECT_NAME} CACHE INTERNAL "quentier_widget")
+
 set(TRANSLATABLE_SOURCES
     ${HEADERS}
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, ${FORMS})
 
-COLLECT_SOURCES_FOR_CPPCHECK(${SOURCES})
+COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
 
-set(DIRS . color-picker-tool-button insert-table-tool-button)
+set(DIRS
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/color-picker-tool-button
+    ${PROJECT_SOURCE_DIR}/insert-table-tool-button)
 COLLECT_INCLUDE_DIRS(DIRS)

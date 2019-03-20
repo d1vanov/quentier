@@ -12,16 +12,19 @@ set(HEADERS
     shortcut_settings/ShortcutSettingsWidget.h)
 
 set(SOURCES
-    PreferencesDialog.h
-    shortcut_settings/ShortcutButton.h
-    shortcut_settings/ShortcutSettingsWidget.h)
+    PreferencesDialog.cpp
+    shortcut_settings/ShortcutButton.cpp
+    shortcut_settings/ShortcutSettingsWidget.cpp)
 
 set(FORMS
-    PreferencesDialog.ui)
+    PreferencesDialog.ui
+    shortcut_settings/ShortcutSettingsWidget.ui)
 
 qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
+
+set(quentier_preferences ${PROJECT_NAME} CACHE INTERNAL "quentier_preferences")
 
 set(TRANSLATABLE_SOURCES
     ${HEADERS}
@@ -29,7 +32,9 @@ set(TRANSLATABLE_SOURCES
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, ${FORMS})
 
-COLLECT_SOURCES_FOR_CPPCHECK(${SOURCES})
+COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
 
-set(DIRS . shortcut_settings)
+set(DIRS
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/shortcut_settings)
 COLLECT_INCLUDE_DIRS(DIRS)

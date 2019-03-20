@@ -52,6 +52,8 @@ endif()
 
 list(APPEND ${PROJECT_NAME}_HEADERS ${QUENTIER_VERSION_INFO_HEADER})
 
+include_directories(${QUENTIER_VERSION_INFO_HEADER_DIR})
+
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${APPLICATION_ICON}
                ${HEADERS}

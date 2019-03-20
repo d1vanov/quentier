@@ -17,8 +17,10 @@
  */
 
 #include "BreakpadIntegration.h"
+
 #include <quentier/utility/Macros.h>
 #include <quentier/logging/QuentierLogger.h>
+
 #include <QString>
 #include <QFileInfoList>
 #include <QDir>
