@@ -66,8 +66,6 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${FORMS_HEADERS}
                ${RESOURCES_RCC})
 
-add_dependencies(${PROJECT_NAME} ${symbols_compressor})
-
 add_sanitizers(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME}
