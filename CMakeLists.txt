@@ -380,7 +380,8 @@ endif()
 include(QuentierFindNSIS)
 
 # configure version info
-if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
+if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5))
+  message(STATUS "Quentier is being packaged as AppImage")
   set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 1")
   set(LIBQUENTIER_BINARY_NAME "libqt5quentier.so.0")
 else()
