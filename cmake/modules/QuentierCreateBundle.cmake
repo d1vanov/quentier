@@ -120,11 +120,11 @@ function(CreateQuentierBundle)
     else()
       set(DEBUG_SUFFIX "")
     endif()
-    set(APPS "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}.exe")
+    set(APPS "${CMAKE_INSTALL_BINDIR}/quentier.exe")
   elseif(APPLE)
-    set(APPS "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app")
+    set(APPS "${CMAKE_INSTALL_PREFIX}/quentier.app")
   else()
-    set(APPS "${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}")
+    set(APPS "${CMAKE_INSTALL_PREFIX}/bin/quentier")
   endif()
 
   if(WIN32 AND USE_QT5)
@@ -177,7 +177,7 @@ function(CreateQuentierBundle)
       # fixup other dependencies not taken care of by windeployqt/macdeployqt
       install(CODE "
               include(CMakeParseArguments)
-              include(${PROJECT_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
+              include(${CMAKE_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
               include(InstallRequiredSystemLibraries)
               fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
               " COMPONENT Runtime)
@@ -261,8 +261,8 @@ function(CreateQuentierBundle)
       # MinGW built binary for some reason searches for dlls first on PATH and only then at its folder
       # Working around this: installing custom bat file for launching of quentier.exe with empty PATH
       install(CODE "
-              file(COPY \"${PROJECT_SOURCE_DIR}/src/installer/windows/quentier.bat\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-              file(COPY \"${PROJECT_SOURCE_DIR}/src/installer/windows/quentier_launcher.vbs\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+              file(COPY \"${CMAKE_SOURCE_DIR}/bin/quentier/installer/windows/quentier.bat\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+              file(COPY \"${CMAKE_SOURCE_DIR}/bin/quentier/installer/windows/quentier_launcher.vbs\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
               " COMPONENT Runtime)
     endif()
 
@@ -277,49 +277,49 @@ function(CreateQuentierBundle)
 
     if(NSIS_FOUND AND CREATE_INSTALLER)
       install(CODE "
-              execute_process(COMMAND \"${NSIS_MAKE}\" \"${PROJECT_BINARY_DIR}/wininstaller.nsi\")
+              execute_process(COMMAND \"${NSIS_MAKE}\" \"${CMAKE_BINARY_DIR}/bin/quentier/wininstaller.nsi\")
 	            " COMPONENT Runtime)
     endif()
   elseif(APPLE)
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
             execute_process(COMMAND ${DEPLOYQT_TOOL} ${APPS} ERROR_QUIET)
-            execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/MacOS/${PROJECT_NAME})
+            execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/MacOS/quentier)
             " COMPONENT Runtime)
     if(LIBQUENTIER_USE_QT_WEB_ENGINE)
       install(CODE "
               message(STATUS \"Deploying QtWebEngineProcess.app\")
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers\"
                               COMMAND ${DEPLOYQT_TOOL} QtWebEngineProcess.app -executable=./QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
                               COMMAND \"rm\" -rf Frameworks)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
                               COMMAND \"mkdir\" -p Frameworks)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtCore.framework QtCore.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtDBus.framework QtDbus.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtGui.framework QtGui.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtNetwork.framework QtNetwork.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtPositioning.framework QtPositioning.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtPrintSupport.framework QtPrintSupport.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtQml.framework QtQml.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtQuick.framework QtQuick.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtSerialPort.framework QtSerialPort.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtSvg.framework QtSvg.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtWebChannel.framework QtWebChannel.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtWebEngineCore.framework QtWebEngineCore.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
                               COMMAND \"ln\" -s ../../../../../../../QtWidgets.framework QtWidgets.framework)
               " COMPONENT Runtime)
     endif()
