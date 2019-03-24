@@ -2272,7 +2272,7 @@ void NoteModel::requestNotesList()
         end = std::min(end, filteredNoteLocalUids.size());
 
         auto beginIt = filteredNoteLocalUids.begin();
-        std::advance(beginIt, m_listNotesOffset);
+        std::advance(beginIt, static_cast<int>(m_listNotesOffset));
 
         auto endIt = filteredNoteLocalUids.begin();
         std::advance(endIt, end);
