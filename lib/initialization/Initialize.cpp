@@ -31,6 +31,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/MessageBox.h>
+#include <quentier/utility/VersionInfo.h>
 
 #include <QFileInfo>
 
@@ -71,6 +72,10 @@ bool initialize(QuentierApplication & app,
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
 
 #ifdef BUILDING_WITH_BREAKPAD
+    if (libquentierUsesQtWebEngine()) {
+        setQtWebEngineFlags();
+    }
+
     setupBreakpad(app);
 #endif
 
