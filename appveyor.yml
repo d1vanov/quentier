@@ -298,7 +298,7 @@ build_script:
   - if NOT ERRORLEVEL 0 exit 1
   - cmake --build . --target install
   - if NOT ERRORLEVEL 0 exit 1
-  - move Setup*.exe %APPVEYOR_BUILD_FOLDER%
+  - move bin\quentier\Setup*.exe %APPVEYOR_BUILD_FOLDER%
   - if %qt%==mingw492_32 set PATH=%ORIGPATH%
 
 after_build:
