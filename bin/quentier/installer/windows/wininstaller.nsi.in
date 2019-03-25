@@ -35,14 +35,14 @@
 !define MULTIUSER_INSTALLMODE_64_BIT 1
 !endif
 
-!addplugindir /x86-ansi "..\src\installer\windows\NsisMultiUser\Plugins\x86-ansi\"
-!addplugindir /x86-unicode "..\src\installer\windows\NsisMultiUser\Plugins\x86-unicode\"
-!addincludedir "..\src\installer\windows\NsisMultiUser\Include\"
+!addplugindir /x86-ansi "..\..\..\bin\quentier\installer\windows\NsisMultiUser\Plugins\x86-ansi\"
+!addplugindir /x86-unicode "..\..\..\bin\quentier\installer\windows\NsisMultiUser\Plugins\x86-unicode\"
+!addincludedir "..\..\..\bin\quentier\installer\windows\NsisMultiUser\Include\"
 
 ;--------------------------------
 ;Setup nsislog plugin
 
-!addplugindir "..\src\installer\windows\Nsislog\plugin"
+!addplugindir "..\..\..\bin\quentier\installer\windows\Nsislog\plugin"
 
 ;--------------------------------
 ;Includes
