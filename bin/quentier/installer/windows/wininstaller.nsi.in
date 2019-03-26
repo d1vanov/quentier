@@ -122,7 +122,7 @@ Var VCRedistInstalled
 !define MUI_ABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE ..\COPYING
+!insertmacro MUI_PAGE_LICENSE ..\..\..\COPYING
 
 !define MULTIUSER_INSTALLMODE_CHANGE_MODE_FUNCTION PageInstallModeChangeMode
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
@@ -150,7 +150,7 @@ Var VCRedistInstalled
 !define MUI_FINISHPAGE_RUN_FUNCTION PageFinishRun
 !insertmacro MUI_PAGE_FINISH
 
-!addincludedir "..\src\installer\windows\"
+!addincludedir "..\..\..\bin\quentier\installer\windows\"
 !include "Uninstall.nsh"
 
 ;--------------------------------
@@ -243,7 +243,7 @@ Section "Program files" SectionInstallProgram
   SetOutPath $INSTDIR
 
   File /r "@CMAKE_INSTALL_BINDIR@\*"
-  File /oname=License.txt ..\COPYING
+  File /oname=License.txt ..\..\..\COPYING
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT_NAME}" "" $INSTDIR
