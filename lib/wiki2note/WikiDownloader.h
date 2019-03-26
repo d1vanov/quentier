@@ -29,13 +29,16 @@
 #include <QUuid>
 #include <QUrl>
 
+QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
+
 namespace quentier {
 
 class WikiDownloader: public QObject
 {
     Q_OBJECT
 public:
-    explicit WikiDownloader(QObject * parent = Q_NULLPTR);
+    explicit WikiDownloader(QNetworkAccessManager * pNetworkAccessManager,
+                            QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
     void finished(bool status, Note note, QUuid requestId);
@@ -47,6 +50,7 @@ private:
     Q_DISABLE_COPY(WikiDownloader);
 
 private:
+    QNetworkAccessManager * m_pNetworkAccessManager;
 };
 
 } // namespace quentier
