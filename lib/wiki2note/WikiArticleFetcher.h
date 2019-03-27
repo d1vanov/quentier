@@ -26,6 +26,7 @@
 #include <QByteArray>
 #include <QNetworkReply>
 #include <QList>
+#include <QScopedPointer>
 #include <QSslError>
 #include <QUrl>
 
@@ -53,11 +54,12 @@ public:
     bool status() const { return m_status; }
     int statusCode() const { return m_httpStatusCode; }
 
-    const QByteArray & fetchedData() const { return m_fetchedData; }
+    QByteArray fetchedData() const;
     qint64 bytesFetched() const { return m_bytesFetched; }
     qint64 bytesTotal() const { return m_bytesTotal; }
 
 Q_SIGNALS:
+    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void finished(bool status, QByteArray contents, ErrorString errorDescription);
 
 public Q_SLOTS:
@@ -71,7 +73,11 @@ private Q_SLOTS:
     void checkForTimeout();
 
 private:
+    void clear();
     void finishWithError(ErrorString errorDescription);
+
+private:
+    Q_DISABLE_COPY(WikiArticleFetcher)
 
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
@@ -83,10 +89,9 @@ private:
 
     qint64      m_timeoutMsec;
     qint64      m_lastNetworkTime;
-    QTimer *    m_timeoutTimer;
+    QTimer *    m_pTimeoutTimer;
     bool        m_timedOut;
 
-    QByteArray  m_fetchedData;
     qint64      m_bytesFetched;
     qint64      m_bytesTotal;
 

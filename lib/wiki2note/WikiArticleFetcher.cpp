@@ -20,8 +20,10 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
+#include <QDateTime>
 #include <QNetworkAccessManager>
 #include <QTimer>
+#include <QDebug>
 
 #define WALOG_IMPL(message, macro) \
     macro(QStringLiteral("<") << m_wikiArticleUrl << QStringLiteral(">: ") << message)
@@ -57,14 +59,27 @@ WikiArticleFetcher::WikiArticleFetcher(QNetworkAccessManager * pNetworkAccessMan
     m_finished(false),
     m_timeoutMsec(timeoutMsec),
     m_lastNetworkTime(0),
-    m_timeoutTimer(Q_NULLPTR),
+    m_pTimeoutTimer(Q_NULLPTR),
     m_timedOut(false),
-    m_fetchedData(),
     m_bytesFetched(0),
     m_bytesTotal(0),
     m_status(false),
     m_httpStatusCode(0)
 {}
+
+WikiArticleFetcher::~WikiArticleFetcher()
+{
+    clear();
+}
+
+QByteArray WikiArticleFetcher::fetchedData() const
+{
+    if (!m_finished || !m_pNetworkReply) {
+        return QByteArray();
+    }
+
+    return m_pNetworkReply->readAll();
+}
 
 void WikiArticleFetcher::start()
 {
@@ -75,7 +90,100 @@ void WikiArticleFetcher::start()
         return;
     }
 
-    // TODO: implement
+    clear();
+
+    m_started = true;
+
+    m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
+
+    m_pTimeoutTimer = new QTimer(this);
+    m_pTimeoutTimer->start((m_timeoutMsec > 0) ? m_timeoutMsec : 2000);
+
+    QNetworkRequest request;
+    request.setUrl(m_wikiArticleUrl);
+    m_pNetworkReply = m_pNetworkAccessManager->get(request);
+
+    QObject::connect(m_pNetworkReply, QNSIGNAL(QNetworkReply,finished),
+                     this, QNSLOT(WikiArticleFetcher,onReplyFinished));
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(m_pNetworkReply,
+                     QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
+                     this,
+                     QNSLOT(WikiArticleFetcher,onReplyError,
+                            QNetworkReply::NetworkError));
+#else
+    QObject::connect(m_pNetworkReply, SIGNAL(error(QNetworkReply::NetworkError)),
+                     this, SLOT(onReplyError(QNetworkReply::NetworkError)));
+#endif
+
+    QObject::connect(m_pNetworkReply,
+                     QNSIGNAL(QNetworkReply,sslErrors,QList<QSslError>),
+                     this,
+                     QNSLOT(WikiArticleFetcher,onReplySslErrors,QList<QSslError>));
+    QObject::connect(m_pNetworkReply,
+                     QNSIGNAL(QNetworkReply,downloadProgress,qint64,qint64),
+                     this,
+                     QNSLOT(WikiArticleFetcher,onDownloadProgress,qint64,qint64));
+}
+
+void WikiArticleFetcher::clear()
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::clear"));
+
+    m_started = false;
+    m_finished = false;
+
+    if (m_pNetworkReply) {
+        m_pNetworkReply->disconnect(this);
+        m_pNetworkReply->deleteLater();
+        m_pNetworkReply = Q_NULLPTR;
+    }
+
+    if (m_pTimeoutTimer) {
+        m_pTimeoutTimer->disconnect(this);
+        m_pTimeoutTimer->deleteLater();
+        m_pTimeoutTimer = Q_NULLPTR;
+    }
+
+    m_lastNetworkTime = 0;
+    m_timedOut = false;
+    m_bytesFetched = 0;
+    m_bytesTotal = 0;
+
+    m_status = false;
+    m_httpStatusCode = 0;
+}
+
+void WikiArticleFetcher::onReplyFinished()
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::onReplyFinished"));
+
+    if (m_pTimeoutTimer) {
+        m_pTimeoutTimer->stop();
+        m_pTimeoutTimer->disconnect(this);
+        m_pTimeoutTimer->deleteLater();
+        m_pTimeoutTimer = Q_NULLPTR;
+    }
+
+    QVariant statusCodeAttribute =
+        m_pNetworkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    bool conversionResult = false;
+    m_httpStatusCode = statusCodeAttribute.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult))
+    {
+        ErrorString errorDescription(QT_TR_NOOP("Failed to convert HTTP status code to int"));
+
+        QString str;
+        QDebug dbg(&str);
+        dbg << statusCodeAttribute;
+
+        errorDescription.details() += str;
+        finishWithError(errorDescription);
+        return;
+    }
+
+    // TODO: continue from here
 }
 
 } // namespace quentier
