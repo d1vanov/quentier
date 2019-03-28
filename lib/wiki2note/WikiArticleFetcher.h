@@ -30,6 +30,8 @@
 #include <QSslError>
 #include <QUrl>
 
+#define WIKI_ARTICLE_FETCHER_TIMEOUT (5000)
+
 QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
@@ -39,10 +41,12 @@ class WikiArticleFetcher: public QObject
 {
     Q_OBJECT
 public:
-    explicit WikiArticleFetcher(QNetworkAccessManager * pNetworkAccessManager,
-                                const QUrl & articleUrl,
-                                const qint64 timeoutMsec = 2000,
-                                QObject * parent = Q_NULLPTR);
+    explicit WikiArticleFetcher(
+        QNetworkAccessManager * pNetworkAccessManager,
+        const QUrl & articleUrl,
+        const qint64 timeoutMsec = WIKI_ARTICLE_FETCHER_TIMEOUT,
+        QObject * parent = Q_NULLPTR);
+
     virtual ~WikiArticleFetcher();
 
     bool isStarted() const { return m_started; }
@@ -59,7 +63,7 @@ public:
     qint64 bytesTotal() const { return m_bytesTotal; }
 
 Q_SIGNALS:
-    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void downloadProgress(qint64 bytesFetched, qint64 bytesTotal);
     void finished(bool status, QByteArray contents, ErrorString errorDescription);
 
 public Q_SLOTS:
@@ -69,7 +73,7 @@ private Q_SLOTS:
     void onReplyFinished();
     void onReplyError(QNetworkReply::NetworkError error);
     void onReplySslErrors(QList<QSslError> errors);
-    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
     void checkForTimeout();
 
 private:

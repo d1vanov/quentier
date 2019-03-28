@@ -19,6 +19,7 @@
 #include "WikiArticleFetcher.h"
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Utility.h>
 
 #include <QDateTime>
 #include <QNetworkAccessManager>
@@ -45,6 +46,8 @@
 
 #define WAFATAL(message) \
     WALOG_IMPL(message, QNFATAL)
+
+#define WIKI_ARTICLE_FETCHER_TIMEOUT_CHECKER_INTERVAL (1000)
 
 namespace quentier {
 
@@ -97,7 +100,9 @@ void WikiArticleFetcher::start()
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
 
     m_pTimeoutTimer = new QTimer(this);
-    m_pTimeoutTimer->start((m_timeoutMsec > 0) ? m_timeoutMsec : 2000);
+    QObject::connect(m_pTimeoutTimer, QNSIGNAL(QTimer,timeout),
+                     this, QNSLOT(WikiArticleFetcher,checkForTimeout));
+    m_pTimeoutTimer->start(WIKI_ARTICLE_FETCHER_TIMEOUT_CHECKER_INTERVAL);
 
     QNetworkRequest request;
     request.setUrl(m_wikiArticleUrl);
@@ -125,34 +130,6 @@ void WikiArticleFetcher::start()
                      QNSIGNAL(QNetworkReply,downloadProgress,qint64,qint64),
                      this,
                      QNSLOT(WikiArticleFetcher,onDownloadProgress,qint64,qint64));
-}
-
-void WikiArticleFetcher::clear()
-{
-    WADEBUG(QStringLiteral("WikiArticleFetcher::clear"));
-
-    m_started = false;
-    m_finished = false;
-
-    if (m_pNetworkReply) {
-        m_pNetworkReply->disconnect(this);
-        m_pNetworkReply->deleteLater();
-        m_pNetworkReply = Q_NULLPTR;
-    }
-
-    if (m_pTimeoutTimer) {
-        m_pTimeoutTimer->disconnect(this);
-        m_pTimeoutTimer->deleteLater();
-        m_pTimeoutTimer = Q_NULLPTR;
-    }
-
-    m_lastNetworkTime = 0;
-    m_timedOut = false;
-    m_bytesFetched = 0;
-    m_bytesTotal = 0;
-
-    m_status = false;
-    m_httpStatusCode = 0;
 }
 
 void WikiArticleFetcher::onReplyFinished()
@@ -183,7 +160,114 @@ void WikiArticleFetcher::onReplyFinished()
         return;
     }
 
-    // TODO: continue from here
+    m_started = false;
+    m_finished = true;
+
+    QByteArray fetchedData = m_pNetworkReply->readAll();
+    Q_EMIT finished(true, fetchedData, ErrorString());
+}
+
+void WikiArticleFetcher::onReplyError(QNetworkReply::NetworkError error)
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::onReplyError: ") << error);
+
+    ErrorString errorDescription(QT_TR_NOOP("network error"));
+    errorDescription.details() += QStringLiteral("(");
+    errorDescription.details() += QString::number(error);
+    errorDescription.details() += QStringLiteral(")");
+
+    if (m_pNetworkReply) {
+        errorDescription.details() += QStringLiteral(" ");
+        errorDescription.details() += m_pNetworkReply->errorString();
+    }
+
+    finishWithError(errorDescription);
+}
+
+void WikiArticleFetcher::onReplySslErrors(QList<QSslError> errors)
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::onReplySslErrors"));
+
+    ErrorString errorDescription(QT_TR_NOOP("SSL errors"));
+
+    for(auto it = errors.constBegin(), end = errors.constEnd(); it != end; ++it) {
+        const QSslError & error = *it;
+        errorDescription.details() += QStringLiteral("(");
+        errorDescription.details() += error.error();
+        errorDescription.details() += QStringLiteral(") ");
+        errorDescription.details() += error.errorString();
+        errorDescription.details() += QStringLiteral("; ");
+    }
+
+    finishWithError(errorDescription);
+}
+
+void WikiArticleFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal)
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::onDownloadProgress: fetched ")
+            << humanReadableSize(bytesFetched) << QStringLiteral(", total ")
+            << humanReadableSize(bytesTotal));
+
+    m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
+    Q_EMIT downloadProgress(bytesFetched, bytesTotal);
+}
+
+void WikiArticleFetcher::checkForTimeout()
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::checkForTimeout"));
+
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if ((now - m_lastNetworkTime) <= WIKI_ARTICLE_FETCHER_TIMEOUT) {
+        return;
+    }
+
+    if (m_pNetworkReply) {
+        m_pNetworkReply->disconnect(this);
+        m_pNetworkReply->deleteLater();
+        m_pNetworkReply = Q_NULLPTR;
+    }
+
+    ErrorString errorDescription(QT_TR_NOOP("connection timeout"));
+    finishWithError(errorDescription);
+}
+
+void WikiArticleFetcher::clear()
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::clear"));
+
+    m_started = false;
+    m_finished = false;
+
+    if (m_pNetworkReply) {
+        m_pNetworkReply->disconnect(this);
+        m_pNetworkReply->deleteLater();
+        m_pNetworkReply = Q_NULLPTR;
+    }
+
+    if (m_pTimeoutTimer) {
+        m_pTimeoutTimer->disconnect(this);
+        m_pTimeoutTimer->deleteLater();
+        m_pTimeoutTimer = Q_NULLPTR;
+    }
+
+    m_lastNetworkTime = 0;
+    m_timedOut = false;
+    m_bytesFetched = 0;
+    m_bytesTotal = 0;
+
+    m_status = false;
+    m_httpStatusCode = 0;
+}
+
+void WikiArticleFetcher::finishWithError(ErrorString errorDescription)
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::finishWithError: ")
+            << errorDescription);
+
+    m_started = false;
+    m_finished = true;
+
+    Q_EMIT finished(false, QByteArray(), errorDescription);
 }
 
 } // namespace quentier
