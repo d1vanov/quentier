@@ -62,13 +62,6 @@ using quentier::InsertTableToolButton;
 #include <QFileInfo>
 #include <QStringListModel>
 
-#define CHECK_NOTE_SET() \
-    if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
-        Q_EMIT notifyError(QT_TRANSLATE_NOOP("NoteEditorWidget", \
-                                             "No note is set to the editor")); \
-        return; \
-    }
-
 namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(
