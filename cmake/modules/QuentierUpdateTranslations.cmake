@@ -1,6 +1,6 @@
 macro(update_translation SOURCES FORMS TRANSLATIONS)
   # First generate the fake .pro file for lupdate utility
-  set(fake_pro_file "${PROJECT_BINARY_DIR}/fake_pro_file.pro")
+  set(fake_pro_file "${CMAKE_BINARY_DIR}/fake_pro_file.pro")
 
   # generate .pro file for lupdate utility
   file(WRITE "${fake_pro_file}"
@@ -15,7 +15,7 @@ macro(update_translation SOURCES FORMS TRANSLATIONS)
     "SOURCES =\\\n")
 
   foreach(source_file ${SOURCES})
-    file(APPEND "${fake_pro_file}" "  ${PROJECT_SOURCE_DIR}/${source_file}\\\n")
+    file(APPEND "${fake_pro_file}" "  ${source_file}\\\n")
   endforeach()
 
   # FORMS section
@@ -24,7 +24,7 @@ macro(update_translation SOURCES FORMS TRANSLATIONS)
     "FORMS =\\\n")
 
   foreach(form_file ${FORMS})
-    file(APPEND "${fake_pro_file}" "  ${PROJECT_SOURCE_DIR}/${form_file}\\\n")
+    file(APPEND "${fake_pro_file}" "  ${form_file}\\\n")
   endforeach()
 
   # TRANSLATIONS section
@@ -33,7 +33,7 @@ macro(update_translation SOURCES FORMS TRANSLATIONS)
     "TRANSLATIONS =\\\n")
 
   foreach(translation_file ${TRANSLATIONS})
-    file(APPEND "${fake_pro_file}" "  ${PROJECT_SOURCE_DIR}/${translation_file}\\\n")
+    file(APPEND "${fake_pro_file}" "  ${CMAKE_SOURCE_DIR}/${translation_file}\\\n")
   endforeach()
 
   if(USE_QT5)
@@ -48,13 +48,13 @@ macro(update_translation SOURCES FORMS TRANSLATIONS)
   add_custom_target(lupdate COMMAND ${LUPDATE} -verbose -noobsolete \"${fake_pro_file}\" DEPENDS ${fake_pro_file})
 
   add_custom_target(lrelease)
-  file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/translations")
+  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/translations")
   foreach(translation_file ${TRANSLATIONS})
     string(FIND ${translation_file} "." DOT_POS)
     string(SUBSTRING ${translation_file} 0 ${DOT_POS} QM_FILE_NAME)
     # NOTE: "translations/" is already included into QM_FILE_NAME
-    set(QM_FILE "${PROJECT_BINARY_DIR}/${QM_FILE_NAME}.qm")
-    list(APPEND ${PROJECT_NAME}_QM_FILES ${QM_FILE})
-    add_custom_command(COMMAND ${LRELEASE} \"${PROJECT_SOURCE_DIR}/${translation_file}\" -qm \"${QM_FILE}\" TARGET lrelease)
+    set(QM_FILE "${CMAKE_BINARY_DIR}/${QM_FILE_NAME}.qm")
+    list(APPEND QUENTIER_QM_FILES ${QM_FILE})
+    add_custom_command(COMMAND ${LRELEASE} \"${CMAKE_SOURCE_DIR}/${translation_file}\" -qm \"${QM_FILE}\" TARGET lrelease)
   endforeach()
 endmacro()

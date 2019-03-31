@@ -153,6 +153,10 @@ set(QUENTIER_PATCH_VERSION "#define QUENTIER_PATCH_VERSION \"${QUENTIER_VERSION_
 
 set(QUENTIER_TRANSLATABLE_SOURCES "")
 set(QUENTIER_TRANSLATABLE_FORMS "")
+
+set_property(GLOBAL PROPERTY QUENTIER_TRANSLATABLE_SOURCES ${QUENTIER_TRANSLATABLE_SOURCES})
+set_property(GLOBAL PROPERTY QUENTIER_TRANSLATABLE_FORMS ${QUENTIER_TRANSLATABLE_FORMS})
+
 include(QuentierCollectSourcesForTranslation)
 
 set(QUENTIER_CPPCHECKABLE_SOURCES "")
@@ -187,6 +191,59 @@ add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
 if(USE_QT5)
   add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
 endif()
+
+if(NOT WIN32 AND NOT APPLE)
+  # install .desktop file
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/Quentier.desktop
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
+          RENAME org.quentier.Quentier.desktop)
+  # install application icons
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_16.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/16x16/apps"
+          RENAME quentier.png)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_32.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps"
+          RENAME quentier.png)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_48.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps"
+          RENAME quentier.png)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_64.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
+          RENAME quentier.png)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_128.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps"
+          RENAME quentier.png)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_256.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps"
+          RENAME quentier.png)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_512.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps"
+          RENAME quentier.png)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
+          RENAME quentier.png)
+  # install metainfo file
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/quentier-metainfo.appdata.xml
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/metainfo"
+          RENAME org.quentier.Quentier.appdata.xml)
+endif()
+
+add_subdirectory(lib)
+add_subdirectory(bin)
+
+get_property(QUENTIER_CPPCHECKABLE_INCLUDE_DIRS GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS)
+list(APPEND QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "${LIBQUENTIER_INCLUDE_DIRS}")
+set_property(GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS ${QUENTIER_CPPCHECKABLE_INCLUDE_DIRS})
+
+include(QuentierSetupCppCheck)
+
+set(QUENTIER_TR_FILES
+    translations/quentier_ru_RU.ts)
+
+set(QUENTIER_QM_FILES "")
+get_property(QUENTIER_TRANSLATABLE_SOURCES GLOBAL PROPERTY QUENTIER_TRANSLATABLE_SOURCES)
+get_property(QUENTIER_TRANSLATABLE_FORMS GLOBAL PROPERTY QUENTIER_TRANSLATABLE_FORMS)
+update_translation("${QUENTIER_TRANSLATABLE_SOURCES}" "${QUENTIER_TRANSLATABLE_FORMS}" "${QUENTIER_TR_FILES}")
 
 # install translations
 foreach(QM_FILE ${QUENTIER_QM_FILES})
@@ -228,54 +285,3 @@ elseif(WIN32)
           endforeach()
           " COMPONENT Runtime)
 endif()
-
-if(NOT WIN32 AND NOT APPLE)
-  # install .desktop file
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/Quentier.desktop
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
-          RENAME org.quentier.Quentier.desktop)
-  # install application icons
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_16.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/16x16/apps"
-          RENAME quentier.png)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_32.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps"
-          RENAME quentier.png)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_48.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps"
-          RENAME quentier.png)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_64.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
-          RENAME quentier.png)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_128.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps"
-          RENAME quentier.png)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_256.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps"
-          RENAME quentier.png)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_512.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps"
-          RENAME quentier.png)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
-          RENAME quentier.png)
-  # install metainfo file
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resource/quentier-metainfo.appdata.xml
-          DESTINATION "${CMAKE_INSTALL_PREFIX}/share/metainfo"
-          RENAME org.quentier.Quentier.appdata.xml)
-endif()
-
-add_subdirectory(lib)
-add_subdirectory(bin)
-
-get_property(QUENTIER_CPPCHECKABLE_INCLUDE_DIRS GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS)
-list(APPEND QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "${LIBQUENTIER_INCLUDE_DIRS}")
-set_property(GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS ${QUENTIER_CPPCHECKABLE_INCLUDE_DIRS})
-
-include(QuentierSetupCppCheck)
-
-set(QUENTIER_TR_FILES
-    translations/quentier_ru_RU.ts)
-
-set(QUENTIER_QM_FILES "")
-update_translation("${QUENTIER_TRANSLATABLE_SOURCES}" "${QUENTIER_TRANSLATABLE_FORMS}" "${QUENTIER_TR_FILES}")
