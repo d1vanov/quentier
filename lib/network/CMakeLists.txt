@@ -5,10 +5,12 @@ SET_POLICIES()
 project(quentier_network)
 
 set(HEADERS
-    NetworkReplyFetcher.h)
+    NetworkReplyFetcher.h
+    NetworkProxySettingsHelpers.h)
 
 set(SOURCES
-    NetworkReplyFetcher.cpp)
+    NetworkReplyFetcher.cpp
+    NetworkProxySettingsHelpers.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 

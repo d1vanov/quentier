@@ -25,9 +25,9 @@ using quentier::ShortcutSettingsWidget;
 #include "ui_PreferencesDialog.h"
 
 #include <lib/account/AccountManager.h>
+#include <lib/network/NetworkProxySettingsHelpers.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ActionsInfo.h>
-#include <lib/utility/NetworkProxySettingsHelpers.h>
 #include <lib/utility/MainWindowSideBorderOption.h>
 #include <lib/utility/ColorCodeValidator.h>
 #include <lib/utility/StartAtLogin.h>

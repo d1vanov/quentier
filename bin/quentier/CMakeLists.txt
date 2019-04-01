@@ -76,6 +76,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${quentier_exception}
                       ${quentier_initialization}
                       ${quentier_model}
+                      ${quentier_network}
                       ${quentier_preferences}
                       ${quentier_tray}
                       ${quentier_utility}
