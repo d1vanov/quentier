@@ -56,6 +56,7 @@ NetworkReplyFetcher::NetworkReplyFetcher(
         const QUrl & url,
         const qint64 timeoutMsec,
         QObject * parent) :
+    QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
     m_url(url),
     m_pNetworkReply(Q_NULLPTR),
@@ -204,8 +205,9 @@ void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
 void NetworkReplyFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal)
 {
     RFDEBUG(QStringLiteral("NetworkReplyFetcher::onDownloadProgress: fetched ")
-            << humanReadableSize(bytesFetched) << QStringLiteral(", total ")
-            << humanReadableSize(bytesTotal));
+            << humanReadableSize(static_cast<quint64>(std::max(bytesFetched, qint64(0))))
+            << QStringLiteral(", total ")
+            << humanReadableSize(static_cast<quint64>(std::max(bytesTotal, qint64(0)))));
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
     Q_EMIT downloadProgress(bytesFetched, bytesTotal);

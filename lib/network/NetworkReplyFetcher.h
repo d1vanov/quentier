@@ -35,6 +35,7 @@ namespace quentier {
 
 class NetworkReplyFetcher: public QObject
 {
+    Q_OBJECT
 public:
     explicit NetworkReplyFetcher(
         QNetworkAccessManager * pNetworkAccessManager,
