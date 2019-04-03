@@ -1116,9 +1116,6 @@
              <property name="focusPolicy">
               <enum>Qt::StrongFocus</enum>
              </property>
-             <property name="styleSheet">
-              <string notr="true">NoteEditor { background-color: white; }</string>
-             </property>
             </widget>
             <widget class="FindAndReplaceWidget" name="findAndReplaceWidget" native="true">
              <property name="sizePolicy">
