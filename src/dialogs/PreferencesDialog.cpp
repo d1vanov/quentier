@@ -351,17 +351,12 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, Sho
     setupSystemTraySettings();
 
     // 2) Note editor tab
+    setupNoteEditorSettingsState();
+
+    // 3) Appearance tab
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
-    appSettings.endGroup();
-
-    m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
-
-    // 3) Appearance tab
 
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
 
@@ -638,6 +633,21 @@ void PreferencesDialog::setupNetworkProxySettingsState()
     m_pUi->networkProxyPortSpinBox->setValue(std::max(0, proxyPort));
     m_pUi->networkProxyUserLineEdit->setText(proxyUsername);
     m_pUi->networkProxyPasswordLineEdit->setText(proxyPassword);
+}
+
+void PreferencesDialog::setupNoteEditorSettingsState()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::setupNoteEditorSettingsState"));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+    appSettings.endGroup();
+
+    m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
+
 }
 
 void PreferencesDialog::createConnections()

@@ -21,6 +21,7 @@
 
 #include <quentier/utility/Macros.h>
 #include <QDialog>
+#include <QColor>
 
 namespace Ui {
 class PreferencesDialog;
@@ -48,6 +49,11 @@ public:
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
+    void noteEditorFontColorChanged(QColor color);
+    void noteEditorBackgroundColorChanged(QColor color);
+    void noteEditorHighlightColorChanged(QColor color);
+    void noteEditorHighlightedTextColorChanged(QColor color);
+
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void showNoteThumbnailsOptionChanged(bool enabled);
@@ -88,6 +94,7 @@ private:
     void setupSystemTraySettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupNetworkProxySettingsState();
+    void setupNoteEditorSettingsState();
     void createConnections();
 
     void checkAndSetNetworkProxy();
