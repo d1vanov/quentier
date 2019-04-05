@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,12 +22,16 @@
 #include <quentier/utility/Macros.h>
 #include <QDialog>
 #include <QColor>
+#include <QPointer>
 
 namespace Ui {
 class PreferencesDialog;
 }
 
 QT_FORWARD_DECLARE_CLASS(QStringListModel)
+QT_FORWARD_DECLARE_CLASS(QColorDialog)
+QT_FORWARD_DECLARE_CLASS(QFrame)
+QT_FORWARD_DECLARE_CLASS(QLineEdit)
 
 namespace quentier {
 
@@ -76,6 +80,22 @@ private Q_SLOTS:
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
 
+    void onNoteEditorFontColorCodeEntered(const QString & colorCode);
+    void onNoteEditorFontColorDialogRequested();
+    void onNoteEditorFontColorSelected(const QColor & color);
+
+    void onNoteEditorBackgroundColorCodeEntered(const QString & colorCode);
+    void onNoteEditorBackgroundColorDialogRequested();
+    void onNoteEditorBackgroundColorSelected(const QColor & color);
+
+    void onNoteEditorHighlightColorCodeEntered(const QString & colorCode);
+    void onNoteEditorHighlightColorDialogRequested();
+    void onNoteEditorHighlightColorSelected(const QColor & color);
+
+    void onNoteEditorHighlightedTextColorCodeEntered(const QString & colorCode);
+    void onNoteEditorHighlightedTextColorDialogRequested();
+    void onNoteEditorHighlightedTextColorSelected(const QColor & color);
+
     // Synchronization tab
     void onDownloadNoteThumbnailsCheckboxToggled(bool checked);
     void onDownloadInkNoteImagesCheckboxToggled(bool checked);
@@ -99,12 +119,40 @@ private:
 
     void checkAndSetNetworkProxy();
 
+    bool onNoteEditorColorEnteredImpl(const QColor & color,
+                                      const QString & settingKey,
+                                      QLineEdit & colorLineEdit,
+                                      QFrame & demoFrame);
+
+    void setNoteEditorFontColorToDemoFrame(const QColor & color);
+    void setNoteEditorBackgroundColorToDemoFrame(const QColor & color);
+    void setNoteEditorHighlightColorToDemoFrame(const QColor & color);
+    void setNoteEditorHighlightedTextColorToDemoFrame(const QColor & color);
+    void setNoteEditorColorToDemoFrameImpl(const QColor & color, QFrame & frame);
+
+    QColor noteEditorFontColor() const;
+    QColor noteEditorBackgroundColor() const;
+    QColor noteEditorHighlightColor() const;
+    QColor noteEditorHighlightedTextColor() const;
+    QColor noteEditorColorImpl(const QString & settingKey) const;
+
+    void saveNoteEditorFontColor(const QColor & color);
+    void saveNoteEditorBackgroundColor(const QColor & color);
+    void saveNoteEditorHighlightColor(const QColor & color);
+    void saveNoteEditorHighlightedTextColor(const QColor & color);
+    void saveNoteEditorColorImpl(const QColor & color, const QString & settingKey);
+
 private:
     Ui::PreferencesDialog *         m_pUi;
     AccountManager &                m_accountManager;
     SystemTrayIconManager &         m_systemTrayIconManager;
     QStringListModel *              m_pTrayActionsModel;
     QStringListModel *              m_pNetworkProxyTypesModel;
+
+    QPointer<QColorDialog>          m_pNoteEditorFontColorDialog;
+    QPointer<QColorDialog>          m_pNoteEditorBackgroundColorDialog;
+    QPointer<QColorDialog>          m_pNoteEditorHighlightColorDialog;
+    QPointer<QColorDialog>          m_pNoteEditorHighlightedTextColorDialog;
 };
 
 } // namespace quentier

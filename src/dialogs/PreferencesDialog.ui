@@ -324,6 +324,9 @@ padding: 0 3px;
               <height>24</height>
              </size>
             </property>
+            <property name="autoFillBackground">
+             <bool>true</bool>
+            </property>
             <property name="frameShape">
              <enum>QFrame::Box</enum>
             </property>
@@ -346,6 +349,9 @@ padding: 0 3px;
               <height>24</height>
              </size>
             </property>
+            <property name="autoFillBackground">
+             <bool>true</bool>
+            </property>
             <property name="frameShape">
              <enum>QFrame::Box</enum>
             </property>
@@ -367,6 +373,9 @@ padding: 0 3px;
               <width>24</width>
               <height>24</height>
              </size>
+            </property>
+            <property name="autoFillBackground">
+             <bool>true</bool>
             </property>
             <property name="frameShape">
              <enum>QFrame::Box</enum>
@@ -430,6 +439,9 @@ padding: 0 3px;
               <width>24</width>
               <height>24</height>
              </size>
+            </property>
+            <property name="autoFillBackground">
+             <bool>true</bool>
             </property>
             <property name="frameShape">
              <enum>QFrame::Box</enum>
