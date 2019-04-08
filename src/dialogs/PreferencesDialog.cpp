@@ -71,6 +71,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
 
     setupCurrentSettingsState(actionsInfo, shortcutManager);
     createConnections();
+    installEventFilters();
     adjustSize();
 }
 
@@ -248,8 +249,10 @@ void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
     Q_EMIT noteEditorUseLimitedFontsOptionChanged(checked);
 }
 
-void PreferencesDialog::onNoteEditorFontColorCodeEntered(const QString & colorCode)
+void PreferencesDialog::onNoteEditorFontColorCodeEntered()
 {
+    QString colorCode = m_pUi->noteEditorFontColorLineEdit->text();
+
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorFontColorCodeEntered: ")
             << colorCode);
 
@@ -298,8 +301,10 @@ void PreferencesDialog::onNoteEditorFontColorSelected(const QColor & color)
     Q_EMIT noteEditorFontColorChanged(color);
 }
 
-void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered(const QString & colorCode)
+void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered()
 {
+    QString colorCode = m_pUi->noteEditorBackgroundColorLineEdit->text();
+
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorBackgroundColorCodeEntered: ")
             << colorCode);
 
@@ -348,8 +353,10 @@ void PreferencesDialog::onNoteEditorBackgroundColorSelected(const QColor & color
     Q_EMIT noteEditorBackgroundColorChanged(color);
 }
 
-void PreferencesDialog::onNoteEditorHighlightColorCodeEntered(const QString & colorCode)
+void PreferencesDialog::onNoteEditorHighlightColorCodeEntered()
 {
+    QString colorCode = m_pUi->noteEditorHighlightColorLineEdit->text();
+
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorHighlightColorCodeEntered: ")
             << colorCode);
 
@@ -398,8 +405,10 @@ void PreferencesDialog::onNoteEditorHighlightColorSelected(const QColor & color)
     Q_EMIT noteEditorHighlightColorChanged(color);
 }
 
-void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered(const QString & colorCode)
+void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered()
 {
+    QString colorCode = m_pUi->noteEditorHighlightedTextColorLineEdit->text();
+
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered: ")
             << colorCode);
 
@@ -548,6 +557,40 @@ void PreferencesDialog::onNetworkProxyPasswordVisibilityToggled(bool checked)
     QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyPasswordVisibilityToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUi->networkProxyPasswordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
+}
+
+bool PreferencesDialog::eventFilter(QObject * pObject, QEvent * pEvent)
+{
+    if (pObject == m_pUi->noteEditorFontColorDemoFrame)
+    {
+        if (pEvent && (pEvent->type() == QEvent::MouseButtonDblClick)) {
+            onNoteEditorFontColorDialogRequested();
+            return true;
+        }
+    }
+    else if (pObject == m_pUi->noteEditorBackgroundColorDemoFrame)
+    {
+        if (pEvent && (pEvent->type() == QEvent::MouseButtonDblClick)) {
+            onNoteEditorBackgroundColorDialogRequested();
+            return true;
+        }
+    }
+    else if (pObject == m_pUi->noteEditorHighlightColorDemoFrame)
+    {
+        if (pEvent && (pEvent->type() == QEvent::MouseButtonDblClick)) {
+            onNoteEditorHighlightColorDialogRequested();
+            return true;
+        }
+    }
+    else if (pObject == m_pUi->noteEditorHighlightedTextColorDemoFrame)
+    {
+        if (pEvent && (pEvent->type() == QEvent::MouseButtonDblClick)) {
+            onNoteEditorHighlightedTextColorDialogRequested();
+            return true;
+        }
+    }
+
+    return QDialog::eventFilter(pObject, pEvent);
 }
 
 void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo, ShortcutManager & shortcutManager)
@@ -851,10 +894,37 @@ void PreferencesDialog::setupNoteEditorSettingsState()
 
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
     bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+    QString fontColorCode = appSettings.value(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY).toString();
+    QString backgroundColorCode = appSettings.value(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+    QString highlightColorCode = appSettings.value(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY).toString();
+    QString highlightedTextColorCode = appSettings.value(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 
+    m_pUi->noteEditorFontColorLineEdit->setText(fontColorCode);
+    QColor fontColor(fontColorCode);
+    if (fontColor.isValid()) {
+        setNoteEditorFontColorToDemoFrame(fontColor);
+    }
+
+    m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColorCode);
+    QColor backgroundColor(backgroundColorCode);
+    if (backgroundColor.isValid()) {
+        setNoteEditorBackgroundColorToDemoFrame(backgroundColor);
+    }
+
+    m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColorCode);
+    QColor highlightColor(highlightColorCode);
+    if (highlightColor.isValid()) {
+        setNoteEditorHighlightColorToDemoFrame(highlightColor);
+    }
+
+    m_pUi->noteEditorHighlightedTextColorLineEdit->setText(highlightedTextColorCode);
+    QColor highlightedTextColor(highlightedTextColorCode);
+    if (highlightedTextColor.isValid()) {
+        setNoteEditorHighlightedTextColorToDemoFrame(highlightedTextColor);
+    }
 }
 
 void PreferencesDialog::createConnections()
@@ -885,6 +955,22 @@ void PreferencesDialog::createConnections()
 
     QObject::connect(m_pUi->limitedFontsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onNoteEditorUseLimitedFontsCheckboxToggled,bool));
+    QObject::connect(m_pUi->noteEditorFontColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorFontColorCodeEntered));
+    QObject::connect(m_pUi->noteEditorFontColorPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorFontColorDialogRequested));
+    QObject::connect(m_pUi->noteEditorBackgroundColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorBackgroundColorCodeEntered));
+    QObject::connect(m_pUi->noteEditorBackgroundColorPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorBackgroundColorDialogRequested));
+    QObject::connect(m_pUi->noteEditorHighlightColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorHighlightColorCodeEntered));
+    QObject::connect(m_pUi->noteEditorHighlightColorPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorHighlightColorDialogRequested));
+    QObject::connect(m_pUi->noteEditorHighlightedTextColorLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorHighlightedTextColorCodeEntered));
+    QObject::connect(m_pUi->noteEditorHighlightedTextColorPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorHighlightedTextColorDialogRequested));
 
     QObject::connect(m_pUi->downloadNoteThumbnailsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onDownloadNoteThumbnailsCheckboxToggled,bool));
@@ -905,6 +991,16 @@ void PreferencesDialog::createConnections()
                      this, QNSLOT(PreferencesDialog,onNetworkProxyPasswordVisibilityToggled,bool));
 
     // TODO: continue
+}
+
+void PreferencesDialog::installEventFilters()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::installEventFilters"));
+
+    m_pUi->noteEditorFontColorDemoFrame->installEventFilter(this);
+    m_pUi->noteEditorBackgroundColorDemoFrame->installEventFilter(this);
+    m_pUi->noteEditorHighlightColorDemoFrame->installEventFilter(this);
+    m_pUi->noteEditorHighlightedTextColorDemoFrame->installEventFilter(this);
 }
 
 void PreferencesDialog::checkAndSetNetworkProxy()

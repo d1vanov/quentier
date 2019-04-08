@@ -80,19 +80,19 @@ private Q_SLOTS:
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
 
-    void onNoteEditorFontColorCodeEntered(const QString & colorCode);
+    void onNoteEditorFontColorCodeEntered();
     void onNoteEditorFontColorDialogRequested();
     void onNoteEditorFontColorSelected(const QColor & color);
 
-    void onNoteEditorBackgroundColorCodeEntered(const QString & colorCode);
+    void onNoteEditorBackgroundColorCodeEntered();
     void onNoteEditorBackgroundColorDialogRequested();
     void onNoteEditorBackgroundColorSelected(const QColor & color);
 
-    void onNoteEditorHighlightColorCodeEntered(const QString & colorCode);
+    void onNoteEditorHighlightColorCodeEntered();
     void onNoteEditorHighlightColorDialogRequested();
     void onNoteEditorHighlightColorSelected(const QColor & color);
 
-    void onNoteEditorHighlightedTextColorCodeEntered(const QString & colorCode);
+    void onNoteEditorHighlightedTextColorCodeEntered();
     void onNoteEditorHighlightedTextColorDialogRequested();
     void onNoteEditorHighlightedTextColorSelected(const QColor & color);
 
@@ -109,6 +109,9 @@ private Q_SLOTS:
     void onNetworkProxyPasswordVisibilityToggled(bool checked);
 
 private:
+    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) Q_DECL_OVERRIDE;
+
+private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);
     void setupSystemTraySettings();
@@ -116,6 +119,7 @@ private:
     void setupNetworkProxySettingsState();
     void setupNoteEditorSettingsState();
     void createConnections();
+    void installEventFilters();
 
     void checkAndSetNetworkProxy();
 
