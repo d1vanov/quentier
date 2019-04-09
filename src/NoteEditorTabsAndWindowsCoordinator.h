@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -108,6 +108,11 @@ Q_SIGNALS:
     void noteExpungedFromLocalStorage();
     void noteExpungeFromLocalStorageFailed();
 
+    void noteEditorFontColorChanged(QColor color);
+    void noteEditorBackgroundColorChanged(QColor color);
+    void noteEditorHighlightColorChanged(QColor color);
+    void noteEditorHighlightedTextColorChanged(QColor color);
+
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();
     void onNoteEditorWidgetInvalidated();
@@ -155,6 +160,8 @@ private:
 private:
     void connectToLocalStorage();
     void disconnectFromLocalStorage();
+
+    void connectNoteEditorWidgetToColorChangeSignals(NoteEditorWidget & widget);
 
     void setupFileIO();
     void setupSpellChecker();

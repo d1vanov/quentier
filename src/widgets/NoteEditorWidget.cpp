@@ -122,6 +122,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerA
 
     m_pUi->noteEditor->setUndoStack(m_pUndoStack.data());
 
+    setupNoteEditorColors();
     setupBlankEditor();
 
     BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUi->noteSourceView->document());
@@ -998,6 +999,38 @@ void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
         QObject::connect(m_pUi->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
                          this, QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
     }
+}
+
+void NoteEditorWidget::onNoteEditorFontColorChanged(QColor color)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteEditorFontColorChanged: ")
+            << color.name());
+
+    onNoteEditorColorsUpdate();
+}
+
+void NoteEditorWidget::onNoteEditorBackgroundColorChanged(QColor color)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteEditorBackgroundColorChanged: ")
+            << color.name());
+
+    onNoteEditorColorsUpdate();
+}
+
+void NoteEditorWidget::onNoteEditorHighlightColorChanged(QColor color)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteEditorHighlightColorChanged: ")
+            << color.name());
+
+    onNoteEditorColorsUpdate();
+}
+
+void NoteEditorWidget::onNoteEditorHighlightedTextColorChanged(QColor color)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteEditorHighlightedTextColorChanged: ")
+            << color.name());
+
+    onNoteEditorColorsUpdate();
 }
 
 void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
@@ -2427,6 +2460,38 @@ void NoteEditorWidget::onCurrentNoteFound(const Note & note)
     Q_EMIT resolved();
 }
 
+void NoteEditorWidget::onNoteEditorColorsUpdate()
+{
+    if (noteLocalUid().isEmpty()) {
+        m_pUi->noteEditor->clear();
+        return;
+    }
+
+    if (m_pCurrentNote.isNull() || m_pCurrentNotebook.isNull()) {
+        QNTRACE(QStringLiteral("Current note or notebook was not found yet"));
+        return;
+    }
+
+    if (isModified())
+    {
+        ErrorString errorDescription;
+        NoteSaveStatus::type status = checkAndSaveModifiedNote(errorDescription);
+        if (status == NoteSaveStatus::Failed) {
+            QNWARNING(QStringLiteral("Failed to save modified note: ")
+                      << errorDescription);
+            return;
+        }
+
+        if (status == NoteSaveStatus::Timeout) {
+            QNWARNING(QStringLiteral("Failed to save modified note in due time"));
+            return;
+        }
+    }
+
+    m_pUi->noteEditor->clear();
+    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+}
+
 void NoteEditorWidget::setupSpecialIcons()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::setupSpecialIcons"));
@@ -2648,6 +2713,48 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     QObject::connect(m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onFontSizesComboBoxCurrentIndexChanged(int)),
                      Qt::UniqueConnection);
+}
+
+void NoteEditorWidget::setupNoteEditorColors()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setupNoteEditorColors"));
+
+    QPalette pal;
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+
+    QString fontColorName =
+        appSettings.value(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY).toString();
+    QColor fontColor(fontColorName);
+    if (fontColor.isValid()) {
+        pal.setColor(QPalette::WindowText, fontColor);
+    }
+
+    QString backgroundColorName =
+        appSettings.value(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+    QColor backgroundColor(backgroundColorName);
+    if (backgroundColor.isValid()) {
+        pal.setColor(QPalette::Base, backgroundColor);
+    }
+
+    QString highlightColorName =
+        appSettings.value(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY).toString();
+    QColor highlightColor(highlightColorName);
+    if (highlightColor.isValid()) {
+        pal.setColor(QPalette::Highlight, highlightColor);
+    }
+
+    QString highlightedTextColorName =
+        appSettings.value(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY).toString();
+    QColor highlightedTextColor(highlightedTextColorName);
+    if (highlightedTextColor.isValid()) {
+        pal.setColor(QPalette::HighlightedText, highlightedTextColor);
+    }
+
+    appSettings.endGroup();
+
+    m_pUi->noteEditor->setDefaultPalette(pal);
 }
 
 void NoteEditorWidget::updateNoteSourceView(const QString & html)

@@ -297,6 +297,15 @@ void PreferencesDialog::onNoteEditorFontColorSelected(const QColor & color)
 
     m_pUi->noteEditorFontColorLineEdit->setText(color.name());
     setNoteEditorFontColorToDemoFrame(color);
+
+    QColor previousFontColor = noteEditorFontColor();
+    if (previousFontColor.isValid() && color.isValid() &&
+        (previousFontColor.name() == color.name()))
+    {
+        QNDEBUG(QStringLiteral("Note editor font color did not change"));
+        return;
+    }
+
     saveNoteEditorFontColor(color);
     Q_EMIT noteEditorFontColorChanged(color);
 }
@@ -349,6 +358,15 @@ void PreferencesDialog::onNoteEditorBackgroundColorSelected(const QColor & color
 
     m_pUi->noteEditorBackgroundColorLineEdit->setText(color.name());
     setNoteEditorBackgroundColorToDemoFrame(color);
+
+    QColor previousBackgroundColor = noteEditorBackgroundColor();
+    if (previousBackgroundColor.isValid() && color.isValid() &&
+        (previousBackgroundColor.name() == color.name()))
+    {
+        QNDEBUG(QStringLiteral("Note editor background color did not change"));
+        return;
+    }
+
     saveNoteEditorBackgroundColor(color);
     Q_EMIT noteEditorBackgroundColorChanged(color);
 }
@@ -401,6 +419,15 @@ void PreferencesDialog::onNoteEditorHighlightColorSelected(const QColor & color)
 
     m_pUi->noteEditorHighlightColorLineEdit->setText(color.name());
     setNoteEditorHighlightColorToDemoFrame(color);
+
+    QColor previousHighlightColor = noteEditorHighlightColor();
+    if (previousHighlightColor.isValid() && color.isValid() &&
+        (previousHighlightColor.name() == color.name()))
+    {
+        QNDEBUG(QStringLiteral("Note editor highlight color did not change"));
+        return;
+    }
+
     saveNoteEditorHighlightColor(color);
     Q_EMIT noteEditorHighlightColorChanged(color);
 }
@@ -453,6 +480,15 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorSelected(const QColor & 
 
     m_pUi->noteEditorHighlightedTextColorLineEdit->setText(color.name());
     setNoteEditorHighlightedTextColorToDemoFrame(color);
+
+    QColor previousHighlightedTextColor = noteEditorHighlightedTextColor();
+    if (previousHighlightedTextColor.isValid() && color.isValid() &&
+        (previousHighlightedTextColor.name() == color.name()))
+    {
+        QNDEBUG(QStringLiteral("Note editor highlighted text color did not change"));
+        return;
+    }
+
     saveNoteEditorHighlightedTextColor(color);
     Q_EMIT noteEditorHighlightedTextColorChanged(color);
 }
@@ -902,10 +938,15 @@ void PreferencesDialog::setupNoteEditorSettingsState()
 
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 
+    QPalette pal = palette();
+
     m_pUi->noteEditorFontColorLineEdit->setText(fontColorCode);
     QColor fontColor(fontColorCode);
     if (fontColor.isValid()) {
         setNoteEditorFontColorToDemoFrame(fontColor);
+    }
+    else {
+        setNoteEditorFontColorToDemoFrame(pal.color(QPalette::WindowText));
     }
 
     m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColorCode);
@@ -913,17 +954,26 @@ void PreferencesDialog::setupNoteEditorSettingsState()
     if (backgroundColor.isValid()) {
         setNoteEditorBackgroundColorToDemoFrame(backgroundColor);
     }
+    else {
+        setNoteEditorBackgroundColorToDemoFrame(pal.color(QPalette::Base));
+    }
 
     m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColorCode);
     QColor highlightColor(highlightColorCode);
     if (highlightColor.isValid()) {
         setNoteEditorHighlightColorToDemoFrame(highlightColor);
     }
+    else {
+        setNoteEditorHighlightColorToDemoFrame(pal.color(QPalette::Highlight));
+    }
 
     m_pUi->noteEditorHighlightedTextColorLineEdit->setText(highlightedTextColorCode);
     QColor highlightedTextColor(highlightedTextColorCode);
     if (highlightedTextColor.isValid()) {
         setNoteEditorHighlightedTextColorToDemoFrame(highlightedTextColor);
+    }
+    else {
+        setNoteEditorHighlightedTextColorToDemoFrame(pal.color(QPalette::HighlightedText));
     }
 }
 
@@ -1087,6 +1137,12 @@ bool PreferencesDialog::onNoteEditorColorEnteredImpl(const QColor & color,
             tr("Invalid color code"),
             &colorLineEdit);
 
+        return false;
+    }
+
+    QColor previousColor = noteEditorColorImpl(settingKey);
+    if (previousColor.isValid() && (previousColor.name() == color.name())) {
+        QNDEBUG(QStringLiteral("Color did not change"));
         return false;
     }
 
