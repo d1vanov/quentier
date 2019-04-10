@@ -341,6 +341,7 @@ public Q_SLOTS:
     void onNoteEditorBackgroundColorChanged(QColor color);
     void onNoteEditorHighlightColorChanged(QColor color);
     void onNoteEditorHighlightedTextColorChanged(QColor color);
+    void onNoteEditorColorsReset();
 
 private Q_SLOTS:
     void onNewTagLineEditReceivedFocusFromWindowSystem();

@@ -112,6 +112,7 @@ Q_SIGNALS:
     void noteEditorBackgroundColorChanged(QColor color);
     void noteEditorHighlightColorChanged(QColor color);
     void noteEditorHighlightedTextColorChanged(QColor color);
+    void noteEditorColorsReset();
 
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();

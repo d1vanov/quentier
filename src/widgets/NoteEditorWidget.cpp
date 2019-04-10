@@ -1033,6 +1033,12 @@ void NoteEditorWidget::onNoteEditorHighlightedTextColorChanged(QColor color)
     onNoteEditorColorsUpdate();
 }
 
+void NoteEditorWidget::onNoteEditorColorsReset()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteEditorColorsReset"));
+    onNoteEditorColorsUpdate();
+}
+
 void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem"));
@@ -2462,6 +2468,8 @@ void NoteEditorWidget::onCurrentNoteFound(const Note & note)
 
 void NoteEditorWidget::onNoteEditorColorsUpdate()
 {
+    setupNoteEditorColors();
+
     if (noteLocalUid().isEmpty()) {
         m_pUi->noteEditor->clear();
         return;

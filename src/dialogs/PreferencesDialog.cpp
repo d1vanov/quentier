@@ -493,6 +493,41 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorSelected(const QColor & 
     Q_EMIT noteEditorHighlightedTextColorChanged(color);
 }
 
+void PreferencesDialog::onNoteEditorColorsReset()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorColorsReset"));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.remove(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
+    appSettings.remove(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
+    appSettings.remove(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
+    appSettings.remove(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+    appSettings.endGroup();
+
+    QPalette pal = palette();
+
+    QColor fontColor = pal.color(QPalette::WindowText);
+    setNoteEditorFontColorToDemoFrame(fontColor);
+    m_pUi->noteEditorFontColorLineEdit->setText(fontColor.name());
+
+    QColor backgroundColor = pal.color(QPalette::Base);
+    setNoteEditorBackgroundColorToDemoFrame(backgroundColor);
+    m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColor.name());
+
+    QColor highlightColor = pal.color(QPalette::Highlight);
+    setNoteEditorHighlightColorToDemoFrame(highlightColor);
+    m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColor.name());
+
+    QColor highlightedTextColor = pal.color(QPalette::HighlightedText);
+    setNoteEditorHighlightedTextColorToDemoFrame(highlightedTextColor);
+    m_pUi->noteEditorHighlightedTextColorLineEdit->setText(highlightedTextColor.name());
+
+    Q_EMIT noteEditorColorsReset();
+}
+
 void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled: ")
@@ -940,40 +975,48 @@ void PreferencesDialog::setupNoteEditorSettingsState()
 
     QPalette pal = palette();
 
-    m_pUi->noteEditorFontColorLineEdit->setText(fontColorCode);
     QColor fontColor(fontColorCode);
     if (fontColor.isValid()) {
         setNoteEditorFontColorToDemoFrame(fontColor);
+        m_pUi->noteEditorFontColorLineEdit->setText(fontColorCode);
     }
     else {
-        setNoteEditorFontColorToDemoFrame(pal.color(QPalette::WindowText));
+        QColor color = pal.color(QPalette::WindowText);
+        setNoteEditorFontColorToDemoFrame(color);
+        m_pUi->noteEditorFontColorLineEdit->setText(color.name());
     }
 
-    m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColorCode);
     QColor backgroundColor(backgroundColorCode);
     if (backgroundColor.isValid()) {
         setNoteEditorBackgroundColorToDemoFrame(backgroundColor);
+        m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColorCode);
     }
     else {
-        setNoteEditorBackgroundColorToDemoFrame(pal.color(QPalette::Base));
+        QColor color = pal.color(QPalette::Base);
+        setNoteEditorBackgroundColorToDemoFrame(color);
+        m_pUi->noteEditorBackgroundColorLineEdit->setText(color.name());
     }
 
-    m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColorCode);
     QColor highlightColor(highlightColorCode);
     if (highlightColor.isValid()) {
         setNoteEditorHighlightColorToDemoFrame(highlightColor);
+        m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColorCode);
     }
     else {
-        setNoteEditorHighlightColorToDemoFrame(pal.color(QPalette::Highlight));
+        QColor color = pal.color(QPalette::Highlight);
+        setNoteEditorHighlightColorToDemoFrame(color);
+        m_pUi->noteEditorHighlightColorLineEdit->setText(color.name());
     }
 
-    m_pUi->noteEditorHighlightedTextColorLineEdit->setText(highlightedTextColorCode);
     QColor highlightedTextColor(highlightedTextColorCode);
     if (highlightedTextColor.isValid()) {
         setNoteEditorHighlightedTextColorToDemoFrame(highlightedTextColor);
+        m_pUi->noteEditorHighlightedTextColorLineEdit->setText(highlightedTextColorCode);
     }
     else {
-        setNoteEditorHighlightedTextColorToDemoFrame(pal.color(QPalette::HighlightedText));
+        QColor color = pal.color(QPalette::HighlightedText);
+        setNoteEditorHighlightedTextColorToDemoFrame(color);
+        m_pUi->noteEditorHighlightedTextColorLineEdit->setText(color.name());
     }
 }
 
@@ -1021,6 +1064,8 @@ void PreferencesDialog::createConnections()
                      this, QNSLOT(PreferencesDialog,onNoteEditorHighlightedTextColorCodeEntered));
     QObject::connect(m_pUi->noteEditorHighlightedTextColorPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(PreferencesDialog,onNoteEditorHighlightedTextColorDialogRequested));
+    QObject::connect(m_pUi->noteEditorResetColorsPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(PreferencesDialog,onNoteEditorColorsReset));
 
     QObject::connect(m_pUi->downloadNoteThumbnailsCheckBox, QNSIGNAL(QCheckBox,toggled,bool),
                      this, QNSLOT(PreferencesDialog,onDownloadNoteThumbnailsCheckboxToggled,bool));
@@ -1181,22 +1226,42 @@ void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(const QColor & color,
 
 QColor PreferencesDialog::noteEditorFontColor() const
 {
-    return noteEditorColorImpl(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
+    QColor color = noteEditorColorImpl(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
+    if (color.isValid()) {
+        return color;
+    }
+
+    return palette().color(QPalette::WindowText);
 }
 
 QColor PreferencesDialog::noteEditorBackgroundColor() const
 {
-    return noteEditorColorImpl(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
+    QColor color = noteEditorColorImpl(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
+    if (color.isValid()) {
+        return color;
+    }
+
+    return palette().color(QPalette::Base);
 }
 
 QColor PreferencesDialog::noteEditorHighlightColor() const
 {
-    return noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
+    QColor color = noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
+    if (color.isValid()) {
+        return color;
+    }
+
+    return palette().color(QPalette::Highlight);
 }
 
 QColor PreferencesDialog::noteEditorHighlightedTextColor() const
 {
-    return noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+    QColor color = noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+    if (color.isValid()) {
+        return color;
+    }
+
+    return palette().color(QPalette::HighlightedText);
 }
 
 QColor PreferencesDialog::noteEditorColorImpl(const QString & settingKey) const

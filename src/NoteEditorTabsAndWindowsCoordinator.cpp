@@ -1632,6 +1632,13 @@ void NoteEditorTabsAndWindowsCoordinator::connectNoteEditorWidgetToColorChangeSi
                      QNSLOT(NoteEditorWidget,
                             onNoteEditorHighlightedTextColorChanged,QColor),
                      Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(this,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorColorsReset),
+                     &widget,
+                     QNSLOT(NoteEditorWidget,onNoteEditorColorsReset),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 }
 
 void NoteEditorTabsAndWindowsCoordinator::setupFileIO()

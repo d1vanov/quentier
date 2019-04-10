@@ -57,6 +57,7 @@ Q_SIGNALS:
     void noteEditorBackgroundColorChanged(QColor color);
     void noteEditorHighlightColorChanged(QColor color);
     void noteEditorHighlightedTextColorChanged(QColor color);
+    void noteEditorColorsReset();
 
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
@@ -95,6 +96,8 @@ private Q_SLOTS:
     void onNoteEditorHighlightedTextColorCodeEntered();
     void onNoteEditorHighlightedTextColorDialogRequested();
     void onNoteEditorHighlightedTextColorSelected(const QColor & color);
+
+    void onNoteEditorColorsReset();
 
     // Synchronization tab
     void onDownloadNoteThumbnailsCheckboxToggled(bool checked);

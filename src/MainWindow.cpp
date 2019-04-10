@@ -2358,6 +2358,12 @@ void MainWindow::onShowSettingsDialogAction()
                      m_pNoteEditorTabsAndWindowsCoordinator,
                      QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
                               noteEditorHighlightedTextColorChanged,QColor));
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,
+                              noteEditorColorsReset),
+                     m_pNoteEditorTabsAndWindowsCoordinator,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorColorsReset));
 
     Q_UNUSED(pPreferencesDialog->exec());
 }
