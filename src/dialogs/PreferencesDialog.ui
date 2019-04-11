@@ -313,6 +313,9 @@ padding: 0 3px;
               <property name="mouseTracking">
                <bool>true</bool>
               </property>
+              <property name="toolTip">
+               <string>Double click to choose font color</string>
+              </property>
               <property name="autoFillBackground">
                <bool>true</bool>
               </property>
@@ -373,6 +376,9 @@ padding: 0 3px;
               </property>
               <property name="mouseTracking">
                <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Double click to choose background color</string>
               </property>
               <property name="autoFillBackground">
                <bool>true</bool>
@@ -435,6 +441,9 @@ padding: 0 3px;
               <property name="mouseTracking">
                <bool>true</bool>
               </property>
+              <property name="toolTip">
+               <string>Double click to choose highlight color</string>
+              </property>
               <property name="autoFillBackground">
                <bool>true</bool>
               </property>
@@ -496,6 +505,9 @@ padding: 0 3px;
               <property name="mouseTracking">
                <bool>true</bool>
               </property>
+              <property name="toolTip">
+               <string>Double click to choose highlighted text color</string>
+              </property>
               <property name="autoFillBackground">
                <bool>true</bool>
               </property>
@@ -533,6 +545,9 @@ padding: 0 3px;
            <layout class="QHBoxLayout" name="noteEditorResetColorsHorizontalLayout">
             <item>
              <widget class="QPushButton" name="noteEditorResetColorsPushButton">
+              <property name="toolTip">
+               <string>Reset note editor colors to defaults</string>
+              </property>
               <property name="text">
                <string>Reset</string>
               </property>

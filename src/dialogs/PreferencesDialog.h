@@ -127,6 +127,7 @@ private:
     void checkAndSetNetworkProxy();
 
     bool onNoteEditorColorEnteredImpl(const QColor & color,
+                                      const QColor & prevColor,
                                       const QString & settingKey,
                                       QLineEdit & colorLineEdit,
                                       QFrame & demoFrame);

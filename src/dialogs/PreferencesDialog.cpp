@@ -37,7 +37,6 @@ using quentier::ShortcutSettingsWidget;
 #include <QFileInfo>
 #include <QDir>
 #include <QNetworkProxy>
-#include <QToolTip>
 #include <algorithm>
 #include <limits>
 
@@ -256,8 +255,10 @@ void PreferencesDialog::onNoteEditorFontColorCodeEntered()
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorFontColorCodeEntered: ")
             << colorCode);
 
+    QColor prevColor = noteEditorFontColor();
+
     QColor color(colorCode);
-    bool res = onNoteEditorColorEnteredImpl(color,
+    bool res = onNoteEditorColorEnteredImpl(color, prevColor,
                                             NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY,
                                             *m_pUi->noteEditorFontColorLineEdit,
                                             *m_pUi->noteEditorFontColorDemoFrame);
@@ -317,8 +318,10 @@ void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered()
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorBackgroundColorCodeEntered: ")
             << colorCode);
 
+    QColor prevColor = noteEditorBackgroundColor();
+
     QColor color(colorCode);
-    bool res = onNoteEditorColorEnteredImpl(color,
+    bool res = onNoteEditorColorEnteredImpl(color, prevColor,
                                             NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY,
                                             *m_pUi->noteEditorBackgroundColorLineEdit,
                                             *m_pUi->noteEditorBackgroundColorDemoFrame);
@@ -378,8 +381,10 @@ void PreferencesDialog::onNoteEditorHighlightColorCodeEntered()
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorHighlightColorCodeEntered: ")
             << colorCode);
 
+    QColor prevColor = noteEditorHighlightColor();
+
     QColor color(colorCode);
-    bool res = onNoteEditorColorEnteredImpl(color,
+    bool res = onNoteEditorColorEnteredImpl(color, prevColor,
                                             NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY,
                                             *m_pUi->noteEditorHighlightColorLineEdit,
                                             *m_pUi->noteEditorHighlightColorDemoFrame);
@@ -439,8 +444,10 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered()
     QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered: ")
             << colorCode);
 
+    QColor prevColor = noteEditorHighlightedTextColor();
+
     QColor color(colorCode);
-    bool res = onNoteEditorColorEnteredImpl(color,
+    bool res = onNoteEditorColorEnteredImpl(color, prevColor,
                                             NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY,
                                             *m_pUi->noteEditorHighlightedTextColorLineEdit,
                                             *m_pUi->noteEditorHighlightedTextColorDemoFrame);
@@ -1170,23 +1177,17 @@ void PreferencesDialog::checkAndSetNetworkProxy()
 }
 
 bool PreferencesDialog::onNoteEditorColorEnteredImpl(const QColor & color,
+                                                     const QColor & prevColor,
                                                      const QString & settingKey,
                                                      QLineEdit & colorLineEdit,
                                                      QFrame & demoFrame)
 {
-    if (!color.isValid())
-    {
-        QToolTip::showText(
-            colorLineEdit.mapToGlobal(
-                QPoint(0, colorLineEdit.height())),
-            tr("Invalid color code"),
-            &colorLineEdit);
-
+    if (!color.isValid()) {
+        colorLineEdit.setText(prevColor.name());
         return false;
     }
 
-    QColor previousColor = noteEditorColorImpl(settingKey);
-    if (previousColor.isValid() && (previousColor.name() == color.name())) {
+    if (prevColor.isValid() && (prevColor.name() == color.name())) {
         QNDEBUG(QStringLiteral("Color did not change"));
         return false;
     }
