@@ -374,6 +374,12 @@ public Q_SLOTS:
     void onFindPreviousInsideNoteAction();
     void onReplaceInsideNoteAction();
 
+    void onNoteEditorFontColorChanged(QColor color);
+    void onNoteEditorBackgroundColorChanged(QColor color);
+    void onNoteEditorHighlightColorChanged(QColor color);
+    void onNoteEditorHighlightedTextColorChanged(QColor color);
+    void onNoteEditorColorsReset();
+
 private Q_SLOTS:
     void onNoteTagsListChanged(Note note);
     void onNewTagLineEditReceivedFocusFromWindowSystem();
@@ -483,11 +489,14 @@ private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
 
+    void onNoteEditorColorsUpdate();
+
     void setupSpecialIcons();
     void setupFontsComboBox();
     void setupLimitedFontsComboBox(const QString & startupFont = QString());
     void setupFontSizesComboBox();
     void setupFontSizesForFont(const QFont & font);
+    void setupNoteEditorColors();
 
     void updateNoteSourceView(const QString & html);
 

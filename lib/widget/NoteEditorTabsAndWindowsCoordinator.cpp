@@ -138,6 +138,8 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
                                               pUndoStack, m_pTabWidget);
     pUndoStack->setParent(m_pBlankNoteEditor);
 
+    connectNoteEditorWidgetToColorChangeSignals(*m_pBlankNoteEditor);
+
     Q_UNUSED(m_pTabWidget->addTab(m_pBlankNoteEditor, BLANK_NOTE_KEY))
 
     QTabBar * pTabBar = m_pTabWidget->tabBar();
@@ -503,6 +505,9 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
                              *m_pTagModel, pUndoStack, m_pTabWidget);
 
     pUndoStack->setParent(pNoteEditorWidget);
+
+    connectNoteEditorWidgetToColorChangeSignals(*pNoteEditorWidget);
+
     pNoteEditorWidget->setNoteLocalUid(noteLocalUid, isNewNote);
     insertNoteEditorWidget(pNoteEditorWidget, noteEditorMode);
 }
@@ -1958,6 +1963,49 @@ void NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage()
                                onExpungeNoteFailed,Note,ErrorString,QUuid));
 
     m_connectedToLocalStorage = false;
+}
+
+void NoteEditorTabsAndWindowsCoordinator::connectNoteEditorWidgetToColorChangeSignals(
+    NoteEditorWidget & widget)
+{
+    QObject::connect(this,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorFontColorChanged,QColor),
+                     &widget,
+                     QNSLOT(NoteEditorWidget,
+                            onNoteEditorFontColorChanged,QColor),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(this,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorBackgroundColorChanged,QColor),
+                     &widget,
+                     QNSLOT(NoteEditorWidget,
+                            onNoteEditorBackgroundColorChanged,QColor),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(this,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorHighlightColorChanged,QColor),
+                     &widget,
+                     QNSLOT(NoteEditorWidget,
+                            onNoteEditorHighlightColorChanged,QColor),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(this,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorHighlightedTextColorChanged,QColor),
+                     &widget,
+                     QNSLOT(NoteEditorWidget,
+                            onNoteEditorHighlightedTextColorChanged,QColor),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(this,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorColorsReset),
+                     &widget,
+                     QNSLOT(NoteEditorWidget,onNoteEditorColorsReset),
+                     Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 }
 
 void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
