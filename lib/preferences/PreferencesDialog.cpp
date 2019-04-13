@@ -65,7 +65,6 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
     m_pStartAtLoginOptionsModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
-    // workaroundQtBugWithTabWidget();
 
     m_pUi->statusTextLabel->setHidden(true);
 
@@ -76,6 +75,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
 
     setupCurrentSettingsState(actionsInfo, shortcutManager);
     createConnections();
+    installEventFilters();
     adjustSize();
 }
 
@@ -968,7 +968,8 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo,
     if (currentAccount.type() == Account::Type::Local)
     {
         // Remove the synchronization tab entirely
-        m_pUi->preferencesTabWidget->removeTab(3);
+        m_pUi->preferencesTabWidget->removeTab(
+            m_pUi->preferencesTabWidget->indexOf(m_pUi->syncTab));
     }
     else
     {
@@ -1702,6 +1703,16 @@ void PreferencesDialog::createConnections()
                             onEnableLogViewerInternalLogsCheckboxToggled,bool));
 }
 
+void PreferencesDialog::installEventFilters()
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::installEventFilters"));
+
+    m_pUi->noteEditorFontColorDemoFrame->installEventFilter(this);
+    m_pUi->noteEditorBackgroundColorDemoFrame->installEventFilter(this);
+    m_pUi->noteEditorHighlightColorDemoFrame->installEventFilter(this);
+    m_pUi->noteEditorHighlightedTextColorDemoFrame->installEventFilter(this);
+}
+
 void PreferencesDialog::checkAndSetNetworkProxy()
 {
     QNDEBUG(QStringLiteral("PreferencesDialog::checkAndSetNetworkProxy"));
@@ -1925,27 +1936,6 @@ void PreferencesDialog::saveNoteEditorColorImpl(const QColor & color,
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
     appSettings.setValue(settingKey, color.name());
     appSettings.endGroup();
-}
-
-void PreferencesDialog::workaroundQtBugWithTabWidget()
-{
-    // For reasons totally unknown to humankind Qt messes up with preferences
-    // dialog's tabs. Badly. Some tabs sometimes disappear for unknown reasons.
-    // This is the best I was able to do about it.
-
-    m_pUi->preferencesTabWidget->clear();
-
-    m_pUi->preferencesTabWidget->addTab(m_pUi->appearanceTab, tr("Appearance"));
-    m_pUi->preferencesTabWidget->addTab(m_pUi->behaviourTab, tr("Behaviour"));
-    m_pUi->preferencesTabWidget->addTab(m_pUi->systemTrayTab, tr("System tray"));
-    m_pUi->preferencesTabWidget->addTab(m_pUi->noteEditorTab, tr("Note editor"));
-    m_pUi->preferencesTabWidget->addTab(m_pUi->syncTab, tr("Synchronization"));
-    m_pUi->preferencesTabWidget->addTab(m_pUi->shortcutsTab, tr("Shortcuts"));
-    m_pUi->preferencesTabWidget->addTab(m_pUi->auxiliaryTab, tr("Auxiliary"));
-
-    for(int i = 0; i < m_pUi->preferencesTabWidget->count(); ++i) {
-        m_pUi->preferencesTabWidget->setTabEnabled(i, true);
-    }
 }
 
 QString trayActionToString(SystemTrayIconManager::TrayAction action)

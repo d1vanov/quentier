@@ -177,8 +177,6 @@ private:
     void saveNoteEditorHighlightedTextColor(const QColor & color);
     void saveNoteEditorColorImpl(const QColor & color, const QString & settingKey);
 
-    void workaroundQtBugWithTabWidget();
-
 private:
     Ui::PreferencesDialog *         m_pUi;
     AccountManager &                m_accountManager;
