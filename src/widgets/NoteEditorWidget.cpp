@@ -2495,9 +2495,6 @@ void NoteEditorWidget::onNoteEditorColorsUpdate()
             return;
         }
     }
-
-    m_pUi->noteEditor->clear();
-    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::setupSpecialIcons()
