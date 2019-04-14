@@ -2853,9 +2853,6 @@ void NoteEditorWidget::onNoteEditorColorsUpdate()
             return;
         }
     }
-
-    m_pUi->noteEditor->clear();
-    m_pUi->noteEditor->setCurrentNoteLocalUid(m_noteLocalUid);
 }
 
 void NoteEditorWidget::setupFontsComboBox()
