@@ -6,23 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>514</width>
-    <height>485</height>
+    <width>519</width>
+    <height>522</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>8</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
+  <layout class="QVBoxLayout" name="preferencesDialogVerticalLayout">
    <item>
     <widget class="QTabWidget" name="preferencesTabWidget">
      <property name="tabPosition">
@@ -34,14 +25,11 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <property name="documentMode">
-      <bool>true</bool>
-     </property>
      <widget class="QWidget" name="appearanceTab">
       <attribute name="title">
        <string>Appearance</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
+      <layout class="QVBoxLayout" name="appearanceTabVerticalLayout">
        <item>
         <layout class="QGridLayout" name="IconThemePanelStyleGridLayout">
          <item row="0" column="0">
@@ -123,19 +111,7 @@ padding: 0 3px;
          <property name="title">
           <string>Left border</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <property name="leftMargin">
-           <number>4</number>
-          </property>
-          <property name="topMargin">
-           <number>20</number>
-          </property>
-          <property name="rightMargin">
-           <number>4</number>
-          </property>
-          <property name="bottomMargin">
-           <number>4</number>
-          </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QLabel" name="leftMainWindowBorderOptionLabel">
             <property name="text">
@@ -150,76 +126,61 @@ padding: 0 3px;
            <widget class="QComboBox" name="leftMainWindowBorderOptionComboBox"/>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="leftMainWindowBorderWidthColorLayout">
+           <layout class="QHBoxLayout" name="leftMainWindowBorderColorWidthHorizontalLayout">
             <item>
-             <layout class="QHBoxLayout" name="leftMainWindowBorderWidthLayout">
-              <item>
-               <widget class="QLabel" name="leftMainWindowBorderWidthLabel">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>&amp;Width:</string>
-                </property>
-                <property name="buddy">
-                 <cstring>leftMainWindowBorderWidthSpinBox</cstring>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="leftMainWindowBorderWidthSpinBox">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>60</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QLabel" name="leftMainWindowBorderWidthLabel">
+              <property name="text">
+               <string>&amp;Width:</string>
+              </property>
+              <property name="buddy">
+               <cstring>leftMainWindowBorderWidthSpinBox</cstring>
+              </property>
+             </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="leftMainWindowBorderColorLayout">
-              <item>
-               <widget class="QLabel" name="leftMainWindowBorderColorLabel">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>&amp;Color:</string>
-                </property>
-                <property name="buddy">
-                 <cstring>leftMainWindowBorderColorLineEdit</cstring>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="leftMainWindowBorderColorLineEdit">
-                <property name="autoFillBackground">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="leftMainWindowBorderColorPushButton">
-                <property name="text">
-                 <string>Choose...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QSpinBox" name="leftMainWindowBorderWidthSpinBox"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="leftMainWindowBorderColorLabel">
+              <property name="text">
+               <string>&amp;Color:</string>
+              </property>
+              <property name="buddy">
+               <cstring>leftMainWindowBorderColorLineEdit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="leftMainWindowBorderColorLineEdit"/>
+            </item>
+            <item>
+             <widget class="QFrame" name="leftMainWindowBorderColorDemoFrame">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="leftMainWindowBorderColorPushButton">
+              <property name="text">
+               <string>Choose...</string>
+              </property>
+             </widget>
             </item>
             <item>
              <spacer name="leftMainWindowBorderWidthColorHorizontalSpacer">
@@ -258,18 +219,6 @@ padding: 0 3px;
           <string>Right border</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
-          <property name="leftMargin">
-           <number>4</number>
-          </property>
-          <property name="topMargin">
-           <number>20</number>
-          </property>
-          <property name="rightMargin">
-           <number>4</number>
-          </property>
-          <property name="bottomMargin">
-           <number>4</number>
-          </property>
           <item>
            <widget class="QLabel" name="rightMainWindowBorderOptionLabel">
             <property name="text">
@@ -284,70 +233,61 @@ padding: 0 3px;
            <widget class="QComboBox" name="rightMainWindowBorderOptionComboBox"/>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+           <layout class="QHBoxLayout" name="rightMainWindowBorderColorWidthHorizontalLayout">
             <item>
-             <layout class="QHBoxLayout" name="rightMainWindowBorderWidthLayout">
-              <item>
-               <widget class="QLabel" name="rightMainWindowBorderWidthLabel">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>W&amp;idth:</string>
-                </property>
-                <property name="buddy">
-                 <cstring>rightMainWindowBorderWidthSpinBox</cstring>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="rightMainWindowBorderWidthSpinBox">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>60</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QLabel" name="rightMainWindowBorderWidthLabel">
+              <property name="text">
+               <string>W&amp;idth:</string>
+              </property>
+              <property name="buddy">
+               <cstring>rightMainWindowBorderWidthSpinBox</cstring>
+              </property>
+             </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="rightMainWindorBorderColorLayout">
-              <item>
-               <widget class="QLabel" name="rightMainWindowBorderColorLabel">
-                <property name="text">
-                 <string>Co&amp;lor:</string>
-                </property>
-                <property name="buddy">
-                 <cstring>rightMainWindowBorderColorLineEdit</cstring>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="rightMainWindowBorderColorLineEdit">
-                <property name="autoFillBackground">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="rightMainWindowBorderColorPushButton">
-                <property name="text">
-                 <string>Choose...</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QSpinBox" name="rightMainWindowBorderWidthSpinBox"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="rightMainWindowBorderColorLabel">
+              <property name="text">
+               <string>Co&amp;lor:</string>
+              </property>
+              <property name="buddy">
+               <cstring>rightMainWindowBorderColorLineEdit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="rightMainWindowBorderColorLineEdit"/>
+            </item>
+            <item>
+             <widget class="QFrame" name="rightMainWindowBorderColorDemoFrame">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rightMainWindowBorderColorPushButton">
+              <property name="text">
+               <string>Choose...</string>
+              </property>
+             </widget>
             </item>
             <item>
              <spacer name="rightMainWindowBorderWidthColorHorizontalSpacer">
@@ -372,10 +312,13 @@ padding: 0 3px;
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>468</width>
-           <height>152</height>
+           <height>10</height>
           </size>
          </property>
         </spacer>
@@ -386,17 +329,11 @@ padding: 0 3px;
       <attribute name="title">
        <string>Behaviour</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_9">
+      <layout class="QVBoxLayout" name="behaviourTabVerticalLayout">
        <item>
         <layout class="QHBoxLayout" name="startAtLoginHorizontalLayout">
          <item>
           <widget class="QCheckBox" name="startAtLoginCheckBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="text">
             <string>Start at login</string>
            </property>
@@ -415,14 +352,14 @@ padding: 0 3px;
         </layout>
        </item>
        <item>
-        <spacer name="verticalSpacer">
+        <spacer name="behaviourTabVerticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>337</height>
+           <height>349</height>
           </size>
          </property>
         </spacer>
@@ -433,7 +370,7 @@ padding: 0 3px;
       <attribute name="title">
        <string>System tray</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="systemTrayTabVerticalLayout">
        <item>
         <widget class="QCheckBox" name="showSystemTrayIconCheckBox">
          <property name="text">
@@ -560,10 +497,13 @@ padding: 0 3px;
       </layout>
      </widget>
      <widget class="QWidget" name="noteEditorTab">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <attribute name="title">
        <string>Note editor</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_6">
+      <layout class="QVBoxLayout" name="noteEditorTabVerticalLayout">
        <item>
         <widget class="QCheckBox" name="limitedFontsCheckBox">
          <property name="text">
@@ -572,14 +512,326 @@ padding: 0 3px;
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="noteEditorColorsGroupBox">
+         <property name="styleSheet">
+          <string notr="true">QGroupBox {
+border: 2px solid gray;
+border-radius: 8px;
+margin-top: 1ex;
+}
+
+QGroupBox::title {
+subcontrol-origin: margin;
+subcontrol-position: top left;
+padding: 0 3px;
+}</string>
+         </property>
+         <property name="title">
+          <string>Colors</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <layout class="QGridLayout" name="noteEditorColorsGridLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="noteEditorFontColorLabel">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="noteEditorFontColorLineEdit"/>
+            </item>
+            <item row="0" column="2">
+             <widget class="QFrame" name="noteEditorFontColorDemoFrame">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="mouseTracking">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Double click to choose font color</string>
+              </property>
+              <property name="autoFillBackground">
+               <bool>true</bool>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <widget class="QPushButton" name="noteEditorFontColorPushButton">
+              <property name="text">
+               <string>Choose...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="4">
+             <spacer name="noteEditorFontColorHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="noteEditorBackgroundColorLabel">
+              <property name="text">
+               <string>Background:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="noteEditorBackgroundColorLineEdit"/>
+            </item>
+            <item row="1" column="2">
+             <widget class="QFrame" name="noteEditorBackgroundColorDemoFrame">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="mouseTracking">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Double click to choose background color</string>
+              </property>
+              <property name="autoFillBackground">
+               <bool>true</bool>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
+             <widget class="QPushButton" name="noteEditorBackgroundColorPushButton">
+              <property name="text">
+               <string>Choose...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <spacer name="noteEditorBackgroundColorHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="noteEditorHighlightColorLabel">
+              <property name="text">
+               <string>Highlight:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="noteEditorHighlightColorLineEdit"/>
+            </item>
+            <item row="2" column="2">
+             <widget class="QFrame" name="noteEditorHighlightColorDemoFrame">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="mouseTracking">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Double click to choose highlight color</string>
+              </property>
+              <property name="autoFillBackground">
+               <bool>true</bool>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3">
+             <widget class="QPushButton" name="noteEditorHighlightColorPushButton">
+              <property name="text">
+               <string>Choose...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="4">
+             <spacer name="noteEditorHighlightColorHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="noteEditorHighlightedTextColorLabel">
+              <property name="text">
+               <string>Highlighted text:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="noteEditorHighlightedTextColorLineEdit"/>
+            </item>
+            <item row="3" column="2">
+             <widget class="QFrame" name="noteEditorHighlightedTextColorDemoFrame">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="mouseTracking">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Double click to choose highlighted text color</string>
+              </property>
+              <property name="autoFillBackground">
+               <bool>true</bool>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="3">
+             <widget class="QPushButton" name="noteEditorHighlightedTextColorPushButton">
+              <property name="text">
+               <string>Choose...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="4">
+             <spacer name="noteEditorHighlightedTextHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="noteEditorResetColorsHorizontalLayout">
+            <item>
+             <widget class="QPushButton" name="noteEditorResetColorsPushButton">
+              <property name="toolTip">
+               <string>Reset note editor colors to defaults</string>
+              </property>
+              <property name="text">
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="noteEditorResetColorsHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="noteEditorTabVerticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>212</height>
+           <width>499</width>
+           <height>87</height>
           </size>
          </property>
         </spacer>
@@ -590,7 +842,7 @@ padding: 0 3px;
       <attribute name="title">
        <string>Synchronization</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
+      <layout class="QVBoxLayout" name="syncTabVerticalLayout">
        <item>
         <widget class="QLabel" name="networkProxyLabel">
          <property name="text">
@@ -819,7 +1071,7 @@ padding: 0 3px;
       <attribute name="title">
        <string>Shortcuts</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <layout class="QVBoxLayout" name="shortcutsTabVerticalLayout">
        <item>
         <widget class="ShortcutSettingsWidget" name="shortcutSettingsWidget" native="true">
          <property name="sizePolicy">
@@ -836,7 +1088,7 @@ padding: 0 3px;
       <attribute name="title">
        <string>Auxiliary</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_10">
+      <layout class="QVBoxLayout" name="auxiliaryTabVerticalLayout">
        <item>
         <widget class="QCheckBox" name="enableInternalLogViewerLogsCheckBox">
          <property name="text">
@@ -845,14 +1097,14 @@ padding: 0 3px;
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_2">
+        <spacer name="auxiliaryTabVerticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>337</height>
+           <height>360</height>
           </size>
          </property>
         </spacer>
@@ -860,6 +1112,9 @@ padding: 0 3px;
       </layout>
      </widget>
     </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusTextLabel"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="okPushButtonHorizontalLayout">
@@ -897,9 +1152,6 @@ padding: 0 3px;
       </spacer>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="statusTextLabel"/>
    </item>
   </layout>
  </widget>

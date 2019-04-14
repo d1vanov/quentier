@@ -118,6 +118,12 @@ Q_SIGNALS:
     void noteExpungedFromLocalStorage();
     void noteExpungeFromLocalStorageFailed();
 
+    void noteEditorFontColorChanged(QColor color);
+    void noteEditorBackgroundColorChanged(QColor color);
+    void noteEditorHighlightColorChanged(QColor color);
+    void noteEditorHighlightedTextColorChanged(QColor color);
+    void noteEditorColorsReset();
+
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();
     void onNoteEditorWidgetInvalidated();
@@ -173,6 +179,8 @@ private:
 private:
     void connectToLocalStorage();
     void disconnectFromLocalStorage();
+
+    void connectNoteEditorWidgetToColorChangeSignals(NoteEditorWidget & widget);
 
     void setupFileIO();
     void setupSpellChecker();
