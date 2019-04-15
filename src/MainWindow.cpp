@@ -2334,6 +2334,37 @@ void MainWindow::onShowSettingsDialogAction()
     QObject::connect(pPreferencesDialog.data(), QNSIGNAL(PreferencesDialog,runSyncPeriodicallyOptionChanged,int),
                      this, QNSLOT(MainWindow,onRunSyncEachNumMinitesPreferenceChanged,int));
 
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,
+                              noteEditorFontColorChanged,QColor),
+                     m_pNoteEditorTabsAndWindowsCoordinator,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorFontColorChanged,QColor));
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,
+                              noteEditorBackgroundColorChanged,QColor),
+                     m_pNoteEditorTabsAndWindowsCoordinator,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorBackgroundColorChanged,QColor));
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,
+                              noteEditorHighlightColorChanged,QColor),
+                     m_pNoteEditorTabsAndWindowsCoordinator,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorHighlightColorChanged,QColor));
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,
+                              noteEditorHighlightedTextColorChanged,QColor),
+                     m_pNoteEditorTabsAndWindowsCoordinator,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorHighlightedTextColorChanged,QColor));
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,
+                              noteEditorColorsReset),
+                     m_pNoteEditorTabsAndWindowsCoordinator,
+                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
+                              noteEditorColorsReset));
+
     Q_UNUSED(pPreferencesDialog->exec());
 }
 

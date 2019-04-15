@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -337,6 +337,12 @@ public Q_SLOTS:
     void onFindPreviousInsideNoteAction();
     void onReplaceInsideNoteAction();
 
+    void onNoteEditorFontColorChanged(QColor color);
+    void onNoteEditorBackgroundColorChanged(QColor color);
+    void onNoteEditorHighlightColorChanged(QColor color);
+    void onNoteEditorHighlightedTextColorChanged(QColor color);
+    void onNoteEditorColorsReset();
+
 private Q_SLOTS:
     void onNewTagLineEditReceivedFocusFromWindowSystem();
 
@@ -426,11 +432,14 @@ private:
 
     void onCurrentNoteFound(const Note & note);
 
+    void onNoteEditorColorsUpdate();
+
     void setupSpecialIcons();
     void setupFontsComboBox();
     void setupLimitedFontsComboBox(const QString & startupFont = QString());
     void setupFontSizesComboBox();
     void setupFontSizesForFont(const QFont & font);
+    void setupNoteEditorColors();
 
     void updateNoteSourceView(const QString & html);
 

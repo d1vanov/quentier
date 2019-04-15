@@ -32,6 +32,11 @@
 #define CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY QStringLiteral("ConvertToNoteTimeout")
 #define EXPUNGE_NOTE_TIMEOUT_SETTINGS_KEY QStringLiteral("ExpungeNoteTimeout")
 
+#define NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY QStringLiteral("FontColor")
+#define NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY QStringLiteral("BackgroundColor")
+#define NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY QStringLiteral("HighlightColor")
+#define NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY QStringLiteral("HighlightedTextColor")
+
 // Other UI related settings keys
 #define LOOK_AND_FEEL_SETTINGS_GROUP_NAME QStringLiteral("LookAndFeel")
 #define ICON_THEME_SETTINGS_KEY QStringLiteral("IconTheme")
