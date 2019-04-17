@@ -20,7 +20,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   else()
     add_definitions("-DUNICODE -D_UNICODE")
   endif()
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") # NOTE: MATCHES is required, STREQUAL leads to problems with AppleClang
   execute_process(COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE CLANG_VERSION)
   message(STATUS "Using LLVM/Clang C++ compiler, version info: ${CLANG_VERSION}")
   if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.1)
