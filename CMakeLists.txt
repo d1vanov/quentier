@@ -484,6 +484,10 @@ if(BREAKPAD_FOUND)
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
                      COMMAND ${symbols_compressor} ${LIBQUENTIER_FILE_NAME}.syms)
+                     
+  if (MSVC)
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO /LTCG")
+  endif()
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
