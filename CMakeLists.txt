@@ -28,6 +28,7 @@ set(QUENTIER_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 include(QuentierCompilerSettings)
 include(QuentierAdditionalCompilerWarnings)
+include(QuentierLinkerSettings)
 include(QuentierSetupQt)
 include(QuentierUpdateTranslations)
 include(QuentierFindQEverCloud)
@@ -39,7 +40,6 @@ if(NOT APPLE)
   include(QuentierFindBreakpad)
 endif()
 
-include(QuentierLinkerSettings)
 include(PrependPath)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
