@@ -280,7 +280,10 @@ install:
 
 before_build:
   - cd c:\dev\quentier
-  - md build
+  - mkdir build\bin\quentier
+  - if not %qt%==mingw492_32 copy c:\dev\breakpad\bin\common.pdb c:\dev\quentier\build\bin\quentier\common.pdb
+  - if not %qt%==mingw492_32 copy c:\dev\breakpad\bin\crash_generation_client.pdb c:\dev\quentier\build\bin\quentier\crash_generation_client.pdb
+  - if not %qt%==mingw492_32 copy c:\dev\breakpad\bin\exception_handler.pdb c:\dev\quentier\build\bin\quentier\exception_handler.pdb
 
 build_script:
   - cd c:\dev\quentier\build
