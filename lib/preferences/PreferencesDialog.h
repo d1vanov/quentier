@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,12 +22,17 @@
 #include <quentier/utility/Macros.h>
 
 #include <QDialog>
+#include <QColor>
+#include <QPointer>
 
 namespace Ui {
 class PreferencesDialog;
 }
 
 QT_FORWARD_DECLARE_CLASS(QStringListModel)
+QT_FORWARD_DECLARE_CLASS(QColorDialog)
+QT_FORWARD_DECLARE_CLASS(QFrame)
+QT_FORWARD_DECLARE_CLASS(QLineEdit)
 
 namespace quentier {
 
@@ -49,6 +54,12 @@ public:
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
+    void noteEditorFontColorChanged(QColor color);
+    void noteEditorBackgroundColorChanged(QColor color);
+    void noteEditorHighlightColorChanged(QColor color);
+    void noteEditorHighlightedTextColorChanged(QColor color);
+    void noteEditorColorsReset();
+
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void showNoteThumbnailsOptionChanged();
@@ -92,6 +103,24 @@ private Q_SLOTS:
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
 
+    void onNoteEditorFontColorCodeEntered();
+    void onNoteEditorFontColorDialogRequested();
+    void onNoteEditorFontColorSelected(const QColor & color);
+
+    void onNoteEditorBackgroundColorCodeEntered();
+    void onNoteEditorBackgroundColorDialogRequested();
+    void onNoteEditorBackgroundColorSelected(const QColor & color);
+
+    void onNoteEditorHighlightColorCodeEntered();
+    void onNoteEditorHighlightColorDialogRequested();
+    void onNoteEditorHighlightColorSelected(const QColor & color);
+
+    void onNoteEditorHighlightedTextColorCodeEntered();
+    void onNoteEditorHighlightedTextColorDialogRequested();
+    void onNoteEditorHighlightedTextColorSelected(const QColor & color);
+
+    void onNoteEditorColorsReset();
+
     // Synchronization tab
     void onDownloadNoteThumbnailsCheckboxToggled(bool checked);
     void onDownloadInkNoteImagesCheckboxToggled(bool checked);
@@ -108,6 +137,9 @@ private Q_SLOTS:
     void onEnableLogViewerInternalLogsCheckboxToggled(bool checked);
 
 private:
+    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) Q_DECL_OVERRIDE;
+
+private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);
     void setupMainWindowBorderSettings();
@@ -115,9 +147,35 @@ private:
     void setupStartAtLoginSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupNetworkProxySettingsState();
+    void setupNoteEditorSettingsState();
     void createConnections();
+    void installEventFilters();
 
     void checkAndSetNetworkProxy();
+
+    bool onNoteEditorColorEnteredImpl(const QColor & color,
+                                      const QColor & prevColor,
+                                      const QString & settingKey,
+                                      QLineEdit & colorLineEdit,
+                                      QFrame & demoFrame);
+
+    void setNoteEditorFontColorToDemoFrame(const QColor & color);
+    void setNoteEditorBackgroundColorToDemoFrame(const QColor & color);
+    void setNoteEditorHighlightColorToDemoFrame(const QColor & color);
+    void setNoteEditorHighlightedTextColorToDemoFrame(const QColor & color);
+    void setNoteEditorColorToDemoFrameImpl(const QColor & color, QFrame & frame);
+
+    QColor noteEditorFontColor() const;
+    QColor noteEditorBackgroundColor() const;
+    QColor noteEditorHighlightColor() const;
+    QColor noteEditorHighlightedTextColor() const;
+    QColor noteEditorColorImpl(const QString & settingKey) const;
+
+    void saveNoteEditorFontColor(const QColor & color);
+    void saveNoteEditorBackgroundColor(const QColor & color);
+    void saveNoteEditorHighlightColor(const QColor & color);
+    void saveNoteEditorHighlightedTextColor(const QColor & color);
+    void saveNoteEditorColorImpl(const QColor & color, const QString & settingKey);
 
 private:
     Ui::PreferencesDialog *         m_pUi;
@@ -127,6 +185,11 @@ private:
     QStringListModel *              m_pNetworkProxyTypesModel;
     QStringListModel *              m_pAvailableMainWindowBorderOptionsModel;
     QStringListModel *              m_pStartAtLoginOptionsModel;
+
+    QPointer<QColorDialog>          m_pNoteEditorFontColorDialog;
+    QPointer<QColorDialog>          m_pNoteEditorBackgroundColorDialog;
+    QPointer<QColorDialog>          m_pNoteEditorHighlightColorDialog;
+    QPointer<QColorDialog>          m_pNoteEditorHighlightedTextColorDialog;
 };
 
 } // namespace quentier
