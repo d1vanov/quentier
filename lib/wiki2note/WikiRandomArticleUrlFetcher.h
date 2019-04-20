@@ -64,6 +64,11 @@ private Q_SLOTS:
                             ErrorString errorDescription);
 
 private:
+    qint32 parsePageIdFromFetchedData(const QByteArray & fetchedData,
+                                      ErrorString & errorDescription);
+    void finishWithError(const ErrorString & errorDescription);
+
+private:
     QNetworkAccessManager * m_pNetworkAccessManager;
     NetworkReplyFetcher *   m_pNetworkReplyFetcher;
 

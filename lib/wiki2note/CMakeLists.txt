@@ -5,10 +5,12 @@ SET_POLICIES()
 project(quentier_wiki2note)
 
 set(HEADERS
-    WikiArticleToNote.h)
+    WikiArticleToNote.h
+    WikiRandomArticleUrlFetcher.h)
 
 set(SOURCES
-    WikiArticleToNote.cpp)
+    WikiArticleToNote.cpp
+    WikiRandomArticleUrlFetcher.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 

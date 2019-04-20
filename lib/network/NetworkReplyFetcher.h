@@ -24,6 +24,7 @@
 
 #include <QObject>
 #include <QNetworkReply>
+#include <QSslError>
 #include <QUrl>
 
 #define NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC (2000)
