@@ -50,10 +50,6 @@ Q_SIGNALS:
 public Q_SLOTS:
     void start(QByteArray wikiPageContent);
 
-private Q_SLOTS:
-    void onNetworkReplyFinished(bool status, QByteArray fetchedData,
-                                ErrorString errorDescription);
-
 private:
     void finishWithError(ErrorString errorDescription);
 

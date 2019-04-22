@@ -23,6 +23,8 @@
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/logging/QuentierLogger.h>
 
+#include <QXmlStreamReader>
+
 namespace quentier {
 
 WikiArticleToNote::WikiArticleToNote(
@@ -44,28 +46,46 @@ void WikiArticleToNote::start(QByteArray wikiPageContent)
     m_started = true;
     m_finished = false;
 
+    QString html = QStringLiteral("<html><body>");
+    QXmlStreamReader reader(wikiPageContent);
+    bool insideTextElement = false;
+    while(!reader.atEnd())
+    {
+        if (reader.isStartElement() &&
+            reader.name().toString() == QStringLiteral("text"))
+        {
+            insideTextElement = true;
+        }
+
+        if (reader.isCharacters() && insideTextElement) {
+            html += reader.text().toString();
+        }
+
+        if (reader.isEndElement() && insideTextElement) {
+            insideTextElement = false;
+        }
+    }
+
+    if (Q_UNLIKELY(html.isEmpty())) {
+        ErrorString errorDescription(QT_TR_NOOP("Failed to extract wiki page HTML"));
+        finishWithError(errorDescription);
+        return;
+    }
+
+    html += QStringLiteral("</body></html>");
+
     QString cleanedUpHtml;
     ErrorString errorDescription;
     bool res = m_enmlConverter.cleanupExternalHtml(
-        QString::fromUtf8(wikiPageContent),
-        cleanedUpHtml, errorDescription);
+        html, cleanedUpHtml, errorDescription);
     if (!res) {
         finishWithError(errorDescription);
         return;
     }
 
-    // TODO: continue from here
-}
-
-void WikiArticleToNote::onNetworkReplyFinished(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
-{
-    QNDEBUG(QStringLiteral("WikiArticleToNote::onNetworkReplyFinished: ")
-            << (status ? QStringLiteral("success") : QStringLiteral("failure"))
-            << QStringLiteral(", error description: ") << errorDescription);
-
-    Q_UNUSED(fetchedData)
-    // TODO: implement
+    // TODO: continue from here:
+    // 1) Scan the HTML for img tags; if there are any, download source images
+    // 2) When done, need to replace img tags' srcs appropriately
 }
 
 void WikiArticleToNote::finishWithError(ErrorString errorDescription)
