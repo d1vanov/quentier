@@ -22,11 +22,7 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#endif
+#include <QXmlStreamReader>
 
 #include <algorithm>
 
@@ -62,7 +58,7 @@ void WikiRandomArticleUrlFetcher::start()
 
     QUrl query(QStringLiteral("https://en.wikipedia.org/w/api.php"
                               "?action=query"
-                              "&format=json"
+                              "&format=xml"
                               "&list=random"
                               "&rnlimit=1"
                               "&rnnamespace=0"));
@@ -152,90 +148,39 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
     ErrorString & errorDescription)
 {
     qint32 pageId = 0;
+    bool foundPageId = false;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    QJsonParseError error;
-    QJsonDocument document = QJsonDocument::fromJson(fetchedData, &error);
-    if (error.error) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to parse response as JSON "
-                                            "on attempt to fetch random "
-                                            "Wiki article URL"));
-        errorDescription.details() = error.errorString() + QStringLiteral(" (") +
-                                     QString::number(error.error) + QStringLiteral(")");
-        QNWARNING(errorDescription << QStringLiteral(": ") << fetchedData);
-        return -1;
+    QXmlStreamReader reader(fetchedData);
+
+    while(!reader.atEnd())
+    {
+        if (reader.isStartElement() &&
+            (reader.name().toString() == QStringLiteral("page")))
+        {
+            const QXmlStreamAttributes attributes = reader.attributes();
+            QString id = attributes.value(QStringLiteral("id")).toString();
+
+            bool conversionResult = false;
+            pageId = id.toInt(&conversionResult);
+            if (!conversionResult) {
+                errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
+                                                    "article URL: could not convert "
+                                                    "id property to int"));
+                QNWARNING(errorDescription << QStringLiteral(": ") << id);
+                return -1;
+            }
+
+            foundPageId = true;
+            break;
+        }
     }
 
-    if (!document.isObject()) {
-        errorDescription.setBase(QT_TR_NOOP("Unexpected response on attempt "
-                                            "to fetch random Wiki article URL"));
-        QNWARNING(errorDescription << QStringLiteral(": ") << fetchedData);
-        return -1;
-    }
-
-    QJsonObject object = document.object();
-    QVariantHash objectHash = object.toVariantHash();
-    QVariantHash queryHash = objectHash[QStringLiteral("query")].toHash();
-    QJsonArray randomArray = queryHash[QStringLiteral("random")].toJsonArray();
-    QVariantHash randomObjectHash = randomArray.at(0).toObject().toVariantHash();
-    auto it = randomObjectHash.constFind(QStringLiteral("id"));
-    if (it == randomObjectHash.constEnd()) {
+    if (!foundPageId) {
         errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
-                                            "article URL: could not find id "
-                                            "property within JSON"));
-        QNWARNING(errorDescription << QStringLiteral(": ") << fetchedData);
+                                            "article URL: could not find page id"));
+        QNWARNING(errorDescription);
         return -1;
     }
-
-    const QVariant & idValue = it.value();
-    bool conversionResult = false;
-    pageId = idValue.toInt(&conversionResult);
-    if (!conversionResult) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
-                                            "article URL: could not convert "
-                                            "id property from JSON to int"));
-        QNWARNING(errorDescription << QStringLiteral(": ") << idValue);
-        return -1;
-    }
-
-#else // QT_VERSION_CHECK
-
-    // Qt4 doesn't have JSON parsing machinery built it and it's going to be
-    // deprecated soon enough so can just insert a hack here: just find the value
-    // within the string representing JSON, in a quick and dirty manner
-    QString fetchedDataStr = QString::fromUtf8(fetchedData);
-    int idIndex = fetchedDataStr.indexOf(QStringLiteral("\"id\": "));
-    if (idIndex < 0) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
-                                            "article URL: can't find id "
-                                            "property within JSON"));
-        QNWARNING(errorDescription << QStringLiteral(": ") << fetchedData);
-        return -1;
-    }
-
-    int colonIndex = fetchedDataStr.indexOf(QStringLiteral(","), idIndex);
-    if (colonIndex < 0) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
-                                            "article URL: can't find colon after "
-                                            "id property within JSON"));
-        QNWARNING(errorDescription << QStringLiteral(": ") << fetchedData);
-        return -1;
-    }
-
-    idIndex += 6;   // shift to the beginning of the value
-    QString pageIdStr = fetchedDataStr.mid(idIndex, (colonIndex - idIndex));
-
-    bool conversionResult = false;
-    pageId = pageIdStr.toInt(&conversionResult);
-    if (!conversionResult) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
-                                            "article URL: could not convert "
-                                            "id property from JSON to int"));
-        QNWARNING(errorDescription << QStringLiteral(": ") << pageIdStr);
-        return -1;
-    }
-
-#endif // QT_VERSION_CHECK
 
     return pageId;
 }
