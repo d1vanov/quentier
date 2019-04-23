@@ -36,6 +36,7 @@ class WikiArticleToNote: public QObject
     Q_OBJECT
 public:
     explicit WikiArticleToNote(
+        QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
         QObject * parent = Q_NULLPTR);
 
@@ -50,17 +51,27 @@ Q_SIGNALS:
 public Q_SLOTS:
     void start(QByteArray wikiPageContent);
 
-private:
-    void finishWithError(ErrorString errorDescription);
+private Q_SLOTS:
+    void onNetworkReplyFetcherFinished(bool status, QByteArray fetchedData,
+                                       ErrorString errorDescription);
+    void onNetworkReplyFetcherProgress(qint64 bytesFetched, qint64 bytesTotal);
 
 private:
-    ENMLConverter &     m_enmlConverter;
+    void finishWithError(ErrorString errorDescription);
+    void clear();
+
+    QString fetchedWikiArticleToHtml(const QByteArray & fetchedData) const;
+    bool setupImageDataFetching(const QString & html, ErrorString & errorDescription);
+
+private:
+    QNetworkAccessManager * m_pNetworkAccessManager;
+    ENMLConverter &         m_enmlConverter;
     Note    m_note;
 
     bool    m_started;
     bool    m_finished;
 
-    QHash<QString, NetworkReplyFetcher*> m_imageDataFetchersByResourceLocalUid;
+    QSet<NetworkReplyFetcher*> m_imageDataFetchers;
 };
 
 } // namespace quentier
