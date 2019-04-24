@@ -45,8 +45,11 @@ public:
 
     const Note & note() const { return m_note; }
 
+    double progress() const { return m_progress; }
+
 Q_SIGNALS:
     void finished(bool status, ErrorString errorDescription, Note note);
+    void progress(double progress);
 
 public Q_SLOTS:
     void start(QByteArray wikiPageContent);
@@ -60,6 +63,8 @@ private:
     void finishWithError(ErrorString errorDescription);
     void clear();
 
+    void updateProgress();
+
     QString fetchedWikiArticleToHtml(const QByteArray & fetchedData) const;
     bool setupImageDataFetching(const QString & html, ErrorString & errorDescription);
 
@@ -71,7 +76,9 @@ private:
     bool    m_started;
     bool    m_finished;
 
-    QSet<NetworkReplyFetcher*> m_imageDataFetchers;
+    QHash<NetworkReplyFetcher*, double> m_imageDataFetchersWithProgress;
+
+    double  m_progress;
 };
 
 } // namespace quentier

@@ -25,6 +25,8 @@
 
 #include <QXmlStreamReader>
 
+#include <algorithm>
+
 namespace quentier {
 
 WikiArticleToNote::WikiArticleToNote(
@@ -33,7 +35,12 @@ WikiArticleToNote::WikiArticleToNote(
         QObject * parent) :
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
-    m_enmlConverter(enmlConverter)
+    m_enmlConverter(enmlConverter),
+    m_note(),
+    m_started(false),
+    m_finished(false),
+    m_imageDataFetchersWithProgress(),
+    m_progress(0.0)
 {}
 
 void WikiArticleToNote::start(QByteArray wikiPageContent)
@@ -69,7 +76,7 @@ void WikiArticleToNote::start(QByteArray wikiPageContent)
         return;
     }
 
-    if (!m_imageDataFetchers.isEmpty()) {
+    if (!m_imageDataFetchersWithProgress.isEmpty()) {
         return;
     }
 
@@ -105,7 +112,11 @@ void WikiArticleToNote::onNetworkReplyFetcherProgress(qint64 bytesFetched,
             << bytesTotal << QStringLiteral(" bytes; url = ")
             << (pFetcher ? pFetcher->url().toString() : QStringLiteral("<unidentified>")));
 
-    // TODO: compute and emit progress update
+    auto it = m_imageDataFetchersWithProgress.find(pFetcher);
+    if (it != m_imageDataFetchersWithProgress.end()) {
+        it.value() = static_cast<double>(bytesFetched) / std::max(bytesTotal, qint64(1));
+        updateProgress();
+    }
 }
 
 void WikiArticleToNote::finishWithError(ErrorString errorDescription)
@@ -125,14 +136,42 @@ void WikiArticleToNote::clear()
     m_finished = false;
 
     m_note = Note();
-    for(auto it = m_imageDataFetchers.constBegin(),
-        end = m_imageDataFetchers.constEnd(); it != end; ++it)
+
+    for(auto it = m_imageDataFetchersWithProgress.constBegin(),
+        end = m_imageDataFetchersWithProgress.constEnd(); it != end; ++it)
     {
-        NetworkReplyFetcher * pNetworkReplyFetcher = *it;
+        NetworkReplyFetcher * pNetworkReplyFetcher = it.key();
         pNetworkReplyFetcher->disconnect(this);
         pNetworkReplyFetcher->deleteLater();
     }
-    m_imageDataFetchers.clear();
+    m_imageDataFetchersWithProgress.clear();
+
+    m_progress = 0.0;
+}
+
+void WikiArticleToNote::updateProgress()
+{
+    QNDEBUG(QStringLiteral("WikiArticleToNote::updateProgress"));
+
+    if (m_imageDataFetchersWithProgress.isEmpty()) {
+        return;
+    }
+
+    double imageFetchersProgress = 0.0;
+    for(auto it = m_imageDataFetchersWithProgress.constBegin(),
+        end = m_imageDataFetchersWithProgress.constEnd(); it != end; ++it)
+    {
+        imageFetchersProgress += it.value();
+    }
+    imageFetchersProgress /= m_imageDataFetchersWithProgress.size();
+
+    // 10% of progress are reserved for final HTML to ENML conversion
+    imageFetchersProgress *= 0.9;
+
+    m_progress = std::max(imageFetchersProgress, 0.9);
+    QNTRACE(QStringLiteral("Updated progress to ") << m_progress);
+
+    Q_EMIT progress(m_progress);
 }
 
 QString WikiArticleToNote::fetchedWikiArticleToHtml(
@@ -207,7 +246,7 @@ bool WikiArticleToNote::setupImageDataFetching(const QString & html,
                              QNSLOT(WikiArticleToNote,onNetworkReplyFetcherProgress,
                                     qint64,qint64));
 
-            Q_UNUSED(m_imageDataFetchers.insert(pFetcher))
+            m_imageDataFetchersWithProgress[pFetcher] = 0.0;
         }
     }
 
