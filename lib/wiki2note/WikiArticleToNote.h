@@ -21,6 +21,7 @@
 
 #include <quentier/utility/Macros.h>
 #include <quentier/types/Note.h>
+#include <quentier/types/Resource.h>
 
 #include <QObject>
 #include <QHash>
@@ -66,7 +67,12 @@ private:
     void updateProgress();
 
     QString fetchedWikiArticleToHtml(const QByteArray & fetchedData) const;
-    bool setupImageDataFetching(const QString & html, ErrorString & errorDescription);
+    bool setupImageDataFetching(ErrorString & errorDescription);
+
+    void createResource(const QByteArray & fetchedData, const QUrl & url);
+
+    void convertHtmlToEnmlAndComposeNote();
+    bool preprocessHtmlForConversionToEnml();
 
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
@@ -77,6 +83,12 @@ private:
     bool    m_finished;
 
     QHash<NetworkReplyFetcher*, double> m_imageDataFetchersWithProgress;
+
+    // Resources created from imgs downloaded by fetchers by imgs' urls
+    QHash<QUrl, Resource>   m_imageResourcesByUrl;
+
+    // Cleaned up wiki article's HTML
+    QString m_html;
 
     double  m_progress;
 };

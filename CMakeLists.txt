@@ -16,6 +16,10 @@ include(QuentierFindLibquentier)
 include(QuentierFindBoost)
 include(QuentierDoxygen)
 
+if(NOT USE_QT5)
+  include(QuentierFindQt4Mimetypes)
+endif()
+
 if(NOT APPLE)
   include(QuentierFindBreakpad)
 endif()
@@ -51,6 +55,10 @@ endif()
 if(BREAKPAD_FOUND)
   list(APPEND THIRDPARTY_LIBS ${BREAKPAD_LIBRARIES})
   add_definitions(-DBUILDING_WITH_BREAKPAD=1)
+endif()
+
+if(NOT USE_QT5)
+  list(APPEND THIRDPARTY_LIBS ${QT4-MIMETYPES_LIBRARIES})
 endif()
 
 if(WIN32)

@@ -23,7 +23,11 @@
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/logging/QuentierLogger.h>
 
+#include <QCryptographicHash>
+#include <QMimeDatabase>
+#include <QMimeType>
 #include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
 #include <algorithm>
 
@@ -40,6 +44,8 @@ WikiArticleToNote::WikiArticleToNote(
     m_started(false),
     m_finished(false),
     m_imageDataFetchersWithProgress(),
+    m_imageResourcesByUrl(),
+    m_html(),
     m_progress(0.0)
 {}
 
@@ -62,25 +68,22 @@ void WikiArticleToNote::start(QByteArray wikiPageContent)
         return;
     }
 
-    QString cleanedUpHtml;
     ErrorString errorDescription;
     bool res = m_enmlConverter.cleanupExternalHtml(
-        html, cleanedUpHtml, errorDescription);
+        html, m_html, errorDescription);
     if (!res) {
         finishWithError(errorDescription);
         return;
     }
 
-    if (!setupImageDataFetching(cleanedUpHtml, errorDescription)) {
+    if (!setupImageDataFetching(errorDescription)) {
         finishWithError(errorDescription);
         return;
     }
 
-    if (!m_imageDataFetchersWithProgress.isEmpty()) {
-        return;
+    if (m_imageDataFetchersWithProgress.isEmpty()) {
+        convertHtmlToEnmlAndComposeNote();
     }
-
-    // TODO: convert HTML to ENML
 }
 
 void WikiArticleToNote::onNetworkReplyFetcherFinished(
@@ -98,9 +101,23 @@ void WikiArticleToNote::onNetworkReplyFetcherFinished(
         return;
     }
 
-    // TODO: check if all img src network replies fetched, if yes, proceed to
-    // converting wiki page's HTML to ENML
-    Q_UNUSED(fetchedData)
+    createResource(fetchedData, pFetcher->url());
+
+    auto it = m_imageDataFetchersWithProgress.find(pFetcher);
+    if (Q_UNLIKELY(it == m_imageDataFetchersWithProgress.end())) {
+        errorDescription.setBase(QT_TR_NOOP("Internal error: detected reply from "
+                                            "unidentified img data fetcher"));
+        finishWithError(errorDescription);
+        return;
+    }
+
+    it.value() = 1.0;
+    updateProgress();
+
+    m_imageDataFetchersWithProgress.erase(it);
+    if (m_imageDataFetchersWithProgress.isEmpty()) {
+        convertHtmlToEnmlAndComposeNote();
+    }
 }
 
 void WikiArticleToNote::onNetworkReplyFetcherProgress(qint64 bytesFetched,
@@ -146,6 +163,9 @@ void WikiArticleToNote::clear()
     }
     m_imageDataFetchersWithProgress.clear();
 
+    m_imageResourcesByUrl.clear();
+
+    m_html.clear();
     m_progress = 0.0;
 }
 
@@ -206,10 +226,9 @@ QString WikiArticleToNote::fetchedWikiArticleToHtml(
     return html;
 }
 
-bool WikiArticleToNote::setupImageDataFetching(const QString & html,
-                                               ErrorString & errorDescription)
+bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
 {
-    QXmlStreamReader reader(html);
+    QXmlStreamReader reader(m_html);
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext())
@@ -250,6 +269,158 @@ bool WikiArticleToNote::setupImageDataFetching(const QString & html,
         }
     }
 
+    return true;
+}
+
+void WikiArticleToNote::createResource(const QByteArray & fetchedData,
+                                       const QUrl & url)
+{
+    QNDEBUG(QStringLiteral("WikiArticleToNote::createResource: url = ") << url);
+
+    Resource & resource = m_imageResourcesByUrl[url];
+
+    resource.setDataBody(fetchedData);
+    resource.setDataSize(fetchedData.size());
+    resource.setDataHash(QCryptographicHash::hash(fetchedData, QCryptographicHash::Md5));
+
+    QString urlString = url.toString();
+    QString fileName;
+
+    int index = urlString.lastIndexOf(QChar::fromLatin1('/'));
+    if (index >= 0) {
+        fileName = urlString.mid(index + 1);
+    }
+
+    QMimeDatabase mimeDatabase;
+    QMimeType mimeType = mimeDatabase.mimeTypeForData(fetchedData);
+    if (!mimeType.isValid())
+    {
+        // Try to extract the mime type from url
+        QList<QMimeType> mimeTypes = mimeDatabase.mimeTypesForFileName(fileName);
+        for(auto it = mimeTypes.constBegin(),
+            end = mimeTypes.constEnd(); it != end; ++it)
+        {
+            if (it->isValid()) {
+                mimeType = *it;
+                break;
+            }
+        }
+    }
+
+    if (mimeType.isValid()) {
+        resource.setMime(mimeType.name());
+    }
+    else {
+        // Just a wild guess as a last resort
+        resource.setMime(QStringLiteral("image/png"));
+    }
+
+    qevercloud::ResourceAttributes & attributes = resource.resourceAttributes();
+    attributes.sourceURL = urlString;
+    if (!fileName.isEmpty()) {
+        attributes.fileName = fileName;
+    }
+}
+
+void WikiArticleToNote::convertHtmlToEnmlAndComposeNote()
+{
+    QNDEBUG(QStringLiteral("WikiArticleToNote::convertHtmlToEnmlAndComposeNote"));
+
+    if (!m_imageResourcesByUrl.isEmpty() && !preprocessHtmlForConversionToEnml()) {
+        return;
+    }
+
+    // TODO: implement further: convert HTML to ENML, add resources to note and
+    // finish
+}
+
+bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
+{
+    QNDEBUG(QStringLiteral("WikiArticleToNote::preprocessHtmlForConversionToEnml"));
+
+    QString preprocessedHtml;
+    QXmlStreamWriter writer(&preprocessedHtml);
+    writer.setAutoFormatting(false);
+    writer.setCodec("UTF-8");
+    writer.writeStartDocument();
+
+    QXmlStreamReader reader(m_html);
+    while(!reader.atEnd())
+    {
+        Q_UNUSED(reader.readNext());
+
+        if (reader.isStartDocument()) {
+            continue;
+        }
+
+        if (reader.isDTD()) {
+            writer.writeDTD(reader.text().toString());
+            continue;
+        }
+
+        if (reader.isEndDocument()) {
+            writer.writeEndDocument();
+            break;
+        }
+
+        if (reader.isStartElement())
+        {
+            QString name = reader.name().toString();
+            writer.writeStartElement(name);
+
+            QXmlStreamAttributes attributes = reader.attributes();
+            if (name == QStringLiteral("img"))
+            {
+                attributes.append(QStringLiteral("en-tag"), QStringLiteral("en-media"));
+
+                QString src = attributes.value(QStringLiteral("src")).toString();
+                auto resourceIt = m_imageResourcesByUrl.find(QUrl(src));
+                if (Q_UNLIKELY(resourceIt == m_imageResourcesByUrl.end())) {
+                    ErrorString errorDescription(QT_TR_NOOP("Cannot convert wiki "
+                                                            "page to ENML: img "
+                                                            "resource not found"));
+                    finishWithError(errorDescription);
+                    return false;
+                }
+
+                const Resource & resource = resourceIt.value();
+                attributes.append(QStringLiteral("hash"),
+                                  QString::fromUtf8(resource.dataHash().toHex()));
+                attributes.append(QStringLiteral("type"), resource.mime());
+            }
+
+            writer.writeAttributes(attributes);
+            continue;
+        }
+
+        if (reader.isCharacters())
+        {
+            QString data = reader.text().toString();
+
+            if (reader.isCDATA()) {
+                writer.writeCDATA(data);
+            }
+            else {
+                writer.writeCharacters(data);
+            }
+
+            continue;
+        }
+
+        if (reader.isEndElement()) {
+            writer.writeEndElement();
+            continue;
+        }
+    }
+
+    if (Q_UNLIKELY(reader.hasError())) {
+        ErrorString errorDescription(QT_TR_NOOP("Cannot convert wiki page to ENML"));
+        errorDescription.details() = reader.errorString();
+        finishWithError(errorDescription);
+        return false;
+    }
+
+    m_html = preprocessedHtml;
     return true;
 }
 
