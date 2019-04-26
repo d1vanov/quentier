@@ -21,6 +21,7 @@
 #include <lib/network/NetworkReplyFetcher.h>
 
 #include <quentier/enml/ENMLConverter.h>
+#include <quentier/enml/DecryptedTextManager.h>
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QCryptographicHash>
@@ -84,6 +85,10 @@ void WikiArticleToNote::start(QByteArray wikiPageContent)
     if (m_imageDataFetchersWithProgress.isEmpty()) {
         convertHtmlToEnmlAndComposeNote();
     }
+    else {
+        QNDEBUG(QStringLiteral("Pending ") << m_imageDataFetchersWithProgress.size()
+                << QStringLiteral(" image data downloads"));
+    }
 }
 
 void WikiArticleToNote::onNetworkReplyFetcherFinished(
@@ -115,7 +120,9 @@ void WikiArticleToNote::onNetworkReplyFetcherFinished(
     updateProgress();
 
     m_imageDataFetchersWithProgress.erase(it);
+
     if (m_imageDataFetchersWithProgress.isEmpty()) {
+        QNDEBUG(QStringLiteral("Downloaded all images, converting HTML to note"));
         convertHtmlToEnmlAndComposeNote();
     }
 }
@@ -326,17 +333,45 @@ void WikiArticleToNote::convertHtmlToEnmlAndComposeNote()
 {
     QNDEBUG(QStringLiteral("WikiArticleToNote::convertHtmlToEnmlAndComposeNote"));
 
-    if (!m_imageResourcesByUrl.isEmpty() && !preprocessHtmlForConversionToEnml()) {
+    if (!preprocessHtmlForConversionToEnml()) {
         return;
     }
 
-    // TODO: implement further: convert HTML to ENML, add resources to note and
-    // finish
+    QString enml;
+    DecryptedTextManager decryptedTextManager;
+    ErrorString errorDescription;
+
+    bool res = m_enmlConverter.htmlToNoteContent(m_html, enml,
+                                                 decryptedTextManager,
+                                                 errorDescription);
+    if (!res) {
+        finishWithError(errorDescription);
+        return;
+    }
+
+    m_note.setContent(enml);
+    for(auto it = m_imageResourcesByUrl.constBegin(),
+        end = m_imageResourcesByUrl.constEnd(); it != end; ++it)
+    {
+        m_note.addResource(it.value());
+    }
+
+    m_progress = 1.0;
+    Q_EMIT progress(m_progress);
+
+    m_started = false;
+    m_finished = true;
+
+    Q_EMIT finished(true, ErrorString(), m_note);
 }
 
 bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
 {
     QNDEBUG(QStringLiteral("WikiArticleToNote::preprocessHtmlForConversionToEnml"));
+
+    if (m_imageResourcesByUrl.isEmpty()) {
+        return true;
+    }
 
     QString preprocessedHtml;
     QXmlStreamWriter writer(&preprocessedHtml);

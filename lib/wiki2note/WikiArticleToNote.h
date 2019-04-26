@@ -32,6 +32,9 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ENMLConverter)
 QT_FORWARD_DECLARE_CLASS(NetworkReplyFetcher)
 
+/**
+ * The WikiArticleToNote converts the contents of a wiki article to a note
+ */
 class WikiArticleToNote: public QObject
 {
     Q_OBJECT
