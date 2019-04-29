@@ -22,6 +22,9 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
+#include <QRegExp>
+#include <QXmlStreamReader>
+
 #define WALOG_IMPL(message, macro) \
     macro(QStringLiteral("<") << m_url << QStringLiteral(">: ") << message)
 
@@ -62,17 +65,7 @@ WikiArticleFetcher::WikiArticleFetcher(
 
 WikiArticleFetcher::~WikiArticleFetcher()
 {
-    if (m_pApiUrlFetcher) {
-        m_pApiUrlFetcher->disconnect(this);
-        m_pApiUrlFetcher->deleteLater();
-        m_pApiUrlFetcher = Q_NULLPTR;
-    }
-
-    if (m_pWikiArticleToNote) {
-        m_pWikiArticleToNote->disconnect(this);
-        m_pWikiArticleToNote->deleteLater();
-        m_pWikiArticleToNote = Q_NULLPTR;
-    }
+    clear();
 }
 
 void WikiArticleFetcher::start()
@@ -87,7 +80,14 @@ void WikiArticleFetcher::start()
     m_started = true;
     m_finished = false;
 
-    m_pApiUrlFetcher = new NetworkReplyFetcher(m_pNetworkAccessManager, m_url);
+    QUrl url;
+    ErrorString errorDescription;
+    if (!composePageIdFetchingUrl(url, errorDescription)) {
+        finishWithError(errorDescription);
+        return;
+    }
+
+    m_pApiUrlFetcher = new NetworkReplyFetcher(m_pNetworkAccessManager, url);
 
     QObject::connect(m_pApiUrlFetcher,
                      QNSIGNAL(NetworkReplyFetcher,finished,
@@ -110,8 +110,12 @@ void WikiArticleFetcher::onPageIdFetchingProgress(qint64 bytesFetched,
             << QStringLiteral("fetched ") << bytesFetched
             << QStringLiteral(" out of ") << bytesTotal);
 
-    // TODO: convert to percentage within 10% devoted to page id fetching from
-    // total progress
+    // Page id fetching has 10% of total progress reserved for it so scaling
+    // the numbers
+    double progressValue = 0.1 * static_cast<double>(bytesFetched) /
+        std::max(bytesTotal, qint64(0));
+
+    Q_EMIT progress(progressValue);
 }
 
 void WikiArticleFetcher::onPageIdFetchingFinished(
@@ -154,6 +158,108 @@ void WikiArticleFetcher::onWikiArticleToNoteFinished(
     m_note = note;
 
     Q_EMIT finished();
+}
+
+bool WikiArticleFetcher::composePageIdFetchingUrl(
+    QUrl & url, ErrorString & errorDescription) const
+{
+    QString urlString = m_url.toString();
+
+    QRegExp regex(QStringLiteral("^https?:\\/\\/\\w{2,}\\.wikipedia\\.org\\/wiki\\/(\\w+)$"));
+    int pos = regex.indexIn(urlString);
+    if (Q_UNLIKELY(pos < 0)) {
+        errorDescription.setBase(QT_TR_NOOP("Can't parse the input URL"));
+        errorDescription.details() = urlString;
+        WAWARNING(errorDescription);
+        return false;
+    }
+
+    QStringList capturedTexts = regex.capturedTexts();
+    if (capturedTexts.size() < 3) {
+        errorDescription.setBase(QT_TR_NOOP("Can't parse the input URL"));
+        errorDescription.details() = urlString;
+        WAWARNING(errorDescription);
+        return false;
+    }
+
+    QString languageCode = capturedTexts[1];
+    QString articleName = capturedTexts[2];
+
+    QString apiUrl = QStringLiteral("https://");
+    apiUrl += languageCode;
+    apiUrl += QStringLiteral(".wikipedia.org/w/api.php?action=query&format=xml&titles=");
+    apiUrl += articleName;
+
+    url = QUrl(apiUrl);
+    return true;
+}
+
+qint32 WikiArticleFetcher::parsePageIdFromFetchedData(
+    const QByteArray & fetchedData, ErrorString & errorDescription)
+{
+    qint32 pageId = -1;
+
+    QXmlStreamReader reader(fetchedData);
+    while(!reader.atEnd())
+    {
+        Q_UNUSED(reader.readNext())
+
+        if (reader.isStartElement() &&
+            (reader.name().toString() == QStringLiteral("page")))
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef pageIdValue = attributes.value(QStringLiteral("pageid"));
+            bool conversionResult = false;
+            pageId = pageIdValue.toInt(&conversionResult);
+            if (!conversionResult) {
+                errorDescription.setBase(QT_TR_NOOP("Failed to fetch page id"));
+                WAWARNING(errorDescription << QStringLiteral("; page id value = ")
+                          << pageIdValue);
+                return -1;
+            }
+
+            break;
+        }
+    }
+
+    if (pageId < 0) {
+        errorDescription.setBase(QT_TR_NOOP("Failed to fetch page id"));
+        WAWARNING(errorDescription << QStringLiteral("; fetched data: ")
+                  << fetchedData);
+        return -1;
+    }
+
+    return pageId;
+}
+
+void WikiArticleFetcher::finishWithError(const ErrorString & errorDescription)
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::finishWithError: ")
+            << errorDescription);
+
+    clear();
+    Q_EMIT failure(errorDescription);
+}
+
+void WikiArticleFetcher::clear()
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::clear"));
+
+    m_started = false;
+    m_finished = false;
+    m_note = Note();
+
+    if (m_pApiUrlFetcher) {
+        m_pApiUrlFetcher->disconnect(this);
+        m_pApiUrlFetcher->deleteLater();
+        m_pApiUrlFetcher = Q_NULLPTR;
+    }
+
+    if (m_pWikiArticleToNote) {
+        m_pWikiArticleToNote->disconnect(this);
+        m_pWikiArticleToNote->deleteLater();
+        m_pWikiArticleToNote = Q_NULLPTR;
+    }
 }
 
 } // namespace quentier

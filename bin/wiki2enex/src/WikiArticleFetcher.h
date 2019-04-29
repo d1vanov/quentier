@@ -60,9 +60,11 @@ private Q_SLOTS:
                                      Note note);
 
 private:
+    bool composePageIdFetchingUrl(QUrl & url, ErrorString & errorDescription) const;
     qint32 parsePageIdFromFetchedData(const QByteArray & fetchedData,
                                       ErrorString & errorDescription);
     void finishWithError(const ErrorString & errorDescription);
+    void clear();
 
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
