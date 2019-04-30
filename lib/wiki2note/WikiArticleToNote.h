@@ -49,11 +49,11 @@ public:
 
     const Note & note() const { return m_note; }
 
-    double progress() const { return m_progress; }
+    double currentProgress() const { return m_progress; }
 
 Q_SIGNALS:
     void finished(bool status, ErrorString errorDescription, Note note);
-    void progress(double progress);
+    void progress(double progressValue);
 
 public Q_SLOTS:
     void start(QByteArray wikiPageContent);

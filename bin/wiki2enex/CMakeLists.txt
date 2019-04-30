@@ -19,4 +19,26 @@ set(PROJECT_DOMAIN_FIRST "quentier")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
+set(HEADERS
+    src/WikiArticleFetcher.h)
 
+set(SOURCES
+    src/main.cpp
+    src/WikiArticleFetcher.cpp)
+
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
+
+if(USE_QT5)
+  target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network)
+else()
+  target_link_libraries(${PROJECT_NAME} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY})
+endif()
+
+target_link_libraries(${PROJECT_NAME} ${quentier_network})
+target_link_libraries(${PROJECT_NAME} ${quentier_wiki2note})
+target_link_libraries(${PROJECT_NAME} ${LIBQUENTIER_LIBRARIES})
+
+add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
+if(USE_QT5)
+  add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
+endif()

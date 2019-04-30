@@ -8,3 +8,4 @@ if(BREAKPAD_FOUND)
 endif()
 
 add_subdirectory(quentier)
+add_subdirectory(wiki2enex)

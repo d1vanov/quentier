@@ -185,4 +185,21 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
     return pageId;
 }
 
+void WikiRandomArticleUrlFetcher::finishWithError(const ErrorString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("WikiRandomArticleUrlFetcher::finishWithError: ")
+            << errorDescription);
+
+    m_started = false;
+    m_finished = false;
+
+    if (m_pNetworkReplyFetcher) {
+        m_pNetworkReplyFetcher->disconnect(this);
+        m_pNetworkReplyFetcher->deleteLater();
+        m_pNetworkReplyFetcher = Q_NULLPTR;
+    }
+
+    Q_EMIT finished(false, QUrl(), errorDescription);
+}
+
 } // namespace quentier

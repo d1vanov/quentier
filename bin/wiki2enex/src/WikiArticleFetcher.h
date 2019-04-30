@@ -55,12 +55,16 @@ private Q_SLOTS:
     void onPageIdFetchingFinished(bool status, QByteArray fetchedData,
                                   ErrorString errorDescription);
 
+    void onWikiArticleDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
+    void onWikiArticleDownloadFinished(bool status, QByteArray fetchedData,
+                                       ErrorString errorDescription);
+
     void onWikiArticleToNoteProgress(double progress);
     void onWikiArticleToNoteFinished(bool status, ErrorString errorDescription,
                                      Note note);
 
 private:
-    bool composePageIdFetchingUrl(QUrl & url, ErrorString & errorDescription) const;
+    bool composePageIdFetchingUrl(QUrl & url, ErrorString & errorDescription);
     qint32 parsePageIdFromFetchedData(const QByteArray & fetchedData,
                                       ErrorString & errorDescription);
     void finishWithError(const ErrorString & errorDescription);
@@ -79,6 +83,14 @@ private:
     // using page id. This network reply fetcher queries wiki for page id
     // in order to compose the proper API url
     NetworkReplyFetcher *   m_pApiUrlFetcher;
+
+    // Language code extracted from the startup URL, i.e. en for English wikipedia
+    QString     m_languageCode;
+
+    // Article title extracted from the startup URL
+    QString     m_articleTitle;
+
+    NetworkReplyFetcher *   m_pArticleContentsFetcher;
 
     ENMLConverter           m_enmlConverter;
 

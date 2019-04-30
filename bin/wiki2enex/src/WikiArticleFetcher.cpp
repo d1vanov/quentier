@@ -59,6 +59,9 @@ WikiArticleFetcher::WikiArticleFetcher(
     m_finished(false),
     m_note(),
     m_pApiUrlFetcher(Q_NULLPTR),
+    m_languageCode(),
+    m_articleTitle(),
+    m_pArticleContentsFetcher(Q_NULLPTR),
     m_enmlConverter(),
     m_pWikiArticleToNote(Q_NULLPTR)
 {}
@@ -113,8 +116,9 @@ void WikiArticleFetcher::onPageIdFetchingProgress(qint64 bytesFetched,
     // Page id fetching has 10% of total progress reserved for it so scaling
     // the numbers
     double progressValue = 0.1 * static_cast<double>(bytesFetched) /
-        std::max(bytesTotal, qint64(0));
+        std::max(bytesTotal, qint64(1));
 
+    WATRACE(QStringLiteral("Progres update: ") << progressValue);
     Q_EMIT progress(progressValue);
 }
 
@@ -125,20 +129,116 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
             << (status ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description = ") << errorDescription);
 
+    if (m_pApiUrlFetcher) {
+        m_pApiUrlFetcher->disconnect(this);
+        m_pApiUrlFetcher->deleteLater();
+        m_pApiUrlFetcher = Q_NULLPTR;
+    }
+
     if (!status) {
         finishWithError(errorDescription);
         return;
     }
 
-    // TODO: compose API url and start WikiArticleToNote
+    qint32 pageId = parsePageIdFromFetchedData(fetchedData, errorDescription);
+    if (pageId < 0) {
+        finishWithError(errorDescription);
+        return;
+    }
+
+    QString articleUrl = QStringLiteral("https://");
+    articleUrl += m_languageCode;
+    articleUrl += QStringLiteral(".wikipedia.org/w/api.php"
+                                 "?action=parse"
+                                 "&format=xml"
+                                 "&section=0"
+                                 "&prop=text"
+                                 "&pageid=") + QString::number(pageId);
+
+    QUrl url(articleUrl);
+    m_pArticleContentsFetcher = new NetworkReplyFetcher(m_pNetworkAccessManager, url);
+
+    QObject::connect(m_pArticleContentsFetcher,
+                     QNSIGNAL(NetworkReplyFetcher,finished,
+                              bool,QByteArray,ErrorString),
+                     this,
+                     QNSLOT(WikiArticleFetcher,onWikiArticleDownloadFinished,
+                            bool,QByteArray,ErrorString));
+    QObject::connect(m_pArticleContentsFetcher,
+                     QNSIGNAL(NetworkReplyFetcher,downloadProgress,qint64,qint64),
+                     this,
+                     QNSLOT(WikiArticleFetcher,onWikiArticleDownloadProgress,
+                            qint64,qint64));
+
+    m_pArticleContentsFetcher->start();
 }
 
-void WikiArticleFetcher::onWikiArticleToNoteProgress(double progress)
+void WikiArticleFetcher::onWikiArticleDownloadProgress(qint64 bytesFetched,
+                                                       qint64 bytesTotal)
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::onWikiArticleDownloadProgress: fetched ")
+            << bytesFetched << QStringLiteral(" out of ") << bytesTotal);
+
+    // Wiki article fetching has 30% of total progress reserved for it so
+    // scaling the numbers + add 10% of finished progress from page id fetching
+
+    double progressValue = 0.1 + 0.3 * static_cast<double>(bytesFetched) /
+        std::max(bytesTotal, qint64(1));
+
+    WATRACE(QStringLiteral("Progres update: ") << progressValue);
+    Q_EMIT progress(progressValue);
+}
+
+void WikiArticleFetcher::onWikiArticleDownloadFinished(
+    bool status, QByteArray fetchedData, ErrorString errorDescription)
+{
+    WADEBUG(QStringLiteral("WikiArticleFetcher::onWikiArticleDownloadFinished: ")
+            << QStringLiteral("status = ")
+            << (status ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", error description = ")
+            << errorDescription);
+
+    if (m_pArticleContentsFetcher) {
+        m_pArticleContentsFetcher->disconnect(this);
+        m_pArticleContentsFetcher->deleteLater();
+        m_pArticleContentsFetcher = Q_NULLPTR;
+    }
+
+    if (!status) {
+        finishWithError(errorDescription);
+        return;
+    }
+
+    m_pWikiArticleToNote = new WikiArticleToNote(
+        m_pNetworkAccessManager, m_enmlConverter, this);
+
+    QObject::connect(m_pWikiArticleToNote,
+                     QNSIGNAL(WikiArticleToNote,progress,double),
+                     this,
+                     QNSLOT(WikiArticleFetcher,onWikiArticleToNoteProgress,double));
+    QObject::connect(m_pWikiArticleToNote,
+                     QNSIGNAL(WikiArticleToNote,finished,bool,ErrorString,Note),
+                     this,
+                     QNSLOT(WikiArticleFetcher,onWikiArticleToNoteFinished,
+                            bool,ErrorString,Note));
+
+    m_pWikiArticleToNote->start(fetchedData);
+}
+
+void WikiArticleFetcher::onWikiArticleToNoteProgress(double progressValue)
 {
     WADEBUG(QStringLiteral("WikiArticleFetcher::onWikiArticleToNoteProgress: ")
-            << progress);
+            << progressValue);
 
-    // TODO: renormalize the progress and emit progress signal
+    // Wiki article conversion to note has 60% of total progress reserved for it
+    // so scaling the numbers + add 10% from page id fetching and 30% from wiki
+    // article contents fetching
+
+    progressValue *= 0.6;
+    progressValue += 0.4;
+
+    WATRACE(QStringLiteral("Progres update: ") << progressValue);
+    Q_EMIT progress(progressValue);
 }
 
 void WikiArticleFetcher::onWikiArticleToNoteFinished(
@@ -161,7 +261,7 @@ void WikiArticleFetcher::onWikiArticleToNoteFinished(
 }
 
 bool WikiArticleFetcher::composePageIdFetchingUrl(
-    QUrl & url, ErrorString & errorDescription) const
+    QUrl & url, ErrorString & errorDescription)
 {
     QString urlString = m_url.toString();
 
@@ -182,13 +282,13 @@ bool WikiArticleFetcher::composePageIdFetchingUrl(
         return false;
     }
 
-    QString languageCode = capturedTexts[1];
-    QString articleName = capturedTexts[2];
+    m_languageCode = capturedTexts[1];
+    m_articleTitle = capturedTexts[2];
 
     QString apiUrl = QStringLiteral("https://");
-    apiUrl += languageCode;
+    apiUrl += m_languageCode;
     apiUrl += QStringLiteral(".wikipedia.org/w/api.php?action=query&format=xml&titles=");
-    apiUrl += articleName;
+    apiUrl += m_articleTitle;
 
     url = QUrl(apiUrl);
     return true;
@@ -253,6 +353,12 @@ void WikiArticleFetcher::clear()
         m_pApiUrlFetcher->disconnect(this);
         m_pApiUrlFetcher->deleteLater();
         m_pApiUrlFetcher = Q_NULLPTR;
+    }
+
+    if (m_pArticleContentsFetcher) {
+        m_pArticleContentsFetcher->disconnect(this);
+        m_pArticleContentsFetcher->deleteLater();
+        m_pArticleContentsFetcher = Q_NULLPTR;
     }
 
     if (m_pWikiArticleToNote) {
