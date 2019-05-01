@@ -63,8 +63,8 @@ install:
         sudo apt-get -qq install libxml2-dev libboost-dev libboost-program-options-dev libssl-dev libhunspell-dev &&
         sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test &&
         if [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
-          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" &&
-          sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/5/linuxdeployqt-5-x86_64.AppImage" &&
+          sudo mv linuxdeployqt-5-x86_64.AppImage /usr/local/bin/linuxdeployqt
           sudo chmod a+x /usr/local/bin/linuxdeployqt &&
           wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 &&
           tar xf patchelf-0.9.tar.bz2 &&
