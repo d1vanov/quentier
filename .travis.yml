@@ -1,7 +1,9 @@
 language: cpp
 
 sudo: required
-dist: trusty
+dist: xenial
+services:
+        - xvfb
 
 branches:
     only:
@@ -11,22 +13,22 @@ branches:
 matrix:
     include:
         - os: linux
-          env: QT_BASE=48 COMPILER=g++-4.6 CMAKE_BUILD_TYPE=Debug
+          env: QT_BASE=48 COMPILER=g++-4.8 CMAKE_BUILD_TYPE=Debug
 
         - os: linux
           env: QT_BASE=48 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
 
         - os: linux
-          env: QT_BASE=551 COMPILER=g++-4.9 CMAKE_BUILD_TYPE=Debug
+          env: QT_BASE=551 COMPILER=g++-4.8 CMAKE_BUILD_TYPE=Debug
 
         - os: linux
           env: QT_BASE=551 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
 
         - os: linux
-          env: QT_BASE=592 COMPILER=g++-4.8 CMAKE_BUILD_TYPE=RelWithDebInfo
+          env: QT_BASE=5123 COMPILER=g++-4.8 CMAKE_BUILD_TYPE=RelWithDebInfo
 
         - os: linux
-          env: QT_BASE=592 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
+          env: QT_BASE=5123 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
 
         - os: osx
           env: CMAKE_BUILD_TYPE=RelWithDebInfo
@@ -56,13 +58,12 @@ install:
     - |
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         export DISPLAY=:99.0 &&
-        sh -e /etc/init.d/xvfb start &&
         wget http://www.cmake.org/files/v3.2/cmake-3.2.0-Linux-x86_64.tar.gz &&
         tar -xzf cmake-3.2.0-Linux-x86_64.tar.gz &&
         sudo cp -fR cmake-3.2.0-Linux-x86_64/* /usr &&
         sudo apt-get -qq install libxml2-dev libboost-dev libboost-program-options-dev libssl-dev libhunspell-dev &&
         sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test &&
-        if [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
+        if [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-4.8" ]; then
           wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/5/linuxdeployqt-5-x86_64.AppImage" &&
           sudo mv linuxdeployqt-5-x86_64.AppImage /usr/local/bin/linuxdeployqt
           sudo chmod a+x /usr/local/bin/linuxdeployqt &&
@@ -78,22 +79,16 @@ install:
         fi
         if [ "${QT_BASE}" = "551" ]; then
           echo "Building for Qt 5.5.1" &&
-          sudo apt-add-repository -y ppa:beineri/opt-qt551-trusty &&
-          travis_wait 30 sudo apt-get -qq update &&
-          sudo apt-get -qq install qt55tools qt55base qt55webchannel qt55webengine qt55websockets qt55xmlpatterns qt55translations &&
-          if [ "${COMPILER}" = "g++-4.9" ]; then
-            sudo apt-get -qq install g++-4.9 gcc-4.9 &&
-            export CXX="g++-4.9" &&
-            export CC="gcc-4.9"
-          else
+          sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools libqt5webkit5-dev libqt5sql5-sqlite &&
+          if [ "${COMPILER}" = "clang++" ]; then
             export CXX="clang++" &&
             export CC="clang"
           fi
-        elif [ "${QT_BASE}" = "592" ]; then
-          echo "Building for Qt 5.9.2" &&
-          sudo apt-add-repository -y ppa:beineri/opt-qt592-trusty &&
+        elif [ "${QT_BASE}" = "5123" ]; then
+          echo "Building for Qt 5.12.3" &&
+          sudo apt-add-repository -y ppa:beineri/opt-qt-5.12.3-xenial &&
           travis_wait 30 sudo apt-get -qq update &&
-          sudo apt-get -qq install qt59tools qt59base qt59webchannel qt59webengine qt59websockets qt59xmlpatterns qt59translations &&
+          sudo apt-get -qq install qt512tools qt512base qt512webchannel qt512webengine qt512websockets qt512xmlpatterns qt512translations mesa-common-dev libgl1-mesa-dev &&
           if [ "${COMPILER}" = "clang++" ]; then
             export CXX="clang++" &&
             export CC="clang"
@@ -101,12 +96,8 @@ install:
         else
           echo "Building for Qt 4.8" &&
           travis_wait 30 sudo apt-get -qq update &&
-          sudo apt-get -qq install libqt4-dev libqt4-dev-bin libqt4-network libqt4-xml libqt4-xmlpatterns libqt4-sql libqt4-sql-sqlite libqt4-test libqt4-dbus libqt4-webkit &&
-          if [ "${COMPILER}" = "g++-4.6" ]; then
-            sudo apt-get -qq install g++-4.6 gcc-4.6 &&
-            export CXX="g++-4.6" &&
-            export CC="gcc-4.6"
-          else
+          sudo apt-get -qq install libqt4-dev libqt4-dev-bin libqt4-network libqt4-xml libqt4-xmlpatterns libqt4-sql libqt4-sql-sqlite libqt4-test libqt4-dbus libqtwebkit-dev &&
+          if [ "${COMPILER}" = "clang++" ]; then
             export CXX="clang++" &&
             export CC="clang"
           fi
@@ -127,12 +118,12 @@ install:
     - cmake --version
     - cd ..
     - |
-      if ! [ "${COMPILER}" == "g++-4.6" ] && [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+      if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         echo "Building breakpad" &&
         mkdir breakpad &&
         git clone https://chromium.googlesource.com/breakpad/breakpad &&
         cd breakpad &&
-        git checkout chrome_58 &&
+        git checkout chrome_64 &&
         git clone https://chromium.googlesource.com/linux-syscall-support src/third_party/lss &&
         ./configure --prefix=$(pwd)/installdir &&
         make &&
@@ -149,12 +140,11 @@ install:
       mkdir build &&
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-        if [ "${QT_BASE}" = "592" ];then
-          source /opt/qt59/bin/qt59-env.sh &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt59 ..
+        if [ "${QT_BASE}" = "5123" ];then
+          source /opt/qt512/bin/qt512-env.sh &&
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         elif [ "${QT_BASE}" = "551" ]; then
-          source /opt/qt55/bin/qt55-env.sh &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt55 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DBUILD_WITH_QT4=1 ..
         fi
@@ -205,14 +195,12 @@ install:
       mkdir build &&
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-        if [ "${QT_BASE}" = "592" ]; then
-          source /opt/qt59/bin/qt59-env.sh &&
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt59/lib &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
+        if [ "${QT_BASE}" = "5123" ]; then
+          source /opt/qt512/bin/qt512-env.sh &&
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
         elif [ "${QT_BASE}" = "551" ]; then
-          source /opt/qt55/bin/qt55-env.sh &&
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt55/lib
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt55 -DUSE_QT5=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
         fi
@@ -235,24 +223,22 @@ install:
       mkdir build &&
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-        if [ "${QT_BASE}" = "592" ]; then
-          source /opt/qt59/bin/qt59-env.sh &&
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt59/lib &&
+        if [ "${QT_BASE}" = "5123" ]; then
+          source /opt/qt512/bin/qt512-env.sh &&
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
-                -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
+                -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
         elif [ "${QT_BASE}" = "551" ]; then
-          source /opt/qt55/bin/qt55-env.sh &&
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt55/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
-                -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt55 -DUSE_QT5=1 ..
+                -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQtKeychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/QtKeychain \
@@ -291,7 +277,7 @@ script:
       mkdir build &&
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-        if [ "${QT_BASE}" = "592" ]; then
+        if [ "${QT_BASE}" = "5123" ]; then
           if [ "${COMPILER}" = "g++-4.8" ]; then
             cmake -DCMAKE_INSTALL_PREFIX=/usr \
                   -DCMAKE_INSTALL_TRANSLATIONSDIR=$(pwd)/appdir/usr \
@@ -301,7 +287,7 @@ script:
                   -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                   -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
+                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
           else
             cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                   -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
@@ -310,7 +296,7 @@ script:
                   -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                   -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                  -DCMAKE_PREFIX_PATH=/opt/qt59 -DUSE_QT5=1 ..
+                  -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
           fi
         elif [ "${QT_BASE}" = "551" ]; then
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
@@ -320,7 +306,7 @@ script:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                -DCMAKE_PREFIX_PATH=/opt/qt55 -DUSE_QT5=1 ..
+                -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt4_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt4 \
@@ -347,7 +333,7 @@ script:
     - make lupdate
     - make lrelease
     - |
-      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
+      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-4.8" ]; then
         unset QTDIR &&
         unset QT_PLUGIN_PATH &&
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
@@ -367,7 +353,7 @@ script:
 
 after_success:
     - |
-      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "592" ] && [ "${COMPILER}" = "g++-4.8" ]; then
+      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-4.8" ]; then
         if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
           wget https://github.com/d1vanov/ciuploadtool/releases/download/continuous-master/ciuploadtool_linux.zip &&
           unzip ciuploadtool_linux.zip &&
