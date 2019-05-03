@@ -13,13 +13,13 @@ branches:
 matrix:
     include:
         - os: linux
-          env: QT_BASE=48 COMPILER=g++-4.6 CMAKE_BUILD_TYPE=Debug
+          env: QT_BASE=48 COMPILER=g++-4.8 CMAKE_BUILD_TYPE=Debug
 
         - os: linux
           env: QT_BASE=48 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
 
         - os: linux
-          env: QT_BASE=551 COMPILER=g++-4.9 CMAKE_BUILD_TYPE=Debug
+          env: QT_BASE=551 COMPILER=g++-4.8 CMAKE_BUILD_TYPE=Debug
 
         - os: linux
           env: QT_BASE=551 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
@@ -80,11 +80,7 @@ install:
         if [ "${QT_BASE}" = "551" ]; then
           echo "Building for Qt 5.5.1" &&
           sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools libqt5webkit5-dev libqt5sql5-sqlite &&
-          if [ "${COMPILER}" = "g++-4.9" ]; then
-            sudo apt-get -qq install g++-4.9 gcc-4.9 &&
-            export CXX="g++-4.9" &&
-            export CC="gcc-4.9"
-          else
+          if [ "${COMPILER}" = "clang++" ]; then
             export CXX="clang++" &&
             export CC="clang"
           fi
@@ -101,11 +97,7 @@ install:
           echo "Building for Qt 4.8" &&
           travis_wait 30 sudo apt-get -qq update &&
           sudo apt-get -qq install libqt4-dev libqt4-dev-bin libqt4-network libqt4-xml libqt4-xmlpatterns libqt4-sql libqt4-sql-sqlite libqt4-test libqt4-dbus libqtwebkit-dev &&
-          if [ "${COMPILER}" = "g++-4.6" ]; then
-            sudo apt-get -qq install g++-4.6 gcc-4.6 &&
-            export CXX="g++-4.6" &&
-            export CC="gcc-4.6"
-          else
+          if [ "${COMPILER}" = "clang++" ]; then
             export CXX="clang++" &&
             export CC="clang"
           fi
@@ -126,7 +118,7 @@ install:
     - cmake --version
     - cd ..
     - |
-      if ! [ "${COMPILER}" == "g++-4.6" ] && [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+      if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         echo "Building breakpad" &&
         mkdir breakpad &&
         git clone https://chromium.googlesource.com/breakpad/breakpad &&
