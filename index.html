@@ -244,6 +244,8 @@ bool                m_insertOrReplaceSavedSearchQueryPrepared;
 
     
 
+<p><strong>Updated 2019-05-03</strong></p>
+
 <h3 id="table-of-contents">Table of contents</h3>
 
 <ul>
@@ -351,19 +353,19 @@ bool                m_insertOrReplaceSavedSearchQueryPrepared;
 <pre><code>sudo apt-get install qtbase5-dev qttools5-dev libqt5webkit5-dev
 </code></pre>
 
-<p>Notice one important detail which is specific to Debian, Ubuntu and all distributions derived from them in one way or another: the official repositories don&rsquo;t contain <code>QtWebEngine</code> which is one of two potential backends of note editor within libquentier. So in these distributions you can only build libquentier with <code>QtWebKit</code> note editor backend <em>unless</em> you use Qt built manually or installed from some unofficial repository. Such unofficial Qt repositories exist, they contain <code>QtWebEngine</code> and you can perfectly use it to build libquentier and Quentier. In fact, Quentier <a href="https://github.com/d1vanov/quentier/blob/master/.travis.yml">uses</a> one unofficial Qt version on Travis CI for packaging into <a href="https://appimage.org">AppImage</a>. <a href="https://launchpad.net/~beineri">Stephan Binner</a> does a great job of setting up launchpad repositories with various Qt versions for different versions of Ubuntu. Feel free to use them. However, bear in mind that if you use unofficial Qt, you&rsquo;d need to build <a href="https://github.com/frankosterfeld/qtkeychain">QtKeychain</a> with that Qt version instead of installing it from the official repository. It&rsquo;s not hard to do and will be explained below.</p>
+<p>Notice one important detail which is specific to Debian, Ubuntu and all distributions derived from them (with the exception of KDE Neon and possibly some others): the official distro&rsquo;s repositories would probably not contain <code>QtWebEngine</code> which is one of two potential backends of note editor within libquentier. So in these distributions you can only build libquentier with <code>QtWebKit</code> note editor backend <em>unless</em> you use Qt built manually or installed from somewhere else than the distro&rsquo;s official repository. Such unofficial Qt repositories exist, they contain <code>QtWebEngine</code> and you can perfectly use it to build libquentier and Quentier. In fact, Quentier <a href="https://github.com/d1vanov/quentier/blob/master/.travis.yml">uses</a> one unofficial Qt version on Travis CI for packaging into <a href="https://appimage.org">AppImage</a>. <a href="https://launchpad.net/~beineri">Stephan Binner</a> does a great job of setting up launchpad repositories with various Qt versions for different versions of Ubuntu. Feel free to use them. However, bear in mind that if you use unofficial Qt, you&rsquo;d need to build <a href="https://github.com/frankosterfeld/qtkeychain">QtKeychain</a> with that Qt version instead of installing it from the official repository. It&rsquo;s not hard to do and will be explained below.</p>
 
-<p>If you use the official Qt4 version, that&rsquo;s how you install QtKeychain on Ubuntu:</p>
+<p>If you use the distro&rsquo;s native Qt4 version, that&rsquo;s how you install QtKeychain on Ubuntu:</p>
 
 <pre><code>sudo apt-get install qtkeychain-dev
 </code></pre>
 
-<p>If you use the official Qt5 version, you install Qt5Keychain as follows on Ubuntu:</p>
+<p>If you use the distro&rsquo;s native Qt5 version, you can install Qt5Keychain as follows on Ubuntu:</p>
 
 <pre><code>sudo apt-get install qt5keychain-dev
 </code></pre>
 
-<p>If you use unofficial Qt5 version, you need to build Qt5Keychain from source. Here&rsquo;s how it can be done:</p>
+<p>If you use some unofficial Qt5 version, you need to build Qt5Keychain from source. Here&rsquo;s how it can be done:</p>
 
 <pre><code>git clone https://github.com/frankosterfeld/qtkeychain.git
 cd qtkeychain
@@ -379,9 +381,12 @@ sudo make install
 <pre><code>sudo apt-get install libxml2-dev libboost-dev libboost-program-options-dev libssl-dev libhunspell-dev
 </code></pre>
 
-<p>And that&rsquo;s about all the dependencies you can install via the package manager, at least on Debian/Ubuntu and derivatives. The rest of dependencies in this example would be built from source.</p>
+<p>In more recent versions of Debian/Ubuntu (since Debian 9.0 Stretch and since Ubuntu 18.04 Bionic) you can also install tidy-html5 from the official repository:</p>
 
-<p>Let&rsquo;s start from tidy-html5:</p>
+<pre><code>sudo apt-get install libtidy-dev
+</code></pre>
+
+<p>If you use less recent distros, their shipped libtidy version is too old for libquentier, so you need to build the newer version by hand:</p>
 
 <pre><code>git clone https://github.com/htacg/tidy-html5.git
 cd tidy-html5
@@ -393,7 +398,9 @@ make
 sudo make install
 </code></pre>
 
-<p>Now let&rsquo;s build Google breakpad which is optional dependency on Linux and Windows. You can skip it and build Quentier without Google breakpad but then you won&rsquo;t get minidump and backtrace if Quentier crashes and hence it would be much harder if not impossible to understand the reason of the crash.</p>
+<p>All other dependencies are not shipped in official Debian/Ubuntu distros so these need be built manually.</p>
+
+<p>Let&rsquo;s build Google breakpad which is optional dependency on Linux and Windows. You can skip it and build Quentier without Google breakpad but then you won&rsquo;t get minidump and backtrace if Quentier crashes and hence it would be much harder if not impossible to understand the reason of the crash.</p>
 
 <pre><code>git clone https://chromium.googlesource.com/breakpad/breakpad
 cd breakpad
@@ -475,9 +482,9 @@ make install
 
 <h3 id="windows">Windows</h3>
 
-<p>Building libquentier and Quentier on Windows is by far the most complex procedure among all the three supported platforms. Building all the prerequisites by hand is hard, especially given that the build procedures are very different between MSVC and MinGW toolchains. The good news is that there are <a href="https://github.com/d1vanov/quentier-dependencies-windows/releases">prebuilt binaries</a> for two MSVC versions - Visual Studio 2015 32 bit and Visual Studio 2017 64 bit - and for 32 bit MinGW. The actual MinGW version used to build these binaries is 5.3.0, the names of the archives at the releases page just correspond to the Qt mkspecs for which these dependencies are intended. In that repository one can find <a href="https://github.com/d1vanov/quentier-dependencies-windows/blob/master/appveyor.yml">appveyor.yml</a> configuration file describing the build steps for three build configurations - two MSVC ones and one MinGW one.</p>
+<p>Building libquentier and Quentier on Windows is by far the most complex procedure among all the three supported platforms. Building all the prerequisites by hand is hard, especially given that the build procedures are very different between MSVC and MinGW toolchains. The good news is that there are <a href="https://github.com/d1vanov/quentier-dependencies-windows/releases">prebuilt binaries</a> for two MSVC versions - Visual Studio 2015 32 bit and Visual Studio 2017 64 bit - and for 32 bit MinGW 5.3.0. In that repository one can find <a href="https://github.com/d1vanov/quentier-dependencies-windows/blob/master/appveyor.yml">appveyor.yml</a> configuration file describing the build steps for three build configurations - two MSVC ones and one MinGW one.</p>
 
-<p>If you choose to use the prebuilt binaries, the procedure is rather simple: download the binaries for the chosen build configuration and extract them all into the same folder. That folder would then contain <code>include</code>, <code>lib</code>, <code>bin</code> and a bunch of other folders. For building libquentier and Quentier you&rsquo;d need to tell CMake the location of these folders i.e. set <code>CMAKE_PREFIX_PATH</code> to the location of this folder. You might also wish to set <code>PATH</code> environment variable to the location of <code>bin</code> folder, <code>INCLUDE</code> environment variable to the location of <code>include</code> folder and <code>LIB</code> environment variable to the location of <code>lib</code> folder.</p>
+<p>If you choose to use the prebuilt binaries, the procedure is rather simple: download the binaries for the chosen build configuration and extract them all into the same folder. That folder would then contain <code>include</code>, <code>lib</code>, <code>bin</code> and a bunch of other folders. For building libquentier and Quentier you&rsquo;d need to tell CMake the location of these folders i.e. set <code>CMAKE_PREFIX_PATH</code> to the location of this folder. You would also need to set <code>PATH</code> environment variable to the location of <code>bin</code> folder, <code>INCLUDE</code> environment variable to the location of <code>include</code> folder and <code>LIB</code> environment variable to the location of <code>lib</code> folder.</p>
 
 <p>If you choose to build Quentier dependencies yourself on Windows, good luck! Recall that you can find the exact building steps in <a href="https://github.com/d1vanov/quentier-dependencies-windows/blob/master/appveyor.yml">this appveyor.yml</a> build configuration.</p>
 
@@ -504,7 +511,9 @@ make install
 <li><a href="https://cygwin.com/install.html">cygwin</a>; it doesn&rsquo;t matter much whether 64 or 32 bits version is used, this tutorial would assume the use of 32 bit version with Cygwin installed to <code>C:\cygwin</code>; the 64 bit Cygwin would by default be installed to <code>C:\cygwin64</code>.</li>
 </ul>
 
-<p>Ensure the location of git, CMake, curl and 7z executables are in your <code>PATH</code> environment variables i.e. you can execute git, CMake, curl and 7z commands from the terminal. The installers of git, CMake and 7zip should set <code>PATH</code> automatically but just in case they don&rsquo;t, you can always do this by hand. In any event you&rsquo;d need to add the location of <code>curl</code> executable to your <code>PATH</code> environment variable or alternatively to put <code>curl.exe</code> into <code>C:\Windows\System32</code> folder.</p>
+<p>One more thing: if you would like the installation step of Quentier to produce the installer, you&rsquo;d need another thirdparty package: <a href="https://nsis.sourceforge.io/Main_Page">NSIS</a>.</p>
+
+<p>Ensure the location of git, CMake, curl and 7z executables (and NSIS&rsquo; makensis if you installed it) are in your <code>PATH</code> environment variable i.e. you can execute git, CMake, curl and 7z commands from the terminal. The installers of git, CMake and 7zip should set <code>PATH</code> automatically but just in case they don&rsquo;t, you can always do this by hand. In any event you&rsquo;d need to add the location of <code>curl</code> executable to your <code>PATH</code> environment variable or alternatively to put <code>curl.exe</code> into <code>C:\Windows\System32</code> folder.</p>
 
 <p>The <code>PATH</code> environement variable can be set from the terminal as follows (assuming that you&rsquo;ve unpacked <code>curl.exe</code> to your Downloads folder):</p>
 
@@ -593,10 +602,10 @@ bootstrap.bat
 
 <pre><code>git clone https://github.com/openssl/openssl.git
 cd openssl
-git checkout OpenSSL_1_0_2n
+git checkout OpenSSL_1_0_2r
 </code></pre>
 
-<p><code>OpenSSL_1_0_2n</code> is the name of the tag which is the latest in OpenSSL 1.0 series at the time of this writing. Look at <a href="https://github.com/openssl/openssl/releases">the official OpenSSL repository&rsquo;s releases</a> to find out whether there is more recent 1.0 version available. If it&rsquo;s available, use the latest version as it might include vital security fixes.</p>
+<p><code>OpenSSL_1_0_2r</code> is the name of the tag which is the latest in OpenSSL 1.0 series at the time of this writing. Look at <a href="https://github.com/openssl/openssl/releases">the official OpenSSL repository&rsquo;s releases</a> to find out whether there is more recent 1.0 version available. If it&rsquo;s available, use the latest version as it might include vital security fixes.</p>
 
 <p>Now let&rsquo;s get to the actual building procedure. It is somewhat different for 32 bit and 64 bit builds so the steps for the two variants would be displayed separately. First, the version for 32 bit build:</p>
 
@@ -729,7 +738,7 @@ set PATH=%cd%\installdir\bin;%PATH%
 
 <pre><code>git clone https://github.com/hunspell/hunspell.git
 cd hunspell
-git checkout v1.6.2
+git checkout v1.7.0
 msbuild %cd%\msvc\Hunspell.sln /p:Configuration=&quot;Release_dll&quot; /p:Platform=&quot;Win32&quot;
 </code></pre>
 
@@ -771,18 +780,12 @@ cmake --build . --target install
 
 <pre><code>git clone https://github.com/frankosterfeld/qtkeychain.git
 cd qtkeychain
-git checkout v0.8.0
+git checkout v0.9.1
 </code></pre>
 
 <p>By default QtKeychain on Windows 7 and higher uses <a href="https://www.digitalcitizen.life/credential-manager-where-windows-stores-passwords-other-login-details">Credential Store</a>. However, I encountered some problems getting it to work with libquentier and hence decided to use another option: keeping the data within <a href="https://doc.qt.io/qt-5/qsettings.html">QSettings</a> but encrypted using WinAPI function <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa380261%28v=vs.85%29.aspx">CryptProtectData</a> with the user&rsquo;s logon credentials. In addition, in this mode the built Quentier app might even work on Windows older than 7 i.e. XP.</p>
 
-<p>One fix is required to get this alternative option to build: at line 121 of <code>CMakeLists.txt</code> file you need to replace <code>!USE_CREDENTIAL_STORE</code> with <code>NOT USE_CREDENTIAL_STORE</code>. See <a href="https://github.com/frankosterfeld/qtkeychain/pull/106">this pull request</a> for more details on this. The replacement can be done by hand using any text editor of your choice. If you happen to have <a href="http://www.msys2.org">msys64</a> installed, you can use <a href="https://en.wikipedia.org/wiki/Sed">sed editor</a> to do the job from the command line:</p>
-
-<pre><code>C:\msys64\usr\bin\bash -lc &quot;cd /c/dev/qtkeychain &amp;&amp; sed -i -e 's/\!USE_CREDENTIAL_STORE/NOT USE_CREDENTIAL_STORE/g' CMakeLists.txt&quot;
-</code></pre>
-
-<p>Replace the path to qtkeychain folder with your actual one in the above command.
-After this preparation work further build steps can be executed:</p>
+<p>Here are the steps required to build QtKeychain:</p>
 
 <pre><code>md build
 cd build
@@ -905,10 +908,10 @@ bootstrap.bat gcc
 
 <pre><code>git clone https://github.com/openssl/openssl.git
 cd openssl
-git checkout OpenSSL_1_0_2n
+git checkout OpenSSL_1_0_2r
 </code></pre>
 
-<p><code>OpenSSL_1_0_2n</code> is the name of the tag which is the latest in OpenSSL 1.0 series at the time of this writing. Look at the official OpenSSL repository&rsquo;s <a href="https://github.com/openssl/openssl/releases">releases</a> to find out whether there is more recent 1.0 version available. If it&rsquo;s available, use the latest version as it might include vital security fixes.</p>
+<p><code>OpenSSL_1_0_2r</code> is the name of the tag which is the latest in OpenSSL 1.0 series at the time of this writing. Look at the official OpenSSL repository&rsquo;s <a href="https://github.com/openssl/openssl/releases">releases</a> to find out whether there is more recent 1.0 version available. If it&rsquo;s available, use the latest version as it might include vital security fixes.</p>
 
 <p>Here&rsquo;s how you can build OpenSSL with MinGW in a single command:</p>
 
@@ -1000,7 +1003,7 @@ set LIB=%LIBBAK%
 
 <pre><code>git clone https://github.com/hunspell/hunspell.git
 cd hunspell
-git checkout v1.6.2
+git checkout v1.7.0
 </code></pre>
 
 <p>A small patch is required to get libhunspell building with MinGW. Apply it along with building and installing the library:</p>
@@ -1009,7 +1012,7 @@ git checkout v1.6.2
 </code></pre>
 
 <p>Replace <code>/c/dev/hunspell</code> in the above command with your actual path to <code>hunspell</code> directory. The resulting binaries as well as development headers would be within <code>installdir</code> folder within <code>hunspell</code> folder.
-You can read more about why the patch is required <a href="https://github.com/hunspell/hunspell/issues/463">here</a>.</p>
+You can read more about why the patch is required <a href="https://github.com/hunspell/hunspell/issues/463">here</a> and <a href="http://mingw.5.n7.nabble.com/S-IRWXG-S-IRWXO-undefined-when-building-gcc-4-9-2-with-mingwrt-3-20-td34227.html">here</a>.</p>
 
 <h5 id="building-tidy-html5-1">Building tidy-html5</h5>
 
@@ -1045,16 +1048,10 @@ cmake --build . --target install
 
 <pre><code>git clone https://github.com/frankosterfeld/qtkeychain.git
 cd qtkeychain
-git checkout v0.8.0
+git checkout v0.9.1
 </code></pre>
 
-<p>As with MSVC build, need to apply <a href="https://github.com/frankosterfeld/qtkeychain/pull/106">a small patch</a> to fix building without Windows Credential Store - for MinGW build it is required to not use the Credential Store as MinGW doens&rsquo;t implement the necessary WinAPI equivalents for dealing with the Credential Store:</p>
-
-<pre><code>C:\msys64\usr\bin\bash -lc &quot;cd /c/dev/qtkeychain &amp;&amp; sed -i -e 's/\!USE_CREDENTIAL_STORE/NOT USE_CREDENTIAL_STORE/g' CMakeLists.txt&quot;
-</code></pre>
-
-<p>Replace the path to qtkeychain folder with your actual one in the above command.
-One other patch is required for building with MinGW:</p>
+<p>One patch is required for building with MinGW:</p>
 
 <pre><code>C:\msys64\usr\bin\bash -lc &quot;cd /c/dev/qtkeychain &amp;&amp; sed -i s/SecureZeroMemory/ZeroMemory/g keychain_win.cpp&quot;
 </code></pre>
@@ -1084,7 +1081,7 @@ cmake --build . --target install
 <pre><code>set PATH=%PATH%;C:\Program Files\Git\usr\bin
 </code></pre>
 
-<p>That was currently the last dependency for MinGW as Google breakpad is currently not integrated into MinGW version of Quentier.</p>
+<p>That was currently the last dependency for MinGW as Google breakpad is not integrated into MinGW version of Quentier at the moment.</p>
 
   </div>
   

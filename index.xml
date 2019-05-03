@@ -28,7 +28,8 @@ As I mentioned in the brief technical overview post, the local storage within li
       <pubDate>Fri, 19 Jan 2018 11:07:39 +0300</pubDate>
       
       <guid>https://d1vanov.github.io/quentier/blog/quentier-installation-of-dependencies/</guid>
-      <description>Table of contents  Introduction Dependencies Linux Mac Windows  Building dependencies with Visual Studio  Preparing the environment Building boost program options library Building OpenSSL Building libiconv Building zlib Building libxml2 Building libhunspell Building tidy-html5 Building qtkeychain Building Google breakpad  Building dependencies with MinGW  Building boost program options library Building OpenSSL Building libiconv Building zlib Building libxml2 Building libhunspell Building tidy-html5 Building qtkeychain    Introduction Quentier has a fair share of dependencies and their installation is a complex enough procedure, especially on Windows platform.</description>
+      <description>Updated 2019-05-03
+Table of contents  Introduction Dependencies Linux Mac Windows  Building dependencies with Visual Studio  Preparing the environment Building boost program options library Building OpenSSL Building libiconv Building zlib Building libxml2 Building libhunspell Building tidy-html5 Building qtkeychain Building Google breakpad  Building dependencies with MinGW  Building boost program options library Building OpenSSL Building libiconv Building zlib Building libxml2 Building libhunspell Building tidy-html5 Building qtkeychain    Introduction Quentier has a fair share of dependencies and their installation is a complex enough procedure, especially on Windows platform.</description>
     </item>
     
     <item>
