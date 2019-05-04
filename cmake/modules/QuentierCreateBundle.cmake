@@ -143,14 +143,18 @@ function(CreateQuentierBundle)
     message(STATUS "Linuxdeployqt path: ${DEPLOYQT_TOOL}")
   endif()
 
-  set(DIRS ${THIRDPARTY_LIB_DIRS})
+  if(DLL_SEARCH_DIRS)
+    set(DIRS ${DLL_SEARCH_DIRS})
+  else()
+    set(DIRS ${THIRDPARTY_LIB_DIRS})
 
-  # We know the locations of thirdparty libraries but on Windows some of them are .lib files
-  # and here we need .dll ones. Usually they are stored in sibling "bin" directories
-  # so using this hint
-  foreach(THIRDPARTY_LIB_DIR ${THIRDPARTY_LIB_DIRS})
-    list(APPEND DIRS "${THIRDPARTY_LIB_DIR}/../bin")
-  endforeach()
+    # We know the locations of thirdparty libraries but on Windows some of them are .lib files
+    # and here we need .dll ones. Usually they are stored in sibling "bin" directories
+    # so using this hint
+    foreach(THIRDPARTY_LIB_DIR ${THIRDPARTY_LIB_DIRS})
+      list(APPEND DIRS "${THIRDPARTY_LIB_DIR}/../bin")
+    endforeach()
+  endif()
 
   if(WIN32)
     if(USE_QT5)
@@ -172,26 +176,16 @@ function(CreateQuentierBundle)
       endif()
 
       # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
-      install(FILES "${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll" DESTINATION ${CMAKE_INSTALL_BINDIR}/sqldrivers)
+      get_property(sqliteplugin TARGET Qt5::QSQLiteDriverPlugin PROPERTY LOCATION)
+      install(FILES "${sqliteplugin}" DESTINATION ${CMAKE_INSTALL_BINDIR}/sqldrivers)
 
       # fixup other dependencies not taken care of by windeployqt/macdeployqt
       install(CODE "
               include(CMakeParseArguments)
-              include(${PROJECT_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
+              include(BundleUtilities)
               include(InstallRequiredSystemLibraries)
-              fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
+              fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe\")
               " COMPONENT Runtime)
-
-      # MinGW dlls require some special treatment
-      if(MINGW)
-        get_filename_component(MINGW_PATH ${CMAKE_CXX_COMPILER} PATH)
-        install(CODE "
-                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libgcc_s_dw2-1.dll\")
-                file(COPY \"${MINGW_PATH}/libgcc_s_dw2-1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libstdc++-6.dll\")
-                file(COPY \"${MINGW_PATH}/libstdc++-6.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-                " COMPONENT Runtime)
-      endif()
     else()
       install(CODE "
               include(DeployQt4)
