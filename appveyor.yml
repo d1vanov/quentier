@@ -178,7 +178,7 @@ install:
   - if %qt%==msvc2015 7z x breakpad-msvc2015_x86.zip
   - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2017_x64.zip -o breakpad-msvc2017_x64.zip
   - if %qt%==msvc2017_64 7z x breakpad-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-mingw530_x86.zip breakpad-mingw530_x86.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-mingw530_x86.zip -o breakpad-mingw530_x86.zip
   - if %qt%==mingw492_32 7z x breakpad-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
