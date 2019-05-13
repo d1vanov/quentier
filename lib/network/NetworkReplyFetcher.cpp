@@ -205,9 +205,8 @@ void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
 void NetworkReplyFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal)
 {
     RFDEBUG(QStringLiteral("NetworkReplyFetcher::onDownloadProgress: fetched ")
-            << humanReadableSize(static_cast<quint64>(std::max(bytesFetched, qint64(0))))
-            << QStringLiteral(", total ")
-            << humanReadableSize(static_cast<quint64>(std::max(bytesTotal, qint64(0)))));
+            << bytesFetched << QStringLiteral(" bytes, total ") << bytesTotal
+            << QStringLiteral(" bytes"));
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
     Q_EMIT downloadProgress(bytesFetched, bytesTotal);

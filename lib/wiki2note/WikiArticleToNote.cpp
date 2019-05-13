@@ -77,6 +77,11 @@ void WikiArticleToNote::start(QByteArray wikiPageContent)
         return;
     }
 
+    QString supplementedHtml = QStringLiteral("<html><body>");
+    supplementedHtml += m_html;
+    supplementedHtml += QStringLiteral("</body></html>");
+    m_html = supplementedHtml;
+
     if (!setupImageDataFetching(errorDescription)) {
         finishWithError(errorDescription);
         return;
@@ -135,6 +140,11 @@ void WikiArticleToNote::onNetworkReplyFetcherProgress(qint64 bytesFetched,
             << QStringLiteral("fetched ") << bytesFetched << QStringLiteral(" out of ")
             << bytesTotal << QStringLiteral(" bytes; url = ")
             << (pFetcher ? pFetcher->url().toString() : QStringLiteral("<unidentified>")));
+
+    if (bytesTotal < 0) {
+        // The exact number of bytes to download is not known
+        return;
+    }
 
     auto it = m_imageDataFetchersWithProgress.find(pFetcher);
     if (it != m_imageDataFetchersWithProgress.end()) {
@@ -235,6 +245,8 @@ QString WikiArticleToNote::fetchedWikiArticleToHtml(
 
 bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
 {
+    QNDEBUG(QStringLiteral("WikiArticleToNote::setupImageDataFetching"));
+
     QXmlStreamReader reader(m_html);
     while(!reader.atEnd())
     {
@@ -245,6 +257,9 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
         {
             QXmlStreamAttributes attributes = reader.attributes();
             QString imgSrc = attributes.value(QStringLiteral("src")).toString();
+            if (!imgSrc.startsWith(QStringLiteral("https:"))) {
+                imgSrc = QStringLiteral("https:") + imgSrc;
+            }
             QUrl imgSrcUrl(imgSrc);
 
             if (!imgSrcUrl.isValid()) {
@@ -254,6 +269,8 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
                 QNWARNING(errorDescription << QStringLiteral(": ") << imgSrc);
                 return false;
             }
+
+            QNDEBUG(QStringLiteral("Starting to download image: ") << imgSrcUrl);
 
             NetworkReplyFetcher * pFetcher = new NetworkReplyFetcher(
                 m_pNetworkAccessManager, imgSrcUrl);
@@ -273,7 +290,16 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
                                     qint64,qint64));
 
             m_imageDataFetchersWithProgress[pFetcher] = 0.0;
+            pFetcher->start();
         }
+    }
+
+    if (reader.hasError()) {
+        errorDescription.setBase(QT_TR_NOOP("Failed to parse HTML to extract "
+                                            "img tags info"));
+        errorDescription.details() = reader.errorString();
+        QNWARNING(errorDescription);
+        return false;
     }
 
     return true;
@@ -369,6 +395,9 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
 {
     QNDEBUG(QStringLiteral("WikiArticleToNote::preprocessHtmlForConversionToEnml"));
 
+    // This tag seems to be present more than once and confuses ENMLConverter
+    m_html.remove(QStringLiteral("<title/>"));
+
     if (m_imageResourcesByUrl.isEmpty()) {
         return true;
     }
@@ -409,6 +438,10 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
                 attributes.append(QStringLiteral("en-tag"), QStringLiteral("en-media"));
 
                 QString src = attributes.value(QStringLiteral("src")).toString();
+                if (!src.startsWith(QStringLiteral("https:"))) {
+                    src = QStringLiteral("https:") + src;
+                }
+
                 auto resourceIt = m_imageResourcesByUrl.find(QUrl(src));
                 if (Q_UNLIKELY(resourceIt == m_imageResourcesByUrl.end())) {
                     ErrorString errorDescription(QT_TR_NOOP("Cannot convert wiki "

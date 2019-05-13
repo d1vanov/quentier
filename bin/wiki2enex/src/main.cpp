@@ -18,8 +18,11 @@
 
 #include "WikiArticleFetcher.h"
 
+#include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 
+#include <QCoreApplication>
+#include <QDebug>
 #include <QNetworkAccessManager>
 #include <QTimer>
 #include <QUrl>
@@ -30,20 +33,32 @@ using namespace quentier;
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " wiki-article-url" << std::endl;
+    QCoreApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("quentier.org"));
+    app.setApplicationName(QStringLiteral("wiki2enex"));
+
+    QStringList args = app.arguments();
+    if (args.size() != 2) {
+        qWarning() << "Usage: " << app.applicationName() << " wiki-article-url\n";
         return 1;
     }
 
-    QUrl url(QString::fromLocal8Bit(argv[1]));
+    QUrl url(args[1]);
     if (!url.isValid()) {
-        std::cerr << "Not a valid URL" << std::endl;
+        qWarning() << "Not a valid URL\n";
         return 1;
     }
+
+    // Initialize logging
+    QUENTIER_INITIALIZE_LOGGING();
+    QUENTIER_SET_MIN_LOG_LEVEL(Trace);
 
     QNetworkAccessManager networkAccessManager;
+    ENMLConverter enmlConverter;
     ErrorString errorDescription;
-    Note note;
+
+    QVector<Note> notes(1);
+    Note & note = notes.back();
 
     int status = -1;
     {
@@ -51,7 +66,7 @@ int main(int argc, char *argv[])
         timer.setInterval(600000);
         timer.setSingleShot(true);
 
-        WikiArticleFetcher fetcher(&networkAccessManager, url);
+        WikiArticleFetcher fetcher(&networkAccessManager, enmlConverter, url);
 
         EventLoopWithExitStatus loop;
         QObject::connect(&timer, QNSIGNAL(QTimer,timeout),
@@ -76,16 +91,27 @@ int main(int argc, char *argv[])
     }
 
     if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        std::cerr << "Failed to fetch wiki article in time" << std::endl;
+        qWarning() << "Failed to fetch wiki article in time\n";
         return 1;
     }
 
     if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
-        std::cerr << "Failed to fetch wiki article: "
-            << errorDescription.nonLocalizedString().toStdString() << std::endl;
+        qWarning() << "Failed to fetch wiki article: "
+            << errorDescription.nonLocalizedString() << "\n";
         return 1;
     }
 
-    // TODO: convert note to ENEX
+    QString enex;
+    errorDescription.clear();
+    bool res = enmlConverter.exportNotesToEnex(notes, QHash<QString,QString>(),
+                                               ENMLConverter::EnexExportTags::No,
+                                               enex, errorDescription);
+    if (!res) {
+        qWarning() << "Failed to convert the fetched note to ENEX: "
+            << errorDescription.nonLocalizedString() << "\n";
+        return 1;
+    }
+
+    std::cout << enex.toStdString() << std::endl;
     return 0;
 }

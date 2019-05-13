@@ -31,6 +31,7 @@ class WikiArticleFetcher: public QObject
 public:
     explicit WikiArticleFetcher(
         QNetworkAccessManager * pNetworkAccessManager,
+        ENMLConverter & enmlConverter,
         const QUrl & url,
         QObject * parent = Q_NULLPTR);
     virtual ~WikiArticleFetcher();
@@ -72,6 +73,7 @@ private:
 
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
+    ENMLConverter &         m_enmlConverter;
     QUrl        m_url;
 
     bool        m_started;
@@ -91,8 +93,6 @@ private:
     QString     m_articleTitle;
 
     NetworkReplyFetcher *   m_pArticleContentsFetcher;
-
-    ENMLConverter           m_enmlConverter;
 
     WikiArticleToNote *     m_pWikiArticleToNote;
 };
