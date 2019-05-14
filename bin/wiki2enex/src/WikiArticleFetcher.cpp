@@ -159,7 +159,6 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
     articleUrl += QStringLiteral(".wikipedia.org/w/api.php"
                                  "?action=parse"
                                  "&format=xml"
-                                 "&section=0"
                                  "&prop=text"
                                  "&pageid=") + QString::number(pageId);
 
