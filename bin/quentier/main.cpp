@@ -42,6 +42,11 @@ int main(int argc, char *argv[])
     // Loading the dependencies manually - required on Windows
     loadDependencies();
 
+    QuentierApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("quentier.org"));
+    app.setApplicationName(QStringLiteral("Quentier"));
+    app.setQuitOnLastWindowClosed(false);
+
     ParseCommandLineResult parseCmdResult;
     parseCommandLine(argc, argv, parseCmdResult);
     if (parseCmdResult.m_shouldQuit)
@@ -55,11 +60,6 @@ int main(int argc, char *argv[])
         std::cout << parseCmdResult.m_responseMessage.toLocal8Bit().constData();
         return 0;
     }
-
-    QuentierApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("quentier.org"));
-    app.setApplicationName(QStringLiteral("Quentier"));
-    app.setQuitOnLastWindowClosed(false);
 
     bool res = initialize(app, parseCmdResult.m_cmdOptions);
     if (!res) {

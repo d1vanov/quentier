@@ -121,7 +121,9 @@ bool processStorageDirCommandLineOption(
         QDir dir(storageDir);
         if (!dir.mkpath(storageDir))
         {
-            criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+            criticalMessageBox(Q_NULLPTR,
+                               QCoreApplication::applicationName() +
+                               QStringLiteral(" ") + QObject::tr("cannot start"),
                                QObject::tr("Cannot create directory for persistent "
                                            "storage pointed to by \"storageDir\" "
                                            "command line option"),
@@ -131,7 +133,9 @@ bool processStorageDirCommandLineOption(
     }
     else if (Q_UNLIKELY(!storageDirInfo.isDir()))
     {
-        criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+        criticalMessageBox(Q_NULLPTR,
+                           QCoreApplication::applicationName() +
+                           QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("\"storageDir\" command line option "
                                        "doesn't point to a directory"),
                            QDir::toNativeSeparators(storageDir));
@@ -139,7 +143,9 @@ bool processStorageDirCommandLineOption(
     }
     else if (Q_UNLIKELY(!storageDirInfo.isReadable()))
     {
-        criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+        criticalMessageBox(Q_NULLPTR,
+                           QCoreApplication::applicationName() +
+                           QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("The directory for persistent storage "
                                        "pointed to by \"storageDir\" command "
                                        "line option is not readable"),
@@ -148,7 +154,9 @@ bool processStorageDirCommandLineOption(
     }
     else if (Q_UNLIKELY(!storageDirInfo.isWritable()))
     {
-        criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+        criticalMessageBox(Q_NULLPTR,
+                           QCoreApplication::applicationName() +
+                           QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("The directory for persistent storage "
                                        "pointed to by \"storageDir\" command "
                                        "line option is not writable"),
@@ -179,7 +187,9 @@ bool processCommandLineOptions(
         bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost,
                                        accountName, errorDescription);
         if (!res) {
-            criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+            criticalMessageBox(Q_NULLPTR,
+                               QCoreApplication::applicationName() +
+                               QStringLiteral(" ") + QObject::tr("cannot start"),
                                QObject::tr("Unable to parse the startup account"),
                                errorDescription.localizedString());
             return false;
@@ -221,7 +231,9 @@ bool processCommandLineOptions(
 
         if (!foundAccount)
         {
-            criticalMessageBox(Q_NULLPTR, QObject::tr("Quentier cannot start"),
+            criticalMessageBox(Q_NULLPTR,
+                               QCoreApplication::applicationName() +
+                               QStringLiteral(" ") + QObject::tr("cannot start"),
                                QObject::tr("Wrong startup account"),
                                QObject::tr("The startup account specified on "
                                            "the command line does not correspond "
