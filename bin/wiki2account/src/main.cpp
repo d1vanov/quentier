@@ -22,6 +22,7 @@
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QApplication>
+#include <QTextStream>
 
 #include <iostream>
 
@@ -47,16 +48,49 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    // Initialize logging
-    QUENTIER_INITIALIZE_LOGGING();
-    QUENTIER_SET_MIN_LOG_LEVEL(Trace);
-
     if (!processStorageDirCommandLineOption(parseCmdResult.m_cmdOptions)) {
         return 1;
     }
 
-    AccountManager accountManager;
-    QVector<Account> availableAccounts = accountManager.availableAccounts();
+    // Initialize logging
+    QUENTIER_INITIALIZE_LOGGING();
+    QUENTIER_SET_MIN_LOG_LEVEL(Trace);
+
+    QScopedPointer<Account> pStartupAccount;
+    if (!processAccountCommandLineOption(parseCmdResult.m_cmdOptions, pStartupAccount)) {
+        return 1;
+    }
+
+    if (pStartupAccount.isNull())
+    {
+        AccountManager accountManager;
+        QVector<Account> availableAccounts = accountManager.availableAccounts();
+
+        QString availableAccountsInfo;
+        QTextStream strm(&availableAccountsInfo,
+                         QIODevice::ReadWrite | QIODevice::Text);
+
+        strm << "Available accounts:\n";
+        size_t counter = 1;
+        for(auto it = availableAccounts.constBegin(),
+            end = availableAccounts.constEnd(); it != end; ++it)
+        {
+            const Account & availableAccount = *it;
+            bool isEvernoteAccount =
+                (availableAccount.type() == Account::Type::Evernote);
+
+            strm << " " << counter++ << ") "
+                 << availableAccount.name()
+                 << " (" << availableAccount.displayName() << "), "
+                 << (isEvernoteAccount ? "Evernote" : "local")
+                 << ", ";
+            if (isEvernoteAccount) {
+                strm << availableAccount.evernoteHost();
+            }
+        }
+
+        // TODO: offer the user to choose startup account
+    }
 
     // TODO: implement further
     return app.exec();
