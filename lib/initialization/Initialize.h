@@ -21,9 +21,12 @@
 
 #include "CommandLineParser.h"
 
+#include <QScopedPointer>
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(QuentierApplication)
+QT_FORWARD_DECLARE_CLASS(Account)
 
 class ParseCommandLineResult
 {
@@ -40,7 +43,6 @@ public:
     ErrorString     m_errorDescription;
     CommandLineParser::CommandLineOptions   m_cmdOptions;
 };
-
 
 void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result);
 
@@ -59,13 +61,32 @@ bool processStorageDirCommandLineOption(
     const CommandLineParser::CommandLineOptions & options);
 
 /**
- * Processes command line options other than "storageDir".
+ * Processes "account" command line option, if it is present. The account being
+ * parsed is the account which the app should use as the one loaded on startup
  *
- * @param options           Command line arguments being parsed
+ * @param options           Command line arguments being searched for "account"
+ * @param pStartupAccount   Pointer to found account; if none is found or if no
+ *                          "account" command line option is present, it would
+ *                          be nullptr after the call
  * @return                  True if no error was detected during the processing
- *                          of command line arguments, false otherwise
+ *                          of "account" command line argument, false otherwise
  */
-bool processCommandLineOptions(const CommandLineParser::CommandLineOptions & options);
+bool processAccountCommandLineOption(
+    const CommandLineParser::CommandLineOptions & options,
+    QScopedPointer<Account> & pStartupAccount);
+
+/**
+ * Processes "overrideSystemTrayAvailability" command line option, if it is
+ * present.
+ *
+ * @param options           Command line arguments being searched for
+ *                          "overrideSystemTrayAvailability"
+ * @return                  True if no error was detected during the processing
+ *                          of "overrideSystemTrayAvailability" command line
+ *                          argument, false otherwise
+ */
+bool processOverrideSystemTrayAvailabilityCommandLineOption(
+    const CommandLineParser::CommandLineOptions & options);
 
 /**
  * Initializes various things Quentier requires before actually launching the app,

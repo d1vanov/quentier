@@ -100,17 +100,21 @@ bool initialize(QuentierApplication & app,
 
     setupStartQuentierAtLogin();
 
-    return processCommandLineOptions(cmdOptions);
+    QScopedPointer<Account> pStartupAccount;
+    if (!processAccountCommandLineOption(cmdOptions, pStartupAccount)) {
+        return false;
+    }
+
+    return processOverrideSystemTrayAvailabilityCommandLineOption(cmdOptions);
 }
 
 typedef CommandLineParser::CommandLineOptions CmdOptions;
 
 bool processStorageDirCommandLineOption(
-    const CommandLineParser::CommandLineOptions & cmdOptions)
+    const CommandLineParser::CommandLineOptions & options)
 {
-    CmdOptions::const_iterator storageDirIt =
-        cmdOptions.find(QStringLiteral("storageDir"));
-    if (storageDirIt == cmdOptions.constEnd()) {
+    auto storageDirIt = options.find(QStringLiteral("storageDir"));
+    if (storageDirIt == options.constEnd()) {
         return true;
     }
 
@@ -168,99 +172,102 @@ bool processStorageDirCommandLineOption(
     return true;
 }
 
-
-bool processCommandLineOptions(
-    const CommandLineParser::CommandLineOptions & cmdOptions)
+bool processAccountCommandLineOption(
+    const CommandLineParser::CommandLineOptions & options,
+    QScopedPointer<Account> & pStartupAccount)
 {
-    CmdOptions::const_iterator accountIt =
-        cmdOptions.find(QStringLiteral("account"));
-    if (accountIt != cmdOptions.constEnd())
-    {
-        QString accountStr = accountIt.value().toString();
-
-        bool isLocal = false;
-        qevercloud::UserID userId = -1;
-        QString evernoteHost;
-        QString accountName;
-
-        ErrorString errorDescription;
-        bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost,
-                                       accountName, errorDescription);
-        if (!res) {
-            criticalMessageBox(Q_NULLPTR,
-                               QCoreApplication::applicationName() +
-                               QStringLiteral(" ") + QObject::tr("cannot start"),
-                               QObject::tr("Unable to parse the startup account"),
-                               errorDescription.localizedString());
-            return false;
-        }
-
-        bool foundAccount = false;
-        Account::EvernoteAccountType::type evernoteAccountType =
-            Account::EvernoteAccountType::Free;
-
-        AccountManager accountManager;
-        const QVector<Account> & availableAccounts =
-            accountManager.availableAccounts();
-        for(int i = 0, numAvailableAccounts = availableAccounts.size();
-            i < numAvailableAccounts; ++i)
-        {
-            const Account & availableAccount = availableAccounts.at(i);
-            if (isLocal != (availableAccount.type() == Account::Type::Local)) {
-                continue;
-            }
-
-            if (availableAccount.name() != accountName) {
-                continue;
-            }
-
-            if (!isLocal && (availableAccount.evernoteHost() != evernoteHost)) {
-                continue;
-            }
-
-            if (!isLocal && (availableAccount.id() != userId)) {
-                continue;
-            }
-
-            foundAccount = true;
-            if (!isLocal) {
-                evernoteAccountType = availableAccount.evernoteAccountType();
-            }
-            break;
-        }
-
-        if (!foundAccount)
-        {
-            criticalMessageBox(Q_NULLPTR,
-                               QCoreApplication::applicationName() +
-                               QStringLiteral(" ") + QObject::tr("cannot start"),
-                               QObject::tr("Wrong startup account"),
-                               QObject::tr("The startup account specified on "
-                                           "the command line does not correspond "
-                                           "to any already existing account"));
-            return false;
-        }
-
-        qputenv(ACCOUNT_NAME_ENV_VAR, accountName.toLocal8Bit());
-        qputenv(ACCOUNT_TYPE_ENV_VAR, (isLocal
-                                       ? QByteArray("1")
-                                       : QByteArray("0")));
-        qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(userId));
-        qputenv(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
-                QByteArray::number(evernoteAccountType));
-        qputenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR, evernoteHost.toLocal8Bit());
+    auto accountIt = options.find(QStringLiteral("account"));
+    if (accountIt == options.constEnd()) {
+        return true;
     }
 
-    CmdOptions::const_iterator overrideSystemTrayAvailabilityIt =
-            cmdOptions.find(QStringLiteral("overrideSystemTrayAvailability"));
-    if (overrideSystemTrayAvailabilityIt != cmdOptions.constEnd())
+    QString accountStr = accountIt.value().toString();
+
+    bool isLocal = false;
+    qevercloud::UserID userId = -1;
+    QString evernoteHost;
+    QString accountName;
+
+    ErrorString errorDescription;
+    bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost,
+                                   accountName, errorDescription);
+    if (!res) {
+        criticalMessageBox(Q_NULLPTR,
+                           QCoreApplication::applicationName() +
+                           QStringLiteral(" ") + QObject::tr("cannot start"),
+                           QObject::tr("Unable to parse the startup account"),
+                           errorDescription.localizedString());
+        return false;
+    }
+
+    bool foundAccount = false;
+    Account::EvernoteAccountType::type evernoteAccountType =
+        Account::EvernoteAccountType::Free;
+
+    AccountManager accountManager;
+    const QVector<Account> & availableAccounts =
+        accountManager.availableAccounts();
+    for(int i = 0, numAvailableAccounts = availableAccounts.size();
+        i < numAvailableAccounts; ++i)
     {
-        bool overrideSystemTrayAvailability =
-            overrideSystemTrayAvailabilityIt.value().toBool();
+        const Account & availableAccount = availableAccounts.at(i);
+        if (isLocal != (availableAccount.type() == Account::Type::Local)) {
+            continue;
+        }
+
+        if (availableAccount.name() != accountName) {
+            continue;
+        }
+
+        if (!isLocal && (availableAccount.evernoteHost() != evernoteHost)) {
+            continue;
+        }
+
+        if (!isLocal && (availableAccount.id() != userId)) {
+            continue;
+        }
+
+        pStartupAccount.reset(new Account(availableAccount));
+        foundAccount = true;
+        if (!isLocal) {
+            evernoteAccountType = availableAccount.evernoteAccountType();
+        }
+        break;
+    }
+
+    if (!foundAccount)
+    {
+        criticalMessageBox(Q_NULLPTR,
+                           QCoreApplication::applicationName() +
+                           QStringLiteral(" ") + QObject::tr("cannot start"),
+                           QObject::tr("Wrong startup account"),
+                           QObject::tr("The startup account specified on "
+                                       "the command line does not correspond "
+                                       "to any already existing account"));
+        return false;
+    }
+
+    qputenv(ACCOUNT_NAME_ENV_VAR, accountName.toLocal8Bit());
+    qputenv(ACCOUNT_TYPE_ENV_VAR, (isLocal
+                                   ? QByteArray("1")
+                                   : QByteArray("0")));
+    qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(userId));
+    qputenv(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
+            QByteArray::number(evernoteAccountType));
+    qputenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR, evernoteHost.toLocal8Bit());
+
+    return true;
+}
+
+bool processOverrideSystemTrayAvailabilityCommandLineOption(
+    const CommandLineParser::CommandLineOptions & options)
+{
+    auto it = options.find(QStringLiteral("overrideSystemTrayAvailability"));
+    if (it != options.constEnd())
+    {
+        bool value = it.value().toBool();
         qputenv(OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR,
-                (overrideSystemTrayAvailability
-                 ? QByteArray("1")
-                 : QByteArray("0")));
+                (value ? QByteArray("1") : QByteArray("0")));
     }
 
     return true;
