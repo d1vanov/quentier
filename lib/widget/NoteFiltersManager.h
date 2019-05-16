@@ -24,6 +24,7 @@
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 
 #include <QObject>
+#include <QPointer>
 #include <QUuid>
 
 QT_FORWARD_DECLARE_CLASS(QLineEdit)
@@ -49,7 +50,7 @@ public:
                                 LocalStorageManagerAsync & localStorageManagerAsync,
                                 QObject * parent = Q_NULLPTR);
 
-    const QStringList & notebookLocalUidsInFilter() const;
+    QStringList notebookLocalUidsInFilter() const;
     QStringList tagLocalUidsInFilter() const;
     const QString & savedSearchLocalUidInFilter() const;
     bool isFilterBySearchStringActive() const;
@@ -142,7 +143,7 @@ private:
     Account                         m_account;
     FilterByTagWidget &             m_filterByTagWidget;
     FilterByNotebookWidget &        m_filterByNotebookWidget;
-    NoteModel &                     m_noteModel;
+    QPointer<NoteModel>             m_pNoteModel;
     FilterBySavedSearchWidget &     m_filterBySavedSearchWidget;
     QLineEdit &                     m_searchLineEdit;
     LocalStorageManagerAsync &      m_localStorageManagerAsync;
