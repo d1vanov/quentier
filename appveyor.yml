@@ -69,8 +69,8 @@ install:
   - if %qt%==msvc2015 7z x libiconv-1.15-msvc2015_x86.zip
   - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libiconv-1.15-msvc2017_x64.zip -o libiconv-1.15-msvc2017_x64.zip
   - if %qt%==msvc2017_64 7z x libiconv-1.15-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libiconv-1.15-mingw492_32_x86.zip -o libiconv-1.15-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x libiconv-1.15-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libiconv-1.15-mingw530_x86.zip -o libiconv-1.15-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x libiconv-1.15-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -82,8 +82,8 @@ install:
   - if %qt%==msvc2015 7z x zlib-1.2.11-msvc2015_x86.zip
   - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/zlib-1.2.11-msvc2017_x64.zip -o zlib-1.2.11-msvc2017_x64.zip
   - if %qt%==msvc2017_64 7z x zlib-1.2.11-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/zlib-1.2.11-mingw492_32_x86.zip -o zlib-1.2.11-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x zlib-1.2.11-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/zlib-1.2.11-mingw530_x86.zip -o zlib-1.2.11-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x zlib-1.2.11-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -98,8 +98,8 @@ install:
   - if %qt%==msvc2015 7z x libxml2-2.9.7-msvc2015_x86.zip
   - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libxml2-2.9.7-msvc2017_x64.zip -o libxml2-2.9.7-msvc2017_x64.zip
   - if %qt%==msvc2017_64 7z x libxml2-2.9.7-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libxml2-2.9.7-mingw492_32_x86.zip -o libxml2-2.9.7-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x libxml2-2.9.7-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libxml2-2.9.7-mingw530_x86.zip -o libxml2-2.9.7-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x libxml2-2.9.7-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -107,12 +107,12 @@ install:
   - echo "Downloading libhunspell"
   - md c:\dev\libhunspell
   - cd c:\dev\libhunspell
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-1.6.2-msvc2015_x86.zip -o libhunspell-1.6.2-msvc2015_x86.zip
-  - if %qt%==msvc2015 7z x libhunspell-1.6.2-msvc2015_x86.zip
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-1.6.2-msvc2017_x64.zip -o libhunspell-1.6.2-msvc2017_x64.zip
-  - if %qt%==msvc2017_64 7z x libhunspell-1.6.2-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-1.6.2-mingw492_32_x86.zip -o libhunspell-1.6.2-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x libhunspell-1.6.2-mingw492_32_x86.zip
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-1.7.0-msvc2015_x86.zip -o libhunspell-1.7.0-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x libhunspell-1.7.0-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-1.7.0-msvc2017_x64.zip -o libhunspell-1.7.0-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x libhunspell-1.7.0-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-1.6.2-mingw530_x86.zip -o libhunspell-1.6.2-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x libhunspell-1.6.2-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -124,8 +124,8 @@ install:
   - if %qt%==msvc2015 7z x tidy-html5-5.6.0-msvc2015_x86.zip
   - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/tidy-html5-5.6.0-msvc2017_x64.zip -o tidy-html5-5.6.0-msvc2017_x64.zip
   - if %qt%==msvc2017_64 7z x tidy-html5-5.6.0-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/tidy-html5-5.6.0-mingw492_32_x86.zip -o tidy-html5-5.6.0-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x tidy-html5-5.6.0-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/tidy-html5-5.6.0-mingw530_x86.zip -o tidy-html5-5.6.0-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x tidy-html5-5.6.0-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -137,8 +137,8 @@ install:
   - if %qt%==msvc2015 7z x boost-1_65_0-msvc2015_x86.zip
   - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost-1_65_0-msvc2017_x64.zip -o boost-1_65_0-msvc2017_x64.zip
   - if %qt%==msvc2017_64 7z x boost-1_65_0-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost-1_65_0-mingw492_32_x86.zip -o boost-1_65_0-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x boost-1_65_0-mingw492_32_x86.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost-1_65_0-mingw530_x86.zip -o boost-1_65_0-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x boost-1_65_0-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -147,12 +147,12 @@ install:
   - echo "Downloading OpenSSL"
   - md c:\dev\openssl
   - cd c:\dev\openssl
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_0_2n-msvc2015_x86.zip -o openssl-1_0_2n-msvc2015_x86.zip
-  - if %qt%==msvc2015 7z x openssl-1_0_2n-msvc2015_x86.zip
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_0_2n-msvc2017_x64.zip -o openssl-1_0_2n-msvc2017_x64.zip
-  - if %qt%==msvc2017_64 7z x openssl-1_0_2n-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_0_2n-mingw492_32_x86.zip -o openssl-1_0_2n-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x openssl-1_0_2n-mingw492_32_x86.zip
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_0_2r-msvc2015_x86.zip -o openssl-1_0_2r-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x openssl-1_0_2r-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_0_2r-msvc2017_x64.zip -o openssl-1_0_2r-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x openssl-1_0_2r-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_0_2r-mingw530_x86.zip -o openssl-1_0_2r-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x openssl-1_0_2r-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -161,12 +161,12 @@ install:
   - echo "Downloading qtkeychain"
   - md c:\dev\qtkeychain
   - cd c:\dev\qtkeychain
-  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.8.0-msvc2015_x86.zip -o qtkeychain-0.8.0-msvc2015_x86.zip
-  - if %qt%==msvc2015 7z x qtkeychain-0.8.0-msvc2015_x86.zip
-  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.8.0-msvc2017_x64.zip -o qtkeychain-0.8.0-msvc2017_x64.zip
-  - if %qt%==msvc2017_64 7z x qtkeychain-0.8.0-msvc2017_x64.zip
-  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.8.0-mingw492_32_x86.zip -o qtkeychain-0.8.0-mingw492_32_x86.zip
-  - if %qt%==mingw492_32 7z x qtkeychain-0.8.0-mingw492_32_x86.zip
+  - if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.9.1-msvc2015_x86.zip -o qtkeychain-0.9.1-msvc2015_x86.zip
+  - if %qt%==msvc2015 7z x qtkeychain-0.9.1-msvc2015_x86.zip
+  - if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.9.1-msvc2017_x64.zip -o qtkeychain-0.9.1-msvc2017_x64.zip
+  - if %qt%==msvc2017_64 7z x qtkeychain-0.9.1-msvc2017_x64.zip
+  - if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.9.1-mingw530_x86.zip -o qtkeychain-0.9.1-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x qtkeychain-0.9.1-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
