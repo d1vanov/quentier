@@ -30,7 +30,9 @@ namespace quentier {
 class CommandLineParser
 {
 public:
-    explicit CommandLineParser(int argc, char * argv[]);
+    explicit CommandLineParser(
+        int argc, char * argv[],
+        const QHash<QString, QString> * pExtraOptionsWithDescriptions = Q_NULLPTR);
 
     QString responseMessage() const;
     bool shouldQuit() const;

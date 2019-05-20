@@ -47,8 +47,14 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
+    QHash<QString, QString> extraCmdOptions;
+    extraCmdOptions[QStringLiteral("startMinimizedToTray")] =
+        QStringLiteral("start Quentier minimized to system tray");
+    extraCmdOptions[QStringLiteral("startMinimized")] =
+        QStringLiteral("start Quentier with its main window minimized to the task bar");
+
     ParseCommandLineResult parseCmdResult;
-    parseCommandLine(argc, argv, parseCmdResult);
+    parseCommandLine(argc, argv, parseCmdResult, &extraCmdOptions);
     if (parseCmdResult.m_shouldQuit)
     {
         if (!parseCmdResult.m_errorDescription.isEmpty()) {

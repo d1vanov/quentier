@@ -19,10 +19,14 @@ set(PROJECT_DOMAIN_FIRST "quentier")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
+set(HEADERS
+    src/ProcessStartupAccount.h)
+
 set(SOURCES
+    src/ProcessStartupAccount.cpp
     src/main.cpp)
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
 if(USE_QT5)
   target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network)

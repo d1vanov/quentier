@@ -44,7 +44,10 @@ public:
     CommandLineParser::CommandLineOptions   m_cmdOptions;
 };
 
-void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result);
+void parseCommandLine(
+    int argc, char * argv[],
+    ParseCommandLineResult & result,
+    const QHash<QString,QString> * pExtraOptionsWithDescriptions = Q_NULLPTR);
 
 /**
  * Processes "storageDir" command line option. This command line option is special

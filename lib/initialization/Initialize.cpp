@@ -41,9 +41,11 @@
 
 namespace quentier {
 
-void parseCommandLine(int argc, char *argv[], ParseCommandLineResult & result)
+void parseCommandLine(int argc, char *argv[],
+                      ParseCommandLineResult & result,
+                      const QHash<QString, QString> * pExtraOptionsWithDescriptions)
 {
-    quentier::CommandLineParser cmdParser(argc, argv);
+    quentier::CommandLineParser cmdParser(argc, argv, pExtraOptionsWithDescriptions);
 
     result.m_shouldQuit = cmdParser.shouldQuit();
 
@@ -107,8 +109,6 @@ bool initialize(QuentierApplication & app,
 
     return processOverrideSystemTrayAvailabilityCommandLineOption(cmdOptions);
 }
-
-typedef CommandLineParser::CommandLineOptions CmdOptions;
 
 bool processStorageDirCommandLineOption(
     const CommandLineParser::CommandLineOptions & options)

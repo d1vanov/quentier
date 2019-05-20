@@ -49,7 +49,9 @@ void validate(boost::any & value, const std::vector<std::string> & values,
 
 namespace quentier {
 
-CommandLineParser::CommandLineParser(int argc, char * argv[]) :
+CommandLineParser::CommandLineParser(
+        int argc, char * argv[],
+        const QHash<QString,QString> * pExtraOptionsWithDescriptions) :
     m_responseMessage(),
     m_shouldQuit(false),
     m_errorDescription(),
@@ -78,10 +80,18 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
              "where <id> is user ID and <Name> is the account name")
             ("overrideSystemTrayAvailability", po::value<bool>(),
              "override the availability of the system tray\n(0 - override to "
-             "false,\nany other value - override to true)")
-            ("startMinimizedToTray", "start Quentier minimized to system tray")
-            ("startMinimized",
-             "start Quentier with its main window minimized to the task bar");
+             "false,\nany other value - override to true)");
+
+        if (pExtraOptionsWithDescriptions)
+        {
+            for(auto it = pExtraOptionsWithDescriptions->constBegin(),
+                end = pExtraOptionsWithDescriptions->constEnd(); it != end; ++it)
+            {
+                QByteArray key = it.key().toLocal8Bit();
+                QByteArray value = it.value().toLocal8Bit();
+                desc.add_options()(key.constData(), value.constData());
+            }
+        }
 
         po::variables_map varsMap;
         po::store(po::parse_command_line(argc, argv, desc), varsMap);
