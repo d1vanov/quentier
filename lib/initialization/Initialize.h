@@ -44,10 +44,17 @@ public:
     CommandLineParser::CommandLineOptions   m_cmdOptions;
 };
 
+/**
+ * Setup common available command line options - help, version and some others
+ * supposedly supported by many if not all binaries within quentier project
+ */
+void composeCommonAvailableCommandLineOptions(
+    QHash<QString,CommandLineParser::CommandLineOptionData> & availableCmdOptions);
+
 void parseCommandLine(
     int argc, char * argv[],
-    ParseCommandLineResult & result,
-    const QHash<QString,QString> * pExtraOptionsWithDescriptions = Q_NULLPTR);
+    const QHash<QString,CommandLineParser::CommandLineOptionData> & availableCmdOptions,
+    ParseCommandLineResult & result);
 
 /**
  * Processes "storageDir" command line option. This command line option is special

@@ -47,14 +47,31 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
-    QHash<QString, QString> extraCmdOptions;
-    extraCmdOptions[QStringLiteral("startMinimizedToTray")] =
+    QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
+    composeCommonAvailableCommandLineOptions(availableCmdOptions);
+
+    auto & overrideSystemTrayAvailabilityData =
+        availableCmdOptions[QStringLiteral("overrideSystemTrayAvailability")];
+    overrideSystemTrayAvailabilityData.m_type =
+        CommandLineParser::CommandLineArgumentType::Bool;
+    overrideSystemTrayAvailabilityData.m_description =
+        QStringLiteral("override the availability of the system tray\n"
+                       "(0 - override to false,\n"
+                       "any other value - override to true)");
+
+    auto & startMinimizedToTrayData =
+        availableCmdOptions[QStringLiteral("startMinimizedToTray")];
+    startMinimizedToTrayData.m_description =
         QStringLiteral("start Quentier minimized to system tray");
-    extraCmdOptions[QStringLiteral("startMinimized")] =
-        QStringLiteral("start Quentier with its main window minimized to the task bar");
+
+    auto & startMinimizedData =
+        availableCmdOptions[QStringLiteral("startMinimized")];
+    startMinimizedData.m_description =
+        QStringLiteral("start Quentier with its main window minimized "
+                       "to the task bar");
 
     ParseCommandLineResult parseCmdResult;
-    parseCommandLine(argc, argv, parseCmdResult, &extraCmdOptions);
+    parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
     if (parseCmdResult.m_shouldQuit)
     {
         if (!parseCmdResult.m_errorDescription.isEmpty()) {

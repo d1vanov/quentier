@@ -36,8 +36,15 @@ int main(int argc, char *argv[])
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2account"));
 
+    QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
+    composeCommonAvailableCommandLineOptions(availableCmdOptions);
+
+    auto & newAccountData = availableCmdOptions[QStringLiteral("new-account")];
+    newAccountData.m_description =
+        QStringLiteral("add notes created from wiki articles to a new local account");
+
     ParseCommandLineResult parseCmdResult;
-    parseCommandLine(argc, argv, parseCmdResult);
+    parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
     if (parseCmdResult.m_shouldQuit)
     {
         if (!parseCmdResult.m_errorDescription.isEmpty()) {

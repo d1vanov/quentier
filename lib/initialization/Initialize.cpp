@@ -41,11 +41,44 @@
 
 namespace quentier {
 
-void parseCommandLine(int argc, char *argv[],
-                      ParseCommandLineResult & result,
-                      const QHash<QString, QString> * pExtraOptionsWithDescriptions)
+void composeCommonAvailableCommandLineOptions(
+    QHash<QString,CommandLineParser::CommandLineOptionData> & availableCmdOptions)
 {
-    quentier::CommandLineParser cmdParser(argc, argv, pExtraOptionsWithDescriptions);
+    typedef CommandLineParser::CommandLineOptionData OptionData;
+    typedef CommandLineParser::CommandLineArgumentType ArgumentType;
+
+    OptionData & helpData = availableCmdOptions[QStringLiteral("help")];
+    helpData.m_singleLetterKey = QChar::fromLatin1('h');
+    helpData.m_description = QStringLiteral("show help message");
+    helpData.m_type = ArgumentType::None;
+
+    OptionData & versionData = availableCmdOptions[QStringLiteral("version")];
+    versionData.m_singleLetterKey = QChar::fromLatin1('v');
+    versionData.m_description = QStringLiteral("show version info");
+    versionData.m_type = ArgumentType::None;
+
+    OptionData & storageDirData = availableCmdOptions[QStringLiteral("storageDir")];
+    storageDirData.m_description =
+        QStringLiteral("set directory with the app's persistence");
+    storageDirData.m_type = ArgumentType::String;
+
+    OptionData & accountData = availableCmdOptions[QStringLiteral("account")];
+    accountData.m_description = QStringLiteral(
+        "set the account to use by default:\n"
+        "local_<Name>\n"
+        "evernote_<id>_<Name>\n"
+        "evernotesandbox_<id>_<Name>\n"
+        "yinxiangbiji_<id>_<Name>\n"
+        "where <id> is user ID and <Name> is the account name");
+    accountData.m_type = ArgumentType::String;
+}
+
+void parseCommandLine(
+    int argc, char *argv[],
+    const QHash<QString, CommandLineParser::CommandLineOptionData> & availableCmdOptions,
+    ParseCommandLineResult & result)
+{
+    quentier::CommandLineParser cmdParser(argc, argv, availableCmdOptions);
 
     result.m_shouldQuit = cmdParser.shouldQuit();
 
