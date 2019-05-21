@@ -38,21 +38,21 @@ if(APPLE)
 endif()
 
 set(HEADERS
-    MainWindow.h
-    MainWindowSideBordersController.h)
+    src/MainWindow.h
+    src/MainWindowSideBordersController.h)
 
 set(SOURCES
-    MainWindow.cpp
-    MainWindowSideBordersController.cpp
-    main.cpp)
+    src/MainWindow.cpp
+    src/MainWindowSideBordersController.cpp
+    src/main.cpp)
 
 set(FORMS
-    MainWindow.ui)
+    src/MainWindow.ui)
 
 qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 if(WIN32)
-  configure_file(quentier.rc.in
+  configure_file(src/quentier.rc.in
                  ${PROJECT_BINARY_DIR}/quentier.rc @ONLY)
   list(APPEND SOURCES ${PROJECT_BINARY_DIR}/quentier.rc)
 endif()
