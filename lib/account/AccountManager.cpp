@@ -157,6 +157,71 @@ int AccountManager::execManageAccountsDialog()
     return pManageAccountsDialog->exec();
 }
 
+Account AccountManager::createNewLocalAccount(QString name)
+{
+    if (!name.isEmpty())
+    {
+        const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
+        for(auto it = availableAccounts.constBegin(),
+            end = availableAccounts.constEnd(); it != end; ++it)
+        {
+            const Account & currentAccount = *it;
+            if (currentAccount.type() != Account::Type::Local) {
+                continue;
+            }
+
+            if (name.compare(currentAccount.name(), Qt::CaseInsensitive) == 0) {
+                return Account();
+            }
+        }
+    }
+    else
+    {
+        QString baseName = QStringLiteral("Local account");
+        int suffix = 0;
+        name = baseName;
+        const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
+        while(true)
+        {
+            bool nameClashDetected = false;
+            for(auto it = availableAccounts.constBegin(),
+                end = availableAccounts.constEnd(); it != end; ++it)
+            {
+                const Account & currentAccount = *it;
+                if (currentAccount.type() != Account::Type::Local) {
+                    continue;
+                }
+
+                if (name.compare(currentAccount.name(), Qt::CaseInsensitive) == 0) {
+                    nameClashDetected = true;
+                    ++suffix;
+                    name = baseName + QStringLiteral("_") + QString::number(suffix);
+                    break;
+                }
+            }
+
+            if (!nameClashDetected) {
+                break;
+            }
+        }
+    }
+
+    ErrorString errorDescription;
+    QSharedPointer<Account> pNewAccount =
+        createLocalAccount(name, name, errorDescription);
+    if (Q_UNLIKELY(pNewAccount.isNull())) {
+        ErrorString error(QT_TR_NOOP("Can't create a new local account"));
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
+        QNWARNING(error);
+        Q_EMIT notifyError(error);
+        return Account();
+    }
+
+    return *pNewAccount;
+}
+
 void AccountManager::switchAccount(const Account & account)
 {
     // print the entire account because here not only the name but also the type
