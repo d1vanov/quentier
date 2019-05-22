@@ -21,6 +21,8 @@
 #include <lib/account/AccountManager.h>
 #include <lib/initialization/Initialize.h>
 
+#include <iostream>
+
 namespace quentier {
 
 Account * processStartupAccount(const CommandLineParser::CommandLineOptions & options)
@@ -36,8 +38,7 @@ Account * processStartupAccount(const CommandLineParser::CommandLineOptions & op
 
     AccountManager accountManager;
     if (options.contains(QStringLiteral("new-account"))) {
-        // TODO: create new account within account manager and return it
-        return Q_NULLPTR;
+        return new Account(accountManager.createNewLocalAccount());
     }
 
     QVector<Account> availableAccounts = accountManager.availableAccounts();
@@ -69,11 +70,36 @@ Account * processStartupAccount(const CommandLineParser::CommandLineOptions & op
 
     strm << "Enter the number of account to which new notes should be added\n"
          << "If you want to create a new account, write \"new\"\n"
-         << ">";
+         << "> ";
+    strm.flush();
 
-    // TODO: offer the user to choose startup account
+    QTextStream stdoutStrm(stdout);
+    stdoutStrm << availableAccountsInfo;
+    stdoutStrm.flush();
 
-    return Q_NULLPTR;
+    QTextStream stdinStrm(stdin);
+    int accountNum = -1;
+    while(true)
+    {
+        QString line = stdinStrm.readLine();
+
+        bool conversionResult = false;
+        accountNum = line.toInt(&conversionResult);
+        if (!conversionResult) {
+            stdoutStrm << "Failed to parse account number, please try again\n"
+                       << "> ";
+            continue;
+        }
+
+        if (accountNum < 0 || accountNum >= availableAccounts.size()) {
+            stdoutStrm << "Invalid account number, please try again\n> ";
+            continue;
+        }
+
+        break;
+    }
+
+    return new Account(availableAccounts[accountNum]);
 }
 
 } // namespace quentier
