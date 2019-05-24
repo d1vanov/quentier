@@ -65,9 +65,10 @@ int main(int argc, char *argv[])
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
 
-    QScopedPointer<Account> pStartupAccount(processStartupAccount(parseCmdResult.m_cmdOptions));
-    // TODO: implement further
-    Q_UNUSED(pStartupAccount)
+    Account account = processStartupAccount(parseCmdResult.m_cmdOptions);
+    if (account.isEmpty()) {
+        return 1;
+    }
 
     return app.exec();
 }

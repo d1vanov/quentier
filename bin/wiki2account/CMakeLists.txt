@@ -20,10 +20,12 @@ set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 set(HEADERS
-    src/ProcessStartupAccount.h)
+    src/ProcessStartupAccount.h
+    src/ProcessNotebookOptions.h)
 
 set(SOURCES
     src/ProcessStartupAccount.cpp
+    src/ProcessNotebookOptions.cpp
     src/main.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})

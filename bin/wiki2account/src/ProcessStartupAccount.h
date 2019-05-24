@@ -27,7 +27,7 @@
 
 namespace quentier {
 
-Account * processStartupAccount(const CommandLineParser::CommandLineOptions & options);
+Account processStartupAccount(const CommandLineParser::CommandLineOptions & options);
 
 } // namespace quentier
 

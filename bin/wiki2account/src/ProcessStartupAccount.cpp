@@ -25,20 +25,20 @@
 
 namespace quentier {
 
-Account * processStartupAccount(const CommandLineParser::CommandLineOptions & options)
+Account processStartupAccount(const CommandLineParser::CommandLineOptions & options)
 {
     QScopedPointer<Account> pAccount;
     if (!processAccountCommandLineOption(options, pAccount)) {
-        return Q_NULLPTR;
+        return Account();
     }
 
     if (!pAccount.isNull()) {
-        return pAccount.take();
+        return *pAccount;
     }
 
     AccountManager accountManager;
     if (options.contains(QStringLiteral("new-account"))) {
-        return new Account(accountManager.createNewLocalAccount());
+        return accountManager.createNewLocalAccount();
     }
 
     QVector<Account> availableAccounts = accountManager.availableAccounts();
@@ -99,7 +99,7 @@ Account * processStartupAccount(const CommandLineParser::CommandLineOptions & op
         break;
     }
 
-    return new Account(availableAccounts[accountNum]);
+    return availableAccounts[accountNum];
 }
 
 } // namespace quentier
