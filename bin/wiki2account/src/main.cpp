@@ -17,6 +17,7 @@
  */
 
 #include "ProcessStartupAccount.h"
+#include "ProcessNotebookOptions.h"
 
 #include <lib/account/AccountManager.h>
 #include <lib/initialization/Initialize.h>
@@ -69,6 +70,16 @@ int main(int argc, char *argv[])
     if (account.isEmpty()) {
         return 1;
     }
+
+    QString targetNotebookName;
+    quint32 numNewNotebooks = 0;
+    bool res = processNotebookOptions(parseCmdResult.m_cmdOptions,
+                                      targetNotebookName, numNewNotebooks);
+    if (!res) {
+        return 1;
+    }
+
+    // TODO: continue from here
 
     return app.exec();
 }
