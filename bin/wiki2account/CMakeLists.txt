@@ -20,11 +20,13 @@ set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 set(HEADERS
+    src/NotebookController.h
     src/ProcessStartupAccount.h
     src/ProcessNoteOptions.h
     src/ProcessNotebookOptions.h)
 
 set(SOURCES
+    src/NotebookController.cpp
     src/ProcessStartupAccount.cpp
     src/ProcessNoteOptions.cpp
     src/ProcessNotebookOptions.cpp

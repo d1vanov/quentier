@@ -16,11 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <quentier/utility/Macros.h>
+#include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Notebook.h>
 
+#include <QHash>
 #include <QList>
 #include <QObject>
+#include <QUuid>
 
 namespace quentier {
 
@@ -44,15 +46,66 @@ public:
                                 QObject * parent = Q_NULLPTR);
     virtual ~NotebookController();
 
-    Notebook targetNotebook() const;
-    QList<Notebook> newNotebooks() const;
+    const Notebook & targetNotebook() const { return m_targetNotebook; }
+    const QList<Notebook> & newNotebooks() const { return m_newNotebooks; }
 
 Q_SIGNALS:
     void finished();
     void failure(ErrorString errorDescription);
 
+    // private signals
+    void listNotebooks(LocalStorageManager::ListObjectsOptions flag,
+                       size_t limit, size_t offset,
+                       LocalStorageManager::ListNotebooksOrder::type order,
+                       LocalStorageManager::OrderDirection::type orderDirection,
+                       QString linkedNotebookGuid, QUuid requestId);
+    void addNotebook(Notebook notebook, QUuid requestId);
+    void findNotebook(Notebook notebook, QUuid requestId);
+
 public Q_SLOTS:
     void start();
+
+private Q_SLOTS:
+    void onListNotebooksComplete(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotebooksOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
+        QUuid requestId);
+
+    void onListNotebooksFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotebooksOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, ErrorString errorDescription,
+        QUuid requestId);
+
+    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                             QUuid requestId);
+
+    void onFindNotebookComplete(Notebook foundNotebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
+                              QUuid requestId);
+
+private:
+    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
+    void clear();
+
+private:
+    QString     m_targetNotebookName;
+    quint32     m_numNewNotebooks;
+
+    QHash<QString, QString>     m_notebookLocalUidsByNames;
+
+    QUuid       m_findNotebookRequestId;
+    QUuid       m_addNotebookRequestId;
+    QUuid       m_listNotebookRequestId;
+
+    Notebook            m_targetNotebook;
+    QList<Notebook>     m_newNotebooks;
 };
 
 } // namespace quentier
