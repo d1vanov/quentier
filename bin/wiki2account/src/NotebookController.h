@@ -93,6 +93,7 @@ private Q_SLOTS:
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
+    void createNextNewNotebook();
 
 private:
     QString     m_targetNotebookName;
@@ -102,10 +103,11 @@ private:
 
     QUuid       m_findNotebookRequestId;
     QUuid       m_addNotebookRequestId;
-    QUuid       m_listNotebookRequestId;
+    QUuid       m_listNotebooksRequestId;
 
     Notebook            m_targetNotebook;
     QList<Notebook>     m_newNotebooks;
+    qint32      m_lastNewNotebookIndex;
 };
 
 } // namespace quentier
