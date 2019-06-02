@@ -25,7 +25,8 @@ set(HEADERS
     src/PrepareNotebooks.h
     src/ProcessStartupAccount.h
     src/ProcessNoteOptions.h
-    src/ProcessNotebookOptions.h)
+    src/ProcessNotebookOptions.h
+    src/WikiRandomArticleFetcher.h)
 
 set(SOURCES
     src/NotebookController.cpp
@@ -34,6 +35,7 @@ set(SOURCES
     src/ProcessStartupAccount.cpp
     src/ProcessNoteOptions.cpp
     src/ProcessNotebookOptions.cpp
+    src/WikiRandomArticleFetcher.cpp
     src/main.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})

@@ -19,17 +19,18 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_NOTEBOOKS_H
 #define QUENTIER_WIKI2ACCOUNT_PREPARE_NOTEBOOKS_H
 
-#include <QtGlobal>
+#include <quentier/types/Notebook.h>
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(ErrorString)
 
-bool prepareNotebooks(const QString & targetNotebookName,
-                      const quint32 numNewNotebooks,
-                      LocalStorageManagerAsync & localStorageManagerAsync,
-                      ErrorString & errorDescription);
+QList<Notebook> prepareNotebooks(
+    const QString & targetNotebookName,
+    const quint32 numNewNotebooks,
+    LocalStorageManagerAsync & localStorageManagerAsync,
+    ErrorString & errorDescription);
 
 } // namespace quentier
 

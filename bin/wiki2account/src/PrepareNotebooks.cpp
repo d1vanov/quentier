@@ -29,11 +29,13 @@
 
 namespace quentier {
 
-bool prepareNotebooks(const QString & targetNotebookName,
-                      const quint32 numNewNotebooks,
-                      LocalStorageManagerAsync & localStorageManagerAsync,
-                      ErrorString & errorDescription)
+QList<Notebook> prepareNotebooks(
+    const QString & targetNotebookName,
+    const quint32 numNewNotebooks,
+    LocalStorageManagerAsync & localStorageManagerAsync,
+    ErrorString & errorDescription)
 {
+    QList<Notebook> result;
     NotebookController controller(targetNotebookName, numNewNotebooks,
                                   localStorageManagerAsync);
 
@@ -65,16 +67,21 @@ bool prepareNotebooks(const QString & targetNotebookName,
         errorDescription = loop.errorDescription();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == EventLoopWithExitStatus::ExitStatus::Success)
+    {
         errorDescription.clear();
-        return true;
+        result = controller.newNotebooks();
+        if (result.isEmpty()) {
+            result << controller.targetNotebook();
+        }
+        return result;
     }
 
     if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
         errorDescription.setBase(QT_TR_NOOP("Failed to prepare notebooks in due time"));
     }
 
-    return false;
+    return result;
 }
 
 } // namespace quentier

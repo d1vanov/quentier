@@ -16,6 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "PrepareLocalStorageManager.h"
+#include "PrepareNotebooks.h"
 #include "ProcessStartupAccount.h"
 #include "ProcessNoteOptions.h"
 #include "ProcessNotebookOptions.h"
@@ -27,6 +29,7 @@
 
 #include <QApplication>
 #include <QTextStream>
+#include <QThread>
 
 #include <iostream>
 
@@ -83,6 +86,30 @@ int main(int argc, char *argv[])
     quint32 numNotes = 0;
     res = processNoteOptions(parseCmdResult.m_cmdOptions, numNotes);
     if (!res) {
+        return 1;
+    }
+
+    QThread * pLocalStorageManagerThread = new QThread;
+    pLocalStorageManagerThread->setObjectName(QStringLiteral("LocalStorageManagerThread"));
+    QObject::connect(pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                     pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+    pLocalStorageManagerThread->start();
+
+    ErrorString errorDescription;
+    LocalStorageManagerAsync * pLocalStorageManager = prepareLocalStorageManager(
+        account, *pLocalStorageManagerThread, errorDescription);
+    if (!pLocalStorageManager) {
+        pLocalStorageManagerThread->quit();
+        return 1;
+    }
+
+    errorDescription.clear();
+    QList<Notebook> notebooks = prepareNotebooks(targetNotebookName,
+                                                 numNewNotebooks,
+                                                 *pLocalStorageManager,
+                                                 errorDescription);
+    if (notebooks.isEmpty()) {
+        pLocalStorageManagerThread->quit();
         return 1;
     }
 
