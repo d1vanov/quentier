@@ -30,7 +30,10 @@ class WikiRandomArticleFetcher: public QObject
 {
     Q_OBJECT
 public:
-    explicit WikiRandomArticleFetcher(QObject * parent = Q_NULLPTR);
+    explicit WikiRandomArticleFetcher(
+        QNetworkAccessManager * pNetworkAccessManager,
+        QObject * parent = Q_NULLPTR);
+
     virtual ~WikiRandomArticleFetcher();
 
     bool isStarted() const { return m_started; }

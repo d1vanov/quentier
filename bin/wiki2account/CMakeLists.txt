@@ -26,6 +26,7 @@ set(HEADERS
     src/ProcessStartupAccount.h
     src/ProcessNoteOptions.h
     src/ProcessNotebookOptions.h
+    src/WikiArticlesFetcher.h
     src/WikiRandomArticleFetcher.h)
 
 set(SOURCES
@@ -35,6 +36,7 @@ set(SOURCES
     src/ProcessStartupAccount.cpp
     src/ProcessNoteOptions.cpp
     src/ProcessNotebookOptions.cpp
+    src/WikiArticlesFetcher.cpp
     src/WikiRandomArticleFetcher.cpp
     src/main.cpp)
 

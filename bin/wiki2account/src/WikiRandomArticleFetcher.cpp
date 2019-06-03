@@ -24,9 +24,11 @@
 
 namespace quentier {
 
-WikiRandomArticleFetcher::WikiRandomArticleFetcher(QObject * parent) :
+WikiRandomArticleFetcher::WikiRandomArticleFetcher(
+        QNetworkAccessManager * pNetworkAccessManager,
+        QObject * parent) :
     QObject(parent),
-    m_pNetworkAccessManager(Q_NULLPTR),
+    m_pNetworkAccessManager(pNetworkAccessManager),
     m_enmlConverter(),
     m_started(false),
     m_finished(false),
@@ -51,7 +53,6 @@ void WikiRandomArticleFetcher::start()
         return;
     }
 
-    m_pNetworkAccessManager = new QNetworkAccessManager;
     m_pWikiArticleUrlFetcher =
         new WikiRandomArticleUrlFetcher(m_pNetworkAccessManager);
 
@@ -245,11 +246,6 @@ void WikiRandomArticleFetcher::clear()
         m_pWikiArticleUrlFetcher->disconnect(this);
         m_pWikiArticleUrlFetcher->deleteLater();
         m_pWikiArticleUrlFetcher = Q_NULLPTR;
-    }
-
-    if (m_pNetworkAccessManager) {
-        m_pNetworkAccessManager->deleteLater();
-        m_pNetworkAccessManager = Q_NULLPTR;
     }
 }
 
