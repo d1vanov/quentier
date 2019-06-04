@@ -20,6 +20,7 @@ set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 set(HEADERS
+    src/FetchNotes.h
     src/NotebookController.h
     src/PrepareLocalStorageManager.h
     src/PrepareNotebooks.h
@@ -27,9 +28,11 @@ set(HEADERS
     src/ProcessNoteOptions.h
     src/ProcessNotebookOptions.h
     src/WikiArticlesFetcher.h
+    src/WikiArticlesFetchingTracker.h
     src/WikiRandomArticleFetcher.h)
 
 set(SOURCES
+    src/FetchNotes.cpp
     src/NotebookController.cpp
     src/PrepareLocalStorageManager.cpp
     src/PrepareNotebooks.cpp
@@ -37,6 +40,7 @@ set(SOURCES
     src/ProcessNoteOptions.cpp
     src/ProcessNotebookOptions.cpp
     src/WikiArticlesFetcher.cpp
+    src/WikiArticlesFetchingTracker.cpp
     src/WikiRandomArticleFetcher.cpp
     src/main.cpp)
 

@@ -88,13 +88,6 @@ void WikiArticlesFetcher::onWikiArticleFetched()
         return;
     }
 
-    // Wiki article fetching takes 80% of the total progress of getting a new
-    // note into the local storage; putting the fetched note into the local
-    // storage takes the remaining 20%
-
-    it.value() = 0.8;
-    updateProgress();
-
     const Note & note = pFetcher->note();
 
     QUuid requestId = QUuid::createUuid();
@@ -102,14 +95,16 @@ void WikiArticlesFetcher::onWikiArticleFetched()
     Q_EMIT addNote(note, requestId);
 
     m_wikiRandomArticleFetchersWithProgress.erase(it);
+    updateProgress();
 }
 
 void WikiArticlesFetcher::onWikiArticleFetchingFailed(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("WikiArticlesFetcher::onWikiArticleFetchingFailed: ")
-            << errorDescription);
+    QNWARNING(QStringLiteral("WikiArticlesFetcher::onWikiArticleFetchingFailed: ")
+              << errorDescription);
 
-    // TODO: implement
+    clear();
+    Q_EMIT failure(errorDescription);
 }
 
 void WikiArticlesFetcher::onWikiArticleFetchingProgress(double percentage)
@@ -117,7 +112,18 @@ void WikiArticlesFetcher::onWikiArticleFetchingProgress(double percentage)
     QNDEBUG(QStringLiteral("WikiArticlesFetcher::onWikiArticleFetchingProgress: ")
             << percentage);
 
-    // TODO: implement
+    WikiRandomArticleFetcher * pFetcher =
+        qobject_cast<WikiRandomArticleFetcher*>(sender());
+
+    auto it = m_wikiRandomArticleFetchersWithProgress.find(pFetcher);
+    if (it == m_wikiRandomArticleFetchersWithProgress.end()) {
+        QNWARNING(QStringLiteral("Received wiki article fetching progress signal "
+                                 "from unrecognized WikiRandomArticleFetcher"));
+        return;
+    }
+
+    it.value() = percentage;
+    updateProgress();
 }
 
 void WikiArticlesFetcher::onAddNoteComplete(Note note, QUuid requestId)
@@ -132,8 +138,7 @@ void WikiArticlesFetcher::onAddNoteComplete(Note note, QUuid requestId)
     QNTRACE(note);
 
     m_addNoteRequestIds.erase(it);
-
-    // TODO: increment progress
+    updateProgress();
 }
 
 void WikiArticlesFetcher::onAddNoteFailed(Note note, ErrorString errorDescription,
@@ -201,7 +206,38 @@ int WikiArticlesFetcher::nextNotebookIndex()
 
 void WikiArticlesFetcher::updateProgress()
 {
-    // TODO: implement
+    QNDEBUG(QStringLiteral("WikiArticlesFetcher::updateProgress"));
+
+    double percentage = 0.0;
+
+    // Fetching the random wiki article's contents and converting it to note
+    // takes 80% of the total progress - the remaining 20% is for adding the
+    // note to the local storage
+    for(auto it = m_wikiRandomArticleFetchersWithProgress.constBegin(),
+        end = m_wikiRandomArticleFetchersWithProgress.constEnd(); it != end; ++it)
+    {
+        percentage += 0.8 * it.value();
+    }
+
+    // Add note to local storage requests mean there are 80% fetched notes
+    percentage += 0.8 * m_addNoteRequestIds.size();
+
+    // Totally finished notes are those already fetched (with fetcher deleted)
+    // and added to the local storage
+    quint32 numFetchedNotes = m_numNotes;
+    numFetchedNotes -= quint32(std::max(m_wikiRandomArticleFetchersWithProgress.size(), 0));
+    numFetchedNotes -= quint32(std::max(m_addNoteRequestIds.size(), 0));
+
+    percentage += std::max(numFetchedNotes, quint32(0));
+
+    // Divide the accumulated number by the number of notes meant to fetch
+    percentage /= m_numNotes;
+
+    // Just in case ensure the progress doesn't exceed 1.0
+    percentage = std::max(percentage, 1.0);
+
+    QNTRACE(QStringLiteral("Progress: ") << percentage);
+    Q_EMIT progress(percentage);
 }
 
 } // namespace quentier

@@ -16,6 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "FetchNotes.h"
 #include "PrepareLocalStorageManager.h"
 #include "PrepareNotebooks.h"
 #include "ProcessStartupAccount.h"
@@ -113,7 +114,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // TODO: continue from here
+    if (!FetchNotes(notebooks, numNotes, *pLocalStorageManager)) {
+        pLocalStorageManagerThread->quit();
+        return 1;
+    }
 
+    pLocalStorageManagerThread->quit();
     return app.exec();
 }
