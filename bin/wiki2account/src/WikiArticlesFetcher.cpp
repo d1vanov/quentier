@@ -88,7 +88,11 @@ void WikiArticlesFetcher::onWikiArticleFetched()
         return;
     }
 
-    const Note & note = pFetcher->note();
+    Note note = pFetcher->note();
+
+    int notebookIndex = nextNotebookIndex();
+    Notebook & notebook = m_notebooks[notebookIndex];
+    note.setNotebookLocalUid(notebook.localUid());
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_addNoteRequestIds.insert(requestId))
@@ -139,6 +143,12 @@ void WikiArticlesFetcher::onAddNoteComplete(Note note, QUuid requestId)
 
     m_addNoteRequestIds.erase(it);
     updateProgress();
+
+    if (m_wikiRandomArticleFetchersWithProgress.isEmpty() &&
+        m_addNoteRequestIds.isEmpty())
+    {
+        Q_EMIT finished();
+    }
 }
 
 void WikiArticlesFetcher::onAddNoteFailed(Note note, ErrorString errorDescription,
