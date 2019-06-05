@@ -28,6 +28,7 @@
 #include <lib/initialization/Initialize.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Utility.h>
 
 #include <QApplication>
 #include <QTextStream>
@@ -60,6 +61,10 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    // Have to pretend being Quentier app in order to get access to its
+    // persistence dir
+    app.setApplicationName(QStringLiteral("quentier"));
+
     if (!processStorageDirCommandLineOption(parseCmdResult.m_cmdOptions)) {
         return 1;
     }
@@ -67,6 +72,8 @@ int main(int argc, char *argv[])
     // Initialize logging
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
+
+    initializeLibquentier();
 
     Account account = processStartupAccount(parseCmdResult.m_cmdOptions);
     if (account.isEmpty()) {
