@@ -91,6 +91,7 @@ Account processStartupAccount(const CommandLineParser::CommandLineOptions & opti
             continue;
         }
 
+        --accountNum;
         if (accountNum < 0 || accountNum >= availableAccounts.size()) {
             stdoutStrm << "Invalid account number, please try again\n> ";
             continue;
