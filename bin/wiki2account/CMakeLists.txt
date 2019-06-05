@@ -22,6 +22,7 @@ set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 set(HEADERS
     src/FetchNotes.h
     src/NotebookController.h
+    src/PrepareAvailableCommandLineOptions.h
     src/PrepareLocalStorageManager.h
     src/PrepareNotebooks.h
     src/ProcessStartupAccount.h
@@ -34,6 +35,7 @@ set(HEADERS
 set(SOURCES
     src/FetchNotes.cpp
     src/NotebookController.cpp
+    src/PrepareAvailableCommandLineOptions.cpp
     src/PrepareLocalStorageManager.cpp
     src/PrepareNotebooks.cpp
     src/ProcessStartupAccount.cpp

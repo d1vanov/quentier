@@ -17,6 +17,7 @@
  */
 
 #include "FetchNotes.h"
+#include "PrepareAvailableCommandLineOptions.h"
 #include "PrepareLocalStorageManager.h"
 #include "PrepareNotebooks.h"
 #include "ProcessStartupAccount.h"
@@ -43,11 +44,7 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("wiki2account"));
 
     QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
-    composeCommonAvailableCommandLineOptions(availableCmdOptions);
-
-    auto & newAccountData = availableCmdOptions[QStringLiteral("new-account")];
-    newAccountData.m_description =
-        QStringLiteral("add notes created from wiki articles to a new local account");
+    PrepareAvailableCommandLineOptions(availableCmdOptions);
 
     ParseCommandLineResult parseCmdResult;
     parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
