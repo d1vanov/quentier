@@ -80,6 +80,7 @@ void WikiRandomArticleUrlFetcher::start()
                      QNSLOT(WikiRandomArticleUrlFetcher,onDownloadProgress,
                             qint64,qint64));
 
+    m_pNetworkReplyFetcher->start();
     m_started = true;
 }
 
@@ -154,6 +155,8 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
 
     while(!reader.atEnd())
     {
+        Q_UNUSED(reader.readNext());
+
         if (reader.isStartElement() &&
             (reader.name().toString() == QStringLiteral("page")))
         {
