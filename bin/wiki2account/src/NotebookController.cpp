@@ -31,7 +31,7 @@ NotebookController::NotebookController(
     QObject(parent),
     m_targetNotebookName(targetNotebookName),
     m_numNewNotebooks(numNotebooks),
-    m_lastNewNotebookIndex(0)
+    m_lastNewNotebookIndex(1)
 {
     createConnections(localStorageManagerAsync);
 }
@@ -145,6 +145,13 @@ void NotebookController::onAddNotebookComplete(Notebook notebook, QUuid requestI
 
     m_addNotebookRequestId = QUuid();
 
+    if (Q_UNLIKELY(!notebook.hasName())) {
+        ErrorString errorDescription(QT_TR_NOOP("Created notebook has no name"));
+        clear();
+        Q_EMIT failure(errorDescription);
+        return;
+    }
+
     if (!m_targetNotebookName.isEmpty()) {
         m_targetNotebook = notebook;
         QNDEBUG(QStringLiteral("Created target notebook, finishing"));
@@ -159,6 +166,7 @@ void NotebookController::onAddNotebookComplete(Notebook notebook, QUuid requestI
         return;
     }
 
+    m_notebookLocalUidsByNames[notebook.name()] = notebook.localUid();
     createNextNewNotebook();
 }
 
@@ -303,7 +311,7 @@ void NotebookController::clear()
     m_targetNotebook.clear();
     m_newNotebooks.clear();
 
-    m_lastNewNotebookIndex = 0;
+    m_lastNewNotebookIndex = 1;
 }
 
 void NotebookController::createNextNewNotebook()
@@ -311,14 +319,14 @@ void NotebookController::createNextNewNotebook()
     QNDEBUG(QStringLiteral("NotebookController::createNextNewNotebook: index = ")
             << m_lastNewNotebookIndex);
 
-    QString baseName = QStringLiteral("notebook");
+    QString baseName = QStringLiteral("wiki notes notebook");
     QString name;
     qint32 index = m_lastNewNotebookIndex;
 
     while(true)
     {
         name = baseName;
-        if (index > 0) {
+        if (index > 1) {
             name += QStringLiteral(" #") + QString::number(index);
         }
 
