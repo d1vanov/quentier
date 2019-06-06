@@ -46,6 +46,7 @@ public Q_SLOTS:
 private:
     QTextStream m_stdout;
     QTextStream m_stderr;
+    quint32 m_lastReportedProgress;
 };
 
 } // namespace quentier
