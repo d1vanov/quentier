@@ -244,7 +244,7 @@ void WikiArticlesFetcher::updateProgress()
     percentage /= m_numNotes;
 
     // Just in case ensure the progress doesn't exceed 1.0
-    percentage = std::max(percentage, 1.0);
+    percentage = std::min(percentage, 1.0);
 
     QNTRACE(QStringLiteral("Progress: ") << percentage);
     Q_EMIT progress(percentage);

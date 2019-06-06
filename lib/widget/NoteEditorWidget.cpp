@@ -1530,11 +1530,11 @@ void NoteEditorWidget::onExpungeNotebookComplete(Notebook notebook, QUuid reques
     QNDEBUG(QStringLiteral("NoteEditorWidget::onExpungeNotebookComplete: notebook = ")
             << notebook << QStringLiteral("\nRequest id = ") << requestId);
 
-    clear();
-
     QNINFO(QStringLiteral("The notebook containing the note loaded into the editor ")
            << QStringLiteral("was expunged from the local storage: ")
            << *m_pCurrentNotebook);
+
+    clear();
     Q_EMIT invalidated();
 }
 

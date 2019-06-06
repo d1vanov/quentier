@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-void PrepareAvailableCommandLineOptions(
+void prepareAvailableCommandLineOptions(
     QHash<QString,CommandLineParser::CommandLineOptionData> & options);
 
 } // namespace quentier

@@ -28,10 +28,10 @@
 #include <lib/initialization/Initialize.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
 
 #include <QApplication>
-#include <QTextStream>
 #include <QThread>
 
 #include <iostream>
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("wiki2account"));
 
     QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
-    PrepareAvailableCommandLineOptions(availableCmdOptions);
+    prepareAvailableCommandLineOptions(availableCmdOptions);
 
     ParseCommandLineResult parseCmdResult;
     parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
@@ -61,9 +61,14 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    // Have to pretend being Quentier app in order to get access to its
-    // persistence dir
-    app.setApplicationName(QStringLiteral("quentier"));
+    auto storageDirIt = parseCmdResult.m_cmdOptions.find(QStringLiteral("storageDir"));
+    if (storageDirIt == parseCmdResult.m_cmdOptions.end()) {
+        // Set storageDir to the location of Quentier app's persistence
+        app.setApplicationName(QStringLiteral("quentier"));
+        QString path = applicationPersistentStoragePath();
+        parseCmdResult.m_cmdOptions[QStringLiteral("storageDir")] = path;
+        app.setApplicationName(QStringLiteral("wiki2account"));
+    }
 
     if (!processStorageDirCommandLineOption(parseCmdResult.m_cmdOptions)) {
         return 1;
@@ -124,5 +129,5 @@ int main(int argc, char *argv[])
     }
 
     pLocalStorageManagerThread->quit();
-    return app.exec();
+    return 0;
 }

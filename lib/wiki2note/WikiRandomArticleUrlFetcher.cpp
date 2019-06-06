@@ -97,7 +97,6 @@ void WikiRandomArticleUrlFetcher::onDownloadProgress(qint64 bytesFetched,
         percentage = std::max(percentage, 1.0);
     }
 
-    percentage *= 100.0;
     Q_EMIT progress(percentage);
 }
 
