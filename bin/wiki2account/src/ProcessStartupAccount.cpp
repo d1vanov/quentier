@@ -25,6 +25,34 @@
 
 namespace quentier {
 
+namespace {
+
+Account createNewLocalAccount(const QString & name,
+                              AccountManager & accountManager)
+{
+    QString accountName = name;
+    int suffix = 2;
+    Account account;
+
+    while(true)
+    {
+        account = accountManager.createNewLocalAccount(accountName);
+        if (account.isEmpty()) {
+            accountName = name + QStringLiteral(" (") +
+                          QString::number(suffix) + QStringLiteral(")");
+            ++suffix;
+            continue;
+        }
+
+        break;
+    }
+
+    return account;
+}
+
+} // namespace
+
+
 Account processStartupAccount(const CommandLineParser::CommandLineOptions & options)
 {
     QScopedPointer<Account> pAccount;
@@ -38,7 +66,7 @@ Account processStartupAccount(const CommandLineParser::CommandLineOptions & opti
 
     AccountManager accountManager;
     if (options.contains(QStringLiteral("new-account"))) {
-        return accountManager.createNewLocalAccount();
+        return createNewLocalAccount(QStringLiteral("Wiki notes"), accountManager);
     }
 
     QVector<Account> availableAccounts = accountManager.availableAccounts();
@@ -81,7 +109,10 @@ Account processStartupAccount(const CommandLineParser::CommandLineOptions & opti
     int accountNum = -1;
     while(true)
     {
-        QString line = stdinStrm.readLine();
+        QString line = stdinStrm.readLine().trimmed();
+        if (line == QStringLiteral("new")) {
+            return createNewLocalAccount(QStringLiteral("Wiki notes"), accountManager);
+        }
 
         bool conversionResult = false;
         accountNum = line.toInt(&conversionResult);

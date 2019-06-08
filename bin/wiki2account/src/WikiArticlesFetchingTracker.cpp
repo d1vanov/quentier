@@ -53,7 +53,7 @@ void WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate(
     percentage *= 100.0;
     quint32 roundedPercentage = static_cast<quint32>(std::max(std::floor(percentage), 0.0));
     if (roundedPercentage > m_lastReportedProgress) {
-        m_stdout << "Downloading notes: " << roundedPercentage << "\n";
+        m_stdout << "Downloading notes: " << roundedPercentage << "%\n";
         m_lastReportedProgress = roundedPercentage;
     }
 }
