@@ -23,6 +23,7 @@
 #include "ProcessStartupAccount.h"
 #include "ProcessNoteOptions.h"
 #include "ProcessNotebookOptions.h"
+#include "ProcessTagOptions.h"
 
 #include <lib/account/AccountManager.h>
 #include <lib/initialization/Initialize.h>
@@ -89,6 +90,14 @@ int main(int argc, char *argv[])
     quint32 numNewNotebooks = 0;
     bool res = processNotebookOptions(parseCmdResult.m_cmdOptions,
                                       targetNotebookName, numNewNotebooks);
+    if (!res) {
+        return 1;
+    }
+
+    quint32 minTagsPerNote = 0;
+    quint32 maxTagsPerNote = 0;
+    res = processTagOptions(parseCmdResult.m_cmdOptions, minTagsPerNote,
+                            maxTagsPerNote);
     if (!res) {
         return 1;
     }

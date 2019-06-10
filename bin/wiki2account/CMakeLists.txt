@@ -28,6 +28,7 @@ set(HEADERS
     src/ProcessStartupAccount.h
     src/ProcessNoteOptions.h
     src/ProcessNotebookOptions.h
+    src/ProcessTagOptions.h
     src/WikiArticlesFetcher.h
     src/WikiArticlesFetchingTracker.h
     src/WikiRandomArticleFetcher.h)
@@ -41,6 +42,7 @@ set(SOURCES
     src/ProcessStartupAccount.cpp
     src/ProcessNoteOptions.cpp
     src/ProcessNotebookOptions.cpp
+    src/ProcessTagOptions.cpp
     src/WikiArticlesFetcher.cpp
     src/WikiArticlesFetchingTracker.cpp
     src/WikiRandomArticleFetcher.cpp

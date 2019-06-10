@@ -42,6 +42,16 @@ void prepareAvailableCommandLineOptions(
     auto & numNotesData = options[QStringLiteral("num-notes")];
     numNotesData.m_description =
         QStringLiteral("number of notes which should be created from wiki articles");
+
+    auto & minTagsPerNote = options[QStringLiteral("min-tags-per-note")];
+    minTagsPerNote.m_description =
+        QStringLiteral("min number of new tags to be assigned to notes created "
+                       "from wiki articles; by default 0");
+
+    auto & maxTagsPerNote = options[QStringLiteral("max-tags-per-note")];
+    maxTagsPerNote.m_description =
+        QStringLiteral("max number of new tags to be assigned to notes created "
+                       "from wiki articles; by default 0");
 }
 
 } // namespace quentier
