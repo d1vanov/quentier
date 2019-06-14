@@ -21,6 +21,7 @@
 
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
+#include <quentier/types/Tag.h>
 
 #include <QHash>
 #include <QObject>
@@ -36,7 +37,8 @@ class WikiArticlesFetcher: public QObject
 {
     Q_OBJECT
 public:
-    explicit WikiArticlesFetcher(QList<Notebook> notebooks, quint32 numNotes,
+    explicit WikiArticlesFetcher(QList<Notebook> notebooks, QList<Tag> tags,
+                                 quint32 minTagsPerNote, quint32 numNotes,
                                  LocalStorageManagerAsync & localStorageManager,
                                  QObject * parent = Q_NULLPTR);
     virtual ~WikiArticlesFetcher();
@@ -65,11 +67,15 @@ private:
     void createConnections(LocalStorageManagerAsync & localStorageManager);
     void clear();
 
+    void addTagsToNote(Note & note);
+
     int nextNotebookIndex();
     void updateProgress();
 
 private:
     QList<Notebook>     m_notebooks;
+    QList<Tag>          m_tags;
+    quint32             m_minTagsPerNote;
     quint32             m_numNotes;
 
     int     m_notebookIndex;

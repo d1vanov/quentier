@@ -38,7 +38,7 @@ public:
                            QObject * parent = Q_NULLPTR);
     virtual ~TagController();
 
-    const QList<Tag> & tags() const;
+    const QList<Tag> & tags() const { return m_tags; }
 
 Q_SIGNALS:
     void finished();

@@ -41,6 +41,30 @@ bool processTagOptions(const CommandLineParser::CommandLineOptions & options,
 
         minTagsPerNote = value;
     }
+    else
+    {
+        QTextStream stdoutStrm(stdout);
+        stdoutStrm << "Enter the minimal number of random new tags to be "
+            << "assigned to notes downloaded from wiki\n> ";
+        stdoutStrm.flush();
+
+        QTextStream stdinStrm(stdin);
+        while(true)
+        {
+            QString line = stdinStrm.readLine();
+
+            bool conversionResult = false;
+            quint32 value = line.toUInt(&conversionResult);
+            if (!conversionResult) {
+                stdoutStrm << "Failed to parse the entered value to unsigned "
+                    << "integer, please try again\n> ";
+                continue;
+            }
+
+            minTagsPerNote = value;
+            break;
+        }
+    }
 
     auto maxTagsPerNoteIt = options.find(QStringLiteral("max-tags-per-note"));
     if (maxTagsPerNoteIt != options.end())
@@ -53,6 +77,36 @@ bool processTagOptions(const CommandLineParser::CommandLineOptions & options,
         }
 
         maxTagsPerNote = value;
+    }
+    else
+    {
+        QTextStream stdoutStrm(stdout);
+        stdoutStrm << "Enter the maximal number of random new tags to be "
+            << "assigned to notes downloaded from wiki\n> ";
+        stdoutStrm.flush();
+
+        QTextStream stdinStrm(stdin);
+        while(true)
+        {
+            QString line = stdinStrm.readLine();
+
+            bool conversionResult = false;
+            quint32 value = line.toUInt(&conversionResult);
+            if (!conversionResult) {
+                stdoutStrm << "Failed to parse the entered value to unsigned "
+                    << "integer, please try again\n> ";
+                continue;
+            }
+
+            if (value < minTagsPerNote) {
+                stdoutStrm << "The maximal number of tags per note cannot be "
+                    << "less than the minimal number, please try again\n> ";
+                continue;
+            }
+
+            maxTagsPerNote = value;
+            break;
+        }
     }
 
     if (maxTagsPerNote < minTagsPerNote) {

@@ -25,6 +25,7 @@ set(HEADERS
     src/PrepareAvailableCommandLineOptions.h
     src/PrepareLocalStorageManager.h
     src/PrepareNotebooks.h
+    src/PrepareTags.h
     src/ProcessStartupAccount.h
     src/ProcessNoteOptions.h
     src/ProcessNotebookOptions.h
@@ -40,6 +41,7 @@ set(SOURCES
     src/PrepareAvailableCommandLineOptions.cpp
     src/PrepareLocalStorageManager.cpp
     src/PrepareNotebooks.cpp
+    src/PrepareTags.cpp
     src/ProcessStartupAccount.cpp
     src/ProcessNoteOptions.cpp
     src/ProcessNotebookOptions.cpp

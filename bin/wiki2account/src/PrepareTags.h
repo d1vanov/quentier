@@ -16,20 +16,21 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H
-#define QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H
+#ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_TAGS_H
+#define QUENTIER_WIKI2ACCOUNT_PREPARE_TAGS_H
 
-#include <quentier/types/Notebook.h>
 #include <quentier/types/Tag.h>
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
+QT_FORWARD_DECLARE_CLASS(ErrorString)
 
-bool FetchNotes(const QList<Notebook> & notebooks, const QList<Tag> & tags,
-                const quint32 minTagsPerNote, const quint32 numNotes,
-                LocalStorageManagerAsync & localStorageManager);
+QList<Tag> prepareTags(
+    quint32 minTagsPerNote, quint32 maxTagsPerNote,
+    LocalStorageManagerAsync & localStorageManagerAsync,
+    ErrorString & errorDescription);
 
 } // namespace quentier
 
-#endif // QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H
+#endif // QUENTIER_WIKI2ACCOUNT_PREPARE_TAGS_H

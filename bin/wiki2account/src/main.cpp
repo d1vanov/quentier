@@ -20,6 +20,7 @@
 #include "PrepareAvailableCommandLineOptions.h"
 #include "PrepareLocalStorageManager.h"
 #include "PrepareNotebooks.h"
+#include "PrepareTags.h"
 #include "ProcessStartupAccount.h"
 #include "ProcessNoteOptions.h"
 #include "ProcessNotebookOptions.h"
@@ -35,12 +36,16 @@
 #include <QApplication>
 #include <QThread>
 
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 
 using namespace quentier;
 
 int main(int argc, char *argv[])
 {
+    std::srand((unsigned)std::time(NULL));
+
     QApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2account"));
@@ -132,7 +137,18 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (!FetchNotes(notebooks, numNotes, *pLocalStorageManager)) {
+    errorDescription.clear();
+    QList<Tag> tags = prepareTags(minTagsPerNote, maxTagsPerNote,
+                                  *pLocalStorageManager,
+                                  errorDescription);
+    if (tags.isEmpty() && !errorDescription.isEmpty()) {
+        pLocalStorageManagerThread->quit();
+        return 1;
+    }
+
+    res = FetchNotes(notebooks, tags, minTagsPerNote,
+                     numNotes, *pLocalStorageManager);
+    if (!res) {
         pLocalStorageManagerThread->quit();
         return 1;
     }

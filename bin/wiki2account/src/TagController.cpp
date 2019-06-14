@@ -75,7 +75,15 @@ void TagController::onAddTagComplete(Tag tag, QUuid requestId)
 
     m_addTagRequestId = QUuid();
 
-    // TODO: implement
+    m_tags << tag;
+    if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
+        QNDEBUG(QStringLiteral("Added the last required tag"));
+        Q_EMIT finished();
+        return;
+    }
+
+    ++m_nextNewTagNameSuffix;
+    findNextTag();
 }
 
 void TagController::onAddTagFailed(Tag tag, ErrorString errorDescription,
@@ -108,10 +116,13 @@ void TagController::onFindTagComplete(Tag tag, QUuid requestId)
 
     m_tags << tag;
     if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
-        QNDEBUG(QStringLiteral("Added the last required tag"));
+        QNDEBUG(QStringLiteral("Found the last required tag"));
         Q_EMIT finished();
         return;
     }
+
+    ++m_nextNewTagNameSuffix;
+    findNextTag();
 }
 
 void TagController::onFindTagFailed(Tag tag, ErrorString errorDescription,
@@ -132,8 +143,33 @@ void TagController::onFindTagFailed(Tag tag, ErrorString errorDescription,
 void TagController::createConnections(
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    // TODO: implement
-    Q_UNUSED(localStorageManagerAsync)
+    QObject::connect(this,
+                     QNSIGNAL(TagController,addTag,Tag,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onAddTagRequest,Tag,QUuid));
+    QObject::connect(this,
+                     QNSIGNAL(TagController,findTag,Tag,QUuid),
+                     &localStorageManagerAsync,
+                     QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
+
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
+                     this,
+                     QNSLOT(TagController,onAddTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addTagFailed,
+                              Tag,ErrorString,QUuid),
+                     this,
+                     QNSLOT(TagController,onAddTagFailed,Tag,ErrorString,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findTagComplete,Tag,QUuid),
+                     this,
+                     QNSLOT(TagController,onFindTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,findTagFailed,
+                              Tag,ErrorString,QUuid),
+                     this,
+                     QNSLOT(TagController,onFindTagFailed,Tag,ErrorString,QUuid));
 }
 
 void TagController::clear()
@@ -150,20 +186,45 @@ void TagController::findNextTag()
 {
     QNDEBUG(QStringLiteral("TagController::findNextTag"));
 
-    // TODO: implement
+    QString tagName = nextNewTagName();
+
+    Tag tag;
+    tag.setLocalUid(QString());
+    tag.setName(tagName);
+
+    m_findTagRequestId = QUuid::createUuid();
+    QNDEBUG(QStringLiteral("Emitting the request to find tag with name ")
+            << tagName << QStringLiteral(", request id = ")
+            << m_findTagRequestId);
+    Q_EMIT findTag(tag, m_findTagRequestId);
 }
 
 void TagController::createNextNewTag()
 {
     QNDEBUG(QStringLiteral("TagController::createNextNewTag"));
 
-    // TODO: implement
+    QString tagName = nextNewTagName();
+
+    Tag tag;
+    tag.setName(tagName);
+
+    m_addTagRequestId = QUuid::createUuid();
+    QNDEBUG(QStringLiteral("Emitting the request to add new tag: ")
+            << tag << QStringLiteral("\nRequest id = ")
+            << m_addTagRequestId);
+    Q_EMIT addTag(tag, m_addTagRequestId);
 }
 
 QString TagController::nextNewTagName()
 {
-    // TODO: implement
-    return QString();
+    QString tagName = QStringLiteral("Wiki tag");
+
+    if (m_nextNewTagNameSuffix > 1) {
+        tagName += QStringLiteral(" #");
+        tagName += QString::number(m_nextNewTagNameSuffix);
+    }
+
+    return tagName;
 }
 
 } // namespace quentier

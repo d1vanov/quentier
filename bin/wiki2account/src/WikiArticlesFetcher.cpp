@@ -22,14 +22,19 @@
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 
+#include <algorithm>
+#include <cstdlib>
+
 namespace quentier {
 
 WikiArticlesFetcher::WikiArticlesFetcher(
-        QList<Notebook> notebooks, quint32 numNotes,
-        LocalStorageManagerAsync & localStorageManager,
+        QList<Notebook> notebooks, QList<Tag> tags, quint32 minTagsPerNote,
+        quint32 numNotes, LocalStorageManagerAsync & localStorageManager,
         QObject * parent) :
     QObject(parent),
     m_notebooks(notebooks),
+    m_tags(tags),
+    m_minTagsPerNote(minTagsPerNote),
     m_numNotes(numNotes),
     m_notebookIndex(0),
     m_currentProgress(0.0),
@@ -93,6 +98,8 @@ void WikiArticlesFetcher::onWikiArticleFetched()
     int notebookIndex = nextNotebookIndex();
     Notebook & notebook = m_notebooks[notebookIndex];
     note.setNotebookLocalUid(notebook.localUid());
+
+    addTagsToNote(note);
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_addNoteRequestIds.insert(requestId))
@@ -202,6 +209,36 @@ void WikiArticlesFetcher::clear()
     m_wikiRandomArticleFetchersWithProgress.clear();
 
     m_addNoteRequestIds.clear();
+}
+
+void WikiArticlesFetcher::addTagsToNote(Note & note)
+{
+    QNDEBUG(QStringLiteral("WikiArticlesFetcher::addTagsToNote"));
+
+    if (m_tags.isEmpty()) {
+        QNDEBUG(QStringLiteral("No tags to assign to note"));
+        return;
+    }
+
+    int lowest = static_cast<int>(m_minTagsPerNote);
+    int highest = m_tags.size();
+
+    // Protect from the case in which lowest > highest
+    lowest = std::min(lowest, highest);
+
+    int range = (highest - lowest) + 1;
+    int randomValue = std::rand();
+    int numTags = lowest + int(double(range * randomValue) / (RAND_MAX + 1.0));
+
+    QNDEBUG(QStringLiteral("lowest = ") << lowest
+            << QStringLiteral(", highest = ") << highest
+            << QStringLiteral(", range = ") << range
+            << QStringLiteral(", random value = ") << randomValue
+            << QStringLiteral(", num tags = ") << numTags);
+
+    for(int i = 0; i < numTags; ++i) {
+        note.addTagLocalUid(m_tags[i].localUid());
+    }
 }
 
 int WikiArticlesFetcher::nextNotebookIndex()

@@ -26,10 +26,12 @@
 
 namespace quentier {
 
-bool FetchNotes(const QList<Notebook> & notebooks, const quint32 numNotes,
+bool FetchNotes(const QList<Notebook> & notebooks, const QList<Tag> & tags,
+                const quint32 minTagsPerNote, const quint32 numNotes,
                 LocalStorageManagerAsync & localStorageManager)
 {
-    WikiArticlesFetcher fetcher(notebooks, numNotes, localStorageManager);
+    WikiArticlesFetcher fetcher(notebooks, tags, minTagsPerNote,
+                                numNotes, localStorageManager);
 
     WikiArticlesFetchingTracker tracker;
     QObject::connect(&fetcher,
