@@ -23,6 +23,7 @@
 #include <quentier/logging/QuentierLogger.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 
 namespace quentier {
@@ -228,14 +229,13 @@ void WikiArticlesFetcher::addTagsToNote(Note & note)
 
     int range = (highest - lowest) + 1;
     int randomValue = std::rand();
-    int numTags = lowest + int(double(range * randomValue) / (RAND_MAX + 1.0));
+    int numTags =
+        lowest +
+        static_cast<int>(
+            std::floor(static_cast<double>(range) *
+                       static_cast<double>(randomValue) / (RAND_MAX + 1.0)));
 
-    QNDEBUG(QStringLiteral("lowest = ") << lowest
-            << QStringLiteral(", highest = ") << highest
-            << QStringLiteral(", range = ") << range
-            << QStringLiteral(", random value = ") << randomValue
-            << QStringLiteral(", num tags = ") << numTags);
-
+    QNTRACE(QStringLiteral("Adding ") << numTags << QStringLiteral(" tags to note"));
     for(int i = 0; i < numTags; ++i) {
         note.addTagLocalUid(m_tags[i].localUid());
     }
