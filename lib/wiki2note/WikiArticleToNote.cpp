@@ -22,6 +22,7 @@
 #include <quentier/enml/DecryptedTextManager.h>
 #include <quentier/logging/QuentierLogger.h>
 
+#include <QBuffer>
 #include <QCryptographicHash>
 #include <QMimeDatabase>
 #include <QMimeType>
@@ -236,10 +237,6 @@ QString WikiArticleToNote::fetchedWikiArticleToHtml(
         }
     }
 
-    if (!html.isEmpty()) {
-        html = QStringLiteral("<html><body>") + html + QStringLiteral("</body></html>");
-    }
-
     return html;
 }
 
@@ -247,50 +244,123 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("WikiArticleToNote::setupImageDataFetching"));
 
+    QBuffer buf;
+    if (!buf.open(QIODevice::WriteOnly)) {
+        errorDescription.setBase(QT_TR_NOOP("Failed to open buffer for HTML writing"));
+        return false;
+    }
+
+    QXmlStreamWriter writer(&buf);
+    writer.setAutoFormatting(false);
+    writer.setCodec("UTF-8");
+
     QXmlStreamReader reader(m_html);
+    bool insideElement = false;
+    bool skippingCurrentElement = false;
+
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext())
 
-        if (reader.isStartElement() &&
-            (reader.name().toString() == QStringLiteral("img")))
+        if (reader.isStartDocument()) {
+            writer.writeStartDocument();
+        }
+
+        if (reader.isStartElement())
         {
+            insideElement = true;
             QXmlStreamAttributes attributes = reader.attributes();
-            QString imgSrc = attributes.value(QStringLiteral("src")).toString();
-            if (!imgSrc.startsWith(QStringLiteral("https:"))) {
-                imgSrc = QStringLiteral("https:") + imgSrc;
-            }
-            QUrl imgSrcUrl(imgSrc);
 
-            if (!imgSrcUrl.isValid()) {
-                errorDescription.setBase(QT_TR_NOOP("Failed to download image: "
-                                                    "cannot convert img src to "
-                                                    "a valid URL"));
-                QNWARNING(errorDescription << QStringLiteral(": ") << imgSrc);
-                return false;
+            QString elementName = reader.name().toString();
+            if (elementName == QStringLiteral("head")) {
+                skippingCurrentElement = true;
+                continue;
             }
 
-            QNDEBUG(QStringLiteral("Starting to download image: ") << imgSrcUrl);
+            if (elementName == QStringLiteral("title")) {
+                skippingCurrentElement = true;
+                continue;
+            }
 
-            NetworkReplyFetcher * pFetcher = new NetworkReplyFetcher(
-                m_pNetworkAccessManager, imgSrcUrl, m_networkReplyFetcherTimeout);
-            pFetcher->setParent(this);
+            if (elementName == QStringLiteral("img"))
+            {
+                QString imgSrc = attributes.value(QStringLiteral("src")).toString();
+                if (!imgSrc.startsWith(QStringLiteral("https:")) &&
+                    imgSrc.startsWith(QStringLiteral("//")))
+                {
+                    imgSrc = QStringLiteral("https:") + imgSrc;
+                }
+                else
+                {
+                    skippingCurrentElement = true;
+                }
 
-            QObject::connect(pFetcher,
-                             QNSIGNAL(NetworkReplyFetcher,finished,
-                                      bool,QByteArray,ErrorString),
-                             this,
-                             QNSLOT(WikiArticleToNote,onNetworkReplyFetcherFinished,
-                                    bool,QByteArray,ErrorString));
-            QObject::connect(pFetcher,
-                             QNSIGNAL(NetworkReplyFetcher,downloadProgress,
-                                      qint64,qint64),
-                             this,
-                             QNSLOT(WikiArticleToNote,onNetworkReplyFetcherProgress,
-                                    qint64,qint64));
+                if (!skippingCurrentElement)
+                {
+                    QUrl imgSrcUrl(imgSrc);
 
-            m_imageDataFetchersWithProgress[pFetcher] = 0.0;
-            pFetcher->start();
+                    if (!imgSrcUrl.isValid()) {
+                        errorDescription.setBase(QT_TR_NOOP("Failed to download image: "
+                                                            "cannot convert img src to "
+                                                            "a valid URL"));
+                        QNWARNING(errorDescription << QStringLiteral(": ") << imgSrc);
+                        return false;
+                    }
+
+                    QNDEBUG(QStringLiteral("Starting to download image: ") << imgSrcUrl);
+
+                    NetworkReplyFetcher * pFetcher = new NetworkReplyFetcher(
+                        m_pNetworkAccessManager, imgSrcUrl, m_networkReplyFetcherTimeout);
+                    pFetcher->setParent(this);
+
+                    QObject::connect(pFetcher,
+                                     QNSIGNAL(NetworkReplyFetcher,finished,
+                                              bool,QByteArray,ErrorString),
+                                     this,
+                                     QNSLOT(WikiArticleToNote,onNetworkReplyFetcherFinished,
+                                            bool,QByteArray,ErrorString));
+                    QObject::connect(pFetcher,
+                                     QNSIGNAL(NetworkReplyFetcher,downloadProgress,
+                                              qint64,qint64),
+                                     this,
+                                     QNSLOT(WikiArticleToNote,onNetworkReplyFetcherProgress,
+                                            qint64,qint64));
+
+                    m_imageDataFetchersWithProgress[pFetcher] = 0.0;
+                    pFetcher->start();
+                }
+            }
+
+            if (!skippingCurrentElement) {
+                writer.writeStartElement(elementName);
+                writer.writeAttributes(attributes);
+            }
+        }
+
+        if (reader.isEndElement())
+        {
+            if (!skippingCurrentElement) {
+                writer.writeEndElement();
+            }
+            else {
+                skippingCurrentElement = false;
+            }
+
+            insideElement = false;
+        }
+
+        if (insideElement)
+        {
+            if (reader.isCDATA()) {
+                writer.writeCDATA(reader.text().toString());
+            }
+            else {
+                writer.writeCharacters(reader.text().toString());
+            }
+        }
+
+        if (reader.isEndDocument()) {
+            writer.writeEndDocument();
         }
     }
 
@@ -302,6 +372,7 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
         return false;
     }
 
+    m_html = QString::fromUtf8(buf.buffer());
     return true;
 }
 
