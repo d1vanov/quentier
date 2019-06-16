@@ -32,6 +32,7 @@ class WikiRandomArticleFetcher: public QObject
 public:
     explicit WikiRandomArticleFetcher(
         QNetworkAccessManager * pNetworkAccessManager,
+        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = Q_NULLPTR);
 
     virtual ~WikiRandomArticleFetcher();
@@ -70,6 +71,7 @@ private:
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
     ENMLConverter   m_enmlConverter;
+    const qint64    m_networkReplyFetcherTimeout;
 
     bool    m_started;
     bool    m_finished;

@@ -39,7 +39,7 @@ WikiArticlesFetcher::WikiArticlesFetcher(
     m_numNotes(numNotes),
     m_notebookIndex(0),
     m_currentProgress(0.0),
-    m_networkAccessManager(),
+    m_pNetworkAccessManager(Q_NULLPTR),
     m_wikiRandomArticleFetchersWithProgress(),
     m_addNoteRequestIds()
 {
@@ -55,10 +55,13 @@ void WikiArticlesFetcher::start()
 {
     QNDEBUG(QStringLiteral("WikiArticlesFetcher::start"));
 
+    m_pNetworkAccessManager = new QNetworkAccessManager(this);
+
+    const qint64 timeoutMsec = -1;
     for(quint32 i = 0; i < m_numNotes; ++i)
     {
         WikiRandomArticleFetcher * pFetcher =
-            new WikiRandomArticleFetcher(&m_networkAccessManager);
+            new WikiRandomArticleFetcher(m_pNetworkAccessManager, timeoutMsec);
         m_wikiRandomArticleFetchersWithProgress[pFetcher] = 0.0;
 
         QObject::connect(pFetcher,

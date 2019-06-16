@@ -26,10 +26,12 @@ namespace quentier {
 
 WikiRandomArticleFetcher::WikiRandomArticleFetcher(
         QNetworkAccessManager * pNetworkAccessManager,
+        const qint64 timeoutMsec,
         QObject * parent) :
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
     m_enmlConverter(),
+    m_networkReplyFetcherTimeout(timeoutMsec),
     m_started(false),
     m_finished(false),
     m_pWikiArticleUrlFetcher(Q_NULLPTR),
@@ -53,8 +55,8 @@ void WikiRandomArticleFetcher::start()
         return;
     }
 
-    m_pWikiArticleUrlFetcher =
-        new WikiRandomArticleUrlFetcher(m_pNetworkAccessManager);
+    m_pWikiArticleUrlFetcher = new WikiRandomArticleUrlFetcher(
+        m_pNetworkAccessManager, m_networkReplyFetcherTimeout);
 
     QObject::connect(m_pWikiArticleUrlFetcher,
                      QNSIGNAL(WikiRandomArticleUrlFetcher,progress,double),
@@ -107,8 +109,8 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     m_url = randomArticleUrl;
     QNDEBUG(QStringLiteral("Starting to fetch wiki article content: ") << m_url);
 
-    m_pWikiArticleContentsFetcher =
-        new NetworkReplyFetcher(m_pNetworkAccessManager, m_url);
+    m_pWikiArticleContentsFetcher = new NetworkReplyFetcher(
+        m_pNetworkAccessManager, m_url, m_networkReplyFetcherTimeout);
 
     QObject::connect(m_pWikiArticleContentsFetcher,
                      QNSIGNAL(NetworkReplyFetcher,finished,
@@ -166,7 +168,7 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
     }
 
     m_pWikiArticleToNote = new WikiArticleToNote(
-        m_pNetworkAccessManager, m_enmlConverter);
+        m_pNetworkAccessManager, m_enmlConverter, m_networkReplyFetcherTimeout);
 
     QObject::connect(m_pWikiArticleToNote,
                      QNSIGNAL(WikiArticleToNote,progress,double),

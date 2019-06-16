@@ -19,6 +19,8 @@
 #ifndef QUENTIER_LIB_WIKI2NOTE_WIKI_ARTICLE_TO_NOTE_H
 #define QUENTIER_LIB_WIKI2NOTE_WIKI_ARTICLE_TO_NOTE_H
 
+#include <lib/network/NetworkReplyFetcher.h>
+
 #include <quentier/utility/Macros.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Resource.h>
@@ -30,7 +32,6 @@
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(ENMLConverter)
-QT_FORWARD_DECLARE_CLASS(NetworkReplyFetcher)
 
 /**
  * The WikiArticleToNote converts the contents of a wiki article to a note
@@ -42,6 +43,7 @@ public:
     explicit WikiArticleToNote(
         QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
+        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = Q_NULLPTR);
 
     bool isStarted() const { return m_started; }
@@ -80,6 +82,8 @@ private:
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
     ENMLConverter &         m_enmlConverter;
+    const qint64            m_networkReplyFetcherTimeout;
+
     Note    m_note;
 
     bool    m_started;

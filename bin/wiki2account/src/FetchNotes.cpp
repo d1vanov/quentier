@@ -22,6 +22,7 @@
 
 #include <quentier/utility/EventLoopWithExitStatus.h>
 
+#include <QThread>
 #include <QTimer>
 
 namespace quentier {
@@ -30,21 +31,30 @@ bool FetchNotes(const QList<Notebook> & notebooks, const QList<Tag> & tags,
                 const quint32 minTagsPerNote, const quint32 numNotes,
                 LocalStorageManagerAsync & localStorageManager)
 {
-    WikiArticlesFetcher fetcher(notebooks, tags, minTagsPerNote,
-                                numNotes, localStorageManager);
+    WikiArticlesFetcher * pFetcher = new WikiArticlesFetcher(
+        notebooks, tags, minTagsPerNote,
+        numNotes, localStorageManager);
+
+    QThread * pWikiArticlerFetcherThread = new QThread;
+    pWikiArticlerFetcherThread->setObjectName(
+        QStringLiteral("WikiArticlesFetcherThread"));
+    QObject::connect(pWikiArticlerFetcherThread, QNSIGNAL(QThread,finished),
+                     pWikiArticlerFetcherThread, QNSLOT(QThread,deleteLater));
+    pWikiArticlerFetcherThread->start();
+    pFetcher->moveToThread(pWikiArticlerFetcherThread);
 
     WikiArticlesFetchingTracker tracker;
-    QObject::connect(&fetcher,
+    QObject::connect(pFetcher,
                      QNSIGNAL(WikiArticlesFetcher,finished),
                      &tracker,
                      QNSLOT(WikiArticlesFetchingTracker,
                             onWikiArticlesFetchingFinished));
-    QObject::connect(&fetcher,
+    QObject::connect(pFetcher,
                      QNSIGNAL(WikiArticlesFetcher,failure,ErrorString),
                      &tracker,
                      QNSLOT(WikiArticlesFetchingTracker,
                             onWikiArticlesFetchingFailed,ErrorString));
-    QObject::connect(&fetcher,
+    QObject::connect(pFetcher,
                      QNSIGNAL(WikiArticlesFetcher,progress,double),
                      &tracker,
                      QNSLOT(WikiArticlesFetchingTracker,
@@ -66,10 +76,13 @@ bool FetchNotes(const QList<Notebook> & notebooks, const QList<Tag> & tags,
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
-        slotInvokingTimer.singleShot(0, &fetcher, SLOT(start()));
+        slotInvokingTimer.singleShot(0, pFetcher, SLOT(start()));
 
         status = loop.exec();
     }
+
+    pFetcher->deleteLater();
+    pWikiArticlerFetcherThread->quit();
 
     if (status == EventLoopWithExitStatus::ExitStatus::Success) {
         return true;

@@ -223,8 +223,9 @@ void WikiArticleFetcher::onWikiArticleDownloadFinished(
         return;
     }
 
+    const qint64 timeoutMsec = 180000;
     m_pWikiArticleToNote = new WikiArticleToNote(
-        m_pNetworkAccessManager, m_enmlConverter, this);
+        m_pNetworkAccessManager, m_enmlConverter, timeoutMsec, this);
 
     QObject::connect(m_pWikiArticleToNote,
                      QNSIGNAL(WikiArticleToNote,progress,double),

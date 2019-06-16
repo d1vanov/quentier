@@ -18,8 +18,6 @@
 
 #include "WikiRandomArticleUrlFetcher.h"
 
-#include <lib/network/NetworkReplyFetcher.h>
-
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QXmlStreamReader>
@@ -30,9 +28,11 @@ namespace quentier {
 
 WikiRandomArticleUrlFetcher::WikiRandomArticleUrlFetcher(
         QNetworkAccessManager * pNetworkAccessManager,
+        const qint64 timeoutMsec,
         QObject * parent) :
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
+    m_networkReplyFetcherTimeout(timeoutMsec),
     m_pNetworkReplyFetcher(Q_NULLPTR),
     m_started(false),
     m_finished(false),
@@ -63,7 +63,8 @@ void WikiRandomArticleUrlFetcher::start()
                               "&rnlimit=1"
                               "&rnnamespace=0"));
 
-    m_pNetworkReplyFetcher = new NetworkReplyFetcher(m_pNetworkAccessManager, query);
+    m_pNetworkReplyFetcher = new NetworkReplyFetcher(
+        m_pNetworkAccessManager, query, m_networkReplyFetcherTimeout);
 
     QObject::connect(this, QNSIGNAL(WikiRandomArticleUrlFetcher,startFetching),
                      m_pNetworkReplyFetcher, QNSLOT(NetworkReplyFetcher,start));

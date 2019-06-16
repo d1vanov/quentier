@@ -18,8 +18,6 @@
 
 #include "WikiArticleToNote.h"
 
-#include <lib/network/NetworkReplyFetcher.h>
-
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/enml/DecryptedTextManager.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -37,10 +35,12 @@ namespace quentier {
 WikiArticleToNote::WikiArticleToNote(
         QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
+        const qint64 timeoutMsec,
         QObject * parent) :
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
     m_enmlConverter(enmlConverter),
+    m_networkReplyFetcherTimeout(timeoutMsec),
     m_note(),
     m_started(false),
     m_finished(false),
@@ -273,7 +273,7 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
             QNDEBUG(QStringLiteral("Starting to download image: ") << imgSrcUrl);
 
             NetworkReplyFetcher * pFetcher = new NetworkReplyFetcher(
-                m_pNetworkAccessManager, imgSrcUrl);
+                m_pNetworkAccessManager, imgSrcUrl, m_networkReplyFetcherTimeout);
             pFetcher->setParent(this);
 
             QObject::connect(pFetcher,

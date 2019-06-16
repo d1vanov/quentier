@@ -127,6 +127,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    std::cout << "Preparing notebooks..." << std::endl;
+
     errorDescription.clear();
     QList<Notebook> notebooks = prepareNotebooks(targetNotebookName,
                                                  numNewNotebooks,
@@ -137,6 +139,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    std::cout << "Done." << std::endl;
+    std::cout << "Preparing tags..." << std::endl;
+
     errorDescription.clear();
     QList<Tag> tags = prepareTags(minTagsPerNote, maxTagsPerNote,
                                   *pLocalStorageManager,
@@ -145,6 +150,9 @@ int main(int argc, char *argv[])
         pLocalStorageManagerThread->quit();
         return 1;
     }
+
+    std::cout << "Done." << std::endl;
+    std::cout << "Fetching notes..." << std::endl;
 
     res = FetchNotes(notebooks, tags, minTagsPerNote,
                      numNotes, *pLocalStorageManager);

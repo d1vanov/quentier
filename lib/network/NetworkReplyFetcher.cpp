@@ -99,10 +99,12 @@ void NetworkReplyFetcher::start()
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
 
-    m_pTimeoutTimer = new QTimer(this);
-    QObject::connect(m_pTimeoutTimer, QNSIGNAL(QTimer,timeout),
-                     this, QNSLOT(NetworkReplyFetcher,checkForTimeout));
-    m_pTimeoutTimer->start(NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL);
+    if (m_timeoutMsec > 0) {
+        m_pTimeoutTimer = new QTimer(this);
+        QObject::connect(m_pTimeoutTimer, QNSIGNAL(QTimer,timeout),
+                         this, QNSLOT(NetworkReplyFetcher,checkForTimeout));
+        m_pTimeoutTimer->start(NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL);
+    }
 
     QNetworkRequest request;
     request.setUrl(m_url);
@@ -215,6 +217,17 @@ void NetworkReplyFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTo
 void NetworkReplyFetcher::checkForTimeout()
 {
     RFDEBUG(QStringLiteral("NetworkReplyFetcher::checkForTimeout"));
+
+    if (m_finished || !m_started)
+    {
+        if (m_pTimeoutTimer) {
+            m_pTimeoutTimer->stop();
+            m_pTimeoutTimer->deleteLater();
+            m_pTimeoutTimer = Q_NULLPTR;
+        }
+
+        return;
+    }
 
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     if ((now - m_lastNetworkTime) <= m_timeoutMsec) {

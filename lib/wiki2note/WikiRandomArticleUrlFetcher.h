@@ -19,6 +19,8 @@
 #ifndef QUENTIER_LIB_WIKI2NOTE_WIKI_RANDOM_ARTICLE_URL_FETCHER_H
 #define QUENTIER_LIB_WIKI2NOTE_WIKI_RANDOM_ARTICLE_URL_FETCHER_H
 
+#include <lib/network/NetworkReplyFetcher.h>
+
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
 
@@ -31,14 +33,13 @@ QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NetworkReplyFetcher)
-
 class WikiRandomArticleUrlFetcher: public QObject
 {
     Q_OBJECT
 public:
     explicit WikiRandomArticleUrlFetcher(
         QNetworkAccessManager * pNetworkAccessManager,
+        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = Q_NULLPTR);
     virtual ~WikiRandomArticleUrlFetcher();
 
@@ -70,6 +71,8 @@ private:
 
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
+    const qint64            m_networkReplyFetcherTimeout;
+
     NetworkReplyFetcher *   m_pNetworkReplyFetcher;
 
     bool        m_started;

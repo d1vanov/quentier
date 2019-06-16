@@ -82,7 +82,7 @@ private:
 
     double  m_currentProgress;
 
-    QNetworkAccessManager   m_networkAccessManager;
+    QNetworkAccessManager *     m_pNetworkAccessManager;
     QHash<WikiRandomArticleFetcher*, double>    m_wikiRandomArticleFetchersWithProgress;
     QSet<QUuid>     m_addNoteRequestIds;
 };
