@@ -214,6 +214,7 @@ void NotebookController::onFindNotebookFailed(
 
     m_findNotebookRequestId = QUuid();
 
+    notebook = Notebook();
     notebook.setName(m_targetNotebookName);
     m_addNotebookRequestId = QUuid::createUuid();
     QNDEBUG(QStringLiteral("Emitting request to add notebook: ")
