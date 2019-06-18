@@ -28,6 +28,8 @@ include(PrependPath)
 
 find_package(Sanitizers)
 
+set(BUILD_WITH_WIKI_TOOLS OFF CACHE BOOL "Build test tools for downloading wiki articles as notes")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 

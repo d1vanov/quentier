@@ -15,4 +15,7 @@ add_subdirectory(tray)
 add_subdirectory(utility)
 add_subdirectory(view)
 add_subdirectory(widget)
-add_subdirectory(wiki2note)
+
+if(BUILD_WITH_WIKI_TOOLS)
+  add_subdirectory(wiki2note)
+endif()
