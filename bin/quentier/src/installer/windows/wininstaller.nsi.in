@@ -35,14 +35,14 @@
 !define MULTIUSER_INSTALLMODE_64_BIT 1
 !endif
 
-!addplugindir /x86-ansi "..\..\..\bin\quentier\installer\windows\NsisMultiUser\Plugins\x86-ansi\"
-!addplugindir /x86-unicode "..\..\..\bin\quentier\installer\windows\NsisMultiUser\Plugins\x86-unicode\"
-!addincludedir "..\..\..\bin\quentier\installer\windows\NsisMultiUser\Include\"
+!addplugindir /x86-ansi "..\..\..\bin\quentier\src\installer\windows\NsisMultiUser\Plugins\x86-ansi\"
+!addplugindir /x86-unicode "..\..\..\bin\quentier\src\installer\windows\NsisMultiUser\Plugins\x86-unicode\"
+!addincludedir "..\..\..\bin\quentier\src\installer\windows\NsisMultiUser\Include\"
 
 ;--------------------------------
 ;Setup nsislog plugin
 
-!addplugindir "..\..\..\bin\quentier\installer\windows\Nsislog\plugin"
+!addplugindir "..\..\..\bin\quentier\src\installer\windows\Nsislog\plugin"
 
 ;--------------------------------
 ;Includes
@@ -150,7 +150,7 @@ Var VCRedistInstalled
 !define MUI_FINISHPAGE_RUN_FUNCTION PageFinishRun
 !insertmacro MUI_PAGE_FINISH
 
-!addincludedir "..\..\..\bin\quentier\installer\windows\"
+!addincludedir "..\..\..\bin\quentier\src\installer\windows\"
 !include "Uninstall.nsh"
 
 ;--------------------------------
