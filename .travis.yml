@@ -198,14 +198,14 @@ install:
         if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         elif [ "${QT_BASE}" = "551" ]; then
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DBUILD_WITH_QT4=1 ..
         fi
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 -DUSE_QT5=1 ..
+        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
       fi
       make &&
       make check &&
