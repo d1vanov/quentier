@@ -30,7 +30,34 @@ namespace quentier {
 class CommandLineParser
 {
 public:
-    explicit CommandLineParser(int argc, char * argv[]);
+    struct CommandLineArgumentType
+    {
+        enum type
+        {
+            None = 0,
+            String,
+            Bool,
+            Int,
+            Double
+        };
+    };
+
+    struct CommandLineOptionData
+    {
+        CommandLineOptionData() :
+            m_description(),
+            m_singleLetterKey(),
+            m_type(CommandLineArgumentType::None)
+        {}
+
+        QString m_description;
+        QChar m_singleLetterKey;
+        CommandLineArgumentType::type m_type;
+    };
+
+    explicit CommandLineParser(
+        int argc, char * argv[],
+        const QHash<QString, CommandLineOptionData> & availableCmdOptions);
 
     QString responseMessage() const;
     bool shouldQuit() const;

@@ -38,21 +38,21 @@ if(APPLE)
 endif()
 
 set(HEADERS
-    MainWindow.h
-    MainWindowSideBordersController.h)
+    src/MainWindow.h
+    src/MainWindowSideBordersController.h)
 
 set(SOURCES
-    MainWindow.cpp
-    MainWindowSideBordersController.cpp
-    main.cpp)
+    src/MainWindow.cpp
+    src/MainWindowSideBordersController.cpp
+    src/main.cpp)
 
 set(FORMS
-    MainWindow.ui)
+    src/MainWindow.ui)
 
 qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 if(WIN32)
-  configure_file(quentier.rc.in
+  configure_file(src/quentier.rc.in
                  ${PROJECT_BINARY_DIR}/quentier.rc @ONLY)
   list(APPEND SOURCES ${PROJECT_BINARY_DIR}/quentier.rc)
 endif()
@@ -76,6 +76,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${quentier_exception}
                       ${quentier_initialization}
                       ${quentier_model}
+                      ${quentier_network}
                       ${quentier_preferences}
                       ${quentier_tray}
                       ${quentier_utility}
@@ -190,7 +191,7 @@ if(NSIS_FOUND)
     set(PRODUCT_EDITION "${PRODUCT_EDITION} webkit")
   endif()
 
-  configure_file(installer/windows/wininstaller.nsi.in
+  configure_file(src/installer/windows/wininstaller.nsi.in
                  ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
 endif()
 

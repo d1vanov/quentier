@@ -49,7 +49,9 @@ void validate(boost::any & value, const std::vector<std::string> & values,
 
 namespace quentier {
 
-CommandLineParser::CommandLineParser(int argc, char * argv[]) :
+CommandLineParser::CommandLineParser(
+        int argc, char * argv[],
+        const QHash<QString,CommandLineOptionData> & availableCmdOptions) :
     m_responseMessage(),
     m_shouldQuit(false),
     m_errorDescription(),
@@ -64,24 +66,54 @@ CommandLineParser::CommandLineParser(int argc, char * argv[]) :
     try
     {
         po::options_description desc("Allowed options");
-        desc.add_options()
-            ("help,h", "show help message")
-            ("version,v", "show version info")
-            ("storageDir", po::value<QString>(),
-             "set directory with the app's persistence")
-            ("account", po::value<QString>(),
-             "set the account to use by default:\n"
-             "local_<Name>\n"
-             "evernote_<id>_<Name>\n"
-             "evernotesandbox_<id>_<Name>\n"
-             "yinxiangbiji_<id>_<Name>\n"
-             "where <id> is user ID and <Name> is the account name")
-            ("overrideSystemTrayAvailability", po::value<bool>(),
-             "override the availability of the system tray\n(0 - override to "
-             "false,\nany other value - override to true)")
-            ("startMinimizedToTray", "start Quentier minimized to system tray")
-            ("startMinimized",
-             "start Quentier with its main window minimized to the task bar");
+
+        for(auto it = availableCmdOptions.constBegin(),
+            end = availableCmdOptions.constEnd(); it != end; ++it)
+        {
+            const QString & option = it.key();
+            const CommandLineOptionData & data = it.value();
+
+            QString key = option;
+            if (!data.m_singleLetterKey.isNull()) {
+                key += QStringLiteral(",");
+                key += data.m_singleLetterKey;
+            }
+
+            QByteArray keyData = key.toLocal8Bit();
+            QByteArray descData = data.m_description.toLocal8Bit();
+
+            switch(data.m_type)
+            {
+            case CommandLineArgumentType::String:
+                desc.add_options()
+                    (keyData.constData(),
+                     po::value<QString>(),
+                     descData.constData());
+                break;
+            case CommandLineArgumentType::Bool:
+                desc.add_options()
+                    (keyData.constData(),
+                     po::value<bool>(),
+                     descData.constData());
+                break;
+            case CommandLineArgumentType::Int:
+                desc.add_options()
+                    (keyData.constData(),
+                     po::value<qint64>(),
+                     descData.constData());
+                break;
+            case CommandLineArgumentType::Double:
+                desc.add_options()
+                    (keyData.constData(),
+                     po::value<double>(),
+                     descData.constData());
+                break;
+            default:
+                desc.add_options()
+                    (keyData.constData(), descData.constData());
+                break;
+            }
+        }
 
         po::variables_map varsMap;
         po::store(po::parse_command_line(argc, argv, desc), varsMap);

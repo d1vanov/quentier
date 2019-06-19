@@ -11,7 +11,6 @@ set(HEADERS
     ColorCodeValidator.h
     HumanReadableVersionInfo.h
     MainWindowSideBorderOption.h
-    NetworkProxySettingsHelpers.h
     QObjectThreadMover.h
     QObjectThreadMover_p.h
     StartAtLogin.h
@@ -23,7 +22,6 @@ set(SOURCES
     BasicXMLSyntaxHighlighter.cpp
     ColorCodeValidator.cpp
     HumanReadableVersionInfo.cpp
-    NetworkProxySettingsHelpers.cpp
     QObjectThreadMover.cpp
     QObjectThreadMover_p.cpp
     StartAtLogin.cpp)

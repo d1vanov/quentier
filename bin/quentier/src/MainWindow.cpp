@@ -43,13 +43,13 @@
 #include <lib/exception/LocalStorageVersionTooHighException.h>
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/ColumnChangeRerouter.h>
+#include <lib/network/NetworkProxySettingsHelpers.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/AsyncFileWriter.h>
 #include <lib/utility/ActionsInfo.h>
-#include <lib/utility/NetworkProxySettingsHelpers.h>
 #include <lib/utility/QObjectThreadMover.h>
 #include <lib/view/ItemView.h>
 #include <lib/view/DeletedNoteItemView.h>

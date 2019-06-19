@@ -8,3 +8,8 @@ if(BREAKPAD_FOUND)
 endif()
 
 add_subdirectory(quentier)
+
+if(BUILD_WITH_WIKI_TOOLS)
+  add_subdirectory(wiki2account)
+  add_subdirectory(wiki2enex)
+endif()

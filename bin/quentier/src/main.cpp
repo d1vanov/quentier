@@ -42,8 +42,36 @@ int main(int argc, char *argv[])
     // Loading the dependencies manually - required on Windows
     loadDependencies();
 
+    QuentierApplication app(argc, argv);
+    app.setOrganizationName(QStringLiteral("quentier.org"));
+    app.setApplicationName(QStringLiteral("Quentier"));
+    app.setQuitOnLastWindowClosed(false);
+
+    QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
+    composeCommonAvailableCommandLineOptions(availableCmdOptions);
+
+    auto & overrideSystemTrayAvailabilityData =
+        availableCmdOptions[QStringLiteral("overrideSystemTrayAvailability")];
+    overrideSystemTrayAvailabilityData.m_type =
+        CommandLineParser::CommandLineArgumentType::Bool;
+    overrideSystemTrayAvailabilityData.m_description =
+        QStringLiteral("override the availability of the system tray\n"
+                       "(0 - override to false,\n"
+                       "any other value - override to true)");
+
+    auto & startMinimizedToTrayData =
+        availableCmdOptions[QStringLiteral("startMinimizedToTray")];
+    startMinimizedToTrayData.m_description =
+        QStringLiteral("start Quentier minimized to system tray");
+
+    auto & startMinimizedData =
+        availableCmdOptions[QStringLiteral("startMinimized")];
+    startMinimizedData.m_description =
+        QStringLiteral("start Quentier with its main window minimized "
+                       "to the task bar");
+
     ParseCommandLineResult parseCmdResult;
-    parseCommandLine(argc, argv, parseCmdResult);
+    parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
     if (parseCmdResult.m_shouldQuit)
     {
         if (!parseCmdResult.m_errorDescription.isEmpty()) {
@@ -55,11 +83,6 @@ int main(int argc, char *argv[])
         std::cout << parseCmdResult.m_responseMessage.toLocal8Bit().constData();
         return 0;
     }
-
-    QuentierApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("quentier.org"));
-    app.setApplicationName(QStringLiteral("Quentier"));
-    app.setQuitOnLastWindowClosed(false);
 
     bool res = initialize(app, parseCmdResult.m_cmdOptions);
     if (!res) {

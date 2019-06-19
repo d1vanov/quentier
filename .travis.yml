@@ -198,14 +198,14 @@ install:
         if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         elif [ "${QT_BASE}" = "551" ]; then
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DBUILD_WITH_QT4=1 ..
         fi
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 -DUSE_QT5=1 ..
+        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
       fi
       make &&
       make check &&
@@ -292,7 +292,7 @@ script:
                   -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                   -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
+                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 -DBUILD_WITH_WIKI_TOOLS=1 ..
           else
             cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                   -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
@@ -320,7 +320,7 @@ script:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
-                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir ..
+                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir -DBUILD_WITH_WIKI_TOOLS=1 ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
@@ -331,7 +331,7 @@ script:
               -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_INCLUDE_PATH=/usr/local/include \
               -DTIDY_HTML5_LIB=/usr/local/lib/libtidy.dylib \
-              -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 ..
+              -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 -DBUILD_WITH_WIKI_TOOLS=1 ..
       fi
     - make
     - make check
