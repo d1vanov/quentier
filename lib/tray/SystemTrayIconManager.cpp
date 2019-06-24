@@ -433,10 +433,10 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
         }
 
         if (pMainWindow->isHidden()) {
-            pMainWindow->show();
+            Q_EMIT showRequested();
         }
         else {
-            pMainWindow->hide();
+            Q_EMIT hideRequested();
         }
 
         break;
@@ -452,7 +452,7 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
         }
         else if (pMainWindow->isHidden())
         {
-            pMainWindow->show();
+            Q_EMIT showRequested();
         }
 
         Q_EMIT newTextNoteAdditionRequested();
@@ -1044,12 +1044,12 @@ void SystemTrayIconManager::onShowHideMainWindowContextMenuAction(const bool sho
         }
 
         if (!pMainWindow->isVisible()) {
-            pMainWindow->show();
+            Q_EMIT showRequested();
         }
     }
     else
     {
-        pMainWindow->hide();
+        Q_EMIT hideRequested();
     }
 }
 

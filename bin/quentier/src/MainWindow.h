@@ -283,6 +283,8 @@ private Q_SLOTS:
     void onNewNoteRequestedFromSystemTrayIcon();
     void onQuitRequestedFromSystemTrayIcon();
     void onSystemTrayIconManagerError(ErrorString errorDescription);
+    void onShowRequestedFromTrayIcon();
+    void onHideRequestedFromTrayIcon();
 
     void onViewLogsActionTriggered();
     void onShowInfoAboutQuentierActionTriggered();

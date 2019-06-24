@@ -82,6 +82,12 @@ Q_SIGNALS:
 
     void accountSwitchRequested(Account account);
 
+    // Signals which SystemTrayIconManager would emit to notify the main window
+    // that its showing or hiding was requested from system tray; the main
+    // window widget must connect its slots to these signals
+    void showRequested();
+    void hideRequested();
+
     // private signals
     void switchAccount(Account account);
 

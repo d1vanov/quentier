@@ -352,12 +352,8 @@ void MainWindow::show()
 
     m_shown = true;
 
-    // sadly, can't get it to work any other way :(
     if (!m_filtersViewExpanded) {
-        foldFiltersView();
-    }
-    else {
-        expandFiltersView();
+        adjustNoteListAndFiltersSplitterSizes();
     }
 
     restoreGeometryAndState();
@@ -622,6 +618,14 @@ void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
                      QNSIGNAL(SystemTrayIconManager,accountSwitchRequested,Account),
                      this,
                      QNSLOT(MainWindow,onAccountSwitchRequested,Account));
+    QObject::connect(m_pSystemTrayIconManager,
+                     QNSIGNAL(SystemTrayIconManager,showRequested),
+                     this,
+                     QNSLOT(MainWindow,onShowRequestedFromTrayIcon));
+    QObject::connect(m_pSystemTrayIconManager,
+                     QNSIGNAL(SystemTrayIconManager,hideRequested),
+                     this,
+                     QNSLOT(MainWindow,onHideRequestedFromTrayIcon));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1355,7 +1359,9 @@ void MainWindow::foldFiltersView()
     m_pUI->filterBodyFrame->hide();
     m_pUI->filterFrameBottomBoundary->show();
 
-    adjustNoteListAndFiltersSplitterSizes();
+    if (m_shown) {
+        adjustNoteListAndFiltersSplitterSizes();
+    }
 }
 
 void MainWindow::adjustNoteListAndFiltersSplitterSizes()
@@ -3406,6 +3412,18 @@ void MainWindow::onSystemTrayIconManagerError(ErrorString errorDescription)
     QNDEBUG(QStringLiteral("MainWindow::onSystemTrayIconManagerError: ")
             << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+}
+
+void MainWindow::onShowRequestedFromTrayIcon()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowRequestedFromTrayIcon"));
+    show();
+}
+
+void MainWindow::onHideRequestedFromTrayIcon()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onHideRequestedFromTrayIcon"));
+    hide();
 }
 
 void MainWindow::onViewLogsActionTriggered()
@@ -5619,11 +5637,12 @@ void MainWindow::setupNoteFilters()
     m_filtersViewExpanded = appSettings.value(FILTERS_VIEW_STATUS_KEY).toBool();
     appSettings.endGroup();
 
-    // NOTE: won't apply this setting immediately: if m_filtersViewExpanded is true,
-    // the default settings from the loaded UI are just what's needed. Otherwise
-    // the necessary size adjustments would be done in MainWindow::show() method.
-    // Why so? Because it seems trying to adjust the sizes of QSplitter before
-    // the widget is shown just silently fail for unknown reason.
+    if (!m_filtersViewExpanded) {
+        foldFiltersView();
+    }
+    else {
+        expandFiltersView();
+    }
 }
 
 void MainWindow::setupNoteEditorTabWidgetsCoordinator()
