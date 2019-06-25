@@ -5,6 +5,7 @@ SET_POLICIES()
 project(quentier_preferences)
 
 set(HEADERS
+    DefaultDisableNativeMenuBar.h
     DefaultSettings.h
     SettingsNames.h
     PreferencesDialog.h
@@ -12,6 +13,7 @@ set(HEADERS
     shortcut_settings/ShortcutSettingsWidget.h)
 
 set(SOURCES
+    DefaultDisableNativeMenuBar.cpp
     PreferencesDialog.cpp
     shortcut_settings/ShortcutButton.cpp
     shortcut_settings/ShortcutSettingsWidget.cpp)

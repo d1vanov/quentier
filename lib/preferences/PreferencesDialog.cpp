@@ -19,6 +19,7 @@
 #include "PreferencesDialog.h"
 #include "SettingsNames.h"
 #include "DefaultSettings.h"
+#include "DefaultDisableNativeMenuBar.h"
 
 #include "shortcut_settings/ShortcutSettingsWidget.h"
 using quentier::ShortcutSettingsWidget;
@@ -247,6 +248,22 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
     appSettings.endGroup();
 
     Q_EMIT showNoteThumbnailsOptionChanged();
+}
+
+void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("PreferencesDialog::onDisableNativeMenuBarCheckboxToggled: ")
+            << QStringLiteral("checked = ")
+            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+
+    ApplicationSettings appSettings(m_accountManager.currentAccount(),
+                                    QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.setValue(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+                         QVariant::fromValue(checked));
+    appSettings.endGroup();
+
+    Q_EMIT disableNativeMenuBarOptionChanged();
 }
 
 void PreferencesDialog::onShowMainWindowLeftBorderOptionChanged(int option)
@@ -955,9 +972,13 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo,
     QVariant showThumbnails =
         appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
                           QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    QVariant disableNativeMenuBar =
+        appSettings.value(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+                          QVariant::fromValue(defaultDisableNativeMenuBar()));
     appSettings.endGroup();
 
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
+    m_pUi->disableNativeMenuBarCheckBox->setChecked(disableNativeMenuBar.toBool());
 
     setupMainWindowBorderSettings();
 
@@ -1616,6 +1637,11 @@ void PreferencesDialog::createConnections()
                      this,
                      QNSLOT(PreferencesDialog,
                             onShowNoteThumbnailsCheckboxToggled,bool));
+    QObject::connect(m_pUi->disableNativeMenuBarCheckBox,
+                     QNSIGNAL(QCheckBox,toggled,bool),
+                     this,
+                     QNSLOT(PreferencesDialog,
+                            onDisableNativeMenuBarCheckboxToggled,bool));
 
     QObject::connect(m_pUi->limitedFontsCheckBox,
                      QNSIGNAL(QCheckBox,toggled,bool),

@@ -63,6 +63,7 @@ Q_SIGNALS:
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void showNoteThumbnailsOptionChanged();
+    void disableNativeMenuBarOptionChanged();
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
     void showMainWindowLeftBorderOptionChanged(int option);
@@ -85,6 +86,7 @@ private Q_SLOTS:
 
     // Appearance tab
     void onShowNoteThumbnailsCheckboxToggled(bool checked);
+    void onDisableNativeMenuBarCheckboxToggled(bool checked);
     void onShowMainWindowLeftBorderOptionChanged(int option);
     void onShowMainWindowRightBorderOptionChanged(int option);
     void onLeftMainWindowBorderWidthChanged(int width);

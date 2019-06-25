@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>519</width>
+    <width>531</width>
     <height>522</height>
    </rect>
   </property>
@@ -87,11 +87,22 @@
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="showNoteThumbnailsCheckBox">
-         <property name="text">
-          <string>Show note thumbnails</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="checkBoxesHorizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="showNoteThumbnailsCheckBox">
+           <property name="text">
+            <string>Show note thumbnails</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="disableNativeMenuBarCheckBox">
+           <property name="text">
+            <string>Disable native menu bar</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QGroupBox" name="leftMainWindowBorderGroupBox">
