@@ -50,7 +50,7 @@ public:
                                SystemTrayIconManager & systemTrayIconManager,
                                ActionsInfo & actionsInfo,
                                QWidget * parent = Q_NULLPTR);
-    virtual ~PreferencesDialog();
+    virtual ~PreferencesDialog() Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);

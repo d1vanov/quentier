@@ -2727,7 +2727,7 @@ void MainWindow::onDeletedNoteInfoButtonPressed()
 
 void MainWindow::showInfoWidget(QWidget * pWidget)
 {
-    pWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pWidget->setAttribute(Qt::WA_DeleteOnClose);
     pWidget->setWindowModality(Qt::WindowModal);
     pWidget->adjustSize();
 #ifndef Q_OS_MAC
@@ -3351,9 +3351,7 @@ void MainWindow::onDisableNativeMenuBarPreferenceChanged()
     QNDEBUG(QStringLiteral("MainWindow::onDisableNativeMenuBarPreferenceChanged"));
 
     bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
-    if (disableNativeMenuBar) {
-        QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar);
-    }
+    QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar, disableNativeMenuBar);
 }
 
 void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes)
@@ -3467,7 +3465,7 @@ void MainWindow::onShowInfoAboutQuentierActionTriggered()
     }
 
     pWidget = new AboutQuentierWidget(this);
-    pWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pWidget->setAttribute(Qt::WA_DeleteOnClose);
     centerWidget(*pWidget);
     pWidget->adjustSize();
     pWidget->show();
@@ -4913,9 +4911,7 @@ void MainWindow::setupDisableNativeMenuBarPreference()
     QNDEBUG(QStringLiteral("MainWindow::setupDisableNativeMenuBarPreference"));
 
     bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
-    if (disableNativeMenuBar) {
-        QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar);
-    }
+    QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar, disableNativeMenuBar);
 }
 
 void MainWindow::setupModels()

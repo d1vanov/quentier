@@ -67,6 +67,7 @@ PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
 {
     m_pUi->setupUi(this);
 
+    m_pUi->disableNativeMenuBarRestartWarningLabel->setHidden(true);
     m_pUi->statusTextLabel->setHidden(true);
 
     m_pUi->okPushButton->setDefault(false);
@@ -262,6 +263,8 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
     appSettings.setValue(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
                          QVariant::fromValue(checked));
     appSettings.endGroup();
+
+    m_pUi->disableNativeMenuBarRestartWarningLabel->setVisible(true);
 
     Q_EMIT disableNativeMenuBarOptionChanged();
 }

@@ -87,18 +87,31 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="checkBoxesHorizontalLayout">
-         <item>
+        <layout class="QGridLayout" name="checkboxesGridLayout">
+         <item row="0" column="0">
           <widget class="QCheckBox" name="showNoteThumbnailsCheckBox">
            <property name="text">
             <string>Show note thumbnails</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="QCheckBox" name="disableNativeMenuBarCheckBox">
            <property name="text">
             <string>Disable native menu bar</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="disableNativeMenuBarRestartWarningLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Restart might be required to apply the change&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -324,7 +337,7 @@ padding: 0 3px;
           <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
+          <enum>QSizePolicy::Expanding</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
