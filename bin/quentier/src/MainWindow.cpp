@@ -44,8 +44,8 @@
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
+#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
 #include <lib/tray/SystemTrayIconManager.h>
@@ -248,15 +248,17 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupAccountManager();
 
     bool createdDefaultAccount = false;
-    m_pAccount.reset(
-        new Account(m_pAccountManager->currentAccount(&createdDefaultAccount)));
+    m_pAccount.reset(new Account(m_pAccountManager->lastUsedAccount()));
+    if (m_pAccount->isEmpty()) {
+        *m_pAccount = m_pAccountManager->currentAccount();
+        createdDefaultAccount = true;
+    }
 
     if (createdDefaultAccount && !onceDisplayedGreeterScreen()) {
         m_pendingGreeterDialog = true;
         setOnceDisplayedGreeterScreen();
     }
 
-    setupDisableNativeMenuBarPreference();
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     m_pSystemTrayIconManager =
@@ -4118,7 +4120,6 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account,
     setupUserShortcuts();
     startListeningForShortcutChanges();
 
-    setupDisableNativeMenuBarPreference();
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     if (m_pAccount->type() == Account::Type::Local) {
@@ -4904,14 +4905,6 @@ void MainWindow::setupDefaultAccount()
                             onDefaultAccountFirstNotebookAndNoteCreatorError,
                             ErrorString));
     pDefaultAccountFirstNotebookAndNoteCreator->start();
-}
-
-void MainWindow::setupDisableNativeMenuBarPreference()
-{
-    QNDEBUG(QStringLiteral("MainWindow::setupDisableNativeMenuBarPreference"));
-
-    bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
-    QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar, disableNativeMenuBar);
 }
 
 void MainWindow::setupModels()

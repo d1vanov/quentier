@@ -70,26 +70,21 @@ AccountModel & AccountManager::accountModel()
     return *m_pAccountModel;
 }
 
-Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
+Account AccountManager::currentAccount()
 {
     QNDEBUG(QStringLiteral("AccountManager::currentAccount"));
 
-    if (pCreatedDefaultAccount) {
-        *pCreatedDefaultAccount = false;
+    Account account = accountFromEnvVarHints();
+    if (!account.isEmpty()) {
+        return account;
     }
 
-    QSharedPointer<Account> pManuallySpecifiedAccount = accountFromEnvVarHints();
-    if (!pManuallySpecifiedAccount.isNull()) {
-        return *pManuallySpecifiedAccount;
-    }
-
-    QSharedPointer<Account> pLastUsedAccount = lastUsedAccount();
-    if (pLastUsedAccount.isNull())
+    account = lastUsedAccount();
+    if (account.isEmpty())
     {
         ErrorString errorDescription;
-        pLastUsedAccount = createDefaultAccount(errorDescription,
-                                                pCreatedDefaultAccount);
-        if (Q_UNLIKELY(pLastUsedAccount.isNull())) {
+        account = createDefaultAccount(errorDescription);
+        if (Q_UNLIKELY(account.isEmpty())) {
             ErrorString error(QT_TR_NOOP("Can't initialize the default account"));
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
@@ -97,10 +92,10 @@ Account AccountManager::currentAccount(bool * pCreatedDefaultAccount)
             throw AccountInitializationException(error);
         }
 
-        updateLastUsedAccount(*pLastUsedAccount);
+        updateLastUsedAccount(account);
     }
 
-    return *pLastUsedAccount;
+    return account;
 }
 
 int AccountManager::execAddAccountDialog()
@@ -207,9 +202,8 @@ Account AccountManager::createNewLocalAccount(QString name)
     }
 
     ErrorString errorDescription;
-    QSharedPointer<Account> pNewAccount =
-        createLocalAccount(name, name, errorDescription);
-    if (Q_UNLIKELY(pNewAccount.isNull())) {
+    Account account = createLocalAccount(name, name, errorDescription);
+    if (Q_UNLIKELY(account.isEmpty())) {
         ErrorString error(QT_TR_NOOP("Can't create a new local account"));
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
@@ -219,7 +213,7 @@ Account AccountManager::createNewLocalAccount(QString name)
         return Account();
     }
 
-    return *pNewAccount;
+    return account;
 }
 
 void AccountManager::switchAccount(const Account & account)
@@ -303,9 +297,8 @@ void AccountManager::onLocalAccountAdditionRequested(QString name,
     }
 
     ErrorString errorDescription;
-    QSharedPointer<Account> pNewAccount =
-        createLocalAccount(name, fullName, errorDescription);
-    if (Q_UNLIKELY(pNewAccount.isNull())) {
+    Account account = createLocalAccount(name, fullName, errorDescription);
+    if (Q_UNLIKELY(account.isEmpty())) {
         ErrorString error(QT_TR_NOOP("Can't create a new local account"));
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
@@ -315,7 +308,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name,
         return;
     }
 
-    switchAccount(*pNewAccount);
+    switchAccount(account);
 }
 
 void AccountManager::onAccountDisplayNameChanged(Account account)
@@ -469,14 +462,9 @@ void AccountManager::detectAvailableAccounts()
     m_pAccountModel->setAccounts(availableAccounts);
 }
 
-QSharedPointer<Account> AccountManager::createDefaultAccount(
-    ErrorString & errorDescription, bool * pCreatedDefaultAccount)
+Account AccountManager::createDefaultAccount(ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::createDefaultAccount"));
-
-    if (pCreatedDefaultAccount) {
-        *pCreatedDefaultAccount = false;
-    }
 
     QString username = getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
@@ -493,25 +481,19 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(
     }
 
     // Need to check whether the default account already exists
-    QSharedPointer<Account> pDefaultAccount(
-        new Account(username, Account::Type::Local, qevercloud::UserID(-1)));
-
-    pDefaultAccount->setDisplayName(fullName);
+    Account account(username, Account::Type::Local, qevercloud::UserID(-1));
+    account.setDisplayName(fullName);
 
     const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
-    if (availableAccounts.contains(*pDefaultAccount)) {
+    if (availableAccounts.contains(account)) {
         QNDEBUG(QStringLiteral("The default account already exists"));
-        return pDefaultAccount;
-    }
-
-    if (pCreatedDefaultAccount) {
-        *pCreatedDefaultAccount = true;
+        return account;
     }
 
     return createLocalAccount(username, fullName, errorDescription);
 }
 
-QSharedPointer<Account> AccountManager::createLocalAccount(
+Account AccountManager::createLocalAccount(
     const QString & name, const QString & displayName,
     ErrorString & errorDescription)
 {
@@ -524,15 +506,14 @@ QSharedPointer<Account> AccountManager::createLocalAccount(
                                 /* Evernote host = */ QString(),
                                 /* shard id = */ QString(), errorDescription);
     if (Q_UNLIKELY(!res)) {
-        return QSharedPointer<Account>();
+        return Account();
     }
 
     Account availableAccount(name, Account::Type::Local, qevercloud::UserID(-1));
     availableAccount.setDisplayName(displayName);
     m_pAccountModel->addAccount(availableAccount);
 
-    QSharedPointer<Account> result(new Account(name, Account::Type::Local));
-    return result;
+    return Account(name, Account::Type::Local);
 }
 
 bool AccountManager::createAccountInfo(const Account & account)
@@ -814,7 +795,7 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
             << account);
 }
 
-QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
+Account AccountManager::accountFromEnvVarHints()
 {
     QNDEBUG(QStringLiteral("AccountManager::accountFromEnvVarHints"));
 
@@ -825,13 +806,13 @@ QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
     if (qEnvironmentVariableIsEmpty(ACCOUNT_NAME_ENV_VAR)) {
         QNDEBUG(QStringLiteral("Account name environment variable is not set or "
                                "is empty"));
-        return QSharedPointer<Account>();
+        return Account();
     }
 
     if (qEnvironmentVariableIsEmpty(ACCOUNT_TYPE_ENV_VAR)) {
         QNDEBUG(QStringLiteral("Account type environment variable is not set or "
                                "is empty"));
-        return QSharedPointer<Account>();
+        return Account();
     }
 
     QByteArray accountType = qgetenv(ACCOUNT_TYPE_ENV_VAR);
@@ -842,19 +823,19 @@ QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
         if (qEnvironmentVariableIsEmpty(ACCOUNT_ID_ENV_VAR)) {
             QNDEBUG(QStringLiteral("Account id environment variable is not set "
                                    "or is empty"));
-            return QSharedPointer<Account>();
+            return Account();
         }
 
         if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR)) {
             QNDEBUG(QStringLiteral("Evernote account type environment variable "
                                    "is not set or is empty"));
-            return QSharedPointer<Account>();
+            return Account();
         }
 
         if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_HOST_ENV_VAR)) {
             QNDEBUG(QStringLiteral("Evernote host environment variable is not "
                                    "set or is empty"));
-            return QSharedPointer<Account>();
+            return Account();
         }
     }
 
@@ -876,7 +857,7 @@ QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
             qEnvironmentVariableIntValue(ACCOUNT_ID_ENV_VAR, &conversionResult));
         if (!conversionResult) {
             QNDEBUG(QStringLiteral("Could not convert the account id to integer"));
-            return QSharedPointer<Account>();
+            return Account();
         }
 
         conversionResult = false;
@@ -886,7 +867,7 @@ QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
         if (!conversionResult) {
             QNDEBUG(QStringLiteral("Could not convert the Evernote account type "
                                    "to integer"));
-            return QSharedPointer<Account>();
+            return Account();
         }
 
         evernoteHost = QString::fromLocal8Bit(qgetenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR));
@@ -895,11 +876,9 @@ QSharedPointer<Account> AccountManager::accountFromEnvVarHints()
     return findAccount(isLocal, accountName, id, evernoteAccountType, evernoteHost);
 }
 
-QSharedPointer<Account> AccountManager::lastUsedAccount()
+Account AccountManager::lastUsedAccount()
 {
     QNDEBUG(QStringLiteral("AccountManager::lastUsedAccount"));
-
-    QSharedPointer<Account> result;
 
     ApplicationSettings appSettings;
 
@@ -912,19 +891,19 @@ QSharedPointer<Account> AccountManager::lastUsedAccount()
     QVariant name = appSettings.value(LAST_USED_ACCOUNT_NAME);
     if (name.isNull()) {
         QNDEBUG(QStringLiteral("Can't find last used account's name"));
-        return result;
+        return Account();
     }
 
     QString accountName = name.toString();
     if (accountName.isEmpty()) {
         QNDEBUG(QStringLiteral("Last used account's name is empty"));
-        return result;
+        return Account();
     }
 
     QVariant type = appSettings.value(LAST_USED_ACCOUNT_TYPE);
     if (type.isNull()) {
         QNDEBUG(QStringLiteral("Can't find last used account's type"));
-        return result;
+        return Account();
     }
 
     bool isLocal = type.toBool();
@@ -939,7 +918,7 @@ QSharedPointer<Account> AccountManager::lastUsedAccount()
         QVariant userId = appSettings.value(LAST_USED_ACCOUNT_ID);
         if (userId.isNull()) {
             QNDEBUG(QStringLiteral("Can't find last used account's id"));
-            return result;
+            return Account();
         }
 
         bool conversionResult = false;
@@ -947,14 +926,14 @@ QSharedPointer<Account> AccountManager::lastUsedAccount()
         if (!conversionResult) {
             QNDEBUG(QStringLiteral("Can't convert the last used account's id "
                                    "to int"));
-            return result;
+            return Account();
         }
 
         QVariant userEvernoteAccountHost =
             appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_HOST);
         if (userEvernoteAccountHost.isNull()) {
             QNDEBUG(QStringLiteral("Can't find last used account's Evernote host"));
-            return result;
+            return Account();
         }
         evernoteHost = userEvernoteAccountHost.toString();
 
@@ -963,7 +942,7 @@ QSharedPointer<Account> AccountManager::lastUsedAccount()
         if (userEvernoteAccountType.isNull()) {
             QNDEBUG(QStringLiteral("Can't find last used account's Evernote "
                                    "account type"));
-            return result;
+            return Account();
         }
 
         conversionResult = false;
@@ -972,22 +951,20 @@ QSharedPointer<Account> AccountManager::lastUsedAccount()
         if (!conversionResult) {
             QNDEBUG(QStringLiteral("Can't convert the last used account's "
                                    "Evernote account type to int"));
-            return result;
+            return Account();
         }
     }
 
     return findAccount(isLocal, accountName, id, evernoteAccountType, evernoteHost);
 }
 
-QSharedPointer<Account> AccountManager::findAccount(
+Account AccountManager::findAccount(
     const bool isLocal, const QString & accountName,
     const qevercloud::UserID id,
     const Account::EvernoteAccountType::type evernoteAccountType,
     const QString & evernoteHost)
 {
     QNDEBUG(QStringLiteral("AccountManager::findAccount"));
-
-    QSharedPointer<Account> result;
 
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
     QString accountDirName = (isLocal
@@ -997,15 +974,15 @@ QSharedPointer<Account> AccountManager::findAccount(
                                  QStringLiteral("_") + QString::number(id)));
     QFileInfo accountFileInfo(appPersistenceStoragePath + QStringLiteral("/") +
                               accountDirName + QStringLiteral("/accountInfo.txt"));
-    if (accountFileInfo.exists()) {
-        result = QSharedPointer<Account>(
-            new Account(accountName,
-                        (isLocal ? Account::Type::Local : Account::Type::Evernote),
-                        id, evernoteAccountType, evernoteHost));
-        readComplementaryAccountInfo(*result);
+    if (!accountFileInfo.exists()) {
+        return Account();
     }
 
-    return result;
+    Account account(accountName,
+                    (isLocal ? Account::Type::Local : Account::Type::Evernote),
+                    id, evernoteAccountType, evernoteHost);
+    readComplementaryAccountInfo(account);
+    return account;
 }
 
 void AccountManager::updateLastUsedAccount(const Account & account)

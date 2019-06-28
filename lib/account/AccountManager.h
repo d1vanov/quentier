@@ -24,7 +24,6 @@
 #include <quentier/exception/IQuentierException.h>
 
 #include <QObject>
-#include <QSharedPointer>
 #include <QVector>
 #include <QDir>
 #include <QNetworkProxy>
@@ -55,15 +54,18 @@ public:
     AccountModel & accountModel();
 
     /**
+     * Tries to restore the last used account from the app settings
+     *
+     * @return              Non-empty account in case of success, empty one
+     *                      otherwise
+     */
+    Account lastUsedAccount();
+
+    /**
      * Attempts to retrieve the last used account from the app settings, in case
      * of failure creates and returns the default local account
-     *
-     * @param pCreatedDefaultAccount        Optional pointer to bool parameter
-     *                                      which, if not null, is used to report
-     *                                      whether no existing account was found
-     *                                      so the default account was created
      */
-    Account currentAccount(bool * pCreatedDefaultAccount = Q_NULLPTR);
+    Account currentAccount();
 
     int execAddAccountDialog();
     int execManageAccountsDialog();
@@ -98,11 +100,12 @@ private Q_SLOTS:
 private:
     void detectAvailableAccounts();
 
-    QSharedPointer<Account> createDefaultAccount(ErrorString & errorDescription,
-                                                 bool * pCreatedDefaultAccount);
-    QSharedPointer<Account> createLocalAccount(const QString & name,
-                                               const QString & displayName,
-                                               ErrorString & errorDescription);
+    Account createDefaultAccount(ErrorString & errorDescription);
+
+    Account createLocalAccount(const QString & name,
+                               const QString & displayName,
+                               ErrorString & errorDescription);
+
     bool createAccountInfo(const Account & account);
 
     bool writeAccountInfo(const QString & name, const QString & displayName,
@@ -120,24 +123,16 @@ private:
      * Tries to find the account corresponding to the specified environment
      * variables specifying the details of the account
      *
-     * @return              Non-null pointer to the account in case of success,
-     *                      null pointer otherwise
+     * @return              Non-empty account in case of success, empty one
+     *                      otherwise
      */
-    QSharedPointer<Account> accountFromEnvVarHints();
+    Account accountFromEnvVarHints();
 
-    /**
-     * Tries to restore the last used account from the app settings
-     *
-     * @return              Non-null pointer to the account in case of success,
-     *                      null pointer otherwise
-     */
-    QSharedPointer<Account> lastUsedAccount();
-
-    QSharedPointer<Account> findAccount(const bool isLocal,
-                                        const QString & accountName,
-                                        const qevercloud::UserID id,
-                                        const Account::EvernoteAccountType::type type,
-                                        const QString & evernoteHost);
+    Account findAccount(const bool isLocal,
+                        const QString & accountName,
+                        const qevercloud::UserID id,
+                        const Account::EvernoteAccountType::type type,
+                        const QString & evernoteHost);
 
     void updateLastUsedAccount(const Account & account);
 
