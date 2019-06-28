@@ -346,6 +346,7 @@ private:
     void setupAccountManager();
     void setupLocalStorageManager();
 
+    void setupDisableNativeMenuBarPreference();
     void setupDefaultAccount();
 
     void setupModels();

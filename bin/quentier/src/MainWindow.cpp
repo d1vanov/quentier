@@ -259,6 +259,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
         setOnceDisplayedGreeterScreen();
     }
 
+    setupDisableNativeMenuBarPreference();
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     m_pSystemTrayIconManager =
@@ -4120,6 +4121,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account,
     setupUserShortcuts();
     startListeningForShortcutChanges();
 
+    setupDisableNativeMenuBarPreference();
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     if (m_pAccount->type() == Account::Type::Local) {
@@ -4881,6 +4883,14 @@ void MainWindow::setupLocalStorageManager()
                      this,
                      QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,
                             Account,ErrorString,QUuid));
+}
+
+void MainWindow::setupDisableNativeMenuBarPreference()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupDisableNativeMenuBarPreference"));
+
+    bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
+    m_pUI->menuBar->setNativeMenuBar(!disableNativeMenuBar);
 }
 
 void MainWindow::setupDefaultAccount()
