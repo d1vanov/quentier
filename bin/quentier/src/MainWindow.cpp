@@ -3353,9 +3353,7 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
 void MainWindow::onDisableNativeMenuBarPreferenceChanged()
 {
     QNDEBUG(QStringLiteral("MainWindow::onDisableNativeMenuBarPreferenceChanged"));
-
-    bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
-    QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar, disableNativeMenuBar);
+    setupDisableNativeMenuBarPreference();
 }
 
 void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes)
