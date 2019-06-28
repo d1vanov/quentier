@@ -259,7 +259,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
         setOnceDisplayedGreeterScreen();
     }
 
-    setupDisableNativeMenuBarPreference();
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     m_pSystemTrayIconManager =
@@ -356,6 +355,8 @@ void MainWindow::show()
     QWidget::show();
 
     m_shown = true;
+
+    setupDisableNativeMenuBarPreference();
 
     if (!m_filtersViewExpanded) {
         adjustNoteListAndFiltersSplitterSizes();
@@ -4121,7 +4122,6 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account,
     setupUserShortcuts();
     startListeningForShortcutChanges();
 
-    setupDisableNativeMenuBarPreference();
     restoreNetworkProxySettingsForAccount(*m_pAccount);
 
     if (m_pAccount->type() == Account::Type::Local) {
