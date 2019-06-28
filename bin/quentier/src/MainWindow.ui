@@ -167,7 +167,7 @@ padding-right: 2px;
           <string>Synchronize the account with the remote Evernote storage</string>
          </property>
          <property name="icon">
-          <iconset resource="../resource/icons/other/icons.qrc">
+          <iconset resource="../../../resource/icons/other/icons.qrc">
            <normaloff>:/sync/sync.png</normaloff>:/sync/sync.png</iconset>
          </property>
          <property name="iconSize">
@@ -621,7 +621,7 @@ border: none;
                </size>
               </property>
               <property name="icon">
-               <iconset resource="../resource/icons/other/icons.qrc">
+               <iconset resource="../../../resource/icons/other/icons.qrc">
                 <normaloff>:/favorite/star.png</normaloff>:/favorite/star.png</iconset>
               </property>
               <property name="iconSize">
@@ -887,7 +887,7 @@ border: none;
                <string notr="true"/>
               </property>
               <property name="icon">
-               <iconset resource="../resource/icons/other/icons.qrc">
+               <iconset resource="../../../resource/icons/other/icons.qrc">
                 <normaloff>:/notebook/book.png</normaloff>:/notebook/book.png</iconset>
               </property>
               <property name="iconSize">
@@ -1205,7 +1205,7 @@ border: none;
                </size>
               </property>
               <property name="icon">
-               <iconset resource="../resource/icons/other/icons.qrc">
+               <iconset resource="../../../resource/icons/other/icons.qrc">
                 <normaloff>:/tag/tag.png</normaloff>:/tag/tag.png</iconset>
               </property>
               <property name="iconSize">
@@ -2815,8 +2815,10 @@ margin: 0px;</string>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">padding-bottom: 1px;
-border-bottom: 1px solid black;</string>
+    <string notr="true">QMenuBar {
+padding-bottom: 1px;
+border-bottom: 1px solid black;
+}</string>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="locale">
@@ -4348,7 +4350,8 @@ border-bottom: 1px solid black;</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../resource/icons/other/icons.qrc"/>
+  <include location="../../../resource/icons/other/icons.qrc"/>
+  <include location="../../../resource/icons/other/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

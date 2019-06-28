@@ -44,6 +44,7 @@
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
+#include <lib/preferences/DefaultDisableNativeMenuBar.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
@@ -247,8 +248,11 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupAccountManager();
 
     bool createdDefaultAccount = false;
-    m_pAccount.reset(
-        new Account(m_pAccountManager->currentAccount(&createdDefaultAccount)));
+    m_pAccount.reset(new Account(m_pAccountManager->lastUsedAccount()));
+    if (m_pAccount->isEmpty()) {
+        *m_pAccount = m_pAccountManager->currentAccount();
+        createdDefaultAccount = true;
+    }
 
     if (createdDefaultAccount && !onceDisplayedGreeterScreen()) {
         m_pendingGreeterDialog = true;
@@ -351,6 +355,8 @@ void MainWindow::show()
     QWidget::show();
 
     m_shown = true;
+
+    setupDisableNativeMenuBarPreference();
 
     if (!m_filtersViewExpanded) {
         adjustNoteListAndFiltersSplitterSizes();
@@ -2725,7 +2731,7 @@ void MainWindow::onDeletedNoteInfoButtonPressed()
 
 void MainWindow::showInfoWidget(QWidget * pWidget)
 {
-    pWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pWidget->setAttribute(Qt::WA_DeleteOnClose);
     pWidget->setWindowModality(Qt::WindowModal);
     pWidget->adjustSize();
 #ifndef Q_OS_MAC
@@ -2799,6 +2805,10 @@ void MainWindow::onShowPreferencesDialogAction()
                      QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged),
                      this,
                      QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged));
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,disableNativeMenuBarOptionChanged),
+                     this,
+                     QNSLOT(MainWindow,onDisableNativeMenuBarPreferenceChanged));
     QObject::connect(pPreferencesDialog.data(),
                      QNSIGNAL(PreferencesDialog,
                               runSyncPeriodicallyOptionChanged,int),
@@ -3326,7 +3336,7 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
 {
     QNDEBUG(QStringLiteral("MainWindow::onShowNoteThumbnailsPreferenceChanged"));
 
-    bool showNoteThumbnails = getShowNoteThumbnails();
+    bool showNoteThumbnails = getShowNoteThumbnailsPreference();
     Q_EMIT showNoteThumbnailsStateChanged(showNoteThumbnails,
                                           getHideNoteThumbnailsFor());
 
@@ -3338,6 +3348,12 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
     }
 
     m_pUI->noteListView->update();
+}
+
+void MainWindow::onDisableNativeMenuBarPreferenceChanged()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onDisableNativeMenuBarPreferenceChanged"));
+    setupDisableNativeMenuBarPreference();
 }
 
 void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes)
@@ -3451,7 +3467,7 @@ void MainWindow::onShowInfoAboutQuentierActionTriggered()
     }
 
     pWidget = new AboutQuentierWidget(this);
-    pWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pWidget->setAttribute(Qt::WA_DeleteOnClose);
     centerWidget(*pWidget);
     pWidget->adjustSize();
     pWidget->show();
@@ -4867,6 +4883,20 @@ void MainWindow::setupLocalStorageManager()
                             Account,ErrorString,QUuid));
 }
 
+void MainWindow::setupDisableNativeMenuBarPreference()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupDisableNativeMenuBarPreference"));
+
+    bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
+    m_pUI->menuBar->setNativeMenuBar(!disableNativeMenuBar);
+
+    if (disableNativeMenuBar) {
+        // Without this the menu bar forcefully integrated into the main window
+        // looks kinda ugly
+        m_pUI->menuBar->setStyleSheet(QString());
+    }
+}
+
 void MainWindow::setupDefaultAccount()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupDefaultAccount"));
@@ -5502,15 +5532,28 @@ void MainWindow::setupViews()
     showHideViewColumnsForAccountType(currentAccountType);
 }
 
-bool MainWindow::getShowNoteThumbnails() const
+bool MainWindow::getShowNoteThumbnailsPreference() const
 {
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QVariant showThumbnails = appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
-        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    QVariant showThumbnails =
+        appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
+                          QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
     appSettings.endGroup();
 
     return showThumbnails.toBool();
+}
+
+bool MainWindow::getDisableNativeMenuBarPreference() const
+{
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QVariant disableNativeMenuBar =
+        appSettings.value(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+                          QVariant::fromValue(defaultDisableNativeMenuBar()));
+    appSettings.endGroup();
+
+    return disableNativeMenuBar.toBool();
 }
 
 QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
@@ -5527,7 +5570,7 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
 
 void MainWindow::toggleShowNoteThumbnails() const
 {
-    bool newValue = !getShowNoteThumbnails();
+    bool newValue = !getShowNoteThumbnailsPreference();
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,

@@ -17,6 +17,8 @@
  */
 
 #include "MainWindow.h"
+#include "ParseCommandLine.h"
+#include "SetupStartupSettings.h"
 
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/exception/LocalStorageVersionTooHighException.h>
@@ -37,7 +39,7 @@
 
 using namespace quentier;
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
     // Loading the dependencies manually - required on Windows
     loadDependencies();
@@ -47,31 +49,8 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
-    QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
-    composeCommonAvailableCommandLineOptions(availableCmdOptions);
-
-    auto & overrideSystemTrayAvailabilityData =
-        availableCmdOptions[QStringLiteral("overrideSystemTrayAvailability")];
-    overrideSystemTrayAvailabilityData.m_type =
-        CommandLineParser::CommandLineArgumentType::Bool;
-    overrideSystemTrayAvailabilityData.m_description =
-        QStringLiteral("override the availability of the system tray\n"
-                       "(0 - override to false,\n"
-                       "any other value - override to true)");
-
-    auto & startMinimizedToTrayData =
-        availableCmdOptions[QStringLiteral("startMinimizedToTray")];
-    startMinimizedToTrayData.m_description =
-        QStringLiteral("start Quentier minimized to system tray");
-
-    auto & startMinimizedData =
-        availableCmdOptions[QStringLiteral("startMinimized")];
-    startMinimizedData.m_description =
-        QStringLiteral("start Quentier with its main window minimized "
-                       "to the task bar");
-
     ParseCommandLineResult parseCmdResult;
-    parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
+    ParseCommandLine(argc, argv, parseCmdResult);
     if (parseCmdResult.m_shouldQuit)
     {
         if (!parseCmdResult.m_errorDescription.isEmpty()) {
@@ -89,8 +68,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QScopedPointer<MainWindow> pMainWindow;
+    SetupStartupSettings();
 
+    QScopedPointer<MainWindow> pMainWindow;
     try
     {
         pMainWindow.reset(new MainWindow);

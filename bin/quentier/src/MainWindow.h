@@ -274,6 +274,7 @@ private Q_SLOTS:
     // Preferences dialog slots
     void onUseLimitedFontsPreferenceChanged(bool flag);
     void onShowNoteThumbnailsPreferenceChanged();
+    void onDisableNativeMenuBarPreferenceChanged();
     void onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes);
 
     // Note search-related slots
@@ -345,6 +346,7 @@ private:
     void setupAccountManager();
     void setupLocalStorageManager();
 
+    void setupDisableNativeMenuBarPreference();
     void setupDefaultAccount();
 
     void setupModels();
@@ -491,7 +493,8 @@ private:
                             const QString & styleBlockStartSearchString,
                             const int currentIndex, bool & error) const;
 
-    bool getShowNoteThumbnails() const;
+    bool getShowNoteThumbnailsPreference() const;
+    bool getDisableNativeMenuBarPreference() const;
 
     /**
      * Get a set with note local uids.
