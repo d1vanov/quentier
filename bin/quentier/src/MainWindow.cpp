@@ -4891,6 +4891,12 @@ void MainWindow::setupDisableNativeMenuBarPreference()
 
     bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
     m_pUI->menuBar->setNativeMenuBar(!disableNativeMenuBar);
+
+    if (disableNativeMenuBar) {
+        // Without this the menu bar forcefully integrated into the main window
+        // looks kinda ugly
+        m_pUI->menuBar->setStyleSheet(QString());
+    }
 }
 
 void MainWindow::setupDefaultAccount()
