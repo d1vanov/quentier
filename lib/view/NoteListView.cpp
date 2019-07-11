@@ -806,7 +806,7 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos,
                                   : tr("Show for all notes");
     ADD_CONTEXT_MENU_ACTION(showHideForAllNotes, pThumbnailsSubMenu,
                             onToggleThumbnailPreference,
-                            QVariant::fromValue(QStringLiteral("")), true);
+                            QVariant::fromValue(QString::fromUtf8("")), true);
 
     const QByteArray & thumbnailData = pItem->thumbnailData();
     bool hasThumbnail = !thumbnailData.isEmpty();

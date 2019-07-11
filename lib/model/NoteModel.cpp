@@ -67,10 +67,11 @@ inline QString includedNotesStr(
 
 #define NUM_NOTE_MODEL_COLUMNS (12)
 
-#define REPORT_ERROR(error, ...) \
-    ErrorString errorDescription(error); \
-    NMWARNING(errorDescription << QStringLiteral("" __VA_ARGS__ "")); \
-    Q_EMIT notifyError(errorDescription)
+#define REPORT_ERROR(error, ...)                                               \
+    ErrorString errorDescription(error);                                       \
+    NMWARNING(errorDescription << QLatin1String("" __VA_ARGS__ ""));           \
+    Q_EMIT notifyError(errorDescription)                                       \
+// REPORT_ERROR
 
 namespace quentier {
 

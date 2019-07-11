@@ -30,10 +30,11 @@
 
 #define NUM_SAVED_SEARCH_MODEL_COLUMNS (4)
 
-#define REPORT_ERROR(error, ...) \
-    ErrorString errorDescription(error); \
-    QNWARNING(errorDescription << QStringLiteral("" __VA_ARGS__ "")); \
-    Q_EMIT notifyError(errorDescription)
+#define REPORT_ERROR(error, ...)                                               \
+    ErrorString errorDescription(error);                                       \
+    QNWARNING(errorDescription << QLatin1String("" __VA_ARGS__ ""));           \
+    Q_EMIT notifyError(errorDescription)                                       \
+// REPORT_ERROR
 
 namespace quentier {
 

@@ -5562,7 +5562,7 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     QVariant hideThumbnailsFor =
         appSettings.value(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
-                          QStringLiteral(""));
+                          QLatin1String(""));
     appSettings.endGroup();
 
     return QSet<QString>::fromList(hideThumbnailsFor.toStringList());

@@ -53,7 +53,7 @@ AddOrEditTagDialog::AddOrEditTagDialog(TagModel * pTagModel, QWidget * parent,
     bool res = setupEditedTagItem(tagNames, parentTagNameIndex);
     if (!res && !m_pTagModel.isNull()) {
         tagNames = m_pTagModel->tagNames();
-        tagNames.prepend(QStringLiteral(""));
+        tagNames.prepend(QLatin1String(""));
     }
 
     m_pTagNamesModel = new QStringListModel(this);

@@ -546,7 +546,7 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
     }
 
     NewListItemLineEdit * pNewItemLineEdit = new NewListItemLineEdit(m_pItemModel.data(), existingNames,
-                                                                     /* fake linked notebook guid = */ QStringLiteral(""),
+                                                                     /* fake linked notebook guid = */ QLatin1String(""),
                                                                      this);
     QObject::connect(pNewItemLineEdit, QNSIGNAL(NewListItemLineEdit,returnPressed),
                      this, QNSLOT(AbstractFilterByModelItemWidget,onNewItemAdded));
