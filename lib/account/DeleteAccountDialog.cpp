@@ -130,8 +130,7 @@ DeleteAccountDialog::~DeleteAccountDialog()
 
 void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
 {
-    QNDEBUG(QStringLiteral("DeleteAccountDialog::onConfirmationLineEditTextEdited: ")
-            << text);
+    QNDEBUG("DeleteAccountDialog::onConfirmationLineEditTextEdited: " << text);
 
     bool confirmed = (text.toLower() == QStringLiteral("yes"));
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(confirmed);
@@ -139,7 +138,7 @@ void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
 
 void DeleteAccountDialog::accept()
 {
-    QNINFO(QStringLiteral("DeleteAccountDialog::accept: account = ") << m_account);
+    QNINFO("DeleteAccountDialog::accept: account = " << m_account);
 
     m_pUi->statusBarLabel->setText(QString());
     m_pUi->statusBarLabel->hide();
@@ -160,8 +159,7 @@ void DeleteAccountDialog::accept()
         // Double check
         QFileInfo pathInfo(path);
         if (pathInfo.exists()) {
-            QNWARNING(QStringLiteral("Failed to remove account's persistence ")
-                      << QStringLiteral("storage: ")
+            QNWARNING("Failed to remove account's persistence storage: "
                       << QDir::toNativeSeparators(path));
         }
     }

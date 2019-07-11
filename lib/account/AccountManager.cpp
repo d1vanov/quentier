@@ -72,7 +72,7 @@ AccountModel & AccountManager::accountModel()
 
 Account AccountManager::currentAccount()
 {
-    QNDEBUG(QStringLiteral("AccountManager::currentAccount"));
+    QNDEBUG("AccountManager::currentAccount");
 
     Account account = accountFromEnvVarHints();
     if (!account.isEmpty()) {
@@ -100,7 +100,7 @@ Account AccountManager::currentAccount()
 
 int AccountManager::execAddAccountDialog()
 {
-    QNDEBUG(QStringLiteral("AccountManager::execAddAccountDialog"));
+    QNDEBUG("AccountManager::execAddAccountDialog");
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
@@ -125,7 +125,7 @@ int AccountManager::execAddAccountDialog()
 
 int AccountManager::execManageAccountsDialog()
 {
-    QNDEBUG(QStringLiteral("AccountManager::execManageAccountsDialog"));
+    QNDEBUG("AccountManager::execManageAccountsDialog");
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
     const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
@@ -220,7 +220,7 @@ void AccountManager::switchAccount(const Account & account)
 {
     // print the entire account because here not only the name but also the type
     // of the account we are switching to matters a lot
-    QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
+    QNDEBUG("AccountManager::switchAccount: " << account);
 
     // See whether this account is within a list of already available accounts,
     // if not, add it there
@@ -272,9 +272,8 @@ void AccountManager::switchAccount(const Account & account)
 void AccountManager::onLocalAccountAdditionRequested(QString name,
                                                      QString fullName)
 {
-    QNDEBUG(QStringLiteral("AccountManager::onLocalAccountAdditionRequested: ")
-            << QStringLiteral("name = ") << name
-            << QStringLiteral(", full name = ") << fullName);
+    QNDEBUG("AccountManager::onLocalAccountAdditionRequested: "
+            << "name = " << name << ", full name = " << fullName);
 
     // Double-check that no local account with such name already exists
     const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
@@ -313,8 +312,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name,
 
 void AccountManager::onAccountDisplayNameChanged(Account account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::onAccountDisplayNameChanged: ")
-            << account.name());
+    QNDEBUG("AccountManager::onAccountDisplayNameChanged: " << account.name());
 
     bool isLocal = (account.type() ==  Account::Type::Local);
     ErrorString errorDescription;
@@ -328,7 +326,7 @@ void AccountManager::onAccountDisplayNameChanged(Account account)
 
 void AccountManager::detectAvailableAccounts()
 {
-    QNDEBUG(QStringLiteral("AccountManager::detectAvailableAccounts"));
+    QNDEBUG("AccountManager::detectAvailableAccounts");
 
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
 
@@ -357,14 +355,13 @@ void AccountManager::detectAvailableAccounts()
     for(int i = 0; i < numPotentialLocalAccountDirs; ++i)
     {
         const QFileInfo & accountDirInfo = localAccountsDirInfos[i];
-        QNTRACE(QStringLiteral("Examining potential local account dir: ")
+        QNTRACE("Examining potential local account dir: "
                 << accountDirInfo.absoluteFilePath());
 
         QFileInfo accountBasicInfoFileInfo(accountDirInfo.absoluteFilePath() +
                                            QStringLiteral("/accountInfo.txt"));
         if (!accountBasicInfoFileInfo.exists()) {
-            QNTRACE(QStringLiteral("Found no accountInfo.txt file in this dir, "
-                                   "skipping it"));
+            QNTRACE("Found no accountInfo.txt file in this dir, skipping it");
             continue;
         }
 
@@ -374,22 +371,21 @@ void AccountManager::detectAvailableAccounts()
         Account availableAccount(accountName, Account::Type::Local, userId);
         readComplementaryAccountInfo(availableAccount);
         availableAccounts << availableAccount;
-        QNDEBUG(QStringLiteral("Found available local account: name = ")
-                << accountName << QStringLiteral(", dir ")
+        QNDEBUG("Found available local account: name = "
+                << accountName << ", dir "
                 << accountDirInfo.absoluteFilePath());
     }
 
     for(int i = 0; i < numPotentialEvernoteAccountDirs; ++i)
     {
         const QFileInfo & accountDirInfo = evernoteAccountsDirInfos[i];
-        QNTRACE(QStringLiteral("Examining potential Evernote account dir: ")
+        QNTRACE("Examining potential Evernote account dir: "
                 << accountDirInfo.absoluteFilePath());
 
         QFileInfo accountBasicInfoFileInfo(accountDirInfo.absoluteFilePath() +
                                            QStringLiteral("/accountInfo.txt"));
         if (!accountBasicInfoFileInfo.exists()) {
-            QNTRACE(QStringLiteral("Found no accountInfo.txt file in this dir, "
-                                   "skipping it"));
+            QNTRACE("Found no accountInfo.txt file in this dir, skipping it");
             continue;
         }
 
@@ -402,10 +398,10 @@ void AccountManager::detectAvailableAccounts()
         int lastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"));
         if ((lastUnderlineIndex < 0) || (lastUnderlineIndex >= accountNameSize))
         {
-            QNTRACE(QStringLiteral("Dir ") << accountName
-                    << QStringLiteral(" doesn't seem to be an account dir: it "
-                                      "doesn't start with \"local_\" and "
-                                      "doesn't contain \"_<user id>\" at the end"));
+            QNTRACE("Dir " << accountName
+                    << " doesn't seem to be an account dir: it "
+                    << "doesn't start with \"local_\" and "
+                    << "doesn't contain \"_<user id>\" at the end");
             continue;
         }
 
@@ -421,9 +417,9 @@ void AccountManager::detectAvailableAccounts()
 #endif
         if (Q_UNLIKELY(!conversionResult))
         {
-            QNTRACE(QStringLiteral("Skipping dir ") << accountName
-                    << QStringLiteral(" as it doesn't seem to end with user id, "
-                                      "the attempt to convert it to int fails"));
+            QNTRACE("Skipping dir " << accountName
+                    << " as it doesn't seem to end with user id, "
+                    << "the attempt to convert it to int fails");
             continue;
         }
 
@@ -433,10 +429,10 @@ void AccountManager::detectAvailableAccounts()
         if ((preLastUnderlineIndex < 0) ||
             (preLastUnderlineIndex >= lastUnderlineIndex))
         {
-            QNTRACE(QStringLiteral("Dir ") << accountName
-                    << QStringLiteral(" doesn't seem to be an account dir: it "
-                                      "doesn't start with \"local_\" and doesn't "
-                                      "contain \"_<host>_<user id>\" at the end"));
+            QNTRACE("Dir " << accountName
+                    << " doesn't seem to be an account dir: it "
+                    << "doesn't start with \"local_\" and doesn't "
+                    << "contain \"_<host>_<user id>\" at the end");
             continue;
         }
 
@@ -450,12 +446,12 @@ void AccountManager::detectAvailableAccounts()
                                  Account::EvernoteAccountType::Free, evernoteHost);
         readComplementaryAccountInfo(availableAccount);
         availableAccounts << availableAccount;
-        QNDEBUG(QStringLiteral("Found available Evernote account: name = ")
-                << accountName << QStringLiteral(", user id = ") << userId
-                << QStringLiteral(", Evernote account type = ")
+        QNDEBUG("Found available Evernote account: name = "
+                << accountName << ", user id = " << userId
+                << ", Evernote account type = "
                 << availableAccount.evernoteAccountType()
-                << QStringLiteral(", Evernote host = ")
-                << availableAccount.evernoteHost() << QStringLiteral(", dir ")
+                << ", Evernote host = "
+                << availableAccount.evernoteHost() << ", dir "
                 << accountDirInfo.absoluteFilePath());
     }
 
@@ -464,19 +460,19 @@ void AccountManager::detectAvailableAccounts()
 
 Account AccountManager::createDefaultAccount(ErrorString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("AccountManager::createDefaultAccount"));
+    QNDEBUG("AccountManager::createDefaultAccount");
 
     QString username = getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
-        QNDEBUG(QStringLiteral("Couldn't get the current user's name, fallback "
-                               "to \"Default user\""));
+        QNDEBUG("Couldn't get the current user's name, fallback "
+                "to \"Default user\"");
         username = QStringLiteral("Default user");
     }
 
     QString fullName = getCurrentUserFullName();
     if (Q_UNLIKELY(fullName.isEmpty())) {
-        QNDEBUG(QStringLiteral("Couldn't get the current user's full name, "
-                               "fallback to \"Defaulr user\""));
+        QNDEBUG("Couldn't get the current user's full name, "
+                "fallback to \"Defaulr user\"");
         fullName = QStringLiteral("Default user");
     }
 
@@ -486,7 +482,7 @@ Account AccountManager::createDefaultAccount(ErrorString & errorDescription)
 
     const QVector<Account> & availableAccounts = m_pAccountModel->accounts();
     if (availableAccounts.contains(account)) {
-        QNDEBUG(QStringLiteral("The default account already exists"));
+        QNDEBUG("The default account already exists");
         return account;
     }
 
@@ -497,8 +493,8 @@ Account AccountManager::createLocalAccount(
     const QString & name, const QString & displayName,
     ErrorString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: name = ")
-            << name << QStringLiteral(", display name = ") << displayName);
+    QNDEBUG("AccountManager::createLocalAccount: name = "
+            << name << ", display name = " << displayName);
 
     bool res = writeAccountInfo(name, displayName, /* is local = */ true,
                                 /* user id = */ -1,
@@ -518,8 +514,7 @@ Account AccountManager::createLocalAccount(
 
 bool AccountManager::createAccountInfo(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::createAccountInfo: ")
-            << account.name());
+    QNDEBUG("AccountManager::createAccountInfo: " << account.name());
 
     bool isLocal = (account.type() == Account::Type::Local);
 
@@ -548,14 +543,13 @@ bool AccountManager::writeAccountInfo(const QString & name,
                                       const QString & shardId,
                                       ErrorString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("AccountManager::writeAccountInfo: name = ") << name
-            << QStringLiteral(", display name = ") << displayName
-            << QStringLiteral(", is local = ")
-            << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", user id = ") << id
-            << QStringLiteral(", Evernote account type = ")
-            << evernoteAccountType << QStringLiteral(", Evernote host = ")
-            << evernoteHost << QStringLiteral(", shard id = ") << shardId);
+    QNDEBUG("AccountManager::writeAccountInfo: name = " << name
+            << ", display name = " << displayName
+            << ", is local = " << (isLocal ? "true" : "false")
+            << ", user id = " << id
+            << ", Evernote account type = "
+            << evernoteAccountType << ", Evernote host = "
+            << evernoteHost << ", shard id = " << shardId);
 
     Account account(name, (isLocal ? Account::Type::Local : Account::Type::Evernote),
                     id, Account::EvernoteAccountType::Free, evernoteHost, shardId);
@@ -669,22 +663,21 @@ QString AccountManager::evernoteAccountTypeToString(
 
 void AccountManager::readComplementaryAccountInfo(Account & account)
 {
-    QNTRACE(QStringLiteral("AccountManager::readComplementaryAccountInfo: ")
-            << account.name());
+    QNTRACE("AccountManager::readComplementaryAccountInfo: " << account.name());
 
     if (Q_UNLIKELY(account.isEmpty())) {
-        QNDEBUG(QStringLiteral("The account is empty: ") << account.name());
+        QNDEBUG("The account is empty: " << account.name());
         return;
     }
 
     if (Q_UNLIKELY(account.name().isEmpty())) {
-        QNDEBUG(QStringLiteral("The account name is empty: ") << account.name());
+        QNDEBUG("The account name is empty: " << account.name());
         return;
     }
 
     QDir accountPersistentStorageDir(accountPersistentStoragePath(account));
     if (!accountPersistentStorageDir.exists()) {
-        QNDEBUG(QStringLiteral("No persistent storage dir exists for this account: ")
+        QNDEBUG("No persistent storage dir exists for this account: "
                 << account.name());
         return;
     }
@@ -791,27 +784,24 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
 
     accountInfo.close();
 
-    QNTRACE(QStringLiteral("Account after reading in the complementary info: ")
-            << account);
+    QNTRACE("Account after reading in the complementary info: " << account);
 }
 
 Account AccountManager::accountFromEnvVarHints()
 {
-    QNDEBUG(QStringLiteral("AccountManager::accountFromEnvVarHints"));
+    QNDEBUG("AccountManager::accountFromEnvVarHints");
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 1, 0)
 #define qEnvironmentVariableIsEmpty(x) qgetenv(x).isEmpty()
 #endif
 
     if (qEnvironmentVariableIsEmpty(ACCOUNT_NAME_ENV_VAR)) {
-        QNDEBUG(QStringLiteral("Account name environment variable is not set or "
-                               "is empty"));
+        QNDEBUG("Account name environment variable is not set or is empty");
         return Account();
     }
 
     if (qEnvironmentVariableIsEmpty(ACCOUNT_TYPE_ENV_VAR)) {
-        QNDEBUG(QStringLiteral("Account type environment variable is not set or "
-                               "is empty"));
+        QNDEBUG("Account type environment variable is not set or is empty");
         return Account();
     }
 
@@ -821,20 +811,18 @@ Account AccountManager::accountFromEnvVarHints()
     if (!isLocal)
     {
         if (qEnvironmentVariableIsEmpty(ACCOUNT_ID_ENV_VAR)) {
-            QNDEBUG(QStringLiteral("Account id environment variable is not set "
-                                   "or is empty"));
+            QNDEBUG("Account id environment variable is not set or is empty");
             return Account();
         }
 
         if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR)) {
-            QNDEBUG(QStringLiteral("Evernote account type environment variable "
-                                   "is not set or is empty"));
+            QNDEBUG("Evernote account type environment variable is not set or "
+                    "is empty");
             return Account();
         }
 
         if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_HOST_ENV_VAR)) {
-            QNDEBUG(QStringLiteral("Evernote host environment variable is not "
-                                   "set or is empty"));
+            QNDEBUG("Evernote host environment variable is not set or is empty");
             return Account();
         }
     }
@@ -856,7 +844,7 @@ Account AccountManager::accountFromEnvVarHints()
         id = static_cast<qevercloud::UserID>(
             qEnvironmentVariableIntValue(ACCOUNT_ID_ENV_VAR, &conversionResult));
         if (!conversionResult) {
-            QNDEBUG(QStringLiteral("Could not convert the account id to integer"));
+            QNDEBUG("Could not convert the account id to integer");
             return Account();
         }
 
@@ -865,8 +853,8 @@ Account AccountManager::accountFromEnvVarHints()
             qEnvironmentVariableIntValue(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
                                          &conversionResult));
         if (!conversionResult) {
-            QNDEBUG(QStringLiteral("Could not convert the Evernote account type "
-                                   "to integer"));
+            QNDEBUG("Could not convert the Evernote account type "
+                    "to integer");
             return Account();
         }
 
@@ -878,7 +866,7 @@ Account AccountManager::accountFromEnvVarHints()
 
 Account AccountManager::lastUsedAccount()
 {
-    QNDEBUG(QStringLiteral("AccountManager::lastUsedAccount"));
+    QNDEBUG("AccountManager::lastUsedAccount");
 
     ApplicationSettings appSettings;
 
@@ -890,19 +878,19 @@ Account AccountManager::lastUsedAccount()
 
     QVariant name = appSettings.value(LAST_USED_ACCOUNT_NAME);
     if (name.isNull()) {
-        QNDEBUG(QStringLiteral("Can't find last used account's name"));
+        QNDEBUG("Can't find last used account's name");
         return Account();
     }
 
     QString accountName = name.toString();
     if (accountName.isEmpty()) {
-        QNDEBUG(QStringLiteral("Last used account's name is empty"));
+        QNDEBUG("Last used account's name is empty");
         return Account();
     }
 
     QVariant type = appSettings.value(LAST_USED_ACCOUNT_TYPE);
     if (type.isNull()) {
-        QNDEBUG(QStringLiteral("Can't find last used account's type"));
+        QNDEBUG("Can't find last used account's type");
         return Account();
     }
 
@@ -917,22 +905,21 @@ Account AccountManager::lastUsedAccount()
     {
         QVariant userId = appSettings.value(LAST_USED_ACCOUNT_ID);
         if (userId.isNull()) {
-            QNDEBUG(QStringLiteral("Can't find last used account's id"));
+            QNDEBUG("Can't find last used account's id");
             return Account();
         }
 
         bool conversionResult = false;
         id = userId.toInt(&conversionResult);
         if (!conversionResult) {
-            QNDEBUG(QStringLiteral("Can't convert the last used account's id "
-                                   "to int"));
+            QNDEBUG("Can't convert the last used account's id to int");
             return Account();
         }
 
         QVariant userEvernoteAccountHost =
             appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_HOST);
         if (userEvernoteAccountHost.isNull()) {
-            QNDEBUG(QStringLiteral("Can't find last used account's Evernote host"));
+            QNDEBUG("Can't find last used account's Evernote host");
             return Account();
         }
         evernoteHost = userEvernoteAccountHost.toString();
@@ -940,8 +927,7 @@ Account AccountManager::lastUsedAccount()
         QVariant userEvernoteAccountType =
             appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE);
         if (userEvernoteAccountType.isNull()) {
-            QNDEBUG(QStringLiteral("Can't find last used account's Evernote "
-                                   "account type"));
+            QNDEBUG("Can't find last used account's Evernote account type");
             return Account();
         }
 
@@ -949,8 +935,8 @@ Account AccountManager::lastUsedAccount()
         evernoteAccountType = static_cast<Account::EvernoteAccountType::type>(
             userEvernoteAccountType.toInt(&conversionResult));
         if (!conversionResult) {
-            QNDEBUG(QStringLiteral("Can't convert the last used account's "
-                                   "Evernote account type to int"));
+            QNDEBUG("Can't convert the last used account's Evernote account "
+                    "type to int");
             return Account();
         }
     }
@@ -964,7 +950,7 @@ Account AccountManager::findAccount(
     const Account::EvernoteAccountType::type evernoteAccountType,
     const QString & evernoteHost)
 {
-    QNDEBUG(QStringLiteral("AccountManager::findAccount"));
+    QNDEBUG("AccountManager::findAccount");
 
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
     QString accountDirName = (isLocal
@@ -987,8 +973,7 @@ Account AccountManager::findAccount(
 
 void AccountManager::updateLastUsedAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountManager::updateLastUsedAccount: ")
-            << account.name());
+    QNDEBUG("AccountManager::updateLastUsedAccount: " << account.name());
 
     ApplicationSettings appSettings;
 

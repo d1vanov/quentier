@@ -40,8 +40,8 @@ public:
     bool removeFilteredAccount(const Account & account);
 
 protected:
-    virtual bool filterAcceptsRow(int sourceRow,
-                                  const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
+    virtual bool filterAcceptsRow(
+        int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
 
 private:
     QVector<Account>    m_filteredAccounts;
