@@ -42,9 +42,9 @@ DeletedNoteItemDelegate::DeletedNoteItemDelegate(QObject * parent) :
                                         QStringLiteral(")");
 }
 
-QWidget * DeletedNoteItemDelegate::createEditor(QWidget * parent,
-                                                const QStyleOptionViewItem & option,
-                                                const QModelIndex & index) const
+QWidget * DeletedNoteItemDelegate::createEditor(
+    QWidget * parent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     Q_UNUSED(parent)
     Q_UNUSED(option)
@@ -52,9 +52,9 @@ QWidget * DeletedNoteItemDelegate::createEditor(QWidget * parent,
     return Q_NULLPTR;
 }
 
-void DeletedNoteItemDelegate::paint(QPainter * painter,
-                                    const QStyleOptionViewItem & option,
-                                    const QModelIndex & index) const
+void DeletedNoteItemDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
@@ -68,24 +68,26 @@ void DeletedNoteItemDelegate::paint(QPainter * painter,
     painter->restore();
 }
 
-void DeletedNoteItemDelegate::setEditorData(QWidget * editor,
-                                            const QModelIndex & index) const
+void DeletedNoteItemDelegate::setEditorData(
+    QWidget * editor, const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(index)
 }
 
-void DeletedNoteItemDelegate::setModelData(QWidget * editor,
-                                           QAbstractItemModel * model,
-                                           const QModelIndex & index) const
+void DeletedNoteItemDelegate::setModelData(
+    QWidget * editor,
+    QAbstractItemModel * model,
+    const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(model)
     Q_UNUSED(index)
 }
 
-QSize DeletedNoteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                        const QModelIndex & index) const
+QSize DeletedNoteItemDelegate::sizeHint(
+    const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     QSize size = doSizeHint(option, index);
     if (size.isValid()) {
@@ -105,9 +107,9 @@ void DeletedNoteItemDelegate::updateEditorGeometry(
     Q_UNUSED(index)
 }
 
-void DeletedNoteItemDelegate::doPaint(QPainter * painter,
-                                      const QStyleOptionViewItem & option,
-                                      const QModelIndex & index) const
+void DeletedNoteItemDelegate::doPaint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (!index.isValid()) {
         return;
@@ -115,23 +117,22 @@ void DeletedNoteItemDelegate::doPaint(QPainter * painter,
 
     const QAbstractItemModel * pModel = index.model();
     if (Q_UNLIKELY(!pModel)) {
-        QNDEBUG(QStringLiteral("DeletedNoteItemDelegate::doPaint: can't paint, "
-                               "no model"));
+        QNDEBUG("DeletedNoteItemDelegate::doPaint: can't paint, no model");
         return;
     }
 
     const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("DeletedNoteItemDelegate::doPaint: can't paint, "
-                               "can't cast the model to NoteModel"));
+        QNDEBUG("DeletedNoteItemDelegate::doPaint: can't paint, "
+                "can't cast the model to NoteModel");
         return;
     }
 
     const NoteModelItem * pNoteItem = pNoteModel->itemForIndex(index);
     if (Q_UNLIKELY(!pNoteItem)) {
-        QNDEBUG(QStringLiteral("DeletedNoteItemDelegate::doPaint: can't paint, ")
-                << QStringLiteral("no note item for index: row = ")
-                << index.row() << QStringLiteral(", column = ") << index.column());
+        QNDEBUG("DeletedNoteItemDelegate::doPaint: can't paint, "
+                << "no note item for index: row = " << index.row()
+                << ", column = " << index.column());
         return;
     }
 
@@ -211,8 +212,9 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
                       QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
-QSize DeletedNoteItemDelegate::doSizeHint(const QStyleOptionViewItem & option,
-                                          const QModelIndex & index) const
+QSize DeletedNoteItemDelegate::doSizeHint(
+    const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (!index.isValid()) {
         return QSize();
@@ -220,24 +222,23 @@ QSize DeletedNoteItemDelegate::doSizeHint(const QStyleOptionViewItem & option,
 
     const QAbstractItemModel * pModel = index.model();
     if (Q_UNLIKELY(!pModel)) {
-        QNDEBUG(QStringLiteral("DeletedNoteItemDelegate::doSizeHint: "
-                               "can't compute size hint, no model"));
+        QNDEBUG("DeletedNoteItemDelegate::doSizeHint: "
+                "can't compute size hint, no model");
         return QSize();
     }
 
     const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG(QStringLiteral("DeletedNoteItemDelegate::doSizeHint: "
-                               "can't compute size hint, can't cast the model "
-                               "to NoteModel"));
+        QNDEBUG("DeletedNoteItemDelegate::doSizeHint: can't compute size hint, "
+                "can't cast the model to NoteModel");
         return QSize();
     }
 
     const NoteModelItem * pNoteItem = pNoteModel->itemForIndex(index);
     if (Q_UNLIKELY(!pNoteItem)) {
-        QNDEBUG(QStringLiteral("DeletedNoteItemDelegate::doSizeHint: can't compute ")
-                << QStringLiteral("size hint, no note item for index: row = ")
-                << index.row() << QStringLiteral(", column = ") << index.column());
+        QNDEBUG("DeletedNoteItemDelegate::doSizeHint: can't compute "
+                << "size hint, no note item for index: row = " << index.row()
+                << ", column = " << index.column());
         return QSize();
     }
 

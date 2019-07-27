@@ -31,12 +31,14 @@ class LimitedFontsDelegate: public QStyledItemDelegate
 public:
     explicit LimitedFontsDelegate(QObject * parent = Q_NULLPTR);
 
-    virtual void paint(QPainter * painter, const QStyleOptionViewItem & option,
-                       const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void paint(
+        QPainter * painter, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
-    bool doPaint(QPainter * painter, const QStyleOptionViewItem & option,
-                 const QModelIndex & index) const;
+    bool doPaint(
+        QPainter * painter, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const;
 };
 
 } // namespace quentier

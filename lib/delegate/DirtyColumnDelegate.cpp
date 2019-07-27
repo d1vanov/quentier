@@ -36,17 +36,17 @@ int DirtyColumnDelegate::sideSize() const
     return qRound(DIRTY_CIRCLE_RADIUS * 2.1125);
 }
 
-QString DirtyColumnDelegate::displayText(const QVariant & value,
-                                         const QLocale & locale) const
+QString DirtyColumnDelegate::displayText(
+    const QVariant & value, const QLocale & locale) const
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
     return QString();
 }
 
-QWidget * DirtyColumnDelegate::createEditor(QWidget * parent,
-                                            const QStyleOptionViewItem & option,
-                                            const QModelIndex & index) const
+QWidget * DirtyColumnDelegate::createEditor(
+    QWidget * parent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     Q_UNUSED(parent)
     Q_UNUSED(option)
@@ -54,9 +54,9 @@ QWidget * DirtyColumnDelegate::createEditor(QWidget * parent,
     return Q_NULLPTR;
 }
 
-void DirtyColumnDelegate::paint(QPainter * painter,
-                                const QStyleOptionViewItem & option,
-                                const QModelIndex & index) const
+void DirtyColumnDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
@@ -94,24 +94,24 @@ void DirtyColumnDelegate::paint(QPainter * painter,
     painter->restore();
 }
 
-void DirtyColumnDelegate::setEditorData(QWidget * editor,
-                                        const QModelIndex & index) const
+void DirtyColumnDelegate::setEditorData(
+    QWidget * editor, const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(index)
 }
 
-void DirtyColumnDelegate::setModelData(QWidget * editor,
-                                       QAbstractItemModel * model,
-                                       const QModelIndex & index) const
+void DirtyColumnDelegate::setModelData(
+    QWidget * editor, QAbstractItemModel * model,
+    const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(model)
     Q_UNUSED(index)
 }
 
-QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                    const QModelIndex & index) const
+QSize DirtyColumnDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     Q_UNUSED(option)
 
@@ -140,9 +140,9 @@ QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option,
     return QSize(width, side);
 }
 
-void DirtyColumnDelegate::updateEditorGeometry(QWidget * editor,
-                                               const QStyleOptionViewItem & option,
-                                               const QModelIndex & index) const
+void DirtyColumnDelegate::updateEditorGeometry(
+    QWidget * editor, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(option)

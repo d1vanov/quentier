@@ -104,8 +104,7 @@ LocalStorageUpgradeDialog::~LocalStorageUpgradeDialog()
 
 void LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::"
-                           "onSwitchToAccountPushButtonPressed"));
+    QNDEBUG("LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed");
 
     QModelIndex currentAccountIndex = m_pUi->accountsTableView->currentIndex();
     if (!currentAccountIndex.isValid()) {
@@ -145,8 +144,7 @@ void LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed()
 
 void LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::"
-                           "onCreateNewAccountButtonPressed"));
+    QNDEBUG("LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed");
 
     Q_EMIT shouldCreateNewAccount();
     QDialog::accept();
@@ -154,7 +152,7 @@ void LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed()
 
 void LocalStorageUpgradeDialog::onQuitAppButtonPressed()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::onQuitAppButtonPressed"));
+    QNDEBUG("LocalStorageUpgradeDialog::onQuitAppButtonPressed");
 
     Q_EMIT shouldQuitApp();
     QDialog::accept();
@@ -162,7 +160,7 @@ void LocalStorageUpgradeDialog::onQuitAppButtonPressed()
 
 void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::onApplyPatchButtonPressed"));
+    QNDEBUG("LocalStorageUpgradeDialog::onApplyPatchButtonPressed");
 
     m_pUi->statusBar->setText(QString());
     m_pUi->statusBar->hide();
@@ -302,14 +300,13 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
     errorDescription.clear();
     Q_UNUSED(pPatch->removeLocalStorageBackup(errorDescription))
 
-    QNINFO(QStringLiteral("Successfully applied local storage patch from version ")
-           << pPatch->fromVersion() << QStringLiteral(" to version ")
-           << pPatch->toVersion());
+    QNINFO("Successfully applied local storage patch from version "
+           << pPatch->fromVersion() << " to version " << pPatch->toVersion());
 
     ++m_currentPatchIndex;
 
     if (m_currentPatchIndex == m_patches.size()) {
-        QNINFO(QStringLiteral("No more local storage patches are required"));
+        QNINFO("No more local storage patches are required");
         m_upgradeDone = true;
         QDialog::accept();
         return;
@@ -322,8 +319,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
 
 void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::")
-            << QStringLiteral("onApplyPatchProgressUpdate: progress = ")
+    QNDEBUG("LocalStorageUpgradeDialog::onApplyPatchProgressUpdate: progress = "
             << progress);
 
     int value = static_cast<int>(std::floor(progress * 100.0 + 0.5));
@@ -333,20 +329,17 @@ void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
 void LocalStorageUpgradeDialog::onAccountViewSelectionChanged(
     const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::"
-                           "onAccountViewSelectionChanged"));
+    QNDEBUG("LocalStorageUpgradeDialog::onAccountViewSelectionChanged");
 
     Q_UNUSED(deselected)
 
     if (!(m_options & Option::SwitchToAnotherAccount)) {
-        QNDEBUG(QStringLiteral("The option of switching to another account "
-                               "is not available"));
+        QNDEBUG("The option of switching to another account is not available");
         return;
     }
 
     if (selected.isEmpty()) {
-        QNDEBUG(QStringLiteral("No selection, disabling switch to selected "
-                               "account button"));
+        QNDEBUG("No selection, disabling switch to selected account button");
         m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
         return;
     }
@@ -354,10 +347,11 @@ void LocalStorageUpgradeDialog::onAccountViewSelectionChanged(
     m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
 }
 
-void LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate(double progress)
+void LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate(
+    double progress)
 {
-    QNTRACE(QStringLiteral("LocalStorageUpgradeDialog::")
-            << QStringLiteral("onBackupLocalStorageProgressUpdate: ") << progress);
+    QNTRACE("LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate: "
+            << progress);
 
     int scaledProgress =
         std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
@@ -373,8 +367,8 @@ void LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate(double progre
 void LocalStorageUpgradeDialog::onRestoreLocalStorageFromBackupProgressUpdate(
     double progress)
 {
-    QNTRACE(QStringLiteral("LocalStorageUpgradeDialog::")
-            << QStringLiteral("onRestoreLocalStorageFromBackupProgressUpdate: ")
+    QNTRACE("LocalStorageUpgradeDialog::"
+            << "onRestoreLocalStorageFromBackupProgressUpdate: "
             << progress);
 
     int scaledProgress =
@@ -390,7 +384,7 @@ void LocalStorageUpgradeDialog::onRestoreLocalStorageFromBackupProgressUpdate(
 
 void LocalStorageUpgradeDialog::createConnections()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::createConnections"));
+    QNDEBUG("LocalStorageUpgradeDialog::createConnections");
 
     if (m_options & Option::SwitchToAnotherAccount)
     {
@@ -429,12 +423,12 @@ void LocalStorageUpgradeDialog::createConnections()
 
 void LocalStorageUpgradeDialog::setPatchInfoLabel()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::setPatchInfoLabel: index = ")
+    QNDEBUG("LocalStorageUpgradeDialog::setPatchInfoLabel: index = "
             << m_currentPatchIndex);
 
     if (Q_UNLIKELY(m_currentPatchIndex >= m_patches.size())) {
         m_pUi->introInfoLabel->setText(QString());
-        QNDEBUG(QStringLiteral("Index out of patches range"));
+        QNDEBUG("Index out of patches range");
         return;
     }
 
@@ -481,8 +475,7 @@ void LocalStorageUpgradeDialog::setPatchInfoLabel()
 
 void LocalStorageUpgradeDialog::setErrorToStatusBar(const ErrorString & error)
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::setErrorToStatusBar: ")
-            << error);
+    QNDEBUG("LocalStorageUpgradeDialog::setErrorToStatusBar: " << error);
     QString message = QStringLiteral("<html><head/><body><p>"
                                      "<span style=\" font-size:12pt; "
                                      "color:#ff0000;\">");
@@ -507,7 +500,7 @@ void LocalStorageUpgradeDialog::setPatchDescriptions(
 
 void LocalStorageUpgradeDialog::lockControls()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::lockControls"));
+    QNDEBUG("LocalStorageUpgradeDialog::lockControls");
 
     m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
     m_pUi->createNewAccountPushButton->setEnabled(false);
@@ -518,7 +511,7 @@ void LocalStorageUpgradeDialog::lockControls()
 
 void LocalStorageUpgradeDialog::unlockControls()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::unlockControls"));
+    QNDEBUG("LocalStorageUpgradeDialog::unlockControls");
 
     m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
     m_pUi->createNewAccountPushButton->setEnabled(true);
@@ -529,8 +522,7 @@ void LocalStorageUpgradeDialog::unlockControls()
 
 void LocalStorageUpgradeDialog::showAccountInfo(const Account & account)
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::showAccountInfo: ")
-            << account);
+    QNDEBUG("LocalStorageUpgradeDialog::showAccountInfo: " << account);
 
     QString message = tr("Account");
     message += QStringLiteral(": ");
@@ -558,8 +550,7 @@ void LocalStorageUpgradeDialog::showAccountInfo(const Account & account)
 
 void LocalStorageUpgradeDialog::showHideDialogPartsAccordingToOptions()
 {
-    QNDEBUG(QStringLiteral("LocalStorageUpgradeDialog::"
-                           "showHideDialogPartsAccordingToOptions"));
+    QNDEBUG("LocalStorageUpgradeDialog::showHideDialogPartsAccordingToOptions");
 
     if (!(m_options & Option::AddAccount)) {
         m_pUi->createNewAccountPushButton->hide();

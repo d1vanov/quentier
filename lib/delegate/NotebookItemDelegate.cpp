@@ -42,15 +42,15 @@ NotebookItemDelegate::NotebookItemDelegate(QObject * parent) :
     m_userIcon.addFile(QStringLiteral(":/user/user.png"), m_userIconSize);
 }
 
-QString NotebookItemDelegate::displayText(const QVariant & value,
-                                          const QLocale & locale) const
+QString NotebookItemDelegate::displayText(
+    const QVariant & value, const QLocale & locale) const
 {
     return AbstractStyledItemDelegate::displayText(value, locale);
 }
 
-QWidget * NotebookItemDelegate::createEditor(QWidget * parent,
-                                             const QStyleOptionViewItem & option,
-                                             const QModelIndex & index) const
+QWidget * NotebookItemDelegate::createEditor(
+    QWidget * parent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     const NotebookModel * pNotebookModel =
         qobject_cast<const NotebookModel*>(index.model());
@@ -74,9 +74,9 @@ QWidget * NotebookItemDelegate::createEditor(QWidget * parent,
     return AbstractStyledItemDelegate::createEditor(parent, option, index);
 }
 
-void NotebookItemDelegate::paint(QPainter * painter,
-                                 const QStyleOptionViewItem & option,
-                                 const QModelIndex & index) const
+void NotebookItemDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
@@ -113,25 +113,25 @@ void NotebookItemDelegate::paint(QPainter * painter,
     painter->restore();
 }
 
-void NotebookItemDelegate::setEditorData(QWidget * editor,
-                                         const QModelIndex & index) const
+void NotebookItemDelegate::setEditorData(
+    QWidget * editor, const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
         AbstractStyledItemDelegate::setEditorData(editor, index);
     }
 }
 
-void NotebookItemDelegate::setModelData(QWidget * editor,
-                                        QAbstractItemModel * model,
-                                        const QModelIndex & index) const
+void NotebookItemDelegate::setModelData(
+    QWidget * editor, QAbstractItemModel * model,
+    const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
         AbstractStyledItemDelegate::setModelData(editor, model, index);
     }
 }
 
-QSize NotebookItemDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                     const QModelIndex & index) const
+QSize NotebookItemDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (Q_UNLIKELY(!index.isValid())) {
         return QSize();
@@ -157,18 +157,18 @@ QSize NotebookItemDelegate::sizeHint(const QStyleOptionViewItem & option,
     return AbstractStyledItemDelegate::sizeHint(option, index);
 }
 
-void NotebookItemDelegate::updateEditorGeometry(QWidget * editor,
-                                                const QStyleOptionViewItem & option,
-                                                const QModelIndex & index) const
+void NotebookItemDelegate::updateEditorGeometry(
+    QWidget * editor, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
         AbstractStyledItemDelegate::updateEditorGeometry(editor, option, index);
     }
 }
 
-void NotebookItemDelegate::drawEllipse(QPainter * painter,
-                                       const QStyleOptionViewItem & option,
-                                       const QModelIndex & index) const
+void NotebookItemDelegate::drawEllipse(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     int colNameWidth = columnNameWidth(option, index);
     int side = std::min(option.rect.width(), option.rect.height());
@@ -184,23 +184,22 @@ void NotebookItemDelegate::drawEllipse(QPainter * painter,
                                 diameter, diameter));
 }
 
-void NotebookItemDelegate::drawNotebookName(QPainter * painter,
-                                            const QModelIndex & index,
-                                            const QStyleOptionViewItem & option) const
+void NotebookItemDelegate::drawNotebookName(
+    QPainter * painter, const QModelIndex & index,
+    const QStyleOptionViewItem & option) const
 {
     const NotebookModel * pNotebookModel =
         qobject_cast<const NotebookModel*>(index.model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: "
-                               "can't draw, no notebook model"));
+        QNDEBUG("NotebookItemDelegate::drawNotebookName: "
+                "can't draw, no notebook model");
         return;
     }
 
     const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
-        QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: can't "
-                               "draw, no notebook model item corresponding to "
-                               "index"));
+        QNDEBUG("NotebookItemDelegate::drawNotebookName: can't "
+                "draw, no notebook model item corresponding to index");
         return;
     }
 
@@ -233,8 +232,8 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter,
     }
 
     if (name.isEmpty()) {
-        QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: "
-                               "notebook name is empty"));
+        QNDEBUG("NotebookItemDelegate::drawNotebookName: "
+                "notebook name is empty");
         return;
     }
 
@@ -274,23 +273,22 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter,
                       QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
-QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & option,
-                                                 const QModelIndex & index,
-                                                 const int columnNameWidth) const
+QSize NotebookItemDelegate::notebookNameSizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index,
+    const int columnNameWidth) const
 {
-    QNTRACE(QStringLiteral("NotebookItemDelegate::notebookNameSizeHint: ")
-            << QStringLiteral("column name width = ") << columnNameWidth);
+    QNTRACE("NotebookItemDelegate::notebookNameSizeHint: "
+            << "column name width = " << columnNameWidth);
 
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
-        QNDEBUG(QStringLiteral("No model, fallback to the default size hint"));
+        QNDEBUG("No model, fallback to the default size hint");
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
-        QNDEBUG(QStringLiteral("Notebook name is empty, fallback to the default "
-                               "size hint"));
+        QNDEBUG("Notebook name is empty, fallback to the default size hint");
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
@@ -302,13 +300,15 @@ QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & op
     int numNotesPerNotebookInt = numNotesPerNotebook.toInt(&conversionResult);
 
     QString nameSuffix;
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Failed to convert the number of notes per ")
-                << QStringLiteral("notebook to int: ") << numNotesPerNotebook);
+    if (!conversionResult)
+    {
+        QNDEBUG("Failed to convert the number of notes per notebook to int: "
+                << numNotesPerNotebook);
     }
-    else if (numNotesPerNotebookInt > 0) {
-        QNTRACE(QStringLiteral("Appending num notes per notebook to the notebook ")
-                << QStringLiteral("name: ") << numNotesPerNotebookInt);
+    else if (numNotesPerNotebookInt > 0)
+    {
+        QNTRACE("Appending num notes per notebook to the notebook name: "
+                << numNotesPerNotebookInt);
         nameSuffix = QStringLiteral(" (");
         nameSuffix += QString::number(numNotesPerNotebookInt);
         nameSuffix += QStringLiteral(")");
@@ -332,8 +332,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & op
 
     QSize size = QSize(width, height);
 
-    QNTRACE(QStringLiteral("Computed size: width = ") << width
-            << QStringLiteral(", height = ") << height);
+    QNTRACE("Computed size: width = " << width << ", height = " << height);
     return size;
 }
 

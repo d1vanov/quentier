@@ -50,29 +50,32 @@ int FavoriteItemDelegate::sideSize() const
     return ICON_SIDE_SIZE;
 }
 
-QString FavoriteItemDelegate::displayText(const QVariant & value,
-                                          const QLocale & locale) const
+QString FavoriteItemDelegate::displayText(
+    const QVariant & value, const QLocale & locale) const
 {
     return AbstractStyledItemDelegate::displayText(value, locale);
 }
 
-QWidget * FavoriteItemDelegate::createEditor(QWidget * parent,
-                                             const QStyleOptionViewItem & option,
-                                             const QModelIndex & index) const
+QWidget * FavoriteItemDelegate::createEditor(
+    QWidget * parent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
-    // Only allow to edit the favorited item's display name but no other favorites
-    // model columns
-    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+    // Only allow to edit the favorited item's display name but no other
+    // favorites model columns
+    if (index.isValid() &&
+        (index.column() == FavoritesModel::Columns::DisplayName))
+    {
         return AbstractStyledItemDelegate::createEditor(parent, option, index);
     }
-    else {
+    else
+    {
         return Q_NULLPTR;
     }
 }
 
-void FavoriteItemDelegate::paint(QPainter * painter,
-                                 const QStyleOptionViewItem & option,
-                                 const QModelIndex & index) const
+void FavoriteItemDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
@@ -122,7 +125,8 @@ void FavoriteItemDelegate::paint(QPainter * painter,
     painter->restore();
 }
 
-void FavoriteItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
+void FavoriteItemDelegate::setEditorData(
+    QWidget * editor, const QModelIndex & index) const
 {
     if (index.isValid() &&
         (index.column() == FavoritesModel::Columns::DisplayName))
@@ -131,9 +135,9 @@ void FavoriteItemDelegate::setEditorData(QWidget * editor, const QModelIndex & i
     }
 }
 
-void FavoriteItemDelegate::setModelData(QWidget * editor,
-                                        QAbstractItemModel * model,
-                                        const QModelIndex & index) const
+void FavoriteItemDelegate::setModelData(
+    QWidget * editor, QAbstractItemModel * model,
+    const QModelIndex & index) const
 {
     if (index.isValid() &&
         (index.column() == FavoritesModel::Columns::DisplayName))
@@ -142,8 +146,8 @@ void FavoriteItemDelegate::setModelData(QWidget * editor,
     }
 }
 
-QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                     const QModelIndex & index) const
+QSize FavoriteItemDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     int column = index.column();
     if (column == FavoritesModel::Columns::Type) {
@@ -157,9 +161,9 @@ QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
     }
 }
 
-void FavoriteItemDelegate::updateEditorGeometry(QWidget * editor,
-                                                const QStyleOptionViewItem & option,
-                                                const QModelIndex & index) const
+void FavoriteItemDelegate::updateEditorGeometry(
+    QWidget * editor, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (index.isValid() &&
         (index.column() == FavoritesModel::Columns::DisplayName))
@@ -217,9 +221,9 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
                           option.rect.height()));
 }
 
-void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter,
-                                                const QModelIndex & index,
-                                                const QStyleOptionViewItem & option) const
+void FavoriteItemDelegate::drawFavoriteItemName(
+    QPainter * painter, const QModelIndex & index,
+    const QStyleOptionViewItem & option) const
 {
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
@@ -232,8 +236,8 @@ void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter,
 
     QString name = model->data(index).toString().simplified();
     if (name.isEmpty()) {
-        QNDEBUG(QStringLiteral("FavoriteItemDelegate::drawFavoriteItemName: "
-                               "item name is empty"));
+        QNDEBUG("FavoriteItemDelegate::drawFavoriteItemName: "
+                "item name is empty");
         return;
     }
 

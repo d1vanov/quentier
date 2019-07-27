@@ -60,7 +60,7 @@ AddOrEditSavedSearchDialog::~AddOrEditSavedSearchDialog()
 
 void AddOrEditSavedSearchDialog::setQuery(const QString & query)
 {
-    QNDEBUG(QStringLiteral("AddOrEditSavedSearchDialog::setQuery: ") << query);
+    QNDEBUG("AddOrEditSavedSearchDialog::setQuery: " << query);
     m_pUi->searchQueryPlainTextEdit->setPlainText(query);
 }
 
@@ -72,15 +72,15 @@ void AddOrEditSavedSearchDialog::accept()
     QString savedSearchQuery = m_pSearchQuery->queryString();
     bool queryIsEmpty = m_pSearchQuery->isEmpty();
 
-    QNDEBUG(QStringLiteral("AddOrEditSavedSearchDialog::accept: name = ")
-            << savedSearchName << QStringLiteral(", query = ") << savedSearchQuery
-            << QStringLiteral(", query is empty = ")
-            << (queryIsEmpty ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("AddOrEditSavedSearchDialog::accept: name = "
+            << savedSearchName << ", query = " << savedSearchQuery
+            << ", query is empty = " << (queryIsEmpty ? "true" : "false"));
 
-#define REPORT_ERROR(error) \
-    m_pUi->statusBar->setText(tr(error)); \
-    QNWARNING(error); \
-    m_pUi->statusBar->setHidden(false)
+#define REPORT_ERROR(error)                                                    \
+    m_pUi->statusBar->setText(tr(error));                                      \
+    QNWARNING(error);                                                          \
+    m_pUi->statusBar->setHidden(false)                                         \
+// REPORT_ERROR
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
         REPORT_ERROR(QT_TR_NOOP("Can't accept new saved search or edit "
@@ -90,8 +90,8 @@ void AddOrEditSavedSearchDialog::accept()
 
     if (m_editedSavedSearchLocalUid.isEmpty())
     {
-        QNDEBUG(QStringLiteral("Edited saved search local uid is empty, adding "
-                               "new saved search to the model"));
+        QNDEBUG("Edited saved search local uid is empty, adding "
+                "new saved search to the model");
 
         ErrorString errorDescription;
         QModelIndex index = m_pSavedSearchModel->createSavedSearch(savedSearchName,
@@ -106,9 +106,8 @@ void AddOrEditSavedSearchDialog::accept()
     }
     else
     {
-        QNDEBUG(QStringLiteral("Edited saved search local uid is not empty, "
-                               "editing the existing saved search within "
-                               "the model"));
+        QNDEBUG("Edited saved search local uid is not empty, "
+                "editing the existing saved search within the model");
 
         QModelIndex index =
             m_pSavedSearchModel->indexForLocalUid(m_editedSavedSearchLocalUid);
@@ -172,11 +171,11 @@ void AddOrEditSavedSearchDialog::accept()
 void AddOrEditSavedSearchDialog::onSavedSearchNameEdited(
     const QString & savedSearchName)
 {
-    QNDEBUG(QStringLiteral("AddOrEditSavedSearchDialog::onSavedSearchNameEdited: ")
+    QNDEBUG("AddOrEditSavedSearchDialog::onSavedSearchNameEdited: "
             << savedSearchName);
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
-        QNTRACE(QStringLiteral("No saved search model"));
+        QNTRACE("No saved search model");
         return;
     }
 
@@ -201,8 +200,7 @@ void AddOrEditSavedSearchDialog::onSearchQueryEdited()
 {
     QString searchQuery = m_pUi->searchQueryPlainTextEdit->toPlainText();
 
-    QNDEBUG(QStringLiteral("AddOrEditSavedSearchDialog::onSearchQueryEdited: ")
-            << searchQuery);
+    QNDEBUG("AddOrEditSavedSearchDialog::onSearchQueryEdited: " << searchQuery);
 
     ErrorString parseError;
     bool res = m_pSearchQuery->setQueryString(searchQuery, parseError);
@@ -230,8 +228,7 @@ void AddOrEditSavedSearchDialog::onSearchQueryEdited()
     m_pUi->statusBar->setHidden(true);
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 
-    QNTRACE(QStringLiteral("Successfully parsed the note search query: ")
-            << *m_pSearchQuery);
+    QNTRACE("Successfully parsed the note search query: " << *m_pSearchQuery);
 }
 
 void AddOrEditSavedSearchDialog::createConnections()
@@ -249,15 +246,15 @@ void AddOrEditSavedSearchDialog::createConnections()
 
 void AddOrEditSavedSearchDialog::setupEditedSavedSearchItem()
 {
-    QNDEBUG(QStringLiteral("AddOrEditSavedSearchDialog::setupEditedSavedSearchItem"));
+    QNDEBUG("AddOrEditSavedSearchDialog::setupEditedSavedSearchItem");
 
     if (m_editedSavedSearchLocalUid.isEmpty()) {
-        QNDEBUG(QStringLiteral("Edited saved search's local uid is empty"));
+        QNDEBUG("Edited saved search's local uid is empty");
         return;
     }
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
-        QNDEBUG(QStringLiteral("Saved search model is null"));
+        QNDEBUG("Saved search model is null");
         return;
     }
 

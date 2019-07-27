@@ -81,8 +81,9 @@ private Q_SLOTS:
 
     void onApplyPatchProgressUpdate(double progress);
 
-    void onAccountViewSelectionChanged(const QItemSelection & selected,
-                                       const QItemSelection & deselected);
+    void onAccountViewSelectionChanged(
+        const QItemSelection & selected,
+        const QItemSelection & deselected);
 
     void onBackupLocalStorageProgressUpdate(double progress);
     void onRestoreLocalStorageFromBackupProgressUpdate(double progress);

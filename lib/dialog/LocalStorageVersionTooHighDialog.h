@@ -59,8 +59,9 @@ private Q_SLOTS:
     void onCreateNewAccountButtonPressed();
     void onQuitAppButtonPressed();
 
-    void onAccountViewSelectionChanged(const QItemSelection & selected,
-                                       const QItemSelection & deselected);
+    void onAccountViewSelectionChanged(
+        const QItemSelection & selected,
+        const QItemSelection & deselected);
 
 private:
     virtual void reject() Q_DECL_OVERRIDE;
