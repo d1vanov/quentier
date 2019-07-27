@@ -35,15 +35,15 @@ DefaultAccountFirstNotebookAndNoteCreator::DefaultAccountFirstNotebookAndNoteCre
 
 void DefaultAccountFirstNotebookAndNoteCreator::start()
 {
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::start"));
+    QNDEBUG("DefaultAccountFirstNotebookAndNoteCreator::start");
 
     if (Q_UNLIKELY(!m_addNotebookRequestId.isNull())) {
-        QNDEBUG(QStringLiteral("Add notebook request has already been sent"));
+        QNDEBUG("Add notebook request has already been sent");
         return;
     }
 
     if (Q_UNLIKELY(!m_addNoteRequestId.isNull())) {
-        QNDEBUG(QStringLiteral("Add note request has already been sent"));
+        QNDEBUG("Add note request has already been sent");
         return;
     }
 
@@ -57,9 +57,9 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
         return;
     }
 
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
-            << QStringLiteral("onAddNotebookComplete: notebook = ")
-            << notebook << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG("DefaultAccountFirstNotebookAndNoteCreator::"
+            << "onAddNotebookComplete: notebook = "
+            << notebook << "\nRequest id = " << requestId);
 
     m_addNotebookRequestId = QUuid();
     emitAddNoteRequest(notebook);
@@ -72,25 +72,25 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed(
         return;
     }
 
-    QNWARNING(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
-              << QStringLiteral("onAddNotebookFailed: notebook = ") << notebook
-              << QStringLiteral("\nError description = ") << errorDescription
-              << QStringLiteral("\nRequest id = ") << requestId);
+    QNWARNING("DefaultAccountFirstNotebookAndNoteCreator::"
+              << "onAddNotebookFailed: notebook = " << notebook
+              << "\nError description = " << errorDescription
+              << "\nRequest id = " << requestId);
 
     m_addNotebookRequestId = QUuid();
     Q_EMIT notifyError(errorDescription);
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(Note note,
-                                                                  QUuid requestId)
+void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(
+    Note note, QUuid requestId)
 {
     if (requestId != m_addNoteRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
-            << QStringLiteral("onAddNoteComplete: note = ") << note
-            << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG("DefaultAccountFirstNotebookAndNoteCreator::"
+            << "onAddNoteComplete: note = " << note
+            << "\nRequest id = " << requestId);
 
     m_addNoteRequestId = QUuid();
     Q_EMIT finished(note.localUid());
@@ -103,10 +103,10 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(
         return;
     }
 
-    QNWARNING(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::")
-              << QStringLiteral("onAddNoteFailed: note = ") << note
-              << QStringLiteral("\nError description = ") << errorDescription
-              << QStringLiteral("\nRequest id = ") << requestId);
+    QNWARNING("DefaultAccountFirstNotebookAndNoteCreator::"
+              << "onAddNoteFailed: note = " << note
+              << "\nError description = " << errorDescription
+              << "\nRequest id = " << requestId);
 
     m_addNoteRequestId = QUuid();
     Q_EMIT notifyError(errorDescription);
@@ -115,8 +115,8 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(
 void DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage(
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::"
-                           "connectToLocalStorage"));
+    QNDEBUG("DefaultAccountFirstNotebookAndNoteCreator::"
+            "connectToLocalStorage");
 
     // Connect local signals to LocalStorageManagerAsync slots
     QObject::connect(this,
@@ -161,8 +161,8 @@ void DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage(
 
 void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
 {
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::"
-                           "emitAddNotebookRequest"));
+    QNDEBUG("DefaultAccountFirstNotebookAndNoteCreator::"
+            "emitAddNotebookRequest");
 
     QString notebookName;
 
@@ -180,17 +180,17 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
     notebook.setName(notebookName);
 
     m_addNotebookRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to add first notebook to ")
-            << QStringLiteral("the default account: ") << notebook
-            << QStringLiteral("\nRequest id = ") << m_addNotebookRequestId);
+    QNTRACE("Emitting the request to add first notebook to "
+            << "the default account: " << notebook
+            << "\nRequest id = " << m_addNotebookRequestId);
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest(
     const Notebook & notebook)
 {
-    QNDEBUG(QStringLiteral("DefaultAccountFirstNotebookAndNoteCreator::"
-                           "emitAddNoteRequest"));
+    QNDEBUG("DefaultAccountFirstNotebookAndNoteCreator::"
+            "emitAddNoteRequest");
 
     Note note;
     note.setTitle(tr("Welcome to Quentier"));
@@ -216,9 +216,9 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest(
     note.setNotebookLocalUid(notebook.localUid());
 
     m_addNoteRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to add first note to the default ")
-            << QStringLiteral("account: ") << note
-            << QStringLiteral("\nRequest id = ") << m_addNoteRequestId);
+    QNTRACE("Emitting the request to add first note to the default "
+            << "account: " << note
+            << "\nRequest id = " << m_addNoteRequestId);
     Q_EMIT addNote(note, m_addNoteRequestId);
 }
 

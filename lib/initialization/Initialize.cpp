@@ -75,7 +75,7 @@ void composeCommonAvailableCommandLineOptions(
 
 void parseCommandLine(
     int argc, char *argv[],
-    const QHash<QString, CommandLineParser::CommandLineOptionData> & availableCmdOptions,
+    const QHash<QString,CommandLineParser::CommandLineOptionData> & availableCmdOptions,
     ParseCommandLineResult & result)
 {
     quentier::CommandLineParser cmdParser(argc, argv, availableCmdOptions);
@@ -91,8 +91,9 @@ void parseCommandLine(
     }
 }
 
-bool initialize(QuentierApplication & app,
-                const CommandLineParser::CommandLineOptions & cmdOptions)
+bool initialize(
+    QuentierApplication & app,
+    const CommandLineParser::CommandLineOptions & cmdOptions)
 {
     // NOTE: need to check for "storageDir" command line option first, before
     // doing any other part of initialization routine because this option affects

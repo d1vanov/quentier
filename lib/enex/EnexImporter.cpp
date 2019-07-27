@@ -29,11 +29,12 @@
 
 namespace quentier {
 
-EnexImporter::EnexImporter(const QString & enexFilePath,
-                           const QString & notebookName,
-                           LocalStorageManagerAsync & localStorageManagerAsync,
-                           TagModel & tagModel, NotebookModel & notebookModel,
-                           QObject * parent) :
+EnexImporter::EnexImporter(
+        const QString & enexFilePath,
+        const QString & notebookName,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        TagModel & tagModel, NotebookModel & notebookModel,
+        QObject * parent) :
     QObject(parent),
     m_localStorageManagerAsync(localStorageManagerAsync),
     m_tagModel(tagModel),
@@ -64,47 +65,46 @@ EnexImporter::EnexImporter(const QString & enexFilePath,
 
 bool EnexImporter::isInProgress() const
 {
-    QNDEBUG(QStringLiteral("EnexImporter::isInProgress"));
+    QNDEBUG("EnexImporter::isInProgress");
 
     if (!m_addTagRequestIdByTagNameBimap.empty()) {
-        QNDEBUG(QStringLiteral("There are ")
-                << m_addTagRequestIdByTagNameBimap.size()
-                << QStringLiteral(" pending requests to add tag"));
+        QNDEBUG("There are " << m_addTagRequestIdByTagNameBimap.size()
+                << " pending requests to add tag");
         return true;
     }
 
     if (!m_addNoteRequestIds.isEmpty()) {
-        QNDEBUG(QStringLiteral("There are ") << m_addNoteRequestIds.size()
-                << QStringLiteral(" pending requests to add note"));
+        QNDEBUG("There are " << m_addNoteRequestIds.size()
+                << " pending requests to add note");
         return true;
     }
 
     if (!m_tagModel.allTagsListed() && !m_notesPendingTagAddition.isEmpty()) {
-        QNDEBUG(QStringLiteral("Not all tags were listed in the tag model yet + ")
-                << QStringLiteral("there are ") << m_notesPendingTagAddition.size()
-                << QStringLiteral(" notes pending tag addition"));
+        QNDEBUG("Not all tags were listed in the tag model yet + "
+                << "there are " << m_notesPendingTagAddition.size()
+                << " notes pending tag addition");
         return true;
     }
 
     if (!m_notebookModel.allNotebooksListed() && m_pendingNotebookModelToStart) {
-        QNDEBUG(QStringLiteral("Not all notebooks were listed in the notebook "
-                               "model yet, pending them"));
+        QNDEBUG("Not all notebooks were listed in the notebook "
+                "model yet, pending them");
         return true;
     }
 
-    QNDEBUG(QStringLiteral("No signs of pending progress detected"));
+    QNDEBUG("No signs of pending progress detected");
     return false;
 }
 
 void EnexImporter::start()
 {
-    QNDEBUG(QStringLiteral("EnexImporter::start"));
+    QNDEBUG("EnexImporter::start");
 
     clear();
 
     if (Q_UNLIKELY(!m_notebookModel.allNotebooksListed())) {
-        QNDEBUG(QStringLiteral("Not all notebooks were listed in the notebook "
-                               "model yet, delaying the start"));
+        QNDEBUG("Not all notebooks were listed in the notebook "
+                "model yet, delaying the start");
         m_pendingNotebookModelToStart = true;
         return;
     }
@@ -139,17 +139,16 @@ void EnexImporter::start()
                                                 QString());
         if (notebookLocalUid.isEmpty())
         {
-            QNDEBUG(QStringLiteral("Could not find a user's own notebook's local ")
-                    << QStringLiteral("uid for notebook name ") << m_notebookName
-                    << QStringLiteral(" within the notebook model; will create "
-                                      "such notebook"));
+            QNDEBUG("Could not find a user's own notebook's local "
+                    << "uid for notebook name " << m_notebookName
+                    << " within the notebook model; will create such notebook");
 
             if (m_addNotebookRequestId.isNull()) {
                 addNotebookToLocalStorage(m_notebookName);
             }
             else {
-                QNDEBUG(QStringLiteral("Already pending the notebook addition, ")
-                        << QStringLiteral("request id = ") << m_addNotebookRequestId);
+                QNDEBUG("Already pending the notebook addition, "
+                        << "request id = " << m_addNotebookRequestId);
             }
 
             return;
@@ -191,8 +190,8 @@ void EnexImporter::start()
         auto tagIt = m_tagNamesByImportedNoteLocalUid.find(note.localUid());
         if (tagIt == m_tagNamesByImportedNoteLocalUid.end())
         {
-            QNTRACE(QStringLiteral("Imported note doesn't have tag names assigned "
-                                   "to it, can add it to local storage right away: ")
+            QNTRACE("Imported note doesn't have tag names assigned "
+                    << "to it, can add it to local storage right away: "
                     << note);
             addNoteToLocalStorage(note);
             it = importedNotes.erase(it);
@@ -208,18 +207,16 @@ void EnexImporter::start()
                 continue;
             }
 
-            QNDEBUG(QStringLiteral("Removing empty tag name from the list of tag ")
-                    << QStringLiteral("names for note ") << note.localUid());
+            QNDEBUG("Removing empty tag name from the list of tag names for note "
+                    << note.localUid());
             tagNameIt = tagNames.erase(tagNameIt);
         }
 
         if (Q_UNLIKELY(tagNames.isEmpty()))
         {
-            QNDEBUG(QStringLiteral("No tag names are left for note ")
-                    << note.localUid()
-                    << QStringLiteral(" after the cleanup of empty tag names, "
-                                      "can add the note to local storage right "
-                                      "away"));
+            QNDEBUG("No tag names are left for note " << note.localUid()
+                    << " after the cleanup of empty tag names, can add the "
+                    << "note to local storage right away");
 
             addNoteToLocalStorage(note);
             it = importedNotes.erase(it);
@@ -230,18 +227,17 @@ void EnexImporter::start()
     }
 
     if (importedNotes.isEmpty()) {
-        QNDEBUG(QStringLiteral("No notes had any tags, waiting for the completion "
-                               "of all add note requests"));
+        QNDEBUG("No notes had any tags, waiting for the completion "
+                "of all add note requests");
         return;
     }
 
     m_notesPendingTagAddition = importedNotes;
-    QNDEBUG(QStringLiteral("There are ") << m_notesPendingTagAddition.size()
-            << QStringLiteral(" notes which need tags assignment to them"));
+    QNDEBUG("There are " << m_notesPendingTagAddition.size()
+            << " notes which need tags assignment to them");
 
     if (!m_tagModel.allTagsListed()) {
-        QNDEBUG(QStringLiteral("Not all tags were listed from the tag model, "
-                               "waiting for it"));
+        QNDEBUG("Not all tags were listed from the tag model, waiting for it");
         return;
     }
 
@@ -250,7 +246,7 @@ void EnexImporter::start()
 
 void EnexImporter::clear()
 {
-    QNDEBUG(QStringLiteral("EnexImporter::clear"));
+    QNDEBUG("EnexImporter::clear");
 
     m_tagNamesByImportedNoteLocalUid.clear();
     m_addTagRequestIdByTagNameBimap.clear();
@@ -271,8 +267,8 @@ void EnexImporter::onAddTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    QNDEBUG(QStringLiteral("EnexImporter::onAddTagComplete: request id = ")
-            << requestId << QStringLiteral(", tag: ") << tag);
+    QNDEBUG("EnexImporter::onAddTagComplete: request id = "
+            << requestId << ", tag: " << tag);
 
     Q_UNUSED(m_addTagRequestIdByTagNameBimap.right.erase(it))
 
@@ -296,9 +292,9 @@ void EnexImporter::onAddTagComplete(Tag tag, QUuid requestId)
         auto tagIt = m_tagNamesByImportedNoteLocalUid.find(note.localUid());
         if (Q_UNLIKELY(tagIt == m_tagNamesByImportedNoteLocalUid.end()))
         {
-            QNWARNING(QStringLiteral("Detected note within the list of those "
-                                     "pending tags addition which doesn't "
-                                     "really wait for tags addition"));
+            QNWARNING("Detected note within the list of those "
+                      "pending tags addition which doesn't "
+                      "really wait for tags addition");
             addNoteToLocalStorage(note);
             noteIt = m_notesPendingTagAddition.erase(noteIt);
             continue;
@@ -313,9 +309,9 @@ void EnexImporter::onAddTagComplete(Tag tag, QUuid requestId)
                 continue;
             }
 
-            QNDEBUG(QStringLiteral("Found tag for note ") << note.localUid()
-                    << QStringLiteral(": name = ") << tagName
-                    << QStringLiteral(", local uid = ") << tag.localUid());
+            QNDEBUG("Found tag for note " << note.localUid()
+                    << ": name = " << tagName
+                    << ", local uid = " << tag.localUid());
 
             if (!note.hasTagLocalUids() ||
                 !note.tagLocalUids().contains(tag.localUid()))
@@ -329,14 +325,14 @@ void EnexImporter::onAddTagComplete(Tag tag, QUuid requestId)
 
         if (!tagNames.isEmpty())
         {
-            QNTRACE(QStringLiteral("Still pending ") << tagNames.size()
-                    << QStringLiteral(" tag names for note ") << note.localUid());
+            QNTRACE("Still pending " << tagNames.size()
+                    << " tag names for note " << note.localUid());
             ++noteIt;
             continue;
         }
 
-        QNDEBUG(QStringLiteral("Added the last missing tag for note ") << note.localUid()
-                << QStringLiteral(", can send it to the local storage right away"));
+        QNDEBUG("Added the last missing tag for note " << note.localUid()
+                << ", can send it to the local storage right away");
 
         Q_UNUSED(m_tagNamesByImportedNoteLocalUid.erase(tagIt))
 
@@ -353,9 +349,9 @@ void EnexImporter::onAddTagFailed(Tag tag, ErrorString errorDescription,
         return;
     }
 
-    QNDEBUG(QStringLiteral("EnexImporter::onAddTagFailed: request id = ")
-            << requestId << QStringLiteral(", error description = ")
-            << errorDescription << QStringLiteral(", tag: ") << tag);
+    QNDEBUG("EnexImporter::onAddTagFailed: request id = "
+            << requestId << ", error description = "
+            << errorDescription << ", tag: " << tag);
 
     Q_UNUSED(m_addTagRequestIdByTagNameBimap.right.erase(it))
 
@@ -366,17 +362,16 @@ void EnexImporter::onAddTagFailed(Tag tag, ErrorString errorDescription,
     Q_EMIT enexImportFailed(error);
 }
 
-void EnexImporter::onExpungeTagComplete(Tag tag,
-                                        QStringList expungedChildTagLocalUids,
-                                        QUuid requestId)
+void EnexImporter::onExpungeTagComplete(
+    Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("EnexImporter::onExpungeTagComplete: request id = ")
-            << requestId << QStringLiteral(", tag: ") << tag
-            << QStringLiteral("\nExpunged child tag local uids: ")
+    QNDEBUG("EnexImporter::onExpungeTagComplete: request id = "
+            << requestId << ", tag: " << tag
+            << "\nExpunged child tag local uids: "
             << expungedChildTagLocalUids.join(QStringLiteral(", ")));
 
     if (!isInProgress()) {
-        QNDEBUG(QStringLiteral("Not in progress right now, won't do anything"));
+        QNDEBUG("Not in progress right now, won't do anything");
         return;
     }
 
@@ -421,25 +416,24 @@ void EnexImporter::onAddNotebookComplete(Notebook notebook, QUuid requestId)
         return;
     }
 
-    QNDEBUG(QStringLiteral("EnexImporter::onAddNotebookComplete: request id = ")
-            << requestId << QStringLiteral(", notebook: ") << notebook);
+    QNDEBUG("EnexImporter::onAddNotebookComplete: request id = "
+            << requestId << ", notebook: " << notebook);
 
     m_addNotebookRequestId = QUuid();
     m_notebookLocalUid = notebook.localUid();
     start();
 }
 
-void EnexImporter::onAddNotebookFailed(Notebook notebook,
-                                       ErrorString errorDescription,
-                                       QUuid requestId)
+void EnexImporter::onAddNotebookFailed(
+    Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
         return;
     }
 
-    QNWARNING(QStringLiteral("EnexImporter::onAddNotebookFailed: request id = ")
-              << requestId << QStringLiteral(", error description: ")
-              << errorDescription << QStringLiteral("; notebook: ") << notebook);
+    QNWARNING("EnexImporter::onAddNotebookFailed: request id = "
+              << requestId << ", error description: "
+              << errorDescription << "; notebook: " << notebook);
 
     m_addNotebookRequestId = QUuid();
 
@@ -452,15 +446,15 @@ void EnexImporter::onAddNotebookFailed(Notebook notebook,
 
 void EnexImporter::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("EnexImporter::onExpungeNotebookComplete: request id = ")
-            << requestId << QStringLiteral(", notebook: ") << notebook);
+    QNDEBUG("EnexImporter::onExpungeNotebookComplete: request id = "
+            << requestId << ", notebook: " << notebook);
 
     if (Q_UNLIKELY(!m_notebookLocalUid.isEmpty() &&
                    (notebook.localUid() == m_notebookLocalUid)))
     {
         ErrorString error(QT_TR_NOOP("Can't complete ENEX import: notebook was "
                                      "expunged during the import"));
-        QNWARNING(error << QStringLiteral(", notebook: ") << notebook);
+        QNWARNING(error << ", notebook: " << notebook);
         clear();
         Q_EMIT enexImportFailed(error);
     }
@@ -473,41 +467,40 @@ void EnexImporter::onAddNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QNDEBUG(QStringLiteral("EnexImporter::onAddNoteComplete: request id = ")
-            << requestId << QStringLiteral(", note: ") << note);
+    QNDEBUG("EnexImporter::onAddNoteComplete: request id = "
+            << requestId << ", note: " << note);
 
     Q_UNUSED(m_addNoteRequestIds.erase(it))
 
     if (!m_addNoteRequestIds.isEmpty()) {
-        QNDEBUG(QStringLiteral("Still pending ") << m_addNoteRequestIds.size()
-                << QStringLiteral(" add note request ids"));
+        QNDEBUG("Still pending " << m_addNoteRequestIds.size()
+                << " add note request ids");
         return;
     }
 
     if (!m_notesPendingTagAddition.isEmpty()) {
-        QNDEBUG(QStringLiteral("There are still ")
-                << m_notesPendingTagAddition.size()
-                << QStringLiteral(" notes pending tag addition"));
+        QNDEBUG("There are still " << m_notesPendingTagAddition.size()
+                << " notes pending tag addition");
         return;
     }
 
-    QNDEBUG(QStringLiteral("There are no pending add note requests and no notes "
-                           "pending tags addition => it looks like the import "
-                           "has finished"));
+    QNDEBUG("There are no pending add note requests and no notes "
+            "pending tags addition => it looks like the import "
+            "has finished");
     Q_EMIT enexImportedSuccessfully(m_enexFilePath);
 }
 
-void EnexImporter::onAddNoteFailed(Note note, ErrorString errorDescription,
-                                   QUuid requestId)
+void EnexImporter::onAddNoteFailed(
+    Note note, ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
         return;
     }
 
-    QNWARNING(QStringLiteral("EnexImporter::onAddNoteFailed: request id = ")
-              << requestId << QStringLiteral(", error description = ")
-              << errorDescription << QStringLiteral(", note: ") << note);
+    QNWARNING("EnexImporter::onAddNoteFailed: request id = "
+              << requestId << ", error description = "
+              << errorDescription << ", note: " << note);
 
     Q_UNUSED(m_addNoteRequestIds.erase(it))
 
@@ -520,7 +513,7 @@ void EnexImporter::onAddNoteFailed(Note note, ErrorString errorDescription,
 
 void EnexImporter::onAllTagsListed()
 {
-    QNDEBUG(QStringLiteral("EnexImporter::onAllTagsListed"));
+    QNDEBUG("EnexImporter::onAllTagsListed");
 
     QObject::disconnect(&m_tagModel, QNSIGNAL(TagModel,notifyAllTagsListed),
                         this, QNSLOT(EnexImporter,onAllTagsListed));
@@ -534,7 +527,7 @@ void EnexImporter::onAllTagsListed()
 
 void EnexImporter::onAllNotebooksListed()
 {
-    QNDEBUG(QStringLiteral("EnexImporter::onAllNotebooksListed"));
+    QNDEBUG("EnexImporter::onAllNotebooksListed");
 
     QObject::disconnect(&m_notebookModel,
                         QNSIGNAL(NotebookModel,notifyAllNotebooksListed),
@@ -551,10 +544,10 @@ void EnexImporter::onAllNotebooksListed()
 
 void EnexImporter::connectToLocalStorage()
 {
-    QNDEBUG(QStringLiteral("EnexImporter::connectToLocalStorage"));
+    QNDEBUG("EnexImporter::connectToLocalStorage");
 
     if (m_connectedToLocalStorage) {
-        QNDEBUG(QStringLiteral("Already connected to the local storage"));
+        QNDEBUG("Already connected to the local storage");
         return;
     }
 
@@ -622,10 +615,10 @@ void EnexImporter::connectToLocalStorage()
 
 void EnexImporter::disconnectFromLocalStorage()
 {
-    QNDEBUG(QStringLiteral("EnexImporter::disconnectFromLocalStorage"));
+    QNDEBUG("EnexImporter::disconnectFromLocalStorage");
 
     if (!m_connectedToLocalStorage) {
-        QNTRACE(QStringLiteral("Not connected to local storage at the moment"));
+        QNTRACE("Not connected to local storage at the moment");
         return;
     }
 
@@ -698,7 +691,7 @@ void EnexImporter::disconnectFromLocalStorage()
 
 void EnexImporter::processNotesPendingTagAddition()
 {
-    QNDEBUG(QStringLiteral("EnexImporter::processNotesPendingTagAddition"));
+    QNDEBUG("EnexImporter::processNotesPendingTagAddition");
 
     for(auto it = m_notesPendingTagAddition.begin();
         it != m_notesPendingTagAddition.end(); )
@@ -708,9 +701,9 @@ void EnexImporter::processNotesPendingTagAddition()
         auto tagIt = m_tagNamesByImportedNoteLocalUid.find(note.localUid());
         if (Q_UNLIKELY(tagIt == m_tagNamesByImportedNoteLocalUid.end()))
         {
-            QNWARNING(QStringLiteral("Detected note within the list of those "
-                                     "pending tags addition which doesn't "
-                                     "really wait for tags addition"));
+            QNWARNING("Detected note within the list of those "
+                      "pending tags addition which doesn't "
+                      "really wait for tags addition");
             addNoteToLocalStorage(note);
             it = m_notesPendingTagAddition.erase(it);
             continue;
@@ -731,8 +724,8 @@ void EnexImporter::processNotesPendingTagAddition()
             if (tagLocalUid.isEmpty())
             {
                 nonexistentTagNames << tagName;
-                QNDEBUG(QStringLiteral("No tag called \"") << tagName
-                        << QStringLiteral("\" exists, it would need to be created"));
+                QNDEBUG("No tag called \"" << tagName
+                        << "\" exists, it would need to be created");
                 ++tagNameIt;
                 continue;
             }
@@ -740,16 +733,16 @@ void EnexImporter::processNotesPendingTagAddition()
             if (m_expungedTagLocalUids.contains(tagLocalUid))
             {
                 nonexistentTagNames << tagName;
-                QNDEBUG(QStringLiteral("Tag local uid ") << tagLocalUid
-                        << QStringLiteral(" found within the model has been marked "
-                                          "as the one of expunged tag; will need "
-                                          "to create a new tag with such name"));
+                QNDEBUG("Tag local uid " << tagLocalUid
+                        << " found within the model has been marked "
+                        << "as the one of expunged tag; will need "
+                        << "to create a new tag with such name");
                 ++tagNameIt;
                 continue;
             }
 
-            QNTRACE(QStringLiteral("Local uid for tag name ") << tagName
-                    << QStringLiteral(" is ") << tagLocalUid);
+            QNTRACE("Local uid for tag name " << tagName
+                    << " is " << tagLocalUid);
 
             if (!note.hasTagLocalUids() ||
                 !note.tagLocalUids().contains(tagLocalUid))
@@ -761,15 +754,15 @@ void EnexImporter::processNotesPendingTagAddition()
         }
 
         if (tagNames.isEmpty()) {
-            QNTRACE(QStringLiteral("Found all tags for note with local uid ")
+            QNTRACE("Found all tags for note with local uid "
                     << note.localUid());
             Q_UNUSED(m_tagNamesByImportedNoteLocalUid.erase(tagIt))
         }
 
         if (nonexistentTagNames.isEmpty())
         {
-            QNDEBUG(QStringLiteral("Found no nonexistent tags, can send this "
-                                   "note to local storage right away"));
+            QNDEBUG("Found no nonexistent tags, can send this "
+                    "note to local storage right away");
             addNoteToLocalStorage(note);
             it = m_notesPendingTagAddition.erase(it);
             continue;
@@ -785,9 +778,8 @@ void EnexImporter::processNotesPendingTagAddition()
                 nonexistentTag.toLower());
             if (requestIdIt != m_addTagRequestIdByTagNameBimap.left.end())
             {
-                QNTRACE(QStringLiteral("Nonexistent tag ") << nonexistentTag
-                        << QStringLiteral(" is already being added to the local "
-                                          "storage"));
+                QNTRACE("Nonexistent tag " << nonexistentTag
+                        << " is already being added to the local storage");
             }
             else
             {
@@ -801,21 +793,21 @@ void EnexImporter::processNotesPendingTagAddition()
 
 void EnexImporter::addNoteToLocalStorage(const Note & note)
 {
-    QNDEBUG(QStringLiteral("EnexImporter::addNoteToLocalStorage"));
+    QNDEBUG("EnexImporter::addNoteToLocalStorage");
 
     connectToLocalStorage();
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_addNoteRequestIds.insert(requestId));
-    QNTRACE(QStringLiteral("Emitting the request to add note to local storage: ")
-            << QStringLiteral("request id = ") << requestId
-            << QStringLiteral(", note: ") << note);
+    QNTRACE("Emitting the request to add note to local storage: "
+            << "request id = " << requestId
+            << ", note: " << note);
     Q_EMIT addNote(note, requestId);
 }
 
 void EnexImporter::addTagToLocalStorage(const QString & tagName)
 {
-    QNDEBUG(QStringLiteral("EnexImporter::addTagToLocalStorage: ") << tagName);
+    QNDEBUG("EnexImporter::addTagToLocalStorage: " << tagName);
 
     connectToLocalStorage();
 
@@ -826,16 +818,15 @@ void EnexImporter::addTagToLocalStorage(const QString & tagName)
     Q_UNUSED(m_addTagRequestIdByTagNameBimap.insert(
             AddTagRequestIdByTagNameBimap::value_type(tagName.toLower(),
                                                       requestId)))
-    QNTRACE(QStringLiteral("Emitting the request to add tag to local storage: ")
-            << QStringLiteral("request id = ") << requestId
-            << QStringLiteral(", tag: ") << newTag);
+    QNTRACE("Emitting the request to add tag to local storage: "
+            << "request id = " << requestId << ", tag: " << newTag);
     Q_EMIT addTag(newTag, requestId);
 }
 
 void EnexImporter::addNotebookToLocalStorage(const QString & notebookName)
 {
-    QNDEBUG(QStringLiteral("EnexImporter::addNotebookToLocalStorage: notebook ")
-            << QStringLiteral("name = ") << notebookName);
+    QNDEBUG("EnexImporter::addNotebookToLocalStorage: notebook "
+            << "name = " << notebookName);
 
     connectToLocalStorage();
 
@@ -843,9 +834,9 @@ void EnexImporter::addNotebookToLocalStorage(const QString & notebookName)
     newNotebook.setName(notebookName);
 
     m_addNotebookRequestId = QUuid::createUuid();
-    QNTRACE(QStringLiteral("Emitting the request to add notebook to local storage: ")
-            << QStringLiteral("request id = ") << m_addNotebookRequestId
-            << QStringLiteral(", notebook: ") << newNotebook);
+    QNTRACE("Emitting the request to add notebook to local storage: "
+            << "request id = " << m_addNotebookRequestId
+            << ", notebook: " << newNotebook);
     Q_EMIT addNotebook(newNotebook, m_addNotebookRequestId);
 }
 

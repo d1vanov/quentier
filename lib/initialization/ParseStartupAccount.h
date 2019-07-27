@@ -23,9 +23,10 @@
 
 namespace quentier {
 
-bool parseStartupAccount(const QString & accountStr, bool & isLocal,
-                         qevercloud::UserID & userId, QString & evernoteHost,
-                         QString & accountName, ErrorString & errorDescription);
+bool parseStartupAccount(
+    const QString & accountStr, bool & isLocal,
+    qevercloud::UserID & userId, QString & evernoteHost,
+    QString & accountName, ErrorString & errorDescription);
 
 } // namespace quentier
 

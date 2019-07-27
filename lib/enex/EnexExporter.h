@@ -41,9 +41,10 @@ class EnexExporter: public QObject
 {
     Q_OBJECT
 public:
-    explicit EnexExporter(LocalStorageManagerAsync & localStorageManagerAsync,
-                          NoteEditorTabsAndWindowsCoordinator & coordinator,
-                          TagModel & tagModel, QObject * parent = Q_NULLPTR);
+    explicit EnexExporter(
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        NoteEditorTabsAndWindowsCoordinator & coordinator,
+        TagModel & tagModel, QObject * parent = Q_NULLPTR);
 
     const QString & targetEnexFilePath() const
     { return m_targetEnexFilePath; }
