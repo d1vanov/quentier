@@ -39,10 +39,11 @@ public:
     };
 
 public:
-    explicit FavoritesModelItem(const Type::type type = Type::Unknown,
-                                const QString & localUid = QString(),
-                                const QString & displayName = QString(),
-                                int numNotesTargeted = 0);
+    explicit FavoritesModelItem(
+        const Type::type type = Type::Unknown,
+        const QString & localUid = QString(),
+        const QString & displayName = QString(),
+        int numNotesTargeted = 0);
 
     Type::type type() const
     { return m_type; }

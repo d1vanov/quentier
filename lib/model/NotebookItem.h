@@ -28,22 +28,24 @@ namespace quentier {
 class NotebookItem: public Printable
 {
 public:
-    explicit NotebookItem(const QString & localUid = QString(),
-                          const QString & guid = QString(),
-                          const QString & linkedNotebookGuid = QString(),
-                          const QString & name = QString(),
-                          const QString & stack = QString(),
-                          const bool isSynchronizable = false,
-                          const bool isUpdatable = false,
-                          const bool nameIsUpdatable = false,
-                          const bool isDirty = false,
-                          const bool isDefault = false,
-                          const bool isLastUsed = false,
-                          const bool isPublished = false,
-                          const bool isFavorited = false,
-                          const bool canCreateNotes = true,
-                          const bool canUpdateNotes = true,
-                          const int numNotesPerNotebook = -1);
+    explicit NotebookItem(
+        const QString & localUid = QString(),
+        const QString & guid = QString(),
+        const QString & linkedNotebookGuid = QString(),
+        const QString & name = QString(),
+        const QString & stack = QString(),
+        const bool isSynchronizable = false,
+        const bool isUpdatable = false,
+        const bool nameIsUpdatable = false,
+        const bool isDirty = false,
+        const bool isDefault = false,
+        const bool isLastUsed = false,
+        const bool isPublished = false,
+        const bool isFavorited = false,
+        const bool canCreateNotes = true,
+        const bool canUpdateNotes = true,
+        const int numNotesPerNotebook = -1);
+
     ~NotebookItem();
 
     const QString & localUid() const { return m_localUid; }

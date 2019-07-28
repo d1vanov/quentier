@@ -43,8 +43,9 @@
 
 #include <utility>
 
-#define NOTEBOOK_MODEL_MIME_TYPE \
-    QStringLiteral("application/x-com.quentier.notebookmodeldatalist")
+#define NOTEBOOK_MODEL_MIME_TYPE                                               \
+    QStringLiteral("application/x-com.quentier.notebookmodeldatalist")         \
+// NOTEBOOK_MODEL_MIME_TYPE
 
 #define NOTEBOOK_MODEL_MIME_DATA_MAX_COMPRESSION (9)
 
@@ -54,9 +55,11 @@ class NotebookModel: public ItemModel
 {
     Q_OBJECT
 public:
-    explicit NotebookModel(const Account & account,
-                           LocalStorageManagerAsync & localStorageManagerAsync,
-                           NotebookCache & cache, QObject * parent = Q_NULLPTR);
+    explicit NotebookModel(
+        const Account & account,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        NotebookCache & cache, QObject * parent = Q_NULLPTR);
+
     virtual ~NotebookModel();
 
     const Account & account() const { return m_account; }
@@ -81,9 +84,9 @@ public:
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
-    QModelIndex indexForNotebookName(const QString & notebookName,
-                                     const QString & linkedNotebookGuid =
-                                     QString()) const;
+    QModelIndex indexForNotebookName(
+        const QString & notebookName,
+        const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @param                   The name of the notebook stack which item's index
@@ -97,8 +100,8 @@ public:
      * @return                  The model index of the NotebookStackItem
      *                          corresponding to the given stack
      */
-    QModelIndex indexForNotebookStack(const QString & stack,
-                                      const QString & linkedNotebookGuid) const;
+    QModelIndex indexForNotebookStack(
+        const QString & stack, const QString & linkedNotebookGuid) const;
 
     /**
      * @param                   The linked notebook guid which corresponding
@@ -106,7 +109,8 @@ public:
      * @return                  The model index of the NotebookLinkedNotebookRootItem
      *                          corresponding to the given linked notebook guid
      */
-    QModelIndex indexForLinkedNotebookGuid(const QString & linkedNotebookGuid) const;
+    QModelIndex indexForLinkedNotebookGuid(
+        const QString & linkedNotebookGuid) const;
 
     /**
      * C++98-style struct wrapper for the enum defining filter for methods listing
@@ -146,8 +150,9 @@ public:
      * @return                      The sorted list of notebook names conformant
      *                              with the filter
      */
-    QStringList notebookNames(const NotebookFilters filters,
-                              const QString & linkedNotebookGuid = QString()) const;
+    QStringList notebookNames(
+        const NotebookFilters filters,
+        const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @return                      The list of indexes stored as persistent
@@ -227,9 +232,9 @@ public:
      *                              created successfully or invalid model index
      *                              otherwise
      */
-    QModelIndex createNotebook(const QString & notebookName,
-                               const QString & notebookStack,
-                               ErrorString & errorDescription);
+    QModelIndex createNotebook(
+        const QString & notebookName, const QString & notebookStack,
+        ErrorString & errorDescription);
 
     /**
      * @brief columnName
@@ -276,9 +281,15 @@ public:
 public:
     // ItemModel interface
     virtual QString localUidForItemName(
-        const QString & itemName, const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
-    virtual QString itemNameForLocalUid(const QString & localUid) const Q_DECL_OVERRIDE;
-    virtual QStringList itemNames(const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
+        const QString & itemName,
+        const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
+
+    virtual QString itemNameForLocalUid(
+        const QString & localUid) const Q_DECL_OVERRIDE;
+
+    virtual QStringList itemNames(
+        const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
+
     virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
     virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
 
@@ -291,25 +302,42 @@ public:
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex & index,
-                          int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    virtual QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
-    virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual QModelIndex index(int row, int column,
-                              const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    virtual QVariant data(
+        const QModelIndex & index,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
+    virtual QVariant headerData(
+        int section, Qt::Orientation orientation,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
+    virtual int rowCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual int columnCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual QModelIndex index(
+        int row, int column,
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
     virtual QModelIndex parent(const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual bool setHeaderData(int section, Qt::Orientation orientation,
-                               const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    virtual bool setData(const QModelIndex & index, const QVariant & value,
-                         int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    virtual bool insertRows(int row, int count,
-                            const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
-    virtual bool removeRows(int row, int count,
-                            const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+    virtual bool setHeaderData(
+        int section, Qt::Orientation orientation, const QVariant & value,
+        int role = Qt::EditRole) Q_DECL_OVERRIDE;
+
+    virtual bool setData(
+        const QModelIndex & index, const QVariant & value,
+        int role = Qt::EditRole) Q_DECL_OVERRIDE;
+
+    virtual bool insertRows(
+        int row, int count,
+        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+
+    virtual bool removeRows(
+        int row, int count,
+        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
@@ -323,11 +351,15 @@ public:
 
     virtual Qt::DropActions supportedDropActions() const Q_DECL_OVERRIDE
     { return Qt::MoveAction; }
+
     virtual QStringList mimeTypes() const Q_DECL_OVERRIDE;
-    virtual QMimeData * mimeData(const QModelIndexList & indexes) const Q_DECL_OVERRIDE;
-    virtual bool dropMimeData(const QMimeData * data, Qt::DropAction action,
-                              int row, int column,
-                              const QModelIndex & parent) Q_DECL_OVERRIDE;
+
+    virtual QMimeData * mimeData(
+        const QModelIndexList & indexes) const Q_DECL_OVERRIDE;
+
+    virtual bool dropMimeData(
+        const QMimeData * data, Qt::DropAction action,
+        int row, int column, const QModelIndex & parent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -347,9 +379,9 @@ Q_SIGNALS:
      * @param linkedNotebookGuid        If the stack belonged to the linked
      *                                  notebook, this parameter is its guid
      */
-    void notifyNotebookStackRenamed(const QString & previousStackName,
-                                    const QString & newStackName,
-                                    const QString & linkedNotebookGuid);
+    void notifyNotebookStackRenamed(
+        const QString & previousStackName, const QString & newStackName,
+        const QString & linkedNotebookGuid);
 
     /**
      * @brief notifyNotebookStackChanged - the signal emitted after the notebook
@@ -374,15 +406,19 @@ Q_SIGNALS:
     void addNotebook(Notebook notebook, QUuid requestId);
     void updateNotebook(Notebook notebook, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
-    void listNotebooks(LocalStorageManager::ListObjectsOptions flag,
-                       size_t limit, size_t offset,
-                       LocalStorageManager::ListNotebooksOrder::type order,
-                       LocalStorageManager::OrderDirection::type orderDirection,
-                       QString linkedNotebookGuid, QUuid requestId);
+
+    void listNotebooks(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotebooksOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, QUuid requestId);
+
     void expungeNotebook(Notebook notebook, QUuid requestId);
-    void requestNoteCountPerNotebook(Notebook notebook,
-                                     LocalStorageManager::NoteCountOptions options,
-                                     QUuid requestId);
+
+    void requestNoteCountPerNotebook(
+        Notebook notebook, LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
 
     void listAllLinkedNotebooks(
         const size_t limit, const size_t offset,
@@ -393,14 +429,19 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                             QUuid requestId);
+
+    void onAddNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                                QUuid requestId);
+
+    void onUpdateNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                              QUuid requestId);
+
+    void onFindNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onListNotebooksComplete(
         LocalStorageManager::ListObjectsOptions flag,
@@ -419,30 +460,36 @@ private Q_SLOTS:
         QUuid requestId);
 
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                                 QUuid requestId);
+
+    void onExpungeNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onGetNoteCountPerNotebookComplete(
         int noteCount, Notebook notebook,
         LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
+
     void onGetNoteCountPerNotebookFailed(
         ErrorString errorDescription, Notebook notebook,
         LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onNoteMovedToAnotherNotebook(QString noteLocalUid,
-                                      QString previousNotebookLocalUid,
-                                      QString newNotebookLocalUid);
+
+    void onNoteMovedToAnotherNotebook(
+        QString noteLocalUid, QString previousNotebookLocalUid,
+        QString newNotebookLocalUid);
+
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
-    void onAddLinkedNotebookComplete(LinkedNotebook linkedNotebook,
-                                     QUuid requestId);
-    void onUpdateLinkedNotebookComplete(LinkedNotebook linkedNotebook,
-                                        QUuid requestId);
-    void onExpungeLinkedNotebookComplete(LinkedNotebook linkedNotebook,
-                                         QUuid requestId);
+    void onAddLinkedNotebookComplete(
+        LinkedNotebook linkedNotebook, QUuid requestId);
+
+    void onUpdateLinkedNotebookComplete(
+        LinkedNotebook linkedNotebook, QUuid requestId);
+
+    void onExpungeLinkedNotebookComplete(
+        LinkedNotebook linkedNotebook, QUuid requestId);
 
     void onListAllLinkedNotebooksComplete(
         size_t limit, size_t offset,
@@ -464,10 +511,11 @@ private:
     void requestNoteCountForAllNotebooks();
     void requestLinkedNotebooksList();
 
-    QVariant dataImpl(const NotebookModelItem & item,
-                      const Columns::type column) const;
-    QVariant dataAccessibleText(const NotebookModelItem & item,
-                                const Columns::type column) const;
+    QVariant dataImpl(
+        const NotebookModelItem & item, const Columns::type column) const;
+
+    QVariant dataAccessibleText(
+        const NotebookModelItem & item, const Columns::type column) const;
 
     bool canUpdateNotebookItem(const NotebookItem & item) const;
 
@@ -483,8 +531,9 @@ private:
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
-    int rowForNewItem(const NotebookModelItem & parentItem,
-                      const NotebookModelItem & newItem) const;
+    int rowForNewItem(
+        const NotebookModelItem & parentItem,
+        const NotebookModelItem & newItem) const;
 
     void updateItemRowWithRespectToSorting(const NotebookModelItem & modelItem);
 
@@ -621,8 +670,9 @@ private:
 private:
     void onNotebookAddedOrUpdated(const Notebook & notebook);
     void onNotebookAdded(const Notebook & notebook);
-    void onNotebookUpdated(const Notebook & notebook,
-                           NotebookDataByLocalUid::iterator it);
+
+    void onNotebookUpdated(
+        const Notebook & notebook, NotebookDataByLocalUid::iterator it);
 
     void onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linkedNotebook);
 
@@ -631,12 +681,13 @@ private:
 
     // Returns true if successfully incremented the note count for the notebook
     // item with the corresponding local uid
-    bool updateNoteCountPerNotebookIndex(const NotebookItem & item,
-                                         const NotebookDataByLocalUid::iterator it);
+    bool updateNoteCountPerNotebookIndex(
+        const NotebookItem & item, const NotebookDataByLocalUid::iterator it);
 
-    ModelItems::iterator addNewStackModelItem(const NotebookStackItem & stackItem,
-                                              const NotebookModelItem & parentItem,
-                                              ModelItems & modelItemsByStack);
+    ModelItems::iterator addNewStackModelItem(
+        const NotebookStackItem & stackItem,
+        const NotebookModelItem & parentItem,
+        ModelItems & modelItemsByStack);
 
 private:
     Account                 m_account;

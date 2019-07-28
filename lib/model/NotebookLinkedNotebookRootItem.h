@@ -26,8 +26,9 @@ namespace quentier {
 class NotebookLinkedNotebookRootItem: public Printable
 {
 public:
-    NotebookLinkedNotebookRootItem(const QString & username,
-                                   const QString & linkedNotebookGuid) :
+    NotebookLinkedNotebookRootItem(
+            const QString & username,
+            const QString & linkedNotebookGuid) :
         m_username(username),
         m_linkedNotebookGuid(linkedNotebookGuid)
     {}

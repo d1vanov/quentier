@@ -47,41 +47,43 @@
 #define LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC (500)
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
-#define LVMDEBUG(message) \
-    if (m_internalLogEnabled) \
-    { \
-        QString msg; \
-        QDebug dbg(&msg); \
-        __QNLOG_QDEBUG_HELPER(); \
-        dbg << message; \
-        QString relativeSourceFileName = QStringLiteral(__FILE__); \
-        int prefixIndex = relativeSourceFileName.indexOf(\
-            QStringLiteral("libquentier"), Qt::CaseInsensitive); \
-        if (prefixIndex >= 0) \
-        { \
-            relativeSourceFileName.remove(0, prefixIndex); \
-        } \
-        else \
-        { \
-            QString appName = QCoreApplication::applicationName().toLower(); \
-            prefixIndex = relativeSourceFileName.indexOf(appName, \
-                                                         Qt::CaseInsensitive); \
-            if (prefixIndex >= 0) { \
-                relativeSourceFileName.remove(0, prefixIndex + appName.size() + 1); \
-            } \
-        } \
-        DateTimePrint::Options options(DateTimePrint::IncludeMilliseconds | \
-                                       DateTimePrint::IncludeTimezone); \
-        QString fullMsg = \
-            printableDateTimeFromTimestamp(\
-                QDateTime::currentMSecsSinceEpoch(), options) + \
-                QStringLiteral(" ") + relativeSourceFileName + \
-                QString::fromUtf8(QNLOG_FILE_LINENUMBER_DELIMITER) + \
-                QString::number(__LINE__) + QStringLiteral(": ") + msg + \
-                QStringLiteral("\n"); \
-        m_internalLogFile.write(fullMsg.toUtf8()); \
-        m_internalLogFile.flush(); \
-    }
+#define LVMDEBUG(message)                                                      \
+    if (m_internalLogEnabled)                                                  \
+    {                                                                          \
+        QString msg;                                                           \
+        QDebug dbg(&msg);                                                      \
+        __QNLOG_QDEBUG_HELPER();                                               \
+        dbg << message;                                                        \
+        QString relativeSourceFileName = QStringLiteral(__FILE__);             \
+        int prefixIndex = relativeSourceFileName.indexOf(                      \
+            QStringLiteral("libquentier"), Qt::CaseInsensitive);               \
+        if (prefixIndex >= 0)                                                  \
+        {                                                                      \
+            relativeSourceFileName.remove(0, prefixIndex);                     \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+            QString appName = QCoreApplication::applicationName().toLower();   \
+            prefixIndex = relativeSourceFileName.indexOf(                      \
+                appName, Qt::CaseInsensitive);                                 \
+            if (prefixIndex >= 0) {                                            \
+                relativeSourceFileName.remove(                                 \
+                    0, prefixIndex + appName.size() + 1);                      \
+            }                                                                  \
+        }                                                                      \
+        DateTimePrint::Options options(DateTimePrint::IncludeMilliseconds |    \
+                                       DateTimePrint::IncludeTimezone);        \
+        QString fullMsg =                                                      \
+            printableDateTimeFromTimestamp(                                    \
+                QDateTime::currentMSecsSinceEpoch(), options) +                \
+                QStringLiteral(" ") + relativeSourceFileName +                 \
+                QString::fromUtf8(QNLOG_FILE_LINENUMBER_DELIMITER) +           \
+                QString::number(__LINE__) + QStringLiteral(": ") + msg +       \
+                QStringLiteral("\n");                                          \
+        m_internalLogFile.write(fullMsg.toUtf8());                             \
+        m_internalLogFile.flush();                                             \
+    }                                                                          \
+// LVMDEBUG
 
 namespace quentier {
 
@@ -149,11 +151,11 @@ QString LogViewerModel::logFileName() const
     return m_currentLogFileInfo.fileName();
 }
 
-void LogViewerModel::setLogFileName(const QString & logFileName,
-                                    const FilteringOptions & filteringOptions)
+void LogViewerModel::setLogFileName(
+    const QString & logFileName, const FilteringOptions & filteringOptions)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::setLogFileName: ") << logFileName
-             << QStringLiteral(", filtering options = ") << filteringOptions);
+    LVMDEBUG("LogViewerModel::setLogFileName: " << logFileName
+             << ", filtering options = " << filteringOptions);
 
     QString quentierLogFilesDirPath = QuentierLogFilesDirPath();
     QString logFilePath = logFileName;
@@ -166,7 +168,7 @@ void LogViewerModel::setLogFileName(const QString & logFileName,
         (m_currentLogFileInfo.absoluteFilePath() ==
          newLogFileInfo.absoluteFilePath()))
     {
-        LVMDEBUG(QStringLiteral("The log file hasn't changed"));
+        LVMDEBUG("The log file hasn't changed");
 
         if (m_filteringOptions == filteringOptions) {
             return;
@@ -232,8 +234,7 @@ qint64 LogViewerModel::startLogFilePos() const
 
 void LogViewerModel::setStartLogFilePos(const qint64 startLogFilePos)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::setStartLogFilePos: ")
-             << startLogFilePos);
+    LVMDEBUG("LogViewerModel::setStartLogFilePos: " << startLogFilePos);
 
     if (!m_filteringOptions.m_startLogFilePos.isSet() && (startLogFilePos < 0)) {
         return;
@@ -285,7 +286,8 @@ const QVector<LogLevel::type> & LogViewerModel::disabledLogLevels() const
     return m_filteringOptions.m_disabledLogLevels;
 }
 
-void LogViewerModel::setDisabledLogLevels(QVector<LogLevel::type> disabledLogLevels)
+void LogViewerModel::setDisabledLogLevels(
+    QVector<LogLevel::type> disabledLogLevels)
 {
     disabledLogLevels.erase(std::unique(disabledLogLevels.begin(),
                                         disabledLogLevels.end()),
@@ -327,7 +329,8 @@ const QString & LogViewerModel::logEntryContentFilter() const
     return m_filteringOptions.m_logEntryContentFilter;
 }
 
-void LogViewerModel::setLogEntryContentFilter(const QString & logEntryContentFilter)
+void LogViewerModel::setLogEntryContentFilter(
+    const QString & logEntryContentFilter)
 {
     if (m_filteringOptions.m_logEntryContentFilter == logEntryContentFilter) {
         return;
@@ -348,7 +351,7 @@ void LogViewerModel::setLogEntryContentFilter(const QString & logEntryContentFil
 
 bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::wipeCurrentLogFile"));
+    LVMDEBUG("LogViewerModel::wipeCurrentLogFile");
 
     if (!m_currentLogFileInfo.exists()) {
         errorDescription.setBase(QT_TR_NOOP("No log file is selected"));
@@ -358,7 +361,8 @@ bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
 
     if (Q_UNLIKELY(!m_currentLogFileInfo.isFile())) {
         errorDescription.setBase(QT_TR_NOOP("Currently selected log file name "
-                                            "does not really correspond to a file"));
+                                            "does not really correspond to a "
+                                            "file"));
         LVMDEBUG(errorDescription);
         return false;
     }
@@ -415,7 +419,7 @@ bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
 
 void LogViewerModel::clear()
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::clear"));
+    LVMDEBUG("LogViewerModel::clear");
 
     beginResetModel();
 
@@ -472,9 +476,8 @@ const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
     return &data;
 }
 
-const QVector<LogViewerModel::Data> *
-LogViewerModel::dataChunkContainingModelRow(const int row,
-                                            int * pStartModelRow) const
+const QVector<LogViewerModel::Data> * LogViewerModel::dataChunkContainingModelRow(
+    const int row, int * pStartModelRow) const
 {
     if (Q_UNLIKELY(row < 0)) {
         return Q_NULLPTR;
@@ -493,7 +496,8 @@ LogViewerModel::dataChunkContainingModelRow(const int row,
     return m_logFileChunkDataCache.get(pLogFileChunkMetadata->number());
 }
 
-QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry) const
+QString LogViewerModel::dataEntryToString(
+    const LogViewerModel::Data & dataEntry) const
 {
     QString result;
     QTextStream strm(&result);
@@ -505,20 +509,21 @@ QString LogViewerModel::dataEntryToString(const LogViewerModel::Data & dataEntry
                                            QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz")
 #endif
                                            )
-         << QStringLiteral(" ")
+         << " "
          << dataEntry.m_sourceFileName
-         << QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER)
+         << QNLOG_FILE_LINENUMBER_DELIMITER
          << QString::number(dataEntry.m_sourceFileLineNumber)
-         << QStringLiteral(" [")
+         << " ["
          << LogViewerModel::logLevelToString(dataEntry.m_logLevel)
-         << QStringLiteral("]: ")
+         << "]: "
          << dataEntry.m_logEntry;
 
     strm.flush();
     return result;
 }
 
-QColor LogViewerModel::backgroundColorForLogLevel(const LogLevel::type logLevel) const
+QColor LogViewerModel::backgroundColorForLogLevel(
+    const LogLevel::type logLevel) const
 {
     int alpha = 140;
     switch(logLevel)
@@ -540,8 +545,7 @@ QColor LogViewerModel::backgroundColorForLogLevel(const LogLevel::type logLevel)
 
 void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::saveModelEntriesToFile: ")
-             << targetFilePath);
+    LVMDEBUG("LogViewerModel::saveModelEntriesToFile: " << targetFilePath);
 
     m_targetSaveFile.setFileName(targetFilePath);
     if (!m_targetSaveFile.open(QIODevice::WriteOnly))
@@ -558,31 +562,30 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
         m_logFileChunksMetadata.get<LogFileChunksMetadataByNumber>();
     if (indexByNumber.empty())
     {
-        LVMDEBUG(QStringLiteral("The index of log file chunks metadata by number "
-                                "is empty, requesting the chunks starting from "
-                                "the first"));
+        LVMDEBUG("The index of log file chunks metadata by number "
+                 "is empty, requesting the chunks starting from the first");
         requestDataEntriesChunkFromLogFile(
             0, LogFileDataEntryRequestReason::SaveLogEntriesToFile);
         return;
     }
 
     qint64 currentLogFileSize = m_currentLogFileInfo.size();
-    LVMDEBUG(QStringLiteral("The number of log file metadata chunks = ")
+    LVMDEBUG("The number of log file metadata chunks = "
              << indexByNumber.size()
-             << QStringLiteral(", current log file size = ")
+             << ", current log file size = "
              << currentLogFileSize);
 
     for(auto it = indexByNumber.begin(),
         end = indexByNumber.end(); it != end; ++it)
     {
-        const QVector<Data> * pDataEntries = m_logFileChunkDataCache.get(it->number());
+        const QVector<Data> * pDataEntries =
+            m_logFileChunkDataCache.get(it->number());
         if (!pDataEntries)
         {
-            LVMDEBUG(QStringLiteral("Log data entries are not cached for log "
-                                    "file metadata chunk with number ")
+            LVMDEBUG("Log data entries are not cached for log "
+                     << "file metadata chunk with number "
                      << it->number()
-                     << QStringLiteral(", requesting log file data chunks "
-                                       "starting from pos ")
+                     << ", requesting log file data chunks starting from pos "
                      << it->startLogFilePos());
             requestDataEntriesChunkFromLogFile(
                 it->startLogFilePos(),
@@ -590,8 +593,8 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
             return;
         }
 
-        LVMDEBUG(QStringLiteral("Processing ") << pDataEntries->size()
-                 << QStringLiteral(" data entries"));
+        LVMDEBUG("Processing " << pDataEntries->size()
+                 << " data entries");
         for(auto dit = pDataEntries->constBegin(),
             dend = pDataEntries->constEnd(); dit != dend; ++dit)
         {
@@ -603,8 +606,7 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
         if (currentLogFileSize > 0) {
             double progressPercent = static_cast<double>(it->endLogFilePos()) /
                                      static_cast<double>(currentLogFileSize) * 100.0;
-            LVMDEBUG(QStringLiteral("Emitting save log to file progress: ")
-                     << progressPercent);
+            LVMDEBUG("Emitting save log to file progress: " << progressPercent);
             Q_EMIT saveModelEntriesToFileProgress(progressPercent);
         }
     }
@@ -613,9 +615,8 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
     {
         auto lastIt = indexByNumber.end();
         --lastIt;
-        LVMDEBUG(QStringLiteral("The model can fetch more entries, requesting "
-                                "data entries starting from pos ")
-                 << lastIt->endLogFilePos());
+        LVMDEBUG("The model can fetch more entries, requesting "
+                 << "data entries starting from pos " << lastIt->endLogFilePos());
         requestDataEntriesChunkFromLogFile(
             lastIt->endLogFilePos(),
             LogFileDataEntryRequestReason::SaveLogEntriesToFile);
@@ -624,8 +625,8 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
 
     // If we got here, we found all data entries within the cache, can close
     // the file and return
-    LVMDEBUG(QStringLiteral("Seemingly all log entries were written to the file, "
-                            "reporting finish"));
+    LVMDEBUG("Seemingly all log entries were written to the file, "
+             "reporting finish");
     m_targetSaveFile.close();
     Q_EMIT saveModelEntriesToFileFinished(ErrorString());
 }
@@ -693,33 +694,30 @@ int LogViewerModel::columnCount(const QModelIndex & parent) const
 QVariant LogViewerModel::data(const QModelIndex & index, int role) const
 {
     if (role != Qt::DisplayRole) {
-        LVMDEBUG(QStringLiteral("Not display role (") << role
-                 << QStringLiteral("), returning empty QVariant"));
+        LVMDEBUG("Not display role (" << role
+                 << "), returning empty QVariant");
         return QVariant();
     }
 
-    LVMDEBUG(QStringLiteral("LogViewerModel::data: index.isValid() = ")
-             << (index.isValid()
-                 ? QStringLiteral("true")
-                 : QStringLiteral("false"))
-             << QStringLiteral(", index.row() = ") << index.row()
-             << QStringLiteral(", index.column() = ") << index.column());
+    LVMDEBUG("LogViewerModel::data: index.isValid() = "
+             << (index.isValid() ? "true" : "false")
+             << ", index.row() = " << index.row()
+             << ", index.column() = " << index.column());
 
     if (!index.isValid()) {
-        LVMDEBUG(QStringLiteral("Not valid, returning empty QVariant"));
+        LVMDEBUG("Not valid, returning empty QVariant");
         return QVariant();
     }
 
     int columnIndex = index.column();
     if ((columnIndex < 0) || (columnIndex >= LOG_VIEWER_MODEL_COLUMN_COUNT)) {
-        LVMDEBUG(QStringLiteral("Column outside of valid range, returning empty "
-                                "QVariant"));
+        LVMDEBUG("Column outside of valid range, returning empty QVariant");
         return QVariant();
     }
 
     int rowIndex = index.row();
     if (rowIndex < 0) {
-        LVMDEBUG(QStringLiteral("Row is negative, returning empty QVariant"));
+        LVMDEBUG("Row is negative, returning empty QVariant");
         return QVariant();
     }
 
@@ -743,9 +741,9 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
         }
     }
 
-    LVMDEBUG(QStringLiteral("LogViewerModel::data: data entry was not found for ")
-             << QStringLiteral("row ") << rowIndex << QStringLiteral(" and column ")
-             << columnIndex << QStringLiteral(", returning empty QVariant"));
+    LVMDEBUG("LogViewerModel::data: data entry was not found for "
+             << "row " << rowIndex << " and column "
+             << columnIndex << ", returning empty QVariant");
     const LogFileChunkMetadata * pLogFileChunkMetadata =
         findLogFileChunkMetadataByModelRow(rowIndex);
     if (pLogFileChunkMetadata)
@@ -758,8 +756,8 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
     return QVariant();
 }
 
-QVariant LogViewerModel::headerData(int section, Qt::Orientation orientation,
-                                    int role) const
+QVariant LogViewerModel::headerData(
+    int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole) {
         return QVariant();
@@ -797,10 +795,8 @@ bool LogViewerModel::canFetchMore(const QModelIndex & parent) const
         return false;
     }
 
-    LVMDEBUG(QStringLiteral("LogViewerModel::canFetchMore: ")
-             << (m_canReadMoreLogFileChunks
-                 ? QStringLiteral("true")
-                 : QStringLiteral("false")));
+    LVMDEBUG("LogViewerModel::canFetchMore: "
+             << (m_canReadMoreLogFileChunks ? "true" : "false"));
     return m_canReadMoreLogFileChunks;
 }
 
@@ -810,7 +806,7 @@ void LogViewerModel::fetchMore(const QModelIndex & parent)
         return;
     }
 
-    LVMDEBUG(QStringLiteral("LogViewerModel::fetchMore"));
+    LVMDEBUG("LogViewerModel::fetchMore");
 
     qint64 startPos = 0;
     const LogFileChunksMetadataIndexByStartLogFilePos & index =
@@ -834,7 +830,7 @@ void LogViewerModel::onFileChanged(const QString & path)
         return;
     }
 
-    LVMDEBUG(QStringLiteral("LogViewerModel::onFileChanged"));
+    LVMDEBUG("LogViewerModel::onFileChanged");
 
     m_currentLogFileInfo.refresh();
 
@@ -876,8 +872,8 @@ void LogViewerModel::onFileChanged(const QString & path)
         // The change within the file is not just the addition of new log entry,
         // the file's start bytes changed, hence should reset the model
 
-        LVMDEBUG(QStringLiteral("Initial several bytes of the log file have "
-                                "changed, the log file was probably rotated"));
+        LVMDEBUG("Initial several bytes of the log file have "
+                 "changed, the log file was probably rotated");
 
         m_currentLogFileStartBytesRead = startBytesRead;
 
@@ -906,8 +902,8 @@ void LogViewerModel::onFileChanged(const QString & path)
 
     // New log entries were appended to the log file, should now be able to fetch
     // more
-    LVMDEBUG(QStringLiteral("The initial bytes of the log file haven't changed "
-                            "=> new log entries were added, can read more now"));
+    LVMDEBUG("The initial bytes of the log file haven't changed "
+             "=> new log entries were added, can read more now");
     m_canReadMoreLogFileChunks = true;
 
     if (m_logFileChunksMetadata.empty())
@@ -927,7 +923,7 @@ void LogViewerModel::onFileRemoved(const QString & path)
         return;
     }
 
-    LVMDEBUG(QStringLiteral("LogViewerModel::onFileRemoved"));
+    LVMDEBUG("LogViewerModel::onFileRemoved");
 
     beginResetModel();
     m_currentLogFileInfo = QFileInfo();
@@ -950,14 +946,13 @@ void LogViewerModel::onFileRemoved(const QString & path)
 }
 
 void LogViewerModel::onLogFileDataEntriesRead(
-    qint64 fromPos, qint64 endPos,
-    QVector<LogViewerModel::Data> dataEntries,
+    qint64 fromPos, qint64 endPos, QVector<LogViewerModel::Data> dataEntries,
     ErrorString errorDescription)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::onLogFileDataEntriesRead: from pos = ")
-             << fromPos << QStringLiteral(", end pos = ") << endPos
-             << QStringLiteral(", num parsed data entries = ") << dataEntries.size()
-             << QStringLiteral(", error description = ") << errorDescription);
+    LVMDEBUG("LogViewerModel::onLogFileDataEntriesRead: from pos = "
+             << fromPos << ", end pos = " << endPos
+             << ", num parsed data entries = " << dataEntries.size()
+             << ", error description = " << errorDescription);
 
     auto fromPosIt = m_logFilePosRequestedToBeRead.find(fromPos);
     if (fromPosIt == m_logFilePosRequestedToBeRead.end()) {
@@ -1056,19 +1051,17 @@ void LogViewerModel::onLogFileDataEntriesRead(
 
             endModelRow = startModelRow + dataEntries.size() - 1;
 
-            LVMDEBUG(QStringLiteral("Inserting new rows into the model: start row = ")
-                     << startModelRow << QStringLiteral(", end row = ")
-                     << endModelRow);
+            LVMDEBUG("Inserting new rows into the model: start row = "
+                     << startModelRow << ", end row = " << endModelRow);
             beginInsertRows(QModelIndex(), startModelRow, endModelRow);
 
             LogFileChunkMetadata metadata(logFileChunkNumber, startModelRow,
                                           endModelRow, fromPos, endPos);
-            LVMDEBUG(QStringLiteral("Appending new log file chunk metadata: ")
-                     << metadata);
+            LVMDEBUG("Appending new log file chunk metadata: " << metadata);
             auto insertResult = m_logFileChunksMetadata.insert(metadata);
             if (!insertResult.second) {
-                LVMDEBUG(QStringLiteral("The log file chunk metadata was actually ")
-                         << QStringLiteral("updated, not inserted! Here it is: ")
+                LVMDEBUG("The log file chunk metadata was actually "
+                         << "updated, not inserted! Here it is: "
                          << *insertResult.first);
             }
         }
@@ -1083,22 +1076,21 @@ void LogViewerModel::onLogFileDataEntriesRead(
             metadata = LogFileChunkMetadata(logFileChunkNumber, startModelRow,
                                             endModelRow, fromPos, endPos);
             Q_UNUSED(indexByStartPos.replace(it, metadata))
-            LVMDEBUG(QStringLiteral("Updated log file chunk metadata: ")
-                     << metadata);
+            LVMDEBUG("Updated log file chunk metadata: " << metadata);
         }
 
         m_logFileChunkDataCache.put(logFileChunkNumber, dataEntries);
-        LVMDEBUG(QStringLiteral("Put parsed log file data chunk to the LRUCache, ")
-                 << QStringLiteral("chunk number = ") << logFileChunkNumber);
+        LVMDEBUG("Put parsed log file data chunk to the LRUCache, "
+                 << "chunk number = " << logFileChunkNumber);
 
         if (newEntry) {
-            LVMDEBUG(QStringLiteral("End insert rows"));
+            LVMDEBUG("End insert rows");
             endInsertRows();
         }
         else {
-            LVMDEBUG(QStringLiteral("Notifying the view of the model change: ")
-                     << QStringLiteral("start row = ") << startModelRow
-                     << QStringLiteral(", end row = ") << endModelRow);
+            LVMDEBUG("Notifying the view of the model change: "
+                     << "start row = " << startModelRow
+                     << ", end row = " << endModelRow);
             QModelIndex startIndex = index(startModelRow, Columns::Timestamp,
                                            QModelIndex());
             QModelIndex endIndex = index(endModelRow, Columns::LogEntry,
@@ -1106,20 +1098,20 @@ void LogViewerModel::onLogFileDataEntriesRead(
             Q_EMIT dataChanged(startIndex, endIndex);
         }
 
-        LVMDEBUG(QStringLiteral("Emitting model rows cached signal: start model ")
-                 << QStringLiteral("row = ") << startModelRow
-                 << QStringLiteral(", end model row = ") << endModelRow);
+        LVMDEBUG("Emitting model rows cached signal: start model "
+                 << "row = " << startModelRow
+                 << ", end model row = " << endModelRow);
         Q_EMIT notifyModelRowsCached(startModelRow, endModelRow);
     }
 
     if (dataEntries.size() < LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET) {
         // It appears we've read to the end of the log file
-        LVMDEBUG(QStringLiteral("It appears the end of the log file was reached"));
+        LVMDEBUG("It appears the end of the log file was reached");
         m_canReadMoreLogFileChunks = false;
     }
     else {
-        LVMDEBUG(QStringLiteral("Received precisely as many data entries as "
-                                "requested, probably more of them can be read"));
+        LVMDEBUG("Received precisely as many data entries as "
+                 "requested, probably more of them can be read");
         m_canReadMoreLogFileChunks = true;
     }
 }
@@ -1127,14 +1119,13 @@ void LogViewerModel::onLogFileDataEntriesRead(
 void LogViewerModel::requestDataEntriesChunkFromLogFile(
     const qint64 startPos, const LogFileDataEntryRequestReason::type reason)
 {
-    LVMDEBUG(QStringLiteral("LogViewerModel::requestDataEntriesChunkFromLogFile: ")
-             << QStringLiteral("start pos = ") << startPos
-             << QStringLiteral(", request reason = ") << reason);
+    LVMDEBUG("LogViewerModel::requestDataEntriesChunkFromLogFile: "
+             << "start pos = " << startPos << ", request reason = " << reason);
 
     auto it = m_logFilePosRequestedToBeRead.find(startPos);
     if (it != m_logFilePosRequestedToBeRead.end()) {
-        LVMDEBUG(QStringLiteral("Have already requested log file data entries "
-                                "chunk from this start pos, not doing anything"));
+        LVMDEBUG("Have already requested log file data entries "
+                 "chunk from this start pos, not doing anything");
         it.value() |= reason;
         return;
     }
@@ -1183,10 +1174,9 @@ void LogViewerModel::requestDataEntriesChunkFromLogFile(
     m_logFilePosRequestedToBeRead[startPos] |= reason;
     Q_EMIT readLogFileDataEntries(
         startPos, LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET);
-    LVMDEBUG(QStringLiteral("Emitted the request to read no more than ")
+    LVMDEBUG("Emitted the request to read no more than "
              << LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET
-             << QStringLiteral(" log file data entries starting at pos ")
-             << startPos);
+             << " log file data entries starting at pos " << startPos);
 }
 
 void LogViewerModel::timerEvent(QTimerEvent * pEvent)
@@ -1304,8 +1294,8 @@ LogViewerModel::findLogFileChunkMetadataIteratorByModelRow(const int row) const
             return lastIt;
         }
 
-        LVMDEBUG(QStringLiteral("Appropriate log file chunk metadata was not ")
-                 << QStringLiteral("found for model row ") << row);
+        LVMDEBUG("Appropriate log file chunk metadata was not "
+                 << "found for model row " << row);
         return index.end();
     }
 
@@ -1349,8 +1339,8 @@ LogViewerModel::findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) c
             return lastIt;
         }
 
-        LVMDEBUG(QStringLiteral("Log file chunk metadata was not found for log ")
-                 << QStringLiteral("file pos ") << pos);
+        LVMDEBUG("Log file chunk metadata was not found for log file pos "
+                 << pos);
         return index.end();
     }
 
@@ -1457,16 +1447,16 @@ void LogViewerModel::FilteringOptions::clear()
 
 QTextStream & LogViewerModel::FilteringOptions::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("FilteringOptions: start log file pos = ");
+    strm << "FilteringOptions: start log file pos = ";
 
     if (m_startLogFilePos.isSet()) {
         strm << m_startLogFilePos.ref();
     }
     else {
-        strm << QStringLiteral("<not set>");
+        strm << "<not set>";
     }
 
-    strm << QStringLiteral(", disabled log levels: ");
+    strm << ", disabled log levels: ";
     if (!m_disabledLogLevels.isEmpty())
     {
         for(int i = 0, size = m_disabledLogLevels.size(); i < size; ++i)
@@ -1474,59 +1464,59 @@ QTextStream & LogViewerModel::FilteringOptions::print(QTextStream & strm) const
             switch(m_disabledLogLevels[i])
             {
             case LogLevel::TraceLevel:
-                strm << QStringLiteral("Trace");
+                strm << "Trace";
                 break;
             case LogLevel::DebugLevel:
-                strm << QStringLiteral("Debug");
+                strm << "Debug";
                 break;
             case LogLevel::InfoLevel:
-                strm << QStringLiteral("Info");
+                strm << "Info";
                 break;
             case LogLevel::WarnLevel:
-                strm << QStringLiteral("Warning");
+                strm << "Warning";
                 break;
             case LogLevel::ErrorLevel:
-                strm << QStringLiteral("Error");
+                strm << "Error";
                 break;
             default:
-                strm << QStringLiteral("Unknown (") << m_disabledLogLevels[i]
-                     << QStringLiteral(")");
+                strm << "Unknown (" << m_disabledLogLevels[i]
+                     << ")";
                 break;
             }
 
             if (i != (size - 1)) {
-                strm << QStringLiteral(", ");
+                strm << ", ";
             }
         }
     }
     else
     {
-        strm << QStringLiteral("<not set>");
+        strm << "<not set>";
     }
 
-    strm << QStringLiteral(", log entry content filtering: ")
+    strm << ", log entry content filtering: "
          << m_logEntryContentFilter;
     return strm;
 }
 
 QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Timestamp = ")
+    strm << "Timestamp = "
          << printableDateTimeFromTimestamp(m_timestamp.toMSecsSinceEpoch())
-         << QStringLiteral(", source file name = ") << m_sourceFileName
-         << QStringLiteral(", line number = ") << m_sourceFileLineNumber
-         << QStringLiteral(", log level = ") << m_logLevel
-         << QStringLiteral(", log entry: ") << m_logEntry;
+         << ", source file name = " << m_sourceFileName
+         << ", line number = " << m_sourceFileLineNumber
+         << ", log level = " << m_logLevel
+         << ", log entry: " << m_logEntry;
     return strm;
 }
 
 QTextStream & LogViewerModel::LogFileChunkMetadata::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Log file chunk: number = ") << m_number
-         << QStringLiteral(", start model row = ") << m_startModelRow
-         << QStringLiteral(", end model row = ") << m_endModelRow
-         << QStringLiteral(", start log file pos = ") << m_startLogFilePos
-         << QStringLiteral(", end log file pos = ") << m_endLogFilePos;
+    strm << "Log file chunk: number = " << m_number
+         << ", start model row = " << m_startModelRow
+         << ", end model row = " << m_endModelRow
+         << ", start log file pos = " << m_startLogFilePos
+         << ", end log file pos = " << m_endLogFilePos;
     return strm;
 }
 

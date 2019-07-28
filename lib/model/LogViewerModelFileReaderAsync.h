@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,16 +33,19 @@ class LogViewerModel::FileReaderAsync : public QObject
 {
     Q_OBJECT
 public:
-    explicit FileReaderAsync(const QString & targetFilePath,
-                             const QVector<LogLevel::type> & disabledLogLevels,
-                             const QString & logEntryContentFilter,
-                             QObject * parent = Q_NULLPTR);
+    explicit FileReaderAsync(
+        const QString & targetFilePath,
+        const QVector<LogLevel::type> & disabledLogLevels,
+        const QString & logEntryContentFilter,
+        QObject * parent = Q_NULLPTR);
+
     virtual ~FileReaderAsync();
 
 Q_SIGNALS:
-    void readLogFileDataEntries(qint64 fromPos, qint64 endPos,
-                                QVector<LogViewerModel::Data> dataEntries,
-                                ErrorString errorDescription);
+    void readLogFileDataEntries(
+        qint64 fromPos, qint64 endPos,
+        QVector<LogViewerModel::Data> dataEntries,
+        ErrorString errorDescription);
 
 public Q_SLOTS:
     void onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries);

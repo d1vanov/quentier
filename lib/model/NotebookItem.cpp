@@ -22,22 +22,23 @@
 
 namespace quentier {
 
-NotebookItem::NotebookItem(const QString & localUid,
-                           const QString & guid,
-                           const QString & linkedNotebookGuid,
-                           const QString & name,
-                           const QString & stack,
-                           const bool isSynchronizable,
-                           const bool isUpdatable,
-                           const bool nameIsUpdatable,
-                           const bool isDirty,
-                           const bool isDefault,
-                           const bool isLastUsed,
-                           const bool isPublished,
-                           const bool isFavorited,
-                           const bool canCreateNotes,
-                           const bool canUpdateNotes,
-                           const int numNotesPerNotebook) :
+NotebookItem::NotebookItem(
+        const QString & localUid,
+        const QString & guid,
+        const QString & linkedNotebookGuid,
+        const QString & name,
+        const QString & stack,
+        const bool isSynchronizable,
+        const bool isUpdatable,
+        const bool nameIsUpdatable,
+        const bool isDirty,
+        const bool isDefault,
+        const bool isLastUsed,
+        const bool isPublished,
+        const bool isFavorited,
+        const bool canCreateNotes,
+        const bool canUpdateNotes,
+        const int numNotesPerNotebook) :
     m_localUid(localUid),
     m_guid(guid),
     m_linkedNotebookGuid(linkedNotebookGuid),
@@ -163,32 +164,32 @@ void NotebookItem::setCanUpdateNotes(const bool flag)
 
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Notebook item: local uid = ") << m_localUid
-         << QStringLiteral(", guid = ") << m_guid
-         << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
-         << QStringLiteral(", name = ") << m_name
-         << QStringLiteral(", stack = ") << m_stack
-         << QStringLiteral(", is synchronizable = ")
-         << (isSynchronizable() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is updatable = ")
-         << (isUpdatable() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", name is updatable = ")
-         << (nameIsUpdatable() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ")
-         << (isDirty() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is default = ")
-         << (isDefault() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is last used = ")
-         << (isLastUsed() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is published = ")
-         << (isPublished() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ")
-         << (isFavorited() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", can create notes = ")
-         << (canCreateNotes() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", can update notes = ")
-         << (canUpdateNotes() ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", num notes per notebook = ") << m_numNotesPerNotebook;
+    strm << "Notebook item: local uid = " << m_localUid
+         << ", guid = " << m_guid
+         << ", linked notebook guid = " << m_linkedNotebookGuid
+         << ", name = " << m_name
+         << ", stack = " << m_stack
+         << ", is synchronizable = "
+         << (isSynchronizable() ? "true" : "false")
+         << ", is updatable = "
+         << (isUpdatable() ? "true" : "false")
+         << ", name is updatable = "
+         << (nameIsUpdatable() ? "true" : "false")
+         << ", is dirty = "
+         << (isDirty() ? "true" : "false")
+         << ", is default = "
+         << (isDefault() ? "true" : "false")
+         << ", is last used = "
+         << (isLastUsed() ? "true" : "false")
+         << ", is published = "
+         << (isPublished() ? "true" : "false")
+         << ", is favorited = "
+         << (isFavorited() ? "true" : "false")
+         << ", can create notes = "
+         << (canCreateNotes() ? "true" : "false")
+         << ", can update notes = "
+         << (canUpdateNotes() ? "true" : "false")
+         << ", num notes per notebook = " << m_numNotesPerNotebook;
     return strm;
 }
 

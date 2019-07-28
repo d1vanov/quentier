@@ -20,10 +20,11 @@
 
 namespace quentier {
 
-FavoritesModelItem::FavoritesModelItem(const Type::type type,
-                                       const QString & localUid,
-                                       const QString & displayName,
-                                       int numNotesTargeted) :
+FavoritesModelItem::FavoritesModelItem(
+        const Type::type type,
+        const QString & localUid,
+        const QString & displayName,
+        int numNotesTargeted) :
     m_type(type),
     m_localUid(localUid),
     m_displayName(displayName),
@@ -32,31 +33,31 @@ FavoritesModelItem::FavoritesModelItem(const Type::type type,
 
 QTextStream & FavoritesModelItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Favorites model item: type = ");
+    strm << "Favorites model item: type = ";
 
     switch(m_type)
     {
     case Type::Notebook:
-        strm << QStringLiteral("Notebook");
+        strm << "Notebook";
         break;
     case Type::Tag:
-        strm << QStringLiteral("Tag");
+        strm << "Tag";
         break;
     case Type::Note:
-        strm << QStringLiteral("Note");
+        strm << "Note";
         break;
     case Type::SavedSearch:
-        strm << QStringLiteral("Saved search");
+        strm << "Saved search";
         break;
     default:
-        strm << QStringLiteral("Unknown");
+        strm << "Unknown (" << static_cast<qint64>(m_type) << ")";
         break;
     }
 
-    strm << QStringLiteral("; local uid = ") << m_localUid
-         << QStringLiteral(", display name = ") << m_displayName
-         << QStringLiteral(", num notes targeted = ") << m_numNotesTargeted
-         << QStringLiteral(";");
+    strm << "; local uid = " << m_localUid
+         << ", display name = " << m_displayName
+         << ", num notes targeted = " << m_numNotesTargeted
+         << ";";
 
     return strm;
 }

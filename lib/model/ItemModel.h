@@ -52,8 +52,8 @@ public:
      * @return                      The local uid corresponding to the item name;
      *                              empty string if no item with such name exists
      */
-    virtual QString localUidForItemName(const QString & itemName,
-                                        const QString & linkedNotebookGuid) const = 0;
+    virtual QString localUidForItemName(
+        const QString & itemName, const QString & linkedNotebookGuid) const = 0;
 
     /**
      * @brief itemNameForLocalUid - finds item name for local uid
