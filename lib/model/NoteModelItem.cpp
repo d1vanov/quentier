@@ -17,6 +17,7 @@
  */
 
 #include "NoteModelItem.h"
+
 #include <quentier/utility/Utility.h>
 
 namespace quentier {
@@ -144,53 +145,51 @@ int NoteModelItem::numTagNames() const
 
 QTextStream & NoteModelItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("NoteModelItem: local uid = ") << m_localUid
-         << QStringLiteral(", guid = ") << m_guid
-         << QStringLiteral(", notebook local uid = ") << m_notebookLocalUid
-         << QStringLiteral(", notebook guid = ") << m_notebookGuid
-         << QStringLiteral(", title = ") << m_title
-         << QStringLiteral(", preview text = ") << m_previewText
-         << QStringLiteral(", thumbnail ")
-         << (m_thumbnailData.isEmpty()
-             ? QStringLiteral("null")
-             : QStringLiteral("not null"))
-         << QStringLiteral(", notebook name = ") << m_notebookName
-         << QStringLiteral(", tag local uids = ")
+    strm << "NoteModelItem: local uid = " << m_localUid
+         << ", guid = " << m_guid
+         << ", notebook local uid = " << m_notebookLocalUid
+         << ", notebook guid = " << m_notebookGuid
+         << ", title = " << m_title
+         << ", preview text = " << m_previewText
+         << ", thumbnail "
+         << (m_thumbnailData.isEmpty() ? "null" : "not null")
+         << ", notebook name = " << m_notebookName
+         << ", tag local uids = "
          << m_tagLocalUids.join(QStringLiteral(", "))
-         << QStringLiteral(", tag guids = ")
+         << ", tag guids = "
          << m_tagGuids.join(QStringLiteral(", "))
-         << QStringLiteral(", tag name list = ")
+         << ", tag name list = "
          << m_tagNameList.join(QStringLiteral(", "))
-         << QStringLiteral(", creation timestamp = ") << m_creationTimestamp
-         << QStringLiteral(" (")
+         << ", creation timestamp = " << m_creationTimestamp
+         << " ("
          << printableDateTimeFromTimestamp(m_creationTimestamp)
-         << QStringLiteral("), modification timestamp = ")
-         << m_modificationTimestamp << QStringLiteral(" (")
+         << "), modification timestamp = "
+         << m_modificationTimestamp << " ("
          << printableDateTimeFromTimestamp(m_modificationTimestamp)
-         << QStringLiteral("), deletion timestamp = ")
-         << m_deletionTimestamp << QStringLiteral(" (")
+         << "), deletion timestamp = "
+         << m_deletionTimestamp << " ("
          << printableDateTimeFromTimestamp(m_deletionTimestamp)
-         << QStringLiteral("), size in bytes = ") << m_sizeInBytes
-         << QStringLiteral(", is synchronizable = ")
+         << "), size in bytes = " << m_sizeInBytes
+         << ", is synchronizable = "
          << (m_isSynchronizable
-             ? QStringLiteral("true")
-             : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ")
-         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ")
-         << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is active = ")
-         << (m_isActive ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", can update title = ")
-         << (m_canUpdateTitle ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", can update content = ")
-         << (m_canUpdateContent ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", can email = ")
-         << (m_canEmail ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", can share = ")
-         << (m_canShare ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", can share publicly = ")
-         << (m_canSharePublicly ? QStringLiteral("true") : QStringLiteral("false"));
+             ? "true"
+             : "false")
+         << ", is dirty = "
+         << (m_isDirty ? "true" : "false")
+         << ", is favorited = "
+         << (m_isFavorited ? "true" : "false")
+         << ", is active = "
+         << (m_isActive ? "true" : "false")
+         << ", can update title = "
+         << (m_canUpdateTitle ? "true" : "false")
+         << ", can update content = "
+         << (m_canUpdateContent ? "true" : "false")
+         << ", can email = "
+         << (m_canEmail ? "true" : "false")
+         << ", can share = "
+         << (m_canShare ? "true" : "false")
+         << ", can share publicly = "
+         << (m_canSharePublicly ? "true" : "false");
 
     return strm;
 }

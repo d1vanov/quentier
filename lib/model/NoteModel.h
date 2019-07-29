@@ -188,8 +188,8 @@ public:
      *                              item or invalid modex index if the new note
      *                              could not be created
      */
-    QModelIndex createNoteItem(const QString & notebookLocalUid,
-                               ErrorString & erroDescription);
+    QModelIndex createNoteItem(
+        const QString & notebookLocalUid, ErrorString & erroDescription);
 
     /**
      * @brief deleteNote - attempts to mark the note with the specified
@@ -206,8 +206,8 @@ public:
      * @return                      True if the note was deleted successfully,
      *                              false otherwise
      */
-    bool deleteNote(const QString & noteLocalUid,
-                    ErrorString & errorDescription);
+    bool deleteNote(
+        const QString & noteLocalUid, ErrorString & errorDescription);
 
     /**
      * @brief moveNoteToNotebook - attempts to move the note to a different
@@ -230,9 +230,9 @@ public:
      * @return                      True if the note was moved to the specified
      *                              notebook successfully, false otherwise
      */
-    bool moveNoteToNotebook(const QString & noteLocalUid,
-                            const QString & notebookName,
-                            ErrorString & errorDescription);
+    bool moveNoteToNotebook(
+        const QString & noteLocalUid, const QString & notebookName,
+        ErrorString & errorDescription);
 
     /**
      * @brief favoriteNote - attempts to mark the note with the specified local
@@ -256,8 +256,8 @@ public:
      * @return                      True if the note was favorited successfully,
      *                              false otherwise
      */
-    bool favoriteNote(const QString & noteLocalUid,
-                      ErrorString & errorDescription);
+    bool favoriteNote(
+        const QString & noteLocalUid, ErrorString & errorDescription);
 
     /**
      * @brief unfavoriteNote - attempts to remove the favorited mark from
@@ -281,35 +281,49 @@ public:
      * @return                      True if the note was unfavorited successfully,
      *                              false otherwise
      */
-    bool unfavoriteNote(const QString & noteLocalUid,
-                        ErrorString & errorDescription);
+    bool unfavoriteNote(
+        const QString & noteLocalUid, ErrorString & errorDescription);
 
 public:
     // QAbstractItemModel interface
-    virtual Qt::ItemFlags flags(const QModelIndex & modelIndex) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex & index,
-                          int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    virtual QVariant headerData(int section,
-                                Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    virtual Qt::ItemFlags flags(
+        const QModelIndex & modelIndex) const Q_DECL_OVERRIDE;
 
-    virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual QModelIndex index(int row, int column,
-                              const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    virtual QVariant data(
+        const QModelIndex & index,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
+    virtual QVariant headerData(
+        int section, Qt::Orientation orientation,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
+    virtual int rowCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual int columnCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual QModelIndex index(
+        int row, int column,
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
     virtual QModelIndex parent(const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual bool setHeaderData(int section,
-                               Qt::Orientation orientation,
-                               const QVariant & value,
-                               int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    virtual bool setData(const QModelIndex & index,
-                         const QVariant & value,
-                         int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    virtual bool insertRows(int row, int count,
-                            const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
-    virtual bool removeRows(int row, int count,
-                            const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+    virtual bool setHeaderData(
+        int section, Qt::Orientation orientation, const QVariant & value,
+        int role = Qt::EditRole) Q_DECL_OVERRIDE;
+
+    virtual bool setData(
+        const QModelIndex & index, const QVariant & value,
+        int role = Qt::EditRole) Q_DECL_OVERRIDE;
+
+    virtual bool insertRows(
+        int row, int count,
+        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+
+    virtual bool removeRows(
+        int row, int count,
+        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
@@ -348,19 +362,22 @@ Q_SIGNALS:
 
 // private signals
     void addNote(Note note, QUuid requestId);
-    void updateNote(Note note,
-                    LocalStorageManager::UpdateNoteOptions options,
-                    QUuid requestId);
-    void findNote(Note note,
-                  LocalStorageManager::GetNoteOptions options,
-                  QUuid requestId);
 
-    void listNotes(LocalStorageManager::ListObjectsOptions flag,
-                   LocalStorageManager::GetNoteOptions options,
-                   size_t limit, size_t offset,
-                   LocalStorageManager::ListNotesOrder::type order,
-                   LocalStorageManager::OrderDirection::type orderDirection,
-                   QString linkedNotebookGuid, QUuid requestId);
+    void updateNote(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        QUuid requestId);
+
+    void findNote(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
+
+    void listNotes(
+        LocalStorageManager::ListObjectsOptions flag,
+        LocalStorageManager::GetNoteOptions options,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotesOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, QUuid requestId);
 
     void listNotesPerNotebooksAndTags(
         QStringList notebookLocalUids, QStringList tagLocalUids,
@@ -380,8 +397,8 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection::type orderDirection,
         QUuid requestId);
 
-    void getNoteCount(LocalStorageManager::NoteCountOptions options,
-                      QUuid requestId);
+    void getNoteCount(
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void getNoteCountPerNotebooksAndTags(
         QStringList notebookLocalUids,
@@ -397,37 +414,43 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, ErrorString errorDescription,
-                         QUuid requestId);
 
-    void onUpdateNoteComplete(Note note,
-                              LocalStorageManager::UpdateNoteOptions options,
-                              QUuid requestId);
-    void onUpdateNoteFailed(Note note,
-                            LocalStorageManager::UpdateNoteOptions options,
-                            ErrorString errorDescription, QUuid requestId);
-    void onFindNoteComplete(Note note,
-                            LocalStorageManager::GetNoteOptions options,
-                            QUuid requestId);
-    void onFindNoteFailed(Note note,
-                          LocalStorageManager::GetNoteOptions options,
-                          ErrorString errorDescription, QUuid requestId);
+    void onAddNoteFailed(
+        Note note, ErrorString errorDescription, QUuid requestId);
 
-    void onListNotesComplete(LocalStorageManager::ListObjectsOptions flag,
-                             LocalStorageManager::GetNoteOptions options,
-                             size_t limit, size_t offset,
-                             LocalStorageManager::ListNotesOrder::type order,
-                             LocalStorageManager::OrderDirection::type orderDirection,
-                             QString linkedNotebookGuid, QList<Note> foundNotes,
-                             QUuid requestId);
+    void onUpdateNoteComplete(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        QUuid requestId);
 
-    void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag,
-                           LocalStorageManager::GetNoteOptions options,
-                           size_t limit, size_t offset,
-                           LocalStorageManager::ListNotesOrder::type order,
-                           LocalStorageManager::OrderDirection::type orderDirection,
-                           QString linkedNotebookGuid, ErrorString errorDescription,
-                           QUuid requestId);
+    void onUpdateNoteFailed(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        ErrorString errorDescription, QUuid requestId);
+
+    void onFindNoteComplete(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
+
+    void onFindNoteFailed(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        ErrorString errorDescription, QUuid requestId);
+
+    void onListNotesComplete(
+        LocalStorageManager::ListObjectsOptions flag,
+        LocalStorageManager::GetNoteOptions options,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotesOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, QList<Note> foundNotes,
+        QUuid requestId);
+
+    void onListNotesFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        LocalStorageManager::GetNoteOptions options,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotesOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, ErrorString errorDescription,
+        QUuid requestId);
 
     void onListNotesPerNotebooksAndTagsComplete(
         QStringList notebookLocalUids,
@@ -470,6 +493,7 @@ private Q_SLOTS:
     void onGetNoteCountComplete(
         int noteCount, LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
+
     void onGetNoteCountFailed(
         ErrorString errorDescription,
         LocalStorageManager::NoteCountOptions options,
@@ -479,6 +503,7 @@ private Q_SLOTS:
         int noteCount, QStringList notebookLocalUids, QStringList tagLocalUids,
         LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
+
     void onGetNoteCountPerNotebooksAndTagsFailed(
         ErrorString errorDescription,
         QStringList notebookLocalUids, QStringList tagLocalUids,
@@ -486,12 +511,15 @@ private Q_SLOTS:
         QUuid requestId);
 
     void onExpungeNoteComplete(Note note, QUuid requestId);
-    void onExpungeNoteFailed(Note note, ErrorString errorDescription,
-                             QUuid requestId);
+
+    void onExpungeNoteFailed(
+        Note note, ErrorString errorDescription, QUuid requestId);
 
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                              QUuid requestId);
+
+    void onFindNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
@@ -501,14 +529,16 @@ private Q_SLOTS:
 
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids,
-                              QUuid requestId);
+
+    void onExpungeTagComplete(
+        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
 
-    void onNoteAddedOrUpdated(const Note & note,
-                              const bool fromNotesListing = false);
+    void onNoteAddedOrUpdated(
+        const Note & note, const bool fromNotesListing = false);
+
     void noteToItem(const Note & note, NoteModelItem & item);
     bool noteConformsToFilter(const Note & note) const;
     void onListNotesCompleteImpl(const QList<Note> foundNotes);
@@ -539,11 +569,11 @@ private:
 
     void removeItemByLocalUid(const QString & localUid);
 
-    bool updateItemRowWithRespectToSorting(const NoteModelItem & item,
-                                           ErrorString & errorDescription);
+    bool updateItemRowWithRespectToSorting(
+        const NoteModelItem & item, ErrorString & errorDescription);
 
-    void saveNoteInLocalStorage(const NoteModelItem & item,
-                                const bool saveTags = false);
+    void saveNoteInLocalStorage(
+        const NoteModelItem & item, const bool saveTags = false);
 
     QVariant dataImpl(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
@@ -557,11 +587,11 @@ private:
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
     void updateNotebookData(const Notebook & notebook);
 
-    bool setNoteFavorited(const QString & noteLocalUid, const bool favorited,
-                          ErrorString & errorDescription);
+    bool setNoteFavorited(
+        const QString & noteLocalUid, const bool favorited,
+        ErrorString & errorDescription);
 
-    void setSortingColumnAndOrder(const int column,
-                                  const Qt::SortOrder order);
+    void setSortingColumnAndOrder(const int column, const Qt::SortOrder order);
     void setSortingOrder(const Qt::SortOrder order);
 
 private:
@@ -633,16 +663,16 @@ private:
 
 private:
     // WARNING: this method assumes the iterator passed to it is not end()
-    bool moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it,
-                                const Notebook & notebook,
-                                ErrorString & errorDescription);
+    bool moveNoteToNotebookImpl(
+        NoteDataByLocalUid::iterator it, const Notebook & notebook,
+        ErrorString & errorDescription);
 
-    void addOrUpdateNoteItem(NoteModelItem & item,
-                             const NotebookData & notebookData,
-                             const bool fromNotesListing);
+    void addOrUpdateNoteItem(
+        NoteModelItem & item, const NotebookData & notebookData,
+        const bool fromNotesListing);
 
-    void checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid,
-                                                const NotebookData & notebookData);
+    void checkAddedNoteItemsPendingNotebookData(
+        const QString & notebookLocalUid, const NotebookData & notebookData);
 
     void findTagNamesForItem(NoteModelItem & item);
 

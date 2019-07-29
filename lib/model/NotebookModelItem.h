@@ -39,11 +39,13 @@ public:
         };
     };
 
-    NotebookModelItem(const Type::type type = Type::Notebook,
-                      const NotebookItem * notebookItem = Q_NULLPTR,
-                      const NotebookStackItem * notebookStackItem = Q_NULLPTR,
-                      const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem = Q_NULLPTR,
-                      const NotebookModelItem * parent = Q_NULLPTR);
+    NotebookModelItem(
+        const Type::type type = Type::Notebook,
+        const NotebookItem * notebookItem = Q_NULLPTR,
+        const NotebookStackItem * notebookStackItem = Q_NULLPTR,
+        const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem = Q_NULLPTR,
+        const NotebookModelItem * parent = Q_NULLPTR);
+
     virtual ~NotebookModelItem();
 
     Type::type type() const { return m_type; }

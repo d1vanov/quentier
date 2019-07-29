@@ -64,8 +64,8 @@ int NotebookModelItem::rowForChild(const NotebookModelItem * child) const
     return m_children.indexOf(child);
 }
 
-void NotebookModelItem::insertChild(const int row,
-                                    const NotebookModelItem * item) const
+void NotebookModelItem::insertChild(
+    const int row, const NotebookModelItem * item) const
 {
     if (Q_UNLIKELY(!item)) {
         return;
@@ -113,13 +113,13 @@ const NotebookModelItem * NotebookModelItem::takeChild(const int row) const
 
 QTextStream & NotebookModelItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Notebook model item (")
+    strm << "Notebook model item ("
          << (m_type == Type::Notebook
-             ? QStringLiteral("notebook")
+             ? "notebook"
              : (m_type == Type::Stack
-                ? QStringLiteral("stack")
-                : QStringLiteral("linked notebook")))
-         << QStringLiteral("): ")
+                ? "stack"
+                : "linked notebook"))
+         << "): "
          << (m_type == Type::Notebook
              ? (m_pNotebookItem
                 ? m_pNotebookItem->toString()
@@ -132,47 +132,47 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
                    ? m_pNotebookLinkedNotebookItem->toString()
                    : QStringLiteral("<null>"))));
 
-    strm << QStringLiteral("\nParent item: ");
+    strm << "\nParent item: ";
     if (Q_UNLIKELY(!m_pParent))
     {
-        strm << QStringLiteral("<null>\n");
+        strm << "<null>\n";
     }
     else
     {
         if (m_pParent->type() == NotebookModelItem::Type::Stack) {
-            strm << QStringLiteral("stack");
+            strm << "stack";
         }
         else if (m_pParent->type() == NotebookModelItem::Type::Notebook) {
-            strm << QStringLiteral("notebook or fake root item");
+            strm << "notebook or fake root item";
         }
         else if (m_pParent->type() == NotebookModelItem::Type::LinkedNotebook) {
-            strm << QStringLiteral("linked notebook root item");
+            strm << "linked notebook root item";
         }
         else {
-            strm << QStringLiteral("<unknown type>");
+            strm << "<unknown type>";
         }
 
         if (m_pParent->notebookItem())
         {
-            strm << QStringLiteral(", notebook local uid = ")
+            strm << ", notebook local uid = "
                  << m_pParent->notebookItem()->localUid()
-                 << QStringLiteral(", notebook name = ")
+                 << ", notebook name = "
                  << m_pParent->notebookItem()->name();
         }
         else if (m_pParent->notebookStackItem())
         {
-            strm << QStringLiteral(", stack name = ")
+            strm << ", stack name = "
                  << m_pParent->notebookStackItem()->name();
         }
         else if (m_pParent->notebookLinkedNotebookItem())
         {
-            strm << QStringLiteral(", linked notebook guid = ")
+            strm << ", linked notebook guid = "
                  << m_pParent->notebookLinkedNotebookItem()->linkedNotebookGuid()
-                 << QStringLiteral(", owner username = ")
+                 << ", owner username = "
                  << m_pParent->notebookLinkedNotebookItem()->username();
         }
 
-        strm << QStringLiteral("\n");
+        strm << "\n";
     }
 
     if (m_children.isEmpty()) {
@@ -180,52 +180,52 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
     }
 
     int numChildren = m_children.size();
-    strm << QStringLiteral("Num children: ") << numChildren << QStringLiteral("\n");
+    strm << "Num children: " << numChildren << "\n";
 
     for(int i = 0; i < numChildren; ++i)
     {
-        strm << QStringLiteral("Child[") << i << QStringLiteral("]: ");
+        strm << "Child[" << i << "]: ";
 
         const NotebookModelItem * childItem = m_children[i];
         if (Q_UNLIKELY(!childItem)) {
-            strm << QStringLiteral("<null>");
+            strm << "<null>";
             continue;
         }
 
         if (childItem->type() == NotebookModelItem::Type::Notebook) {
-            strm << QStringLiteral("notebook");
+            strm << "notebook";
         }
         else if (childItem->type() == NotebookModelItem::Type::Stack) {
-            strm << QStringLiteral("stack");
+            strm << "stack";
         }
         else if (childItem->type() == NotebookModelItem::Type::LinkedNotebook) {
-            strm << QStringLiteral("linked notebook root item");
+            strm << "linked notebook root item";
         }
         else {
-            strm << QStringLiteral("<unknown type>");
+            strm << "<unknown type>";
         }
 
         if (childItem->notebookItem())
         {
-            strm << QStringLiteral(", notebook local uid = ")
+            strm << ", notebook local uid = "
                  << childItem->notebookItem()->localUid()
-                 << QStringLiteral(", notebook name = ")
+                 << ", notebook name = "
                  << childItem->notebookItem()->name();
         }
         else if (childItem->notebookStackItem())
         {
-            strm << QStringLiteral(", stack = ")
+            strm << ", stack = "
                  << childItem->notebookStackItem()->name();
         }
         else if (childItem->notebookLinkedNotebookItem())
         {
-            strm << QStringLiteral(", linked notebook guid = ")
+            strm << ", linked notebook guid = "
                  << childItem->notebookLinkedNotebookItem()->linkedNotebookGuid()
-                 << QStringLiteral(", owner username = ")
+                 << ", owner username = "
                  << childItem->notebookLinkedNotebookItem()->username();
         }
 
-        strm << QStringLiteral("\n");
+        strm << "\n";
     }
 
     return strm;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,7 +22,7 @@ namespace quentier {
 
 QTextStream & NotebookStackItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Notebook stack: ") << m_name;
+    strm << "Notebook stack: " << m_name;
     return strm;
 }
 

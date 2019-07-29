@@ -20,13 +20,14 @@
 
 namespace quentier {
 
-SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
-                                           const QString & guid,
-                                           const QString & name,
-                                           const QString & query,
-                                           const bool isSynchronizable,
-                                           const bool isDirty,
-                                           const bool isFavorited) :
+SavedSearchModelItem::SavedSearchModelItem(
+        const QString & localUid,
+        const QString & guid,
+        const QString & name,
+        const QString & query,
+        const bool isSynchronizable,
+        const bool isDirty,
+        const bool isFavorited) :
     m_localUid(localUid),
     m_guid(guid),
     m_name(name),
@@ -38,16 +39,16 @@ SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
 
 QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Saved search model item: local uid = ") << m_localUid
-         << QStringLiteral(", guid = ") << m_guid
-         << QStringLiteral(", name = ") << m_name << QStringLiteral(", query = ")
-         << m_query << QStringLiteral(", is synchronizable = ")
-         << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ")
-         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ")
-         << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral("\n");
+    strm << "Saved search model item: local uid = " << m_localUid
+         << ", guid = " << m_guid
+         << ", name = " << m_name << ", query = "
+         << m_query << ", is synchronizable = "
+         << (m_isSynchronizable ? "true" : "false")
+         << ", is dirty = "
+         << (m_isDirty ? "true" : "false")
+         << ", is favorited = "
+         << (m_isFavorited ? "true" : "false")
+         << "\n";
 
     return strm;
 }
