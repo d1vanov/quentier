@@ -26,26 +26,16 @@
 #include <QTimer>
 #include <QDebug>
 
-#define RFLOG_IMPL(message, macro) \
-    macro(QStringLiteral("<") << m_url << QStringLiteral(">: ") << message)
+#define RFLOG_IMPL(message, macro)                                             \
+    macro("<" << m_url << ">: " << message)                                    \
+// RFLOG_IMPL
 
-#define RFTRACE(message) \
-    RFLOG_IMPL(message, QNTRACE)
-
-#define RFDEBUG(message) \
-    RFLOG_IMPL(message, QNDEBUG)
-
-#define RFINFO(message) \
-    RFLOG_IMPL(message, QNINFO)
-
-#define RFWARNING(message) \
-    RFLOG_IMPL(message, QNWARNING)
-
-#define RFCRITICAL(message) \
-    RFLOG_IMPL(message, QNCRITICAL)
-
-#define RFFATAL(message) \
-    RFLOG_IMPL(message, QNFATAL)
+#define RFTRACE(message) RFLOG_IMPL(message, QNTRACE)
+#define RFDEBUG(message) RFLOG_IMPL(message, QNDEBUG)
+#define RFINFO(message) RFLOG_IMPL(message, QNINFO)
+#define RFWARNING(message) RFLOG_IMPL(message, QNWARNING)
+#define RFCRITICAL(message) RFLOG_IMPL(message, QNCRITICAL)
+#define RFFATAL(message) RFLOG_IMPL(message, QNFATAL)
 
 #define NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL (1000)
 
@@ -88,10 +78,10 @@ QByteArray NetworkReplyFetcher::fetchedData() const
 
 void NetworkReplyFetcher::start()
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::start"));
+    RFDEBUG("NetworkReplyFetcher::start");
 
     if (m_started) {
-        RFDEBUG(QStringLiteral("Already started"));
+        RFDEBUG("Already started");
         return;
     }
 
@@ -136,7 +126,7 @@ void NetworkReplyFetcher::start()
 
 void NetworkReplyFetcher::onReplyFinished()
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::onReplyFinished"));
+    RFDEBUG("NetworkReplyFetcher::onReplyFinished");
 
     if (m_pTimeoutTimer) {
         m_pTimeoutTimer->stop();
@@ -151,7 +141,8 @@ void NetworkReplyFetcher::onReplyFinished()
     m_httpStatusCode = statusCodeAttribute.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult))
     {
-        ErrorString errorDescription(QT_TR_NOOP("Failed to convert HTTP status code to int"));
+        ErrorString errorDescription(
+            QT_TR_NOOP("Failed to convert HTTP status code to int"));
 
         QString str;
         QDebug dbg(&str);
@@ -171,7 +162,7 @@ void NetworkReplyFetcher::onReplyFinished()
 
 void NetworkReplyFetcher::onReplyError(QNetworkReply::NetworkError error)
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::onReplyError: ") << error);
+    RFDEBUG("NetworkReplyFetcher::onReplyError: " << error);
 
     ErrorString errorDescription(QT_TR_NOOP("network error"));
     errorDescription.details() += QStringLiteral("(");
@@ -188,7 +179,7 @@ void NetworkReplyFetcher::onReplyError(QNetworkReply::NetworkError error)
 
 void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::onReplySslErrors"));
+    RFDEBUG("NetworkReplyFetcher::onReplySslErrors");
 
     ErrorString errorDescription(QT_TR_NOOP("SSL errors"));
 
@@ -206,9 +197,8 @@ void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
 
 void NetworkReplyFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal)
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::onDownloadProgress: fetched ")
-            << bytesFetched << QStringLiteral(" bytes, total ") << bytesTotal
-            << QStringLiteral(" bytes"));
+    RFDEBUG("NetworkReplyFetcher::onDownloadProgress: fetched "
+            << bytesFetched << " bytes, total " << bytesTotal << " bytes");
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
     Q_EMIT downloadProgress(bytesFetched, bytesTotal);
@@ -216,7 +206,7 @@ void NetworkReplyFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTo
 
 void NetworkReplyFetcher::checkForTimeout()
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::checkForTimeout"));
+    RFDEBUG("NetworkReplyFetcher::checkForTimeout");
 
     if (m_finished || !m_started)
     {
@@ -246,7 +236,7 @@ void NetworkReplyFetcher::checkForTimeout()
 
 void NetworkReplyFetcher::clear()
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::clear"));
+    RFDEBUG("NetworkReplyFetcher::clear");
 
     m_started = false;
     m_finished = false;
@@ -274,8 +264,7 @@ void NetworkReplyFetcher::clear()
 
 void NetworkReplyFetcher::finishWithError(ErrorString errorDescription)
 {
-    RFDEBUG(QStringLiteral("NetworkReplyFetcher::finishWithError: ")
-            << errorDescription);
+    RFDEBUG("NetworkReplyFetcher::finishWithError: " << errorDescription);
 
     m_started = false;
     m_finished = true;
