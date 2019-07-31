@@ -46,8 +46,8 @@ namespace quentier {
  * @return                      True if the object was successfully moved to
  *                              another thread, false otherwise
  */
-bool moveObjectToThread(QObject & object, QThread & targetThread,
-                        ErrorString & errorDescription);
+bool moveObjectToThread(
+    QObject & object, QThread & targetThread, ErrorString & errorDescription);
 
 } // namespace quentier
 

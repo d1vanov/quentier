@@ -45,11 +45,13 @@ class PreferencesDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit PreferencesDialog(AccountManager & accountManager,
-                               ShortcutManager & shortcutManager,
-                               SystemTrayIconManager & systemTrayIconManager,
-                               ActionsInfo & actionsInfo,
-                               QWidget * parent = Q_NULLPTR);
+    explicit PreferencesDialog(
+        AccountManager & accountManager,
+        ShortcutManager & shortcutManager,
+        SystemTrayIconManager & systemTrayIconManager,
+        ActionsInfo & actionsInfo,
+        QWidget * parent = Q_NULLPTR);
+
     virtual ~PreferencesDialog() Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
@@ -155,11 +157,10 @@ private:
 
     void checkAndSetNetworkProxy();
 
-    bool onNoteEditorColorEnteredImpl(const QColor & color,
-                                      const QColor & prevColor,
-                                      const QString & settingKey,
-                                      QLineEdit & colorLineEdit,
-                                      QFrame & demoFrame);
+    bool onNoteEditorColorEnteredImpl(
+        const QColor & color, const QColor & prevColor,
+        const QString & settingKey, QLineEdit & colorLineEdit,
+        QFrame & demoFrame);
 
     void setNoteEditorFontColorToDemoFrame(const QColor & color);
     void setNoteEditorBackgroundColorToDemoFrame(const QColor & color);

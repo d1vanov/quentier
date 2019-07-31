@@ -22,8 +22,8 @@
 
 namespace quentier {
 
-ThreadMover::ThreadMover(QObject & object, QThread & targetThread,
-                         QObject * parent) :
+ThreadMover::ThreadMover(
+        QObject & object, QThread & targetThread, QObject * parent) :
     QObject(parent),
     m_object(object),
     m_targetThread(targetThread)

@@ -28,7 +28,7 @@ namespace quentier {
 
 std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
 {
-    QNDEBUG(QStringLiteral("isQuentierSetToStartAtLogin"));
+    QNDEBUG("isQuentierSetToStartAtLogin");
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
@@ -39,7 +39,7 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
     appSettings.endGroup();
 
     if (!shouldStartAutomaticallyAtLogin) {
-        QNDEBUG(QStringLiteral("Starting automatically at login is switched off"));
+        QNDEBUG("Starting automatically at login is switched off");
         return std::pair<bool, StartQuentierAtLoginOption::type>(
             false,
             StartQuentierAtLoginOption::MinimizedToTray);
@@ -66,10 +66,10 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
             break;
         default:
             {
-                QNWARNING(QStringLiteral("Detected invalid start Quentier ")
-                          << QStringLiteral("automatically at login option value: ")
+                QNWARNING("Detected invalid start Quentier "
+                          << "automatically at login option value: "
                           << startAutomaticallyAtLoginOptionInt
-                          << QStringLiteral(", fallback to the default option of ")
+                          << ", fallback to the default option of "
                           << DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION);
                 break;
             }
@@ -77,14 +77,13 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
     }
     else
     {
-        QNWARNING(QStringLiteral("Failed to convert start Quentier automatically ")
-                  << QStringLiteral("at login option from app settings to int! ")
-                  << QStringLiteral("Fallback to the default option of ")
+        QNWARNING("Failed to convert start Quentier automatically "
+                  << "at login option from app settings to int! "
+                  << "Fallback to the default option of "
                   << DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION);
     }
 
-    QNDEBUG(QStringLiteral("Should start Quentier automatically at login, ")
-            << QStringLiteral("option = ") << option);
+    QNDEBUG("Should start Quentier automatically at login, option = " << option);
     return std::pair<bool, StartQuentierAtLoginOption::type>(true, option);
 }
 

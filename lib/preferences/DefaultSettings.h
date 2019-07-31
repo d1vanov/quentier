@@ -32,8 +32,10 @@
 #define DEFAULT_SHOW_NOTE_THUMBNAILS (true)
 
 #define DEFAULT_SHOULD_START_AUTOMATICALLY_AT_LOGIN_OPTION (true)
-#define DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION \
-    (StartQuentierAtLoginOption::MinimizedToTray)
+
+#define DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION                            \
+    (StartQuentierAtLoginOption::MinimizedToTray)                              \
+// DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION
 
 #ifdef Q_WS_MAC
 #define DEFAULT_TRAY_ICON_KIND QStringLiteral("dark")
@@ -51,8 +53,11 @@
 #define DEFAULT_RUN_SYNC_EACH_NUM_MINUTES (15)
 
 #define DEFAULT_MAIN_WINDOW_BORDER_COLOR QStringLiteral("#626262")
-#define DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION \
-    (MainWindowSideBorderOption::ShowOnlyWhenMaximized)
+
+#define DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION                                 \
+    (MainWindowSideBorderOption::ShowOnlyWhenMaximized)                        \
+// DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION
+
 #define DEFAULT_MAIN_WINDOW_BORDER_SIZE (4)
 #define MAX_MAIN_WINDOW_BORDER_SIZE (20)
 

@@ -24,9 +24,10 @@
 
 namespace quentier {
 
-AsyncFileWriter::AsyncFileWriter(const QString & filePath,
-                                 const QByteArray & dataToWrite,
-                                 QObject * parent) :
+AsyncFileWriter::AsyncFileWriter(
+        const QString & filePath,
+        const QByteArray & dataToWrite,
+        QObject * parent) :
     QObject(parent),
     QRunnable(),
     m_filePath(filePath),
@@ -35,7 +36,7 @@ AsyncFileWriter::AsyncFileWriter(const QString & filePath,
 
 void AsyncFileWriter::run()
 {
-    QNDEBUG(QStringLiteral("AsyncFileWriter::run: file path = ") << m_filePath);
+    QNDEBUG("AsyncFileWriter::run: file path = " << m_filePath);
 
     QFile file(m_filePath);
     if (!file.open(QIODevice::WriteOnly)) {
@@ -48,12 +49,12 @@ void AsyncFileWriter::run()
     qint64 dataSize = static_cast<qint64>(m_dataToWrite.size());
     qint64 bytesWritten = file.write(m_dataToWrite);
     if (bytesWritten != dataSize) {
-        QNDEBUG(QStringLiteral("Couldn't write the entire file: expected ")
-                << dataSize << QStringLiteral(", got only ") << bytesWritten);
+        QNDEBUG("Couldn't write the entire file: expected "
+                << dataSize << ", got only " << bytesWritten);
         Q_EMIT fileWriteIncomplete(bytesWritten, dataSize);
     }
     else {
-        QNDEBUG(QStringLiteral("Successfully written the file"));
+        QNDEBUG("Successfully written the file");
         Q_EMIT fileSuccessfullyWritten(m_filePath);
     }
 }

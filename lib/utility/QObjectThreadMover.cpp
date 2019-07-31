@@ -26,8 +26,8 @@
 
 namespace quentier {
 
-bool moveObjectToThread(QObject & object, QThread & targetThread,
-                        ErrorString & errorDescription)
+bool moveObjectToThread(
+    QObject & object, QThread & targetThread, ErrorString & errorDescription)
 {
     ThreadMover * pThreadMover = new ThreadMover(object, targetThread);
     pThreadMover->moveToThread(object.thread());

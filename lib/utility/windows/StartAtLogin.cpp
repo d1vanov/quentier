@@ -42,17 +42,20 @@
 #endif
 #endif
 
-#define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH \
-    (QStringLiteral("C:/Users/") + QString::fromLocal8Bit(qgetenv("USERNAME")) + \
-     QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/"\
-                    "Startup/quentier.lnk"))
+#define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH                                  \
+    (QStringLiteral("C:/Users/") +                                             \
+     QString::fromLocal8Bit(qgetenv("USERNAME")) +                             \
+     QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/"  \
+                    "Startup/quentier.lnk"))                                   \
+// QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH
 
 namespace quentier {
 
-HRESULT createShortcut(LPCWSTR pszTargetfile, LPCWSTR pszTargetargs,
-                       LPCWSTR pszLinkfile, LPCWSTR pszDescription,
-                       int iShowmode, LPCWSTR pszCurdir,
-                       LPCWSTR pszIconfile, int iIconindex)
+HRESULT createShortcut(
+    LPCWSTR pszTargetfile, LPCWSTR pszTargetargs,
+    LPCWSTR pszLinkfile, LPCWSTR pszDescription,
+    int iShowmode, LPCWSTR pszCurdir,
+    LPCWSTR pszIconfile, int iIconindex)
 {
     HRESULT hRes;
     IShellLink * pShellLink = NULL;
@@ -126,15 +129,13 @@ HRESULT createShortcut(LPCWSTR pszTargetfile, LPCWSTR pszTargetargs,
     return (hRes);
 }
 
-bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
-                                   ErrorString & errorDescription,
-                                   const StartQuentierAtLoginOption::type option)
+bool setStartQuentierAtLoginOption(
+    const bool shouldStartAtLogin, ErrorString & errorDescription,
+    const StartQuentierAtLoginOption::type option)
 {
-    QNDEBUG(QStringLiteral("setStartQuentierAtLoginOption (Windows): ")
-            << QStringLiteral("should start at login = ") << (shouldStartAtLogin
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", option = ") << option);
+    QNDEBUG("setStartQuentierAtLoginOption (Windows): should start at login = "
+            << (shouldStartAtLogin ? "true" : "false") << ", option = "
+            << option);
 
     QFileInfo autoStartShortcutFileInfo(QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH);
     if (autoStartShortcutFileInfo.exists())

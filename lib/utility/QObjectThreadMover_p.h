@@ -30,8 +30,8 @@ class ThreadMover: public QObject
 {
     Q_OBJECT
 public:
-    explicit ThreadMover(QObject & object, QThread & targetThread,
-                         QObject * parent = Q_NULLPTR);
+    explicit ThreadMover(
+        QObject & object, QThread & targetThread, QObject * parent = Q_NULLPTR);
 
 public Q_SLOTS:
     void start();

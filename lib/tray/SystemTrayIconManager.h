@@ -37,8 +37,9 @@ class SystemTrayIconManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit SystemTrayIconManager(AccountManager & accountManager,
-                                   QObject * parent = Q_NULLPTR);
+    explicit SystemTrayIconManager(
+        AccountManager & accountManager,
+        QObject * parent = Q_NULLPTR);
 
     /**
      * @brief isSystemTrayAvailable

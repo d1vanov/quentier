@@ -58,9 +58,9 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
     highlightByRegex(m_xmlValueFormat, m_xmlValueRegex, text);
 }
 
-void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
-                                                 const QRegExp & regex,
-                                                 const QString & text)
+void BasicXMLSyntaxHighlighter::highlightByRegex(
+    const QTextCharFormat & format, const QRegExp & regex,
+    const QString & text)
 {
     int index = regex.indexIn(text);
 

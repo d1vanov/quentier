@@ -32,11 +32,11 @@ ActionsInfo::ActionsInfo(const QList<QMenu*> & menus) :
 {}
 
 const ActionsInfo::ActionInfo
-ActionsInfo::findActionInfo(const QString & actionName,
-                            const QString & context) const
+ActionsInfo::findActionInfo(
+    const QString & actionName, const QString & context) const
 {
-    QNDEBUG(QStringLiteral("ActionsInfo::findActionInfo: action name = ")
-            << actionName << QStringLiteral(", context = ") << context);
+    QNDEBUG("ActionsInfo::findActionInfo: action name = "
+            << actionName << ", context = " << context);
 
     // First look for menu whose name matches the "context"
     const QMenu * pTargetMenu = Q_NULLPTR;
@@ -71,15 +71,15 @@ ActionsInfo::findActionInfo(const QString & actionName,
         }
 
         ActionInfo info = fromAction(pAction, pTargetMenu->title());
-        QNDEBUG(QStringLiteral("Found action info: ") << info);
+        QNDEBUG("Found action info: " << info);
         return info;
     }
 
     return ActionInfo();
 }
 
-ActionsInfo::ActionInfo ActionsInfo::fromAction(const QAction * pAction,
-                                                const QString & category) const
+ActionsInfo::ActionInfo ActionsInfo::fromAction(
+    const QAction * pAction, const QString & category) const
 {
     if (Q_UNLIKELY(!pAction)) {
         return ActionInfo();
@@ -114,8 +114,9 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(const QAction * pAction,
     return info;
 }
 
-ActionsInfo::Iterator::Iterator(const int menuIndex, const int actionIndex,
-                                const ActionsInfo & actionsInfo) :
+ActionsInfo::Iterator::Iterator(
+        const int menuIndex, const int actionIndex,
+        const ActionsInfo & actionsInfo) :
     m_actionsInfo(actionsInfo),
     m_menuIndex(menuIndex),
     m_actionIndex(actionIndex)
@@ -210,14 +211,14 @@ ActionsInfo::ActionInfo::ActionInfo() :
 
 QTextStream & ActionsInfo::ActionInfo::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("ActionInfo: name = ") << m_name
-         << QStringLiteral(", localized name = ") << m_localizedName
-         << QStringLiteral(", context = ") << m_context
-         << QStringLiteral(", shortcut key = ") << m_shortcutKey
-         << QStringLiteral(", non-standard shortcut key = ")
+    strm << "ActionInfo: name = " << m_name
+         << ", localized name = " << m_localizedName
+         << ", context = " << m_context
+         << ", shortcut key = " << m_shortcutKey
+         << ", non-standard shortcut key = "
          << m_nonStandardShortcutKey
-         << QStringLiteral(", shortcut = ") <<
-         m_shortcut.toString(QKeySequence::PortableText);
+         << ", shortcut = "
+         << m_shortcut.toString(QKeySequence::PortableText);
     return strm;
 }
 
