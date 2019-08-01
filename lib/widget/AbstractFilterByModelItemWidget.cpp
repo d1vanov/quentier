@@ -33,7 +33,9 @@
 
 namespace quentier {
 
-AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(const QString & name, QWidget * parent) :
+AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(
+        const QString & name,
+        QWidget * parent) :
     QWidget(parent),
     m_name(name),
     m_pLayout(new FlowLayout(this)),
@@ -43,23 +45,28 @@ AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(const QString &
     m_filteredItemsLocalUidToNameBimap()
 {}
 
-void AbstractFilterByModelItemWidget::switchAccount(const Account & account, ItemModel * pItemModel)
+void AbstractFilterByModelItemWidget::switchAccount(
+    const Account & account, ItemModel * pItemModel)
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::switchAccount: ") << account.name());
+    QNDEBUG("AbstractFilterByModelItemWidget::switchAccount: " << account.name());
 
     if (!m_pItemModel.isNull() && (m_pItemModel.data() != pItemModel)) {
-        QObject::disconnect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
-                            this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
+        QObject::disconnect(m_pItemModel.data(),
+                            QNSIGNAL(ItemModel,notifyAllItemsListed),
+                            this,
+                            QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
     }
 
     m_pItemModel = pItemModel;
     if (!m_pItemModel.isNull() && !m_pItemModel->allItemsListed()) {
-        QObject::connect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
-                         this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
+        QObject::connect(m_pItemModel.data(),
+                         QNSIGNAL(ItemModel,notifyAllItemsListed),
+                         this,
+                         QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
     }
 
     if (m_account == account) {
-        QNDEBUG(QStringLiteral("Already set this account"));
+        QNDEBUG("Already set this account");
         return;
     }
 
@@ -68,7 +75,7 @@ void AbstractFilterByModelItemWidget::switchAccount(const Account & account, Ite
     m_account = account;
 
     if (Q_UNLIKELY(m_pItemModel.isNull())) {
-        QNTRACE(QStringLiteral("The new model is null"));
+        QNTRACE("The new model is null");
         m_filteredItemsLocalUidToNameBimap.clear();
         clearLayout();
         return;
@@ -104,7 +111,8 @@ QStringList AbstractFilterByModelItemWidget::itemsInFilter() const
             continue;
         }
 
-        ListItemWidget * pItemWidget = qobject_cast<ListItemWidget*>(pItem->widget());
+        ListItemWidget * pItemWidget =
+            qobject_cast<ListItemWidget*>(pItem->widget());
         if (!pItemWidget) {
             continue;
         }
@@ -154,24 +162,29 @@ bool AbstractFilterByModelItemWidget::isReady() const
     return m_isReady;
 }
 
-void AbstractFilterByModelItemWidget::addItemToFilter(const QString & localUid, const QString & itemName)
+void AbstractFilterByModelItemWidget::addItemToFilter(
+    const QString & localUid, const QString & itemName)
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::addItemToFilter: local uid = ")
-            << localUid << QStringLiteral(", name = ") << itemName);
+    QNDEBUG("AbstractFilterByModelItemWidget::addItemToFilter: local uid = "
+            << localUid << ", name = " << itemName);
 
     auto it = m_filteredItemsLocalUidToNameBimap.left.find(localUid);
     if (it != m_filteredItemsLocalUidToNameBimap.left.end()) {
-        QNDEBUG(QStringLiteral("Item is already within filter"));
+        QNDEBUG("Item is already within filter");
         // Just in case ensure the name would match
         onItemUpdatedInLocalStorage(localUid, itemName);
         return;
     }
 
-    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(localUid, itemName)))
+    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(
+        ItemLocalUidToNameBimap::value_type(localUid, itemName)))
 
     ListItemWidget * pItemWidget = new ListItemWidget(itemName, this);
-    QObject::connect(pItemWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
-                     this, QNSLOT(AbstractFilterByModelItemWidget,onItemRemovedFromList,QString));
+    QObject::connect(pItemWidget,
+                     QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
+                     this,
+                     QNSLOT(AbstractFilterByModelItemWidget,
+                            onItemRemovedFromList,QString));
 
     NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
     if (pNewItemLineEdit) {
@@ -189,10 +202,10 @@ void AbstractFilterByModelItemWidget::addItemToFilter(const QString & localUid, 
 
 void AbstractFilterByModelItemWidget::clear()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::clear"));
+    QNDEBUG("AbstractFilterByModelItemWidget::clear");
 
     bool wasEmpty = m_filteredItemsLocalUidToNameBimap.empty();
-    QNTRACE(QStringLiteral("Was empty: ") << (wasEmpty ? QStringLiteral("true") : QStringLiteral("false")));
+    QNTRACE("Was empty: " << (wasEmpty ? "true" : "false"));
 
     m_filteredItemsLocalUidToNameBimap.clear();
 
@@ -207,17 +220,17 @@ void AbstractFilterByModelItemWidget::clear()
 
 void AbstractFilterByModelItemWidget::update()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::update"));
+    QNDEBUG("AbstractFilterByModelItemWidget::update");
 
     clear();
 
     if (Q_UNLIKELY(m_account.isEmpty())) {
-        QNDEBUG(QStringLiteral("Current account is empty, won't do anything"));
+        QNDEBUG("Current account is empty, won't do anything");
         return;
     }
 
     if (m_pItemModel.isNull()) {
-        QNTRACE(QStringLiteral("The item model is null"));
+        QNTRACE("The item model is null");
         return;
     }
 
@@ -234,25 +247,27 @@ void AbstractFilterByModelItemWidget::update()
                      this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
 }
 
-void AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage(const QString & localUid, const QString & name)
+void AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage(
+    const QString & localUid, const QString & name)
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage: local uid = ")
-            << localUid << QStringLiteral(", name = ") << name);
+    QNDEBUG("AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage: "
+            << "local uid = " << localUid << ", name = " << name);
 
     auto it = m_filteredItemsLocalUidToNameBimap.left.find(localUid);
     if (it == m_filteredItemsLocalUidToNameBimap.left.end()) {
-        QNDEBUG(QStringLiteral("Item is not within filter"));
+        QNDEBUG("Item is not within filter");
         return;
     }
 
     if (it->second == name) {
-        QNDEBUG(QStringLiteral("Filtered item's name hasn't changed"));
+        QNDEBUG("Filtered item's name hasn't changed");
         return;
     }
 
     QString previousName = it->second;
     Q_UNUSED(m_filteredItemsLocalUidToNameBimap.left.erase(it))
-    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(localUid, name)))
+    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(
+        ItemLocalUidToNameBimap::value_type(localUid, name)))
 
     int numItems = m_pLayout->count();
     for(int i = 0; i < numItems; ++i)
@@ -276,14 +291,15 @@ void AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage(const QString 
     }
 }
 
-void AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage(const QString & localUid)
+void AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage(
+    const QString & localUid)
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage: local uid = ")
-            << localUid);
+    QNDEBUG("AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage: "
+            << "local uid = " << localUid);
 
     auto it = m_filteredItemsLocalUidToNameBimap.left.find(localUid);
     if (it == m_filteredItemsLocalUidToNameBimap.left.end()) {
-        QNDEBUG(QStringLiteral("Item is not within filter"));
+        QNDEBUG("Item is not within filter");
         return;
     }
 
@@ -298,7 +314,8 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage(const QStrin
             continue;
         }
 
-        ListItemWidget * pItemWidget = qobject_cast<ListItemWidget*>(pItem->widget());
+        ListItemWidget * pItemWidget =
+            qobject_cast<ListItemWidget*>(pItem->widget());
         if (!pItemWidget) {
             continue;
         }
@@ -318,19 +335,23 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage(const QStrin
 
 void AbstractFilterByModelItemWidget::onNewItemAdded()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::onNewItemAdded"));
+    QNDEBUG("AbstractFilterByModelItemWidget::onNewItemAdded");
 
-    NewListItemLineEdit * pNewItemLineEdit = qobject_cast<NewListItemLineEdit*>(sender());
-    if (Q_UNLIKELY(!pNewItemLineEdit)) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't process the addition of a new item to the filter: "
-                                     "can't cast the signal sender to NewListLineEdit"));
+    NewListItemLineEdit * pNewItemLineEdit =
+        qobject_cast<NewListItemLineEdit*>(sender());
+    if (Q_UNLIKELY(!pNewItemLineEdit))
+    {
+        ErrorString error(QT_TR_NOOP("Internal error: can't process the "
+                                     "addition of a new item to the filter: "
+                                     "can't cast the signal sender to "
+                                     "NewListLineEdit"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
         return;
     }
 
     QString newItemName = pNewItemLineEdit->text();
-    QNTRACE(QStringLiteral("New item name: ") << newItemName);
+    QNTRACE("New item name: " << newItemName);
 
     if (newItemName.isEmpty()) {
         return;
@@ -339,16 +360,17 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
     pNewItemLineEdit->clear();
 
     if (Q_UNLIKELY(m_account.isEmpty())) {
-        QNDEBUG(QStringLiteral("Current account is empty, won't do anything"));
+        QNDEBUG("Current account is empty, won't do anything");
         return;
     }
 
     if (Q_UNLIKELY(m_pItemModel.isNull())) {
-        QNDEBUG(QStringLiteral("Current item model is null, won't do anything"));
+        QNDEBUG("Current item model is null, won't do anything");
         return;
     }
 
-    QString localUid = m_pItemModel->localUidForItemName(newItemName, /* linked notebook guid = */ QString());
+    QString localUid = m_pItemModel->localUidForItemName(
+        newItemName, /* linked notebook guid = */ QString());
     if (localUid.isEmpty()) {
         ErrorString error(QT_TR_NOOP("Can't process the addition of a new item "
                                      "to the filter: can't find the item's local uid"));
@@ -359,11 +381,12 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
 
     auto nit = m_filteredItemsLocalUidToNameBimap.right.find(newItemName);
     if (nit != m_filteredItemsLocalUidToNameBimap.right.end()) {
-        QNDEBUG(QStringLiteral("Such item already exists within the filter, skipping"));
+        QNDEBUG("Such item already exists within the filter, skipping");
         return;
     }
 
-    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(localUid, newItemName)))
+    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(
+        ItemLocalUidToNameBimap::value_type(localUid, newItemName)))
 
     QStringList filteredItemNames = pNewItemLineEdit->reservedItemNames();
     filteredItemNames << newItemName;
@@ -372,8 +395,11 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
     m_pLayout->removeWidget(pNewItemLineEdit);
 
     ListItemWidget * pItemWidget = new ListItemWidget(newItemName, this);
-    QObject::connect(pItemWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
-                     this, QNSLOT(AbstractFilterByModelItemWidget,onItemRemovedFromList,QString));
+    QObject::connect(pItemWidget,
+                     QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
+                     this,
+                     QNSLOT(AbstractFilterByModelItemWidget,
+                            onItemRemovedFromList,QString));
     m_pLayout->addWidget(pItemWidget);
 
     m_pLayout->addWidget(pNewItemLineEdit);
@@ -381,7 +407,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         pNewItemLineEdit->setFocus();
     }
 
-    QNTRACE(QStringLiteral("Successfully added the new item to filter: ") << newItemName);
+    QNTRACE("Successfully added the new item to filter: " << newItemName);
     Q_EMIT addedItemToFilter(newItemName);
 
     persistFilteredItems();
@@ -389,11 +415,13 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
 
 void AbstractFilterByModelItemWidget::onItemRemovedFromList(QString name)
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::onItemRemovedFromList: name = ") << name);
+    QNDEBUG("AbstractFilterByModelItemWidget::onItemRemovedFromList: name = "
+            << name);
 
     auto it = m_filteredItemsLocalUidToNameBimap.right.find(name);
     if (it == m_filteredItemsLocalUidToNameBimap.right.end()) {
-        QNWARNING(QStringLiteral("Internal error: can't remove item from filter: no item with such name was found"));
+        QNWARNING("Internal error: can't remove item from filter: no item with "
+                  "such name was found");
         return;
     }
 
@@ -407,7 +435,8 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(QString name)
             continue;
         }
 
-        ListItemWidget * pItemWidget = qobject_cast<ListItemWidget*>(pItem->widget());
+        ListItemWidget * pItemWidget =
+            qobject_cast<ListItemWidget*>(pItem->widget());
         if (!pItemWidget) {
             continue;
         }
@@ -422,7 +451,7 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(QString name)
         break;
     }
 
-    QNTRACE(QStringLiteral("Removed item from filter: ") << name);
+    QNTRACE("Removed item from filter: " << name);
     Q_EMIT itemRemovedFromFilter(name);
 
     persistFilteredItems();
@@ -439,10 +468,12 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(QString name)
 
 void AbstractFilterByModelItemWidget::onModelReady()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::onModelReady"));
+    QNDEBUG("AbstractFilterByModelItemWidget::onModelReady");
 
-    QObject::disconnect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
-                        this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
+    QObject::disconnect(m_pItemModel.data(),
+                        QNSIGNAL(ItemModel,notifyAllItemsListed),
+                        this,
+                        QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
     restoreFilteredItems();
     m_isReady = true;
     Q_EMIT ready();
@@ -450,11 +481,11 @@ void AbstractFilterByModelItemWidget::onModelReady()
 
 void AbstractFilterByModelItemWidget::persistFilteredItems()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::persistFilteredItems: account = ")
+    QNDEBUG("AbstractFilterByModelItemWidget::persistFilteredItems: account = "
             << m_account.name());
 
     if (m_account.isEmpty()) {
-        QNDEBUG(QStringLiteral("The account is empty, nothing to persist"));
+        QNDEBUG("The account is empty, nothing to persist");
         return;
     }
 
@@ -462,8 +493,11 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));
 
     QStringList filteredItemsLocalUids;
-    filteredItemsLocalUids.reserve(static_cast<int>(m_filteredItemsLocalUidToNameBimap.size()));
-    for(auto it = m_filteredItemsLocalUidToNameBimap.left.begin(), end = m_filteredItemsLocalUidToNameBimap.left.end(); it != end; ++it) {
+    filteredItemsLocalUids.reserve(
+        static_cast<int>(m_filteredItemsLocalUidToNameBimap.size()));
+    for(auto it = m_filteredItemsLocalUidToNameBimap.left.begin(),
+        end = m_filteredItemsLocalUidToNameBimap.left.end(); it != end; ++it)
+    {
         const QString & localUid = it->first;
         filteredItemsLocalUids << localUid;
     }
@@ -471,21 +505,21 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
     appSettings.setValue(LAST_FILTERED_ITEMS_KEY, filteredItemsLocalUids);
     appSettings.endGroup();
 
-    QNDEBUG(QStringLiteral("Successfully persisted the local uids of filtered items: ")
+    QNDEBUG("Successfully persisted the local uids of filtered items: "
             << filteredItemsLocalUids.join(QStringLiteral(", ")));
 }
 
 void AbstractFilterByModelItemWidget::restoreFilteredItems()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::restoreFilteredItems"));
+    QNDEBUG("AbstractFilterByModelItemWidget::restoreFilteredItems");
 
     if (m_account.isEmpty()) {
-        QNDEBUG(QStringLiteral("The account is empty, nothing to restore"));
+        QNDEBUG("The account is empty, nothing to restore");
         return;
     }
 
     if (Q_UNLIKELY(m_pItemModel.isNull())) {
-        QNDEBUG(QStringLiteral("The item model is null, can't restore anything"));
+        QNDEBUG("The item model is null, can't restore anything");
         return;
     }
 
@@ -495,7 +529,8 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
     appSettings.endGroup();
 
     if (itemLocalUids.isEmpty()) {
-        QNDEBUG(QStringLiteral("The previously persisted list of item local uids within the filter is empty"));
+        QNDEBUG("The previously persisted list of item local uids within "
+                "the filter is empty");
         clear();
         return;
     }
@@ -503,37 +538,42 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
     m_filteredItemsLocalUidToNameBimap.clear();
     clearLayout();
 
-    for(auto it = itemLocalUids.constBegin(), end = itemLocalUids.constEnd(); it != end; ++it)
+    for(auto it = itemLocalUids.constBegin(),
+        end = itemLocalUids.constEnd(); it != end; ++it)
     {
         QString itemName = m_pItemModel->itemNameForLocalUid(*it);
         if (itemName.isEmpty()) {
-            QNTRACE(QStringLiteral("Found no item name for local uid ") << *it);
+            QNTRACE("Found no item name for local uid " << *it);
             continue;
         }
 
-        Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(*it, itemName)))
+        Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(
+            ItemLocalUidToNameBimap::value_type(*it, itemName)))
 
         ListItemWidget * pItemWidget = new ListItemWidget(itemName, this);
-        QObject::connect(pItemWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
-                         this, QNSLOT(AbstractFilterByModelItemWidget,onItemRemovedFromList,QString));
+        QObject::connect(pItemWidget,
+                         QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
+                         this,
+                         QNSLOT(AbstractFilterByModelItemWidget,
+                                onItemRemovedFromList,QString));
         m_pLayout->addWidget(pItemWidget);
     }
 
     addNewItemWidget();
-    QNTRACE(QStringLiteral("Updated the list of items within the filter"));
+    QNTRACE("Updated the list of items within the filter");
 }
 
 void AbstractFilterByModelItemWidget::addNewItemWidget()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::addNewItemWidget"));
+    QNDEBUG("AbstractFilterByModelItemWidget::addNewItemWidget");
 
     if (m_account.isEmpty()) {
-        QNDEBUG(QStringLiteral("The account is empty"));
+        QNDEBUG("The account is empty");
         return;
     }
 
     if (m_pItemModel.isNull()) {
-        QNDEBUG(QStringLiteral("The model is null"));
+        QNDEBUG("The model is null");
         return;
     }
 
@@ -545,9 +585,10 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
         existingNames << it->second;
     }
 
-    NewListItemLineEdit * pNewItemLineEdit = new NewListItemLineEdit(m_pItemModel.data(), existingNames,
-                                                                     /* fake linked notebook guid = */ QLatin1String(""),
-                                                                     this);
+    NewListItemLineEdit * pNewItemLineEdit = new NewListItemLineEdit(
+        m_pItemModel.data(), existingNames,
+        /* fake linked notebook guid = */ QLatin1String(""), this);
+
     QObject::connect(pNewItemLineEdit, QNSIGNAL(NewListItemLineEdit,returnPressed),
                      this, QNSLOT(AbstractFilterByModelItemWidget,onNewItemAdded));
     m_pLayout->addWidget(pNewItemLineEdit);
@@ -555,7 +596,7 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
 
 void AbstractFilterByModelItemWidget::clearLayout()
 {
-    QNDEBUG(QStringLiteral("AbstractFilterByModelItemWidget::clearLayout"));
+    QNDEBUG("AbstractFilterByModelItemWidget::clearLayout");
 
     while(m_pLayout->count() > 0)
     {
@@ -581,7 +622,8 @@ NewListItemLineEdit * AbstractFilterByModelItemWidget::findNewItemWidget()
             continue;
         }
 
-        NewListItemLineEdit * pNewItemWidget = qobject_cast<NewListItemLineEdit*>(pItem->widget());
+        NewListItemLineEdit * pNewItemWidget =
+            qobject_cast<NewListItemLineEdit*>(pItem->widget());
         if (!pNewItemWidget) {
             continue;
         }

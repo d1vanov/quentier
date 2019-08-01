@@ -52,23 +52,23 @@ public Q_SLOTS:
      * on headers which leads to the check not working and the code not building
      * with Qt4
      */
-    virtual void dataChanged(const QModelIndex & topLeft,
-                             const QModelIndex & bottomRight
+    virtual void dataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < 0x050000
-                            )
+        )
 #else
-                            , const QVector<int> & roles = QVector<int>())
+        , const QVector<int> & roles = QVector<int>())
 #endif
-                            Q_DECL_OVERRIDE;
+        Q_DECL_OVERRIDE;
 
 protected:
     /**
      * @return              The valid index if all indexes in the list point to
      *                      the same row or invalid model index otherwise
      */
-    QModelIndex singleRow(const QModelIndexList & indexes,
-                          const QAbstractItemModel & model,
-                          const int column) const;
+    QModelIndex singleRow(
+        const QModelIndexList & indexes, const QAbstractItemModel & model,
+        const int column) const;
 };
 
 } // namespace quentier

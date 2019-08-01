@@ -38,15 +38,17 @@ QT_FORWARD_DECLARE_CLASS(ItemModel)
 QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
 
 /**
- * @brief The AbstractFilterByModelItemWidget class is the base class for filter by model items widget;
- * it handles the boilerplate work of managing the widget's layout and requires its subclasses to implement
- * the communication with the local storage
+ * @brief The AbstractFilterByModelItemWidget class is the base class for filter
+ * by model items widget; it handles the boilerplate work of managing the
+ * widget's layout and requires its subclasses to implement communication
+ * with local storage
  */
 class AbstractFilterByModelItemWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit AbstractFilterByModelItemWidget(const QString & name, QWidget * parent = Q_NULLPTR);
+    explicit AbstractFilterByModelItemWidget(
+        const QString & name, QWidget * parent = Q_NULLPTR);
 
     const Account & account() const { return m_account; }
 
@@ -59,8 +61,8 @@ public:
     QStringList localUidsOfItemsInFilter() const;
 
     /**
-     * @return true if the filter widget has been fully initialized after the most recent account switching,
-     * false otherwise
+     * @return true if the filter widget has been fully initialized after the
+     * most recent account switching, false otherwise
      */
     bool isReady() const;
 
@@ -68,30 +70,36 @@ Q_SIGNALS:
     void notifyError(ErrorString error);
 
     /**
-     * @brief addedItemToFilter signal is emitted when the item is added to the filter
+     * @brief addedItemToFilter signal is emitted when the item is added to
+     * the filter
+     *
      * @param itemName - the name of the item added to the filted
      */
     void addedItemToFilter(const QString & itemName);
 
     /**
-     * @brief itemRemovedFromFilter signal is emitted when the item is removed from the filter
+     * @brief itemRemovedFromFilter signal is emitted when the item is removed
+     * from the filter
+     *
      * @param itemName - the name of the item removed from the filter
      */
     void itemRemovedFromFilter(const QString & itemName);
 
     /**
-     * @brief cleared signal is emitted when all items are removed from the filter
+     * @brief cleared signal is emitted when all items are removed from the
+     * filter
      */
     void cleared();
 
     /**
-     * @brief updated signal is emitted when the set of items in the filter changes
-     * so that it needs to be re-requested and re-processed
+     * @brief updated signal is emitted when the set of items in the filter
+     * changes so that it needs to be re-requested and re-processed
      */
     void updated();
 
     /**
-     * @brief ready signal is emitted when the filter widget's initialization is complete
+     * @brief ready signal is emitted when the filter widget's initialization
+     * is complete
      */
     void ready();
 
@@ -100,14 +108,17 @@ public Q_SLOTS:
     void clear();
 
     /**
-     * @brief update - this slot should be called in case it's necessary to re-fetch
-     * the information about all items within the filter because some of them
-     * might have been deleted but and it's hard to tell which ones exactly
+     * @brief update - this slot should be called in case it's necessary to
+     * re-fetch the information about all items within the filter because some
+     * of them might have been deleted but and it's hard to tell which ones
+     * exactly
      */
     void update();
 
     // The subclass should call these methods in relevant circumstances
-    void onItemUpdatedInLocalStorage(const QString & localUid, const QString & name);
+    void onItemUpdatedInLocalStorage(
+        const QString & localUid, const QString & name);
+
     void onItemRemovedFromLocalStorage(const QString & localUid);
 
 private Q_SLOTS:

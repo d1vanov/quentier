@@ -65,16 +65,17 @@ private Q_SLOTS:
     void onDeselectAction();
     void onShowFavoritedItemInfoAction();
 
-    virtual void selectionChanged(const QItemSelection & selected,
-                                  const QItemSelection & deselected) Q_DECL_OVERRIDE;
+    virtual void selectionChanged(
+        const QItemSelection & selected,
+        const QItemSelection & deselected) Q_DECL_OVERRIDE;
 
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     void restoreLastSavedSelection(const FavoritesModel & model);
 
-    void selectionChangedImpl(const QItemSelection & selected,
-                              const QItemSelection & deselected);
+    void selectionChangedImpl(
+        const QItemSelection & selected, const QItemSelection & deselected);
 
     void prepareForFavoritesModelChange();
     void postProcessFavoritedModelChange();

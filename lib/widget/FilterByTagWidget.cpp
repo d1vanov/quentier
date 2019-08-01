@@ -30,16 +30,30 @@ FilterByTagWidget::FilterByTagWidget(QWidget * parent) :
     m_pLocalStorageManager()
 {}
 
-void FilterByTagWidget::setLocalStorageManager(LocalStorageManagerAsync & localStorageManagerAsync)
+void FilterByTagWidget::setLocalStorageManager(
+    LocalStorageManagerAsync & localStorageManagerAsync)
 {
     m_pLocalStorageManager = &localStorageManagerAsync;
 
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,Tag,QUuid),
-                     this, QNSLOT(FilterByTagWidget,onUpdateTagCompleted,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,Tag,QStringList,QUuid),
-                     this, QNSLOT(FilterByTagWidget,onExpungeTagCompleted,Tag,QStringList,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerAsync,expungeNotelessTagsFromLinkedNotebooksComplete,QUuid),
-                     this, QNSLOT(FilterByTagWidget,onExpungeNotelessTagsFromLinkedNotebooksCompleted,QUuid));
+    QObject::connect(m_pLocalStorageManager.data(),
+                     QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,
+                              Tag,QUuid),
+                     this,
+                     QNSLOT(FilterByTagWidget,onUpdateTagCompleted,Tag,QUuid));
+    QObject::connect(m_pLocalStorageManager.data(),
+                     QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,
+                              Tag,QStringList,QUuid),
+                     this,
+                     QNSLOT(FilterByTagWidget,onExpungeTagCompleted,
+                            Tag,QStringList,QUuid));
+    QObject::connect(m_pLocalStorageManager.data(),
+                     QNSIGNAL(LocalStorageManagerAsync,
+                              expungeNotelessTagsFromLinkedNotebooksComplete,
+                              QUuid),
+                     this,
+                     QNSLOT(FilterByTagWidget,
+                            onExpungeNotelessTagsFromLinkedNotebooksCompleted,
+                            QUuid));
 }
 
 const TagModel * FilterByTagWidget::tagModel() const
@@ -54,11 +68,11 @@ const TagModel * FilterByTagWidget::tagModel() const
 
 void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FilterByTagWidget::onUpdateTagCompleted: request id = ")
-            << requestId << QStringLiteral(", tag = ") << tag);
+    QNDEBUG("FilterByTagWidget::onUpdateTagCompleted: request id = "
+            << requestId << ", tag = " << tag);
 
     if (Q_UNLIKELY(!tag.hasName())) {
-        QNWARNING(QStringLiteral("Found tag without a name: ") << tag);
+        QNWARNING("Found tag without a name: " << tag);
         onItemRemovedFromLocalStorage(tag.localUid());
         return;
     }
@@ -66,23 +80,29 @@ void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
     onItemUpdatedInLocalStorage(tag.localUid(), tag.name());
 }
 
-void FilterByTagWidget::onExpungeTagCompleted(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
+void FilterByTagWidget::onExpungeTagCompleted(
+    Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FilterByTagWidget::onExpungeTagCompleted: request id = ")
-            << requestId << QStringLiteral(", tag = ") << tag
-            << QStringLiteral("\nExpunged child tag local uids: ") << expungedChildTagLocalUids.join(QStringLiteral(", ")));
+    QNDEBUG("FilterByTagWidget::onExpungeTagCompleted: request id = "
+            << requestId << ", tag = " << tag
+            << "\nExpunged child tag local uids: "
+            << expungedChildTagLocalUids.join(QStringLiteral(", ")));
 
     QStringList expungedTagLocalUids;
     expungedTagLocalUids << tag.localUid();
     expungedTagLocalUids << expungedChildTagLocalUids;
-    for(auto it = expungedTagLocalUids.constBegin(), end = expungedTagLocalUids.constEnd(); it != end; ++it) {
+    for(auto it = expungedTagLocalUids.constBegin(),
+        end = expungedTagLocalUids.constEnd(); it != end; ++it)
+    {
         onItemRemovedFromLocalStorage(*it);
     }
 }
 
-void FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId)
+void FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted(
+    QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted: request id = ")
+    QNDEBUG("FilterByTagWidget::"
+            << "onExpungeNotelessTagsFromLinkedNotebooksCompleted: request id = "
             << requestId);
 
     update();

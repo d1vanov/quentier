@@ -38,7 +38,8 @@ class FilterBySavedSearchWidget: public QComboBox
 public:
     explicit FilterBySavedSearchWidget(QWidget * parent = Q_NULLPTR);
 
-    void switchAccount(const Account & account, SavedSearchModel * pSavedSearchModel);
+    void switchAccount(
+        const Account & account, SavedSearchModel * pSavedSearchModel);
 
     const SavedSearchModel * savedSearchModel() const;
 
@@ -55,11 +56,12 @@ private Q_SLOTS:
     void onModelRowsInserted(const QModelIndex & parent, int start, int end);
     void onModelRowsRemoved(const QModelIndex & parent, int start, int end);
 
-    void onModelDataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+    void onModelDataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < 0x050000
-                            );
+        );
 #else
-                            , const QVector<int> & roles = QVector<int>());
+        , const QVector<int> & roles = QVector<int>());
 #endif
 
     void persistSelectedSavedSearch();
