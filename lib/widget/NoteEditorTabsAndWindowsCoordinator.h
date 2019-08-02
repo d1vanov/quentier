@@ -60,7 +60,8 @@ class NoteEditorTabsAndWindowsCoordinator: public QObject
     Q_OBJECT
 public:
     explicit NoteEditorTabsAndWindowsCoordinator(
-        const Account & account, LocalStorageManagerAsync & localStorageManagerAsync,
+        const Account & account,
+        LocalStorageManagerAsync & localStorageManagerAsync,
         NoteCache & noteCache, NotebookCache & notebookCache,
         TagCache & tagCache, TagModel & tagModel,
         TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
@@ -77,7 +78,9 @@ public:
     void setMaxNumNotesInTabs(const int maxNumNotesInTabs);
 
     int numNotesInTabs() const;
-    NoteEditorWidget * noteEditorWidgetForNoteLocalUid(const QString & noteLocalUid);
+
+    NoteEditorWidget * noteEditorWidgetForNoteLocalUid(
+        const QString & noteLocalUid);
 
     struct NoteEditorMode
     {
@@ -89,13 +92,15 @@ public:
         };
     };
 
-    void addNote(const QString & noteLocalUid,
-                 const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any,
-                 const bool isNewNote = false);
+    void addNote(
+        const QString & noteLocalUid,
+        const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any,
+        const bool isNewNote = false);
 
-    void createNewNote(const QString & notebookLocalUid,
-                       const QString & notebookGuid,
-                       const NoteEditorMode::type noteEditorMode);
+    void createNewNote(
+        const QString & notebookLocalUid,
+        const QString & notebookGuid,
+        const NoteEditorMode::type noteEditorMode);
 
     void setUseLimitedFonts(const bool flag);
 
@@ -136,19 +141,21 @@ private Q_SLOTS:
     void onNoteEditorError(ErrorString errorDescription);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, ErrorString errorDescription,
-                         QUuid requestId);
+    void onAddNoteFailed(
+        Note note, ErrorString errorDescription, QUuid requestId);
 
-    void onFindNoteComplete(Note note,
-                            LocalStorageManager::GetNoteOptions options,
-                            QUuid requestId);
-    void onFindNoteFailed(Note note,
-                          LocalStorageManager::GetNoteOptions options,
-                          ErrorString errorDescription, QUuid requestId);
+    void onFindNoteComplete(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
+
+    void onFindNoteFailed(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        ErrorString errorDescription, QUuid requestId);
 
     void onExpungeNoteComplete(Note note, QUuid requestId);
-    void onExpungeNoteFailed(Note note, ErrorString errorDescription,
-                             QUuid requestId);
+
+    void onExpungeNoteFailed(
+        Note note, ErrorString errorDescription, QUuid requestId);
 
     void onCurrentTabChanged(int currentIndex);
 
@@ -164,8 +171,9 @@ private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) Q_DECL_OVERRIDE;
 
 private:
-    void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget,
-                                const NoteEditorMode::type noteEditorMode);
+    void insertNoteEditorWidget(
+        NoteEditorWidget * pNoteEditorWidget,
+        const NoteEditorMode::type noteEditorMode);
 
     void removeNoteEditorTab(int tabIndex, const bool closeEditor);
     void checkAndCloseOlderNoteEditorTabs();

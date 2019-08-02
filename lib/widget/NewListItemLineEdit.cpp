@@ -34,10 +34,11 @@
 
 namespace quentier {
 
-NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
-                                         const QStringList & reservedItemNames,
-                                         const QString & linkedNotebookGuid,
-                                         QWidget * parent) :
+NewListItemLineEdit::NewListItemLineEdit(
+        ItemModel * pItemModel,
+        const QStringList & reservedItemNames,
+        const QString & linkedNotebookGuid,
+        QWidget * parent) :
     QLineEdit(parent),
     m_pUi(new Ui::NewListItemLineEdit),
     m_pItemModel(pItemModel),
@@ -50,16 +51,27 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
     setPlaceholderText(tr("Click here to add") + QStringLiteral("..."));
     setupCompleter();
 
-    QObject::connect(m_pItemModel.data(), QNSIGNAL(ItemModel,rowsInserted,const QModelIndex&,int,int),
-                     this, QNSLOT(NewListItemLineEdit,onModelRowsInserted,const QModelIndex&,int,int));
-    QObject::connect(m_pItemModel.data(), QNSIGNAL(ItemModel,rowsRemoved,const QModelIndex&,int,int),
-                     this, QNSLOT(NewListItemLineEdit,onModelRowsRemoved,const QModelIndex&,int,int));
+    QObject::connect(m_pItemModel.data(),
+                     QNSIGNAL(ItemModel,rowsInserted,
+                              const QModelIndex&,int,int),
+                     this,
+                     QNSLOT(NewListItemLineEdit,onModelRowsInserted,
+                            const QModelIndex&,int,int));
+    QObject::connect(m_pItemModel.data(),
+                     QNSIGNAL(ItemModel,rowsRemoved,
+                              const QModelIndex&,int,int),
+                     this,
+                     QNSLOT(NewListItemLineEdit,onModelRowsRemoved,
+                            const QModelIndex&,int,int));
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    QObject::connect(m_pItemModel.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     this, SLOT(onModelDataChanged(QModelIndex,QModelIndex)));
+    QObject::connect(m_pItemModel.data(),
+                     SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                     this,
+                     SLOT(onModelDataChanged(QModelIndex,QModelIndex)));
 #else
-    QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged, this, &NewListItemLineEdit::onModelDataChanged);
+    QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged,
+                     this, &NewListItemLineEdit::onModelDataChanged);
 #endif
 
     // NOTE: working around what seems to be a Qt bug: when one selects some item
@@ -71,12 +83,12 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
     QObject::connect(m_pCompleter, SIGNAL(activated(const QString&)),
                      this, SLOT(clear()), Qt::QueuedConnection);
 
-    QNTRACE(QStringLiteral("Created NewListItemLineEdit: ") << this);
+    QNTRACE("Created NewListItemLineEdit: " << this);
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
 {
-    QNTRACE(QStringLiteral("Destroying NewListItemLineEdit: ") << this);
+    QNTRACE("Destroying NewListItemLineEdit: " << this);
     delete m_pUi;
 }
 
@@ -85,9 +97,10 @@ QStringList NewListItemLineEdit::reservedItemNames() const
     return m_reservedItemNames;
 }
 
-void NewListItemLineEdit::updateReservedItemNames(const QStringList & reservedItemNames)
+void NewListItemLineEdit::updateReservedItemNames(
+    const QStringList & reservedItemNames)
 {
-    QNDEBUG(QStringLiteral("NewListItemLineEdit::updateReservedItemNames: ")
+    QNDEBUG("NewListItemLineEdit::updateReservedItemNames: "
             << reservedItemNames.join(QStringLiteral(", ")));
 
     m_reservedItemNames = reservedItemNames;
@@ -116,7 +129,7 @@ void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
     }
 
     int key = pEvent->key();
-    QNTRACE(QStringLiteral("NewListItemLineEdit::keyPressEvent: key = ") << key);
+    QNTRACE("NewListItemLineEdit::keyPressEvent: key = " << key);
 
     if (key == Qt::Key_Tab) {
         QKeyEvent keyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier);
@@ -129,21 +142,21 @@ void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
 
 void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
 {
-    QNTRACE(QStringLiteral("NewListItemLineEdit::focusInEvent: ") << this
-            << QStringLiteral(", event type = ") << pEvent->type()
-            << QStringLiteral(", reason = ") << pEvent->reason());
+    QNTRACE("NewListItemLineEdit::focusInEvent: " << this << ", event type = "
+            << pEvent->type() << ", reason = " << pEvent->reason());
 
     QLineEdit::focusInEvent(pEvent);
 
     if (pEvent->reason() == Qt::ActiveWindowFocusReason) {
-        QNTRACE(QStringLiteral("Received focus from the window system"));
+        QNTRACE("Received focus from the window system");
         Q_EMIT receivedFocusFromWindowSystem();
     }
 }
 
-void NewListItemLineEdit::onModelRowsInserted(const QModelIndex & parent, int start, int end)
+void NewListItemLineEdit::onModelRowsInserted(
+    const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG(QStringLiteral("NewListItemLineEdit::onModelRowsInserted"));
+    QNDEBUG("NewListItemLineEdit::onModelRowsInserted");
 
     Q_UNUSED(parent)
     Q_UNUSED(start)
@@ -152,9 +165,10 @@ void NewListItemLineEdit::onModelRowsInserted(const QModelIndex & parent, int st
     setupCompleter();
 }
 
-void NewListItemLineEdit::onModelRowsRemoved(const QModelIndex & parent, int start, int end)
+void NewListItemLineEdit::onModelRowsRemoved(
+    const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG(QStringLiteral("NewListItemLineEdit::onModelRowsRemoved"));
+    QNDEBUG("NewListItemLineEdit::onModelRowsRemoved");
 
     Q_UNUSED(parent)
     Q_UNUSED(start)
@@ -163,14 +177,15 @@ void NewListItemLineEdit::onModelRowsRemoved(const QModelIndex & parent, int sta
     setupCompleter();
 }
 
-void NewListItemLineEdit::onModelDataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+void NewListItemLineEdit::onModelDataChanged(
+    const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                                             )
+    )
 #else
-                                             , const QVector<int> & roles)
+    , const QVector<int> & roles)
 #endif
 {
-    QNDEBUG(QStringLiteral("NewListItemLineEdit::onModelDataChanged"));
+    QNDEBUG("NewListItemLineEdit::onModelDataChanged");
 
     Q_UNUSED(topLeft)
     Q_UNUSED(bottomRight)
@@ -184,7 +199,7 @@ void NewListItemLineEdit::onModelDataChanged(const QModelIndex & topLeft, const 
 
 void NewListItemLineEdit::setupCompleter()
 {
-    QNDEBUG(QStringLiteral("NewListItemLineEdit::setupCompleter: reserved item names: ")
+    QNDEBUG("NewListItemLineEdit::setupCompleter: reserved item names: "
             << m_reservedItemNames.join(QStringLiteral(", ")));
 
     m_pCompleter->setCaseSensitivity(Qt::CaseInsensitive);
@@ -194,27 +209,31 @@ void NewListItemLineEdit::setupCompleter()
     if (!m_pItemModel.isNull())
     {
         itemNames = m_pItemModel->itemNames(m_linkedNotebookGuid);
-        QNTRACE(QStringLiteral("Model item names: ") << itemNames.join(QStringLiteral(", ")));
+        QNTRACE("Model item names: " << itemNames.join(QStringLiteral(", ")));
 
-        for(auto it = m_reservedItemNames.constBegin(), end = m_reservedItemNames.constEnd(); it != end; ++it)
+        for(auto it = m_reservedItemNames.constBegin(),
+            end = m_reservedItemNames.constEnd(); it != end; ++it)
         {
-            auto nit = std::lower_bound(itemNames.constBegin(), itemNames.constEnd(), *it);
+            auto nit = std::lower_bound(
+                itemNames.constBegin(), itemNames.constEnd(), *it);
             if ((nit != itemNames.constEnd()) && (*nit == *it)) {
-                int offset = static_cast<int>(std::distance(itemNames.constBegin(), nit));
-                Q_UNUSED(itemNames.erase(QStringList::iterator(itemNames.begin() + offset)))
+                int offset = static_cast<int>(
+                    std::distance(itemNames.constBegin(), nit));
+                Q_UNUSED(itemNames.erase(
+                    QStringList::iterator(itemNames.begin() + offset)))
             }
         }
     }
 
     m_pItemNamesModel->setStringList(itemNames);
-    QNTRACE(QStringLiteral("The item names to set to the completer: ")
+    QNTRACE("The item names to set to the completer: "
             << itemNames.join(QStringLiteral(", ")));
 
     m_pCompleter->setModel(m_pItemNamesModel);
     setCompleter(m_pCompleter);
 
 #ifdef LIB_QUENTIER_USE_QT_WEB_ENGINE
-    QNDEBUG(QStringLiteral("Working around Qt bug https://bugreports.qt.io/browse/QTBUG-56652"));
+    QNDEBUG("Working around Qt bug https://bugreports.qt.io/browse/QTBUG-56652");
     m_pCompleter->setCompletionMode(QCompleter::InlineCompletion);
 #endif
 

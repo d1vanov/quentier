@@ -39,8 +39,10 @@ class NotebookModelItemInfoWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit NotebookModelItemInfoWidget(const QModelIndex & index,
-                                         QWidget * parent = Q_NULLPTR);
+    explicit NotebookModelItemInfoWidget(
+        const QModelIndex & index,
+        QWidget * parent = Q_NULLPTR);
+
     virtual ~NotebookModelItemInfoWidget();
 
 private:

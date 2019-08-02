@@ -53,17 +53,21 @@
 #define MAX_TAB_NAME_SIZE (10)
 #define MAX_WINDOW_NAME_SIZE (120)
 
-#define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY \
-    QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")
+#define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY                             \
+    QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")                 \
+// OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY
 
-#define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY \
-    QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorWindows")
+#define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY                          \
+    QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorWindows")              \
+// OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY
 
-#define LAST_CURRENT_TAB_NOTE_LOCAL_UID \
-    QStringLiteral("LastCurrentTabNoteLocalUid")
+#define LAST_CURRENT_TAB_NOTE_LOCAL_UID                                        \
+    QStringLiteral("LastCurrentTabNoteLocalUid")                               \
+// LAST_CURRENT_TAB_NOTE_LOCAL_UID
 
-#define NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX \
-    QStringLiteral("NoteEditorWindowGeometry_")
+#define NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX                                 \
+    QStringLiteral("NoteEditorWindowGeometry_")                                \
+// NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX
 
 #define PERSIST_NOTE_EDITOR_WINDOW_GEOMETRY_DELAY (3000)
 
@@ -103,39 +107,38 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
 {
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    QVariant maxNumNoteTabsData = appSettings.value(QStringLiteral("MaxNumNoteTabs"));
+    QVariant maxNumNoteTabsData =
+        appSettings.value(QStringLiteral("MaxNumNoteTabs"));
     appSettings.endGroup();
 
     bool conversionResult = false;
     int maxNumNoteTabs = maxNumNoteTabsData.toInt(&conversionResult);
     if (!conversionResult) {
-        QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator: no persisted ")
-                << QStringLiteral("max num note tabs setting, fallback to ")
-                << QStringLiteral("the default value of ")
+        QNDEBUG("NoteEditorTabsAndWindowsCoordinator: no persisted max num "
+                << "note tabs setting, fallback to the default value of "
                 << DEFAULT_MAX_NUM_NOTES_IN_TABS);
         m_maxNumNotesInTabs = DEFAULT_MAX_NUM_NOTES_IN_TABS;
     }
     else {
-        QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator: max num note ")
-                << QStringLiteral("tabs: ") << maxNumNoteTabs);
+        QNDEBUG("NoteEditorTabsAndWindowsCoordinator: max num note tabs: "
+                << maxNumNoteTabs);
         m_maxNumNotesInTabs = maxNumNoteTabs;
     }
 
     m_localUidsOfNotesInTabbedEditors.set_capacity(
         static_cast<size_t>(std::max(m_maxNumNotesInTabs, MIN_NUM_NOTES_IN_TABS)));
-    QNTRACE(QStringLiteral("Tabbed note local uids circular buffer capacity: ")
+    QNTRACE("Tabbed note local uids circular buffer capacity: "
             << m_localUidsOfNotesInTabbedEditors.capacity());
 
     setupFileIO();
     setupSpellChecker();
 
     QUndoStack * pUndoStack = new QUndoStack;
-    m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount,
-                                              m_localStorageManagerAsync,
-                                              *m_pSpellChecker, m_pIOThread,
-                                              m_noteCache, m_notebookCache,
-                                              m_tagCache, *m_pTagModel,
-                                              pUndoStack, m_pTabWidget);
+    m_pBlankNoteEditor = new NoteEditorWidget(
+        m_currentAccount, m_localStorageManagerAsync, *m_pSpellChecker,
+        m_pIOThread, m_noteCache, m_notebookCache, m_tagCache, *m_pTagModel,
+        pUndoStack, m_pTabWidget);
+
     pUndoStack->setParent(m_pBlankNoteEditor);
 
     connectNoteEditorWidgetToColorChangeSignals(*m_pBlankNoteEditor);
@@ -169,12 +172,11 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
     if (pCurrentEditor)
     {
         if (pCurrentEditor->hasFocus()) {
-            QNDEBUG(QStringLiteral("The tab widget's current tab widget already "
-                                   "has focus"));
+            QNDEBUG("The tab widget's current tab widget already has focus");
             return;
         }
 
-        QNDEBUG(QStringLiteral("Setting the focus to the current tab widget"));
+        QNDEBUG("Setting the focus to the current tab widget");
         pCurrentEditor->setFocusToEditor();
     }
 }
@@ -188,8 +190,8 @@ NoteEditorTabsAndWindowsCoordinator::~NoteEditorTabsAndWindowsCoordinator()
 
 void NoteEditorTabsAndWindowsCoordinator::clear()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::clear: num tabs = ")
-            << m_pTabWidget->count() << QStringLiteral(", num windows = ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::clear: num tabs = "
+            << m_pTabWidget->count() << ", num windows = "
             << m_noteEditorWindowsByNoteLocalUid.size());
 
     m_pBlankNoteEditor = Q_NULLPTR;
@@ -208,8 +210,8 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
             qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(0));
         if (Q_UNLIKELY(!pNoteEditorWidget))
         {
-            QNWARNING(QStringLiteral("Detected some widget other than "
-                                     "NoteEditorWidget within the tab widget"));
+            QNWARNING("Detected some widget other than "
+                      "NoteEditorWidget within the tab widget");
             QWidget * pWidget = m_pTabWidget->widget(0);
             m_pTabWidget->removeTab(0);
             if (pWidget) {
@@ -221,16 +223,14 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
         }
 
         QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
-        QNTRACE(QStringLiteral("Safely closing note editor tab: ") << noteLocalUid);
+        QNTRACE("Safely closing note editor tab: " << noteLocalUid);
 
         ErrorString errorDescription;
         NoteEditorWidget::NoteSaveStatus::type res =
             pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
         if (Q_UNLIKELY(res != NoteEditorWidget::NoteSaveStatus::Ok)) {
-            QNINFO(QStringLiteral("Could not save note: ")
-                   << pNoteEditorWidget->noteLocalUid()
-                   << QStringLiteral(", status: ") << res
-                   << QStringLiteral(", error: ") << errorDescription);
+            QNINFO("Could not save note: " << pNoteEditorWidget->noteLocalUid()
+                   << ", status: " << res << ", error: " << errorDescription);
         }
 
         m_pTabWidget->removeTab(0);
@@ -239,7 +239,7 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
         pNoteEditorWidget->hide();
         pNoteEditorWidget->deleteLater();
 
-        QNTRACE(QStringLiteral("Removed note editor tab: ") << noteLocalUid);
+        QNTRACE("Removed note editor tab: " << noteLocalUid);
     }
 
     while(!m_noteEditorWindowsByNoteLocalUid.isEmpty())
@@ -253,17 +253,14 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
         NoteEditorWidget * pNoteEditorWidget = it.value().data();
 
         QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
-        QNTRACE(QStringLiteral("Safely closing note editor window: ")
-                << noteLocalUid);
+        QNTRACE("Safely closing note editor window: " << noteLocalUid);
 
         ErrorString errorDescription;
         NoteEditorWidget::NoteSaveStatus::type res =
             pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
         if (Q_UNLIKELY(res != NoteEditorWidget::NoteSaveStatus::Ok)) {
-            QNINFO(QStringLiteral("Could not save note: ")
-                   << pNoteEditorWidget->noteLocalUid()
-                   << QStringLiteral(", status: ") << res
-                   << QStringLiteral(", error: ") << errorDescription);
+            QNINFO("Could not save note: " << pNoteEditorWidget->noteLocalUid()
+                   << ", status: " << res << ", error: " << errorDescription);
         }
 
         pNoteEditorWidget->removeEventFilter(this);
@@ -271,7 +268,7 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
         pNoteEditorWidget->deleteLater();
         Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
 
-        QNTRACE(QStringLiteral("Closed note editor window: ") << noteLocalUid);
+        QNTRACE("Closed note editor window: " << noteLocalUid);
     }
 
     m_localUidsOfNotesInTabbedEditors.clear();
@@ -294,14 +291,14 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
     m_localUidOfNoteToBeExpunged.clear();
 }
 
-void NoteEditorTabsAndWindowsCoordinator::switchAccount(const Account & account,
-                                                        TagModel & tagModel)
+void NoteEditorTabsAndWindowsCoordinator::switchAccount(
+    const Account & account, TagModel & tagModel)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::switchAccount: ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::switchAccount: "
             << account);
 
     if (account == m_currentAccount) {
-        QNDEBUG(QStringLiteral("The account has not changed, nothing to do"));
+        QNDEBUG("The account has not changed, nothing to do");
         return;
     }
 
@@ -316,17 +313,17 @@ void NoteEditorTabsAndWindowsCoordinator::switchAccount(const Account & account,
 void NoteEditorTabsAndWindowsCoordinator::setMaxNumNotesInTabs(
     const int maxNumNotesInTabs)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("setMaxNumNotesInTabs: ") << maxNumNotesInTabs);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::setMaxNumNotesInTabs: "
+            << maxNumNotesInTabs);
 
     if (m_maxNumNotesInTabs == maxNumNotesInTabs) {
-        QNDEBUG(QStringLiteral("Max number of notes in tabs hasn't changed"));
+        QNDEBUG("Max number of notes in tabs hasn't changed");
         return;
     }
 
     if (m_maxNumNotesInTabs < maxNumNotesInTabs) {
         m_maxNumNotesInTabs = maxNumNotesInTabs;
-        QNDEBUG(QStringLiteral("Max number of notes in tabs has been increased to ")
+        QNDEBUG("Max number of notes in tabs has been increased to "
                 << maxNumNotesInTabs);
         return;
     }
@@ -334,7 +331,7 @@ void NoteEditorTabsAndWindowsCoordinator::setMaxNumNotesInTabs(
     int currentNumNotesInTabs = numNotesInTabs();
 
     m_maxNumNotesInTabs = maxNumNotesInTabs;
-    QNDEBUG(QStringLiteral("Max number of notes in tabs has been decreased to ")
+    QNDEBUG("Max number of notes in tabs has been decreased to "
             << maxNumNotesInTabs);
 
     if (currentNumNotesInTabs <= maxNumNotesInTabs) {
@@ -343,7 +340,7 @@ void NoteEditorTabsAndWindowsCoordinator::setMaxNumNotesInTabs(
 
     m_localUidsOfNotesInTabbedEditors.set_capacity(
         static_cast<size_t>(std::max(maxNumNotesInTabs, MIN_NUM_NOTES_IN_TABS)));
-    QNTRACE(QStringLiteral("Tabbed note local uids circular buffer capacity: ")
+    QNTRACE("Tabbed note local uids circular buffer capacity: "
             << m_localUidsOfNotesInTabbedEditors.capacity());
     checkAndCloseOlderNoteEditorTabs();
 }
@@ -365,8 +362,8 @@ NoteEditorWidget *
 NoteEditorTabsAndWindowsCoordinator::noteEditorWidgetForNoteLocalUid(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("noteEditorWidgetForNoteLocalUid: ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "noteEditorWidgetForNoteLocalUid: "
             << noteLocalUid);
 
     for(int i = 0; i < m_pTabWidget->count(); ++i)
@@ -381,19 +378,18 @@ NoteEditorTabsAndWindowsCoordinator::noteEditorWidgetForNoteLocalUid(
             continue;
         }
 
-        QNDEBUG(QStringLiteral("Found existing editor tab"));
+        QNDEBUG("Found existing editor tab");
         return pNoteEditorWidget;
     }
 
     for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(),
         end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
     {
-        QNTRACE(QStringLiteral("Examining window editor's note local uid = ")
-                << it.key());
+        QNTRACE("Examining window editor's note local uid = " << it.key());
 
         const QPointer<NoteEditorWidget> & pNoteEditorWidget = it.value();
         if (Q_UNLIKELY(pNoteEditorWidget.isNull())) {
-            QNTRACE(QStringLiteral("The note editor widget is gone, skipping"));
+            QNTRACE("The note editor widget is gone, skipping");
             continue;
         }
 
@@ -402,7 +398,7 @@ NoteEditorTabsAndWindowsCoordinator::noteEditorWidgetForNoteLocalUid(
             continue;
         }
 
-        QNDEBUG(QStringLiteral("Found existing editor window"));
+        QNDEBUG("Found existing editor window");
         return pNoteEditorWidget.data();
     }
 
@@ -413,24 +409,23 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
     const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode,
     const bool isNewNote)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::addNote: ")
-            << noteLocalUid << QStringLiteral(", note editor mode = ")
-            << noteEditorMode << QStringLiteral(", is new note = ")
-            << (isNewNote ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::addNote: "
+            << noteLocalUid << ", note editor mode = "
+            << noteEditorMode << ", is new note = "
+            << (isNewNote ? "true" : "false"));
 
     // First, check if this note is already open in some existing tab/window
 
     for(auto it = m_localUidsOfNotesInTabbedEditors.begin(),
         end = m_localUidsOfNotesInTabbedEditors.end(); it != end; ++it)
     {
-        QNTRACE(QStringLiteral("Examining tab editor's note local uid = ")
-                << *it);
+        QNTRACE("Examining tab editor's note local uid = " << *it);
 
         const QString & existingNoteLocalUid = *it;
         if (Q_UNLIKELY(existingNoteLocalUid == noteLocalUid))
         {
-            QNDEBUG(QStringLiteral("The requested note is already open within "
-                                   "one of note editor tabs"));
+            QNDEBUG("The requested note is already open within "
+                    "one of note editor tabs");
 
             if (noteEditorMode == NoteEditorMode::Window) {
                 moveNoteEditorTabToWindow(noteLocalUid);
@@ -446,20 +441,19 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
     for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(),
         end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
     {
-        QNTRACE(QStringLiteral("Examining window editor's note local uid = ")
-                << it.key());
+        QNTRACE("Examining window editor's note local uid = " << it.key());
 
         const QPointer<NoteEditorWidget> & pNoteEditorWidget = it.value();
         if (pNoteEditorWidget.isNull()) {
-            QNTRACE(QStringLiteral("The note editor widget is gone, skipping"));
+            QNTRACE("The note editor widget is gone, skipping");
             continue;
         }
 
         const QString & existingNoteLocalUid = it.key();
         if (Q_UNLIKELY(existingNoteLocalUid == noteLocalUid))
         {
-            QNDEBUG(QStringLiteral("The requested note is already open within "
-                                   "one of note editor windows"));
+            QNDEBUG("The requested note is already open within "
+                    "one of note editor windows");
 
             if (noteEditorMode == NoteEditorMode::Tab) {
                 moveNoteEditorWindowToTab(pNoteEditorWidget.data());
@@ -475,8 +469,8 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
 
     if ((noteEditorMode != NoteEditorMode::Window) && m_pBlankNoteEditor)
     {
-        QNDEBUG(QStringLiteral("Currently only the blank note tab is displayed, "
-                               "inserting the new note into the blank tab"));
+        QNDEBUG("Currently only the blank note tab is displayed, "
+                "inserting the new note into the blank tab");
         NoteEditorWidget * pNoteEditorWidget = m_pBlankNoteEditor;
         m_pBlankNoteEditor = Q_NULLPTR;
 
@@ -488,8 +482,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
             m_lastCurrentTabNoteLocalUid = noteLocalUid;
             persistLastCurrentTabNoteLocalUid();
 
-            QNTRACE(QStringLiteral("Emitting the update of last current tab note ")
-                    << QStringLiteral("local uid to ")
+            QNTRACE("Emitting the update of last current tab note local uid to "
                     << m_lastCurrentTabNoteLocalUid);
             Q_EMIT currentNoteChanged(m_lastCurrentTabNoteLocalUid);
         }
@@ -498,11 +491,10 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
     }
 
     QUndoStack * pUndoStack = new QUndoStack;
-    NoteEditorWidget * pNoteEditorWidget =
-        new NoteEditorWidget(m_currentAccount, m_localStorageManagerAsync,
-                             *m_pSpellChecker, m_pIOThread,
-                             m_noteCache, m_notebookCache, m_tagCache,
-                             *m_pTagModel, pUndoStack, m_pTabWidget);
+    NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(
+        m_currentAccount, m_localStorageManagerAsync, *m_pSpellChecker,
+        m_pIOThread, m_noteCache, m_notebookCache, m_tagCache, *m_pTagModel,
+        pUndoStack, m_pTabWidget);
 
     pUndoStack->setParent(pNoteEditorWidget);
 
@@ -516,10 +508,10 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(
     const QString & notebookLocalUid, const QString & notebookGuid,
     const NoteEditorMode::type noteEditorMode)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::createNewNote: ")
-            << QStringLiteral("notebook local uid = ") << notebookLocalUid
-            << QStringLiteral(", notebook guid = ") << notebookGuid
-            << QStringLiteral(", node editor mode = ") << noteEditorMode);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::createNewNote: "
+            << "notebook local uid = " << notebookLocalUid
+            << ", notebook guid = " << notebookGuid
+            << ", node editor mode = " << noteEditorMode);
 
     Note newNote;
     newNote.setNotebookLocalUid(notebookLocalUid);
@@ -553,17 +545,17 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(
     QUuid requestId = QUuid::createUuid();
     m_noteEditorModeByCreateNoteRequestIds[requestId] = noteEditorMode;
 
-    QNTRACE(QStringLiteral("Emitting the request to add a new note to the local ")
-            << QStringLiteral("storage: request id = ") << requestId
-            << QStringLiteral(", note editor mode: ") << noteEditorMode
-            << QStringLiteral(", note = ") << newNote);
+    QNTRACE("Emitting the request to add a new note to the local "
+            << "storage: request id = " << requestId
+            << ", note editor mode: " << noteEditorMode
+            << ", note = " << newNote);
     Q_EMIT requestAddNote(newNote, requestId);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts(const bool flag)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts: ")
-            << (flag ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts: "
+            << (flag ? "true" : "false"));
 
     for(int i = 0; i < m_pTabWidget->count(); ++i)
     {
@@ -579,12 +571,11 @@ void NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts(const bool flag)
     for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(),
         end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
     {
-        QNTRACE(QStringLiteral("Examining window editor's note local uid = ")
-                << it.key());
+        QNTRACE("Examining window editor's note local uid = " << it.key());
 
         const QPointer<NoteEditorWidget> & pNoteEditorWidget = it.value();
         if (Q_UNLIKELY(pNoteEditorWidget.isNull())) {
-            QNTRACE(QStringLiteral("The note editor widget is gone, skipping"));
+            QNTRACE("The note editor widget is gone, skipping");
             continue;
         }
 
@@ -594,8 +585,8 @@ void NoteEditorTabsAndWindowsCoordinator::setUseLimitedFonts(const bool flag)
 
 void NoteEditorTabsAndWindowsCoordinator::refreshNoteEditorWidgetsSpecialIcons()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "refreshNoteEditorWidgetsSpecialIcons"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "refreshNoteEditorWidgetsSpecialIcons");
 
     for(int i = 0; i < m_pTabWidget->count(); ++i)
     {
@@ -611,12 +602,11 @@ void NoteEditorTabsAndWindowsCoordinator::refreshNoteEditorWidgetsSpecialIcons()
     for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(),
         end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
     {
-        QNTRACE(QStringLiteral("Examining window editor's note local uid = ")
-                << it.key());
+        QNTRACE("Examining window editor's note local uid = " << it.key());
 
         const QPointer<NoteEditorWidget> & pNoteEditorWidget = it.value();
         if (Q_UNLIKELY(pNoteEditorWidget.isNull())) {
-            QNTRACE(QStringLiteral("The note editor widget is gone, skipping"));
+            QNTRACE("The note editor widget is gone, skipping");
             continue;
         }
 
@@ -626,8 +616,8 @@ void NoteEditorTabsAndWindowsCoordinator::refreshNoteEditorWidgetsSpecialIcons()
 
 void NoteEditorTabsAndWindowsCoordinator::saveAllNoteEditorsContents()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "saveAllNoteEditorsContents"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "saveAllNoteEditorsContents");
 
     ErrorString errorDescription;
     QList<NoteEditorWidget*> noteEditorWidgets =
@@ -648,8 +638,8 @@ void NoteEditorTabsAndWindowsCoordinator::saveAllNoteEditorsContents()
     }
 }
 
-bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched,
-                                                      QEvent * pEvent)
+bool NoteEditorTabsAndWindowsCoordinator::eventFilter(
+    QObject * pWatched, QEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
         return true;
@@ -671,8 +661,8 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched,
             auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
             if (it != m_noteEditorWindowsByNoteLocalUid.end())
             {
-                QNTRACE(QStringLiteral("Intercepted close of note editor window, ")
-                        << QStringLiteral("note local uid = ") << noteLocalUid);
+                QNTRACE("Intercepted close of note editor window, "
+                        << "note local uid = " << noteLocalUid);
 
                 bool expungeFlag = false;
 
@@ -681,9 +671,8 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched,
                     ErrorString errorDescription;
                     NoteEditorWidget::NoteSaveStatus::type status =
                         pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
-                    QNDEBUG(QStringLiteral("Check and save modified note, status: ")
-                            << status << QStringLiteral(", error description: ")
-                            << errorDescription);
+                    QNDEBUG("Check and save modified note, status: " << status
+                            << ", error description: " << errorDescription);
                 }
                 else
                 {
@@ -737,10 +726,11 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched,
 
 void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetResolved()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "onNoteEditorWidgetResolved"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "onNoteEditorWidgetResolved");
 
-    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
+    NoteEditorWidget * pNoteEditorWidget =
+        qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
         ErrorString error(QT_TR_NOOP("Internal error: can't resolve the added "
                                      "note editor, cast failed"));
@@ -772,13 +762,13 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetResolved()
 
         QString displayName = shortenEditorName(pNoteEditorWidget->titleOrPreview());
         m_pTabWidget->setTabText(i, displayName);
-        QNTRACE(QStringLiteral("Updated tab text for note editor with note ")
-                << noteLocalUid << QStringLiteral(": ") << displayName);
+        QNTRACE("Updated tab text for note editor with note " << noteLocalUid
+                << ": " << displayName);
         foundTab = true;
 
         if (i == m_pTabWidget->currentIndex()) {
-            QNTRACE(QStringLiteral("Setting the focus to the current tab's "
-                                   "note editor"));
+            QNTRACE("Setting the focus to the current tab's "
+                    "note editor");
             pNoteEditorWidget->setFocusToEditor();
         }
 
@@ -791,14 +781,14 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetResolved()
 
     auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
     if (it == m_noteEditorWindowsByNoteLocalUid.end()) {
-        QNTRACE(QStringLiteral("Couldn't find the note editor window corresponding ")
-                << QStringLiteral("to note local uid ") << noteLocalUid);
+        QNTRACE("Couldn't find the note editor window corresponding "
+                << "to note local uid " << noteLocalUid);
         return;
     }
 
     if (Q_UNLIKELY(it.value().isNull())) {
-        QNTRACE(QStringLiteral("The note editor corresponding to note local uid ")
-                << noteLocalUid << QStringLiteral(" is gone already"));
+        QNTRACE("The note editor corresponding to note local uid "
+                << noteLocalUid << " is gone already");
         return;
     }
 
@@ -806,14 +796,14 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetResolved()
     QString displayName = shortenEditorName(pWindowNoteEditor->titleOrPreview(),
                                             MAX_WINDOW_NAME_SIZE);
     pWindowNoteEditor->setWindowTitle(displayName);
-    QNTRACE(QStringLiteral("Updated window title for note editor with note ")
-            << noteLocalUid << QStringLiteral(": ") << displayName);
+    QNTRACE("Updated window title for note editor with note " << noteLocalUid
+            << ": " << displayName);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetInvalidated()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "onNoteEditorWidgetInvalidated"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "onNoteEditorWidgetInvalidated");
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
@@ -838,8 +828,8 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetInvalidated()
 void NoteEditorTabsAndWindowsCoordinator::onNoteTitleOrPreviewTextChanged(
     QString titleOrPreview)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("onNoteTitleOrPreviewTextChanged: ") << titleOrPreview);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "onNoteTitleOrPreviewTextChanged: " << titleOrPreview);
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
@@ -886,19 +876,18 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteTitleOrPreviewTextChanged(
 
 void NoteEditorTabsAndWindowsCoordinator::onNoteEditorTabCloseRequested(int tabIndex)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("onNoteEditorTabCloseRequested: ") << tabIndex);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "onNoteEditorTabCloseRequested: " << tabIndex);
     removeNoteEditorTab(tabIndex, /* close editor = */ true);
 }
 
-void NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked(QString userId,
-                                                                 QString shardId,
-                                                                 QString noteGuid)
+void NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked(
+    QString userId, QString shardId, QString noteGuid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("onInAppNoteLinkClicked: user id = ")
-            << userId << QStringLiteral(", shard id = ") << shardId
-            << QStringLiteral(", note guid = ") << noteGuid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "onInAppNoteLinkClicked: user id = "
+            << userId << ", shard id = " << shardId
+            << ", note guid = " << noteGuid);
 
     connectToLocalStorage();
 
@@ -907,27 +896,28 @@ void NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked(QString userId,
     dummyNote.setGuid(noteGuid);
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to find note by guid for opening ")
-            << QStringLiteral("it inside a new note editor tab: request id = ")
-            << requestId << QStringLiteral(", note: ") << dummyNote);
+    QNTRACE("Emitting the request to find note by guid for opening "
+            << "it inside a new note editor tab: request id = "
+            << requestId << ", note: " << dummyNote);
     LocalStorageManager::GetNoteOptions options(0);
     Q_EMIT findNote(dummyNote, options, requestId);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onNoteLoadedInEditor()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onNoteLoadedInEditor"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::onNoteLoadedInEditor");
 }
 
-void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(ErrorString errorDescription)
+void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(
+    ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onNoteEditorError: ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::onNoteEditorError: "
             << errorDescription);
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNWARNING(QStringLiteral("Received error from note editor but can't cast ")
-                  << QStringLiteral("the sender to NoteEditorWidget; error: ")
+        QNWARNING("Received error from note editor but can't cast "
+                  << "the sender to NoteEditorWidget; error: "
                   << errorDescription);
         Q_EMIT notifyError(errorDescription);
         return;
@@ -952,17 +942,16 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorError(ErrorString errorDes
     Q_EMIT notifyError(error);
 }
 
-void NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete(Note note,
-                                                            QUuid requestId)
+void NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete(
+    Note note, QUuid requestId)
 {
     auto it = m_noteEditorModeByCreateNoteRequestIds.find(requestId);
     if (it == m_noteEditorModeByCreateNoteRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete: ")
-            << QStringLiteral("request id = ") << requestId
-            << QStringLiteral(", note: ") << note);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::onAddNoteComplete: "
+            << "request id = " << requestId << ", note: " << note);
 
     NoteEditorMode::type noteEditorMode = it.value();
     Q_UNUSED(m_noteEditorModeByCreateNoteRequestIds.erase(it))
@@ -980,18 +969,17 @@ void NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed(
         return;
     }
 
-    QNWARNING(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed: ")
-              << QStringLiteral("request id = ") << requestId
-              << QStringLiteral(", note: ") << note
-              << QStringLiteral("\nError description: ") << errorDescription);
+    QNWARNING("NoteEditorTabsAndWindowsCoordinator::onAddNoteFailed: "
+              << "request id = " << requestId << ", note: " << note
+              << "\nError description: " << errorDescription);
 
     Q_UNUSED(m_noteEditorModeByCreateNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
 
-    Q_UNUSED(internalErrorMessageBox(m_pTabWidget,
-                                     tr("Note creation in local storage has failed") +
-                                     QStringLiteral(": ") +
-                                     errorDescription.localizedString()))
+    Q_UNUSED(internalErrorMessageBox(
+        m_pTabWidget,
+        tr("Note creation in local storage has failed") + QStringLiteral(": ") +
+        errorDescription.localizedString()))
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onFindNoteComplete(
@@ -1002,17 +990,16 @@ void NoteEditorTabsAndWindowsCoordinator::onFindNoteComplete(
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onFindNoteComplete: ")
-            << QStringLiteral("request id = ") << requestId
-            << QStringLiteral(", with resource metadata = ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::onFindNoteComplete: "
+            << "request id = " << requestId << ", with resource metadata = "
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", with resource binary data = ")
+                ? "true"
+                : "false")
+            << ", with resource binary data = "
             << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", note: ") << note);
+                ? "true"
+                : "false")
+            << ", note: " << note);
 
     Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
@@ -1029,18 +1016,17 @@ void NoteEditorTabsAndWindowsCoordinator::onFindNoteFailed(
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onFindNoteFailed: ")
-            << QStringLiteral("request id = ") << requestId
-            << QStringLiteral(", with resource metadata = ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::onFindNoteFailed: "
+            << "request id = " << requestId << ", with resource metadata = "
             << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", with resource binary data = ")
+                ? "true"
+                : "false")
+            << ", with resource binary data = "
             << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", error description = ") << errorDescription
-            << QStringLiteral(", note: ") << note);
+                ? "true"
+                : "false")
+            << ", error description = " << errorDescription
+            << ", note: " << note);
 
     Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
@@ -1048,17 +1034,17 @@ void NoteEditorTabsAndWindowsCoordinator::onFindNoteFailed(
     Q_EMIT notifyError(errorDescription);
 }
 
-void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete(Note note,
-                                                                QUuid requestId)
+void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteComplete(
+    Note note, QUuid requestId)
 {
     auto it = m_expungeNoteRequestIds.find(requestId);
     if (it == m_expungeNoteRequestIds.end()) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("onExpungeNoteComplete: request id = ")
-            << requestId << QStringLiteral(", note: ") << note);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "onExpungeNoteComplete: request id = "
+            << requestId << ", note: " << note);
 
     Q_UNUSED(m_expungeNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
@@ -1074,10 +1060,10 @@ void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteFailed(
         return;
     }
 
-    QNWARNING(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-              << QStringLiteral("onExpungeNoteFailed: request id = ")
-              << requestId << QStringLiteral(", error description = ")
-              << errorDescription << QStringLiteral(", note: ") << note);
+    QNWARNING("NoteEditorTabsAndWindowsCoordinator::"
+              << "onExpungeNoteFailed: request id = "
+              << requestId << ", error description = "
+              << errorDescription << ", note: " << note);
 
     Q_UNUSED(m_expungeNoteRequestIds.erase(it))
     checkPendingRequestsAndDisconnectFromLocalStorage();
@@ -1087,7 +1073,7 @@ void NoteEditorTabsAndWindowsCoordinator::onExpungeNoteFailed(
 
 void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged: ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged: "
             << currentIndex);
 
     if (currentIndex < 0)
@@ -1097,8 +1083,8 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
             m_lastCurrentTabNoteLocalUid.clear();
             persistLastCurrentTabNoteLocalUid();
 
-            QNTRACE(QStringLiteral("Emitting last current tab note local uid "
-                                   "update to empty"));
+            QNTRACE("Emitting last current tab note local uid "
+                    "update to empty");
             Q_EMIT currentNoteChanged(QString());
         }
 
@@ -1109,17 +1095,16 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
         qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(currentIndex));
     if (Q_UNLIKELY(!pNoteEditorWidget))
     {
-        QNWARNING(QStringLiteral("Detected current tab change in the note editor "
-                                 "tab widget but can't cast the tab widget's tab "
-                                 "to note editor"));
+        QNWARNING("Detected current tab change in the note editor "
+                  "tab widget but can't cast the tab widget's tab "
+                  "to note editor");
 
         if (!m_lastCurrentTabNoteLocalUid.isEmpty())
         {
             m_lastCurrentTabNoteLocalUid.clear();
             persistLastCurrentTabNoteLocalUid();
 
-            QNTRACE(QStringLiteral("Emitting last current tab note local uid "
-                                   "update to empty"));
+            QNTRACE("Emitting last current tab note local uid update to empty");
             Q_EMIT currentNoteChanged(QString());
         }
 
@@ -1130,15 +1115,14 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
 
     if (pNoteEditorWidget == m_pBlankNoteEditor)
     {
-        QNTRACE(QStringLiteral("Switched to blank note editor"));
+        QNTRACE("Switched to blank note editor");
 
         if (!m_lastCurrentTabNoteLocalUid.isEmpty())
         {
             m_lastCurrentTabNoteLocalUid.clear();
             persistLastCurrentTabNoteLocalUid();
 
-            QNTRACE(QStringLiteral("Emitting last current tab note local uid "
-                                   "update to empty"));
+            QNTRACE("Emitting last current tab note local uid update to empty");
             Q_EMIT currentNoteChanged(QString());
         }
 
@@ -1155,17 +1139,18 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
         m_lastCurrentTabNoteLocalUid = currentNoteLocalUid;
         persistLastCurrentTabNoteLocalUid();
 
-        QNTRACE(QStringLiteral("Emitting last current tab note local uid update to ")
+        QNTRACE("Emitting last current tab note local uid update to "
                 << m_lastCurrentTabNoteLocalUid);
         Q_EMIT currentNoteChanged(currentNoteLocalUid);
     }
 }
 
-void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint & pos)
+void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(
+    const QPoint & pos)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("onTabContextMenuRequested, pos: x = ")
-            << pos.x() << QStringLiteral(", y = ") << pos.y());
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "onTabContextMenuRequested, pos: x = "
+            << pos.x() << ", y = " << pos.y());
 
     int tabIndex = m_pTabWidget->tabBar()->tabAt(pos);
     if (Q_UNLIKELY(tabIndex < 0))
@@ -1183,7 +1168,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint
     {
         ErrorString error(QT_TR_NOOP("Can't show the tab context menu: can't cast "
                                      "the widget at the clicked tab to note editor"));
-        QNWARNING(error << QStringLiteral(", tab index = ") << tabIndex);
+        QNWARNING(error << ", tab index = " << tabIndex);
         Q_EMIT notifyError(error);
         return;
     }
@@ -1191,15 +1176,18 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint
     delete m_pTabBarContextMenu;
     m_pTabBarContextMenu = new QMenu(m_pTabWidget);
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
-    { \
-        QAction * pAction = new QAction(name, menu); \
-        pAction->setData(data); \
-        pAction->setEnabled(enabled); \
-        QObject::connect(pAction, QNSIGNAL(QAction,triggered), \
-                         this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,slot)); \
-        menu->addAction(pAction); \
-    }
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled)               \
+    {                                                                          \
+        QAction * pAction = new QAction(name, menu);                           \
+        pAction->setData(data);                                                \
+        pAction->setEnabled(enabled);                                          \
+        QObject::connect(pAction,                                              \
+                         QNSIGNAL(QAction,triggered),                          \
+                         this,                                                 \
+                         QNSLOT(NoteEditorTabsAndWindowsCoordinator,slot));    \
+        menu->addAction(pAction);                                              \
+    }                                                                          \
+// ADD_CONTEXT_MENU_ACTION
 
     if (pNoteEditorWidget->isModified()) {
         ADD_CONTEXT_MENU_ACTION(tr("Save"), m_pTabBarContextMenu,
@@ -1223,23 +1211,27 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(const QPoint
 
 void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "onTabContextMenuCloseEditorAction"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "onTabContextMenuCloseEditorAction");
 
     QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note "
-                                     "editor, can't cast the slot invoker to QAction"));
+    if (Q_UNLIKELY(!pAction))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Internal error: can't close the chosen note "
+                       "editor, can't cast the slot invoker to QAction"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
         return;
     }
 
     QString noteLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen "
-                                     "note editor, can't get the note local uid "
-                                     "corresponding to the editor"));
+    if (Q_UNLIKELY(noteLocalUid.isEmpty()))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Internal error: can't close the chosen "
+                       "note editor, can't get the note local uid "
+                       "corresponding to the editor"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
         return;
@@ -1260,33 +1252,38 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuCloseEditorAction()
     }
 
     // If we got here, no target note editor widget was found
-    ErrorString error(QT_TR_NOOP("Internal error: can't close the chosen note editor, "
-                                 "can't find the editor to be closed by note local uid"));
-    QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
+    ErrorString error(
+        QT_TR_NOOP("Internal error: can't close the chosen note editor, "
+                   "can't find the editor to be closed by note local uid"));
+    QNWARNING(error << ", note local uid = " << noteLocalUid);
     Q_EMIT notifyError(error);
     return;
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "onTabContextMenuSaveNoteAction"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "onTabContextMenuSaveNoteAction");
 
     QAction * pAction = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!pAction)) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't save the note within "
-                                     "the chosen note editor, can't cast the slot "
-                                     "invoker to QAction"));
+    if (Q_UNLIKELY(!pAction))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Internal error: can't save the note within "
+                       "the chosen note editor, can't cast the slot "
+                       "invoker to QAction"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
         return;
     }
 
     QString noteLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        ErrorString error(QT_TR_NOOP("Internal error: can't save the note within "
-                                     "the chosen note editor, can't get the note "
-                                     "local uid corresponding to the editor"));
+    if (Q_UNLIKELY(noteLocalUid.isEmpty()))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Internal error: can't save the note within "
+                       "the chosen note editor, can't get the note "
+                       "local uid corresponding to the editor"));
         QNWARNING(error);
         Q_EMIT notifyError(error);
         return;
@@ -1305,8 +1302,8 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
         }
 
         if (Q_UNLIKELY(!pNoteEditorWidget->isModified())) {
-            QNINFO(QStringLiteral("The note editor widget doesn't appear to "
-                                  "contain a note that needs saving"));
+            QNINFO("The note editor widget doesn't appear to "
+                   "contain a note that needs saving");
             return;
         }
 
@@ -1319,8 +1316,7 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
-            QNWARNING(error << QStringLiteral(", note local uid = ")
-                      << noteLocalUid);
+            QNWARNING(error << ", note local uid = " << noteLocalUid);
             Q_EMIT notifyError(error);
         }
 
@@ -1331,15 +1327,15 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuSaveNoteAction()
     ErrorString error(QT_TR_NOOP("Internal error: can't save the note within "
                                  "the chosen note editor, can't find the editor "
                                  "to be closed by note local uid"));
-    QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
+    QNWARNING(error << ", note local uid = " << noteLocalUid);
     Q_EMIT notifyError(error);
     return;
 }
 
 void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "onTabContextMenuMoveToWindowAction"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "onTabContextMenuMoveToWindowAction");
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction))
@@ -1368,11 +1364,11 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
 
 void NoteEditorTabsAndWindowsCoordinator::expungeNoteFromLocalStorage()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "expungeNoteFromLocalStorage"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "expungeNoteFromLocalStorage");
 
     if (Q_UNLIKELY(m_localUidOfNoteToBeExpunged.isEmpty())) {
-        QNWARNING(QStringLiteral("The local uid of note to be expunged is empty"));
+        QNWARNING("The local uid of note to be expunged is empty");
         Q_EMIT noteExpungeFromLocalStorageFailed();
         return;
     }
@@ -1384,8 +1380,8 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteFromLocalStorage()
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_expungeNoteRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to expunge note: request id = ")
-            << requestId << QStringLiteral(", note local uid = ")
+    QNTRACE("Emitting the request to expunge note: request id = "
+            << requestId << ", note local uid = "
             << m_localUidOfNoteToBeExpunged);
     Q_EMIT requestExpungeNote(dummyNote, requestId);
 
@@ -1394,7 +1390,7 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteFromLocalStorage()
 
 void NoteEditorTabsAndWindowsCoordinator::timerEvent(QTimerEvent * pTimerEvent)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::timerEvent: id = ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::timerEvent: id = "
             << (pTimerEvent
                 ? QString::number(pTimerEvent->timerId())
                 : QStringLiteral("<null>")));
@@ -1418,9 +1414,9 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(
     NoteEditorWidget * pNoteEditorWidget,
     const NoteEditorMode::type noteEditorMode)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget: ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget: "
             << pNoteEditorWidget->noteLocalUid()
-            << QStringLiteral(", note editor mode = ") << noteEditorMode);
+            << ", note editor mode = " << noteEditorMode);
 
     QObject::connect(pNoteEditorWidget,
                      QNSIGNAL(NoteEditorWidget,titleOrPreviewChanged,QString),
@@ -1479,9 +1475,8 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(
     // If we got here, will insert the note editor as a tab
 
     m_localUidsOfNotesInTabbedEditors.push_back(pNoteEditorWidget->noteLocalUid());
-    QNTRACE(QStringLiteral("Added tabbed note local uid: ")
-            << pNoteEditorWidget->noteLocalUid()
-            << QStringLiteral(", the number of tabbed note local uids = ")
+    QNTRACE("Added tabbed note local uid: " << pNoteEditorWidget->noteLocalUid()
+            << ", the number of tabbed note local uids = "
             << m_localUidsOfNotesInTabbedEditors.size());
     persistLocalUidsOfNotesInEditorTabs();
 
@@ -1511,36 +1506,32 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(
     }
 
     if (currentNumNotesInTabs <= m_maxNumNotesInTabs) {
-        QNDEBUG(QStringLiteral("The addition of note ")
-                << pNoteEditorWidget->noteLocalUid()
-                << QStringLiteral(" doesn't cause the overflow of max allowed "
-                                  "number of note editor tabs"));
+        QNDEBUG("The addition of note " << pNoteEditorWidget->noteLocalUid()
+                << " doesn't cause the overflow of max allowed "
+                << "number of note editor tabs");
         return;
     }
 
     checkAndCloseOlderNoteEditorTabs();
 }
 
-void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex,
-                                                              const bool closeEditor)
+void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(
+    int tabIndex, const bool closeEditor)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab: ")
-            << QStringLiteral("tab index = ") << tabIndex
-            << QStringLiteral(", close editor = ")
-            << (closeEditor ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab: "
+            << "tab index = " << tabIndex << ", close editor = "
+            << (closeEditor ? "true" : "false"));
 
     NoteEditorWidget * pNoteEditorWidget =
         qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNWARNING(QStringLiteral("Detected attempt to close the note editor tab "
-                                 "but can't cast the tab widget's tab to note "
-                                 "editor"));
+        QNWARNING("Detected attempt to close the note editor tab "
+                  "but can't cast the tab widget's tab to note editor");
         return;
     }
 
     if (pNoteEditorWidget == m_pBlankNoteEditor) {
-        QNDEBUG(QStringLiteral("Silently refusing to remove the blank note editor "
-                               "tab"));
+        QNDEBUG("Silently refusing to remove the blank note editor tab");
         return;
     }
 
@@ -1551,8 +1542,8 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex,
         ErrorString errorDescription;
         NoteEditorWidget::NoteSaveStatus::type status =
             pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
-        QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
-                << QStringLiteral(", error description: ") << errorDescription);
+        QNDEBUG("Check and save modified note, status: " << status
+                << ", error description: " << errorDescription);
     }
     else
     {
@@ -1565,8 +1556,7 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex,
                         m_localUidsOfNotesInTabbedEditors.end(), noteLocalUid);
     if (it != m_localUidsOfNotesInTabbedEditors.end()) {
         Q_UNUSED(m_localUidsOfNotesInTabbedEditors.erase(it))
-        QNTRACE(QStringLiteral("Removed note local uid ")
-                << pNoteEditorWidget->noteLocalUid());
+        QNTRACE("Removed note local uid " << pNoteEditorWidget->noteLocalUid());
         persistLocalUidsOfNotesInEditorTabs();
     }
 
@@ -1574,11 +1564,11 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex,
     {
         QString str;
         QTextStream strm(&str);
-        strm << QStringLiteral("Remaining tabbed note local uids:\n");
+        strm << "Remaining tabbed note local uids:\n";
         for(auto sit = m_localUidsOfNotesInTabbedEditors.begin(),
             end = m_localUidsOfNotesInTabbedEditors.end(); sit != end; ++sit)
         {
-            strm << *sit << QStringLiteral("\n");
+            strm << *sit << "\n";
         }
         strm.flush();
         QNTRACE(str);
@@ -1589,8 +1579,7 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(int tabIndex,
         m_lastCurrentTabNoteLocalUid.clear();
         persistLastCurrentTabNoteLocalUid();
 
-        QNTRACE(QStringLiteral("Emitting last current tab note local uid update "
-                               "to empty"));
+        QNTRACE("Emitting last current tab note local uid update to empty");
         Q_EMIT currentNoteChanged(QString());
     }
 
@@ -1667,8 +1656,8 @@ void NoteEditorTabsAndWindowsCoordinator::checkAndCloseOlderNoteEditorTabs()
 void NoteEditorTabsAndWindowsCoordinator::setCurrentNoteEditorWidgetTab(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("setCurrentNoteEditorWidgetTab: ") << noteLocalUid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "setCurrentNoteEditorWidgetTab: " << noteLocalUid);
 
     for(int i = 0; i < m_pTabWidget->count(); ++i)
     {
@@ -1692,9 +1681,8 @@ void NoteEditorTabsAndWindowsCoordinator::setCurrentNoteEditorWidgetTab(
 void NoteEditorTabsAndWindowsCoordinator::scheduleNoteEditorWindowGeometrySave(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("scheduleNoteEditorWindowGeometrySave: ")
-            << noteLocalUid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "scheduleNoteEditorWindowGeometrySave: " << noteLocalUid);
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
         return;
@@ -1702,22 +1690,22 @@ void NoteEditorTabsAndWindowsCoordinator::scheduleNoteEditorWindowGeometrySave(
 
     auto it = m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.left.find(noteLocalUid);
     if (it != m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.left.end()) {
-        QNDEBUG(QStringLiteral("The timer delaying the save of this note editor ")
-                << QStringLiteral("window's geometry has already been started: ")
-                << QStringLiteral("timer id = ") << it->second);
+        QNDEBUG("The timer delaying the save of this note editor "
+                << "window's geometry has already been started: timer id = "
+                << it->second);
         return;
     }
 
     int timerId = startTimer(PERSIST_NOTE_EDITOR_WINDOW_GEOMETRY_DELAY);
     if (Q_UNLIKELY(timerId == 0)) {
-        QNWARNING(QStringLiteral("Failed to start timer to postpone saving "
-                                 "the note editor window's geometry"));
+        QNWARNING("Failed to start timer to postpone saving "
+                  "the note editor window's geometry");
         return;
     }
 
-    QNDEBUG(QStringLiteral("Started the timer to postpone saving the note editor ")
-            << QStringLiteral("window's geometry: timer id = ")
-            << timerId << QStringLiteral(", note local uid = ") << noteLocalUid);
+    QNDEBUG("Started the timer to postpone saving the note editor "
+            << "window's geometry: timer id = " << timerId
+            << ", note local uid = " << noteLocalUid);
 
     Q_UNUSED(m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.insert(
             NoteLocalUidToTimerIdBimap::value_type(noteLocalUid, timerId)))
@@ -1726,9 +1714,8 @@ void NoteEditorTabsAndWindowsCoordinator::scheduleNoteEditorWindowGeometrySave(
 void NoteEditorTabsAndWindowsCoordinator::persistNoteEditorWindowGeometry(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("persistNoteEditorWindowGeometry: ")
-            << noteLocalUid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "persistNoteEditorWindowGeometry: " << noteLocalUid);
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
         return;
@@ -1736,16 +1723,16 @@ void NoteEditorTabsAndWindowsCoordinator::persistNoteEditorWindowGeometry(
 
     auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
     if (Q_UNLIKELY(it == m_noteEditorWindowsByNoteLocalUid.end())) {
-        QNDEBUG(QStringLiteral("Can't persist note editor window geometry: could ")
-                << QStringLiteral("not find the note editor window for note local ")
-                << QStringLiteral("uid ") << noteLocalUid);
+        QNDEBUG("Can't persist note editor window geometry: could "
+                << "not find the note editor window for note local uid "
+                << noteLocalUid);
         return;
     }
 
     if (it.value().isNull()) {
-        QNDEBUG(QStringLiteral("Can't persist the note editor window geometry: ")
-                << QStringLiteral("the note editor window is gone for note local ")
-                << QStringLiteral("uid ") << noteLocalUid);
+        QNDEBUG("Can't persist the note editor window geometry: "
+                << "the note editor window is gone for note local uid "
+                << noteLocalUid);
         Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
         return;
     }
@@ -1760,9 +1747,8 @@ void NoteEditorTabsAndWindowsCoordinator::persistNoteEditorWindowGeometry(
 void NoteEditorTabsAndWindowsCoordinator::clearPersistedNoteEditorWindowGeometry(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("clearPersistedNoteEditorWindowGeometry: ")
-            << noteLocalUid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "clearPersistedNoteEditorWindowGeometry: " << noteLocalUid);
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
         return;
@@ -1777,9 +1763,8 @@ void NoteEditorTabsAndWindowsCoordinator::clearPersistedNoteEditorWindowGeometry
 void NoteEditorTabsAndWindowsCoordinator::restoreNoteEditorWindowGeometry(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("restoreNoteEditorWindowGeometry: ")
-            << noteLocalUid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "restoreNoteEditorWindowGeometry: " << noteLocalUid);
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
         return;
@@ -1787,16 +1772,15 @@ void NoteEditorTabsAndWindowsCoordinator::restoreNoteEditorWindowGeometry(
 
     auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
     if (Q_UNLIKELY(it == m_noteEditorWindowsByNoteLocalUid.end())) {
-        QNDEBUG(QStringLiteral("Can't restore note editor window's geometry: ")
-                << QStringLiteral("could not find the note editor window for ")
-                << QStringLiteral("note local uid ") << noteLocalUid);
+        QNDEBUG("Can't restore note editor window's geometry: could not find "
+                "the note editor window for note local uid " << noteLocalUid);
         return;
     }
 
     if (it.value().isNull()) {
-        QNDEBUG(QStringLiteral("Can't restore the note editor window geometry: ")
-                << QStringLiteral("the note editor window is gone for note local ")
-                << QStringLiteral("uid ") << noteLocalUid);
+        QNDEBUG("Can't restore the note editor window geometry: "
+                << "the note editor window is gone for note local uid "
+                << noteLocalUid);
         Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
         clearPersistedNoteEditorWindowGeometry(noteLocalUid);
         return;
@@ -1811,22 +1795,21 @@ void NoteEditorTabsAndWindowsCoordinator::restoreNoteEditorWindowGeometry(
 
     bool res = it.value().data()->restoreGeometry(noteEditorWindowGeometry);
     if (!res) {
-        QNDEBUG(QStringLiteral("Could not restore the geometry for note editor ")
-                << QStringLiteral("window with note local uid ") << noteLocalUid);
+        QNDEBUG("Could not restore the geometry for note editor "
+                << "window with note local uid " << noteLocalUid);
         return;
     }
 
-    QNTRACE(QStringLiteral("Restored the geometry for note editor window with ")
-            << QStringLiteral("note local uid ") << noteLocalUid);
+    QNTRACE("Restored the geometry for note editor window with note local uid "
+            << noteLocalUid);
 }
 
 void NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "connectToLocalStorage"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage");
 
     if (m_connectedToLocalStorage) {
-        QNDEBUG(QStringLiteral("Already connected to the local storage"));
+        QNDEBUG("Already connected to the local storage");
         return;
     }
 
@@ -1894,11 +1877,11 @@ void NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage()
 
 void NoteEditorTabsAndWindowsCoordinator::disconnectFromLocalStorage()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "disconnectFromLocalStorage"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "disconnectFromLocalStorage");
 
     if (!m_connectedToLocalStorage) {
-        QNDEBUG(QStringLiteral("Not connected to local storage at the moment"));
+        QNDEBUG("Not connected to local storage at the moment");
         return;
     }
 
@@ -2010,7 +1993,7 @@ void NoteEditorTabsAndWindowsCoordinator::connectNoteEditorWidgetToColorChangeSi
 
 void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::setupFileIO"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::setupFileIO");
 
     if (!m_pIOThread) {
         m_pIOThread = new QThread;
@@ -2018,7 +2001,7 @@ void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
         QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished),
                          m_pIOThread, QNSLOT(QThread,deleteLater));
         m_pIOThread->start(QThread::LowPriority);
-        QNTRACE(QStringLiteral("Started background thread for note editors' IO: ")
+        QNTRACE("Started background thread for note editors' IO: "
                 << m_pIOThread->objectName());
     }
 
@@ -2030,7 +2013,7 @@ void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
 
 void NoteEditorTabsAndWindowsCoordinator::setupSpellChecker()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::setupSpellChecker"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::setupSpellChecker");
 
     if (!m_pSpellChecker) {
         m_pSpellChecker =
@@ -2038,8 +2021,8 @@ void NoteEditorTabsAndWindowsCoordinator::setupSpellChecker()
     }
 }
 
-QString NoteEditorTabsAndWindowsCoordinator::shortenEditorName(const QString & name,
-                                                               int maxSize) const
+QString NoteEditorTabsAndWindowsCoordinator::shortenEditorName(
+    const QString & name, int maxSize) const
 {
     if (maxSize < 0) {
         maxSize = MAX_TAB_NAME_SIZE;
@@ -2058,9 +2041,8 @@ QString NoteEditorTabsAndWindowsCoordinator::shortenEditorName(const QString & n
 void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorTabToWindow(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("moveNoteEditorTabToWindow: note local uid = ")
-            << noteLocalUid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "moveNoteEditorTabToWindow: note local uid = " << noteLocalUid);
 
     for(int i = 0; i < m_pTabWidget->count(); ++i)
     {
@@ -2089,8 +2071,8 @@ void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorTabToWindow(
 void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorWindowToTab(
     NoteEditorWidget * pNoteEditorWidget)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("moveNoteEditorWindowToTab: note local uid = ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "moveNoteEditorWindowToTab: note local uid = "
             << (pNoteEditorWidget
                 ? pNoteEditorWidget->noteLocalUid()
                 : QStringLiteral("<null>")));
@@ -2108,7 +2090,8 @@ void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorWindowToTab(
 
 void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
 {
-    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs");
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "persistLocalUidsOfNotesInEditorTabs");
 
     QStringList openNotesLocalUids;
     size_t size = m_localUidsOfNotesInTabbedEditors.size();
@@ -2129,7 +2112,8 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
 
 void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows()
 {
-    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows");
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "persistLocalUidsOfNotesInEditorWindows");
 
     QStringList openNotesLocalUids;
     openNotesLocalUids.reserve(m_noteEditorWindowsByNoteLocalUid.size());
@@ -2153,8 +2137,8 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows
 
 void NoteEditorTabsAndWindowsCoordinator::persistLastCurrentTabNoteLocalUid()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("persistLastCurrentTabNoteLocalUid: ")
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "persistLastCurrentTabNoteLocalUid: "
             << m_lastCurrentTabNoteLocalUid);
 
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
@@ -2165,7 +2149,7 @@ void NoteEditorTabsAndWindowsCoordinator::persistLastCurrentTabNoteLocalUid()
 
 void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes");
 
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
@@ -2177,8 +2161,7 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
 
     m_lastCurrentTabNoteLocalUid =
         appSettings.value(LAST_CURRENT_TAB_NOTE_LOCAL_UID).toString();
-    QNDEBUG(QStringLiteral("Last current tab note local uid: ")
-            << m_lastCurrentTabNoteLocalUid);
+    QNDEBUG("Last current tab note local uid: " << m_lastCurrentTabNoteLocalUid);
 
     appSettings.endGroup();
 
@@ -2217,8 +2200,8 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
             NoteEditorWidget * pNoteEditorWidget =
                 qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(i));
             if (Q_UNLIKELY(!pNoteEditorWidget)) {
-                QNWARNING(QStringLiteral("Found a widget not being NoteEditorWidget "
-                                         "in one of note editor tabs"));
+                QNWARNING("Found a widget not being NoteEditorWidget "
+                          "in one of note editor tabs");
                 continue;
             }
 
@@ -2236,23 +2219,23 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
 bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(
     const NoteEditorWidget & noteEditorWidget) const
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote");
 
     if (!noteEditorWidget.isNewNote()) {
-        QNDEBUG(QStringLiteral("The note within the editor was not a new one, "
-                               "should not expunge it"));
+        QNDEBUG("The note within the editor was not a new one, "
+                "should not expunge it");
         return false;
     }
 
     if (noteEditorWidget.hasBeenModified()) {
-        QNDEBUG(QStringLiteral("The note within the editor was modified while "
-                               "having been loaded into the editor"));
+        QNDEBUG("The note within the editor was modified while "
+                "having been loaded into the editor");
         return false;
     }
 
     const Note * pNote = noteEditorWidget.currentNote();
     if (!pNote) {
-        QNDEBUG(QStringLiteral("There is no note within the editor"));
+        QNDEBUG("There is no note within the editor");
         return false;
     }
 
@@ -2265,27 +2248,25 @@ bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(
     bool removeEmptyNotes = DEFAULT_REMOVE_EMPTY_UNEDITED_NOTES;
     if (removeEmptyNotesData.isValid()) {
         removeEmptyNotes = removeEmptyNotesData.toBool();
-        QNDEBUG(QStringLiteral("Remove empty notes setting: ")
-                << (removeEmptyNotes
-                    ? QStringLiteral("true")
-                    : QStringLiteral("false")));
+        QNDEBUG("Remove empty notes setting: "
+                << (removeEmptyNotes ? "true" : "false"));
     }
 
     if (removeEmptyNotes) {
-        QNDEBUG(QStringLiteral("Will remove empty unedited note with local uid ")
+        QNDEBUG("Will remove empty unedited note with local uid "
                 << pNote->localUid());
         return true;
     }
 
-    QNDEBUG(QStringLiteral("Won't remove the empty note due to setting"));
+    QNDEBUG("Won't remove the empty note due to setting");
     return false;
 }
 
 void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
     const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::")
-            << QStringLiteral("expungeNoteSynchronously: ") << noteLocalUid);
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            << "expungeNoteSynchronously: " << noteLocalUid);
 
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
@@ -2296,10 +2277,9 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
     bool conversionResult = false;
     int expungeNoteTimeout = expungeNoteTimeoutData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        QNDEBUG(QStringLiteral("Can't read the timeout for note expunging from ")
-                << QStringLiteral("the local storage, fallback to the default ")
-                << QStringLiteral("value of ") << DEFAULT_EXPUNGE_NOTE_TIMEOUT
-                << QStringLiteral(" milliseconds"));
+        QNDEBUG("Can't read the timeout for note expunging from "
+                << "the local storage, fallback to the default value of "
+                << DEFAULT_EXPUNGE_NOTE_TIMEOUT << " milliseconds");
         expungeNoteTimeout = DEFAULT_EXPUNGE_NOTE_TIMEOUT;
     }
     else {
@@ -2336,22 +2316,22 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
 
     int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
     if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QNWARNING(QStringLiteral("Failed to expunge the empty unedited note from "
-                                 "the local storage"));
+        QNWARNING("Failed to expunge the empty unedited note from "
+                  "the local storage");
     }
     else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        QNWARNING(QStringLiteral("The expunging of note from local storage took "
-                                 "too much time to finish"));
+        QNWARNING("The expunging of note from local storage took "
+                  "too much time to finish");
     }
     else {
-        QNDEBUG(QStringLiteral("Successfully expunged the note from the local storage"));
+        QNDEBUG("Successfully expunged the note from the local storage");
     }
 }
 
 void NoteEditorTabsAndWindowsCoordinator::checkPendingRequestsAndDisconnectFromLocalStorage()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::"
-                           "checkPendingRequestsAndDisconnectFromLocalStorage"));
+    QNDEBUG("NoteEditorTabsAndWindowsCoordinator::"
+            "checkPendingRequestsAndDisconnectFromLocalStorage");
 
     if (m_noteEditorModeByCreateNoteRequestIds.empty() &&
         m_expungeNoteRequestIds.isEmpty() &&

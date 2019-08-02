@@ -41,8 +41,12 @@ class NewListItemLineEdit: public QLineEdit
 {
     Q_OBJECT
 public:
-    explicit NewListItemLineEdit(ItemModel * pItemModel, const QStringList & reservedItemNames,
-                                 const QString & linkedNotebookGuid, QWidget * parent = Q_NULLPTR);
+    explicit NewListItemLineEdit(
+        ItemModel * pItemModel,
+        const QStringList & reservedItemNames,
+        const QString & linkedNotebookGuid,
+        QWidget * parent = Q_NULLPTR);
+
     virtual ~NewListItemLineEdit();
 
     QStringList reservedItemNames() const;
@@ -64,11 +68,12 @@ private Q_SLOTS:
     void onModelRowsInserted(const QModelIndex & parent, int start, int end);
     void onModelRowsRemoved(const QModelIndex & parent, int start, int end);
 
-    void onModelDataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+    void onModelDataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < 0x050000
-                            );
+        );
 #else
-                            , const QVector<int> & roles = QVector<int>());
+        , const QVector<int> & roles = QVector<int>());
 #endif
 
 private:

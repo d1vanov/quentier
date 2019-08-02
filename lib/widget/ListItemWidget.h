@@ -40,7 +40,10 @@ class ListItemWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit ListItemWidget(const QString & itemName, QWidget * parent = Q_NULLPTR);
+    explicit ListItemWidget(
+        const QString & itemName,
+        QWidget * parent = Q_NULLPTR);
+
     ~ListItemWidget();
 
     QString name() const;
