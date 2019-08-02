@@ -27,9 +27,9 @@
 
 namespace quentier {
 
-bool processNotebookOptions(const CommandLineParser::CommandLineOptions & options,
-                            QString & targetNotebookName,
-                            quint32 & numNewNotebooks)
+bool processNotebookOptions(
+    const CommandLineParser::CommandLineOptions & options,
+    QString & targetNotebookName, quint32 & numNewNotebooks)
 {
     auto targetNotebookNameIt = options.find(QStringLiteral("notebook"));
     auto numNewNotebooksIt = options.find(QStringLiteral("num-notebooks"));

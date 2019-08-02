@@ -27,8 +27,8 @@ namespace quentier {
 
 namespace {
 
-Account createNewLocalAccount(const QString & name,
-                              AccountManager & accountManager)
+Account createNewLocalAccount(
+    const QString & name, AccountManager & accountManager)
 {
     QString accountName = name;
     int suffix = 2;
@@ -53,7 +53,8 @@ Account createNewLocalAccount(const QString & name,
 } // namespace
 
 
-Account processStartupAccount(const CommandLineParser::CommandLineOptions & options)
+Account processStartupAccount(
+    const CommandLineParser::CommandLineOptions & options)
 {
     QScopedPointer<Account> pAccount;
     if (!processAccountCommandLineOption(options, pAccount)) {
@@ -111,7 +112,8 @@ Account processStartupAccount(const CommandLineParser::CommandLineOptions & opti
     {
         QString line = stdinStrm.readLine().trimmed();
         if (line == QStringLiteral("new")) {
-            return createNewLocalAccount(QStringLiteral("Wiki notes"), accountManager);
+            return createNewLocalAccount(
+                QStringLiteral("Wiki notes"), accountManager);
         }
 
         bool conversionResult = false;

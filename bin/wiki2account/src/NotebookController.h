@@ -40,10 +40,12 @@ class NotebookController: public QObject
 {
     Q_OBJECT
 public:
-    explicit NotebookController(const QString & targetNotebookName,
-                                const quint32 numNotebooks,
-                                LocalStorageManagerAsync & localStorageManagerAsync,
-                                QObject * parent = Q_NULLPTR);
+    explicit NotebookController(
+        const QString & targetNotebookName,
+        const quint32 numNotebooks,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        QObject * parent = Q_NULLPTR);
+
     virtual ~NotebookController();
 
     const Notebook & targetNotebook() const { return m_targetNotebook; }
@@ -54,11 +56,13 @@ Q_SIGNALS:
     void failure(ErrorString errorDescription);
 
     // private signals
-    void listNotebooks(LocalStorageManager::ListObjectsOptions flag,
-                       size_t limit, size_t offset,
-                       LocalStorageManager::ListNotebooksOrder::type order,
-                       LocalStorageManager::OrderDirection::type orderDirection,
-                       QString linkedNotebookGuid, QUuid requestId);
+    void listNotebooks(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotebooksOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, QUuid requestId);
+
     void addNotebook(Notebook notebook, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
 
@@ -83,12 +87,14 @@ private Q_SLOTS:
         QUuid requestId);
 
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                             QUuid requestId);
+
+    void onAddNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onFindNotebookComplete(Notebook foundNotebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                              QUuid requestId);
+
+    void onFindNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);

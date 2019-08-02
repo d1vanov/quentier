@@ -32,10 +32,12 @@ class TagController: public QObject
 {
     Q_OBJECT
 public:
-    explicit TagController(const quint32 minTagsPerNote,
-                           const quint32 maxTagsPerNote,
-                           LocalStorageManagerAsync & localStorageManagerAsync,
-                           QObject * parent = Q_NULLPTR);
+    explicit TagController(
+        const quint32 minTagsPerNote,
+        const quint32 maxTagsPerNote,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        QObject * parent = Q_NULLPTR);
+
     virtual ~TagController();
 
     const QList<Tag> & tags() const { return m_tags; }

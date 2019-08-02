@@ -54,16 +54,19 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onRandomArticleUrlFetchProgress(double percentage);
-    void onRandomArticleUrlFetchFinished(bool status, QUrl randomArticleUrl,
-                                         ErrorString errorDescription);
+
+    void onRandomArticleUrlFetchFinished(
+        bool status, QUrl randomArticleUrl, ErrorString errorDescription);
 
     void onWikiArticleDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
-    void onWikiArticleDownloadFinished(bool status, QByteArray fetchedData,
-                                       ErrorString errorDescription);
+
+    void onWikiArticleDownloadFinished(
+        bool status, QByteArray fetchedData, ErrorString errorDescription);
 
     void onWikiArticleToNoteProgress(double percentage);
-    void onWikiArticleToNoteFinished(bool status, ErrorString errorDescription,
-                                     Note note);
+
+    void onWikiArticleToNoteFinished(
+        bool status, ErrorString errorDescription, Note note);
 
 private:
     void clear();

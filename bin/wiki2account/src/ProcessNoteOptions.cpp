@@ -25,8 +25,8 @@
 
 namespace quentier {
 
-bool processNoteOptions(const CommandLineParser::CommandLineOptions & options,
-                        quint32 & numNotes)
+bool processNoteOptions(
+    const CommandLineParser::CommandLineOptions & options, quint32 & numNotes)
 {
     auto numNotesIt = options.find(QStringLiteral("num-notes"));
     if (numNotesIt != options.end())

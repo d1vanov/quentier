@@ -23,9 +23,9 @@
 
 namespace quentier {
 
-bool processTagOptions(const CommandLineParser::CommandLineOptions & options,
-                       quint32 & minTagsPerNote,
-                       quint32 & maxTagsPerNote);
+bool processTagOptions(
+    const CommandLineParser::CommandLineOptions & options,
+    quint32 & minTagsPerNote, quint32 & maxTagsPerNote);
 
 } // namespace quentier
 

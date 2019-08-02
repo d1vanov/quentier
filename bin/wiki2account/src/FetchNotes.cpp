@@ -27,9 +27,10 @@
 
 namespace quentier {
 
-bool FetchNotes(const QList<Notebook> & notebooks, const QList<Tag> & tags,
-                const quint32 minTagsPerNote, const quint32 numNotes,
-                LocalStorageManagerAsync & localStorageManager)
+bool FetchNotes(
+    const QList<Notebook> & notebooks, const QList<Tag> & tags,
+    const quint32 minTagsPerNote, const quint32 numNotes,
+    LocalStorageManagerAsync & localStorageManager)
 {
     WikiArticlesFetcher * pFetcher = new WikiArticlesFetcher(
         notebooks, tags, minTagsPerNote,

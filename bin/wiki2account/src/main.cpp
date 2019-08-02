@@ -114,7 +114,8 @@ int main(int argc, char *argv[])
     }
 
     QThread * pLocalStorageManagerThread = new QThread;
-    pLocalStorageManagerThread->setObjectName(QStringLiteral("LocalStorageManagerThread"));
+    pLocalStorageManagerThread->setObjectName(
+        QStringLiteral("LocalStorageManagerThread"));
     QObject::connect(pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
                      pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
     pLocalStorageManagerThread->start();

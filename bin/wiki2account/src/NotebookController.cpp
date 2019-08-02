@@ -41,7 +41,7 @@ NotebookController::~NotebookController()
 
 void NotebookController::start()
 {
-    QNDEBUG(QStringLiteral("NotebookController::start"));
+    QNDEBUG("NotebookController::start");
 
     if (!m_targetNotebookName.isEmpty())
     {
@@ -49,8 +49,8 @@ void NotebookController::start()
         notebook.setLocalUid(QString());
         notebook.setName(m_targetNotebookName);
         m_findNotebookRequestId = QUuid::createUuid();
-        QNDEBUG(QStringLiteral("Emitting request to find notebook by name: ")
-                << m_targetNotebookName << QStringLiteral(", request id = ")
+        QNDEBUG("Emitting request to find notebook by name: "
+                << m_targetNotebookName << ", request id = "
                 << m_findNotebookRequestId);
         Q_EMIT findNotebook(notebook, m_findNotebookRequestId);
         return;
@@ -59,7 +59,7 @@ void NotebookController::start()
     if (m_numNewNotebooks > 0)
     {
         m_listNotebooksRequestId = QUuid::createUuid();
-        QNDEBUG(QStringLiteral("Emitting request to list notebooks: request id = ")
+        QNDEBUG("Emitting request to list notebooks: request id = "
                 << m_listNotebooksRequestId);
         Q_EMIT listNotebooks(LocalStorageManager::ListObjectsOption::ListAll, 0,
                              0, LocalStorageManager::ListNotebooksOrder::NoOrder,
@@ -86,13 +86,12 @@ void NotebookController::onListNotebooksComplete(
         return;
     }
 
-    QNDEBUG(QStringLiteral("NotebookController::onListNotebooksComplete: flag = ")
-            << flag << QStringLiteral(", limit = ") << limit
-            << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ")
-            << order << QStringLiteral(", order direction = ") << orderDirection
-            << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
-            << QStringLiteral(", num listed notebooks = ") << foundNotebooks.size()
-            << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("NotebookController::onListNotebooksComplete: flag = "
+            << flag << ", limit = " << limit << ", offset = " << offset
+            << ", order = " << order << ", order direction = " << orderDirection
+            << ", linked notebook guid = " << linkedNotebookGuid
+            << ", num listed notebooks = " << foundNotebooks.size()
+            << ", request id = " << requestId);
 
     m_listNotebooksRequestId = QUuid();
 
@@ -122,13 +121,12 @@ void NotebookController::onListNotebooksFailed(
         return;
     }
 
-    QNWARNING(QStringLiteral("NotebookController::onListNotebooksFailed: flag = ")
-              << flag << QStringLiteral(", limit = ") << limit
-              << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ")
-              << order << QStringLiteral(", order direction = ") << orderDirection
-              << QStringLiteral(", linked notebook guid = ") << linkedNotebookGuid
-              << QStringLiteral(", error description = ") << errorDescription
-              << QStringLiteral(", request id = ") << requestId);
+    QNWARNING("NotebookController::onListNotebooksFailed: flag = "
+              << flag << ", limit = " << limit << ", offset = " << offset
+              << ", order = " << order << ", order direction = " << orderDirection
+              << ", linked notebook guid = " << linkedNotebookGuid
+              << ", error description = " << errorDescription
+              << ", request id = " << requestId);
 
     clear();
     Q_EMIT failure(errorDescription);
@@ -140,8 +138,8 @@ void NotebookController::onAddNotebookComplete(Notebook notebook, QUuid requestI
         return;
     }
 
-    QNDEBUG(QStringLiteral("NotebookController::onAddNotebookComplete: ")
-            << notebook << QStringLiteral("\nRequest id = ") << requestId);
+    QNDEBUG("NotebookController::onAddNotebookComplete: "
+            << notebook << "\nRequest id = " << requestId);
 
     m_addNotebookRequestId = QUuid();
 
@@ -154,14 +152,14 @@ void NotebookController::onAddNotebookComplete(Notebook notebook, QUuid requestI
 
     if (!m_targetNotebookName.isEmpty()) {
         m_targetNotebook = notebook;
-        QNDEBUG(QStringLiteral("Created target notebook, finishing"));
+        QNDEBUG("Created target notebook, finishing");
         Q_EMIT finished();
         return;
     }
 
     m_newNotebooks.push_back(notebook);
     if (m_newNotebooks.size() == static_cast<int>(m_numNewNotebooks)) {
-        QNDEBUG(QStringLiteral("Created the last needed new notebook, finishing"));
+        QNDEBUG("Created the last needed new notebook, finishing");
         Q_EMIT finished();
         return;
     }
@@ -177,9 +175,9 @@ void NotebookController::onAddNotebookFailed(
         return;
     }
 
-    QNWARNING(QStringLiteral("NotebookController::onAddNotebookFailed: ")
-              << errorDescription << QStringLiteral(", request id = ")
-              << requestId << QStringLiteral(", notebook: ") << notebook);
+    QNWARNING("NotebookController::onAddNotebookFailed: "
+              << errorDescription << ", request id = "
+              << requestId << ", notebook: " << notebook);
 
     clear();
     Q_EMIT failure(errorDescription);
@@ -192,8 +190,8 @@ void NotebookController::onFindNotebookComplete(
         return;
     }
 
-    QNDEBUG(QStringLiteral("NotebookController::onFindNotebookComplete: ")
-            << foundNotebook << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("NotebookController::onFindNotebookComplete: "
+            << foundNotebook << ", request id = " << requestId);
 
     m_findNotebookRequestId = QUuid();
 
@@ -208,17 +206,17 @@ void NotebookController::onFindNotebookFailed(
         return;
     }
 
-    QNDEBUG(QStringLiteral("NotebookController::onFindNotebookFailed: ")
-            << errorDescription << QStringLiteral(", request id = ") << requestId
-            << QStringLiteral(", notebook: ") << notebook);
+    QNDEBUG("NotebookController::onFindNotebookFailed: "
+            << errorDescription << ", request id = " << requestId
+            << ", notebook: " << notebook);
 
     m_findNotebookRequestId = QUuid();
 
     notebook = Notebook();
     notebook.setName(m_targetNotebookName);
     m_addNotebookRequestId = QUuid::createUuid();
-    QNDEBUG(QStringLiteral("Emitting request to add notebook: ")
-            << notebook << QStringLiteral("\nRequest id: ")
+    QNDEBUG("Emitting request to add notebook: "
+            << notebook << "\nRequest id: "
             << m_addNotebookRequestId);
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
@@ -301,7 +299,7 @@ void NotebookController::createConnections(
 
 void NotebookController::clear()
 {
-    QNDEBUG(QStringLiteral("NotebookController::clear"));
+    QNDEBUG("NotebookController::clear");
 
     m_notebookLocalUidsByNames.clear();
 
@@ -317,7 +315,7 @@ void NotebookController::clear()
 
 void NotebookController::createNextNewNotebook()
 {
-    QNDEBUG(QStringLiteral("NotebookController::createNextNewNotebook: index = ")
+    QNDEBUG("NotebookController::createNextNewNotebook: index = "
             << m_lastNewNotebookIndex);
 
     QString baseName = QStringLiteral("wiki notes notebook");
@@ -342,9 +340,8 @@ void NotebookController::createNextNewNotebook()
     Notebook notebook;
     notebook.setName(name);
     m_addNotebookRequestId = QUuid::createUuid();
-    QNDEBUG(QStringLiteral("Emitting request to add notebook: ")
-            << notebook << QStringLiteral("\nRequest id: ")
-            << m_addNotebookRequestId);
+    QNDEBUG("Emitting request to add notebook: "
+            << notebook << "\nRequest id: " << m_addNotebookRequestId);
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
 

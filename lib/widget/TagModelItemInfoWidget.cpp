@@ -25,8 +25,9 @@
 
 namespace quentier {
 
-TagModelItemInfoWidget::TagModelItemInfoWidget(const QModelIndex & index,
-                                               QWidget * parent) :
+TagModelItemInfoWidget::TagModelItemInfoWidget(
+        const QModelIndex & index,
+        QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::TagModelItemInfoWidget)
 {
@@ -71,9 +72,11 @@ TagModelItemInfoWidget::~TagModelItemInfoWidget()
 
 void TagModelItemInfoWidget::setCheckboxesReadOnly()
 {
-#define SET_CHECKBOX_READ_ONLY(name) \
-    m_pUi->name##CheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true); \
-    m_pUi->name##CheckBox->setFocusPolicy(Qt::NoFocus)
+#define SET_CHECKBOX_READ_ONLY(name)                                           \
+    m_pUi->name##CheckBox->setAttribute(                                       \
+        Qt::WA_TransparentForMouseEvents, true);                               \
+    m_pUi->name##CheckBox->setFocusPolicy(Qt::NoFocus)                         \
+// SET_CHECKBOX_READ_ONLY
 
     SET_CHECKBOX_READ_ONLY(synchronizable);
     SET_CHECKBOX_READ_ONLY(dirty);
@@ -115,8 +118,8 @@ void TagModelItemInfoWidget::setNonTagItem()
     m_pUi->statusBarLabel->show();
 }
 
-void TagModelItemInfoWidget::setTagItem(const TagModelItem & modelItem,
-                                        const TagItem & item)
+void TagModelItemInfoWidget::setTagItem(
+    const TagModelItem & modelItem, const TagItem & item)
 {
     m_pUi->statusBarLabel->hide();
 

@@ -48,10 +48,10 @@ WikiRandomArticleFetcher::~WikiRandomArticleFetcher()
 
 void WikiRandomArticleFetcher::start()
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::start"));
+    QNDEBUG("WikiRandomArticleFetcher::start");
 
     if (Q_UNLIKELY(m_started)) {
-        QNWARNING(QStringLiteral("WikiRandomArticleFetcher is already started"));
+        QNWARNING("WikiRandomArticleFetcher is already started");
         return;
     }
 
@@ -76,7 +76,7 @@ void WikiRandomArticleFetcher::start()
 
 void WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress(double percentage)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress: ")
+    QNDEBUG("WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress: "
             << percentage);
 
     // Downloading the article's URL is considered only 10% of total progress
@@ -86,9 +86,9 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress(double percentage
 void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     bool status, QUrl randomArticleUrl, ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished: ")
-            << (status ? "success" : "failure") << QStringLiteral(", url = ")
-            << randomArticleUrl << QStringLiteral(", error description = ")
+    QNDEBUG("WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished: "
+            << (status ? "success" : "failure") << ", url = "
+            << randomArticleUrl << ", error description = "
             << errorDescription);
 
     if (m_pWikiArticleUrlFetcher) {
@@ -100,14 +100,14 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     if (!status)
     {
         clear();
-        QNWARNING(QStringLiteral("Failed to fetch random wiki article's URL: ")
+        QNWARNING("Failed to fetch random wiki article's URL: "
                   << errorDescription);
         Q_EMIT failure(errorDescription);
         return;
     }
 
     m_url = randomArticleUrl;
-    QNDEBUG(QStringLiteral("Starting to fetch wiki article content: ") << m_url);
+    QNDEBUG("Starting to fetch wiki article content: " << m_url);
 
     m_pWikiArticleContentsFetcher = new NetworkReplyFetcher(
         m_pNetworkAccessManager, m_url, m_networkReplyFetcherTimeout);
@@ -127,12 +127,11 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     m_pWikiArticleContentsFetcher->start();
 }
 
-void WikiRandomArticleFetcher::onWikiArticleDownloadProgress(qint64 bytesFetched,
-                                                             qint64 bytesTotal)
+void WikiRandomArticleFetcher::onWikiArticleDownloadProgress(
+    qint64 bytesFetched, qint64 bytesTotal)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::onWikiArticleDownloadProgress: ")
-            << bytesFetched << QStringLiteral(" bytes fetched out of ")
-            << bytesTotal);
+    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleDownloadProgress: "
+            << bytesFetched << " bytes fetched out of " << bytesTotal);
 
     if (bytesTotal < 0) {
         // The exact number of bytes to download is not known
@@ -148,9 +147,9 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadProgress(qint64 bytesFetched
 void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
     bool status, QByteArray fetchedData, ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::onWikiArticleDownloadFinished: ")
+    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleDownloadFinished: "
             << (status ? "success" : "failure")
-            << QStringLiteral(", error description = ") << errorDescription);
+            << ", error description = " << errorDescription);
 
     if (m_pWikiArticleContentsFetcher) {
         m_pWikiArticleContentsFetcher->disconnect(this);
@@ -161,8 +160,8 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
     if (!status)
     {
         clear();
-        QNWARNING(QStringLiteral("Failed to fetch random wiki article's contents: ")
-                  << errorDescription << QStringLiteral("; url = ") << m_url);
+        QNWARNING("Failed to fetch random wiki article's contents: "
+                  << errorDescription << "; url = " << m_url);
         Q_EMIT failure(errorDescription);
         return;
     }
@@ -186,7 +185,7 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
 
 void WikiRandomArticleFetcher::onWikiArticleToNoteProgress(double percentage)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::onWikiArticleToNoteProgress: ")
+    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleToNoteProgress: "
             << percentage);
 
     // Converting the article to note takes the remaining 30% of total progress
@@ -198,9 +197,9 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteProgress(double percentage)
 void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
     bool status, ErrorString errorDescription, Note note)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::onWikiArticleToNoteFinished: ")
+    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleToNoteFinished: "
             << (status ? "success" : "failure")
-            << QStringLiteral(", error description = ") << errorDescription);
+            << ", error description = " << errorDescription);
 
     if (m_pWikiArticleToNote) {
         m_pWikiArticleToNote->disconnect(this);
@@ -211,7 +210,7 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
     if (!status)
     {
         clear();
-        QNWARNING(QStringLiteral("Failed to convert wiki article's contents to note: ")
+        QNWARNING("Failed to convert wiki article's contents to note: "
                   << errorDescription);
         Q_EMIT failure(errorDescription);
         return;
@@ -227,7 +226,7 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
 
 void WikiRandomArticleFetcher::clear()
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleFetcher::clear"));
+    QNDEBUG("WikiRandomArticleFetcher::clear");
 
     m_url = QUrl();
     m_note = Note();

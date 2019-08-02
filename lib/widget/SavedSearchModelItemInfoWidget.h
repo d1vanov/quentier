@@ -37,8 +37,10 @@ class SavedSearchModelItemInfoWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit SavedSearchModelItemInfoWidget(const QModelIndex & index,
-                                            QWidget * parent = Q_NULLPTR);
+    explicit SavedSearchModelItemInfoWidget(
+        const QModelIndex & index,
+        QWidget * parent = Q_NULLPTR);
+
     virtual ~SavedSearchModelItemInfoWidget();
 
 private:
