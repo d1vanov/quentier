@@ -53,7 +53,7 @@ void loadDependencies()
 
         QPluginLoader pluginLoader(fileName);
         if (!pluginLoader.load()) {
-            qWarning() << QStringLiteral("Failed to load plugin ") << fileName;
+            qWarning() << "Failed to load plugin " << fileName;
         }
     }
 #endif // Q_OS_WIN

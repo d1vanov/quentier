@@ -23,36 +23,38 @@
 
 #include <QTextStream>
 
-#define FAIL(text) \
-    QString str; \
-    QTextStream strm(&str); \
-    strm << text; \
-    Q_EMIT failure(ErrorString(str)); \
-    return
+#define FAIL(text)                                                             \
+    QString str;                                                               \
+    QTextStream strm(&str);                                                    \
+    strm << text;                                                              \
+    Q_EMIT failure(ErrorString(str));                                          \
+    return                                                                     \
+// FAIL
 
-#define CATCH_EXCEPTION() \
-    catch(const IQuentierException & exception) { \
-        SysInfo sysInfo; \
-        QString error = QStringLiteral("Caught Quentier exception: ") + \
-                        exception.nonLocalizedErrorMessage() + \
-                        QStringLiteral(", what: ") + \
-                        QString::fromUtf8(exception.what()) + \
-                        QStringLiteral("; stack trace: ") + \
-                        sysInfo.stackTrace(); \
-        errorDescription = ErrorString(error); \
-    } \
-    catch(const std::exception & exception) { \
-        SysInfo sysInfo; \
-        QString error = QStringLiteral("Caught std::exception: ") + \
-        QString::fromUtf8(exception.what()) + \
-        QStringLiteral("; stack trace: ") + sysInfo.stackTrace(); \
-        errorDescription = ErrorString(error); \
-    } \
-    catch(...) { \
-        SysInfo sysInfo; \
-        QString error = QStringLiteral("Caught some unknown exception; ") + \
-                        QStringLiteral("stack trace: ") + sysInfo.stackTrace(); \
-        errorDescription = ErrorString(error); \
-    }
+#define CATCH_EXCEPTION()                                                      \
+    catch(const IQuentierException & exception) {                              \
+        SysInfo sysInfo;                                                       \
+        QString error = QStringLiteral("Caught Quentier exception: ") +        \
+                        exception.nonLocalizedErrorMessage() +                 \
+                        QStringLiteral(", what: ") +                           \
+                        QString::fromUtf8(exception.what()) +                  \
+                        QStringLiteral("; stack trace: ") +                    \
+                        sysInfo.stackTrace();                                  \
+        errorDescription = ErrorString(error);                                 \
+    }                                                                          \
+    catch(const std::exception & exception) {                                  \
+        SysInfo sysInfo;                                                       \
+        QString error = QStringLiteral("Caught std::exception: ") +            \
+        QString::fromUtf8(exception.what()) +                                  \
+        QStringLiteral("; stack trace: ") + sysInfo.stackTrace();              \
+        errorDescription = ErrorString(error);                                 \
+    }                                                                          \
+    catch(...) {                                                               \
+        SysInfo sysInfo;                                                       \
+        QString error = QStringLiteral("Caught some unknown exception; ") +    \
+                        QStringLiteral("stack trace: ") + sysInfo.stackTrace();\
+        errorDescription = ErrorString(error);                                 \
+    }                                                                          \
+// CATCH_EXCEPTION
 
 #endif // QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
