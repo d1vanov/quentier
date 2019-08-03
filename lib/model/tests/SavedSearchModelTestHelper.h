@@ -41,12 +41,14 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                   QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                 QUuid requestId);
+    void onAddSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+
+    void onUpdateSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+
+    void onFindSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
     void onListSavedSearchesFailed(
         LocalStorageManager::ListObjectsOptions flag,
@@ -55,9 +57,9 @@ private Q_SLOTS:
         LocalStorageManager::OrderDirection::type orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
-    void onExpungeSavedSearchFailed(SavedSearch search,
-                                    ErrorString errorDescription,
-                                    QUuid requestId);
+    void onExpungeSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
 private:
     bool checkSorting(const SavedSearchModel & model) const;

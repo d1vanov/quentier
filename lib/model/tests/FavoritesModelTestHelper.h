@@ -42,49 +42,66 @@ public Q_SLOTS:
     void launchTest();
 
 private Q_SLOTS:
-    void onUpdateNoteComplete(Note note,
-                              LocalStorageManager::UpdateNoteOptions options,
-                              QUuid requestId);
-    void onUpdateNoteFailed(Note note,
-                            LocalStorageManager::UpdateNoteOptions options,
-                            ErrorString errorDescription, QUuid requestId);
-    void onFindNoteFailed(Note note, LocalStorageManager::GetNoteOptions options,
-                          ErrorString errorDescription, QUuid requestId);
-    void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag,
-                           LocalStorageManager::GetNoteOptions options,
-                           size_t limit, size_t offset,
-                           LocalStorageManager::ListNotesOrder::type order,
-                           LocalStorageManager::OrderDirection::type orderDirection,
-                           QString linkedNotebookGuid, ErrorString errorDescription,
-                           QUuid requestId);
+    void onUpdateNoteComplete(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        QUuid requestId);
+
+    void onUpdateNoteFailed(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        ErrorString errorDescription, QUuid requestId);
+
+    void onFindNoteFailed(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        ErrorString errorDescription, QUuid requestId);
+
+    void onListNotesFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        LocalStorageManager::GetNoteOptions options,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotesOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, ErrorString errorDescription,
+        QUuid requestId);
 
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                                QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                              QUuid requestId);
-    void onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
-                               size_t limit, size_t offset,
-                               LocalStorageManager::ListNotebooksOrder::type order,
-                               LocalStorageManager::OrderDirection::type orderDirection,
-                               QString linkedNotebookGuid, ErrorString errorDescription,
-                               QUuid requestId);
+
+    void onUpdateNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
+    void onFindNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
+    void onListNotebooksFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListNotebooksOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, ErrorString errorDescription,
+        QUuid requestId);
 
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
-                          size_t limit, size_t offset,
-                          LocalStorageManager::ListTagsOrder::type order,
-                          LocalStorageManager::OrderDirection::type orderDirection,
-                          QString linkedNotebookGuid,
-                          ErrorString errorDescription, QUuid requestId);
+
+    void onUpdateTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onFindTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onListTagsFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListTagsOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid,
+        ErrorString errorDescription, QUuid requestId);
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                   QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                 QUuid requestId);
+
+    void onUpdateSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+
+    void onFindSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
     void onListSavedSearchesFailed(
         LocalStorageManager::ListObjectsOptions flag,
@@ -100,38 +117,44 @@ private:
 private:
     struct LessByType
     {
-        bool operator()(const FavoritesModelItem & lhs,
-                        const FavoritesModelItem & rhs) const;
+        bool operator()(
+            const FavoritesModelItem & lhs,
+            const FavoritesModelItem & rhs) const;
     };
 
     struct GreaterByType
     {
-        bool operator()(const FavoritesModelItem & lhs,
-                        const FavoritesModelItem & rhs) const;
+        bool operator()(
+            const FavoritesModelItem & lhs,
+            const FavoritesModelItem & rhs) const;
     };
 
     struct LessByDisplayName
     {
-        bool operator()(const FavoritesModelItem & lhs,
-                        const FavoritesModelItem & rhs) const;
+        bool operator()(
+            const FavoritesModelItem & lhs,
+            const FavoritesModelItem & rhs) const;
     };
 
     struct GreaterByDisplayName
     {
-        bool operator()(const FavoritesModelItem & lhs,
-                        const FavoritesModelItem & rhs) const;
+        bool operator()(
+            const FavoritesModelItem & lhs,
+            const FavoritesModelItem & rhs) const;
     };
 
     struct LessByNumNotesTargeted
     {
-        bool operator()(const FavoritesModelItem & lhs,
-                        const FavoritesModelItem & rhs) const;
+        bool operator()(
+            const FavoritesModelItem & lhs,
+            const FavoritesModelItem & rhs) const;
     };
 
     struct GreaterByNumNotesTargeted
     {
-        bool operator()(const FavoritesModelItem & lhs,
-                        const FavoritesModelItem & rhs) const;
+        bool operator()(
+            const FavoritesModelItem & lhs,
+            const FavoritesModelItem & rhs) const;
     };
 
 private:
