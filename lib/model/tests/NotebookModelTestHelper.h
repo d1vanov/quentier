@@ -42,12 +42,14 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                             QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                                QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                              QUuid requestId);
+    void onAddNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
+    void onUpdateNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
+    void onFindNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onListNotebooksFailed(
         LocalStorageManager::ListObjectsOptions flag,
@@ -56,24 +58,25 @@ private Q_SLOTS:
         LocalStorageManager::OrderDirection::type orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
 
-    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                                 QUuid requestId);
+    void onExpungeNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
 private:
-    bool checkSorting(const NotebookModel & model,
-                      const NotebookModelItem * item) const;
+    bool checkSorting(
+        const NotebookModel & model, const NotebookModelItem * item) const;
+
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
     {
-        bool operator()(const NotebookModelItem * lhs,
-                        const NotebookModelItem * rhs) const;
+        bool operator()(
+            const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
     };
 
     struct GreaterByName
     {
-        bool operator()(const NotebookModelItem * lhs,
-                        const NotebookModelItem * rhs) const;
+        bool operator()(
+            const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
     };
 
 private:

@@ -30,15 +30,17 @@
 #include <QContextMenuEvent>
 #include <QScopedPointer>
 
-#define LAST_SELECTED_SAVED_SEARCH_KEY \
-    QStringLiteral("LastSelectedSavedSearchLocalUid")
+#define LAST_SELECTED_SAVED_SEARCH_KEY                                         \
+    QStringLiteral("LastSelectedSavedSearchLocalUid")                          \
+// LAST_SELECTED_SAVED_SEARCH_KEY
 
-#define REPORT_ERROR(error) \
-    { \
-        ErrorString errorDescription(error); \
-        QNWARNING(errorDescription); \
-        Q_EMIT notifyError(errorDescription); \
-    }
+#define REPORT_ERROR(error)                                                    \
+    {                                                                          \
+        ErrorString errorDescription(error);                                   \
+        QNWARNING(errorDescription);                                           \
+        Q_EMIT notifyError(errorDescription);                                  \
+    }                                                                          \
+// REPORT_ERROR
 
 namespace quentier {
 
@@ -51,7 +53,7 @@ SavedSearchItemView::SavedSearchItemView(QWidget * parent) :
 
 void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::setModel"));
+    QNDEBUG("SavedSearchItemView::setModel");
 
     SavedSearchModel * pPreviousModel = qobject_cast<SavedSearchModel*>(model());
     if (pPreviousModel)
@@ -101,8 +103,8 @@ void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(pModel);
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model has been set to the saved "
-                               "search item view"));
+        QNDEBUG("Non-saved search model has been set to the saved search item "
+                "view");
         ItemView::setModel(pModel);
         return;
     }
@@ -145,8 +147,7 @@ void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
     ItemView::setModel(pModel);
 
     if (pSavedSearchModel->allSavedSearchesListed()) {
-        QNDEBUG(QStringLiteral("All saved searches are already listed within "
-                               "the model"));
+        QNDEBUG("All saved searches are already listed within the model");
         restoreLastSavedSelection(*pSavedSearchModel);
         m_modelReady = true;
         m_trackingSelection = true;
@@ -161,23 +162,23 @@ void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
 
 QModelIndex SavedSearchItemView::currentlySelectedItemIndex() const
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::currentlySelectedItemIndex"));
+    QNDEBUG("SavedSearchItemView::currentlySelectedItemIndex");
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return QModelIndex();
     }
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        QNDEBUG(QStringLiteral("No selection model in the view"));
+        QNDEBUG("No selection model in the view");
         return QModelIndex();
     }
 
     QModelIndexList indexes = selectedIndexes();
     if (indexes.isEmpty()) {
-        QNDEBUG(QStringLiteral("The selection contains no model indexes"));
+        QNDEBUG("The selection contains no model indexes");
         return QModelIndex();
     }
 
@@ -186,17 +187,17 @@ QModelIndex SavedSearchItemView::currentlySelectedItemIndex() const
 
 void SavedSearchItemView::deleteSelectedItem()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::deleteSelectedItem"));
+    QNDEBUG("SavedSearchItemView::deleteSelectedItem");
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return;
     }
 
     QModelIndexList indexes = selectedIndexes();
     if (indexes.isEmpty()) {
-        QNDEBUG(QStringLiteral("No saved searches are selected, nothing to delete"));
+        QNDEBUG("No saved searches are selected, nothing to delete");
         Q_UNUSED(informationMessageBox(this, tr("Cannot delete current saved search"),
                                        tr("No saved search is selected currently"),
                                        tr("Please select the saved search you "
@@ -207,7 +208,7 @@ void SavedSearchItemView::deleteSelectedItem()
     QModelIndex index = singleRow(indexes, *pSavedSearchModel,
                                   SavedSearchModel::Columns::Name);
     if (!index.isValid()) {
-        QNDEBUG(QStringLiteral("Not exactly one saved search within the selection"));
+        QNDEBUG("Not exactly one saved search within the selection");
         Q_UNUSED(informationMessageBox(this,
                                        tr("Cannot delete current saved search"),
                                        tr("More than one saved search is currently "
@@ -222,7 +223,7 @@ void SavedSearchItemView::deleteSelectedItem()
 
 void SavedSearchItemView::onAllSavedSearchesListed()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onAllSavedSearchesListed"));
+    QNDEBUG("SavedSearchItemView::onAllSavedSearchesListed");
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
@@ -243,13 +244,13 @@ void SavedSearchItemView::onAllSavedSearchesListed()
 
 void SavedSearchItemView::onAboutToAddSavedSearch()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onAboutToAddSavedSearch"));
+    QNDEBUG("SavedSearchItemView::onAboutToAddSavedSearch");
     prepareForSavedSearchModelChange();
 }
 
 void SavedSearchItemView::onAddedSavedSearch(const QModelIndex & index)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onAddedSavedSearch"));
+    QNDEBUG("SavedSearchItemView::onAddedSavedSearch");
 
     Q_UNUSED(index)
     postProcessSavedSearchModelChange();
@@ -257,7 +258,7 @@ void SavedSearchItemView::onAddedSavedSearch(const QModelIndex & index)
 
 void SavedSearchItemView::onAboutToUpdateSavedSearch(const QModelIndex & index)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onAboutToUpdateSavedSearch"));
+    QNDEBUG("SavedSearchItemView::onAboutToUpdateSavedSearch");
 
     Q_UNUSED(index)
     prepareForSavedSearchModelChange();
@@ -265,7 +266,7 @@ void SavedSearchItemView::onAboutToUpdateSavedSearch(const QModelIndex & index)
 
 void SavedSearchItemView::onUpdatedSavedSearch(const QModelIndex & index)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onUpdatedSavedSearch"));
+    QNDEBUG("SavedSearchItemView::onUpdatedSavedSearch");
 
     Q_UNUSED(index)
     postProcessSavedSearchModelChange();
@@ -273,29 +274,29 @@ void SavedSearchItemView::onUpdatedSavedSearch(const QModelIndex & index)
 
 void SavedSearchItemView::onAboutToRemoveSavedSearches()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onAboutToRemoveSavedSearches"));
+    QNDEBUG("SavedSearchItemView::onAboutToRemoveSavedSearches");
     prepareForSavedSearchModelChange();
 }
 
 void SavedSearchItemView::onRemovedSavedSearches()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onRemovedSavedSearches"));
+    QNDEBUG("SavedSearchItemView::onRemovedSavedSearches");
     postProcessSavedSearchModelChange();
 }
 
 void SavedSearchItemView::onCreateNewSavedSearchAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onCreateNewSavedSearchAction"));
+    QNDEBUG("SavedSearchItemView::onCreateNewSavedSearchAction");
     Q_EMIT newSavedSearchCreationRequested();
 }
 
 void SavedSearchItemView::onRenameSavedSearchAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onRenameSavedSearchAction"));
+    QNDEBUG("SavedSearchItemView::onRenameSavedSearchAction");
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return;
     }
 
@@ -326,11 +327,11 @@ void SavedSearchItemView::onRenameSavedSearchAction()
 
 void SavedSearchItemView::onDeleteSavedSearchAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onDeleteSavedSearchAction"));
+    QNDEBUG("SavedSearchItemView::onDeleteSavedSearchAction");
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used")
         return;
     }
 
@@ -361,11 +362,11 @@ void SavedSearchItemView::onDeleteSavedSearchAction()
 
 void SavedSearchItemView::onEditSavedSearchAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onEditSavedSearchAction"));
+    QNDEBUG("SavedSearchItemView::onEditSavedSearchAction");
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return;
     }
 
@@ -391,13 +392,13 @@ void SavedSearchItemView::onEditSavedSearchAction()
 
 void SavedSearchItemView::onShowSavedSearchInfoAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onShowSavedSearchInfoAction"));
+    QNDEBUG("SavedSearchItemView::onShowSavedSearchInfoAction");
     Q_EMIT savedSearchInfoRequested();
 }
 
 void SavedSearchItemView::onDeselectAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onDeselectAction"));
+    QNDEBUG("SavedSearchItemView::onDeselectAction");
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -411,7 +412,7 @@ void SavedSearchItemView::onDeselectAction()
 
 void SavedSearchItemView::onFavoriteAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onFavoriteAction"));
+    QNDEBUG("SavedSearchItemView::onFavoriteAction");
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
@@ -425,7 +426,7 @@ void SavedSearchItemView::onFavoriteAction()
 
 void SavedSearchItemView::onUnfavoriteAction()
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::onUnfavoriteAction"));
+    QNDEBUG("SavedSearchItemView::onUnfavoriteAction");
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
@@ -437,10 +438,10 @@ void SavedSearchItemView::onUnfavoriteAction()
     setFavoritedFlag(*pAction, false);
 }
 
-void SavedSearchItemView::selectionChanged(const QItemSelection & selected,
-                                           const QItemSelection & deselected)
+void SavedSearchItemView::selectionChanged(
+    const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::selectionChanged"));
+    QNDEBUG("SavedSearchItemView::selectionChanged");
 
     selectionChangedImpl(selected, deselected);
     ItemView::selectionChanged(selected, deselected);
@@ -448,24 +449,24 @@ void SavedSearchItemView::selectionChanged(const QItemSelection & selected,
 
 void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::contextMenuEvent"));
+    QNDEBUG("SavedSearchItemView::contextMenuEvent");
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING(QStringLiteral("Detected Qt error: saved search item view "
-                                 "received context menu event with null pointer "
-                                 "to the context menu event"));
+        QNWARNING("Detected Qt error: saved search item view "
+                  "received context menu event with null pointer "
+                  "to the context menu event");
         return;
     }
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return;
     }
 
     QModelIndex clickedItemIndex = indexAt(pEvent->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
+        QNDEBUG("Clicked item index is not valid, not doing anything");
         return;
     }
 
@@ -481,15 +482,16 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     delete m_pSavedSearchItemContextMenu;
     m_pSavedSearchItemContextMenu = new QMenu(this);
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
-    { \
-        QAction * pAction = new QAction(name, menu); \
-        pAction->setData(data); \
-        pAction->setEnabled(enabled); \
-        QObject::connect(pAction, QNSIGNAL(QAction,triggered), \
-                         this, QNSLOT(SavedSearchItemView,slot)); \
-        menu->addAction(pAction); \
-    }
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled)               \
+    {                                                                          \
+        QAction * pAction = new QAction(name, menu);                           \
+        pAction->setData(data);                                                \
+        pAction->setEnabled(enabled);                                          \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered),                 \
+                         this, QNSLOT(SavedSearchItemView,slot));              \
+        menu->addAction(pAction);                                              \
+    }                                                                          \
+// ADD_CONTEXT_MENU_ACTION
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new saved search") + QStringLiteral("..."),
                             m_pSavedSearchItemContextMenu,
@@ -535,10 +537,10 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     m_pSavedSearchItemContextMenu->exec(pEvent->globalPos());
 }
 
-void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex,
-                                     SavedSearchModel & model)
+void SavedSearchItemView::deleteItem(
+    const QModelIndex & itemIndex, SavedSearchModel & model)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::deleteItem"));
+    QNDEBUG("SavedSearchItemView::deleteItem");
 
     const SavedSearchModelItem * pItem = model.itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pItem)) {
@@ -553,13 +555,13 @@ void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex,
                                     tr("Note that this action is not reversible!"),
                                     QMessageBox::Ok | QMessageBox::No);
     if (confirm != QMessageBox::Ok) {
-        QNDEBUG(QStringLiteral("Saved search deletion was not confirmed"));
+        QNDEBUG("Saved search deletion was not confirmed");
         return;
     }
 
     bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
     if (res) {
-        QNDEBUG(QStringLiteral("Successfully deleted saved search"));
+        QNDEBUG("Successfully deleted saved search");
         return;
     }
 
@@ -573,7 +575,7 @@ void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex,
 
 void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & model)
 {
-    QNDEBUG(QStringLiteral("SavedSearchItemView::restoreLastSavedSelection"));
+    QNDEBUG("SavedSearchItemView::restoreLastSavedSelection");
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -589,18 +591,18 @@ void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & mod
     appSettings.endGroup();
 
     if (lastSelectedSavedSearchLocalUid.isEmpty()) {
-        QNDEBUG(QStringLiteral("Found no last selected saved search local uid"));
+        QNDEBUG("Found no last selected saved search local uid");
         return;
     }
 
-    QNTRACE(QStringLiteral("Last selected saved search local uid: ")
+    QNTRACE("Last selected saved search local uid: "
             << lastSelectedSavedSearchLocalUid);
 
     QModelIndex lastSelectedSavedSearchIndex =
         model.indexForLocalUid(lastSelectedSavedSearchLocalUid);
     if (!lastSelectedSavedSearchIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Saved search model returned invalid index for "
-                               "the last selected saved search local uid"));
+        QNDEBUG("Saved search model returned invalid index for "
+                "the last selected saved search local uid");
         return;
     }
 
@@ -610,13 +612,13 @@ void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & mod
                             QItemSelectionModel::Current);
 }
 
-void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
-                                               const QItemSelection & deselected)
+void SavedSearchItemView::selectionChangedImpl(
+    const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNTRACE(QStringLiteral("SavedSearchItemView::selectionChangedImpl"));
+    QNTRACE("SavedSearchItemView::selectionChangedImpl");
 
     if (!m_trackingSelection) {
-        QNTRACE(QStringLiteral("Not tracking selection at this time, skipping"));
+        QNTRACE("Not tracking selection at this time, skipping");
         return;
     }
 
@@ -624,14 +626,14 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return;
     }
 
     QModelIndexList selectedIndexes = selected.indexes();
 
     if (selectedIndexes.isEmpty()) {
-        QNDEBUG(QStringLiteral("The new selection is empty"));
+        QNDEBUG("The new selection is empty");
         return;
     }
 
@@ -640,7 +642,7 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
     QModelIndex sourceIndex = singleRow(selectedIndexes, *pSavedSearchModel,
                                         SavedSearchModel::Columns::Name);
     if (!sourceIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Not exactly one row is selected"));
+        QNDEBUG("Not exactly one row is selected");
         return;
     }
 
@@ -652,24 +654,23 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
         return;
     }
 
-    QNTRACE(QStringLiteral("Currently selected saved search item: ")
-            << *pSavedSearchItem);
+    QNTRACE("Currently selected saved search item: " << *pSavedSearchItem);
 
     ApplicationSettings appSettings(pSavedSearchModel->account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("SavedSearchItemView"));
     appSettings.setValue(LAST_SELECTED_SAVED_SEARCH_KEY, pSavedSearchItem->m_localUid);
     appSettings.endGroup();
 
-    QNDEBUG(QStringLiteral("Persisted the currently selected saved search local uid: ")
+    QNDEBUG("Persisted the currently selected saved search local uid: "
             << pSavedSearchItem->m_localUid);
 }
 
-void SavedSearchItemView::setFavoritedFlag(const QAction & action,
-                                           const bool favorited)
+void SavedSearchItemView::setFavoritedFlag(
+    const QAction & action, const bool favorited)
 {
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return;
     }
 
@@ -700,7 +701,7 @@ void SavedSearchItemView::setFavoritedFlag(const QAction & action,
 void SavedSearchItemView::prepareForSavedSearchModelChange()
 {
     if (!m_modelReady) {
-        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        QNDEBUG("The model is not ready yet");
         return;
     }
 
@@ -710,13 +711,13 @@ void SavedSearchItemView::prepareForSavedSearchModelChange()
 void SavedSearchItemView::postProcessSavedSearchModelChange()
 {
     if (!m_modelReady) {
-        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        QNDEBUG("The model is not ready yet");
         return;
     }
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        QNDEBUG("Non-saved search model is used");
         return;
     }
 

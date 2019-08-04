@@ -24,9 +24,10 @@
 
 namespace quentier {
 
-bool parseStartupAccount(const QString & accountStr, bool & isLocal,
-                         qevercloud::UserID & userId, QString & evernoteHost,
-                         QString & accountName, ErrorString & errorDescription)
+bool parseStartupAccount(
+    const QString & accountStr, bool & isLocal,
+    qevercloud::UserID & userId, QString & evernoteHost,
+    QString & accountName, ErrorString & errorDescription)
 {
     QString str = accountStr;
 
@@ -100,8 +101,7 @@ bool parseStartupAccount(const QString & accountStr, bool & isLocal,
                                   "from string to integer"));
             errorDescription.details() = accountStr;
             qWarning() << errorDescription.localizedString()
-                       << QStringLiteral(", user id str = ")
-                       << userIdStr.toString();
+                       << ", user id str = " << userIdStr.toString();
             return false;
         }
 
@@ -113,7 +113,7 @@ bool parseStartupAccount(const QString & accountStr, bool & isLocal,
                                   "line: parsed user id is negative"));
             errorDescription.details() = accountStr;
             qWarning() << errorDescription.localizedString()
-                       << QStringLiteral(", user id = ") << userId;
+                       << ", user id = " << userId;
             return false;
         }
 
@@ -132,11 +132,11 @@ bool parseStartupAccount(const QString & accountStr, bool & isLocal,
         return false;
     }
 
-    qDebug() << QStringLiteral("Parsed startup account: is local = ")
-             << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
-             << QStringLiteral(", user id = ") << userId
-             << QStringLiteral(", evernote host = ") << evernoteHost
-             << QStringLiteral(", account name = ") << accountName;
+    qDebug() << "Parsed startup account: is local = "
+             << (isLocal ? "true" : "false")
+             << ", user id = " << userId
+             << ", evernote host = " << evernoteHost
+             << ", account name = " << accountName;
     return true;
 }
 

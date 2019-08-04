@@ -37,10 +37,12 @@ class WikiArticlesFetcher: public QObject
 {
     Q_OBJECT
 public:
-    explicit WikiArticlesFetcher(QList<Notebook> notebooks, QList<Tag> tags,
-                                 quint32 minTagsPerNote, quint32 numNotes,
-                                 LocalStorageManagerAsync & localStorageManager,
-                                 QObject * parent = Q_NULLPTR);
+    explicit WikiArticlesFetcher(
+        QList<Notebook> notebooks, QList<Tag> tags,
+        quint32 minTagsPerNote, quint32 numNotes,
+        LocalStorageManagerAsync & localStorageManager,
+        QObject * parent = Q_NULLPTR);
+
     virtual ~WikiArticlesFetcher();
 
 Q_SIGNALS:
@@ -60,8 +62,9 @@ private Q_SLOTS:
     void onWikiArticleFetchingProgress(double percentage);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, ErrorString errorDescription,
-                         QUuid requestId);
+
+    void onAddNoteFailed(
+        Note note, ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManager);

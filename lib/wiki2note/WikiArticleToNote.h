@@ -61,8 +61,9 @@ public Q_SLOTS:
     void start(QByteArray wikiPageContent);
 
 private Q_SLOTS:
-    void onNetworkReplyFetcherFinished(bool status, QByteArray fetchedData,
-                                       ErrorString errorDescription);
+    void onNetworkReplyFetcherFinished(
+        bool status, QByteArray fetchedData, ErrorString errorDescription);
+
     void onNetworkReplyFetcherProgress(qint64 bytesFetched, qint64 bytesTotal);
 
 private:

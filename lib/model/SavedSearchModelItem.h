@@ -26,13 +26,14 @@ namespace quentier {
 class SavedSearchModelItem: public Printable
 {
 public:
-    explicit SavedSearchModelItem(const QString & localUid = QString(),
-                                  const QString & guid = QString(),
-                                  const QString & name = QString(),
-                                  const QString & query = QString(),
-                                  const bool isSynchronizable = false,
-                                  const bool isDirty = false,
-                                  const bool isFavorited = false);
+    explicit SavedSearchModelItem(
+        const QString & localUid = QString(),
+        const QString & guid = QString(),
+        const QString & name = QString(),
+        const QString & query = QString(),
+        const bool isSynchronizable = false,
+        const bool isDirty = false,
+        const bool isFavorited = false);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

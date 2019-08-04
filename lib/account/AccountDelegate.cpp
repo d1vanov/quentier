@@ -28,9 +28,9 @@ AccountDelegate::AccountDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
 
-QWidget * AccountDelegate::createEditor(QWidget * parent,
-                                        const QStyleOptionViewItem & option,
-                                        const QModelIndex & index) const
+QWidget * AccountDelegate::createEditor(
+    QWidget * parent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (!index.isValid() ||
         (index.column() != AccountModel::Columns::DisplayName))
@@ -41,8 +41,8 @@ QWidget * AccountDelegate::createEditor(QWidget * parent,
     return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
-void AccountDelegate::setEditorData(QWidget * pEditor,
-                                    const QModelIndex & index) const
+void AccountDelegate::setEditorData(
+    QWidget * pEditor, const QModelIndex & index) const
 {
     if (!index.isValid() ||
         (index.column() != AccountModel::Columns::DisplayName))
@@ -58,8 +58,8 @@ void AccountDelegate::setEditorData(QWidget * pEditor,
     }
 }
 
-QSize AccountDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                const QModelIndex & index) const
+QSize AccountDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (!index.isValid()) {
         return QSize();

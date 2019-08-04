@@ -39,7 +39,7 @@ AccountModel::~AccountModel()
 
 void AccountModel::setAccounts(const QVector<Account> & accounts)
 {
-    QNDEBUG(QStringLiteral("AccountModel::setAccounts"));
+    QNDEBUG("AccountModel::setAccounts");
 
     if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
     {
@@ -58,7 +58,7 @@ void AccountModel::setAccounts(const QVector<Account> & accounts)
     }
 
     if (m_accounts == accounts) {
-        QNDEBUG(QStringLiteral("Accounts haven't changed"));
+        QNDEBUG("Accounts haven't changed");
         return;
     }
 
@@ -69,7 +69,7 @@ void AccountModel::setAccounts(const QVector<Account> & accounts)
 
 bool AccountModel::addAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountModel::addAccount: ") << account);
+    QNDEBUG("AccountModel::addAccount: " << account);
 
     // Check whether this account is already within the list of accounts
     bool foundExistingAccount = false;
@@ -96,7 +96,7 @@ bool AccountModel::addAccount(const Account & account)
     }
 
     if (foundExistingAccount) {
-        QNDEBUG(QStringLiteral("Account already exists"));
+        QNDEBUG("Account already exists");
         return false;
     }
 
@@ -111,7 +111,7 @@ bool AccountModel::addAccount(const Account & account)
 
 bool AccountModel::removeAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("AccountModel::removeAccount: ") << account);
+    QNDEBUG("AccountModel::removeAccount: " << account);
 
     Account::Type::type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
@@ -354,8 +354,7 @@ bool AccountModel::setData(const QModelIndex & index,
             }
 
             if (account.displayName() == displayName) {
-                QNDEBUG(QStringLiteral("The account display name has not really "
-                                       "changed"));
+                QNDEBUG("The account display name has not really changed");
                 return true;
             }
 

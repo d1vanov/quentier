@@ -79,8 +79,9 @@ private Q_SLOTS:
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
     void onTagParentChanged(const QModelIndex & index);
 
-    virtual void selectionChanged(const QItemSelection & selected,
-                                  const QItemSelection & deselected) Q_DECL_OVERRIDE;
+    virtual void selectionChanged(
+        const QItemSelection & selected,
+        const QItemSelection & deselected) Q_DECL_OVERRIDE;
 
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
@@ -90,13 +91,14 @@ private:
     void saveTagItemsState();
     void restoreTagItemsState(const TagModel & model);
     void setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model);
-    void setLinkedNotebooksExpanded(const QStringList & linkedNotebookGuids,
-                                    const TagModel & model);
+
+    void setLinkedNotebooksExpanded(
+        const QStringList & linkedNotebookGuids, const TagModel & model);
 
     void restoreLastSavedSelection(const TagModel & model);
 
-    void selectionChangedImpl(const QItemSelection & selected,
-                              const QItemSelection & deselected);
+    void selectionChangedImpl(
+        const QItemSelection & selected, const QItemSelection & deselected);
 
     void setFavoritedFlag(const QAction & action, const bool favorited);
 

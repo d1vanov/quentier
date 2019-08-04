@@ -39,9 +39,9 @@ namespace quentier {
  *                                  options were processed successfully, false
  *                                  otherwise
  */
-bool processNotebookOptions(const CommandLineParser::CommandLineOptions & options,
-                            QString & targetNotebookName,
-                            quint32 & numNewNotebooks);
+bool processNotebookOptions(
+    const CommandLineParser::CommandLineOptions & options,
+    QString & targetNotebookName, quint32 & numNewNotebooks);
 
 } // namespace quentier
 

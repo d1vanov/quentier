@@ -38,13 +38,17 @@ class FilterByTagWidget: public AbstractFilterByModelItemWidget
 public:
     explicit FilterByTagWidget(QWidget * parent = Q_NULLPTR);
 
-    void setLocalStorageManager(LocalStorageManagerAsync & localStorageManagerAsync);
+    void setLocalStorageManager(
+        LocalStorageManagerAsync & localStorageManagerAsync);
 
     const TagModel * tagModel() const;
 
 private Q_SLOTS:
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
-    void onExpungeTagCompleted(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+
+    void onExpungeTagCompleted(
+        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+
     void onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId);
 
 private:

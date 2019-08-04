@@ -34,8 +34,10 @@ class FindAndReplaceWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit FindAndReplaceWidget(QWidget * parent = Q_NULLPTR,
-                                  const bool withReplace = false);
+    explicit FindAndReplaceWidget(
+        QWidget * parent = Q_NULLPTR,
+        const bool withReplace = false);
+
     virtual ~FindAndReplaceWidget();
 
     QString textToFind() const;
@@ -60,8 +62,14 @@ Q_SIGNALS:
     void findNext(const QString & textToFind, const bool matchCase);
     void findPrevious(const QString & textToFind, const bool matchCase);
     void searchCaseSensitivityChanged(const bool matchCase);
-    void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase);
-    void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+
+    void replace(
+        const QString & textToReplace, const QString & replacementText,
+        const bool matchCase);
+
+    void replaceAll(
+        const QString & textToReplace, const QString & replacementText,
+        const bool matchCase);
 
 public Q_SLOTS:
     void setFocus();

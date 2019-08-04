@@ -33,12 +33,13 @@
 
 #include <iterator>
 
-#define REPORT_ERROR(error) \
-    { \
-        ErrorString errorDescription(error); \
-        QNWARNING(errorDescription); \
-        Q_EMIT notifyError(errorDescription); \
-    }
+#define REPORT_ERROR(error)                                                    \
+    {                                                                          \
+        ErrorString errorDescription(error);                                   \
+        QNWARNING(errorDescription);                                           \
+        Q_EMIT notifyError(errorDescription);                                  \
+    }                                                                          \
+// REPORT_ERROR
 
 namespace quentier {
 
@@ -53,13 +54,13 @@ NoteListView::NoteListView(QWidget * parent) :
 
 void NoteListView::setNotebookItemView(NotebookItemView * pNotebookItemView)
 {
-    QNTRACE(QStringLiteral("NoteListView::setNotebookItemView"));
+    QNTRACE("NoteListView::setNotebookItemView");
     m_pNotebookItemView = pNotebookItemView;
 }
 
 void NoteListView::setAutoSelectNoteOnNextAddition()
 {
-    QNTRACE(QStringLiteral("NoteListView::setAutoSelectNoteOnNextAddition"));
+    QNTRACE("NoteListView::setAutoSelectNoteOnNextAddition");
     m_shouldSelectFirstNoteOnNextNoteAddition = true;
 }
 
@@ -80,7 +81,7 @@ QStringList NoteListView::selectedNotesLocalUids() const
         const QModelIndex & modelIndex = *it;
         const NoteModelItem * pItem = pNoteModel->itemForIndex(modelIndex);
         if (Q_UNLIKELY(!pItem)) {
-            QNWARNING(QStringLiteral("Found no note model item for selected index"));
+            QNWARNING("Found no note model item for selected index");
             continue;
         }
 
@@ -89,7 +90,7 @@ QStringList NoteListView::selectedNotesLocalUids() const
         }
     }
 
-    QNTRACE(QStringLiteral("Local uids of selected notes: ")
+    QNTRACE("Local uids of selected notes: "
             << (result.isEmpty()
                 ? QStringLiteral("<empty>")
                 : result.join(QStringLiteral(", "))));
@@ -105,13 +106,13 @@ QString NoteListView::currentNoteLocalUid() const
 
     QModelIndex currentModelIndex = currentIndex();
     if (!currentModelIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Note view has no valid current index"));
+        QNDEBUG("Note view has no valid current index");
         return QString();
     }
 
     const NoteModelItem * pItem = pNoteModel->itemForIndex(currentModelIndex);
     if (Q_UNLIKELY(!pItem)) {
-        QNWARNING(QStringLiteral("Found no note model item for the current index"));
+        QNWARNING("Found no note model item for the current index");
         return QString();
     }
 
@@ -130,8 +131,7 @@ void NoteListView::setCurrentAccount(const Account & account)
 
 void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
 {
-    QNTRACE(QStringLiteral("NoteListView::setCurrentNoteByLocalUid: ")
-            << noteLocalUid);
+    QNTRACE("NoteListView::setCurrentNoteByLocalUid: " << noteLocalUid);
 
     NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
@@ -142,8 +142,7 @@ void NoteListView::setCurrentNoteByLocalUid(QString noteLocalUid)
     setCurrentIndex(index);
 
     m_lastCurrentNoteLocalUid = noteLocalUid;
-    QNDEBUG(QStringLiteral("Updated last current note local uid to ")
-            << noteLocalUid);
+    QNDEBUG("Updated last current note local uid to " << noteLocalUid);
 }
 
 
@@ -151,7 +150,7 @@ void NoteListView::setShowNoteThumbnailsState(
     bool showThumbnailsForAllNotes,
     const QSet<QString> & hideThumbnailsLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteListView::setShowNoteThumbnailsState"));
+    QNDEBUG("NoteListView::setShowNoteThumbnailsState");
 
     m_showThumbnailsForAllNotes = showThumbnailsForAllNotes;
     m_hideThumbnailsLocalUids = hideThumbnailsLocalUids;
@@ -159,7 +158,7 @@ void NoteListView::setShowNoteThumbnailsState(
 
 void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 {
-    QNTRACE(QStringLiteral("NoteListView::selectNotesByLocalUids: ")
+    QNTRACE("NoteListView::selectNotesByLocalUids: "
             << noteLocalUids.join(QStringLiteral(", ")));
 
     NoteModel * pNoteModel = noteModel();
@@ -169,8 +168,8 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        QNDEBUG(QStringLiteral("Can't select notes by local uids: no selection "
-                               "model within the view"));
+        QNDEBUG("Can't select notes by local uids: no selection "
+                "model within the view");
         return;
     }
 
@@ -182,8 +181,8 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
     {
         QModelIndex modelIndex = pNoteModel->indexForLocalUid(*it);
         if (Q_UNLIKELY(!modelIndex.isValid())) {
-            QNDEBUG(QStringLiteral("The model index for note local uid ") << *it
-                    << QStringLiteral(" is invalid, skipping"));
+            QNDEBUG("The model index for note local uid " << *it
+                    << " is invalid, skipping");
             continue;
         }
 
@@ -197,12 +196,12 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
     pSelectionModel->select(selection, selectionFlags);
 }
 
-void NoteListView::dataChanged(const QModelIndex & topLeft,
-                               const QModelIndex & bottomRight
+void NoteListView::dataChanged(
+    const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                               )
+    )
 #else
-                               , const QVector<int> & roles)
+    , const QVector<int> & roles)
 #endif
 {
     QListView::dataChanged(topLeft, bottomRight
@@ -213,11 +212,11 @@ void NoteListView::dataChanged(const QModelIndex & topLeft,
 #endif
 }
 
-void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start,
-                                        int end)
+void NoteListView::rowsAboutToBeRemoved(
+    const QModelIndex & parent, int start, int end)
 {
-    QNTRACE(QStringLiteral("NoteListView::rowsAboutToBeRemoved: start = ")
-            << start << QStringLiteral(", end = ") << end);
+    QNTRACE("NoteListView::rowsAboutToBeRemoved: start = "
+            << start << ", end = " << end);
 
     QModelIndex current = currentIndex();
     if (current.isValid())
@@ -245,8 +244,7 @@ void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start,
 
 void NoteListView::rowsInserted(const QModelIndex & parent, int start, int end)
 {
-    QNTRACE(QStringLiteral("NoteListView::rowsInserted: start = ") << start
-            << QStringLiteral(", end = ") << end);
+    QNTRACE("NoteListView::rowsInserted: start = " << start << ", end = " << end);
 
     QListView::rowsInserted(parent, start, end);
 
@@ -269,19 +267,18 @@ void NoteListView::rowsInserted(const QModelIndex & parent, int start, int end)
     // available
     QModelIndex currentModelIndex = currentIndex();
     if (currentModelIndex.isValid()) {
-        QNTRACE(QStringLiteral("Current model index is already valid, no need "
-                               "to restore anything"));
+        QNTRACE("Current model index is already valid, no need "
+                "to restore anything");
         return;
     }
 
     if (m_lastCurrentNoteLocalUid.isEmpty()) {
-        QNTRACE(QStringLiteral("The last current note local uid is empty, "
-                               "no current note item to restore"));
+        QNTRACE("The last current note local uid is empty, "
+                "no current note item to restore");
         return;
     }
 
-    QNDEBUG(QStringLiteral("Should try to re-select the last current note local "
-                           "uid"));
+    QNDEBUG("Should try to re-select the last current note local uid");
 
     // As above, it is not safe to attempt to change the current model index
     // right inside this callback so scheduling a separate one
@@ -297,14 +294,14 @@ void NoteListView::rowsInserted(const QModelIndex & parent, int start, int end)
 
 void NoteListView::onCreateNewNoteAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onCreateNewNoteAction"));
+    QNDEBUG("NoteListView::onCreateNewNoteAction");
 
     Q_EMIT newNoteCreationRequested();
 }
 
 void NoteListView::onDeleteNoteAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onDeleteNoteAction"));
+    QNDEBUG("NoteListView::onDeleteNoteAction");
 
     NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
@@ -331,7 +328,7 @@ void NoteListView::onDeleteNoteAction()
 
 void NoteListView::onEditNoteAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onEditNoteAction"));
+    QNDEBUG("NoteListView::onEditNoteAction");
 
     const QString noteLocalUid = actionDataString();
     if (noteLocalUid.isEmpty()) {
@@ -342,7 +339,7 @@ void NoteListView::onEditNoteAction()
 
 void NoteListView::onMoveToOtherNotebookAction()
 {
-    QNTRACE(QStringLiteral("NoteListView::onMoveToOtherNotebookAction"));
+    QNTRACE("NoteListView::onMoveToOtherNotebookAction");
 
     QStringList actionData = actionDataStringList();
     if (actionData.isEmpty() || (actionData.size() != 2)) {
@@ -373,7 +370,7 @@ void NoteListView::onMoveToOtherNotebookAction()
 
 void NoteListView::onOpenNoteInSeparateWindowAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onOpenNoteInSeparateWindowAction"));
+    QNDEBUG("NoteListView::onOpenNoteInSeparateWindowAction");
 
     const QString noteLocalUid = actionDataString();
     if (noteLocalUid.isEmpty()) {
@@ -385,7 +382,7 @@ void NoteListView::onOpenNoteInSeparateWindowAction()
 
 void NoteListView::onUnfavoriteAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onUnfavoriteAction"));
+    QNDEBUG("NoteListView::onUnfavoriteAction");
 
     NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
@@ -410,7 +407,7 @@ void NoteListView::onUnfavoriteAction()
 
 void NoteListView::onFavoriteAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onFavoriteAction"));
+    QNDEBUG("NoteListView::onFavoriteAction");
 
     NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
@@ -435,7 +432,7 @@ void NoteListView::onFavoriteAction()
 
 void NoteListView::onShowNoteInfoAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onShowNoteInfoAction"));
+    QNDEBUG("NoteListView::onShowNoteInfoAction");
 
     const QString noteLocalUid = actionDataString();
     if (noteLocalUid.isEmpty()) {
@@ -446,7 +443,7 @@ void NoteListView::onShowNoteInfoAction()
 
 void NoteListView::onToggleThumbnailPreference()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onToggleThumbnailPreference"));
+    QNDEBUG("NoteListView::onToggleThumbnailPreference");
 
     // note here empty string is OK (means all notes)
     const QString noteLocalUid = actionDataString();
@@ -455,7 +452,7 @@ void NoteListView::onToggleThumbnailPreference()
 
 void NoteListView::onCopyInAppNoteLinkAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onCopyInAppNoteLinkAction"));
+    QNDEBUG("NoteListView::onCopyInAppNoteLinkAction");
 
     QStringList noteLocalUidAndGuid = actionDataStringList();
     if (Q_UNLIKELY(noteLocalUidAndGuid.isEmpty())) {
@@ -472,16 +469,16 @@ void NoteListView::onCopyInAppNoteLinkAction()
         return;
     }
 
-    QNTRACE(QStringLiteral("Requesting copy in app note link for note model item: ")
-            << QStringLiteral("local uid = ") << noteLocalUidAndGuid.at(0)
-            << QStringLiteral(", guid = ") << noteLocalUidAndGuid.at(1));
-    Q_EMIT copyInAppNoteLinkRequested(noteLocalUidAndGuid.at(0),
-                                      noteLocalUidAndGuid.at(1));
+    QNTRACE("Requesting copy in app note link for note model item: "
+            << "local uid = " << noteLocalUidAndGuid.at(0)
+            << ", guid = " << noteLocalUidAndGuid.at(1));
+    Q_EMIT copyInAppNoteLinkRequested(
+        noteLocalUidAndGuid.at(0), noteLocalUidAndGuid.at(1));
 }
 
 void NoteListView::onExportSingleNoteToEnexAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onExportSingleNoteToEnexAction"));
+    QNDEBUG("NoteListView::onExportSingleNoteToEnexAction");
 
     const QString noteLocalUid = actionDataString();
     if (noteLocalUid.isEmpty()) {
@@ -495,7 +492,7 @@ void NoteListView::onExportSingleNoteToEnexAction()
 
 void NoteListView::onExportSeveralNotesToEnexAction()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onExportSeveralNotesToEnexAction"));
+    QNDEBUG("NoteListView::onExportSeveralNotesToEnexAction");
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
@@ -517,12 +514,11 @@ void NoteListView::onExportSeveralNotesToEnexAction()
 
 void NoteListView::onSelectFirstNoteEvent()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onSelectFirstNoteEvent"));
+    QNDEBUG("NoteListView::onSelectFirstNoteEvent");
 
     const QAbstractItemModel * pModel = model();
     if (Q_UNLIKELY(!pModel)) {
-        QNERROR(QStringLiteral("No model is set to note list view on select "
-                               "first note event"));
+        QNERROR("No model is set to note list view on select first note event");
         return;
     }
 
@@ -531,7 +527,7 @@ void NoteListView::onSelectFirstNoteEvent()
 
 void NoteListView::onTrySetLastCurrentNoteByLocalUidEvent()
 {
-    QNDEBUG(QStringLiteral("NoteListView::onTrySetLastCurrentNoteByLocalUidEvent"));
+    QNDEBUG("NoteListView::onTrySetLastCurrentNoteByLocalUidEvent");
 
     NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
@@ -541,8 +537,8 @@ void NoteListView::onTrySetLastCurrentNoteByLocalUidEvent()
     QModelIndex modelIndex =
         pNoteModel->indexForLocalUid(m_lastCurrentNoteLocalUid);
     if (!modelIndex.isValid()) {
-        QNTRACE(QStringLiteral("No valid model index within the note model for ")
-                << QStringLiteral("the last current note local uid ")
+        QNTRACE("No valid model index within the note model for "
+                << "the last current note local uid "
                 << m_lastCurrentNoteLocalUid);
         return;
     }
@@ -552,22 +548,22 @@ void NoteListView::onTrySetLastCurrentNoteByLocalUidEvent()
 
 void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
 {
-    QNDEBUG(QStringLiteral("NoteListView::contextMenuEvent"));
+    QNDEBUG("NoteListView::contextMenuEvent");
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING(QStringLiteral("Detected Qt error: note list view received "
-                                 "context menu event with null pointer "
-                                 "to the context menu event"));
+        QNWARNING("Detected Qt error: note list view received "
+                  "context menu event with null pointer "
+                  "to the context menu event");
         return;
     }
 
     showContextMenuAtPoint(pEvent->pos(), pEvent->globalPos());
 }
 
-void NoteListView::showContextMenuAtPoint(const QPoint & pos,
-                                          const QPoint & globalPos)
+void NoteListView::showContextMenuAtPoint(
+    const QPoint & pos, const QPoint & globalPos)
 {
-    QNDEBUG(QStringLiteral("NoteListView::showContextMenuAtPoint"));
+    QNDEBUG("NoteListView::showContextMenuAtPoint");
 
     NoteModel * pNoteModel = noteModel();
     if (Q_UNLIKELY(!pNoteModel)) {
@@ -593,22 +589,21 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos,
         const QModelIndex & modelIndex = *it;
         const NoteModelItem * pNoteModelItem = pNoteModel->itemForIndex(modelIndex);
         if (Q_UNLIKELY(!pNoteModelItem)) {
-            QNWARNING(QStringLiteral("Detected selected model index for which "
-                                     "no model item was found"));
+            QNWARNING("Detected selected model index for which "
+                      "no model item was found");
             continue;
         }
 
         noteLocalUids << pNoteModelItem->localUid();
-        QNTRACE(QStringLiteral("Included note local uid ")
-                << pNoteModelItem->localUid());
+        QNTRACE("Included note local uid " << pNoteModelItem->localUid());
     }
 
     Q_UNUSED(noteLocalUids.removeDuplicates())
-    QNTRACE(QStringLiteral("Selected note local uids: ")
+    QNTRACE("Selected note local uids: "
             << noteLocalUids.join(QStringLiteral(", ")));
 
     if (Q_UNLIKELY(noteLocalUids.isEmpty())) {
-        QNDEBUG(QStringLiteral("Won't show the context menu: no notes are selected"));
+        QNDEBUG("Won't show the context menu: no notes are selected");
         return;
     }
 
@@ -620,25 +615,25 @@ void NoteListView::showContextMenuAtPoint(const QPoint & pos,
     }
 }
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
-    { \
-        QAction * pAction = new QAction(name, menu); \
-        pAction->setData(data); \
-        pAction->setEnabled(enabled); \
-        QObject::connect(pAction, QNSIGNAL(QAction,triggered), \
-                         this, QNSLOT(NoteListView,slot)); \
-        menu->addAction(pAction); \
-    }
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled)               \
+    {                                                                          \
+        QAction * pAction = new QAction(name, menu);                           \
+        pAction->setData(data);                                                \
+        pAction->setEnabled(enabled);                                          \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered),                 \
+                         this, QNSLOT(NoteListView,slot));                     \
+        menu->addAction(pAction);                                              \
+    }                                                                          \
+// ADD_CONTEXT_MENU_ACTION
 
-void NoteListView::showSingleNoteContextMenu(const QPoint & pos,
-                                             const QPoint & globalPos,
-                                             const NoteModel & noteModel)
+void NoteListView::showSingleNoteContextMenu(
+    const QPoint & pos, const QPoint & globalPos, const NoteModel & noteModel)
 {
-    QNDEBUG(QStringLiteral("NoteListView::showSingleNoteContextMenu"));
+    QNDEBUG("NoteListView::showSingleNoteContextMenu");
 
     QModelIndex clickedItemIndex = indexAt(pos);
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
+        QNDEBUG("Clicked item index is not valid, not doing anything");
         return;
     }
 
@@ -806,7 +801,7 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos,
                                   : tr("Show for all notes");
     ADD_CONTEXT_MENU_ACTION(showHideForAllNotes, pThumbnailsSubMenu,
                             onToggleThumbnailPreference,
-                            QVariant::fromValue(QStringLiteral("")), true);
+                            QVariant::fromValue(QString::fromUtf8("")), true);
 
     const QByteArray & thumbnailData = pItem->thumbnailData();
     bool hasThumbnail = !thumbnailData.isEmpty();
@@ -824,10 +819,10 @@ void NoteListView::showSingleNoteContextMenu(const QPoint & pos,
     m_pNoteItemContextMenu->exec(globalPos);
 }
 
-void NoteListView::showMultipleNotesContextMenu(const QPoint & globalPos,
-                                                const QStringList & noteLocalUids)
+void NoteListView::showMultipleNotesContextMenu(
+    const QPoint & globalPos, const QStringList & noteLocalUids)
 {
-    QNDEBUG(QStringLiteral("NoteListView::showMultipleNotesContextMenu"));
+    QNDEBUG("NoteListView::showMultipleNotesContextMenu");
 
     delete m_pNoteItemContextMenu;
     m_pNoteItemContextMenu = new QMenu(this);
@@ -841,14 +836,14 @@ void NoteListView::showMultipleNotesContextMenu(const QPoint & globalPos,
     m_pNoteItemContextMenu->exec(globalPos);
 }
 
-void NoteListView::currentChanged(const QModelIndex & current,
-                                  const QModelIndex & previous)
+void NoteListView::currentChanged(
+    const QModelIndex & current, const QModelIndex & previous)
 {
-    QNTRACE(QStringLiteral("NoteListView::currentChanged"));
+    QNTRACE("NoteListView::currentChanged");
     Q_UNUSED(previous)
 
     if (!current.isValid()) {
-        QNTRACE(QStringLiteral("Current index is invalid"));
+        QNTRACE("Current index is invalid");
         return;
     }
 
@@ -865,8 +860,7 @@ void NoteListView::currentChanged(const QModelIndex & current,
     }
 
     m_lastCurrentNoteLocalUid = pItem->localUid();
-    QNTRACE(QStringLiteral("Updated the last current note local uid to ")
-            << pItem->localUid());
+    QNTRACE("Updated the last current note local uid to " << pItem->localUid());
 
     Q_EMIT currentNoteChanged(pItem->localUid());
 }
@@ -891,19 +885,19 @@ void NoteListView::mousePressEvent(QMouseEvent * pEvent)
 
 const NotebookItem * NoteListView::currentNotebookItem()
 {
-    QNDEBUG(QStringLiteral("NoteListView::currentNotebookItem"));
+    QNDEBUG("NoteListView::currentNotebookItem");
 
     QModelIndex currentNotebookItemIndex =
         m_pNotebookItemView->currentlySelectedItemIndex();
     if (Q_UNLIKELY(!currentNotebookItemIndex.isValid())) {
-        QNDEBUG(QStringLiteral("No current notebook within the notebook view"));
+        QNDEBUG("No current notebook within the notebook view");
         return Q_NULLPTR;
     }
 
     const NotebookModel * pNotebookModel =
         qobject_cast<const NotebookModel*>(m_pNotebookItemView->model());
     if (!pNotebookModel) {
-        QNDEBUG(QStringLiteral("No notebook model is set to the notebook view"));
+        QNDEBUG("No notebook model is set to the notebook view");
         return Q_NULLPTR;
     }
 
@@ -916,13 +910,12 @@ const NotebookItem * NoteListView::currentNotebookItem()
     }
 
     if (pNotebookModelItem->type() != NotebookModelItem::Type::Notebook) {
-        QNDEBUG(QStringLiteral("Non-notebook item is selected within the notebook "
-                               "item view"));
+        QNDEBUG("Non-notebook item is selected within the notebook item view");
         return Q_NULLPTR;
     }
 
     const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
-    QNTRACE(QStringLiteral("Selected notebook item: ")
+    QNTRACE("Selected notebook item: "
             << (pNotebookItem
                 ? pNotebookItem->toString()
                 : QStringLiteral("<null>")));
@@ -939,7 +932,7 @@ NoteModel * NoteListView::noteModel() const
 
     NoteModel * pNoteModel = qobject_cast<NoteModel *>(pModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNERROR(QStringLiteral("Wrong model connected to the note list view"));
+        QNERROR("Wrong model connected to the note list view");
         return Q_NULLPTR;
     }
     return pNoteModel;

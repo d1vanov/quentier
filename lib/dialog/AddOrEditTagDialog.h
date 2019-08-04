@@ -39,9 +39,10 @@ class AddOrEditTagDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit AddOrEditTagDialog(TagModel * pTagModel,
-                                QWidget * parent = Q_NULLPTR,
-                                const QString & editedTagLocalUid = QString());
+    explicit AddOrEditTagDialog(
+        TagModel * pTagModel, QWidget * parent = Q_NULLPTR,
+        const QString & editedTagLocalUid = QString());
+
     virtual ~AddOrEditTagDialog();
 
 private Q_SLOTS:

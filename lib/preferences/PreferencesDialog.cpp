@@ -51,11 +51,12 @@ namespace quentier {
 
 QString trayActionToString(SystemTrayIconManager::TrayAction action);
 
-PreferencesDialog::PreferencesDialog(AccountManager & accountManager,
-                                     ShortcutManager & shortcutManager,
-                                     SystemTrayIconManager & systemTrayIconManager,
-                                     ActionsInfo & actionsInfo,
-                                     QWidget * parent) :
+PreferencesDialog::PreferencesDialog(
+        AccountManager & accountManager,
+        ShortcutManager & shortcutManager,
+        SystemTrayIconManager & systemTrayIconManager,
+        ActionsInfo & actionsInfo,
+        QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::PreferencesDialog),
     m_accountManager(accountManager),
@@ -88,13 +89,12 @@ PreferencesDialog::~PreferencesDialog()
 
 void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onShowSystemTrayIconCheckboxToggled: ")
-            << QStringLiteral("checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("PreferencesDialog::onShowSystemTrayIconCheckboxToggled: checked = "
+            << (checked ? "true" : "false"));
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
-        QNDEBUG(QStringLiteral("Ignoring the change of show system tray icon "
-                               "checkbox: the system tray is not available"));
+        QNDEBUG("Ignoring the change of show system tray icon "
+                "checkbox: the system tray is not available");
         return;
     }
 
@@ -125,13 +125,12 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
 
 void PreferencesDialog::onCloseToSystemTrayCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onCloseToSystemTrayCheckboxToggled: ")
-            << QStringLiteral("checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("PreferencesDialog::onCloseToSystemTrayCheckboxToggled: checked = "
+            << (checked ? "true" : "false"));
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
-        QNDEBUG(QStringLiteral("Ignoring the change of close to system tray "
-                               "checkbox: the system tray is not available"));
+        QNDEBUG("Ignoring the change of close to system tray "
+                "checkbox: the system tray is not available");
         return;
     }
 
@@ -144,13 +143,12 @@ void PreferencesDialog::onCloseToSystemTrayCheckboxToggled(bool checked)
 
 void PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled: ")
-            << QStringLiteral("checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled: "
+            << "checked = " << (checked ? "true" : "false"));
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
-        QNDEBUG(QStringLiteral("Ignoring the change of minimize to system tray "
-                               "checkbox: the system tray is not available"));
+        QNDEBUG("Ignoring the change of minimize to system tray "
+                "checkbox: the system tray is not available");
         return;
     }
 
@@ -163,14 +161,12 @@ void PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled(bool checked)
 
 void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onStartMinimizedToSystemTrayCheckboxToggled: ")
-            << QStringLiteral("checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled: "
+            << "checked = " << (checked ? "true" : "false"));
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
-        QNDEBUG(QStringLiteral("Ignoring the change of start minimized to system "
-                               "tray checkbox: the system tray is not available"));
+        QNDEBUG("Ignoring the change of start minimized to system "
+                "tray checkbox: the system tray is not available");
         return;
     }
 
@@ -183,12 +179,11 @@ void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(bool checked
 
 void PreferencesDialog::onSingleClickTrayActionChanged(int action)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onSingleClickTrayActionChanged: ")
-            << action);
+    QNDEBUG("PreferencesDialog::onSingleClickTrayActionChanged: " << action);
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
-        QNDEBUG(QStringLiteral("Ignoring the change of single click tray action: "
-                               "the system tray is not available"));
+        QNDEBUG("Ignoring the change of single click tray action: "
+                "the system tray is not available");
         return;
     }
 
@@ -201,12 +196,11 @@ void PreferencesDialog::onSingleClickTrayActionChanged(int action)
 
 void PreferencesDialog::onMiddleClickTrayActionChanged(int action)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onMiddleClickTrayActionChanged: ")
-            << action);
+    QNDEBUG("PreferencesDialog::onMiddleClickTrayActionChanged: " << action);
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
-        QNDEBUG(QStringLiteral("Ignoring the change of middle click tray action: "
-                               "the system tray is not available"));
+        QNDEBUG("Ignoring the change of middle click tray action: "
+                "the system tray is not available");
         return;
     }
 
@@ -219,12 +213,11 @@ void PreferencesDialog::onMiddleClickTrayActionChanged(int action)
 
 void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onDoubleClickTrayActionChanged: ")
-            << action);
+    QNDEBUG("PreferencesDialog::onDoubleClickTrayActionChanged: " << action);
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable()) {
-        QNDEBUG(QStringLiteral("Ignoring the change of double click tray action: "
-                               "the system tray is not available"));
+        QNDEBUG("Ignoring the change of double click tray action: "
+                "the system tray is not available");
         return;
     }
 
@@ -237,9 +230,8 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
 
 void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onShowNoteThumbnailsCheckboxToggled: ")
-            << QStringLiteral("checked = ")
-            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG("PreferencesDialog::onShowNoteThumbnailsCheckboxToggled: checked = "
+            << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings(m_accountManager.currentAccount(),
                                     QUENTIER_UI_SETTINGS);
@@ -253,9 +245,8 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
 
 void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onDisableNativeMenuBarCheckboxToggled: ")
-            << QStringLiteral("checked = ")
-            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG("PreferencesDialog::onDisableNativeMenuBarCheckboxToggled: "
+            << "checked = " << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings(m_accountManager.currentAccount(),
                                     QUENTIER_UI_SETTINGS);
@@ -271,9 +262,8 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
 
 void PreferencesDialog::onShowMainWindowLeftBorderOptionChanged(int option)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onShowMainWindowLeftBorderOptionChanged: ")
-            << QStringLiteral("option = ") << option);
+    QNDEBUG("PreferencesDialog::onShowMainWindowLeftBorderOptionChanged: "
+            << "option = " << option);
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -286,9 +276,8 @@ void PreferencesDialog::onShowMainWindowLeftBorderOptionChanged(int option)
 
 void PreferencesDialog::onShowMainWindowRightBorderOptionChanged(int option)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onShowMainWindowRightBorderOptionChanged: ")
-            << QStringLiteral("option = ") << option);
+    QNDEBUG("PreferencesDialog::onShowMainWindowRightBorderOptionChanged: "
+            << "option = " << option);
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -301,8 +290,8 @@ void PreferencesDialog::onShowMainWindowRightBorderOptionChanged(int option)
 
 void PreferencesDialog::onLeftMainWindowBorderWidthChanged(int width)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderWidthChanged: ")
-            << QStringLiteral("width = ") << width);
+    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderWidthChanged: width = "
+            << width);
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -315,8 +304,8 @@ void PreferencesDialog::onLeftMainWindowBorderWidthChanged(int width)
 
 void PreferencesDialog::onRightMainWindowBorderWidthChanged(int width)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderWidthChanged: ")
-            << QStringLiteral("width = ") << width);
+    QNDEBUG("PreferencesDialog::onRightMainWindowBorderWidthChanged: width = "
+            << width);
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -330,8 +319,8 @@ void PreferencesDialog::onRightMainWindowBorderWidthChanged(int width)
 void PreferencesDialog::onLeftMainWindowBorderColorCodeChanged(
     const QString & colorCode)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderColorCodeChanged: ")
-            << QStringLiteral("color code = ") << colorCode);
+    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderColorCodeChanged: "
+            << "color code = " << colorCode);
 
     if (!colorCode.isEmpty() && !QColor::isValidColor(colorCode)) {
         return;
@@ -349,8 +338,8 @@ void PreferencesDialog::onLeftMainWindowBorderColorCodeChanged(
 void PreferencesDialog::onRightMainWindowBorderColorCodeChanged(
     const QString & colorCode)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderColorCodeChanged: ")
-            << QStringLiteral("color code = ") << colorCode);
+    QNDEBUG("PreferencesDialog::onRightMainWindowBorderColorCodeChanged: "
+            << "color code = " << colorCode);
 
     if (!colorCode.isEmpty() && !QColor::isValidColor(colorCode)) {
         return;
@@ -367,8 +356,7 @@ void PreferencesDialog::onRightMainWindowBorderColorCodeChanged(
 
 void PreferencesDialog::onLeftMainWindowBorderColorPickerRequested()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::"
-                           "onLeftMainWindowBorderColorPickerRequested"));
+    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderColorPickerRequested");
 
     QScopedPointer<QColorDialog> pColorDialog(new QColorDialog(this));
     pColorDialog->setWindowModality(Qt::WindowModal);
@@ -388,8 +376,7 @@ void PreferencesDialog::onLeftMainWindowBorderColorPickerRequested()
 
 void PreferencesDialog::onRightMainWindowBorderColorPickerRequested()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::"
-                           "onRightMainWindowBorderColorPickerRequested"));
+    QNDEBUG("PreferencesDialog::onRightMainWindowBorderColorPickerRequested");
 
     QScopedPointer<QColorDialog> pColorDialog(new QColorDialog(this));
     pColorDialog->setWindowModality(Qt::WindowModal);
@@ -410,8 +397,8 @@ void PreferencesDialog::onRightMainWindowBorderColorPickerRequested()
 void PreferencesDialog::onLeftMainWindowBorderColorSelected(const QColor & color)
 {
     QString colorCode = color.name();
-    QNDEBUG(QStringLiteral("PreferencesDialog::onLeftMainWindowBorderColorSelected: ")
-            << QStringLiteral("color code = ") << colorCode);
+    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderColorSelected: "
+            << "color code = " << colorCode);
 
     if (!color.isValid()) {
         colorCode.resize(0);
@@ -423,8 +410,8 @@ void PreferencesDialog::onLeftMainWindowBorderColorSelected(const QColor & color
 void PreferencesDialog::onRightMainWindowBorderColorSelected(const QColor & color)
 {
     QString colorCode = color.name();
-    QNDEBUG(QStringLiteral("PreferencesDialog::onRightMainWindowBorderColorSelected: ")
-            << QStringLiteral("color code = ") << colorCode);
+    QNDEBUG("PreferencesDialog::onRightMainWindowBorderColorSelected: "
+            << "color code = " << colorCode);
 
     if (!color.isValid()) {
         colorCode.resize(0);
@@ -435,8 +422,8 @@ void PreferencesDialog::onRightMainWindowBorderColorSelected(const QColor & colo
 
 void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onStartAtLoginCheckboxToggled: ")
-            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG("PreferencesDialog::onStartAtLoginCheckboxToggled: "
+            << (checked ? "checked" : "unchecked"));
 
     ErrorString errorDescription;
     bool res = setStartQuentierAtLoginOption(
@@ -444,14 +431,17 @@ void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
         static_cast<StartQuentierAtLoginOption::type>(
             m_pUi->startAtLoginOptionComboBox->currentIndex()));
 
-    if (Q_UNLIKELY(!res)) {
-        m_pUi->statusTextLabel->setText(tr("Failed to change start at login option") +
-                                        QStringLiteral(": ") +
-                                        errorDescription.localizedString());
+    if (Q_UNLIKELY(!res))
+    {
+        m_pUi->statusTextLabel->setText(
+            tr("Failed to change start at login option") +
+            QStringLiteral(": ") +
+            errorDescription.localizedString());
         m_pUi->statusTextLabel->show();
         checked = isQuentierSetToStartAtLogin().first;
     }
-    else {
+    else
+    {
         m_pUi->statusTextLabel->setText(QString());
         m_pUi->statusTextLabel->hide();
     }
@@ -461,21 +451,24 @@ void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
 
 void PreferencesDialog::onStartAtLoginOptionChanged(int option)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onStartAtLoginOptionChanged: ")
-            << QStringLiteral("option = ") << option);
+    QNDEBUG("PreferencesDialog::onStartAtLoginOptionChanged: option = "
+            << option);
 
     ErrorString errorDescription;
     bool res = setStartQuentierAtLoginOption(
         m_pUi->startAtLoginCheckBox->isChecked(), errorDescription,
         static_cast<StartQuentierAtLoginOption::type>(option));
-    if (Q_UNLIKELY(!res)) {
+    if (Q_UNLIKELY(!res))
+    {
         setupStartAtLoginSettings();
-        m_pUi->statusTextLabel->setText(tr("Failed to change start at login option") +
-                                        QStringLiteral(": ") +
-                                        errorDescription.localizedString());
+        m_pUi->statusTextLabel->setText(
+            tr("Failed to change start at login option") +
+            QStringLiteral(": ") +
+            errorDescription.localizedString());
         m_pUi->statusTextLabel->show();
     }
-    else {
+    else
+    {
         m_pUi->statusTextLabel->setText(QString());
         m_pUi->statusTextLabel->hide();
     }
@@ -483,9 +476,8 @@ void PreferencesDialog::onStartAtLoginOptionChanged(int option)
 
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onNoteEditorUseLimitedFontsCheckboxToggled: ")
-            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG("PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: "
+            << (checked ? "checked" : "unchecked"));
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -500,8 +492,7 @@ void PreferencesDialog::onNoteEditorFontColorCodeEntered()
 {
     QString colorCode = m_pUi->noteEditorFontColorLineEdit->text();
 
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorFontColorCodeEntered: ")
-            << colorCode);
+    QNDEBUG("PreferencesDialog::onNoteEditorFontColorCodeEntered: " << colorCode);
 
     QColor prevColor = noteEditorFontColor();
 
@@ -519,10 +510,10 @@ void PreferencesDialog::onNoteEditorFontColorCodeEntered()
 
 void PreferencesDialog::onNoteEditorFontColorDialogRequested()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorFontColorDialogRequested"));
+    QNDEBUG("PreferencesDialog::onNoteEditorFontColorDialogRequested");
 
     if (!m_pNoteEditorFontColorDialog.isNull()) {
-        QNDEBUG(QStringLiteral("Dialog is already opened"));
+        QNDEBUG("Dialog is already opened");
         return;
     }
 
@@ -542,8 +533,7 @@ void PreferencesDialog::onNoteEditorFontColorDialogRequested()
 
 void PreferencesDialog::onNoteEditorFontColorSelected(const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorFontColorSelected: ")
-            << color.name());
+    QNDEBUG("PreferencesDialog::onNoteEditorFontColorSelected: " << color.name());
 
     m_pUi->noteEditorFontColorLineEdit->setText(color.name());
     setNoteEditorFontColorToDemoFrame(color);
@@ -552,7 +542,7 @@ void PreferencesDialog::onNoteEditorFontColorSelected(const QColor & color)
     if (previousFontColor.isValid() && color.isValid() &&
         (previousFontColor.name() == color.name()))
     {
-        QNDEBUG(QStringLiteral("Note editor font color did not change"));
+        QNDEBUG("Note editor font color did not change");
         return;
     }
 
@@ -564,8 +554,7 @@ void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered()
 {
     QString colorCode = m_pUi->noteEditorBackgroundColorLineEdit->text();
 
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onNoteEditorBackgroundColorCodeEntered: ")
+    QNDEBUG("PreferencesDialog::onNoteEditorBackgroundColorCodeEntered: "
             << colorCode);
 
     QColor prevColor = noteEditorBackgroundColor();
@@ -585,11 +574,10 @@ void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered()
 
 void PreferencesDialog::onNoteEditorBackgroundColorDialogRequested()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::"
-                           "onNoteEditorBackgroundColorDialogRequested"));
+    QNDEBUG("PreferencesDialog::onNoteEditorBackgroundColorDialogRequested");
 
     if (!m_pNoteEditorBackgroundColorDialog.isNull()) {
-        QNDEBUG(QStringLiteral("Dialog is already opened"));
+        QNDEBUG("Dialog is already opened");
         return;
     }
 
@@ -609,7 +597,7 @@ void PreferencesDialog::onNoteEditorBackgroundColorDialogRequested()
 
 void PreferencesDialog::onNoteEditorBackgroundColorSelected(const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorBackgroundColorSelected: ")
+    QNDEBUG("PreferencesDialog::onNoteEditorBackgroundColorSelected: "
             << color.name());
 
     m_pUi->noteEditorBackgroundColorLineEdit->setText(color.name());
@@ -619,7 +607,7 @@ void PreferencesDialog::onNoteEditorBackgroundColorSelected(const QColor & color
     if (previousBackgroundColor.isValid() && color.isValid() &&
         (previousBackgroundColor.name() == color.name()))
     {
-        QNDEBUG(QStringLiteral("Note editor background color did not change"));
+        QNDEBUG("Note editor background color did not change");
         return;
     }
 
@@ -631,8 +619,7 @@ void PreferencesDialog::onNoteEditorHighlightColorCodeEntered()
 {
     QString colorCode = m_pUi->noteEditorHighlightColorLineEdit->text();
 
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onNoteEditorHighlightColorCodeEntered: ")
+    QNDEBUG("PreferencesDialog::onNoteEditorHighlightColorCodeEntered: "
             << colorCode);
 
     QColor prevColor = noteEditorHighlightColor();
@@ -652,11 +639,10 @@ void PreferencesDialog::onNoteEditorHighlightColorCodeEntered()
 
 void PreferencesDialog::onNoteEditorHighlightColorDialogRequested()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::"
-                           "onNoteEditorHighlightColorDialogRequested"));
+    QNDEBUG("PreferencesDialog::onNoteEditorHighlightColorDialogRequested");
 
     if (!m_pNoteEditorHighlightColorDialog.isNull()) {
-        QNDEBUG(QStringLiteral("Dialog is already opened"));
+        QNDEBUG("Dialog is already opened");
         return;
     }
 
@@ -676,7 +662,7 @@ void PreferencesDialog::onNoteEditorHighlightColorDialogRequested()
 
 void PreferencesDialog::onNoteEditorHighlightColorSelected(const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorHighlightColorSelected: ")
+    QNDEBUG("PreferencesDialog::onNoteEditorHighlightColorSelected: "
             << color.name());
 
     m_pUi->noteEditorHighlightColorLineEdit->setText(color.name());
@@ -686,7 +672,7 @@ void PreferencesDialog::onNoteEditorHighlightColorSelected(const QColor & color)
     if (previousHighlightColor.isValid() && color.isValid() &&
         (previousHighlightColor.name() == color.name()))
     {
-        QNDEBUG(QStringLiteral("Note editor highlight color did not change"));
+        QNDEBUG("Note editor highlight color did not change");
         return;
     }
 
@@ -698,8 +684,7 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered()
 {
     QString colorCode = m_pUi->noteEditorHighlightedTextColorLineEdit->text();
 
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onNoteEditorHighlightedTextColorCodeEntered: ")
+    QNDEBUG("PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered: "
             << colorCode);
 
     QColor prevColor = noteEditorHighlightedTextColor();
@@ -719,11 +704,10 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered()
 
 void PreferencesDialog::onNoteEditorHighlightedTextColorDialogRequested()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::"
-                           "onNoteEditorHighlightedTextColorDialogRequested"));
+    QNDEBUG("PreferencesDialog::onNoteEditorHighlightedTextColorDialogRequested");
 
     if (!m_pNoteEditorHighlightedTextColorDialog.isNull()) {
-        QNDEBUG(QStringLiteral("Dialog is already opened"));
+        QNDEBUG("Dialog is already opened");
         return;
     }
 
@@ -744,8 +728,7 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorDialogRequested()
 void PreferencesDialog::onNoteEditorHighlightedTextColorSelected(
     const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onNoteEditorHighlightedTextColorSelected: ")
+    QNDEBUG("PreferencesDialog::onNoteEditorHighlightedTextColorSelected: "
             << color.name());
 
     m_pUi->noteEditorHighlightedTextColorLineEdit->setText(color.name());
@@ -755,7 +738,7 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorSelected(
     if (previousHighlightedTextColor.isValid() && color.isValid() &&
         (previousHighlightedTextColor.name() == color.name()))
     {
-        QNDEBUG(QStringLiteral("Note editor highlighted text color did not change"));
+        QNDEBUG("Note editor highlighted text color did not change");
         return;
     }
 
@@ -765,7 +748,7 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorSelected(
 
 void PreferencesDialog::onNoteEditorColorsReset()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNoteEditorColorsReset"));
+    QNDEBUG("PreferencesDialog::onNoteEditorColorsReset");
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -800,9 +783,8 @@ void PreferencesDialog::onNoteEditorColorsReset()
 
 void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onDownloadNoteThumbnailsCheckboxToggled: ")
-            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG("PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled: "
+            << (checked ? "checked" : "unchecked"));
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
@@ -815,9 +797,8 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
 
 void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onDownloadInkNoteImagesCheckboxToggled: ")
-            << (checked ? QStringLiteral("checked") : QStringLiteral("unchecked")));
+    QNDEBUG("PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled: "
+            << (checked ? "checked" : "unchecked"));
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
@@ -830,8 +811,8 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
 
 void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(int index)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onRunSyncPeriodicallyOptionChanged: ")
-            << QStringLiteral("index = ") << index);
+    QNDEBUG("PreferencesDialog::onRunSyncPeriodicallyOptionChanged: index = "
+            << index);
 
     int runSyncEachNumMinutes = 0;
     switch(index)
@@ -866,44 +847,41 @@ void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(int index)
 
 void PreferencesDialog::onNetworkProxyTypeChanged(int type)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyTypeChanged: type = ")
-            << type);
+    QNDEBUG("PreferencesDialog::onNetworkProxyTypeChanged: type = " << type);
     checkAndSetNetworkProxy();
 }
 
 void PreferencesDialog::onNetworkProxyHostChanged()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyHostChanged: ")
+    QNDEBUG("PreferencesDialog::onNetworkProxyHostChanged: "
             << m_pUi->networkProxyHostLineEdit->text());
     checkAndSetNetworkProxy();
 }
 
 void PreferencesDialog::onNetworkProxyPortChanged(int port)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyPortChanged: ")
-            << port);
+    QNDEBUG("PreferencesDialog::onNetworkProxyPortChanged: " << port);
     checkAndSetNetworkProxy();
 }
 
 void PreferencesDialog::onNetworkProxyUsernameChanged()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyUsernameChanged: ")
+    QNDEBUG("PreferencesDialog::onNetworkProxyUsernameChanged: "
             << m_pUi->networkProxyUserLineEdit->text());
     checkAndSetNetworkProxy();
 }
 
 void PreferencesDialog::onNetworkProxyPasswordChanged()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::onNetworkProxyPasswordChanged: ")
+    QNDEBUG("PreferencesDialog::onNetworkProxyPasswordChanged: "
             << m_pUi->networkProxyPasswordLineEdit->text());
     checkAndSetNetworkProxy();
 }
 
 void PreferencesDialog::onNetworkProxyPasswordVisibilityToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onNetworkProxyPasswordVisibilityToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("PreferencesDialog::onNetworkProxyPasswordVisibilityToggled: "
+            << "checked = " << (checked ? "true" : "false"));
     m_pUi->networkProxyPasswordLineEdit->setEchoMode(checked
                                                      ? QLineEdit::Normal
                                                      : QLineEdit::Password);
@@ -945,10 +923,8 @@ bool PreferencesDialog::eventFilter(QObject * pObject, QEvent * pEvent)
 
 void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::")
-            << QStringLiteral("onEnableLogViewerInternalLogsCheckboxToggled: ")
-            << QStringLiteral("checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled: "
+            << "checked = " << (checked ? "true" : "false"));
 
     ApplicationSettings globalAppSettings;
     globalAppSettings.beginGroup(LOGGING_SETTINGS_GROUP);
@@ -956,10 +932,10 @@ void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(bool checke
     globalAppSettings.endGroup();
 }
 
-void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo,
-                                                  ShortcutManager & shortcutManager)
+void PreferencesDialog::setupCurrentSettingsState(
+    ActionsInfo & actionsInfo, ShortcutManager & shortcutManager)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::setupCurrentSettingsState"));
+    QNDEBUG("PreferencesDialog::setupCurrentSettingsState");
 
     // 1) System tray tab
     setupSystemTraySettings();
@@ -1021,8 +997,8 @@ void PreferencesDialog::setupCurrentSettingsState(ActionsInfo & actionsInfo,
             bool conversionResult = false;
             runSyncEachNumMinutes = data.toInt(&conversionResult);
             if (Q_UNLIKELY(!conversionResult)) {
-                QNDEBUG(QStringLiteral("Failed to convert the number of minutes ")
-                        << QStringLiteral("to run sync over to int: ") << data);
+                QNDEBUG("Failed to convert the number of minutes "
+                        << "to run sync over to int: " << data);
                 runSyncEachNumMinutes = -1;
             }
         }
@@ -1090,9 +1066,8 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     if (!conversionResult || (showLeftMainWindowBorderOption < 0) ||
         (showLeftMainWindowBorderOption > 2))
     {
-        QNDEBUG(QStringLiteral("No valid \"Show left main window border\" option "
-                               "was found within the persistent settings, using "
-                               "the default option"));
+        QNDEBUG("No valid \"Show left main window border\" option was found "
+                "within the persistent settings, using the default option");
         showLeftMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
     }
 
@@ -1125,9 +1100,8 @@ void PreferencesDialog::setupMainWindowBorderSettings()
     if (!conversionResult || (showRightMainWindowBorderOption < 0) ||
         (showRightMainWindowBorderOption > 2))
     {
-        QNDEBUG(QStringLiteral("No valid \"Show right main window border\" option "
-                               "was found within the persistent settings, using "
-                               "the default option"));
+        QNDEBUG("No valid \"Show right main window border\" option was found "
+                "within the persistent settings, using the default option");
         showRightMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
     }
 
@@ -1159,23 +1133,20 @@ void PreferencesDialog::setupMainWindowBorderSettings()
         .toInt(&conversionResult);
     if (!conversionResult)
     {
-        QNDEBUG(QStringLiteral("No valid left main window border's width setting "
-                               "was found withiin the persistent settings, using "
-                               "the default value"));
+        QNDEBUG("No valid left main window border's width setting was found "
+                "withiin the persistent settings, using the default value");
         leftMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
     }
     else if (leftMainWindowBorderWidth < 0)
     {
-        QNDEBUG(QStringLiteral("Found invalid negative left main window border's "
-                               "width within the persistent settings, using "
-                               "the default value"));
+        QNDEBUG("Found invalid negative left main window border's width within "
+                "the persistent settings, using the default value");
         leftMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
     }
     else if (leftMainWindowBorderWidth > MAX_MAIN_WINDOW_BORDER_SIZE)
     {
-        QNDEBUG(QStringLiteral("Found invalid too large left main window border's "
-                               "width within the persistent settings, using "
-                               "the max allowed value instead"));
+        QNDEBUG("Found invalid too large left main window border's width within "
+                "the persistent settings, using the max allowed value instead");
         leftMainWindowBorderWidth = MAX_MAIN_WINDOW_BORDER_SIZE;
     }
 
@@ -1194,23 +1165,21 @@ void PreferencesDialog::setupMainWindowBorderSettings()
         .toInt(&conversionResult);
     if (!conversionResult)
     {
-        QNDEBUG(QStringLiteral("No valid right main window border's width setting "
-                               "was found within the persistent settings, using "
-                               "the default value"));
+        QNDEBUG("No valid right main window border's width setting was found "
+                "within the persistent settings, using the default value");
         rightMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
     }
     else if (rightMainWindowBorderWidth < 0)
     {
-        QNDEBUG(QStringLiteral("Found invalid negative right main window border's "
-                               "width within the persistent settings, using "
-                               "the default value"));
+        QNDEBUG("Found invalid negative right main window border's width "
+                "within the persistent settings, using the default value");
         rightMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
     }
     else if (rightMainWindowBorderWidth > MAX_MAIN_WINDOW_BORDER_SIZE)
     {
-        QNDEBUG(QStringLiteral("Found invalid too large right main window border's "
-                               "width within the persistent settings, using "
-                               "the max allowed value instead"));
+        QNDEBUG("Found invalid too large right main window border's width "
+                "within the persistent settings, using the max allowed value "
+                "instead");
         rightMainWindowBorderWidth = MAX_MAIN_WINDOW_BORDER_SIZE;
     }
 
@@ -1281,8 +1250,8 @@ void PreferencesDialog::setupSystemTraySettings()
 
     if (!m_systemTrayIconManager.isSystemTrayAvailable())
     {
-        QNDEBUG(QStringLiteral("The system tray is not available, setting up "
-                               "the blank system tray settings"));
+        QNDEBUG("The system tray is not available, setting up "
+                "the blank system tray settings");
 
         m_pUi->showSystemTrayIconCheckBox->setChecked(false);
         m_pUi->showSystemTrayIconCheckBox->setDisabled(true);
@@ -1387,7 +1356,7 @@ void PreferencesDialog::setupSystemTraySettings()
 
 void PreferencesDialog::setupStartAtLoginSettings()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::setupStartAtLoginSettings"));
+    QNDEBUG("PreferencesDialog::setupStartAtLoginSettings");
 
     std::pair<bool, StartQuentierAtLoginOption::type> startAtLoginOptions =
         isQuentierSetToStartAtLogin();
@@ -1410,7 +1379,7 @@ void PreferencesDialog::setupStartAtLoginSettings()
 
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::setupRunSyncEachNumMinutesComboBox: ")
+    QNDEBUG("PreferencesDialog::setupRunSyncEachNumMinutesComboBox: "
             << currentNumMinutes);
 
     QStringList runSyncPeriodicallyOptions;
@@ -1445,7 +1414,7 @@ void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes
         break;
     default:
         {
-            QNDEBUG(QStringLiteral("Unrecognized option, using the default one"));
+            QNDEBUG("Unrecognized option, using the default one");
             break;
         }
     }
@@ -1459,7 +1428,7 @@ void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes
 
 void PreferencesDialog::setupNetworkProxySettingsState()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::setupNetworkProxySettingsState"));
+    QNDEBUG("PreferencesDialog::setupNetworkProxySettingsState");
 
     QNetworkProxy::ProxyType proxyType = QNetworkProxy::DefaultProxy;
     QString proxyHost;
@@ -1505,8 +1474,8 @@ void PreferencesDialog::setupNetworkProxySettingsState()
     }
     else
     {
-        QNINFO(QStringLiteral("Detected unsupported proxy type: ") << proxyType
-               << QStringLiteral(", falling back to no proxy"));
+        QNINFO("Detected unsupported proxy type: " << proxyType
+               << ", falling back to no proxy");
         proxyType = QNetworkProxy::DefaultProxy;
         m_pUi->networkProxyTypeComboBox->setCurrentIndex(0);
     }
@@ -1522,7 +1491,7 @@ void PreferencesDialog::setupNetworkProxySettingsState()
 
 void PreferencesDialog::setupNoteEditorSettingsState()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::setupNoteEditorSettingsState"));
+    QNDEBUG("PreferencesDialog::setupNoteEditorSettingsState");
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -1586,7 +1555,7 @@ void PreferencesDialog::setupNoteEditorSettingsState()
 
 void PreferencesDialog::createConnections()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::createConnections"));
+    QNDEBUG("PreferencesDialog::createConnections");
 
     QObject::connect(m_pUi->okPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(PreferencesDialog,accept));
@@ -1734,7 +1703,7 @@ void PreferencesDialog::createConnections()
 
 void PreferencesDialog::installEventFilters()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::installEventFilters"));
+    QNDEBUG("PreferencesDialog::installEventFilters");
 
     m_pUi->noteEditorFontColorDemoFrame->installEventFilter(this);
     m_pUi->noteEditorBackgroundColorDemoFrame->installEventFilter(this);
@@ -1744,7 +1713,7 @@ void PreferencesDialog::installEventFilters()
 
 void PreferencesDialog::checkAndSetNetworkProxy()
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::checkAndSetNetworkProxy"));
+    QNDEBUG("PreferencesDialog::checkAndSetNetworkProxy");
 
     QNetworkProxy proxy;
 
@@ -1775,9 +1744,9 @@ void PreferencesDialog::checkAndSetNetworkProxy()
             QStringLiteral("</span>"));
 
         m_pUi->synchronizationTabStatusLabel->show();
-        QNDEBUG(QStringLiteral("Invalid network proxy host: ")
+        QNDEBUG("Invalid network proxy host: "
                 << m_pUi->networkProxyHostLineEdit->text()
-                << QStringLiteral(", resetting the application proxy to no proxy"));
+                << ", resetting the application proxy to no proxy");
         proxy = QNetworkProxy(QNetworkProxy::NoProxy);
         persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(),
                                               proxy);
@@ -1797,8 +1766,8 @@ void PreferencesDialog::checkAndSetNetworkProxy()
             QStringLiteral("</span>"));
 
         m_pUi->synchronizationTabStatusLabel->show();
-        QNDEBUG(QStringLiteral("Invalid network proxy port: ") << proxyPort
-                << QStringLiteral(", resetting the application proxy to no proxy"));
+        QNDEBUG("Invalid network proxy port: " << proxyPort
+                << ", resetting the application proxy to no proxy");
         proxy = QNetworkProxy(QNetworkProxy::NoProxy);
         persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(),
                                               proxy);
@@ -1810,10 +1779,8 @@ void PreferencesDialog::checkAndSetNetworkProxy()
     proxy.setUser(m_pUi->networkProxyUserLineEdit->text());
     proxy.setPassword(m_pUi->networkProxyPasswordLineEdit->text());
 
-    QNDEBUG(QStringLiteral("Setting the application proxy: host = ")
-            << proxy.hostName() << QStringLiteral(", port = ")
-            << proxy.port() << QStringLiteral(", username = ")
-            << proxy.user());
+    QNDEBUG("Setting the application proxy: host = " << proxy.hostName()
+            << ", port = " << proxy.port() << ", username = " << proxy.user());
 
     m_pUi->synchronizationTabStatusLabel->clear();
     m_pUi->synchronizationTabStatusLabel->hide();
@@ -1823,11 +1790,9 @@ void PreferencesDialog::checkAndSetNetworkProxy()
     QNetworkProxy::setApplicationProxy(proxy);
 }
 
-bool PreferencesDialog::onNoteEditorColorEnteredImpl(const QColor & color,
-                                                     const QColor & prevColor,
-                                                     const QString & settingKey,
-                                                     QLineEdit & colorLineEdit,
-                                                     QFrame & demoFrame)
+bool PreferencesDialog::onNoteEditorColorEnteredImpl(
+    const QColor & color, const QColor & prevColor, const QString & settingKey,
+    QLineEdit & colorLineEdit, QFrame & demoFrame)
 {
     if (!color.isValid()) {
         colorLineEdit.setText(prevColor.name());
@@ -1835,7 +1800,7 @@ bool PreferencesDialog::onNoteEditorColorEnteredImpl(const QColor & color,
     }
 
     if (prevColor.isValid() && (prevColor.name() == color.name())) {
-        QNDEBUG(QStringLiteral("Color did not change"));
+        QNDEBUG("Color did not change");
         return false;
     }
 
@@ -1864,8 +1829,8 @@ void PreferencesDialog::setNoteEditorHighlightedTextColorToDemoFrame(const QColo
     setNoteEditorColorToDemoFrameImpl(color, *m_pUi->noteEditorHighlightedTextColorDemoFrame);
 }
 
-void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(const QColor & color,
-                                                          QFrame & frame)
+void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(
+    const QColor & color, QFrame & frame)
 {
     QPalette pal = frame.palette();
     pal.setColor(QPalette::Background, color);
@@ -1926,31 +1891,28 @@ QColor PreferencesDialog::noteEditorColorImpl(const QString & settingKey) const
 
 void PreferencesDialog::saveNoteEditorFontColor(const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::saveNoteEditorFontColor: ")
-            << color.name());
+    QNDEBUG("PreferencesDialog::saveNoteEditorFontColor: " << color.name());
 
     saveNoteEditorColorImpl(color, NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
 }
 
 void PreferencesDialog::saveNoteEditorBackgroundColor(const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::saveNoteEditorBackgroundColor: ")
-            << color.name());
+    QNDEBUG("PreferencesDialog::saveNoteEditorBackgroundColor: " << color.name());
 
     saveNoteEditorColorImpl(color, NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
 }
 
 void PreferencesDialog::saveNoteEditorHighlightColor(const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::saveNoteEditorHighlightColor: ")
-            << color.name());
+    QNDEBUG("PreferencesDialog::saveNoteEditorHighlightColor: " << color.name());
 
     saveNoteEditorColorImpl(color, NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
 }
 
 void PreferencesDialog::saveNoteEditorHighlightedTextColor(const QColor & color)
 {
-    QNDEBUG(QStringLiteral("PreferencesDialog::saveNoteEditorHighlightedTextColor: ")
+    QNDEBUG("PreferencesDialog::saveNoteEditorHighlightedTextColor: "
             << color.name());
 
     saveNoteEditorColorImpl(color, NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);

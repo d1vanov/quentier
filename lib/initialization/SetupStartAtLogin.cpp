@@ -30,24 +30,24 @@ namespace quentier {
 
 void setupStartQuentierAtLogin()
 {
-    QNDEBUG(QStringLiteral("setupStartQuentierAtLogin"));
+    QNDEBUG("setupStartQuentierAtLogin");
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
     if (appSettings.contains(SHOULD_START_AUTOMATICALLY_AT_LOGIN)) {
-        QNDEBUG(QStringLiteral("Start automatically at login setting is present "
-                               "within settings, nothing to do"));
+        QNDEBUG("Start automatically at login setting is present "
+                "within settings, nothing to do");
         appSettings.endGroup();
         return;
     }
 
-    QNDEBUG(QStringLiteral("Start automatically at login setting is not present, "
-                           "will set it to the default value"));
+    QNDEBUG("Start automatically at login setting is not present, "
+            "will set it to the default value");
 
     bool shouldStartAutomaticallyAtLogin =
         DEFAULT_SHOULD_START_AUTOMATICALLY_AT_LOGIN_OPTION;
     if (!shouldStartAutomaticallyAtLogin) {
-        QNDEBUG(QStringLiteral("Should not start automatically at login by default"));
+        QNDEBUG("Should not start automatically at login by default");
         appSettings.endGroup();
         return;
     }
@@ -61,8 +61,8 @@ void setupStartQuentierAtLogin()
     bool res = setStartQuentierAtLoginOption(shouldStartAutomaticallyAtLogin,
                                              errorDescription, option);
     if (Q_UNLIKELY(!res)) {
-        QNWARNING(QStringLiteral("Failed to set Quentier to start automatically ")
-                  << QStringLiteral("at login: ") << errorDescription);
+        QNWARNING("Failed to set Quentier to start automatically "
+                  << "at login: " << errorDescription);
     }
 }
 

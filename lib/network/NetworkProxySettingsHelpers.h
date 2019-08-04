@@ -38,10 +38,9 @@ QT_FORWARD_DECLARE_CLASS(Account)
  * @param user                          Network proxy username
  * @param password                      Network proxy password
  */
-void parseNetworkProxySettings(const Account & currentAccount,
-                               QNetworkProxy::ProxyType & type,
-                               QString & host, int & port,
-                               QString & user, QString & password);
+void parseNetworkProxySettings(
+    const Account & currentAccount, QNetworkProxy::ProxyType & type,
+    QString & host, int & port, QString & user, QString & password);
 /**
  * @brief persistNetworkProxySettingsForAccount     Helper function persisting
  *                                                  the settings of provided
@@ -54,8 +53,8 @@ void parseNetworkProxySettings(const Account & currentAccount,
  * @param proxy                                     Network proxy which setttings
  *                                                  are to be persisted
  */
-void persistNetworkProxySettingsForAccount(const Account & account,
-                                           const QNetworkProxy & proxy);
+void persistNetworkProxySettingsForAccount(
+    const Account & account, const QNetworkProxy & proxy);
 
 /**
  * @brief restoreNetworkProxySettingsForAccount     Helper function setting

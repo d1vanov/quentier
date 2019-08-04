@@ -33,14 +33,19 @@ AboutQuentierWidget::AboutQuentierWidget(QWidget * parent) :
 
     m_pUi->quentierHeaderLabel->setText(quentierVersion());
 
-    m_pUi->quentierQtVersionLabel->setText(QStringLiteral("Built with Qt ") + QStringLiteral(QT_VERSION_STR) +
-                                           QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()));
+    m_pUi->quentierQtVersionLabel->setText(
+        QStringLiteral("Built with Qt ") + QStringLiteral(QT_VERSION_STR) +
+        QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()));
 
-    QString libBuildInfo = QStringLiteral("Built with libquentier: ") + libquentierBuildTimeInfo();
-    QString libRuntimeInfo = QStringLiteral("Uses libquentier: ") + libquentierRuntimeInfo();
-    m_pUi->libquentierVersionLabel->setText(libBuildInfo + QStringLiteral("\n\n") + libRuntimeInfo);
+    QString libBuildInfo =
+        QStringLiteral("Built with libquentier: ") + libquentierBuildTimeInfo();
+    QString libRuntimeInfo =
+        QStringLiteral("Uses libquentier: ") + libquentierRuntimeInfo();
+    m_pUi->libquentierVersionLabel->setText(
+        libBuildInfo + QStringLiteral("\n\n") + libRuntimeInfo);
 
-    m_pUi->quentierBuildVersionLabel->setText(QStringLiteral("Quentier build info: ") + quentierBuildInfo());
+    m_pUi->quentierBuildVersionLabel->setText(
+        QStringLiteral("Quentier build info: ") + quentierBuildInfo());
 }
 
 AboutQuentierWidget::~AboutQuentierWidget()

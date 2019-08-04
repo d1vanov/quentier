@@ -43,29 +43,40 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onUpdateTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
+
     void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
-                          size_t limit, size_t offset,
-                          LocalStorageManager::ListTagsOrder::type order,
-                          LocalStorageManager::OrderDirection::type orderDirection,
-                          QString linkedNotebookGuid,
-                          ErrorString errorDescription, QUuid requestId);
-    void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onListTagsFailed(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListTagsOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QString linkedNotebookGuid, ErrorString errorDescription,
+        QUuid requestId);
+
+    void onExpungeTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
 
 private:
-    bool checkSorting(const TagModel & model, const TagModelItem * rootItem,
-                      ErrorString & errorDescription) const;
+    bool checkSorting(
+        const TagModel & model, const TagModelItem * rootItem,
+        ErrorString & errorDescription) const;
+
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
     {
-        bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
+        bool operator()(
+            const TagModelItem * lhs, const TagModelItem * rhs) const;
     };
 
     struct GreaterByName
     {
-        bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
+        bool operator()(
+            const TagModelItem * lhs, const TagModelItem * rhs) const;
     };
 
 private:

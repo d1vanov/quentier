@@ -27,9 +27,9 @@ LimitedFontsDelegate::LimitedFontsDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
 
-void LimitedFontsDelegate::paint(QPainter * painter,
-                                 const QStyleOptionViewItem & option,
-                                 const QModelIndex & index) const
+void LimitedFontsDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
@@ -48,9 +48,9 @@ void LimitedFontsDelegate::paint(QPainter * painter,
     painter->restore();
 }
 
-bool LimitedFontsDelegate::doPaint(QPainter * painter,
-                                   const QStyleOptionViewItem & option,
-                                   const QModelIndex & index) const
+bool LimitedFontsDelegate::doPaint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (!index.isValid()) {
         return false;

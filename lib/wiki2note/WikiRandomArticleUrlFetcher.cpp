@@ -49,10 +49,10 @@ WikiRandomArticleUrlFetcher::~WikiRandomArticleUrlFetcher()
 
 void WikiRandomArticleUrlFetcher::start()
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleUrlFetcher::start"));
+    QNDEBUG("WikiRandomArticleUrlFetcher::start");
 
     if (Q_UNLIKELY(m_started)) {
-        QNWARNING(QStringLiteral("WikiRandomArticleUrlFetcher is already started"));
+        QNWARNING("WikiRandomArticleUrlFetcher is already started");
         return;
     }
 
@@ -85,12 +85,11 @@ void WikiRandomArticleUrlFetcher::start()
     m_started = true;
 }
 
-void WikiRandomArticleUrlFetcher::onDownloadProgress(qint64 bytesFetched,
-                                                     qint64 bytesTotal)
+void WikiRandomArticleUrlFetcher::onDownloadProgress(
+    qint64 bytesFetched, qint64 bytesTotal)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleUrlFetcher::onDownloadProgress: fetched ")
-            << bytesFetched << QStringLiteral(" bytes, total " )
-            << bytesTotal << QStringLiteral(" bytes"));
+    QNDEBUG("WikiRandomArticleUrlFetcher::onDownloadProgress: fetched "
+            << bytesFetched << " bytes, total " << bytesTotal << " bytes");
 
     double percentage = 0;
     if (bytesTotal != 0) {
@@ -101,16 +100,15 @@ void WikiRandomArticleUrlFetcher::onDownloadProgress(qint64 bytesFetched,
     Q_EMIT progress(percentage);
 }
 
-void WikiRandomArticleUrlFetcher::onDownloadFinished(bool status,
-                                                     QByteArray fetchedData,
-                                                     ErrorString errorDescription)
+void WikiRandomArticleUrlFetcher::onDownloadFinished(
+    bool status, QByteArray fetchedData, ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleUrlFetcher::onDownloadFinished: status = ")
-            << (status ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description = ") << errorDescription);
+    QNDEBUG("WikiRandomArticleUrlFetcher::onDownloadFinished: status = "
+            << (status ? "true" : "false") << ", error description = "
+            << errorDescription);
 
     if (!status) {
-        QNWARNING(QStringLiteral("Download failed: ") << errorDescription);
+        QNWARNING("Download failed: " << errorDescription);
         finishWithError(errorDescription);
         return;
     }
@@ -132,12 +130,12 @@ void WikiRandomArticleUrlFetcher::onDownloadFinished(bool status,
     if (!m_url.isValid()) {
         errorDescription.setBase(QT_TR_NOOP("Failed to compose valid URL from "
                                             "data fetched from Wiki"));
-        QNWARNING(errorDescription << QStringLiteral(", page id = ") << pageId);
+        QNWARNING(errorDescription << ", page id = " << pageId);
         finishWithError(errorDescription);
         return;
     }
 
-    QNDEBUG(QStringLiteral("Successfully composed random article URL: ") << m_url);
+    QNDEBUG("Successfully composed random article URL: " << m_url);
 
     m_started = false;
     m_finished = true;
@@ -145,8 +143,7 @@ void WikiRandomArticleUrlFetcher::onDownloadFinished(bool status,
 }
 
 qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
-    const QByteArray & fetchedData,
-    ErrorString & errorDescription)
+    const QByteArray & fetchedData, ErrorString & errorDescription)
 {
     qint32 pageId = 0;
     bool foundPageId = false;
@@ -165,11 +162,12 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
 
             bool conversionResult = false;
             pageId = id.toInt(&conversionResult);
-            if (!conversionResult) {
-                errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
-                                                    "article URL: could not convert "
-                                                    "id property to int"));
-                QNWARNING(errorDescription << QStringLiteral(": ") << id);
+            if (!conversionResult)
+            {
+                errorDescription.setBase(
+                    QT_TR_NOOP("Failed to fetch random Wiki article URL: could "
+                               "not convert id property to int"));
+                QNWARNING(errorDescription << ": " << id);
                 return -1;
             }
 
@@ -178,9 +176,11 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
         }
     }
 
-    if (!foundPageId) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to fetch random Wiki "
-                                            "article URL: could not find page id"));
+    if (!foundPageId)
+    {
+        errorDescription.setBase(
+            QT_TR_NOOP("Failed to fetch random Wiki article URL: could not "
+                       "find page id"));
         QNWARNING(errorDescription);
         return -1;
     }
@@ -188,10 +188,10 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
     return pageId;
 }
 
-void WikiRandomArticleUrlFetcher::finishWithError(const ErrorString & errorDescription)
+void WikiRandomArticleUrlFetcher::finishWithError(
+    const ErrorString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("WikiRandomArticleUrlFetcher::finishWithError: ")
-            << errorDescription);
+    QNDEBUG("WikiRandomArticleUrlFetcher::finishWithError: " << errorDescription);
 
     m_started = false;
     m_finished = false;

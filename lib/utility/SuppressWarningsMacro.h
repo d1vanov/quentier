@@ -25,19 +25,23 @@
 
 #define STRINGIFY(a) #a
 
-#define CLANG_IGNORE_WARNING(warning) \
-    _Pragma( STRINGIFY( clang diagnostic ignored #warning ) )
+#define CLANG_IGNORE_WARNING(warning)                                          \
+    _Pragma( STRINGIFY( clang diagnostic ignored #warning ) )                  \
+// CLANG_IGNORE_WARNING
 
-#define CLANG_RESTORE_WARNINGS \
-    _Pragma("clang diagnostic pop")
+#define CLANG_RESTORE_WARNINGS                                                 \
+    _Pragma("clang diagnostic pop")                                            \
+// CLANG_RESTORE_WARNINGS
 
-#define SUPPRESS_WARNINGS \
-    CLANG_SAVE_WARNINGS \
-    CLANG_IGNORE_WARNING(-Wshorten-64-to-32) \
-    CLANG_IGNORE_WARNING(-Wsign-conversion)
+#define SUPPRESS_WARNINGS                                                      \
+    CLANG_SAVE_WARNINGS                                                        \
+    CLANG_IGNORE_WARNING(-Wshorten-64-to-32)                                   \
+    CLANG_IGNORE_WARNING(-Wsign-conversion)                                    \
+// SUPPRESS_WARNINGS
 
-#define RESTORE_WARNINGS \
-    CLANG_RESTORE_WARNINGS
+#define RESTORE_WARNINGS                                                       \
+    CLANG_RESTORE_WARNINGS                                                     \
+// RESTORE_WARNINGS
 
 #elif defined(__GNUC__)
 
@@ -45,38 +49,47 @@
 
 #define STRINGIFY(a) #a
 
-#define GCC_IGNORE_WARNING(warning) \
-    _Pragma( STRINGIFY( GCC diagnostic ignored #warning ) )
+#define GCC_IGNORE_WARNING(warning)                                            \
+    _Pragma( STRINGIFY( GCC diagnostic ignored #warning ) )                    \
+// GCC_IGNORE_WARNING
 
-#define GCC_RESTORE_WARNINGS \
-    _Pragma("GCC diagnostic pop")
+#define GCC_RESTORE_WARNINGS                                                   \
+    _Pragma("GCC diagnostic pop")                                              \
+// GCC_RESTORE_WARNINGS
 
-#define SUPPRESS_WARNINGS \
-    GCC_SAVE_WARNINGS \
-    GCC_IGNORE_WARNING(-Wconversion)
+#define SUPPRESS_WARNINGS                                                      \
+    GCC_SAVE_WARNINGS                                                          \
+    GCC_IGNORE_WARNING(-Wconversion)                                           \
+// SUPPRESS_WARNINGS
 
-#define RESTORE_WARNINGS \
-    GCC_RESTORE_WARNINGS
+#define RESTORE_WARNINGS                                                       \
+    GCC_RESTORE_WARNINGS                                                       \
+// RESTORE_WARNINGS
 
 #elif defined(_MSC_VER)
 
-#define MSVC_SAVE_WARNINGS \
-    __pragma(warning(push))
+#define MSVC_SAVE_WARNINGS                                                     \
+    __pragma(warning(push))                                                    \
+// MSVC_SAVE_WARNINGS
 
-#define MSVC_IGNORE_WARNING(number) \
-    __pragma(warning(disable:number))
+#define MSVC_IGNORE_WARNING(number)                                            \
+    __pragma(warning(disable:number))                                          \
+// MSVC_IGNORE_WARNING
 
-#define MSVC_RESTORE_WARNINGS \
-    __pragma(warning(pop))
+#define MSVC_RESTORE_WARNINGS                                                  \
+    __pragma(warning(pop))                                                     \
+// MSVC_RESTORE_WARNINGS
 
-#define SUPPRESS_WARNINGS \
-    MSVC_SAVE_WARNINGS \
-    __pragma(warning(disable:4365)) \
-    __pragma(warning(disable:4244)) \
-    __pragma(warning(disable:4305))
+#define SUPPRESS_WARNINGS                                                      \
+    MSVC_SAVE_WARNINGS                                                         \
+    __pragma(warning(disable:4365))                                            \
+    __pragma(warning(disable:4244))                                            \
+    __pragma(warning(disable:4305))                                            \
+// SUPPRESS_WARNINGS
 
-#define RESTORE_WARNINGS \
-    MSVC_RESTORE_WARNINGS
+#define RESTORE_WARNINGS                                                       \
+    MSVC_RESTORE_WARNINGS                                                      \
+// RESTORE_WARNINGS
 
 #else
 

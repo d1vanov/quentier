@@ -41,14 +41,15 @@ class NoteFiltersManager: public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteFiltersManager(const Account & account,
-                                FilterByTagWidget & filterByTagWidget,
-                                FilterByNotebookWidget & filterByNotebookWidget,
-                                NoteModel & noteModel,
-                                FilterBySavedSearchWidget & filterBySavedSearchWidget,
-                                QLineEdit & searchLineEdit,
-                                LocalStorageManagerAsync & localStorageManagerAsync,
-                                QObject * parent = Q_NULLPTR);
+    explicit NoteFiltersManager(
+        const Account & account,
+        FilterByTagWidget & filterByTagWidget,
+        FilterByNotebookWidget & filterByNotebookWidget,
+        NoteModel & noteModel,
+        FilterBySavedSearchWidget & filterBySavedSearchWidget,
+        QLineEdit & searchLineEdit,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        QObject * parent = Q_NULLPTR);
 
     QStringList notebookLocalUidsInFilter() const;
     QStringList tagLocalUidsInFilter() const;
@@ -64,8 +65,8 @@ public:
      */
     bool isReady() const;
 
-    static NoteSearchQuery createNoteSearchQuery(const QString & searchString,
-                                                 ErrorString & errorDescription);
+    static NoteSearchQuery createNoteSearchQuery(
+        const QString & searchString, ErrorString & errorDescription);
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -78,8 +79,8 @@ Q_SIGNALS:
     void ready();
 
     // private signals
-    void findNoteLocalUidsForNoteSearchQuery(NoteSearchQuery noteSearchQuery,
-                                             QUuid requestId);
+    void findNoteLocalUidsForNoteSearchQuery(
+        NoteSearchQuery noteSearchQuery, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for FilterByTagWidget's signals
@@ -105,20 +106,21 @@ private Q_SLOTS:
     void onSearchStringChanged();
 
     // Slots for events from local storage
-    void onFindNoteLocalUidsWithSearchQueryCompleted(QStringList noteLocalUids,
-                                                     NoteSearchQuery noteSearchQuery,
-                                                     QUuid requestId);
-    void onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuery noteSearchQuery,
-                                                  ErrorString errorDescription,
-                                                  QUuid requestId);
+    void onFindNoteLocalUidsWithSearchQueryCompleted(
+        QStringList noteLocalUids, NoteSearchQuery noteSearchQuery,
+        QUuid requestId);
+
+    void onFindNoteLocalUidsWithSearchQueryFailed(
+        NoteSearchQuery noteSearchQuery, ErrorString errorDescription,
+        QUuid requestId);
 
     // NOTE: don't care of notebook updates because the filtering by notebook
     // is done by its local uid anyway
 
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
-    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids,
-                              QUuid requestId);
+    void onExpungeTagComplete(
+        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);

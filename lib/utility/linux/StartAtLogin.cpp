@@ -28,21 +28,19 @@
 #include <QDir>
 #include <QCoreApplication>
 
-#define QUENTIER_AUTOSTART_DESKTOP_FILE_PATH \
-    QDir::homePath() + QStringLiteral("/.config/autostart/Quentier.desktop")
+#define QUENTIER_AUTOSTART_DESKTOP_FILE_PATH                                   \
+    QDir::homePath() + QStringLiteral("/.config/autostart/Quentier.desktop")   \
+// QUENTIER_AUTOSTART_DESKTOP_FILE_PATH
 
 namespace quentier {
 
-bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
-                                   ErrorString & errorDescription,
-                                   const StartQuentierAtLoginOption::type option)
+bool setStartQuentierAtLoginOption(
+    const bool shouldStartAtLogin, ErrorString & errorDescription,
+    const StartQuentierAtLoginOption::type option)
 {
-    QNDEBUG(QStringLiteral("setStartQuentierAtLoginOption (Linux): ")
-            << QStringLiteral("should start at login = ")
-            << (shouldStartAtLogin
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", option = ") << option);
+    QNDEBUG("setStartQuentierAtLoginOption (Linux): should start at login = "
+            << (shouldStartAtLogin ? "true" : "false")
+            << ", option = " << option);
 
     QFileInfo autoStartDesktopFileInfo(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH);
     if (autoStartDesktopFileInfo.exists())

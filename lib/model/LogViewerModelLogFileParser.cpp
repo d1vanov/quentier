@@ -34,59 +34,63 @@
 
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
-#define LVMPDEBUG(message) \
-    if (m_internalLogEnabled) \
-    { \
-        QString msg; \
-        QDebug dbg(&msg); \
-        __QNLOG_QDEBUG_HELPER(); \
-        dbg << message; \
-        QString relativeSourceFileName = QStringLiteral(__FILE__); \
-        int prefixIndex = \
-            relativeSourceFileName.indexOf(QStringLiteral("libquentier"), \
-                                           Qt::CaseInsensitive); \
-        if (prefixIndex >= 0) \
-        { \
-            relativeSourceFileName.remove(0, prefixIndex); \
-        } \
-        else \
-        { \
-            QString appName = QCoreApplication::applicationName().toLower(); \
-            prefixIndex = \
-                relativeSourceFileName.indexOf(appName, Qt::CaseInsensitive); \
-            if (prefixIndex >= 0) { \
-                relativeSourceFileName.remove(0, prefixIndex + appName.size() + 1); \
-            } \
-        } \
-        DateTimePrint::Options options(\
-            DateTimePrint::IncludeMilliseconds | \
-            DateTimePrint::IncludeTimezone); \
-        QString fullMsg = printableDateTimeFromTimestamp(\
-            QDateTime::currentMSecsSinceEpoch(), options) + \
-            QStringLiteral(" ") + \
-            relativeSourceFileName + \
-            QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER) + \
-            QString::number(__LINE__) + \
-            QStringLiteral(": ") + msg + QStringLiteral("\n"); \
-        m_internalLogFile.write(fullMsg.toUtf8()); \
-        m_internalLogFile.flush(); \
-    }
+#define LVMPDEBUG(message)                                                     \
+    if (m_internalLogEnabled)                                                  \
+    {                                                                          \
+        QString msg;                                                           \
+        QDebug dbg(&msg);                                                      \
+        __QNLOG_QDEBUG_HELPER();                                               \
+        dbg << message;                                                        \
+        QString relativeSourceFileName = QStringLiteral(__FILE__);             \
+        int prefixIndex =                                                      \
+            relativeSourceFileName.indexOf(QStringLiteral("libquentier"),      \
+                                           Qt::CaseInsensitive);               \
+        if (prefixIndex >= 0)                                                  \
+        {                                                                      \
+            relativeSourceFileName.remove(0, prefixIndex);                     \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+            QString appName = QCoreApplication::applicationName().toLower();   \
+            prefixIndex =                                                      \
+                relativeSourceFileName.indexOf(appName, Qt::CaseInsensitive);  \
+            if (prefixIndex >= 0) {                                            \
+                relativeSourceFileName.remove(                                 \
+                    0, prefixIndex + appName.size() + 1);                      \
+            }                                                                  \
+        }                                                                      \
+        DateTimePrint::Options options(                                        \
+            DateTimePrint::IncludeMilliseconds |                               \
+            DateTimePrint::IncludeTimezone);                                   \
+        QString fullMsg = printableDateTimeFromTimestamp(                      \
+            QDateTime::currentMSecsSinceEpoch(), options) +                    \
+            QStringLiteral(" ") +                                              \
+            relativeSourceFileName +                                           \
+            QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER) +                  \
+            QString::number(__LINE__) +                                        \
+            QStringLiteral(": ") + msg + QStringLiteral("\n");                 \
+        m_internalLogFile.write(fullMsg.toUtf8());                             \
+        m_internalLogFile.flush();                                             \
+    }                                                                          \
+// LVMPDEBUG
 
 namespace quentier {
 
-#define REGEX_QNLOG_DATE \
-    "^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+(\\w+)"
+#define REGEX_QNLOG_DATE                                                       \
+    "^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+(\\w+)"         \
+// REGEX_QNLOG_DATE
 
 // note: QNLOG_FILE_LINENUMBER_DELIMITER is here incorporated into regex
 #define REGEX_QNLOG_SOURCE_LINENUMBER "(.+):(\\d+)"
 
 // full logline regex
-#define REGEX_QNLOG_LINE REGEX_QNLOG_DATE \
-                         "\\s+" \
-                         REGEX_QNLOG_SOURCE_LINENUMBER \
-                         "\\s+" \
-                         "\\[(\\w+)\\]:\\s(.+$)"
-
+#define REGEX_QNLOG_LINE                                                       \
+    REGEX_QNLOG_DATE                                                           \
+    "\\s+"                                                                     \
+    REGEX_QNLOG_SOURCE_LINENUMBER                                              \
+    "\\s+"                                                                     \
+    "\\[(\\w+)\\]:\\s(.+$)"                                                    \
+// REGEX_QNLOG_LINE
 
 LogViewerModel::LogFileParser::LogFileParser() :
     m_logParsingRegex(QStringLiteral(REGEX_QNLOG_LINE),
@@ -117,9 +121,9 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
     QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
     ErrorString & errorDescription)
 {
-    LVMPDEBUG(QStringLiteral("LogViewerModel::LogFileParser::")
-              << QStringLiteral("parseDataEntriesFromLogFile: from pos = ")
-              << fromPos << QStringLiteral(", max data entries = ")
+    LVMPDEBUG("LogViewerModel::LogFileParser::"
+              << "parseDataEntriesFromLogFile: from pos = "
+              << fromPos << ", max data entries = "
               << maxDataEntries);
 
     if (!logFile.isOpen() && !logFile.open(QIODevice::ReadOnly)) {
@@ -149,13 +153,13 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
     while(!strm.atEnd())
     {
         line = strm.readLine();
-        LVMPDEBUG(QStringLiteral("Processing line ") << line);
+        LVMPDEBUG("Processing line " << line);
 
         ParseLineStatus::type parseLineStatus =
             parseLogFileLine(line, previousParseLineStatus, disabledLogLevels,
                              filterContentRegExp, dataEntries, errorDescription);
         if (parseLineStatus == ParseLineStatus::Error) {
-            LVMPDEBUG(QStringLiteral("Returning error: ") << errorDescription);
+            LVMPDEBUG("Returning error: " << errorDescription);
             return false;
         }
 
@@ -172,27 +176,26 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
         }
         else if (parseLineStatus == ParseLineStatus::AppendedToLastEntry)
         {
-            LVMPDEBUG(QStringLiteral("No new entry created, continuing"));
+            LVMPDEBUG("No new entry created, continuing");
             continue;
         }
         else if (parseLineStatus == ParseLineStatus::CreatedNewEntry)
         {
             insideEntry = true;
             ++numFoundMatches;
-            LVMPDEBUG(QStringLiteral("New entry was created, ")
-                      << numFoundMatches
-                      << QStringLiteral(" entries found now"));
+            LVMPDEBUG("New entry was created, " << numFoundMatches
+                      << " entries found now");
 
             if (numFoundMatches >= maxDataEntries) {
-                LVMPDEBUG(QStringLiteral("Exceeded the allowed number of entries "
-                                         "to parse, returning"));
+                LVMPDEBUG("Exceeded the allowed number of entries "
+                          "to parse, returning");
                 break;
             }
         }
     }
 
     endPos = strm.pos();
-    LVMPDEBUG(QStringLiteral("End pos before returning = ") << endPos);
+    LVMPDEBUG("End pos before returning = " << endPos);
     return true;
 }
 

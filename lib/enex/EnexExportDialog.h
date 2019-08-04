@@ -34,9 +34,11 @@ class EnexExportDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit EnexExportDialog(const Account & account,
-                              QWidget * parent = Q_NULLPTR,
-                              const QString & suggestedFileName = QString());
+    explicit EnexExportDialog(
+        const Account & account,
+        QWidget * parent = Q_NULLPTR,
+        const QString & suggestedFileName = QString());
+
     virtual ~EnexExportDialog();
 
     bool exportTags() const;

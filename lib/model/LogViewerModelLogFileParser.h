@@ -57,8 +57,8 @@ private:
         QVector<LogViewerModel::Data> & dataEntries,
         ErrorString & errorDescription);
 
-    void appendLogEntryLine(LogViewerModel::Data & data,
-                            const QString & line) const;
+    void appendLogEntryLine(
+        LogViewerModel::Data & data, const QString & line) const;
 
     void setInternalLogEnabled(const bool enabled);
 

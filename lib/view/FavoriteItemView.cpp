@@ -31,15 +31,17 @@
 
 #include <set>
 
-#define LAST_SELECTED_FAVORITED_ITEM_KEY \
-    QStringLiteral("LastSelectedFavoritedItemLocalUid")
+#define LAST_SELECTED_FAVORITED_ITEM_KEY                                       \
+    QStringLiteral("LastSelectedFavoritedItemLocalUid")                        \
+// LAST_SELECTED_FAVORITED_ITEM_KEY
 
-#define REPORT_ERROR(error) \
-    { \
-        ErrorString errorDescription(error); \
-        QNWARNING(errorDescription); \
-        Q_EMIT notifyError(errorDescription); \
-    }
+#define REPORT_ERROR(error)                                                    \
+    {                                                                          \
+        ErrorString errorDescription(error);                                   \
+        QNWARNING(errorDescription);                                           \
+        Q_EMIT notifyError(errorDescription);                                  \
+    }                                                                          \
+// REPORT_ERROR
 
 namespace quentier {
 
@@ -52,7 +54,7 @@ FavoriteItemView::FavoriteItemView(QWidget * parent) :
 
 void FavoriteItemView::setModel(QAbstractItemModel * pModel)
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::setModel"));
+    QNDEBUG("FavoriteItemView::setModel");
 
     FavoritesModel * pPreviousModel = qobject_cast<FavoritesModel*>(model());
     if (pPreviousModel)
@@ -100,8 +102,7 @@ void FavoriteItemView::setModel(QAbstractItemModel * pModel)
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(pModel);
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorites model has been set to "
-                               "the favorites item view"));
+        QNDEBUG("Non-favorites model has been set to the favorites item view");
         ItemView::setModel(pModel);
         return;
     }
@@ -138,8 +139,7 @@ void FavoriteItemView::setModel(QAbstractItemModel * pModel)
     ItemView::setModel(pModel);
 
     if (pFavoritesModel->allItemsListed()) {
-        QNDEBUG(QStringLiteral("All favorites model's items are already listed "
-                               "within the model"));
+        QNDEBUG("All favorites model's items are already listed within the model");
         restoreLastSavedSelection(*pFavoritesModel);
         m_modelReady = true;
         m_trackingSelection = true;
@@ -152,39 +152,37 @@ void FavoriteItemView::setModel(QAbstractItemModel * pModel)
 
 QModelIndex FavoriteItemView::currentlySelectedItemIndex() const
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::currentlySelectedItemIndex"));
+    QNDEBUG("FavoriteItemView::currentlySelectedItemIndex");
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorites model has been set to "
-                               "the favorites item view"));
+        QNDEBUG("Non-favorites model has been set to the favorites item view");
         return QModelIndex();
     }
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        QNDEBUG(QStringLiteral("No selection model in the view"));
+        QNDEBUG("No selection model in the view");
         return QModelIndex();
     }
 
     QModelIndexList indexes = selectedIndexes();
     if (indexes.isEmpty()) {
-        QNDEBUG(QStringLiteral("The selection contains no model indexes"));
+        QNDEBUG("The selection contains no model indexes");
         return QModelIndex();
     }
 
-    return singleRow(indexes, *pFavoritesModel,
-                     FavoritesModel::Columns::DisplayName);
+    return singleRow(
+        indexes, *pFavoritesModel, FavoritesModel::Columns::DisplayName);
 }
 
 void FavoriteItemView::deleteSelectedItems()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::deleteSelectedItems"));
+    QNDEBUG("FavoriteItemView::deleteSelectedItems");
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorites model has been set to "
-                               "the favorites item view"));
+        QNDEBUG("Non-favorites model has been set to the favorites item view");
         return;
     }
 
@@ -207,8 +205,7 @@ void FavoriteItemView::deleteSelectedItems()
     }
 
     if (rows.empty()) {
-        QNDEBUG(QStringLiteral("No favorited items are selected, nothing to "
-                               "unfavorite"));
+        QNDEBUG("No favorited items are selected, nothing to unfavorite");
         Q_UNUSED(informationMessageBox(this,
                                        tr("Cannot unfavorite the favorited items"),
                                        tr("No favorited items are selected currently"),
@@ -220,7 +217,7 @@ void FavoriteItemView::deleteSelectedItems()
     int numRows = static_cast<int>(rows.size());
     bool res = pFavoritesModel->removeRows(*(rows.begin()), numRows);
     if (res) {
-        QNDEBUG(QStringLiteral("Successfully unfavorited the selected items"));
+        QNDEBUG("Successfully unfavorited the selected items");
         return;
     }
 
@@ -234,7 +231,7 @@ void FavoriteItemView::deleteSelectedItems()
 
 void FavoriteItemView::onAllItemsListed()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onAllItemsListed"));
+    QNDEBUG("FavoriteItemView::onAllItemsListed");
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
@@ -255,13 +252,13 @@ void FavoriteItemView::onAllItemsListed()
 
 void FavoriteItemView::onAboutToAddItem()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onAboutToAddItem"));
+    QNDEBUG("FavoriteItemView::onAboutToAddItem");
     prepareForFavoritesModelChange();
 }
 
 void FavoriteItemView::onAddedItem(const QModelIndex & index)
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onAddedItem"));
+    QNDEBUG("FavoriteItemView::onAddedItem");
 
     Q_UNUSED(index)
     postProcessFavoritedModelChange();
@@ -269,7 +266,7 @@ void FavoriteItemView::onAddedItem(const QModelIndex & index)
 
 void FavoriteItemView::onAboutToUpdateItem(const QModelIndex & index)
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onAboutToUpdateItem"));
+    QNDEBUG("FavoriteItemView::onAboutToUpdateItem");
 
     Q_UNUSED(index)
     prepareForFavoritesModelChange();
@@ -277,7 +274,7 @@ void FavoriteItemView::onAboutToUpdateItem(const QModelIndex & index)
 
 void FavoriteItemView::onUpdatedItem(const QModelIndex & index)
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onUpdatedItem"));
+    QNDEBUG("FavoriteItemView::onUpdatedItem");
 
     Q_UNUSED(index)
     postProcessFavoritedModelChange();
@@ -285,24 +282,23 @@ void FavoriteItemView::onUpdatedItem(const QModelIndex & index)
 
 void FavoriteItemView::onAboutToRemoveItems()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onAboutToRemoveItems"));
+    QNDEBUG("FavoriteItemView::onAboutToRemoveItems");
     prepareForFavoritesModelChange();
 }
 
 void FavoriteItemView::onRemovedItems()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onRemovedItems"));
+    QNDEBUG("FavoriteItemView::onRemovedItems");
     postProcessFavoritedModelChange();
 }
 
 void FavoriteItemView::onRenameFavoritedItemAction()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onRenameFavoritedItemAction"));
+    QNDEBUG("FavoriteItemView::onRenameFavoritedItemAction");
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorites model has been set to the favorites "
-                               "item view"));
+        QNDEBUG("Non-favorites model has been set to the favorites item view");
         return;
     }
 
@@ -333,12 +329,11 @@ void FavoriteItemView::onRenameFavoritedItemAction()
 
 void FavoriteItemView::onUnfavoriteItemAction()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onUnfavoriteItemAction"));
+    QNDEBUG("FavoriteItemView::onUnfavoriteItemAction");
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorites model has been set to "
-                               "the favorites item view"));
+        QNDEBUG("Non-favorites model has been set to the favorites item view");
         return;
     }
 
@@ -370,7 +365,7 @@ void FavoriteItemView::onUnfavoriteItemAction()
 
 void FavoriteItemView::onDeselectAction()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onDeselectAction"));
+    QNDEBUG("FavoriteItemView::onDeselectAction");
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -384,14 +379,14 @@ void FavoriteItemView::onDeselectAction()
 
 void FavoriteItemView::onShowFavoritedItemInfoAction()
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::onShowFavoritedItemInfoAction"));
+    QNDEBUG("FavoriteItemView::onShowFavoritedItemInfoAction");
     Q_EMIT favoritedItemInfoRequested();
 }
 
-void FavoriteItemView::selectionChanged(const QItemSelection & selected,
-                                        const QItemSelection & deselected)
+void FavoriteItemView::selectionChanged(
+    const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::selectionChanged"));
+    QNDEBUG("FavoriteItemView::selectionChanged");
 
     selectionChangedImpl(selected, deselected);
     ItemView::selectionChanged(selected, deselected);
@@ -399,25 +394,23 @@ void FavoriteItemView::selectionChanged(const QItemSelection & selected,
 
 void FavoriteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::contextMenuEvent"));
+    QNDEBUG("FavoriteItemView::contextMenuEvent");
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING(QStringLiteral("Detected Qt error: favorite item view received "
-                                 "context menu event with null pointer "
-                                 "to the context menu event"));
+        QNWARNING("Detected Qt error: favorite item view received context menu "
+                  "event with null pointer to the context menu event");
         return;
     }
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorites model has been set to "
-                               "the favorites item view"));
+        QNDEBUG("Non-favorites model has been set to the favorites item view");
         return;
     }
 
     QModelIndex clickedItemIndex = indexAt(pEvent->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
+        QNDEBUG("Clicked item index is not valid, not doing anything");
         return;
     }
 
@@ -432,15 +425,16 @@ void FavoriteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     delete m_pFavoriteItemContextMenu;
     m_pFavoriteItemContextMenu = new QMenu(this);
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
-    { \
-        QAction * pAction = new QAction(name, menu); \
-        pAction->setData(data); \
-        pAction->setEnabled(enabled); \
-        QObject::connect(pAction, QNSIGNAL(QAction,triggered), \
-                         this, QNSLOT(FavoriteItemView,slot)); \
-        menu->addAction(pAction); \
-    }
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled)               \
+    {                                                                          \
+        QAction * pAction = new QAction(name, menu);                           \
+        pAction->setData(data);                                                \
+        pAction->setEnabled(enabled);                                          \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered),                 \
+                         this, QNSLOT(FavoriteItemView,slot));                 \
+        menu->addAction(pAction);                                              \
+    }                                                                          \
+// ADD_CONTEXT_MENU_ACTION
 
     bool canUpdate = (pFavoritesModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
     ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pFavoriteItemContextMenu,
@@ -465,7 +459,7 @@ void FavoriteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
 void FavoriteItemView::restoreLastSavedSelection(const FavoritesModel & model)
 {
-    QNDEBUG(QStringLiteral("FavoriteItemView::restoreLastSavedSelection"));
+    QNDEBUG("FavoriteItemView::restoreLastSavedSelection");
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -481,18 +475,17 @@ void FavoriteItemView::restoreLastSavedSelection(const FavoritesModel & model)
     appSettings.endGroup();
 
     if (lastSelectedItemLocalUid.isEmpty()) {
-        QNDEBUG(QStringLiteral("Found no last selected favorited item local uid"));
+        QNDEBUG("Found no last selected favorited item local uid");
         return;
     }
 
-    QNTRACE(QStringLiteral("Last selected item local uid: ")
-            << lastSelectedItemLocalUid);
+    QNTRACE("Last selected item local uid: " << lastSelectedItemLocalUid);
 
     QModelIndex lastSelectedItemIndex =
         model.indexForLocalUid(lastSelectedItemLocalUid);
     if (!lastSelectedItemIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Favorites model returned invalid index for "
-                               "the last selected favorited item local uid"));
+        QNDEBUG("Favorites model returned invalid index for "
+                "the last selected favorited item local uid");
         return;
     }
 
@@ -502,13 +495,13 @@ void FavoriteItemView::restoreLastSavedSelection(const FavoritesModel & model)
                             QItemSelectionModel::Current);
 }
 
-void FavoriteItemView::selectionChangedImpl(const QItemSelection & selected,
-                                            const QItemSelection & deselected)
+void FavoriteItemView::selectionChangedImpl(
+    const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNTRACE(QStringLiteral("FavoriteItemView::selectionChangedImpl"));
+    QNTRACE("FavoriteItemView::selectionChangedImpl");
 
     if (!m_trackingSelection) {
-        QNTRACE(QStringLiteral("Not tracking selection at this time, skipping"));
+        QNTRACE("Not tracking selection at this time, skipping");
         return;
     }
 
@@ -516,23 +509,23 @@ void FavoriteItemView::selectionChangedImpl(const QItemSelection & selected,
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorited items model is used"));
+        QNDEBUG("Non-favorited items model is used");
         return;
     }
 
     QModelIndexList selectedIndexes = selected.indexes();
 
     if (selectedIndexes.isEmpty()) {
-        QNDEBUG(QStringLiteral("The new selection is empty"));
+        QNDEBUG("The new selection is empty");
         return;
     }
 
     // Need to figure out how many rows the new selection covers; if exactly 1,
     // persist this selection so that it can be resurrected on the next startup
-    QModelIndex sourceIndex = singleRow(selectedIndexes, *pFavoritesModel,
-                                        FavoritesModel::Columns::DisplayName);
+    QModelIndex sourceIndex = singleRow(
+        selectedIndexes, *pFavoritesModel, FavoritesModel::Columns::DisplayName);
     if (!sourceIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Not exactly one row is selected"));
+        QNDEBUG("Not exactly one row is selected");
         return;
     }
 
@@ -548,14 +541,14 @@ void FavoriteItemView::selectionChangedImpl(const QItemSelection & selected,
     appSettings.setValue(LAST_SELECTED_FAVORITED_ITEM_KEY, pItem->localUid());
     appSettings.endGroup();
 
-    QNDEBUG(QStringLiteral("Persisted the currently selected favorited item's ")
-            << QStringLiteral("local uid: ") << pItem->localUid());
+    QNDEBUG("Persisted the currently selected favorited item's local uid: "
+            << pItem->localUid());
 }
 
 void FavoriteItemView::prepareForFavoritesModelChange()
 {
     if (!m_modelReady) {
-        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        QNDEBUG("The model is not ready yet");
         return;
     }
 
@@ -565,13 +558,13 @@ void FavoriteItemView::prepareForFavoritesModelChange()
 void FavoriteItemView::postProcessFavoritedModelChange()
 {
     if (!m_modelReady) {
-        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        QNDEBUG("The model is not ready yet");
         return;
     }
 
     FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
-        QNDEBUG(QStringLiteral("Non-favorited items model is used"));
+        QNDEBUG("Non-favorited items model is used");
         return;
     }
 

@@ -38,8 +38,10 @@ class TagModelItemInfoWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit TagModelItemInfoWidget(const QModelIndex & index,
-                                    QWidget * parent = Q_NULLPTR);
+    explicit TagModelItemInfoWidget(
+        const QModelIndex & index,
+        QWidget * parent = Q_NULLPTR);
+
     virtual ~TagModelItemInfoWidget();
 
 private:

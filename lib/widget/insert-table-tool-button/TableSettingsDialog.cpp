@@ -70,12 +70,12 @@ bool TableSettingsDialog::relativeWidth() const
 
 void TableSettingsDialog::onOkButtonPressed()
 {
-    QNDEBUG(QStringLiteral("TableSettingsDialog::onOkButtonPressed"));
+    QNDEBUG("TableSettingsDialog::onOkButtonPressed");
 
     QString error;
     bool res = verifySettings(error);
     if (!res) {
-        QNTRACE(QStringLiteral("Error: ") << error);
+        QNTRACE("Error: " << error);
         ui->warningLine->setText(QStringLiteral("<font color=red>") + error +
                                  QStringLiteral("</font>"));
         ui->warningLine->setHidden(false);
@@ -92,20 +92,15 @@ void TableSettingsDialog::onOkButtonPressed()
     m_tableWidth = ui->tableWidthDoubleSpinBox->value();
     m_relativeWidth = checkRelativeWidth();
 
-    QNTRACE(QStringLiteral("Accepted: num rows = ") << m_numRows
-            << QStringLiteral(", num columns = ") << m_numColumns
-            << QStringLiteral(", table width = ") << m_tableWidth
-            << QStringLiteral(", ")
-            << (m_relativeWidth
-                ? QStringLiteral("relative")
-                : QStringLiteral("absolute"))
-            << QStringLiteral(" width"));
+    QNTRACE("Accepted: num rows = " << m_numRows << ", num columns = "
+            << m_numColumns << ", table width = " << m_tableWidth << ", "
+            << (m_relativeWidth ? "relative" : "absolute") << " width");
     accept();
 }
 
 void TableSettingsDialog::onCancelButtonPressed()
 {
-    QNDEBUG(QStringLiteral("TableSettingsDialog::onCancelButtonPressed"));
+    QNDEBUG("TableSettingsDialog::onCancelButtonPressed");
     reject();
 }
 

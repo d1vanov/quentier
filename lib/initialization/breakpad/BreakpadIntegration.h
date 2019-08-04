@@ -27,9 +27,10 @@ void setQtWebEngineFlags();
 
 void setupBreakpad(const QApplication & app);
 
-void findCompressedSymbolsFiles(const QApplication & app,
-                                QString & quentierCompressedSymbolsFilePath,
-                                QString & libquentierCompressedSymbolsFilePath);
+void findCompressedSymbolsFiles(
+    const QApplication & app,
+    QString & quentierCompressedSymbolsFilePath,
+    QString & libquentierCompressedSymbolsFilePath);
 
 } // namespace quentier
 

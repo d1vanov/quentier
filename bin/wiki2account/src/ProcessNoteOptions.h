@@ -33,8 +33,8 @@ namespace quentier {
  * @return                          True if note related command line options
  *                                  were processed successfully, false otherwise
  */
-bool processNoteOptions(const CommandLineParser::CommandLineOptions & options,
-                        quint32 & numNotes);
+bool processNoteOptions(
+    const CommandLineParser::CommandLineOptions & options, quint32 & numNotes);
 
 } // namespace quentier
 

@@ -29,9 +29,9 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(ErrorString)
 
-LocalStorageManagerAsync * prepareLocalStorageManager(const Account & account,
-                                                      QThread & localStorageThread,
-                                                      ErrorString & errorDescription);
+LocalStorageManagerAsync * prepareLocalStorageManager(
+    const Account & account, QThread & localStorageThread,
+    ErrorString & errorDescription);
 
 } // namespace quentier
 

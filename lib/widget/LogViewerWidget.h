@@ -91,7 +91,8 @@ private:
     void copyStringToClipboard(const QString & text);
     void showLogFileIsLoadingLabel();
 
-    void collectModelFilteringOptions(LogViewerModel::FilteringOptions & options) const;
+    void collectModelFilteringOptions(
+        LogViewerModel::FilteringOptions & options) const;
 
     void enableUiElementsAfterSavingLogToFile();
 

@@ -43,6 +43,7 @@ public:
         NotebookModel * pNotebookModel,
         QWidget * parent = Q_NULLPTR,
         const QString & editedNotebookLocalUid = QString());
+
     ~AddOrEditNotebookDialog();
 
 private Q_SLOTS:

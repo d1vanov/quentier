@@ -67,8 +67,9 @@ void ModelTester::testSavedSearchModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageManagerAsync;
-        Account account(QStringLiteral("ModelTester_saved_search_model_test_fake_user"),
-                        Account::Type::Evernote, 300);
+        Account account(
+            QStringLiteral("ModelTester_saved_search_model_test_fake_user"),
+            Account::Type::Evernote, 300);
         LocalStorageManager::StartupOptions startupOptions(
             LocalStorageManager::StartupOption::ClearDatabase);
         m_pLocalStorageManagerAsync =
@@ -125,8 +126,9 @@ void ModelTester::testTagModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageManagerAsync;
-        Account account(QStringLiteral("ModelTester_tag_model_test_fake_user"),
-                        Account::Type::Evernote, 400);
+        Account account(
+            QStringLiteral("ModelTester_tag_model_test_fake_user"),
+            Account::Type::Evernote, 400);
         LocalStorageManager::StartupOptions startupOptions(
             LocalStorageManager::StartupOption::ClearDatabase);
         m_pLocalStorageManagerAsync =
@@ -229,8 +231,9 @@ void ModelTester::testNoteModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageManagerAsync;
-        Account account(QStringLiteral("ModelTester_note_model_test_fake_user"),
-                        Account::Type::Evernote, 700);
+        Account account(
+            QStringLiteral("ModelTester_note_model_test_fake_user"),
+            Account::Type::Evernote, 700);
         LocalStorageManager::StartupOptions startupOptions(
             LocalStorageManager::StartupOption::ClearDatabase);
         m_pLocalStorageManagerAsync =
@@ -285,8 +288,9 @@ void ModelTester::testFavoritesModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageManagerAsync;
-        Account account(QStringLiteral("ModelTester_favorites_model_test_fake_user"),
-                        Account::Type::Evernote, 800);
+        Account account(
+            QStringLiteral("ModelTester_favorites_model_test_fake_user"),
+            Account::Type::Evernote, 800);
         LocalStorageManager::StartupOptions startupOptions(
             LocalStorageManager::StartupOption::ClearDatabase);
         m_pLocalStorageManagerAsync =

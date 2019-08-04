@@ -24,9 +24,9 @@
 
 namespace quentier {
 
-LocalStorageManagerAsync * prepareLocalStorageManager(const Account & account,
-                                                      QThread & localStorageThread,
-                                                      ErrorString & errorDescription)
+LocalStorageManagerAsync * prepareLocalStorageManager(
+    const Account & account, QThread & localStorageThread,
+    ErrorString & errorDescription)
 {
     LocalStorageManagerAsync * pLocalStorageManager =
         new LocalStorageManagerAsync(account, LocalStorageManager::StartupOptions(0));

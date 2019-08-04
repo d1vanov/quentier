@@ -31,22 +31,20 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#define QUENTIER_LAUNCH_PLIST_FILE_PATH \
-    QDir::homePath() + \
-    QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")
+#define QUENTIER_LAUNCH_PLIST_FILE_PATH                                        \
+    QDir::homePath() +                                                         \
+    QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")        \
+// QUENTIER_LAUNCH_PLIST_FILE_PATH
 
 namespace quentier {
 
-bool setStartQuentierAtLoginOption(const bool shouldStartAtLogin,
-                                   ErrorString & errorDescription,
-                                   const StartQuentierAtLoginOption::type option)
+bool setStartQuentierAtLoginOption(
+    const bool shouldStartAtLogin, ErrorString & errorDescription,
+    const StartQuentierAtLoginOption::type option)
 {
-    QNDEBUG(QStringLiteral("setStartQuentierAtLoginOption (Darwin): ")
-            << QStringLiteral("should start at login = ")
-            << (shouldStartAtLogin
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", option = ") << option);
+    QNDEBUG("setStartQuentierAtLoginOption (Darwin): should start at login = "
+            << (shouldStartAtLogin ? "true" : "false")
+            << ", option = " << option);
 
     QFileInfo plistFileInfo(QUENTIER_LAUNCH_PLIST_FILE_PATH);
     if (plistFileInfo.exists())

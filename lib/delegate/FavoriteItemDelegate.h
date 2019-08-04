@@ -35,38 +35,39 @@ public:
 
 private:
     // QStyledItemDelegate interface
-    virtual QString displayText(const QVariant & value,
-                                const QLocale & locale) const Q_DECL_OVERRIDE;
+    virtual QString displayText(
+        const QVariant & value, const QLocale & locale) const Q_DECL_OVERRIDE;
 
-    virtual QWidget * createEditor(QWidget * parent,
-                                   const QStyleOptionViewItem & option,
-                                   const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QWidget * createEditor(
+        QWidget * parent, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual void paint(QPainter * painter,
-                       const QStyleOptionViewItem & option,
-                       const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void paint(
+        QPainter * painter, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual void setEditorData(QWidget * editor,
-                               const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void setEditorData(
+        QWidget * editor, const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual void setModelData(QWidget * editor,
-                              QAbstractItemModel * model,
-                              const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void setModelData(
+        QWidget * editor, QAbstractItemModel * model,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual QSize sizeHint(const QStyleOptionViewItem & option,
-                           const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QSize sizeHint(
+        const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual void updateEditorGeometry(QWidget * editor,
-                                      const QStyleOptionViewItem & option,
-                                      const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void updateEditorGeometry(
+        QWidget * editor, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
-    QSize favoriteItemNameSizeHint(const QStyleOptionViewItem & option,
-                                   const QModelIndex & index) const;
+    QSize favoriteItemNameSizeHint(
+        const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
-    void drawFavoriteItemName(QPainter * painter,
-                              const QModelIndex & index,
-                              const QStyleOptionViewItem & option) const;
+    void drawFavoriteItemName(
+        QPainter * painter, const QModelIndex & index,
+        const QStyleOptionViewItem & option) const;
 
 private:
     QIcon   m_notebookIcon;

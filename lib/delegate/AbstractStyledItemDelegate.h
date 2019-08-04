@@ -53,9 +53,10 @@ protected:
      * @return                  The column name width or negative value if that
      *                          width could not be determined
      */
-    int columnNameWidth(const QStyleOptionViewItem & option,
-                        const QModelIndex & index,
-                        const Qt::Orientation orientation = Qt::Horizontal) const;
+    int columnNameWidth(
+        const QStyleOptionViewItem & option,
+        const QModelIndex & index,
+        const Qt::Orientation orientation = Qt::Horizontal) const;
 
     /**
      * @brief adjusts (shortens, elides) the text to be displayed by the item
@@ -69,9 +70,10 @@ protected:
      *                          nevertheless, even if the primary part of the text
      *                          exceeds the width of the option's rect
      */
-    void adjustDisplayedText(QString & displayedText,
-                             const QStyleOptionViewItem & option,
-                             const QString & nameSuffix = QString()) const;
+    void adjustDisplayedText(
+        QString & displayedText,
+        const QStyleOptionViewItem & option,
+        const QString & nameSuffix = QString()) const;
 };
 
 } // namespace quentier

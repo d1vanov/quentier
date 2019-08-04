@@ -46,9 +46,9 @@ QString TagItemDelegate::displayText(const QVariant & value,
     return AbstractStyledItemDelegate::displayText(value, locale);
 }
 
-QWidget * TagItemDelegate::createEditor(QWidget * parent,
-                                        const QStyleOptionViewItem & option,
-                                        const QModelIndex & index) const
+QWidget * TagItemDelegate::createEditor(
+    QWidget * parent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     const TagModel * pTagModel = qobject_cast<const TagModel*>(index.model());
     if (!pTagModel) {
@@ -71,9 +71,9 @@ QWidget * TagItemDelegate::createEditor(QWidget * parent,
     return AbstractStyledItemDelegate::createEditor(parent, option, index);
 }
 
-void TagItemDelegate::paint(QPainter * painter,
-                            const QStyleOptionViewItem & option,
-                            const QModelIndex & index) const
+void TagItemDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
@@ -85,25 +85,25 @@ void TagItemDelegate::paint(QPainter * painter,
     painter->restore();
 }
 
-void TagItemDelegate::setEditorData(QWidget * editor,
-                                    const QModelIndex & index) const
+void TagItemDelegate::setEditorData(
+    QWidget * editor, const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == TagModel::Columns::Name)) {
         AbstractStyledItemDelegate::setEditorData(editor, index);
     }
 }
 
-void TagItemDelegate::setModelData(QWidget * editor,
-                                   QAbstractItemModel * model,
-                                   const QModelIndex & index) const
+void TagItemDelegate::setModelData(
+    QWidget * editor, QAbstractItemModel * model,
+    const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == TagModel::Columns::Name)) {
         AbstractStyledItemDelegate::setModelData(editor, model, index);
     }
 }
 
-QSize TagItemDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                const QModelIndex & index) const
+QSize TagItemDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (Q_UNLIKELY(!index.isValid())) {
         return QSize();
@@ -116,36 +116,34 @@ QSize TagItemDelegate::sizeHint(const QStyleOptionViewItem & option,
     return AbstractStyledItemDelegate::sizeHint(option, index);
 }
 
-void TagItemDelegate::updateEditorGeometry(QWidget * editor,
-                                           const QStyleOptionViewItem & option,
-                                           const QModelIndex & index) const
+void TagItemDelegate::updateEditorGeometry(
+    QWidget * editor, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == TagModel::Columns::Name)) {
         AbstractStyledItemDelegate::updateEditorGeometry(editor, option, index);
     }
 }
 
-void TagItemDelegate::drawTagName(QPainter * painter, const QModelIndex & index,
-                                  const QStyleOptionViewItem & option) const
+void TagItemDelegate::drawTagName(
+    QPainter * painter, const QModelIndex & index,
+    const QStyleOptionViewItem & option) const
 {
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
-        QNDEBUG(QStringLiteral("TagItemDelegate::drawTagName: can't draw, "
-                               "no model"));
+        QNDEBUG("TagItemDelegate::drawTagName: can't draw, no model");
         return;
     }
 
     const TagModel * pTagModel = qobject_cast<const TagModel*>(model);
     if (Q_UNLIKELY(!pTagModel)) {
-        QNDEBUG(QStringLiteral("TagItemDelegate::drawTagName: non-tag model "
-                               "is set"));
+        QNDEBUG("TagItemDelegate::drawTagName: non-tag model is set");
         return;
     }
 
     const TagModelItem * pModelItem = pTagModel->itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
-        QNDEBUG(QStringLiteral("TagItemDelegate::drawTagName: no model item for "
-                               "given index"));
+        QNDEBUG("TagItemDelegate::drawTagName: no model item for given index");
         return;
     }
 
@@ -172,8 +170,7 @@ void TagItemDelegate::drawTagName(QPainter * painter, const QModelIndex & index,
 
     name = name.simplified();
     if (name.isEmpty()) {
-        QNDEBUG(QStringLiteral("TagItemDelegate::drawTagName: tag model item "
-                               "name is empty"));
+        QNDEBUG("TagItemDelegate::drawTagName: tag model item name is empty");
         return;
     }
 
@@ -222,8 +219,8 @@ void TagItemDelegate::drawTagName(QPainter * painter, const QModelIndex & index,
                       QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
-QSize TagItemDelegate::tagNameSizeHint(const QStyleOptionViewItem & option,
-                                       const QModelIndex & index) const
+QSize TagItemDelegate::tagNameSizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {

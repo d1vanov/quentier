@@ -38,8 +38,8 @@ int SynchronizableColumnDelegate::sideSize() const
     return qRound(SIDE_SIZE * 1.25);
 }
 
-QString SynchronizableColumnDelegate::displayText(const QVariant & value,
-                                                  const QLocale & locale) const
+QString SynchronizableColumnDelegate::displayText(
+    const QVariant & value, const QLocale & locale) const
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
@@ -74,9 +74,9 @@ QWidget * SynchronizableColumnDelegate::createEditor(
     return checkbox;
 }
 
-void SynchronizableColumnDelegate::paint(QPainter * painter,
-                                         const QStyleOptionViewItem & option,
-                                         const QModelIndex & index) const
+void SynchronizableColumnDelegate::paint(
+    QPainter * painter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
@@ -111,8 +111,8 @@ void SynchronizableColumnDelegate::paint(QPainter * painter,
     painter->restore();
 }
 
-void SynchronizableColumnDelegate::setEditorData(QWidget * editor,
-                                                 const QModelIndex & index) const
+void SynchronizableColumnDelegate::setEditorData(
+    QWidget * editor, const QModelIndex & index) const
 {
     QCheckBox * checkbox = qobject_cast<QCheckBox*>(editor);
     if (Q_UNLIKELY(!checkbox)) {
@@ -128,9 +128,9 @@ void SynchronizableColumnDelegate::setEditorData(QWidget * editor,
     checkbox->setCheckState(synchronizable ? Qt::Checked : Qt::Unchecked);
 }
 
-void SynchronizableColumnDelegate::setModelData(QWidget * editor,
-                                                QAbstractItemModel * model,
-                                                const QModelIndex & index) const
+void SynchronizableColumnDelegate::setModelData(
+    QWidget * editor, QAbstractItemModel * model,
+    const QModelIndex & index) const
 {
     if (Q_UNLIKELY(!model)) {
         return;
@@ -149,8 +149,8 @@ void SynchronizableColumnDelegate::setModelData(QWidget * editor,
     model->setData(index, synchronizable, Qt::EditRole);
 }
 
-QSize SynchronizableColumnDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                             const QModelIndex & index) const
+QSize SynchronizableColumnDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     Q_UNUSED(option)
 

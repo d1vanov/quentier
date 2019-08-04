@@ -68,8 +68,8 @@ public:
 public:
     ActionsInfo(const QList<QMenu*> & menus);
 
-    const ActionInfo findActionInfo(const QString & actionName,
-                                    const QString & context) const;
+    const ActionInfo findActionInfo(
+        const QString & actionName, const QString & context) const;
 
     class Iterator
     {
@@ -100,7 +100,8 @@ public:
     Iterator end() const;
 
 private:
-    ActionInfo fromAction(const QAction * pAction, const QString & category) const;
+    ActionInfo fromAction(
+        const QAction * pAction, const QString & category) const;
 
 private:
     Q_DISABLE_COPY(ActionsInfo)

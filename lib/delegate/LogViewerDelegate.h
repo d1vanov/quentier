@@ -37,25 +37,27 @@ public:
 
 private:
     // QStyledItemDelegate interface
-    virtual QWidget * createEditor(QWidget * pParent,
-                                   const QStyleOptionViewItem & option,
-                                   const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QWidget * createEditor(
+        QWidget * pParent, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual void paint(QPainter * pPainter,
-                       const QStyleOptionViewItem & option,
-                       const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void paint(
+        QPainter * pPainter, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual QSize sizeHint(const QStyleOptionViewItem & option,
-                           const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QSize sizeHint(
+        const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
-    bool paintImpl(QPainter * pPainter,
-                   const QStyleOptionViewItem & option,
-                   const QModelIndex & index) const;
+    bool paintImpl(
+        QPainter * pPainter, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const;
 
-    void paintLogEntry(QPainter & painter, const QRect & adjustedRect,
-                       const LogViewerModel::Data & dataEntry,
-                       const QFontMetrics & fontMetrics) const;
+    void paintLogEntry(
+        QPainter & painter, const QRect & adjustedRect,
+        const LogViewerModel::Data & dataEntry,
+        const QFontMetrics & fontMetrics) const;
 
 private:
     double      m_margin;

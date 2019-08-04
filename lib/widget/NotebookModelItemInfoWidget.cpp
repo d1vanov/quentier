@@ -27,8 +27,9 @@
 
 namespace quentier {
 
-NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(const QModelIndex & index,
-                                                         QWidget * parent) :
+NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
+        const QModelIndex & index,
+        QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::NotebookModelItemInfoWidget)
 {
@@ -82,9 +83,11 @@ NotebookModelItemInfoWidget::~NotebookModelItemInfoWidget()
 
 void NotebookModelItemInfoWidget::setCheckboxesReadOnly()
 {
-#define SET_CHECKBOX_READ_ONLY(name) \
-    m_pUi->notebook##name##CheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true); \
-    m_pUi->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)
+#define SET_CHECKBOX_READ_ONLY(name)                                           \
+    m_pUi->notebook##name##CheckBox->setAttribute(                             \
+        Qt::WA_TransparentForMouseEvents, true);                               \
+    m_pUi->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)               \
+// SET_CHECKBOX_READ_ONLY
 
     SET_CHECKBOX_READ_ONLY(Synchronizable);
     SET_CHECKBOX_READ_ONLY(Dirty);
@@ -119,7 +122,8 @@ void NotebookModelItemInfoWidget::setNoModelItem()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("No notebook model item was found for index"));
+    m_pUi->statusBarLabel->setText(
+        tr("No notebook model item was found for index"));
     m_pUi->statusBarLabel->show();
 }
 
@@ -127,7 +131,8 @@ void NotebookModelItemInfoWidget::setMessedUpModelItemType()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("Internal error: improper type of notebook model item"));
+    m_pUi->statusBarLabel->setText(
+        tr("Internal error: improper type of notebook model item"));
     m_pUi->statusBarLabel->show();
 }
 
@@ -227,15 +232,16 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
     setWindowTitle(tr("Notebook info"));
 }
 
-void NotebookModelItemInfoWidget::setStackItem(const NotebookStackItem & item,
-                                               const int numChildren)
+void NotebookModelItemInfoWidget::setStackItem(
+    const NotebookStackItem & item, const int numChildren)
 {
     hideNotebookStuff();
     showStackStuff();
     m_pUi->statusBarLabel->hide();
 
     m_pUi->stackNameLineEdit->setText(item.name());
-    m_pUi->stackNumNotebooksLineEdit->setText(QString::number(std::max(numChildren, 0)));
+    m_pUi->stackNumNotebooksLineEdit->setText(
+        QString::number(std::max(numChildren, 0)));
 
     setWindowTitle(tr("Notebook stack info"));
 }

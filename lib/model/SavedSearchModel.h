@@ -47,10 +47,12 @@ class SavedSearchModel: public ItemModel
 {
     Q_OBJECT
 public:
-    explicit SavedSearchModel(const Account & account,
-                              LocalStorageManagerAsync & localStorageManagerAsync,
-                              SavedSearchCache & cache,
-                              QObject * parent = Q_NULLPTR);
+    explicit SavedSearchModel(
+        const Account & account,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        SavedSearchCache & cache,
+        QObject * parent = Q_NULLPTR);
+
     virtual ~SavedSearchModel();
 
     const Account & account() const { return m_account; }
@@ -89,9 +91,9 @@ public:
      *                              created successfully or invalid model index
      *                              otherwise
      */
-    QModelIndex createSavedSearch(const QString & savedSearchName,
-                                  const QString & searchQuery,
-                                  ErrorString & errorDescription);
+    QModelIndex createSavedSearch(
+        const QString & savedSearchName, const QString & searchQuery,
+        ErrorString & errorDescription);
 
     /**
      * @brief allSavedSearchesListed
@@ -131,10 +133,16 @@ public:
 
 public:
     // ItemModel interface
-    virtual QString localUidForItemName(const QString & itemName,
-                                        const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
-    virtual QString itemNameForLocalUid(const QString & localUid) const Q_DECL_OVERRIDE;
-    virtual QStringList itemNames(const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
+    virtual QString localUidForItemName(
+        const QString & itemName,
+        const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
+
+    virtual QString itemNameForLocalUid(
+        const QString & localUid) const Q_DECL_OVERRIDE;
+
+    virtual QStringList itemNames(
+        const QString & linkedNotebookGuid) const Q_DECL_OVERRIDE;
+
     virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
     virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
     virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }
@@ -144,25 +152,42 @@ public:
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex & index,
-                          int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    virtual QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
-    virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual QModelIndex index(int row, int column,
-                              const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    virtual QVariant data(
+        const QModelIndex & index,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
+    virtual QVariant headerData(
+        int section, Qt::Orientation orientation,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
+    virtual int rowCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual int columnCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual QModelIndex index(
+        int row, int column,
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
     virtual QModelIndex parent(const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual bool setHeaderData(int section, Qt::Orientation orientation,
-                               const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    virtual bool setData(const QModelIndex & index, const QVariant & value,
-                         int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    virtual bool insertRows(int row, int count,
-                            const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
-    virtual bool removeRows(int row, int count,
-                            const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+    virtual bool setHeaderData(
+        int section, Qt::Orientation orientation,
+        const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
+
+    virtual bool setData(
+        const QModelIndex & index, const QVariant & value,
+        int role = Qt::EditRole) Q_DECL_OVERRIDE;
+
+    virtual bool insertRows(
+        int row, int count,
+        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+
+    virtual bool removeRows(
+        int row, int count,
+        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
@@ -185,24 +210,32 @@ Q_SIGNALS:
     void addSavedSearch(SavedSearch search, QUuid requestId);
     void updateSavedSearch(SavedSearch search, QUuid requestId);
     void findSavedSearch(SavedSearch search, QUuid requestId);
-    void listSavedSearches(LocalStorageManager::ListObjectsOptions flag,
-                           size_t limit, size_t offset,
-                           LocalStorageManager::ListSavedSearchesOrder::type order,
-                           LocalStorageManager::OrderDirection::type orderDirection,
-                           QUuid requestId);
+
+    void listSavedSearches(
+        LocalStorageManager::ListObjectsOptions flag,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListSavedSearchesOrder::type order,
+        LocalStorageManager::OrderDirection::type orderDirection,
+        QUuid requestId);
+
     void expungeSavedSearch(SavedSearch search, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                QUuid requestId);
+
+    void onAddSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                   QUuid requestId);
+
+    void onUpdateSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+
     void onFindSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription,
-                                 QUuid requestId);
+
+    void onFindSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
     void onListSavedSearchesComplete(
         LocalStorageManager::ListObjectsOptions flag,
@@ -219,9 +252,9 @@ private Q_SLOTS:
         ErrorString errorDescription, QUuid requestId);
 
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onExpungeSavedSearchFailed(SavedSearch search,
-                                    ErrorString errorDescription,
-                                    QUuid requestId);
+
+    void onExpungeSavedSearchFailed(
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
@@ -238,7 +271,8 @@ private:
     // according to the current sorting criteria and column
     int rowForNewItem(const SavedSearchModelItem & newItem) const;
 
-    void updateRandomAccessIndexWithRespectToSorting(const SavedSearchModelItem & item);
+    void updateRandomAccessIndexWithRespectToSorting(
+        const SavedSearchModelItem & item);
 
     void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
 

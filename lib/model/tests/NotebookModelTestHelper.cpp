@@ -77,7 +77,7 @@ NotebookModelTestHelper::NotebookModelTestHelper(
 
 void NotebookModelTestHelper::test()
 {
-    QNDEBUG(QStringLiteral("NotebookModelTestHelper::test"));
+    QNDEBUG("NotebookModelTestHelper::test");
 
     ErrorString errorDescription;
 
@@ -164,12 +164,13 @@ void NotebookModelTestHelper::test()
             secondLinkedNotebook,
             QUuid());
 
-#define ADD_NOTEBOOK(notebook) \
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(notebook, QUuid())
+#define ADD_NOTEBOOK(notebook)                                                 \
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(notebook, QUuid())   \
+// ADD_NOTEBOOK
 
-        // NOTE: exploiting the direct connection used in the current test
+        // NOTE: exploiting the direct connection used in current test
         // environment: after the following lines the local storage would be
-        // filled with the test objects
+        // filled with test objects
         ADD_NOTEBOOK(first);
         ADD_NOTEBOOK(second);
         ADD_NOTEBOOK(third);
@@ -194,8 +195,8 @@ void NotebookModelTestHelper::test()
         // Should not be able to change the dirty flag manually
         QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for local uid"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for local uid");
         }
 
         QModelIndex secondParentIndex = model->parent(secondIndex);
@@ -203,26 +204,25 @@ void NotebookModelTestHelper::test()
                                    NotebookModel::Columns::Dirty,
                                    secondParentIndex);
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for dirty column"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for dirty column");
         }
 
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
-            FAIL(QStringLiteral("Was able to change the dirty flag in the notebook "
-                                "model manually which is not intended"));
+            FAIL("Was able to change the dirty flag in the notebook "
+                 "model manually which is not intended");
         }
 
         QVariant data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the state of dirty flag"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
-            FAIL(QStringLiteral("The dirty state appears to have changed after "
-                                "setData in notebook model even though the method "
-                                "returned false"));
+            FAIL("The dirty state appears to have changed after setData in "
+                 "notebook model even though the method returned false");
         }
 
         // Should only be able to make the non-synchronizable (local) item
@@ -232,29 +232,27 @@ void NotebookModelTestHelper::test()
                                    NotebookModel::Columns::Synchronizable,
                                    secondParentIndex);
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for synchronizable column"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
-            FAIL(QStringLiteral("Was able to change the synchronizable flag "
-                                "from false to true for notebook model item "
-                                "with local account"));
+            FAIL("Was able to change the synchronizable flag from false to "
+                 "true for notebook model item with local account");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the state of "
-                                "synchronizable flag"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the state of synchronizable flag");
         }
 
         if (data.toBool()) {
-            FAIL(QStringLiteral("Even though setData returned false on attempt "
-                                "to make the notebook item synchronizable "
-                                "with the local account, the actual data within "
-                                "the model appears to have changed"));
+            FAIL("Even though setData returned false on attempt "
+                 "to make the notebook item synchronizable "
+                 "with the local account, the actual data within "
+                 "the model appears to have changed");
         }
 
         // 2) Trying the non-local account
@@ -265,22 +263,21 @@ void NotebookModelTestHelper::test()
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            FAIL(QStringLiteral("Wasn't able to change the synchronizable flag "
-                                "from false to true for notebook model item "
-                                "even with the account of Evernote type"));
+            FAIL("Wasn't able to change the synchronizable flag "
+                 "from false to true for notebook model item "
+                 "even with the account of Evernote type");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the state of "
-                                "synchronizable flag"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
-            FAIL(QStringLiteral("The synchronizable state appears to have not "
-                                "changed after setData in notebook model "
-                                "even though the method returned true"));
+            FAIL("The synchronizable state appears to have not "
+                 "changed after setData in notebook model "
+                 "even though the method returned true");
         }
 
         // Verify the dirty flag has changed as a result of making the item
@@ -289,20 +286,20 @@ void NotebookModelTestHelper::test()
                                    NotebookModel::Columns::Dirty,
                                    secondParentIndex);
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for dirty column"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the state of dirty flag"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the state of dirty flag");
         }
 
         if (!data.toBool()) {
-            FAIL(QStringLiteral("The dirty state hasn't changed after making "
-                                "the notebook model item synchronizable while "
-                                "it was expected to have changed"));
+            FAIL("The dirty state hasn't changed after making "
+                 "the notebook model item synchronizable while "
+                 "it was expected to have changed");
         }
 
         // Should not be able to make the synchronizable (non-local) item
@@ -311,28 +308,28 @@ void NotebookModelTestHelper::test()
                                    NotebookModel::Columns::Synchronizable,
                                    secondParentIndex);
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook item model index "
-                                "for synchronizable column"));
+            FAIL("Can't get the valid notebook item model index "
+                 "for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
         if (res) {
-            FAIL(QStringLiteral("Was able to change the synchronizable flag in "
-                                "notebook model from true to false which is not "
-                                "intended"));
+            FAIL("Was able to change the synchronizable flag in "
+                 "notebook model from true to false which is not "
+                 "intended");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the state of "
-                                "synchronizable flag"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the state of "
+                 "synchronizable flag");
         }
 
         if (!data.toBool()) {
-            FAIL(QStringLiteral("The synchronizable state appears to have changed "
-                                "after setData in notebook model even though "
-                                "the method returned false"));
+            FAIL("The synchronizable state appears to have changed "
+                 "after setData in notebook model even though "
+                 "the method returned false");
         }
 
         // Should be able to change name
@@ -348,48 +345,47 @@ void NotebookModelTestHelper::test()
                                    NotebookModel::Columns::Dirty,
                                    secondParentIndex);
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook item model index "
-                                "for dirty column"));
+            FAIL("Can't get the valid notebook item model index "
+                 "for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the dirty flag of model "
-                                "item"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the dirty flag of model item");
         }
 
         if (data.toBool()) {
-            FAIL(QStringLiteral("The notebook model item is still dirty even "
-                                "though this flag for this item "
-                                "was updated in the local storage to false"));
+            FAIL("The notebook model item is still dirty even "
+                 "though this flag for this item "
+                 "was updated in the local storage to false");
         }
 
         secondIndex = model->index(secondIndex.row(),
                                    NotebookModel::Columns::Name,
                                    secondParentIndex);
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for name column"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for name column");
         }
 
         QString newName = QStringLiteral("Second (name modified)");
         res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
         if (!res) {
-            FAIL(QStringLiteral("Can't change the name of the notebook model item"));
+            FAIL("Can't change the name of the notebook model item");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the name of the tag item"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the name of the tag item");
         }
 
         if (data.toString() != newName) {
-            FAIL(QStringLiteral("The name of the notebook item returned by "
-                                "the model does not match the name just set to "
-                                "this item: received ")
-                 << data.toString() << QStringLiteral(", expected ") << newName);
+            FAIL("The name of the notebook item returned by "
+                 << "the model does not match the name just set to "
+                 << "this item: received " << data.toString() << ", expected "
+                 << newName);
         }
 
         // Ensure the dirty flag has changed to true
@@ -397,147 +393,137 @@ void NotebookModelTestHelper::test()
                                    NotebookModel::Columns::Dirty,
                                    secondParentIndex);
         if (!secondIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook item model index "
-                                "for dirty column"));
+            FAIL("Can't get the valid notebook item model index "
+                 "for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            FAIL(QStringLiteral("Null data was returned by the notebook model "
-                                "while expected to get the dirty flag of model "
-                                "item"));
+            FAIL("Null data was returned by the notebook model "
+                 "while expected to get the dirty flag of model "
+                 "item");
         }
 
         if (!data.toBool()) {
-            FAIL(QStringLiteral("The dirty flag appears to not have changed as "
-                                "a result of changing the name of the notebook "
-                                "model item"));
+            FAIL("The dirty flag appears to not have changed as "
+                 "a result of changing the name of the notebook "
+                 "model item");
         }
 
         // Should not be able to remove the row with a synchronizable (non-local)
         // notebook
         QModelIndex thirdIndex = model->indexForLocalUid(third.localUid());
         if (!thirdIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for dirty column"));
+            FAIL("Can't get the valid notebook model item index for dirty column");
         }
 
         QModelIndex thirdParentIndex = model->parent(thirdIndex);
 
         res = model->removeRow(thirdIndex.row(), thirdParentIndex);
         if (res) {
-            FAIL(QStringLiteral("Was able to remove the row corresponding to "
-                                "the notebook with non-empty guid which is not "
-                                "intended"));
+            FAIL("Was able to remove the row corresponding to "
+                 "the notebook with non-empty guid which is not "
+                 "intended");
         }
 
         QModelIndex thirdIndexAfterFailedRemoval =
             model->indexForLocalUid(third.localUid());
         if (!thirdIndexAfterFailedRemoval.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "after the failed row removal attempt"));
+            FAIL("Can't get the valid notebook model item index "
+                 "after the failed row removal attempt");
         }
 
         if (thirdIndexAfterFailedRemoval.row() != thirdIndex.row()) {
-            FAIL(QStringLiteral("Notebook model returned item index with "
-                                "a different row after the failed row removal "
-                                "attempt"));
+            FAIL("Notebook model returned item index with "
+                 "a different row after the failed row removal attempt");
         }
 
         // Should be able to remove row with a non-synchronizable (local) notebook
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for local uid"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for local uid");
         }
 
         QModelIndex firstParentIndex = model->parent(firstIndex);
         res = model->removeRow(firstIndex.row(), firstParentIndex);
         if (!res) {
-            FAIL(QStringLiteral("Can't remove the row with a non-synchronizable "
-                                "notebook item from the model"));
+            FAIL("Can't remove the row with a non-synchronizable "
+                 "notebook item from the model");
         }
 
         QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
         if (firstIndexAfterRemoval.isValid()) {
-            FAIL(QStringLiteral("Was able to get the valid model index for "
-                                "the removed notebook item by local uid which "
-                                "is not intended"));
+            FAIL("Was able to get the valid model index for "
+                 "the removed notebook item by local uid which is not intended");
         }
 
         // Should be able to move the non-stacked item to the existing stack
         QModelIndex sixthIndex = model->indexForLocalUid(sixth.localUid());
         if (!sixthIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for local uid"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for local uid");
         }
 
         QModelIndex sixthIndexMoved = model->moveToStack(sixthIndex, fifth.stack());
         if (!sixthIndexMoved.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "from the method intended to move the item to "
-                                "the stack"));
+            FAIL("Can't get the valid notebook model item index "
+                 "from the method intended to move the item to the stack");
         }
 
         const NotebookModelItem * sixthItem = model->itemForIndex(sixthIndexMoved);
         if (!sixthItem) {
-            FAIL(QStringLiteral("Can't get the notebook model item moved to "
-                                "the stack from its model index"));
+            FAIL("Can't get the notebook model item moved to "
+                 "the stack from its model index");
         }
 
         if (sixthItem->type() != NotebookModelItem::Type::Notebook) {
-            FAIL(QStringLiteral("Notebook model item has wrong type after being "
-                                "moved to the stack: ") << *sixthItem);
+            FAIL("Notebook model item has wrong type after being "
+                 << "moved to the stack: " << *sixthItem);
         }
 
         const NotebookItem * sixthNotebookItem = sixthItem->notebookItem();
         if (!sixthNotebookItem) {
-            FAIL(QStringLiteral("Notebook model item has null pointer to "
-                                "the notebook item even though it's of notebook "
-                                "type"));
+            FAIL("Notebook model item has null pointer to "
+                 "the notebook item even though it's of notebook type");
         }
 
         if (sixthNotebookItem->stack() != fifth.stack()) {
-            FAIL(QStringLiteral("Notebook item's stack is not equal to the one "
-                                "expected as the notebook model item was moved "
-                                "to this stack: ")
-                 << fifth.stack() << QStringLiteral("; notebook item: ")
+            FAIL("Notebook item's stack is not equal to the one "
+                 << "expected as the notebook model item was moved "
+                 << "to this stack: " << fifth.stack() << "; notebook item: "
                  << *sixthNotebookItem);
         }
 
         const NotebookModelItem * sixthParentItem = sixthItem->parent();
         if (!sixthParentItem) {
-            FAIL(QStringLiteral("The notebook model item has null parent after "
-                                "it has been moved to the existing stack"));
+            FAIL("The notebook model item has null parent after "
+                 "it has been moved to the existing stack");
         }
 
         if (sixthParentItem->type() != NotebookModelItem::Type::Stack) {
-            FAIL(QStringLiteral("The notebook model item has parent of non-stack "
-                                "type after it has been moved to the existing "
-                                "stack"));
+            FAIL("The notebook model item has parent of non-stack "
+                 "type after it has been moved to the existing stack");
         }
 
         const NotebookStackItem * sixthParentStackItem =
             sixthParentItem->notebookStackItem();
         if (!sixthParentStackItem) {
-            FAIL(QStringLiteral("The notebook model item has parent of stack type "
-                                "but with null pointer to the stack item after "
-                                "the model item has been moved to the existing "
-                                "stack"));
+            FAIL("The notebook model item has parent of stack type "
+                 "but with null pointer to the stack item after "
+                 "the model item has been moved to the existing stack");
         }
 
         if (sixthParentStackItem->name() != fifth.stack()) {
-            FAIL(QStringLiteral("The notebook model item has stack parent which "
-                                "name doesn't correspond to the expected one "
-                                "after that item has been moved to the existing "
-                                "stack"));
+            FAIL("The notebook model item has stack parent which "
+                 "name doesn't correspond to the expected one "
+                 "after that item has been moved to the existing stack");
         }
 
         // Ensure the item moved to another stack was marked as dirty
         if (!sixthNotebookItem->isDirty()) {
-            FAIL(QStringLiteral("The dirty flag hasn't been automatically set "
-                                "to true after moving the notebook to another "
-                                "stack"));
+            FAIL("The dirty flag hasn't been automatically set "
+                 "to true after moving the notebook to another stack");
         }
 
         // Should be able to move the non-stacked item to the new stack
@@ -545,111 +531,102 @@ void NotebookModelTestHelper::test()
 
         QModelIndex seventhIndex = model->indexForLocalUid(seventh.localUid());
         if (!seventhIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "from the method intended to move the item to "
-                                "the stack"));
+            FAIL("Can't get the valid notebook model item index "
+                 "from the method intended to move the item to the stack");
         }
 
         QModelIndex seventhIndexMoved = model->moveToStack(seventhIndex, newStack);
         if (!seventhIndexMoved.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for local uid"));
+            FAIL("Can't get the valid notebook model item index for local uid");
         }
 
         const NotebookModelItem * seventhItem = model->itemForIndex(seventhIndexMoved);
         if (!seventhItem) {
-            FAIL(QStringLiteral("Can't get the notebook model item moved to "
-                                "the stack from its model index"));
+            FAIL("Can't get the notebook model item moved to "
+                 "the stack from its model index");
         }
 
         if (seventhItem->type() != NotebookModelItem::Type::Notebook) {
-            FAIL(QStringLiteral("Notebook model item has wrong type after being "
-                                "moved to the stack: ") << *seventhItem);
+            FAIL("Notebook model item has wrong type after being "
+                 << "moved to the stack: " << *seventhItem);
         }
 
         const NotebookItem * seventhNotebookItem = seventhItem->notebookItem();
         if (!seventhNotebookItem) {
-            FAIL(QStringLiteral("Notebook model item has null pointer to "
-                                "the notebook item even though it's of notebook "
-                                "type"));
+            FAIL("Notebook model item has null pointer to "
+                 "the notebook item even though it's of notebook type");
         }
 
         if (seventhNotebookItem->stack() != newStack) {
-            FAIL(QStringLiteral("Notebook item's stack is not equal to the one "
-                                "expected as the notebook model item was moved "
-                                "to the new stack: ")
-                 << newStack << QStringLiteral("; notebook item: ")
+            FAIL("Notebook item's stack is not equal to the one "
+                 << "expected as the notebook model item was moved "
+                 << "to the new stack: " << newStack << "; notebook item: "
                  << *seventhNotebookItem);
         }
 
         const NotebookModelItem * seventhParentItem = seventhItem->parent();
         if (!seventhParentItem) {
-            FAIL(QStringLiteral("The notebook model item has null pointer after "
-                                "it has been moved to the new stack"));
+            FAIL("The notebook model item has null pointer after "
+                 "it has been moved to the new stack");
         }
 
         if (seventhParentItem->type() != NotebookModelItem::Type::Stack) {
-            FAIL(QStringLiteral("The notebook model item has parent of non-stack "
-                                "type after it has been moved to the existing stack"));
+            FAIL("The notebook model item has parent of non-stack "
+                 "type after it has been moved to the existing stack");
         }
 
         const NotebookStackItem * seventhParentStackItem =
             seventhParentItem->notebookStackItem();
         if (!seventhParentStackItem) {
-            FAIL(QStringLiteral("The notebook model item has parent of stack type "
-                                "but with null pointer to the stack item after "
-                                "the model item has been moved to the existing "
-                                "stack"));
+            FAIL("The notebook model item has parent of stack type "
+                 "but with null pointer to the stack item after "
+                 "the model item has been moved to the existing stack");
         }
 
         if (seventhParentStackItem->name() != newStack) {
-            FAIL(QStringLiteral("The notebook model item has stack parent which "
-                                "name doesn't correspond to the expected one "
-                                "after that item has been moved to the existing "
-                                "stack"));
+            FAIL("The notebook model item has stack parent which "
+                 "name doesn't correspond to the expected one "
+                 "after that item has been moved to the existing stack");
         }
 
         if (!seventhNotebookItem->isDirty()) {
-            FAIL(QStringLiteral("The dirty flag hasn't been automatically set to "
-                                "true after moving the non-stacked notebook to "
-                                "a stack"));
+            FAIL("The dirty flag hasn't been automatically set to "
+                 "true after moving the non-stacked notebook to a stack");
         }
 
         // Should be able to move items from one stack to the other one
         QModelIndex fourthIndex = model->indexForLocalUid(fourth.localUid());
         if (!fourthIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for local uid"));
+            FAIL("Can't get the valid notebook model item index for local uid");
         }
 
         const NotebookModelItem * fourthItem = model->itemForIndex(fourthIndex);
         if (!fourthItem) {
-            FAIL(QStringLiteral("Can't get the notebook model item for its index "
-                                "in turn retrieved from the local uid"));
+            FAIL("Can't get the notebook model item for its index "
+                 "in turn retrieved from the local uid");
         }
 
         const NotebookModelItem * fourthParentItem = fourthItem->parent();
         if (!fourthParentItem) {
-            FAIL(QStringLiteral("Detected notebook model item having null parent"));
+            FAIL("Detected notebook model item having null parent");
         }
 
         if (fourthParentItem->type() != NotebookModelItem::Type::Stack) {
-            FAIL(QStringLiteral("Detected notebook model item which unexpectedly "
-                                "doesn't have a parent of stack type"));
+            FAIL("Detected notebook model item which unexpectedly "
+                 "doesn't have a parent of stack type");
         }
 
         const NotebookStackItem * fourthParentStackItem =
             fourthParentItem->notebookStackItem();
         if (!fourthParentStackItem) {
-            FAIL(QStringLiteral("Detected notebook model item which parent of "
-                                "stack type has null pointer to the stack item"));
+            FAIL("Detected notebook model item which parent of "
+                 "stack type has null pointer to the stack item");
         }
 
         QModelIndex newFourthItemIndex = model->moveToStack(fourthIndex, newStack);
         if (!newFourthItemIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "after the attempt to move the item to another "
-                                "stack"));
+            FAIL("Can't get the valid notebook model item index "
+                 "after the attempt to move the item to another stack");
         }
 
         fourth.setStack(newStack);
@@ -657,64 +634,63 @@ void NotebookModelTestHelper::test()
         const NotebookModelItem * fourthItemFromNewIndex =
             model->itemForIndex(newFourthItemIndex);
         if (!fourthItemFromNewIndex) {
-            FAIL(QStringLiteral("Can't get the notebook model item after moving "
-                                "it to another stack"));
+            FAIL("Can't get the notebook model item after moving "
+                 "it to another stack");
         }
 
         if (fourthItem != fourthItemFromNewIndex) {
-            FAIL(QStringLiteral("The memory address of the notebook model item "
-                                "appears to have changes as a result of moving "
-                                "the item into another stack"));
+            FAIL("The memory address of the notebook model item "
+                 "appears to have changes as a result of moving "
+                 "the item into another stack");
         }
 
         const NotebookModelItem * fourthItemNewParent =
             fourthItemFromNewIndex->parent();
         if (!fourthItemNewParent) {
-            FAIL(QStringLiteral("Notebook model item's parent has become null as "
-                                "a result of moving the item to another stack"));
+            FAIL("Notebook model item's parent has become null as "
+                 "a result of moving the item to another stack");
         }
 
         if (fourthItemNewParent->type() != NotebookModelItem::Type::Stack) {
-            FAIL(QStringLiteral("Notebook model item's parent has non-stack type "
-                                "after moving the item to another stack"));
+            FAIL("Notebook model item's parent has non-stack type "
+                 "after moving the item to another stack");
         }
 
         const NotebookStackItem * fourthItemNewStackItem =
             fourthItemNewParent->notebookStackItem();
         if (!fourthItemNewStackItem) {
-            FAIL(QStringLiteral("Notebook model item's parent is of stack type "
-                                "but has null pointer to the stack item after "
-                                "moving the original item to another stack"));
+            FAIL("Notebook model item's parent is of stack type "
+                 "but has null pointer to the stack item after "
+                 "moving the original item to another stack");
         }
 
         if (fourthItemNewStackItem->name() != newStack) {
-            FAIL(QStringLiteral("Notebook model item's parent stack item has "
-                                "unexpected name after the attempt to move "
-                                "the item to another stack"));
+            FAIL("Notebook model item's parent stack item has "
+                 "unexpected name after the attempt to move "
+                 "the item to another stack");
         }
 
         int row = fourthParentItem->rowForChild(fourthItem);
         if (row >= 0) {
-            FAIL(QStringLiteral("Notebook model item has been moved to another "
-                                "stack but it can still be found within the old "
-                                "parent item's children"));
+            FAIL("Notebook model item has been moved to another "
+                 "stack but it can still be found within the old "
+                 "parent item's children");
         }
 
         row = fourthItemNewParent->rowForChild(fourthItemFromNewIndex);
         if (row < 0) {
-            FAIL(QStringLiteral("Notebook model item has been moved to another "
-                                "stack but its row within its new parent cannot "
-                                "be found"));
+            FAIL("Notebook model item has been moved to another "
+                 "stack but its row within its new parent cannot be found");
         }
 
         if (!fourthItem->notebookItem()) {
-            FAIL(QStringLiteral("The notebook model item doesn't have the notebook "
-                                "item after moving to another stack"));
+            FAIL("The notebook model item doesn't have the notebook "
+                 "item after moving to another stack");
         }
 
         if (!fourthItem->notebookItem()->isDirty()) {
-            FAIL(QStringLiteral("The notebook item wasn't automatically marked as "
-                                "dirty after moving it to another stack"));
+            FAIL("The notebook item wasn't automatically marked as "
+                 "dirty after moving it to another stack");
         }
 
         // Should be able to remove the notebook item from the stack
@@ -725,104 +701,99 @@ void NotebookModelTestHelper::test()
         m_pLocalStorageManagerAsync->onUpdateNotebookRequest(fourth, QUuid());
 
         if (fourthItem->notebookItem()->isDirty()) {
-            FAIL(QStringLiteral("The notebook item is still marked as dirty after "
-                                "the flag has been cleared externally"));
+            FAIL("The notebook item is still marked as dirty after "
+                 "the flag has been cleared externally");
         }
 
         QModelIndex fourthIndexRemovedFromStack =
             model->removeFromStack(newFourthItemIndex);
         if (!fourthIndexRemovedFromStack.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "after the attempt to remove the item from "
-                                "the stack"));
+            FAIL("Can't get the valid notebook model item index "
+                 "after the attempt to remove the item from the stack");
         }
 
         const NotebookModelItem * fourthItemRemovedFromStack =
             model->itemForIndex(fourthIndexRemovedFromStack);
         if (!fourthItemRemovedFromStack) {
-            FAIL(QStringLiteral("Can't get the pointer to the notebook model item "
-                                "from the index after the item's removal from "
-                                "the stack"));
+            FAIL("Can't get the pointer to the notebook model item "
+                 "from the index after the item's removal from the stack");
         }
 
         if (fourthItemRemovedFromStack != fourthItemFromNewIndex) {
-            FAIL(QStringLiteral("The memory address of the notebook model item "
-                                "appears to have changed as a result of removing "
-                                "the item from the stack"));
+            FAIL("The memory address of the notebook model item "
+                 "appears to have changed as a result of removing "
+                 "the item from the stack");
         }
 
         const NotebookModelItem * fourthItemNoStackParent =
             fourthItemRemovedFromStack->parent();
         if (!fourthItemNoStackParent) {
-            FAIL(QStringLiteral("Notebook model item has null parent after being "
-                                "removed from the stack"));
+            FAIL("Notebook model item has null parent after being "
+                 "removed from the stack");
         }
 
         if (fourthItemNoStackParent == fourthItemNewParent) {
-            FAIL(QStringLiteral("The notebook model item's parent hasn't changed "
-                                "as a result of removing the item from the stack"));
+            FAIL("The notebook model item's parent hasn't changed "
+                 "as a result of removing the item from the stack");
         }
 
         if (fourthItemRemovedFromStack->type() != NotebookModelItem::Type::Notebook) {
-            FAIL(QStringLiteral("The notebook model item's type has unexpectedly "
-                                "changed after the item's removal from the stack"));
+            FAIL("The notebook model item's type has unexpectedly "
+                 "changed after the item's removal from the stack");
         }
 
         const NotebookItem * fourthItemRemovedFromStackNotebookItem =
             fourthItemRemovedFromStack->notebookItem();
         if (!fourthItemRemovedFromStackNotebookItem) {
-            FAIL(QStringLiteral("The notebook model item's notebook item is "
-                                "unexpectedly null after the item's removal "
-                                "from the stack"));
+            FAIL("The notebook model item's notebook item is "
+                 "unexpectedly null after the item's removal "
+                 "from the stack");
         }
 
         if (!fourthItemRemovedFromStackNotebookItem->stack().isEmpty()) {
-            FAIL(QStringLiteral("The notebook item's stack is still not empty "
-                                "after the model item has been removed from "
-                                "the stack"));
+            FAIL("The notebook item's stack is still not empty "
+                 "after the model item has been removed from the stack");
         }
 
         if (!fourthItemRemovedFromStackNotebookItem->isDirty()) {
-            FAIL(QStringLiteral("The notebook item was not automatically marked "
-                                "as dirty after removing the item from its stack"));
+            FAIL("The notebook item was not automatically marked "
+                 "as dirty after removing the item from its stack");
         }
 
         // Should be able to remove the last item from the stack and thus cause
         // the stack item to disappear
         seventhIndexMoved = model->indexForLocalUid(seventh.localUid());
         if (!seventhIndexMoved.isValid()) {
-            FAIL(QStringLiteral("The model index of the notebook item is "
-                                "unexpectedly invalid"));
+            FAIL("The model index of the notebook item is "
+                 "unexpectedly invalid");
         }
 
         seventhIndexMoved = model->removeFromStack(seventhIndexMoved);
         if (!seventhIndexMoved.isValid()) {
-            FAIL(QStringLiteral("The model returned invalid model index after "
-                                "the attempt to remove the last item from "
-                                "the stack"));
+            FAIL("The model returned invalid model index after "
+                 "the attempt to remove the last item from the stack");
         }
 
         seventhItem = model->itemForIndex(seventhIndexMoved);
         if (!seventhItem) {
-            FAIL(QStringLiteral("Can't get the notebook model item after its "
-                                "removal from the stack from model index"));
+            FAIL("Can't get the notebook model item after its "
+                 "removal from the stack from model index");
         }
 
         if (seventhItem->type() != NotebookModelItem::Type::Notebook) {
-            FAIL(QStringLiteral("Notebook model item has wrong type after being "
-                                "removed from its stack: ") << *seventhItem);
+            FAIL("Notebook model item has wrong type after being "
+                 << "removed from its stack: " << *seventhItem);
         }
 
         seventhNotebookItem = seventhItem->notebookItem();
         if (!seventhNotebookItem) {
-            FAIL(QStringLiteral("Notebook model item has null pointer to "
-                                "the notebook item even though it's of notebook "
-                                "type"));
+            FAIL("Notebook model item has null pointer to "
+                 "the notebook item even though it's of notebook type");
         }
 
         if (!seventhNotebookItem->stack().isEmpty()) {
-            FAIL(QStringLiteral("Notebook item has non-empty stack after "
-                                "the item's removal from the stack"));
+            FAIL("Notebook item has non-empty stack after "
+                 "the item's removal from the stack");
         }
 
         // Ensure the stack item ceased to exist after the last notebook item
@@ -830,10 +801,10 @@ void NotebookModelTestHelper::test()
         QModelIndex emptyStackItemIndex =
             model->indexForNotebookStack(newStack, QString());
         if (emptyStackItemIndex.isValid()) {
-            FAIL(QStringLiteral("Notebook model returned valid model index for "
-                                "stack which should have been removed from "
-                                "the model after the removal of the last notebook "
-                                "contained in this stack"));
+            FAIL("Notebook model returned valid model index for "
+                 "stack which should have been removed from "
+                 "the model after the removal of the last notebook "
+                 "contained in this stack");
         }
 
         // Should be able to change the stack of the notebook externally and have
@@ -844,38 +815,35 @@ void NotebookModelTestHelper::test()
         QModelIndex restoredStackItemIndex =
             model->indexForNotebookStack(newStack, QString());
         if (!restoredStackItemIndex.isValid()) {
-            FAIL(QStringLiteral("Notebook model returned invalid model index for "
-                                "stack which should have been created after "
-                                "the external update of notebook with this stack "
-                                "value"));
+            FAIL("Notebook model returned invalid model index for "
+                 "stack which should have been created after "
+                 "the external update of notebook with this stack value");
         }
 
         newFourthItemIndex = model->indexForLocalUid(fourth.localUid());
         if (!newFourthItemIndex.isValid()) {
-            FAIL(QStringLiteral("Can't get the valid notebook model item index "
-                                "for notebook local uid"));
+            FAIL("Can't get the valid notebook model item index "
+                 "for notebook local uid");
         }
 
         fourthItem = model->itemForIndex(newFourthItemIndex);
         if (!fourthItem) {
-            FAIL(QStringLiteral("Can't get the notebook model item for notebook "
-                                "local uid"));
+            FAIL("Can't get the notebook model item for notebook local uid");
         }
 
         fourthItemNewParent = fourthItem->parent();
         if (!fourthItemNewParent) {
-            FAIL(QStringLiteral("Notebook model item has no parent after "
-                                "the external update of notebook with another "
-                                "stack"));
+            FAIL("Notebook model item has no parent after "
+                 "the external update of notebook with another stack");
         }
 
         if (!fourthItemNewParent->notebookStackItem()) {
-            FAIL(QStringLiteral("The notebook model item has no stack item even "
-                                "though it should have one"));
+            FAIL("The notebook model item has no stack item even "
+                 "though it should have one");
         }
 
         if (fourthItemNewParent->notebookStackItem()->name() != newStack) {
-            FAIL(QStringLiteral("The notebook stack item has wrong stack name"));
+            FAIL("The notebook stack item has wrong stack name");
         }
 
         // Set the account to local again to test accounting for notebook name
@@ -889,16 +857,15 @@ void NotebookModelTestHelper::test()
                                                                   tenth.stack(),
                                                                   errorDescription);
         if (eleventhNotebookIndex.isValid()) {
-            FAIL(QStringLiteral("Was able to create notebook with the same name "
-                                "as the already existing one"));
+            FAIL("Was able to create notebook with the same name "
+                 "as the already existing one");
         }
 
         // The error description should say something about the inability to
         // create the notebook
         if (errorDescription.isEmpty()) {
-            FAIL(QStringLiteral("The error description about the inability to "
-                                "create the notebook due to name collision is "
-                                "empty"));
+            FAIL("The error description about the inability to "
+                 "create the notebook due to name collision is empty");
         }
 
         // Should be able to create the notebook with a new name
@@ -908,8 +875,8 @@ void NotebookModelTestHelper::test()
                                                       tenth.stack(),
                                                       errorDescription);
         if (!eleventhNotebookIndex.isValid()) {
-            FAIL(QStringLiteral("Wasn't able to create a notebook with the name "
-                                "not present within the notebook model"));
+            FAIL("Wasn't able to create a notebook with the name "
+                 "not present within the notebook model");
         }
 
         // Should no longer be able to create the notebook with the same name
@@ -918,24 +885,23 @@ void NotebookModelTestHelper::test()
             model->createNotebook(eleventhNotebookName, fifth.stack(),
                                   errorDescription);
         if (twelvethNotebookIndex.isValid()) {
-            FAIL(QStringLiteral("Was able to create a notebook with the same "
-                                "name as just created one"));
+            FAIL("Was able to create a notebook with the same "
+                 "name as just created one");
         }
 
         // The error description should say something about the inability
         // to create the notebook
         if (errorDescription.isEmpty()) {
-            FAIL(QStringLiteral("The error description about the inability to "
-                                "create the notebook due to name collision is "
-                                "empty"));
+            FAIL("The error description about the inability to "
+                 "create the notebook due to name collision is empty");
         }
 
         // Should be able to remove the just added local (non-synchronizable) notebook
         res = model->removeRow(eleventhNotebookIndex.row(),
                                eleventhNotebookIndex.parent());
         if (!res) {
-            FAIL(QStringLiteral("Wasn't able to remove the non-synchronizable "
-                                "notebook just added to the notebook model"));
+            FAIL("Wasn't able to remove the non-synchronizable "
+                 "notebook just added to the notebook model");
         }
 
         // Should again be able to create the notebook with the same name
@@ -944,16 +910,16 @@ void NotebookModelTestHelper::test()
                                                       QString(),
                                                       errorDescription);
         if (!eleventhNotebookIndex.isValid()) {
-            FAIL(QStringLiteral("Wasn't able to create the notebook with "
-                                "the same name as the just removed one"));
+            FAIL("Wasn't able to create the notebook with "
+                 "the same name as the just removed one");
         }
 
         // Check the sorting for notebook and stack items: by default should
         // sort by name in ascending order
         res = checkSorting(*model, fourthItemNoStackParent);
         if (!res) {
-            FAIL(QStringLiteral("Sorting check failed for the notebook model "
-                                "for ascending order"));
+            FAIL("Sorting check failed for the notebook model "
+                 "for ascending order");
         }
 
         // Change the sort order and check the sorting again
@@ -961,8 +927,8 @@ void NotebookModelTestHelper::test()
 
         res = checkSorting(*model, fourthItemNoStackParent);
         if (!res) {
-            FAIL(QStringLiteral("Sorting check failed for the notebook model "
-                                "for descending order"));
+            FAIL("Sorting check failed for the notebook model "
+                 "for descending order");
         }
 
         Q_EMIT success();
@@ -973,38 +939,35 @@ void NotebookModelTestHelper::test()
     Q_EMIT failure(errorDescription);
 }
 
-void NotebookModelTestHelper::onAddNotebookFailed(Notebook notebook,
-                                                  ErrorString errorDescription,
-                                                  QUuid requestId)
+void NotebookModelTestHelper::onAddNotebookFailed(
+    Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NotebookModelTestHelper::onAddNotebookFailed: ")
-            << QStringLiteral("notebook = ") << notebook
-            << QStringLiteral("\nError description = ") << errorDescription
-            << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("NotebookModelTestHelper::onAddNotebookFailed: "
+            << "notebook = " << notebook
+            << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
 
-void NotebookModelTestHelper::onUpdateNotebookFailed(Notebook notebook,
-                                                     ErrorString errorDescription,
-                                                     QUuid requestId)
+void NotebookModelTestHelper::onUpdateNotebookFailed(
+    Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NotebookModelTestHelper::onUpdateNotebookFailed: ")
-            << QStringLiteral("notebook = ") << notebook
-            << QStringLiteral("\nError description = ") << errorDescription
-            << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("NotebookModelTestHelper::onUpdateNotebookFailed: "
+            << "notebook = " << notebook
+            << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
 
-void NotebookModelTestHelper::onFindNotebookFailed(Notebook notebook,
-                                                   ErrorString errorDescription,
-                                                   QUuid requestId)
+void NotebookModelTestHelper::onFindNotebookFailed(
+    Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NotebookModelTestHelper::onFindNotebookFailed: ")
-            << QStringLiteral("notebook = ") << notebook
-            << QStringLiteral("\nError description = ") << errorDescription
-            << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("NotebookModelTestHelper::onFindNotebookFailed: "
+            << "notebook = " << notebook
+            << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -1015,39 +978,35 @@ void NotebookModelTestHelper::onListNotebooksFailed(
     LocalStorageManager::OrderDirection::type orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NotebookModelTestHelper::onListNotebooksFailed: flag = ")
-            << flag << QStringLiteral(", limit = ") << limit
-            << QStringLiteral(", offset = ") << offset
-            << QStringLiteral(", order = ") << order
-            << QStringLiteral(", direction = ") << orderDirection
-            << QStringLiteral(", linked notebook guid = ")
-            << (linkedNotebookGuid.isNull()
+    QNDEBUG("NotebookModelTestHelper::onListNotebooksFailed: flag = "
+            << flag << ", limit = " << limit << ", offset = " << offset
+            << ", order = " << order << ", direction = " << orderDirection
+            << ", linked notebook guid = " << (linkedNotebookGuid.isNull()
                 ? QStringLiteral("<null>")
                 : linkedNotebookGuid)
-            << QStringLiteral(", error description = ") << errorDescription
-            << QStringLiteral(", request id = ") << requestId);
+            << ", error description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
 
-void NotebookModelTestHelper::onExpungeNotebookFailed(Notebook notebook,
-                                                      ErrorString errorDescription,
-                                                      QUuid requestId)
+void NotebookModelTestHelper::onExpungeNotebookFailed(
+    Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NotebookModelTestHelper::onExpungeNotebookFailed: ")
-            << QStringLiteral("notebook = ") << notebook
-            << QStringLiteral("\nError description = ") << errorDescription
-            << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("NotebookModelTestHelper::onExpungeNotebookFailed: "
+            << "notebook = " << notebook
+            << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
 
-bool NotebookModelTestHelper::checkSorting(const NotebookModel & model,
-                                           const NotebookModelItem * rootItem) const
+bool NotebookModelTestHelper::checkSorting(
+    const NotebookModel & model, const NotebookModelItem * rootItem) const
 {
     if (!rootItem) {
-        QNWARNING(QStringLiteral("Found null pointer to notebook model item "
-                                 "when checking the sorting"));
+        QNWARNING("Found null pointer to notebook model item "
+                  "when checking the sorting");
         return false;
     }
 
@@ -1082,7 +1041,8 @@ bool NotebookModelTestHelper::checkSorting(const NotebookModel & model,
     return true;
 }
 
-void NotebookModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescription)
+void NotebookModelTestHelper::notifyFailureWithStackTrace(
+    ErrorString errorDescription)
 {
     SysInfo sysInfo;
     errorDescription.details() += QStringLiteral("\nStack trace: ") +
@@ -1090,8 +1050,8 @@ void NotebookModelTestHelper::notifyFailureWithStackTrace(ErrorString errorDescr
     Q_EMIT failure(errorDescription);
 }
 
-bool NotebookModelTestHelper::LessByName::operator()(const NotebookModelItem * lhs,
-                                                     const NotebookModelItem * rhs) const
+bool NotebookModelTestHelper::LessByName::operator()(
+    const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
 {
     // NOTE: treating linked notebook item as the one always going after
     // the non-linked notebook item
@@ -1120,8 +1080,8 @@ bool NotebookModelTestHelper::LessByName::operator()(const NotebookModelItem * l
     return (leftName.localeAwareCompare(rightName) <= 0);
 }
 
-bool NotebookModelTestHelper::GreaterByName::operator()(const NotebookModelItem * lhs,
-                                                        const NotebookModelItem * rhs) const
+bool NotebookModelTestHelper::GreaterByName::operator()(
+    const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
 {
     // NOTE: treating linked notebook item as the one always going after
     // the non-linked notebook item

@@ -20,16 +20,17 @@
 
 namespace quentier {
 
-TagItem::TagItem(const QString & localUid,
-                 const QString & guid,
-                 const QString & linkedNotebookGuid,
-                 const QString & name,
-                 const QString & parentLocalUid,
-                 const QString & parentGuid,
-                 const bool isSynchronizable,
-                 const bool isDirty,
-                 const bool isFavorited,
-                 const int numNotesPerTag) :
+TagItem::TagItem(
+        const QString & localUid,
+        const QString & guid,
+        const QString & linkedNotebookGuid,
+        const QString & name,
+        const QString & parentLocalUid,
+        const QString & parentGuid,
+        const bool isSynchronizable,
+        const bool isDirty,
+        const bool isFavorited,
+        const int numNotesPerTag) :
     m_localUid(localUid),
     m_guid(guid),
     m_linkedNotebookGuid(linkedNotebookGuid),
@@ -47,19 +48,19 @@ TagItem::~TagItem()
 
 QTextStream & TagItem::print(QTextStream & strm) const
 {
-    strm << QStringLiteral("Tag item: local uid = ") << m_localUid
-         << QStringLiteral(", guid = ") << m_guid
-         << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
-         << QStringLiteral(", name = ") << m_name
-         << QStringLiteral(", parent local uid = ") << m_parentLocalUid
-         << QStringLiteral(", is synchronizable = ")
-         << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ")
-         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ")
-         << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", num notes per tag = ") << m_numNotesPerTag
-         << QStringLiteral(";");
+    strm << "Tag item: local uid = " << m_localUid
+         << ", guid = " << m_guid
+         << ", linked notebook guid = " << m_linkedNotebookGuid
+         << ", name = " << m_name
+         << ", parent local uid = " << m_parentLocalUid
+         << ", is synchronizable = "
+         << (m_isSynchronizable ? "true" : "false")
+         << ", is dirty = "
+         << (m_isDirty ? "true" : "false")
+         << ", is favorited = "
+         << (m_isFavorited ? "true" : "false")
+         << ", num notes per tag = " << m_numNotesPerTag
+         << ";";
     return strm;
 }
 

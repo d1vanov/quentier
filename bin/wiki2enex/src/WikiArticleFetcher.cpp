@@ -25,26 +25,21 @@
 #include <QRegExp>
 #include <QXmlStreamReader>
 
-#define WALOG_IMPL(message, macro) \
-    macro(QStringLiteral("<") << m_url << QStringLiteral(">: ") << message)
+#define WALOG_IMPL(message, macro)                                             \
+    macro("<" << m_url << ">: " << message)                                    \
+// WALOG_IMPL
 
-#define WATRACE(message) \
-    WALOG_IMPL(message, QNTRACE)
+#define WATRACE(message) WALOG_IMPL(message, QNTRACE)
 
-#define WADEBUG(message) \
-    WALOG_IMPL(message, QNDEBUG)
+#define WADEBUG(message) WALOG_IMPL(message, QNDEBUG)
 
-#define WAINFO(message) \
-    WALOG_IMPL(message, QNINFO)
+#define WAINFO(message) WALOG_IMPL(message, QNINFO)
 
-#define WAWARNING(message) \
-    WALOG_IMPL(message, QNWARNING)
+#define WAWARNING(message) WALOG_IMPL(message, QNWARNING)
 
-#define WACRITICAL(message) \
-    WALOG_IMPL(message, QNCRITICAL)
+#define WACRITICAL(message) WALOG_IMPL(message, QNCRITICAL)
 
-#define WAFATAL(message) \
-    WALOG_IMPL(message, QNFATAL)
+#define WAFATAL(message) WALOG_IMPL(message, QNFATAL)
 
 namespace quentier {
 
@@ -74,10 +69,10 @@ WikiArticleFetcher::~WikiArticleFetcher()
 
 void WikiArticleFetcher::start()
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::start"));
+    WADEBUG("WikiArticleFetcher::start");
 
     if (m_started) {
-        WADEBUG(QStringLiteral("Already started"));
+        WADEBUG("Already started");
         return;
     }
 
@@ -109,12 +104,11 @@ void WikiArticleFetcher::start()
     m_pApiUrlFetcher->start();
 }
 
-void WikiArticleFetcher::onPageIdFetchingProgress(qint64 bytesFetched,
-                                                  qint64 bytesTotal)
+void WikiArticleFetcher::onPageIdFetchingProgress(
+    qint64 bytesFetched, qint64 bytesTotal)
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::onPageIdFetchingProgress: ")
-            << QStringLiteral("fetched ") << bytesFetched
-            << QStringLiteral(" out of ") << bytesTotal);
+    WADEBUG("WikiArticleFetcher::onPageIdFetchingProgress: "
+            << "fetched " << bytesFetched << " out of " << bytesTotal);
 
     if (bytesTotal < 0) {
         // The exact number of bytes to download is not known
@@ -126,16 +120,16 @@ void WikiArticleFetcher::onPageIdFetchingProgress(qint64 bytesFetched,
     double progressValue = 0.1 * static_cast<double>(bytesFetched) /
         std::max(bytesTotal, qint64(1));
 
-    WATRACE(QStringLiteral("Progress update: ") << progressValue);
+    WATRACE("Progress update: " << progressValue);
     Q_EMIT progress(progressValue);
 }
 
 void WikiArticleFetcher::onPageIdFetchingFinished(
     bool status, QByteArray fetchedData, ErrorString errorDescription)
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::onPageIdFetchingFinished: status = ")
-            << (status ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description = ") << errorDescription);
+    WADEBUG("WikiArticleFetcher::onPageIdFetchingFinished: status = "
+            << (status ? "true" : "false")
+            << ", error description = " << errorDescription);
 
     if (m_pApiUrlFetcher) {
         m_pApiUrlFetcher->disconnect(this);
@@ -163,9 +157,10 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
                                  "&pageid=") + QString::number(pageId);
 
     QUrl url(articleUrl);
-    WADEBUG(QStringLiteral("Starting to fetch wiki article content: ") << url);
+    WADEBUG("Starting to fetch wiki article content: " << url);
 
-    m_pArticleContentsFetcher = new NetworkReplyFetcher(m_pNetworkAccessManager, url);
+    m_pArticleContentsFetcher =
+        new NetworkReplyFetcher(m_pNetworkAccessManager, url);
 
     QObject::connect(m_pArticleContentsFetcher,
                      QNSIGNAL(NetworkReplyFetcher,finished,
@@ -182,11 +177,11 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
     m_pArticleContentsFetcher->start();
 }
 
-void WikiArticleFetcher::onWikiArticleDownloadProgress(qint64 bytesFetched,
-                                                       qint64 bytesTotal)
+void WikiArticleFetcher::onWikiArticleDownloadProgress(
+    qint64 bytesFetched, qint64 bytesTotal)
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::onWikiArticleDownloadProgress: fetched ")
-            << bytesFetched << QStringLiteral(" out of ") << bytesTotal);
+    WADEBUG("WikiArticleFetcher::onWikiArticleDownloadProgress: fetched "
+            << bytesFetched << " out of " << bytesTotal);
 
     if (bytesTotal < 0) {
         // The exact number of bytes to download is not known
@@ -199,18 +194,16 @@ void WikiArticleFetcher::onWikiArticleDownloadProgress(qint64 bytesFetched,
     double progressValue = 0.1 + 0.3 * static_cast<double>(bytesFetched) /
         std::max(bytesTotal, qint64(1));
 
-    WATRACE(QStringLiteral("Progress update: ") << progressValue);
+    WATRACE("Progress update: " << progressValue);
     Q_EMIT progress(progressValue);
 }
 
 void WikiArticleFetcher::onWikiArticleDownloadFinished(
     bool status, QByteArray fetchedData, ErrorString errorDescription)
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::onWikiArticleDownloadFinished: ")
-            << QStringLiteral("status = ")
-            << (status ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description = ")
-            << errorDescription);
+    WADEBUG("WikiArticleFetcher::onWikiArticleDownloadFinished: "
+            << "status = " << (status ? "true" : "false")
+            << ", error description = " << errorDescription);
 
     if (m_pArticleContentsFetcher) {
         m_pArticleContentsFetcher->disconnect(this);
@@ -242,8 +235,7 @@ void WikiArticleFetcher::onWikiArticleDownloadFinished(
 
 void WikiArticleFetcher::onWikiArticleToNoteProgress(double progressValue)
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::onWikiArticleToNoteProgress: ")
-            << progressValue);
+    WADEBUG("WikiArticleFetcher::onWikiArticleToNoteProgress: " << progressValue);
 
     // Wiki article conversion to note has 60% of total progress reserved for it
     // so scaling the numbers + add 10% from page id fetching and 30% from wiki
@@ -252,17 +244,16 @@ void WikiArticleFetcher::onWikiArticleToNoteProgress(double progressValue)
     progressValue *= 0.6;
     progressValue += 0.4;
 
-    WATRACE(QStringLiteral("Progress update: ") << progressValue);
+    WATRACE("Progress update: " << progressValue);
     Q_EMIT progress(progressValue);
 }
 
 void WikiArticleFetcher::onWikiArticleToNoteFinished(
     bool status, ErrorString errorDescription, Note note)
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::onWikiArticleToNoteFinished: ")
-            << QStringLiteral("status = ")
-            << (status ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description = ") << errorDescription);
+    WADEBUG("WikiArticleFetcher::onWikiArticleToNoteFinished: status = "
+            << (status ? "true" : "false") << ", error description = "
+            << errorDescription);
 
     if (!status) {
         finishWithError(errorDescription);
@@ -280,7 +271,8 @@ bool WikiArticleFetcher::composePageIdFetchingUrl(
 {
     QString urlString = m_url.toString();
 
-    QRegExp regex(QStringLiteral("^https?:\\/\\/(\\w{2})\\.wikipedia\\.org\\/wiki\\/(\\w+)$"));
+    QRegExp regex(
+        QStringLiteral("^https?:\\/\\/(\\w{2})\\.wikipedia\\.org\\/wiki\\/(\\w+)$"));
     int pos = regex.indexIn(urlString);
     if (Q_UNLIKELY(pos < 0)) {
         errorDescription.setBase(QT_TR_NOOP("Can't parse the input URL"));
@@ -329,8 +321,7 @@ qint32 WikiArticleFetcher::parsePageIdFromFetchedData(
             pageId = pageIdValue.toString().toInt(&conversionResult);
             if (!conversionResult) {
                 errorDescription.setBase(QT_TR_NOOP("Failed to fetch page id"));
-                WAWARNING(errorDescription << QStringLiteral("; page id value = ")
-                          << pageIdValue);
+                WAWARNING(errorDescription << "; page id value = " << pageIdValue);
                 return -1;
             }
 
@@ -340,8 +331,7 @@ qint32 WikiArticleFetcher::parsePageIdFromFetchedData(
 
     if (pageId < 0) {
         errorDescription.setBase(QT_TR_NOOP("Failed to fetch page id"));
-        WAWARNING(errorDescription << QStringLiteral("; fetched data: ")
-                  << fetchedData);
+        WAWARNING(errorDescription << "; fetched data: " << fetchedData);
         return -1;
     }
 
@@ -350,8 +340,7 @@ qint32 WikiArticleFetcher::parsePageIdFromFetchedData(
 
 void WikiArticleFetcher::finishWithError(const ErrorString & errorDescription)
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::finishWithError: ")
-            << errorDescription);
+    WADEBUG("WikiArticleFetcher::finishWithError: " << errorDescription);
 
     clear();
     Q_EMIT failure(errorDescription);
@@ -359,7 +348,7 @@ void WikiArticleFetcher::finishWithError(const ErrorString & errorDescription)
 
 void WikiArticleFetcher::clear()
 {
-    WADEBUG(QStringLiteral("WikiArticleFetcher::clear"));
+    WADEBUG("WikiArticleFetcher::clear");
 
     m_started = false;
     m_finished = false;

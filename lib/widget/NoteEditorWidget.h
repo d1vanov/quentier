@@ -314,8 +314,9 @@ Q_SIGNALS:
     void noteSaveInLocalStorageFailed();
     void conversionToNoteFailed();
 
-    void insertInAppNoteLink(const QString & userId, const QString & shardId,
-                             const QString & noteGuid, const QString & linkText);
+    void insertInAppNoteLink(
+        const QString & userId, const QString & shardId,
+        const QString & noteGuid, const QString & linkText);
 
 public Q_SLOTS:
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
@@ -353,8 +354,8 @@ public Q_SLOTS:
     void onEditorInsertToDoCheckBoxAction();
 
     void onEditorInsertTableDialogAction();
-    void onEditorInsertTable(int rows, int columns,
-                             double width, bool relativeWidth);
+    void onEditorInsertTable(
+        int rows, int columns, double width, bool relativeWidth);
 
     void onUndoAction();
     void onRedoAction();
@@ -390,18 +391,21 @@ private Q_SLOTS:
     void onFontSizesComboBoxCurrentIndexChanged(int index);
 
     void onNoteSavedToLocalStorage(QString noteLocalUid);
-    void onFailedToSaveNoteToLocalStorage(ErrorString errorDescription,
-                                          QString noteLocalUid);
+    void onFailedToSaveNoteToLocalStorage(
+        ErrorString errorDescription, QString noteLocalUid);
 
     // Slots for events from local storage
-    void onUpdateNoteComplete(Note note,
-                              LocalStorageManager::UpdateNoteOptions options,
-                              QUuid requestId);
+    void onUpdateNoteComplete(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        QUuid requestId);
 
-    void onFindNoteComplete(Note note, LocalStorageManager::GetNoteOptions options,
-                            QUuid requestId);
-    void onFindNoteFailed(Note note, LocalStorageManager::GetNoteOptions options,
-                          ErrorString errorDescription, QUuid requestId);
+    void onFindNoteComplete(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
+
+    void onFindNoteFailed(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        ErrorString errorDescription, QUuid requestId);
 
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
@@ -411,8 +415,10 @@ private Q_SLOTS:
 
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                              QUuid requestId);
+
+    void onFindNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     /**
@@ -438,8 +444,8 @@ private Q_SLOTS:
     void onEditorNoteUpdate(Note note);
     void onEditorNoteUpdateFailed(ErrorString error);
 
-    void onEditorInAppLinkPasteRequested(QString url, QString userId,
-                                         QString shardId, QString noteGuid);
+    void onEditorInAppLinkPasteRequested(
+        QString url, QString userId, QString shardId, QString noteGuid);
 
     void onEditorTextBoldStateChanged(bool state);
     void onEditorTextItalicStateChanged(bool state);
@@ -466,17 +472,20 @@ private Q_SLOTS:
     // Slots for find & replace widget events
     void onFindAndReplaceWidgetClosed();
     void onTextToFindInsideNoteEdited(const QString & textToFind);
-    void onFindNextInsideNote(const QString & textToFind,
-                              const bool matchCase);
-    void onFindPreviousInsideNote(const QString & textToFind,
-                                  const bool matchCase);
+    void onFindNextInsideNote(const QString & textToFind, const bool matchCase);
+
+    void onFindPreviousInsideNote(
+        const QString & textToFind, const bool matchCase);
+
     void onFindInsideNoteCaseSensitivityChanged(const bool matchCase);
-    void onReplaceInsideNote(const QString & textToReplace,
-                             const QString & replacementText,
-                             const bool matchCase);
-    void onReplaceAllInsideNote(const QString & textToReplace,
-                                const QString & replacementText,
-                                const bool matchCase);
+
+    void onReplaceInsideNote(
+        const QString & textToReplace, const QString & replacementText,
+        const bool matchCase);
+
+    void onReplaceAllInsideNote(
+        const QString & textToReplace, const QString & replacementText,
+        const bool matchCase);
 
     void updateNoteInLocalStorage();
 

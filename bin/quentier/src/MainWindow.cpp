@@ -139,13 +139,15 @@ using quentier::LogViewerWidget;
 #include <cmath>
 #include <algorithm>
 
-#define NOTIFY_ERROR(error) \
-    QNWARNING(QString::fromUtf8(error)); \
-    onSetStatusBarText(QString::fromUtf8(error), SEC_TO_MSEC(30)); \
+#define NOTIFY_ERROR(error)                                                    \
+    QNWARNING(QString::fromUtf8(error));                                       \
+    onSetStatusBarText(QString::fromUtf8(error), SEC_TO_MSEC(30))              \
+// NOTIFY_ERROR
 
-#define NOTIFY_DEBUG(message) \
-    QNDEBUG(QString::fromUtf8(message)); \
-    onSetStatusBarText(QString::fromUtf8(message), SEC_TO_MSEC(30))
+#define NOTIFY_DEBUG(message)                                                  \
+    QNDEBUG(QString::fromUtf8(message));                                       \
+    onSetStatusBarText(QString::fromUtf8(message), SEC_TO_MSEC(30))            \
+// NOTIFY_DEBUG
 
 #define FILTERS_VIEW_STATUS_KEY QStringLiteral("ViewExpandedStatus")
 #define NOTE_SORTING_MODE_KEY QStringLiteral("NoteSortingMode")
@@ -159,10 +161,14 @@ using quentier::LogViewerWidget;
 #define MAIN_WINDOW_FAVORITES_VIEW_HEIGHT QStringLiteral("FavoritesViewHeight")
 #define MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT QStringLiteral("NotebooksViewHeight")
 #define MAIN_WINDOW_TAGS_VIEW_HEIGHT QStringLiteral("TagsViewHeight")
-#define MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT \
-    QStringLiteral("SavedSearchesViewHeight")
-#define MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT \
-    QStringLiteral("DeletedNotesViewHeight")
+
+#define MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT                                 \
+    QStringLiteral("SavedSearchesViewHeight")                                  \
+// MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT
+
+#define MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT                                  \
+    QStringLiteral("DeletedNotesViewHeight")                                   \
+// MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT
 
 #define PERSIST_GEOMETRY_AND_STATE_DELAY (500)
 #define RESTORE_SPLITTER_SIZES_DELAY (200)
@@ -243,7 +249,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_sideBordersControllerCreationDelayTimerId(0),
     m_sideBordersControllerMainWindowStateUpdateDelayTimerId(0)
 {
-    QNTRACE(QStringLiteral("MainWindow constructor"));
+    QNTRACE("MainWindow constructor");
 
     setupAccountManager();
 
@@ -350,7 +356,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::show()
 {
-    QNDEBUG(QStringLiteral("MainWindow::show"));
+    QNDEBUG("MainWindow::show");
 
     QWidget::show();
 
@@ -382,8 +388,8 @@ void MainWindow::show()
         centerDialog(*pDialog);
         if (pDialog->exec() == QDialog::Accepted)
         {
-            QNDEBUG(QStringLiteral("Log in to Evernote account option was ")
-                    << QStringLiteral("chosen on the greeter screen"));
+            QNDEBUG("Log in to Evernote account option was "
+                    << "chosen on the greeter screen");
 
             onEvernoteAccountAuthenticationRequested(
                 QStringLiteral("www.evernote.com"),
@@ -399,7 +405,7 @@ const SystemTrayIconManager & MainWindow::systemTrayIconManager() const
 
 void MainWindow::connectActionsToSlots()
 {
-    QNDEBUG(QStringLiteral("MainWindow::connectActionsToSlots"));
+    QNDEBUG("MainWindow::connectActionsToSlots");
 
     // File menu actions
     QObject::connect(m_pUI->ActionNewNote, QNSIGNAL(QAction,triggered),
@@ -537,7 +543,7 @@ void MainWindow::connectActionsToSlots()
 
 void MainWindow::connectViewButtonsToSlots()
 {
-    QNDEBUG(QStringLiteral("MainWindow::connectViewButtonsToSlots"));
+    QNDEBUG("MainWindow::connectViewButtonsToSlots");
 
     QObject::connect(m_pUI->addNotebookButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onNewNotebookCreationRequested));
@@ -580,7 +586,7 @@ void MainWindow::connectViewButtonsToSlots()
 
 void MainWindow::connectNoteSearchActionsToSlots()
 {
-    QNDEBUG(QStringLiteral("MainWindow::connectNoteSearchActionsToSlots"));
+    QNDEBUG("MainWindow::connectNoteSearchActionsToSlots");
 
     QObject::connect(m_pUI->saveSearchPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onSaveNoteSearchQueryButtonPressed));
@@ -588,7 +594,7 @@ void MainWindow::connectNoteSearchActionsToSlots()
 
 void MainWindow::connectToolbarButtonsToSlots()
 {
-    QNDEBUG(QStringLiteral("MainWindow::connectToolbarButtonsToSlots"));
+    QNDEBUG("MainWindow::connectToolbarButtonsToSlots");
 
     QObject::connect(m_pUI->addNotePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onNewNoteCreationRequested));
@@ -606,7 +612,7 @@ void MainWindow::connectToolbarButtonsToSlots()
 
 void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
 {
-    QNDEBUG(QStringLiteral("MainWindow::connectSystemTrayIconManagerSignalsToSlots"));
+    QNDEBUG("MainWindow::connectSystemTrayIconManagerSignalsToSlots");
 
     QObject::connect(m_pSystemTrayIconManager,
                      QNSIGNAL(SystemTrayIconManager,notifyError,ErrorString),
@@ -636,7 +642,7 @@ void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
 
 void MainWindow::addMenuActionsToMainWindow()
 {
-    QNDEBUG(QStringLiteral("MainWindow::addMenuActionsToMainWindow"));
+    QNDEBUG("MainWindow::addMenuActionsToMainWindow");
 
     // NOTE: adding the actions from the menu bar's menus is required for getting
     // the shortcuts of these actions to work properly; action shortcuts only
@@ -669,10 +675,10 @@ void MainWindow::addMenuActionsToMainWindow()
 
 void MainWindow::updateSubMenuWithAvailableAccounts()
 {
-    QNDEBUG(QStringLiteral("MainWindow::updateSubMenuWithAvailableAccounts"));
+    QNDEBUG("MainWindow::updateSubMenuWithAvailableAccounts");
 
     if (Q_UNLIKELY(!m_pAvailableAccountsSubMenu)) {
-        QNDEBUG(QStringLiteral("No available accounts sub-menu"));
+        QNDEBUG("No available accounts sub-menu");
         return;
     }
 
@@ -689,8 +695,7 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
     for(int i = 0; i < numAvailableAccounts; ++i)
     {
         const Account & availableAccount = availableAccounts[i];
-        QNTRACE(QStringLiteral("Examining the available account: ")
-                << availableAccount);
+        QNTRACE("Examining the available account: " << availableAccount);
 
         QString availableAccountRepresentationName = availableAccount.name();
         if (availableAccount.type() == Account::Type::Local)
@@ -765,7 +770,7 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
 
 void MainWindow::setupInitialChildWidgetsWidths()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupInitialChildWidgetsWidths"));
+    QNDEBUG("MainWindow::setupInitialChildWidgetsWidths");
 
     int totalWidth = width();
 
@@ -780,8 +785,8 @@ void MainWindow::setupInitialChildWidgetsWidths()
     // 1/5 - for side view, 1/5 - for note list view, 3/5 - for the note editor
     int partWidth = totalWidth / 5;
 
-    QNTRACE(QStringLiteral("Total width = ") << totalWidth
-            << QStringLiteral(", part width = ") << partWidth);
+    QNTRACE("Total width = " << totalWidth
+            << ", part width = " << partWidth);
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
@@ -791,7 +796,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
                                      "initial widths for side panel, note list "
                                      "view and note editors view: wrong number "
                                      "of sizes within the splitter"));
-        QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
+        QNWARNING(error << ", sizes count: " << splitterSizesCount);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
@@ -805,8 +810,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
 void MainWindow::setWindowTitleForAccount(const Account & account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::setWindowTitleForAccount: ")
-            << account.name());
+    QNDEBUG("MainWindow::setWindowTitleForAccount: " << account.name());
 
     bool nonStandardPersistencePath = false;
     Q_UNUSED(applicationPersistentStoragePath(&nonStandardPersistencePath))
@@ -843,30 +847,30 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
 
 NoteEditorWidget * MainWindow::currentNoteEditorTab()
 {
-    QNDEBUG(QStringLiteral("MainWindow::currentNoteEditorTab"));
+    QNDEBUG("MainWindow::currentNoteEditorTab");
 
     if (Q_UNLIKELY(m_pUI->noteEditorsTabWidget->count() == 0)) {
-        QNTRACE(QStringLiteral("No open note editors"));
+        QNTRACE("No open note editors");
         return Q_NULLPTR;
     }
 
     int currentIndex = m_pUI->noteEditorsTabWidget->currentIndex();
     if (Q_UNLIKELY(currentIndex < 0)) {
-        QNTRACE(QStringLiteral("No current note editor"));
+        QNTRACE("No current note editor");
         return Q_NULLPTR;
     }
 
     QWidget * currentWidget = m_pUI->noteEditorsTabWidget->widget(currentIndex);
     if (Q_UNLIKELY(!currentWidget)) {
-        QNTRACE(QStringLiteral("No current widget"));
+        QNTRACE("No current widget");
         return Q_NULLPTR;
     }
 
     NoteEditorWidget * noteEditorWidget =
         qobject_cast<NoteEditorWidget*>(currentWidget);
     if (Q_UNLIKELY(!noteEditorWidget)) {
-        QNWARNING(QStringLiteral("Can't cast current note tag widget's widget "
-                                 "to note editor widget"));
+        QNWARNING("Can't cast current note tag widget's widget "
+                  "to note editor widget");
         return Q_NULLPTR;
     }
 
@@ -876,13 +880,12 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
 void MainWindow::createNewNote(
     NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::type noteEditorMode)
 {
-    QNDEBUG(QStringLiteral("MainWindow::createNewNote: note editor mode = ")
-            << noteEditorMode);
+    QNDEBUG("MainWindow::createNewNote: note editor mode = " << noteEditorMode);
 
     if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
-        QNDEBUG(QStringLiteral("No note editor tabs and windows coordinator, "
-                               "probably the button was pressed too quickly on "
-                               "startup, skipping"));
+        QNDEBUG("No note editor tabs and windows coordinator, "
+                "probably the button was pressed too quickly on "
+                "startup, skipping");
         return;
     }
 
@@ -946,10 +949,10 @@ void MainWindow::createNewNote(
 
 void MainWindow::connectSynchronizationManager()
 {
-    QNDEBUG(QStringLiteral("MainWindow::connectSynchronizationManager"));
+    QNDEBUG("MainWindow::connectSynchronizationManager");
 
     if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-        QNDEBUG(QStringLiteral("No synchronization manager"));
+        QNDEBUG("No synchronization manager");
         return;
     }
 
@@ -1074,10 +1077,10 @@ void MainWindow::connectSynchronizationManager()
 
 void MainWindow::disconnectSynchronizationManager()
 {
-    QNDEBUG(QStringLiteral("MainWindow::disconnectSynchronizationManager"));
+    QNDEBUG("MainWindow::disconnectSynchronizationManager");
 
     if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-        QNDEBUG(QStringLiteral("No synchronization manager"));
+        QNDEBUG("No synchronization manager");
         return;
     }
 
@@ -1194,7 +1197,7 @@ void MainWindow::disconnectSynchronizationManager()
 
 void MainWindow::startSyncButtonAnimation()
 {
-    QNDEBUG(QStringLiteral("MainWindow::startSyncButtonAnimation"));
+    QNDEBUG("MainWindow::startSyncButtonAnimation");
 
     QObject::disconnect(&m_animatedSyncButtonIcon,
                         QNSIGNAL(QMovie,frameChanged,int),
@@ -1218,7 +1221,7 @@ void MainWindow::startSyncButtonAnimation()
 
 void MainWindow::stopSyncButtonAnimation()
 {
-    QNDEBUG(QStringLiteral("MainWindow::stopSyncButtonAnimation"));
+    QNDEBUG("MainWindow::stopSyncButtonAnimation");
 
     if (m_animatedSyncButtonIcon.loopCount() != -1) {
         QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
@@ -1238,7 +1241,7 @@ void MainWindow::stopSyncButtonAnimation()
 
 void MainWindow::scheduleSyncButtonAnimationStop()
 {
-    QNDEBUG(QStringLiteral("MainWindow::scheduleSyncButtonAnimationStop"));
+    QNDEBUG("MainWindow::scheduleSyncButtonAnimationStop");
 
     if (m_animatedSyncButtonIcon.state() != QMovie::Running) {
         stopSyncButtonAnimation();
@@ -1262,7 +1265,7 @@ void MainWindow::scheduleSyncButtonAnimationStop()
 
 void MainWindow::startListeningForSplitterMoves()
 {
-    QNDEBUG(QStringLiteral("MainWindow::startListeningForSplitterMoves"));
+    QNDEBUG("MainWindow::startListeningForSplitterMoves");
 
     QObject::connect(m_pUI->splitter,
                      QNSIGNAL(QSplitter,splitterMoved,int,int),
@@ -1278,7 +1281,7 @@ void MainWindow::startListeningForSplitterMoves()
 
 void MainWindow::stopListeningForSplitterMoves()
 {
-    QNDEBUG(QStringLiteral("MainWindow::stopListeningForSplitterMoves"));
+    QNDEBUG("MainWindow::stopListeningForSplitterMoves");
 
     QObject::disconnect(m_pUI->splitter,
                         QNSIGNAL(QSplitter,splitterMoved,int,int),
@@ -1292,7 +1295,7 @@ void MainWindow::stopListeningForSplitterMoves()
 
 void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
 {
-    QNDEBUG(QStringLiteral("MainWindow::persistChosenIconTheme: ") << iconThemeName);
+    QNDEBUG("MainWindow::persistChosenIconTheme: " << iconThemeName);
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
@@ -1302,7 +1305,7 @@ void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
 
 void MainWindow::refreshChildWidgetsThemeIcons()
 {
-    QNDEBUG(QStringLiteral("MainWindow::refreshChildWidgetsThemeIcons"));
+    QNDEBUG("MainWindow::refreshChildWidgetsThemeIcons");
 
     refreshThemeIcons<QAction>();
     refreshThemeIcons<QPushButton>();
@@ -1315,7 +1318,7 @@ void MainWindow::refreshChildWidgetsThemeIcons()
 
 void MainWindow::refreshNoteEditorWidgetsSpecialIcons()
 {
-    QNDEBUG(QStringLiteral("MainWindow::refreshNoteEditorWidgetsSpecialIcons"));
+    QNDEBUG("MainWindow::refreshNoteEditorWidgetsSpecialIcons");
 
     if (m_pNoteEditorTabsAndWindowsCoordinator) {
         m_pNoteEditorTabsAndWindowsCoordinator->refreshNoteEditorWidgetsSpecialIcons();
@@ -1325,8 +1328,7 @@ void MainWindow::refreshNoteEditorWidgetsSpecialIcons()
 void MainWindow::showHideViewColumnsForAccountType(
     const Account::Type::type accountType)
 {
-    QNDEBUG(QStringLiteral("MainWindow::showHideViewColumnsForAccountType: ")
-            << accountType);
+    QNDEBUG("MainWindow::showHideViewColumnsForAccountType: " << accountType);
 
     bool isLocal = (accountType == Account::Type::Local);
 
@@ -1347,7 +1349,7 @@ void MainWindow::showHideViewColumnsForAccountType(
 
 void MainWindow::expandFiltersView()
 {
-    QNDEBUG(QStringLiteral("MainWindow::expandFiltersView"));
+    QNDEBUG("MainWindow::expandFiltersView");
 
     m_pUI->filtersViewTogglePushButton->setIcon(
         QIcon::fromTheme(QStringLiteral("go-down")));
@@ -1358,7 +1360,7 @@ void MainWindow::expandFiltersView()
 
 void MainWindow::foldFiltersView()
 {
-    QNDEBUG(QStringLiteral("MainWindow::foldFiltersView"));
+    QNDEBUG("MainWindow::foldFiltersView");
 
     m_pUI->filtersViewTogglePushButton->setIcon(
         QIcon::fromTheme(QStringLiteral("go-next")));
@@ -1372,7 +1374,7 @@ void MainWindow::foldFiltersView()
 
 void MainWindow::adjustNoteListAndFiltersSplitterSizes()
 {
-    QNDEBUG(QStringLiteral("MainWindow::adjustNoteListAndFiltersSplitterSizes"));
+    QNDEBUG("MainWindow::adjustNoteListAndFiltersSplitterSizes");
 
     QList<int> splitterSizes = m_pUI->noteListAndFiltersSplitter->sizes();
     int count = splitterSizes.count();
@@ -1381,7 +1383,7 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
         ErrorString error(QT_TR_NOOP("Internal error: can't properly resize "
                                      "the splitter after folding the filter view: "
                                      "wrong number of sizes within the splitter"));
-        QNWARNING(error << QStringLiteral("Sizes count: ") << count);
+        QNWARNING(error << "Sizes count: " << count);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return;
     }
@@ -1415,7 +1417,7 @@ void MainWindow::clearDir(const QString & path)
 
 void MainWindow::collectBaseStyleSheets()
 {
-    QNDEBUG(QStringLiteral("MainWindow::collectBaseStyleSheets"));
+    QNDEBUG("MainWindow::collectBaseStyleSheets");
 
     QList<QWidget*> childWidgets = findChildren<QWidget*>();
     for(auto it = childWidgets.constBegin(),
@@ -1439,7 +1441,7 @@ void MainWindow::collectBaseStyleSheets()
 
 void MainWindow::setupPanelOverlayStyleSheets()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupPanelOverlayStyleSheets"));
+    QNDEBUG("MainWindow::setupPanelOverlayStyleSheets");
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
@@ -1447,7 +1449,7 @@ void MainWindow::setupPanelOverlayStyleSheets()
     appSettings.endGroup();
 
     if (panelStyle.isEmpty()) {
-        QNDEBUG(QStringLiteral("No last chosen panel style"));
+        QNDEBUG("No last chosen panel style");
         return;
     }
 
@@ -1466,8 +1468,8 @@ void MainWindow::setupPanelOverlayStyleSheets()
     setPanelsOverlayStyleSheet(properties);
 }
 
-void MainWindow::getPanelStyleSheetProperties(const QString & panelStyleOption,
-                                              StyleSheetProperties & properties) const
+void MainWindow::getPanelStyleSheetProperties(
+    const QString & panelStyleOption, StyleSheetProperties & properties) const
 {
     properties.clear();
     properties.reserve(4);
@@ -1505,8 +1507,7 @@ void MainWindow::getPanelStyleSheetProperties(const QString & panelStyleOption,
     }
     else
     {
-        QNDEBUG(QStringLiteral("Unidentified panel style name: ")
-                << panelStyleOption);
+        QNDEBUG("Unidentified panel style name: " << panelStyleOption);
         return;
     }
 
@@ -1538,7 +1539,8 @@ void MainWindow::getPanelStyleSheetProperties(const QString & panelStyleOption,
     return;
 }
 
-void MainWindow::setPanelsOverlayStyleSheet(const StyleSheetProperties & properties)
+void MainWindow::setPanelsOverlayStyleSheet(
+    const StyleSheetProperties & properties)
 {
     for(auto it = m_styleSheetInfo.begin(); it != m_styleSheetInfo.end(); )
     {
@@ -1573,22 +1575,22 @@ void MainWindow::setPanelsOverlayStyleSheet(const StyleSheetProperties & propert
     }
 }
 
-QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
-                                    const StyleSheetProperties & properties)
+QString MainWindow::alterStyleSheet(
+    const QString & originalStyleSheet, const StyleSheetProperties & properties)
 {
-    QNDEBUG(QStringLiteral("MainWindow::alterStyleSheet: original stylesheet = ")
+    QNDEBUG("MainWindow::alterStyleSheet: original stylesheet = "
             << originalStyleSheet);
 
     QString result = originalStyleSheet;
 
-#define REPORT_ERROR() \
-    ErrorString errorDescription(QT_TR_NOOP("Can't alter the stylesheet: "\
-                                            "stylesheet parsing failed")); \
-    QNINFO(errorDescription << QStringLiteral(", original stylesheet: ") \
-           << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ") \
-           << result << QStringLiteral(", property index = ") \
-           << propertyIndex); \
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30))
+#define REPORT_ERROR()                                                         \
+    ErrorString errorDescription(QT_TR_NOOP("Can't alter the stylesheet: "     \
+                                            "stylesheet parsing failed"));     \
+    QNINFO(errorDescription << ", original stylesheet: "                       \
+           << originalStyleSheet << ", stylesheet modified so far: "           \
+           << result << ", property index = " << propertyIndex);               \
+    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30))    \
+// REPORT_ERROR
 
     for(auto it = properties.constBegin(),
         end = properties.constEnd(); it != end; ++it)
@@ -1620,18 +1622,16 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
             }
 
             bool error = false;
-            bool insideHover = isInsideStyleBlock(result,
-                                                  QStringLiteral(":hover:!pressed"),
-                                                  propertyIndex, error);
+            bool insideHover = isInsideStyleBlock(
+                result, QStringLiteral(":hover:!pressed"), propertyIndex, error);
             if (Q_UNLIKELY(error)) {
                 REPORT_ERROR();
                 return QString();
             }
 
             error = false;
-            bool insidePressed = isInsideStyleBlock(result,
-                                                    QStringLiteral(":pressed"),
-                                                    propertyIndex, error);
+            bool insidePressed = isInsideStyleBlock(
+                result, QStringLiteral(":pressed"), propertyIndex, error);
             if (Q_UNLIKELY(error)) {
                 REPORT_ERROR();
                 return QString();
@@ -1639,9 +1639,9 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
 
             error = false;
             bool insidePseudoButtonHover =
-                isInsideStyleBlock(result,
-                                   QStringLiteral("pseudoPushButton:hover:!pressed"),
-                                   propertyIndex, error);
+                isInsideStyleBlock(
+                    result, QStringLiteral("pseudoPushButton:hover:!pressed"),
+                    propertyIndex, error);
             if (Q_UNLIKELY(error)) {
                 REPORT_ERROR();
                 return QString();
@@ -1649,43 +1649,42 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
 
             error = false;
             bool insidePseudoButtonPressed =
-                isInsideStyleBlock(result,
-                                   QStringLiteral("pseudoPushButton:hover:pressed"),
-                                   propertyIndex, error);
+                isInsideStyleBlock(
+                    result, QStringLiteral("pseudoPushButton:hover:pressed"),
+                    propertyIndex, error);
             if (Q_UNLIKELY(error)) {
                 REPORT_ERROR();
                 return QString();
             }
 
-            int propertyEndIndex = result.indexOf(QStringLiteral(";"),
-                                                  propertyIndex + 1);
+            int propertyEndIndex =
+                result.indexOf(QStringLiteral(";"), propertyIndex + 1);
             if (Q_UNLIKELY(propertyEndIndex < 0)) {
                 REPORT_ERROR();
                 return QString();
             }
 
-            QString replacement = propertyName + QStringLiteral(": ") +
-                                  property.m_value;
+            QString replacement =
+                propertyName + QStringLiteral(": ") + property.m_value;
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
-#define REPLACE() \
-            QNDEBUG(QStringLiteral("Replacing substring ") \
-                    << result.midRef(propertyIndex, \
-                                     propertyEndIndex - propertyIndex) \
-                    << QStringLiteral(" with ") << replacement); \
-            result.replace(propertyIndex, propertyEndIndex - propertyIndex, \
-                           replacement); \
-            QNDEBUG(QStringLiteral("Stylesheet after the replacement: ") \
-                    << result)
+#define REPLACE()                                                              \
+            QNDEBUG("Replacing substring " << result.midRef(                   \
+                        propertyIndex, propertyEndIndex - propertyIndex)       \
+                    << " with " << replacement);                               \
+            result.replace(propertyIndex, propertyEndIndex - propertyIndex,    \
+                           replacement);                                       \
+            QNDEBUG("Stylesheet after the replacement: " << result)            \
+// REPLACE
 #else
-#define REPLACE() \
-            QNDEBUG(QStringLiteral("Replacing substring ") \
-                    << result.mid(propertyIndex, propertyEndIndex - propertyIndex) \
-                    << QStringLiteral(" with ") << replacement); \
-            result.replace(propertyIndex, propertyEndIndex - propertyIndex, \
-                           replacement); \
-            QNDEBUG(QStringLiteral("Stylesheet after the replacement: ") \
-                    << result)
+#define REPLACE()                                                              \
+            QNDEBUG("Replacing substring " << result.mid(                      \
+                        propertyIndex, propertyEndIndex - propertyIndex)       \
+                    << " with " << replacement);                               \
+            result.replace(propertyIndex, propertyEndIndex - propertyIndex,    \
+                           replacement);                                       \
+            QNDEBUG("Stylesheet after the replacement: " << result)            \
+// REPLACE
 #endif
 
             if (property.m_targetType == StyleSheetProperty::Target::None)
@@ -1723,18 +1722,18 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
         }
     }
 
-    QNDEBUG(QStringLiteral("Altered stylesheet: ") << result);
+    QNDEBUG("Altered stylesheet: " << result);
     return result;
 }
 
-bool MainWindow::isInsideStyleBlock(const QString & styleSheet,
-                                    const QString & styleBlockStartSearchString,
-                                    const int currentIndex, bool & error) const
+bool MainWindow::isInsideStyleBlock(
+    const QString & styleSheet, const QString & styleBlockStartSearchString,
+    const int currentIndex, bool & error) const
 {
     error = false;
 
-    int blockStartIndex = styleSheet.lastIndexOf(styleBlockStartSearchString,
-                                                 currentIndex);
+    int blockStartIndex = styleSheet.lastIndexOf(
+        styleBlockStartSearchString, currentIndex);
     if (blockStartIndex < 0) {
         // No block start before the current index => not inside the style block
         // of this kind
@@ -1753,9 +1752,8 @@ bool MainWindow::isInsideStyleBlock(const QString & styleSheet,
     blockEndIndex = styleSheet.indexOf(QStringLiteral("}"), currentIndex + 1);
     if (Q_UNLIKELY(blockEndIndex < 0))
     {
-        QNDEBUG(QStringLiteral("Can't parse stylesheet: can't find block end ")
-                << QStringLiteral("for style block search string ")
-                << styleBlockStartSearchString);
+        QNDEBUG("Can't parse stylesheet: can't find block end for style block "
+                "search string " << styleBlockStartSearchString);
         error = true;
         return false;
     }
@@ -1768,7 +1766,7 @@ bool MainWindow::isInsideStyleBlock(const QString & styleSheet,
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 void MainWindow::fixupQt4StyleSheets()
 {
-    QNDEBUG(QStringLiteral("MainWindow::fixupQt4StyleSheets"));
+    QNDEBUG("MainWindow::fixupQt4StyleSheets");
 
     QString alternateCentralWidgetStylesheet = QString::fromUtf8(
                 "QSplitter::handle {"
@@ -1846,32 +1844,32 @@ void MainWindow::fixupQt4StyleSheets()
         QStringLiteral("QLabel"));
     if (Q_UNLIKELY(index < 0))
     {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget "
-                               "header panel: no QLabel within the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of note list widget "
+                "header panel: no QLabel within the stylesheet");
         return;
     }
 
     index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
         QStringLiteral("border-right"), index);
     if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget "
-                               "header panel: no border-right property for QLabel "
-                               "within the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of note list widget "
+                "header panel: no border-right property for QLabel "
+                "within the stylesheet");
         return;
     }
 
     int propertyEndIndex = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
         QStringLiteral(";"), index);
     if (Q_UNLIKELY(propertyEndIndex < 0)) {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget "
-                               "header panel: no closing \";\" for border-right "
-                               "property for QLabel within the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of note list widget "
+                "header panel: no closing \";\" for border-right "
+                "property for QLabel within the stylesheet");
         return;
     }
 
     alternateNoteListWidgetHeaderPanelStylesheet.remove(
         index, propertyEndIndex - index + 1);
-    QNDEBUG(QStringLiteral("alternateNoteListWidgetHeaderPanelStylesheet: ")
+    QNDEBUG("alternateNoteListWidgetHeaderPanelStylesheet: "
             << alternateNoteListWidgetHeaderPanelStylesheet);
     m_pUI->noteListWidgetHeaderPanel->setStyleSheet(
         alternateNoteListWidgetHeaderPanelStylesheet);
@@ -1881,9 +1879,9 @@ void MainWindow::fixupQt4StyleSheets()
         m_pUI->favoritesHeaderPanel->styleSheet();
     index = alternativeFavoritesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of favorites header "
-                               "panel: no first closing curly brace found within "
-                               "the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of favorites header "
+                "panel: no first closing curly brace found within "
+                "the stylesheet");
         return;
     }
     alternativeFavoritesHeaderPanelStylesheet.insert(
@@ -1897,9 +1895,9 @@ void MainWindow::fixupQt4StyleSheets()
         m_pUI->notebooksHeaderPanel->styleSheet();
     index = alternativeNotebooksHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of notebooks header "
-                               "panel: no first closing curly brace found within "
-                               "the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of notebooks header "
+                "panel: no first closing curly brace found within "
+                "the stylesheet");
         return;
     }
     alternativeNotebooksHeaderPanelStylesheet.insert(
@@ -1913,9 +1911,9 @@ void MainWindow::fixupQt4StyleSheets()
         m_pUI->tagsHeaderPanel->styleSheet();
     index = alternativeTagsHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of tags header panel: "
-                               "no first closing curly brace found within "
-                               "the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of tags header panel: "
+                "no first closing curly brace found within "
+                "the stylesheet");
         return;
     }
     alternativeTagsHeaderPanelStylesheet.insert(
@@ -1928,9 +1926,9 @@ void MainWindow::fixupQt4StyleSheets()
         m_pUI->savedSearchesHeaderPanel->styleSheet();
     index = alternativeSavedSearchesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of saved searches "
-                               "header panel: no first closing curly brace "
-                               "found within the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of saved searches "
+                "header panel: no first closing curly brace "
+                "found within the stylesheet");
         return;
     }
     alternativeSavedSearchesHeaderPanelStylesheet.insert(
@@ -1944,9 +1942,9 @@ void MainWindow::fixupQt4StyleSheets()
         m_pUI->deletedNotesHeaderPanel->styleSheet();
     index = alternativeDeletedNotesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
     if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of deleted notes "
-                               "header panel: no first closing curly brace "
-                               "found within the stylesheet"));
+        QNDEBUG("Can't fixup the stylesheet of deleted notes "
+                "header panel: no first closing curly brace "
+                "found within the stylesheet");
         return;
     }
     alternativeDeletedNotesHeaderPanelStylesheet.insert(
@@ -1978,18 +1976,17 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
     }
 }
 
-#define DISPATCH_TO_NOTE_EDITOR(MainWindowMethod, NoteEditorMethod) \
-    void MainWindow::MainWindowMethod() \
-    { \
-        QNDEBUG(QStringLiteral("MainWindow::" #MainWindowMethod)); \
-        \
-        NoteEditorWidget * noteEditorWidget = currentNoteEditorTab(); \
-        if (!noteEditorWidget) { \
-            return; \
-        } \
-        \
-        noteEditorWidget->NoteEditorMethod(); \
-    }
+#define DISPATCH_TO_NOTE_EDITOR(MainWindowMethod, NoteEditorMethod)            \
+    void MainWindow::MainWindowMethod()                                        \
+    {                                                                          \
+        QNDEBUG("MainWindow::" #MainWindowMethod);                             \
+        NoteEditorWidget * noteEditorWidget = currentNoteEditorTab();          \
+        if (!noteEditorWidget) {                                               \
+            return;                                                            \
+        }                                                                      \
+        noteEditorWidget->NoteEditorMethod();                                  \
+    }                                                                          \
+// DISPATCH_TO_NOTE_EDITOR
 
 DISPATCH_TO_NOTE_EDITOR(onUndoAction, onUndoAction)
 DISPATCH_TO_NOTE_EDITOR(onRedoAction, onRedoAction)
@@ -2040,25 +2037,25 @@ DISPATCH_TO_NOTE_EDITOR(onReplaceInsideNoteAction, onReplaceInsideNoteAction)
 
 void MainWindow::onImportEnexAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onImportEnexAction"));
+    QNDEBUG("MainWindow::onImportEnexAction");
 
     if (Q_UNLIKELY(!m_pAccount)) {
-        QNDEBUG(QStringLiteral("No current account, skipping"));
+        QNDEBUG("No current account, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
-        QNDEBUG(QStringLiteral("No local storage manager, skipping"));
+        QNDEBUG("No local storage manager, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_pTagModel)) {
-        QNDEBUG(QStringLiteral("No tag model, skipping"));
+        QNDEBUG("No tag model, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_pNotebookModel)) {
-        QNDEBUG(QStringLiteral("No notebook model, skipping"));
+        QNDEBUG("No notebook model, skipping");
         return;
     }
 
@@ -2067,7 +2064,7 @@ void MainWindow::onImportEnexAction()
     pEnexImportDialog->setWindowModality(Qt::WindowModal);
     centerDialog(*pEnexImportDialog);
     if (pEnexImportDialog->exec() != QDialog::Accepted) {
-        QNDEBUG(QStringLiteral("The import of ENEX was cancelled"));
+        QNDEBUG("The import of ENEX was cancelled");
         return;
     }
 
@@ -2082,7 +2079,7 @@ void MainWindow::onImportEnexAction()
                                                 "file path"));
         }
 
-        QNDEBUG(QStringLiteral("Bad ENEX file path: ") << errorDescription);
+        QNDEBUG("Bad ENEX file path: " << errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
@@ -2096,7 +2093,7 @@ void MainWindow::onImportEnexAction()
                                                 "name"));
         }
 
-        QNDEBUG(QStringLiteral("Bad notebook name: ") << errorDescription);
+        QNDEBUG("Bad notebook name: " << errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
         return;
     }
@@ -2118,7 +2115,7 @@ void MainWindow::onImportEnexAction()
 
 void MainWindow::onSynchronizationStarted()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationStarted"));
+    QNDEBUG("MainWindow::onSynchronizationStarted");
 
     onSetStatusBarText(tr("Starting the synchronization") + QStringLiteral("..."));
     m_syncApiRateLimitExceeded = false;
@@ -2128,28 +2125,23 @@ void MainWindow::onSynchronizationStarted()
 
 void MainWindow::onSynchronizationStopped()
 {
-    QNINFO(QStringLiteral("MainWindow::onSynchronizationStopped"));
+    QNINFO("MainWindow::onSynchronizationStopped");
 
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncApiRateLimitExceeded = false;
-    m_syncInProgress = false;
-    scheduleSyncButtonAnimationStop();
 }
 
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
-    QNERROR(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ")
-            << errorDescription);
+    QNERROR("MainWindow::onSynchronizationManagerFailure: " << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
     Q_EMIT stopSynchronization();
 }
 
-void MainWindow::onSynchronizationFinished(Account account,
-                                           bool somethingDownloaded,
-                                           bool somethingSent)
+void MainWindow::onSynchronizationFinished(
+    Account account, bool somethingDownloaded, bool somethingSent)
 {
-    QNINFO(QStringLiteral("MainWindow::onSynchronizationFinished: ")
-           << account.name());
+    QNINFO("MainWindow::onSynchronizationFinished: " << account.name());
 
     if (somethingDownloaded || somethingSent) {
         onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
@@ -2163,26 +2155,19 @@ void MainWindow::onSynchronizationFinished(Account account,
 
     setupRunSyncPeriodicallyTimer();
 
-    QNINFO(QStringLiteral("Synchronization finished for user ") << account.name()
-           << QStringLiteral(", id ") << account.id()
-           << QStringLiteral(", something downloaded = ")
-           << (somethingDownloaded
-               ? QStringLiteral("true")
-               : QStringLiteral("false"))
-           << QStringLiteral(", something sent = ")
-           << (somethingSent
-               ? QStringLiteral("true")
-               : QStringLiteral("false")));
+    QNINFO("Synchronization finished for user " << account.name()
+           << ", id " << account.id() << ", something downloaded = "
+           << (somethingDownloaded ? "true" : "false")
+           << ", something sent = " << (somethingSent ? "true" : "false"));
 }
 
-void MainWindow::onAuthenticationFinished(bool success,
-                                          ErrorString errorDescription,
-                                          Account account)
+void MainWindow::onAuthenticationFinished(
+    bool success, ErrorString errorDescription, Account account)
 {
-    QNINFO(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
-           << (success ? QStringLiteral("true") : QStringLiteral("false"))
-           << QStringLiteral(", error description = ") << errorDescription
-           << QStringLiteral(", account = ") << account.name());
+    QNINFO("MainWindow::onAuthenticationFinished: success = "
+           << (success ? "true" : "false")
+           << ", error description = " << errorDescription
+           << ", account = " << account.name());
 
     bool wasPendingNewEvernoteAccountAuthentication =
         m_pendingNewEvernoteAccountAuthentication;
@@ -2225,14 +2210,13 @@ void MainWindow::onAuthenticationFinished(bool success,
     }
 }
 
-void MainWindow::onAuthenticationRevoked(bool success,
-                                         ErrorString errorDescription,
-                                         qevercloud::UserID userId)
+void MainWindow::onAuthenticationRevoked(
+    bool success, ErrorString errorDescription, qevercloud::UserID userId)
 {
-    QNINFO(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
-           << (success ? QStringLiteral("true") : QStringLiteral("false"))
-           << QStringLiteral(", error description = ") << errorDescription
-           << QStringLiteral(", user id = ") << userId);
+    QNINFO("MainWindow::onAuthenticationRevoked: success = "
+           << (success ? "true" : "false")
+           << ", error description = " << errorDescription
+           << ", user id = " << userId);
 
     if (!success) {
         onSetStatusBarText(tr("Couldn't revoke the authentication") +
@@ -2241,12 +2225,12 @@ void MainWindow::onAuthenticationRevoked(bool success,
         return;
     }
 
-    QNINFO(QStringLiteral("Revoked authentication for user with id ") << userId);
+    QNINFO("Revoked authentication for user with id " << userId);
 }
 
 void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 {
-    QNINFO(QStringLiteral("MainWindow::onRateLimitExceeded: seconds to wait = ")
+    QNINFO("MainWindow::onRateLimitExceeded: seconds to wait = "
            << secondsToWait);
 
     qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
@@ -2269,9 +2253,9 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 
     m_animatedSyncButtonIcon.setPaused(true);
 
-    QNINFO(QStringLiteral("Evernote API rate limit exceeded, need to wait for ")
+    QNINFO("Evernote API rate limit exceeded, need to wait for "
            << secondsToWait
-           << QStringLiteral(" seconds, the synchronization will continue at ")
+           << " seconds, the synchronization will continue at "
            << dateTimeToShow);
 
     m_syncApiRateLimitExceeded = true;
@@ -2279,12 +2263,12 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 
 void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 {
-    QNTRACE(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
+    QNTRACE("MainWindow::onRemoteToLocalSyncDone");
 
-    QNINFO(QStringLiteral("Remote to local sync done: ")
+    QNINFO("Remote to local sync done: "
            << (somethingDownloaded
-               ? QStringLiteral("received all updates from Evernote")
-               : QStringLiteral("no updates found on Evernote side")));
+               ? "received all updates from Evernote"
+               : "no updates found on Evernote side"));
 
     if (somethingDownloaded) {
         onSetStatusBarText(tr("Received all updates from Evernote servers, "
@@ -2296,23 +2280,23 @@ void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
     }
 }
 
-void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn,
-                                              qint32 highestServerUsn,
-                                              qint32 lastPreviousUsn)
+void MainWindow::onSyncChunksDownloadProgress(
+    qint32 highestDownloadedUsn, qint32 highestServerUsn,
+    qint32 lastPreviousUsn)
 {
-    QNINFO(QStringLiteral("MainWindow::onSyncChunksDownloadProgress: ")
-           << QStringLiteral("highest downloaded USN = ")
-           << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
-           << highestServerUsn << QStringLiteral(", last previous USN = ")
+    QNINFO("MainWindow::onSyncChunksDownloadProgress: "
+           << "highest downloaded USN = "
+           << highestDownloadedUsn << ", highest server USN = "
+           << highestServerUsn << ", last previous USN = "
            << lastPreviousUsn);
 
     if (Q_UNLIKELY((highestServerUsn <= lastPreviousUsn) ||
                    (highestDownloadedUsn <= lastPreviousUsn)))
     {
-        QNWARNING(QStringLiteral("Received incorrect sync chunks download progress ")
-                  << QStringLiteral("state: highest downloaded USN = ")
-                  << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
-                  << highestServerUsn << QStringLiteral(", last previous USN = ")
+        QNWARNING("Received incorrect sync chunks download progress "
+                  << "state: highest downloaded USN = "
+                  << highestDownloadedUsn << ", highest server USN = "
+                  << highestServerUsn << ", last previous USN = "
                   << lastPreviousUsn);
         return;
     }
@@ -2329,16 +2313,16 @@ void MainWindow::onSyncChunksDownloadProgress(qint32 highestDownloadedUsn,
 
 void MainWindow::onSyncChunksDownloaded()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSyncChunksDownloaded"));
+    QNDEBUG("MainWindow::onSyncChunksDownloaded");
     onSetStatusBarText(tr("Downloaded sync chunks, parsing tags, notebooks and "
                           "saved searches from them") + QStringLiteral("..."));
 }
 
-void MainWindow::onNotesDownloadProgress(quint32 notesDownloaded,
-                                         quint32 totalNotesToDownload)
+void MainWindow::onNotesDownloadProgress(
+    quint32 notesDownloaded, quint32 totalNotesToDownload)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNotesDownloadProgress: notes downloaded = ")
-            << notesDownloaded << QStringLiteral(", total notes to download = ")
+    QNDEBUG("MainWindow::onNotesDownloadProgress: notes downloaded = "
+            << notesDownloaded << ", total notes to download = "
             << totalNotesToDownload);
 
     onSetStatusBarText(tr("Downloading notes") + QStringLiteral(": ") +
@@ -2347,13 +2331,12 @@ void MainWindow::onNotesDownloadProgress(quint32 notesDownloaded,
                        QString::number(totalNotesToDownload));
 }
 
-void MainWindow::onResourcesDownloadProgress(quint32 resourcesDownloaded,
-                                             quint32 totalResourcesToDownload)
+void MainWindow::onResourcesDownloadProgress(
+    quint32 resourcesDownloaded, quint32 totalResourcesToDownload)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onResourcesDownloadProgress: ")
-            << QStringLiteral("resources downloaded = ") << resourcesDownloaded
-            << QStringLiteral(", total resources to download = ")
-            << totalResourcesToDownload);
+    QNDEBUG("MainWindow::onResourcesDownloadProgress: "
+            << "resources downloaded = " << resourcesDownloaded
+            << ", total resources to download = " << totalResourcesToDownload);
 
     onSetStatusBarText(tr("Downloading attachments") + QStringLiteral(": ") +
                        QString::number(resourcesDownloaded) + QStringLiteral(" ") +
@@ -2365,20 +2348,20 @@ void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(
     qint32 highestDownloadedUsn, qint32 highestServerUsn,
     qint32 lastPreviousUsn, LinkedNotebook linkedNotebook)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onLinkedNotebookSyncChunksDownloadProgress: ")
-            << QStringLiteral("highest downloaded USN = ") << highestDownloadedUsn
-            << QStringLiteral(", highest server USN = ") << highestServerUsn
-            << QStringLiteral(", last previous USN = ") << lastPreviousUsn
-            << QStringLiteral(", linked notebook = ") << linkedNotebook);
+    QNDEBUG("MainWindow::onLinkedNotebookSyncChunksDownloadProgress: "
+            << "highest downloaded USN = " << highestDownloadedUsn
+            << ", highest server USN = " << highestServerUsn
+            << ", last previous USN = " << lastPreviousUsn
+            << ", linked notebook = " << linkedNotebook);
 
     if (Q_UNLIKELY((highestServerUsn <= lastPreviousUsn) ||
                    (highestDownloadedUsn <= lastPreviousUsn)))
     {
-        QNWARNING(QStringLiteral("Received incorrect sync chunks download progress ")
-                  << QStringLiteral("state: highest downloaded USN = ")
-                  << highestDownloadedUsn << QStringLiteral(", highest server USN = ")
-                  << highestServerUsn << QStringLiteral(", last previous USN = ")
-                  << lastPreviousUsn << QStringLiteral(", linked notebook: ")
+        QNWARNING("Received incorrect sync chunks download progress "
+                  << "state: highest downloaded USN = "
+                  << highestDownloadedUsn << ", highest server USN = "
+                  << highestServerUsn << ", last previous USN = "
+                  << lastPreviousUsn << ", linked notebook: "
                   << linkedNotebook);
         return;
     }
@@ -2405,16 +2388,16 @@ void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(
 
 void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onLinkedNotebooksSyncChunksDownloaded"));
+    QNDEBUG("MainWindow::onLinkedNotebooksSyncChunksDownloaded");
     onSetStatusBarText(tr("Downloaded the sync chunks from linked notebooks"));
 }
 
-void MainWindow::onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded,
-                                                        quint32 totalNotesToDownload)
+void MainWindow::onLinkedNotebooksNotesDownloadProgress(
+    quint32 notesDownloaded, quint32 totalNotesToDownload)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onLinkedNotebooksNotesDownloadProgress: ")
-            << QStringLiteral("notes downloaded = ") << notesDownloaded
-            << QStringLiteral(", total notes to download = ") << totalNotesToDownload);
+    QNDEBUG("MainWindow::onLinkedNotebooksNotesDownloadProgress: "
+            << "notes downloaded = " << notesDownloaded
+            << ", total notes to download = " << totalNotesToDownload);
 
     onSetStatusBarText(tr("Downloading notes from linked notebooks") +
                        QStringLiteral(": ") + QString::number(notesDownloaded) +
@@ -2424,24 +2407,23 @@ void MainWindow::onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded,
 
 void MainWindow::onRemoteToLocalSyncStopped()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncStopped"));
+    QNDEBUG("MainWindow::onRemoteToLocalSyncStopped");
     onSynchronizationStopped();
 }
 
 void MainWindow::onSendLocalChangesStopped()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSendLocalChangesStopped"));
+    QNDEBUG("MainWindow::onSendLocalChangesStopped");
     onSynchronizationStopped();
 }
 
-void MainWindow::onEvernoteAccountAuthenticationRequested(QString host,
-                                                          QNetworkProxy proxy)
+void MainWindow::onEvernoteAccountAuthenticationRequested(
+    QString host, QNetworkProxy proxy)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onEvernoteAccountAuthenticationRequested: ")
-            << QStringLiteral("host = ") << host << QStringLiteral(", proxy type = ")
-            << proxy.type() << QStringLiteral(", proxy host = ") << proxy.hostName()
-            << QStringLiteral(", proxy port = ") << proxy.port()
-            << QStringLiteral(", proxy user = ") << proxy.user());
+    QNDEBUG("MainWindow::onEvernoteAccountAuthenticationRequested: host = "
+            << host << ", proxy type = " << proxy.type() << ", proxy host = "
+            << proxy.hostName() << ", proxy port = " << proxy.port()
+            << ", proxy user = " << proxy.user());
 
     m_synchronizationManagerHost = host;
     setupSynchronizationManager();
@@ -2459,7 +2441,7 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(QString host,
 
 void MainWindow::onNoteTextSpellCheckToggled()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNoteTextSpellCheckToggled"));
+    QNDEBUG("MainWindow::onNoteTextSpellCheckToggled");
 
     NoteEditorWidget * noteEditorWidget = currentNoteEditorTab();
     if (!noteEditorWidget) {
@@ -2476,7 +2458,7 @@ void MainWindow::onNoteTextSpellCheckToggled()
 
 void MainWindow::onShowNoteSource()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowNoteSource"));
+    QNDEBUG("MainWindow::onShowNoteSource");
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
@@ -2493,7 +2475,7 @@ void MainWindow::onShowNoteSource()
 
 void MainWindow::onSaveNoteAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSaveNoteAction"));
+    QNDEBUG("MainWindow::onSaveNoteAction");
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
@@ -2505,7 +2487,7 @@ void MainWindow::onSaveNoteAction()
 
 void MainWindow::onNewNotebookCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNewNotebookCreationRequested"));
+    QNDEBUG("MainWindow::onNewNotebookCreationRequested");
 
     if (Q_UNLIKELY(!m_pNotebookModel)) {
         ErrorString error(QT_TR_NOOP("Can't create a new notebook: no notebook "
@@ -2524,13 +2506,13 @@ void MainWindow::onNewNotebookCreationRequested()
 
 void MainWindow::onRemoveNotebookButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRemoveNotebookButtonPressed"));
+    QNDEBUG("MainWindow::onRemoveNotebookButtonPressed");
     m_pUI->notebooksTreeView->deleteSelectedItem();
 }
 
 void MainWindow::onNotebookInfoButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNotebookInfoButtonPressed"));
+    QNDEBUG("MainWindow::onNotebookInfoButtonPressed");
 
     QModelIndex index = m_pUI->notebooksTreeView->currentlySelectedItemIndex();
     NotebookModelItemInfoWidget * pNotebookModelItemInfoWidget =
@@ -2540,7 +2522,7 @@ void MainWindow::onNotebookInfoButtonPressed()
 
 void MainWindow::onNewTagCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNewTagCreationRequested"));
+    QNDEBUG("MainWindow::onNewTagCreationRequested");
 
     if (Q_UNLIKELY(!m_pTagModel)) {
         ErrorString error(QT_TR_NOOP("Can't create a new tag: no tag model is set up"));
@@ -2558,13 +2540,13 @@ void MainWindow::onNewTagCreationRequested()
 
 void MainWindow::onRemoveTagButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRemoveTagButtonPressed"));
+    QNDEBUG("MainWindow::onRemoveTagButtonPressed");
     m_pUI->tagsTreeView->deleteSelectedItem();
 }
 
 void MainWindow::onTagInfoButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onTagInfoButtonPressed"));
+    QNDEBUG("MainWindow::onTagInfoButtonPressed");
 
     QModelIndex index = m_pUI->tagsTreeView->currentlySelectedItemIndex();
     TagModelItemInfoWidget * pTagModelItemInfoWidget =
@@ -2574,7 +2556,7 @@ void MainWindow::onTagInfoButtonPressed()
 
 void MainWindow::onNewSavedSearchCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNewSavedSearchCreationRequested"));
+    QNDEBUG("MainWindow::onNewSavedSearchCreationRequested");
 
     if (Q_UNLIKELY(!m_pSavedSearchModel)) {
         ErrorString error(QT_TR_NOOP("Can't create a new saved search: no saved "
@@ -2593,13 +2575,13 @@ void MainWindow::onNewSavedSearchCreationRequested()
 
 void MainWindow::onRemoveSavedSearchButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRemoveSavedSearchButtonPressed"));
+    QNDEBUG("MainWindow::onRemoveSavedSearchButtonPressed");
     m_pUI->savedSearchesTableView->deleteSelectedItem();
 }
 
 void MainWindow::onSavedSearchInfoButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSavedSearchInfoButtonPressed"));
+    QNDEBUG("MainWindow::onSavedSearchInfoButtonPressed");
 
     QModelIndex index = m_pUI->savedSearchesTableView->currentlySelectedItemIndex();
     SavedSearchModelItemInfoWidget * pSavedSearchModelItemInfoWidget =
@@ -2609,13 +2591,13 @@ void MainWindow::onSavedSearchInfoButtonPressed()
 
 void MainWindow::onUnfavoriteItemButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onUnfavoriteItemButtonPressed"));
+    QNDEBUG("MainWindow::onUnfavoriteItemButtonPressed");
     m_pUI->favoritesTableView->deleteSelectedItems();
 }
 
 void MainWindow::onFavoritedItemInfoButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onFavoritedItemInfoButtonPressed"));
+    QNDEBUG("MainWindow::onFavoritedItemInfoButtonPressed");
     QModelIndex index = m_pUI->favoritesTableView->currentlySelectedItemIndex();
     if (!index.isValid()) {
         Q_UNUSED(informationMessageBox(this,
@@ -2713,19 +2695,19 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
 
 void MainWindow::onRestoreDeletedNoteButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRestoreDeletedNoteButtonPressed"));
+    QNDEBUG("MainWindow::onRestoreDeletedNoteButtonPressed");
     m_pUI->deletedNotesTableView->restoreCurrentlySelectedNote();
 }
 
 void MainWindow::onDeleteNotePermanentlyButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onDeleteNotePermanentlyButtonPressed"));
+    QNDEBUG("MainWindow::onDeleteNotePermanentlyButtonPressed");
     m_pUI->deletedNotesTableView->deleteCurrentlySelectedNotePermanently();
 }
 
 void MainWindow::onDeletedNoteInfoButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onDeletedNoteInfoButtonPressed"));
+    QNDEBUG("MainWindow::onDeletedNoteInfoButtonPressed");
     m_pUI->deletedNotesTableView->showCurrentlySelectedNoteInfo();
 }
 
@@ -2742,7 +2724,7 @@ void MainWindow::showInfoWidget(QWidget * pWidget)
 
 void MainWindow::onFiltersViewTogglePushButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onFiltersViewTogglePushButtonPressed"));
+    QNDEBUG("MainWindow::onFiltersViewTogglePushButtonPressed");
 
     m_filtersViewExpanded = !m_filtersViewExpanded;
 
@@ -2761,13 +2743,12 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
 
 void MainWindow::onShowPreferencesDialogAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowPreferencesDialogAction"));
+    QNDEBUG("MainWindow::onShowPreferencesDialogAction");
 
     PreferencesDialog * pExistingPreferencesDialog =
         findChild<PreferencesDialog*>();
     if (pExistingPreferencesDialog) {
-        QNDEBUG(QStringLiteral("Preferences dialog already exists, won't show "
-                               "another one"));
+        QNDEBUG("Preferences dialog already exists, won't show another one");
         return;
     }
 
@@ -2856,13 +2837,12 @@ void MainWindow::onShowPreferencesDialogAction()
 
 void MainWindow::onNoteSortingModeChanged(int index)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNoteSortingModeChanged: index = ")
-            << index);
+    QNDEBUG("MainWindow::onNoteSortingModeChanged: index = " << index);
 
     persistChosenNoteSortingMode(index);
 
     if (Q_UNLIKELY(!m_pNoteModel)) {
-        QNDEBUG(QStringLiteral("No note model, ignoring the change"));
+        QNDEBUG("No note model, ignoring the change");
         return;
     }
 
@@ -2900,7 +2880,7 @@ void MainWindow::onNoteSortingModeChanged(int index)
         {
             ErrorString error(QT_TR_NOOP("Internal error: got unknown note "
                                          "sorting order, fallback to the default"));
-            QNWARNING(error << QStringLiteral(", sorting mode index = ") << index);
+            QNWARNING(error << ", sorting mode index = " << index);
             onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
 
             m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp,
@@ -2912,14 +2892,14 @@ void MainWindow::onNoteSortingModeChanged(int index)
 
 void MainWindow::onNewNoteCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNewNoteCreationRequested"));
+    QNDEBUG("MainWindow::onNewNoteCreationRequested");
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
 void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onToggleThumbnailsPreference: ")
-            << QStringLiteral("note local uid=") << noteLocalUid);
+    QNDEBUG("MainWindow::onToggleThumbnailsPreference: note local uid = "
+            << noteLocalUid);
     bool toggleForAllNotes = noteLocalUid.isEmpty();
     if (toggleForAllNotes) {
         toggleShowNoteThumbnails();
@@ -2931,42 +2911,40 @@ void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
     onShowNoteThumbnailsPreferenceChanged();
 }
 
-void MainWindow::onCopyInAppLinkNoteRequested(QString noteLocalUid,
-                                              QString noteGuid)
+void MainWindow::onCopyInAppLinkNoteRequested(
+    QString noteLocalUid, QString noteGuid)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCopyInAppLinkNoteRequested: ")
-            << QStringLiteral("note local uid = ") << noteLocalUid
-            << QStringLiteral(", note guid = ") << noteGuid);
+    QNDEBUG("MainWindow::onCopyInAppLinkNoteRequested: "
+            << "note local uid = " << noteLocalUid
+            << ", note guid = " << noteGuid);
 
     if (noteGuid.isEmpty()) {
-        QNDEBUG(QStringLiteral("Can't copy the in-app note link: note guid "
-                               "is empty"));
+        QNDEBUG("Can't copy the in-app note link: note guid is empty");
         return;
     }
 
     if (Q_UNLIKELY(m_pAccount.isNull())) {
-        QNDEBUG(QStringLiteral("Can't copy the in-app note link: no current "
-                               "account"));
+        QNDEBUG("Can't copy the in-app note link: no current account");
         return;
     }
 
     if (Q_UNLIKELY(m_pAccount->type() != Account::Type::Evernote)) {
-        QNDEBUG(QStringLiteral("Can't copy the in-app note link: the current "
-                               "account is not of Evernote type"));
+        QNDEBUG("Can't copy the in-app note link: the current "
+                "account is not of Evernote type");
         return;
     }
 
     qevercloud::UserID id = m_pAccount->id();
     if (Q_UNLIKELY(id < 0)) {
-        QNDEBUG(QStringLiteral("Can't copy the in-app note link: the current "
-                               "account's id is negative"));
+        QNDEBUG("Can't copy the in-app note link: the current "
+                "account's id is negative");
         return;
     }
 
     QString shardId = m_pAccount->shardId();
     if (shardId.isEmpty()) {
-        QNDEBUG(QStringLiteral("Can't copy the in-app note link: the current "
-                               "account's shard id is empty"));
+        QNDEBUG("Can't copy the in-app note link: the current "
+                "account's shard id is empty");
         return;
     }
 
@@ -2976,23 +2954,21 @@ void MainWindow::onCopyInAppLinkNoteRequested(QString noteLocalUid,
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard) {
-        QNTRACE(QStringLiteral("Setting the composed in-app note URL ")
-                << QStringLiteral("to the clipboard: ") << urlString);
+        QNTRACE("Setting the composed in-app note URL to the clipboard: "
+                << urlString);
         pClipboard->setText(urlString);
     }
 }
 
 void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteInListChanged: ")
-            << noteLocalUid);
+    QNDEBUG("MainWindow::onCurrentNoteInListChanged: " << noteLocalUid);
     m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid);
 }
 
 void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onOpenNoteInSeparateWindow: ")
-            << noteLocalUid);
+    QNDEBUG("MainWindow::onOpenNoteInSeparateWindow: " << noteLocalUid);
     m_pNoteEditorTabsAndWindowsCoordinator->addNote(
         noteLocalUid,
         NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Window);
@@ -3000,7 +2976,7 @@ void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
 
 void MainWindow::onDeleteCurrentNoteButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onDeleteCurrentNoteButtonPressed"));
+    QNDEBUG("MainWindow::onDeleteCurrentNoteButtonPressed");
 
     if (Q_UNLIKELY(!m_pNoteModel)) {
         ErrorString errorDescription(QT_TR_NOOP("Can't delete the current note: "
@@ -3034,7 +3010,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
 
 void MainWindow::onCurrentNoteInfoRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteInfoRequested"));
+    QNDEBUG("MainWindow::onCurrentNoteInfoRequested");
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
@@ -3050,7 +3026,7 @@ void MainWindow::onCurrentNoteInfoRequested()
 
 void MainWindow::onCurrentNotePrintRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCurrentNotePrintRequested"));
+    QNDEBUG("MainWindow::onCurrentNotePrintRequested");
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
@@ -3076,7 +3052,7 @@ void MainWindow::onCurrentNotePrintRequested()
 
 void MainWindow::onCurrentNotePdfExportRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCurrentNotePdfExportRequested"));
+    QNDEBUG("MainWindow::onCurrentNotePdfExportRequested");
 
     NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
@@ -3102,32 +3078,31 @@ void MainWindow::onCurrentNotePdfExportRequested()
 
 void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onExportNotesToEnexRequested: ")
+    QNDEBUG("MainWindow::onExportNotesToEnexRequested: "
             << noteLocalUids.join(QStringLiteral(", ")));
 
     if (Q_UNLIKELY(noteLocalUids.isEmpty())) {
-        QNDEBUG(QStringLiteral("The list of note local uids to export is empty"));
+        QNDEBUG("The list of note local uids to export is empty");
         return;
     }
 
     if (Q_UNLIKELY(!m_pAccount)) {
-        QNDEBUG(QStringLiteral("No current account, skipping"));
+        QNDEBUG("No current account, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
-        QNDEBUG(QStringLiteral("No local storage manager, skipping"));
+        QNDEBUG("No local storage manager, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
-        QNDEBUG(QStringLiteral("No note editor tabs and windows coordinator, "
-                               "skipping"));
+        QNDEBUG("No note editor tabs and windows coordinator, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_pTagModel)) {
-        QNDEBUG(QStringLiteral("No tag model, skipping"));
+        QNDEBUG("No tag model, skipping");
         return;
     }
 
@@ -3146,7 +3121,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
     pExportEnexDialog->setWindowModality(Qt::WindowModal);
     centerDialog(*pExportEnexDialog);
     if (pExportEnexDialog->exec() != QDialog::Accepted) {
-        QNDEBUG(QStringLiteral("Enex export was not confirmed"));
+        QNDEBUG("Enex export was not confirmed");
         return;
     }
 
@@ -3156,8 +3131,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
     if (enexFileInfo.exists())
     {
         if (!enexFileInfo.isWritable()) {
-            QNINFO(QStringLiteral("Chosen ENEX export file is not writable: ")
-                   << enexFilePath);
+            QNINFO("Chosen ENEX export file is not writable: " << enexFilePath);
             onSetStatusBarText(tr("The file selected for ENEX export is not writable") +
                                QStringLiteral(": ") + enexFilePath);
             return;
@@ -3170,8 +3144,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
         {
             bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
             if (!res) {
-                QNDEBUG(QStringLiteral("Failed to create the folder for "
-                                       "the selected ENEX file"));
+                QNDEBUG("Failed to create folder for the selected ENEX file");
                 onSetStatusBarText(tr("Could not create the folder for "
                                       "the selected ENEX file") +
                                    QStringLiteral(": ") + enexFilePath,
@@ -3181,9 +3154,9 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
         }
     }
 
-    EnexExporter * pExporter = new EnexExporter(*m_pLocalStorageManagerAsync,
-                                                *m_pNoteEditorTabsAndWindowsCoordinator,
-                                                *m_pTagModel, this);
+    EnexExporter * pExporter = new EnexExporter(
+        *m_pLocalStorageManagerAsync, *m_pNoteEditorTabsAndWindowsCoordinator,
+        *m_pTagModel, this);
     pExporter->setTargetEnexFilePath(enexFilePath);
     pExporter->setIncludeTags(pExportEnexDialog->exportTags());
     pExporter->setNoteLocalUids(noteLocalUids);
@@ -3201,7 +3174,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
 
 void MainWindow::onExportedNotesToEnex(QString enex)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onExportedNotesToEnex"));
+    QNDEBUG("MainWindow::onExportedNotesToEnex");
 
     EnexExporter * pExporter = qobject_cast<EnexExporter*>(sender());
     if (Q_UNLIKELY(!pExporter)) {
@@ -3242,8 +3215,7 @@ void MainWindow::onExportedNotesToEnex(QString enex)
 
 void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onExportNotesToEnexFailed: ")
-            << errorDescription);
+    QNDEBUG("MainWindow::onExportNotesToEnexFailed: " << errorDescription);
 
     EnexExporter * pExporter = qobject_cast<EnexExporter*>(sender());
     if (pExporter) {
@@ -3256,27 +3228,25 @@ void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
 
 void MainWindow::onEnexFileWrittenSuccessfully(QString filePath)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onEnexFileWrittenSuccessfully: ")
-            << filePath);
+    QNDEBUG("MainWindow::onEnexFileWrittenSuccessfully: " << filePath);
     onSetStatusBarText(tr("Successfully exported note(s) to ENEX: ") +
                        QDir::toNativeSeparators(filePath), SEC_TO_MSEC(5));
 }
 
 void MainWindow::onEnexFileWriteFailed(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onEnexFileWriteFailed: ")
-            << errorDescription);
+    QNDEBUG("MainWindow::onEnexFileWriteFailed: " << errorDescription);
     onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write "
                           "the ENEX to file") +
                        QStringLiteral(": ") + errorDescription.localizedString(),
                        SEC_TO_MSEC(30));
 }
 
-void MainWindow::onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal)
+void MainWindow::onEnexFileWriteIncomplete(
+    qint64 bytesWritten, qint64 bytesTotal)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onEnexFileWriteIncomplete: bytes written = ")
-            << bytesWritten << QStringLiteral(", bytes total = ") << bytesTotal);
-
+    QNDEBUG("MainWindow::onEnexFileWriteIncomplete: bytes written = "
+            << bytesWritten << ", bytes total = " << bytesTotal);
 
     if (bytesWritten == 0) {
         onSetStatusBarText(tr("Can't export note(s) to ENEX, failed to write "
@@ -3295,8 +3265,7 @@ void MainWindow::onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTota
 
 void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onEnexImportCompletedSuccessfully: ")
-            << enexFilePath);
+    QNDEBUG("MainWindow::onEnexImportCompletedSuccessfully: " << enexFilePath);
 
     onSetStatusBarText(tr("Successfully imported note(s) from ENEX file") +
                        QStringLiteral(": ") + QDir::toNativeSeparators(enexFilePath),
@@ -3311,7 +3280,7 @@ void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
 
 void MainWindow::onEnexImportFailed(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onEnexImportFailed: ") << errorDescription);
+    QNDEBUG("MainWindow::onEnexImportFailed: " << errorDescription);
 
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 
@@ -3324,8 +3293,8 @@ void MainWindow::onEnexImportFailed(ErrorString errorDescription)
 
 void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onUseLimitedFontsPreferenceChanged: flag = ")
-            << (flag ? QStringLiteral("enabled") : QStringLiteral("disabled")));
+    QNDEBUG("MainWindow::onUseLimitedFontsPreferenceChanged: flag = "
+            << (flag ? "enabled" : "disabled"));
 
     if (m_pNoteEditorTabsAndWindowsCoordinator) {
         m_pNoteEditorTabsAndWindowsCoordinator->setUseLimitedFonts(flag);
@@ -3334,7 +3303,7 @@ void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
 
 void MainWindow::onShowNoteThumbnailsPreferenceChanged()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowNoteThumbnailsPreferenceChanged"));
+    QNDEBUG("MainWindow::onShowNoteThumbnailsPreferenceChanged");
 
     bool showNoteThumbnails = getShowNoteThumbnailsPreference();
     Q_EMIT showNoteThumbnailsStateChanged(showNoteThumbnails,
@@ -3343,7 +3312,7 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
     NoteItemDelegate * pNoteItemDelegate =
         qobject_cast<NoteItemDelegate*>(m_pUI->noteListView->itemDelegate());
     if (Q_UNLIKELY(!pNoteItemDelegate)) {
-        QNDEBUG(QStringLiteral("No NoteItemDelegate"));
+        QNDEBUG("No NoteItemDelegate");
         return;
     }
 
@@ -3352,13 +3321,14 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
 
 void MainWindow::onDisableNativeMenuBarPreferenceChanged()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onDisableNativeMenuBarPreferenceChanged"));
+    QNDEBUG("MainWindow::onDisableNativeMenuBarPreferenceChanged");
     setupDisableNativeMenuBarPreference();
 }
 
-void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes)
+void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(
+    int runSyncEachNumMinutes)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onRunSyncEachNumMinitesPreferenceChanged: ")
+    QNDEBUG("MainWindow::onRunSyncEachNumMinitesPreferenceChanged: "
             << runSyncEachNumMinutes);
 
     if (m_runSyncPeriodicallyTimerId != 0) {
@@ -3383,8 +3353,8 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinu
 void MainWindow::onSaveNoteSearchQueryButtonPressed()
 {
     QString searchString = m_pUI->searchQueryLineEdit->text();
-    QNDEBUG(QStringLiteral("MainWindow::onSaveNoteSearchQueryButtonPressed, ")
-            << QStringLiteral("search string = ") << searchString);
+    QNDEBUG("MainWindow::onSaveNoteSearchQueryButtonPressed, "
+            << "search string = " << searchString);
 
     QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(
         new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
@@ -3396,7 +3366,7 @@ void MainWindow::onSaveNoteSearchQueryButtonPressed()
 
 void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNewNoteRequestedFromSystemTrayIcon"));
+    QNDEBUG("MainWindow::onNewNoteRequestedFromSystemTrayIcon");
 
     Qt::WindowStates state = windowState();
     bool isMinimized = (state & Qt::WindowMinimized);
@@ -3410,14 +3380,13 @@ void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
 
 void MainWindow::onQuitRequestedFromSystemTrayIcon()
 {
-    QNINFO(QStringLiteral("MainWindow::onQuitRequestedFromSystemTrayIcon"));
+    QNINFO("MainWindow::onQuitRequestedFromSystemTrayIcon");
     onQuitAction();
 }
 
 void MainWindow::onAccountSwitchRequested(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequested: ")
-            << account.name());
+    QNDEBUG("MainWindow::onAccountSwitchRequested: " << account.name());
 
     stopListeningForSplitterMoves();
     m_pAccountManager->switchAccount(account);
@@ -3425,20 +3394,19 @@ void MainWindow::onAccountSwitchRequested(Account account)
 
 void MainWindow::onSystemTrayIconManagerError(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSystemTrayIconManagerError: ")
-            << errorDescription);
+    QNDEBUG("MainWindow::onSystemTrayIconManagerError: " << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onShowRequestedFromTrayIcon()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowRequestedFromTrayIcon"));
+    QNDEBUG("MainWindow::onShowRequestedFromTrayIcon");
     show();
 }
 
 void MainWindow::onHideRequestedFromTrayIcon()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onHideRequestedFromTrayIcon"));
+    QNDEBUG("MainWindow::onHideRequestedFromTrayIcon");
     hide();
 }
 
@@ -3456,7 +3424,7 @@ void MainWindow::onViewLogsActionTriggered()
 
 void MainWindow::onShowInfoAboutQuentierActionTriggered()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowInfoAboutQuentierActionTriggered"));
+    QNDEBUG("MainWindow::onShowInfoAboutQuentierActionTriggered");
 
     AboutQuentierWidget * pWidget = findChild<AboutQuentierWidget*>();
     if (pWidget) {
@@ -3475,29 +3443,29 @@ void MainWindow::onShowInfoAboutQuentierActionTriggered()
 
 void MainWindow::onNoteEditorError(ErrorString error)
 {
-    QNINFO(QStringLiteral("MainWindow::onNoteEditorError: ") << error);
+    QNINFO("MainWindow::onNoteEditorError: " << error);
     onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onModelViewError(ErrorString error)
 {
-    QNINFO(QStringLiteral("MainWindow::onModelViewError: ") << error);
+    QNINFO("MainWindow::onModelViewError: " << error);
     onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onNoteEditorSpellCheckerNotReady()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorSpellCheckerNotReady"));
+    QNDEBUG("MainWindow::onNoteEditorSpellCheckerNotReady");
 
     NoteEditorWidget * noteEditor = qobject_cast<NoteEditorWidget*>(sender());
     if (!noteEditor) {
-        QNTRACE(QStringLiteral("Can't cast caller to note editor widget, skipping"));
+        QNTRACE("Can't cast caller to note editor widget, skipping");
         return;
     }
 
     NoteEditorWidget * currentEditor = currentNoteEditorTab();
     if (!currentEditor || (currentEditor != noteEditor)) {
-        QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
+        QNTRACE("Not an update from current note editor, skipping");
         return;
     }
 
@@ -3506,17 +3474,17 @@ void MainWindow::onNoteEditorSpellCheckerNotReady()
 
 void MainWindow::onNoteEditorSpellCheckerReady()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorSpellCheckerReady"));
+    QNDEBUG("MainWindow::onNoteEditorSpellCheckerReady");
 
     NoteEditorWidget * noteEditor = qobject_cast<NoteEditorWidget*>(sender());
     if (!noteEditor) {
-        QNTRACE(QStringLiteral("Can't cast caller to note editor widget, skipping"));
+        QNTRACE("Can't cast caller to note editor widget, skipping");
         return;
     }
 
     NoteEditorWidget * currentEditor = currentNoteEditorTab();
     if (!currentEditor || (currentEditor != noteEditor)) {
-        QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
+        QNTRACE("Not an update from current note editor, skipping");
         return;
     }
 
@@ -3525,14 +3493,14 @@ void MainWindow::onNoteEditorSpellCheckerReady()
 
 void MainWindow::onAddAccountActionTriggered(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAddAccountActionTriggered"));
+    QNDEBUG("MainWindow::onAddAccountActionTriggered");
     Q_UNUSED(checked)
     onNewAccountCreationRequested();
 }
 
 void MainWindow::onManageAccountsActionTriggered(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onManageAccountsActionTriggered"));
+    QNDEBUG("MainWindow::onManageAccountsActionTriggered");
 
     Q_UNUSED(checked)
     Q_UNUSED(m_pAccountManager->execManageAccountsDialog());
@@ -3540,11 +3508,11 @@ void MainWindow::onManageAccountsActionTriggered(bool checked)
 
 void MainWindow::onSwitchAccountActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSwitchAccountActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onSwitchAccountActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     if (!checked) {
-        QNTRACE(QStringLiteral("Ignoring the unchecking of account"));
+        QNTRACE("Ignoring the unchecking of account");
         return;
     }
 
@@ -3608,7 +3576,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
 void MainWindow::onAccountSwitched(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitched: ") << account.name());
+    QNDEBUG("MainWindow::onAccountSwitched: " << account.name());
 
     if (Q_UNLIKELY(!m_pLocalStorageManagerThread))
     {
@@ -3703,16 +3671,15 @@ void MainWindow::onAccountSwitched(Account account)
 
 void MainWindow::onAccountUpdated(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountUpdated: ") << account.name());
+    QNDEBUG("MainWindow::onAccountUpdated: " << account.name());
 
     if (!m_pAccount) {
-        QNDEBUG(QStringLiteral("No account is current at the moment"));
+        QNDEBUG("No account is current at the moment");
         return;
     }
 
     if (m_pAccount->type() != account.type()) {
-        QNDEBUG(QStringLiteral("Not an update for the current account: "
-                               "it has another type"));
+        QNDEBUG("Not an update for the current account: it has another type");
         QNTRACE(*m_pAccount);
         return;
     }
@@ -3720,8 +3687,7 @@ void MainWindow::onAccountUpdated(Account account)
     bool isLocal = (m_pAccount->type() == Account::Type::Local);
 
     if (isLocal && (m_pAccount->name() != account.name())) {
-        QNDEBUG(QStringLiteral("Not an update for the current account: "
-                               "it has another name"));
+        QNDEBUG("Not an update for the current account: it has another name");
         QNTRACE(*m_pAccount);
         return;
     }
@@ -3729,8 +3695,8 @@ void MainWindow::onAccountUpdated(Account account)
     if (!isLocal &&
         ((m_pAccount->id() != account.id()) || (m_pAccount->name() != account.name())))
     {
-        QNDEBUG(QStringLiteral("Not an update for the current account: either "
-                               "id or name don't match"));
+        QNDEBUG("Not an update for the current account: either "
+                "id or name don't match");
         QNTRACE(*m_pAccount);
         return;
     }
@@ -3741,27 +3707,26 @@ void MainWindow::onAccountUpdated(Account account)
 
 void MainWindow::onAccountAdded(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountAdded: ") << account.name());
+    QNDEBUG("MainWindow::onAccountAdded: " << account.name());
     updateSubMenuWithAvailableAccounts();
 }
 
 void MainWindow::onAccountRemoved(Account account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountRemoved: ") << account);
+    QNDEBUG("MainWindow::onAccountRemoved: " << account);
     updateSubMenuWithAvailableAccounts();
 }
 
 void MainWindow::onAccountManagerError(ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onAccountManagerError: ")
-            << errorDescription);
+    QNDEBUG("MainWindow::onAccountManagerError: " << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 }
 
 void MainWindow::onShowSidePanelActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowSidePanelActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowSidePanelActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3778,8 +3743,8 @@ void MainWindow::onShowSidePanelActionToggled(bool checked)
 
 void MainWindow::onShowFavoritesActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowFavoritesActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowFavoritesActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3796,8 +3761,8 @@ void MainWindow::onShowFavoritesActionToggled(bool checked)
 
 void MainWindow::onShowNotebooksActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowNotebooksActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowNotebooksActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3814,8 +3779,8 @@ void MainWindow::onShowNotebooksActionToggled(bool checked)
 
 void MainWindow::onShowTagsActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowTagsActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowTagsActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3832,8 +3797,8 @@ void MainWindow::onShowTagsActionToggled(bool checked)
 
 void MainWindow::onShowSavedSearchesActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowSavedSearchesActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowSavedSearchesActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3850,8 +3815,8 @@ void MainWindow::onShowSavedSearchesActionToggled(bool checked)
 
 void MainWindow::onShowDeletedNotesActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowDeletedNotesActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowDeletedNotesActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3868,8 +3833,8 @@ void MainWindow::onShowDeletedNotesActionToggled(bool checked)
 
 void MainWindow::onShowNoteListActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowNoteListActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowNoteListActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3888,8 +3853,8 @@ void MainWindow::onShowNoteListActionToggled(bool checked)
 
 void MainWindow::onShowToolbarActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowToolbarActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowToolbarActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3906,8 +3871,8 @@ void MainWindow::onShowToolbarActionToggled(bool checked)
 
 void MainWindow::onShowStatusBarActionToggled(bool checked)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShowStatusBarActionToggled: checked = ")
-            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+    QNDEBUG("MainWindow::onShowStatusBarActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -3924,7 +3889,7 @@ void MainWindow::onShowStatusBarActionToggled(bool checked)
 
 void MainWindow::onSwitchIconsToNativeAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToNativeAction"));
+    QNDEBUG("MainWindow::onSwitchIconsToNativeAction");
 
     if (m_nativeIconThemeName.isEmpty()) {
         ErrorString error(QT_TR_NOOP("No native icon theme is available"));
@@ -3947,7 +3912,7 @@ void MainWindow::onSwitchIconsToNativeAction()
 
 void MainWindow::onSwitchIconsToTangoAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToTangoAction"));
+    QNDEBUG("MainWindow::onSwitchIconsToTangoAction");
 
     QString tango = QStringLiteral("tango");
 
@@ -3965,7 +3930,7 @@ void MainWindow::onSwitchIconsToTangoAction()
 
 void MainWindow::onSwitchIconsToOxygenAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToOxygenAction"));
+    QNDEBUG("MainWindow::onSwitchIconsToOxygenAction");
 
     QString oxygen = QStringLiteral("oxygen");
 
@@ -3983,7 +3948,7 @@ void MainWindow::onSwitchIconsToOxygenAction()
 
 void MainWindow::onSwitchPanelStyleToBuiltIn()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToBuiltIn"));
+    QNDEBUG("MainWindow::onSwitchPanelStyleToBuiltIn");
 
     if (m_currentPanelStyle.isEmpty()) {
         ErrorString error(QT_TR_NOOP("Already using the built-in panel style"));
@@ -4008,7 +3973,7 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
 
 void MainWindow::onSwitchPanelStyleToLighter()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToLighter"));
+    QNDEBUG("MainWindow::onSwitchPanelStyleToLighter");
 
     if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
         ErrorString error(QT_TR_NOOP("Already using the lighter panel style"));
@@ -4035,7 +4000,7 @@ void MainWindow::onSwitchPanelStyleToLighter()
 
 void MainWindow::onSwitchPanelStyleToDarker()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToDarker"));
+    QNDEBUG("MainWindow::onSwitchPanelStyleToDarker");
 
     if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
         ErrorString error(QT_TR_NOOP("Already using the darker panel style"));
@@ -4060,12 +4025,12 @@ void MainWindow::onSwitchPanelStyleToDarker()
     setPanelsOverlayStyleSheet(properties);
 }
 
-void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account,
-                                                         QUuid requestId)
+void MainWindow::onLocalStorageSwitchUserRequestComplete(
+    Account account, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestComplete: ")
-            << QStringLiteral("account = ") << account.name()
-            << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("MainWindow::onLocalStorageSwitchUserRequestComplete: "
+            << "account = " << account.name()
+            << ", request id = " << requestId);
     QNTRACE(account);
 
     bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
@@ -4154,16 +4119,15 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account,
     startListeningForSplitterMoves();
 
     if (m_pAccount->type() != Account::Type::Evernote) {
-        QNTRACE(QStringLiteral("Not an Evernote account, no need to bother "
-                               "setting up sync"));
+        QNTRACE("Not an Evernote account, no need to bother setting up sync");
         return;
     }
 
     // TODO: should also start the sync if the corresponding setting is set
     // to sync stuff when one switches to the Evernote account
     if (!wasPendingSwitchToNewEvernoteAccount) {
-        QNTRACE(QStringLiteral("Not an account switch after authenticating "
-                               "new Evernote account"));
+        QNTRACE("Not an account switch after authenticating "
+                "new Evernote account");
         return;
     }
 
@@ -4172,8 +4136,8 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account,
     m_pUI->noteListView->setAutoSelectNoteOnNextAddition();
 
     if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-        QNWARNING(QStringLiteral("Detected unexpectedly missing "
-                                 "SynchronizationManager, trying to workaround"));
+        QNWARNING("Detected unexpectedly missing "
+                  "SynchronizationManager, trying to workaround");
         setupSynchronizationManager();
     }
 
@@ -4190,9 +4154,9 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(
         return;
     }
 
-    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ")
-            << account.name() << QStringLiteral("\nError description: ")
-            << errorDescription << QStringLiteral(", request id = ") << requestId);
+    QNDEBUG("MainWindow::onLocalStorageSwitchUserRequestFailed: "
+            << account.name() << "\nError description: "
+            << errorDescription << ", request id = " << requestId);
     QNTRACE(account);
 
     m_lastLocalStorageSwitchUserRequest = QUuid();
@@ -4221,8 +4185,8 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(
     {
         QAction * action = *it;
         if (Q_UNLIKELY(!action)) {
-            QNDEBUG(QStringLiteral("Found null pointer to action within "
-                                   "the available accounts action group"));
+            QNDEBUG("Found null pointer to action within "
+                    "the available accounts action group");
             continue;
         }
 
@@ -4230,61 +4194,61 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(
         bool conversionResult = false;
         int index = actionData.toInt(&conversionResult);
         if (Q_UNLIKELY(!conversionResult)) {
-            QNDEBUG(QStringLiteral("Can't convert available account's user ")
-                    << QStringLiteral("data to int: ") << actionData);
+            QNDEBUG("Can't convert available account's user data to int: "
+                    << actionData);
             continue;
         }
 
         if (Q_UNLIKELY((index < 0) || (index >= numAvailableAccounts))) {
-            QNDEBUG(QStringLiteral("Available account's index is beyond the range ")
-                    << QStringLiteral("of available accounts: index = ")
-                    << index << QStringLiteral(", num available accounts = ")
+            QNDEBUG("Available account's index is beyond the range "
+                    << "of available accounts: index = "
+                    << index << ", num available accounts = "
                     << numAvailableAccounts);
             continue;
         }
 
         const Account & actionAccount = availableAccounts.at(index);
         if (actionAccount == *m_pAccount) {
-            QNDEBUG(QStringLiteral("Restoring the current account in UI: index = ")
-                    << index << QStringLiteral(", account = ") << actionAccount);
+            QNDEBUG("Restoring the current account in UI: index = "
+                    << index << ", account = " << actionAccount);
             action->setChecked(true);
             return;
         }
     }
 
     // If we got here, it means we haven't found the proper previous account
-    QNDEBUG(QStringLiteral("Couldn't find the action corresponding to the previous ")
-            << QStringLiteral("available account: ") << *m_pAccount);
+    QNDEBUG("Couldn't find the action corresponding to the previous "
+            << "available account: " << *m_pAccount);
 }
 
 void MainWindow::onSplitterHandleMoved(int pos, int index)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSplitterHandleMoved: pos = ") << pos
-            << QStringLiteral(", index = ") << index);
+    QNDEBUG("MainWindow::onSplitterHandleMoved: pos = " << pos
+            << ", index = " << index);
 
     scheduleGeometryAndStatePersisting();
 }
 
 void MainWindow::onSidePanelSplittedHandleMoved(int pos, int index)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSidePanelSplittedHandleMoved: pos = ")
-            << pos << QStringLiteral(", index = ") << index);
+    QNDEBUG("MainWindow::onSidePanelSplittedHandleMoved: pos = "
+            << pos << ", index = " << index);
 
     scheduleGeometryAndStatePersisting();
 }
 
 void MainWindow::onSyncButtonPressed()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSyncButtonPressed"));
+    QNDEBUG("MainWindow::onSyncButtonPressed");
 
     if (Q_UNLIKELY(!m_pAccount)) {
-        QNDEBUG(QStringLiteral("Ignoring the sync button click - no account is set"));
+        QNDEBUG("Ignoring the sync button click - no account is set");
         return;
     }
 
     if (Q_UNLIKELY(m_pAccount->type() == Account::Type::Local)) {
-        QNDEBUG(QStringLiteral("The current account is of local type, won't do "
-                               "anything on attempt to sync it"));
+        QNDEBUG("The current account is of local type, won't do "
+                "anything on attempt to sync it");
         return;
     }
 
@@ -4293,7 +4257,7 @@ void MainWindow::onSyncButtonPressed()
     }
 
     if (m_syncInProgress) {
-        QNDEBUG(QStringLiteral("The synchronization is in progress, will stop it"));
+        QNDEBUG("The synchronization is in progress, will stop it");
         Q_EMIT stopSynchronization();
     }
     else {
@@ -4316,7 +4280,7 @@ void MainWindow::onAnimatedSyncIconFrameChangedPendingFinish(int frame)
 
 void MainWindow::onSyncIconAnimationFinished()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onSyncIconAnimationFinished"));
+    QNDEBUG("MainWindow::onSyncIconAnimationFinished");
 
     QObject::disconnect(&m_animatedSyncButtonIcon, QNSIGNAL(QMovie,finished),
                         this, QNSLOT(MainWindow,onSyncIconAnimationFinished));
@@ -4331,7 +4295,7 @@ void MainWindow::onSyncIconAnimationFinished()
 
 void MainWindow::onNewAccountCreationRequested()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNewAccountCreationRequested"));
+    QNDEBUG("MainWindow::onNewAccountCreationRequested");
 
     int res = m_pAccountManager->execAddAccountDialog();
     if (res == QDialog::Accepted) {
@@ -4339,9 +4303,8 @@ void MainWindow::onNewAccountCreationRequested()
     }
 
     if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
-        QNWARNING(QStringLiteral("Local storage manager async unexpectedly "
-                                 "doesn't exist, can't check local storage "
-                                 "version"));
+        QNWARNING("Local storage manager async unexpectedly "
+                  "doesn't exist, can't check local storage version");
         return;
     }
 
@@ -4372,7 +4335,7 @@ void MainWindow::onNewAccountCreationRequested()
 
 void MainWindow::onQuitAction()
 {
-    QNDEBUG(QStringLiteral("MainWindow::onQuitAction"));
+    QNDEBUG("MainWindow::onQuitAction");
 
     if (m_pNoteEditorTabsAndWindowsCoordinator) {
         // That would save the modified notes
@@ -4382,59 +4345,54 @@ void MainWindow::onQuitAction()
     qApp->quit();
 }
 
-void MainWindow::onShortcutChanged(int key, QKeySequence shortcut,
-                                   const Account & account, QString context)
+void MainWindow::onShortcutChanged(
+    int key, QKeySequence shortcut, const Account & account, QString context)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onShortcutChanged: key = ") << key
-            << QStringLiteral(", shortcut: ")
-            << shortcut.toString(QKeySequence::PortableText)
-            << QStringLiteral(", context: ") << context
-            << QStringLiteral(", account: ") << account.name());
+    QNDEBUG("MainWindow::onShortcutChanged: key = " << key
+            << ", shortcut: " << shortcut.toString(QKeySequence::PortableText)
+            << ", context: " << context
+            << ", account: " << account.name());
 
     auto it = m_shortcutKeyToAction.find(key);
     if (it == m_shortcutKeyToAction.end()) {
-        QNDEBUG(QStringLiteral("Haven't found the action corresponding to "
-                               "the shortcut key"));
+        QNDEBUG("Haven't found the action corresponding to the shortcut key");
         return;
     }
 
     QAction * pAction = it.value();
     pAction->setShortcut(shortcut);
-    QNDEBUG(QStringLiteral("Updated shortcut for action ") << pAction->text()
-            << QStringLiteral(" (") << pAction->objectName() << QStringLiteral(")"));
+    QNDEBUG("Updated shortcut for action " << pAction->text()
+            << " (" << pAction->objectName() << ")");
 }
 
-void MainWindow::onNonStandardShortcutChanged(QString nonStandardKey,
-                                              QKeySequence shortcut,
-                                              const Account & account,
-                                              QString context)
+void MainWindow::onNonStandardShortcutChanged(
+    QString nonStandardKey, QKeySequence shortcut, const Account & account,
+    QString context)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onNonStandardShortcutChanged: ")
-            << QStringLiteral("non-standard key = ") << nonStandardKey
-            << QStringLiteral(", shortcut: ")
+    QNDEBUG("MainWindow::onNonStandardShortcutChanged: non-standard key = "
+            << nonStandardKey << ", shortcut: "
             << shortcut.toString(QKeySequence::PortableText)
-            << QStringLiteral(", context: ") << context
-            << QStringLiteral(", account: ") << account.name());
+            << ", context: " << context << ", account: " << account.name());
 
     auto it = m_nonStandardShortcutKeyToAction.find(nonStandardKey);
     if (it == m_nonStandardShortcutKeyToAction.end()) {
-        QNDEBUG(QStringLiteral("Haven't found the action corresponding to "
-                               "the non-standard shortcut key"));
+        QNDEBUG("Haven't found the action corresponding to "
+                "the non-standard shortcut key");
         return;
     }
 
     QAction * pAction = it.value();
     pAction->setShortcut(shortcut);
-    QNDEBUG(QStringLiteral("Updated shortcut for action ") << pAction->text()
-            << QStringLiteral(" (") << pAction->objectName() << QStringLiteral(")"));
+    QNDEBUG("Updated shortcut for action " << pAction->text()
+            << " (" << pAction->objectName() << ")");
 }
 
 void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(
     QString createdNoteLocalUid)
 {
-    QNDEBUG(QStringLiteral("MainWindow::")
-            << QStringLiteral("onDefaultAccountFirstNotebookAndNoteCreatorFinished: ")
-            << QStringLiteral("created note local uid = ") << createdNoteLocalUid);
+    QNDEBUG("MainWindow::"
+            << "onDefaultAccountFirstNotebookAndNoteCreatorFinished: "
+            << "created note local uid = " << createdNoteLocalUid);
 
     DefaultAccountFirstNotebookAndNoteCreator * pDefaultAccountFirstNotebookAndNoteCreator =
         qobject_cast<DefaultAccountFirstNotebookAndNoteCreator*>(sender());
@@ -4467,8 +4425,8 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(
 void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError(
     ErrorString errorDescription)
 {
-    QNDEBUG(QStringLiteral("MainWindow::")
-            << QStringLiteral("onDefaultAccountFirstNotebookAndNoteCreatorError: ")
+    QNDEBUG("MainWindow::"
+            << "onDefaultAccountFirstNotebookAndNoteCreatorError: "
             << errorDescription);
 
     onSetStatusBarText(errorDescription.localizedString());
@@ -4495,9 +4453,9 @@ void MainWindow::resizeEvent(QResizeEvent * pEvent)
 
 void MainWindow::closeEvent(QCloseEvent * pEvent)
 {
-    QNDEBUG(QStringLiteral("MainWindow::closeEvent"));
+    QNDEBUG("MainWindow::closeEvent");
     if (m_pendingFirstShutdownDialog) {
-        QNDEBUG(QStringLiteral("About to display FirstShutdownDialog"));
+        QNDEBUG("About to display FirstShutdownDialog");
         m_pendingFirstShutdownDialog = false;
 
         QScopedPointer<FirstShutdownDialog> pDialog(new FirstShutdownDialog(this));
@@ -4508,7 +4466,7 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
     }
 
     if (pEvent && m_pSystemTrayIconManager->shouldCloseToSystemTray()) {
-        QNINFO(QStringLiteral("Hiding to system tray instead of closing"));
+        QNINFO("Hiding to system tray instead of closing");
         pEvent->ignore();
         hide();
         return;
@@ -4519,14 +4477,14 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
     }
 
     persistGeometryAndState();
-    QNINFO(QStringLiteral("Closing application"));
+    QNINFO("Closing application");
     QMainWindow::closeEvent(pEvent);
     onQuitAction();
 }
 
 void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
 {
-    QNDEBUG(QStringLiteral("MainWindow::timerEvent: timer id = ")
+    QNDEBUG("MainWindow::timerEvent: timer id = "
             << (pTimerEvent
                 ? QString::number(pTimerEvent->timerId())
                 : QStringLiteral("<null>")));
@@ -4574,7 +4532,7 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
                        (m_pAccount->type() != Account::Type::Evernote) ||
                        !m_pSynchronizationManager))
         {
-            QNDEBUG(QStringLiteral("Non-Evernote account is being used: ")
+            QNDEBUG("Non-Evernote account is being used: "
                     << (m_pAccount
                         ? m_pAccount->toString()
                         : QStringLiteral("<null>")));
@@ -4589,37 +4547,35 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
             m_pendingSwitchToNewEvernoteAccount ||
             m_syncApiRateLimitExceeded)
         {
-            QNDEBUG(QStringLiteral("Sync in progress = ")
-                    << (m_syncInProgress
-                        ? QStringLiteral("true")
-                        : QStringLiteral("false"))
-                    << QStringLiteral(", pending new Evernote account authentication = ")
+            QNDEBUG("Sync in progress = "
+                    << (m_syncInProgress ? "true" : "false")
+                    << ", pending new Evernote account authentication = "
                     << (m_pendingNewEvernoteAccountAuthentication
-                        ? QStringLiteral("true")
-                        : QStringLiteral("false"))
-                    << QStringLiteral(", pending current Evernote account authentication = ")
+                        ? "true"
+                        : "false")
+                    << ", pending current Evernote account authentication = "
                     << (m_pendingCurrentEvernoteAccountAuthentication
-                        ? QStringLiteral("true")
-                        : QStringLiteral("false"))
-                    << QStringLiteral(", pending switch to new Evernote account = ")
+                        ? "true"
+                        : "false")
+                    << ", pending switch to new Evernote account = "
                     << (m_pendingSwitchToNewEvernoteAccount
-                        ? QStringLiteral("true")
-                        : QStringLiteral("false"))
-                    << QStringLiteral(", sync API rate limit exceeded = ")
+                        ? "true"
+                        : "false")
+                    << ", sync API rate limit exceeded = "
                     << (m_syncApiRateLimitExceeded
-                        ? QStringLiteral("true")
-                        : QStringLiteral("false")));
+                        ? "true"
+                        : "false"));
             return;
         }
 
-        QNDEBUG(QStringLiteral("Starting the periodically run sync"));
+        QNDEBUG("Starting the periodically run sync");
         launchSynchronization();
     }
     else if (pTimerEvent->timerId() ==
              m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId)
     {
-        QNDEBUG(QStringLiteral("Executing postponed setting of defaut account's "
-                               "first note as the current note"));
+        QNDEBUG("Executing postponed setting of defaut account's "
+                "first note as the current note");
 
         m_pUI->noteListView->setCurrentNoteByLocalUid(
             m_defaultAccountFirstNoteLocalUid);
@@ -4632,13 +4588,13 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
 
 void MainWindow::focusInEvent(QFocusEvent * pFocusEvent)
 {
-    QNDEBUG(QStringLiteral("MainWindow::focusInEvent"));
+    QNDEBUG("MainWindow::focusInEvent");
 
     if (Q_UNLIKELY(!pFocusEvent)) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("Reason = ") << pFocusEvent->reason());
+    QNDEBUG("Reason = " << pFocusEvent->reason());
 
     QMainWindow::focusInEvent(pFocusEvent);
 
@@ -4650,13 +4606,13 @@ void MainWindow::focusInEvent(QFocusEvent * pFocusEvent)
 
 void MainWindow::focusOutEvent(QFocusEvent * pFocusEvent)
 {
-    QNDEBUG(QStringLiteral("MainWindow::focusOutEvent"));
+    QNDEBUG("MainWindow::focusOutEvent");
 
     if (Q_UNLIKELY(!pFocusEvent)) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("Reason = ") << pFocusEvent->reason());
+    QNDEBUG("Reason = " << pFocusEvent->reason());
     QMainWindow::focusOutEvent(pFocusEvent);
 }
 
@@ -4689,17 +4645,15 @@ void MainWindow::changeEvent(QEvent * pEvent)
         bool minimized = (state & Qt::WindowMinimized);
         bool maximized = (state & Qt::WindowMaximized);
 
-        QNDEBUG(QStringLiteral("Change event of window state change type: ")
-                << QStringLiteral("minimized = ")
-                << (minimized ? QStringLiteral("true") : QStringLiteral("false"))
-                << QStringLiteral(", maximized = ")
-                << (maximized ? QStringLiteral("true") : QStringLiteral("false")));
+        QNDEBUG("Change event of window state change type: "
+                << "minimized = " << (minimized ? "true" : "false")
+                << ", maximized = " << (maximized ? "true" : "false"));
 
         scheduleSideBordersControllerMainWindowStateUpdate();
 
         if (!minimized)
         {
-            QNDEBUG(QStringLiteral("MainWindow is no longer minimized"));
+            QNDEBUG("MainWindow is no longer minimized");
 
             if (isVisible()) {
                 Q_EMIT shown();
@@ -4709,12 +4663,12 @@ void MainWindow::changeEvent(QEvent * pEvent)
         }
         else if (minimized)
         {
-            QNDEBUG(QStringLiteral("MainWindow became minimized"));
+            QNDEBUG("MainWindow became minimized");
 
             if (m_pSystemTrayIconManager->shouldMinimizeToSystemTray())
             {
-                QNDEBUG(QStringLiteral("Should minimize to system tray instead "
-                                       "of the conventional minimization"));
+                QNDEBUG("Should minimize to system tray instead "
+                        "of the conventional minimization");
 
                 // 1) Undo the already changed window state
                 state = state & (~Qt::WindowMinimized);
@@ -4755,14 +4709,14 @@ void MainWindow::centerDialog(QDialog & dialog)
 
 void MainWindow::setupThemeIcons()
 {
-    QNTRACE(QStringLiteral("MainWindow::setupThemeIcons"));
+    QNTRACE("MainWindow::setupThemeIcons");
 
     m_nativeIconThemeName = QIcon::themeName();
-    QNDEBUG(QStringLiteral("Native icon theme name: ") << m_nativeIconThemeName);
+    QNDEBUG("Native icon theme name: " << m_nativeIconThemeName);
 
     if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
-        QNDEBUG(QStringLiteral("There seems to be no native icon theme available: "
-                               "document-open icon is not present within the theme"));
+        QNDEBUG("There seems to be no native icon theme available: "
+                "document-open icon is not present within the theme");
         m_nativeIconThemeName.clear();
     }
 
@@ -4772,10 +4726,10 @@ void MainWindow::setupThemeIcons()
     appSettings.endGroup();
 
     if (!iconThemeName.isEmpty()) {
-        QNDEBUG(QStringLiteral("Last chosen icon theme: ") << iconThemeName);
+        QNDEBUG("Last chosen icon theme: " << iconThemeName);
     }
     else {
-        QNDEBUG(QStringLiteral("No last chosen icon theme, fallback to oxygen"));
+        QNDEBUG("No last chosen icon theme, fallback to oxygen");
         iconThemeName = QStringLiteral("oxygen");
     }
 
@@ -4784,7 +4738,7 @@ void MainWindow::setupThemeIcons()
 
 void MainWindow::setupAccountManager()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupAccountManager"));
+    QNDEBUG("MainWindow::setupAccountManager");
 
     QObject::connect(m_pAccountManager,
                      QNSIGNAL(AccountManager,
@@ -4817,7 +4771,7 @@ void MainWindow::setupAccountManager()
 
 void MainWindow::setupLocalStorageManager()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupLocalStorageManager"));
+    QNDEBUG("MainWindow::setupLocalStorageManager");
 
     m_pLocalStorageManagerThread = new QThread;
     m_pLocalStorageManagerThread->setObjectName(
@@ -4842,9 +4796,9 @@ void MainWindow::setupLocalStorageManager()
         localStorageManager.requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty())
     {
-        QNDEBUG(QStringLiteral("Local storage requires upgrade: detected ")
+        QNDEBUG("Local storage requires upgrade: detected "
                 << localStoragePatches.size()
-                << QStringLiteral(" pending local storage patches"));
+                << " pending local storage patches");
         QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(
             new LocalStorageUpgradeDialog(*m_pAccount,
                                           m_pAccountManager->accountModel(),
@@ -4885,7 +4839,7 @@ void MainWindow::setupLocalStorageManager()
 
 void MainWindow::setupDisableNativeMenuBarPreference()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupDisableNativeMenuBarPreference"));
+    QNDEBUG("MainWindow::setupDisableNativeMenuBarPreference");
 
     bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
     m_pUI->menuBar->setNativeMenuBar(!disableNativeMenuBar);
@@ -4899,7 +4853,7 @@ void MainWindow::setupDisableNativeMenuBarPreference()
 
 void MainWindow::setupDefaultAccount()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupDefaultAccount"));
+    QNDEBUG("MainWindow::setupDefaultAccount");
 
     DefaultAccountFirstNotebookAndNoteCreator * pDefaultAccountFirstNotebookAndNoteCreator =
         new DefaultAccountFirstNotebookAndNoteCreator(
@@ -4923,7 +4877,7 @@ void MainWindow::setupDefaultAccount()
 
 void MainWindow::setupModels()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupModels"));
+    QNDEBUG("MainWindow::setupModels");
 
     clearModels();
 
@@ -4980,7 +4934,7 @@ void MainWindow::setupModels()
 
 void MainWindow::clearModels()
 {
-    QNDEBUG(QStringLiteral("MainWindow::clearModels"));
+    QNDEBUG("MainWindow::clearModels");
 
     clearViews();
 
@@ -5017,25 +4971,26 @@ void MainWindow::clearModels()
 
 void MainWindow::setupShowHideStartupSettings()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupShowHideStartupSettings"));
+    QNDEBUG("MainWindow::setupShowHideStartupSettings");
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
 
-#define CHECK_AND_SET_SHOW_SETTING(name, action, widget) \
-    { \
-        QVariant showSetting = appSettings.value(name); \
-        if (showSetting.isNull()) { \
-            showSetting = m_pUI->Action##action->isChecked(); \
-        } \
-        if (showSetting.toBool()) {\
-            m_pUI->widget->show(); \
-        } \
-        else { \
-            m_pUI->widget->hide(); \
-        } \
-        m_pUI->Action##action->setChecked(showSetting.toBool()); \
-    }
+#define CHECK_AND_SET_SHOW_SETTING(name, action, widget)                       \
+    {                                                                          \
+        QVariant showSetting = appSettings.value(name);                        \
+        if (showSetting.isNull()) {                                            \
+            showSetting = m_pUI->Action##action->isChecked();                  \
+        }                                                                      \
+        if (showSetting.toBool()) {                                            \
+            m_pUI->widget->show();                                             \
+        }                                                                      \
+        else {                                                                 \
+            m_pUI->widget->hide();                                             \
+        }                                                                      \
+        m_pUI->Action##action->setChecked(showSetting.toBool());               \
+    }                                                                          \
+// CHECK_AND_SET_SHOW_SETTING
 
     CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowSidePanel"),
                                ShowSidePanel, sidePanelSplitter)
@@ -5063,7 +5018,7 @@ void MainWindow::setupShowHideStartupSettings()
 
 void MainWindow::setupViews()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupViews"));
+    QNDEBUG("MainWindow::setupViews");
 
     // NOTE: only a few columns would be shown for each view because otherwise
     // there are problems finding space for everything
@@ -5440,8 +5395,8 @@ void MainWindow::setupViews()
     NoteModel::NoteSortingMode::type noteSortingMode = restoreNoteSortingMode();
     if (noteSortingMode == NoteModel::NoteSortingMode::None) {
         noteSortingMode = NoteModel::NoteSortingMode::ModifiedDescending;
-        QNDEBUG(QStringLiteral("Couldn't restore the note sorting mode, fallback ")
-                << QStringLiteral("to the default one of ") << noteSortingMode);
+        QNDEBUG("Couldn't restore the note sorting mode, fallback "
+                << "to the default one of " << noteSortingMode);
     }
 
     m_pUI->noteSortingModeComboBox->setCurrentIndex(noteSortingMode);
@@ -5562,7 +5517,7 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     QVariant hideThumbnailsFor =
         appSettings.value(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
-                          QStringLiteral(""));
+                          QLatin1String(""));
     appSettings.endGroup();
 
     return QSet<QString>::fromList(hideThumbnailsFor.toStringList());
@@ -5601,7 +5556,7 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
 
 void MainWindow::clearViews()
 {
-    QNDEBUG(QStringLiteral("MainWindow::clearViews"));
+    QNDEBUG("MainWindow::clearViews");
 
     m_pUI->favoritesTableView->setModel(&m_blankModel);
     m_pUI->notebooksTreeView->setModel(&m_blankModel);
@@ -5618,10 +5573,10 @@ void MainWindow::clearViews()
 
 void MainWindow::setupAccountSpecificUiElements()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupAccountSpecificUiElements"));
+    QNDEBUG("MainWindow::setupAccountSpecificUiElements");
 
     if (Q_UNLIKELY(!m_pAccount)) {
-        QNDEBUG(QStringLiteral("No account"));
+        QNDEBUG("No account");
         return;
     }
 
@@ -5648,7 +5603,7 @@ void MainWindow::setupAccountSpecificUiElements()
 
 void MainWindow::setupNoteFilters()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupNoteFilters"));
+    QNDEBUG("MainWindow::setupNoteFilters");
 
     m_pUI->filterFrameBottomBoundary->hide();
 
@@ -5690,7 +5645,7 @@ void MainWindow::setupNoteFilters()
 
 void MainWindow::setupNoteEditorTabWidgetsCoordinator()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupNoteEditorTabWidgetsCoordinator"));
+    QNDEBUG("MainWindow::setupNoteEditorTabWidgetsCoordinator");
 
     delete m_pNoteEditorTabsAndWindowsCoordinator;
     m_pNoteEditorTabsAndWindowsCoordinator =
@@ -5713,15 +5668,14 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
 
 bool MainWindow::checkLocalStorageVersion(const Account & account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::checkLocalStorageVersion: account = ")
-            << account);
+    QNDEBUG("MainWindow::checkLocalStorageVersion: account = " << account);
 
     ErrorString errorDescription;
     if (m_pLocalStorageManagerAsync->localStorageManager()->isLocalStorageVersionTooHigh(
             errorDescription))
     {
-        QNINFO(QStringLiteral("Detected too high local storage version: ")
-               << errorDescription << QStringLiteral("; account: ") << account);
+        QNINFO("Detected too high local storage version: "
+               << errorDescription << "; account: " << account);
 
         QScopedPointer<LocalStorageVersionTooHighDialog> pVersionTooHighDialog(
             new LocalStorageVersionTooHighDialog(
@@ -5753,9 +5707,9 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
         m_pLocalStorageManagerAsync->localStorageManager()->requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty())
     {
-        QNDEBUG(QStringLiteral("Local storage requires upgrade: detected ")
+        QNDEBUG("Local storage requires upgrade: detected "
                 << localStoragePatches.size()
-                << QStringLiteral(" pending local storage patches"));
+                << " pending local storage patches");
         LocalStorageUpgradeDialog::Options options(
             LocalStorageUpgradeDialog::Option::AddAccount |
             LocalStorageUpgradeDialog::Option::SwitchToAnotherAccount);
@@ -5805,7 +5759,7 @@ bool MainWindow::onceDisplayedGreeterScreen() const
 
 void MainWindow::setOnceDisplayedGreeterScreen()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setOnceDisplayedGreeterScreen"));
+    QNDEBUG("MainWindow::setOnceDisplayedGreeterScreen");
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
@@ -5816,8 +5770,8 @@ void MainWindow::setOnceDisplayedGreeterScreen()
 void MainWindow::setupSynchronizationManager(
     const SetAccountOption::type setAccountOption)
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManager: ")
-            << QStringLiteral("set account option = ") << setAccountOption);
+    QNDEBUG("MainWindow::setupSynchronizationManager: "
+            << "set account option = " << setAccountOption);
 
     clearSynchronizationManager();
 
@@ -5834,7 +5788,7 @@ void MainWindow::setupSynchronizationManager(
         if (Q_UNLIKELY(m_pAccount->type() != Account::Type::Evernote)) {
             ErrorString error(QT_TR_NOOP("Can't set up the synchronization: "
                                          "non-Evernote account is chosen"));
-            QNWARNING(error << QStringLiteral("; account: ") << *m_pAccount);
+            QNWARNING(error << "; account: " << *m_pAccount);
             onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
             return;
         }
@@ -5843,7 +5797,7 @@ void MainWindow::setupSynchronizationManager(
         if (Q_UNLIKELY(m_synchronizationManagerHost.isEmpty())) {
             ErrorString error(QT_TR_NOOP("Can't set up the synchronization: "
                                          "no Evernote host within the account"));
-            QNWARNING(error << QStringLiteral("; account: ") << *m_pAccount);
+            QNWARNING(error << "; account: " << *m_pAccount);
             onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
             return;
         }
@@ -5853,12 +5807,12 @@ void MainWindow::setupSynchronizationManager(
     setupConsumerKeyAndSecret(consumerKey, consumerSecret);
 
     if (Q_UNLIKELY(consumerKey.isEmpty())) {
-        QNDEBUG(QStringLiteral("Consumer key is empty"));
+        QNDEBUG("Consumer key is empty");
         return;
     }
 
     if (Q_UNLIKELY(consumerSecret.isEmpty())) {
-        QNDEBUG(QStringLiteral("Consumer secret is empty"));
+        QNDEBUG("Consumer secret is empty");
         return;
     }
 
@@ -5880,7 +5834,7 @@ void MainWindow::setupSynchronizationManager(
 
 void MainWindow::clearSynchronizationManager()
 {
-    QNDEBUG(QStringLiteral("MainWindow::clearSynchronizationManager"));
+    QNDEBUG("MainWindow::clearSynchronizationManager");
 
     disconnectSynchronizationManager();
 
@@ -5931,11 +5885,11 @@ void MainWindow::clearSynchronizationManager()
 
 void MainWindow::setSynchronizationOptions(const Account & account)
 {
-    QNDEBUG(QStringLiteral("MainWindow::setSynchronizationOptions"));
+    QNDEBUG("MainWindow::setSynchronizationOptions");
 
     if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-        QNWARNING(QStringLiteral("Can't set synchronization options: "
-                                 "no synchronization manager"));
+        QNWARNING("Can't set synchronization options: "
+                  "no synchronization manager");
         return;
     }
 
@@ -5956,16 +5910,15 @@ void MainWindow::setSynchronizationOptions(const Account & account)
 
     QString inkNoteImagesStoragePath = accountPersistentStoragePath(account);
     inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
-    QNTRACE(QStringLiteral("Ink note images storage path: ")
-            << inkNoteImagesStoragePath << QStringLiteral("; account: ")
-            << account.name());
+    QNTRACE("Ink note images storage path: " << inkNoteImagesStoragePath
+            << "; account: " << account.name());
 
     m_pSynchronizationManager->setInkNoteImagesStoragePath(inkNoteImagesStoragePath);
 }
 
 void MainWindow::setupSynchronizationManagerThread()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManagerThread"));
+    QNDEBUG("MainWindow::setupSynchronizationManagerThread");
 
     m_pSynchronizationManagerThread = new QThread;
     m_pSynchronizationManagerThread->setObjectName(
@@ -5988,15 +5941,15 @@ void MainWindow::setupSynchronizationManagerThread()
 
 void MainWindow::setupRunSyncPeriodicallyTimer()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupRunSyncPeriodicallyTimer"));
+    QNDEBUG("MainWindow::setupRunSyncPeriodicallyTimer");
 
     if (Q_UNLIKELY(!m_pAccount)) {
-        QNDEBUG(QStringLiteral("No current account"));
+        QNDEBUG("No current account");
         return;
     }
 
     if (Q_UNLIKELY(m_pAccount->type() != Account::Type::Evernote)) {
-        QNDEBUG(QStringLiteral("Non-Evernote account is used"));
+        QNDEBUG("Non-Evernote account is used");
         return;
     }
 
@@ -6010,8 +5963,8 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
         bool conversionResult = false;
         runSyncEachNumMinutes = data.toInt(&conversionResult);
         if (Q_UNLIKELY(!conversionResult)) {
-            QNDEBUG(QStringLiteral("Failed to convert the number of minutes to ")
-                    << QStringLiteral("run sync over to int: ") << data);
+            QNDEBUG("Failed to convert the number of minutes to "
+                    << "run sync over to int: " << data);
             runSyncEachNumMinutes = -1;
         }
     }
@@ -6027,7 +5980,7 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
 
 void MainWindow::launchSynchronization()
 {
-    QNDEBUG(QStringLiteral("MainWindow::launchSynchronization"));
+    QNDEBUG("MainWindow::launchSynchronization");
 
     if (Q_UNLIKELY(!m_pSynchronizationManager)) {
         ErrorString error(QT_TR_NOOP("Can't start synchronization: internal "
@@ -6038,82 +5991,84 @@ void MainWindow::launchSynchronization()
     }
 
     if (m_syncInProgress) {
-        QNDEBUG(QStringLiteral("Synchronization is already in progress"));
+        QNDEBUG("Synchronization is already in progress");
         return;
     }
 
     if (m_pendingNewEvernoteAccountAuthentication) {
-        QNDEBUG(QStringLiteral("Pending new Evernote account authentication"));
+        QNDEBUG("Pending new Evernote account authentication");
         return;
     }
 
     if (m_pendingCurrentEvernoteAccountAuthentication) {
-        QNDEBUG(QStringLiteral("Pending current Evernote account authentication"));
+        QNDEBUG("Pending current Evernote account authentication");
         return;
     }
 
     if (m_pendingSwitchToNewEvernoteAccount) {
-        QNDEBUG(QStringLiteral("Pending switch to new Evernote account"));
+        QNDEBUG("Pending switch to new Evernote account");
         return;
     }
 
     if (m_authenticatedCurrentEvernoteAccount) {
-        QNDEBUG(QStringLiteral("Emitting synchronize signal"));
+        QNDEBUG("Emitting synchronize signal");
         Q_EMIT synchronize();
         return;
     }
 
     m_pendingCurrentEvernoteAccountAuthentication = true;
-    QNDEBUG(QStringLiteral("Emitting authenticate current account signal"));
+    QNDEBUG("Emitting authenticate current account signal");
     Q_EMIT authenticateCurrentAccount();
 }
 
 void MainWindow::setupDefaultShortcuts()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupDefaultShortcuts"));
+    QNDEBUG("MainWindow::setupDefaultShortcuts");
 
     using quentier::ShortcutManager;
 
-#define PROCESS_ACTION_SHORTCUT(action, key, context) \
-    { \
-        QString contextStr = QString::fromUtf8(context); \
-        ActionKeyWithContext actionData; \
-        actionData.m_key = key; \
-        actionData.m_context = contextStr; \
-        QVariant data; \
-        data.setValue(actionData); \
-        m_pUI->Action##action->setData(data); \
-        QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
-        if (shortcut.isEmpty()) { \
-            QNTRACE(QStringLiteral("No shortcut was found for action ") \
-                    << m_pUI->Action##action->objectName()); \
-        } \
-        else { \
-            m_shortcutManager.setDefaultShortcut(key, shortcut, \
-                                                 *m_pAccount, contextStr); \
-        } \
-    }
+#define PROCESS_ACTION_SHORTCUT(action, key, context)                          \
+    {                                                                          \
+        QString contextStr = QString::fromUtf8(context);                       \
+        ActionKeyWithContext actionData;                                       \
+        actionData.m_key = key;                                                \
+        actionData.m_context = contextStr;                                     \
+        QVariant data;                                                         \
+        data.setValue(actionData);                                             \
+        m_pUI->Action##action->setData(data);                                  \
+        QKeySequence shortcut = m_pUI->Action##action->shortcut();             \
+        if (shortcut.isEmpty()) {                                              \
+            QNTRACE("No shortcut was found for action "                        \
+                    << m_pUI->Action##action->objectName());                   \
+        }                                                                      \
+        else {                                                                 \
+            m_shortcutManager.setDefaultShortcut(key, shortcut,                \
+                                                 *m_pAccount, contextStr);     \
+        }                                                                      \
+    }                                                                          \
+// PROCESS_ACTION_SHORTCUT
 
-#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, context) \
-    { \
-        QString actionStr = QString::fromUtf8(#action); \
-        QString contextStr = QString::fromUtf8(context); \
-        ActionNonStandardKeyWithContext actionData; \
-        actionData.m_nonStandardActionKey = actionStr; \
-        actionData.m_context = contextStr; \
-        QVariant data; \
-        data.setValue(actionData); \
-        m_pUI->Action##action->setData(data); \
-        QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
-        if (shortcut.isEmpty()) { \
-            QNTRACE(QStringLiteral("No shortcut was found for action ") \
-                    << m_pUI->Action##action->objectName()); \
-        } \
-        else { \
-            m_shortcutManager.setNonStandardDefaultShortcut(actionStr, shortcut, \
-                                                            *m_pAccount, contextStr); \
-        } \
-    }
+#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, context)                  \
+    {                                                                          \
+        QString actionStr = QString::fromUtf8(#action);                        \
+        QString contextStr = QString::fromUtf8(context);                       \
+        ActionNonStandardKeyWithContext actionData;                            \
+        actionData.m_nonStandardActionKey = actionStr;                         \
+        actionData.m_context = contextStr;                                     \
+        QVariant data;                                                         \
+        data.setValue(actionData);                                             \
+        m_pUI->Action##action->setData(data);                                  \
+        QKeySequence shortcut = m_pUI->Action##action->shortcut();             \
+        if (shortcut.isEmpty()) {                                              \
+            QNTRACE("No shortcut was found for action "                        \
+                    << m_pUI->Action##action->objectName());                   \
+        }                                                                      \
+        else {                                                                 \
+            m_shortcutManager.setNonStandardDefaultShortcut(                   \
+                actionStr, shortcut, *m_pAccount, contextStr);                 \
+        }                                                                      \
+    }                                                                          \
+// PROCESS_NON_STANDARD_ACTION_SHORTCUT
 
 #include "ActionShortcuts.inl"
 
@@ -6123,57 +6078,60 @@ void MainWindow::setupDefaultShortcuts()
 
 void MainWindow::setupUserShortcuts()
 {
-    QNDEBUG(QStringLiteral("MainWindow::setupUserShortcuts"));
+    QNDEBUG("MainWindow::setupUserShortcuts");
 
-#define PROCESS_ACTION_SHORTCUT(action, key, ...) \
-    { \
-        QKeySequence shortcut = \
-            m_shortcutManager.shortcut(key, *m_pAccount, \
-                                       QStringLiteral("" __VA_ARGS__)); \
-        if (shortcut.isEmpty()) \
-        { \
-            QNTRACE(QStringLiteral("No shortcut was found for action ") \
-                    << m_pUI->Action##action->objectName()); \
-            auto it = m_shortcutKeyToAction.find(key); \
-            if (it != m_shortcutKeyToAction.end()) { \
-                QAction * pAction = it.value(); \
-                pAction->setShortcut(QKeySequence()); \
-                Q_UNUSED(m_shortcutKeyToAction.erase(it)) \
-            } \
-        } \
-        else \
-        { \
-            m_pUI->Action##action->setShortcut(shortcut); \
-            m_pUI->Action##action->setShortcutContext(Qt::WidgetWithChildrenShortcut); \
-            m_shortcutKeyToAction[key] = m_pUI->Action##action; \
-        } \
-    }
+#define PROCESS_ACTION_SHORTCUT(action, key, ...)                              \
+    {                                                                          \
+        QKeySequence shortcut = m_shortcutManager.shortcut(                    \
+            key, *m_pAccount, QStringLiteral("" __VA_ARGS__));                 \
+        if (shortcut.isEmpty())                                                \
+        {                                                                      \
+            QNTRACE("No shortcut was found for action "                        \
+                    << m_pUI->Action##action->objectName());                   \
+            auto it = m_shortcutKeyToAction.find(key);                         \
+            if (it != m_shortcutKeyToAction.end()) {                           \
+                QAction * pAction = it.value();                                \
+                pAction->setShortcut(QKeySequence());                          \
+                Q_UNUSED(m_shortcutKeyToAction.erase(it))                      \
+            }                                                                  \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+            m_pUI->Action##action->setShortcut(shortcut);                      \
+            m_pUI->Action##action->setShortcutContext(                         \
+                Qt::WidgetWithChildrenShortcut);                               \
+            m_shortcutKeyToAction[key] = m_pUI->Action##action;                \
+        }                                                                      \
+    }                                                                          \
+// PROCESS_ACTION_SHORTCUT
 
-#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
-    { \
-        QKeySequence shortcut = \
-            m_shortcutManager.shortcut(QStringLiteral(#action), *m_pAccount, \
-                                       QStringLiteral("" __VA_ARGS__)); \
-        if (shortcut.isEmpty()) \
-        { \
-            QNTRACE(QStringLiteral("No shortcut was found for action ") \
-                    << m_pUI->Action##action->objectName()); \
-            auto it = m_nonStandardShortcutKeyToAction.find(QStringLiteral(#action)); \
-            if (it != m_nonStandardShortcutKeyToAction.end()) { \
-                QAction * pAction = it.value(); \
-                pAction->setShortcut(QKeySequence()); \
-                Q_UNUSED(m_nonStandardShortcutKeyToAction.erase(it)) \
-            } \
-        } \
-        else \
-        { \
-            m_pUI->Action##action->setShortcut(shortcut); \
-            m_pUI->Action##action->setShortcutContext(\
-                Qt::WidgetWithChildrenShortcut); \
-            m_nonStandardShortcutKeyToAction[QStringLiteral(#action)] = \
-                m_pUI->Action##action; \
-        } \
-    }
+#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...)                      \
+    {                                                                          \
+        QKeySequence shortcut = m_shortcutManager.shortcut(                    \
+            QStringLiteral(#action), *m_pAccount,                              \
+            QStringLiteral("" __VA_ARGS__));                                   \
+        if (shortcut.isEmpty())                                                \
+        {                                                                      \
+            QNTRACE("No shortcut was found for action "                        \
+                    << m_pUI->Action##action->objectName());                   \
+            auto it = m_nonStandardShortcutKeyToAction.find(                   \
+                QStringLiteral(#action));                                      \
+            if (it != m_nonStandardShortcutKeyToAction.end()) {                \
+                QAction * pAction = it.value();                                \
+                pAction->setShortcut(QKeySequence());                          \
+                Q_UNUSED(m_nonStandardShortcutKeyToAction.erase(it))           \
+            }                                                                  \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+            m_pUI->Action##action->setShortcut(shortcut);                      \
+            m_pUI->Action##action->setShortcutContext(                         \
+                Qt::WidgetWithChildrenShortcut);                               \
+            m_nonStandardShortcutKeyToAction[QStringLiteral(#action)] =        \
+                m_pUI->Action##action;                                         \
+        }                                                                      \
+    }                                                                          \
+// PROCESS_NON_STANDARD_ACTION_SHORTCUT
 
 #include "ActionShortcuts.inl"
 
@@ -6183,7 +6141,7 @@ void MainWindow::setupUserShortcuts()
 
 void MainWindow::startListeningForShortcutChanges()
 {
-    QNDEBUG(QStringLiteral("MainWindow::startListeningForShortcutChanges"));
+    QNDEBUG("MainWindow::startListeningForShortcutChanges");
 
     QObject::connect(&m_shortcutManager,
                      QNSIGNAL(ShortcutManager,shortcutChanged,
@@ -6201,7 +6159,7 @@ void MainWindow::startListeningForShortcutChanges()
 
 void MainWindow::stopListeningForShortcutChanges()
 {
-    QNDEBUG(QStringLiteral("MainWindow::stopListeningForShortcutChanges"));
+    QNDEBUG("MainWindow::stopListeningForShortcutChanges");
 
     QObject::disconnect(&m_shortcutManager,
                         QNSIGNAL(ShortcutManager,shortcutChanged,
@@ -6217,8 +6175,8 @@ void MainWindow::stopListeningForShortcutChanges()
                                QString,QKeySequence,Account,QString));
 }
 
-void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey,
-                                           QString & consumerSecret)
+void MainWindow::setupConsumerKeyAndSecret(
+    QString & consumerKey, QString & consumerSecret)
 {
     const char key[10] = "e3zA914Ol";
 
@@ -6251,8 +6209,7 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey,
 
 void MainWindow::persistChosenNoteSortingMode(int index)
 {
-    QNDEBUG(QStringLiteral("MainWindow::persistChosenNoteSortingMode: index = ")
-            << index);
+    QNDEBUG("MainWindow::persistChosenNoteSortingMode: index = " << index);
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("NoteListView"));
@@ -6262,13 +6219,13 @@ void MainWindow::persistChosenNoteSortingMode(int index)
 
 NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
 {
-    QNDEBUG(QStringLiteral("MainWindow::restoreNoteSortingMode"));
+    QNDEBUG("MainWindow::restoreNoteSortingMode");
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("NoteListView"));
     if (!appSettings.contains(NOTE_SORTING_MODE_KEY)) {
-        QNDEBUG(QStringLiteral("No persisted note sorting mode within "
-                               "the settings, nothing to restore"));
+        QNDEBUG("No persisted note sorting mode within "
+                "the settings, nothing to restore");
         appSettings.endGroup();
         return NoteModel::NoteSortingMode::None;
     }
@@ -6277,7 +6234,7 @@ NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
     appSettings.endGroup();
 
     if (data.isNull()) {
-        QNDEBUG(QStringLiteral("No persisted note sorting mode, nothing to restore"));
+        QNDEBUG("No persisted note sorting mode, nothing to restore");
         return NoteModel::NoteSortingMode::None;
     }
 
@@ -6288,7 +6245,7 @@ NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
         ErrorString error(QT_TR_NOOP("Internal error: can't restore the last "
                                      "used note sorting mode, can't convert "
                                      "the persisted setting to the integer index"));
-        QNWARNING(error << QStringLiteral(", persisted data: ") << data);
+        QNWARNING(error << ", persisted data: " << data);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
         return NoteModel::NoteSortingMode::None;
     }
@@ -6298,7 +6255,7 @@ NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
 
 void MainWindow::persistGeometryAndState()
 {
-    QNDEBUG(QStringLiteral("MainWindow::persistGeometryAndState"));
+    QNDEBUG("MainWindow::persistGeometryAndState");
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -6322,33 +6279,33 @@ void MainWindow::persistGeometryAndState()
     int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
     bool sidePanelSplitterSizesOk = (sidePanelSplitterSizesCount == 5);
 
-    QNTRACE(QStringLiteral("Show side panel = ")
-            << (showSidePanel ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", show favorites view = ")
-            << (showFavoritesView ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", show notebooks view = ")
-            << (showNotebooksView ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", show tags view = ")
-            << (showTagsView ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", show saved searches view = ")
-            << (showSavedSearches ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", show deleted notes view = ")
-            << (showDeletedNotes ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", splitter sizes ok = ")
-            << (showDeletedNotes ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", side panel splitter sizes ok = ")
-            << (showDeletedNotes ? QStringLiteral("true") : QStringLiteral("false")));
+    QNTRACE("Show side panel = "
+            << (showSidePanel ? "true" : "false")
+            << ", show favorites view = "
+            << (showFavoritesView ? "true" : "false")
+            << ", show notebooks view = "
+            << (showNotebooksView ? "true" : "false")
+            << ", show tags view = "
+            << (showTagsView ? "true" : "false")
+            << ", show saved searches view = "
+            << (showSavedSearches ? "true" : "false")
+            << ", show deleted notes view = "
+            << (showDeletedNotes ? "true" : "false")
+            << ", splitter sizes ok = "
+            << (showDeletedNotes ? "true" : "false")
+            << ", side panel splitter sizes ok = "
+            << (showDeletedNotes ? "true" : "false"));
 
     if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
     {
-        QNTRACE(QStringLiteral("Splitter sizes: " ));
+        QNTRACE("Splitter sizes: " );
         for(auto it = splitterSizes.constBegin(),
             end = splitterSizes.constEnd(); it != end; ++it)
         {
             QNTRACE(*it);
         }
 
-        QNTRACE(QStringLiteral("Side panel splitter sizes: "));
+        QNTRACE("Side panel splitter sizes: ");
         for(auto it = sidePanelSplitterSizes.constBegin(),
             end = sidePanelSplitterSizes.constEnd(); it != end; ++it)
         {
@@ -6424,7 +6381,7 @@ void MainWindow::persistGeometryAndState()
 
 void MainWindow::restoreGeometryAndState()
 {
-    QNDEBUG(QStringLiteral("MainWindow::restoreGeometryAndState"));
+    QNDEBUG("MainWindow::restoreGeometryAndState");
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -6437,21 +6394,15 @@ void MainWindow::restoreGeometryAndState()
     m_geometryRestored = restoreGeometry(savedGeometry);
     m_stateRestored = restoreState(savedState);
 
-    QNTRACE(QStringLiteral("Geometry restored = ")
-            << (m_geometryRestored
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", state restored = ")
-            << (m_stateRestored
-                ? QStringLiteral("true")
-                : QStringLiteral("false")));
+    QNTRACE("Geometry restored = " << (m_geometryRestored ? "true" : "false")
+            << ", state restored = " << (m_stateRestored ? "true" : "false"));
 
     scheduleSplitterSizesRestoration();
 }
 
 void MainWindow::restoreSplitterSizes()
 {
-    QNDEBUG(QStringLiteral("MainWindow::restoreSplitterSizes"));
+    QNDEBUG("MainWindow::restoreSplitterSizes");
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
@@ -6471,15 +6422,13 @@ void MainWindow::restoreSplitterSizes()
 
     appSettings.endGroup();
 
-    QNTRACE(QStringLiteral("Side panel width = ") << sidePanelWidth
-            << QStringLiteral(", notes list width = ") << notesListWidth
-            << QStringLiteral(", favorites view height = ") << favoritesViewHeight
-            << QStringLiteral(", notebooks view height = ") << notebooksViewHeight
-            << QStringLiteral(", tags view height = ") << tagsViewHeight
-            << QStringLiteral(", saved searches view height = ")
-            << savedSearchesViewHeight
-            << QStringLiteral(", deleted notes view height = ")
-            << deletedNotesViewHeight);
+    QNTRACE("Side panel width = " << sidePanelWidth
+            << ", notes list width = " << notesListWidth
+            << ", favorites view height = " << favoritesViewHeight
+            << ", notebooks view height = " << notebooksViewHeight
+            << ", tags view height = " << tagsViewHeight
+            << ", saved searches view height = " << savedSearchesViewHeight
+            << ", deleted notes view height = " << deletedNotesViewHeight);
 
     bool showSidePanel = m_pUI->ActionShowSidePanel->isChecked();
     bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
@@ -6507,12 +6456,11 @@ void MainWindow::restoreSplitterSizes()
             int sidePanelWidthInt = sidePanelWidth.toInt(&conversionResult);
             if (conversionResult) {
                 splitterSizes[1] = sidePanelWidthInt;
-                QNTRACE(QStringLiteral("Restored side panel width: ")
-                        << sidePanelWidthInt);
+                QNTRACE("Restored side panel width: " << sidePanelWidthInt);
             }
             else {
-                QNDEBUG(QStringLiteral("Can't restore the side panel width: can't ")
-                        << QStringLiteral("convert the persisted width to int: ")
+                QNDEBUG("Can't restore the side panel width: can't "
+                        << "convert the persisted width to int: "
                         << sidePanelWidth);
             }
         }
@@ -6523,20 +6471,19 @@ void MainWindow::restoreSplitterSizes()
             int notesListWidthInt = notesListWidth.toInt(&conversionResult);
             if (conversionResult) {
                 splitterSizes[2] = notesListWidthInt;
-                QNTRACE(QStringLiteral("Restored notes list panel width: ")
-                        << notesListWidthInt);
+                QNTRACE("Restored notes list panel width: " << notesListWidthInt);
             }
             else {
-                QNDEBUG(QStringLiteral("Can't restore the notes list panel width: ")
-                        << QStringLiteral("can't convert the persisted width to ")
-                        << QStringLiteral("int: ") << notesListWidth);
+                QNDEBUG("Can't restore the notes list panel width: "
+                        << "can't convert the persisted width to int: "
+                        << notesListWidth);
             }
         }
 
         splitterSizes[3] = totalWidth - splitterSizes[0] - splitterSizes[1] -
                            splitterSizes[2] - splitterSizes[4];
         m_pUI->splitter->setSizes(splitterSizes);
-        QNTRACE(QStringLiteral("Set splitter sizes"));
+        QNTRACE("Set splitter sizes");
     }
     else
     {
@@ -6544,7 +6491,7 @@ void MainWindow::restoreSplitterSizes()
                                      "for side panel, note list view and note "
                                      "editors view: wrong number of sizes within "
                                      "the splitter"));
-        QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
+        QNWARNING(error << ", sizes count: " << splitterSizesCount);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
     }
 
@@ -6559,8 +6506,8 @@ void MainWindow::restoreSplitterSizes()
 
         if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
         {
-            QNTRACE(QStringLiteral("Side panel splitter sizes before restoring (total")
-                    << totalHeight << QStringLiteral(": "));
+            QNTRACE("Side panel splitter sizes before restoring (total"
+                    << totalHeight << ": ");
             for(auto it = sidePanelSplitterSizes.constBegin(),
                 end = sidePanelSplitterSizes.constEnd(); it != end; ++it)
             {
@@ -6575,13 +6522,13 @@ void MainWindow::restoreSplitterSizes()
                 favoritesViewHeight.toInt(&conversionResult);
             if (conversionResult) {
                 sidePanelSplitterSizes[0] = favoritesViewHeightInt;
-                QNTRACE(QStringLiteral("Restored favorites view height: ")
+                QNTRACE("Restored favorites view height: "
                         << favoritesViewHeightInt);
             }
             else {
-                QNDEBUG(QStringLiteral("Can't restore the favorites view height: ")
-                        << QStringLiteral("can't convert the persisted height to ")
-                        << QStringLiteral("int: ") << favoritesViewHeight);
+                QNDEBUG("Can't restore the favorites view height: "
+                        << "can't convert the persisted height to int: "
+                        << favoritesViewHeight);
             }
         }
 
@@ -6592,13 +6539,13 @@ void MainWindow::restoreSplitterSizes()
                 notebooksViewHeight.toInt(&conversionResult);
             if (conversionResult) {
                 sidePanelSplitterSizes[1] = notebooksViewHeightInt;
-                QNTRACE(QStringLiteral("Restored notebooks view height: ")
+                QNTRACE("Restored notebooks view height: "
                         << notebooksViewHeightInt);
             }
             else {
-                QNDEBUG(QStringLiteral("Can't restore the notebooks view height: ")
-                        << QStringLiteral("can't convert the persisted height to ")
-                        << QStringLiteral("int: ") << notebooksViewHeight);
+                QNDEBUG("Can't restore the notebooks view height: "
+                        << "can't convert the persisted height to int: "
+                        << notebooksViewHeight);
             }
         }
 
@@ -6608,12 +6555,11 @@ void MainWindow::restoreSplitterSizes()
             int tagsViewHeightInt = tagsViewHeight.toInt(&conversionResult);
             if (conversionResult) {
                 sidePanelSplitterSizes[2] = tagsViewHeightInt;
-                QNTRACE(QStringLiteral("Restored tags view height: ")
-                        << tagsViewHeightInt);
+                QNTRACE("Restored tags view height: " << tagsViewHeightInt);
             }
             else {
-                QNDEBUG(QStringLiteral("Can't restore the tags view height: can't ")
-                        << QStringLiteral("convert the persisted height to int: ")
+                QNDEBUG("Can't restore the tags view height: can't "
+                        << "convert the persisted height to int: "
                         << tagsViewHeight);
             }
         }
@@ -6625,13 +6571,12 @@ void MainWindow::restoreSplitterSizes()
                 savedSearchesViewHeight.toInt(&conversionResult);
             if (conversionResult) {
                 sidePanelSplitterSizes[3] = savedSearchesViewHeightInt;
-                QNTRACE(QStringLiteral("Restored saved searches view height: ")
+                QNTRACE("Restored saved searches view height: "
                         << savedSearchesViewHeightInt);
             }
             else {
-                QNDEBUG(QStringLiteral("Can't restore the saved searches view ")
-                        << QStringLiteral("height: can't convert the persisted ")
-                        << QStringLiteral("height to int: ")
+                QNDEBUG("Can't restore the saved searches view "
+                        << "height: can't convert the persisted height to int: "
                         << savedSearchesViewHeight);
             }
         }
@@ -6643,14 +6588,13 @@ void MainWindow::restoreSplitterSizes()
                 deletedNotesViewHeight.toInt(&conversionResult);
             if (conversionResult) {
                 sidePanelSplitterSizes[4] = deletedNotesViewHeightInt;
-                QNTRACE(QStringLiteral("Restored deleted notes view height: ")
+                QNTRACE("Restored deleted notes view height: "
                         << deletedNotesViewHeightInt);
             }
             else {
-                QNDEBUG(QStringLiteral("Can't restore the deleted notes view ")
-                        << QStringLiteral("height: can't convert the persisted ")
-                        << QStringLiteral("height to int: ")
-                        << deletedNotesViewHeight);
+                QNDEBUG("Can't restore the deleted notes view "
+                        << "height: can't convert the persisted "
+                        << "height to int: " << deletedNotesViewHeight);
             }
         }
 
@@ -6661,8 +6605,8 @@ void MainWindow::restoreSplitterSizes()
 
         if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
         {
-            QNTRACE(QStringLiteral("Side panel splitter sizes after restoring (total")
-                    << totalHeightAfterRestore << QStringLiteral(": "));
+            QNTRACE("Side panel splitter sizes after restoring (total"
+                    << totalHeightAfterRestore << ": ");
             for(auto it = sidePanelSplitterSizes.constBegin(),
                 end = sidePanelSplitterSizes.constEnd(); it != end; ++it)
             {
@@ -6671,30 +6615,30 @@ void MainWindow::restoreSplitterSizes()
         }
 
         m_pUI->sidePanelSplitter->setSizes(sidePanelSplitterSizes);
-        QNTRACE(QStringLiteral("Set side panel splitter sizes"));
+        QNTRACE("Set side panel splitter sizes");
     }
     else
     {
         ErrorString error(QT_TR_NOOP("Internal error: can't restore the heights "
                                      "of side panel's views: wrong number of "
                                      "sizes within the splitter"));
-        QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
+        QNWARNING(error << ", sizes count: " << splitterSizesCount);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
     }
 }
 
 void MainWindow::scheduleSplitterSizesRestoration()
 {
-    QNDEBUG(QStringLiteral("MainWindow::scheduleSplitterSizesRestoration"));
+    QNDEBUG("MainWindow::scheduleSplitterSizesRestoration");
 
     if (!m_shown) {
-        QNDEBUG(QStringLiteral("Not shown yet, won't do anything"));
+        QNDEBUG("Not shown yet, won't do anything");
         return;
     }
 
     if (m_splitterSizesRestorationDelayTimerId != 0) {
-        QNDEBUG(QStringLiteral("Splitter sizes restoration already scheduled, ")
-                << QStringLiteral("timer id = ")
+        QNDEBUG("Splitter sizes restoration already scheduled, "
+                << "timer id = "
                 << m_splitterSizesRestorationDelayTimerId);
         return;
     }
@@ -6702,27 +6646,26 @@ void MainWindow::scheduleSplitterSizesRestoration()
     m_splitterSizesRestorationDelayTimerId =
         startTimer(RESTORE_SPLITTER_SIZES_DELAY);
     if (Q_UNLIKELY(m_splitterSizesRestorationDelayTimerId == 0)) {
-        QNWARNING(QStringLiteral("Failed to start the timer to delay "
-                                 "the restoration of splitter sizes"));
+        QNWARNING("Failed to start the timer to delay "
+                  "the restoration of splitter sizes");
         return;
     }
 
-    QNDEBUG(QStringLiteral("Started the timer to delay the restoration of ")
-            << QStringLiteral("splitter sizes: ")
-            << m_splitterSizesRestorationDelayTimerId);
+    QNDEBUG("Started the timer to delay the restoration of "
+            << "splitter sizes: " << m_splitterSizesRestorationDelayTimerId);
 }
 
 void MainWindow::scheduleGeometryAndStatePersisting()
 {
-    QNDEBUG(QStringLiteral("MainWindow::scheduleGeometryAndStatePersisting"));
+    QNDEBUG("MainWindow::scheduleGeometryAndStatePersisting");
 
     if (!m_shown) {
-        QNDEBUG(QStringLiteral("Not shown yet, won't do anything"));
+        QNDEBUG("Not shown yet, won't do anything");
         return;
     }
 
     if (m_geometryAndStatePersistingDelayTimerId != 0) {
-        QNDEBUG(QStringLiteral("Persisting already scheduled, timer id = ")
+        QNDEBUG("Persisting already scheduled, timer id = "
                 << m_geometryAndStatePersistingDelayTimerId);
         return;
     }
@@ -6730,29 +6673,29 @@ void MainWindow::scheduleGeometryAndStatePersisting()
     m_geometryAndStatePersistingDelayTimerId =
         startTimer(PERSIST_GEOMETRY_AND_STATE_DELAY);
     if (Q_UNLIKELY(m_geometryAndStatePersistingDelayTimerId == 0)) {
-        QNWARNING(QStringLiteral("Failed to start the timer to delay "
-                                 "the persistence of MainWindow's state and "
-                                 "geometry"));
+        QNWARNING("Failed to start the timer to delay "
+                  "the persistence of MainWindow's state and "
+                  "geometry");
         return;
     }
 
-    QNDEBUG(QStringLiteral("Started the timer to delay the persistence of ")
-            << QStringLiteral("MainWindow's state and geometry: timer id = ")
+    QNDEBUG("Started the timer to delay the persistence of "
+            << "MainWindow's state and geometry: timer id = "
             << m_geometryAndStatePersistingDelayTimerId);
 }
 
 void MainWindow::scheduleSideBordersControllerCreation()
 {
-    QNDEBUG(QStringLiteral("MainWindow::scheduleSideBordersControllerCreation"));
+    QNDEBUG("MainWindow::scheduleSideBordersControllerCreation");
 
     if (!m_shown) {
-        QNDEBUG(QStringLiteral("Not shown yet, won't do anything"));
+        QNDEBUG("Not shown yet, won't do anything");
         return;
     }
 
     if (m_sideBordersControllerCreationDelayTimerId != 0) {
-        QNDEBUG(QStringLiteral("Side borders controller creation is already ")
-                << QStringLiteral("scheduled, timer id = ")
+        QNDEBUG("Side borders controller creation is already "
+                << "scheduled, timer id = "
                 << m_sideBordersControllerCreationDelayTimerId);
         return;
     }
@@ -6760,20 +6703,20 @@ void MainWindow::scheduleSideBordersControllerCreation()
     m_sideBordersControllerCreationDelayTimerId =
         startTimer(CREATE_SIDE_BORDERS_CONTROLLER_DELAY);
     if (Q_UNLIKELY(m_sideBordersControllerCreationDelayTimerId == 0)) {
-        QNWARNING(QStringLiteral("Failed to start the timer to delay "
-                                 "the creation of side borders controller"));
+        QNWARNING("Failed to start the timer to delay "
+                  "the creation of side borders controller");
         return;
     }
 
-    QNDEBUG(QStringLiteral("Started the timer to delay the creation of side ")
-            << QStringLiteral("borders controller: ")
+    QNDEBUG("Started the timer to delay the creation of side "
+            << "borders controller: "
             << m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
 }
 
 void MainWindow::notifySideBordersControllerOfMainWindowStateUpdate()
 {
-    QNDEBUG(QStringLiteral("MainWindow::"
-                           "notifySideBordersControllerOfMainWindowStateUpdate"));
+    QNDEBUG("MainWindow::"
+            "notifySideBordersControllerOfMainWindowStateUpdate");
 
     if (Q_UNLIKELY(!m_pSideBordersController)) {
         return;
@@ -6792,17 +6735,17 @@ void MainWindow::notifySideBordersControllerOfMainWindowStateUpdate()
 
 void MainWindow::scheduleSideBordersControllerMainWindowStateUpdate()
 {
-    QNDEBUG(QStringLiteral("MainWindow::"
-                           "scheduleSideBordersControllerMainWindowStateUpdate"));
+    QNDEBUG("MainWindow::"
+            "scheduleSideBordersControllerMainWindowStateUpdate");
 
     if (!m_shown) {
-        QNDEBUG(QStringLiteral("Not shown yet, won't do anything"));
+        QNDEBUG("Not shown yet, won't do anything");
         return;
     }
 
     if (m_sideBordersControllerMainWindowStateUpdateDelayTimerId != 0) {
-        QNDEBUG(QStringLiteral("Side borders controller notification is already ")
-                << QStringLiteral("scheduled, timer id = ")
+        QNDEBUG("Side borders controller notification is already "
+                << "scheduled, timer id = "
                 << m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
         return;
     }
@@ -6810,14 +6753,14 @@ void MainWindow::scheduleSideBordersControllerMainWindowStateUpdate()
     m_sideBordersControllerMainWindowStateUpdateDelayTimerId =
         startTimer(NOTIFY_SIDE_BORDERS_CONTROLLER_DELAY);
     if (Q_UNLIKELY(m_sideBordersControllerMainWindowStateUpdateDelayTimerId == 0)) {
-        QNWARNING(QStringLiteral("Failed to start the timer to delay "
-                                 "the notification of side borders controller "
-                                 "of main window state change"));
+        QNWARNING("Failed to start the timer to delay "
+                  "the notification of side borders controller "
+                  "of main window state change");
         return;
     }
 
-    QNDEBUG(QStringLiteral("Started the timer to delay the notification of side ")
-            << QStringLiteral("borders controller of main window state change: ")
+    QNDEBUG("Started the timer to delay the notification of side "
+            << "borders controller of main window state change: "
             << m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
 }
 
@@ -6825,8 +6768,7 @@ template <class T>
 void MainWindow::refreshThemeIcons()
 {
     QList<T*> objects = findChildren<T*>();
-    QNDEBUG(QStringLiteral("Found ") << objects.size()
-            << QStringLiteral(" child objects"));
+    QNDEBUG("Found " << objects.size() << " child objects");
 
     for(auto it = objects.constBegin(),
         end = objects.constEnd(); it != end; ++it)

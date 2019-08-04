@@ -42,7 +42,7 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
     m_editedNotebookLocalUid(editedNotebookLocalUid),
     m_stringUtils()
 {
-    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog: edited notebook local uid = ")
+    QNDEBUG("AddOrEditNotebookDialog: edited notebook local uid = "
             << editedNotebookLocalUid);
 
     m_pUi->setupUi(this);
@@ -148,13 +148,14 @@ void AddOrEditNotebookDialog::accept()
     QString stack = m_pUi->notebookStackComboBox->currentText().trimmed();
     m_stringUtils.removeNewlines(stack);
 
-    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::accept: notebook name = ")
-            << notebookName << QStringLiteral(", stack: ") << stack);
+    QNDEBUG("AddOrEditNotebookDialog::accept: notebook name = "
+            << notebookName << ", stack: " << stack);
 
-#define REPORT_ERROR(error) \
-    m_pUi->statusBar->setText(tr(error)); \
-    QNWARNING(error); \
-    m_pUi->statusBar->setHidden(false)
+#define REPORT_ERROR(error)                                                    \
+    m_pUi->statusBar->setText(tr(error));                                      \
+    QNWARNING(error);                                                          \
+    m_pUi->statusBar->setHidden(false)                                         \
+// REPORT_ERROR
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
         REPORT_ERROR("Can't accept new notebook or edit existing one: "
@@ -164,13 +165,15 @@ void AddOrEditNotebookDialog::accept()
 
     if (m_editedNotebookLocalUid.isEmpty())
     {
-        QNDEBUG(QStringLiteral("Edited notebook local uid is empty, adding new "
-                               "notebook to the model"));
+        QNDEBUG("Edited notebook local uid is empty, adding new notebook "
+                "to the model");
 
         ErrorString errorDescription;
-        QModelIndex index = m_pNotebookModel->createNotebook(notebookName,
-                                                             stack,
-                                                             errorDescription);
+        QModelIndex index = m_pNotebookModel->createNotebook(
+            notebookName,
+            stack,
+            errorDescription);
+
         if (!index.isValid()) {
             m_pUi->statusBar->setText(errorDescription.localizedString());
             QNWARNING(errorDescription);
@@ -180,8 +183,8 @@ void AddOrEditNotebookDialog::accept()
     }
     else
     {
-        QNDEBUG(QStringLiteral("Edited notebook local uid is not empty, editing "
-                               "the existing notebook within the model"));
+        QNDEBUG("Edited notebook local uid is not empty, editing "
+                "the existing notebook within the model");
 
         QModelIndex index =
             m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
@@ -256,11 +259,11 @@ void AddOrEditNotebookDialog::accept()
 
 void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
 {
-    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::onNotebookNameEdited: ")
+    QNDEBUG("AddOrEditNotebookDialog::onNotebookNameEdited: "
             << notebookName);
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
-        QNDEBUG(QStringLiteral("Notebook model is missing"));
+        QNDEBUG("Notebook model is missing");
         return;
     }
 
@@ -321,11 +324,10 @@ void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
 
 void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
 {
-    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::onNotebookStackChanged: ")
-            << stack);
+    QNDEBUG("AddOrEditNotebookDialog::onNotebookStackChanged: " << stack);
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
-        QNDEBUG(QStringLiteral("No notebook model is set, nothing to do"));
+        QNDEBUG("No notebook model is set, nothing to do");
         return;
     }
 

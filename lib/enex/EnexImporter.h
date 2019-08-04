@@ -44,11 +44,12 @@ class EnexImporter: public QObject
 {
     Q_OBJECT
 public:
-    explicit EnexImporter(const QString & enexFilePath,
-                          const QString & notebookName,
-                          LocalStorageManagerAsync & localStorageManagerAsync,
-                          TagModel & tagModel, NotebookModel & notebookModel,
-                          QObject * parent = Q_NULLPTR);
+    explicit EnexImporter(
+        const QString & enexFilePath,
+        const QString & notebookName,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        TagModel & tagModel, NotebookModel & notebookModel,
+        QObject * parent = Q_NULLPTR);
 
     bool isInProgress() const;
     void start();
@@ -67,17 +68,17 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids,
-                              QUuid requestId);
+    void onExpungeTagComplete(
+        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription,
-                             QUuid requestId);
+    void onAddNotebookFailed(
+        Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, ErrorString errorDescription,
-                         QUuid requestId);
+    void onAddNoteFailed(
+        Note note, ErrorString errorDescription, QUuid requestId);
 
     void onAllTagsListed();
     void onAllNotebooksListed();

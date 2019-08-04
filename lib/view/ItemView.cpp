@@ -26,19 +26,18 @@ ItemView::ItemView(QWidget * parent) :
     QTreeView(parent)
 {}
 
-void ItemView::dataChanged(const QModelIndex & topLeft,
-                           const QModelIndex & bottomRight
+void ItemView::dataChanged(
+    const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                           )
+    )
 #else
-                           , const QVector<int> & roles)
+    , const QVector<int> & roles)
 #endif
 {
-    QNTRACE(QStringLiteral("ItemView::dataChanged: top left: row = ")
-            << topLeft.row() << QStringLiteral(", column = ") << topLeft.column()
-            << QStringLiteral(", bottom right: row = ")
-            << bottomRight.row() << QStringLiteral(", column = ")
-            << bottomRight.column());
+    QNTRACE("ItemView::dataChanged: top left: row = "
+            << topLeft.row() << ", column = " << topLeft.column()
+            << ", bottom right: row = " << bottomRight.row()
+            << ", column = " << bottomRight.column());
 
     QTreeView::dataChanged(topLeft, bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
@@ -67,9 +66,9 @@ void ItemView::dataChanged(const QModelIndex & topLeft,
     }
 }
 
-QModelIndex ItemView::singleRow(const QModelIndexList & indexes,
-                                const QAbstractItemModel & model,
-                                const int column) const
+QModelIndex ItemView::singleRow(
+    const QModelIndexList & indexes, const QAbstractItemModel & model,
+    const int column) const
 {
     int row = -1;
     QModelIndex sourceIndex;

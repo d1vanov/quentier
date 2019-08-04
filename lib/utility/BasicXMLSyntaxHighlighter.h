@@ -33,8 +33,9 @@ protected:
     virtual void highlightBlock(const QString & text);
 
 private:
-    void highlightByRegex(const QTextCharFormat & format,
-                          const QRegExp & regex, const QString & text);
+    void highlightByRegex(
+        const QTextCharFormat & format, const QRegExp & regex,
+        const QString & text);
 
     void setRegexes();
     void setFormats();

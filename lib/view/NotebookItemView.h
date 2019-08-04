@@ -90,46 +90,53 @@ private Q_SLOTS:
 
     void onNotebookModelItemCollapsedOrExpanded(const QModelIndex & index);
 
-    void onNotebookStackRenamed(const QString & previousStackName,
-                                const QString & newStackName,
-                                const QString & linkedNotebookGuid);
+    void onNotebookStackRenamed(
+        const QString & previousStackName, const QString & newStackName,
+        const QString & linkedNotebookGuid);
+
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
     void onNoteFilterChanged();
 
     void onNoteFiltersManagerReady();
 
-    virtual void selectionChanged(const QItemSelection & selected,
-                                  const QItemSelection & deselected) Q_DECL_OVERRIDE;
+    virtual void selectionChanged(
+        const QItemSelection & selected,
+        const QItemSelection & deselected) Q_DECL_OVERRIDE;
+
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     void deleteItem(const QModelIndex & itemIndex, NotebookModel & model);
-    void showNotebookItemContextMenu(const NotebookItem & item,
-                                     const QPoint & point,
-                                     NotebookModel & model);
-    void showNotebookStackItemContextMenu(const NotebookStackItem & item,
-                                          const NotebookModelItem & modelItem,
-                                          const QPoint & point,
-                                          NotebookModel & model);
+
+    void showNotebookItemContextMenu(
+        const NotebookItem & item, const QPoint & point, NotebookModel & model);
+
+    void showNotebookStackItemContextMenu(
+        const NotebookStackItem & item, const NotebookModelItem & modelItem,
+        const QPoint & point, NotebookModel & model);
 
     void saveNotebookModelItemsState();
     void restoreNotebookModelItemsState(const NotebookModel & model);
 
-    void setStacksExpanded(const QStringList & expandedStackNames,
-                           const NotebookModel & model,
-                           const QString & linkedNotebookGuid);
-    void setLinkedNotebooksExpanded(const QStringList & expandedLinkedNotebookGuids,
-                                    const NotebookModel & model);
+    void setStacksExpanded(
+        const QStringList & expandedStackNames, const NotebookModel & model,
+        const QString & linkedNotebookGuid);
 
-    void restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model);
+    void setLinkedNotebooksExpanded(
+        const QStringList & expandedLinkedNotebookGuids,
+        const NotebookModel & model);
+
+    void restoreLastSavedSelectionOrAutoSelectNotebook(
+        const NotebookModel & model);
+
     void autoSelectNotebook(const NotebookModel & model);
 
-    void selectionChangedImpl(const QItemSelection & selected,
-                              const QItemSelection & deselected);
+    void selectionChangedImpl(
+        const QItemSelection & selected, const QItemSelection & deselected);
 
-    void persistSelectedNotebookLocalUid(const NotebookModel & notebookModel,
-                                         const QString & notebookLocalUid);
+    void persistSelectedNotebookLocalUid(
+        const NotebookModel & notebookModel, const QString & notebookLocalUid);
 
     void clearSelectionImpl();
 

@@ -74,8 +74,8 @@ LocalStorageVersionTooHighDialog::~LocalStorageVersionTooHighDialog()
 
 void LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed()
 {
-    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::"
-                           "onSwitchToAccountPushButtonPressed"));
+    QNDEBUG("LocalStorageVersionTooHighDialog::"
+            "onSwitchToAccountPushButtonPressed");
 
     QModelIndex currentAccountIndex = m_pUi->accountsTableView->currentIndex();
     if (!currentAccountIndex.isValid()) {
@@ -115,8 +115,8 @@ void LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed()
 
 void LocalStorageVersionTooHighDialog::onCreateNewAccountButtonPressed()
 {
-    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::"
-                           "onCreateNewAccountButtonPressed"));
+    QNDEBUG("LocalStorageVersionTooHighDialog::"
+            "onCreateNewAccountButtonPressed");
 
     Q_EMIT shouldCreateNewAccount();
     QDialog::accept();
@@ -124,8 +124,7 @@ void LocalStorageVersionTooHighDialog::onCreateNewAccountButtonPressed()
 
 void LocalStorageVersionTooHighDialog::onQuitAppButtonPressed()
 {
-    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::"
-                           "onQuitAppButtonPressed"));
+    QNDEBUG("LocalStorageVersionTooHighDialog::onQuitAppButtonPressed");
 
     Q_EMIT shouldQuitApp();
     QDialog::accept();
@@ -134,14 +133,13 @@ void LocalStorageVersionTooHighDialog::onQuitAppButtonPressed()
 void LocalStorageVersionTooHighDialog::onAccountViewSelectionChanged(
     const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::"
-                           "onAccountViewSelectionChanged"));
+    QNDEBUG("LocalStorageVersionTooHighDialog::"
+            "onAccountViewSelectionChanged");
 
     Q_UNUSED(deselected)
 
     if (selected.isEmpty()) {
-        QNDEBUG(QStringLiteral("No selection, disabling switch to selected "
-                               "account button"));
+        QNDEBUG("No selection, disabling switch to selected account button");
         m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
         return;
     }
@@ -157,7 +155,7 @@ void LocalStorageVersionTooHighDialog::reject()
 
 void LocalStorageVersionTooHighDialog::createConnections()
 {
-    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::createConnections"));
+    QNDEBUG("LocalStorageVersionTooHighDialog::createConnections");
 
     QObject::connect(m_pUi->switchToAnotherAccountPushButton,
                      QNSIGNAL(QPushButton,pressed),
@@ -186,8 +184,8 @@ void LocalStorageVersionTooHighDialog::createConnections()
 void LocalStorageVersionTooHighDialog::initializeDetails(
     const Account & currentAccount, LocalStorageManager & localStorageManager)
 {
-    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::initializeDetails: ")
-            << QStringLiteral("current account = ") << currentAccount);
+    QNDEBUG("LocalStorageVersionTooHighDialog::initializeDetails: "
+            << "current account = " << currentAccount);
 
     QString details = tr("Account name");
     details += QStringLiteral(": ");
@@ -248,7 +246,7 @@ void LocalStorageVersionTooHighDialog::initializeDetails(
 void LocalStorageVersionTooHighDialog::setErrorToStatusBar(
     const ErrorString & error)
 {
-    QNDEBUG(QStringLiteral("LocalStorageVersionTooHighDialog::setErrorToStatusBar: ")
+    QNDEBUG("LocalStorageVersionTooHighDialog::setErrorToStatusBar: "
             << error);
     m_pUi->statusBar->setText(error.localizedString());
     m_pUi->statusBar->show();

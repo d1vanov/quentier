@@ -41,6 +41,7 @@ public:
         QNetworkAccessManager * pNetworkAccessManager,
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = Q_NULLPTR);
+
     virtual ~WikiRandomArticleUrlFetcher();
 
     bool isStarted() const { return m_started; }
@@ -61,12 +62,14 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
-    void onDownloadFinished(bool status, QByteArray fetchedData,
-                            ErrorString errorDescription);
+
+    void onDownloadFinished(
+        bool status, QByteArray fetchedData, ErrorString errorDescription);
 
 private:
-    qint32 parsePageIdFromFetchedData(const QByteArray & fetchedData,
-                                      ErrorString & errorDescription);
+    qint32 parsePageIdFromFetchedData(
+        const QByteArray & fetchedData, ErrorString & errorDescription);
+
     void finishWithError(const ErrorString & errorDescription);
 
 private:

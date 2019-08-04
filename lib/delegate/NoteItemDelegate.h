@@ -35,35 +35,37 @@ public:
     /**
      * @brief returns null pointer as NoteItemDelegate doesn't allow editing
      */
-    virtual QWidget * createEditor(QWidget * parent,
-                                   const QStyleOptionViewItem & option,
-                                   const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QWidget * createEditor(
+        QWidget * parent, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
-    virtual void paint(QPainter * painter,
-                       const QStyleOptionViewItem & option,
-                       const QModelIndex & index) const Q_DECL_OVERRIDE;
-
-    /**
-     * @brief does nothing
-     */
-    virtual void setEditorData(QWidget * editor,
-                               const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void paint(
+        QPainter * painter, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
     /**
      * @brief does nothing
      */
-    virtual void setModelData(QWidget * editor, QAbstractItemModel * model,
-                              const QModelIndex & index) const Q_DECL_OVERRIDE;
-
-    virtual QSize sizeHint(const QStyleOptionViewItem & option,
-                           const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void setEditorData(
+        QWidget * editor, const QModelIndex & index) const Q_DECL_OVERRIDE;
 
     /**
      * @brief does nothing
      */
-    virtual void updateEditorGeometry(QWidget * editor,
-                                      const QStyleOptionViewItem & option,
-                                      const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual void setModelData(
+        QWidget * editor, QAbstractItemModel * model,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
+
+    virtual QSize sizeHint(
+        const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
+
+    /**
+     * @brief does nothing
+     */
+    virtual void updateEditorGeometry(
+        QWidget * editor, const QStyleOptionViewItem & option,
+        const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 public Q_SLOTS:
     /**
@@ -72,15 +74,17 @@ public Q_SLOTS:
      * @param hideThumbnailsLocalUids   Map with local uids where the thumbails
      *                                  was manually hidden.
      */
-    void setShowNoteThumbnailsState(bool showThumbnailsForAllNotes,
-                                    const QSet<QString> & hideThumbnailsLocalUids);
+    void setShowNoteThumbnailsState(
+        bool showThumbnailsForAllNotes,
+        const QSet<QString> & hideThumbnailsLocalUids);
 
 
 Q_SIGNALS:
     void notifyError(ErrorString error) const;  // clazy:exclude=const-signal-or-slot
 
 private:
-    QString timestampToString(const qint64 timestamp, const qint64 timePassed) const;
+    QString timestampToString(
+        const qint64 timestamp, const qint64 timePassed) const;
 
 private:
     /**

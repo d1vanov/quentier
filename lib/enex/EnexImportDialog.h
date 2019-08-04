@@ -42,9 +42,11 @@ class EnexImportDialog: public QDialog
     Q_OBJECT
 
 public:
-    explicit EnexImportDialog(const Account & account,
-                              NotebookModel & notebookModel,
-                              QWidget * parent = Q_NULLPTR);
+    explicit EnexImportDialog(
+        const Account & account,
+        NotebookModel & notebookModel,
+        QWidget * parent = Q_NULLPTR);
+
     virtual ~EnexImportDialog();
 
     QString importEnexFilePath(ErrorString * pErrorDescription = Q_NULLPTR) const;
@@ -56,11 +58,12 @@ private Q_SLOTS:
     void onEnexFilePathEdited(const QString & path);
 
     // Slots to track the updates of notebook model
-    void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+    void dataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < 0x050000
-                            );
+        );
 #else
-                            , const QVector<int> & roles = QVector<int>());
+        , const QVector<int> & roles = QVector<int>());
 #endif
 
     void rowsInserted(const QModelIndex & parent, int start, int end);

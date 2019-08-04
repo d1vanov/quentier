@@ -24,8 +24,7 @@
 
 namespace quentier {
 
-void ParseCommandLine(int argc, char * argv[],
-                      ParseCommandLineResult & result)
+void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
 {
     QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
     composeCommonAvailableCommandLineOptions(availableCmdOptions);

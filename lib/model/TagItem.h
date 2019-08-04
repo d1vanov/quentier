@@ -26,16 +26,18 @@ namespace quentier {
 class TagItem: public Printable
 {
 public:
-    explicit TagItem(const QString & localUid = QString(),
-                     const QString & guid = QString(),
-                     const QString & linkedNotebookGuid = QString(),
-                     const QString & name = QString(),
-                     const QString & parentLocalUid = QString(),
-                     const QString & parentGuid = QString(),
-                     const bool isSynchronizable = false,
-                     const bool isDirty = false,
-                     const bool isFavorited = false,
-                     const int numNotesPerTag = -1);
+    explicit TagItem(
+        const QString & localUid = QString(),
+        const QString & guid = QString(),
+        const QString & linkedNotebookGuid = QString(),
+        const QString & name = QString(),
+        const QString & parentLocalUid = QString(),
+        const QString & parentGuid = QString(),
+        const bool isSynchronizable = false,
+        const bool isDirty = false,
+        const bool isFavorited = false,
+        const int numNotesPerTag = -1);
+
     virtual ~TagItem();
 
     const QString & localUid() const { return m_localUid; }

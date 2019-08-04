@@ -42,9 +42,9 @@ QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
 /**
  * @brief The NoteTagsWidget class demonstrates the tags of a particular note
  *
- * It encapsulates the flow layout consisting of smaller widgets representing each tag
- * of the given note + a it listens to the updates of notes from the local storage
- * in order to track any updates of the given note
+ * It encapsulates the flow layout consisting of smaller widgets representing
+ * each tag of the given note + a it listens to the updates of notes from
+ * the local storage in order to track any updates of the given note
  */
 class NoteTagsWidget: public QWidget
 {
@@ -52,16 +52,19 @@ class NoteTagsWidget: public QWidget
 public:
     explicit NoteTagsWidget(QWidget * parent = Q_NULLPTR);
 
-    void setLocalStorageManagerThreadWorker(LocalStorageManagerAsync & localStorageManagerAsync);
+    void setLocalStorageManagerThreadWorker(
+        LocalStorageManagerAsync & localStorageManagerAsync);
 
     void setTagModel(TagModel * pTagModel);
 
     const Note & currentNote() const { return m_currentNote; }
     void setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook);
 
-    const QString & currentNotebookLocalUid() const { return m_currentNotebookLocalUid; }
+    const QString & currentNotebookLocalUid() const
+    { return m_currentNotebookLocalUid; }
 
-    const QString & currentLinkedNotebookGuid() const { return m_currentLinkedNotebookGuid; }
+    const QString & currentLinkedNotebookGuid() const
+    { return m_currentLinkedNotebookGuid; }
 
     /**
      * @brief clear method clears out the tags displayed by the widget and
@@ -92,17 +95,23 @@ private Q_SLOTS:
     // Slots for response to events from local storage
 
     // Slots for notes events: updating & expunging
-    void onUpdateNoteComplete(Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId);
+    void onUpdateNoteComplete(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        QUuid requestId);
+
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
     // Slots for notebook events: updating and expunging
-    // The notebooks are important  because they hold the information about the note restrictions
+    // The notebooks are important  because they hold the information about
+    // the note restrictions
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     // Slots for tag events: updating and expunging
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+
+    void onExpungeTagComplete(
+        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
 private:
     void clearLayout(const bool skipNewTagWidget = false);

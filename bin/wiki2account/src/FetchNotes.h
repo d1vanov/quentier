@@ -26,9 +26,10 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
-bool FetchNotes(const QList<Notebook> & notebooks, const QList<Tag> & tags,
-                const quint32 minTagsPerNote, const quint32 numNotes,
-                LocalStorageManagerAsync & localStorageManager);
+bool FetchNotes(
+    const QList<Notebook> & notebooks, const QList<Tag> & tags,
+    const quint32 minTagsPerNote, const quint32 numNotes,
+    LocalStorageManagerAsync & localStorageManager);
 
 } // namespace quentier
 

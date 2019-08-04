@@ -38,9 +38,9 @@ LogViewerDelegate::LogViewerDelegate(QObject * parent) :
     m_whitespaceChar(QChar::fromLatin1(' '))
 {}
 
-QWidget * LogViewerDelegate::createEditor(QWidget * pParent,
-                                          const QStyleOptionViewItem & option,
-                                          const QModelIndex & index) const
+QWidget * LogViewerDelegate::createEditor(
+    QWidget * pParent, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     Q_UNUSED(pParent)
     Q_UNUSED(option)
@@ -48,9 +48,9 @@ QWidget * LogViewerDelegate::createEditor(QWidget * pParent,
     return Q_NULLPTR;
 }
 
-void LogViewerDelegate::paint(QPainter * pPainter,
-                              const QStyleOptionViewItem & option,
-                              const QModelIndex & index) const
+void LogViewerDelegate::paint(
+    QPainter * pPainter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (paintImpl(pPainter, option, index)) {
         return;
@@ -59,8 +59,8 @@ void LogViewerDelegate::paint(QPainter * pPainter,
     QStyledItemDelegate::paint(pPainter, option, index);
 }
 
-QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                  const QModelIndex & index) const
+QSize LogViewerDelegate::sizeHint(
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     // NOTE: this method is called many times when
     // QHeaderView::resizeSections(QHeaderView::ResizeToContents) is called.
@@ -71,14 +71,15 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option,
     QFontMetrics fontMetrics(option.font);
     QSize size;
 
-#define STRING_SIZE_HINT(str) \
-    { \
-        size.setWidth(static_cast<int>(\
-            std::floor(fontMetrics.width(str) * (1.0 + m_margin) + 0.5))); \
-        size.setHeight(static_cast<int>(\
-            std::floor(fontMetrics.lineSpacing() * (1.0 + m_margin) + 0.5))); \
-        return size; \
-    }
+#define STRING_SIZE_HINT(str)                                                  \
+    {                                                                          \
+        size.setWidth(static_cast<int>(                                        \
+            std::floor(fontMetrics.width(str) * (1.0 + m_margin) + 0.5)));     \
+        size.setHeight(static_cast<int>(                                       \
+            std::floor(fontMetrics.lineSpacing() * (1.0 + m_margin) + 0.5)));  \
+        return size;                                                           \
+    }                                                                          \
+// STRING_SIZE_HINT
 
     switch(index.column())
     {
@@ -199,9 +200,9 @@ QSize LogViewerDelegate::sizeHint(const QStyleOptionViewItem & option,
     return size;
 }
 
-bool LogViewerDelegate::paintImpl(QPainter * pPainter,
-                                  const QStyleOptionViewItem & option,
-                                  const QModelIndex & index) const
+bool LogViewerDelegate::paintImpl(
+    QPainter * pPainter, const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     if (Q_UNLIKELY(!pPainter)) {
         return false;
@@ -289,10 +290,10 @@ bool LogViewerDelegate::paintImpl(QPainter * pPainter,
     return true;
 }
 
-void LogViewerDelegate::paintLogEntry(QPainter & painter,
-                                      const QRect & adjustedRect,
-                                      const LogViewerModel::Data & dataEntry,
-                                      const QFontMetrics & fontMetrics) const
+void LogViewerDelegate::paintLogEntry(
+    QPainter & painter, const QRect & adjustedRect,
+    const LogViewerModel::Data & dataEntry,
+    const QFontMetrics & fontMetrics) const
 {
     if (Q_UNLIKELY(dataEntry.m_logEntry.isEmpty())) {
         return;

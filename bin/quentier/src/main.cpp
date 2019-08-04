@@ -105,9 +105,9 @@ int main(int argc, char * argv[])
             pMainWindow->show();
         }
         else {
-            QNDEBUG(QStringLiteral("Not showing the main window on startup "
-                                   "because the start minimized to system tray "
-                                   "was requested"));
+            QNDEBUG("Not showing the main window on startup "
+                    "because the start minimized to system tray "
+                    "was requested");
         }
     }
     catch(const quentier::DatabaseLockedException & dbLockedException)
@@ -126,7 +126,7 @@ int main(int argc, char * argv[])
                         "\n\n"
                         "Exception message: ") +
             dbLockedException.localizedErrorMessage());
-        qWarning() << QStringLiteral("Caught DatabaseLockedException: ")
+        qWarning() << "Caught DatabaseLockedException: "
                    << dbLockedException.nonLocalizedErrorMessage();
         return 1;
     }
@@ -141,7 +141,7 @@ int main(int argc, char * argv[])
                         "Otherwise it might indicate the corruption of account "
                         "database file.\n\nException message: ") +
             dbOpeningException.localizedErrorMessage());
-        qWarning() << QStringLiteral("Caught DatabaseOpeningException: ")
+        qWarning() << "Caught DatabaseOpeningException: "
                    << dbOpeningException.nonLocalizedErrorMessage();
         return 1;
     }
@@ -161,7 +161,7 @@ int main(int argc, char * argv[])
                         "exactly has changed in the data layout and how to work "
                         "with it. Please upgrade your versions of libquentier "
                         "and Quentier and try again."));
-        qWarning() << QStringLiteral("Caught LocalStorageVersionTooHighException: ")
+        qWarning() << "Caught LocalStorageVersionTooHighException: "
                    << versionTooHighException.nonLocalizedErrorMessage();
         return 1;
     }
@@ -172,7 +172,7 @@ int main(int argc, char * argv[])
             QObject::tr("Quentier cannot start, exception occurred: ") +
             exception.localizedErrorMessage());
 
-        qWarning() << QStringLiteral("Caught IQuentierException: ")
+        qWarning() << "Caught IQuentierException: "
                    << exception.nonLocalizedErrorMessage();
         return 1;
     }
@@ -183,8 +183,7 @@ int main(int argc, char * argv[])
             QObject::tr("Quentier cannot start, exception occurred: ") +
             QString::fromUtf8(exception.what()));
 
-        qWarning() << QStringLiteral("Caught IQuentierException: ")
-                   << exception.what();
+        qWarning() << "Caught IQuentierException: " << exception.what();
         return 1;
     }
 

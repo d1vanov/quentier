@@ -25,8 +25,9 @@
 
 namespace quentier {
 
-SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(const QModelIndex & index,
-                                                               QWidget * parent) :
+SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(
+        const QModelIndex & index,
+        QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::SavedSearchModelItemInfoWidget)
 {
@@ -66,9 +67,11 @@ SavedSearchModelItemInfoWidget::~SavedSearchModelItemInfoWidget()
 
 void SavedSearchModelItemInfoWidget::setCheckboxesReadOnly()
 {
-#define SET_CHECKBOX_READ_ONLY(name) \
-    m_pUi->savedSearch##name##CheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true); \
-    m_pUi->savedSearch##name##CheckBox->setFocusPolicy(Qt::NoFocus)
+#define SET_CHECKBOX_READ_ONLY(name)                                           \
+    m_pUi->savedSearch##name##CheckBox->setAttribute(                          \
+        Qt::WA_TransparentForMouseEvents, true);                               \
+    m_pUi->savedSearch##name##CheckBox->setFocusPolicy(Qt::NoFocus)            \
+// SET_CHECKBOX_READ_ONLY
 
     SET_CHECKBOX_READ_ONLY(Synchronizable);
     SET_CHECKBOX_READ_ONLY(Dirty);
@@ -81,7 +84,8 @@ void SavedSearchModelItemInfoWidget::setNonSavedSearchModel()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("Non-saved search model is used on the view"));
+    m_pUi->statusBarLabel->setText(
+        tr("Non-saved search model is used on the view"));
     m_pUi->statusBarLabel->show();
 }
 
@@ -97,11 +101,13 @@ void SavedSearchModelItemInfoWidget::setNoModelItem()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("No saved search model item was found for index"));
+    m_pUi->statusBarLabel->setText(
+        tr("No saved search model item was found for index"));
     m_pUi->statusBarLabel->show();
 }
 
-void SavedSearchModelItemInfoWidget::setSavedSearchItem(const SavedSearchModelItem & item)
+void SavedSearchModelItemInfoWidget::setSavedSearchItem(
+    const SavedSearchModelItem & item)
 {
     m_pUi->statusBarLabel->hide();
 

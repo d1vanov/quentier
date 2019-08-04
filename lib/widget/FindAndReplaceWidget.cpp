@@ -21,8 +21,8 @@
 
 namespace quentier {
 
-FindAndReplaceWidget::FindAndReplaceWidget(QWidget * parent,
-                                           const bool withReplace) :
+FindAndReplaceWidget::FindAndReplaceWidget(
+        QWidget * parent, const bool withReplace) :
     QWidget(parent),
     m_pUI(new Ui::FindAndReplaceWidget)
 {
@@ -157,7 +157,9 @@ void FindAndReplaceWidget::onMatchCaseCheckboxToggled(int state)
 
 void FindAndReplaceWidget::onReplaceTextEntered()
 {
-    Q_EMIT replace(m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(), m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT replace(
+        m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(),
+        m_pUI->matchCaseCheckBox->isChecked());
 }
 
 void FindAndReplaceWidget::onReplaceButtonPressed()
@@ -167,7 +169,9 @@ void FindAndReplaceWidget::onReplaceButtonPressed()
 
 void FindAndReplaceWidget::onReplaceAllButtonPressed()
 {
-    Q_EMIT replaceAll(m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(), m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT replaceAll(
+        m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(),
+        m_pUI->matchCaseCheckBox->isChecked());
 }
 
 QSize FindAndReplaceWidget::sizeHint() const
@@ -186,16 +190,21 @@ void FindAndReplaceWidget::createConnections()
 {
     QObject::connect(m_pUI->closeButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(FindAndReplaceWidget,onCloseButtonPressed));
-    QObject::connect(m_pUI->findLineEdit, QNSIGNAL(QLineEdit,textEdited,const QString&),
-                     this, QNSIGNAL(FindAndReplaceWidget,textToFindEdited,const QString&));
+    QObject::connect(m_pUI->findLineEdit,
+                     QNSIGNAL(QLineEdit,textEdited,const QString&),
+                     this,
+                     QNSIGNAL(FindAndReplaceWidget,textToFindEdited,
+                              const QString&));
     QObject::connect(m_pUI->findLineEdit, QNSIGNAL(QLineEdit,returnPressed),
                      this, QNSLOT(FindAndReplaceWidget,onFindTextEntered));
     QObject::connect(m_pUI->findNextButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(FindAndReplaceWidget,onNextButtonPressed));
     QObject::connect(m_pUI->findPreviousButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(FindAndReplaceWidget,onPreviousButtonPressed));
-    QObject::connect(m_pUI->matchCaseCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
-                     this, QNSLOT(FindAndReplaceWidget,onMatchCaseCheckboxToggled,int));
+    QObject::connect(m_pUI->matchCaseCheckBox,
+                     QNSIGNAL(QCheckBox,stateChanged,int),
+                     this,
+                     QNSLOT(FindAndReplaceWidget,onMatchCaseCheckboxToggled,int));
     QObject::connect(m_pUI->replaceLineEdit, QNSIGNAL(QLineEdit,returnPressed),
                      this, QNSLOT(FindAndReplaceWidget,onReplaceTextEntered));
     QObject::connect(m_pUI->replaceButton, QNSIGNAL(QPushButton,released),

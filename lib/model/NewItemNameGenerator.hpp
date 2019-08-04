@@ -26,8 +26,8 @@
 namespace quentier {
 
 template <class NameIndexType>
-QString newItemName(const NameIndexType & nameIndex,
-                    int & newItemCounter, QString baseName)
+QString newItemName(
+    const NameIndexType & nameIndex, int & newItemCounter, QString baseName)
 {
     if (newItemCounter != 0) {
         baseName += QStringLiteral(" (") +

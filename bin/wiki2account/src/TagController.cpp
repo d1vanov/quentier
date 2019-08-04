@@ -23,10 +23,11 @@
 
 namespace quentier {
 
-TagController::TagController(const quint32 minTagsPerNote,
-                             const quint32 maxTagsPerNote,
-                             LocalStorageManagerAsync & localStorageManagerAsync,
-                             QObject * parent) :
+TagController::TagController(
+        const quint32 minTagsPerNote,
+        const quint32 maxTagsPerNote,
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        QObject * parent) :
     QObject(parent),
     m_minTagsPerNote(minTagsPerNote),
     m_maxTagsPerNote(maxTagsPerNote),
@@ -43,10 +44,10 @@ TagController::~TagController()
 
 void TagController::start()
 {
-    QNDEBUG(QStringLiteral("TagController::start"));
+    QNDEBUG("TagController::start");
 
     if (m_minTagsPerNote == 0 && m_maxTagsPerNote == 0) {
-        QNDEBUG(QStringLiteral("No tags are required, finishing early"));
+        QNDEBUG("No tags are required, finishing early");
         Q_EMIT finished();
         return;
     }
@@ -54,8 +55,8 @@ void TagController::start()
     if (m_minTagsPerNote > m_maxTagsPerNote) {
         ErrorString errorDescription(QT_TR_NOOP("Min tags per note is greater "
                                                 "than max tags per note"));
-        QNWARNING(errorDescription << QStringLiteral(", min tags per note = ")
-                  << m_minTagsPerNote << QStringLiteral(", max tags per note = ")
+        QNWARNING(errorDescription << ", min tags per note = "
+                  << m_minTagsPerNote << ", max tags per note = "
                   << m_maxTagsPerNote);
         Q_EMIT failure(errorDescription);
         return;
@@ -70,14 +71,14 @@ void TagController::onAddTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    QNDEBUG(QStringLiteral("TagController::onAddTagComplete: request id = ")
-            << requestId << QStringLiteral(", tag: ") << tag);
+    QNDEBUG("TagController::onAddTagComplete: request id = "
+            << requestId << ", tag: " << tag);
 
     m_addTagRequestId = QUuid();
 
     m_tags << tag;
     if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
-        QNDEBUG(QStringLiteral("Added the last required tag"));
+        QNDEBUG("Added the last required tag");
         Q_EMIT finished();
         return;
     }
@@ -86,16 +87,16 @@ void TagController::onAddTagComplete(Tag tag, QUuid requestId)
     findNextTag();
 }
 
-void TagController::onAddTagFailed(Tag tag, ErrorString errorDescription,
-                                   QUuid requestId)
+void TagController::onAddTagFailed(
+    Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_addTagRequestId) {
         return;
     }
 
-    QNWARNING(QStringLiteral("TagController::onAddTagFailed: request id = ")
-              << requestId << QStringLiteral(", error description = ")
-              << errorDescription << QStringLiteral(", tag: ") << tag);
+    QNWARNING("TagController::onAddTagFailed: request id = "
+              << requestId << ", error description = "
+              << errorDescription << ", tag: " << tag);
 
     m_addTagRequestId = QUuid();
 
@@ -109,14 +110,14 @@ void TagController::onFindTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    QNDEBUG(QStringLiteral("TagController::onFindTagComplete: request id = ")
-            << requestId << QStringLiteral(", tag: ") << tag);
+    QNDEBUG("TagController::onFindTagComplete: request id = "
+            << requestId << ", tag: " << tag);
 
     m_findTagRequestId = QUuid();
 
     m_tags << tag;
     if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
-        QNDEBUG(QStringLiteral("Found the last required tag"));
+        QNDEBUG("Found the last required tag");
         Q_EMIT finished();
         return;
     }
@@ -125,16 +126,16 @@ void TagController::onFindTagComplete(Tag tag, QUuid requestId)
     findNextTag();
 }
 
-void TagController::onFindTagFailed(Tag tag, ErrorString errorDescription,
-                                    QUuid requestId)
+void TagController::onFindTagFailed(
+    Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_findTagRequestId) {
         return;
     }
 
-    QNDEBUG(QStringLiteral("TagController::onFindTagFailed: request id = ")
-            << requestId << QStringLiteral(", error description = ")
-            << errorDescription << QStringLiteral(", tag: ") << tag);
+    QNDEBUG("TagController::onFindTagFailed: request id = "
+            << requestId << ", error description = "
+            << errorDescription << ", tag: " << tag);
 
     m_findTagRequestId = QUuid();
     createNextNewTag();
@@ -174,7 +175,7 @@ void TagController::createConnections(
 
 void TagController::clear()
 {
-    QNDEBUG(QStringLiteral("TagController::clear"));
+    QNDEBUG("TagController::clear");
 
     m_tags.clear();
     m_findTagRequestId = QUuid();
@@ -184,7 +185,7 @@ void TagController::clear()
 
 void TagController::findNextTag()
 {
-    QNDEBUG(QStringLiteral("TagController::findNextTag"));
+    QNDEBUG("TagController::findNextTag");
 
     QString tagName = nextNewTagName();
 
@@ -193,15 +194,14 @@ void TagController::findNextTag()
     tag.setName(tagName);
 
     m_findTagRequestId = QUuid::createUuid();
-    QNDEBUG(QStringLiteral("Emitting the request to find tag with name ")
-            << tagName << QStringLiteral(", request id = ")
-            << m_findTagRequestId);
+    QNDEBUG("Emitting the request to find tag with name "
+            << tagName << ", request id = " << m_findTagRequestId);
     Q_EMIT findTag(tag, m_findTagRequestId);
 }
 
 void TagController::createNextNewTag()
 {
-    QNDEBUG(QStringLiteral("TagController::createNextNewTag"));
+    QNDEBUG("TagController::createNextNewTag");
 
     QString tagName = nextNewTagName();
 
@@ -209,9 +209,8 @@ void TagController::createNextNewTag()
     tag.setName(tagName);
 
     m_addTagRequestId = QUuid::createUuid();
-    QNDEBUG(QStringLiteral("Emitting the request to add new tag: ")
-            << tag << QStringLiteral("\nRequest id = ")
-            << m_addTagRequestId);
+    QNDEBUG("Emitting the request to add new tag: "
+            << tag << "\nRequest id = " << m_addTagRequestId);
     Q_EMIT addTag(tag, m_addTagRequestId);
 }
 

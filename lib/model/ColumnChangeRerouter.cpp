@@ -22,9 +22,10 @@
 
 #include <algorithm>
 
-ColumnChangeRerouter::ColumnChangeRerouter(const int columnFrom,
-                                           const int columnTo,
-                                           QObject * parent) :
+ColumnChangeRerouter::ColumnChangeRerouter(
+        const int columnFrom,
+        const int columnTo,
+        QObject * parent) :
     QObject(parent),
     m_columnFrom(columnFrom),
     m_columnTo(columnTo)
@@ -51,29 +52,24 @@ void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
 #endif
 }
 
-void ColumnChangeRerouter::onModelDataChanged(const QModelIndex & topLeft,
-                                              const QModelIndex & bottomRight
+void ColumnChangeRerouter::onModelDataChanged(
+    const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                             )
 #else
                             , const QVector<int> & roles)
 #endif
 {
-    QNTRACE(QStringLiteral("ColumnChangeRerouter::onModelDataChanged: top left: ")
-            << QStringLiteral("is valid = ")
-            << (topLeft.isValid()
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", row = ") << topLeft.row()
-            << QStringLiteral(", column = ") << topLeft.column()
-            << QStringLiteral("; bottom right: is valid = ")
-            << (bottomRight.isValid()
-                ? QStringLiteral("true")
-                : QStringLiteral("false"))
-            << QStringLiteral(", row = ") << bottomRight.row()
-            << QStringLiteral(", column = ") << bottomRight.column()
-            << QStringLiteral(", column from = ") << m_columnFrom
-            << QStringLiteral(", column to = ") << m_columnTo);
+    QNTRACE("ColumnChangeRerouter::onModelDataChanged: top left: "
+            << "is valid = " << (topLeft.isValid() ? "true" : "false")
+            << ", row = " << topLeft.row()
+            << ", column = " << topLeft.column()
+            << "; bottom right: is valid = "
+            << (bottomRight.isValid() ? "true" : "false")
+            << ", row = " << bottomRight.row()
+            << ", column = " << bottomRight.column()
+            << ", column from = " << m_columnFrom
+            << ", column to = " << m_columnTo);
 
     if (!topLeft.isValid() || !bottomRight.isValid()) {
         return;
@@ -83,12 +79,12 @@ void ColumnChangeRerouter::onModelDataChanged(const QModelIndex & topLeft,
     int columnRight = bottomRight.column();
 
     if ((columnLeft <= m_columnTo) && (columnRight >= m_columnTo)) {
-        QNTRACE(QStringLiteral("Already includes column to"));
+        QNTRACE("Already includes column to");
         return;
     }
 
     if ((columnLeft > m_columnFrom) || (columnRight < m_columnFrom)) {
-        QNTRACE(QStringLiteral("Doesn't include column from"));
+        QNTRACE("Doesn't include column from");
         return;
     }
 
@@ -98,7 +94,7 @@ void ColumnChangeRerouter::onModelDataChanged(const QModelIndex & topLeft,
     }
 
     if (Q_UNLIKELY(!model)) {
-        QNDEBUG(QStringLiteral("No model"));
+        QNDEBUG("No model");
         return;
     }
 
@@ -107,7 +103,7 @@ void ColumnChangeRerouter::onModelDataChanged(const QModelIndex & topLeft,
     QModelIndex newBottomRight = model->index(bottomRight.row(), m_columnTo,
                                               bottomRight.parent());
 
-    QNDEBUG(QStringLiteral("Emitting the dataChanged signal for column ")
+    QNDEBUG("Emitting the dataChanged signal for column "
             << m_columnTo);
     Q_EMIT dataChanged(newTopLeft, newBottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)

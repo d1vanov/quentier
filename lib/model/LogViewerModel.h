@@ -178,12 +178,20 @@ Q_SIGNALS:
 
 public:
     // QAbstractTableModel interface
-    virtual int rowCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual int columnCount(const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex & index,
-                          int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    virtual QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    virtual int rowCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual int columnCount(
+        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+
+    virtual QVariant data(
+        const QModelIndex & index,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
+    virtual QVariant headerData(
+        int section, Qt::Orientation orientation,
+        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+
     virtual bool canFetchMore(const QModelIndex & parent) const Q_DECL_OVERRIDE;
     virtual void fetchMore(const QModelIndex & parent) Q_DECL_OVERRIDE;
 
@@ -191,9 +199,10 @@ private Q_SLOTS:
     void onFileChanged(const QString & path);
     void onFileRemoved(const QString & path);
 
-    void onLogFileDataEntriesRead(qint64 fromPos, qint64 endPos,
-                                  QVector<LogViewerModel::Data> dataEntries,
-                                  ErrorString errorDescription);
+    void onLogFileDataEntriesRead(
+        qint64 fromPos, qint64 endPos,
+        QVector<LogViewerModel::Data> dataEntries,
+        ErrorString errorDescription);
 
 private:
     struct LogFileDataEntryRequestReason
@@ -226,11 +235,12 @@ private:
     class LogFileChunkMetadata: public Printable
     {
     public:
-        LogFileChunkMetadata(const int number,
-                             const int startModelRow,
-                             const int endModelRow,
-                             const qint64 startLogFilePos,
-                             const qint64 endLogFilePos) :
+        LogFileChunkMetadata(
+                const int number,
+                const int startModelRow,
+                const int endModelRow,
+                const qint64 startLogFilePos,
+                const qint64 endLogFilePos) :
             m_number(number),
             m_startModelRow(startModelRow),
             m_endModelRow(endModelRow),

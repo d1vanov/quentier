@@ -63,8 +63,7 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin();
  *                              successfully, false otherwise
  */
 bool setStartQuentierAtLoginOption(
-    const bool shouldStartAtLogin,
-    ErrorString & errorDescription,
+    const bool shouldStartAtLogin, ErrorString & errorDescription,
     const StartQuentierAtLoginOption::type option =
     StartQuentierAtLoginOption::MinimizedToTray);
 

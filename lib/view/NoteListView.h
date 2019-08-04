@@ -34,8 +34,8 @@ QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 
 /**
- * @brief The NoteListView is a simple subclass of QListView which adds some bits
- * of functionality specific to note list on top of it
+ * @brief The NoteListView is a simple subclass of QListView which adds some
+ * bits of functionality specific to note list on top of it
  */
 class NoteListView: public QListView
 {
@@ -99,8 +99,9 @@ public Q_SLOTS:
      * @param hideThumbnailsLocalUids       Map with local uids where
      *                                      the thumbails was manually hidden.
      */
-    void setShowNoteThumbnailsState(bool showThumbnailsForAllNotes,
-                                    const QSet<QString> & hideThumbnailsLocalUids);
+    void setShowNoteThumbnailsState(
+        bool showThumbnailsForAllNotes,
+        const QSet<QString> & hideThumbnailsLocalUids);
 
 
     /**
@@ -114,19 +115,20 @@ public Q_SLOTS:
      * reason of being a public slot instead of protected; it calls
      * the implementation of QListView's dataChanged protected slot
      */
-    virtual void dataChanged(const QModelIndex & topLeft,
-                             const QModelIndex & bottomRight
+    virtual void dataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < 0x050000
-                            )
+        )
 #else
-                            , const QVector<int> & roles = QVector<int>())
+        , const QVector<int> & roles = QVector<int>())
 #endif
-                            Q_DECL_OVERRIDE;
+        Q_DECL_OVERRIDE;
 
-    virtual void rowsAboutToBeRemoved(const QModelIndex & parent,
-                                      int start, int end) Q_DECL_OVERRIDE;
-    virtual void rowsInserted(const QModelIndex & parent,
-                              int start, int end) Q_DECL_OVERRIDE;
+    virtual void rowsAboutToBeRemoved(
+        const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
+
+    virtual void rowsInserted(
+        const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
 
 protected Q_SLOTS:
     void onCreateNewNoteAction();
@@ -156,18 +158,23 @@ protected Q_SLOTS:
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
 protected:
-    virtual void currentChanged(const QModelIndex & current,
-                                const QModelIndex & previous) Q_DECL_OVERRIDE;
+    virtual void currentChanged(
+        const QModelIndex & current,
+        const QModelIndex & previous) Q_DECL_OVERRIDE;
+
     virtual void mousePressEvent(QMouseEvent * pEvent) Q_DECL_OVERRIDE;
 
     const NotebookItem * currentNotebookItem();
 
 protected:
     void showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos);
-    void showSingleNoteContextMenu(const QPoint & pos, const QPoint & globalPos,
-                                   const NoteModel & noteModel);
-    void showMultipleNotesContextMenu(const QPoint & globalPos,
-                                      const QStringList & noteLocalUids);
+
+    void showSingleNoteContextMenu(
+        const QPoint & pos, const QPoint & globalPos,
+        const NoteModel & noteModel);
+
+    void showMultipleNotesContextMenu(
+        const QPoint & globalPos, const QStringList & noteLocalUids);
 
 private:
     /**
