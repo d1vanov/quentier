@@ -26,7 +26,7 @@
 #include <QXmlStreamReader>
 
 #define WALOG_IMPL(message, macro)                                             \
-    macro(QStringLiteral("<") << m_url << QStringLiteral(">: ") << message)    \
+    macro("<" << m_url << ">: " << message)                                    \
 // WALOG_IMPL
 
 #define WATRACE(message) WALOG_IMPL(message, QNTRACE)

@@ -120,9 +120,10 @@ void setupBreakpad(const QApplication & app)
     QString appFilePath = app.applicationFilePath();
     QFileInfo appFileInfo(appFilePath);
 
-#define CONVERT_PATH(path) \
-    path = QDir::toNativeSeparators(path); \
-    path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"))
+#define CONVERT_PATH(path)                                                     \
+    path = QDir::toNativeSeparators(path);                                     \
+    path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"))           \
+// CONVERT_PATH
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString minidumpsStorageFolderPath =

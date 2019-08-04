@@ -164,12 +164,13 @@ void NotebookModelTestHelper::test()
             secondLinkedNotebook,
             QUuid());
 
-#define ADD_NOTEBOOK(notebook) \
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(notebook, QUuid())
+#define ADD_NOTEBOOK(notebook)                                                 \
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(notebook, QUuid())   \
+// ADD_NOTEBOOK
 
-        // NOTE: exploiting the direct connection used in the current test
+        // NOTE: exploiting the direct connection used in current test
         // environment: after the following lines the local storage would be
-        // filled with the test objects
+        // filled with test objects
         ADD_NOTEBOOK(first);
         ADD_NOTEBOOK(second);
         ADD_NOTEBOOK(third);

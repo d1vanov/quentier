@@ -25,8 +25,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(ParseCommandLineResult)
 
-void ParseCommandLine(int argc, char * argv[],
-                      ParseCommandLineResult & result);
+void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result);
 
 } // namespace quentier
 

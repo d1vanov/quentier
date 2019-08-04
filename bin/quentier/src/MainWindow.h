@@ -99,9 +99,10 @@ Q_SIGNALS:
     void hidden();
 
     // private signals
-    void localStorageSwitchUserRequest(Account account,
-                                       LocalStorageManager::StartupOptions options,
-                                       QUuid requestId);
+    void localStorageSwitchUserRequest(
+        Account account, LocalStorageManager::StartupOptions options,
+        QUuid requestId);
+
     void authenticate();
     void authenticateCurrentAccount();
     void noteInfoDialogRequested(QString noteLocalUid);
@@ -112,8 +113,9 @@ Q_SIGNALS:
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void synchronizationSetInkNoteImagesStoragePath(QString path);
-    void showNoteThumbnailsStateChanged(bool showThumbnailsForAllNotes,
-                                        QSet<QString> hideThumbnailsLocalUids);
+
+    void showNoteThumbnailsStateChanged(
+        bool showThumbnailsForAllNotes, QSet<QString> hideThumbnailsLocalUids);
 
 private Q_SLOTS:
     void onUndoAction();
@@ -158,36 +160,47 @@ private Q_SLOTS:
     void onSynchronizationStarted();
     void onSynchronizationStopped();
     void onSynchronizationManagerFailure(ErrorString errorDescription);
-    void onSynchronizationFinished(Account account, bool somethingDownloaded,
-                                   bool somethingSent);
-    void onAuthenticationFinished(bool success, ErrorString errorDescription,
-                                  Account account);
-    void onAuthenticationRevoked(bool success, ErrorString errorDescription,
-                                 qevercloud::UserID userId);
+
+    void onSynchronizationFinished(
+        Account account, bool somethingDownloaded, bool somethingSent);
+
+    void onAuthenticationFinished(
+        bool success, ErrorString errorDescription, Account account);
+
+    void onAuthenticationRevoked(
+        bool success, ErrorString errorDescription, qevercloud::UserID userId);
+
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone(bool somethingDownloaded);
-    void onSyncChunksDownloadProgress(qint32 highestDownloadedUsn,
-                                      qint32 highestServerUsn,
-                                      qint32 lastPreviousUsn);
+
+    void onSyncChunksDownloadProgress(
+        qint32 highestDownloadedUsn, qint32 highestServerUsn,
+        qint32 lastPreviousUsn);
+
     void onSyncChunksDownloaded();
-    void onNotesDownloadProgress(quint32 notesDownloaded,
-                                 quint32 totalNotesToDownload);
-    void onResourcesDownloadProgress(quint32 resourcesDownloaded,
-                                     quint32 totalResourcesToDownload);
-    void onLinkedNotebookSyncChunksDownloadProgress(qint32 highestDownloadedUsn,
-                                                    qint32 highestServerUsn,
-                                                    qint32 lastPreviousUsn,
-                                                    LinkedNotebook linkedNotebook);
+
+    void onNotesDownloadProgress(
+        quint32 notesDownloaded, quint32 totalNotesToDownload);
+
+    void onResourcesDownloadProgress(
+        quint32 resourcesDownloaded, quint32 totalResourcesToDownload);
+
+    void onLinkedNotebookSyncChunksDownloadProgress(
+        qint32 highestDownloadedUsn, qint32 highestServerUsn,
+        qint32 lastPreviousUsn, LinkedNotebook linkedNotebook);
+
     void onLinkedNotebooksSyncChunksDownloaded();
-    void onLinkedNotebooksNotesDownloadProgress(quint32 notesDownloaded,
-                                                quint32 totalNotesToDownload);
+
+    void onLinkedNotebooksNotesDownloadProgress(
+        quint32 notesDownloaded, quint32 totalNotesToDownload);
 
     void onRemoteToLocalSyncStopped();
     void onSendLocalChangesStopped();
 
     // AccountManager slots
-    void onEvernoteAccountAuthenticationRequested(QString host,
-                                                  QNetworkProxy proxy);
+    void onEvernoteAccountAuthenticationRequested(
+        QString host, QNetworkProxy proxy);
+
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
     void onAccountAdded(Account account);
@@ -300,11 +313,11 @@ private Q_SLOTS:
     void onManageAccountsActionTriggered(bool checked);
     void onSwitchAccountActionToggled(bool checked);
 
-    void onLocalStorageSwitchUserRequestComplete(Account account,
-                                                 QUuid requestId);
-    void onLocalStorageSwitchUserRequestFailed(Account account,
-                                               ErrorString errorDescription,
-                                               QUuid requestId);
+    void onLocalStorageSwitchUserRequestComplete(
+        Account account, QUuid requestId);
+
+    void onLocalStorageSwitchUserRequestFailed(
+        Account account, ErrorString errorDescription, QUuid requestId);
 
     void onSplitterHandleMoved(int pos, int index);
     void onSidePanelSplittedHandleMoved(int pos, int index);
@@ -318,13 +331,16 @@ private Q_SLOTS:
     void onAccountSwitchRequested(Account account);
     void onQuitAction();
 
-    void onShortcutChanged(int key, QKeySequence shortcut,
-                           const Account & account, QString context);
-    void onNonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut,
-                                      const Account & account, QString context);
+    void onShortcutChanged(
+        int key, QKeySequence shortcut, const Account & account, QString context);
+
+    void onNonStandardShortcutChanged(
+        QString nonStandardKey, QKeySequence shortcut,
+        const Account & account, QString context);
 
     void onDefaultAccountFirstNotebookAndNoteCreatorFinished(
         QString createdNoteLocalUid);
+
     void onDefaultAccountFirstNotebookAndNoteCreatorError(
         ErrorString errorDescription);
 
@@ -374,8 +390,9 @@ private:
         };
     };
 
-    void setupSynchronizationManager(const SetAccountOption::type =
-                                     SetAccountOption::DontSet);
+    void setupSynchronizationManager(
+        const SetAccountOption::type = SetAccountOption::DontSet);
+
     void clearSynchronizationManager();
     void setSynchronizationOptions(const Account & account);
     void setupSynchronizationManagerThread();
@@ -403,6 +420,7 @@ private:
     void setWindowTitleForAccount(const Account & account);
 
     NoteEditorWidget * currentNoteEditorTab();
+
     void createNewNote(
         NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::type noteEditorMode);
 
@@ -477,8 +495,10 @@ private:
 
     void collectBaseStyleSheets();
     void setupPanelOverlayStyleSheets();
-    void getPanelStyleSheetProperties(const QString & panelStyleOption,
-                                      StyleSheetProperties & properties) const;
+
+    void getPanelStyleSheetProperties(
+        const QString & panelStyleOption, StyleSheetProperties & properties) const;
+
     void setPanelsOverlayStyleSheet(const StyleSheetProperties & properties);
 
     // This method performs a nasty hack - it searches for some properties within
@@ -486,12 +506,13 @@ private:
     // based on weak assumptions about the structure of the stylesheet so once
     // it is sufficiently altered, this method would stop working. Don't program
     // like this, kids.
-    QString alterStyleSheet(const QString & originalStyleSheet,
-                            const StyleSheetProperties & properties);
+    QString alterStyleSheet(
+        const QString & originalStyleSheet,
+        const StyleSheetProperties & properties);
 
-    bool isInsideStyleBlock(const QString & styleSheet,
-                            const QString & styleBlockStartSearchString,
-                            const int currentIndex, bool & error) const;
+    bool isInsideStyleBlock(
+        const QString & styleSheet, const QString & styleBlockStartSearchString,
+        const int currentIndex, bool & error) const;
 
     bool getShowNoteThumbnailsPreference() const;
     bool getDisableNativeMenuBarPreference() const;
