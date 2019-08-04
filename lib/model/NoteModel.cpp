@@ -322,12 +322,16 @@ void NoteModel::setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids)
     }
 
     if (!m_pUpdatedNoteFilters.isNull()) {
-        m_pUpdatedNoteFilters->setFilteredNoteLocalUids(noteLocalUids);
+        Q_UNUSED(m_pUpdatedNoteFilters->setFilteredNoteLocalUids(noteLocalUids))
         return;
     }
 
-    m_pFilters->setFilteredNoteLocalUids(noteLocalUids);
-    resetModel();
+    if (m_pFilters->setFilteredNoteLocalUids(noteLocalUids)) {
+        resetModel();
+    }
+    else {
+        NMDEBUG("The set of filtered note local uids hasn't changed");
+    }
 }
 
 void NoteModel::setFilteredNoteLocalUids(const QStringList & noteLocalUids)
@@ -336,12 +340,16 @@ void NoteModel::setFilteredNoteLocalUids(const QStringList & noteLocalUids)
             << noteLocalUids.join(QStringLiteral(", ")));
 
     if (!m_pUpdatedNoteFilters.isNull()) {
-        m_pUpdatedNoteFilters->setFilteredNoteLocalUids(noteLocalUids);
+        Q_UNUSED(m_pUpdatedNoteFilters->setFilteredNoteLocalUids(noteLocalUids))
         return;
     }
 
-    m_pFilters->setFilteredNoteLocalUids(noteLocalUids);
-    resetModel();
+    if (m_pFilters->setFilteredNoteLocalUids(noteLocalUids)) {
+        resetModel();
+    }
+    else {
+        NMDEBUG("The set of filtered note local uids hasn't changed");
+    }
 }
 
 void NoteModel::clearFilteredNoteLocalUids()
@@ -3727,16 +3735,21 @@ const QSet<QString> & NoteModel::NoteFilters::filteredNoteLocalUids() const
     return m_filteredNoteLocalUids;
 }
 
-void NoteModel::NoteFilters::setFilteredNoteLocalUids(
+bool NoteModel::NoteFilters::setFilteredNoteLocalUids(
     const QSet<QString> & noteLocalUids)
 {
+    if (m_filteredNoteLocalUids == noteLocalUids) {
+        return false;
+    }
+
     m_filteredNoteLocalUids = noteLocalUids;
+    return true;
 }
 
-void NoteModel::NoteFilters::setFilteredNoteLocalUids(
+bool NoteModel::NoteFilters::setFilteredNoteLocalUids(
     const QStringList & noteLocalUids)
 {
-    m_filteredNoteLocalUids = QSet<QString>::fromList(noteLocalUids);
+    return setFilteredNoteLocalUids(QSet<QString>::fromList(noteLocalUids));
 }
 
 void NoteModel::NoteFilters::clearFilteredNoteLocalUids()

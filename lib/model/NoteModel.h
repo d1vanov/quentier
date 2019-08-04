@@ -106,8 +106,8 @@ public:
         void clearFilteredTagLocalUids();
 
         const QSet<QString> & filteredNoteLocalUids() const;
-        void setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids);
-        void setFilteredNoteLocalUids(const QStringList & noteLocalUids);
+        bool setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids);
+        bool setFilteredNoteLocalUids(const QStringList & noteLocalUids);
         void clearFilteredNoteLocalUids();
 
     private:

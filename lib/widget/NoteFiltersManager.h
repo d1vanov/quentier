@@ -114,6 +114,15 @@ private Q_SLOTS:
         NoteSearchQuery noteSearchQuery, ErrorString errorDescription,
         QUuid requestId);
 
+    // Slots which should trigger refresh of note search (if any)
+    void onAddNoteComplete(Note note, QUuid requestId);
+
+    void onUpdateNoteComplete(
+        Note note, LocalStorageManager::UpdateNoteOptions options,
+        QUuid requestId);
+
+    // NOTE: note model will deal with notes expunges on its own
+
     // NOTE: don't care of notebook updates because the filtering by notebook
     // is done by its local uid anyway
 
@@ -138,8 +147,9 @@ private:
     void setFilterByTags();
 
     void clearFilterWidgetsItems();
-
     void checkFiltersReadiness();
+
+    void checkAndRefreshNotesSearchQuery();
 
 private:
     Account                         m_account;

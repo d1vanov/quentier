@@ -469,6 +469,35 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(
     Q_EMIT filterChanged();
 }
 
+void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
+{
+    if (m_pNoteModel.isNull()) {
+        return;
+    }
+
+    QNDEBUG("NoteFiltersManager::onAddNoteComplete: request id = " << requestId);
+    QNTRACE(note);
+
+    checkAndRefreshNotesSearchQuery();
+}
+
+void NoteFiltersManager::onUpdateNoteComplete(
+    Note note, LocalStorageManager::UpdateNoteOptions options,
+    QUuid requestId)
+{
+    if (m_pNoteModel.isNull()) {
+        return;
+    }
+
+    QNDEBUG("NoteFiltersManager::onUpdateNoteComplete: request id = "
+            << requestId);
+    QNTRACE(note);
+
+    Q_UNUSED(options);
+
+    checkAndRefreshNotesSearchQuery();
+}
+
 void NoteFiltersManager::onExpungeNotebookComplete(
     Notebook notebook, QUuid requestId)
 {
@@ -750,6 +779,19 @@ void NoteFiltersManager::createConnections()
                      this,
                      QNSLOT(NoteFiltersManager,onExpungeSavedSearchComplete,
                             SavedSearch,QUuid),
+                     Qt::UniqueConnection);
+    QObject::connect(&m_localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,
+                              Note,QUuid),
+                     this,
+                     QNSLOT(NoteFiltersManager,onAddNoteComplete,Note,QUuid),
+                     Qt::UniqueConnection);
+    QObject::connect(&m_localStorageManagerAsync,
+                     QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,
+                              Note,LocalStorageManager::UpdateNoteOptions,QUuid),
+                     this,
+                     QNSLOT(NoteFiltersManager,onUpdateNoteComplete,
+                            Note,LocalStorageManager::UpdateNoteOptions,QUuid),
                      Qt::UniqueConnection);
 }
 
@@ -1105,6 +1147,20 @@ void NoteFiltersManager::checkFiltersReadiness()
     m_isReady = true;
     evaluate();
     Q_EMIT ready();
+}
+
+void NoteFiltersManager::checkAndRefreshNotesSearchQuery()
+{
+    QNDEBUG("NoteFiltersManager::checkAndRefreshNotesSearchQuery");
+
+    // Refresh notes filtering if it was done via explicit search query or saved search
+    if (!m_filterByTagWidget.isEnabled() &&
+        !m_filterByNotebookWidget.isEnabled() &&
+        (!m_searchLineEdit.text().isEmpty() ||
+         m_filterBySavedSearchWidget.isEnabled()))
+    {
+        evaluate();
+    }
 }
 
 NoteSearchQuery NoteFiltersManager::createNoteSearchQuery(
