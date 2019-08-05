@@ -3429,14 +3429,9 @@ void NoteModel::addOrUpdateNoteItem(
 
         NoteDataByIndex & index = m_data.get<ByIndex>();
 
-        auto positionIter =
-            std::lower_bound(index.begin(), index.end(), item,
-                             NoteComparator(sortingColumn(), sortOrder()));
-        if (!fromNotesListing && (positionIter == index.end())) {
-            NMDEBUG("The note is outside the range of those "
-                    "cached by the model, won't add it");
-            return;
-        }
+        auto positionIter = std::lower_bound(
+            index.begin(), index.end(), item,
+            NoteComparator(sortingColumn(), sortOrder()));
 
         int newRow = static_cast<int>(std::distance(index.begin(), positionIter));
 
