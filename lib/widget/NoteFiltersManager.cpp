@@ -390,9 +390,9 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted(
     }
 
     QNDEBUG("NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted: "
-            << "note local uids: " << noteLocalUids.join(QStringLiteral(", "))
-            << ", note search query: " << noteSearchQuery << "\nRequest id = "
+            << "note search query: " << noteSearchQuery << "\nRequest id = "
             << requestId);
+    QNTRACE("Note local uids: " << noteLocalUids.join(QStringLiteral(", ")));
 
     if (Q_UNLIKELY(!isRequestForSearchString &&
                    !m_filterBySavedSearchWidget.isEnabled()))
