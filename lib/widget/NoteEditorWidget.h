@@ -568,8 +568,6 @@ private:
     int                         m_lastSuggestedFontSize;
     int                         m_lastActualFontSize;
 
-    bool                        m_processingFontFamilyUpdateFromEditor;
-
     bool                        m_pendingEditorSpellChecker;
     bool                        m_currentNoteWasExpunged;
 
