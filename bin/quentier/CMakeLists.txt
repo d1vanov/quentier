@@ -31,13 +31,11 @@ endif()
 
 set(HEADERS
     src/MainWindow.h
-    src/MainWindowSideBordersController.h
     src/ParseCommandLine.h
     src/SetupStartupSettings.h)
 
 set(SOURCES
     src/MainWindow.cpp
-    src/MainWindowSideBordersController.cpp
     src/main.cpp
     src/ParseCommandLine.cpp
     src/SetupStartupSettings.cpp)

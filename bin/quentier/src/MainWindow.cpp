@@ -17,7 +17,6 @@
  */
 
 #include "MainWindow.h"
-#include "MainWindowSideBordersController.h"
 
 #include <lib/delegate/NotebookItemDelegate.h>
 #include <lib/delegate/SynchronizableColumnDelegate.h>
@@ -204,7 +203,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_syncApiRateLimitExceeded(false),
     m_animatedSyncButtonIcon(QStringLiteral(":/sync/sync.gif")),
     m_runSyncPeriodicallyTimerId(0),
-    m_pSideBordersController(Q_NULLPTR),
     m_notebookCache(),
     m_tagCache(),
     m_savedSearchCache(),
@@ -245,9 +243,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_stateRestored(false),
     m_shown(false),
     m_geometryAndStatePersistingDelayTimerId(0),
-    m_splitterSizesRestorationDelayTimerId(0),
-    m_sideBordersControllerCreationDelayTimerId(0),
-    m_sideBordersControllerMainWindowStateUpdateDelayTimerId(0)
+    m_splitterSizesRestorationDelayTimerId(0)
 {
     QNTRACE("MainWindow constructor");
 
@@ -374,8 +370,6 @@ void MainWindow::show()
         setupInitialChildWidgetsWidths();
         persistGeometryAndState();
     }
-
-    scheduleSideBordersControllerCreation();
 
     if (Q_UNLIKELY(m_pendingGreeterDialog))
     {
@@ -773,14 +767,6 @@ void MainWindow::setupInitialChildWidgetsWidths()
     QNDEBUG("MainWindow::setupInitialChildWidgetsWidths");
 
     int totalWidth = width();
-
-    if (!m_pUI->leftBorderWidget->isHidden()) {
-        totalWidth -= m_pUI->leftBorderWidget->width();
-    }
-
-    if (!m_pUI->rightBorderWidget->isHidden()) {
-        totalWidth -= m_pUI->rightBorderWidget->width();
-    }
 
     // 1/5 - for side view, 1/5 - for note list view, 3/5 - for the note editor
     int partWidth = totalWidth / 5;
@@ -1460,11 +1446,6 @@ void MainWindow::setupPanelOverlayStyleSheets()
     }
 
     m_currentPanelStyle = panelStyle;
-
-    if (m_pSideBordersController) {
-        m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
-    }
-
     setPanelsOverlayStyleSheet(properties);
 }
 
@@ -2797,10 +2778,6 @@ void MainWindow::onShowPreferencesDialogAction()
                      QNSLOT(MainWindow,
                             onRunSyncEachNumMinitesPreferenceChanged,int));
 
-    if (m_pSideBordersController) {
-        m_pSideBordersController->connectToPreferencesDialog(*pPreferencesDialog);
-    }
-
     QObject::connect(pPreferencesDialog.data(),
                      QNSIGNAL(PreferencesDialog,
                               noteEditorFontColorChanged,QColor),
@@ -3964,10 +3941,6 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     appSettings.remove(PANELS_STYLE_SETTINGS_KEY);
     appSettings.endGroup();
 
-    if (m_pSideBordersController) {
-        m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
-    }
-
     setPanelsOverlayStyleSheet(StyleSheetProperties());
 }
 
@@ -3988,10 +3961,6 @@ void MainWindow::onSwitchPanelStyleToLighter()
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
-
-    if (m_pSideBordersController) {
-        m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
-    }
 
     StyleSheetProperties properties;
     getPanelStyleSheetProperties(m_currentPanelStyle, properties);
@@ -4015,10 +3984,6 @@ void MainWindow::onSwitchPanelStyleToDarker()
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
-
-    if (m_pSideBordersController) {
-        m_pSideBordersController->onPanelStyleChanged(m_currentPanelStyle);
-    }
 
     StyleSheetProperties properties;
     getPanelStyleSheetProperties(m_currentPanelStyle, properties);
@@ -4064,22 +4029,8 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(
     }
     m_splitterSizesRestorationDelayTimerId = 0;
 
-    if (m_sideBordersControllerCreationDelayTimerId != 0) {
-        killTimer(m_sideBordersControllerCreationDelayTimerId);
-    }
-    m_sideBordersControllerCreationDelayTimerId = 0;
-
-    if (m_sideBordersControllerMainWindowStateUpdateDelayTimerId != 0) {
-        killTimer(m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
-    }
-    m_sideBordersControllerMainWindowStateUpdateDelayTimerId = 0;
-
     *m_pAccount = account;
     setWindowTitleForAccount(account);
-
-    if (m_pSideBordersController) {
-        m_pSideBordersController->setCurrentAccount(*m_pAccount);
-    }
 
     stopListeningForShortcutChanges();
     setupUserShortcuts();
@@ -4505,27 +4456,6 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         killTimer(m_splitterSizesRestorationDelayTimerId);
         m_splitterSizesRestorationDelayTimerId = 0;
     }
-    else if (pTimerEvent->timerId() == m_sideBordersControllerCreationDelayTimerId)
-    {
-        if (!m_pSideBordersController)
-        {
-            m_pSideBordersController =
-                new MainWindowSideBordersController(*m_pAccount,
-                                                    *m_pUI->leftBorderWidget,
-                                                    *m_pUI->rightBorderWidget,
-                                                    *m_pUI->splitter, *this);
-        }
-
-        killTimer(m_sideBordersControllerCreationDelayTimerId);
-        m_sideBordersControllerCreationDelayTimerId = 0;
-    }
-    else if (pTimerEvent->timerId() ==
-             m_sideBordersControllerMainWindowStateUpdateDelayTimerId)
-    {
-        notifySideBordersControllerOfMainWindowStateUpdate();
-        killTimer(m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
-        m_sideBordersControllerMainWindowStateUpdateDelayTimerId = 0;
-    }
     else if (pTimerEvent->timerId() == m_runSyncPeriodicallyTimerId)
     {
         if (Q_UNLIKELY(!m_pAccount ||
@@ -4648,8 +4578,6 @@ void MainWindow::changeEvent(QEvent * pEvent)
         QNDEBUG("Change event of window state change type: "
                 << "minimized = " << (minimized ? "true" : "false")
                 << ", maximized = " << (maximized ? "true" : "false"));
-
-        scheduleSideBordersControllerMainWindowStateUpdate();
 
         if (!minimized)
         {
@@ -6373,10 +6301,6 @@ void MainWindow::persistGeometryAndState()
     }
 
     appSettings.endGroup();
-
-    if (m_pSideBordersController) {
-        m_pSideBordersController->persistCurrentBordersSizes();
-    }
 }
 
 void MainWindow::restoreGeometryAndState()
@@ -6441,7 +6365,7 @@ void MainWindow::restoreSplitterSizes()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    if (splitterSizesCount == 5)
+    if (splitterSizesCount == 3)
     {
         int totalWidth = 0;
         for(int i = 0; i < splitterSizesCount; ++i) {
@@ -6455,7 +6379,7 @@ void MainWindow::restoreSplitterSizes()
             bool conversionResult = false;
             int sidePanelWidthInt = sidePanelWidth.toInt(&conversionResult);
             if (conversionResult) {
-                splitterSizes[1] = sidePanelWidthInt;
+                splitterSizes[0] = sidePanelWidthInt;
                 QNTRACE("Restored side panel width: " << sidePanelWidthInt);
             }
             else {
@@ -6470,7 +6394,7 @@ void MainWindow::restoreSplitterSizes()
             bool conversionResult = false;
             int notesListWidthInt = notesListWidth.toInt(&conversionResult);
             if (conversionResult) {
-                splitterSizes[2] = notesListWidthInt;
+                splitterSizes[1] = notesListWidthInt;
                 QNTRACE("Restored notes list panel width: " << notesListWidthInt);
             }
             else {
@@ -6480,8 +6404,7 @@ void MainWindow::restoreSplitterSizes()
             }
         }
 
-        splitterSizes[3] = totalWidth - splitterSizes[0] - splitterSizes[1] -
-                           splitterSizes[2] - splitterSizes[4];
+        splitterSizes[2] = totalWidth - splitterSizes[0] - splitterSizes[1];
         m_pUI->splitter->setSizes(splitterSizes);
         QNTRACE("Set splitter sizes");
     }
@@ -6682,86 +6605,6 @@ void MainWindow::scheduleGeometryAndStatePersisting()
     QNDEBUG("Started the timer to delay the persistence of "
             << "MainWindow's state and geometry: timer id = "
             << m_geometryAndStatePersistingDelayTimerId);
-}
-
-void MainWindow::scheduleSideBordersControllerCreation()
-{
-    QNDEBUG("MainWindow::scheduleSideBordersControllerCreation");
-
-    if (!m_shown) {
-        QNDEBUG("Not shown yet, won't do anything");
-        return;
-    }
-
-    if (m_sideBordersControllerCreationDelayTimerId != 0) {
-        QNDEBUG("Side borders controller creation is already "
-                << "scheduled, timer id = "
-                << m_sideBordersControllerCreationDelayTimerId);
-        return;
-    }
-
-    m_sideBordersControllerCreationDelayTimerId =
-        startTimer(CREATE_SIDE_BORDERS_CONTROLLER_DELAY);
-    if (Q_UNLIKELY(m_sideBordersControllerCreationDelayTimerId == 0)) {
-        QNWARNING("Failed to start the timer to delay "
-                  "the creation of side borders controller");
-        return;
-    }
-
-    QNDEBUG("Started the timer to delay the creation of side "
-            << "borders controller: "
-            << m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
-}
-
-void MainWindow::notifySideBordersControllerOfMainWindowStateUpdate()
-{
-    QNDEBUG("MainWindow::"
-            "notifySideBordersControllerOfMainWindowStateUpdate");
-
-    if (Q_UNLIKELY(!m_pSideBordersController)) {
-        return;
-    }
-
-    Qt::WindowStates state = windowState();
-    bool maximized = (state & Qt::WindowMaximized);
-
-    if (maximized) {
-        m_pSideBordersController->onMainWindowMaximized();
-    }
-    else {
-        m_pSideBordersController->onMainWindowUnmaximized();
-    }
-}
-
-void MainWindow::scheduleSideBordersControllerMainWindowStateUpdate()
-{
-    QNDEBUG("MainWindow::"
-            "scheduleSideBordersControllerMainWindowStateUpdate");
-
-    if (!m_shown) {
-        QNDEBUG("Not shown yet, won't do anything");
-        return;
-    }
-
-    if (m_sideBordersControllerMainWindowStateUpdateDelayTimerId != 0) {
-        QNDEBUG("Side borders controller notification is already "
-                << "scheduled, timer id = "
-                << m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
-        return;
-    }
-
-    m_sideBordersControllerMainWindowStateUpdateDelayTimerId =
-        startTimer(NOTIFY_SIDE_BORDERS_CONTROLLER_DELAY);
-    if (Q_UNLIKELY(m_sideBordersControllerMainWindowStateUpdateDelayTimerId == 0)) {
-        QNWARNING("Failed to start the timer to delay "
-                  "the notification of side borders controller "
-                  "of main window state change");
-        return;
-    }
-
-    QNDEBUG("Started the timer to delay the notification of side "
-            << "borders controller of main window state change: "
-            << m_sideBordersControllerMainWindowStateUpdateDelayTimerId);
 }
 
 template <class T>

@@ -2881,14 +2881,17 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
 
     QStringList limitedFontNames;
     limitedFontNames.reserve(8);
-    limitedFontNames << QStringLiteral("Courier New");
-    limitedFontNames << QStringLiteral("Georgia");
-    limitedFontNames << QStringLiteral("Gotham");
-    limitedFontNames << QStringLiteral("Helvetica");
-    limitedFontNames << QStringLiteral("Trebuchet");
-    limitedFontNames << QStringLiteral("Times");
-    limitedFontNames << QStringLiteral("Times New Roman");
-    limitedFontNames << QStringLiteral("Verdana");
+    // NOTE: adding whitespace before the actual font names
+    // simply because it looks better this way and I can't get
+    // the stylesheet to handle this properly
+    limitedFontNames << QStringLiteral(" Courier New");
+    limitedFontNames << QStringLiteral(" Georgia");
+    limitedFontNames << QStringLiteral(" Gotham");
+    limitedFontNames << QStringLiteral(" Helvetica");
+    limitedFontNames << QStringLiteral(" Trebuchet");
+    limitedFontNames << QStringLiteral(" Times");
+    limitedFontNames << QStringLiteral(" Times New Roman");
+    limitedFontNames << QStringLiteral(" Verdana");
 
     delete m_pLimitedFontsListModel;
     m_pLimitedFontsListModel = new QStringListModel(this);

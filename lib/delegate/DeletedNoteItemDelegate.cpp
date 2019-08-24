@@ -30,6 +30,7 @@
 
 #define TEXT_HEIGHT_MARGIN (4)
 #define TEXT_WIDTH_MARGIN (8)
+#define FIRST_COLUMN_PADDING (10)
 
 namespace quentier {
 
@@ -208,7 +209,10 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
         adjustDisplayedText(text, option);
     }
 
-    painter->drawText(option.rect, text,
+    QRect rect = option.rect;
+    rect.translate(FIRST_COLUMN_PADDING, 0);
+
+    painter->drawText(rect, text,
                       QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
@@ -274,7 +278,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
 
         text.prepend(QStringLiteral(" "));
 
-        int width = fontMetrics.width(text) + TEXT_WIDTH_MARGIN;
+        int width = FIRST_COLUMN_PADDING + fontMetrics.width(text) + TEXT_WIDTH_MARGIN;
         return QSize(width, height);
     }
 

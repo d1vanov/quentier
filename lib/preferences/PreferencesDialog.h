@@ -68,13 +68,6 @@ Q_SIGNALS:
     void disableNativeMenuBarOptionChanged();
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
-    void showMainWindowLeftBorderOptionChanged(int option);
-    void showMainWindowRightBorderOptionChanged(int option);
-    void mainWindowLeftBorderWidthChanged(int width);
-    void mainWindowRightBorderWidthChanged(int width);
-    void mainWindowLeftBorderColorChanged(QString colorCode);
-    void mainWindowRightBorderColorChanged(QString colorCode);
-
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);
@@ -89,16 +82,6 @@ private Q_SLOTS:
     // Appearance tab
     void onShowNoteThumbnailsCheckboxToggled(bool checked);
     void onDisableNativeMenuBarCheckboxToggled(bool checked);
-    void onShowMainWindowLeftBorderOptionChanged(int option);
-    void onShowMainWindowRightBorderOptionChanged(int option);
-    void onLeftMainWindowBorderWidthChanged(int width);
-    void onRightMainWindowBorderWidthChanged(int width);
-    void onLeftMainWindowBorderColorCodeChanged(const QString & colorCode);
-    void onRightMainWindowBorderColorCodeChanged(const QString & colorCode);
-    void onLeftMainWindowBorderColorPickerRequested();
-    void onRightMainWindowBorderColorPickerRequested();
-    void onLeftMainWindowBorderColorSelected(const QColor & color);
-    void onRightMainWindowBorderColorSelected(const QColor & color);
 
     // Behaviour tab
     void onStartAtLoginCheckboxToggled(bool checked);
@@ -146,10 +129,10 @@ private:
 private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
                                    ShortcutManager & shortcutManager);
-    void setupMainWindowBorderSettings();
     void setupSystemTraySettings();
     void setupStartAtLoginSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
+    void setupAppearanceSettingsState();
     void setupNetworkProxySettingsState();
     void setupNoteEditorSettingsState();
     void createConnections();
@@ -186,7 +169,6 @@ private:
     SystemTrayIconManager &         m_systemTrayIconManager;
     QStringListModel *              m_pTrayActionsModel;
     QStringListModel *              m_pNetworkProxyTypesModel;
-    QStringListModel *              m_pAvailableMainWindowBorderOptionsModel;
     QStringListModel *              m_pStartAtLoginOptionsModel;
 
     QPointer<QColorDialog>          m_pNoteEditorFontColorDialog;
