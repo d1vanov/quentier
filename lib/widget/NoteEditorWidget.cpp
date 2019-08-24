@@ -92,7 +92,6 @@ NoteEditorWidget::NoteEditorWidget(
     m_stringUtils(),
     m_lastSuggestedFontSize(-1),
     m_lastActualFontSize(-1),
-    m_processingFontFamilyUpdateFromEditor(false),
     m_pendingEditorSpellChecker(false),
     m_currentNoteWasExpunged(false),
     m_noteHasBeenModified(false),
@@ -1101,11 +1100,6 @@ void NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged(
 
     m_lastFontComboBoxFontFamily = fontFamily;
 
-    if (m_processingFontFamilyUpdateFromEditor) {
-        m_processingFontFamilyUpdateFromEditor = false;
-        return;
-    }
-
     if (!m_pCurrentNote) {
         QNTRACE("No note is set to the editor, nothing to do");
         return;
@@ -1915,19 +1909,41 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
             m_pLimitedFontsListModel->setStringList(fontNames);
         }
 
-        m_processingFontFamilyUpdateFromEditor = true;
+        QObject::disconnect(
+            m_pUi->limitedFontComboBox,
+            SIGNAL(currentIndexChanged(QString)),
+            this,
+            SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
+
         m_pUi->limitedFontComboBox->setCurrentIndex(index);
         QNTRACE("Set limited font combo box index to " << index
                 << " corresponding to font family " << fontFamily);
+
+        QObject::connect(
+            m_pUi->limitedFontComboBox,
+            SIGNAL(currentIndexChanged(QString)),
+            this,
+            SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
     }
     else
     {
-        m_processingFontFamilyUpdateFromEditor = true;
+        QObject::disconnect(
+            m_pUi->fontComboBox,
+            QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
+            this,
+            QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
+
         m_pUi->fontComboBox->setCurrentFont(currentFont);
         QNTRACE("Font family from combo box: "
                 << m_pUi->fontComboBox->currentFont().family()
                 << ", font family set by QFont's constructor from it: "
                 << currentFont.family());
+
+        QObject::connect(
+            m_pUi->fontComboBox,
+            QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
+            this,
+            QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
     }
 
     setupFontSizesForFont(currentFont);
@@ -2838,20 +2854,7 @@ void NoteEditorWidget::setupFontsComboBox()
 {
     QNDEBUG("NoteEditorWidget::setupFontsComboBox");
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-
-    bool useLimitedFonts = false;
-    if (appSettings.contains(USE_LIMITED_SET_OF_FONTS)) {
-        useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
-        QNDEBUG("Use limited fonts setting from settings: "
-                << (useLimitedFonts ? "true" : "false"));
-    }
-    else {
-        useLimitedFonts = (m_currentAccount.type() == Account::Type::Evernote);
-    }
-
-    appSettings.endGroup();
+    bool useLimitedFonts = useLimitedSetOfFonts();
 
     if (useLimitedFonts) {
         m_pUi->fontComboBox->setHidden(true);
@@ -2861,11 +2864,14 @@ void NoteEditorWidget::setupFontsComboBox()
     else {
         m_pUi->limitedFontComboBox->setHidden(true);
         m_pUi->limitedFontComboBox->setDisabled(true);
-        QObject::connect(m_pUi->fontComboBox,
-                         QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
-                         this,
-                         QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
+        QObject::connect(
+            m_pUi->fontComboBox,
+            QNSIGNAL(QFontComboBox,currentFontChanged,QFont),
+            this,
+            QNSLOT(NoteEditorWidget,onFontComboBoxFontChanged,QFont));
     }
+
+    setupNoteEditorDefaultFont();
 }
 
 void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
@@ -3044,6 +3050,58 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     QObject::connect(m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onFontSizesComboBoxCurrentIndexChanged(int)),
                      Qt::UniqueConnection);
+}
+
+bool NoteEditorWidget::useLimitedSetOfFonts() const
+{
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+
+    bool useLimitedFonts = false;
+    if (appSettings.contains(USE_LIMITED_SET_OF_FONTS)) {
+        useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+        QNDEBUG("Use limited fonts preference: "
+                << (useLimitedFonts ? "true" : "false"));
+    }
+    else {
+        useLimitedFonts = (m_currentAccount.type() == Account::Type::Evernote);
+    }
+
+    appSettings.endGroup();
+    return useLimitedFonts;
+}
+
+void NoteEditorWidget::setupNoteEditorDefaultFont()
+{
+    QNDEBUG("NoteEditorWidget::setupNoteEditorDefaultFont");
+
+    bool useLimitedFonts = !(m_pUi->limitedFontComboBox->isHidden());
+
+    int pointSize = -1;
+    int fontSizeIndex = m_pUi->fontSizeComboBox->currentIndex();
+    if (fontSizeIndex >= 0)
+    {
+        bool conversionResult = false;
+        QVariant fontSizeData = m_pUi->fontSizeComboBox->itemData(fontSizeIndex);
+        pointSize = fontSizeData.toInt(&conversionResult);
+        if (!conversionResult) {
+            QNWARNING("Failed to convert current font size to int: "
+                      << fontSizeData);
+            pointSize = -1;
+        }
+    }
+
+    QFont currentFont;
+    if (useLimitedFonts) {
+        QString fontFamily = m_pUi->limitedFontComboBox->currentText();
+        currentFont = QFont(fontFamily, pointSize);
+    }
+    else {
+        QFont font = m_pUi->fontComboBox->currentFont();
+        currentFont = QFont(font.family(), pointSize);
+    }
+
+    m_pUi->noteEditor->setDefaultFont(currentFont);
 }
 
 void NoteEditorWidget::setupNoteEditorColors()

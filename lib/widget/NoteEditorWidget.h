@@ -498,14 +498,17 @@ private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
 
+    void setupNoteEditorColors();
     void onNoteEditorColorsUpdate();
 
     void setupSpecialIcons();
+
     void setupFontsComboBox();
     void setupLimitedFontsComboBox(const QString & startupFont = QString());
     void setupFontSizesComboBox();
     void setupFontSizesForFont(const QFont & font);
-    void setupNoteEditorColors();
+    bool useLimitedSetOfFonts() const;
+    void setupNoteEditorDefaultFont();
 
     void updateNoteSourceView(const QString & html);
 
@@ -564,8 +567,6 @@ private:
 
     int                         m_lastSuggestedFontSize;
     int                         m_lastActualFontSize;
-
-    bool                        m_processingFontFamilyUpdateFromEditor;
 
     bool                        m_pendingEditorSpellChecker;
     bool                        m_currentNoteWasExpunged;
