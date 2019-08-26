@@ -54,10 +54,6 @@
 
 #define DEFAULT_MAIN_WINDOW_BORDER_COLOR QStringLiteral("#626262")
 
-#define DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION                                 \
-    (MainWindowSideBorderOption::ShowOnlyWhenMaximized)                        \
-// DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION
-
 #define DEFAULT_MAIN_WINDOW_BORDER_SIZE (4)
 #define MAX_MAIN_WINDOW_BORDER_SIZE (20)
 

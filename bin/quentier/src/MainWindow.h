@@ -74,7 +74,6 @@ QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
-QT_FORWARD_DECLARE_CLASS(MainWindowSideBordersController)
 QT_FORWARD_DECLARE_CLASS(NoteCountLabelController)
 }
 
@@ -219,10 +218,12 @@ private Q_SLOTS:
     void onShowStatusBarActionToggled(bool checked);
 
     // Look and feel settings slots
-    void onSwitchIconsToNativeAction();
-    void onSwitchIconsToTangoAction();
-    void onSwitchIconsToOxygenAction();
+    void onSwitchIconTheme(const QString & iconTheme);
+    void onSwitchIconThemeToNativeAction();
+    void onSwitchIconThemeToTangoAction();
+    void onSwitchIconThemeToOxygenAction();
 
+    void onSwitchPanelStyle(const QString & panelStyle);
     void onSwitchPanelStyleToBuiltIn();
     void onSwitchPanelStyleToLighter();
     void onSwitchPanelStyleToDarker();
@@ -449,11 +450,6 @@ private:
 
     void scheduleGeometryAndStatePersisting();
 
-    void scheduleSideBordersControllerCreation();
-
-    void notifySideBordersControllerOfMainWindowStateUpdate();
-    void scheduleSideBordersControllerMainWindowStateUpdate();
-
     template <class T>
     void refreshThemeIcons();
 
@@ -575,8 +571,6 @@ private:
     QMovie                      m_animatedSyncButtonIcon;
     int                         m_runSyncPeriodicallyTimerId;
 
-    MainWindowSideBordersController *   m_pSideBordersController;
-
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;
     SavedSearchCache        m_savedSearchCache;
@@ -636,8 +630,6 @@ private:
 
     int                     m_geometryAndStatePersistingDelayTimerId;
     int                     m_splitterSizesRestorationDelayTimerId;
-    int                     m_sideBordersControllerCreationDelayTimerId;
-    int                     m_sideBordersControllerMainWindowStateUpdateDelayTimerId;
 };
 
 #endif // QUENTIER_MAINWINDOW_H

@@ -430,35 +430,6 @@ padding-right: 2px;
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="leftBorderWidget" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>20</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="contextMenuPolicy">
-        <enum>Qt::CustomContextMenu</enum>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: #626262;
-border-right: 1px solid black;
-border-bottom: 1px solid black;
-margin-right: 0px;</string>
-       </property>
-      </widget>
       <widget class="QSplitter" name="sidePanelSplitter">
        <property name="maximumSize">
         <size>
@@ -538,6 +509,10 @@ stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
+}
+
+#favoritesHeaderPanel {
+padding-left: 10px;
 }
 
 QPushButton {
@@ -802,6 +777,9 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
+#notebooksHeaderPanel {
+padding-left: 10px;
+}
 
 QPushButton {
 border: none;
@@ -882,9 +860,6 @@ border: none;
                 <width>20</width>
                 <height>20</height>
                </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
               </property>
               <property name="icon">
                <iconset resource="../../../resource/icons/other/icons.qrc">
@@ -1128,6 +1103,10 @@ stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
+}
+
+#tagsHeaderPanel {
+padding-left: 10px;
 }
 
 QPushButton {
@@ -1439,6 +1418,10 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
+#savedSearchesHeaderPanel {
+padding-left: 10px;
+}
+
 QPushButton {
 border: none;
 padding: 0px;
@@ -1518,9 +1501,6 @@ border: none;
                 <width>20</width>
                 <height>20</height>
                </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
               </property>
               <property name="icon">
                <iconset theme="edit-find">
@@ -1727,6 +1707,10 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
+#deletedNotesHeaderPanel {
+padding-left: 10px;
+}
+
 QPushButton {
 border: none;
 padding: 0px;
@@ -1789,6 +1773,12 @@ border: none;
             </property>
             <item>
              <widget class="QPushButton" name="deletedNotesPanelIconPseudoPushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="minimumSize">
                <size>
                 <width>20</width>
@@ -1800,9 +1790,6 @@ border: none;
                 <width>20</width>
                 <height>20</height>
                </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
               </property>
               <property name="icon">
                <iconset theme="user-trash">
@@ -2630,7 +2617,7 @@ padding-left: 2px;
                    <number>0</number>
                   </property>
                   <property name="text">
-                   <string>Notes:</string>
+                   <string>N&amp;otes:</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2771,35 +2758,6 @@ margin: 0px;
          </widget>
         </item>
        </layout>
-      </widget>
-      <widget class="QWidget" name="rightBorderWidget" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>20</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="contextMenuPolicy">
-        <enum>Qt::CustomContextMenu</enum>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: #626262;
-border-left: 1px solid black;
-border-bottom: 1px solid black;
-margin: 0px;</string>
-       </property>
       </widget>
      </widget>
     </item>
@@ -3353,7 +3311,7 @@ border-bottom: 1px solid black;
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>P&amp;references</string>
+    <string>Prefere&amp;nces</string>
    </property>
   </action>
   <action name="ActionShowNoteInfo">
@@ -4257,7 +4215,7 @@ border-bottom: 1px solid black;
   </action>
   <action name="ActionInsertToDo">
    <property name="text">
-    <string>Insert ToDo</string>
+    <string>Ins&amp;ert ToDo</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>

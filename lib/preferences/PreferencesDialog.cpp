@@ -29,7 +29,6 @@ using quentier::ShortcutSettingsWidget;
 #include <lib/network/NetworkProxySettingsHelpers.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ActionsInfo.h>
-#include <lib/utility/MainWindowSideBorderOption.h>
 #include <lib/utility/ColorCodeValidator.h>
 #include <lib/utility/StartAtLogin.h>
 
@@ -63,7 +62,6 @@ PreferencesDialog::PreferencesDialog(
     m_systemTrayIconManager(systemTrayIconManager),
     m_pTrayActionsModel(new QStringListModel(this)),
     m_pNetworkProxyTypesModel(new QStringListModel(this)),
-    m_pAvailableMainWindowBorderOptionsModel(new QStringListModel(this)),
     m_pStartAtLoginOptionsModel(new QStringListModel(this))
 {
     m_pUi->setupUi(this);
@@ -258,166 +256,6 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
     m_pUi->disableNativeMenuBarRestartWarningLabel->setVisible(true);
 
     Q_EMIT disableNativeMenuBarOptionChanged();
-}
-
-void PreferencesDialog::onShowMainWindowLeftBorderOptionChanged(int option)
-{
-    QNDEBUG("PreferencesDialog::onShowMainWindowLeftBorderOptionChanged: "
-            << "option = " << option);
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY, option);
-    appSettings.endGroup();
-
-    Q_EMIT showMainWindowLeftBorderOptionChanged(option);
-}
-
-void PreferencesDialog::onShowMainWindowRightBorderOptionChanged(int option)
-{
-    QNDEBUG("PreferencesDialog::onShowMainWindowRightBorderOptionChanged: "
-            << "option = " << option);
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY, option);
-    appSettings.endGroup();
-
-    Q_EMIT showMainWindowRightBorderOptionChanged(option);
-}
-
-void PreferencesDialog::onLeftMainWindowBorderWidthChanged(int width)
-{
-    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderWidthChanged: width = "
-            << width);
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY, width);
-    appSettings.endGroup();
-
-    Q_EMIT mainWindowLeftBorderWidthChanged(width);
-}
-
-void PreferencesDialog::onRightMainWindowBorderWidthChanged(int width)
-{
-    QNDEBUG("PreferencesDialog::onRightMainWindowBorderWidthChanged: width = "
-            << width);
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY, width);
-    appSettings.endGroup();
-
-    Q_EMIT mainWindowRightBorderWidthChanged(width);
-}
-
-void PreferencesDialog::onLeftMainWindowBorderColorCodeChanged(
-    const QString & colorCode)
-{
-    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderColorCodeChanged: "
-            << "color code = " << colorCode);
-
-    if (!colorCode.isEmpty() && !QColor::isValidColor(colorCode)) {
-        return;
-    }
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR, colorCode);
-    appSettings.endGroup();
-
-    Q_EMIT mainWindowLeftBorderColorChanged(colorCode);
-}
-
-void PreferencesDialog::onRightMainWindowBorderColorCodeChanged(
-    const QString & colorCode)
-{
-    QNDEBUG("PreferencesDialog::onRightMainWindowBorderColorCodeChanged: "
-            << "color code = " << colorCode);
-
-    if (!colorCode.isEmpty() && !QColor::isValidColor(colorCode)) {
-        return;
-    }
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR, colorCode);
-    appSettings.endGroup();
-
-    Q_EMIT mainWindowRightBorderColorChanged(colorCode);
-}
-
-void PreferencesDialog::onLeftMainWindowBorderColorPickerRequested()
-{
-    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderColorPickerRequested");
-
-    QScopedPointer<QColorDialog> pColorDialog(new QColorDialog(this));
-    pColorDialog->setWindowModality(Qt::WindowModal);
-
-    QString currentColorCode = m_pUi->leftMainWindowBorderColorLineEdit->text();
-    if (!currentColorCode.isEmpty() && QColor::isValidColor(currentColorCode)) {
-        pColorDialog->setCurrentColor(QColor(currentColorCode));
-    }
-
-    QObject::connect(pColorDialog.data(),
-                     QNSIGNAL(QColorDialog,colorSelected,QColor),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onLeftMainWindowBorderColorSelected,QColor));
-    Q_UNUSED(pColorDialog->exec())
-}
-
-void PreferencesDialog::onRightMainWindowBorderColorPickerRequested()
-{
-    QNDEBUG("PreferencesDialog::onRightMainWindowBorderColorPickerRequested");
-
-    QScopedPointer<QColorDialog> pColorDialog(new QColorDialog(this));
-    pColorDialog->setWindowModality(Qt::WindowModal);
-
-    QString currentColorCode = m_pUi->rightMainWindowBorderColorLineEdit->text();
-    if (!currentColorCode.isEmpty() && QColor::isValidColor(currentColorCode)) {
-        pColorDialog->setCurrentColor(QColor(currentColorCode));
-    }
-
-    QObject::connect(pColorDialog.data(),
-                     QNSIGNAL(QColorDialog,colorSelected,QColor),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onRightMainWindowBorderColorSelected,QColor));
-    Q_UNUSED(pColorDialog->exec())
-}
-
-void PreferencesDialog::onLeftMainWindowBorderColorSelected(const QColor & color)
-{
-    QString colorCode = color.name();
-    QNDEBUG("PreferencesDialog::onLeftMainWindowBorderColorSelected: "
-            << "color code = " << colorCode);
-
-    if (!color.isValid()) {
-        colorCode.resize(0);
-    }
-
-    m_pUi->leftMainWindowBorderColorLineEdit->setText(colorCode);
-}
-
-void PreferencesDialog::onRightMainWindowBorderColorSelected(const QColor & color)
-{
-    QString colorCode = color.name();
-    QNDEBUG("PreferencesDialog::onRightMainWindowBorderColorSelected: "
-            << "color code = " << colorCode);
-
-    if (!color.isValid()) {
-        colorCode.resize(0);
-    }
-
-    m_pUi->rightMainWindowBorderColorLineEdit->setText(colorCode);
 }
 
 void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
@@ -944,27 +782,13 @@ void PreferencesDialog::setupCurrentSettingsState(
     setupNoteEditorSettingsState();
 
     // 3) Appearance tab
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QVariant showThumbnails =
-        appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
-                          QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
-    QVariant disableNativeMenuBar =
-        appSettings.value(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
-                          QVariant::fromValue(defaultDisableNativeMenuBar()));
-    appSettings.endGroup();
-
-    m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
-    m_pUi->disableNativeMenuBarCheckBox->setChecked(disableNativeMenuBar.toBool());
-
-    setupMainWindowBorderSettings();
+    setupAppearanceSettingsState(actionsInfo);
 
     // 4) Behaviour tab
     setupStartAtLoginSettings();
 
     // 5) Synchronization tab
+    Account currentAccount = m_accountManager.currentAccount();
     if (currentAccount.type() == Account::Type::Local)
     {
         // Remove the synchronization tab entirely
@@ -1036,207 +860,6 @@ void PreferencesDialog::setupCurrentSettingsState(
 
     m_pUi->enableInternalLogViewerLogsCheckBox->setChecked(
         enableLogViewerInternalLogs);
-}
-
-void PreferencesDialog::setupMainWindowBorderSettings()
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-    m_pUi->leftMainWindowBorderColorLineEdit->setClearButtonEnabled(true);
-    m_pUi->rightMainWindowBorderColorLineEdit->setClearButtonEnabled(true);
-#endif
-
-    m_pUi->leftMainWindowBorderColorLineEdit->setPlaceholderText(tr("hex color code"));
-    m_pUi->rightMainWindowBorderColorLineEdit->setPlaceholderText(tr("hex color code"));
-
-    QStringList availableShowBorderOptions;
-    availableShowBorderOptions.reserve(3);
-    availableShowBorderOptions << tr("Always show");
-    availableShowBorderOptions << tr("Never show");
-    availableShowBorderOptions << tr("Show only when maximized");
-    m_pAvailableMainWindowBorderOptionsModel->setStringList(availableShowBorderOptions);
-
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-
-    bool conversionResult = false;
-    int showLeftMainWindowBorderOption =
-        appSettings.value(SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY)
-        .toInt(&conversionResult);
-    if (!conversionResult || (showLeftMainWindowBorderOption < 0) ||
-        (showLeftMainWindowBorderOption > 2))
-    {
-        QNDEBUG("No valid \"Show left main window border\" option was found "
-                "within the persistent settings, using the default option");
-        showLeftMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
-    }
-
-    m_pUi->leftMainWindowBorderOptionComboBox->setModel(
-        m_pAvailableMainWindowBorderOptionsModel);
-
-    switch(showLeftMainWindowBorderOption)
-    {
-    case MainWindowSideBorderOption::AlwaysShow:
-        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(0);
-        break;
-    case MainWindowSideBorderOption::NeverShow:
-        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(1);
-        break;
-    case MainWindowSideBorderOption::ShowOnlyWhenMaximized:
-    default:
-        m_pUi->leftMainWindowBorderOptionComboBox->setCurrentIndex(2);
-        break;
-    }
-
-    QObject::connect(m_pUi->leftMainWindowBorderOptionComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onShowMainWindowLeftBorderOptionChanged(int)));
-
-    conversionResult = false;
-    int showRightMainWindowBorderOption =
-        appSettings.value(SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY)
-        .toInt(&conversionResult);
-    if (!conversionResult || (showRightMainWindowBorderOption < 0) ||
-        (showRightMainWindowBorderOption > 2))
-    {
-        QNDEBUG("No valid \"Show right main window border\" option was found "
-                "within the persistent settings, using the default option");
-        showRightMainWindowBorderOption = DEFAULT_SHOW_MAIN_WINDOW_BORDER_OPTION;
-    }
-
-    m_pUi->rightMainWindowBorderOptionComboBox->setModel(
-        m_pAvailableMainWindowBorderOptionsModel);
-
-    switch(showRightMainWindowBorderOption)
-    {
-    case MainWindowSideBorderOption::AlwaysShow:
-        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(0);
-        break;
-    case MainWindowSideBorderOption::NeverShow:
-        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(1);
-        break;
-    case MainWindowSideBorderOption::ShowOnlyWhenMaximized:
-    default:
-        m_pUi->rightMainWindowBorderOptionComboBox->setCurrentIndex(2);
-        break;
-    }
-
-    QObject::connect(m_pUi->rightMainWindowBorderOptionComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onShowMainWindowRightBorderOptionChanged(int)));
-
-    conversionResult = false;
-    int leftMainWindowBorderWidth =
-        appSettings.value(LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY)
-        .toInt(&conversionResult);
-    if (!conversionResult)
-    {
-        QNDEBUG("No valid left main window border's width setting was found "
-                "withiin the persistent settings, using the default value");
-        leftMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
-    }
-    else if (leftMainWindowBorderWidth < 0)
-    {
-        QNDEBUG("Found invalid negative left main window border's width within "
-                "the persistent settings, using the default value");
-        leftMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
-    }
-    else if (leftMainWindowBorderWidth > MAX_MAIN_WINDOW_BORDER_SIZE)
-    {
-        QNDEBUG("Found invalid too large left main window border's width within "
-                "the persistent settings, using the max allowed value instead");
-        leftMainWindowBorderWidth = MAX_MAIN_WINDOW_BORDER_SIZE;
-    }
-
-    m_pUi->leftMainWindowBorderWidthSpinBox->setValue(leftMainWindowBorderWidth);
-    m_pUi->leftMainWindowBorderWidthSpinBox->setMinimum(0);
-    m_pUi->leftMainWindowBorderWidthSpinBox->setMaximum(MAX_MAIN_WINDOW_BORDER_SIZE);
-
-    QObject::connect(m_pUi->leftMainWindowBorderWidthSpinBox,
-                     SIGNAL(valueChanged(int)),
-                     this,
-                     SLOT(onLeftMainWindowBorderWidthChanged(int)));
-
-    conversionResult = false;
-    int rightMainWindowBorderWidth =
-        appSettings.value(RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY)
-        .toInt(&conversionResult);
-    if (!conversionResult)
-    {
-        QNDEBUG("No valid right main window border's width setting was found "
-                "within the persistent settings, using the default value");
-        rightMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
-    }
-    else if (rightMainWindowBorderWidth < 0)
-    {
-        QNDEBUG("Found invalid negative right main window border's width "
-                "within the persistent settings, using the default value");
-        rightMainWindowBorderWidth = DEFAULT_MAIN_WINDOW_BORDER_SIZE;
-    }
-    else if (rightMainWindowBorderWidth > MAX_MAIN_WINDOW_BORDER_SIZE)
-    {
-        QNDEBUG("Found invalid too large right main window border's width "
-                "within the persistent settings, using the max allowed value "
-                "instead");
-        rightMainWindowBorderWidth = MAX_MAIN_WINDOW_BORDER_SIZE;
-    }
-
-    m_pUi->rightMainWindowBorderWidthSpinBox->setValue(rightMainWindowBorderWidth);
-    m_pUi->rightMainWindowBorderWidthSpinBox->setMinimum(0);
-    m_pUi->rightMainWindowBorderWidthSpinBox->setMaximum(MAX_MAIN_WINDOW_BORDER_SIZE);
-
-    QObject::connect(m_pUi->rightMainWindowBorderWidthSpinBox,
-                     SIGNAL(valueChanged(int)),
-                     this,
-                     SLOT(onRightMainWindowBorderWidthChanged(int)));
-
-    QString leftMainWindowBorderOverrideColorCode =
-        appSettings.value(LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR).toString();
-    if (!leftMainWindowBorderOverrideColorCode.isEmpty() &&
-        QColor::isValidColor(leftMainWindowBorderOverrideColorCode))
-    {
-        m_pUi->leftMainWindowBorderColorLineEdit->setText(
-            leftMainWindowBorderOverrideColorCode);
-    }
-
-    QString rightMainWindowBorderOverrideColorCode =
-        appSettings.value(RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR).toString();
-    if (!rightMainWindowBorderOverrideColorCode.isEmpty() &&
-        QColor::isValidColor(rightMainWindowBorderOverrideColorCode))
-    {
-        m_pUi->rightMainWindowBorderColorLineEdit->setText(
-            rightMainWindowBorderOverrideColorCode);
-    }
-
-    ColorCodeValidator * pColorCodeValidator = new ColorCodeValidator(this);
-    m_pUi->leftMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
-    m_pUi->rightMainWindowBorderColorLineEdit->setValidator(pColorCodeValidator);
-
-    QObject::connect(m_pUi->leftMainWindowBorderColorLineEdit,
-                     QNSIGNAL(QLineEdit,textChanged,QString),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onLeftMainWindowBorderColorCodeChanged,QString));
-    QObject::connect(m_pUi->rightMainWindowBorderColorLineEdit,
-                     QNSIGNAL(QLineEdit,textChanged,QString),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onRightMainWindowBorderColorCodeChanged,QString));
-
-    QObject::connect(m_pUi->leftMainWindowBorderColorPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onLeftMainWindowBorderColorPickerRequested));
-    QObject::connect(m_pUi->rightMainWindowBorderColorPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onRightMainWindowBorderColorPickerRequested));
-
-    appSettings.endGroup();
 }
 
 void PreferencesDialog::setupSystemTraySettings()
@@ -1424,6 +1047,69 @@ void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes
                      SIGNAL(currentIndexChanged(int)),
                      this,
                      SLOT(onRunSyncPeriodicallyOptionChanged(int)));
+}
+
+void PreferencesDialog::setupAppearanceSettingsState(
+    const ActionsInfo & actionsInfo)
+{
+    QNDEBUG("PreferencesDialog::setupAppearanceSettingsState");
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    QVariant showThumbnails =
+        appSettings.value(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
+                          QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+    QVariant disableNativeMenuBar =
+        appSettings.value(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+                          QVariant::fromValue(defaultDisableNativeMenuBar()));
+    QVariant iconTheme =
+        appSettings.value(ICON_THEME_SETTINGS_KEY,
+                          tr("Native"));
+    QVariant panelStyle =
+        appSettings.value(PANELS_STYLE_SETTINGS_KEY,
+                          tr("Built-in"));
+    appSettings.endGroup();
+
+    m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
+    m_pUi->disableNativeMenuBarCheckBox->setChecked(disableNativeMenuBar.toBool());
+
+    bool hasNativeIconTheme = false;
+    if (!actionsInfo.findActionInfo(tr("Native"), tr("View")).isEmpty()) {
+        hasNativeIconTheme = true;
+    }
+
+    if (hasNativeIconTheme) {
+        m_pUi->iconThemeComboBox->addItem(tr("Native"));
+    }
+
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("Oxygen"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("Tango"));
+
+    int iconThemeIndex = m_pUi->iconThemeComboBox->findText(iconTheme.toString());
+    if (iconThemeIndex >= 0) {
+        m_pUi->iconThemeComboBox->setCurrentIndex(iconThemeIndex);
+    }
+
+    QObject::connect(m_pUi->iconThemeComboBox,
+                     SIGNAL(currentIndexChanged(QString)),
+                     this,
+                     SIGNAL(iconThemeChanged(QString)));
+
+    m_pUi->panelStyleComboBox->addItem(tr("Built-in"));
+    m_pUi->panelStyleComboBox->addItem(tr("Lighter"));
+    m_pUi->panelStyleComboBox->addItem(tr("Darker"));
+
+    int panelStyleIndex = m_pUi->panelStyleComboBox->findText(panelStyle.toString());
+    if (panelStyleIndex >= 0) {
+        m_pUi->panelStyleComboBox->setCurrentIndex(panelStyleIndex);
+    }
+
+    QObject::connect(m_pUi->panelStyleComboBox,
+                     SIGNAL(currentIndexChanged(QString)),
+                     this,
+                     SIGNAL(panelStyleChanged(QString)));
 }
 
 void PreferencesDialog::setupNetworkProxySettingsState()
