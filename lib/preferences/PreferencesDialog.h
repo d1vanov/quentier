@@ -68,6 +68,9 @@ Q_SIGNALS:
     void disableNativeMenuBarOptionChanged();
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
+    void iconThemeChanged(const QString & iconTheme);
+    void panelStyleChanged(const QString & panelStyle);
+
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);
@@ -132,7 +135,7 @@ private:
     void setupSystemTraySettings();
     void setupStartAtLoginSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
-    void setupAppearanceSettingsState();
+    void setupAppearanceSettingsState(const ActionsInfo & actionsInfo);
     void setupNetworkProxySettingsState();
     void setupNoteEditorSettingsState();
     void createConnections();

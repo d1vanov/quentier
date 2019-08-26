@@ -218,10 +218,12 @@ private Q_SLOTS:
     void onShowStatusBarActionToggled(bool checked);
 
     // Look and feel settings slots
-    void onSwitchIconsToNativeAction();
-    void onSwitchIconsToTangoAction();
-    void onSwitchIconsToOxygenAction();
+    void onSwitchIconTheme(const QString & iconTheme);
+    void onSwitchIconThemeToNativeAction();
+    void onSwitchIconThemeToTangoAction();
+    void onSwitchIconThemeToOxygenAction();
 
+    void onSwitchPanelStyle(const QString & panelStyle);
     void onSwitchPanelStyleToBuiltIn();
     void onSwitchPanelStyleToLighter();
     void onSwitchPanelStyleToDarker();

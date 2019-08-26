@@ -782,7 +782,7 @@ void PreferencesDialog::setupCurrentSettingsState(
     setupNoteEditorSettingsState();
 
     // 3) Appearance tab
-    setupAppearanceSettingsState();
+    setupAppearanceSettingsState(actionsInfo);
 
     // 4) Behaviour tab
     setupStartAtLoginSettings();
@@ -1049,7 +1049,8 @@ void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes
                      SLOT(onRunSyncPeriodicallyOptionChanged(int)));
 }
 
-void PreferencesDialog::setupAppearanceSettingsState()
+void PreferencesDialog::setupAppearanceSettingsState(
+    const ActionsInfo & actionsInfo)
 {
     QNDEBUG("PreferencesDialog::setupAppearanceSettingsState");
 
@@ -1074,7 +1075,15 @@ void PreferencesDialog::setupAppearanceSettingsState()
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
     m_pUi->disableNativeMenuBarCheckBox->setChecked(disableNativeMenuBar.toBool());
 
-    m_pUi->iconThemeComboBox->addItem(tr("Native"));
+    bool hasNativeIconTheme = false;
+    if (!actionsInfo.findActionInfo(tr("Native"), tr("View")).isEmpty()) {
+        hasNativeIconTheme = true;
+    }
+
+    if (hasNativeIconTheme) {
+        m_pUi->iconThemeComboBox->addItem(tr("Native"));
+    }
+
     m_pUi->iconThemeComboBox->addItem(QStringLiteral("Oxygen"));
     m_pUi->iconThemeComboBox->addItem(QStringLiteral("Tango"));
 
@@ -1083,7 +1092,10 @@ void PreferencesDialog::setupAppearanceSettingsState()
         m_pUi->iconThemeComboBox->setCurrentIndex(iconThemeIndex);
     }
 
-    // TODO: setup signal-slot connection to save the settings and notify
+    QObject::connect(m_pUi->iconThemeComboBox,
+                     SIGNAL(currentIndexChanged(QString)),
+                     this,
+                     SIGNAL(iconThemeChanged(QString)));
 
     m_pUi->panelStyleComboBox->addItem(tr("Built-in"));
     m_pUi->panelStyleComboBox->addItem(tr("Lighter"));
@@ -1094,7 +1106,10 @@ void PreferencesDialog::setupAppearanceSettingsState()
         m_pUi->panelStyleComboBox->setCurrentIndex(panelStyleIndex);
     }
 
-    // TODO: setup signal-slot connection to save the settings and nofity
+    QObject::connect(m_pUi->panelStyleComboBox,
+                     SIGNAL(currentIndexChanged(QString)),
+                     this,
+                     SIGNAL(panelStyleChanged(QString)));
 }
 
 void PreferencesDialog::setupNetworkProxySettingsState()

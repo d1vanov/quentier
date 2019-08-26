@@ -514,11 +514,11 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onShowStatusBarActionToggled,bool));
     // Look and feel actions
     QObject::connect(m_pUI->ActionIconsNative, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchIconsToNativeAction));
+                     this, QNSLOT(MainWindow,onSwitchIconThemeToNativeAction));
     QObject::connect(m_pUI->ActionIconsOxygen, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchIconsToOxygenAction));
+                     this, QNSLOT(MainWindow,onSwitchIconThemeToOxygenAction));
     QObject::connect(m_pUI->ActionIconsTango, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchIconsToTangoAction));
+                     this, QNSLOT(MainWindow,onSwitchIconThemeToTangoAction));
     QObject::connect(m_pUI->ActionPanelStyleBuiltIn, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToBuiltIn));
     QObject::connect(m_pUI->ActionPanelStyleLighter, QNSIGNAL(QAction,triggered),
@@ -2748,6 +2748,14 @@ void MainWindow::onShowPreferencesDialogAction()
                      this,
                      QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
     QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,iconThemeChanged,QString),
+                     this,
+                     QNSLOT(MainWindow,onSwitchIconTheme,QString));
+    QObject::connect(pPreferencesDialog.data(),
+                     QNSIGNAL(PreferencesDialog,panelStyleChanged,QString),
+                     this,
+                     QNSLOT(MainWindow,onSwitchPanelStyle,QString));
+    QObject::connect(pPreferencesDialog.data(),
                      QNSIGNAL(PreferencesDialog,
                               synchronizationDownloadNoteThumbnailsOptionChanged,
                               bool),
@@ -3864,9 +3872,30 @@ void MainWindow::onShowStatusBarActionToggled(bool checked)
     }
 }
 
-void MainWindow::onSwitchIconsToNativeAction()
+void MainWindow::onSwitchIconTheme(const QString & iconTheme)
 {
-    QNDEBUG("MainWindow::onSwitchIconsToNativeAction");
+    QNDEBUG("MainWindow::onSwitchIconTheme: " << iconTheme);
+
+    if (iconTheme == tr("Native")) {
+        onSwitchIconThemeToNativeAction();
+    }
+    else if (iconTheme == QStringLiteral("Oxygen")) {
+        onSwitchIconThemeToOxygenAction();
+    }
+    else if (iconTheme == QStringLiteral("Tango")) {
+        onSwitchIconThemeToTangoAction();
+    }
+    else {
+        ErrorString error(QT_TR_NOOP("Unknown icon theme selected"));
+        error.details() = iconTheme;
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+    }
+}
+
+void MainWindow::onSwitchIconThemeToNativeAction()
+{
+    QNDEBUG("MainWindow::onSwitchIconThemeToNativeAction");
 
     if (m_nativeIconThemeName.isEmpty()) {
         ErrorString error(QT_TR_NOOP("No native icon theme is available"));
@@ -3887,9 +3916,9 @@ void MainWindow::onSwitchIconsToNativeAction()
     refreshChildWidgetsThemeIcons();
 }
 
-void MainWindow::onSwitchIconsToTangoAction()
+void MainWindow::onSwitchIconThemeToTangoAction()
 {
-    QNDEBUG("MainWindow::onSwitchIconsToTangoAction");
+    QNDEBUG("MainWindow::onSwitchIconThemeToTangoAction");
 
     QString tango = QStringLiteral("tango");
 
@@ -3905,9 +3934,9 @@ void MainWindow::onSwitchIconsToTangoAction()
     refreshChildWidgetsThemeIcons();
 }
 
-void MainWindow::onSwitchIconsToOxygenAction()
+void MainWindow::onSwitchIconThemeToOxygenAction()
 {
-    QNDEBUG("MainWindow::onSwitchIconsToOxygenAction");
+    QNDEBUG("MainWindow::onSwitchIconThemeToOxygenAction");
 
     QString oxygen = QStringLiteral("oxygen");
 
@@ -3921,6 +3950,27 @@ void MainWindow::onSwitchIconsToOxygenAction()
     QIcon::setThemeName(oxygen);
     persistChosenIconTheme(oxygen);
     refreshChildWidgetsThemeIcons();
+}
+
+void MainWindow::onSwitchPanelStyle(const QString & panelStyle)
+{
+    QNDEBUG("MainWindow::onSwitchPanelStyle: " << panelStyle);
+
+    if (panelStyle == tr("Built-in")) {
+        onSwitchPanelStyleToBuiltIn();
+    }
+    else if (panelStyle == tr("Lighter")) {
+        onSwitchPanelStyleToLighter();
+    }
+    else if (panelStyle == tr("Darker")) {
+        onSwitchPanelStyleToDarker();
+    }
+    else {
+        ErrorString error(QT_TR_NOOP("Unknown panel style selected"));
+        error.details() = panelStyle;
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+    }
 }
 
 void MainWindow::onSwitchPanelStyleToBuiltIn()
