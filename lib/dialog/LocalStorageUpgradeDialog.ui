@@ -55,6 +55,16 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="removeLocalStorageBackupAfterUpgradeCheckBox">
+     <property name="text">
+      <string>Remove backup of local storage after successful upgrade</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="backupLocalStorageLabel">
      <property name="text">
       <string>Creating backup of local storage...</string>

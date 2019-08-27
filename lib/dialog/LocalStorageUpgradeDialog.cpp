@@ -289,16 +289,20 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
                 m_pUi->restoreLocalStorageFromBackupLabel->show();
             }
 
-            errorDescription.clear();
-            Q_UNUSED(!pPatch->removeLocalStorageBackup(errorDescription))
+            if (m_pUi->removeLocalStorageBackupAfterUpgradeCheckBox->isChecked()) {
+                errorDescription.clear();
+                Q_UNUSED(!pPatch->removeLocalStorageBackup(errorDescription))
+            }
         }
 
         unlockControls();
         return;
     }
 
-    errorDescription.clear();
-    Q_UNUSED(pPatch->removeLocalStorageBackup(errorDescription))
+    if (m_pUi->removeLocalStorageBackupAfterUpgradeCheckBox->isChecked()) {
+        errorDescription.clear();
+        Q_UNUSED(pPatch->removeLocalStorageBackup(errorDescription))
+    }
 
     QNINFO("Successfully applied local storage patch from version "
            << pPatch->fromVersion() << " to version " << pPatch->toVersion());
