@@ -10,6 +10,7 @@ set(HEADERS
     BasicXMLSyntaxHighlighter.h
     ColorCodeValidator.h
     HumanReadableVersionInfo.h
+    IStartable.h
     QObjectThreadMover.h
     QObjectThreadMover_p.h
     StartAtLogin.h

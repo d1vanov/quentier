@@ -23,6 +23,8 @@
 #include "NoteCache.h"
 #include "NotebookCache.h"
 
+#include <lib/utility/IStartable.h>
+
 #include <quentier/types/Account.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 
@@ -41,7 +43,7 @@
 
 namespace quentier {
 
-class NoteModel: public QAbstractItemModel
+class NoteModel: public QAbstractItemModel, public IStartable
 {
     Q_OBJECT
 public:
@@ -330,6 +332,11 @@ public:
     virtual bool canFetchMore(const QModelIndex & parent) const Q_DECL_OVERRIDE;
     virtual void fetchMore(const QModelIndex & parent) Q_DECL_OVERRIDE;
 
+    // IStartable interface
+    virtual void start() Q_DECL_OVERRIDE;
+    virtual bool isStarted() const Q_DECL_OVERRIDE { return m_isStarted; }
+    virtual void stop(const StopMode::type stopMode) Q_DECL_OVERRIDE;
+
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
@@ -534,7 +541,8 @@ private Q_SLOTS:
         Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
 private:
-    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
+    void connectToLocalStorage();
+    void disconnectFromLocalStorage();
 
     void onNoteAddedOrUpdated(
         const Note & note, const bool fromNotesListing = false);
@@ -682,6 +690,11 @@ private:
     Account                     m_account;
     const IncludedNotes::type   m_includedNotes;
     NoteSortingMode::type       m_noteSortingMode;
+
+    LocalStorageManagerAsync &  m_localStorageManagerAsync;
+    bool                        m_connectedToLocalStorage;
+
+    bool                        m_isStarted;
 
     NoteData                    m_data;
     qint32                      m_totalFilteredNotesCount;

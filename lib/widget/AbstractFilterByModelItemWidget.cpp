@@ -58,7 +58,9 @@ void AbstractFilterByModelItemWidget::switchAccount(
     }
 
     m_pItemModel = pItemModel;
-    if (!m_pItemModel.isNull() && !m_pItemModel->allItemsListed()) {
+    m_isReady = m_pItemModel->allItemsListed();
+
+    if (!m_pItemModel.isNull() && !m_isReady) {
         QObject::connect(m_pItemModel.data(),
                          QNSIGNAL(ItemModel,notifyAllItemsListed),
                          this,

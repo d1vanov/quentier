@@ -126,32 +126,6 @@
     QStringLiteral("DisableNativeMenuBar")                                     \
 // DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY
 
-// Left/right main window borders settings
-
-#define SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY                                \
-    QStringLiteral("ShowLeftMainWindowBorderOption")                           \
-// SHOW_LEFT_MAIN_WINDOW_BORDER_OPTION_KEY
-
-#define LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY                                      \
-    QStringLiteral("LeftMainWindowBorderWidth")                                \
-// LEFT_MAIN_WINDOW_BORDER_WIDTH_KEY
-
-#define LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR                                 \
-    QStringLiteral("LeftMainWindowBorderOverrideColor")                        \
-// LEFT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR
-
-#define SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY                               \
-    QStringLiteral("ShowRightMainWindowBorderOption")                          \
-// SHOW_RIGHT_MAIN_WINDOW_BORDER_OPTION_KEY
-
-#define RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY                                     \
-    QStringLiteral("RightMainWindowBorderWidth")                               \
-// RIGHT_MAIN_WINDOW_BORDER_WIDTH_KEY
-
-#define RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR                                \
-    QStringLiteral("RightMainWindowBorderOverrideColor")                       \
-// RIGHT_MAIN_WINDOW_BORDER_OVERRIDE_COLOR
-
 // ENEX export/import related settings keys
 #define ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME                                 \
     QStringLiteral("EnexExportImport")                                         \

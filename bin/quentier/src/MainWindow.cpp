@@ -4932,6 +4932,7 @@ void MainWindow::clearModels()
     }
 
     if (m_pNoteModel) {
+        m_pNoteModel->stop(IStartable::StopMode::Forced);
         delete m_pNoteModel;
         m_pNoteModel = Q_NULLPTR;
     }
@@ -5607,6 +5608,7 @@ void MainWindow::setupNoteFilters()
                                *m_pUI->filterBySavedSearchComboBox,
                                *m_pUI->searchQueryLineEdit,
                                *m_pLocalStorageManagerAsync, this);
+    m_pNoteModel->start();
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("FiltersView"));

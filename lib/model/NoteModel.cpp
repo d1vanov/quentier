@@ -95,6 +95,9 @@ NoteModel::NoteModel(
     m_account(account),
     m_includedNotes(includedNotes),
     m_noteSortingMode(noteSortingMode),
+    m_localStorageManagerAsync(localStorageManagerAsync),
+    m_connectedToLocalStorage(false),
+    m_isStarted(false),
     m_data(),
     m_totalFilteredNotesCount(0),
     m_cache(noteCache),
@@ -119,14 +122,7 @@ NoteModel::NoteModel(
     m_tagDataByTagLocalUid(),
     m_findTagRequestForTagLocalUid(),
     m_tagLocalUidToNoteLocalUid()
-{
-    if (m_pFilters.isNull()) {
-        m_pFilters.reset(new NoteFilters);
-    }
-
-    createConnections(localStorageManagerAsync);
-    requestNotesListAndCount();
-}
+{}
 
 NoteModel::~NoteModel()
 {}
@@ -249,7 +245,10 @@ void NoteModel::setFilteredNotebookLocalUids(const QStringList & notebookLocalUi
     }
 
     m_pFilters->setFilteredNotebookLocalUids(notebookLocalUids);
-    resetModel();
+
+    if (m_isStarted) {
+        resetModel();
+    }
 }
 
 void NoteModel::clearFilteredNotebookLocalUids()
@@ -262,7 +261,10 @@ void NoteModel::clearFilteredNotebookLocalUids()
     }
 
     m_pFilters->clearFilteredNotebookLocalUids();
-    resetModel();
+
+    if (m_isStarted) {
+        resetModel();
+    }
 }
 
 const QStringList & NoteModel::filteredTagLocalUids() const
@@ -281,7 +283,10 @@ void NoteModel::setFilteredTagLocalUids(const QStringList & tagLocalUids)
     }
 
     m_pFilters->setFilteredTagLocalUids(tagLocalUids);
-    resetModel();
+
+    if (m_isStarted) {
+        resetModel();
+    }
 }
 
 void NoteModel::clearFilteredTagLocalUids()
@@ -294,7 +299,10 @@ void NoteModel::clearFilteredTagLocalUids()
     }
 
     m_pFilters->clearFilteredTagLocalUids();
-    resetModel();
+
+    if (m_isStarted) {
+        resetModel();
+    }
 }
 
 const QSet<QString> & NoteModel::filteredNoteLocalUids() const
@@ -326,8 +334,11 @@ void NoteModel::setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids)
         return;
     }
 
-    if (m_pFilters->setFilteredNoteLocalUids(noteLocalUids)) {
-        resetModel();
+    if (m_pFilters->setFilteredNoteLocalUids(noteLocalUids))
+    {
+        if (m_isStarted) {
+            resetModel();
+        }
     }
     else {
         NMDEBUG("The set of filtered note local uids hasn't changed");
@@ -344,8 +355,11 @@ void NoteModel::setFilteredNoteLocalUids(const QStringList & noteLocalUids)
         return;
     }
 
-    if (m_pFilters->setFilteredNoteLocalUids(noteLocalUids)) {
-        resetModel();
+    if (m_pFilters->setFilteredNoteLocalUids(noteLocalUids))
+    {
+        if (m_isStarted) {
+            resetModel();
+        }
     }
     else {
         NMDEBUG("The set of filtered note local uids hasn't changed");
@@ -400,6 +414,13 @@ QModelIndex NoteModel::createNoteItem(
 {
     NMDEBUG("NoteModel::createNoteItem: notebook local uid = "
             << notebookLocalUid);
+
+    if (Q_UNLIKELY(!m_isStarted)) {
+        errorDescription.setBase(
+            QT_TR_NOOP("Can't create new note: note model is not started"));
+        NMWARNING(errorDescription);
+        return QModelIndex();
+    }
 
     if (Q_UNLIKELY(m_includedNotes == IncludedNotes::Deleted)) {
         errorDescription.setBase(QT_TR_NOOP("Won't create new deleted note"));
@@ -823,7 +844,9 @@ void NoteModel::sort(int column, Qt::SortOrder order)
         setSortingColumnAndOrder(column, order);
     }
 
-    resetModel();
+    if (m_isStarted) {
+        resetModel();
+    }
 }
 
 bool NoteModel::canFetchMore(const QModelIndex & parent) const
@@ -833,6 +856,11 @@ bool NoteModel::canFetchMore(const QModelIndex & parent) const
     }
 
     NMDEBUG("NoteModel::canFetchMore");
+
+    if (Q_UNLIKELY(!m_isStarted)) {
+        NMDEBUG("Note model is not started");
+        return false;
+    }
 
     if (m_totalFilteredNotesCount > 0) {
         NMDEBUG("Total filtered notes count = " << m_totalFilteredNotesCount
@@ -863,6 +891,39 @@ void NoteModel::fetchMore(const QModelIndex & parent)
     }
 
     requestNotesList();
+}
+
+void NoteModel::start()
+{
+    NMDEBUG("NoteModel::start");
+
+    if (m_isStarted) {
+        NMDEBUG("Already started");
+        return;
+    }
+
+    m_isStarted = true;
+
+    if (m_pFilters.isNull()) {
+        m_pFilters.reset(new NoteFilters);
+    }
+
+    connectToLocalStorage();
+    requestNotesListAndCount();
+}
+
+void NoteModel::stop(const StopMode::type stopMode)
+{
+    NMDEBUG("NoteModel::stop: mode = " << stopMode);
+
+    if (!m_isStarted) {
+        NMDEBUG("Already stopped");
+        return;
+    }
+
+    m_isStarted = false;
+    disconnectFromLocalStorage();
+    clearModel();
 }
 
 void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
@@ -1619,27 +1680,31 @@ void NoteModel::onExpungeTagComplete(
     }
 }
 
-void NoteModel::createConnections(
-    LocalStorageManagerAsync & localStorageManagerAsync)
+void NoteModel::connectToLocalStorage()
 {
-    NMDEBUG("NoteModel::createConnections");
+    NMDEBUG("NoteModel::connectToLocalStorage");
 
-    // Local signals to localStorageManagerAsync's slots
+    if (m_connectedToLocalStorage) {
+        NMDEBUG("Already connected to local storage");
+        return;
+    }
+
+    // Local signals to LocalStorageManagerAsync's slots
     QObject::connect(this,
                      QNSIGNAL(NoteModel,addNote,Note,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,
                             onAddNoteRequest,Note,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NoteModel,updateNote,
                               Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onUpdateNoteRequest,
                             Note,LocalStorageManager::UpdateNoteOptions,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NoteModel,findNote,
                               Note,LocalStorageManager::GetNoteOptions,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onFindNoteRequest,
                             Note,LocalStorageManager::GetNoteOptions,QUuid));
     QObject::connect(this,
@@ -1649,7 +1714,7 @@ void NoteModel::createConnections(
                               LocalStorageManager::ListNotesOrder::type,
                               LocalStorageManager::OrderDirection::type,
                               QString,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
                             LocalStorageManager::ListObjectsOptions,
                             LocalStorageManager::GetNoteOptions,size_t,size_t,
@@ -1664,7 +1729,7 @@ void NoteModel::createConnections(
                               size_t,size_t,
                               LocalStorageManager::ListNotesOrder::type,
                               LocalStorageManager::OrderDirection::type,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,
                             onListNotesPerNotebooksAndTagsRequest,
                             QStringList,QStringList,
@@ -1680,7 +1745,7 @@ void NoteModel::createConnections(
                               size_t,size_t,
                               LocalStorageManager::ListNotesOrder::type,
                               LocalStorageManager::OrderDirection::type,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,
                             onListNotesByLocalUidsRequest,
                             QStringList,LocalStorageManager::GetNoteOptions,
@@ -1691,51 +1756,51 @@ void NoteModel::createConnections(
     QObject::connect(this,
                      QNSIGNAL(NoteModel,getNoteCount,
                               LocalStorageManager::NoteCountOptions,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onGetNoteCountRequest,
                             LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NoteModel,getNoteCountPerNotebooksAndTags,
                               QStringList,QStringList,
                               LocalStorageManager::NoteCountOptions,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,
                             onGetNoteCountPerNotebooksAndTagsRequest,
                             QStringList,QStringList,
                             LocalStorageManager::NoteCountOptions,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NoteModel,expungeNote,Note,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onExpungeNoteRequest,
                             Note,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NoteModel,findNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,
                             Notebook,QUuid));
     QObject::connect(this,
                      QNSIGNAL(NoteModel,findTag,Tag,QUuid),
-                     &localStorageManagerAsync,
+                     &m_localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
 
-    // localStorageManagerAsync's signals to local slots
-    QObject::connect(&localStorageManagerAsync,
+    // LocalStorageManagerAsync's signals to local slots
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,
                               Note,QUuid),
                      this,
                      QNSLOT(NoteModel,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,
                               Note,ErrorString,QUuid),
                      this,
                      QNSLOT(NoteModel,onAddNoteFailed,Note,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,
                               Note,LocalStorageManager::UpdateNoteOptions,QUuid),
                      this,
                      QNSLOT(NoteModel,onUpdateNoteComplete,
                             Note,LocalStorageManager::UpdateNoteOptions,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,
                               Note,LocalStorageManager::UpdateNoteOptions,
                               ErrorString,QUuid),
@@ -1743,13 +1808,13 @@ void NoteModel::createConnections(
                      QNSLOT(NoteModel,onUpdateNoteFailed,
                             Note,LocalStorageManager::UpdateNoteOptions,
                             ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findNoteComplete,
                               Note,LocalStorageManager::GetNoteOptions,QUuid),
                      this,
                      QNSLOT(NoteModel,onFindNoteComplete,
                             Note,LocalStorageManager::GetNoteOptions,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,
                               Note,LocalStorageManager::GetNoteOptions,
                               ErrorString,QUuid),
@@ -1757,7 +1822,7 @@ void NoteModel::createConnections(
                      QNSLOT(NoteModel,onFindNoteFailed,
                             Note,LocalStorageManager::GetNoteOptions,
                             ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listNotesComplete,
                               LocalStorageManager::ListObjectsOptions,
                               LocalStorageManager::GetNoteOptions,size_t,size_t,
@@ -1771,7 +1836,7 @@ void NoteModel::createConnections(
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,
                             QString,QList<Note>,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
                               LocalStorageManager::ListObjectsOptions,
                               LocalStorageManager::GetNoteOptions,size_t,size_t,
@@ -1785,7 +1850,7 @@ void NoteModel::createConnections(
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,
                             QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               listNotesPerNotebooksAndTagsComplete,
                               QStringList,QStringList,
@@ -1804,7 +1869,7 @@ void NoteModel::createConnections(
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,
                             QList<Note>,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               listNotesPerNotebooksAndTagsFailed,
                               QStringList,QStringList,
@@ -1823,7 +1888,7 @@ void NoteModel::createConnections(
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,
                             ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               listNotesByLocalUidsComplete,
                               QStringList,LocalStorageManager::GetNoteOptions,
@@ -1840,7 +1905,7 @@ void NoteModel::createConnections(
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,
                             QList<Note>,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               listNotesByLocalUidsFailed,
                               QStringList,LocalStorageManager::GetNoteOptions,
@@ -1857,13 +1922,13 @@ void NoteModel::createConnections(
                             LocalStorageManager::ListNotesOrder::type,
                             LocalStorageManager::OrderDirection::type,
                             ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,getNoteCountComplete,
                               int,LocalStorageManager::NoteCountOptions,QUuid),
                      this,
                      QNSLOT(NoteModel,onGetNoteCountComplete,
                             int,LocalStorageManager::NoteCountOptions,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,getNoteCountFailed,
                               ErrorString,LocalStorageManager::NoteCountOptions,
                               QUuid),
@@ -1871,7 +1936,7 @@ void NoteModel::createConnections(
                      QNSLOT(NoteModel,onGetNoteCountFailed,
                             ErrorString,LocalStorageManager::NoteCountOptions,
                             QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               getNoteCountPerNotebooksAndTagsComplete,
                               int,QStringList,QStringList,
@@ -1880,7 +1945,7 @@ void NoteModel::createConnections(
                      QNSLOT(NoteModel,onGetNoteCountPerNotebooksAndTagsComplete,
                             int,QStringList,QStringList,
                             LocalStorageManager::NoteCountOptions,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               getNoteCountPerNotebooksAndTagsFailed,
                               ErrorString,QStringList,QStringList,
@@ -1889,66 +1954,82 @@ void NoteModel::createConnections(
                      QNSLOT(NoteModel,onGetNoteCountPerNotebooksAndTagsFailed,
                             ErrorString,QStringList,QStringList,
                             LocalStorageManager::NoteCountOptions,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,
                               Note,QUuid),
                      this,
                      QNSLOT(NoteModel,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,
                               Note,ErrorString,QUuid),
                      this,
                      QNSLOT(NoteModel,onExpungeNoteFailed,
                             Note,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,
                               Notebook,QUuid),
                      this,
                      QNSLOT(NoteModel,onFindNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,
                               Notebook,ErrorString,QUuid),
                      this,
                      QNSLOT(NoteModel,onFindNotebookFailed,
                             Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,
                               Notebook,QUuid),
                      this,
                      QNSLOT(NoteModel,onAddNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,
                               Notebook,QUuid),
                      this,
                      QNSLOT(NoteModel,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,
                               Notebook,QUuid),
                      this,
                      QNSLOT(NoteModel,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findTagComplete,Tag,QUuid),
                      this,
                      QNSLOT(NoteModel,onFindTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,findTagFailed,
                               Tag,ErrorString,QUuid),
                      this,
                      QNSLOT(NoteModel,onFindTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
                      this,
                      QNSLOT(NoteModel,onAddTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,
                               Tag,QUuid),
                      this,
                      QNSLOT(NoteModel,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync,
+    QObject::connect(&m_localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,
                               Tag,QStringList,QUuid),
                      this,
                      QNSLOT(NoteModel,onExpungeTagComplete,Tag,QStringList,QUuid));
+
+    m_connectedToLocalStorage = true;
+}
+
+void NoteModel::disconnectFromLocalStorage()
+{
+    NMDEBUG("NoteModel::disconnectFromLocalStorage");
+
+    if (!m_connectedToLocalStorage) {
+        NMDEBUG("Already disconnected from local storage");
+        return;
+    }
+
+    QObject::disconnect(&m_localStorageManagerAsync);
+    m_localStorageManagerAsync.disconnect(this);
+    m_connectedToLocalStorage = false;
 }
 
 void NoteModel::onNoteAddedOrUpdated(
