@@ -271,6 +271,7 @@ void NoteModelTestHelper::launchTest()
         NoteModel * model = new NoteModel(account, *m_pLocalStorageManagerAsync,
                                           noteCache, notebookCache, this,
                                           NoteModel::IncludedNotes::All);
+        model->start();
 
         ModelTest t1(model);
         Q_UNUSED(t1)
@@ -553,6 +554,7 @@ void NoteModelTestHelper::launchTest()
                  << errorDescription.nonLocalizedString());
         }
 
+        model->stop(IStartable::StopMode::Forced);
         return;
     }
     CATCH_EXCEPTION()
