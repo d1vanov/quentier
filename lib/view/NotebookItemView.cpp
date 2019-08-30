@@ -820,7 +820,6 @@ void NotebookItemView::onNotebookStackRenamed(
         QNWARNING("Can't select the just renamed notebook stack: "
                   "notebook model returned invalid index for "
                   "the new notebook stack name");
-        autoSelectNotebook(*pNotebookModel);
         return;
     }
 
@@ -1038,7 +1037,6 @@ void NotebookItemView::deleteItem(
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
             QNDEBUG("Successfully deleted notebook");
-            autoSelectNotebook(model);
             return;
         }
 
@@ -1079,7 +1077,6 @@ void NotebookItemView::deleteItem(
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
             QNDEBUG("Successfully deleted notebook stack");
-            autoSelectNotebook(model);
             return;
         }
 
@@ -1528,83 +1525,6 @@ void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(
 
         QNTRACE("The notebook model returned invalid index for local uid "
                 << lastSelectedNotebookLocalUid);
-    }
-
-    autoSelectNotebook(model);
-}
-
-void NotebookItemView::autoSelectNotebook(const NotebookModel & model)
-{
-    QNDEBUG("NotebookItemView::autoSelectNotebook");
-
-    QItemSelectionModel * pSelectionModel = selectionModel();
-    if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't auto-select notebook: no selection model "
-                                "in the view"))
-        return;
-    }
-
-    QModelIndex lastUsedNotebookIndex = model.lastUsedNotebookIndex();
-    if (lastUsedNotebookIndex.isValid())
-    {
-        QNDEBUG("Selecting the last used notebook item");
-        pSelectionModel->select(lastUsedNotebookIndex,
-                                QItemSelectionModel::ClearAndSelect |
-                                QItemSelectionModel::Rows |
-                                QItemSelectionModel::Current);
-        if (!m_trackingSelection)
-        {
-            const NotebookModelItem * pItem =
-                model.itemForIndex(lastUsedNotebookIndex);
-            if (pItem && pItem->notebookItem())
-            {
-                setSelectedNotebookToNoteFilterManager(
-                    pItem->notebookItem()->localUid());
-            }
-        }
-        return;
-    }
-
-    QModelIndex defaultNotebookIndex = model.defaultNotebookIndex();
-    if (defaultNotebookIndex.isValid())
-    {
-        QNDEBUG("Selecting the default notebook item");
-        pSelectionModel->select(defaultNotebookIndex,
-                                QItemSelectionModel::ClearAndSelect |
-                                QItemSelectionModel::Rows |
-                                QItemSelectionModel::Current);
-        if (!m_trackingSelection)
-        {
-            const NotebookModelItem * pItem =
-                model.itemForIndex(defaultNotebookIndex);
-            if (pItem && pItem->notebookItem())
-            {
-                setSelectedNotebookToNoteFilterManager(
-                    pItem->notebookItem()->localUid());
-            }
-        }
-        return;
-    }
-
-    QModelIndexList persistentIndexes = model.persistentIndexes();
-    if (persistentIndexes.isEmpty()) {
-        QNDEBUG("No persistent indexes returned by the notebook "
-                "model, nothing to select");
-        return;
-    }
-
-    QNDEBUG("Selecting random notebook");
-    QModelIndex index = persistentIndexes.at(0);
-    pSelectionModel->select(index, QItemSelectionModel::ClearAndSelect |
-                                   QItemSelectionModel::Rows |
-                                   QItemSelectionModel::Current);
-
-    if (!m_trackingSelection)
-    {
-        const NotebookModelItem * pItem = model.itemForIndex(index);
-        if (pItem && pItem->notebookItem()) {
-            setSelectedNotebookToNoteFilterManager(pItem->notebookItem()->localUid());
-        }
     }
 }
 

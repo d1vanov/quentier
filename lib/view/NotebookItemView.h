@@ -130,8 +130,6 @@ private:
     void restoreLastSavedSelectionOrAutoSelectNotebook(
         const NotebookModel & model);
 
-    void autoSelectNotebook(const NotebookModel & model);
-
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
 
