@@ -768,7 +768,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
     int totalWidth = width();
 
-    // 1/5 - for side view, 1/5 - for note list view, 3/5 - for the note editor
+    // 1/3 - for side view, 2/3 - for note list view, 3/3 - for the note editor
     int partWidth = totalWidth / 5;
 
     QNTRACE("Total width = " << totalWidth
@@ -776,7 +776,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    if (Q_UNLIKELY(splitterSizesCount != 5))
+    if (Q_UNLIKELY(splitterSizesCount != 3))
     {
         ErrorString error(QT_TR_NOOP("Internal error: can't setup the proper "
                                      "initial widths for side panel, note list "
@@ -787,9 +787,9 @@ void MainWindow::setupInitialChildWidgetsWidths()
         return;
     }
 
+    splitterSizes[0] = partWidth;
     splitterSizes[1] = partWidth;
-    splitterSizes[2] = partWidth;
-    splitterSizes[3] = totalWidth - 2 * partWidth;
+    splitterSizes[2] = totalWidth - 2 * partWidth;
 
     m_pUI->splitter->setSizes(splitterSizes);
 }
