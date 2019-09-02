@@ -60,6 +60,7 @@ NoteFiltersManager::NoteFiltersManager(
     m_lastSearchString(),
     m_findNoteLocalUidsForSearchStringRequestId(),
     m_findNoteLocalUidsForSavedSearchQueryRequestId(),
+    m_autoFilterNotebookWhenReady(false),
     m_noteSearchQueryValidated(false),
     m_isReady(false)
 {
@@ -97,6 +98,16 @@ NoteFiltersManager::NoteFiltersManager(
     setFilterByNotebooks();
     setFilterByTags();
     noteModel.endUpdateFilter();
+
+    if (noteModel.filteredNotebookLocalUids().isEmpty() &&
+        noteModel.filteredTagLocalUids().isEmpty())
+    {
+        if (!setAutomaticFilterByNotebook()) {
+            QNDEBUG("Will wait for notebook model's readiness");
+            m_autoFilterNotebookWhenReady = true;
+            return;
+        }
+    }
 
     Q_EMIT filterChanged();
 
@@ -285,6 +296,12 @@ void NoteFiltersManager::onNotebooksFilterUpdated()
 void NoteFiltersManager::onNotebooksFilterReady()
 {
     QNDEBUG("NoteFiltersManager::onNotebooksFilterReady");
+
+    if (m_autoFilterNotebookWhenReady) {
+        m_autoFilterNotebookWhenReady = false;
+        Q_UNUSED(setAutomaticFilterByNotebook())
+    }
+
     checkFiltersReadiness();
 }
 
@@ -1161,6 +1178,96 @@ void NoteFiltersManager::checkAndRefreshNotesSearchQuery()
     {
         evaluate();
     }
+}
+
+bool NoteFiltersManager::setAutomaticFilterByNotebook()
+{
+    QNDEBUG("NoteFiltersManager::setAutomaticFilterByNotebook");
+
+    const NotebookModel * pModel = m_filterByNotebookWidget.notebookModel();
+    if (!pModel) {
+        QNDEBUG("Notebook model is not set to filter by notebook widget yet");
+        return false;
+    }
+
+    if (!pModel->allNotebooksListed()) {
+        QNDEBUG("Not all notebooks are listed yet by the notebook model");
+        return false;
+    }
+
+    QString autoSelectedNotebookLocalUid;
+
+    QModelIndex lastUsedNotebookIndex = pModel->lastUsedNotebookIndex();
+    const NotebookModelItem * pLastUsedNotebookModelItem =
+        pModel->itemForIndex(lastUsedNotebookIndex);
+    if (pLastUsedNotebookModelItem &&
+        pLastUsedNotebookModelItem->notebookItem())
+    {
+        autoSelectedNotebookLocalUid =
+            pLastUsedNotebookModelItem->notebookItem()->localUid();
+    }
+
+    if (autoSelectedNotebookLocalUid.isEmpty())
+    {
+        QNDEBUG("No last used notebook local uid, trying default notebook");
+
+        QModelIndex defaultNotebookIndex = pModel->defaultNotebookIndex();
+        const NotebookModelItem * pDefaultNotebookModelItem =
+            pModel->itemForIndex(defaultNotebookIndex);
+        if (pDefaultNotebookModelItem &&
+            pDefaultNotebookModelItem->notebookItem())
+        {
+            autoSelectedNotebookLocalUid =
+                pDefaultNotebookModelItem->notebookItem()->localUid();
+        }
+    }
+
+    if (autoSelectedNotebookLocalUid.isEmpty())
+    {
+        QNDEBUG("No default notebook local uid, trying just any notebook");
+
+        QStringList notebookNames = pModel->itemNames(QString());
+        if (Q_UNLIKELY(notebookNames.isEmpty())) {
+            QNDEBUG("No notebooks within the notebook model");
+            // NOTE: returning true because false is only for cases
+            // in which filter is waiting for something
+            return true;
+        }
+
+        const QString & firstNotebookName = notebookNames.at(0);
+        autoSelectedNotebookLocalUid =
+            pModel->localUidForItemName(firstNotebookName, QString());
+    }
+
+    if (Q_UNLIKELY(autoSelectedNotebookLocalUid.isEmpty())) {
+        QNDEBUG("Failed to find any notebook for automatic selection");
+        // NOTE: returning true because false is only for cases
+        // in which filter is waiting for something
+        return true;
+    }
+
+    QString autoSelectedNotebookName =
+        pModel->itemNameForLocalUid(autoSelectedNotebookLocalUid);
+
+    QNDEBUG("Auto selecting notebook: local uid = "
+            << autoSelectedNotebookLocalUid << ", name: "
+            << autoSelectedNotebookName);
+
+    QObject::disconnect(&m_filterByNotebookWidget,
+                        QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
+                        this,
+                        QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString));
+
+    m_filterByNotebookWidget.addItemToFilter(
+        autoSelectedNotebookLocalUid, autoSelectedNotebookName);
+
+    QObject::connect(&m_filterByNotebookWidget,
+                     QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
+                     this,
+                     QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
+                     Qt::UniqueConnection);
+
+    return true;
 }
 
 NoteSearchQuery NoteFiltersManager::createNoteSearchQuery(

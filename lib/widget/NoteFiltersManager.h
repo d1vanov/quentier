@@ -151,6 +151,8 @@ private:
 
     void checkAndRefreshNotesSearchQuery();
 
+    bool setAutomaticFilterByNotebook();
+
 private:
     Account                         m_account;
     FilterByTagWidget &             m_filterByTagWidget;
@@ -166,6 +168,8 @@ private:
 
     QUuid           m_findNoteLocalUidsForSearchStringRequestId;
     QUuid           m_findNoteLocalUidsForSavedSearchQueryRequestId;
+
+    bool            m_autoFilterNotebookWhenReady;
 
     bool            m_noteSearchQueryValidated;
 
