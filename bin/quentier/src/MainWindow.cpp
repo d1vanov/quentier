@@ -4835,7 +4835,7 @@ void MainWindow::setupDefaultAccount()
 
     DefaultAccountFirstNotebookAndNoteCreator * pDefaultAccountFirstNotebookAndNoteCreator =
         new DefaultAccountFirstNotebookAndNoteCreator(
-            *m_pLocalStorageManagerAsync, this);
+            *m_pLocalStorageManagerAsync, *m_pNoteFiltersManager, this);
     QObject::connect(pDefaultAccountFirstNotebookAndNoteCreator,
                      QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,
                               finished,QString),

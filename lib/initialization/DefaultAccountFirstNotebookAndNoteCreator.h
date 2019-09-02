@@ -25,11 +25,13 @@
 #include <quentier/types/Note.h>
 
 #include <QObject>
+#include <QPointer>
 #include <QUuid>
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
+QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 /**
  * @brief The DefaultAccountFirstNotebookAndNoteCreator class encapsulates
@@ -42,6 +44,7 @@ class DefaultAccountFirstNotebookAndNoteCreator: public QObject
 public:
     explicit DefaultAccountFirstNotebookAndNoteCreator(
         LocalStorageManagerAsync & localStorageManagerAsync,
+        NoteFiltersManager & noteFiltersManager,
         QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
@@ -72,6 +75,8 @@ private:
 private:
     QUuid   m_addNotebookRequestId;
     QUuid   m_addNoteRequestId;
+
+    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 };
 
 } // namespace quentier
