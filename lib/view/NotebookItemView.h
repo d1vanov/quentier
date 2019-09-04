@@ -127,7 +127,7 @@ private:
         const QStringList & expandedLinkedNotebookGuids,
         const NotebookModel & model);
 
-    void restoreLastSavedSelectionOrAutoSelectNotebook(
+    void restoreFilteredNotebook(
         const NotebookModel & model);
 
     void selectionChangedImpl(

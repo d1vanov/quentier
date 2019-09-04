@@ -35,10 +35,6 @@
 #include <QScopedPointer>
 #include <utility>
 
-#define LAST_SELECTED_NOTEBOOK_KEY                                             \
-    QStringLiteral("LastSelectedNotebookLocalUid")                             \
-// LAST_SELECTED_NOTEBOOK_KEY
-
 #define LAST_EXPANDED_STACK_ITEMS_KEY QStringLiteral("LastExpandedStackItems")
 
 #define LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY                                \
@@ -219,7 +215,7 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
         QNDEBUG("All notebooks are already listed within "
                 "the model, need to select the appropriate one");
         restoreNotebookModelItemsState(*pNotebookModel);
-        restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
+        restoreFilteredNotebook(*pNotebookModel);
         m_modelReady = true;
         m_trackingSelection = true;
         m_trackingNotebookModelItemsState = true;
@@ -318,7 +314,7 @@ void NotebookItemView::onAllNotebooksListed()
                         QNSLOT(NotebookItemView,onAllNotebooksListed));
 
     restoreNotebookModelItemsState(*pNotebookModel);
-    restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
+    restoreFilteredNotebook(*pNotebookModel);
 
     m_modelReady = true;
     m_trackingSelection = true;
@@ -850,7 +846,7 @@ void NotebookItemView::onNotebookStackChanged(const QModelIndex & index)
     }
 
     restoreNotebookModelItemsState(*pNotebookModel);
-    restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
+    restoreFilteredNotebook(*pNotebookModel);
 }
 
 void NotebookItemView::onNoteFilterChanged()
@@ -1482,10 +1478,10 @@ void NotebookItemView::setLinkedNotebooksExpanded(
     }
 }
 
-void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(
+void NotebookItemView::restoreFilteredNotebook(
     const NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook");
+    QNDEBUG("NotebookItemView::restoreFilteredNotebook");
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -1494,29 +1490,37 @@ void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(
         return;
     }
 
-    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
-    QString lastSelectedNotebookLocalUid =
-        appSettings.value(LAST_SELECTED_NOTEBOOK_KEY).toString();
-    appSettings.endGroup();
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        QNDEBUG("Note filters manager is null");
+        return;
+    }
 
-    QNTRACE("Last selected notebook local uid: " << lastSelectedNotebookLocalUid);
+    QStringList filteredNotebookLocalUids =
+        m_pNoteFiltersManager->notebookLocalUidsInFilter();
+    if (filteredNotebookLocalUids.size() != 1) {
+        QNDEBUG("Not exactly one notebook local uid within filter: "
+                << filteredNotebookLocalUids.join(QStringLiteral(",")));
+        return;
+    }
 
-    if (!lastSelectedNotebookLocalUid.isEmpty())
+    const QString & filteredNotebookLocalUid = filteredNotebookLocalUids.at(0);
+    QNTRACE("Selecting notebook local uid: " << filteredNotebookLocalUid);
+
+    if (!filteredNotebookLocalUid.isEmpty())
     {
-        QModelIndex lastSelectedNotebookIndex =
-            model.indexForLocalUid(lastSelectedNotebookLocalUid);
-        if (lastSelectedNotebookIndex.isValid())
+        QModelIndex filteredNotebookIndex =
+            model.indexForLocalUid(filteredNotebookLocalUid);
+        if (filteredNotebookIndex.isValid())
         {
-            QNDEBUG("Selecting the last selected notebook item: local uid = "
-                    << lastSelectedNotebookLocalUid
+            QNDEBUG("Selecting the filtered notebook item: local uid = "
+                    << filteredNotebookLocalUid
                     << ", index: row = "
-                    << lastSelectedNotebookIndex.row()
+                    << filteredNotebookIndex.row()
                     << ", column = "
-                    << lastSelectedNotebookIndex.column()
+                    << filteredNotebookIndex.column()
                     << ", internal id = "
-                    << lastSelectedNotebookIndex.internalId());
-            pSelectionModel->select(lastSelectedNotebookIndex,
+                    << filteredNotebookIndex.internalId());
+            pSelectionModel->select(filteredNotebookIndex,
                                     QItemSelectionModel::ClearAndSelect |
                                     QItemSelectionModel::Rows |
                                     QItemSelectionModel::Current);
@@ -1524,7 +1528,7 @@ void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(
         }
 
         QNTRACE("The notebook model returned invalid index for local uid "
-                << lastSelectedNotebookLocalUid);
+                << filteredNotebookLocalUid);
     }
 }
 
@@ -1590,20 +1594,7 @@ void NotebookItemView::selectionChangedImpl(
         return;
     }
 
-    persistSelectedNotebookLocalUid(*pNotebookModel, pNotebookItem->localUid());
     setSelectedNotebookToNoteFilterManager(pNotebookItem->localUid());
-}
-
-void NotebookItemView::persistSelectedNotebookLocalUid(
-    const NotebookModel & notebookModel, const QString & notebookLocalUid)
-{
-    QNDEBUG("NotebookItemView::persistSelectedNotebookLocalUid: "
-            << notebookLocalUid);
-
-    ApplicationSettings appSettings(notebookModel.account(), QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
-    appSettings.setValue(LAST_SELECTED_NOTEBOOK_KEY, notebookLocalUid);
-    appSettings.endGroup();
 }
 
 void NotebookItemView::clearSelectionImpl()
@@ -1620,7 +1611,7 @@ void NotebookItemView::clearSelectionImpl()
         return;
     }
 
-    persistSelectedNotebookLocalUid(*pNotebookModel, QString());
+    setSelectedNotebookToNoteFilterManager(QString());
 }
 
 void NotebookItemView::setFavoritedFlag(
@@ -1684,7 +1675,7 @@ void NotebookItemView::postProcessNotebookModelChange()
     restoreNotebookModelItemsState(*pNotebookModel);
     m_trackingNotebookModelItemsState = true;
 
-    restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
+    restoreFilteredNotebook(*pNotebookModel);
     m_trackingSelection = true;
 }
 
