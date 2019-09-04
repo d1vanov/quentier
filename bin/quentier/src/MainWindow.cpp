@@ -6253,11 +6253,11 @@ void MainWindow::persistGeometryAndState()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    bool splitterSizesCountOk = (splitterSizesCount == 5);
+    bool splitterSizesCountOk = (splitterSizesCount == 3);
 
     QList<int> sidePanelSplitterSizes = m_pUI->sidePanelSplitter->sizes();
     int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
-    bool sidePanelSplitterSizesOk = (sidePanelSplitterSizesCount == 5);
+    bool sidePanelSplitterSizesCountOk = (sidePanelSplitterSizesCount == 5);
 
     QNTRACE("Show side panel = "
             << (showSidePanel ? "true" : "false")
@@ -6272,9 +6272,9 @@ void MainWindow::persistGeometryAndState()
             << ", show deleted notes view = "
             << (showDeletedNotes ? "true" : "false")
             << ", splitter sizes ok = "
-            << (showDeletedNotes ? "true" : "false")
+            << (splitterSizesCountOk ? "true" : "false")
             << ", side panel splitter sizes ok = "
-            << (showDeletedNotes ? "true" : "false"));
+            << (sidePanelSplitterSizesCountOk ? "true" : "false"));
 
     if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
     {
@@ -6297,7 +6297,7 @@ void MainWindow::persistGeometryAndState()
         (showFavoritesView || showNotebooksView || showTagsView ||
          showSavedSearches || showDeletedNotes))
     {
-        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, splitterSizes[1]);
+        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, splitterSizes[0]);
     }
     else
     {
@@ -6306,13 +6306,13 @@ void MainWindow::persistGeometryAndState()
 
     bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
     if (splitterSizesCountOk && showNotesList) {
-        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, splitterSizes[2]);
+        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, splitterSizes[1]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showFavoritesView) {
+    if (sidePanelSplitterSizesCountOk && showFavoritesView) {
         appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT,
                              sidePanelSplitterSizes[0]);
     }
@@ -6320,7 +6320,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showNotebooksView) {
+    if (sidePanelSplitterSizesCountOk && showNotebooksView) {
         appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT,
                              sidePanelSplitterSizes[1]);
     }
@@ -6328,7 +6328,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showTagsView) {
+    if (sidePanelSplitterSizesCountOk && showTagsView) {
         appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT,
                              sidePanelSplitterSizes[2]);
     }
@@ -6336,7 +6336,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showSavedSearches) {
+    if (sidePanelSplitterSizesCountOk && showSavedSearches) {
         appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT,
                              sidePanelSplitterSizes[3]);
     }
@@ -6344,7 +6344,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showDeletedNotes) {
+    if (sidePanelSplitterSizesCountOk && showDeletedNotes) {
         appSettings.setValue(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT,
                              sidePanelSplitterSizes[4]);
     }
