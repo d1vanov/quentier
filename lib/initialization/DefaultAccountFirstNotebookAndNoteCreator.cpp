@@ -18,6 +18,8 @@
 
 #include "DefaultAccountFirstNotebookAndNoteCreator.h"
 
+#include <lib/widget/NoteFiltersManager.h>
+
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/Utility.h>
@@ -25,10 +27,13 @@
 namespace quentier {
 
 DefaultAccountFirstNotebookAndNoteCreator::DefaultAccountFirstNotebookAndNoteCreator(
-        LocalStorageManagerAsync & localStorageManagerAsync, QObject * parent) :
+        LocalStorageManagerAsync & localStorageManagerAsync,
+        NoteFiltersManager & noteFiltersManager,
+        QObject * parent) :
     QObject(parent),
     m_addNotebookRequestId(),
-    m_addNoteRequestId()
+    m_addNoteRequestId(),
+    m_pNoteFiltersManager(&noteFiltersManager)
 {
     connectToLocalStorage(localStorageManagerAsync);
 }
@@ -62,6 +67,11 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
             << notebook << "\nRequest id = " << requestId);
 
     m_addNotebookRequestId = QUuid();
+
+    if (!m_pNoteFiltersManager.isNull()) {
+        m_pNoteFiltersManager->resetFilterToNotebookLocalUid(notebook.localUid());
+    }
+
     emitAddNoteRequest(notebook);
 }
 

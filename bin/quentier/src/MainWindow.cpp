@@ -768,7 +768,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
     int totalWidth = width();
 
-    // 1/5 - for side view, 1/5 - for note list view, 3/5 - for the note editor
+    // 1/3 - for side view, 2/3 - for note list view, 3/3 - for the note editor
     int partWidth = totalWidth / 5;
 
     QNTRACE("Total width = " << totalWidth
@@ -776,7 +776,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    if (Q_UNLIKELY(splitterSizesCount != 5))
+    if (Q_UNLIKELY(splitterSizesCount != 3))
     {
         ErrorString error(QT_TR_NOOP("Internal error: can't setup the proper "
                                      "initial widths for side panel, note list "
@@ -787,9 +787,9 @@ void MainWindow::setupInitialChildWidgetsWidths()
         return;
     }
 
+    splitterSizes[0] = partWidth;
     splitterSizes[1] = partWidth;
-    splitterSizes[2] = partWidth;
-    splitterSizes[3] = totalWidth - 2 * partWidth;
+    splitterSizes[2] = totalWidth - 2 * partWidth;
 
     m_pUI->splitter->setSizes(splitterSizes);
 }
@@ -4117,7 +4117,6 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(
     updateSubMenuWithAvailableAccounts();
 
     restoreGeometryAndState();
-    startListeningForSplitterMoves();
 
     if (m_pAccount->type() != Account::Type::Evernote) {
         QNTRACE("Not an Evernote account, no need to bother setting up sync");
@@ -4503,6 +4502,7 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
     else if (pTimerEvent->timerId() == m_splitterSizesRestorationDelayTimerId)
     {
         restoreSplitterSizes();
+        startListeningForSplitterMoves();
         killTimer(m_splitterSizesRestorationDelayTimerId);
         m_splitterSizesRestorationDelayTimerId = 0;
     }
@@ -4835,7 +4835,7 @@ void MainWindow::setupDefaultAccount()
 
     DefaultAccountFirstNotebookAndNoteCreator * pDefaultAccountFirstNotebookAndNoteCreator =
         new DefaultAccountFirstNotebookAndNoteCreator(
-            *m_pLocalStorageManagerAsync, this);
+            *m_pLocalStorageManagerAsync, *m_pNoteFiltersManager, this);
     QObject::connect(pDefaultAccountFirstNotebookAndNoteCreator,
                      QNSIGNAL(DefaultAccountFirstNotebookAndNoteCreator,
                               finished,QString),
@@ -6253,11 +6253,11 @@ void MainWindow::persistGeometryAndState()
 
     QList<int> splitterSizes = m_pUI->splitter->sizes();
     int splitterSizesCount = splitterSizes.count();
-    bool splitterSizesCountOk = (splitterSizesCount == 5);
+    bool splitterSizesCountOk = (splitterSizesCount == 3);
 
     QList<int> sidePanelSplitterSizes = m_pUI->sidePanelSplitter->sizes();
     int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
-    bool sidePanelSplitterSizesOk = (sidePanelSplitterSizesCount == 5);
+    bool sidePanelSplitterSizesCountOk = (sidePanelSplitterSizesCount == 5);
 
     QNTRACE("Show side panel = "
             << (showSidePanel ? "true" : "false")
@@ -6272,32 +6272,39 @@ void MainWindow::persistGeometryAndState()
             << ", show deleted notes view = "
             << (showDeletedNotes ? "true" : "false")
             << ", splitter sizes ok = "
-            << (showDeletedNotes ? "true" : "false")
+            << (splitterSizesCountOk ? "true" : "false")
             << ", side panel splitter sizes ok = "
-            << (showDeletedNotes ? "true" : "false"));
+            << (sidePanelSplitterSizesCountOk ? "true" : "false"));
 
     if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
     {
-        QNTRACE("Splitter sizes: " );
+        QString str;
+        QTextStream strm(&str);
+
+        strm << "Splitter sizes: " ;
         for(auto it = splitterSizes.constBegin(),
             end = splitterSizes.constEnd(); it != end; ++it)
         {
-            QNTRACE(*it);
+            strm << *it << " ";
         }
 
-        QNTRACE("Side panel splitter sizes: ");
+        strm << "\n";
+
+        strm << "Side panel splitter sizes: ";
         for(auto it = sidePanelSplitterSizes.constBegin(),
             end = sidePanelSplitterSizes.constEnd(); it != end; ++it)
         {
-            QNTRACE(*it);
+            strm << *it << " ";
         }
+
+        QNTRACE(str);
     }
 
     if (splitterSizesCountOk && showSidePanel &&
         (showFavoritesView || showNotebooksView || showTagsView ||
          showSavedSearches || showDeletedNotes))
     {
-        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, splitterSizes[1]);
+        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, splitterSizes[0]);
     }
     else
     {
@@ -6306,13 +6313,13 @@ void MainWindow::persistGeometryAndState()
 
     bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
     if (splitterSizesCountOk && showNotesList) {
-        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, splitterSizes[2]);
+        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, splitterSizes[1]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showFavoritesView) {
+    if (sidePanelSplitterSizesCountOk && showFavoritesView) {
         appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT,
                              sidePanelSplitterSizes[0]);
     }
@@ -6320,7 +6327,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showNotebooksView) {
+    if (sidePanelSplitterSizesCountOk && showNotebooksView) {
         appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT,
                              sidePanelSplitterSizes[1]);
     }
@@ -6328,7 +6335,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showTagsView) {
+    if (sidePanelSplitterSizesCountOk && showTagsView) {
         appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT,
                              sidePanelSplitterSizes[2]);
     }
@@ -6336,7 +6343,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showSavedSearches) {
+    if (sidePanelSplitterSizesCountOk && showSavedSearches) {
         appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT,
                              sidePanelSplitterSizes[3]);
     }
@@ -6344,7 +6351,7 @@ void MainWindow::persistGeometryAndState()
         appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT, QVariant());
     }
 
-    if (sidePanelSplitterSizesOk && showDeletedNotes) {
+    if (sidePanelSplitterSizesCountOk && showDeletedNotes) {
         appSettings.setValue(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT,
                              sidePanelSplitterSizes[4]);
     }
@@ -6457,8 +6464,61 @@ void MainWindow::restoreSplitterSizes()
         }
 
         splitterSizes[2] = totalWidth - splitterSizes[0] - splitterSizes[1];
+
+        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        {
+            QString str;
+            QTextStream strm(&str);
+
+            strm << "Splitter sizes before restoring (total " << totalWidth
+                << "): ";
+            QList<int> splitterSizesBefore = m_pUI->splitter->sizes();
+            for(auto it = splitterSizesBefore.constBegin(),
+                end = splitterSizesBefore.constEnd(); it != end; ++it)
+            {
+                strm << *it << " ";
+            }
+
+            QNTRACE(str);
+        }
+
         m_pUI->splitter->setSizes(splitterSizes);
+
+        QWidget * pSidePanel = m_pUI->splitter->widget(0);
+        QSizePolicy sidePanelSizePolicy = pSidePanel->sizePolicy();
+        sidePanelSizePolicy.setHorizontalPolicy(QSizePolicy::Minimum);
+        sidePanelSizePolicy.setHorizontalStretch(0);
+        pSidePanel->setSizePolicy(sidePanelSizePolicy);
+
+        QWidget * pNoteListView = m_pUI->splitter->widget(1);
+        QSizePolicy noteListViewSizePolicy = pNoteListView->sizePolicy();
+        noteListViewSizePolicy.setHorizontalPolicy(QSizePolicy::Minimum);
+        noteListViewSizePolicy.setHorizontalStretch(0);
+        pNoteListView->setSizePolicy(noteListViewSizePolicy);
+
+        QWidget * pNoteEditor = m_pUI->splitter->widget(2);
+        QSizePolicy noteEditorSizePolicy = pNoteEditor->sizePolicy();
+        noteEditorSizePolicy.setHorizontalPolicy(QSizePolicy::Expanding);
+        noteEditorSizePolicy.setHorizontalStretch(1);
+        pNoteEditor->setSizePolicy(noteEditorSizePolicy);
+
         QNTRACE("Set splitter sizes");
+
+        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        {
+            QString str;
+            QTextStream strm(&str);
+
+            strm << "Splitter sizes after restoring: ";
+            QList<int> splitterSizesAfter = m_pUI->splitter->sizes();
+            for(auto it = splitterSizesAfter.constBegin(),
+                end = splitterSizesAfter.constEnd(); it != end; ++it)
+            {
+                strm << *it << " ";
+            }
+
+            QNTRACE(str);
+        }
     }
     else
     {
@@ -6481,13 +6541,18 @@ void MainWindow::restoreSplitterSizes()
 
         if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
         {
-            QNTRACE("Side panel splitter sizes before restoring (total"
-                    << totalHeight << ": ");
+            QString str;
+            QTextStream strm(&str);
+
+            strm << "Side panel splitter sizes before restoring (total "
+                << totalHeight << "): ";
             for(auto it = sidePanelSplitterSizes.constBegin(),
                 end = sidePanelSplitterSizes.constEnd(); it != end; ++it)
             {
-                QNTRACE(*it);
+                strm << *it << " ";
             }
+
+            QNTRACE(str);
         }
 
         if (showFavoritesView && favoritesViewHeight.isValid())
@@ -6580,13 +6645,18 @@ void MainWindow::restoreSplitterSizes()
 
         if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
         {
-            QNTRACE("Side panel splitter sizes after restoring (total"
-                    << totalHeightAfterRestore << ": ");
+            QString str;
+            QTextStream strm(&str);
+
+            strm << "Side panel splitter sizes after restoring (total "
+                << totalHeightAfterRestore << "): ";
             for(auto it = sidePanelSplitterSizes.constBegin(),
                 end = sidePanelSplitterSizes.constEnd(); it != end; ++it)
             {
-                QNTRACE(*it);
+                strm << *it << " ";
             }
+
+            QNTRACE(str);
         }
 
         m_pUI->sidePanelSplitter->setSizes(sidePanelSplitterSizes);
