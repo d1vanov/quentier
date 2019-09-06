@@ -202,7 +202,7 @@ install:
         elif [ "${QT_BASE}" = "551" ]; then
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DBUILD_WITH_QT4=1 ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 -DUSE_QT5=1 ..
