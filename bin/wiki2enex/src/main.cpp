@@ -24,6 +24,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QNetworkAccessManager>
+#include <QTime>
 #include <QTimer>
 #include <QUrl>
 
@@ -33,6 +34,8 @@ using namespace quentier;
 
 int main(int argc, char *argv[])
 {
+    qsrand(static_cast<quint32>(QTime::currentTime().msec()));
+
     QCoreApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2enex"));

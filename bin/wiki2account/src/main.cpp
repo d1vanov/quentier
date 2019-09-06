@@ -35,6 +35,7 @@
 
 #include <QApplication>
 #include <QThread>
+#include <QTime>
 
 #include <cstdlib>
 #include <ctime>
@@ -45,6 +46,7 @@ using namespace quentier;
 int main(int argc, char *argv[])
 {
     std::srand((unsigned)std::time(NULL));
+    qsrand(static_cast<quint32>(QTime::currentTime().msec()));
 
     QApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));

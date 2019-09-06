@@ -33,6 +33,7 @@
 #include <quentier/exception/IQuentierException.h>
 
 #include <QScopedPointer>
+#include <QTime>
 
 #include <iostream>
 #include <exception>
@@ -41,6 +42,8 @@ using namespace quentier;
 
 int main(int argc, char * argv[])
 {
+    qsrand(static_cast<quint32>(QTime::currentTime().msec()));
+
     // Loading the dependencies manually - required on Windows
     loadDependencies();
 
