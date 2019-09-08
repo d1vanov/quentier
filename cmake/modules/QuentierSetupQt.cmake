@@ -1,14 +1,4 @@
-if(NOT USE_QT5)
-  find_package(Qt4 COMPONENTS QTCORE OPTIONAL QUIET)
-  if(NOT QT_QTCORE_LIBRARY)
-    message(STATUS "Qt4's core was not found, trying to find Qt5's libraries")
-    set(USE_QT5 1)
-  else()
-    message(STATUS "Found Qt4 installation, version ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.${QT_VERSION_PATCH}")
-  endif()
-endif()
-
-if(USE_QT5)
+if(NOT BUILD_WITH_QT4)
   find_package(Qt5Core REQUIRED)
   message(STATUS "Found Qt5 installation, version ${Qt5Core_VERSION}")
 
