@@ -28,10 +28,10 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
-if(USE_QT5)
-  target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network)
-else()
+if(BUILD_WITH_QT4)
   target_link_libraries(${PROJECT_NAME} ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY})
+else()
+  target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Network)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${quentier_network})
@@ -39,6 +39,6 @@ target_link_libraries(${PROJECT_NAME} ${quentier_wiki2note})
 target_link_libraries(${PROJECT_NAME} ${LIBQUENTIER_LIBRARIES})
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
-if(USE_QT5)
+if(NOT BUILD_WITH_QT4)
   add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
 endif()

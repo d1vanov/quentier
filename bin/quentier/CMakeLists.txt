@@ -150,10 +150,10 @@ if(NSIS_FOUND)
     set(QUENTIER_TARGET_PLATFORM Win32)
   endif()
 
-  if(USE_QT5)
-    set(PRODUCT_EDITION "Qt ${Qt5Core_VERSION}")
-  else()
+  if(BUILD_WITH_QT4)
     set(PRODUCT_EDITION "Qt ${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.${QT_VERSION_PATCH}")
+  else()
+    set(PRODUCT_EDITION "Qt ${Qt5Core_VERSION}")
   endif()
 
   if(MSVC)

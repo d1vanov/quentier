@@ -1,7 +1,7 @@
-if(USE_QT5)
-  find_package(Libquentier-qt5 QUIET REQUIRED)
-else()
+if(BUILD_WITH_QT4)
   find_package(Libquentier-qt4 QUIET REQUIRED)
+else()
+  find_package(Libquentier-qt5 QUIET REQUIRED)
 endif()
 
 include_directories(${LIBQUENTIER_INCLUDE_DIRS})
