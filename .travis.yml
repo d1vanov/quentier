@@ -49,9 +49,11 @@ before_install:
       done
     - |
       if [[ ${DETECTED_CHANGES_AFFECTING_BUILD} == False ]]; then
-        echo "No changes affecting build detected, exiting" &&
-        travis_terminate 0 &&
-        exit 1
+        if [ -z "$TRAVIS_TAG" ]; then
+          echo "No changes affecting build detected, exiting" &&
+          travis_terminate 0 &&
+          exit 1
+        fi
       fi
 
 install:
