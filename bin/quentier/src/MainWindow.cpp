@@ -525,6 +525,9 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToLighter));
     QObject::connect(m_pUI->ActionPanelStyleDarker, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToDarker));
+    // Service menu actions
+    QObject::connect(m_pUI->ActionSynchronize, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSyncButtonPressed));
     // Help menu actions
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onShowNoteSource));
