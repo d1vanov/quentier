@@ -168,7 +168,8 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(
             << notebookLocalUid);
 
     if (notebookLocalUid.isEmpty()) {
-        clear();
+        clearFilterByNotebookWidgetItems();
+        evaluate();
         return;
     }
 
@@ -176,7 +177,8 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(
         m_filterByNotebookWidget.notebookModel();
     if (Q_UNLIKELY(!pNotebookModel)) {
         QNDEBUG("Notebook model in the filter by notebook widget is null");
-        clear();
+        clearFilterByNotebookWidgetItems();
+        evaluate();
         return;
     }
 
@@ -184,7 +186,8 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(
     if (name.isEmpty()) {
         QNWARNING("Failed to find the notebook name for notebook local uid "
                   << notebookLocalUid);
-        clear();
+        clearFilterByNotebookWidgetItems();
+        evaluate();
         return;
     }
 
@@ -1079,7 +1082,15 @@ void NoteFiltersManager::clearFilterWidgetsItems()
 {
     QNDEBUG("NoteFiltersManager::clearFilterWidgetsItems");
 
-    // Clear tags
+    clearFilterByTagWidgetItems();
+    clearFilterByNotebookWidgetItems();
+    clearFilterBySavedSearchWidget();
+    clearSearchString();
+}
+
+void NoteFiltersManager::clearFilterByTagWidgetItems()
+{
+    QNDEBUG("NoteFiltersManager::clearFilterByTagWidgetItems");
 
     QObject::disconnect(&m_filterByTagWidget, QNSIGNAL(FilterByTagWidget,cleared),
                         this, QNSLOT(NoteFiltersManager,onTagsClearedFromFilter));
@@ -1091,8 +1102,11 @@ void NoteFiltersManager::clearFilterWidgetsItems()
                      this,
                      QNSLOT(NoteFiltersManager,onAddedTagToFilter,QString),
                      Qt::UniqueConnection);
+}
 
-    // Clear notebooks
+void NoteFiltersManager::clearFilterByNotebookWidgetItems()
+{
+    QNDEBUG("NoteFiltersManager::clearFilterByNotebookWidgetItems");
 
     QObject::disconnect(&m_filterByNotebookWidget,
                         QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
@@ -1106,8 +1120,11 @@ void NoteFiltersManager::clearFilterWidgetsItems()
                      this,
                      QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
                      Qt::UniqueConnection);
+}
 
-    // Clear saved search
+void NoteFiltersManager::clearFilterBySavedSearchWidget()
+{
+    QNDEBUG("NoteFiltersManager::clearFilterBySavedSearchWidget");
 
     QObject::disconnect(&m_filterBySavedSearchWidget,
                         SIGNAL(currentIndexChanged(QString)),
@@ -1121,8 +1138,11 @@ void NoteFiltersManager::clearFilterWidgetsItems()
                      this,
                      SLOT(onSavedSearchFilterChanged(QString)),
                      Qt::UniqueConnection);
+}
 
-    // Clear search string
+void NoteFiltersManager::clearSearchString()
+{
+    QNDEBUG("NoteFiltersManager::clearSearchString");
 
     QObject::disconnect(&m_searchLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                         this, QNSLOT(NoteFiltersManager,onSearchStringChanged));

@@ -147,6 +147,11 @@ private:
     void setFilterByTags();
 
     void clearFilterWidgetsItems();
+    void clearFilterByTagWidgetItems();
+    void clearFilterByNotebookWidgetItems();
+    void clearFilterBySavedSearchWidget();
+    void clearSearchString();
+
     void checkFiltersReadiness();
 
     void checkAndRefreshNotesSearchQuery();
