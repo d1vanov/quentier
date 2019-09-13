@@ -933,6 +933,8 @@ void NoteEditorWidget::onSaveNoteAction()
     QNDEBUG("NoteEditorWidget::onSaveNoteAction");
 
     if (!m_pUi->noteEditor->isModified()) {
+        QNDEBUG("Note is not modified");
+        m_pUi->saveNotePushButton->setEnabled(false);
         return;
     }
 
