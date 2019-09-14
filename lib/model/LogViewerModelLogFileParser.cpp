@@ -77,11 +77,11 @@
 namespace quentier {
 
 #define REGEX_QNLOG_DATE                                                       \
-    "^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{3})\\s+(\\w+)"         \
+    "^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{1,17})(?:\\s+(\\w+))?" \
 // REGEX_QNLOG_DATE
 
 // note: QNLOG_FILE_LINENUMBER_DELIMITER is here incorporated into regex
-#define REGEX_QNLOG_SOURCE_LINENUMBER "(.+):(\\d+)"
+#define REGEX_QNLOG_SOURCE_LINENUMBER "([a-zA-Z0-9\\\\\\/_.]+):(\\d+)"
 
 // full logline regex
 #define REGEX_QNLOG_LINE                                                       \
