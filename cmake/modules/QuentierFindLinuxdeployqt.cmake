@@ -1,4 +1,4 @@
-if(NOT USE_QT5)
+if(BUILD_WITH_QT4)
   return()
 endif()
 

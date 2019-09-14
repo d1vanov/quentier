@@ -74,11 +74,11 @@ sudo apt-get install quentier-qt4
 For users of other Linux distributions there are also prepared repositories with native packages:
 
  * Stable versions:
-   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier) for Fedora 26, Fedora 27, Fedora 28, Fedora Rawhide, OpenSUSE Leap 42.3, OpenSUSE Tumbleweed, OpenSUSE Leap 15.0 and Arch Linux repositories
-   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier-qt5) for Debian 9.0 repository
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier) for Fedora, OpenSUSE, and Arch Linux repositories
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier-qt5) for Debian repositories
  * Unstable versions:
-   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier) for Fedora 26, Fedora 27, Fedora 28, Fedora Rawhide, OpenSUSE Leap 42.3, OpenSUSE Tumbleweed, OpenSUSE Leap 15.0 and Arch Linux repositories
-   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier-qt5) for Debian 9.0 repository
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier) for Fedora, OpenSUSE and Arch Linux repositories
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier-qt5) for Debian repositories
 
 ## How to build from source
 

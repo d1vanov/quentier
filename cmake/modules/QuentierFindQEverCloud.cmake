@@ -1,7 +1,7 @@
-if(USE_QT5)
-  find_package(QEverCloud-qt5 QUIET REQUIRED)
-else()
+if(BUILD_WITH_QT4)
   find_package(QEverCloud-qt4 QUIET REQUIRED)
+else()
+  find_package(QEverCloud-qt5 QUIET REQUIRED)
 endif()
 
 include_directories(${QEVERCLOUD_INCLUDE_DIRS})

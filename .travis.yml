@@ -49,9 +49,11 @@ before_install:
       done
     - |
       if [[ ${DETECTED_CHANGES_AFFECTING_BUILD} == False ]]; then
-        echo "No changes affecting build detected, exiting" &&
-        travis_terminate 0 &&
-        exit 1
+        if [ -z "$TRAVIS_TAG" ]; then
+          echo "No changes affecting build detected, exiting" &&
+          travis_terminate 0 &&
+          exit 1
+        fi
       fi
 
 install:
@@ -198,14 +200,14 @@ install:
         if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         elif [ "${QT_BASE}" = "551" ]; then
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DBUILD_WITH_QT4=1 ..
         fi
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 -DUSE_QT5=1 ..
+        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
       fi
       make &&
       make check &&
@@ -231,14 +233,14 @@ install:
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
-                -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
+                -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         elif [ "${QT_BASE}" = "551" ]; then
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
-                -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
+                -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5_WEBKIT=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQtKeychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/QtKeychain \
@@ -246,7 +248,7 @@ install:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
-                -DCMAKE_VERBOSE_MAKEFILE=ON ..
+                -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_WITH_QT4=1 ..
         fi
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
@@ -258,7 +260,7 @@ install:
               -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_INCLUDE_PATH=/usr/local/include \
               -DTIDY_HTML5_LIB=/usr/local/lib/libtidy.dylib \
-              -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 ..
+              -DCMAKE_VERBOSE_MAKEFILE=ON ..
       fi
       make &&
       make check &&
@@ -268,6 +270,11 @@ install:
     - |
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib
+      fi
+    - |
+      if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ] && [ "${TRAVIS_BRANCH}" = "development" ]; then
+        echo "Triggering build at OpenSUSE build service for development branch" &&
+        curl -X POST -H "Authorization: Token $OSC_TOKEN" https://api.opensuse.org/trigger/runservice?project=home%3Ad1vanov%3Aquentier-development&package=quentier-development
       fi
 
 script:
@@ -287,7 +294,7 @@ script:
                   -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                   -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
+                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DBUILD_WITH_WIKI_TOOLS=1 ..
           else
             cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                   -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
@@ -296,7 +303,7 @@ script:
                   -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                   -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                  -DCMAKE_PREFIX_PATH=/opt/qt512 -DUSE_QT5=1 ..
+                  -DCMAKE_PREFIX_PATH=/opt/qt512 ..
           fi
         elif [ "${QT_BASE}" = "551" ]; then
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
@@ -306,7 +313,7 @@ script:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                -DUSE_QT5=1 -DUSE_QT5_WEBKIT=1 ..
+                -DUSE_QT5_WEBKIT=1 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt4_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt4 \
@@ -315,7 +322,7 @@ script:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
-                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir ..
+                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir -DBUILD_WITH_WIKI_TOOLS=1 -DBUILD_WITH_QT4=1 ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
@@ -326,7 +333,7 @@ script:
               -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_INCLUDE_PATH=/usr/local/include \
               -DTIDY_HTML5_LIB=/usr/local/lib/libtidy.dylib \
-              -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5=1 ..
+              -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_WITH_WIKI_TOOLS=1 ..
       fi
     - make
     - make check
