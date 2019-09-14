@@ -147,6 +147,8 @@ public:
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
+    void notifyEndOfLogFileReached();
+
     /**
      * This signal is emitted after either beginInsertRows/endInsertRows or
      * dataChanged signal to notify specific listeners (not just views) about

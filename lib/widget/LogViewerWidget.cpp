@@ -118,6 +118,10 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
                      this,
                      QNSLOT(LogViewerWidget,onModelRowsInserted,
                             QModelIndex,int,int));
+    QObject::connect(m_pLogViewerModel,
+                     QNSIGNAL(LogViewerModel,notifyEndOfLogFileReached),
+                     this,
+                     QNSLOT(LogViewerWidget,onModelEndOfLogFileReached));
     QObject::connect(m_pUi->logEntriesTableView,
                      QNSIGNAL(QTableView,customContextMenuRequested,QPoint),
                      this,
@@ -659,6 +663,7 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
 
 void LogViewerWidget::onModelError(ErrorString errorDescription)
 {
+    m_pUi->logFilePendingLoadLabel->setText(QString());
     m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
     m_pUi->statusBarLineEdit->show();
 }
@@ -671,6 +676,11 @@ void LogViewerWidget::onModelRowsInserted(
     Q_UNUSED(last)
 
     scheduleLogEntriesViewColumnsResize();
+    m_pUi->logFilePendingLoadLabel->setText(QString());
+}
+
+void LogViewerWidget::onModelEndOfLogFileReached()
+{
     m_pUi->logFilePendingLoadLabel->setText(QString());
 }
 

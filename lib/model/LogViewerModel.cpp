@@ -1107,6 +1107,7 @@ void LogViewerModel::onLogFileDataEntriesRead(
     if (dataEntries.size() < LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET) {
         // It appears we've read to the end of the log file
         LVMDEBUG("It appears the end of the log file was reached");
+        Q_EMIT notifyEndOfLogFileReached();
         m_canReadMoreLogFileChunks = false;
     }
     else {

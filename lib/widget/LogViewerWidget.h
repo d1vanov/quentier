@@ -72,6 +72,7 @@ private Q_SLOTS:
 
     void onModelError(ErrorString errorDescription);
     void onModelRowsInserted(const QModelIndex & parent, int first, int last);
+    void onModelEndOfLogFileReached();
 
     void onSaveModelEntriesToFileFinished(ErrorString errorDescription);
     void onSaveModelEntriesToFileProgress(double progressPercent);
