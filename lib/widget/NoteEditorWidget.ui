@@ -645,7 +645,7 @@
              <widget class="QComboBox" name="limitedFontComboBox">
               <property name="minimumSize">
                <size>
-                <width>120</width>
+                <width>110</width>
                 <height>26</height>
                </size>
               </property>
@@ -672,7 +672,7 @@ padding-left: 5px;
               </property>
               <property name="minimumSize">
                <size>
-                <width>40</width>
+                <width>50</width>
                 <height>26</height>
                </size>
               </property>
