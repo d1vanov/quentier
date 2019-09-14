@@ -4086,6 +4086,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(
     setWindowTitleForAccount(account);
 
     stopListeningForShortcutChanges();
+    setupDefaultShortcuts();
     setupUserShortcuts();
     startListeningForShortcutChanges();
 
