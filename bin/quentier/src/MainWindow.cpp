@@ -249,11 +249,15 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupAccountManager();
 
+    bool hasExistingAccounts = !m_pAccountManager->availableAccounts().isEmpty();
     bool createdDefaultAccount = false;
     m_pAccount.reset(new Account(m_pAccountManager->lastUsedAccount()));
-    if (m_pAccount->isEmpty()) {
+    if (m_pAccount->isEmpty())
+    {
         *m_pAccount = m_pAccountManager->currentAccount();
-        createdDefaultAccount = true;
+        if (!hasExistingAccounts) {
+            createdDefaultAccount = true;
+        }
     }
 
     if (createdDefaultAccount && !onceDisplayedGreeterScreen()) {
