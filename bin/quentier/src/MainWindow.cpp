@@ -390,7 +390,7 @@ void MainWindow::show()
                     << "chosen on the greeter screen");
 
             onEvernoteAccountAuthenticationRequested(
-                QStringLiteral("www.evernote.com"),
+                pDialog->evernoteServer(),
                 QNetworkProxy(QNetworkProxy::NoProxy));
         }
     }

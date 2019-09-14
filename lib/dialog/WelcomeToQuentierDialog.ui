@@ -7,16 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>292</height>
+    <height>308</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="sizeConstraint">
-    <enum>QLayout::SetMinimumSize</enum>
-   </property>
    <item>
     <widget class="QLabel" name="welcomeToQuentierLabel">
      <property name="minimumSize">
@@ -72,11 +69,24 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="loginToEvernoteAccountPushButton">
-     <property name="text">
-      <string>Log in to Evernote account</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="evernoteHorizontalLayout">
+     <item>
+      <widget class="QPushButton" name="loginToEvernoteAccountPushButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Log in to Evernote account</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="evernoteServerComboBox"/>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QPushButton" name="continueWithLocalAccountPushButton">
@@ -88,6 +98,7 @@
   </layout>
  </widget>
  <resources>
+  <include location="../../resource/icons/app/app_icons.qrc"/>
   <include location="../../resource/icons/app/app_icons.qrc"/>
  </resources>
  <connections/>

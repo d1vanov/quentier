@@ -36,6 +36,8 @@ public:
     explicit WelcomeToQuentierDialog(QWidget * parent = Q_NULLPTR);
     ~WelcomeToQuentierDialog();
 
+    QString evernoteServer() const;
+
 private Q_SLOTS:
     void onContinueWithLocalAccountPushButtonPressed();
     void onLogInToEvernoteAccountPushButtonPressed();

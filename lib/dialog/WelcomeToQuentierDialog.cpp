@@ -19,6 +19,8 @@
 #include "WelcomeToQuentierDialog.h"
 #include "ui_WelcomeToQuentierDialog.h"
 
+#include <QStringListModel>
+
 namespace quentier {
 
 WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
@@ -27,6 +29,14 @@ WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Welcome to Quentier"));
+
+    QStringList evernoteServers;
+    evernoteServers.reserve(3);
+    evernoteServers << QStringLiteral("Evernote");
+    evernoteServers << QStringLiteral("Yinxiang Biji");
+    evernoteServers << QStringLiteral("Evernote sandbox");
+
+    m_pUi->evernoteServerComboBox->setModel(new QStringListModel(evernoteServers));
 
     QObject::connect(m_pUi->continueWithLocalAccountPushButton,
                      QNSIGNAL(QPushButton,clicked),
@@ -43,6 +53,19 @@ WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
 WelcomeToQuentierDialog::~WelcomeToQuentierDialog()
 {
     delete m_pUi;
+}
+
+QString WelcomeToQuentierDialog::evernoteServer() const
+{
+    switch(m_pUi->evernoteServerComboBox->currentIndex())
+    {
+    case 1:
+        return QStringLiteral("app.yinxiang.com");
+    case 2:
+        return QStringLiteral("sandbox.evernote.com");
+    default:
+        return QStringLiteral("www.evernote.com");
+    }
 }
 
 void WelcomeToQuentierDialog::onContinueWithLocalAccountPushButtonPressed()
