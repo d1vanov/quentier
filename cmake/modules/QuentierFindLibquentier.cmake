@@ -5,7 +5,6 @@ else()
 endif()
 
 include_directories(${LIBQUENTIER_INCLUDE_DIRS})
-message(STATUS "Including libquentier directories: ${LIBQUENTIER_INCLUDE_DIRS}")
 
 get_property(LIBQUENTIER_LIBRARY_LOCATION TARGET ${LIBQUENTIER_LIBRARIES} PROPERTY LOCATION)
 message(STATUS "Found libquentier library: ${LIBQUENTIER_LIBRARY_LOCATION}")
