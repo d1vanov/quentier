@@ -212,7 +212,7 @@ install:
   - if %qt%==mingw492_32 if %QEVERCLOUD_RECEIVED%==1 7z x qevercloud-windows-qt55-MinGW_x86.zip
   - if %QEVERCLOUD_RECEIVED%==1 set PATH=%cd%\bin;%PATH%
   - if %QEVERCLOUD_RECEIVED%==1 set LIB=%cd%\lib;%LIB%
-  - if %QEVERCLOUD_RECEIVED%==1 set INCLUDE=%cd%\lib;%INCLUDE%
+  - if %QEVERCLOUD_RECEIVED%==1 set INCLUDE=%cd%\include;%INCLUDE%
 # In case of failure clone QEverCloud repo and build the library from sources
   - if not %QEVERCLOUD_RECEIVED%==1 cd c:\dev
   - if not %QEVERCLOUD_RECEIVED%==1 rd /s /q qevercloud
