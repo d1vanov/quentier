@@ -52,7 +52,7 @@ init:
   - if %platform%==mingw set PATH=C:\MinGW\bin;C:\Program Files (x86)\CMake\bin;%PATH%
   - if %qt%==msvc2017_64 set PATH="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin";%PATH%
   - if %qt%==msvc2015 set PATH="C:\Program Files (x86)\MSBuild\14.0\Bin";%PATH%
-  
+
 install:
   - if not exist c:\dev\ciuploadtool (md c:\dev\ciuploadtool) else (echo "Using cached version of ciuploadtool")
   - cd c:\dev\ciuploadtool
@@ -177,13 +177,13 @@ install:
   - set INCLUDE=%cd%\include;%INCLUDE%
 # Google breakpad
   - if not %qt%==mingw492_32 if not exist c:\dev\breakpad (set SHOULD_DOWNLOAD_BREAKPAD=1) else (set SHOULD_DOWNLOAD_BREAKPAD=0)
-  - if not %qt%==mingw492_32 if %SHOULD_DOWNLOAD_BREAKPAD%==1 md c:\dev\breakpad
-  - if not %qt%==mingw492_32 if %SHOULD_DOWNLOAD_BREAKPAD%==0 echo "Using cached version of Google breakpad"
+  - if not %qt%==mingw492_32 (if %SHOULD_DOWNLOAD_BREAKPAD%==1 md c:\dev\breakpad)
+  - if not %qt%==mingw492_32 (if %SHOULD_DOWNLOAD_BREAKPAD%==0 echo "Using cached version of Google breakpad")
   - if not %qt%==mingw492_32 cd c:\dev\breakpad
-  - if not %qt%==mingw492_32 if %SHOULD_DOWNLOAD_BREAKPAD%==1 echo "Downloading breakpad"
-  - if %SHOULD_DOWNLOAD_BREAKPAD%==1 if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2015_x86.zip -o breakpad-msvc2015_x86.zip
+  - if not %qt%==mingw492_32 (if %SHOULD_DOWNLOAD_BREAKPAD%==1 echo "Downloading breakpad")
+  - if %SHOULD_DOWNLOAD_BREAKPAD%==1 (if %qt%==msvc2015 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2015_x86.zip -o breakpad-msvc2015_x86.zip)
   - if %qt%==msvc2015 7z x breakpad-msvc2015_x86.zip
-  - if %SHOULD_DOWNLOAD_BREAKPAD%==1 if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2017_x64.zip -o breakpad-msvc2017_x64.zip
+  - if %SHOULD_DOWNLOAD_BREAKPAD%==1 (if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2017_x64.zip -o breakpad-msvc2017_x64.zip)
   - if %qt%==msvc2017_64 7z x breakpad-msvc2017_x64.zip
   - if not %qt%==mingw492_32 set PATH=%cd%\bin;%PATH%
   - if not %qt%==mingw492_32 set LIB=%cd%\lib;%LIB%
