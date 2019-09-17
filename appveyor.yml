@@ -256,10 +256,9 @@ install:
   - if %qt%==msvc2015 if %LIBQUENTIER_RECEIVED%==1 7z x libquentier-windows-qt510-VS2015_x86.zip
   - if %qt%==msvc2017_64 if %LIBQUENTIER_RECEIVED%==1 7z x libquentier-windows-qt510-VS2017_x64.zip
   - if %qt%==mingw492_32 if %LIBQUENTIER_RECEIVED%==1 7z x libquentier-windows-qt55-MinGW_x86.zip
-  - if %LIBQUENTIER_RECEIVED%==1 dir /s
   - if %LIBQUENTIER_RECEIVED%==1 set PATH=%cd%\bin;%PATH%
   - if %LIBQUENTIER_RECEIVED%==1 set LIB=%cd%\lib;%LIB%
-  - if %LIBQUENTIER_RECEIVED%==1 set INCLUDE=%cd%\lib;%INCLUDE%
+  - if %LIBQUENTIER_RECEIVED%==1 set INCLUDE=%cd%\include;%INCLUDE%
 # In case of failure clone the libquentier repo and build the library from sources
   - if not %LIBQUENTIER_RECEIVED%==1 cd c:\dev
   - if not %LIBQUENTIER_RECEIVED%==1 rd /s /q libquentier
