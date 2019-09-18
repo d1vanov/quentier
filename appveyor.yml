@@ -15,19 +15,19 @@ environment:
   auth_token:
     secure: rLuHhO0prerqoGCYmfOoyxqcwwamCXtuZtl4Jzqeu3aGgflk0mnX1fogLq68YcRW
   matrix:
-      #    - prepare_mode: YES
-      #      name: win32-prepare
-      #      platform: amd64_x86
-      #      qt: msvc2015
-      #    - prepare_mode: NO
-      #      name: win32
-      #      platform: amd64_x86
-      #      qt: msvc2015
-      #    - prepare_mode: NO
-      #      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      #      name: win64
-      #      platform: amd64
-      #      qt: msvc2017_64
+    - prepare_mode: YES
+      name: win32-prepare
+      platform: amd64_x86
+      qt: msvc2015
+    - prepare_mode: NO
+      name: win32
+      platform: amd64_x86
+      qt: msvc2015
+    - prepare_mode: NO
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      name: win64
+      platform: amd64
+      qt: msvc2017_64
     - prepare_mode: NO
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       name: win32
