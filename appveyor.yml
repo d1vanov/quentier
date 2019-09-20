@@ -195,7 +195,7 @@ install:
   - cd c:\dev\qevercloud
   - if %SHOULD_DOWNLOAD_QEVERCLOUD%==1 echo "Downloading QEverCloud"
 # First try to download the prebuilt binary to save the precious time as well as CPU cycles
-  - md build\installdir
+  - if not exist build\installdir md build\installdir
   - cd build\installdir
   - if %SHOULD_DOWNLOAD_QEVERCLOUD%==1 (set QEVERCLOUD_RECEIVED=0) else (set QEVERCLOUD_RECEIVED=1)
   - if %SHOULD_DOWNLOAD_QEVERCLOUD%==1 if %qt%==msvc2015 if "%APPVEYOR_REPO_BRANCH%" == "development" curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-development/qevercloud-windows-qt510-VS2015_x86.zip -o qevercloud-development-windows-qt510-VS2015_x86.zip & set errorlevel=0
@@ -246,7 +246,7 @@ install:
   - cd c:\dev\libquentier
   - if %SHOULD_DOWNLOAD_LIBQUENTIER%==1 echo "Downloading libquentier"
 # First try to download the prebuilt binary to save the precious time as well as CPU cycles
-  - md build\installdir
+  - if not exist build\installdir md build\installdir
   - cd build\installdir
   - if %SHOULD_DOWNLOAD_LIBQUENTIER%==1 (set LIBQUENTIER_RECEIVED=0) else (set LIBQUENTIER_RECEIVED=1)
   - if %SHOULD_DOWNLOAD_LIBQUENTIER%==1 if %qt%==msvc2015 if "%APPVEYOR_REPO_BRANCH%" == "development" curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier-windows-qt510-VS2015_x86.zip -o libquentier-development-windows-qt510-VS2015_x86.zip & set errorlevel=0
