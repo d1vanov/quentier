@@ -104,6 +104,7 @@ NoteModel::NoteModel(
     m_notebookCache(notebookCache),
     m_pFilters(pFilters),
     m_pUpdatedNoteFilters(Q_NULLPTR),
+    m_maxNoteCount(NOTE_MIN_CACHE_SIZE * 2),
     m_listNotesOffset(0),
     m_listNotesRequestId(),
     m_getNoteCountRequestId(),
@@ -890,6 +891,7 @@ void NoteModel::fetchMore(const QModelIndex & parent)
         return;
     }
 
+    m_maxNoteCount += NOTE_MIN_CACHE_SIZE;
     requestNotesList();
 }
 
@@ -2501,6 +2503,7 @@ void NoteModel::clearModel()
 
     m_data.clear();
     m_totalFilteredNotesCount = 0;
+    m_maxNoteCount = NOTE_MIN_CACHE_SIZE * 2;
     m_listNotesOffset = 0;
     m_listNotesRequestId = QUuid();
     m_getNoteCountRequestId = QUuid();
@@ -3505,6 +3508,27 @@ void NoteModel::addOrUpdateNoteItem(
                           << errorDescription << "; item: " << item);
             }
 
+            size_t indexSize = localUidIndex.size();
+            if (indexSize > m_maxNoteCount)
+            {
+                int lastRow = static_cast<int>(indexSize - 1);
+                NoteDataByIndex & index = m_data.get<ByIndex>();
+                auto indexIt = index.begin();
+                std::advance(indexIt, lastRow);
+                auto it = m_data.project<ByLocalUid>(indexIt);
+                if (Q_UNLIKELY(it == localUidIndex.end())) {
+                    REPORT_ERROR(QT_TR_NOOP("Internal error: can't project "
+                                            "the random access index iterator "
+                                            "to the local uid index iterator "
+                                            "in note model"));
+                }
+                else {
+                    beginRemoveRows(QModelIndex(), lastRow, lastRow);
+                    Q_UNUSED(localUidIndex.erase(it))
+                    endRemoveRows();
+                }
+            }
+
             return;
         }
 
@@ -3515,6 +3539,13 @@ void NoteModel::addOrUpdateNoteItem(
             NoteComparator(sortingColumn(), sortOrder()));
 
         int newRow = static_cast<int>(std::distance(index.begin(), positionIter));
+
+        if (newRow >= static_cast<int>(m_maxNoteCount)) {
+            NMDEBUG("Skip adding note: new row " << newRow <<
+                    " is larger than or equal to the max note count "
+                    << m_maxNoteCount);
+            return;
+        }
 
         NMTRACE("Inserting new item at row " << newRow);
         beginInsertRows(QModelIndex(), newRow, newRow);
