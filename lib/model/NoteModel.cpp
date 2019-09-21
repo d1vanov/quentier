@@ -2435,10 +2435,7 @@ void NoteModel::requestTotalNotesCountPerAccount()
             << "account: request id = "
             << m_getFullNoteCountPerAccountRequestId);
 
-    LocalStorageManager::NoteCountOptions options(
-        LocalStorageManager::NoteCountOption::IncludeNonDeletedNotes |
-        LocalStorageManager::NoteCountOption::IncludeDeletedNotes);
-
+    LocalStorageManager::NoteCountOptions options = noteCountOptions();
     Q_EMIT getNoteCount(options, m_getFullNoteCountPerAccountRequestId);
 }
 
