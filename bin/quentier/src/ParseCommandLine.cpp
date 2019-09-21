@@ -40,14 +40,25 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
 
     auto & startMinimizedToTrayData =
         availableCmdOptions[QStringLiteral("startMinimizedToTray")];
+    startMinimizedToTrayData.m_type =
+        CommandLineParser::CommandLineArgumentType::Bool;
     startMinimizedToTrayData.m_description =
         QStringLiteral("start Quentier minimized to system tray");
 
     auto & startMinimizedData =
         availableCmdOptions[QStringLiteral("startMinimized")];
+    startMinimizedData.m_type =
+        CommandLineParser::CommandLineArgumentType::Bool;
     startMinimizedData.m_description =
         QStringLiteral("start Quentier with its main window minimized "
                        "to the task bar");
+
+    auto & logLevelData =
+        availableCmdOptions[QStringLiteral("logLevel")];
+    logLevelData.m_type = CommandLineParser::CommandLineArgumentType::String;
+    logLevelData.m_description =
+        QStringLiteral("start Quentier with specified log level: error, "
+                       "warning, info, debug or trace");
 
     parseCommandLine(argc, argv, availableCmdOptions, result);
 }

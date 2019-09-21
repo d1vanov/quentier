@@ -91,6 +91,35 @@ void parseCommandLine(
     }
 }
 
+LogLevel::type processLogLevelCommandLineOption(
+    const CommandLineParser::CommandLineOptions & options)
+{
+    auto logLevelIt = options.find(QStringLiteral("logLevel"));
+    if (logLevelIt == options.end()) {
+        return LogLevel::InfoLevel;
+    }
+
+    QString level = logLevelIt->toString().toLower();
+
+    if (level == QStringLiteral("error")) {
+        return LogLevel::ErrorLevel;
+    }
+
+    if (level == QStringLiteral("warning")) {
+        return LogLevel::WarnLevel;
+    }
+
+    if (level == QStringLiteral("debug")) {
+        return LogLevel::DebugLevel;
+    }
+
+    if (level == QStringLiteral("trace")) {
+        return LogLevel::TraceLevel;
+    }
+
+    return LogLevel::InfoLevel;
+}
+
 bool initialize(
     QuentierApplication & app,
     const CommandLineParser::CommandLineOptions & cmdOptions)
@@ -102,9 +131,11 @@ bool initialize(
         return false;
     }
 
+    LogLevel::type logLevel = processLogLevelCommandLineOption(cmdOptions);
+
     // Initialize logging
     QUENTIER_INITIALIZE_LOGGING();
-    QUENTIER_SET_MIN_LOG_LEVEL(Info);
+    QuentierSetMinLogLevel(logLevel);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
 
 #ifdef BUILDING_WITH_BREAKPAD
