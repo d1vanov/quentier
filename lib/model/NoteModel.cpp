@@ -3505,27 +3505,7 @@ void NoteModel::addOrUpdateNoteItem(
                           << errorDescription << "; item: " << item);
             }
 
-            size_t indexSize = localUidIndex.size();
-            if (indexSize > m_maxNoteCount)
-            {
-                int lastRow = static_cast<int>(indexSize - 1);
-                NoteDataByIndex & index = m_data.get<ByIndex>();
-                auto indexIt = index.begin();
-                std::advance(indexIt, lastRow);
-                auto it = m_data.project<ByLocalUid>(indexIt);
-                if (Q_UNLIKELY(it == localUidIndex.end())) {
-                    REPORT_ERROR(QT_TR_NOOP("Internal error: can't project "
-                                            "the random access index iterator "
-                                            "to the local uid index iterator "
-                                            "in note model"));
-                }
-                else {
-                    beginRemoveRows(QModelIndex(), lastRow, lastRow);
-                    Q_UNUSED(localUidIndex.erase(it))
-                    endRemoveRows();
-                }
-            }
-
+            checkMaxNoteCountAndRemoveLastNoteIfNeeded();
             return;
         }
 
@@ -3549,6 +3529,7 @@ void NoteModel::addOrUpdateNoteItem(
         Q_UNUSED(index.insert(positionIter, item))
         endInsertRows();
 
+        checkMaxNoteCountAndRemoveLastNoteIfNeeded();
         findTagNamesForItem(item);
     }
     else
@@ -3615,6 +3596,37 @@ void NoteModel::addOrUpdateNoteItem(
 
             findTagNamesForItem(item);
         }
+    }
+}
+
+void NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded()
+{
+    QNDEBUG("NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded");
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    size_t indexSize = localUidIndex.size();
+    if (indexSize <= m_maxNoteCount) {
+        return;
+    }
+
+    QNDEBUG("Note model's size is outside the acceptable range, "
+            "removing the last row's note to keep the cache minimal");
+
+    int lastRow = static_cast<int>(indexSize - 1);
+    NoteDataByIndex & index = m_data.get<ByIndex>();
+    auto indexIt = index.begin();
+    std::advance(indexIt, lastRow);
+    auto it = m_data.project<ByLocalUid>(indexIt);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        REPORT_ERROR(QT_TR_NOOP("Internal error: can't project "
+                                "the random access index iterator "
+                                "to the local uid index iterator "
+                                "in note model"));
+    }
+    else {
+        beginRemoveRows(QModelIndex(), lastRow, lastRow);
+        Q_UNUSED(localUidIndex.erase(it))
+        endRemoveRows();
     }
 }
 

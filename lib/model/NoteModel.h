@@ -679,6 +679,8 @@ private:
         NoteModelItem & item, const NotebookData & notebookData,
         const bool fromNotesListing);
 
+    void checkMaxNoteCountAndRemoveLastNoteIfNeeded();
+
     void checkAddedNoteItemsPendingNotebookData(
         const QString & notebookLocalUid, const NotebookData & notebookData);
 
