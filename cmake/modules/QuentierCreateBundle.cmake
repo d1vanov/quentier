@@ -179,23 +179,16 @@ function(CreateQuentierBundle)
               include(CMakeParseArguments)
               include(BundleUtilities)
               include(InstallRequiredSystemLibraries)
-              fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;${BUNDLE_IGNORED_ITEMS}\")
+              fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
               " COMPONENT Runtime)
 
     else()
       install(CODE "
               include(DeployQt4)
               include(InstallRequiredSystemLibraries)
-              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;${BUNDLE_IGNORED_ITEMS}\")
+              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
               " COMPONENT Runtime)
     endif()
-
-    foreach(BUNDLE_EXTRA_ITEM ${BUNDLE_EXTRA_ITEMS})
-      install(CODE "
-	      message(STATUS \"Deploying additional item: ${BUNDLE_EXTRA_ITEM}\")
-              file(COPY \"${BUNDLE_EXTRA_ITEM}\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-              " COMPONENT Runtime)
-    endforeach()
 
     # Forcefully installing OpenSSL dlls, they don't seem to be included for unknown reason
     install(CODE "
