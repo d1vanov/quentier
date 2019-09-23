@@ -4891,6 +4891,7 @@ void MainWindow::setupModels()
                                          *m_pLocalStorageManagerAsync,
                                          m_noteCache, m_notebookCache, this,
                                          NoteModel::IncludedNotes::Deleted);
+    m_pDeletedNotesModel->start();
 
     if (m_pNoteCountLabelController == Q_NULLPTR) {
         m_pNoteCountLabelController =
@@ -4946,6 +4947,7 @@ void MainWindow::clearModels()
     }
 
     if (m_pDeletedNotesModel) {
+        m_pDeletedNotesModel->stop(IStartable::StopMode::Forced);
         delete m_pDeletedNotesModel;
         m_pDeletedNotesModel = Q_NULLPTR;
     }
