@@ -891,7 +891,7 @@ void NoteModel::fetchMore(const QModelIndex & parent)
         return;
     }
 
-    m_maxNoteCount += NOTE_MIN_CACHE_SIZE;
+    m_maxNoteCount += NOTE_LIST_QUERY_LIMIT;
     requestNotesList();
 }
 
