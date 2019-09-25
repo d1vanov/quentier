@@ -2295,8 +2295,12 @@ void MainWindow::onSyncChunksDownloadProgress(
     double percentage = numerator / denominator * 100.0;
     percentage = std::min(percentage, 100.0);
 
-    onSetStatusBarText(tr("Downloading sync chunks") + QStringLiteral(": ") +
-                       QString::number(percentage) + QStringLiteral("%"));
+    QString statusBarText;
+    QTextStream strm(&statusBarText);
+    strm << tr("Downloading sync chunks") << ": "
+        << QString::number(percentage, 'f', 2) << "%";
+
+    onSetStatusBarText(statusBarText);
 }
 
 void MainWindow::onSyncChunksDownloaded()
