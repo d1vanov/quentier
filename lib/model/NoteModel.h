@@ -679,6 +679,8 @@ private:
         NoteModelItem & item, const NotebookData & notebookData,
         const bool fromNotesListing);
 
+    void checkMaxNoteCountAndRemoveLastNoteIfNeeded();
+
     void checkAddedNoteItemsPendingNotebookData(
         const QString & notebookLocalUid, const NotebookData & notebookData);
 
@@ -704,6 +706,10 @@ private:
 
     QScopedPointer<NoteFilters> m_pFilters;
     QScopedPointer<NoteFilters> m_pUpdatedNoteFilters;
+
+    // Upper bound for the amount of notes stored within the note model.
+    // Can be increased through calls to fetchMore()
+    size_t                      m_maxNoteCount;
 
     size_t                      m_listNotesOffset;
     QUuid                       m_listNotesRequestId;

@@ -2295,8 +2295,12 @@ void MainWindow::onSyncChunksDownloadProgress(
     double percentage = numerator / denominator * 100.0;
     percentage = std::min(percentage, 100.0);
 
-    onSetStatusBarText(tr("Downloading sync chunks") + QStringLiteral(": ") +
-                       QString::number(percentage) + QStringLiteral("%"));
+    QString statusBarText;
+    QTextStream strm(&statusBarText);
+    strm << tr("Downloading sync chunks") << ": "
+        << QString::number(percentage, 'f', 2) << "%";
+
+    onSetStatusBarText(statusBarText);
 }
 
 void MainWindow::onSyncChunksDownloaded()
@@ -4891,6 +4895,7 @@ void MainWindow::setupModels()
                                          *m_pLocalStorageManagerAsync,
                                          m_noteCache, m_notebookCache, this,
                                          NoteModel::IncludedNotes::Deleted);
+    m_pDeletedNotesModel->start();
 
     if (m_pNoteCountLabelController == Q_NULLPTR) {
         m_pNoteCountLabelController =
@@ -4946,6 +4951,7 @@ void MainWindow::clearModels()
     }
 
     if (m_pDeletedNotesModel) {
+        m_pDeletedNotesModel->stop(IStartable::StopMode::Forced);
         delete m_pDeletedNotesModel;
         m_pDeletedNotesModel = Q_NULLPTR;
     }

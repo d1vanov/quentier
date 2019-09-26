@@ -2792,6 +2792,10 @@ void NotebookModel::onAddNoteComplete(Note note, QUuid requestId)
     QNTRACE("NotebookModel::onAddNoteComplete: note = " << note
             << ", request id = " << requestId);
 
+    if (Q_UNLIKELY(note.hasDeletionTimestamp())) {
+        return;
+    }
+
     if (note.hasNotebookLocalUid())
     {
         bool res = incrementNoteCountForNotebook(note.notebookLocalUid());
@@ -2841,13 +2845,9 @@ void NotebookModel::onExpungeNoteComplete(Note note, QUuid requestId)
         notebookLocalUid = note.notebookLocalUid();
     }
 
-    if (!notebookLocalUid.isEmpty())
-    {
-        bool res = decrementNoteCountForNotebook(note.notebookLocalUid());
-        if (res) {
-            return;
-        }
-    }
+    // NOTE: it's not sufficient to decrement note count for notebook
+    // as this note might have had deletion timestamp set so it did not
+    // actually contribute to the displayed note count for this notebook
 
     Notebook notebook;
     if (!notebookLocalUid.isEmpty()) {
