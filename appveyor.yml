@@ -238,7 +238,7 @@ install:
   - if not %QEVERCLOUD_RECEIVED%==1 if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
   - if not %QEVERCLOUD_RECEIVED%==1 if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\qevercloud\build\installdir" -DCMAKE_PREFIX_PATH="C:/Qt/5.10/%qt%
   - if not %QEVERCLOUD_RECEIVED%==1 if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\qevercloud\build\installdir" -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%
-  - if not %QEVERCLOUD_RECEIVED%==1 cmake --build . --target all
+  - if not %QEVERCLOUD_RECEIVED%==1 cmake --build . --target all -j 4
   - if not %QEVERCLOUD_RECEIVED%==1 cmake --build . --target check
   - if not %QEVERCLOUD_RECEIVED%==1 cmake --build . --target install
   - if not %QEVERCLOUD_RECEIVED%==1 if %qt%==mingw492_32 set PATH=%PATH%;C:\Program Files\Git\usr\bin
@@ -295,7 +295,7 @@ install:
   - if not %LIBQUENTIER_RECEIVED%==1 if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
   - if not %LIBQUENTIER_RECEIVED%==1 if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DCMAKE_PREFIX_PATH="C:/Qt/5.10/%qt%" -DQEverCloud-qt5_DIR="c:\dev\qevercloud\build\installdir\CMake"
   - if not %LIBQUENTIER_RECEIVED%==1 if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:\dev\libquentier\build\installdir" -DUSE_QT5_WEBKIT=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt% -DQEverCloud-qt5_DIR="c:\dev\qevercloud\build\installdir\CMake" -DQEverCloud-qt5_DIR="c:\dev\qevercloud\build\installdir\CMake"
-  - if not %LIBQUENTIER_RECEIVED%==1 cmake --build . --target all
+  - if not %LIBQUENTIER_RECEIVED%==1 cmake --build . --target all -j 4
   - if not %LIBQUENTIER_RECEIVED%==1 if NOT ERRORLEVEL 0 exit 1
   - if not %LIBQUENTIER_RECEIVED%==1 cmake --build . --target check
   - if not %LIBQUENTIER_RECEIVED%==1 if NOT ERRORLEVEL 0 exit 1
@@ -323,7 +323,7 @@ build_script:
   - if %qt%==mingw492_32 set PATH=C:\MinGW\bin;C:\Qt\5.5\%qt%\bin;%PATH%
   - if %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DBUILD_WITH_WIKI_TOOLS=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.5/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.dll.a" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DQEverCloud-qt5_DIR="c:\dev\qevercloud\build\installdir\CMake" -DLibquentier-qt5_DIR="c:\dev\libquentier\build\installdir\CMake"
   - if not %qt%==mingw492_32 cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DBUILD_WITH_WIKI_TOOLS=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.10/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.lib" -DBREAKPAD_ROOT="C:/dev/breakpad" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DQEverCloud-qt5_DIR="c:\dev\qevercloud\build\installdir\CMake" -DLibquentier-qt5_DIR="c:\dev\libquentier\build\installdir\CMake"
-  - cmake --build . --target all
+  - cmake --build . --target all -j 4
   - if NOT ERRORLEVEL 0 exit 1
   - cmake --build . --target check
   - if NOT ERRORLEVEL 0 exit 1
