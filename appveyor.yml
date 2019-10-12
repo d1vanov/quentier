@@ -68,7 +68,7 @@ install:
 # cmake
   - if %build_tool%==mingw if not exist c:\dev\cmake (md c:\dev\cmake)
   - if %build_tool%==mingw cd c:\dev\cmake
-  - if %build_tool%==mingw curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win32-x86.zip cmake-3.15.4-win32-x86.zip
+  - if %build_tool%==mingw curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win32-x86.zip -o cmake-3.15.4-win32-x86.zip
   - if %build_tool%==mingw 7z x cmake-3.15.4-win32-x86.zip
   - if %build_tool%==mingw cd cmake-3.15.4-win32-x86
   - if %build_tool%==mingw set PATH=%cd%\bin;%PATH%
