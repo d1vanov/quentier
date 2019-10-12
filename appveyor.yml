@@ -18,6 +18,7 @@ environment:
     - prepare_mode: YES
       name: win32-prepare
     - prepare_mode: NO
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       name: win32
       platform: amd64_x86
       build_tool: msvc2017
