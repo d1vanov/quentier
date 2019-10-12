@@ -65,6 +65,13 @@ install:
   - if not exist c:\dev\ciuploadtool\ciuploadtool.exe 7z x ciuploadtool_windows_x86.zip
   - if %prepare_mode%==YES c:\dev\ciuploadtool\ciuploadtool.exe -preponly -suffix="%APPVEYOR_REPO_BRANCH%"
   - ps: if ($env:prepare_mode -eq "YES") { throw "Failing in order to stop the current build matrix job early" }
+# cmake
+  - if %build_tool%==mingw if not exist c:\dev\cmake (md c:\dev\cmake)
+  - if %build_tool%==mingw cd c:\dev\cmake
+  - if %build_tool%==mingw curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win32-x86.zip cmake-3.15.4-win32-x86.zip
+  - if %build_tool%==mingw 7z x cmake-3.15.4-win32-x86.zip
+  - if %build_tool%==mingw cd cmake-3.15.4-win32-x86
+  - if %build_tool%==mingw set PATH=%cd%\bin;%PATH%
 # libiconv
   - if not exist c:\dev\libiconv (set SHOULD_DOWNLOAD_LIBICONV=1) else (set SHOULD_DOWNLOAD_LIBICONV=0)
   - if %SHOULD_DOWNLOAD_LIBICONV%==1 (md c:\dev\libiconv) else (echo "Using cached version of libiconv")
