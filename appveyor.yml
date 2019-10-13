@@ -65,13 +65,6 @@ install:
   - if not exist c:\dev\ciuploadtool\ciuploadtool.exe 7z x ciuploadtool_windows_x86.zip
   - if %prepare_mode%==YES c:\dev\ciuploadtool\ciuploadtool.exe -preponly -suffix="%APPVEYOR_REPO_BRANCH%"
   - ps: if ($env:prepare_mode -eq "YES") { throw "Failing in order to stop the current build matrix job early" }
-# cmake
-  - if %build_tool%==mingw if not exist c:\dev\cmake (md c:\dev\cmake)
-  - if %build_tool%==mingw cd c:\dev\cmake
-  - if %build_tool%==mingw curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win32-x86.zip -o cmake-3.15.4-win32-x86.zip
-  - if %build_tool%==mingw 7z x cmake-3.15.4-win32-x86.zip
-  - if %build_tool%==mingw cd cmake-3.15.4-win32-x86
-  - if %build_tool%==mingw set PATH=%cd%\bin;%PATH%
 # libiconv
   - if not exist c:\dev\libiconv (set SHOULD_DOWNLOAD_LIBICONV=1) else (set SHOULD_DOWNLOAD_LIBICONV=0)
   - if %SHOULD_DOWNLOAD_LIBICONV%==1 (md c:\dev\libiconv) else (echo "Using cached version of libiconv")
@@ -151,8 +144,8 @@ install:
   - if %qt%==msvc2017 7z x boost-1_70_0-msvc2017_x86.zip
   - if %SHOULD_DOWNLOAD_BOOST%==1 if %qt%==msvc2017_64 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost-1_70_0-msvc2017_x64.zip -o boost-1_70_0-msvc2017_x64.zip
   - if %qt%==msvc2017_64 7z x boost-1_70_0-msvc2017_x64.zip
-  - if %SHOULD_DOWNLOAD_BOOST%==1 if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost-1_70_0-mingw530_x86.zip -o boost-1_70_0-mingw530_x86.zip
-  - if %qt%==mingw492_32 7z x boost-1_70_0-mingw530_x86.zip
+  - if %SHOULD_DOWNLOAD_BOOST%==1 if %qt%==mingw492_32 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/boost-1_65_0-mingw530_x86.zip -o boost-1_65_0-mingw530_x86.zip
+  - if %qt%==mingw492_32 7z x boost-1_65_0-mingw530_x86.zip
   - set PATH=%cd%\bin;%PATH%
   - set LIB=%cd%\lib;%LIB%
   - set INCLUDE=%cd%\include;%INCLUDE%
@@ -384,7 +377,7 @@ cache:
   - 'c:\dev\tidy-html5\tidy-html5-5.6.0-mingw530_x86.zip -> ci\appveyor\cache_versions\tidy-html5-mingw530_x86.txt, ci\appveyor\cache_versions\global.txt'
   - 'c:\dev\boost\boost-1_70_0-msvc2017_x86.zip -> ci\appveyor\cache_versions\boost-msvc2017_x86.txt, ci\appveyor\cache_versions\global.txt'
   - 'c:\dev\boost\boost-1_70_0-msvc2017_x64.zip -> ci\appveyor\cache_versions\boost-msvc2017_x64.txt, ci\appveyor\cache_versions\global.txt'
-  - 'c:\dev\boost\boost-1_70_0-mingw530_x86.zip -> ci\appveyor\cache_versions\boost-mingw530_x86.txt, ci\appveyor\cache_versions\global.txt'
+  - 'c:\dev\boost\boost-1_65_0-mingw530_x86.zip -> ci\appveyor\cache_versions\boost-mingw530_x86.txt, ci\appveyor\cache_versions\global.txt'
   - 'c:\dev\openssl\openssl-1_0_2r-msvc2017_x86.zip -> ci\appveyor\cache_versions\openssl-msvc2017_x86.txt, ci\appveyor\cache_versions\global.txt'
   - 'c:\dev\openssl\openssl-1_0_2r-msvc2017_x64.zip -> ci\appveyor\cache_versions\openssl-msvc2017_x64.txt, ci\appveyor\cache_versions\global.txt'
   - 'c:\dev\openssl\openssl-1_0_2r-mingw530_x86.zip -> ci\appveyor\cache_versions\openssl-mingw530_x86.txt, ci\appveyor\cache_versions\global.txt'
