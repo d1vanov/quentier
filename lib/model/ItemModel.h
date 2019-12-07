@@ -37,7 +37,7 @@ class ItemModel: public QAbstractItemModel
 {
     Q_OBJECT
 protected:
-    explicit ItemModel(QObject * parent = Q_NULLPTR);
+    explicit ItemModel(QObject * parent = nullptr);
 
 public:
     virtual ~ItemModel();

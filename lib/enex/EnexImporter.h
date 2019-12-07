@@ -46,7 +46,7 @@ public:
         const QString & notebookName,
         LocalStorageManagerAsync & localStorageManagerAsync,
         TagModel & tagModel, NotebookModel & notebookModel,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     bool isInProgress() const;
     void start();

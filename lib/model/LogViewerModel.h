@@ -49,7 +49,7 @@ class LogViewerModel: public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    LogViewerModel(QObject * parent = Q_NULLPTR);
+    LogViewerModel(QObject * parent = nullptr);
     ~LogViewerModel();
 
     struct Columns
@@ -79,7 +79,7 @@ public:
         bool isEmpty() const;
         void clear();
 
-        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+        virtual QTextStream & print(QTextStream & strm) const override;
 
         qevercloud::Optional<qint64>    m_startLogFilePos;
         QVector<LogLevel::type>         m_disabledLogLevels;
@@ -121,7 +121,7 @@ public:
             m_logEntry()
         {}
 
-        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+        virtual QTextStream & print(QTextStream & strm) const override;
 
         QDateTime       m_timestamp;
         QString         m_sourceFileName;
@@ -133,7 +133,7 @@ public:
     const Data * dataEntry(const int row) const;
 
     const QVector<Data> * dataChunkContainingModelRow(
-        const int row, int * pStartModelRow = Q_NULLPTR) const;
+        const int row, int * pStartModelRow = nullptr) const;
 
     QString dataEntryToString(const Data & dataEntry) const;
 
@@ -180,21 +180,21 @@ Q_SIGNALS:
 public:
     // QAbstractTableModel interface
     virtual int rowCount(
-        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+        const QModelIndex & parent = QModelIndex()) const override;
 
     virtual int columnCount(
-        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+        const QModelIndex & parent = QModelIndex()) const override;
 
     virtual QVariant data(
         const QModelIndex & index,
-        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+        int role = Qt::DisplayRole) const override;
 
     virtual QVariant headerData(
         int section, Qt::Orientation orientation,
-        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+        int role = Qt::DisplayRole) const override;
 
-    virtual bool canFetchMore(const QModelIndex & parent) const Q_DECL_OVERRIDE;
-    virtual void fetchMore(const QModelIndex & parent) Q_DECL_OVERRIDE;
+    virtual bool canFetchMore(const QModelIndex & parent) const override;
+    virtual void fetchMore(const QModelIndex & parent) override;
 
 private Q_SLOTS:
     void onFileChanged(const QString & path);
@@ -223,7 +223,7 @@ private:
         const qint64 startPos, const LogFileDataEntryRequestReason::type reason);
 
 private:
-    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void timerEvent(QTimerEvent * pEvent) override;
 
 private:
     class FileReaderAsync;
@@ -256,7 +256,7 @@ private:
         qint64 startLogFilePos() const { return m_startLogFilePos; }
         qint64 endLogFilePos() const { return m_endLogFilePos; }
 
-        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+        virtual QTextStream & print(QTextStream & strm) const override;
 
     private:
         int     m_number;

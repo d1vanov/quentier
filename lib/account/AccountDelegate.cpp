@@ -35,7 +35,7 @@ QWidget * AccountDelegate::createEditor(
     if (!index.isValid() ||
         (index.column() != AccountModel::Columns::DisplayName))
     {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return QStyledItemDelegate::createEditor(parent, option, index);

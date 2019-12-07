@@ -43,7 +43,7 @@ class LogViewerWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit LogViewerWidget(QWidget * parent = Q_NULLPTR);
+    explicit LogViewerWidget(QWidget * parent = nullptr);
     virtual ~LogViewerWidget();
 
 private:
@@ -98,8 +98,8 @@ private:
     void enableUiElementsAfterSavingLogToFile();
 
 private:
-    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void timerEvent(QTimerEvent * pEvent) override;
+    virtual void closeEvent(QCloseEvent * pEvent) override;
 
 private:
     Ui::LogViewerWidget *   m_pUi;

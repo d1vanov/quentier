@@ -76,14 +76,14 @@ NoteEditorWidget::NoteEditorWidget(
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
-    m_pLimitedFontsListModel(Q_NULLPTR),
+    m_pLimitedFontsListModel(nullptr),
     m_noteLocalUid(),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
     m_lastNoteTitleOrPreviewText(),
     m_currentAccount(account),
     m_pUndoStack(pUndoStack),
-    m_pConvertToNoteDeadlineTimer(Q_NULLPTR),
+    m_pConvertToNoteDeadlineTimer(nullptr),
     m_findCurrentNotebookRequestId(),
     m_noteLinkInfoByFindNoteRequestIds(),
     m_lastFontSizeComboBoxIndex(-1),
@@ -1272,7 +1272,7 @@ void NoteEditorWidget::onUpdateNoteComplete(
             return;
         }
 
-        const Notebook * pCachedNotebook = Q_NULLPTR;
+        const Notebook * pCachedNotebook = nullptr;
         if (m_pCurrentNote->hasNotebookLocalUid()) {
             const QString & notebookLocalUid = m_pCurrentNote->notebookLocalUid();
             pCachedNotebook = m_notebookCache.get(notebookLocalUid);
@@ -2756,8 +2756,8 @@ void NoteEditorWidget::clear()
                 ? m_pCurrentNote->localUid()
                 : QStringLiteral("<null>")));
 
-    m_pCurrentNote.reset(Q_NULLPTR);
-    m_pCurrentNotebook.reset(Q_NULLPTR);
+    m_pCurrentNote.reset(nullptr);
+    m_pCurrentNotebook.reset(nullptr);
 
     QObject::disconnect(m_pUi->noteEditor,
                         QNSIGNAL(NoteEditor,noteAndNotebookFoundInLocalStorage,

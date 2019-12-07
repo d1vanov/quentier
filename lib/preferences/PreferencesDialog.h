@@ -50,9 +50,9 @@ public:
         ShortcutManager & shortcutManager,
         SystemTrayIconManager & systemTrayIconManager,
         ActionsInfo & actionsInfo,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
-    virtual ~PreferencesDialog() Q_DECL_OVERRIDE;
+    virtual ~PreferencesDialog() override;
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
@@ -127,7 +127,7 @@ private Q_SLOTS:
     void onEnableLogViewerInternalLogsCheckboxToggled(bool checked);
 
 private:
-    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
 
 private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,

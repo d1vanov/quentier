@@ -38,14 +38,14 @@ class DeleteAccountDialog : public QDialog
     Q_OBJECT
 public:
     explicit DeleteAccountDialog(const Account & account, AccountModel & model,
-                                 QWidget * parent = Q_NULLPTR);
+                                 QWidget * parent = nullptr);
     virtual ~DeleteAccountDialog();
 
 private Q_SLOTS:
     void onConfirmationLineEditTextEdited(const QString & text);
 
 private:
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
 
 private:
     void setStatusBarText(const QString & text);

@@ -118,7 +118,7 @@ void AbstractFilterByModelItemWidget::switchAccount(
 const ItemModel * AbstractFilterByModelItemWidget::model() const
 {
     if (m_pItemModel.isNull()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return m_pItemModel.data();
@@ -224,7 +224,7 @@ void AbstractFilterByModelItemWidget::addItemToFilter(
         m_pLayout->removeWidget(pNewItemLineEdit);
         pNewItemLineEdit->hide();
         pNewItemLineEdit->deleteLater();
-        pNewItemLineEdit = Q_NULLPTR;
+        pNewItemLineEdit = nullptr;
     }
 
     m_pLayout->addWidget(pItemWidget);
@@ -664,7 +664,7 @@ NewListItemLineEdit * AbstractFilterByModelItemWidget::findNewItemWidget()
         return pNewItemWidget;
     }
 
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 } // namespace quentier

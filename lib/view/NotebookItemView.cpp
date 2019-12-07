@@ -53,8 +53,8 @@ namespace quentier {
 
 NotebookItemView::NotebookItemView(QWidget * parent) :
     ItemView(parent),
-    m_pNotebookItemContextMenu(Q_NULLPTR),
-    m_pNotebookStackItemContextMenu(Q_NULLPTR),
+    m_pNotebookItemContextMenu(nullptr),
+    m_pNotebookStackItemContextMenu(nullptr),
     m_pNoteFiltersManager(),
     m_notebookLocalUidPendingNoteFiltersManagerReadiness(),
     m_trackingNotebookModelItemsState(false),

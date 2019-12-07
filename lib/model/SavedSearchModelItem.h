@@ -35,7 +35,7 @@ public:
         const bool isDirty = false,
         const bool isFavorited = false);
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
     QString nameUpper() const { return m_name.toUpper(); }
 

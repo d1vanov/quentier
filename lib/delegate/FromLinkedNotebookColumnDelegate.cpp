@@ -56,7 +56,7 @@ QWidget * FromLinkedNotebookColumnDelegate::createEditor(
     Q_UNUSED(parent)
     Q_UNUSED(option)
     Q_UNUSED(index)
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void FromLinkedNotebookColumnDelegate::paint(

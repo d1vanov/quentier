@@ -45,7 +45,7 @@ public:
         ItemModel * pItemModel,
         const QStringList & reservedItemNames,
         const QString & linkedNotebookGuid,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     virtual ~NewListItemLineEdit();
 
@@ -54,15 +54,15 @@ public:
 
     QString linkedNotebookGuid() const;
 
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
-    virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+    virtual QSize sizeHint() const override;
+    virtual QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void receivedFocusFromWindowSystem();
 
 protected:
-    virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void focusInEvent(QFocusEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void keyPressEvent(QKeyEvent * pEvent) override;
+    virtual void focusInEvent(QFocusEvent * pEvent) override;
 
 private Q_SLOTS:
     void onModelRowsInserted(const QModelIndex & parent, int start, int end);

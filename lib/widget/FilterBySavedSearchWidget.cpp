@@ -122,7 +122,7 @@ void FilterBySavedSearchWidget::switchAccount(
 const SavedSearchModel * FilterBySavedSearchWidget::savedSearchModel() const
 {
     if (m_pSavedSearchModel.isNull()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return m_pSavedSearchModel.data();

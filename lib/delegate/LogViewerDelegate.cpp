@@ -47,7 +47,7 @@ QWidget * LogViewerDelegate::createEditor(
     Q_UNUSED(pParent)
     Q_UNUSED(option)
     Q_UNUSED(index)
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void LogViewerDelegate::paint(

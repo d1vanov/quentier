@@ -98,8 +98,8 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_logFilePosRequestedToBeRead(),
     m_currentLogFileSize(0),
     m_currentLogFileSizePollingTimer(),
-    m_pReadLogFileIOThread(Q_NULLPTR),
-    m_pFileReaderAsync(Q_NULLPTR),
+    m_pReadLogFileIOThread(nullptr),
+    m_pFileReaderAsync(nullptr),
     m_targetSaveFile(),
     m_internalLogEnabled(false),
     m_internalLogFile(applicationPersistentStoragePath() +
@@ -139,7 +139,7 @@ LogViewerModel::~LogViewerModel()
 {
     if (m_pFileReaderAsync) {
         m_pFileReaderAsync->disconnect(this);
-        m_pFileReaderAsync = Q_NULLPTR;
+        m_pFileReaderAsync = nullptr;
     }
 }
 
@@ -374,7 +374,7 @@ bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
     if (m_pFileReaderAsync) {
         m_pFileReaderAsync->disconnect(this);
         m_pFileReaderAsync->deleteLater();
-        m_pFileReaderAsync = Q_NULLPTR;
+        m_pFileReaderAsync = nullptr;
     }
 
     QFile currentLogFile(m_currentLogFileInfo.absoluteFilePath());
@@ -442,7 +442,7 @@ void LogViewerModel::clear()
     if (m_pFileReaderAsync) {
         m_pFileReaderAsync->disconnect(this);
         m_pFileReaderAsync->deleteLater();
-        m_pFileReaderAsync = Q_NULLPTR;
+        m_pFileReaderAsync = nullptr;
     }
 
     // NOTE: not changing anything about the internal log
@@ -456,12 +456,12 @@ const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
     const QVector<Data> * pLogFileDataChunk =
         dataChunkContainingModelRow(row, &startModelRow);
     if (!pLogFileDataChunk) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     int offset = row - startModelRow;
     if (Q_UNLIKELY(pLogFileDataChunk->size() <= offset)) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const Data & data = pLogFileDataChunk->at(offset);
@@ -472,13 +472,13 @@ const QVector<LogViewerModel::Data> * LogViewerModel::dataChunkContainingModelRo
     const int row, int * pStartModelRow) const
 {
     if (Q_UNLIKELY(row < 0)) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const LogFileChunkMetadata * pLogFileChunkMetadata =
         findLogFileChunkMetadataByModelRow(row);
     if (!pLogFileChunkMetadata) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (pStartModelRow) {
@@ -1244,7 +1244,7 @@ LogViewerModel::findLogFileChunkMetadataByModelRow(const int row) const
         m_logFileChunksMetadata.get<LogFileChunksMetadataByStartModelRow>();
     auto it = findLogFileChunkMetadataIteratorByModelRow(row);
     if (it == index.end()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(*it);
@@ -1257,7 +1257,7 @@ LogViewerModel::findLogFileChunkMetadataByLogFilePos(const qint64 pos) const
         m_logFileChunksMetadata.get<LogFileChunksMetadataByStartLogFilePos>();
     auto it = findLogFileChunkMetadataIteratorByLogFilePos(pos);
     if (it == index.end()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(*it);

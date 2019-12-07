@@ -100,7 +100,7 @@ public:
     void setNumNotesPerNotebook(const int numNotesPerNotebook)
     { m_numNotesPerNotebook = numNotesPerNotebook; }
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
     QString     m_localUid;

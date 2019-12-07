@@ -33,7 +33,7 @@ public:
         QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
         const QUrl & url,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     virtual ~WikiArticleFetcher();
 

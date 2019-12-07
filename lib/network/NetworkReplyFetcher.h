@@ -42,7 +42,7 @@ public:
         QNetworkAccessManager * pNetworkAccessManager,
         const QUrl & url,
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     virtual ~NetworkReplyFetcher();
 

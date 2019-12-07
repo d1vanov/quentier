@@ -39,7 +39,7 @@ ActionsInfo::findActionInfo(
             << actionName << ", context = " << context);
 
     // First look for menu whose name matches the "context"
-    const QMenu * pTargetMenu = Q_NULLPTR;
+    const QMenu * pTargetMenu = nullptr;
     for(auto it = m_menus.constBegin(), end = m_menus.constEnd(); it != end; ++it)
     {
         const QMenu * pMenu = *it;

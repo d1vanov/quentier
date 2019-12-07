@@ -77,7 +77,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(QWidget * pParentWidget = Q_NULLPTR);
+    explicit MainWindow(QWidget * pParentWidget = nullptr);
     virtual ~MainWindow();
 
     void show();
@@ -340,14 +340,14 @@ private Q_SLOTS:
         ErrorString errorDescription);
 
 private:
-    virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void focusInEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
-    virtual void focusOutEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
-    virtual void showEvent(QShowEvent * pShowEvent) Q_DECL_OVERRIDE;
-    virtual void hideEvent(QHideEvent * pHideEvent) Q_DECL_OVERRIDE;
-    virtual void changeEvent(QEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void resizeEvent(QResizeEvent * pEvent) override;
+    virtual void closeEvent(QCloseEvent * pEvent) override;
+    virtual void timerEvent(QTimerEvent * pEvent) override;
+    virtual void focusInEvent(QFocusEvent * pFocusEvent) override;
+    virtual void focusOutEvent(QFocusEvent * pFocusEvent) override;
+    virtual void showEvent(QShowEvent * pShowEvent) override;
+    virtual void hideEvent(QHideEvent * pHideEvent) override;
+    virtual void changeEvent(QEvent * pEvent) override;
 
 private:
     void centerWidget(QWidget & widget);
@@ -469,7 +469,7 @@ private:
         };
 
         StyleSheetProperty(const Target::type targetType = Target::None,
-                           const char * name = Q_NULLPTR,
+                           const char * name = nullptr,
                            const QString & value = QString()) :
             m_targetType(targetType),
             m_name(name),

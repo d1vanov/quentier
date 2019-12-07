@@ -55,20 +55,20 @@ QWidget * NotebookItemDelegate::createEditor(
     const NotebookModel * pNotebookModel =
         qobject_cast<const NotebookModel*>(index.model());
     if (!pNotebookModel) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(index);
     if (!pModelItem) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (pModelItem->type() == NotebookModelItem::Type::LinkedNotebook) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (index.column() != NotebookModel::Columns::Name) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return AbstractStyledItemDelegate::createEditor(parent, option, index);

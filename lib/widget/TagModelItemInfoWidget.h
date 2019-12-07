@@ -40,7 +40,7 @@ class TagModelItemInfoWidget: public QWidget
 public:
     explicit TagModelItemInfoWidget(
         const QModelIndex & index,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     virtual ~TagModelItemInfoWidget();
 
@@ -55,7 +55,7 @@ private:
 
     void hideAll();
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void keyPressEvent(QKeyEvent * pEvent) override;
 
 private:
     Ui::TagModelItemInfoWidget * m_pUi;

@@ -136,7 +136,7 @@ public:
     void setCanSharePublicly(const bool canSharePublicly)
     { m_canSharePublicly = canSharePublicly; }
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
     QString     m_localUid;

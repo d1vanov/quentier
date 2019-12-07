@@ -47,7 +47,7 @@ class NoteTagsWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit NoteTagsWidget(QWidget * parent = Q_NULLPTR);
+    explicit NoteTagsWidget(QWidget * parent = nullptr);
 
     void setLocalStorageManagerThreadWorker(
         LocalStorageManagerAsync & localStorageManagerAsync);

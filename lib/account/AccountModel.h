@@ -45,7 +45,7 @@ class AccountModel: public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit AccountModel(QObject * parent = Q_NULLPTR);
+    explicit AccountModel(QObject * parent = nullptr);
     ~AccountModel();
 
     struct Columns
@@ -84,15 +84,15 @@ Q_SIGNALS:
     void accountRemoved(const Account & account);
 
 public:
-    virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
-    virtual int rowCount(const QModelIndex & parent) const Q_DECL_OVERRIDE;
-    virtual int columnCount(const QModelIndex & parent) const Q_DECL_OVERRIDE;
+    virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
+    virtual int rowCount(const QModelIndex & parent) const override;
+    virtual int columnCount(const QModelIndex & parent) const override;
     virtual QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+                                int role = Qt::DisplayRole) const override;
     virtual QVariant data(const QModelIndex & index,
-                          int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+                          int role = Qt::DisplayRole) const override;
     virtual bool setData(const QModelIndex & index, const QVariant & value,
-                         int role) Q_DECL_OVERRIDE;
+                         int role) override;
 
 private:
     Q_DISABLE_COPY(AccountModel)

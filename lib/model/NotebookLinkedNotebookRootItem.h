@@ -40,7 +40,7 @@ public:
     void setLinkedNotebookGuid(const QString & linkedNotebookGuid)
     { m_linkedNotebookGuid = linkedNotebookGuid; }
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
     QString         m_username;

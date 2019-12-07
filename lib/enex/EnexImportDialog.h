@@ -45,12 +45,12 @@ public:
     explicit EnexImportDialog(
         const Account & account,
         NotebookModel & notebookModel,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     virtual ~EnexImportDialog();
 
-    QString importEnexFilePath(ErrorString * pErrorDescription = Q_NULLPTR) const;
-    QString notebookName(ErrorString * pErrorDescription = Q_NULLPTR) const;
+    QString importEnexFilePath(ErrorString * pErrorDescription = nullptr) const;
+    QString notebookName(ErrorString * pErrorDescription = nullptr) const;
 
 private Q_SLOTS:
     void onBrowsePushButtonClicked();
@@ -65,7 +65,7 @@ private Q_SLOTS:
     void rowsInserted(const QModelIndex & parent, int start, int end);
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);
 
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
 
 private:
     void createConnections();

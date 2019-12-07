@@ -42,7 +42,7 @@ class AddOrEditSavedSearchDialog: public QDialog
 public:
     explicit AddOrEditSavedSearchDialog(
         SavedSearchModel * pSavedSearchModel,
-        QWidget * parent = Q_NULLPTR,
+        QWidget * parent = nullptr,
         const QString & editedSavedSearchLocalUid = QString());
 
     ~AddOrEditSavedSearchDialog();
@@ -50,7 +50,7 @@ public:
     void setQuery(const QString & query);
 
 private Q_SLOTS:
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
     void onSavedSearchNameEdited(const QString & savedSearchName);
     void onSearchQueryEdited();
 

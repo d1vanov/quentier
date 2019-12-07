@@ -34,7 +34,7 @@ class ItemView: public QTreeView
 {
     Q_OBJECT
 public:
-    explicit ItemView(QWidget * parent = Q_NULLPTR);
+    explicit ItemView(QWidget * parent = nullptr);
 
 public Q_SLOTS:
     /**

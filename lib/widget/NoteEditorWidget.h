@@ -63,7 +63,7 @@ public:
         SpellChecker & spellChecker, QThread * pBackgroundJobsThread,
         NoteCache & noteCache, NotebookCache & notebookCache,
         TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     virtual ~NoteEditorWidget();
 
@@ -319,9 +319,9 @@ Q_SIGNALS:
         const QString & noteGuid, const QString & linkText);
 
 public Q_SLOTS:
-    virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void closeEvent(QCloseEvent * pEvent) override;
 
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
 
     // Slots for toolbar button actions or external actions
     void onEditorTextBoldToggled();
@@ -553,7 +553,7 @@ private:
         QString     m_shardId;
         QString     m_noteGuid;
 
-        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+        virtual QTextStream & print(QTextStream & strm) const override;
     };
 
     QHash<QUuid, NoteLinkInfo>  m_noteLinkInfoByFindNoteRequestIds;

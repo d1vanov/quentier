@@ -40,9 +40,9 @@ public:
 
     explicit TagModelItem(
         const Type::type type = Type::Tag,
-        const TagItem * pTagItem = Q_NULLPTR,
-        const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem = Q_NULLPTR,
-        TagModelItem * parent = Q_NULLPTR);
+        const TagItem * pTagItem = nullptr,
+        const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem = nullptr,
+        TagModelItem * parent = nullptr);
 
     virtual ~TagModelItem();
 
@@ -82,7 +82,7 @@ public:
         qSort(m_children.begin(), m_children.end(), comparator);
     }
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
     friend QDataStream & operator<<(QDataStream & out, const TagModelItem & item);
     friend QDataStream & operator>>(QDataStream & in, TagModelItem & item);

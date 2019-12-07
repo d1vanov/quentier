@@ -53,19 +53,19 @@ QWidget * SynchronizableColumnDelegate::createEditor(
     Q_UNUSED(option)
 
     if (Q_UNLIKELY(!index.isValid())) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     bool synchronizable = model->data(index).toBool();
     if (synchronizable) {
         // The item which is already synchronizable cannot be made
         // non-synchronizable
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QCheckBox * checkbox = new QCheckBox(parent);

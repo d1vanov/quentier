@@ -29,7 +29,7 @@ class DeletedNoteItemDelegate: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit DeletedNoteItemDelegate(QObject * parent = Q_NULLPTR);
+    explicit DeletedNoteItemDelegate(QObject * parent = nullptr);
 
     /**
      * @brief returns null pointer as DeletedNoteItemDelegate doesn't allow
@@ -37,35 +37,35 @@ public:
      */
     virtual QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
     virtual void setEditorData(
-        QWidget * editor, const QModelIndex & index) const Q_DECL_OVERRIDE;
+        QWidget * editor, const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
     virtual void setModelData(
         QWidget * editor, QAbstractItemModel * model,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual QSize sizeHint(
         const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
     virtual void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
 private:
     void doPaint(

@@ -52,20 +52,20 @@ QWidget * TagItemDelegate::createEditor(
 {
     const TagModel * pTagModel = qobject_cast<const TagModel*>(index.model());
     if (!pTagModel) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const TagModelItem * pModelItem = pTagModel->itemForIndex(index);
     if (!pModelItem) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (pModelItem->type() == TagModelItem::Type::LinkedNotebook) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (index.column() != TagModel::Columns::Name) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return AbstractStyledItemDelegate::createEditor(parent, option, index);

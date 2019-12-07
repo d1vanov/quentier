@@ -33,21 +33,21 @@ class LogViewerDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    LogViewerDelegate(QObject * parent = Q_NULLPTR);
+    LogViewerDelegate(QObject * parent = nullptr);
 
 private:
     // QStyledItemDelegate interface
     virtual QWidget * createEditor(
         QWidget * pParent, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual void paint(
         QPainter * pPainter, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual QSize sizeHint(
         const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
 private:
     bool paintImpl(

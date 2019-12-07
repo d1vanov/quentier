@@ -44,7 +44,7 @@ public:
         const QString & targetNotebookName,
         const quint32 numNotebooks,
         LocalStorageManagerAsync & localStorageManagerAsync,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     virtual ~NotebookController();
 

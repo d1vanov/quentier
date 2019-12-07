@@ -45,7 +45,7 @@ class AbstractFilterByModelItemWidget: public QWidget
     Q_OBJECT
 public:
     explicit AbstractFilterByModelItemWidget(
-        const QString & name, QWidget * parent = Q_NULLPTR);
+        const QString & name, QWidget * parent = nullptr);
 
     const Account & account() const { return m_account; }
 

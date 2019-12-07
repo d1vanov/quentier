@@ -33,7 +33,7 @@ class FirstShutdownDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit FirstShutdownDialog(QWidget * parent = Q_NULLPTR);
+    explicit FirstShutdownDialog(QWidget * parent = nullptr);
     ~FirstShutdownDialog();
 
 private Q_SLOTS:

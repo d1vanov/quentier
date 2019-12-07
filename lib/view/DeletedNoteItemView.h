@@ -34,7 +34,7 @@ class DeletedNoteItemView: public ItemView
 {
     Q_OBJECT
 public:
-    explicit DeletedNoteItemView(QWidget * parent = Q_NULLPTR);
+    explicit DeletedNoteItemView(QWidget * parent = nullptr);
 
     QModelIndex currentlySelectedItemIndex() const;
 
@@ -56,7 +56,7 @@ private:
     void deleteNotePermanently(const QModelIndex & index, NoteModel & model);
 
 private:
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
     QMenu *     m_pDeletedNoteItemContextMenu;

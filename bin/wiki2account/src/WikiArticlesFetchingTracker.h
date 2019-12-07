@@ -31,7 +31,7 @@ class WikiArticlesFetchingTracker: public QObject
 {
     Q_OBJECT
 public:
-    explicit WikiArticlesFetchingTracker(QObject * parent = Q_NULLPTR);
+    explicit WikiArticlesFetchingTracker(QObject * parent = nullptr);
     ~WikiArticlesFetchingTracker();
 
 Q_SIGNALS:

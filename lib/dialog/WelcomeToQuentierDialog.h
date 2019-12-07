@@ -33,7 +33,7 @@ class WelcomeToQuentierDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit WelcomeToQuentierDialog(QWidget * parent = Q_NULLPTR);
+    explicit WelcomeToQuentierDialog(QWidget * parent = nullptr);
     ~WelcomeToQuentierDialog();
 
     QString evernoteServer() const;

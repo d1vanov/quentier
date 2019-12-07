@@ -103,7 +103,7 @@ NoteModel::NoteModel(
     m_cache(noteCache),
     m_notebookCache(notebookCache),
     m_pFilters(pFilters),
-    m_pUpdatedNoteFilters(Q_NULLPTR),
+    m_pUpdatedNoteFilters(nullptr),
     m_maxNoteCount(NOTE_MIN_CACHE_SIZE * 2),
     m_listNotesOffset(0),
     m_listNotesRequestId(),
@@ -196,7 +196,7 @@ const NoteModelItem * NoteModel::itemForLocalUid(const QString & localUid) const
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
         NMDEBUG("Can't find note item by local uid: " << localUid);
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(*it);
@@ -206,7 +206,7 @@ const NoteModelItem * NoteModel::itemAtRow(const int row) const
 {
     const NoteDataByIndex & index = m_data.get<ByIndex>();
     if (Q_UNLIKELY((row < 0) || (index.size() <= static_cast<size_t>(row)))) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(index[static_cast<size_t>(row)]);
@@ -215,11 +215,11 @@ const NoteModelItem * NoteModel::itemAtRow(const int row) const
 const NoteModelItem * NoteModel::itemForIndex(const QModelIndex & index) const
 {
     if (!index.isValid()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (index.parent().isValid()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return itemAtRow(index.row());

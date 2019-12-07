@@ -37,7 +37,7 @@ public:
                         const QString & libquentierSymbolsFileLocation,
                         const QString & stackwalkBinaryLocation,
                         const QString & minidumpLocation,
-                        QWidget * parent = Q_NULLPTR);
+                        QWidget * parent = nullptr);
     ~MainWindow();
 
 private Q_SLOTS:

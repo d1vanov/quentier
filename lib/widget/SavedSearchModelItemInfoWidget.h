@@ -39,7 +39,7 @@ class SavedSearchModelItemInfoWidget: public QWidget
 public:
     explicit SavedSearchModelItemInfoWidget(
         const QModelIndex & index,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     virtual ~SavedSearchModelItemInfoWidget();
 
@@ -53,7 +53,7 @@ private:
 
     void hideAll();
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void keyPressEvent(QKeyEvent * pEvent) override;
 
 private:
     Ui::SavedSearchModelItemInfoWidget * m_pUi;

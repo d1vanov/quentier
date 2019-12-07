@@ -79,7 +79,7 @@ SavedSearchModel::itemForIndex(const QModelIndex & modelIndex) const
 
     if (!modelIndex.isValid()) {
         QNTRACE("Index is invalid");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     int row = modelIndex.row();
@@ -87,7 +87,7 @@ SavedSearchModel::itemForIndex(const QModelIndex & modelIndex) const
     const SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     if (row >= static_cast<int>(index.size())) {
         QNTRACE("Index's row is greater than the size of the row index");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(index[static_cast<size_t>(row)]);

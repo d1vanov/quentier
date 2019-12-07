@@ -450,7 +450,7 @@ void ShortcutSettingsWidget::resetAll()
                 m_pUi->actionsTreeWidget->currentItem())
             {
                 onCurrentActionChanged(pCurrentShortcutItem->m_pTreeWidgetItem,
-                                       Q_NULLPTR);
+                                       nullptr);
             }
         }
     }
@@ -762,12 +762,12 @@ ShortcutItem * ShortcutSettingsWidget::shortcutItemFromTreeItem(
     QTreeWidgetItem * pItem) const
 {
     if (!pItem) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QVariant shortcutItemData = pItem->data(0, Qt::UserRole);
     if (!shortcutItemData.isValid()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return qvariant_cast<ShortcutItem*>(shortcutItemData);

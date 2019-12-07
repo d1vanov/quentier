@@ -76,7 +76,7 @@ public:
     void setNumNotesPerTag(const int numNotesPerTag)
     { m_numNotesPerTag = numNotesPerTag; }
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
     QString     m_localUid;

@@ -29,19 +29,19 @@ class AccountDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit AccountDelegate(QObject * parent = Q_NULLPTR);
+    explicit AccountDelegate(QObject * parent = nullptr);
 
     virtual QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual void setEditorData(
         QWidget * pEditor,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual QSize sizeHint(
         const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 };
 
 } // namespace quentier

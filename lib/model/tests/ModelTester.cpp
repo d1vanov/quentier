@@ -49,7 +49,7 @@
 
 ModelTester::ModelTester(QObject * parent) :
     QObject(parent),
-    m_pLocalStorageManagerAsync(Q_NULLPTR)
+    m_pLocalStorageManagerAsync(nullptr)
 {}
 
 ModelTester::~ModelTester()
@@ -365,7 +365,7 @@ void ModelTester::testTagModelItemSerialization()
     TagModelItem restoredItem;
     in >> restoredItem;
 
-    QVERIFY2(restoredItem.tagItem() != Q_NULLPTR,
+    QVERIFY2(restoredItem.tagItem() != nullptr,
              qnPrintable("Null pointer to tag item"));
     QVERIFY2(restoredItem.tagItem() == &item,
              qnPrintable("Wrong pointer to the tag item"));

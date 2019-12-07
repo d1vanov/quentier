@@ -33,7 +33,7 @@ class AbstractStyledItemDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 protected:
-    explicit AbstractStyledItemDelegate(QObject * parent = Q_NULLPTR);
+    explicit AbstractStyledItemDelegate(QObject * parent = nullptr);
 
 public:
     virtual ~AbstractStyledItemDelegate();

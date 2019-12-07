@@ -31,7 +31,7 @@ class AccountFilterModel: public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
-    explicit AccountFilterModel(QObject * parent = Q_NULLPTR);
+    explicit AccountFilterModel(QObject * parent = nullptr);
 
     const QVector<Account> & filteredAccounts() const;
     bool setFilteredAccounts(const QVector<Account> & filteredAccounts);
@@ -41,7 +41,7 @@ public:
 
 protected:
     virtual bool filterAcceptsRow(
-        int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;
+        int sourceRow, const QModelIndex & sourceParent) const override;
 
 private:
     QVector<Account>    m_filteredAccounts;

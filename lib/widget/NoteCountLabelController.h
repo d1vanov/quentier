@@ -34,7 +34,7 @@ class NoteCountLabelController: public QObject
 {
     Q_OBJECT
 public:
-    NoteCountLabelController(QLabel & label, QObject * parent = Q_NULLPTR);
+    NoteCountLabelController(QLabel & label, QObject * parent = nullptr);
 
     void setNoteModel(NoteModel & noteModel);
 

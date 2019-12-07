@@ -43,7 +43,7 @@ AddOrEditTagDialog::AddOrEditTagDialog(
     QDialog(parent),
     m_pUi(new Ui::AddOrEditTagDialog),
     m_pTagModel(pTagModel),
-    m_pTagNamesModel(Q_NULLPTR),
+    m_pTagNamesModel(nullptr),
     m_editedTagLocalUid(editedTagLocalUid),
     m_currentTagName(),
     m_stringUtils()

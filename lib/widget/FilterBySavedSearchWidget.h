@@ -36,7 +36,7 @@ class FilterBySavedSearchWidget: public QComboBox
 {
     Q_OBJECT
 public:
-    explicit FilterBySavedSearchWidget(QWidget * parent = Q_NULLPTR);
+    explicit FilterBySavedSearchWidget(QWidget * parent = nullptr);
 
     void switchAccount(
         const Account & account, SavedSearchModel * pSavedSearchModel);

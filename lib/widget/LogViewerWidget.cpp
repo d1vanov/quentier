@@ -53,7 +53,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pLogViewerModel(new LogViewerModel(this)),
     m_delayedSectionResizeTimer(),
     m_logLevelEnabledCheckboxPtrs(),
-    m_pLogEntriesContextMenu(Q_NULLPTR),
+    m_pLogEntriesContextMenu(nullptr),
     m_minLogLevelBeforeTracing(LogLevel::InfoLevel),
     m_filterByContentBeforeTracing(),
     m_filterByLogLevelBeforeTracing(),
@@ -77,7 +77,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
 
     for(size_t i = 0; i < sizeof(m_filterByLogLevelBeforeTracing); ++i) {
         m_filterByLogLevelBeforeTracing[i] = true;
-        m_logLevelEnabledCheckboxPtrs[i] = Q_NULLPTR;
+        m_logLevelEnabledCheckboxPtrs[i] = nullptr;
     }
 
     m_pUi->filterByContentLineEdit->setClearButtonEnabled(true);

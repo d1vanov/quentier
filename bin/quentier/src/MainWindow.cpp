@@ -175,20 +175,20 @@ using namespace quentier;
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
-    m_currentStatusBarChildWidget(Q_NULLPTR),
+    m_currentStatusBarChildWidget(nullptr),
     m_lastNoteEditorHtml(),
     m_nativeIconThemeName(),
     m_pAvailableAccountsActionGroup(new QActionGroup(this)),
-    m_pAvailableAccountsSubMenu(Q_NULLPTR),
+    m_pAvailableAccountsSubMenu(nullptr),
     m_pAccountManager(new AccountManager(this)),
     m_pAccount(),
-    m_pSystemTrayIconManager(Q_NULLPTR),
-    m_pLocalStorageManagerThread(Q_NULLPTR),
-    m_pLocalStorageManagerAsync(Q_NULLPTR),
+    m_pSystemTrayIconManager(nullptr),
+    m_pLocalStorageManagerThread(nullptr),
+    m_pLocalStorageManagerAsync(nullptr),
     m_lastLocalStorageSwitchUserRequest(),
-    m_pSynchronizationManagerThread(Q_NULLPTR),
-    m_pAuthenticationManager(Q_NULLPTR),
-    m_pSynchronizationManager(Q_NULLPTR),
+    m_pSynchronizationManagerThread(nullptr),
+    m_pAuthenticationManager(nullptr),
+    m_pSynchronizationManager(nullptr),
     m_synchronizationManagerHost(),
     m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest(),
     m_pendingNewEvernoteAccountAuthentication(false),
@@ -203,11 +203,11 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_tagCache(),
     m_savedSearchCache(),
     m_noteCache(),
-    m_pNotebookModel(Q_NULLPTR),
-    m_pTagModel(Q_NULLPTR),
-    m_pSavedSearchModel(Q_NULLPTR),
-    m_pNoteModel(Q_NULLPTR),
-    m_pNoteCountLabelController(Q_NULLPTR),
+    m_pNotebookModel(nullptr),
+    m_pTagModel(nullptr),
+    m_pSavedSearchModel(nullptr),
+    m_pNoteModel(nullptr),
+    m_pNoteCountLabelController(nullptr),
     m_pNotebookModelColumnChangeRerouter(
         new ColumnChangeRerouter(NotebookModel::Columns::NumNotesPerNotebook,
                                  NotebookModel::Columns::Name, this)),
@@ -220,14 +220,14 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pFavoritesModelColumnChangeRerouter(
         new ColumnChangeRerouter(FavoritesModel::Columns::NumNotesTargeted,
                                  FavoritesModel::Columns::DisplayName, this)),
-    m_pDeletedNotesModel(Q_NULLPTR),
-    m_pFavoritesModel(Q_NULLPTR),
+    m_pDeletedNotesModel(nullptr),
+    m_pFavoritesModel(nullptr),
     m_blankModel(),
-    m_pNoteFiltersManager(Q_NULLPTR),
+    m_pNoteFiltersManager(nullptr),
     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId(0),
     m_defaultAccountFirstNoteLocalUid(),
-    m_pNoteEditorTabsAndWindowsCoordinator(Q_NULLPTR),
-    m_pEditNoteDialogsManager(Q_NULLPTR),
+    m_pNoteEditorTabsAndWindowsCoordinator(nullptr),
+    m_pEditNoteDialogsManager(nullptr),
     m_pUndoStack(new QUndoStack(this)),
     m_styleSheetInfo(),
     m_currentPanelStyle(),
@@ -721,7 +721,7 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
         }
 
         QAction * pAccountAction =
-            new QAction(availableAccountRepresentationName, Q_NULLPTR);
+            new QAction(availableAccountRepresentationName, nullptr);
         m_pAvailableAccountsSubMenu->addAction(pAccountAction);
 
         pAccountAction->setData(i);
@@ -833,19 +833,19 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
 
     if (Q_UNLIKELY(m_pUI->noteEditorsTabWidget->count() == 0)) {
         QNTRACE("No open note editors");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     int currentIndex = m_pUI->noteEditorsTabWidget->currentIndex();
     if (Q_UNLIKELY(currentIndex < 0)) {
         QNTRACE("No current note editor");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QWidget * currentWidget = m_pUI->noteEditorsTabWidget->widget(currentIndex);
     if (Q_UNLIKELY(!currentWidget)) {
         QNTRACE("No current widget");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     NoteEditorWidget * noteEditorWidget =
@@ -853,7 +853,7 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
     if (Q_UNLIKELY(!noteEditorWidget)) {
         QNWARNING("Can't cast current note tag widget's widget "
                   "to note editor widget");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return noteEditorWidget;
@@ -1735,9 +1735,9 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
 
     pStatusBar->clearMessage();
 
-    if (m_currentStatusBarChildWidget != Q_NULLPTR) {
+    if (m_currentStatusBarChildWidget != nullptr) {
         pStatusBar->removeWidget(m_currentStatusBarChildWidget);
-        m_currentStatusBarChildWidget = Q_NULLPTR;
+        m_currentStatusBarChildWidget = nullptr;
     }
 
     if (duration == 0) {
@@ -3407,7 +3407,7 @@ void MainWindow::onAccountSwitched(Account account)
     }
 
     bool cacheIsUsed =
-        (m_pLocalStorageManagerAsync->localStorageCacheManager() != Q_NULLPTR);
+        (m_pLocalStorageManagerAsync->localStorageCacheManager() != nullptr);
     m_pLocalStorageManagerAsync->setUseCache(false);
 
     ErrorString errorDescription;
@@ -4682,7 +4682,7 @@ void MainWindow::setupModels()
                                          NoteModel::IncludedNotes::Deleted);
     m_pDeletedNotesModel->start();
 
-    if (m_pNoteCountLabelController == Q_NULLPTR) {
+    if (m_pNoteCountLabelController == nullptr) {
         m_pNoteCountLabelController =
             new NoteCountLabelController(*m_pUI->notesCountLabelPanel, this);
     }
@@ -4716,34 +4716,34 @@ void MainWindow::clearModels()
 
     if (m_pNotebookModel) {
         delete m_pNotebookModel;
-        m_pNotebookModel = Q_NULLPTR;
+        m_pNotebookModel = nullptr;
     }
 
     if (m_pTagModel) {
         delete m_pTagModel;
-        m_pTagModel = Q_NULLPTR;
+        m_pTagModel = nullptr;
     }
 
     if (m_pSavedSearchModel) {
         delete m_pSavedSearchModel;
-        m_pSavedSearchModel = Q_NULLPTR;
+        m_pSavedSearchModel = nullptr;
     }
 
     if (m_pNoteModel) {
         m_pNoteModel->stop(IStartable::StopMode::Forced);
         delete m_pNoteModel;
-        m_pNoteModel = Q_NULLPTR;
+        m_pNoteModel = nullptr;
     }
 
     if (m_pDeletedNotesModel) {
         m_pDeletedNotesModel->stop(IStartable::StopMode::Forced);
         delete m_pDeletedNotesModel;
-        m_pDeletedNotesModel = Q_NULLPTR;
+        m_pDeletedNotesModel = nullptr;
     }
 
     if (m_pFavoritesModel) {
         delete m_pFavoritesModel;
-        m_pFavoritesModel = Q_NULLPTR;
+        m_pFavoritesModel = nullptr;
     }
 }
 
@@ -4816,7 +4816,7 @@ void MainWindow::setupViews()
 
         if (pPreviousFavoriteItemDelegate) {
             pPreviousFavoriteItemDelegate->deleteLater();
-            pPreviousFavoriteItemDelegate = Q_NULLPTR;
+            pPreviousFavoriteItemDelegate = nullptr;
         }
     }
 
@@ -4859,7 +4859,7 @@ void MainWindow::setupViews()
 
         if (pPreviousNotebookItemDelegate) {
             pPreviousNotebookItemDelegate->deleteLater();
-            pPreviousNotebookItemDelegate = Q_NULLPTR;
+            pPreviousNotebookItemDelegate = nullptr;
         }
     }
 
@@ -4884,7 +4884,7 @@ void MainWindow::setupViews()
 
         if (pPreviousNotebookDirtyColumnDelegate) {
             pPreviousNotebookDirtyColumnDelegate->deleteLater();
-            pPreviousNotebookDirtyColumnDelegate = Q_NULLPTR;
+            pPreviousNotebookDirtyColumnDelegate = nullptr;
         }
     }
 
@@ -4935,7 +4935,7 @@ void MainWindow::setupViews()
 
         if (pPreviousTagDirtyColumnDelegate) {
             pPreviousTagDirtyColumnDelegate->deleteLater();
-            pPreviousTagDirtyColumnDelegate = Q_NULLPTR;
+            pPreviousTagDirtyColumnDelegate = nullptr;
         }
     }
 
@@ -4954,7 +4954,7 @@ void MainWindow::setupViews()
 
         if (pPreviousTagItemDelegate) {
             pPreviousTagItemDelegate->deleteLater();
-            pPreviousTagItemDelegate = Q_NULLPTR;
+            pPreviousTagItemDelegate = nullptr;
         }
     }
 
@@ -5005,7 +5005,7 @@ void MainWindow::setupViews()
 
         if (pPreviousSavedSearchDirtyColumnDelegate) {
             pPreviousSavedSearchDirtyColumnDelegate->deleteLater();
-            pPreviousSavedSearchDirtyColumnDelegate = Q_NULLPTR;
+            pPreviousSavedSearchDirtyColumnDelegate = nullptr;
         }
     }
 
@@ -5048,7 +5048,7 @@ void MainWindow::setupViews()
 
         if (pPreviousNoteItemDelegate) {
             pPreviousNoteItemDelegate->deleteLater();
-            pPreviousNoteItemDelegate = Q_NULLPTR;
+            pPreviousNoteItemDelegate = nullptr;
         }
     }
 
@@ -5172,7 +5172,7 @@ void MainWindow::setupViews()
 
         if (pPreviousDeletedNoteItemDelegate) {
             pPreviousDeletedNoteItemDelegate->deleteLater();
-            pPreviousDeletedNoteItemDelegate = Q_NULLPTR;
+            pPreviousDeletedNoteItemDelegate = nullptr;
         }
     }
 
@@ -5573,12 +5573,12 @@ void MainWindow::clearSynchronizationManager()
     if (m_pSynchronizationManager) {
         m_pSynchronizationManager->disconnect(this);
         m_pSynchronizationManager->deleteLater();
-        m_pSynchronizationManager = Q_NULLPTR;
+        m_pSynchronizationManager = nullptr;
     }
 
     if (m_pAuthenticationManager) {
         m_pAuthenticationManager->deleteLater();
-        m_pAuthenticationManager = Q_NULLPTR;
+        m_pAuthenticationManager = nullptr;
     }
 
     if (m_pSynchronizationManagerThread &&
@@ -5602,7 +5602,7 @@ void MainWindow::clearSynchronizationManager()
         m_pSynchronizationManagerThread->quit();
         m_pSynchronizationManagerThread->wait();
         m_pSynchronizationManagerThread->deleteLater();
-        m_pSynchronizationManagerThread = Q_NULLPTR;
+        m_pSynchronizationManagerThread = nullptr;
 
     }
 

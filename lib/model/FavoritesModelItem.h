@@ -69,7 +69,7 @@ public:
     void setNumNotesTargeted(const int numNotesTargeted)
     { m_numNotesTargeted = numNotesTargeted; }
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
     Type::type      m_type;

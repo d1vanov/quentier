@@ -37,7 +37,7 @@ public:
         const QString & targetFilePath,
         const QVector<LogLevel::type> & disabledLogLevels,
         const QString & logEntryContentFilter,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     virtual ~FileReaderAsync();
 

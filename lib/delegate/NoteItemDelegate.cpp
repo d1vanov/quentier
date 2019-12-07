@@ -54,7 +54,7 @@ QWidget * NoteItemDelegate::createEditor(
     Q_UNUSED(parent)
     Q_UNUSED(option)
     Q_UNUSED(index)
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void NoteItemDelegate::paint(
@@ -556,7 +556,7 @@ QString NoteItemDelegate::timestampToString(
             text = tr("last week");
         }
         else if (pastWeeks < 5) {
-            text = tr("%n weeks ago", Q_NULLPTR, pastWeeks);
+            text = tr("%n weeks ago", nullptr, pastWeeks);
         }
     }
     else if (targetDate == yesterdayDate)
@@ -573,7 +573,7 @@ QString NoteItemDelegate::timestampToString(
     {
         int pastDays = static_cast<int>(std::floor(timePassed / MSEC_PER_DAY + 0.5));
         if (pastDays < 6) {
-            text = tr("%n days ago", Q_NULLPTR, pastDays);
+            text = tr("%n days ago", nullptr, pastDays);
         }
     }
 

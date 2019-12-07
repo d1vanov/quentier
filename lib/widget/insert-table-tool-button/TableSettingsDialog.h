@@ -33,7 +33,7 @@ class TableSettingsDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit TableSettingsDialog(QWidget * parent = Q_NULLPTR);
+    explicit TableSettingsDialog(QWidget * parent = nullptr);
     virtual ~TableSettingsDialog();
 
     int numRows() const;

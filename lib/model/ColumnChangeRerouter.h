@@ -33,7 +33,7 @@ class ColumnChangeRerouter: public QObject
     Q_OBJECT
 public:
     explicit ColumnChangeRerouter(
-        const int columnFrom, const int columnTo, QObject * parent = Q_NULLPTR);
+        const int columnFrom, const int columnTo, QObject * parent = nullptr);
 
     void setModel(QAbstractItemModel * model);
 

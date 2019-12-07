@@ -56,12 +56,12 @@ SystemTrayIconManager::SystemTrayIconManager(
         QObject * parent) :
     QObject(parent),
     m_accountManager(accountManager),
-    m_pSystemTrayIcon(Q_NULLPTR),
-    m_pTrayIconContextMenu(Q_NULLPTR),
-    m_pAccountsTrayIconSubMenu(Q_NULLPTR),
-    m_pTrayIconKindSubMenu(Q_NULLPTR),
-    m_pAvailableAccountsActionGroup(Q_NULLPTR),
-    m_pTrayIconKindsActionGroup(Q_NULLPTR)
+    m_pSystemTrayIcon(nullptr),
+    m_pTrayIconContextMenu(nullptr),
+    m_pAccountsTrayIconSubMenu(nullptr),
+    m_pTrayIconKindSubMenu(nullptr),
+    m_pAvailableAccountsActionGroup(nullptr),
+    m_pTrayIconKindsActionGroup(nullptr)
 {
     createConnections();
     restoreTrayIconState();
@@ -731,7 +731,7 @@ void SystemTrayIconManager::setupContextMenu()
         Q_EMIT notifyError(errorDescription);
 
         if (m_pSystemTrayIcon) {
-            m_pSystemTrayIcon->setContextMenu(Q_NULLPTR);
+            m_pSystemTrayIcon->setContextMenu(nullptr);
         }
 
         return;
@@ -743,7 +743,7 @@ void SystemTrayIconManager::setupContextMenu()
                 "the context menu for the system tray icon");
 
         if (m_pSystemTrayIcon) {
-            m_pSystemTrayIcon->setContextMenu(Q_NULLPTR);
+            m_pSystemTrayIcon->setContextMenu(nullptr);
         }
 
         return;
@@ -837,7 +837,7 @@ void SystemTrayIconManager::setupAccountsSubMenu()
         }
 
         QAction * pAction =
-            new QAction(availableAccountRepresentationName, Q_NULLPTR);
+            new QAction(availableAccountRepresentationName, nullptr);
         m_pAccountsTrayIconSubMenu->addAction(pAction);
         pAction->setData(i);
         pAction->setCheckable(true);
@@ -905,7 +905,7 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
     {
         const QString & actionName = *it;
 
-        QAction * pAction = new QAction(actionName, Q_NULLPTR);
+        QAction * pAction = new QAction(actionName, nullptr);
         m_pTrayIconKindSubMenu->addAction(pAction);
         pAction->setData(actionName);
         pAction->setCheckable(true);
@@ -937,8 +937,8 @@ void SystemTrayIconManager::evaluateShowHideMenuActions()
     }
 
     QList<QAction*> actions = m_pTrayIconContextMenu->actions();
-    QAction * pShowAction = Q_NULLPTR;
-    QAction * pHideAction = Q_NULLPTR;
+    QAction * pShowAction = nullptr;
+    QAction * pHideAction = nullptr;
 
     QString showText = tr("Show");
     QString hideText = tr("Hide");

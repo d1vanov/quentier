@@ -69,7 +69,7 @@ QWidget * FavoriteItemDelegate::createEditor(
     }
     else
     {
-        return Q_NULLPTR;
+        return nullptr;
     }
 }
 

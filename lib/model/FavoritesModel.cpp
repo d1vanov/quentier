@@ -127,7 +127,7 @@ const FavoritesModelItem * FavoritesModel::itemForLocalUid(
     if (Q_UNLIKELY(it == localUidIndex.end())) {
         QNDEBUG("Can't find favorites model item by local uid: "
                 << localUid);
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(*it);
@@ -139,7 +139,7 @@ const FavoritesModelItem * FavoritesModel::itemAtRow(const int row) const
     if (Q_UNLIKELY((row < 0) || (rowIndex.size() <= static_cast<size_t>(row)))) {
         QNDEBUG("Detected attempt to get the favorites model item "
                 "for non-existing row");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(rowIndex[static_cast<size_t>(row)]);
