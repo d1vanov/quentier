@@ -31,17 +31,10 @@
 #include <QDesktopServices>
 #include <QThreadPool>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <QStandardPaths>
-#endif
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0)) || (defined(_MSC_VER) && (_MSC_VER <= 1600))
-#define QNSIGNAL(className, methodName, ...) SIGNAL(methodName(__VA_ARGS__))
-#define QNSLOT(className, methodName, ...) SLOT(methodName(__VA_ARGS__))
-#else
 #define QNSIGNAL(className, methodName, ...) &className::methodName
 #define QNSLOT(className, methodName, ...) &className::methodName
-#endif
 
 MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
                        const QString & libquentierSymbolsFileLocation,
@@ -80,13 +73,8 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
         return;
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString tmpDirPath =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-#else
-    QString tmpDirPath =
-        QDesktopServices::storageLocation(QDesktopServices::TempLocation);
-#endif
 
     m_unpackedSymbolsRootPath =
         tmpDirPath + QStringLiteral("/Quentier_debugging_symbols/symbols");

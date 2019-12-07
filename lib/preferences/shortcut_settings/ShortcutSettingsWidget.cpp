@@ -95,10 +95,7 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
     m_shortcutItems()
 {
     m_pUi->setupUi(this);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
     m_pUi->filterLineEdit->setClearButtonEnabled(true);
-#endif
 
     m_pUi->actionsTreeWidget->setRootIsDecorated(false);
     m_pUi->actionsTreeWidget->setUniformRowHeights(true);
@@ -106,13 +103,8 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
     m_pUi->actionsTreeWidget->setColumnCount(2);
     m_pUi->actionsTreeWidget->setMinimumHeight(200);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     m_pUi->actionsTreeWidget->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
-#else
-    m_pUi->actionsTreeWidget->header()->setResizeMode(
-        QHeaderView::ResizeToContents);
-#endif
 
     QTreeWidgetItem * pItem = m_pUi->actionsTreeWidget->headerItem();
     pItem->setText(0, tr("Action"));

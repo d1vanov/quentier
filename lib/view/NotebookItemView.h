@@ -151,11 +151,7 @@ private:
 
     QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
 
-#if QT_VERSION < 0x050000
-    QPointer<NoteModel>         m_pNoteModel;
-#else
     QPointer<const NoteModel>   m_pNoteModel;
-#endif
 
     QString     m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 

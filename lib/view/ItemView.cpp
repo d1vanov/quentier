@@ -27,24 +27,15 @@ ItemView::ItemView(QWidget * parent) :
 {}
 
 void ItemView::dataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    )
-#else
-    , const QVector<int> & roles)
-#endif
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
     QNTRACE("ItemView::dataChanged: top left: row = "
             << topLeft.row() << ", column = " << topLeft.column()
             << ", bottom right: row = " << bottomRight.row()
             << ", column = " << bottomRight.column());
 
-    QTreeView::dataChanged(topLeft, bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                           );
-#else
-                           , roles);
-#endif
+    QTreeView::dataChanged(topLeft, bottomRight, roles);
 
     /**
      * The default implementation of QTreeView doesn't resize the columns after

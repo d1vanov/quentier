@@ -33,13 +33,10 @@
 #include <QHash>
 #include <QFlags>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/bimap.hpp>
-#endif
 
 #include <utility>
 
@@ -342,12 +339,8 @@ public:
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
     // Drag-n-drop interfaces
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     virtual Qt::DropActions supportedDragActions() const Q_DECL_OVERRIDE
     { return Qt::MoveAction; }
-#else
-    Qt::DropActions supportedDragActions() const { return Qt::MoveAction; }
-#endif
 
     virtual Qt::DropActions supportedDropActions() const Q_DECL_OVERRIDE
     { return Qt::MoveAction; }
@@ -644,11 +637,7 @@ private:
     typedef QMap<QString, NotebookStackItem> StackItems;
     typedef QMap<QString, NotebookLinkedNotebookRootItem> LinkedNotebookItems;
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    typedef quint32 IndexId;
-#else
     typedef quintptr IndexId;
-#endif
 
     typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
     typedef boost::bimap<IndexId, std::pair<QString,QString> >

@@ -18,9 +18,11 @@
 
 #include "LogViewerDelegate.h"
 
+#include <QDate>
 #include <QFontMetrics>
 #include <QPainter>
 #include <QStringRef>
+#include <QTime>
 
 #include <cmath>
 

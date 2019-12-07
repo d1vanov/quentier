@@ -1,7 +1,3 @@
-if(BUILD_WITH_QT4)
-  return()
-endif()
-
 if(NOT CREATE_BUNDLE)
   return()
 endif()

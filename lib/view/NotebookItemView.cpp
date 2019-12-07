@@ -230,11 +230,7 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
 void NotebookItemView::setNoteModel(const NoteModel * pNoteModel)
 {
-#if QT_VERSION < 0x050000
-    m_pNoteModel = const_cast<NoteModel*>(pNoteModel);
-#else
     m_pNoteModel = pNoteModel;
-#endif
 }
 
 QModelIndex NotebookItemView::currentlySelectedItemIndex() const

@@ -80,9 +80,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
         m_logLevelEnabledCheckboxPtrs[i] = Q_NULLPTR;
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
     m_pUi->filterByContentLineEdit->setClearButtonEnabled(true);
-#endif
 
     setupLogLevels();
     setupLogFiles();

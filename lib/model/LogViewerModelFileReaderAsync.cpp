@@ -20,10 +20,7 @@
 
 #include <QFileInfo>
 #include <QTextStream>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
 #include <QTimeZone>
-#endif
 
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 

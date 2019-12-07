@@ -70,17 +70,10 @@ void FilterBySavedSearchWidget::switchAccount(
                             this,
                             QNSLOT(FilterBySavedSearchWidget,onModelRowsRemoved,
                                    const QModelIndex&,int,int));
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QObject::disconnect(m_pSavedSearchModel.data(),
-                            SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                            this,
-                            SLOT(onModelDataChanged(QModelIndex,QModelIndex)));
-#else
         QObject::disconnect(m_pSavedSearchModel.data(),
                             &SavedSearchModel::dataChanged,
                             this,
                             &FilterBySavedSearchWidget::onModelDataChanged);
-#endif
     }
 
     m_pSavedSearchModel = pSavedSearchModel;
@@ -199,21 +192,14 @@ void FilterBySavedSearchWidget::onModelRowsRemoved(
 }
 
 void FilterBySavedSearchWidget::onModelDataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    )
-#else
-    , const QVector<int> & roles)
-#endif
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
     QNDEBUG("FilterBySavedSearchWidget::onModelDataChanged");
 
     Q_UNUSED(topLeft)
     Q_UNUSED(bottomRight)
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     Q_UNUSED(roles)
-#endif
 
     updateSavedSearchesInComboBox();
 }
@@ -360,17 +346,10 @@ void FilterBySavedSearchWidget::connectoToSavedSearchModel()
                      QNSLOT(FilterBySavedSearchWidget,onModelRowsRemoved,
                             const QModelIndex&,int,int));
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    QObject::connect(m_pSavedSearchModel.data(),
-                     SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     this,
-                     SLOT(onModelDataChanged(QModelIndex,QModelIndex)));
-#else
     QObject::connect(m_pSavedSearchModel.data(),
                      &SavedSearchModel::dataChanged,
                      this,
                      &FilterBySavedSearchWidget::onModelDataChanged);
-#endif
 }
 
 } // namespace quentier

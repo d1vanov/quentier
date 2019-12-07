@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5.1)
 
 SET_POLICIES()
 
@@ -24,6 +24,11 @@ set(SOURCES
     ModelTester.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  PREFIX ""
+  CXX_STANDARD 17
+  CXX_EXTENSIONS OFF)
 
 add_sanitizers(${PROJECT_NAME})
 

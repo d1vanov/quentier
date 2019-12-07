@@ -31,15 +31,12 @@
 #include <QAbstractItemModel>
 #include <QScopedPointer>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/bimap.hpp>
-#endif
 
 namespace quentier {
 

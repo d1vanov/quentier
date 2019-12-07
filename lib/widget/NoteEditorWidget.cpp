@@ -1883,11 +1883,7 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
                     << ", will add the missing font name to the list");
 
             fontNames << fontFamily;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
             fontNames.sort(Qt::CaseInsensitive);
-#else
-            fontNames.sort();
-#endif
 
             auto it = std::lower_bound(fontNames.constBegin(),
                                        fontNames.constEnd(),
@@ -2914,18 +2910,11 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
         m_pUi->limitedFontComboBox->setItemDelegate(pDelegate);
     }
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    // NOTE: without this the combobox looks pretty ugly in Qt4
-    QLineEdit * pLineEdit = m_pUi->limitedFontComboBox->lineEdit();
-    if (pLineEdit) {
-        pLineEdit->setStyleSheet(QStringLiteral("padding-left: 2px;"));
-    }
-#endif
-
-    QObject::connect(m_pUi->limitedFontComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
+    QObject::connect(
+        m_pUi->limitedFontComboBox,
+        SIGNAL(currentIndexChanged(QString)),
+        this,
+        SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
 }
 
 void NoteEditorWidget::setupFontSizesComboBox()

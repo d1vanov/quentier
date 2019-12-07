@@ -69,12 +69,8 @@ private Q_SLOTS:
     void onModelRowsRemoved(const QModelIndex & parent, int start, int end);
 
     void onModelDataChanged(
-        const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-        );
-#else
-        , const QVector<int> & roles = QVector<int>());
-#endif
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>());
 
 private:
     void setupCompleter();

@@ -100,11 +100,7 @@ using quentier::LogViewerWidget;
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
-#else
-#include <qt4qevercloud/QEverCloud.h>
-#endif
 
 #include <QPushButton>
 #include <QIcon>
@@ -297,14 +293,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupPanelOverlayStyleSheets();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    fixupQt4StyleSheets();
-#endif
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
-#endif
 
     setWindowTitleForAccount(*m_pAccount);
 
@@ -1655,25 +1644,14 @@ QString MainWindow::alterStyleSheet(
             QString replacement =
                 propertyName + QStringLiteral(": ") + property.m_value;
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #define REPLACE()                                                              \
-            QNDEBUG("Replacing substring " << result.midRef(                   \
-                        propertyIndex, propertyEndIndex - propertyIndex)       \
-                    << " with " << replacement);                               \
-            result.replace(propertyIndex, propertyEndIndex - propertyIndex,    \
-                           replacement);                                       \
-            QNDEBUG("Stylesheet after the replacement: " << result)            \
+    QNDEBUG("Replacing substring " << result.midRef(                           \
+            propertyIndex, propertyEndIndex - propertyIndex)                   \
+            << " with " << replacement);                                       \
+    result.replace(propertyIndex, propertyEndIndex - propertyIndex,            \
+                   replacement);                                               \
+    QNDEBUG("Stylesheet after the replacement: " << result)                    \
 // REPLACE
-#else
-#define REPLACE()                                                              \
-            QNDEBUG("Replacing substring " << result.mid(                      \
-                        propertyIndex, propertyEndIndex - propertyIndex)       \
-                    << " with " << replacement);                               \
-            result.replace(propertyIndex, propertyEndIndex - propertyIndex,    \
-                           replacement);                                       \
-            QNDEBUG("Stylesheet after the replacement: " << result)            \
-// REPLACE
-#endif
 
             if (property.m_targetType == StyleSheetProperty::Target::None)
             {
@@ -1750,199 +1728,6 @@ bool MainWindow::isInsideStyleBlock(
     // is before the current index => the current index is inside the style block
     return true;
 }
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-void MainWindow::fixupQt4StyleSheets()
-{
-    QNDEBUG("MainWindow::fixupQt4StyleSheets");
-
-    QString alternateCentralWidgetStylesheet = QString::fromUtf8(
-                "QSplitter::handle {"
-                "   background-color: black;"
-                "}"
-                "QSplitter::handle:horizontal {"
-                "   width: 1px;"
-                "}"
-                "QSplitter::handle:vertical {"
-                "   height: 1px;"
-                "}"
-                "#noteEditorVerticalSplitter::handle {"
-                "   background: none;"
-                "}");
-    m_pUI->centralWidget->setStyleSheet(alternateCentralWidgetStylesheet);
-
-    QString alternateNoteListFrameStylesheet = QString::fromUtf8(
-                "#notesListAndFiltersFrame {"
-                "   border: none;"
-                "}");
-    m_pUI->notesListAndFiltersFrame->setStyleSheet(alternateNoteListFrameStylesheet);
-
-    QString alternateFilterBodyFrameStylesheet = QString::fromUtf8(
-                "#filterBodyFrame {"
-                "  padding: 0px;"
-                "  margin: 0px;"
-                "  border: none;"
-                "  border-top: 1px solid black;"
-                "}");
-    m_pUI->filterBodyFrame->setStyleSheet(alternateFilterBodyFrameStylesheet);
-
-    QString alternateViewStylesheetBase = QString::fromUtf8(
-                "{"
-                "   border: none;"
-                "   margin-top: 1px;"
-                "   background-color: transparent;"
-                "}");
-
-    QString alternateFavoritesTableViewStylesheet =
-        QString::fromUtf8("#favoritesTableView ") + alternateViewStylesheetBase;
-    m_pUI->favoritesTableView->setStyleSheet(alternateFavoritesTableViewStylesheet);
-
-    QString alternateNotebooksTreeViewStylesheet =
-        QString::fromUtf8("#notebooksTreeView ") + alternateViewStylesheetBase;
-    m_pUI->notebooksTreeView->setStyleSheet(alternateNotebooksTreeViewStylesheet);
-
-    QString alternateTagsTreeViewStylesheet =
-        QString::fromUtf8("#tagsTreeView ") + alternateViewStylesheetBase;
-    m_pUI->tagsTreeView->setStyleSheet(alternateTagsTreeViewStylesheet);
-
-    QString alternateSavedSearchTableViewStylesheet =
-        QString::fromUtf8("#savedSearchesTableView ") +
-        alternateViewStylesheetBase;
-    m_pUI->savedSearchesTableView->setStyleSheet(
-        alternateSavedSearchTableViewStylesheet);
-
-    QString alternateDeletedNotesTableViewStylesheet =
-        QString::fromUtf8("#deletedNotesTableView ") +
-        alternateViewStylesheetBase;
-    m_pUI->deletedNotesTableView->setStyleSheet(
-        alternateDeletedNotesTableViewStylesheet);
-
-    QString alternateSidePanelSplitterStylesheet = QString::fromUtf8(
-                "QFrame {"
-                "   border: none;"
-                "}"
-                "#sidePanelSplitter {"
-                "   border-bottom: 1px solid black;"
-                "}");
-    m_pUI->sidePanelSplitter->setStyleSheet(alternateSidePanelSplitterStylesheet);
-
-    QString alternateNoteListWidgetHeaderPanelStylesheet =
-        m_pUI->noteListWidgetHeaderPanel->styleSheet();
-    int index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
-        QStringLiteral("QLabel"));
-    if (Q_UNLIKELY(index < 0))
-    {
-        QNDEBUG("Can't fixup the stylesheet of note list widget "
-                "header panel: no QLabel within the stylesheet");
-        return;
-    }
-
-    index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
-        QStringLiteral("border-right"), index);
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of note list widget "
-                "header panel: no border-right property for QLabel "
-                "within the stylesheet");
-        return;
-    }
-
-    int propertyEndIndex = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
-        QStringLiteral(";"), index);
-    if (Q_UNLIKELY(propertyEndIndex < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of note list widget "
-                "header panel: no closing \";\" for border-right "
-                "property for QLabel within the stylesheet");
-        return;
-    }
-
-    alternateNoteListWidgetHeaderPanelStylesheet.remove(
-        index, propertyEndIndex - index + 1);
-    QNDEBUG("alternateNoteListWidgetHeaderPanelStylesheet: "
-            << alternateNoteListWidgetHeaderPanelStylesheet);
-    m_pUI->noteListWidgetHeaderPanel->setStyleSheet(
-        alternateNoteListWidgetHeaderPanelStylesheet);
-
-    // Add bottom border to the header panel widgets
-    QString alternativeFavoritesHeaderPanelStylesheet =
-        m_pUI->favoritesHeaderPanel->styleSheet();
-    index = alternativeFavoritesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of favorites header "
-                "panel: no first closing curly brace found within "
-                "the stylesheet");
-        return;
-    }
-    alternativeFavoritesHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->favoritesHeaderPanel->setStyleSheet(
-        alternativeFavoritesHeaderPanelStylesheet);
-    m_pUI->favoritesHeaderPanel->setMinimumHeight(23);
-    m_pUI->favoritesHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeNotebooksHeaderPanelStylesheet =
-        m_pUI->notebooksHeaderPanel->styleSheet();
-    index = alternativeNotebooksHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of notebooks header "
-                "panel: no first closing curly brace found within "
-                "the stylesheet");
-        return;
-    }
-    alternativeNotebooksHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->notebooksHeaderPanel->setStyleSheet(
-        alternativeNotebooksHeaderPanelStylesheet);
-    m_pUI->notebooksHeaderPanel->setMinimumHeight(23);
-    m_pUI->notebooksHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeTagsHeaderPanelStylesheet =
-        m_pUI->tagsHeaderPanel->styleSheet();
-    index = alternativeTagsHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of tags header panel: "
-                "no first closing curly brace found within "
-                "the stylesheet");
-        return;
-    }
-    alternativeTagsHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->tagsHeaderPanel->setStyleSheet(alternativeTagsHeaderPanelStylesheet);
-    m_pUI->tagsHeaderPanel->setMinimumHeight(23);
-    m_pUI->tagsHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeSavedSearchesHeaderPanelStylesheet =
-        m_pUI->savedSearchesHeaderPanel->styleSheet();
-    index = alternativeSavedSearchesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of saved searches "
-                "header panel: no first closing curly brace "
-                "found within the stylesheet");
-        return;
-    }
-    alternativeSavedSearchesHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->savedSearchesHeaderPanel->setStyleSheet(
-        alternativeSavedSearchesHeaderPanelStylesheet);
-    m_pUI->savedSearchesHeaderPanel->setMinimumHeight(23);
-    m_pUI->savedSearchesHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeDeletedNotesHeaderPanelStylesheet =
-        m_pUI->deletedNotesHeaderPanel->styleSheet();
-    index = alternativeDeletedNotesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of deleted notes "
-                "header panel: no first closing curly brace "
-                "found within the stylesheet");
-        return;
-    }
-    alternativeDeletedNotesHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->deletedNotesHeaderPanel->setStyleSheet(
-        alternativeDeletedNotesHeaderPanelStylesheet);
-    m_pUI->deletedNotesHeaderPanel->setMinimumHeight(23);
-    m_pUI->deletedNotesHeaderPanel->setMaximumHeight(23);
-}
-#endif
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
 {
@@ -5041,21 +4826,12 @@ void MainWindow::setupViews()
     pFavoritesTableView->setColumnWidth(FavoritesModel::Columns::Type,
                                         pFavoriteItemDelegate->sideSize());
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pFavoritesModelColumnChangeRerouter,
                      &ColumnChangeRerouter::dataChanged,
                      pFavoritesTableView,
                      &FavoriteItemView::dataChanged,
                      Qt::UniqueConnection);
     pFavoritesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    QObject::connect(m_pFavoritesModelColumnChangeRerouter,
-                     SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     pFavoritesTableView,
-                     SLOT(dataChanged(QModelIndex,QModelIndex)),
-                     Qt::UniqueConnection);
-    pFavoritesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
 
     QObject::connect(pFavoritesTableView,
                      QNSIGNAL(FavoriteItemView,notifyError,ErrorString),
@@ -5114,7 +4890,6 @@ void MainWindow::setupViews()
 
     pNotebooksTreeView->setColumnWidth(NotebookModel::Columns::Dirty,
                                        pNotebookDirtyColumnDelegate->sideSize());
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pNotebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pNotebookModelColumnChangeRerouter,
                      QNSIGNAL(ColumnChangeRerouter,dataChanged,
@@ -5125,16 +4900,6 @@ void MainWindow::setupViews()
                             const QModelIndex&,const QModelIndex&,
                             const QVector<int>&),
                      Qt::UniqueConnection);
-#else
-    pNotebooksTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
-    QObject::connect(m_pNotebookModelColumnChangeRerouter,
-                     QNSIGNAL(ColumnChangeRerouter,dataChanged,
-                              const QModelIndex&,const QModelIndex&),
-                     pNotebooksTreeView,
-                     QNSLOT(NotebookItemView,dataChanged,
-                            const QModelIndex&,const QModelIndex&),
-                     Qt::UniqueConnection);
-#endif
 
     QObject::connect(pNotebooksTreeView,
                      QNSIGNAL(NotebookItemView,newNotebookCreationRequested),
@@ -5193,7 +4958,6 @@ void MainWindow::setupViews()
         }
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pTagsTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pTagModelColumnChangeRerouter,
                      QNSIGNAL(ColumnChangeRerouter,dataChanged,
@@ -5204,16 +4968,6 @@ void MainWindow::setupViews()
                             const QModelIndex&,const QModelIndex&,
                             const QVector<int>&),
                      Qt::UniqueConnection);
-#else
-    pTagsTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
-    QObject::connect(m_pTagModelColumnChangeRerouter,
-                     QNSIGNAL(ColumnChangeRerouter,dataChanged,
-                              const QModelIndex&,const QModelIndex&),
-                     pTagsTreeView,
-                     QNSLOT(TagItemView,dataChanged,
-                            const QModelIndex&,const QModelIndex&),
-                     Qt::UniqueConnection);
-#endif
 
     QObject::connect(pTagsTreeView,
                      QNSIGNAL(TagItemView,newTagCreationRequested),
@@ -5258,11 +5012,7 @@ void MainWindow::setupViews()
     pSavedSearchesTableView->setColumnWidth(
         SavedSearchModel::Columns::Dirty,
         pSavedSearchDirtyColumnDelegate->sideSize());
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pSavedSearchesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    pSavedSearchesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
 
     QObject::connect(pSavedSearchesTableView,
                      QNSIGNAL(SavedSearchItemView,savedSearchInfoRequested),
@@ -5303,19 +5053,11 @@ void MainWindow::setupViews()
     }
 
     pNoteListView->setNotebookItemView(pNotebooksTreeView);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pNoteModelColumnChangeRerouter,
                      &ColumnChangeRerouter::dataChanged,
                      pNoteListView,
                      &NoteListView::dataChanged,
                      Qt::UniqueConnection);
-#else
-    QObject::connect(m_pNoteModelColumnChangeRerouter,
-                     SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     pNoteListView,
-                     SLOT(dataChanged(QModelIndex,QModelIndex)),
-                     Qt::UniqueConnection);
-#endif
     QObject::connect(pNoteListView,
                      QNSIGNAL(NoteListView,currentNoteChanged,QString),
                      this,
@@ -5434,11 +5176,7 @@ void MainWindow::setupViews()
         }
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pDeletedNotesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    pDeletedNotesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
 
     if (!m_pEditNoteDialogsManager)
     {

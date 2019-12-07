@@ -197,19 +197,10 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 }
 
 void NoteListView::dataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    )
-#else
-    , const QVector<int> & roles)
-#endif
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
-    QListView::dataChanged(topLeft, bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                               );
-#else
-                               , roles);
-#endif
+    QListView::dataChanged(topLeft, bottomRight, roles);
 }
 
 void NoteListView::rowsAboutToBeRemoved(

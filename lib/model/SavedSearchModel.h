@@ -32,14 +32,11 @@
 #include <QUuid>
 #include <QSet>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#endif
 
 namespace quentier {
 

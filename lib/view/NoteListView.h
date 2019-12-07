@@ -116,13 +116,8 @@ public Q_SLOTS:
      * the implementation of QListView's dataChanged protected slot
      */
     virtual void dataChanged(
-        const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-        )
-#else
-        , const QVector<int> & roles = QVector<int>())
-#endif
-        Q_DECL_OVERRIDE;
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>()) Q_DECL_OVERRIDE;
 
     virtual void rowsAboutToBeRemoved(
         const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;

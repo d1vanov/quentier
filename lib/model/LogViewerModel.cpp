@@ -35,10 +35,7 @@
 #include <QFile>
 #include <QCoreApplication>
 #include <QMetaType>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
 #include <QTimeZone>
-#endif
 
 #include <algorithm>
 
@@ -208,15 +205,10 @@ void LogViewerModel::setLogFileName(
     m_currentLogFileSizePollingTimer.start(
         LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC, this);
 
-    // NOTE: for unknown reason QFileSystemWatcher from Qt4 fails to add any log
-    // file path + also hangs the process; hence, using only the current log file
-    // size polling timer as the means to watch the log file's changes with Qt4
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString filePath = m_currentLogFileInfo.absoluteFilePath();
     if (!m_currentLogFileWatcher.files().contains(filePath)) {
         m_currentLogFileWatcher.addPath(filePath);
     }
-#endif
 
     qint64 startPos = (m_filteringOptions.m_startLogFilePos.isSet()
                        ? m_filteringOptions.m_startLogFilePos.ref()
@@ -503,13 +495,9 @@ QString LogViewerModel::dataEntryToString(
     QTextStream strm(&result);
 
     strm << dataEntry.m_timestamp.toString(
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-                                           QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
-#else
-                                           QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz")
-#endif
-                                           )
-         << " "
+        QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t"));
+
+    strm << " "
          << dataEntry.m_sourceFileName
          << QNLOG_FILE_LINENUMBER_DELIMITER
          << QString::number(dataEntry.m_sourceFileLineNumber)

@@ -213,19 +213,13 @@ void EnexImportDialog::onEnexFilePathEdited(const QString & path)
     checkConditionsAndEnableDisableOkButton();
 }
 
-void EnexImportDialog::dataChanged(const QModelIndex & topLeft,
-                                   const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                                   )
-#else
-                                   , const QVector<int> & roles)
-#endif
+void EnexImportDialog::dataChanged(
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
     QNDEBUG("EnexImportDialog::dataChanged");
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     Q_UNUSED(roles)
-#endif
 
     if (!topLeft.isValid() || !bottomRight.isValid()) {
         QNDEBUG("At least one of changed indexes is invalid");
@@ -329,15 +323,8 @@ void EnexImportDialog::createConnections()
 
     if (!m_pNotebookModel.isNull())
     {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
         QObject::connect(m_pNotebookModel.data(), &NotebookModel::dataChanged,
                          this, &EnexImportDialog::dataChanged);
-#else
-        QObject::connect(m_pNotebookModel.data(),
-                         SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                         this,
-                         SLOT(dataChanged(QModelIndex,QModelIndex)));
-#endif
         QObject::connect(m_pNotebookModel.data(),
                          QNSIGNAL(NotebookModel,rowsInserted,QModelIndex,int,int),
                          this,

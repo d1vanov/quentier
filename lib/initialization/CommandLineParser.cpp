@@ -25,10 +25,7 @@
 #include <string>
 #include <sstream>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef QT_MOC_RUN
 #include <boost/program_options.hpp>
-#endif
 
 // Overloaded function required in order to use boost::program_options along
 // with QString

@@ -44,13 +44,7 @@
 #include <quentier/synchronization/AuthenticationManager.h>
 
 #include <QtCore>
-
-#if QT_VERSION >= 0x050000
 #include <QtWidgets/QMainWindow>
-#else
-#include <QMainWindow>
-#endif
-
 #include <QTextListFormat>
 #include <QMap>
 #include <QStandardItemModel>
@@ -527,14 +521,6 @@ private:
      * Toggle value of "show note thumbnails".
      */
     void toggleShowNoteThumbnails() const;
-
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    // Qt4 has a problem with zero-size QSplitter handles - they don't work that
-    // way. Hence, need to set the alternate stylesheet for Qt4 version, with
-    // non-zero-size QSplitter handles and some other elements' boundaries removed
-    void fixupQt4StyleSheets();
-#endif
 
 private:
     Ui::MainWindow *        m_pUI;

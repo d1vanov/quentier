@@ -86,12 +86,7 @@ bool parseStartupAccount(
 
         QStringRef userIdStr = str.midRef(0, nextUnderlineIndex);
         bool conversionResult = false;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
         userId = static_cast<qevercloud::UserID>(userIdStr.toInt(&conversionResult));
-#else
-        userId = static_cast<qevercloud::UserID>(userIdStr.toString()
-                                                 .toInt(&conversionResult));
-#endif
         if (Q_UNLIKELY(!conversionResult))
         {
             errorDescription.setBase(

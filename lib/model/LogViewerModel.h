@@ -26,6 +26,8 @@
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/types/ErrorString.h>
 
+#include <qt5qevercloud/QEverCloud.h>
+
 #include <QAbstractTableModel>
 #include <QFileInfo>
 #include <QFile>
@@ -37,12 +39,9 @@
 #include <QHash>
 #include <QFlags>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#endif
 
 namespace quentier {
 

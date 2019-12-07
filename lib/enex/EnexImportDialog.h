@@ -59,12 +59,8 @@ private Q_SLOTS:
 
     // Slots to track the updates of notebook model
     void dataChanged(
-        const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-        );
-#else
-        , const QVector<int> & roles = QVector<int>());
-#endif
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>());
 
     void rowsInserted(const QModelIndex & parent, int start, int end);
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);

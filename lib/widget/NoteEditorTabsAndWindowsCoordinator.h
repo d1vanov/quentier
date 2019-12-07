@@ -35,11 +35,8 @@
 #include <QPointer>
 #include <QUuid>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/circular_buffer.hpp>
 #include <boost/bimap.hpp>
-#endif
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
 QT_FORWARD_DECLARE_CLASS(QThread)
