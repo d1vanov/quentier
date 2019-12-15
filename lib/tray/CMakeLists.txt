@@ -13,7 +13,7 @@ set(SOURCES
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 17
+  CXX_STANDARD 14
   CXX_EXTENSIONS OFF)
 
 set(quentier_tray ${PROJECT_NAME} CACHE INTERNAL "quentier_tray")

@@ -27,7 +27,7 @@ qt_wrap_ui(FORMS_HEADERS ${FORMS})
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 17
+  CXX_STANDARD 14
   CXX_EXTENSIONS OFF)
 
 set(quentier_preferences ${PROJECT_NAME} CACHE INTERNAL "quentier_preferences")
