@@ -1,7 +1,3 @@
-if(NOT USE_QT5)
-  return()
-endif()
-
 if(NOT CREATE_BUNDLE)
   return()
 endif()

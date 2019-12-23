@@ -47,7 +47,12 @@ make install
 On Windows the `cmake` step is usually more convenient to do using GUI version of `CMake`. For build instead of `make`
 it is convenient to call `cmake --build .` command; if target specification is required, it can be done like this:
 `cmake --build . --target install`.
-	
+
+The Qt version being searched/used by default is Qt5. If you want to build against Qt4, use `BUILD_WITH_QT4` `CMake` option:
+```
+cmake -DBUILD_WITH_QT4=YES <...>
+```
+
 If you installed Quentier's or libquentier's dependencies into non-standard locations, the `cmake` step
 from the above list might fail to find some library. You can give `CMake` some hints where to find the dependencies:
 

@@ -1,0 +1,57 @@
+/*
+ * Copyright 2017-2019 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef QUENTIER_VERSION_INFO_H
+#define QUENTIER_VERSION_INFO_H
+
+/**
+ * This file contains automatically generated code including macro definitions
+ * which determine packaging-specific properties of quentier
+ */
+
+/** 
+ * This macro is set to true if quentier was packaged as AppImage on Linux
+ */
+@QUENTIER_PACKAGED_AS_APP_IMAGE@
+
+/**
+ * This macro contains the name of libquentier binary found by CMake
+ */
+@QUENTIER_LIBQUENTIER_BINARY_NAME@
+/**
+ * This macro denotes the major version number of Quentier
+ */
+@QUENTIER_MAJOR_VERSION@
+
+/**
+ * This macro denotes the minor version number of Quentier
+ */
+@QUENTIER_MINOR_VERSION@
+
+/**
+ * This macro denotes the patch version number of Quentier
+ */
+@QUENTIER_PATCH_VERSION@
+
+/**
+ * This macro is set to a string holding the information about the current
+ * Quentier build
+ */
+@QUENTIER_BUILD_INFO@
+
+#endif // QUENTIER_VERSION_INFO_H

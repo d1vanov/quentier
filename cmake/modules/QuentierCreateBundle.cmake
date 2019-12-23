@@ -4,10 +4,6 @@ function(CreateQuentierBundle)
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    if(NOT USE_QT5)
-      message(STATUS "Deployment on Linux is only supported with Qt5")
-      return()
-    endif()
     set(ARCH "")
     execute_process(COMMAND /bin/uname -m
                     OUTPUT_VARIABLE ARCH
@@ -19,23 +15,22 @@ function(CreateQuentierBundle)
 
   # Need several libraries for packaging. Most of them should have been found along with libquentier:
   # 1) OpenSLL
-  # 2) QEverCloud (Qt4 or Qt5 version)
-  # 3) QtKeychain (Qt4 or Qt5 version)
+  # 2) QEverCloud
+  # 3) QtKeychain
   # 4) libxml2
   # 5) libtidy5
   # 6) libhunspell
-  # 7) qt4-mimetypes (in Qt4 version only)
   # 
   # However, there are a few more dependencies. One group is represented by the dependencies of libquentier's dependencie:
-  # 8) iconv (for libxml2)
-  # 9) zlib (for libxml2 / iconv)
+  # 7) iconv (for libxml2)
+  # 8) zlib (for libxml2 / iconv)
   # 
   # And, of course, need to deploy libquentier itself
-  # 10) libquentier
+  # 9) libquentier
   # 
   # Also, quentier has one or more additional dependencies of its own:
-  # 11) boost program options
-  # 12) Google breakpad, if used
+  # 10) boost program options
+  # 11) Google breakpad, if used
 
   message(STATUS "Searching for additional dependencies for deployment")
 
@@ -78,31 +73,24 @@ function(CreateQuentierBundle)
   get_filename_component(HUNSPELL_LIB_DIR "${HUNSPELL_LIBRARIES}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS "${HUNSPELL_LIB_DIR}")
 
-  # 7) qt4-mimetypes
-  if(NOT USE_QT5)
-    get_property(QT4-MIMETYPES_LIBRARY_LOCATION TARGET ${QT4-MIMETYPES_LIBRARIES} PROPERTY LOCATION)
-    get_filename_component(QT4-MIMETYPES_LIB_DIR "${QT4-MIMETYPES_LIBRARY_LOCATION}" PATH)
-    list(APPEND THIRDPARTY_LIB_DIRS "${QT4-MIMETYPES_LIB_DIR}")
-  endif()
-
-  # 8) iconv
+  # 7) iconv
   get_filename_component(ICONV_LIB_DIR "${ICONV_LIBRARIES}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS "${ICONV_LIB_DIR}")
 
-  # 9) zlib
+  # 8) zlib
   get_filename_component(ZLIB_LIB_DIR "${ZLIB_LIBRARIES}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS "${ZLIB_LIB_DIR}")
 
-  # 10) libquentier
+  # 9) libquentier
   get_property(LIBQUENTIER_LIBRARY_LOCATION TARGET ${LIBQUENTIER_LIBRARIES} PROPERTY LOCATION)
   get_filename_component(LIBQUENTIER_LIB_DIR "${LIBQUENTIER_LIBRARY_LOCATION}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS "${LIBQUENTIER_LIB_DIR}")
 
-  # 11) Boost program options
+  # 10) Boost program options
   get_filename_component(BOOST_LIB_DIR "${Boost_LIBRARIES}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS "${BOOST_LIB_DIR}")
 
-  # 12) Google breakpad - include only on non-Windows platforms due to the following:
+  # 11) Google breakpad - include only on non-Windows platforms due to the following:
   # dump_syms.exe doesn't have any runtime dependencies and minidump_stackwalk.exe
   # requires some Cygwin dlls but the latter ones cannot be properly deployed
   # by CMake's fixup_bundle because it assumes all binaries built with MSVC
@@ -120,23 +108,18 @@ function(CreateQuentierBundle)
     else()
       set(DEBUG_SUFFIX "")
     endif()
-    set(APPS "${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}.exe")
+    set(APPS "${CMAKE_INSTALL_BINDIR}/quentier.exe")
   elseif(APPLE)
-    set(APPS "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app")
+    set(APPS "${CMAKE_INSTALL_PREFIX}/quentier.app")
   else()
-    set(APPS "${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}")
+    set(APPS "${CMAKE_INSTALL_PREFIX}/bin/quentier")
   endif()
 
-  if(WIN32 AND USE_QT5)
+  if(WIN32)
     set(DEPLOYQT_TOOL "${Qt5Core_DIR}/../../../bin/windeployqt")
     message(STATUS "Windeployqt path: ${DEPLOYQT_TOOL}")
   elseif(APPLE)
-    if(USE_QT5)
-      set(DEPLOYQT_TOOL "${Qt5Core_DIR}/../../../bin/macdeployqt")
-    else()
-      get_filename_component(QT_BIN_DIR ${QT_QMAKE_EXECUTABLE} PATH)
-      set(DEPLOYQT_TOOL "${QT_BIN_DIR}/macdeployqt")
-    endif()
+    set(DEPLOYQT_TOOL "${Qt5Core_DIR}/../../../bin/macdeployqt")
     message(STATUS "Macdeployqt path: ${DEPLOYQT_TOOL}")
   else()
     set(DEPLOYQT_TOOL ${LINUXDEPLOYQT})
@@ -153,52 +136,44 @@ function(CreateQuentierBundle)
   endforeach()
 
   if(WIN32)
-    if(USE_QT5)
-      set(WINDEPLOYQT_OPTIONS "--no-compiler-runtime")
-      if(MINGW AND ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-        # Without this windeployqt thinks the binary is the debug one and deploys a ton of debug Qt libraries of huge weight
-        set(WINDEPLOYQT_OPTIONS "${WINDEPLOYQT_OPTIONS} --release")
-      endif()
+    set(WINDEPLOYQT_OPTIONS "--no-compiler-runtime")
+    if(MINGW AND ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+      # Without this windeployqt thinks the binary is the debug one and deploys a ton of debug Qt libraries of huge weight
+      set(WINDEPLOYQT_OPTIONS "${WINDEPLOYQT_OPTIONS} --release")
+    endif()
+    install(CODE "
+            message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
+            execute_process(COMMAND ${DEPLOYQT_TOOL} ${WINDEPLOYQT_OPTIONS} ${APPS})
+            " COMPONENT Runtime)
+
+    if(LIBQUENTIER_USE_QT_WEB_ENGINE)
+      set(QTWEBENGINEPROCESS "${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe")
+      install(FILES "${QTWEBENGINEPROCESS}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
+      install(DIRECTORY "${Qt5Core_DIR}/../../../resources" DESTINATION "${CMAKE_INSTALL_BINDIR}")
+      install(DIRECTORY "${Qt5Core_DIR}/../../../translations/qtwebengine_locales" DESTINATION "${CMAKE_INSTALL_BINDIR}/translations")
+    endif()
+
+    # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
+    install(FILES "${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll" DESTINATION ${CMAKE_INSTALL_BINDIR}/sqldrivers)
+
+    # fixup other dependencies not taken care of by windeployqt/macdeployqt
+    install(CODE "
+            include(CMakeParseArguments)
+            include(${CMAKE_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
+            include(InstallRequiredSystemLibraries)
+            fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
+            " COMPONENT Runtime)
+
+    # MinGW dlls require some special treatment
+    if(MINGW)
+      get_filename_component(MINGW_PATH ${CMAKE_CXX_COMPILER} PATH)
       install(CODE "
-              message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-              execute_process(COMMAND ${DEPLOYQT_TOOL} ${WINDEPLOYQT_OPTIONS} ${APPS})
+              message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libgcc_s_dw2-1.dll\")
+              file(COPY \"${MINGW_PATH}/libgcc_s_dw2-1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+              message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libstdc++-6.dll\")
+              file(COPY \"${MINGW_PATH}/libstdc++-6.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
               " COMPONENT Runtime)
-
-      if(LIBQUENTIER_USE_QT_WEB_ENGINE)
-        set(QTWEBENGINEPROCESS "${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe")
-        install(FILES "${QTWEBENGINEPROCESS}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
-        install(DIRECTORY "${Qt5Core_DIR}/../../../resources" DESTINATION "${CMAKE_INSTALL_BINDIR}")
-        install(DIRECTORY "${Qt5Core_DIR}/../../../translations/qtwebengine_locales" DESTINATION "${CMAKE_INSTALL_BINDIR}/translations")
-      endif()
-
-      # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
-      install(FILES "${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll" DESTINATION ${CMAKE_INSTALL_BINDIR}/sqldrivers)
-
-      # fixup other dependencies not taken care of by windeployqt/macdeployqt
-      install(CODE "
-              include(CMakeParseArguments)
-              include(${PROJECT_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
-              include(InstallRequiredSystemLibraries)
-              fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
-              " COMPONENT Runtime)
-
-      # MinGW dlls require some special treatment
-      if(MINGW)
-        get_filename_component(MINGW_PATH ${CMAKE_CXX_COMPILER} PATH)
-        install(CODE "
-                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libgcc_s_dw2-1.dll\")
-                file(COPY \"${MINGW_PATH}/libgcc_s_dw2-1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-                message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libstdc++-6.dll\")
-                file(COPY \"${MINGW_PATH}/libstdc++-6.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-                " COMPONENT Runtime)
-      endif()
-    else()
-      install(CODE "
-              include(DeployQt4)
-              include(InstallRequiredSystemLibraries)
-              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
-              " COMPONENT Runtime)
-    endif(USE_QT5)
+    endif()
 
     # Forcefully installing OpenSSL dlls, they don't seem to be included for unknown reason
     install(CODE "
@@ -261,8 +236,8 @@ function(CreateQuentierBundle)
       # MinGW built binary for some reason searches for dlls first on PATH and only then at its folder
       # Working around this: installing custom bat file for launching of quentier.exe with empty PATH
       install(CODE "
-              file(COPY \"${PROJECT_SOURCE_DIR}/src/installer/windows/quentier.bat\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-              file(COPY \"${PROJECT_SOURCE_DIR}/src/installer/windows/quentier_launcher.vbs\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+              file(COPY \"${CMAKE_SOURCE_DIR}/bin/quentier/src/installer/windows/quentier.bat\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+              file(COPY \"${CMAKE_SOURCE_DIR}/bin/quentier/src/installer/windows/quentier_launcher.vbs\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
               " COMPONENT Runtime)
     endif()
 
@@ -277,15 +252,52 @@ function(CreateQuentierBundle)
 
     if(NSIS_FOUND AND CREATE_INSTALLER)
       install(CODE "
-              execute_process(COMMAND \"${NSIS_MAKE}\" \"${PROJECT_BINARY_DIR}/wininstaller.nsi\")
+              execute_process(COMMAND \"${NSIS_MAKE}\" \"${CMAKE_BINARY_DIR}/bin/quentier/wininstaller.nsi\")
 	            " COMPONENT Runtime)
     endif()
   elseif(APPLE)
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
             execute_process(COMMAND ${DEPLOYQT_TOOL} ${APPS} ERROR_QUIET)
-            execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/MacOS/${PROJECT_NAME})
+            execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/MacOS/quentier)
             " COMPONENT Runtime)
+    if(LIBQUENTIER_USE_QT_WEB_ENGINE)
+      install(CODE "
+              message(STATUS \"Deploying QtWebEngineProcess.app\")
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers\"
+                              COMMAND ${DEPLOYQT_TOOL} QtWebEngineProcess.app -executable=./QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
+                              COMMAND \"rm\" -rf Frameworks)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
+                              COMMAND \"mkdir\" -p Frameworks)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtCore.framework QtCore.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtDBus.framework QtDbus.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtGui.framework QtGui.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtNetwork.framework QtNetwork.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtPositioning.framework QtPositioning.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtPrintSupport.framework QtPrintSupport.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtQml.framework QtQml.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtQuick.framework QtQuick.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtSerialPort.framework QtSerialPort.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtSvg.framework QtSvg.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtWebChannel.framework QtWebChannel.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtWebEngineCore.framework QtWebEngineCore.framework)
+              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                              COMMAND \"ln\" -s ../../../../../../../QtWidgets.framework QtWidgets.framework)
+              " COMPONENT Runtime)
+    endif()
   else()
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
