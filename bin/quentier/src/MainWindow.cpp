@@ -4529,6 +4529,14 @@ void MainWindow::setupThemeIcons()
     m_nativeIconThemeName = QIcon::themeName();
     QNDEBUG("Native icon theme name: " << m_nativeIconThemeName);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+    if (m_nativeIconThemeName.isEmpty()) {
+        m_nativeIconThemeName = QIcon::fallbackThemeName();
+        QNDEBUG("No native icon theme name, fallback one: "
+            << m_nativeIconThemeName);
+    }
+#endif
+
     if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
         QNDEBUG("There seems to be no native icon theme available: "
                 "document-new icon is not present within the theme");
