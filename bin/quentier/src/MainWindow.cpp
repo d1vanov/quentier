@@ -4529,14 +4529,6 @@ void MainWindow::setupThemeIcons()
     m_nativeIconThemeName = QIcon::themeName();
     QNDEBUG("Native icon theme name: " << m_nativeIconThemeName);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-    if (m_nativeIconThemeName.isEmpty()) {
-        m_nativeIconThemeName = QIcon::fallbackThemeName();
-        QNDEBUG("No native icon theme name, fallback one: "
-            << m_nativeIconThemeName);
-    }
-#endif
-
     if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
         QNDEBUG("There seems to be no native icon theme available: "
                 "document-new icon is not present within the theme");
@@ -4563,8 +4555,8 @@ void MainWindow::setupThemeIcons()
             iconThemeName = m_nativeIconThemeName;
         }
         else {
-            QNDEBUG("Fallback to oxygen icon theme");
-            iconThemeName = QStringLiteral("oxygen");
+            iconThemeName = fallbackIconThemeName();
+            QNDEBUG("Using fallback icon theme: " << iconThemeName);
         }
     }
 
@@ -5343,6 +5335,24 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
     appSettings.setValue(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
                          QStringList(hideThumbnailsForSet.values()));
     appSettings.endGroup();
+}
+
+QString MainWindow::fallbackIconThemeName() const
+{
+    const QPalette & pal = palette();
+    const QColor & windowColor = pal.color(QPalette::Window);
+
+    // lightness is the HSL color model value from 0 to 255
+    // which can be used to deduce whether light or dark color theme
+    // is used
+    int lightness = windowColor.lightness();
+
+    if (lightness < 128) {
+        // It appears that dark color theme is used
+        return QStringLiteral("breeze-dark");
+    }
+
+    return QStringLiteral("breeze");
 }
 
 void MainWindow::clearViews()

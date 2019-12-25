@@ -524,6 +524,8 @@ private:
      */
     void toggleShowNoteThumbnails() const;
 
+    QString fallbackIconThemeName() const;
+
 private:
     Ui::MainWindow *        m_pUI;
     QWidget *               m_currentStatusBarChildWidget;
