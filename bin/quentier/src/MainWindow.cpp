@@ -4545,15 +4545,27 @@ void MainWindow::setupThemeIcons()
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QString iconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
+    QString lastUsedIconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
-    if (!iconThemeName.isEmpty()) {
-        QNDEBUG("Last chosen icon theme: " << iconThemeName);
+    QString iconThemeName;
+    if (!lastUsedIconThemeName.isEmpty())
+    {
+        QNDEBUG("Last chosen icon theme: " << lastUsedIconThemeName);
+        iconThemeName = lastUsedIconThemeName;
     }
-    else {
-        QNDEBUG("No last chosen icon theme, fallback to oxygen");
-        iconThemeName = QStringLiteral("oxygen");
+    else
+    {
+        QNDEBUG("No last chosen icon theme");
+
+        if (!m_nativeIconThemeName.isEmpty()) {
+            QNDEBUG("Using native icon theme: " << m_nativeIconThemeName);
+            iconThemeName = m_nativeIconThemeName;
+        }
+        else {
+            QNDEBUG("Fallback to oxygen icon theme");
+            iconThemeName = QStringLiteral("oxygen");
+        }
     }
 
     QIcon::setThemeName(iconThemeName);
