@@ -216,6 +216,8 @@ private Q_SLOTS:
     void onSwitchIconThemeToNativeAction();
     void onSwitchIconThemeToTangoAction();
     void onSwitchIconThemeToOxygenAction();
+    void onSwitchIconThemeToBreezeAction();
+    void onSwitchIconThemeToBreezeDarkAction();
 
     void onSwitchPanelStyle(const QString & panelStyle);
     void onSwitchPanelStyleToBuiltIn();
@@ -521,6 +523,8 @@ private:
      * Toggle value of "show note thumbnails".
      */
     void toggleShowNoteThumbnails() const;
+
+    QString fallbackIconThemeName() const;
 
 private:
     Ui::MainWindow *        m_pUI;

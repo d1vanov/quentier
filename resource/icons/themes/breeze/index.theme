@@ -1,0 +1,197 @@
+[Icon Theme]
+Name=Breeze
+Name[ar]=نسيم
+Name[ast]=Breeze
+Name[ca]=Brisa
+Name[ca@valencia]=Brisa
+Name[cs]=Breeze
+Name[da]=Breeze
+Name[de]=Breeze
+Name[el]=Breeze
+Name[en_GB]=Breeze
+Name[es]=Brisa
+Name[et]=Breeze
+Name[eu]=Breeze
+Name[fi]=Breeze
+Name[fr]=Brise
+Name[gd]=Oiteag
+Name[gl]=Breeze
+Name[ia]=Breeze
+Name[id]=Breeze
+Name[it]=Brezza
+Name[ko]=Breeze
+Name[nl]=Breeze
+Name[nn]=Breeze
+Name[pl]=Bryza
+Name[pt]=Brisa
+Name[pt_BR]=Breeze
+Name[ru]=Breeze
+Name[sk]=Breeze
+Name[sl]=Sapica
+Name[sr]=Поветарац
+Name[sr@ijekavian]=Поветарац
+Name[sr@ijekavianlatin]=Povetarac
+Name[sr@latin]=Povetarac
+Name[sv]=Breeze
+Name[uk]=Breeze
+Name[x-test]=xxBreezexx
+Name[zh_CN]=微风
+Name[zh_TW]=Breeze
+
+Comment=Default Plasma 5 Theme
+Comment[ar]=سمة «بلازما ٥» الافتراضيّة
+Comment[ast]=El tema por defeutu de Plasma 5
+Comment[ca]=Tema del Plasma 5 per defecte
+Comment[ca@valencia]=Tema del Plasma 5 per defecte
+Comment[cs]=Výchozí motiv Plasma 5
+Comment[da]=Standard Plasma 5-tema
+Comment[de]=Standard-Arbeitsflächendesign für Plasma 5
+Comment[el]=Προκαθορισμένο θέμα Plasma 5
+Comment[en_GB]=Default Plasma 5 Theme
+Comment[es]=Tema por omisión de Plasma 5
+Comment[et]=Vaikimisi Plasma 5 teema
+Comment[eu]=Plasma 5eko gai lehenetsia
+Comment[fi]=Plasma 5:n oletusteema
+Comment[fr]=Thème par défaut de Plasma 5
+Comment[gd]=Ùrlar Plasma 5 bunaiteach
+Comment[gl]=Tema predeterminado de Plasma 5
+Comment[he]=ערכת הנושא הברירת־מחדל של Plama
+Comment[ia]=Thema predefinite de Plasma 5
+Comment[id]=Tema Baku Plasma 5
+Comment[it]=Tema predefinito di Plasma 5
+Comment[ko]=기본 Plasma 5 테마
+Comment[nl]=Standaard Plasma 5 thema
+Comment[nn]=Standard Plasma 5-tema
+Comment[pl]=Domyślny wystrój Plazmy 5
+Comment[pt]=Tema Predefinido do Plasma 5
+Comment[pt_BR]=Tema padrão do Plasma 5
+Comment[ru]=Стандартный набор значков в Plasma 5
+Comment[sk]=Predvolená téma Plasma  5
+Comment[sl]=Privzeta tema za Plasmo 5
+Comment[sr]=Подразумевана тема Плазме 5
+Comment[sr@ijekavian]=Подразумевана тема Плазме 5
+Comment[sr@ijekavianlatin]=Podrazumevana tema Plasme 5
+Comment[sr@latin]=Podrazumevana tema Plasme 5
+Comment[sv]=Plasma 5 standardtema
+Comment[tr]=Varsayılan Plasma 5 Teması
+Comment[uk]=Типова тема Плазми 5
+Comment[x-test]=xxDefault Plasma 5 Themexx
+Comment[zh_CN]=默认 Plasma 5 主题
+Comment[zh_TW]=預設的 Plasma 5 主題
+
+DisplayDepth=32
+
+Inherits=hicolor
+
+Example=folder
+
+FollowsColorScheme=true
+
+DesktopSizes=16,22,32
+ToolbarDefault=22
+ToolbarSizes=16,22,32
+MainToolbarDefault=22
+MainToolbarSizes=16,22,32
+SmallDefault=16
+SmallSizes=16,22,32
+PanelDefault=48
+PanelSizes=16,22,32
+DialogDefault=32
+DialogSizes=16,22,32
+
+KDE-Extensions=.svg
+
+Directories=16x16/actions,16x16/categories,16x16/mimetypes,16x16/places,16x16/status,22x22/actions,22x22/categories,22x22/mimetypes,22x22/places,22x22/status,32x32/actions,32x32/categories,32x32/mimetypes,32x32/places,32x32/status
+
+[16x16/actions]
+Size=16
+Context=Actions
+Type=Fixed
+
+[16x16/categories]
+Size=16
+Context=Categories
+Type=Fixed
+
+[16x16/mimetypes]
+Size=16
+Context=MimeTypes
+Type=Fixed
+MinSize=16
+
+[16x16/places]
+Size=16
+Context=Places
+Type=Fixed
+MinSize=16
+
+[16x16/status]
+Size=16
+Context=Status
+Type=Fixed
+
+[22x22/actions]
+Size=22
+Context=Actions
+Type=Fixed
+
+[22x22/categories]
+Size=22
+Context=Categories
+Type=Scalable
+MinSize=22
+MaxSize=256
+
+[22x22/mimetypes]
+Size=22
+Context=MimeTypes
+Type=Scalable
+MinSize=22
+MaxSize=24
+
+[22x22/places]
+Size=22
+Context=Places
+Type=Fixed
+
+[22x22/status]
+Size=22
+Context=Status
+Type=Scalable
+MinSize=22
+MaxSize=32
+
+[32x32/actions]
+Size=32
+Context=Actions
+Type=Scalable
+MinSize=32
+MaxSize=256
+
+[32x32/categories]
+Size=32
+Context=Categories
+Type=Scalable
+MinSize=32
+MaxSize=256
+
+[32x32/mimetypes]
+Size=32
+Context=MimeTypes
+Type=Scalable
+MinSize=32
+MaxSize=48
+
+[32x32/places]
+Size=32
+Context=Places
+Type=Scalable
+MinSize=24
+MaxSize=48
+
+[32x32/status]
+Size=64
+Context=Status
+Type=Scalable
+MinSize=22
+MaxSize=256

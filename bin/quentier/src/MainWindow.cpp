@@ -512,6 +512,10 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchIconThemeToOxygenAction));
     QObject::connect(m_pUI->ActionIconsTango, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchIconThemeToTangoAction));
+    QObject::connect(m_pUI->ActionIconsBreeze, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconThemeToBreezeAction));
+    QObject::connect(m_pUI->ActionIconsBreezeDark, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconThemeToBreezeDarkAction));
     QObject::connect(m_pUI->ActionPanelStyleBuiltIn, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToBuiltIn));
     QObject::connect(m_pUI->ActionPanelStyleLighter, QNSIGNAL(QAction,triggered),
@@ -3748,6 +3752,42 @@ void MainWindow::onSwitchIconThemeToOxygenAction()
     refreshChildWidgetsThemeIcons();
 }
 
+void MainWindow::onSwitchIconThemeToBreezeAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconThemeToBreezeAction"));
+
+    QString breeze = QStringLiteral("breeze");
+
+    if (QIcon::themeName() == breeze) {
+        ErrorString error(QT_TR_NOOP("Already using breeze icon theme"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
+        return;
+    }
+
+    QIcon::setThemeName(breeze);
+    persistChosenIconTheme(breeze);
+    refreshChildWidgetsThemeIcons();
+}
+
+void MainWindow::onSwitchIconThemeToBreezeDarkAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconThemeToBreezeDarkAction"));
+
+    QString breezeDark = QStringLiteral("breeze-dark");
+
+    if (QIcon::themeName() == breezeDark) {
+        ErrorString error(QT_TR_NOOP("Already using breeze-dark icon theme"));
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
+        return;
+    }
+
+    QIcon::setThemeName(breezeDark);
+    persistChosenIconTheme(breezeDark);
+    refreshChildWidgetsThemeIcons();
+}
+
 void MainWindow::onSwitchPanelStyle(const QString & panelStyle)
 {
     QNDEBUG("MainWindow::onSwitchPanelStyle: " << panelStyle);
@@ -4489,23 +4529,35 @@ void MainWindow::setupThemeIcons()
     m_nativeIconThemeName = QIcon::themeName();
     QNDEBUG("Native icon theme name: " << m_nativeIconThemeName);
 
-    if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
         QNDEBUG("There seems to be no native icon theme available: "
-                "document-open icon is not present within the theme");
+                "document-new icon is not present within the theme");
         m_nativeIconThemeName.clear();
     }
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QString iconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
+    QString lastUsedIconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
-    if (!iconThemeName.isEmpty()) {
-        QNDEBUG("Last chosen icon theme: " << iconThemeName);
+    QString iconThemeName;
+    if (!lastUsedIconThemeName.isEmpty())
+    {
+        QNDEBUG("Last chosen icon theme: " << lastUsedIconThemeName);
+        iconThemeName = lastUsedIconThemeName;
     }
-    else {
-        QNDEBUG("No last chosen icon theme, fallback to oxygen");
-        iconThemeName = QStringLiteral("oxygen");
+    else
+    {
+        QNDEBUG("No last chosen icon theme");
+
+        if (!m_nativeIconThemeName.isEmpty()) {
+            QNDEBUG("Using native icon theme: " << m_nativeIconThemeName);
+            iconThemeName = m_nativeIconThemeName;
+        }
+        else {
+            iconThemeName = fallbackIconThemeName();
+            QNDEBUG("Using fallback icon theme: " << iconThemeName);
+        }
     }
 
     QIcon::setThemeName(iconThemeName);
@@ -5283,6 +5335,24 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
     appSettings.setValue(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
                          QStringList(hideThumbnailsForSet.values()));
     appSettings.endGroup();
+}
+
+QString MainWindow::fallbackIconThemeName() const
+{
+    const QPalette & pal = palette();
+    const QColor & windowColor = pal.color(QPalette::Window);
+
+    // lightness is the HSL color model value from 0 to 255
+    // which can be used to deduce whether light or dark color theme
+    // is used
+    int lightness = windowColor.lightness();
+
+    if (lightness < 128) {
+        // It appears that dark color theme is used
+        return QStringLiteral("breeze-dark");
+    }
+
+    return QStringLiteral("breeze");
 }
 
 void MainWindow::clearViews()
