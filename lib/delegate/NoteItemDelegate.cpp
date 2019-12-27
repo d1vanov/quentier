@@ -17,6 +17,7 @@
  */
 
 #include "NoteItemDelegate.h"
+#include "AbstractStyledItemDelegate.h"
 
 #include <lib/model/NoteModel.h>
 #include <lib/view/NoteListView.h>
@@ -287,7 +288,7 @@ void NoteItemDelegate::paint(
     QNTRACE("Preview text: " << text);
 
     int linesForText = static_cast<int>(
-        std::floor(originalFontMetrics.width(text) /
+        std::floor(fontMetricsWidth(originalFontMetrics, text) /
                    previewTextRect.width() + 0.5));
     int linesAvailable = static_cast<int>(
         std::floor(static_cast<double>(previewTextRect.height()) /

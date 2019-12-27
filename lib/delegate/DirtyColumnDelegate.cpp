@@ -131,7 +131,7 @@ QSize DirtyColumnDelegate::sizeHint(
     QFontMetrics fontMetrics(option.font);
     double margin = 0.1;
     int columnNameWidth = static_cast<int>(
-        std::floor(fontMetrics.width(columnName) * (1.0 + margin) + 0.5));
+        std::floor(fontMetricsWidth(fontMetrics, columnName) * (1.0 + margin) + 0.5));
 
     int side = DIRTY_CIRCLE_RADIUS;
     side += 1;

@@ -261,7 +261,7 @@ void NotebookItemDelegate::drawNotebookName(
     }
 
     QFontMetrics fontMetrics(adjustedOption.font);
-    int nameWidth = fontMetrics.width(name);
+    int nameWidth = fontMetricsWidth(fontMetrics, name);
 
     painter->setPen(adjustedOption.state & QStyle::State_Selected
                     ? adjustedOption.palette.color(QPalette::Active,
@@ -315,7 +315,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
     }
 
     QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name + nameSuffix);
+    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
     int fontHeight = fontMetrics.height();
 
     double margin = 0.1;

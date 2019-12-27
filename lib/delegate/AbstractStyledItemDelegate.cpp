@@ -27,23 +27,6 @@
 
 namespace quentier {
 
-namespace {
-
-////////////////////////////////////////////////////////////////////////////////
-
-int fontMetricsWidth(const QFontMetrics & metrics, const QString & text)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-    return metrics.horizontalAdvance(text);
-#else
-    return metrics.width(text);
-#endif
-}
-
-} // namespace
-
-////////////////////////////////////////////////////////////////////////////////
-
 AbstractStyledItemDelegate::AbstractStyledItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
