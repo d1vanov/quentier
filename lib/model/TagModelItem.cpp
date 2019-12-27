@@ -90,7 +90,12 @@ bool TagModelItem::swapChildren(const int sourceRow, const int destRow) const
         return false;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+    m_children.swapItemsAt(sourceRow, destRow);
+#else
     m_children.swap(sourceRow, destRow);
+#endif
+
     return true;
 }
 

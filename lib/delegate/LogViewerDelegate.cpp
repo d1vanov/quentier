@@ -17,6 +17,7 @@
  */
 
 #include "LogViewerDelegate.h"
+#include "AbstractStyledItemDelegate.h"
 
 #include <QDate>
 #include <QFontMetrics>
@@ -76,7 +77,8 @@ QSize LogViewerDelegate::sizeHint(
 #define STRING_SIZE_HINT(str)                                                  \
     {                                                                          \
         size.setWidth(static_cast<int>(                                        \
-            std::floor(fontMetrics.width(str) * (1.0 + m_margin) + 0.5)));     \
+            std::floor(fontMetricsWidth(fontMetrics, str) *                    \
+                (1.0 + m_margin) + 0.5)));                                     \
         size.setHeight(static_cast<int>(                                       \
             std::floor(fontMetrics.lineSpacing() * (1.0 + m_margin) + 0.5)));  \
         return size;                                                           \
@@ -118,8 +120,9 @@ QSize LogViewerDelegate::sizeHint(
     {
         int numSubRows = 1;
         int originalWidth = static_cast<int>(
-            std::floor(fontMetrics.width(pDataEntry->m_sourceFileName) *
-                       (1.0 + m_margin) + 0.5));
+            std::floor(
+                fontMetricsWidth(fontMetrics, pDataEntry->m_sourceFileName) *
+                    (1.0 + m_margin) + 0.5));
         int width = originalWidth;
         while(width > MAX_SOURCE_FILE_NAME_COLUMN_WIDTH) {
             ++numSubRows;
@@ -194,11 +197,12 @@ QSize LogViewerDelegate::sizeHint(
         lineStartPos = lineEndPos;
     }
 
-    size.setWidth(static_cast<int>(std::floor(fontMetrics.width(QStringLiteral("w")) *
-                                              (maxLineSize + 2 + m_margin) + 0.5)));
-    size.setHeight(static_cast<int>(std::floor((numDisplayedLines + 1) *
-                                               fontMetrics.lineSpacing() +
-                                               m_margin)));
+    size.setWidth(static_cast<int>(
+            std::floor(fontMetricsWidth(fontMetrics, QStringLiteral("w")) *
+                       (maxLineSize + 2 + m_margin) + 0.5)));
+    size.setHeight(static_cast<int>(
+            std::floor((numDisplayedLines + 1) *
+                       fontMetrics.lineSpacing() + m_margin)));
     return size;
 }
 

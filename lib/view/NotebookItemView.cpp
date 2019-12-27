@@ -705,7 +705,7 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
         }
 
         QModelIndex childIndex =
-            notebookStackItemIndex.child(0, NotebookModel::Columns::Name);
+            notebookStackItemIndex.model()->index(0, NotebookModel::Columns::Name);
         if (!childIndex.isValid()) {
             QNDEBUG("Detected invalid child item index for "
                     "the notebook stack item, breaking the loop");
