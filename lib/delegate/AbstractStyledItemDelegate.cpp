@@ -27,6 +27,23 @@
 
 namespace quentier {
 
+namespace {
+
+////////////////////////////////////////////////////////////////////////////////
+
+int fontMetricsWidth(const QFontMetrics & metrics, const QString & text)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+    return metrics.horizontalAdvance(text);
+#else
+    return metrics.width(text);
+#endif
+}
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////
+
 AbstractStyledItemDelegate::AbstractStyledItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
@@ -69,7 +86,8 @@ int AbstractStyledItemDelegate::columnNameWidth(
     double margin = 0.1;
 
     int columnNameWidth = static_cast<int>(
-        std::floor(fontMetrics.width(columnName) * (1.0 + margin) + 0.5));
+        std::floor(fontMetricsWidth(fontMetrics, columnName) * (1.0 + margin) + 0.5));
+
     return columnNameWidth;
 }
 
@@ -79,9 +97,12 @@ void AbstractStyledItemDelegate::adjustDisplayedText(
 {
     QFontMetrics fontMetrics(option.font);
 
-    int displayedTextWidth = fontMetrics.width(displayedText);
+    int displayedTextWidth = fontMetricsWidth(fontMetrics, displayedText);
 
-    int nameSuffixWidth = (nameSuffix.isEmpty() ? 0 : fontMetrics.width(nameSuffix));
+    int nameSuffixWidth = (nameSuffix.isEmpty()
+        ? 0
+        : fontMetricsWidth(fontMetrics, nameSuffix));
+
     int optionRectWidth = option.rect.width();
 
     // Shorten the available width a tiny bit to ensure there's some margin and

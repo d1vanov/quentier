@@ -23,7 +23,8 @@
 #include "TagLinkedNotebookRootItem.h"
 
 #include <QDataStream>
-#include <QtAlgorithms>
+
+#include <algorithm>
 
 namespace quentier {
 
@@ -79,7 +80,7 @@ public:
     template <typename Comparator>
     void sortChildren(Comparator comparator) const
     {
-        qSort(m_children.begin(), m_children.end(), comparator);
+        std::sort(m_children.begin(), m_children.end(), comparator);
     }
 
     virtual QTextStream & print(QTextStream & strm) const override;

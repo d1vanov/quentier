@@ -604,7 +604,7 @@ bool ShortcutSettingsWidget::markCollisions(ShortcutItem & item)
     if (item.m_pTreeWidgetItem)
     {
         item.m_pTreeWidgetItem->setForeground(
-            1, (hasCollision ? Qt::red : palette().foreground().color()));
+            1, (hasCollision ? Qt::red : palette().windowText().color()));
     }
 
     return hasCollision;

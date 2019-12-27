@@ -43,7 +43,12 @@ TableSizeSelector::TableSizeSelector(QWidget * parent) :
 
     QFontMetrics fontMetrics(font());
     m_rowHeight = fontMetrics.height() + 2;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+    m_columnWidth = fontMetrics.horizontalAdvance(QStringLiteral("  ")) + 3;
+#else
     m_columnWidth = fontMetrics.width(QStringLiteral("  ")) + 3;
+#endif
 
     m_rect.setHeight(m_rowHeight * MAX_ROWS);
     m_rect.setWidth(m_columnWidth * MAX_COLUMNS);
