@@ -68,7 +68,7 @@ QSplitter::handle:vertical {
      <number>0</number>
     </property>
     <item>
-     <widget class="QFrame" name="upperBarPanel">
+     <widget class="PanelWidget" name="upperBarPanel">
       <property name="minimumSize">
        <size>
         <width>50</width>
@@ -488,7 +488,7 @@ padding: 0px;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="favoritesHeaderPanel">
+          <widget class="PanelWidget" name="favoritesHeaderPanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -754,7 +754,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="notebooksHeaderPanel">
+          <widget class="PanelWidget" name="notebooksHeaderPanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1082,7 +1082,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="tagsHeaderPanel">
+          <widget class="PanelWidget" name="tagsHeaderPanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1395,7 +1395,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="savedSearchesHeaderPanel">
+          <widget class="PanelWidget" name="savedSearchesHeaderPanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1684,7 +1684,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="deletedNotesHeaderPanel">
+          <widget class="PanelWidget" name="deletedNotesHeaderPanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -2027,7 +2027,7 @@ border-bottom: none;
              <number>0</number>
             </property>
             <item>
-             <widget class="QFrame" name="noteFilterHeaderPanel">
+             <widget class="PanelWidget" name="noteFilterHeaderPanel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -2496,7 +2496,7 @@ border-bottom: 1px solid black;</string>
              <number>0</number>
             </property>
             <item>
-             <widget class="QFrame" name="noteListWidgetHeaderPanel">
+             <widget class="PanelWidget" name="noteListWidgetHeaderPanel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -2769,7 +2769,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>30</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -4318,9 +4318,14 @@ border-bottom: 1px solid black;
    <extends>QTreeView</extends>
    <header>lib/view/DeletedNoteItemView.h</header>
   </customwidget>
+  <customwidget>
+   <class>PanelWidget</class>
+   <extends>QFrame</extends>
+   <header>lib/widget/PanelWidget.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../../resource/icons/other/icons.qrc"/>
   <include location="../../../resource/icons/other/icons.qrc"/>
  </resources>
  <connections/>

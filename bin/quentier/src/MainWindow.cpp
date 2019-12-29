@@ -64,6 +64,8 @@
 #include <lib/widget/NoteFiltersManager.h>
 #include <lib/widget/NoteCountLabelController.h>
 #include <lib/widget/FindAndReplaceWidget.h>
+#include <lib/widget/PanelWidget.h>
+using quentier::PanelWidget;
 
 #include <lib/widget/TabWidget.h>
 using quentier::TabWidget;

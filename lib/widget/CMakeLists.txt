@@ -5,6 +5,8 @@ SET_POLICIES()
 project(quentier_widget)
 
 set(HEADERS
+    AboutQuentierWidget.h
+    AbstractFilterByModelItemWidget.h
     FindAndReplaceWidget.h
     FilterByNotebookWidget.h
     FilterBySavedSearchWidget.h
@@ -14,15 +16,14 @@ set(HEADERS
     LogViewerWidget.h
     NewListItemLineEdit.h
     NotebookModelItemInfoWidget.h
-    SavedSearchModelItemInfoWidget.h
     NoteCountLabelController.h
     NoteEditorWidget.h
     NoteEditorTabsAndWindowsCoordinator.h
     NoteFiltersManager.h
     NoteTagsWidget.h
+    PanelWidget.h
+    SavedSearchModelItemInfoWidget.h
     TagModelItemInfoWidget.h
-    AbstractFilterByModelItemWidget.h
-    AboutQuentierWidget.h
     TabWidget.h
     color-picker-tool-button/ColorPickerActionWidget.h
     color-picker-tool-button/ColorPickerToolButton.h
@@ -33,6 +34,8 @@ set(HEADERS
     insert-table-tool-button/TableSizeSelector.h)
 
 set(SOURCES
+    AboutQuentierWidget.cpp
+    AbstractFilterByModelItemWidget.cpp
     FindAndReplaceWidget.cpp
     FilterByNotebookWidget.cpp
     FilterBySavedSearchWidget.cpp
@@ -42,15 +45,14 @@ set(SOURCES
     LogViewerWidget.cpp
     NewListItemLineEdit.cpp
     NotebookModelItemInfoWidget.cpp
-    SavedSearchModelItemInfoWidget.cpp
     NoteCountLabelController.cpp
     NoteEditorWidget.cpp
     NoteEditorTabsAndWindowsCoordinator.cpp
     NoteFiltersManager.cpp
     NoteTagsWidget.cpp
+    PanelWidget.cpp
+    SavedSearchModelItemInfoWidget.cpp
     TagModelItemInfoWidget.cpp
-    AbstractFilterByModelItemWidget.cpp
-    AboutQuentierWidget.cpp
     TabWidget.cpp
     color-picker-tool-button/ColorPickerActionWidget.cpp
     color-picker-tool-button/ColorPickerToolButton.cpp
