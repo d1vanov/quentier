@@ -247,6 +247,12 @@ padding-right: 2px;
        </item>
        <item>
         <widget class="QPushButton" name="exportNoteToPdfPushButton">
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="icon">
           <iconset theme="application-pdf">
            <normaloff>.</normaloff>.</iconset>
@@ -511,10 +517,6 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
-#favoritesHeaderPanel {
-padding-left: 10px;
-}
-
 QPushButton {
 border: none;
 padding: 0px;
@@ -575,6 +577,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="favoritesLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="favoritesPanelIconPseudoPushButton">
               <property name="sizePolicy">
@@ -777,10 +795,6 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
-#notebooksHeaderPanel {
-padding-left: 10px;
-}
-
 QPushButton {
 border: none;
 padding: 0px;
@@ -841,6 +855,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="notebooksLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="notebooksPanelIconPseudoPushButton">
               <property name="sizePolicy">
@@ -1105,10 +1135,6 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
-#tagsHeaderPanel {
-padding-left: 10px;
-}
-
 QPushButton {
 border: none;
 padding: 0px;
@@ -1169,6 +1195,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="tagsLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="tagIconPseudoPushButton">
               <property name="minimumSize">
@@ -1418,10 +1460,6 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
-#savedSearchesHeaderPanel {
-padding-left: 10px;
-}
-
 QPushButton {
 border: none;
 padding: 0px;
@@ -1482,6 +1520,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="savedSearchesLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="savedSearchPanelIconPseudoPushButton">
               <property name="sizePolicy">
@@ -1707,10 +1761,6 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 }
 
-#deletedNotesHeaderPanel {
-padding-left: 10px;
-}
-
 QPushButton {
 border: none;
 padding: 0px;
@@ -1771,6 +1821,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="deletedNotesLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="deletedNotesPanelIconPseudoPushButton">
               <property name="sizePolicy">
