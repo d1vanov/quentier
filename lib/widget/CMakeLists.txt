@@ -21,6 +21,7 @@ set(HEADERS
     NoteEditorTabsAndWindowsCoordinator.h
     NoteFiltersManager.h
     NoteTagsWidget.h
+    PanelController.h
     PanelWidget.h
     SavedSearchModelItemInfoWidget.h
     TagModelItemInfoWidget.h
@@ -50,6 +51,7 @@ set(SOURCES
     NoteEditorTabsAndWindowsCoordinator.cpp
     NoteFiltersManager.cpp
     NoteTagsWidget.cpp
+    PanelController.cpp
     PanelWidget.cpp
     SavedSearchModelItemInfoWidget.cpp
     TagModelItemInfoWidget.cpp
