@@ -31,6 +31,7 @@
 #include <lib/model/FavoritesModel.h>
 #include <lib/widget/NoteEditorWidget.h>
 #include <lib/widget/NoteEditorTabsAndWindowsCoordinator.h>
+#include <lib/widget/SidePanelController.h>
 
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
@@ -52,6 +53,10 @@
 #include <QMovie>
 #include <QNetworkProxy>
 #include <QScopedPointer>
+#include <QVector>
+
+#include <memory>
+#include <vector>
 
 namespace Ui {
 class MainWindow;
@@ -458,53 +463,8 @@ private:
 
     void clearDir(const QString & path);
 
-    class StyleSheetProperty
-    {
-    public:
-        struct Target
-        {
-            enum type {
-                None = 0,
-                ButtonHover,
-                ButtonPressed
-            };
-        };
-
-        StyleSheetProperty(const Target::type targetType = Target::None,
-                           const char * name = nullptr,
-                           const QString & value = QString()) :
-            m_targetType(targetType),
-            m_name(name),
-            m_value(value)
-        {}
-
-        Target::type    m_targetType;
-        const char *    m_name;
-        QString         m_value;
-    };
-
-    typedef QVector<StyleSheetProperty> StyleSheetProperties;
-
-    void collectBaseStyleSheets();
-    void setupPanelOverlayStyleSheets();
-
-    void getPanelStyleSheetProperties(
-        const QString & panelStyleOption, StyleSheetProperties & properties) const;
-
-    void setPanelsOverlayStyleSheet(const StyleSheetProperties & properties);
-
-    // This method performs a nasty hack - it searches for some properties within
-    // the passed in stylesheet and alters some of these; the whole workflow is
-    // based on weak assumptions about the structure of the stylesheet so once
-    // it is sufficiently altered, this method would stop working. Don't program
-    // like this, kids.
-    QString alterStyleSheet(
-        const QString & originalStyleSheet,
-        const StyleSheetProperties & properties);
-
-    bool isInsideStyleBlock(
-        const QString & styleSheet, const QString & styleBlockStartSearchString,
-        const int currentIndex, bool & error) const;
+    void setupSidePanelControllers();
+    void setPanelStyleToControllers(const QString & panelStyle);
 
     bool getShowNoteThumbnailsPreference() const;
     bool getDisableNativeMenuBarPreference() const;
@@ -593,16 +553,8 @@ private:
 
     QUndoStack *            m_pUndoStack;
 
-    struct StyleSheetInfo
-    {
-        QPointer<QWidget>   m_targetWidget;
-        QString             m_baseStyleSheet;
-        QString             m_overlayStyleSheet;
-    };
-
-    QHash<QWidget*, StyleSheetInfo>    m_styleSheetInfo;
-
-    QString                     m_currentPanelStyle;
+    QString                 m_currentPanelStyle;
+    std::vector<std::unique_ptr<SidePanelController>>   m_sidePanelControllers;
 
     quentier::ShortcutManager   m_shortcutManager;
     QHash<int, QAction*>        m_shortcutKeyToAction;

@@ -16,12 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_PANEL_CONTROLLER_H
-#define QUENTIER_WIDGETS_PANEL_CONTROLLER_H
+#ifndef QUENTIER_WIDGETS_SIDE_PANEL_CONTROLLER_H
+#define QUENTIER_WIDGETS_SIDE_PANEL_CONTROLLER_H
 
 #include <QColor>
 #include <QLinearGradient>
-#include <QObject>
+
+#include <memory>
 
 QT_FORWARD_DECLARE_CLASS(QFrame)
 QT_FORWARD_DECLARE_CLASS(QLabel)
@@ -30,18 +31,21 @@ QT_FORWARD_DECLARE_CLASS(QPushButton)
 namespace quentier {
 
 /**
- * @brief The PanelController class manages QFrame with child widgets which
- * as a whole represent one of panels used in the UI of Quentier app
+ * @brief The SidePanelController class manages QFrame with child widgets which
+ * as a whole represent one of side panels used in the UI of Quentier app
  */
-class PanelController
+class SidePanelController
 {
 public:
     /**
-     * @brief PanelController contructor
-     * @param pPanel        QFrame representing the panel; certain layout of
-     *                      child widgets is expected.
+     * @brief SidePanelController contructor
+     * @param pPanel        QFrame representing the side panel; certain layout
+     *                      of child widgets is expected, otherwise assert
+     *                      fires!
      */
-    explicit PanelController(QFrame * pPanel);
+    explicit SidePanelController(QFrame * pPanel);
+
+    QFrame * panel();
 
     QString title() const;
     void setTitle(const QString & title);
@@ -52,8 +56,12 @@ public:
     QColor overrideBackgroundColor() const;
     void setOverrideBackgroundColor(QColor color);
 
-    QLinearGradient overrideBackgroundGradient() const;
+    const QLinearGradient * overrideBackgroundGradient() const;
     void setOverrideBackgroundGradient(QLinearGradient gradient);
+    void resetOverrideBackgroundGradient();
+
+    void setOverrideColors(QColor fontColor, QColor backgroundColor);
+    void setOverrideColors(QColor fontColor, QLinearGradient backgroundGradient);
 
     void resetOverrides();
 
@@ -77,9 +85,9 @@ private:
 
     QColor          m_overrideFontColor;
     QColor          m_overrideBackgroundColor;
-    QLinearGradient m_overrideBackgroundGradient;
+    std::unique_ptr<QLinearGradient>    m_pOverrideBackgroundGradient;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_WIDGETS_PANEL_CONTROLLER_H
+#endif // QUENTIER_WIDGETS_SIDE_PANEL_CONTROLLER_H

@@ -21,9 +21,9 @@ set(HEADERS
     NoteEditorTabsAndWindowsCoordinator.h
     NoteFiltersManager.h
     NoteTagsWidget.h
-    PanelController.h
     PanelWidget.h
     SavedSearchModelItemInfoWidget.h
+    SidePanelController.h
     TagModelItemInfoWidget.h
     TabWidget.h
     color-picker-tool-button/ColorPickerActionWidget.h
@@ -51,9 +51,9 @@ set(SOURCES
     NoteEditorTabsAndWindowsCoordinator.cpp
     NoteFiltersManager.cpp
     NoteTagsWidget.cpp
-    PanelController.cpp
     PanelWidget.cpp
     SavedSearchModelItemInfoWidget.cpp
+    SidePanelController.cpp
     TagModelItemInfoWidget.cpp
     TabWidget.cpp
     color-picker-tool-button/ColorPickerActionWidget.cpp

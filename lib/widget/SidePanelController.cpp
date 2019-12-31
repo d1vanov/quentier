@@ -16,7 +16,9 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "PanelController.h"
+#include "SidePanelController.h"
+
+#include <quentier/logging/QuentierLogger.h>
 
 #include <QFrame>
 #include <QLabel>
@@ -27,7 +29,7 @@
 
 namespace quentier {
 
-PanelController::PanelController(QFrame * pPanel) :
+SidePanelController::SidePanelController(QFrame * pPanel) :
     m_pPanel(pPanel)
 {
     Q_ASSERT(m_pPanel);
@@ -35,79 +37,152 @@ PanelController::PanelController(QFrame * pPanel) :
     findChildWidgets();
 }
 
-QString PanelController::title() const
+QFrame * SidePanelController::panel()
+{
+    return m_pPanel;
+}
+
+QString SidePanelController::title() const
 {
     return m_pTitleLabel->text();
 }
 
-void PanelController::setTitle(const QString & title)
+void SidePanelController::setTitle(const QString & title)
 {
     m_pTitleLabel->setText(title);
 }
 
-QColor PanelController::overrideFontColor() const
+QColor SidePanelController::overrideFontColor() const
 {
     return m_overrideFontColor;
 }
 
-void PanelController::setOverrideFontColor(QColor color)
+void SidePanelController::setOverrideFontColor(QColor color)
 {
     if (m_overrideFontColor == color) {
         return;
     }
 
-    m_overrideFontColor = color;
+    m_overrideFontColor = std::move(color);
     updateStyleSheet();
 }
 
-QColor PanelController::overrideBackgroundColor() const
+QColor SidePanelController::overrideBackgroundColor() const
 {
     return m_overrideBackgroundColor;
 }
 
-void PanelController::setOverrideBackgroundColor(QColor color)
+void SidePanelController::setOverrideBackgroundColor(QColor color)
 {
     if (m_overrideBackgroundColor == color) {
         return;
     }
 
-    m_overrideBackgroundColor = color;
+    m_overrideBackgroundColor = std::move(color);
     if (m_overrideBackgroundColor.isValid()) {
-        m_overrideBackgroundGradient = QLinearGradient();
+        m_pOverrideBackgroundGradient.reset();
     }
 
     updateStyleSheet();
 }
 
-QLinearGradient PanelController::overrideBackgroundGradient() const
+const QLinearGradient * SidePanelController::overrideBackgroundGradient() const
 {
-    return m_overrideBackgroundGradient;
+    return m_pOverrideBackgroundGradient.get();
 }
 
-void PanelController::setOverrideBackgroundGradient(QLinearGradient gradient)
+void SidePanelController::setOverrideBackgroundGradient(
+    QLinearGradient gradient)
 {
-    if (m_overrideBackgroundGradient == gradient) {
+    if (m_pOverrideBackgroundGradient &&
+        (*m_pOverrideBackgroundGradient == gradient))
+    {
         return;
     }
 
-    m_overrideBackgroundGradient = gradient;
-    if (!m_overrideBackgroundGradient.stops().isEmpty()) {
-        m_overrideBackgroundColor = QColor();
+    if (m_pOverrideBackgroundGradient) {
+        *m_pOverrideBackgroundGradient = std::move(gradient);
+    }
+    else {
+        m_pOverrideBackgroundGradient = std::make_unique<QLinearGradient>(
+            std::move(gradient));
+    }
+
+    m_overrideBackgroundColor = QColor();
+    updateStyleSheet();
+}
+
+void SidePanelController::resetOverrideBackgroundGradient()
+{
+    if (!m_pOverrideBackgroundGradient) {
+        // Nothing to do
+        return;
+    }
+
+    m_pOverrideBackgroundGradient.reset();
+    updateStyleSheet();
+}
+
+void SidePanelController::setOverrideColors(
+    QColor fontColor, QColor backgroundColor)
+{
+    if ((m_overrideFontColor == fontColor) &&
+        (m_overrideBackgroundColor == backgroundColor))
+    {
+        return;
+    }
+
+    m_overrideFontColor = std::move(fontColor);
+    m_overrideBackgroundColor = std::move(backgroundColor);
+    if (m_overrideBackgroundColor.isValid()) {
+        m_pOverrideBackgroundGradient.reset();
     }
 
     updateStyleSheet();
 }
 
-void PanelController::resetOverrides()
+void SidePanelController::setOverrideColors(
+    QColor fontColor, QLinearGradient backgroundGradient)
 {
+    if ((m_overrideFontColor == fontColor) &&
+        (m_pOverrideBackgroundGradient &&
+         (*m_pOverrideBackgroundGradient == backgroundGradient)))
+    {
+        return;
+    }
+
+    m_overrideFontColor = std::move(fontColor);
+
+    if (m_pOverrideBackgroundGradient) {
+        *m_pOverrideBackgroundGradient = std::move(backgroundGradient);
+    }
+    else {
+        m_pOverrideBackgroundGradient = std::make_unique<QLinearGradient>(
+            std::move(backgroundGradient));
+    }
+
+    m_overrideBackgroundColor = QColor();
+    updateStyleSheet();
+}
+
+void SidePanelController::resetOverrides()
+{
+    if (!m_overrideFontColor.isValid() &&
+        !m_overrideBackgroundColor.isValid() &&
+        !m_pOverrideBackgroundGradient)
+    {
+        // Nothing to do
+        return;
+    }
+
     m_overrideFontColor = QColor();
     m_overrideBackgroundColor = QColor();
-    m_overrideBackgroundGradient = QLinearGradient();
+    m_pOverrideBackgroundGradient.reset();
 
     updateStyleSheet();
 }
 
-void PanelController::findChildWidgets()
+void SidePanelController::findChildWidgets()
 {
     auto staticIconHolders = m_pPanel->findChildren<QPushButton*>(
         QRegularExpression(QStringLiteral("(.*)PanelIconPseudoPushButton")));
@@ -129,11 +204,11 @@ void PanelController::findChildWidgets()
     Q_ASSERT(m_pTitleLabel);
 }
 
-void PanelController::updateStyleSheet()
+void SidePanelController::updateStyleSheet()
 {
     if (!m_overrideFontColor.isValid() &&
         !m_overrideBackgroundColor.isValid() &&
-        m_overrideBackgroundGradient.stops().isEmpty())
+        !m_pOverrideBackgroundGradient)
     {
         m_pPanel->setStyleSheet(m_defaultStyleSheet);
         return;
@@ -147,12 +222,14 @@ void PanelController::updateStyleSheet()
 
     auto backgroundColorStr = backgroundColorToString();
     if (!backgroundColorStr.isEmpty()) {
-        strm << "background-color: " << backgroundColorStr << "\n";
+        strm << "background-color: " << backgroundColorStr << ";\n";
     }
 
     if (m_overrideFontColor.isValid()) {
-        strm << "color: " << m_overrideFontColor.name(QColor::HexRgb) << "\n";
+        strm << "color: " << m_overrideFontColor.name(QColor::HexRgb) << ";\n";
     }
+
+    strm << "}\n";
 
     strm << "\n"
         << "QPushButton {\n"
@@ -168,13 +245,15 @@ void PanelController::updateStyleSheet()
         << "border: none;\n";
 
     if (m_overrideFontColor.isValid()) {
-        strm << "color: " << m_overrideFontColor.name(QColor::HexRgb) << "\n";
+        strm << "color: " << m_overrideFontColor.name(QColor::HexRgb) << ";\n";
     }
 
     strm << "}\n";
 
     if (backgroundColorStr.isEmpty()) {
         strm.flush();
+        QNDEBUG("Setting stylesheet for panel " << m_pPanel->objectName()
+               << ": " << styleSheetStr);
         m_pPanel->setStyleSheet(styleSheetStr);
         return;
     }
@@ -182,12 +261,13 @@ void PanelController::updateStyleSheet()
     strm << "QPushButton:hover:!pressed {\n";
     strm << "background-color: ";
     if (m_overrideBackgroundColor.isValid()) {
-        strm << m_overrideBackgroundColor.lighter(50).name(QColor::HexRgb)
-            << "\n";
+        strm << m_overrideBackgroundColor.lighter(150).name(QColor::HexRgb)
+            << ";\n";
     }
     else {
-        strm << gradientToString(lighterGradient(m_overrideBackgroundGradient))
-            << "\n";
+        Q_ASSERT(m_pOverrideBackgroundGradient);
+        strm << gradientToString(lighterGradient(*m_pOverrideBackgroundGradient))
+            << ";\n";
     }
     strm << "}\n";
 
@@ -196,41 +276,49 @@ void PanelController::updateStyleSheet()
     strm << "QPushButton:pressed {\n";
     strm << "background-color: ";
     if (m_overrideBackgroundColor.isValid()) {
-        strm << m_overrideBackgroundColor.darker(100).name(QColor::HexRgb)
-            << "\n";
+        strm << m_overrideBackgroundColor.darker(200).name(QColor::HexRgb)
+            << ";\n";
     }
     else {
-        strm << gradientToString(darkerGradient(m_overrideBackgroundGradient))
-            << "\n";
+        Q_ASSERT(m_pOverrideBackgroundGradient);
+        strm << gradientToString(darkerGradient(*m_pOverrideBackgroundGradient))
+            << ";\n";
     }
     strm << "}\n";
 
     strm << "\n";
 
     strm << "QPushButton#" << m_pStaticIconHolder->objectName() << ":hover{\n"
-        << "background-color: " << backgroundColorStr << "\n"
+        << "background-color: " << backgroundColorStr << ";\n"
         << "}\n";
 
     strm << "\n";
 
     strm << "QPushButton#" << m_pStaticIconHolder->objectName() << ":pressed{\n"
-        << "background-color: " << backgroundColorStr << "\n"
+        << "background-color: " << backgroundColorStr << ";\n"
         << "}\n";
 
     strm.flush();
+    QNDEBUG("Setting stylesheet for panel " << m_pPanel->objectName()
+           << ": " << styleSheetStr);
     m_pPanel->setStyleSheet(styleSheetStr);
 }
 
-QString PanelController::backgroundColorToString() const
+QString SidePanelController::backgroundColorToString() const
 {
     if (m_overrideBackgroundColor.isValid()) {
         return m_overrideBackgroundColor.name(QColor::HexRgb);
     }
 
-    return gradientToString(m_overrideBackgroundGradient);
+    if (!m_pOverrideBackgroundGradient) {
+        return {};
+    }
+
+    return gradientToString(*m_pOverrideBackgroundGradient);
 }
 
-QString PanelController::gradientToString(const QLinearGradient & gradient) const
+QString SidePanelController::gradientToString(
+    const QLinearGradient & gradient) const
 {
     auto stops = gradient.stops();
     if (stops.isEmpty()) {
@@ -255,7 +343,7 @@ QString PanelController::gradientToString(const QLinearGradient & gradient) cons
             strm << ",";
         }
         else {
-            strm << ");";
+            strm << ")";
         }
     }
 
@@ -263,23 +351,23 @@ QString PanelController::gradientToString(const QLinearGradient & gradient) cons
     return result;
 }
 
-QLinearGradient PanelController::lighterGradient(
+QLinearGradient SidePanelController::lighterGradient(
     const QLinearGradient & gradient) const
 {
     QLinearGradient result(gradient.start(), gradient.finalStop());
     auto stops = gradient.stops();
     for(const auto & stop: stops) {
-        result.setColorAt(stop.first, stop.second.lighter(50));
+        result.setColorAt(stop.first, stop.second.lighter(150));
     }
     return result;
 }
 
-QLinearGradient PanelController::darkerGradient(const QLinearGradient & gradient) const
+QLinearGradient SidePanelController::darkerGradient(const QLinearGradient & gradient) const
 {
     QLinearGradient result(gradient.start(), gradient.finalStop());
     auto stops = gradient.stops();
     for(const auto & stop: stops) {
-        result.setColorAt(stop.first, stop.second.darker(100));
+        result.setColorAt(stop.first, stop.second.darker(200));
     }
     return result;
 }

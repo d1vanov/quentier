@@ -231,7 +231,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteEditorTabsAndWindowsCoordinator(nullptr),
     m_pEditNoteDialogsManager(nullptr),
     m_pUndoStack(new QUndoStack(this)),
-    m_styleSheetInfo(),
     m_currentPanelStyle(),
     m_shortcutManager(this),
     m_pendingGreeterDialog(false),
@@ -291,8 +290,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
         m_pUI->ActionIconsNative->setDisabled(true);
     }
 
-    collectBaseStyleSheets();
-    setupPanelOverlayStyleSheets();
+    setupSidePanelControllers();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
@@ -1376,9 +1374,9 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
         return;
     }
 
-    int filterHeaderPanelHeight = m_pUI->noteFilterHeaderPanel->height();
-    int heightDiff = std::max(splitterSizes[0] - filterHeaderPanelHeight, 0);
-    splitterSizes[0] = filterHeaderPanelHeight;
+    int filtersPanelHeight = m_pUI->noteFiltersPanel->height();
+    int heightDiff = std::max(splitterSizes[0] - filtersPanelHeight, 0);
+    splitterSizes[0] = filtersPanelHeight;
     splitterSizes[1] = splitterSizes[1] + heightDiff;
     m_pUI->noteListAndFiltersSplitter->setSizes(splitterSizes);
 
@@ -1403,33 +1401,16 @@ void MainWindow::clearDir(const QString & path)
     }
 }
 
-void MainWindow::collectBaseStyleSheets()
+void MainWindow::setupSidePanelControllers()
 {
-    QNDEBUG("MainWindow::collectBaseStyleSheets");
+    auto panels = findChildren<PanelWidget*>(
+        QRegularExpression(QStringLiteral("(.*)SidePanel")));
 
-    QList<QWidget*> childWidgets = findChildren<QWidget*>();
-    for(auto it = childWidgets.constBegin(),
-        end = childWidgets.constEnd(); it != end; ++it)
-    {
-        QWidget * widget = *it;
-        if (Q_UNLIKELY(!widget)) {
-            continue;
-        }
-
-        QString styleSheet = widget->styleSheet();
-        if (styleSheet.isEmpty()) {
-            continue;
-        }
-
-        StyleSheetInfo & info = m_styleSheetInfo[widget];
-        info.m_baseStyleSheet = styleSheet;
-        info.m_targetWidget = QPointer<QWidget>(widget);
+    m_sidePanelControllers.clear();
+    m_sidePanelControllers.reserve(static_cast<size_t>(std::max(panels.size(), 0)));
+    for(auto * pPanel: panels) {
+        m_sidePanelControllers.emplace_back(std::make_unique<SidePanelController>(pPanel));
     }
-}
-
-void MainWindow::setupPanelOverlayStyleSheets()
-{
-    QNDEBUG("MainWindow::setupPanelOverlayStyleSheets");
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
@@ -1441,298 +1422,40 @@ void MainWindow::setupPanelOverlayStyleSheets()
         return;
     }
 
-    StyleSheetProperties properties;
-    getPanelStyleSheetProperties(panelStyle, properties);
-    if (Q_UNLIKELY(properties.isEmpty())) {
-        return;
-    }
-
     m_currentPanelStyle = panelStyle;
-    setPanelsOverlayStyleSheet(properties);
+    setPanelStyleToControllers(m_currentPanelStyle);
 }
 
-void MainWindow::getPanelStyleSheetProperties(
-    const QString & panelStyleOption, StyleSheetProperties & properties) const
+void MainWindow::setPanelStyleToControllers(const QString & panelStyle)
 {
-    properties.clear();
-    properties.reserve(4);
-
-    QString backgroundColorName, colorName, backgroundColorButtonHoverName,
-            backgroundColorButtonPressedName;
-
-    if (panelStyleOption == LIGHTER_PANEL_STYLE_NAME)
+    if (panelStyle.isEmpty())
     {
-        QColor backgroundColor = palette().color(QPalette::Light);
-        backgroundColorName = backgroundColor.name();
+        // This means use whatever is built in
+        for(auto & pSidePanelController: m_sidePanelControllers) {
+            pSidePanelController->resetOverrides();
+        }
 
-        QColor color = palette().color(QPalette::WindowText).name();
-        colorName = color.name();
-
-        QColor backgroundColorButtonHover = backgroundColor.darker(200);
-        backgroundColorButtonHoverName = backgroundColorButtonHover.name();
-
-        QColor backgroundColorButtonPressed = backgroundColor.lighter(150);
-        backgroundColorButtonPressedName = backgroundColorButtonPressed.name();
-    }
-    else if (panelStyleOption == DARKER_PANEL_STYLE_NAME)
-    {
-        QColor backgroundColor = palette().color(QPalette::Dark);
-        backgroundColorName = backgroundColor.name();
-
-        QColor color = palette().color(QPalette::BrightText);
-        colorName = color.name();
-
-        QColor backgroundColorButtonHover = backgroundColor.lighter(150);
-        backgroundColorButtonHoverName = backgroundColorButtonHover.name();
-
-        QColor backgroundColorButtonPressed = backgroundColor.darker(200);
-        backgroundColorButtonPressedName = backgroundColorButtonPressed.name();
-    }
-    else
-    {
-        QNDEBUG("Unidentified panel style name: " << panelStyleOption);
         return;
     }
 
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::None,
-                                            "background-color",
-                                            backgroundColorName));
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::None,
-                                            "color", colorName));
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::ButtonHover,
-                                            "background-color",
-                                            backgroundColorButtonHoverName));
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::ButtonPressed,
-                                            "background-color",
-                                            backgroundColorButtonPressedName));
+    const auto & pal = palette();
+    QColor backgroundColor;
+    QColor color;
 
-    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
-    {
-        QNTRACE("Computed stylesheet properties: ");
-        for(auto it = properties.constBegin(),
-            end = properties.constEnd(); it != end; ++it)
-        {
-            const StyleSheetProperty & property = *it;
-            QNTRACE("Property: target = " << property.m_targetType
-                    << ", property name = " << property.m_name
-                    << ", property value = " << property.m_value);
-        }
+    if (panelStyle == LIGHTER_PANEL_STYLE_NAME) {
+        backgroundColor = pal.color(QPalette::Light);
+        color = pal.color(QPalette::WindowText);
+    }
+    else if (panelStyle == DARKER_PANEL_STYLE_NAME) {
+        backgroundColor = pal.color(QPalette::Dark);
+        color = pal.color(QPalette::BrightText);
     }
 
-    return;
-}
-
-void MainWindow::setPanelsOverlayStyleSheet(
-    const StyleSheetProperties & properties)
-{
-    for(auto it = m_styleSheetInfo.begin(); it != m_styleSheetInfo.end(); )
-    {
-        StyleSheetInfo & info = it.value();
-
-        const QPointer<QWidget> & widget = info.m_targetWidget;
-        if (Q_UNLIKELY(widget.isNull())) {
-            it = m_styleSheetInfo.erase(it);
-            continue;
-        }
-
-        ++it;
-
-        QString widgetName = widget->objectName();
-        if (!widgetName.contains(QStringLiteral("Panel"))) {
-            continue;
-        }
-
-        if (properties.isEmpty()) {
-            widget->setStyleSheet(info.m_baseStyleSheet);
-            continue;
-        }
-
-        QString overlayStyleSheet = alterStyleSheet(info.m_baseStyleSheet,
-                                                    properties);
-        if (Q_UNLIKELY(overlayStyleSheet.isEmpty())) {
-            widget->setStyleSheet(info.m_baseStyleSheet);
-            continue;
-        }
-
-        widget->setStyleSheet(overlayStyleSheet);
+    for(auto & pSidePanelController: m_sidePanelControllers) {
+        pSidePanelController->setOverrideColors(
+            std::move(color),
+            std::move(backgroundColor));
     }
-}
-
-QString MainWindow::alterStyleSheet(
-    const QString & originalStyleSheet, const StyleSheetProperties & properties)
-{
-    QNDEBUG("MainWindow::alterStyleSheet: original stylesheet = "
-            << originalStyleSheet);
-
-    QString result = originalStyleSheet;
-
-#define REPORT_ERROR()                                                         \
-    ErrorString errorDescription(QT_TR_NOOP("Can't alter the stylesheet: "     \
-                                            "stylesheet parsing failed"));     \
-    QNINFO(errorDescription << ", original stylesheet: "                       \
-           << originalStyleSheet << ", stylesheet modified so far: "           \
-           << result << ", property index = " << propertyIndex);               \
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30))    \
-// REPORT_ERROR
-
-    for(auto it = properties.constBegin(),
-        end = properties.constEnd(); it != end; ++it)
-    {
-        const StyleSheetProperty & property = *it;
-
-        QString propertyName = QString::fromUtf8(property.m_name);
-
-        int propertyIndex = -1;
-        while(true)
-        {
-            if (propertyIndex >= result.size()) {
-                break;
-            }
-
-            propertyIndex = result.indexOf(propertyName, propertyIndex + 1);
-            if (propertyIndex < 0) {
-                break;
-            }
-
-            if (propertyIndex > 0)
-            {
-                // Check that what we've found is the start of a word
-                QChar previousChar = result[propertyIndex - 1];
-                QString previousCharString(previousChar);
-                if (!previousCharString.trimmed().isEmpty()) {
-                    continue;
-                }
-            }
-
-            bool error = false;
-            bool insideHover = isInsideStyleBlock(
-                result, QStringLiteral(":hover:!pressed"), propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            error = false;
-            bool insidePressed = isInsideStyleBlock(
-                result, QStringLiteral(":pressed"), propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            error = false;
-            bool insidePseudoButtonHover =
-                isInsideStyleBlock(
-                    result, QStringLiteral("pseudoPushButton:hover:!pressed"),
-                    propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            error = false;
-            bool insidePseudoButtonPressed =
-                isInsideStyleBlock(
-                    result, QStringLiteral("pseudoPushButton:hover:pressed"),
-                    propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            int propertyEndIndex =
-                result.indexOf(QStringLiteral(";"), propertyIndex + 1);
-            if (Q_UNLIKELY(propertyEndIndex < 0)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            QString replacement =
-                propertyName + QStringLiteral(": ") + property.m_value;
-
-#define REPLACE()                                                              \
-    QNDEBUG("Replacing substring " << result.midRef(                           \
-            propertyIndex, propertyEndIndex - propertyIndex)                   \
-            << " with " << replacement);                                       \
-    result.replace(propertyIndex, propertyEndIndex - propertyIndex,            \
-                   replacement);                                               \
-    QNDEBUG("Stylesheet after the replacement: " << result)                    \
-// REPLACE
-
-            if (property.m_targetType == StyleSheetProperty::Target::None)
-            {
-                if (insideHover && !insidePseudoButtonHover) {
-                    continue;
-                }
-
-                if (insidePressed && !insidePseudoButtonPressed) {
-                    continue;
-                }
-
-                REPLACE();
-            }
-            else if (property.m_targetType == StyleSheetProperty::Target::ButtonHover)
-            {
-                if (insidePressed) {
-                    continue;
-                }
-
-                if (!insideHover || insidePseudoButtonHover) {
-                    continue;
-                }
-
-                REPLACE();
-            }
-            else if (property.m_targetType == StyleSheetProperty::Target::ButtonPressed)
-            {
-                if (!insidePressed || insidePseudoButtonPressed) {
-                    continue;
-                }
-
-                REPLACE();
-            }
-        }
-    }
-
-    QNDEBUG("Altered stylesheet: " << result);
-    return result;
-}
-
-bool MainWindow::isInsideStyleBlock(
-    const QString & styleSheet, const QString & styleBlockStartSearchString,
-    const int currentIndex, bool & error) const
-{
-    error = false;
-
-    int blockStartIndex = styleSheet.lastIndexOf(
-        styleBlockStartSearchString, currentIndex);
-    if (blockStartIndex < 0) {
-        // No block start before the current index => not inside the style block
-        // of this kind
-        return false;
-    }
-
-    int blockEndIndex = styleSheet.lastIndexOf(QStringLiteral("}"), currentIndex);
-    if (blockEndIndex > blockStartIndex) {
-        // Block end was found after the last block start before the current
-        // index => the current index is not within the style block
-        return false;
-    }
-
-    // There's no block end between block start and the current index, need to
-    // look for the block end after the current index
-    blockEndIndex = styleSheet.indexOf(QStringLiteral("}"), currentIndex + 1);
-    if (Q_UNLIKELY(blockEndIndex < 0))
-    {
-        QNDEBUG("Can't parse stylesheet: can't find block end for style block "
-                "search string " << styleBlockStartSearchString);
-        error = true;
-        return false;
-    }
-
-    // Found first style block end after the current index while the block start
-    // is before the current index => the current index is inside the style block
-    return true;
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
@@ -3829,7 +3552,7 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     appSettings.remove(PANELS_STYLE_SETTINGS_KEY);
     appSettings.endGroup();
 
-    setPanelsOverlayStyleSheet(StyleSheetProperties());
+    setPanelStyleToControllers({});
 }
 
 void MainWindow::onSwitchPanelStyleToLighter()
@@ -3850,9 +3573,7 @@ void MainWindow::onSwitchPanelStyleToLighter()
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
 
-    StyleSheetProperties properties;
-    getPanelStyleSheetProperties(m_currentPanelStyle, properties);
-    setPanelsOverlayStyleSheet(properties);
+    setPanelStyleToControllers(m_currentPanelStyle);
 }
 
 void MainWindow::onSwitchPanelStyleToDarker()
@@ -3873,9 +3594,7 @@ void MainWindow::onSwitchPanelStyleToDarker()
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
 
-    StyleSheetProperties properties;
-    getPanelStyleSheetProperties(m_currentPanelStyle, properties);
-    setPanelsOverlayStyleSheet(properties);
+    setPanelStyleToControllers(m_currentPanelStyle);
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestComplete(
