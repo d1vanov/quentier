@@ -290,7 +290,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
         m_pUI->ActionIconsNative->setDisabled(true);
     }
 
+    setupGenericPanelStyleControllers();
     setupSidePanelStyleControllers();
+    restoreSelectedPanelStyle();
+    setPanelStyleToControllers();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
@@ -1374,7 +1377,7 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
         return;
     }
 
-    int filtersPanelHeight = m_pUI->noteFiltersPanel->height();
+    int filtersPanelHeight = m_pUI->noteFiltersGenericPanel->height();
     int heightDiff = std::max(splitterSizes[0] - filtersPanelHeight, 0);
     splitterSizes[0] = filtersPanelHeight;
     splitterSizes[1] = splitterSizes[1] + heightDiff;
@@ -1401,6 +1404,33 @@ void MainWindow::clearDir(const QString & path)
     }
 }
 
+void MainWindow::setupGenericPanelStyleControllers()
+{
+    auto panels = findChildren<PanelWidget*>(
+        QRegularExpression(QStringLiteral("(.*)GenericPanel")));
+
+    m_genericPanelStyleControllers.clear();
+    m_genericPanelStyleControllers.reserve(
+        static_cast<size_t>(std::max(panels.size(), 0)));
+
+    QString extraStyleSheet;
+    for(auto * pPanel: panels)
+    {
+        if (pPanel->objectName().startsWith(QStringLiteral("upperBar"))) {
+            QTextStream strm(&extraStyleSheet);
+            strm << "#upperBarGenericPanel {\n"
+                << "border-bottom: 1px solid black;\n"
+                << "}\n";
+        }
+        else {
+            extraStyleSheet.clear();
+        }
+
+        m_genericPanelStyleControllers.emplace_back(
+            std::make_unique<PanelStyleController>(pPanel, extraStyleSheet));
+    }
+}
+
 void MainWindow::setupSidePanelStyleControllers()
 {
     auto panels = findChildren<PanelWidget*>(
@@ -1414,27 +1444,29 @@ void MainWindow::setupSidePanelStyleControllers()
         m_sidePanelStyleControllers.emplace_back(
             std::make_unique<SidePanelStyleController>(pPanel));
     }
+}
 
+void MainWindow::restoreSelectedPanelStyle()
+{
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     QString panelStyle = appSettings.value(PANELS_STYLE_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
-    if (panelStyle.isEmpty()) {
-        return;
-    }
-
     m_currentPanelStyle = panelStyle;
-    setPanelStyleToControllers(m_currentPanelStyle);
 }
 
-void MainWindow::setPanelStyleToControllers(const QString & panelStyle)
+void MainWindow::setPanelStyleToControllers()
 {
-    if (panelStyle.isEmpty())
+    if (m_currentPanelStyle.isEmpty())
     {
         // This means use whatever is built in
         for(auto & pSidePanelStyleController: m_sidePanelStyleControllers) {
             pSidePanelStyleController->resetOverrides();
+        }
+
+        for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+            pPanelStyleController->resetOverrides();
         }
 
         return;
@@ -1444,19 +1476,21 @@ void MainWindow::setPanelStyleToControllers(const QString & panelStyle)
     QColor backgroundColor;
     QColor color;
 
-    if (panelStyle == LIGHTER_PANEL_STYLE_NAME) {
+    if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
         backgroundColor = pal.color(QPalette::Light);
         color = pal.color(QPalette::WindowText);
     }
-    else if (panelStyle == DARKER_PANEL_STYLE_NAME) {
+    else if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
         backgroundColor = pal.color(QPalette::Dark);
         color = pal.color(QPalette::BrightText);
     }
 
     for(auto & pSidePanelStyleController: m_sidePanelStyleControllers) {
-        pSidePanelStyleController->setOverrideColors(
-            std::move(color),
-            std::move(backgroundColor));
+        pSidePanelStyleController->setOverrideColors(color, backgroundColor);
+    }
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundColor(backgroundColor);
     }
 }
 
@@ -3374,10 +3408,10 @@ void MainWindow::onShowToolbarActionToggled(bool checked)
     appSettings.endGroup();
 
     if (checked) {
-        m_pUI->upperBarPanel->show();
+        m_pUI->upperBarGenericPanel->show();
     }
     else {
-        m_pUI->upperBarPanel->hide();
+        m_pUI->upperBarGenericPanel->hide();
     }
 }
 
@@ -3554,7 +3588,7 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     appSettings.remove(PANELS_STYLE_SETTINGS_KEY);
     appSettings.endGroup();
 
-    setPanelStyleToControllers({});
+    setPanelStyleToControllers();
 }
 
 void MainWindow::onSwitchPanelStyleToLighter()
@@ -3575,7 +3609,7 @@ void MainWindow::onSwitchPanelStyleToLighter()
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
 
-    setPanelStyleToControllers(m_currentPanelStyle);
+    setPanelStyleToControllers();
 }
 
 void MainWindow::onSwitchPanelStyleToDarker()
@@ -3596,7 +3630,7 @@ void MainWindow::onSwitchPanelStyleToDarker()
     appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
     appSettings.endGroup();
 
-    setPanelStyleToControllers(m_currentPanelStyle);
+    setPanelStyleToControllers();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestComplete(
@@ -4560,9 +4594,9 @@ void MainWindow::setupShowHideStartupSettings()
     CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowNotesList"),
                                ShowNotesList, notesListAndFiltersFrame)
     CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowToolbar"),
-                               ShowToolbar, upperBarPanel)
+                               ShowToolbar, upperBarGenericPanel)
     CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowStatusBar"),
-                               ShowStatusBar, upperBarPanel)
+                               ShowStatusBar, upperBarGenericPanel)
 
 #undef CHECK_AND_SET_SHOW_SETTING
 

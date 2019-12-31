@@ -68,7 +68,7 @@ QSplitter::handle:vertical {
      <number>0</number>
     </property>
     <item>
-     <widget class="PanelWidget" name="upperBarPanel">
+     <widget class="PanelWidget" name="upperBarGenericPanel">
       <property name="minimumSize">
        <size>
         <width>50</width>
@@ -82,7 +82,7 @@ QSplitter::handle:vertical {
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">#upperBarPanel {
+       <string notr="true">#upperBarGenericPanel {
 border: none;
 border-bottom: 1px solid black;
 background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
@@ -130,8 +130,11 @@ padding-left: 2px;
 padding-right: 2px;
 }</string>
       </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
       <property name="lineWidth">
-       <number>0</number>
+       <number>1</number>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -2093,7 +2096,7 @@ border-bottom: none;
              <number>0</number>
             </property>
             <item>
-             <widget class="PanelWidget" name="noteFiltersPanel">
+             <widget class="PanelWidget" name="noteFiltersGenericPanel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -2562,7 +2565,7 @@ border-bottom: 1px solid black;</string>
              <number>0</number>
             </property>
             <item>
-             <widget class="PanelWidget" name="noteListWidgetPanel">
+             <widget class="PanelWidget" name="noteListWidgetGenericPanel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>

@@ -463,8 +463,10 @@ private:
 
     void clearDir(const QString & path);
 
+    void setupGenericPanelStyleControllers();
     void setupSidePanelStyleControllers();
-    void setPanelStyleToControllers(const QString & panelStyle);
+    void restoreSelectedPanelStyle();
+    void setPanelStyleToControllers();
 
     bool getShowNoteThumbnailsPreference() const;
     bool getDisableNativeMenuBarPreference() const;
@@ -554,7 +556,8 @@ private:
     QUndoStack *            m_pUndoStack;
 
     QString                 m_currentPanelStyle;
-    std::vector<std::unique_ptr<SidePanelStyleController>>   m_sidePanelStyleControllers;
+    std::vector<std::unique_ptr<PanelStyleController>>      m_genericPanelStyleControllers;
+    std::vector<std::unique_ptr<SidePanelStyleController>>  m_sidePanelStyleControllers;
 
     quentier::ShortcutManager   m_shortcutManager;
     QHash<int, QAction*>        m_shortcutKeyToAction;

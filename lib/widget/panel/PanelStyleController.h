@@ -35,7 +35,7 @@ namespace quentier {
 class PanelStyleController
 {
 public:
-    explicit PanelStyleController(QFrame * pPanel);
+    explicit PanelStyleController(QFrame * pPanel, QString extraStyleSheet = {});
     virtual ~PanelStyleController() = default;
 
     QFrame * panel();
@@ -66,6 +66,7 @@ protected:
 protected:
     QFrame *    m_pPanel = nullptr;
     QString     m_defaultStyleSheet;
+    QString     m_extraStyleSheet;
 
     QColor      m_overrideBackgroundColor;
     std::unique_ptr<QLinearGradient>    m_pOverrideBackgroundGradient;
