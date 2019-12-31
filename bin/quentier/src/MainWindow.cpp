@@ -290,7 +290,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
         m_pUI->ActionIconsNative->setDisabled(true);
     }
 
-    setupSidePanelControllers();
+    setupSidePanelStyleControllers();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
@@ -1401,15 +1401,18 @@ void MainWindow::clearDir(const QString & path)
     }
 }
 
-void MainWindow::setupSidePanelControllers()
+void MainWindow::setupSidePanelStyleControllers()
 {
     auto panels = findChildren<PanelWidget*>(
         QRegularExpression(QStringLiteral("(.*)SidePanel")));
 
-    m_sidePanelControllers.clear();
-    m_sidePanelControllers.reserve(static_cast<size_t>(std::max(panels.size(), 0)));
+    m_sidePanelStyleControllers.clear();
+    m_sidePanelStyleControllers.reserve(
+        static_cast<size_t>(std::max(panels.size(), 0)));
+
     for(auto * pPanel: panels) {
-        m_sidePanelControllers.emplace_back(std::make_unique<SidePanelController>(pPanel));
+        m_sidePanelStyleControllers.emplace_back(
+            std::make_unique<SidePanelStyleController>(pPanel));
     }
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
@@ -1418,7 +1421,6 @@ void MainWindow::setupSidePanelControllers()
     appSettings.endGroup();
 
     if (panelStyle.isEmpty()) {
-        QNDEBUG("No last chosen panel style");
         return;
     }
 
@@ -1431,8 +1433,8 @@ void MainWindow::setPanelStyleToControllers(const QString & panelStyle)
     if (panelStyle.isEmpty())
     {
         // This means use whatever is built in
-        for(auto & pSidePanelController: m_sidePanelControllers) {
-            pSidePanelController->resetOverrides();
+        for(auto & pSidePanelStyleController: m_sidePanelStyleControllers) {
+            pSidePanelStyleController->resetOverrides();
         }
 
         return;
@@ -1451,8 +1453,8 @@ void MainWindow::setPanelStyleToControllers(const QString & panelStyle)
         color = pal.color(QPalette::BrightText);
     }
 
-    for(auto & pSidePanelController: m_sidePanelControllers) {
-        pSidePanelController->setOverrideColors(
+    for(auto & pSidePanelStyleController: m_sidePanelStyleControllers) {
+        pSidePanelStyleController->setOverrideColors(
             std::move(color),
             std::move(backgroundColor));
     }

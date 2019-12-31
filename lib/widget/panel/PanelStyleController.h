@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_SIDE_PANEL_CONTROLLER_H
-#define QUENTIER_WIDGETS_SIDE_PANEL_CONTROLLER_H
+#ifndef QUENTIER_WIDGETS_PANEL_STYLE_CONTROLLER_H
+#define QUENTIER_WIDGETS_PANEL_STYLE_CONTROLLER_H
 
 #include <QColor>
 #include <QLinearGradient>
@@ -25,30 +25,20 @@
 #include <memory>
 
 QT_FORWARD_DECLARE_CLASS(QFrame)
-QT_FORWARD_DECLARE_CLASS(QLabel)
-QT_FORWARD_DECLARE_CLASS(QPushButton)
 
 namespace quentier {
 
 /**
- * @brief The SidePanelController class manages QFrame with child widgets which
- * as a whole represent one of side panels used in the UI of Quentier app
+ * @brief The PanelStyleController class manages the style of a QFrame which
+ * represents one of panels used in the UI of Quentier app
  */
-class SidePanelController
+class PanelStyleController
 {
 public:
-    /**
-     * @brief SidePanelController contructor
-     * @param pPanel        QFrame representing the side panel; certain layout
-     *                      of child widgets is expected, otherwise assert
-     *                      fires!
-     */
-    explicit SidePanelController(QFrame * pPanel);
+    explicit PanelStyleController(QFrame * pPanel);
+    virtual ~PanelStyleController() = default;
 
     QFrame * panel();
-
-    QString title() const;
-    void setTitle(const QString & title);
 
     QColor overrideFontColor() const;
     void setOverrideFontColor(QColor color);
@@ -60,34 +50,27 @@ public:
     void setOverrideBackgroundGradient(QLinearGradient gradient);
     void resetOverrideBackgroundGradient();
 
-    void setOverrideColors(QColor fontColor, QColor backgroundColor);
-    void setOverrideColors(QColor fontColor, QLinearGradient backgroundGradient);
+    virtual void resetOverrides();
 
-    void resetOverrides();
-
-private:
-    void findChildWidgets();
-
-    void updateStyleSheet();
-
+protected:
     QString backgroundColorToString() const;
     QString gradientToString(const QLinearGradient & gradient) const;
 
     QLinearGradient lighterGradient(const QLinearGradient & gradient) const;
     QLinearGradient darkerGradient(const QLinearGradient & gradient) const;
 
-private:
-    QFrame *        m_pPanel = nullptr;
-    QLabel *        m_pTitleLabel = nullptr;
-    QPushButton *   m_pStaticIconHolder = nullptr;
+    virtual QString generateStyleSheet() const;
 
-    QString         m_defaultStyleSheet;
+    void updateStyleSheet();
 
-    QColor          m_overrideFontColor;
-    QColor          m_overrideBackgroundColor;
+protected:
+    QFrame *    m_pPanel = nullptr;
+    QString     m_defaultStyleSheet;
+
+    QColor      m_overrideBackgroundColor;
     std::unique_ptr<QLinearGradient>    m_pOverrideBackgroundGradient;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_WIDGETS_SIDE_PANEL_CONTROLLER_H
+#endif // QUENTIER_WIDGETS_PANEL_STYLE_CONTROLLER_H

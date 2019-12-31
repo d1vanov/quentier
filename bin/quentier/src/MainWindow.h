@@ -31,7 +31,7 @@
 #include <lib/model/FavoritesModel.h>
 #include <lib/widget/NoteEditorWidget.h>
 #include <lib/widget/NoteEditorTabsAndWindowsCoordinator.h>
-#include <lib/widget/SidePanelController.h>
+#include <lib/widget/panel/SidePanelStyleController.h>
 
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
@@ -463,7 +463,7 @@ private:
 
     void clearDir(const QString & path);
 
-    void setupSidePanelControllers();
+    void setupSidePanelStyleControllers();
     void setPanelStyleToControllers(const QString & panelStyle);
 
     bool getShowNoteThumbnailsPreference() const;
@@ -554,7 +554,7 @@ private:
     QUndoStack *            m_pUndoStack;
 
     QString                 m_currentPanelStyle;
-    std::vector<std::unique_ptr<SidePanelController>>   m_sidePanelControllers;
+    std::vector<std::unique_ptr<SidePanelStyleController>>   m_sidePanelStyleControllers;
 
     quentier::ShortcutManager   m_shortcutManager;
     QHash<int, QAction*>        m_shortcutKeyToAction;

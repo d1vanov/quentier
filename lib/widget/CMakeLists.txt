@@ -23,7 +23,6 @@ set(HEADERS
     NoteTagsWidget.h
     PanelWidget.h
     SavedSearchModelItemInfoWidget.h
-    SidePanelController.h
     TagModelItemInfoWidget.h
     TabWidget.h
     color-picker-tool-button/ColorPickerActionWidget.h
@@ -32,7 +31,9 @@ set(HEADERS
     insert-table-tool-button/TableSettingsDialog.h
     insert-table-tool-button/TableSizeConstraintsActionWidget.h
     insert-table-tool-button/TableSizeSelectorActionWidget.h
-    insert-table-tool-button/TableSizeSelector.h)
+    insert-table-tool-button/TableSizeSelector.h
+    panel/PanelStyleController.h
+    panel/SidePanelStyleController.h)
 
 set(SOURCES
     AboutQuentierWidget.cpp
@@ -53,7 +54,6 @@ set(SOURCES
     NoteTagsWidget.cpp
     PanelWidget.cpp
     SavedSearchModelItemInfoWidget.cpp
-    SidePanelController.cpp
     TagModelItemInfoWidget.cpp
     TabWidget.cpp
     color-picker-tool-button/ColorPickerActionWidget.cpp
@@ -62,7 +62,9 @@ set(SOURCES
     insert-table-tool-button/TableSettingsDialog.cpp
     insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     insert-table-tool-button/TableSizeSelectorActionWidget.cpp
-    insert-table-tool-button/TableSizeSelector.cpp)
+    insert-table-tool-button/TableSizeSelector.cpp
+    panel/PanelStyleController.cpp
+    panel/SidePanelStyleController.cpp)
 
 set(FORMS
     AboutQuentierWidget.ui
