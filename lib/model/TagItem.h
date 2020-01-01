@@ -36,7 +36,7 @@ public:
         const bool isSynchronizable = false,
         const bool isDirty = false,
         const bool isFavorited = false,
-        const int numNotesPerTag = -1);
+        const int numNotesPerTag = 0);
 
     virtual ~TagItem();
 
