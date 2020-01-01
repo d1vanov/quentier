@@ -44,7 +44,7 @@ public:
         const bool isFavorited = false,
         const bool canCreateNotes = true,
         const bool canUpdateNotes = true,
-        const int numNotesPerNotebook = -1);
+        const int numNotesPerNotebook = 0);
 
     ~NotebookItem();
 
