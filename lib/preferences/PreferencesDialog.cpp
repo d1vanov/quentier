@@ -21,8 +21,12 @@
 #include "DefaultSettings.h"
 #include "DefaultDisableNativeMenuBar.h"
 
+#include "panel_colors/PanelColorsHandlerWidget.h"
+using quentier::PanelColorsHandlerWidget;
+
 #include "shortcut_settings/ShortcutSettingsWidget.h"
 using quentier::ShortcutSettingsWidget;
+
 #include "ui_PreferencesDialog.h"
 
 #include <lib/account/AccountManager.h>

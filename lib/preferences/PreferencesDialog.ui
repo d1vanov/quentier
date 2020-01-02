@@ -118,231 +118,21 @@
         </layout>
        </item>
        <item>
-        <widget class="QLabel" name="panelsColorsLabel">
+        <widget class="QLabel" name="panelColorsLabel">
          <property name="text">
           <string>Panel colors:</string>
          </property>
         </widget>
        </item>
        <item>
-        <layout class="QGridLayout" name="panelsGridLayout">
-         <item row="0" column="0">
-          <widget class="QLabel" name="panelsFontColorLabel">
-           <property name="text">
-            <string>Font:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" colspan="2">
-          <widget class="QLineEdit" name="panelsFontColorLineEdit"/>
-         </item>
-         <item row="0" column="3">
-          <widget class="QFrame" name="panelsFontColorDemoFrame">
-           <property name="minimumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QPushButton" name="panelsFontColorPushButton">
-           <property name="text">
-            <string>Choose</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="5" rowspan="2" colspan="2">
-          <layout class="QVBoxLayout" name="panelsBackgroundColorOrGradientVerticalLayout">
-           <item>
-            <widget class="QRadioButton" name="panelsUseBackgroundColorRadioButton">
-             <property name="text">
-              <string>Use background color</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="panelsUseBackgroundGradientRadioButton">
-             <property name="text">
-              <string>Use background gradient</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="panelsBackgroundColorLabel">
-           <property name="text">
-            <string>Background:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1" colspan="2">
-          <widget class="QLineEdit" name="panelsBackgroundColorLineEdit"/>
-         </item>
-         <item row="1" column="3">
-          <widget class="QFrame" name="panelsBackgroundColorDemoFrame">
-           <property name="minimumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="4">
-          <widget class="QPushButton" name="panelsBackgroundColorPushButton">
-           <property name="text">
-            <string>Choose</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="3">
-          <widget class="QLabel" name="panelsBackgroundGradientLabel">
-           <property name="text">
-            <string>Background gradient:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="7">
-          <widget class="QTableWidget" name="panelsBackgroundGradientTableWidget"/>
-         </item>
-         <item row="4" column="0" colspan="2">
-          <widget class="QLabel" name="panelsBackgroundGradientBaseColorLabel">
-           <property name="text">
-            <string>Base color:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="2">
-          <widget class="QLineEdit" name="panelsBackgroundGradientBaseColorLineEdit"/>
-         </item>
-         <item row="4" column="3">
-          <widget class="QFrame" name="panelsBackgroundGradientBaseColorDemoFrame">
-           <property name="minimumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="4">
-          <widget class="QPushButton" name="panelsBackgroundGradientBaseColorPushButton">
-           <property name="text">
-            <string>Choose</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="5">
-          <widget class="QPushButton" name="panelsBackgroundGradientGeneratePushButton">
-           <property name="text">
-            <string>Generate</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="6">
-          <widget class="QPushButton" name="panelsBackgroundGradientAddRowPushButton">
-           <property name="text">
-            <string>Add row</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="5" colspan="2">
-          <spacer name="panelsBottomHorizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>168</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="5" column="2" colspan="3">
-          <widget class="QFrame" name="panelsBackgroundGradientDemoFrame">
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::Box</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QLabel" name="panelsBackgroundGradientDemoFrameTitleLabel">
-              <property name="text">
-               <string>Panel title</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="5" column="0" colspan="2">
-          <widget class="QLabel" name="panelsBackgroundGradientPreviewLabel">
-           <property name="text">
-            <string>Preview:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="PanelColorsHandlerWidget" name="panelColorsHandlerWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -1181,6 +971,12 @@ padding: 0 3px;
    <class>ShortcutSettingsWidget</class>
    <extends>QWidget</extends>
    <header>shortcut_settings/ShortcutSettingsWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PanelColorsHandlerWidget</class>
+   <extends>QWidget</extends>
+   <header>panel_colors/PanelColorsHandlerWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
