@@ -125,7 +125,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <layout class="QGridLayout" name="panelsGridLayout">
          <item row="0" column="0">
           <widget class="QLabel" name="panelsFontColorLabel">
            <property name="text">
@@ -136,10 +136,10 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item row="0" column="1" colspan="2">
           <widget class="QLineEdit" name="panelsFontColorLineEdit"/>
          </item>
-         <item row="0" column="2">
+         <item row="0" column="3">
           <widget class="QFrame" name="panelsFontColorDemoFrame">
            <property name="minimumSize">
             <size>
@@ -161,25 +161,30 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="3">
+         <item row="0" column="4">
           <widget class="QPushButton" name="panelsFontColorPushButton">
            <property name="text">
             <string>Choose</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="4">
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
+         <item row="0" column="5" rowspan="2" colspan="2">
+          <layout class="QVBoxLayout" name="panelsBackgroundColorOrGradientVerticalLayout">
+           <item>
+            <widget class="QRadioButton" name="panelsUseBackgroundColorRadioButton">
+             <property name="text">
+              <string>Use background color</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="panelsUseBackgroundGradientRadioButton">
+             <property name="text">
+              <string>Use background gradient</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="panelsBackgroundColorLabel">
@@ -188,10 +193,10 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
+         <item row="1" column="1" colspan="2">
           <widget class="QLineEdit" name="panelsBackgroundColorLineEdit"/>
          </item>
-         <item row="1" column="2">
+         <item row="1" column="3">
           <widget class="QFrame" name="panelsBackgroundColorDemoFrame">
            <property name="minimumSize">
             <size>
@@ -213,132 +218,129 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="3">
+         <item row="1" column="4">
           <widget class="QPushButton" name="panelsBackgroundColorPushButton">
            <property name="text">
             <string>Choose</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="4">
-          <spacer name="horizontalSpacer_3">
+         <item row="2" column="0" colspan="3">
+          <widget class="QLabel" name="panelsBackgroundGradientLabel">
+           <property name="text">
+            <string>Background gradient:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="7">
+          <widget class="QTableWidget" name="panelsBackgroundGradientTableWidget"/>
+         </item>
+         <item row="4" column="0" colspan="2">
+          <widget class="QLabel" name="panelsBackgroundGradientBaseColorLabel">
+           <property name="text">
+            <string>Base color:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QLineEdit" name="panelsBackgroundGradientBaseColorLineEdit"/>
+         </item>
+         <item row="4" column="3">
+          <widget class="QFrame" name="panelsBackgroundGradientBaseColorDemoFrame">
+           <property name="minimumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="4">
+          <widget class="QPushButton" name="panelsBackgroundGradientBaseColorPushButton">
+           <property name="text">
+            <string>Choose</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="5">
+          <widget class="QPushButton" name="panelsBackgroundGradientGeneratePushButton">
+           <property name="text">
+            <string>Generate</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="6">
+          <widget class="QPushButton" name="panelsBackgroundGradientAddRowPushButton">
+           <property name="text">
+            <string>Add row</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="5" colspan="2">
+          <spacer name="panelsBottomHorizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
+             <width>168</width>
              <height>20</height>
             </size>
            </property>
           </spacer>
          </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <layout class="QVBoxLayout" name="panelsBackgroundGradientVerticalLayout">
-           <item>
-            <widget class="QLabel" name="panelsBackgroundGradientLabel">
-             <property name="text">
-              <string>Background gradient:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QTableWidget" name="panelsBackgroindGradientTableWidget"/>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="panelsBackgroundGradientBottomHorizontalLayout">
-             <item>
-              <widget class="QFrame" name="panelsBackgroundGradientDemoFrame">
-               <property name="minimumSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="frameShape">
-                <enum>QFrame::Box</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Plain</enum>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout">
-                <item>
-                 <widget class="QLabel" name="panelsBackgroundGradientDemoFrameTitleLabel">
-                  <property name="text">
-                   <string>Preview</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Expanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="panelsBackgroundGradientAddRowPushButton">
-               <property name="text">
-                <string>Add row</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
+         <item row="5" column="2" colspan="3">
+          <widget class="QFrame" name="panelsBackgroundGradientDemoFrame">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="panelsBackgroundGradientDemoFrameTitleLabel">
+              <property name="text">
+               <string>Panel title</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </item>
-         <item>
-          <layout class="QVBoxLayout" name="panelsBackgroundColorOrGradientVerticalLayout">
-           <item>
-            <widget class="QRadioButton" name="panelsUseBackgroundColorRadioButton">
-             <property name="text">
-              <string>Use background color</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="panelsUseBackgroundGradientRadioButton">
-             <property name="text">
-              <string>Use background gradient</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Expanding</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>10</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
+         <item row="5" column="0" colspan="2">
+          <widget class="QLabel" name="panelsBackgroundGradientPreviewLabel">
+           <property name="text">
+            <string>Preview:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
