@@ -184,13 +184,15 @@ void PanelColorsHandlerWidget::onBackgroundColorSelected(const QColor & color)
 void PanelColorsHandlerWidget::onUseBackgroundGradientRadioButtonToggled()
 {
     QNDEBUG("PanelColorsHandlerWidget::onUseBackgroundGradientRadioButtonToggled");
-
-
+    onUseBackgroundGradientOptionChanged(
+        m_pUi->useBackgroundGradientRadioButton->isChecked());
 }
 
 void PanelColorsHandlerWidget::onUseBackgroundColorRadioButtonToggled()
 {
-    // TODO: implement
+    QNDEBUG("PanelColorsHandlerWidget::onUseBackgroundColorRadioButtonToggled");
+    onUseBackgroundGradientOptionChanged(
+        !m_pUi->useBackgroundColorRadioButton->isChecked());
 }
 
 void PanelColorsHandlerWidget::onBackgroundGradientBaseColorEntered()
@@ -251,6 +253,64 @@ void PanelColorsHandlerWidget::onBackgroundGradientBaseColorSelected(
     }
 
     saveBackgroundGradientBaseColor(color);
+}
+
+void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowValueEdited(double value)
+{
+    // TODO: implement
+    Q_UNUSED(value)
+}
+
+void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorEntered()
+{
+    // TODO: implement
+}
+
+void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorDialogRequested()
+{
+    // TODO: implement
+}
+
+bool PanelColorsHandlerWidget::eventFilter(QObject * pObject, QEvent * pEvent)
+{
+    if (pObject == m_pUi->fontColorDemoFrame)
+    {
+        if (pEvent && (pEvent->type() == QEvent::MouseButtonDblClick)) {
+            onFontColorDialogRequested();
+            return true;
+        }
+    }
+    else if (pObject == m_pUi->backgroundColorDemoFrame)
+    {
+        if (pEvent && (pEvent->type() == QEvent::MouseButtonDblClick)) {
+            onBackgroundColorDialogRequested();
+            return true;
+        }
+    }
+    else if (pObject == m_pUi->backgroundGradientBaseColorDemoFrame)
+    {
+        if (pEvent && (pEvent->type() == QEvent::MouseButtonDblClick)) {
+            onBackgroundGradientBaseColorDialogRequested();
+            return true;
+        }
+    }
+
+    if (!pEvent || (pEvent->type() != QEvent::MouseButtonDblClick)) {
+        return false;
+    }
+
+    int rowCount = m_pUi->backgroundGradientTableWidget->rowCount();
+    for(int i = 0; i < rowCount; ++i)
+    {
+        auto * pDemoFrame = qobject_cast<QFrame*>(
+            m_pUi->backgroundGradientTableWidget->cellWidget(i, 2));
+        if (pDemoFrame && (pDemoFrame == pObject)) {
+            // TODO: request color dialog for this row
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void PanelColorsHandlerWidget::restoreAccountSettings()
@@ -355,19 +415,19 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         static_cast<int>(backgroundGradientLines.size()));
     m_pUi->backgroundGradientTableWidget->setColumnCount(4);
 
-    int rowCount = 0;
+    int rowIndex = 0;
     for(const auto & gradientLine: backgroundGradientLines)
     {
-        auto * pItem = new QTableWidgetItem(QString::number(gradientLine.m_value));
+        auto rowName = QString::number(rowIndex);
 
         auto * pValueSpinBox = new QDoubleSpinBox;
-        pValueSpinBox->setObjectName(pItem->text());
+        pValueSpinBox->setObjectName(rowName);
 
         auto * pColorNameLineEdit = new QLineEdit;
-        pColorNameLineEdit->setObjectName(pItem->text());
+        pColorNameLineEdit->setObjectName(rowName);
 
         auto * pColorDemoFrame = new QFrame;
-        pColorDemoFrame->setObjectName(pItem->text());
+        pColorDemoFrame->setObjectName(rowName);
         pColorDemoFrame->setMinimumSize(24, 24);
         pColorDemoFrame->setMaximumSize(24, 24);
         pColorDemoFrame->setFrameShape(QFrame::Box);
@@ -375,31 +435,65 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         setBackgroundColorToDemoFrame(gradientLine.m_color, *pColorDemoFrame);
 
         auto * pColorPushButton = new QPushButton;
-        pColorPushButton->setObjectName(pItem->text());
+        pColorPushButton->setObjectName(rowName);
 
         m_pUi->backgroundGradientTableWidget->setCellWidget(
-            rowCount,
+            rowIndex,
             0,
             pValueSpinBox);
 
         m_pUi->backgroundGradientTableWidget->setCellWidget(
-            rowCount,
+            rowIndex,
             1,
             pColorNameLineEdit);
 
         m_pUi->backgroundGradientTableWidget->setCellWidget(
-            rowCount,
+            rowIndex,
             2,
             pColorDemoFrame);
 
         m_pUi->backgroundGradientTableWidget->setCellWidget(
-            rowCount,
+            rowIndex,
             3,
             pColorPushButton);
 
-        // TODO: connect cell widgets' signals to proper slots
-        ++rowCount;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+        QObject::connect(
+            pValueSpinBox,
+            qOverload<double>(&QDoubleSpinBox::valueChanged),
+            this,
+            &PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowValueEdited);
+#else
+        QObject::connect(
+            pValueSpinBox,
+            SIGNAL(valueChanged(double)),
+            this,
+            SLOT(onBackgroundGradientTableWidgetRowValueEdited(double)));
+#endif
+
+        QObject::connect(
+            pColorNameLineEdit,
+            &QLineEdit::editingFinished,
+            this,
+            &PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorEntered);
+
+        pColorDemoFrame->installEventFilter(this);
+
+        QObject::connect(
+            pColorPushButton,
+            &QPushButton::clicked,
+            this,
+            &PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorDialogRequested);
+
+        ++rowIndex;
     }
+}
+
+void PanelColorsHandlerWidget::installEventFilters()
+{
+    m_pUi->fontColorDemoFrame->installEventFilter(this);
+    m_pUi->backgroundColorDemoFrame->installEventFilter(this);
+    m_pUi->backgroundGradientBaseColorDemoFrame->installEventFilter(this);
 }
 
 QColor PanelColorsHandlerWidget::fontColor()
@@ -425,8 +519,13 @@ QColor PanelColorsHandlerWidget::backgroundGradientBaseColor()
 
 bool PanelColorsHandlerWidget::useBackgroundGradient()
 {
-    // TODO: implement
-    return false;
+    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    bool useBackgroundGradient = settings.value(
+        PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY).toBool();
+    settings.endGroup();
+
+    return useBackgroundGradient;
 }
 
 QColor PanelColorsHandlerWidget::colorFromSettingsImpl(
@@ -463,42 +562,55 @@ bool PanelColorsHandlerWidget::onColorEnteredImpl(
         return false;
     }
 
-    saveColorImpl(color, settingName);
+    saveSettingImpl(color.name(), settingName);
     setBackgroundColorToDemoFrame(color, colorDemoFrame);
     return true;
 }
 
+void PanelColorsHandlerWidget::onUseBackgroundGradientOptionChanged(bool enabled)
+{
+    if (enabled == useBackgroundGradient()) {
+        QNDEBUG("Option hasn't changed");
+        return;
+    }
+
+    saveUseBackgroundGradientSetting(enabled);
+    Q_EMIT useBackgroundGradientSettingChanged(enabled);
+}
+
 void PanelColorsHandlerWidget::saveFontColor(const QColor & color)
 {
-    saveColorImpl(color, PANEL_COLORS_FONT_COLOR_SETTINGS_KEY);
+    saveSettingImpl(color.name(), PANEL_COLORS_FONT_COLOR_SETTINGS_KEY);
 }
 
 void PanelColorsHandlerWidget::saveBackgroundColor(const QColor & color)
 {
-    saveColorImpl(color, PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY);
+    saveSettingImpl(color.name(), PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY);
 }
 
 void PanelColorsHandlerWidget::saveBackgroundGradientBaseColor(
     const QColor & color)
 {
-    saveColorImpl(color, PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY);
-}
-
-void PanelColorsHandlerWidget::saveColorImpl(
-    const QColor & color,
-    const QString & settingName)
-{
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
-    settings.setValue(settingName, color.name());
-    settings.endGroup();
+    saveSettingImpl(
+        color.name(),
+        PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY);
 }
 
 void PanelColorsHandlerWidget::saveUseBackgroundGradientSetting(
     bool useBackgroundGradient)
 {
-    // TODO: implement
-    Q_UNUSED(useBackgroundGradient)
+    saveSettingImpl(
+        useBackgroundGradient,
+        PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY);
+}
+
+void PanelColorsHandlerWidget::saveSettingImpl(
+    const QVariant & value, const QString & settingName)
+{
+    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    settings.setValue(settingName, value);
+    settings.endGroup();
 }
 
 void PanelColorsHandlerWidget::setBackgroundColorToDemoFrame(

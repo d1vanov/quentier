@@ -69,8 +69,17 @@ private Q_SLOTS:
     void onBackgroundGradientBaseColorDialogRequested();
     void onBackgroundGradientBaseColorSelected(const QColor & color);
 
+    void onBackgroundGradientTableWidgetRowValueEdited(double value);
+    void onBackgroundGradientTableWidgetRowColorEntered();
+    void onBackgroundGradientTableWidgetRowColorDialogRequested();
+
+private:
+    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+
 private:
     void restoreAccountSettings();
+
+    void installEventFilters();
 
     QColor fontColor();
     QColor backgroundColor();
@@ -88,12 +97,13 @@ private:
         QLineEdit & colorLineEdit,
         QFrame & colorDemoFrame);
 
+    void onUseBackgroundGradientOptionChanged(bool enabled);
+
     void saveFontColor(const QColor & color);
     void saveBackgroundColor(const QColor & color);
     void saveBackgroundGradientBaseColor(const QColor & color);
-    void saveColorImpl(const QColor & color, const QString & settingName);
-
     void saveUseBackgroundGradientSetting(bool useBackgroundGradient);
+    void saveSettingImpl(const QVariant & value, const QString & settingName);
 
     void setBackgroundColorToDemoFrame(const QColor & color, QFrame & frame);
 
