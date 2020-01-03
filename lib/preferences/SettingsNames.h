@@ -19,10 +19,14 @@
 #ifndef QUENTIER_LIB_PREFERENCES_SETTINGS_NAMES_H
 #define QUENTIER_LIB_PREFERENCES_SETTINGS_NAMES_H
 
+////////////////////////////////////////////////////////////////////////////////
+
 // The names of different .ini files containing the settings
 #define QUENTIER_UI_SETTINGS QStringLiteral("UserInterface")
 #define QUENTIER_AUXILIARY_SETTINGS QStringLiteral("Auxiliary")
 #define QUENTIER_SYNC_SETTINGS QStringLiteral("Synchronization")
+
+////////////////////////////////////////////////////////////////////////////////
 
 // Start automatically at login settings keys
 #define START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME                       \
@@ -36,6 +40,8 @@
 #define START_AUTOMATICALLY_AT_LOGIN_OPTION                                    \
     QStringLiteral("StartAutomaticallyAtLoginOption")                          \
 // START_AUTOMATICALLY_AT_LOGIN_OPTION
+
+////////////////////////////////////////////////////////////////////////////////
 
 // System tray related settings keys
 #define SYSTEM_TRAY_SETTINGS_GROUP_NAME QStringLiteral("SystemTray")
@@ -70,6 +76,8 @@
 #define DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY                                  \
     QStringLiteral("DoubleClickTrayAction")                                    \
 // DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY
+
+////////////////////////////////////////////////////////////////////////////////
 
 // Note editor related settings keys
 #define NOTE_EDITOR_SETTINGS_GROUP_NAME QStringLiteral("NoteEditor")
@@ -106,6 +114,41 @@
     QStringLiteral("HighlightedTextColor")                                     \
 // NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY
 
+////////////////////////////////////////////////////////////////////////////////
+
+// Panel colors settings keys
+#define PANEL_COLORS_SETTINGS_GROUP_NAME QStringLiteral("PanelColors")
+
+#define PANEL_COLORS_FONT_COLOR_SETTINGS_KEY                                   \
+    QStringLiteral("FontColor")                                                \
+// PANEL_COLORS_FONT_COLOR_SETTINGS_KEY
+
+#define PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY                             \
+    QStringLiteral("BackgroundColor")                                          \
+// PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY
+
+#define PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY                      \
+    QStringLiteral("UseBackgroundGradient")                                    \
+// PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY
+
+#define PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY               \
+    QStringLiteral("BackgroundGradientBaseColor")                              \
+// PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY
+
+#define PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY                    \
+    QStringLiteral("BackgroundGradientLines")                                  \
+// PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY
+
+#define PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY               \
+    QStringLiteral("BackgroundGradientLineValue")                              \
+// PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY
+
+#define PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY              \
+    QStringLiteral("BackgroundGradientLineColor")                              \
+// PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY
+
+////////////////////////////////////////////////////////////////////////////////
+
 // Other UI related settings keys
 #define LOOK_AND_FEEL_SETTINGS_GROUP_NAME QStringLiteral("LookAndFeel")
 #define ICON_THEME_SETTINGS_KEY QStringLiteral("IconTheme")
@@ -126,6 +169,8 @@
     QStringLiteral("DisableNativeMenuBar")                                     \
 // DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY
 
+////////////////////////////////////////////////////////////////////////////////
+
 // ENEX export/import related settings keys
 #define ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME                                 \
     QStringLiteral("EnexExportImport")                                         \
@@ -144,6 +189,8 @@
 #define LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY                            \
     QStringLiteral("LastImportEnexNotebookName")                               \
 // LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY
+
+////////////////////////////////////////////////////////////////////////////////
 
 // Account-related settings keys
 #define ACCOUNT_SETTINGS_GROUP QStringLiteral("AccountSettings")
@@ -176,6 +223,8 @@
 
 #define ACCOUNT_EVERNOTE_HOST_ENV_VAR "QUENTIER_ACCOUNT_EVERNOTE_HOST"
 
+////////////////////////////////////////////////////////////////////////////////
+
 // Log level settings
 #define LOGGING_SETTINGS_GROUP QStringLiteral("LoggingSettings")
 #define CURRENT_MIN_LOG_LEVEL QStringLiteral("MinLogLevel")
@@ -183,6 +232,8 @@
 #define ENABLE_LOG_VIEWER_INTERNAL_LOGS                                        \
     QStringLiteral("EnableLogViewerInternalLogs")                              \
 // ENABLE_LOG_VIEWER_INTERNAL_LOGS
+
+////////////////////////////////////////////////////////////////////////////////
 
 // Translations setting
 #define TRANSLATION_SETTINGS_GROUP_NAME QStringLiteral("TranslationSettings")
@@ -194,6 +245,8 @@
 #define QUENTIER_TRANSLATIONS_SEARCH_PATH                                      \
     QStringLiteral("QuentierTranslationsSearchPath")                           \
 // QUENTIER_TRANSLATIONS_SEARCH_PATH
+
+////////////////////////////////////////////////////////////////////////////////
 
 // Synchronization settings
 #define SYNCHRONIZATION_SETTINGS_GROUP_NAME                                    \
