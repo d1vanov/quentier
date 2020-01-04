@@ -138,11 +138,15 @@ install:
       mkdir qtkeychain &&
       git clone https://github.com/frankosterfeld/qtkeychain.git qtkeychain &&
       cd qtkeychain &&
-      git checkout v0.9.1 &&
+      if [ "${QT_BASE}" = "5123" ]; then
+        git checkout v0.9.1
+      else
+        git checkout v0.8.0
+      fi
       mkdir build &&
       cd build &&
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-        if [ "${QT_BASE}" = "5123" ];then
+        if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         elif [ "${QT_BASE}" = "551" ]; then
