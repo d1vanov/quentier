@@ -21,10 +21,12 @@
 #include "../SettingsNames.h"
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/utility/ApplicationSettings.h>
 
 #include <QColorDialog>
 #include <QDoubleSpinBox>
+#include <QTextStream>
 
 #include <memory>
 
@@ -74,6 +76,7 @@ void PanelColorsHandlerWidget::onFontColorEntered()
         return;
     }
 
+    updateBackgroundGradientDemoFrameStyleSheet();
     Q_EMIT fontColorChanged(color);
 }
 
@@ -115,6 +118,7 @@ void PanelColorsHandlerWidget::onFontColorSelected(const QColor & color)
     }
 
     saveFontColor(color);
+    updateBackgroundGradientDemoFrameStyleSheet();
     Q_EMIT fontColorChanged(color);
 }
 
@@ -137,6 +141,7 @@ void PanelColorsHandlerWidget::onBackgroundColorEntered()
         return;
     }
 
+    updateBackgroundGradientDemoFrameStyleSheet();
     Q_EMIT backgroundColorChanged(color);
 }
 
@@ -164,7 +169,8 @@ void PanelColorsHandlerWidget::onBackgroundColorDialogRequested()
 
 void PanelColorsHandlerWidget::onBackgroundColorSelected(const QColor & color)
 {
-    QNDEBUG("PanelColorsHandlerWidget::onBackgroundColorSelected: " << color.name());
+    QNDEBUG("PanelColorsHandlerWidget::onBackgroundColorSelected: "
+        << color.name());
 
     m_pUi->backgroundColorLineEdit->setText(color.name());
     setBackgroundColorToDemoFrame(color, *m_pUi->backgroundColorDemoFrame);
@@ -178,6 +184,7 @@ void PanelColorsHandlerWidget::onBackgroundColorSelected(const QColor & color)
     }
 
     saveBackgroundColor(color);
+    updateBackgroundGradientDemoFrameStyleSheet();
     Q_EMIT backgroundColorChanged(color);
 }
 
@@ -255,18 +262,203 @@ void PanelColorsHandlerWidget::onBackgroundGradientBaseColorSelected(
     saveBackgroundGradientBaseColor(color);
 }
 
-void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowValueEdited(double value)
+void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowValueEdited(
+    double value)
 {
-    // TODO: implement
-    Q_UNUSED(value)
+    auto * pSpinBox = qobject_cast<QDoubleSpinBox*>(sender());
+    if (Q_UNLIKELY(!pSpinBox)) {
+        QNWARNING("Received background gradient table widget row value edited "
+            << "from unidentified source, value = " << value);
+        return;
+    }
+
+    // Spin box's row within the table widget is encoded within its object name
+    bool conversionResult = false;
+    int rowIndex = pSpinBox->objectName().toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNWARNING("Failed to identify row upon receiving value edit from "
+            << "background gradient table widget, value = " << value);
+        return;
+    }
+
+    if (Q_UNLIKELY(rowIndex < 0 ||
+        static_cast<size_t>(rowIndex) >= m_backgroundGradientLines.size()))
+    {
+        QNWARNING("Internal inconsistency detected: bad row " << rowIndex
+            << " upon receiving value edit from background gradient table widget, "
+            << "value = " << value);
+        return;
+    }
+
+    // Verify the entered value is within limits imposed by neighboring rows
+    if (rowIndex > 0)
+    {
+        int prevRow = rowIndex - 1;
+        double prevValue =
+            m_backgroundGradientLines[static_cast<size_t>(prevRow)].m_value;
+        if (value <= prevValue)
+        {
+            QNINFO("Rejecting value input into background gradient table "
+                << "widget: value " << value << " is not greater than "
+                << prevValue << " from the previous row");
+            pSpinBox->setValue(
+                m_backgroundGradientLines[static_cast<size_t>(rowIndex)].m_value);
+            Q_EMIT notifyUserError(tr("Rejected input value as it is less than "
+                                      "the one from the previous row"));
+            return;
+        }
+    }
+
+    if (rowIndex < static_cast<int>(m_backgroundGradientLines.size() - 1))
+    {
+        int nextRow = rowIndex + 1;
+        double nextValue =
+            m_backgroundGradientLines[static_cast<size_t>(nextRow)].m_value;
+        if (value >= nextValue)
+        {
+            QNINFO("Rejecting value input into background gradient table "
+                << "widget: value " << value << " is not less than "
+                << nextValue << " from the next row");
+            pSpinBox->setValue(
+                m_backgroundGradientLines[static_cast<size_t>(rowIndex)].m_value);
+            Q_EMIT notifyUserError(tr("Rejected input value as it is greater "
+                                      "than the one from the next row"));
+            return;
+        }
+    }
+
+    m_backgroundGradientLines[static_cast<size_t>(rowIndex)].m_value = value;
+    rebuildBackgroundGradient();
+    saveBackgroundGradientLinesToSettings();
 }
 
 void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorEntered()
 {
-    // TODO: implement
+    auto * pLineEdit = qobject_cast<QLineEdit*>(sender());
+    if (Q_UNLIKELY(!pLineEdit)) {
+        QNWARNING("Received background gradient table widget row color name "
+            << "edited from unidentified source");
+        return;
+    }
+
+    // Line edit's row within the table widget is encoded within its object name
+    bool conversionResult = false;
+    int rowIndex = pLineEdit->objectName().toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNWARNING("Failed to identify row upon receiving color name edit from "
+            << "background gradient table widget, text = " << pLineEdit->text());
+        return;
+    }
+
+    if (Q_UNLIKELY(rowIndex < 0 ||
+        static_cast<size_t>(rowIndex) >= m_backgroundGradientLines.size()))
+    {
+        QNWARNING("Internal inconsistency detected: bad row " << rowIndex
+            << " upon receiving color name edit from background gradient table "
+            << "widget, text = " << pLineEdit->text());
+        return;
+    }
+
+    QString colorName = pLineEdit->text();
+    auto & line = m_backgroundGradientLines[static_cast<size_t>(rowIndex)];
+    QColor prevColor = line.m_color;
+    line.m_color.setNamedColor(colorName);
+    if (!line.m_color.isValid()) {
+        line.m_color = prevColor;
+        QNINFO("Rejecting color input for background gradient table row: "
+            << colorName << " is not a valid color name");
+        Q_EMIT notifyUserError(tr("Rejected input color name as it is not valid"));
+        return;
+    }
+
+    auto * pDemoFrame = qobject_cast<QFrame*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2));
+    if (pDemoFrame) {
+        setBackgroundColorToDemoFrame(line.m_color, *pDemoFrame);
+    }
+
+    rebuildBackgroundGradient();
+    saveBackgroundGradientLinesToSettings();
+}
+
+void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorSelected(
+    const QColor & color)
+{
+    auto * pDialog = qobject_cast<QColorDialog*>(sender());
+    if (Q_UNLIKELY(!pDialog)) {
+        QNWARNING("Received background gradient table widget selected color "
+            << "from unidentified source, color = " << color.name());
+        return;
+    }
+
+    // QColorDialog's target row within the table widget is encoded within
+    // its object name
+    bool conversionResult = false;
+    int rowIndex = pDialog->objectName().toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNWARNING("Failed to identify row upon receiving selected color "
+            << "from QColorDialog for background gradient table widget, color = "
+            << color.name());
+        return;
+    }
+
+    if (Q_UNLIKELY(rowIndex < 0 ||
+        static_cast<size_t>(rowIndex) >= m_backgroundGradientLines.size()))
+    {
+        QNWARNING("Internal inconsistency detected: bad row " << rowIndex
+            << " upon receiving selected color for background gradient table "
+            << "widget, color = " << color.name());
+        return;
+    }
+
+    m_backgroundGradientLines[static_cast<size_t>(rowIndex)].m_color = color;
+
+    auto * pLineEdit = qobject_cast<QLineEdit*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 1));
+    if (pLineEdit) {
+        pLineEdit->setText(color.name());
+    }
+
+    rebuildBackgroundGradient();
+    saveBackgroundGradientLinesToSettings();
 }
 
 void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorDialogRequested()
+{
+    auto * pButton = qobject_cast<QPushButton*>(sender());
+    if (Q_UNLIKELY(!pButton)) {
+        QNWARNING("Received background gradient table widget row color dialog "
+            << "request from unidentified source");
+        return;
+    }
+
+    // Button's row within the table widget is encoded within its object name
+    bool conversionResult = false;
+    int rowIndex = pButton->objectName().toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNWARNING("Failed to identify row upon receiving choose color button "
+            << "click from background gradient table widget");
+        return;
+    }
+
+    if (Q_UNLIKELY(rowIndex < 0 ||
+        static_cast<size_t>(rowIndex) >= m_backgroundGradientLines.size()))
+    {
+        QNWARNING("Internal inconsistency detected: bad row " << rowIndex
+            << " upon receiving choose color button click from background "
+            << "gradient table widget");
+        return;
+    }
+
+    openColorDialogForBackgroundGradientTableWidgetRow(rowIndex);
+}
+
+void PanelColorsHandlerWidget::onGenerateButtonPressed()
+{
+    // TODO: implement
+}
+
+void PanelColorsHandlerWidget::onAddRowButtonPressed()
 {
     // TODO: implement
 }
@@ -305,7 +497,7 @@ bool PanelColorsHandlerWidget::eventFilter(QObject * pObject, QEvent * pEvent)
         auto * pDemoFrame = qobject_cast<QFrame*>(
             m_pUi->backgroundGradientTableWidget->cellWidget(i, 2));
         if (pDemoFrame && (pDemoFrame == pObject)) {
-            // TODO: request color dialog for this row
+            openColorDialogForBackgroundGradientTableWidgetRow(i);
             return true;
         }
     }
@@ -364,25 +556,14 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         backgroundGradientBaseColor,
         *m_pUi->backgroundGradientBaseColorDemoFrame);
 
-    struct GradientLine
-    {
-        GradientLine(double value, QString colorName) :
-            m_value(value),
-            m_color(std::move(colorName))
-        {}
-
-        double  m_value = 0.0;
-        QColor m_color;
-    };
-
     int numBackgroundGradientLines = settings.beginReadArray(
         PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
     ApplicationSettings::ArrayCloser arrayCloser(settings);
 
-    std::vector<GradientLine> backgroundGradientLines;
-    backgroundGradientLines.reserve(
+    m_backgroundGradientLines.clear();
+    m_backgroundGradientLines.reserve(
         static_cast<size_t>(std::max(numBackgroundGradientLines, 0)));
-    for(size_t i = 0, size = backgroundGradientLines.size(); i < size; ++i)
+    for(size_t i = 0, size = m_backgroundGradientLines.size(); i < size; ++i)
     {
         settings.setArrayIndex(static_cast<int>(i));
 
@@ -393,7 +574,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         if (!conversionResult) {
             QNWARNING("Failed to read background gradient lines: failed "
                 << "to convert line value to double");
-            backgroundGradientLines.clear();
+            m_backgroundGradientLines.clear();
             break;
         }
 
@@ -404,19 +585,19 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
             QNWARNING("Failed to read background gradient lines: detected "
                 << "line color value not representing a valid color: "
                 << colorName);
-            backgroundGradientLines.clear();
+            m_backgroundGradientLines.clear();
             break;
         }
 
-        backgroundGradientLines.emplace_back(value, std::move(colorName));
+        m_backgroundGradientLines.emplace_back(value, std::move(colorName));
     }
 
     m_pUi->backgroundGradientTableWidget->setRowCount(
-        static_cast<int>(backgroundGradientLines.size()));
+        static_cast<int>(m_backgroundGradientLines.size()));
     m_pUi->backgroundGradientTableWidget->setColumnCount(4);
 
     int rowIndex = 0;
-    for(const auto & gradientLine: backgroundGradientLines)
+    for(const auto & gradientLine: m_backgroundGradientLines)
     {
         auto rowName = QString::number(rowIndex);
 
@@ -494,6 +675,106 @@ void PanelColorsHandlerWidget::installEventFilters()
     m_pUi->fontColorDemoFrame->installEventFilter(this);
     m_pUi->backgroundColorDemoFrame->installEventFilter(this);
     m_pUi->backgroundGradientBaseColorDemoFrame->installEventFilter(this);
+}
+
+void PanelColorsHandlerWidget::openColorDialogForBackgroundGradientTableWidgetRow(
+    int rowIndex)
+{
+    if (Q_UNLIKELY(rowIndex < 0)) {
+        QNWARNING("Detected attempt to open color dialog for background "
+            << "gradient table widget for invalid row: " << rowIndex);
+        return;
+    }
+
+    size_t row = static_cast<size_t>(rowIndex);
+
+    if (m_backgroundGradientColorDialogs.size() <= row) {
+        m_backgroundGradientColorDialogs.resize(row);
+    }
+
+    if (!m_backgroundGradientColorDialogs[row].isNull()) {
+        QNDEBUG("Background gradient color dialog for row " << row
+            << " is already opened");
+        return;
+    }
+
+    auto pDialog = std::make_unique<QColorDialog>(this);
+    pDialog->setWindowModality(Qt::WindowModal);
+    pDialog->setCurrentColor(fontColor());
+    pDialog->setObjectName(QString::number(rowIndex));
+
+    m_backgroundGradientColorDialogs[row] = pDialog.get();
+    QObject::connect(
+        pDialog.get(),
+        &QColorDialog::colorSelected,
+        this,
+        &PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorSelected);
+    Q_UNUSED(pDialog->exec())
+}
+
+void PanelColorsHandlerWidget::rebuildBackgroundGradient()
+{
+    QLinearGradient gradient;
+
+    if (m_backgroundGradientLines.empty()) {
+        QNDEBUG("Background gradient is empty");
+        updateBackgroundGradientDemoFrameStyleSheet();
+        Q_EMIT backgroundLinearGradientChanged(gradient);
+        return;
+    }
+
+    gradient.setStart(0, 0);
+
+    for(const auto & line: m_backgroundGradientLines) {
+        gradient.setColorAt(line.m_value, line.m_color);
+    }
+
+    gradient.setFinalStop(0, 1);
+
+    QNDEBUG("Rebuilt background gradient");
+    updateBackgroundGradientDemoFrameStyleSheet();
+    Q_EMIT backgroundLinearGradientChanged(gradient);
+}
+
+void PanelColorsHandlerWidget::updateBackgroundGradientDemoFrameStyleSheet()
+{
+    QString styleSheet;
+    QTextStream strm(&styleSheet);
+
+    strm << "QWidget {\n"
+        << "border: none;\n"
+        << "background-color: ";
+
+    if (useBackgroundGradient() && !m_backgroundGradientLines.empty())
+    {
+        strm << "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n";
+
+        size_t row = 0;
+        size_t numRows = m_backgroundGradientLines.size();
+        for(const auto & line: m_backgroundGradientLines)
+        {
+            strm << "stop: " << line.m_value << " " << line.m_color.name();
+            if (row < (numRows - 1)) {
+                strm << ",";
+            }
+            else {
+                strm << ");";
+            }
+            strm << "\n";
+
+            ++row;
+        }
+    }
+    else
+    {
+        strm << backgroundColor().name() << ";\n";
+    }
+
+    strm << "color: " << fontColor().name() << ";\n";
+
+    strm << "}\n";
+
+    m_pUi->backgroundGradientDemoFrame->setStyleSheet(styleSheet);
 }
 
 QColor PanelColorsHandlerWidget::fontColor()
@@ -575,6 +856,7 @@ void PanelColorsHandlerWidget::onUseBackgroundGradientOptionChanged(bool enabled
     }
 
     saveUseBackgroundGradientSetting(enabled);
+    updateBackgroundGradientDemoFrameStyleSheet();
     Q_EMIT useBackgroundGradientSettingChanged(enabled);
 }
 
@@ -610,6 +892,29 @@ void PanelColorsHandlerWidget::saveSettingImpl(
     ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
     settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
     settings.setValue(settingName, value);
+    settings.endGroup();
+}
+
+void PanelColorsHandlerWidget::saveBackgroundGradientLinesToSettings()
+{
+    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    settings.beginWriteArray(PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+
+    int i = 0;
+    for(const auto & line: m_backgroundGradientLines)
+    {
+        settings.setArrayIndex(i);
+        settings.setValue(
+            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY,
+            line.m_value);
+        settings.setValue(
+            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY,
+            line.m_color.name());
+        ++i;
+    }
+
+    settings.endArray();
     settings.endGroup();
 }
 

@@ -53,6 +53,8 @@ Q_SIGNALS:
     void useBackgroundGradientSettingChanged(bool useBackgroundGradient);
     void backgroundLinearGradientChanged(QLinearGradient gradient);
 
+    void notifyUserError(QString message);
+
 private Q_SLOTS:
     void onFontColorEntered();
     void onFontColorDialogRequested();
@@ -71,7 +73,11 @@ private Q_SLOTS:
 
     void onBackgroundGradientTableWidgetRowValueEdited(double value);
     void onBackgroundGradientTableWidgetRowColorEntered();
+    void onBackgroundGradientTableWidgetRowColorSelected(const QColor & color);
     void onBackgroundGradientTableWidgetRowColorDialogRequested();
+
+    void onGenerateButtonPressed();
+    void onAddRowButtonPressed();
 
 private:
     virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
@@ -80,6 +86,10 @@ private:
     void restoreAccountSettings();
 
     void installEventFilters();
+
+    void openColorDialogForBackgroundGradientTableWidgetRow(int rowIndex);
+    void rebuildBackgroundGradient();
+    void updateBackgroundGradientDemoFrameStyleSheet();
 
     QColor fontColor();
     QColor backgroundColor();
@@ -105,7 +115,21 @@ private:
     void saveUseBackgroundGradientSetting(bool useBackgroundGradient);
     void saveSettingImpl(const QVariant & value, const QString & settingName);
 
+    void saveBackgroundGradientLinesToSettings();
+
     void setBackgroundColorToDemoFrame(const QColor & color, QFrame & frame);
+
+private:
+    struct GradientLine
+    {
+        GradientLine(double value, QString colorName) :
+            m_value(value),
+            m_color(std::move(colorName))
+        {}
+
+        double  m_value = 0.0;
+        QColor m_color;
+    };
 
 private:
     Ui::PanelColorsHandlerWidget *  m_pUi;
@@ -116,6 +140,8 @@ private:
     QPointer<QColorDialog>      m_pBackgroundGradientBaseColorDialog;
 
     std::vector<QPointer<QColorDialog>>     m_backgroundGradientColorDialogs;
+
+    std::vector<GradientLine>   m_backgroundGradientLines;
 };
 
 } // namespace quentier
