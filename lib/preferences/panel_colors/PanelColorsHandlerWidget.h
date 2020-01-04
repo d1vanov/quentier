@@ -64,8 +64,8 @@ private Q_SLOTS:
     void onBackgroundColorDialogRequested();
     void onBackgroundColorSelected(const QColor & color);
 
-    void onUseBackgroundGradientRadioButtonToggled();
-    void onUseBackgroundColorRadioButtonToggled();
+    void onUseBackgroundGradientRadioButtonToggled(bool checked);
+    void onUseBackgroundColorRadioButtonToggled(bool checked);
 
     void onBackgroundGradientBaseColorEntered();
     void onBackgroundGradientBaseColorDialogRequested();
@@ -83,7 +83,24 @@ private:
     virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
 
 private:
+    struct GradientLine
+    {
+        GradientLine(double value, QString colorName) :
+            m_value(value),
+            m_color(std::move(colorName))
+        {}
+
+        double  m_value = 0.0;
+        QColor m_color;
+    };
+
     void restoreAccountSettings();
+
+    void createConnections();
+
+    void setupBackgroundGradientTableWidget();
+    void setupBackgroundGradientTableWidgetRow(
+        const GradientLine & gradientLine, const int rowIndex);
 
     void installEventFilters();
 
@@ -118,18 +135,6 @@ private:
     void saveBackgroundGradientLinesToSettings();
 
     void setBackgroundColorToDemoFrame(const QColor & color, QFrame & frame);
-
-private:
-    struct GradientLine
-    {
-        GradientLine(double value, QString colorName) :
-            m_value(value),
-            m_color(std::move(colorName))
-        {}
-
-        double  m_value = 0.0;
-        QColor m_color;
-    };
 
 private:
     Ui::PanelColorsHandlerWidget *  m_pUi;
