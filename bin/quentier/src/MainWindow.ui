@@ -2944,16 +2944,7 @@ border-bottom: 1px solid black;
       <addaction name="ActionIconsBreeze"/>
       <addaction name="ActionIconsBreezeDark"/>
      </widget>
-     <widget class="QMenu" name="menuPanels">
-      <property name="title">
-       <string>&amp;Panels</string>
-      </property>
-      <addaction name="ActionPanelStyleBuiltIn"/>
-      <addaction name="ActionPanelStyleLighter"/>
-      <addaction name="ActionPanelStyleDarker"/>
-     </widget>
      <addaction name="menuIcons"/>
-     <addaction name="menuPanels"/>
     </widget>
     <addaction name="menuSidePanel"/>
     <addaction name="ActionShowNotesList"/>

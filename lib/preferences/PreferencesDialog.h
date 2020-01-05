@@ -69,7 +69,6 @@ Q_SIGNALS:
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
     void iconThemeChanged(const QString & iconTheme);
-    void panelStyleChanged(const QString & panelStyle);
 
     void panelFontColorChanged(QColor color);
     void panelBackgroundColorChanged(QColor color);

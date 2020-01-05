@@ -1102,20 +1102,6 @@ void PreferencesDialog::setupAppearanceSettingsState(
                      SIGNAL(currentIndexChanged(QString)),
                      this,
                      SIGNAL(iconThemeChanged(QString)));
-
-    m_pUi->panelStyleComboBox->addItem(tr("Built-in"));
-    m_pUi->panelStyleComboBox->addItem(tr("Lighter"));
-    m_pUi->panelStyleComboBox->addItem(tr("Darker"));
-
-    int panelStyleIndex = m_pUi->panelStyleComboBox->findText(panelStyle.toString());
-    if (panelStyleIndex >= 0) {
-        m_pUi->panelStyleComboBox->setCurrentIndex(panelStyleIndex);
-    }
-
-    QObject::connect(m_pUi->panelStyleComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SIGNAL(panelStyleChanged(QString)));
 }
 
 void PreferencesDialog::setupNetworkProxySettingsState()

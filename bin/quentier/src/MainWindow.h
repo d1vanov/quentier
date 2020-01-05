@@ -229,11 +229,6 @@ private Q_SLOTS:
     void onSwitchIconThemeToBreezeAction();
     void onSwitchIconThemeToBreezeDarkAction();
 
-    void onSwitchPanelStyle(const QString & panelStyle);
-    void onSwitchPanelStyleToBuiltIn();
-    void onSwitchPanelStyleToLighter();
-    void onSwitchPanelStyleToDarker();
-
     // View buttons slots
     void onNewNotebookCreationRequested();
     void onRemoveNotebookButtonPressed();
@@ -476,8 +471,6 @@ private:
 
     void setupGenericPanelStyleControllers();
     void setupSidePanelStyleControllers();
-    void restoreSelectedPanelStyle();
-    void setPanelStyleToControllers();
 
     bool getShowNoteThumbnailsPreference() const;
     bool getDisableNativeMenuBarPreference() const;

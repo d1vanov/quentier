@@ -231,7 +231,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteEditorTabsAndWindowsCoordinator(nullptr),
     m_pEditNoteDialogsManager(nullptr),
     m_pUndoStack(new QUndoStack(this)),
-    m_currentPanelStyle(),
     m_shortcutManager(this),
     m_pendingGreeterDialog(false),
     m_filtersViewExpanded(false),
@@ -292,8 +291,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupGenericPanelStyleControllers();
     setupSidePanelStyleControllers();
-    restoreSelectedPanelStyle();
-    setPanelStyleToControllers();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
@@ -519,12 +516,6 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchIconThemeToBreezeAction));
     QObject::connect(m_pUI->ActionIconsBreezeDark, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchIconThemeToBreezeDarkAction));
-    QObject::connect(m_pUI->ActionPanelStyleBuiltIn, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchPanelStyleToBuiltIn));
-    QObject::connect(m_pUI->ActionPanelStyleLighter, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchPanelStyleToLighter));
-    QObject::connect(m_pUI->ActionPanelStyleDarker, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchPanelStyleToDarker));
     // Service menu actions
     QObject::connect(m_pUI->ActionSynchronize, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSyncButtonPressed));
@@ -650,12 +641,6 @@ void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
         &PreferencesDialog::iconThemeChanged,
         this,
         &MainWindow::onSwitchIconTheme);
-
-    QObject::connect(
-        &dialog,
-        &PreferencesDialog::panelStyleChanged,
-        this,
-        &MainWindow::onSwitchPanelStyle);
 
     QObject::connect(
         &dialog,
@@ -1548,54 +1533,6 @@ void MainWindow::setupSidePanelStyleControllers()
     for(auto * pPanel: panels) {
         m_sidePanelStyleControllers.emplace_back(
             std::make_unique<SidePanelStyleController>(pPanel));
-    }
-}
-
-void MainWindow::restoreSelectedPanelStyle()
-{
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QString panelStyle = appSettings.value(PANELS_STYLE_SETTINGS_KEY).toString();
-    appSettings.endGroup();
-
-    m_currentPanelStyle = panelStyle;
-}
-
-void MainWindow::setPanelStyleToControllers()
-{
-    if (m_currentPanelStyle.isEmpty())
-    {
-        // This means use whatever is built in
-        for(auto & pSidePanelStyleController: m_sidePanelStyleControllers) {
-            pSidePanelStyleController->resetOverrides();
-        }
-
-        for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
-            pPanelStyleController->resetOverrides();
-        }
-
-        return;
-    }
-
-    const auto & pal = palette();
-    QColor backgroundColor;
-    QColor color;
-
-    if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
-        backgroundColor = pal.color(QPalette::Light);
-        color = pal.color(QPalette::WindowText);
-    }
-    else if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
-        backgroundColor = pal.color(QPalette::Dark);
-        color = pal.color(QPalette::BrightText);
-    }
-
-    for(auto & pSidePanelStyleController: m_sidePanelStyleControllers) {
-        pSidePanelStyleController->setOverrideColors(color, backgroundColor);
-    }
-
-    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
-        pPanelStyleController->setOverrideBackgroundColor(backgroundColor);
     }
 }
 
@@ -3717,90 +3654,6 @@ void MainWindow::onSwitchIconThemeToBreezeDarkAction()
     QIcon::setThemeName(breezeDark);
     persistChosenIconTheme(breezeDark);
     refreshChildWidgetsThemeIcons();
-}
-
-void MainWindow::onSwitchPanelStyle(const QString & panelStyle)
-{
-    QNDEBUG("MainWindow::onSwitchPanelStyle: " << panelStyle);
-
-    if (panelStyle == tr("Built-in")) {
-        onSwitchPanelStyleToBuiltIn();
-    }
-    else if (panelStyle == tr("Lighter")) {
-        onSwitchPanelStyleToLighter();
-    }
-    else if (panelStyle == tr("Darker")) {
-        onSwitchPanelStyleToDarker();
-    }
-    else {
-        ErrorString error(QT_TR_NOOP("Unknown panel style selected"));
-        error.details() = panelStyle;
-        QNWARNING(error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
-    }
-}
-
-void MainWindow::onSwitchPanelStyleToBuiltIn()
-{
-    QNDEBUG("MainWindow::onSwitchPanelStyleToBuiltIn");
-
-    if (m_currentPanelStyle.isEmpty()) {
-        ErrorString error(QT_TR_NOOP("Already using the built-in panel style"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
-        return;
-    }
-
-    m_currentPanelStyle.clear();
-
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.remove(PANELS_STYLE_SETTINGS_KEY);
-    appSettings.endGroup();
-
-    setPanelStyleToControllers();
-}
-
-void MainWindow::onSwitchPanelStyleToLighter()
-{
-    QNDEBUG("MainWindow::onSwitchPanelStyleToLighter");
-
-    if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
-        ErrorString error(QT_TR_NOOP("Already using the lighter panel style"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
-        return;
-    }
-
-    m_currentPanelStyle = LIGHTER_PANEL_STYLE_NAME;
-
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
-    appSettings.endGroup();
-
-    setPanelStyleToControllers();
-}
-
-void MainWindow::onSwitchPanelStyleToDarker()
-{
-    QNDEBUG("MainWindow::onSwitchPanelStyleToDarker");
-
-    if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
-        ErrorString error(QT_TR_NOOP("Already using the darker panel style"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
-        return;
-    }
-
-    m_currentPanelStyle = DARKER_PANEL_STYLE_NAME;
-
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
-    appSettings.endGroup();
-
-    setPanelStyleToControllers();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestComplete(
