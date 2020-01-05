@@ -187,7 +187,7 @@ QString PanelStyleController::generateStyleSheet() const
     QString result;
     QTextStream strm(&result);
 
-    strm << "PanelWidget {\n"
+    strm << "#" << m_pPanel->objectName() << " {\n"
         << "border: none;\n";
 
     auto backgroundColorStr = backgroundColorToString();

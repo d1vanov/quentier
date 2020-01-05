@@ -469,6 +469,7 @@ private:
 
     void clearDir(const QString & path);
 
+    void restorePanelColors();
     void setupGenericPanelStyleControllers();
     void setupSidePanelStyleControllers();
 
@@ -559,7 +560,10 @@ private:
 
     QUndoStack *            m_pUndoStack;
 
-    QString                 m_currentPanelStyle;
+    QColor              m_overridePanelFontColor;
+    QColor              m_overridePanelBackgroundColor;
+    QLinearGradient     m_overridePanelBackgroundGradient;
+    bool                m_panelUseBackgroundGradient = false;
     std::vector<std::unique_ptr<PanelStyleController>>      m_genericPanelStyleControllers;
     std::vector<std::unique_ptr<SidePanelStyleController>>  m_sidePanelStyleControllers;
 

@@ -1060,6 +1060,14 @@ void PanelColorsHandlerWidget::onUseBackgroundGradientOptionChanged(bool enabled
         return;
     }
 
+    if (enabled && m_backgroundGradientLines.empty()) {
+        Q_EMIT notifyUserError(
+            tr("Set up background gradient before switching to it"));
+        m_pUi->useBackgroundColorRadioButton->setChecked(true);
+        m_pUi->useBackgroundGradientRadioButton->setChecked(false);
+        return;
+    }
+
     saveUseBackgroundGradientSetting(enabled);
     updateBackgroundGradientDemoFrameStyleSheet();
     Q_EMIT useBackgroundGradientSettingChanged(enabled);

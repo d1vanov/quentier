@@ -262,6 +262,22 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
     Q_EMIT disableNativeMenuBarOptionChanged();
 }
 
+void PreferencesDialog::onPanelColorWidgetUserError(QString errorMessage)
+{
+    if (Q_UNLIKELY(errorMessage.isEmpty())) {
+        return;
+    }
+
+    m_pUi->statusTextLabel->setText(errorMessage);
+    m_pUi->statusTextLabel->show();
+
+    if (m_clearAndHideStatusBarTimerId != 0) {
+        killTimer(m_clearAndHideStatusBarTimerId);
+    }
+
+    m_clearAndHideStatusBarTimerId = startTimer(15000);
+}
+
 void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
 {
     QNDEBUG("PreferencesDialog::onStartAtLoginCheckboxToggled: "
@@ -761,6 +777,22 @@ bool PreferencesDialog::eventFilter(QObject * pObject, QEvent * pEvent)
     }
 
     return QDialog::eventFilter(pObject, pEvent);
+}
+
+void PreferencesDialog::timerEvent(QTimerEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        return;
+    }
+
+    int timerId = pEvent->timerId();
+    killTimer(timerId);
+
+    if (timerId == m_clearAndHideStatusBarTimerId) {
+        m_pUi->statusTextLabel->setText({});
+        m_pUi->statusTextLabel->hide();
+        m_clearAndHideStatusBarTimerId = 0;
+    }
 }
 
 void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(bool checked)
@@ -1485,7 +1517,11 @@ void PreferencesDialog::createConnections()
         this,
         &PreferencesDialog::panelBackgroundLinearGradientChanged);
 
-    // TODO: create a dedicated slot for PanelColorsHandlerWidget::notifyUserError
+    QObject::connect(
+        m_pUi->panelColorsHandlerWidget,
+        &PanelColorsHandlerWidget::notifyUserError,
+        this,
+        &PreferencesDialog::onPanelColorWidgetUserError);
 }
 
 void PreferencesDialog::installEventFilters()

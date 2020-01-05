@@ -291,6 +291,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupGenericPanelStyleControllers();
     setupSidePanelStyleControllers();
+    restorePanelColors();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
@@ -1491,6 +1492,86 @@ void MainWindow::clearDir(const QString & path)
     for(auto it = dirs.constBegin(), end = dirs.constEnd(); it != end; ++it) {
         clearDir(*it);
         Q_UNUSED(newDir.remove(*it))
+    }
+}
+
+void MainWindow::restorePanelColors()
+{
+    if (!m_pAccount) {
+        return;
+    }
+
+    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings::GroupCloser groupCloser(settings);
+
+    QString fontColorName = settings.value(
+        PANEL_COLORS_FONT_COLOR_SETTINGS_KEY).toString();
+    QColor fontColor(fontColorName);
+    if (!fontColor.isValid()) {
+        fontColor = QColor(Qt::white);
+    }
+
+    QString backgroundColorName = settings.value(
+        PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+    QColor backgroundColor(backgroundColorName);
+    if (!backgroundColor.isValid()) {
+        backgroundColor = QColor(Qt::darkGray);
+    }
+
+    QLinearGradient gradient(0, 0, 0, 1);
+    int rowCount = settings.beginReadArray(
+        PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+    for(int i = 0; i < rowCount; ++i)
+    {
+        settings.setArrayIndex(i);
+
+        bool conversionResult = false;
+        double value = settings.value(
+            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY).toDouble(
+                &conversionResult);
+        if (Q_UNLIKELY(!conversionResult)) {
+            QNWARNING("Failed to convert panel background gradient row value "
+                << "to double");
+            gradient = QLinearGradient(0, 0, 0, 1);
+            break;
+        }
+
+        QString colorName = settings.value(
+            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY).toString();
+        QColor color(colorName);
+        if (!color.isValid()) {
+            QNWARNING("Failed to convert panel background gradient row color "
+                << "name to valid color: " << colorName);
+            gradient = QLinearGradient(0, 0, 0, 1);
+            break;
+        }
+
+        gradient.setColorAt(value, color);
+    }
+    settings.endArray();
+
+    bool useBackgroundGradient = settings.value(
+        PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY).toBool();
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers)
+    {
+        if (useBackgroundGradient) {
+            pPanelStyleController->setOverrideBackgroundGradient(gradient);
+        }
+        else {
+            pPanelStyleController->setOverrideBackgroundColor(backgroundColor);
+        }
+    }
+
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers)
+    {
+        if (useBackgroundGradient) {
+            pPanelStyleController->setOverrideColors(fontColor, gradient);
+        }
+        else {
+            pPanelStyleController->setOverrideColors(fontColor, backgroundColor);
+        }
     }
 }
 
@@ -2911,6 +2992,13 @@ void MainWindow::onPanelUseBackgroundGradientSettingChanged(
     QNDEBUG("MainWindow::onPanelUseBackgroundGradientSettingChanged: "
         << (useBackgroundGradient ? "true" : "false"));
 
+    restorePanelColors();
+}
+
+void MainWindow::onPanelBackgroundLinearGradientChanged(QLinearGradient gradient)
+{
+    QNDEBUG("MainWindow::onPanelBackgroundLinearGradientChanged");
+
     if (Q_UNLIKELY(!m_pAccount)) {
         QNDEBUG("No current account");
         return;
@@ -2918,88 +3006,21 @@ void MainWindow::onPanelUseBackgroundGradientSettingChanged(
 
     ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
     settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
-    ApplicationSettings::GroupCloser groupCloser(settings);
+    bool useBackgroundGradient =
+        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY).toBool();
+    settings.endGroup();
 
-    if (useBackgroundGradient)
-    {
-        QLinearGradient gradient(0, 0, 0, 1);
-
-        int rowCount = settings.beginReadArray(
-            PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
-        ApplicationSettings::ArrayCloser arrayCloser(settings);
-        for(int i = 0; i < rowCount; ++i)
-        {
-            settings.setArrayIndex(i);
-
-            bool conversionResult = false;
-            double value = settings.value(
-                PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY).toDouble(
-                    &conversionResult);
-            if (Q_UNLIKELY(!conversionResult)) {
-                QNWARNING("Failed to read panels background gradient lines "
-                    << "from persistent preferences, failed to convert value "
-                    << "to double");
-                gradient = QLinearGradient(0, 0, 0, 1);
-                break;
-            }
-
-            QString colorName = settings.value(
-                PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY).toString();
-            QColor color(colorName);
-            if (Q_UNLIKELY(!color.isValid())) {
-                QNWARNING("Failed to read panels background gradient lines "
-                    << "from persistent preferences: stored color name produces "
-                    << "invalid color: " << colorName);
-                gradient = QLinearGradient(0, 0, 0, 1);
-                break;
-            }
-
-            gradient.setColorAt(value, color);
-        }
-
-        onPanelBackgroundLinearGradientChanged(gradient);
+    if (!useBackgroundGradient) {
+        QNDEBUG("Background color is used instead of gradient");
         return;
     }
 
-    // If we got here, it means background color is used instead of background
-    // gradient
-
-    QString colorName = settings.value(
-        PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY).toString();
-    QColor color(colorName);
-
     for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
-        pPanelStyleController->setOverrideBackgroundColor(color);
+        pPanelStyleController->setOverrideBackgroundGradient(gradient);
     }
 
     for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
-        pPanelStyleController->setOverrideBackgroundColor(color);
-    }
-}
-
-void MainWindow::onPanelBackgroundLinearGradientChanged(QLinearGradient gradient)
-{
-    QNDEBUG("MainWindow::onPanelBackgroundLinearGradientChanged");
-
-    if (gradient.stops().size() <= 2)
-    {
-        for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
-            pPanelStyleController->resetOverrideBackgroundGradient();
-        }
-
-        for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
-            pPanelStyleController->resetOverrideBackgroundGradient();
-        }
-    }
-    else
-    {
-        for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
-            pPanelStyleController->setOverrideBackgroundGradient(gradient);
-        }
-
-        for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
-            pPanelStyleController->setOverrideBackgroundGradient(gradient);
-        }
+        pPanelStyleController->setOverrideBackgroundGradient(gradient);
     }
 }
 
