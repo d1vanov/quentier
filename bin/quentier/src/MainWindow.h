@@ -44,16 +44,18 @@
 
 #include <quentier/synchronization/AuthenticationManager.h>
 
-#include <QtCore>
-#include <QtWidgets/QMainWindow>
-#include <QTextListFormat>
+#include <QLinearGradient>
 #include <QMap>
-#include <QStandardItemModel>
-#include <QStringList>
 #include <QMovie>
 #include <QNetworkProxy>
+#include <QStandardItemModel>
+#include <QStringList>
 #include <QScopedPointer>
+#include <QTextListFormat>
 #include <QVector>
+
+#include <QtCore>
+#include <QtWidgets/QMainWindow>
 
 #include <memory>
 #include <vector>
@@ -69,12 +71,15 @@ QT_FORWARD_DECLARE_CLASS(QActionGroup)
 QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
 namespace quentier {
+
+QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
+QT_FORWARD_DECLARE_CLASS(NoteCountLabelController)
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
-QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
+QT_FORWARD_DECLARE_CLASS(PreferencesDialog)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
-QT_FORWARD_DECLARE_CLASS(NoteCountLabelController)
-}
+
+} // namespace quentier
 
 using namespace quentier;
 
@@ -292,6 +297,11 @@ private Q_SLOTS:
     void onDisableNativeMenuBarPreferenceChanged();
     void onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes);
 
+    void onPanelFontColorChanged(QColor color);
+    void onPanelBackgroundColorChanged(QColor color);
+    void onPanelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
+    void onPanelBackgroundLinearGradientChanged(QLinearGradient gradient);
+
     // Note search-related slots
     void onSaveNoteSearchQueryButtonPressed();
 
@@ -414,6 +424,7 @@ private:
     void connectNoteSearchActionsToSlots();
     void connectToolbarButtonsToSlots();
     void connectSystemTrayIconManagerSignalsToSlots();
+    void connectToPreferencesDialogSignals(PreferencesDialog & dialog);
 
     void addMenuActionsToMainWindow();
     void updateSubMenuWithAvailableAccounts();

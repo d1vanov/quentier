@@ -77,7 +77,9 @@ private Q_SLOTS:
     void onBackgroundGradientTableWidgetRowColorDialogRequested();
 
     void onGenerateButtonPressed();
+
     void onAddRowButtonPressed();
+    void onRemoveRowButtonPressed();
 
 private:
     virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
@@ -105,8 +107,9 @@ private:
     void installEventFilters();
 
     void openColorDialogForBackgroundGradientTableWidgetRow(int rowIndex);
-    void rebuildBackgroundGradient();
+    void notifyBackgroundGradientUpdated();
     void updateBackgroundGradientDemoFrameStyleSheet();
+    void handleBackgroundGradientLinesUpdated();
 
     QColor fontColor();
     QColor backgroundColor();

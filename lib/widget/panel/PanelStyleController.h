@@ -40,9 +40,6 @@ public:
 
     QFrame * panel();
 
-    QColor overrideFontColor() const;
-    void setOverrideFontColor(QColor color);
-
     QColor overrideBackgroundColor() const;
     void setOverrideBackgroundColor(QColor color);
 

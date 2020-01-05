@@ -71,6 +71,11 @@ Q_SIGNALS:
     void iconThemeChanged(const QString & iconTheme);
     void panelStyleChanged(const QString & panelStyle);
 
+    void panelFontColorChanged(QColor color);
+    void panelBackgroundColorChanged(QColor color);
+    void panelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
+    void panelBackgroundLinearGradientChanged(QLinearGradient gradient);
+
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);

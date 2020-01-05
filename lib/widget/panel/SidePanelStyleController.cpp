@@ -165,7 +165,7 @@ QString SidePanelStyleController::generateStyleSheet() const
         << "\n"
         << "QPushButton:focus {\n"
         << "outline: none;\n"
-        << "}\n";
+        << "}\n\n";
 
     strm << "QLabel {\n"
         << "border: none;\n";
@@ -173,6 +173,8 @@ QString SidePanelStyleController::generateStyleSheet() const
     if (m_overrideFontColor.isValid()) {
         strm << "color: " << m_overrideFontColor.name(QColor::HexRgb) << ";\n";
     }
+
+    strm << "}\n";
 
     if (!m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient) {
         return styleSheetStr;

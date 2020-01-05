@@ -637,6 +637,111 @@ void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
                      QNSLOT(MainWindow,onHideRequestedFromTrayIcon));
 }
 
+void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
+{
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorUseLimitedFontsOptionChanged,
+        this,
+        &MainWindow::onUseLimitedFontsPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::iconThemeChanged,
+        this,
+        &MainWindow::onSwitchIconTheme);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelStyleChanged,
+        this,
+        &MainWindow::onSwitchPanelStyle);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::synchronizationDownloadNoteThumbnailsOptionChanged,
+        this,
+        &MainWindow::synchronizationDownloadNoteThumbnailsOptionChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::synchronizationDownloadInkNoteImagesOptionChanged,
+        this,
+        &MainWindow::synchronizationDownloadInkNoteImagesOptionChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::showNoteThumbnailsOptionChanged,
+        this,
+        &MainWindow::onShowNoteThumbnailsPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::disableNativeMenuBarOptionChanged,
+        this,
+        &MainWindow::onDisableNativeMenuBarPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::runSyncPeriodicallyOptionChanged,
+        this,
+        &MainWindow::onRunSyncEachNumMinitesPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorFontColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorFontColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorBackgroundColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorBackgroundColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorHighlightColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorHighlightColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorHighlightedTextColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorHighlightedTextColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorColorsReset,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorColorsReset);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelFontColorChanged,
+        this,
+        &MainWindow::onPanelFontColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelBackgroundColorChanged,
+        this,
+        &MainWindow::onPanelBackgroundColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelUseBackgroundGradientSettingChanged,
+        this,
+        &MainWindow::onPanelUseBackgroundGradientSettingChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelBackgroundLinearGradientChanged,
+        this,
+        &MainWindow::onPanelBackgroundLinearGradientChanged);
+}
+
 void MainWindow::addMenuActionsToMainWindow()
 {
     QNDEBUG("MainWindow::addMenuActionsToMainWindow");
@@ -2297,88 +2402,17 @@ void MainWindow::onShowPreferencesDialogAction()
     QList<QMenu*> menus = m_pUI->menuBar->findChildren<QMenu*>();
     ActionsInfo actionsInfo(menus);
 
-    QScopedPointer<PreferencesDialog> pPreferencesDialog(
-        new PreferencesDialog(*m_pAccountManager, m_shortcutManager,
-                              *m_pSystemTrayIconManager, actionsInfo, this));
+    auto pPreferencesDialog = std::make_unique<PreferencesDialog>(
+        *m_pAccountManager,
+        m_shortcutManager,
+        *m_pSystemTrayIconManager,
+        actionsInfo,
+        this);
+
     pPreferencesDialog->setWindowModality(Qt::WindowModal);
     centerDialog(*pPreferencesDialog);
-
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorUseLimitedFontsOptionChanged,bool),
-                     this,
-                     QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,iconThemeChanged,QString),
-                     this,
-                     QNSLOT(MainWindow,onSwitchIconTheme,QString));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,panelStyleChanged,QString),
-                     this,
-                     QNSLOT(MainWindow,onSwitchPanelStyle,QString));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              synchronizationDownloadNoteThumbnailsOptionChanged,
-                              bool),
-                     this,
-                     QNSIGNAL(MainWindow,
-                              synchronizationDownloadNoteThumbnailsOptionChanged,
-                              bool));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              synchronizationDownloadInkNoteImagesOptionChanged,
-                              bool),
-                     this,
-                     QNSIGNAL(MainWindow,
-                              synchronizationDownloadInkNoteImagesOptionChanged,
-                              bool));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged),
-                     this,
-                     QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,disableNativeMenuBarOptionChanged),
-                     this,
-                     QNSLOT(MainWindow,onDisableNativeMenuBarPreferenceChanged));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              runSyncPeriodicallyOptionChanged,int),
-                     this,
-                     QNSLOT(MainWindow,
-                            onRunSyncEachNumMinitesPreferenceChanged,int));
-
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorFontColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorFontColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorBackgroundColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorBackgroundColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorHighlightColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorHighlightColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorHighlightedTextColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorHighlightedTextColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorColorsReset),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorColorsReset));
-
-    Q_UNUSED(pPreferencesDialog->exec());
+    connectToPreferencesDialogSignals(*pPreferencesDialog);
+    Q_UNUSED(pPreferencesDialog->exec())
 }
 
 void MainWindow::onNoteSortingModeChanged(int index)
@@ -2894,6 +2928,142 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(
 
     m_runSyncPeriodicallyTimerId =
         startTimer(SEC_TO_MSEC(runSyncEachNumMinutes * 60));
+}
+
+void MainWindow::onPanelFontColorChanged(QColor color)
+{
+    QNDEBUG("MainWindow::onPanelFontColorChanged: " << color.name());
+
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+        pPanelStyleController->setOverrideFontColor(color);
+    }
+}
+
+void MainWindow::onPanelBackgroundColorChanged(QColor color)
+{
+    QNDEBUG("MainWindow::onPanelBackgroundColorChanged: " << color.name());
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG("No current account");
+        return;
+    }
+
+    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    bool useBackgroundGradient =
+        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY).toBool();
+    settings.endGroup();
+
+    if (useBackgroundGradient) {
+        QNDEBUG("Background gradient is used instead of solid color");
+        return;
+    }
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundColor(color);
+    }
+
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundColor(color);
+    }
+}
+
+void MainWindow::onPanelUseBackgroundGradientSettingChanged(
+    bool useBackgroundGradient)
+{
+    QNDEBUG("MainWindow::onPanelUseBackgroundGradientSettingChanged: "
+        << (useBackgroundGradient ? "true" : "false"));
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG("No current account");
+        return;
+    }
+
+    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings::GroupCloser groupCloser(settings);
+
+    if (useBackgroundGradient)
+    {
+        QLinearGradient gradient(0, 0, 0, 1);
+
+        int rowCount = settings.beginReadArray(
+            PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+        ApplicationSettings::ArrayCloser arrayCloser(settings);
+        for(int i = 0; i < rowCount; ++i)
+        {
+            settings.setArrayIndex(i);
+
+            bool conversionResult = false;
+            double value = settings.value(
+                PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY).toDouble(
+                    &conversionResult);
+            if (Q_UNLIKELY(!conversionResult)) {
+                QNWARNING("Failed to read panels background gradient lines "
+                    << "from persistent preferences, failed to convert value "
+                    << "to double");
+                gradient = QLinearGradient(0, 0, 0, 1);
+                break;
+            }
+
+            QString colorName = settings.value(
+                PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY).toString();
+            QColor color(colorName);
+            if (Q_UNLIKELY(!color.isValid())) {
+                QNWARNING("Failed to read panels background gradient lines "
+                    << "from persistent preferences: stored color name produces "
+                    << "invalid color: " << colorName);
+                gradient = QLinearGradient(0, 0, 0, 1);
+                break;
+            }
+
+            gradient.setColorAt(value, color);
+        }
+
+        onPanelBackgroundLinearGradientChanged(gradient);
+        return;
+    }
+
+    // If we got here, it means background color is used instead of background
+    // gradient
+
+    QString colorName = settings.value(
+        PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+    QColor color(colorName);
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundColor(color);
+    }
+
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundColor(color);
+    }
+}
+
+void MainWindow::onPanelBackgroundLinearGradientChanged(QLinearGradient gradient)
+{
+    QNDEBUG("MainWindow::onPanelBackgroundLinearGradientChanged");
+
+    if (gradient.stops().size() <= 2)
+    {
+        for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+            pPanelStyleController->resetOverrideBackgroundGradient();
+        }
+
+        for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+            pPanelStyleController->resetOverrideBackgroundGradient();
+        }
+    }
+    else
+    {
+        for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+            pPanelStyleController->setOverrideBackgroundGradient(gradient);
+        }
+
+        for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+            pPanelStyleController->setOverrideBackgroundGradient(gradient);
+        }
+    }
 }
 
 void MainWindow::onSaveNoteSearchQueryButtonPressed()
