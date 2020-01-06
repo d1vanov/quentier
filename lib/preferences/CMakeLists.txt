@@ -9,17 +9,20 @@ set(HEADERS
     DefaultSettings.h
     SettingsNames.h
     PreferencesDialog.h
+    panel_colors/PanelColorsHandlerWidget.h
     shortcut_settings/ShortcutButton.h
     shortcut_settings/ShortcutSettingsWidget.h)
 
 set(SOURCES
     DefaultDisableNativeMenuBar.cpp
     PreferencesDialog.cpp
+    panel_colors/PanelColorsHandlerWidget.cpp
     shortcut_settings/ShortcutButton.cpp
     shortcut_settings/ShortcutSettingsWidget.cpp)
 
 set(FORMS
     PreferencesDialog.ui
+    panel_colors/PanelColorsHandlerWidget.ui
     shortcut_settings/ShortcutSettingsWidget.ui)
 
 qt_wrap_ui(FORMS_HEADERS ${FORMS})

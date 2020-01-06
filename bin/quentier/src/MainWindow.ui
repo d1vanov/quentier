@@ -68,7 +68,7 @@ QSplitter::handle:vertical {
      <number>0</number>
     </property>
     <item>
-     <widget class="QFrame" name="upperBarPanel">
+     <widget class="PanelWidget" name="upperBarGenericPanel">
       <property name="minimumSize">
        <size>
         <width>50</width>
@@ -81,57 +81,11 @@ QSplitter::handle:vertical {
         <height>36</height>
        </size>
       </property>
-      <property name="styleSheet">
-       <string notr="true">#upperBarPanel {
-border: none;
-border-bottom: 1px solid black;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, 
-stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, 
-stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, 
-stop: 1 #333333);
-}
-
-QPushButton {
-border: none;
-margin-left: 2px;
-margin-right: 2px;
-}
-
-QPushButton:focus {
-outline: none;
-}
-
-QPushButton:hover:!pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
-stop: 0.39999 #949494, stop: 0.4 #898989,
-stop: 0.9 #787878, stop: 1 #666666);
-}
-
-QPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #535353, stop: 0.08 #3f3f3f,
-stop: 0.39999 #393939, stop: 0.4 #313131,
-stop: 0.9 #262626, stop: 1 #1a1a1a);
-}
-
-QLabel {
-color: rgb(255, 255, 255);
-margin-right: 2px;
-}
-
-QLineEdit {
-margin-left: 0px;
-margin-right: 0px;
-padding-left: 2px;
-padding-right: 2px;
-}</string>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
       </property>
       <property name="lineWidth">
-       <number>0</number>
+       <number>1</number>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -247,6 +201,12 @@ padding-right: 2px;
        </item>
        <item>
         <widget class="QPushButton" name="exportNoteToPdfPushButton">
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="icon">
           <iconset theme="application-pdf">
            <normaloff>.</normaloff>.</iconset>
@@ -256,6 +216,9 @@ padding-right: 2px;
            <width>26</width>
            <height>26</height>
           </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -350,12 +313,34 @@ padding-right: 2px;
         </widget>
        </item>
        <item>
+        <spacer name="horizontalSpacerBetweenSearchNoteLabelAndLineEdit">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Minimum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>4</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QLineEdit" name="searchQueryLineEdit">
          <property name="minimumSize">
           <size>
            <width>0</width>
            <height>22</height>
           </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="frame">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -392,7 +377,7 @@ padding-right: 2px;
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer">
+        <spacer name="rightHorizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -488,7 +473,7 @@ padding: 0px;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="favoritesHeaderPanel">
+          <widget class="PanelWidget" name="favoritesSidePanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -500,61 +485,6 @@ padding: 0px;
              <width>16777215</width>
              <height>22</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QWidget {
-border: none;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);
-}
-
-#favoritesHeaderPanel {
-padding-left: 10px;
-}
-
-QPushButton {
-border: none;
-padding: 0px;
-}
-
-QPushButton:focus {
-outline: none;
-}
-
-QPushButton:hover:!pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
-stop: 0.39999 #949494, stop: 0.4 #898989,
-stop: 0.9 #787878, stop: 1 #666666);
-}
-
-QPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #535353, stop: 0.08 #3f3f3f,
-stop: 0.39999 #393939, stop: 0.4 #313131,
-stop: 0.9 #262626, stop: 1 #1a1a1a);
-}
-
-QPushButton#favoritesPanelIconPseudoPushButton:hover {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QPushButton#favoritesPanelIconPseudoPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QLabel {
-border: none;
-}</string>
            </property>
            <property name="lineWidth">
             <number>0</number>
@@ -575,6 +505,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="favoritesLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="favoritesPanelIconPseudoPushButton">
               <property name="sizePolicy">
@@ -754,7 +700,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="notebooksHeaderPanel">
+          <widget class="PanelWidget" name="notebooksSidePanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -766,61 +712,6 @@ border: none;
              <width>16777215</width>
              <height>22</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QWidget {
-border: none;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);
-}
-
-#notebooksHeaderPanel {
-padding-left: 10px;
-}
-
-QPushButton {
-border: none;
-padding: 0px;
-}
-
-QPushButton:focus {
-outline: none;
-}
-
-QPushButton:hover:!pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
-stop: 0.39999 #949494, stop: 0.4 #898989,
-stop: 0.9 #787878, stop: 1 #666666);
-}
-
-QPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #535353, stop: 0.08 #3f3f3f,
-stop: 0.39999 #393939, stop: 0.4 #313131,
-stop: 0.9 #262626, stop: 1 #1a1a1a);
-}
-
-QPushButton#notebooksPanelIconPseudoPushButton:hover {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QPushButton#notebooksPanelIconPseudoPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QLabel {
-border: none;
-}</string>
            </property>
            <property name="lineWidth">
             <number>0</number>
@@ -841,6 +732,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="notebooksLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="notebooksPanelIconPseudoPushButton">
               <property name="sizePolicy">
@@ -1082,7 +989,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="tagsHeaderPanel">
+          <widget class="PanelWidget" name="tagsSidePanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1094,61 +1001,6 @@ border: none;
              <width>16777215</width>
              <height>22</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QWidget {
-border: none;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);
-}
-
-#tagsHeaderPanel {
-padding-left: 10px;
-}
-
-QPushButton {
-border: none;
-padding: 0px;
-}
-
-QPushButton:focus {
-outline: none;
-}
-
-QPushButton:hover:!pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
-stop: 0.39999 #949494, stop: 0.4 #898989,
-stop: 0.9 #787878, stop: 1 #666666);
-}
-
-QPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #535353, stop: 0.08 #3f3f3f,
-stop: 0.39999 #393939, stop: 0.4 #313131,
-stop: 0.9 #262626, stop: 1 #1a1a1a);
-}
-
-QPushButton#tagIconPseudoPushButton:hover {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QPushButton#tagIconPseudoPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QLabel {
-border: none;
-}</string>
            </property>
            <property name="lineWidth">
             <number>0</number>
@@ -1170,7 +1022,23 @@ border: none;
              <number>0</number>
             </property>
             <item>
-             <widget class="QPushButton" name="tagIconPseudoPushButton">
+             <widget class="QLabel" name="tagsLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="tagPanelIconPseudoPushButton">
               <property name="minimumSize">
                <size>
                 <width>20</width>
@@ -1395,7 +1263,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="savedSearchesHeaderPanel">
+          <widget class="PanelWidget" name="savedSearchesSidePanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1407,61 +1275,6 @@ border: none;
              <width>16777215</width>
              <height>22</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QWidget {
-border: none;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);
-}
-
-#savedSearchesHeaderPanel {
-padding-left: 10px;
-}
-
-QPushButton {
-border: none;
-padding: 0px;
-}
-
-QPushButton:focus {
-outline: none;
-}
-
-QPushButton:hover:!pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
-stop: 0.39999 #949494, stop: 0.4 #898989,
-stop: 0.9 #787878, stop: 1 #666666);
-}
-
-QPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #535353, stop: 0.08 #3f3f3f,
-stop: 0.39999 #393939, stop: 0.4 #313131,
-stop: 0.9 #262626, stop: 1 #1a1a1a);
-}
-
-QPushButton#savedSearchPanelIconPseudoPushButton:hover {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QPushButton#savedSearchPanelIconPseudoPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QLabel {
-border: none;
-}</string>
            </property>
            <property name="lineWidth">
             <number>0</number>
@@ -1482,6 +1295,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="savedSearchesLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="savedSearchPanelIconPseudoPushButton">
               <property name="sizePolicy">
@@ -1684,7 +1513,7 @@ border: none;
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="deletedNotesHeaderPanel">
+          <widget class="PanelWidget" name="deletedNotesSidePanel">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1696,61 +1525,6 @@ border: none;
              <width>16777215</width>
              <height>22</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QWidget {
-border: none;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);
-}
-
-#deletedNotesHeaderPanel {
-padding-left: 10px;
-}
-
-QPushButton {
-border: none;
-padding: 0px;
-}
-
-QPushButton:focus {
-outline: none;
-}
-
-QPushButton:hover:!pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
-stop: 0.39999 #949494, stop: 0.4 #898989,
-stop: 0.9 #787878, stop: 1 #666666);
-}
-
-QPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #535353, stop: 0.08 #3f3f3f,
-stop: 0.39999 #393939, stop: 0.4 #313131,
-stop: 0.9 #262626, stop: 1 #1a1a1a);
-}
-
-QPushButton#deletedNotesPanelIconPseudoPushButton:hover {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QPushButton#deletedNotesPanelIconPseudoPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QLabel {
-border: none;
-}</string>
            </property>
            <property name="lineWidth">
             <number>0</number>
@@ -1771,6 +1545,22 @@ border: none;
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QLabel" name="deletedNotesLeftPaddingLabel">
+              <property name="minimumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="deletedNotesPanelIconPseudoPushButton">
               <property name="sizePolicy">
@@ -2027,7 +1817,7 @@ border-bottom: none;
              <number>0</number>
             </property>
             <item>
-             <widget class="QFrame" name="noteFilterHeaderPanel">
+             <widget class="PanelWidget" name="noteFiltersGenericPanel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -2045,57 +1835,6 @@ border-bottom: none;
                 <width>16777215</width>
                 <height>22</height>
                </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QWidget {
-border: none;
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);
-}
-
-QPushButton {
-border: none;
-padding: 0px;
-}
-
-QPushButton:focus {
-outline: none;
-}
-
-QPushButton:hover:!pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
-stop: 0.39999 #949494, stop: 0.4 #898989,
-stop: 0.9 #787878, stop: 1 #666666);
-}
-
-QPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #535353, stop: 0.08 #3f3f3f,
-stop: 0.39999 #393939, stop: 0.4 #313131,
-stop: 0.9 #262626, stop: 1 #1a1a1a);
-}
-
-QPushButton#favoritesPanelIconPseudoPushButton:hover {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QPushButton#favoritesPanelIconPseudoPushButton:pressed {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}
-
-QLabel {
-border: none;
-}</string>
               </property>
               <property name="lineWidth">
                <number>0</number>
@@ -2448,6 +2187,9 @@ border: none;</string>
                       <height>22</height>
                      </size>
                     </property>
+                    <property name="autoFillBackground">
+                     <bool>true</bool>
+                    </property>
                     <property name="styleSheet">
                      <string notr="true">margin: 0px;
 padding: 0px;
@@ -2496,7 +2238,7 @@ border-bottom: 1px solid black;</string>
              <number>0</number>
             </property>
             <item>
-             <widget class="QFrame" name="noteListWidgetHeaderPanel">
+             <widget class="PanelWidget" name="noteListWidgetGenericPanel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -2528,14 +2270,6 @@ padding: 0px;
 }
 
 QLabel {
-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);
-padding: 0px;
-padding-right: 2px;
-border: none;
 border-right: 1px solid black;
 }
 
@@ -2569,7 +2303,7 @@ padding-left: 2px;
                 <number>0</number>
                </property>
                <item>
-                <widget class="QSplitter" name="noteListWidgetHeaderSplitter">
+                <widget class="QSplitter" name="noteListWidgetPanelSplitter">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                    <horstretch>0</horstretch>
@@ -2658,6 +2392,9 @@ padding-left: 2px;
                     <width>180</width>
                     <height>0</height>
                    </size>
+                  </property>
+                  <property name="autoFillBackground">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </widget>
@@ -2769,7 +2506,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>30</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -2875,16 +2612,7 @@ border-bottom: 1px solid black;
       <addaction name="ActionIconsBreeze"/>
       <addaction name="ActionIconsBreezeDark"/>
      </widget>
-     <widget class="QMenu" name="menuPanels">
-      <property name="title">
-       <string>&amp;Panels</string>
-      </property>
-      <addaction name="ActionPanelStyleBuiltIn"/>
-      <addaction name="ActionPanelStyleLighter"/>
-      <addaction name="ActionPanelStyleDarker"/>
-     </widget>
      <addaction name="menuIcons"/>
-     <addaction name="menuPanels"/>
     </widget>
     <addaction name="menuSidePanel"/>
     <addaction name="ActionShowNotesList"/>
@@ -4318,9 +4046,14 @@ border-bottom: 1px solid black;
    <extends>QTreeView</extends>
    <header>lib/view/DeletedNoteItemView.h</header>
   </customwidget>
+  <customwidget>
+   <class>PanelWidget</class>
+   <extends>QFrame</extends>
+   <header>lib/widget/PanelWidget.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../../resource/icons/other/icons.qrc"/>
   <include location="../../../resource/icons/other/icons.qrc"/>
  </resources>
  <connections/>

@@ -652,11 +652,6 @@
               <property name="toolTip">
                <string>Choose font family</string>
               </property>
-              <property name="styleSheet">
-               <string notr="true">QComboBox {
-padding-left: 5px;
-}</string>
-              </property>
               <property name="minimumContentsLength">
                <number>11</number>
               </property>
@@ -946,7 +941,7 @@ padding-left: 5px;
                <string>Format selected text as source code</string>
               </property>
               <property name="icon">
-               <iconset resource="../../resource/icons/other/icons.qrc">
+               <iconset>
                 <normaloff>:/format_as_source_code/format_as_source_code.png</normaloff>:/format_as_source_code/format_as_source_code.png</iconset>
               </property>
               <property name="flat">
@@ -1210,9 +1205,6 @@ padding-left: 5px;
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../../resource/icons/other/icons.qrc"/>
-  <include location="../../resource/icons/other/icons.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

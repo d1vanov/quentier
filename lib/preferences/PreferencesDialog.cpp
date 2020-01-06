@@ -21,8 +21,12 @@
 #include "DefaultSettings.h"
 #include "DefaultDisableNativeMenuBar.h"
 
+#include "panel_colors/PanelColorsHandlerWidget.h"
+using quentier::PanelColorsHandlerWidget;
+
 #include "shortcut_settings/ShortcutSettingsWidget.h"
 using quentier::ShortcutSettingsWidget;
+
 #include "ui_PreferencesDialog.h"
 
 #include <lib/account/AccountManager.h>
@@ -256,6 +260,22 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
     m_pUi->disableNativeMenuBarRestartWarningLabel->setVisible(true);
 
     Q_EMIT disableNativeMenuBarOptionChanged();
+}
+
+void PreferencesDialog::onPanelColorWidgetUserError(QString errorMessage)
+{
+    if (Q_UNLIKELY(errorMessage.isEmpty())) {
+        return;
+    }
+
+    m_pUi->statusTextLabel->setText(errorMessage);
+    m_pUi->statusTextLabel->show();
+
+    if (m_clearAndHideStatusBarTimerId != 0) {
+        killTimer(m_clearAndHideStatusBarTimerId);
+    }
+
+    m_clearAndHideStatusBarTimerId = startTimer(15000);
 }
 
 void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
@@ -759,6 +779,22 @@ bool PreferencesDialog::eventFilter(QObject * pObject, QEvent * pEvent)
     return QDialog::eventFilter(pObject, pEvent);
 }
 
+void PreferencesDialog::timerEvent(QTimerEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        return;
+    }
+
+    int timerId = pEvent->timerId();
+    killTimer(timerId);
+
+    if (timerId == m_clearAndHideStatusBarTimerId) {
+        m_pUi->statusTextLabel->setText({});
+        m_pUi->statusTextLabel->hide();
+        m_clearAndHideStatusBarTimerId = 0;
+    }
+}
+
 void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(bool checked)
 {
     QNDEBUG("PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled: "
@@ -775,6 +811,8 @@ void PreferencesDialog::setupCurrentSettingsState(
 {
     QNDEBUG("PreferencesDialog::setupCurrentSettingsState");
 
+    Account currentAccount = m_accountManager.currentAccount();
+
     // 1) System tray tab
     setupSystemTraySettings();
 
@@ -783,12 +821,12 @@ void PreferencesDialog::setupCurrentSettingsState(
 
     // 3) Appearance tab
     setupAppearanceSettingsState(actionsInfo);
+    m_pUi->panelColorsHandlerWidget->initialize(currentAccount);
 
     // 4) Behaviour tab
     setupStartAtLoginSettings();
 
     // 5) Synchronization tab
-    Account currentAccount = m_accountManager.currentAccount();
     if (currentAccount.type() == Account::Type::Local)
     {
         // Remove the synchronization tab entirely
@@ -1067,9 +1105,6 @@ void PreferencesDialog::setupAppearanceSettingsState(
     QVariant iconTheme =
         appSettings.value(ICON_THEME_SETTINGS_KEY,
                           tr("Native"));
-    QVariant panelStyle =
-        appSettings.value(PANELS_STYLE_SETTINGS_KEY,
-                          tr("Built-in"));
     appSettings.endGroup();
 
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
@@ -1084,32 +1119,29 @@ void PreferencesDialog::setupAppearanceSettingsState(
         m_pUi->iconThemeComboBox->addItem(tr("Native"));
     }
 
-    m_pUi->iconThemeComboBox->addItem(QStringLiteral("Oxygen"));
-    m_pUi->iconThemeComboBox->addItem(QStringLiteral("Tango"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("breeze"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("breeze-dark"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("oxygen"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("tango"));
 
     int iconThemeIndex = m_pUi->iconThemeComboBox->findText(iconTheme.toString());
     if (iconThemeIndex >= 0) {
         m_pUi->iconThemeComboBox->setCurrentIndex(iconThemeIndex);
     }
 
-    QObject::connect(m_pUi->iconThemeComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SIGNAL(iconThemeChanged(QString)));
-
-    m_pUi->panelStyleComboBox->addItem(tr("Built-in"));
-    m_pUi->panelStyleComboBox->addItem(tr("Lighter"));
-    m_pUi->panelStyleComboBox->addItem(tr("Darker"));
-
-    int panelStyleIndex = m_pUi->panelStyleComboBox->findText(panelStyle.toString());
-    if (panelStyleIndex >= 0) {
-        m_pUi->panelStyleComboBox->setCurrentIndex(panelStyleIndex);
-    }
-
-    QObject::connect(m_pUi->panelStyleComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SIGNAL(panelStyleChanged(QString)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->iconThemeComboBox,
+        qOverload<const QString&>(&QComboBox::currentIndexChanged),
+        this,
+        &PreferencesDialog::iconThemeChanged);
+#else
+    QObject::connect(
+        m_pUi->iconThemeComboBox,
+        SIGNAL(currentIndexChanged(QString)),
+        this,
+        SIGNAL(iconThemeChanged(QString)));
+#endif
 }
 
 void PreferencesDialog::setupNetworkProxySettingsState()
@@ -1243,148 +1275,261 @@ void PreferencesDialog::createConnections()
 {
     QNDEBUG("PreferencesDialog::createConnections");
 
-    QObject::connect(m_pUi->okPushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(PreferencesDialog,accept));
+    QObject::connect(
+        m_pUi->okPushButton,
+        &QPushButton::clicked,
+        this,
+        &PreferencesDialog::accept);
 
-    QObject::connect(m_pUi->showSystemTrayIconCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onShowSystemTrayIconCheckboxToggled,bool));
-    QObject::connect(m_pUi->closeToTrayCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onCloseToSystemTrayCheckboxToggled,bool));
-    QObject::connect(m_pUi->minimizeToTrayCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onMinimizeToSystemTrayCheckboxToggled,bool));
-    QObject::connect(m_pUi->startFromTrayCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onStartMinimizedToSystemTrayCheckboxToggled,bool));
+    QObject::connect(
+        m_pUi->showSystemTrayIconCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onShowSystemTrayIconCheckboxToggled);
 
-    QObject::connect(m_pUi->startAtLoginCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onStartAtLoginCheckboxToggled,bool));
-    QObject::connect(m_pUi->startAtLoginOptionComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onStartAtLoginOptionChanged(int)));
+    QObject::connect(
+        m_pUi->closeToTrayCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onCloseToSystemTrayCheckboxToggled);
 
-    QObject::connect(m_pUi->traySingleClickActionComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onSingleClickTrayActionChanged(int)));
-    QObject::connect(m_pUi->trayMiddleClickActionComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onMiddleClickTrayActionChanged(int)));
-    QObject::connect(m_pUi->trayDoubleClickActionComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onDoubleClickTrayActionChanged(int)));
+    QObject::connect(
+        m_pUi->minimizeToTrayCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled);
 
-    QObject::connect(m_pUi->showNoteThumbnailsCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onShowNoteThumbnailsCheckboxToggled,bool));
-    QObject::connect(m_pUi->disableNativeMenuBarCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onDisableNativeMenuBarCheckboxToggled,bool));
+    QObject::connect(
+        m_pUi->startFromTrayCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled);
 
-    QObject::connect(m_pUi->limitedFontsCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onNoteEditorUseLimitedFontsCheckboxToggled,bool));
-    QObject::connect(m_pUi->noteEditorFontColorLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorFontColorCodeEntered));
-    QObject::connect(m_pUi->noteEditorFontColorPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorFontColorDialogRequested));
-    QObject::connect(m_pUi->noteEditorBackgroundColorLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorBackgroundColorCodeEntered));
-    QObject::connect(m_pUi->noteEditorBackgroundColorPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorBackgroundColorDialogRequested));
-    QObject::connect(m_pUi->noteEditorHighlightColorLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorHighlightColorCodeEntered));
-    QObject::connect(m_pUi->noteEditorHighlightColorPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorHighlightColorDialogRequested));
-    QObject::connect(m_pUi->noteEditorHighlightedTextColorLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorHighlightedTextColorCodeEntered));
-    QObject::connect(m_pUi->noteEditorHighlightedTextColorPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorHighlightedTextColorDialogRequested));
-    QObject::connect(m_pUi->noteEditorResetColorsPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(PreferencesDialog,onNoteEditorColorsReset));
+    QObject::connect(
+        m_pUi->startAtLoginCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onStartAtLoginCheckboxToggled);
 
-    QObject::connect(m_pUi->downloadNoteThumbnailsCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onDownloadNoteThumbnailsCheckboxToggled,bool));
-    QObject::connect(m_pUi->downloadInkNoteImagesCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onDownloadInkNoteImagesCheckboxToggled,bool));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->startAtLoginOptionComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &PreferencesDialog::onStartAtLoginOptionChanged);
 
-    QObject::connect(m_pUi->networkProxyTypeComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onNetworkProxyTypeChanged(int)));
-    QObject::connect(m_pUi->networkProxyHostLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(PreferencesDialog,onNetworkProxyHostChanged));
-    QObject::connect(m_pUi->networkProxyPortSpinBox,
-                     SIGNAL(valueChanged(int)),
-                     this,
-                     SLOT(onNetworkProxyPortChanged(int)));
-    QObject::connect(m_pUi->networkProxyUserLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(PreferencesDialog,onNetworkProxyUsernameChanged));
-    QObject::connect(m_pUi->networkProxyPasswordLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(PreferencesDialog,onNetworkProxyPasswordChanged));
-    QObject::connect(m_pUi->networkProxyPasswordShowCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onNetworkProxyPasswordVisibilityToggled,bool));
+    QObject::connect(
+        m_pUi->traySingleClickActionComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &PreferencesDialog::onSingleClickTrayActionChanged);
 
-    QObject::connect(m_pUi->enableInternalLogViewerLogsCheckBox,
-                     QNSIGNAL(QCheckBox,toggled,bool),
-                     this,
-                     QNSLOT(PreferencesDialog,
-                            onEnableLogViewerInternalLogsCheckboxToggled,bool));
+    QObject::connect(
+        m_pUi->trayMiddleClickActionComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &PreferencesDialog::onMiddleClickTrayActionChanged);
+
+    QObject::connect(
+        m_pUi->trayDoubleClickActionComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &PreferencesDialog::onDoubleClickTrayActionChanged);
+#else
+    QObject::connect(
+        m_pUi->startAtLoginOptionComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onStartAtLoginOptionChanged(int)));
+
+    QObject::connect(
+        m_pUi->traySingleClickActionComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onSingleClickTrayActionChanged(int)));
+
+    QObject::connect(
+        m_pUi->trayMiddleClickActionComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onMiddleClickTrayActionChanged(int)));
+
+    QObject::connect(
+        m_pUi->trayDoubleClickActionComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onDoubleClickTrayActionChanged(int)));
+#endif
+
+    QObject::connect(
+        m_pUi->showNoteThumbnailsCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onShowNoteThumbnailsCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->disableNativeMenuBarCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onDisableNativeMenuBarCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->limitedFontsCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->noteEditorFontColorLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &PreferencesDialog::onNoteEditorFontColorCodeEntered);
+
+    QObject::connect(
+        m_pUi->noteEditorFontColorPushButton,
+        &QPushButton::clicked,
+        this,
+        &PreferencesDialog::onNoteEditorFontColorDialogRequested);
+
+    QObject::connect(
+        m_pUi->noteEditorBackgroundColorLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &PreferencesDialog::onNoteEditorBackgroundColorCodeEntered);
+
+    QObject::connect(
+        m_pUi->noteEditorBackgroundColorPushButton,
+        &QPushButton::clicked,
+        this,
+        &PreferencesDialog::onNoteEditorBackgroundColorDialogRequested);
+
+    QObject::connect(
+        m_pUi->noteEditorHighlightColorLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &PreferencesDialog::onNoteEditorHighlightColorCodeEntered);
+
+    QObject::connect(
+        m_pUi->noteEditorHighlightColorPushButton,
+        &QPushButton::clicked,
+        this,
+        &PreferencesDialog::onNoteEditorHighlightColorDialogRequested);
+
+    QObject::connect(
+        m_pUi->noteEditorHighlightedTextColorLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered);
+
+    QObject::connect(
+        m_pUi->noteEditorHighlightedTextColorPushButton,
+        &QPushButton::clicked,
+        this,
+        &PreferencesDialog::onNoteEditorHighlightedTextColorDialogRequested);
+
+    QObject::connect(
+        m_pUi->noteEditorResetColorsPushButton,
+        &QPushButton::clicked,
+        this,
+        &PreferencesDialog::onNoteEditorColorsReset);
+
+    QObject::connect(
+        m_pUi->downloadNoteThumbnailsCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->downloadInkNoteImagesCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->networkProxyTypeComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &PreferencesDialog::onNetworkProxyTypeChanged);
+
+    QObject::connect(
+        m_pUi->networkProxyPortSpinBox,
+        qOverload<int>(&QSpinBox::valueChanged),
+        this,
+        &PreferencesDialog::onNetworkProxyPortChanged);
+#else
+    QObject::connect(
+        m_pUi->networkProxyTypeComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onNetworkProxyTypeChanged(int)));
+
+    QObject::connect(
+        m_pUi->networkProxyPortSpinBox,
+        SIGNAL(valueChanged(int)),
+        this,
+        SLOT(onNetworkProxyPortChanged(int)));
+#endif
+
+    QObject::connect(
+        m_pUi->networkProxyHostLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &PreferencesDialog::onNetworkProxyHostChanged);
+
+    QObject::connect(
+        m_pUi->networkProxyUserLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &PreferencesDialog::onNetworkProxyUsernameChanged);
+
+    QObject::connect(
+        m_pUi->networkProxyPasswordLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &PreferencesDialog::onNetworkProxyPasswordChanged);
+
+    QObject::connect(
+        m_pUi->networkProxyPasswordShowCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onNetworkProxyPasswordVisibilityToggled);
+
+    QObject::connect(
+        m_pUi->enableInternalLogViewerLogsCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->panelColorsHandlerWidget,
+        &PanelColorsHandlerWidget::fontColorChanged,
+        this,
+        &PreferencesDialog::panelFontColorChanged);
+
+    QObject::connect(
+        m_pUi->panelColorsHandlerWidget,
+        &PanelColorsHandlerWidget::backgroundColorChanged,
+        this,
+        &PreferencesDialog::panelBackgroundColorChanged);
+
+    QObject::connect(
+        m_pUi->panelColorsHandlerWidget,
+        &PanelColorsHandlerWidget::useBackgroundGradientSettingChanged,
+        this,
+        &PreferencesDialog::panelUseBackgroundGradientSettingChanged);
+
+    QObject::connect(
+        m_pUi->panelColorsHandlerWidget,
+        &PanelColorsHandlerWidget::backgroundLinearGradientChanged,
+        this,
+        &PreferencesDialog::panelBackgroundLinearGradientChanged);
+
+    QObject::connect(
+        m_pUi->panelColorsHandlerWidget,
+        &PanelColorsHandlerWidget::notifyUserError,
+        this,
+        &PreferencesDialog::onPanelColorWidgetUserError);
 }
 
 void PreferencesDialog::installEventFilters()
@@ -1415,8 +1560,9 @@ void PreferencesDialog::checkAndSetNetworkProxy()
     default:
         {
             proxy.setType(QNetworkProxy::NoProxy);
-            persistNetworkProxySettingsForAccount(m_accountManager.currentAccount(),
-                                                  proxy);
+            persistNetworkProxySettingsForAccount(
+                m_accountManager.currentAccount(),
+                proxy);
             break;
         }
     }

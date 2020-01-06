@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>531</width>
+    <width>539</width>
     <height>522</height>
    </rect>
   </property>
@@ -29,10 +29,10 @@
       <attribute name="title">
        <string>Appearance</string>
       </attribute>
-      <layout class="QVBoxLayout" name="appearanceTabVerticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <layout class="QGridLayout" name="IconThemePanelStyleGridLayout">
-         <item row="0" column="0">
+        <layout class="QHBoxLayout" name="iconThemeHorizontalLayout">
+         <item>
           <widget class="QLabel" name="iconThemeLabel">
            <property name="text">
             <string>Icon theme:</string>
@@ -42,34 +42,8 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item>
           <widget class="QComboBox" name="iconThemeComboBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>300</width>
-             <height>0</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="panelStyleLabel">
-           <property name="text">
-            <string>Panel style:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QComboBox" name="panelStyleComboBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -118,20 +92,21 @@
         </layout>
        </item>
        <item>
-        <spacer name="appearanceTabVerticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+        <widget class="QLabel" name="panelColorsLabel">
+         <property name="text">
+          <string>Panel colors:</string>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
+        </widget>
+       </item>
+       <item>
+        <widget class="PanelColorsHandlerWidget" name="panelColorsHandlerWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>468</width>
-           <height>10</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -970,6 +945,12 @@ padding: 0 3px;
    <class>ShortcutSettingsWidget</class>
    <extends>QWidget</extends>
    <header>shortcut_settings/ShortcutSettingsWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PanelColorsHandlerWidget</class>
+   <extends>QWidget</extends>
+   <header>panel_colors/PanelColorsHandlerWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
