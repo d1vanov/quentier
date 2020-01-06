@@ -1479,22 +1479,6 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
     m_pUI->noteListAndFiltersSplitter->update();
 }
 
-void MainWindow::clearDir(const QString & path)
-{
-    QDir newDir(path);
-
-    QStringList files = newDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
-    for(auto it = files.constBegin(), end = files.constEnd(); it != end; ++it) {
-        Q_UNUSED(newDir.remove(*it))
-    }
-
-    QStringList dirs = newDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
-    for(auto it = dirs.constBegin(), end = dirs.constEnd(); it != end; ++it) {
-        clearDir(*it);
-        Q_UNUSED(newDir.remove(*it))
-    }
-}
-
 void MainWindow::restorePanelColors()
 {
     if (!m_pAccount) {

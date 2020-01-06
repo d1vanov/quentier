@@ -467,8 +467,6 @@ private:
 
     void adjustNoteListAndFiltersSplitterSizes();
 
-    void clearDir(const QString & path);
-
     void restorePanelColors();
     void setupGenericPanelStyleControllers();
     void setupSidePanelStyleControllers();
