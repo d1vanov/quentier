@@ -438,6 +438,16 @@ void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorSelected(
         pLineEdit->setText(color.name());
     }
 
+    auto * pDemoFrameWidget = qobject_cast<QWidget*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2));
+    if (pDemoFrameWidget)
+    {
+        auto * pDemoFrame = pDemoFrameWidget->findChild<QFrame*>();
+        if (pDemoFrame) {
+            setBackgroundColorToDemoFrame(color, *pDemoFrame);
+        }
+    }
+
     handleBackgroundGradientLinesUpdated();
 }
 
