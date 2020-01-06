@@ -1105,9 +1105,6 @@ void PreferencesDialog::setupAppearanceSettingsState(
     QVariant iconTheme =
         appSettings.value(ICON_THEME_SETTINGS_KEY,
                           tr("Native"));
-    QVariant panelStyle =
-        appSettings.value(PANELS_STYLE_SETTINGS_KEY,
-                          tr("Built-in"));
     appSettings.endGroup();
 
     m_pUi->showNoteThumbnailsCheckBox->setChecked(showThumbnails.toBool());
@@ -1122,18 +1119,29 @@ void PreferencesDialog::setupAppearanceSettingsState(
         m_pUi->iconThemeComboBox->addItem(tr("Native"));
     }
 
-    m_pUi->iconThemeComboBox->addItem(QStringLiteral("Oxygen"));
-    m_pUi->iconThemeComboBox->addItem(QStringLiteral("Tango"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("breeze"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("breeze-dark"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("oxygen"));
+    m_pUi->iconThemeComboBox->addItem(QStringLiteral("tango"));
 
     int iconThemeIndex = m_pUi->iconThemeComboBox->findText(iconTheme.toString());
     if (iconThemeIndex >= 0) {
         m_pUi->iconThemeComboBox->setCurrentIndex(iconThemeIndex);
     }
 
-    QObject::connect(m_pUi->iconThemeComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SIGNAL(iconThemeChanged(QString)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->iconThemeComboBox,
+        qOverload<const QString&>(&QComboBox::currentIndexChanged),
+        this,
+        &PreferencesDialog::iconThemeChanged);
+#else
+    QObject::connect(
+        m_pUi->iconThemeComboBox,
+        SIGNAL(currentIndexChanged(QString)),
+        this,
+        SIGNAL(iconThemeChanged(QString)));
+#endif
 }
 
 void PreferencesDialog::setupNetworkProxySettingsState()

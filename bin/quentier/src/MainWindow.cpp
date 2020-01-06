@@ -3556,10 +3556,16 @@ void MainWindow::onSwitchIconTheme(const QString & iconTheme)
     if (iconTheme == tr("Native")) {
         onSwitchIconThemeToNativeAction();
     }
-    else if (iconTheme == QStringLiteral("Oxygen")) {
+    else if (iconTheme == QStringLiteral("breeze")) {
+        onSwitchIconThemeToBreezeAction();
+    }
+    else if (iconTheme == QStringLiteral("breeze-dark")) {
+        onSwitchIconThemeToBreezeDarkAction();
+    }
+    else if (iconTheme == QStringLiteral("oxygen")) {
         onSwitchIconThemeToOxygenAction();
     }
-    else if (iconTheme == QStringLiteral("Tango")) {
+    else if (iconTheme == QStringLiteral("tango")) {
         onSwitchIconThemeToTangoAction();
     }
     else {
