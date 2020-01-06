@@ -266,6 +266,9 @@ padding-right: 2px;
            <height>26</height>
           </size>
          </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -359,12 +362,34 @@ padding-right: 2px;
         </widget>
        </item>
        <item>
+        <spacer name="horizontalSpacerBetweenSearchNoteLabelAndLineEdit">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Minimum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>2</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QLineEdit" name="searchQueryLineEdit">
          <property name="minimumSize">
           <size>
            <width>0</width>
            <height>22</height>
           </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+         <property name="frame">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -401,7 +426,7 @@ padding-right: 2px;
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer">
+        <spacer name="rightHorizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -2517,6 +2542,9 @@ border: none;</string>
                       <height>22</height>
                      </size>
                     </property>
+                    <property name="autoFillBackground">
+                     <bool>true</bool>
+                    </property>
                     <property name="styleSheet">
                      <string notr="true">margin: 0px;
 padding: 0px;
@@ -2727,6 +2755,9 @@ padding-left: 2px;
                     <width>180</width>
                     <height>0</height>
                    </size>
+                  </property>
+                  <property name="autoFillBackground">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </widget>

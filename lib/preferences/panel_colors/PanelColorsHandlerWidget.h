@@ -103,6 +103,7 @@ private:
     void setupBackgroundGradientTableWidget();
     void setupBackgroundGradientTableWidgetRow(
         const GradientLine & gradientLine, const int rowIndex);
+    void setNamesToBackgroundGradientTableWidgetRow(const int rowIndex);
 
     void installEventFilters();
 

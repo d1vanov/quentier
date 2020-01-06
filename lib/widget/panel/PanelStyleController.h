@@ -40,12 +40,18 @@ public:
 
     QFrame * panel();
 
+    QColor overrideFontColor() const;
+    void setOverrideFontColor(QColor color);
+
     QColor overrideBackgroundColor() const;
     void setOverrideBackgroundColor(QColor color);
 
     const QLinearGradient * overrideBackgroundGradient() const;
     void setOverrideBackgroundGradient(QLinearGradient gradient);
     void resetOverrideBackgroundGradient();
+
+    void setOverrideColors(QColor fontColor, QColor backgroundColor);
+    void setOverrideColors(QColor fontColor, QLinearGradient backgroundGradient);
 
     virtual void resetOverrides();
 
@@ -65,6 +71,7 @@ protected:
     QString     m_defaultStyleSheet;
     QString     m_extraStyleSheet;
 
+    QColor      m_overrideFontColor;
     QColor      m_overrideBackgroundColor;
     std::unique_ptr<QLinearGradient>    m_pOverrideBackgroundGradient;
 };

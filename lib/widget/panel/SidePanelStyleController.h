@@ -45,14 +45,6 @@ public:
     QString title() const;
     void setTitle(const QString & title);
 
-    QColor overrideFontColor() const;
-    void setOverrideFontColor(QColor color);
-
-    void setOverrideColors(QColor fontColor, QColor backgroundColor);
-    void setOverrideColors(QColor fontColor, QLinearGradient backgroundGradient);
-
-    virtual void resetOverrides() override;
-
 private:
     void findChildWidgets();
 
@@ -61,8 +53,6 @@ private:
 private:
     QLabel *        m_pTitleLabel = nullptr;
     QPushButton *   m_pStaticIconHolder = nullptr;
-
-    QColor  m_overrideFontColor;
 };
 
 } // namespace quentier

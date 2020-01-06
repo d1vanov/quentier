@@ -307,44 +307,44 @@ void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowValueEdited(
         return;
     }
 
-    // Verify the entered value is within limits imposed by neighboring rows
+    bool needsSorting = false;
     if (rowIndex > 0)
     {
         int prevRow = rowIndex - 1;
         double prevValue =
             m_backgroundGradientLines[static_cast<size_t>(prevRow)].m_value;
-        if (value <= prevValue)
-        {
-            QNINFO("Rejecting value input into background gradient table "
-                << "widget: value " << value << " is not greater than "
-                << prevValue << " from the previous row");
-            pSpinBox->setValue(
-                m_backgroundGradientLines[static_cast<size_t>(rowIndex)].m_value);
-            Q_EMIT notifyUserError(tr("Rejected input value as it is less than "
-                                      "the one from the previous row"));
-            return;
+        if (value < prevValue) {
+            needsSorting = true;
         }
     }
 
-    if (rowIndex < static_cast<int>(m_backgroundGradientLines.size() - 1))
+    if (!needsSorting &&
+        (rowIndex < static_cast<int>(m_backgroundGradientLines.size() - 1)))
     {
         int nextRow = rowIndex + 1;
         double nextValue =
             m_backgroundGradientLines[static_cast<size_t>(nextRow)].m_value;
-        if (value >= nextValue)
-        {
-            QNINFO("Rejecting value input into background gradient table "
-                << "widget: value " << value << " is not less than "
-                << nextValue << " from the next row");
-            pSpinBox->setValue(
-                m_backgroundGradientLines[static_cast<size_t>(rowIndex)].m_value);
-            Q_EMIT notifyUserError(tr("Rejected input value as it is greater "
-                                      "than the one from the next row"));
-            return;
+        if (value > nextValue) {
+            needsSorting = true;
         }
     }
 
     m_backgroundGradientLines[static_cast<size_t>(rowIndex)].m_value = value;
+
+    if (!needsSorting) {
+        handleBackgroundGradientLinesUpdated();
+        return;
+    }
+
+    std::sort(
+        m_backgroundGradientLines.begin(),
+        m_backgroundGradientLines.end(),
+        [](const GradientLine & lhs, const GradientLine & rhs)
+        {
+            return lhs.m_value < rhs.m_value;
+        });
+
+    setupBackgroundGradientTableWidget();
     handleBackgroundGradientLinesUpdated();
 }
 
@@ -485,26 +485,27 @@ void PanelColorsHandlerWidget::onGenerateButtonPressed()
     std::vector<GradientLine> gradientLines;
     gradientLines.reserve(5);
 
-    gradientLines.emplace_back(0.0, baseColor.lighter(200).name());
+    gradientLines.emplace_back(0.0, baseColor.lighter(150).name());
     gradientLines.emplace_back(0.2, baseColor.lighter(110).name());
     gradientLines.emplace_back(0.45, baseColor.name());
     gradientLines.emplace_back(0.8, baseColor.darker(150).name());
-    gradientLines.emplace_back(1.0, baseColor.darker(250).name());
+    gradientLines.emplace_back(1.0, baseColor.darker(200).name());
 
     m_backgroundGradientLines = std::move(gradientLines);
-    saveBackgroundGradientLinesToSettings();
 
     setupBackgroundGradientTableWidget();
-    updateBackgroundGradientDemoFrameStyleSheet();
+    handleBackgroundGradientLinesUpdated();
 }
 
 void PanelColorsHandlerWidget::onAddRowButtonPressed()
 {
     int rowIndex = m_pUi->backgroundGradientTableWidget->rowCount();
     m_pUi->backgroundGradientTableWidget->insertRow(rowIndex);
-    setupBackgroundGradientTableWidgetRow(
-        GradientLine(1.0, QColor(Qt::black).name()),
-                rowIndex);
+
+    GradientLine line(1.0, QColor(Qt::black).name());
+    setupBackgroundGradientTableWidgetRow(line, rowIndex);
+    m_backgroundGradientLines.emplace_back(std::move(line));
+    handleBackgroundGradientLinesUpdated();
 }
 
 void PanelColorsHandlerWidget::onRemoveRowButtonPressed()
@@ -533,7 +534,20 @@ void PanelColorsHandlerWidget::onRemoveRowButtonPressed()
         return;
     }
 
+    bool isLastRow =
+        (rowIndex == (m_pUi->backgroundGradientTableWidget->rowCount() - 1));
+
     m_pUi->backgroundGradientTableWidget->removeRow(rowIndex);
+
+    if (!isLastRow)
+    {
+        // Need to assign correct row names to the widgets of all rows past
+        // the removed one
+        int rowCount = m_pUi->backgroundGradientTableWidget->rowCount();
+        for(int i = rowIndex; i < rowCount; ++i) {
+            setNamesToBackgroundGradientTableWidgetRow(i);
+        }
+    }
 
     auto it = m_backgroundGradientLines.begin();
     std::advance(it, static_cast<size_t>(rowIndex));
@@ -798,6 +812,7 @@ void PanelColorsHandlerWidget::setupBackgroundGradientTableWidgetRow(
     pRemoveRowPushButton->setObjectName(rowName);
     pRemoveRowPushButton->setIcon(QIcon::fromTheme(QStringLiteral("edit-delete")));
     pRemoveRowPushButton->setToolTip(tr("Remove this row"));
+    pRemoveRowPushButton->setFlat(true);
 
     m_pUi->backgroundGradientTableWidget->setCellWidget(
         rowIndex,
@@ -856,7 +871,40 @@ void PanelColorsHandlerWidget::setupBackgroundGradientTableWidgetRow(
         pRemoveRowPushButton,
         &QPushButton::clicked,
         this,
-        &PanelColorsHandlerWidget::onRemoveRowButtonPressed);
+                &PanelColorsHandlerWidget::onRemoveRowButtonPressed);
+}
+
+void PanelColorsHandlerWidget::setNamesToBackgroundGradientTableWidgetRow(
+    const int rowIndex)
+{
+    auto rowName = QString::number(rowIndex);
+
+    auto * pValueSpinBox = qobject_cast<QDoubleSpinBox*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 0));
+    Q_ASSERT(pValueSpinBox);
+    pValueSpinBox->setObjectName(rowName);
+
+    auto * pColorNameLineEdit = qobject_cast<QLineEdit*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 1));
+    Q_ASSERT(pColorNameLineEdit);
+    pColorNameLineEdit->setObjectName(rowName);
+
+    auto * pColorDemoFrameWidget = qobject_cast<QWidget*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2));
+    Q_ASSERT(pColorDemoFrameWidget);
+    auto * pColorDemoFrame = pColorDemoFrameWidget->findChild<QFrame*>();
+    Q_ASSERT(pColorDemoFrame);
+    pColorDemoFrame->setObjectName(rowName);
+
+    auto * pColorPushButton = qobject_cast<QPushButton*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 3));
+    Q_ASSERT(pColorPushButton);
+    pColorPushButton->setObjectName(rowName);
+
+    auto * pRemoveRowPushButton = qobject_cast<QPushButton*>(
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 4));
+    Q_ASSERT(pRemoveRowPushButton);
+    pRemoveRowPushButton->setObjectName(rowName);
 }
 
 void PanelColorsHandlerWidget::installEventFilters()

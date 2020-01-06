@@ -38,6 +38,21 @@ QFrame * PanelStyleController::panel()
     return m_pPanel;
 }
 
+QColor PanelStyleController::overrideFontColor() const
+{
+    return m_overrideFontColor;
+}
+
+void PanelStyleController::setOverrideFontColor(QColor color)
+{
+    if (m_overrideFontColor == color) {
+        return;
+    }
+
+    m_overrideFontColor = std::move(color);
+    updateStyleSheet();
+}
+
 QColor PanelStyleController::overrideBackgroundColor() const
 {
     return m_overrideBackgroundColor;
@@ -94,15 +109,59 @@ void PanelStyleController::resetOverrideBackgroundGradient()
     updateStyleSheet();
 }
 
+void PanelStyleController::setOverrideColors(
+    QColor fontColor, QColor backgroundColor)
+{
+    if ((m_overrideFontColor == fontColor) &&
+        (m_overrideBackgroundColor == backgroundColor))
+    {
+        return;
+    }
+
+    m_overrideFontColor = std::move(fontColor);
+    m_overrideBackgroundColor = std::move(backgroundColor);
+    if (m_overrideBackgroundColor.isValid()) {
+        m_pOverrideBackgroundGradient.reset();
+    }
+
+    updateStyleSheet();
+}
+
+void PanelStyleController::setOverrideColors(
+    QColor fontColor, QLinearGradient backgroundGradient)
+{
+    if ((m_overrideFontColor == fontColor) &&
+        (m_pOverrideBackgroundGradient &&
+         (*m_pOverrideBackgroundGradient == backgroundGradient)))
+    {
+        return;
+    }
+
+    m_overrideFontColor = std::move(fontColor);
+
+    if (m_pOverrideBackgroundGradient) {
+        *m_pOverrideBackgroundGradient = std::move(backgroundGradient);
+    }
+    else {
+        m_pOverrideBackgroundGradient = std::make_unique<QLinearGradient>(
+            std::move(backgroundGradient));
+    }
+
+    m_overrideBackgroundColor = QColor();
+    updateStyleSheet();
+}
+
 void PanelStyleController::resetOverrides()
 {
-    if (!m_overrideBackgroundColor.isValid() &&
+    if (!m_overrideFontColor.isValid() &&
+        !m_overrideBackgroundColor.isValid() &&
         !m_pOverrideBackgroundGradient)
     {
         // Nothing to do
         return;
     }
 
+    m_overrideFontColor = QColor();
     m_overrideBackgroundColor = QColor();
     m_pOverrideBackgroundGradient.reset();
 
@@ -193,6 +252,21 @@ QString PanelStyleController::generateStyleSheet() const
     auto backgroundColorStr = backgroundColorToString();
     if (!backgroundColorStr.isEmpty()) {
         strm << "background-color: " << backgroundColorStr << ";\n";
+    }
+
+    strm << "}\n";
+
+    if (m_overrideFontColor.isValid()) {
+        strm << "QWidget {\n"
+            << "color: " << m_overrideFontColor.name() << ";\n"
+            << "}\n";
+    }
+
+    strm << "QLabel {\n"
+        << "border: none;\n";
+
+    if (m_overrideFontColor.isValid()) {
+        strm << "color: " << m_overrideFontColor.name() << ";\n";
     }
 
     strm << "}\n";

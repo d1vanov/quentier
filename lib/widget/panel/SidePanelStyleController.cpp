@@ -42,80 +42,6 @@ void SidePanelStyleController::setTitle(const QString & title)
     m_pTitleLabel->setText(title);
 }
 
-QColor SidePanelStyleController::overrideFontColor() const
-{
-    return m_overrideFontColor;
-}
-
-void SidePanelStyleController::setOverrideFontColor(QColor color)
-{
-    if (m_overrideFontColor == color) {
-        return;
-    }
-
-    m_overrideFontColor = std::move(color);
-    updateStyleSheet();
-}
-
-void SidePanelStyleController::setOverrideColors(
-    QColor fontColor, QColor backgroundColor)
-{
-    if ((m_overrideFontColor == fontColor) &&
-        (m_overrideBackgroundColor == backgroundColor))
-    {
-        return;
-    }
-
-    m_overrideFontColor = std::move(fontColor);
-    m_overrideBackgroundColor = std::move(backgroundColor);
-    if (m_overrideBackgroundColor.isValid()) {
-        m_pOverrideBackgroundGradient.reset();
-    }
-
-    updateStyleSheet();
-}
-
-void SidePanelStyleController::setOverrideColors(
-    QColor fontColor, QLinearGradient backgroundGradient)
-{
-    if ((m_overrideFontColor == fontColor) &&
-        (m_pOverrideBackgroundGradient &&
-         (*m_pOverrideBackgroundGradient == backgroundGradient)))
-    {
-        return;
-    }
-
-    m_overrideFontColor = std::move(fontColor);
-
-    if (m_pOverrideBackgroundGradient) {
-        *m_pOverrideBackgroundGradient = std::move(backgroundGradient);
-    }
-    else {
-        m_pOverrideBackgroundGradient = std::make_unique<QLinearGradient>(
-            std::move(backgroundGradient));
-    }
-
-    m_overrideBackgroundColor = QColor();
-    updateStyleSheet();
-}
-
-void SidePanelStyleController::resetOverrides()
-{
-    if (!m_overrideFontColor.isValid() &&
-        !m_overrideBackgroundColor.isValid() &&
-        !m_pOverrideBackgroundGradient)
-    {
-        // Nothing to do
-        return;
-    }
-
-    m_overrideFontColor = QColor();
-    m_overrideBackgroundColor = QColor();
-    m_pOverrideBackgroundGradient.reset();
-
-    updateStyleSheet();
-}
-
 void SidePanelStyleController::findChildWidgets()
 {
     auto staticIconHolders = m_pPanel->findChildren<QPushButton*>(
@@ -151,12 +77,6 @@ QString SidePanelStyleController::generateStyleSheet() const
     QTextStream strm(&styleSheetStr, QIODevice::Append);
     strm << "\n";
 
-    if (m_overrideFontColor.isValid()) {
-        strm << "QWidget {\n"
-            << "color: " << m_overrideFontColor.name(QColor::HexRgb) << ";\n"
-            << "}\n\n";
-    }
-
     strm << "\n"
         << "QPushButton {\n"
         << "border: none;\n"
@@ -167,15 +87,6 @@ QString SidePanelStyleController::generateStyleSheet() const
         << "outline: none;\n"
         << "}\n\n";
 
-    strm << "QLabel {\n"
-        << "border: none;\n";
-
-    if (m_overrideFontColor.isValid()) {
-        strm << "color: " << m_overrideFontColor.name(QColor::HexRgb) << ";\n";
-    }
-
-    strm << "}\n";
-
     if (!m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient) {
         return styleSheetStr;
     }
@@ -183,7 +94,7 @@ QString SidePanelStyleController::generateStyleSheet() const
     strm << "QPushButton:hover:!pressed {\n";
     strm << "background-color: ";
     if (m_overrideBackgroundColor.isValid()) {
-        strm << m_overrideBackgroundColor.lighter(150).name(QColor::HexRgb)
+        strm << m_overrideBackgroundColor.lighter(150).name()
             << ";\n";
     }
     else {
@@ -198,7 +109,7 @@ QString SidePanelStyleController::generateStyleSheet() const
     strm << "QPushButton:pressed {\n";
     strm << "background-color: ";
     if (m_overrideBackgroundColor.isValid()) {
-        strm << m_overrideBackgroundColor.darker(200).name(QColor::HexRgb)
+        strm << m_overrideBackgroundColor.darker(200).name()
             << ";\n";
     }
     else {

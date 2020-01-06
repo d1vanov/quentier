@@ -1557,10 +1557,10 @@ void MainWindow::restorePanelColors()
     for(auto & pPanelStyleController: m_genericPanelStyleControllers)
     {
         if (useBackgroundGradient) {
-            pPanelStyleController->setOverrideBackgroundGradient(gradient);
+            pPanelStyleController->setOverrideColors(fontColor, gradient);
         }
         else {
-            pPanelStyleController->setOverrideBackgroundColor(backgroundColor);
+            pPanelStyleController->setOverrideColors(fontColor, backgroundColor);
         }
     }
 
@@ -2951,6 +2951,10 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(
 void MainWindow::onPanelFontColorChanged(QColor color)
 {
     QNDEBUG("MainWindow::onPanelFontColorChanged: " << color.name());
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+        pPanelStyleController->setOverrideFontColor(color);
+    }
 
     for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
         pPanelStyleController->setOverrideFontColor(color);
