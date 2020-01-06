@@ -16,6 +16,7 @@ environment:
     secure: rLuHhO0prerqoGCYmfOoyxqcwwamCXtuZtl4Jzqeu3aGgflk0mnX1fogLq68YcRW
   matrix:
     - prepare_mode: YES
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       name: win32-prepare
       platform: amd64_x86
       build_tool: msvc2017
