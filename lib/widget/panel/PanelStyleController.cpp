@@ -257,7 +257,7 @@ QString PanelStyleController::generateStyleSheet() const
     strm << "}\n";
 
     if (m_overrideFontColor.isValid()) {
-        strm << "QWidget {\n"
+        strm << "QLabel {\n"
             << "color: " << m_overrideFontColor.name() << ";\n"
             << "}\n";
     }
