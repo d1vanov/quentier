@@ -1,6 +1,8 @@
 Quentier
 ========
 
+<img src="https://d1vanov.github.io/quentier/apple-touch-icon.png">
+
 **Cross-platform desktop Evernote client**
 
 Travis CI (Linux, OS X): [![Build Status](https://travis-ci.org/d1vanov/quentier.svg?branch=master)](https://travis-ci.org/d1vanov/quentier)
@@ -15,6 +17,8 @@ for local notes without any connection to Evernote and synchronization.
 Quentier is free software distributed under the terms of GPL v.3.
 
 <img src="https://d1vanov.github.io/quentier/Quentier.gif">
+
+See [this blog post](https://d1vanov.github.io/quentier/blog/quentier-ui-changes-and-panel-style-configuration/) about recent UI changes.
 
 At the moment Quentier is in public alpha state and is not yet intended for production usage. Currently it's targeted
 at software enthusiasts, developers and people who like tinkering with fresh stuff.
