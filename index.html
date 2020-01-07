@@ -58,6 +58,8 @@
       <li><a href="https://d1vanov.github.io/quentier/blog">Posts</a></li>
       <ul class="posts">
           
+          <li><span><a href="https://d1vanov.github.io/quentier/blog/quentier-ui-changes-and-panel-style-configuration/">Quentier UI changes and panel style configuration</a></span></li>
+          
           <li><span><a href="https://d1vanov.github.io/quentier/blog/quentier-local-storage-overview/">Quentier local storage implementation overview</a></span></li>
           
           <li><span><a href="https://d1vanov.github.io/quentier/blog/quentier-installation-of-dependencies/">Installation of Quentier&#39;s dependencies</a></span></li>
@@ -81,7 +83,7 @@
       <a href="https://d1vanov.github.io/quentier/index.xml" type="application/rss+xml"><i class="fa fa-rss-square"></i></a>
     
 
-    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2019 Dmitry Ivanov. All rights reserved.</p>
+    <p class="footnote">powered by <a href="http://gohugo.io">Hugo</a> <br/> &copy; 2020 Dmitry Ivanov. All rights reserved.</p>
 
   </div>
 </div>
@@ -91,6 +93,84 @@
 <div class="posts">
 
       
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="https://d1vanov.github.io/quentier/blog/quentier-ui-changes-and-panel-style-configuration/">
+        Quentier UI changes and panel style configuration
+      </a>
+    </h1>
+
+    <span class="post-date">Jan 7, 2020</span>
+
+    
+
+
+    <p>Today an update rolled out for stable branch of Quentier which some noticeable changes in the app&rsquo;s user interface:</p>
+
+<ul>
+<li>panels look quite different than they used to</li>
+<li>the app&rsquo;s default icon theme has changed</li>
+<li>the app&rsquo;s has a brand new logo now</li>
+</ul>
+
+<p>Here&rsquo;s how Quentier&rsquo;s window used to look before:</p>
+
+<p><img src="/quentier/Quentier_sample_screenshot.png" alt="Old Quentier screenshot" /></p>
+
+<p>This screenshot was taken in late 2017 when Quentier first went public. At that time customization options for user interface were very limited: one could choose between Oxygen and Tango icon themes and one could choose between three hardcoded styles for panels: the default gray gradient, flat light gray color or flat dark gray color. It wasn&rsquo;t much useful probably but at least it was something.</p>
+
+<p>The just rolled out version of Quentier looks somewhat differently:</p>
+
+<p><img src="/quentier/Quentier_sample_screenshot_breeze.png" alt="New Quentier screenshot" /></p>
+
+<p>As one can notice, on this screenshot the app uses breeze icon theme, panels background is not flat gray by default and the app has a brand new logo.
+The logo is a courtesy of Alex Potterson, a designer I found on Reddit who volunteered to create a nice modern logo for Quentier. Thanks Alex!</p>
+
+<p>Two new icon themes were added to Quentier in this update: Breeze and Breeze dark. If you like Oxygen or Tango more or if you used your DE&rsquo;s native icon theme, you can still continue using them. But now Quentier would default to using Breeze icon theme is light DE theme is used or to using Breeze dark icon theme otherwise. I.e. Quentier would try to guess whether your DE&rsquo;s theme is light or dark. If it fails to guess correctly, you can just set the desired icon theme manually.</p>
+
+<p>Finally, the panels part. They are now flat now by default but there is a simple way to customize their look. To look at it, open the preferences menu:</p>
+
+<p><img src="/quentier/Quentier_open_preferences_menu.png" alt="Open preferences menu screenshot" /></p>
+
+<p>Preferences dialog would show up with its default &ldquo;Appearance&rdquo; tab:</p>
+
+<p><img src="/quentier/Quentier_preferences_dialog_appearance_tab.png" alt="Preferences dialog appearance tab" /></p>
+
+<p>This menu used to contain &ldquo;Panel style&rdquo; combo box via which one could choose between three hardcoded options but it is no longer available. Instead, a whole new set of fields is here:</p>
+
+<ul>
+<li>Panel font (foreground) color fields. There&rsquo;s a line edit where you can see and enter color code, there&rsquo;s a small quad demonstrating the currently used color and there&rsquo;s a push button to open the color picking dialog (you can double-click the quad instead of single-clicking the button if you like).</li>
+<li>Same fields for panel background color.</li>
+<li>To the right of these there&rsquo;s a switch between using flag background color or using a gradient. If you press it now, it would reject to switch and complain than no gradient is set up. That&rsquo;s what fields to the bottom are for:</li>
+<li>Background gradient table. This table is meant to contain lines with values and colors that form the gradient.</li>
+<li>Add row button to the bottom right of the table adds rows to the table so you can edit values.</li>
+</ul>
+
+<p>If you&rsquo;d like to have gradient background for panels but you don&rsquo;t feel like entering values and choosing colors for several lines manually, the following fields are here to help:</p>
+
+<ul>
+<li>Base color. This is the &ldquo;middle&rdquo; color for the gradient you&rsquo;d like to have.</li>
+<li>Generate button which creates the gradient from the single selected middle color.</li>
+</ul>
+
+<p>The preview field on the bottom of the dialog shows how the panel would look with all chosen style options.</p>
+
+<p>After you set up the gradient, you can switch the radio button from using flat color. It can look like that:</p>
+
+<p><img src="/quentier/Quentier_preferences_dialog_appearance_tab_with_gradient.png" alt="Preferences dialog appearance tab with gradient" /></p>
+
+<p>Quentier&rsquo;s main window with gradient set up this way would look like this:</p>
+
+<p><img src="/quentier/Quentier_sample_screenshot_breeze_gradient.png" alt="Quentier main window with gradient set up for panels" /></p>
+
+<p>You don&rsquo;t have to use gray scales, you can pick any colors you wish.</p>
+
+<p>Panel colors are stored persistently and thus the next time the app starts up it picks the colors you have chosen the last time. Panel colors are stored separately for different accounts which makes it possible for you to set up panel colors differently for different accounts and hence be able to easily differentiate them visually.</p>
+
+  </div>
+  
+  
   
   <div class="post">
     <h1 class="post-title">

@@ -7,10 +7,21 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Dmitry Ivanov</copyright>
-    <lastBuildDate>Thu, 15 Mar 2018 07:48:54 +0300</lastBuildDate>
+    <lastBuildDate>Tue, 07 Jan 2020 14:01:34 +0300</lastBuildDate>
     
 	<atom:link href="https://d1vanov.github.io/quentier/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Quentier UI changes and panel style configuration</title>
+      <link>https://d1vanov.github.io/quentier/blog/quentier-ui-changes-and-panel-style-configuration/</link>
+      <pubDate>Tue, 07 Jan 2020 14:01:34 +0300</pubDate>
+      
+      <guid>https://d1vanov.github.io/quentier/blog/quentier-ui-changes-and-panel-style-configuration/</guid>
+      <description>Today an update rolled out for stable branch of Quentier which some noticeable changes in the app&amp;rsquo;s user interface:
+ panels look quite different than they used to the app&amp;rsquo;s default icon theme has changed the app&amp;rsquo;s has a brand new logo now  Here&amp;rsquo;s how Quentier&amp;rsquo;s window used to look before:
+This screenshot was taken in late 2017 when Quentier first went public. At that time customization options for user interface were very limited: one could choose between Oxygen and Tango icon themes and one could choose between three hardcoded styles for panels: the default gray gradient, flat light gray color or flat dark gray color.</description>
+    </item>
     
     <item>
       <title>Quentier local storage implementation overview</title>
