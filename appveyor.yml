@@ -403,3 +403,5 @@ cache:
   - 'c:\dev\libquentier\build\installdir\libquentier-development-windows-qt513-VS2017_x86.zip -> ci\appveyor\cache_versions\libquentier-development-msvc2017_x86.txt, ci\appveyor\cache_versions\global.txt'
   - 'c:\dev\libquentier\build\installdir\libquentier-development-windows-qt513-VS2017_x64.zip -> ci\appveyor\cache_versions\libquentier-development-msvc2017_x64.txt, ci\appveyor\cache_versions\global.txt'
   - 'c:\dev\libquentier\build\installdir\libquentier-development-windows-qt55-MinGW_x86.zip -> ci\appveyor\cache_versions\libquentier-development-mingw530_x86.txt, ci\appveyor\cache_versions\global.txt'
+
+# Dummy line added to modify appveyor.yml to trigger AppVeyor build because previous commit only edited README.md and AppVeyor decides to skip pushes with such HEAD commits. TODO: remove this line later
