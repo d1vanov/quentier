@@ -3749,6 +3749,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(
     updateSubMenuWithAvailableAccounts();
 
     restoreGeometryAndState();
+    restorePanelColors();
 
     if (m_pAccount->type() != Account::Type::Evernote) {
         QNTRACE("Not an Evernote account, no need to bother setting up sync");
