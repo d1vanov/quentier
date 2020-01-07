@@ -190,7 +190,7 @@ bool processStorageDirCommandLineOption(
         QDir dir(storageDir);
         if (!dir.mkpath(storageDir))
         {
-            criticalMessageBox(Q_NULLPTR,
+            criticalMessageBox(nullptr,
                                QCoreApplication::applicationName() +
                                QStringLiteral(" ") + QObject::tr("cannot start"),
                                QObject::tr("Cannot create directory for persistent "
@@ -202,7 +202,7 @@ bool processStorageDirCommandLineOption(
     }
     else if (Q_UNLIKELY(!storageDirInfo.isDir()))
     {
-        criticalMessageBox(Q_NULLPTR,
+        criticalMessageBox(nullptr,
                            QCoreApplication::applicationName() +
                            QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("\"storageDir\" command line option "
@@ -212,7 +212,7 @@ bool processStorageDirCommandLineOption(
     }
     else if (Q_UNLIKELY(!storageDirInfo.isReadable()))
     {
-        criticalMessageBox(Q_NULLPTR,
+        criticalMessageBox(nullptr,
                            QCoreApplication::applicationName() +
                            QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("The directory for persistent storage "
@@ -223,7 +223,7 @@ bool processStorageDirCommandLineOption(
     }
     else if (Q_UNLIKELY(!storageDirInfo.isWritable()))
     {
-        criticalMessageBox(Q_NULLPTR,
+        criticalMessageBox(nullptr,
                            QCoreApplication::applicationName() +
                            QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("The directory for persistent storage "
@@ -257,7 +257,7 @@ bool processAccountCommandLineOption(
     bool res = parseStartupAccount(accountStr, isLocal, userId, evernoteHost,
                                    accountName, errorDescription);
     if (!res) {
-        criticalMessageBox(Q_NULLPTR,
+        criticalMessageBox(nullptr,
                            QCoreApplication::applicationName() +
                            QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("Unable to parse the startup account"),
@@ -302,7 +302,7 @@ bool processAccountCommandLineOption(
 
     if (!foundAccount)
     {
-        criticalMessageBox(Q_NULLPTR,
+        criticalMessageBox(nullptr,
                            QCoreApplication::applicationName() +
                            QStringLiteral(" ") + QObject::tr("cannot start"),
                            QObject::tr("Wrong startup account"),

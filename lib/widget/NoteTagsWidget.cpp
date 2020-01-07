@@ -1059,7 +1059,7 @@ NewListItemLineEdit * NoteTagsWidget::findNewItemWidget()
         return pNewItemWidget;
     }
 
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 bool NoteTagsWidget::isActive() const

@@ -33,7 +33,7 @@ class SymbolsUnpacker: public QObject,
 public:
     explicit SymbolsUnpacker(const QString & compressedSymbolsFilePath,
                              const QString & unpackedSymbolsRootPath,
-                             QObject * parent = Q_NULLPTR);
+                             QObject * parent = nullptr);
 
     virtual void run();
 

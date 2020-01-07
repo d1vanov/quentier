@@ -76,14 +76,14 @@ NoteEditorWidget::NoteEditorWidget(
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
-    m_pLimitedFontsListModel(Q_NULLPTR),
+    m_pLimitedFontsListModel(nullptr),
     m_noteLocalUid(),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
     m_lastNoteTitleOrPreviewText(),
     m_currentAccount(account),
     m_pUndoStack(pUndoStack),
-    m_pConvertToNoteDeadlineTimer(Q_NULLPTR),
+    m_pConvertToNoteDeadlineTimer(nullptr),
     m_findCurrentNotebookRequestId(),
     m_noteLinkInfoByFindNoteRequestIds(),
     m_lastFontSizeComboBoxIndex(-1),
@@ -1272,7 +1272,7 @@ void NoteEditorWidget::onUpdateNoteComplete(
             return;
         }
 
-        const Notebook * pCachedNotebook = Q_NULLPTR;
+        const Notebook * pCachedNotebook = nullptr;
         if (m_pCurrentNote->hasNotebookLocalUid()) {
             const QString & notebookLocalUid = m_pCurrentNote->notebookLocalUid();
             pCachedNotebook = m_notebookCache.get(notebookLocalUid);
@@ -1883,11 +1883,7 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
                     << ", will add the missing font name to the list");
 
             fontNames << fontFamily;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
             fontNames.sort(Qt::CaseInsensitive);
-#else
-            fontNames.sort();
-#endif
 
             auto it = std::lower_bound(fontNames.constBegin(),
                                        fontNames.constEnd(),
@@ -2760,8 +2756,8 @@ void NoteEditorWidget::clear()
                 ? m_pCurrentNote->localUid()
                 : QStringLiteral("<null>")));
 
-    m_pCurrentNote.reset(Q_NULLPTR);
-    m_pCurrentNotebook.reset(Q_NULLPTR);
+    m_pCurrentNote.reset(nullptr);
+    m_pCurrentNotebook.reset(nullptr);
 
     QObject::disconnect(m_pUi->noteEditor,
                         QNSIGNAL(NoteEditor,noteAndNotebookFoundInLocalStorage,
@@ -2793,26 +2789,34 @@ void NoteEditorWidget::setupSpecialIcons()
 {
     QNDEBUG("NoteEditorWidget::setupSpecialIcons");
 
-    QString enexIconName = QStringLiteral("application-enex");
-
+    const QString enexIconName = QStringLiteral("application-enex");
     if (!QIcon::hasThemeIcon(enexIconName))
     {
-        // NOTE: it is necessary for the icon to have a name in order to ensure
-        // the logic of icon switching works properly
-        QIcon fallbackIcon = QIcon::fromTheme(enexIconName);
+        QString fallbackIconThemeForEnexIcon = QStringLiteral("oxygen");
+        const QString iconThemeName = QIcon::themeName();
+        if (iconThemeName.contains(QStringLiteral("breeze")) ||
+            (iconThemeName == QStringLiteral("tango")))
+        {
+            fallbackIconThemeForEnexIcon = iconThemeName;
+        }
 
-        fallbackIcon.addFile(
-            QStringLiteral(":/icons/oxygen/16x16/mimetypes/application-enex.png"),
-            QSize(16, 16), QIcon::Normal, QIcon::Off);
+        QString fallbackIconExtension = QStringLiteral("png");
+        if (fallbackIconThemeForEnexIcon.contains(QStringLiteral("breeze"))) {
+            fallbackIconExtension = QStringLiteral("svg");
+        }
 
-        fallbackIcon.addFile(
-            QStringLiteral(":/icons/oxygen/22x22/mimetypes/application-enex.png"),
-            QSize(22, 22), QIcon::Normal, QIcon::Off);
+        QNINFO(QStringLiteral("Fallback icon theme for enex icon = ") << fallbackIconThemeForEnexIcon);
 
-        fallbackIcon.addFile(
-            QStringLiteral(":/icons/oxygen/32x32/mimetypes/application-enex.png"),
-            QSize(32, 32), QIcon::Normal, QIcon::Off);
-
+        QIcon fallbackIcon = QIcon::fromTheme(enexIconName);    // NOTE: it is necessary for the icon to have a name in order to ensure the logic of icon switching works properly
+        fallbackIcon.addFile(QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
+                             QStringLiteral("/16x16/mimetypes/application-enex.") +
+                             fallbackIconExtension, QSize(16, 16), QIcon::Normal, QIcon::Off);
+        fallbackIcon.addFile(QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
+                             QStringLiteral("/22x22/mimetypes/application-enex.") +
+                             fallbackIconExtension, QSize(22, 22), QIcon::Normal, QIcon::Off);
+        fallbackIcon.addFile(QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
+                             QStringLiteral("/32x32/mimetypes/application-enex.") +
+                             fallbackIconExtension, QSize(32, 32), QIcon::Normal, QIcon::Off);
         m_pUi->exportNoteToEnexPushButton->setIcon(fallbackIcon);
     }
     else
@@ -2914,18 +2918,11 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
         m_pUi->limitedFontComboBox->setItemDelegate(pDelegate);
     }
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    // NOTE: without this the combobox looks pretty ugly in Qt4
-    QLineEdit * pLineEdit = m_pUi->limitedFontComboBox->lineEdit();
-    if (pLineEdit) {
-        pLineEdit->setStyleSheet(QStringLiteral("padding-left: 2px;"));
-    }
-#endif
-
-    QObject::connect(m_pUi->limitedFontComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
+    QObject::connect(
+        m_pUi->limitedFontComboBox,
+        SIGNAL(currentIndexChanged(QString)),
+        this,
+        SLOT(onLimitedFontsComboBoxCurrentIndexChanged(QString)));
 }
 
 void NoteEditorWidget::setupFontSizesComboBox()

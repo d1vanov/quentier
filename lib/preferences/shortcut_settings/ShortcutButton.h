@@ -36,15 +36,15 @@ class ShortcutButton: public QPushButton
 {
     Q_OBJECT
 public:
-    ShortcutButton(QWidget * parent = Q_NULLPTR);
+    ShortcutButton(QWidget * parent = nullptr);
 
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+    virtual QSize sizeHint() const override;
 
 Q_SIGNALS:
     void keySequenceChanged(const QKeySequence & sequence);
 
 protected:
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
 
 private:
     void updateText();

@@ -31,7 +31,7 @@ class TableSizeSelectorActionWidget : public QWidgetAction
 {
     Q_OBJECT
 public:
-    explicit TableSizeSelectorActionWidget(QWidget * parent = Q_NULLPTR);
+    explicit TableSizeSelectorActionWidget(QWidget * parent = nullptr);
 
 Q_SIGNALS:
     void tableSizeSelected(int rows, int columns);

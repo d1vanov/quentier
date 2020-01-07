@@ -41,7 +41,7 @@ public:
         QList<Notebook> notebooks, QList<Tag> tags,
         quint32 minTagsPerNote, quint32 numNotes,
         LocalStorageManagerAsync & localStorageManager,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     virtual ~WikiArticlesFetcher();
 

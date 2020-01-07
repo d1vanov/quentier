@@ -33,7 +33,7 @@ public:
     const QString & name() const { return m_name; }
     void setName(const QString & name) { m_name = name; }
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
     QString     m_name;

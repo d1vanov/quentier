@@ -27,35 +27,23 @@ SUPPRESS_WARNINGS
 #include <client/windows/crash_generation/crash_generation_client.h>
 RESTORE_WARNINGS
 
-#include <QList>
 #include <QByteArray>
 #include <QDir>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
 #include <QGlobalStatic>
-#endif
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <QList>
 #include <QStandardPaths>
-#endif
 
-#include <windows.h>
 #include <tchar.h>
-#include <string>
+#include <windows.h>
 
 #include <iostream>
+#include <string>
 
 namespace quentier {
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
 Q_GLOBAL_STATIC(std::wstring, quentierMinidumpsStorageFolderPath)
 Q_GLOBAL_STATIC(std::wstring, quentierCrashHandlerFilePath)
 Q_GLOBAL_STATIC(std::wstring, quentierCrashHandlerArgs)
-#else
-static std::wstring quentierMinidumpsStorageFolderPath;
-static std::wstring quentierCrashHandlerFilePath;
-static std::wstring quentierCrashHandlerArgs;
-#endif
 
 bool ShowDumpResults(const wchar_t * dump_path,
                      const wchar_t * minidump_id,
@@ -78,11 +66,7 @@ bool ShowDumpResults(const wchar_t * dump_path,
     ZeroMemory(&processInfo, sizeof(processInfo));
 
     std::wstring * pQuentierCrashHandlerArgs = NULL;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     pQuentierCrashHandlerArgs = quentierCrashHandlerArgs;
-#else
-    pQuentierCrashHandlerArgs = &quentierCrashHandlerArgs;
-#endif
 
     // Hope it doesn't cause the resize; it shouldn't unless the dump_path
     // is unexpectedly huge
@@ -93,11 +77,7 @@ bool ShowDumpResults(const wchar_t * dump_path,
 
     std::wstring * pQuentierCrashHandlerFilePath = NULL;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
-#else
-    pQuentierCrashHandlerFilePath = &quentierCrashHandlerFilePath;
-#endif
 
     const TCHAR * crashHandlerFilePath = pQuentierCrashHandlerFilePath->c_str();
     TCHAR * argsData = const_cast<TCHAR*>(pQuentierCrashHandlerArgs->c_str());
@@ -125,21 +105,12 @@ void setupBreakpad(const QApplication & app)
     path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"))           \
 // CONVERT_PATH
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString minidumpsStorageFolderPath =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-#else
-    QString minidumpsStorageFolderPath =
-        QDesktopServices::storageLocation(QDesktopServices::TempLocation);
-#endif
 
     CONVERT_PATH(minidumpsStorageFolderPath);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     *quentierMinidumpsStorageFolderPath = minidumpsStorageFolderPath.toStdWString();
-#else
-    quentierMinidumpsStorageFolderPath = minidumpsStorageFolderPath.toStdWString();
-#endif
 
     QString crashHandlerFilePath =
         appFileInfo.absolutePath() +
@@ -147,11 +118,7 @@ void setupBreakpad(const QApplication & app)
 
     CONVERT_PATH(crashHandlerFilePath);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     *quentierCrashHandlerFilePath = crashHandlerFilePath.toStdWString();
-#else
-    quentierCrashHandlerFilePath = crashHandlerFilePath.toStdWString();
-#endif
 
     QString quentierSymbolsFilePath, libquentierSymbolsFilePath;
     findCompressedSymbolsFiles(app, quentierSymbolsFilePath,
@@ -166,15 +133,9 @@ void setupBreakpad(const QApplication & app)
     CONVERT_PATH(minidumpStackwalkFilePath);
 
     std::wstring * pQuentierCrashHandlerArgs = NULL;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     pQuentierCrashHandlerArgs = quentierCrashHandlerArgs;
     const wchar_t * minidumpsStorageFolderPathData =
         quentierMinidumpsStorageFolderPath->c_str();
-#else
-    pQuentierCrashHandlerArgs = &quentierCrashHandlerArgs;
-    const wchar_t * minidumpsStorageFolderPathData =
-        quentierMinidumpsStorageFolderPath.c_str();
-#endif
 
     *pQuentierCrashHandlerArgs = quentierSymbolsFilePath.toStdWString();
     pQuentierCrashHandlerArgs->append(L" ");

@@ -38,7 +38,7 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
     QDialog(parent),
     m_pUi(new Ui::AddOrEditNotebookDialog),
     m_pNotebookModel(pNotebookModel),
-    m_pNotebookStacksModel(Q_NULLPTR),
+    m_pNotebookStacksModel(nullptr),
     m_editedNotebookLocalUid(editedNotebookLocalUid),
     m_stringUtils()
 {

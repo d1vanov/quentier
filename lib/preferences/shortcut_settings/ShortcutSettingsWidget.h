@@ -56,10 +56,10 @@ public:
         m_category(),
         m_isModified(false),
         m_keySequence(),
-        m_pTreeWidgetItem(Q_NULLPTR)
+        m_pTreeWidgetItem(nullptr)
     {}
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
     int                 m_actionKey;
     QString             m_nonStandardActionKey;
@@ -75,7 +75,7 @@ class ShortcutSettingsWidget: public QWidget
 {
     Q_OBJECT
 public:
-    ShortcutSettingsWidget(QWidget * parent = Q_NULLPTR);
+    ShortcutSettingsWidget(QWidget * parent = nullptr);
     virtual ~ShortcutSettingsWidget();
 
     void initialize(const Account & currentAccount,

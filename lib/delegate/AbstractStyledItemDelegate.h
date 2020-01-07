@@ -25,6 +25,19 @@
 
 namespace quentier {
 
+////////////////////////////////////////////////////////////////////////////////
+
+inline int fontMetricsWidth(const QFontMetrics & metrics, const QString & text)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+    return metrics.horizontalAdvance(text);
+#else
+    return metrics.width(text);
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * @brief The AbstractStyledItemDelegate adds some bits of functionality useful
  * for almost all delegates used in Quentier app
@@ -33,7 +46,7 @@ class AbstractStyledItemDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 protected:
-    explicit AbstractStyledItemDelegate(QObject * parent = Q_NULLPTR);
+    explicit AbstractStyledItemDelegate(QObject * parent = nullptr);
 
 public:
     virtual ~AbstractStyledItemDelegate();

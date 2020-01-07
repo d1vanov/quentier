@@ -27,10 +27,7 @@
 #include <QHash>
 #include <QSet>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/bimap.hpp>
-#endif
 
 QT_FORWARD_DECLARE_CLASS(FlowLayout)
 
@@ -50,7 +47,7 @@ class NoteTagsWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit NoteTagsWidget(QWidget * parent = Q_NULLPTR);
+    explicit NoteTagsWidget(QWidget * parent = nullptr);
 
     void setLocalStorageManagerThreadWorker(
         LocalStorageManagerAsync & localStorageManagerAsync);

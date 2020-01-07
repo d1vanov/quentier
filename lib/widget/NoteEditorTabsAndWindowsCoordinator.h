@@ -35,11 +35,8 @@
 #include <QPointer>
 #include <QUuid>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/circular_buffer.hpp>
 #include <boost/bimap.hpp>
-#endif
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
 QT_FORWARD_DECLARE_CLASS(QThread)
@@ -64,7 +61,7 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteCache & noteCache, NotebookCache & notebookCache,
         TagCache & tagCache, TagModel & tagModel,
-        TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
+        TabWidget * tabWidget, QObject * parent = nullptr);
 
     ~NoteEditorTabsAndWindowsCoordinator();
 
@@ -167,8 +164,8 @@ private Q_SLOTS:
     void expungeNoteFromLocalStorage();
 
 private:
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void timerEvent(QTimerEvent * pTimerEvent) Q_DECL_OVERRIDE;
+    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
+    virtual void timerEvent(QTimerEvent * pTimerEvent) override;
 
 private:
     void insertNoteEditorWidget(

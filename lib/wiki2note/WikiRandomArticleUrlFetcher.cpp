@@ -33,7 +33,7 @@ WikiRandomArticleUrlFetcher::WikiRandomArticleUrlFetcher(
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
     m_networkReplyFetcherTimeout(timeoutMsec),
-    m_pNetworkReplyFetcher(Q_NULLPTR),
+    m_pNetworkReplyFetcher(nullptr),
     m_started(false),
     m_finished(false),
     m_url()
@@ -199,7 +199,7 @@ void WikiRandomArticleUrlFetcher::finishWithError(
     if (m_pNetworkReplyFetcher) {
         m_pNetworkReplyFetcher->disconnect(this);
         m_pNetworkReplyFetcher->deleteLater();
-        m_pNetworkReplyFetcher = Q_NULLPTR;
+        m_pNetworkReplyFetcher = nullptr;
     }
 
     Q_EMIT finished(false, QUrl(), errorDescription);

@@ -412,47 +412,27 @@ void ModelTest::data()
     // General Purpose roles that should return a QString
     QVariant variant = model->data ( model->index ( 0, 0 ), Qt::ToolTipRole );
     if ( variant.isValid() ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QVERIFY( qVariantCanConvert<QString> ( variant ) );
-#else
         QVERIFY( variant.canConvert(QMetaType::QString) );
-#endif
     }
     variant = model->data ( model->index ( 0, 0 ), Qt::StatusTipRole );
     if ( variant.isValid() ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QVERIFY( qVariantCanConvert<QString> ( variant ) );
-#else
         QVERIFY( variant.canConvert(QMetaType::QString) );
-#endif
     }
     variant = model->data ( model->index ( 0, 0 ), Qt::WhatsThisRole );
     if ( variant.isValid() ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QVERIFY( qVariantCanConvert<QString> ( variant ) );
-#else
         QVERIFY( variant.canConvert(QMetaType::QString) );
-#endif
     }
 
     // General Purpose roles that should return a QSize
     variant = model->data ( model->index ( 0, 0 ), Qt::SizeHintRole );
     if ( variant.isValid() ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QVERIFY( qVariantCanConvert<QSize> ( variant ) );
-#else
         QVERIFY( variant.canConvert(QMetaType::QSize) );
-#endif
     }
 
     // General Purpose roles that should return a QFont
     QVariant fontVariant = model->data ( model->index ( 0, 0 ), Qt::FontRole );
     if ( fontVariant.isValid() ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QVERIFY( qVariantCanConvert<QFont> ( variant ) );
-#else
         QVERIFY( variant.canConvert(QMetaType::QFont) );
-#endif
     }
 
     // Check that the alignment is one we know about
@@ -465,20 +445,12 @@ void ModelTest::data()
     // General Purpose roles that should return a QColor
     QVariant colorVariant = model->data ( model->index ( 0, 0 ), Qt::BackgroundColorRole );
     if ( colorVariant.isValid() ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QVERIFY( qVariantCanConvert<QColor> ( variant ) );
-#else
         QVERIFY( variant.canConvert(QMetaType::QColor) );
-#endif
     }
 
     colorVariant = model->data ( model->index ( 0, 0 ), Qt::TextColorRole );
     if ( colorVariant.isValid() ) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-        QVERIFY( qVariantCanConvert<QColor> ( variant ) );
-#else
         QVERIFY( variant.canConvert(QMetaType::QColor) );
-#endif
     }
 
     // Check that the "check state" is one we know about.

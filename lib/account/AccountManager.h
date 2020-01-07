@@ -42,11 +42,11 @@ public:
         explicit AccountInitializationException(const ErrorString & message);
 
     protected:
-        virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
+        virtual const QString exceptionDisplayName() const override;
     };
 
 public:
-    AccountManager(QObject * parent = Q_NULLPTR);
+    AccountManager(QObject * parent = nullptr);
     ~AccountManager();
 
     const QVector<Account> & availableAccounts() const;

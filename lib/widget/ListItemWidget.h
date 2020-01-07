@@ -42,15 +42,15 @@ class ListItemWidget: public QWidget
 public:
     explicit ListItemWidget(
         const QString & itemName,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     ~ListItemWidget();
 
     QString name() const;
     void setName(const QString & name);
 
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
-    virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+    virtual QSize sizeHint() const override;
+    virtual QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void itemRemovedFromList(QString name);

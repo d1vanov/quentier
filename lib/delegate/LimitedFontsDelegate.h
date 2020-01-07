@@ -29,11 +29,11 @@ class LimitedFontsDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit LimitedFontsDelegate(QObject * parent = Q_NULLPTR);
+    explicit LimitedFontsDelegate(QObject * parent = nullptr);
 
     virtual void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
 private:
     bool doPaint(

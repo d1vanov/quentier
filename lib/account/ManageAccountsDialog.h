@@ -41,7 +41,7 @@ class ManageAccountsDialog: public QDialog
 public:
     explicit ManageAccountsDialog(AccountManager & accountManager,
                                   const int currentAccountRow = -1,
-                                  QWidget * parent = Q_NULLPTR);
+                                  QWidget * parent = nullptr);
     virtual ~ManageAccountsDialog();
 
 Q_SIGNALS:

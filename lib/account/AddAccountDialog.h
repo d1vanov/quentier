@@ -36,7 +36,7 @@ class AddAccountDialog : public QDialog
     Q_OBJECT
 public:
     explicit AddAccountDialog(const QVector<quentier::Account> & availableAccounts,
-                              QWidget * parent = Q_NULLPTR);
+                              QWidget * parent = nullptr);
     ~AddAccountDialog();
 
     bool isLocal() const;
@@ -64,7 +64,7 @@ private Q_SLOTS:
 
     void onNetworkProxyShowPasswordToggled(bool checked);
 
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
 
 private:
     void setupNetworkProxySettingsFrame();

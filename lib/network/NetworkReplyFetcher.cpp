@@ -49,12 +49,12 @@ NetworkReplyFetcher::NetworkReplyFetcher(
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
     m_url(url),
-    m_pNetworkReply(Q_NULLPTR),
+    m_pNetworkReply(nullptr),
     m_started(false),
     m_finished(false),
     m_timeoutMsec(timeoutMsec),
     m_lastNetworkTime(0),
-    m_pTimeoutTimer(Q_NULLPTR),
+    m_pTimeoutTimer(nullptr),
     m_timedOut(false),
     m_bytesFetched(0),
     m_bytesTotal(0),
@@ -132,7 +132,7 @@ void NetworkReplyFetcher::onReplyFinished()
         m_pTimeoutTimer->stop();
         m_pTimeoutTimer->disconnect(this);
         m_pTimeoutTimer->deleteLater();
-        m_pTimeoutTimer = Q_NULLPTR;
+        m_pTimeoutTimer = nullptr;
     }
 
     QVariant statusCodeAttribute =
@@ -213,7 +213,7 @@ void NetworkReplyFetcher::checkForTimeout()
         if (m_pTimeoutTimer) {
             m_pTimeoutTimer->stop();
             m_pTimeoutTimer->deleteLater();
-            m_pTimeoutTimer = Q_NULLPTR;
+            m_pTimeoutTimer = nullptr;
         }
 
         return;
@@ -227,7 +227,7 @@ void NetworkReplyFetcher::checkForTimeout()
     if (m_pNetworkReply) {
         m_pNetworkReply->disconnect(this);
         m_pNetworkReply->deleteLater();
-        m_pNetworkReply = Q_NULLPTR;
+        m_pNetworkReply = nullptr;
     }
 
     ErrorString errorDescription(QT_TR_NOOP("connection timeout"));
@@ -244,13 +244,13 @@ void NetworkReplyFetcher::clear()
     if (m_pNetworkReply) {
         m_pNetworkReply->disconnect(this);
         m_pNetworkReply->deleteLater();
-        m_pNetworkReply = Q_NULLPTR;
+        m_pNetworkReply = nullptr;
     }
 
     if (m_pTimeoutTimer) {
         m_pTimeoutTimer->disconnect(this);
         m_pTimeoutTimer->deleteLater();
-        m_pTimeoutTimer = Q_NULLPTR;
+        m_pTimeoutTimer = nullptr;
     }
 
     m_lastNetworkTime = 0;

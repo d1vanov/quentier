@@ -31,7 +31,7 @@ class SavedSearchModelTestHelper: public QObject
 public:
     explicit SavedSearchModelTestHelper(
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);

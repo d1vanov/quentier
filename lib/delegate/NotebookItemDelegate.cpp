@@ -55,20 +55,20 @@ QWidget * NotebookItemDelegate::createEditor(
     const NotebookModel * pNotebookModel =
         qobject_cast<const NotebookModel*>(index.model());
     if (!pNotebookModel) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(index);
     if (!pModelItem) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (pModelItem->type() == NotebookModelItem::Type::LinkedNotebook) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (index.column() != NotebookModel::Columns::Name) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return AbstractStyledItemDelegate::createEditor(parent, option, index);
@@ -261,7 +261,7 @@ void NotebookItemDelegate::drawNotebookName(
     }
 
     QFontMetrics fontMetrics(adjustedOption.font);
-    int nameWidth = fontMetrics.width(name);
+    int nameWidth = fontMetricsWidth(fontMetrics, name);
 
     painter->setPen(adjustedOption.state & QStyle::State_Selected
                     ? adjustedOption.palette.color(QPalette::Active,
@@ -315,7 +315,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
     }
 
     QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name + nameSuffix);
+    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
     int fontHeight = fontMetrics.height();
 
     double margin = 0.1;

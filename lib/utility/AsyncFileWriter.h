@@ -36,7 +36,7 @@ public:
     explicit AsyncFileWriter(
         const QString & filePath,
         const QByteArray & dataToWrite,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
 Q_SIGNALS:
     void fileSuccessfullyWritten(QString filePath);
@@ -46,7 +46,7 @@ Q_SIGNALS:
         const qint64 bytesWritten, const qint64 bytesTotal);
 
 private:
-    virtual void run() Q_DECL_OVERRIDE;
+    virtual void run() override;
 
 private:
     QString     m_filePath;

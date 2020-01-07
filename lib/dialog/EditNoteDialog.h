@@ -42,22 +42,19 @@ class EditNoteDialog: public QDialog
     Q_OBJECT
 public:
     explicit EditNoteDialog(const Note & note, NotebookModel * pNotebookModel,
-                            QWidget * parent = Q_NULLPTR,
+                            QWidget * parent = nullptr,
                             const bool readOnlyMode = false);
     virtual ~EditNoteDialog();
 
     const Note & note() const { return m_note; }
 
 private Q_SLOTS:
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
 
     // Slots to track the updates of notebook model
-    void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-                     );
-#else
-                     , const QVector<int> & roles = QVector<int>());
-#endif
+    void dataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>());
 
     void rowsInserted(const QModelIndex & parent, int start, int end);
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);

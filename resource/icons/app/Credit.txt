@@ -1,0 +1,2 @@
+Quentier icons by Alex Potterson (alexeyrdoxi@gmail.com) and Dmitry Ivanov (dm.vl.ivanov@gmail.com)
+License: LGPL v.3, see COPYING

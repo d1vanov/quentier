@@ -39,7 +39,7 @@ WikiArticlesFetcher::WikiArticlesFetcher(
     m_numNotes(numNotes),
     m_notebookIndex(0),
     m_currentProgress(0.0),
-    m_pNetworkAccessManager(Q_NULLPTR),
+    m_pNetworkAccessManager(nullptr),
     m_wikiRandomArticleFetchersWithProgress(),
     m_addNoteRequestIds()
 {

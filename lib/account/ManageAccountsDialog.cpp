@@ -56,12 +56,7 @@ ManageAccountsDialog::ManageAccountsDialog(AccountManager & accountManager,
     m_pUi->tableView->setModel(&accountModel);
     AccountDelegate * pDelegate = new AccountDelegate(this);
     m_pUi->tableView->setItemDelegate(pDelegate);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     m_pUi->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-#else
-    m_pUi->tableView->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-#endif
 
     int numAvailableAccounts = accountModel.accounts().size();
     if ((currentAccountRow >= 0) && (currentAccountRow < numAvailableAccounts)) {

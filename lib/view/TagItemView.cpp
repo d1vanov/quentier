@@ -49,7 +49,7 @@ namespace quentier {
 
 TagItemView::TagItemView(QWidget * parent) :
     ItemView(parent),
-    m_pTagItemContextMenu(Q_NULLPTR),
+    m_pTagItemContextMenu(nullptr),
     m_trackingTagItemsState(false),
     m_trackingSelection(false),
     m_modelReady(false)

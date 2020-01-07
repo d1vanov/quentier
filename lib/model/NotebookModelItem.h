@@ -41,10 +41,10 @@ public:
 
     NotebookModelItem(
         const Type::type type = Type::Notebook,
-        const NotebookItem * notebookItem = Q_NULLPTR,
-        const NotebookStackItem * notebookStackItem = Q_NULLPTR,
-        const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem = Q_NULLPTR,
-        const NotebookModelItem * parent = Q_NULLPTR);
+        const NotebookItem * notebookItem = nullptr,
+        const NotebookStackItem * notebookStackItem = nullptr,
+        const NotebookLinkedNotebookRootItem * notebookLinkedNotebookItem = nullptr,
+        const NotebookModelItem * parent = nullptr);
 
     virtual ~NotebookModelItem();
 
@@ -84,7 +84,7 @@ public:
 
     const NotebookModelItem * takeChild(const int row) const;
 
-    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const override;
 
     friend QDataStream & operator<<(QDataStream & out, const NotebookModelItem & item);
     friend QDataStream & operator>>(QDataStream & in, NotebookModelItem & item);

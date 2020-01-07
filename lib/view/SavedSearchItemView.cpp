@@ -46,7 +46,7 @@ namespace quentier {
 
 SavedSearchItemView::SavedSearchItemView(QWidget * parent) :
     ItemView(parent),
-    m_pSavedSearchItemContextMenu(Q_NULLPTR),
+    m_pSavedSearchItemContextMenu(nullptr),
     m_trackingSelection(false),
     m_modelReady(false)
 {}

@@ -45,7 +45,7 @@ public:
     explicit DefaultAccountFirstNotebookAndNoteCreator(
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteFiltersManager & noteFiltersManager,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
 Q_SIGNALS:
     void finished(QString createdNoteLocalUid);

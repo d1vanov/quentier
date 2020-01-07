@@ -33,31 +33,19 @@ class ColumnChangeRerouter: public QObject
     Q_OBJECT
 public:
     explicit ColumnChangeRerouter(
-        const int columnFrom, const int columnTo, QObject * parent = Q_NULLPTR);
+        const int columnFrom, const int columnTo, QObject * parent = nullptr);
 
     void setModel(QAbstractItemModel * model);
 
 Q_SIGNALS:
-
-// NOTE: don't attempt to use QT_VERSION_CHECK here: Qt4 doesn't expand macro
-// functions during moc run which leads to the check not working and the code
-// not building
-    void dataChanged(const QModelIndex & topLeft,
-                     const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-                    );
-#else
-                    , const QVector<int> & roles = QVector<int>());
-#endif
+    void dataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>());
 
 private Q_SLOTS:
-    void onModelDataChanged(const QModelIndex & topLeft,
-                            const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-                            );
-#else
-                            , const QVector<int> & roles = QVector<int>());
-#endif
+    void onModelDataChanged(
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>());
 
 private:
     int     m_columnFrom;

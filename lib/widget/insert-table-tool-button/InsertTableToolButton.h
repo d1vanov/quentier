@@ -29,7 +29,7 @@ class InsertTableToolButton : public QToolButton
 {
     Q_OBJECT
 public:
-    explicit InsertTableToolButton(QWidget * parent = Q_NULLPTR);
+    explicit InsertTableToolButton(QWidget * parent = nullptr);
 
 Q_SIGNALS:
     void createdTable(int rows, int columns, double width, bool relative);

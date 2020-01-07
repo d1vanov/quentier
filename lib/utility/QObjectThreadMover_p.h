@@ -31,7 +31,7 @@ class ThreadMover: public QObject
     Q_OBJECT
 public:
     explicit ThreadMover(
-        QObject & object, QThread & targetThread, QObject * parent = Q_NULLPTR);
+        QObject & object, QThread & targetThread, QObject * parent = nullptr);
 
 public Q_SLOTS:
     void start();

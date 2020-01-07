@@ -30,7 +30,7 @@ NotebookModelItem::NotebookModelItem(
     m_pNotebookItem(notebookItem),
     m_pNotebookStackItem(notebookStackItem),
     m_pNotebookLinkedNotebookItem(notebookLinkedNotebookItem),
-    m_pParent(Q_NULLPTR),
+    m_pParent(nullptr),
     m_children()
 {
     if (parent) {
@@ -53,7 +53,7 @@ void NotebookModelItem::setParent(const NotebookModelItem * parent) const
 const NotebookModelItem * NotebookModelItem::childAtRow(const int row) const
 {
     if ((row < 0) || (row >= m_children.size())) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return m_children[row];
@@ -93,19 +93,24 @@ bool NotebookModelItem::swapChildren(const int sourceRow, const int destRow) con
         return false;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+    m_children.swapItemsAt(sourceRow, destRow);
+#else
     m_children.swap(sourceRow, destRow);
+#endif
+
     return true;
 }
 
 const NotebookModelItem * NotebookModelItem::takeChild(const int row) const
 {
     if ((row < 0) || (row >= m_children.size())) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const NotebookModelItem * item = m_children.takeAt(row);
     if (item) {
-        item->m_pParent = Q_NULLPTR;
+        item->m_pParent = nullptr;
     }
 
     return item;

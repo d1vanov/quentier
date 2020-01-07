@@ -41,13 +41,13 @@ class AddOrEditNotebookDialog: public QDialog
 public:
     explicit AddOrEditNotebookDialog(
         NotebookModel * pNotebookModel,
-        QWidget * parent = Q_NULLPTR,
+        QWidget * parent = nullptr,
         const QString & editedNotebookLocalUid = QString());
 
     ~AddOrEditNotebookDialog();
 
 private Q_SLOTS:
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
     void onNotebookNameEdited(const QString & notebookName);
     void onNotebookStackChanged(const QString & stack);
 

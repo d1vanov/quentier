@@ -95,10 +95,7 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
     m_shortcutItems()
 {
     m_pUi->setupUi(this);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
     m_pUi->filterLineEdit->setClearButtonEnabled(true);
-#endif
 
     m_pUi->actionsTreeWidget->setRootIsDecorated(false);
     m_pUi->actionsTreeWidget->setUniformRowHeights(true);
@@ -106,13 +103,8 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
     m_pUi->actionsTreeWidget->setColumnCount(2);
     m_pUi->actionsTreeWidget->setMinimumHeight(200);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     m_pUi->actionsTreeWidget->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
-#else
-    m_pUi->actionsTreeWidget->header()->setResizeMode(
-        QHeaderView::ResizeToContents);
-#endif
 
     QTreeWidgetItem * pItem = m_pUi->actionsTreeWidget->headerItem();
     pItem->setText(0, tr("Action"));
@@ -458,7 +450,7 @@ void ShortcutSettingsWidget::resetAll()
                 m_pUi->actionsTreeWidget->currentItem())
             {
                 onCurrentActionChanged(pCurrentShortcutItem->m_pTreeWidgetItem,
-                                       Q_NULLPTR);
+                                       nullptr);
             }
         }
     }
@@ -612,7 +604,7 @@ bool ShortcutSettingsWidget::markCollisions(ShortcutItem & item)
     if (item.m_pTreeWidgetItem)
     {
         item.m_pTreeWidgetItem->setForeground(
-            1, (hasCollision ? Qt::red : palette().foreground().color()));
+            1, (hasCollision ? Qt::red : palette().windowText().color()));
     }
 
     return hasCollision;
@@ -770,12 +762,12 @@ ShortcutItem * ShortcutSettingsWidget::shortcutItemFromTreeItem(
     QTreeWidgetItem * pItem) const
 {
     if (!pItem) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QVariant shortcutItemData = pItem->data(0, Qt::UserRole);
     if (!shortcutItemData.isValid()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return qvariant_cast<ShortcutItem*>(shortcutItemData);

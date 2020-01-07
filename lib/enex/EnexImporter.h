@@ -29,10 +29,7 @@
 #include <QUuid>
 #include <QHash>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/bimap.hpp>
-#endif
 
 namespace quentier {
 
@@ -49,7 +46,7 @@ public:
         const QString & notebookName,
         LocalStorageManagerAsync & localStorageManagerAsync,
         TagModel & tagModel, NotebookModel & notebookModel,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     bool isInProgress() const;
     void start();

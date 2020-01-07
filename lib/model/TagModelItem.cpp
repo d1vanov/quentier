@@ -51,7 +51,7 @@ void TagModelItem::setParent(const TagModelItem * pParent) const
 const TagModelItem * TagModelItem::childAtRow(const int row) const
 {
     if ((row < 0) || (row >= m_children.size())) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return m_children[row];
@@ -90,19 +90,24 @@ bool TagModelItem::swapChildren(const int sourceRow, const int destRow) const
         return false;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+    m_children.swapItemsAt(sourceRow, destRow);
+#else
     m_children.swap(sourceRow, destRow);
+#endif
+
     return true;
 }
 
 const TagModelItem * TagModelItem::takeChild(const int row) const
 {
     if ((row < 0) || (row >= m_children.size())) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const TagModelItem * pItem = m_children.takeAt(row);
     if (pItem) {
-        pItem->m_pParent = Q_NULLPTR;
+        pItem->m_pParent = nullptr;
     }
 
     return pItem;

@@ -49,7 +49,7 @@ public:
         FilterBySavedSearchWidget & filterBySavedSearchWidget,
         QLineEdit & searchLineEdit,
         LocalStorageManagerAsync & localStorageManagerAsync,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     QStringList notebookLocalUidsInFilter() const;
     QStringList tagLocalUidsInFilter() const;

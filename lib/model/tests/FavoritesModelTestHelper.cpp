@@ -34,7 +34,7 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(
         QObject * parent) :
     QObject(parent),
     m_pLocalStorageManagerAsync(pLocalStorageManagerAsync),
-    m_model(Q_NULLPTR),
+    m_model(nullptr),
     m_firstNotebook(),
     m_secondNotebook(),
     m_thirdNotebook(),

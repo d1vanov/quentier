@@ -39,10 +39,10 @@ class ColorCodeValidator: public QValidator
 {
     Q_OBJECT
 public:
-    explicit ColorCodeValidator(QObject * parent = Q_NULLPTR);
+    explicit ColorCodeValidator(QObject * parent = nullptr);
 
-    virtual void fixup(QString & input) const Q_DECL_OVERRIDE;
-    virtual State validate(QString & input, int & pos) const Q_DECL_OVERRIDE;
+    virtual void fixup(QString & input) const override;
+    virtual State validate(QString & input, int & pos) const override;
 
 private:
     bool isHexDigit(const QChar & chr) const;

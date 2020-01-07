@@ -36,7 +36,7 @@ class EnexExportDialog : public QDialog
 public:
     explicit EnexExportDialog(
         const Account & account,
-        QWidget * parent = Q_NULLPTR,
+        QWidget * parent = nullptr,
         const QString & suggestedFileName = QString());
 
     virtual ~EnexExportDialog();

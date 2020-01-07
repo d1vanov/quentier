@@ -45,7 +45,7 @@ public:
         const Account & currentAccount,
         AccountModel & accountModel,
         LocalStorageManager & localStorageManager,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     ~LocalStorageVersionTooHighDialog();
 
@@ -64,7 +64,7 @@ private Q_SLOTS:
         const QItemSelection & deselected);
 
 private:
-    virtual void reject() Q_DECL_OVERRIDE;
+    virtual void reject() override;
 
 private:
     void createConnections();

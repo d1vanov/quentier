@@ -69,7 +69,7 @@ QWidget * FavoriteItemDelegate::createEditor(
     }
     else
     {
-        return Q_NULLPTR;
+        return nullptr;
     }
 }
 
@@ -211,7 +211,7 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
     }
 
     QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name + nameSuffix);
+    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
     int fontHeight = fontMetrics.height();
 
     double margin = 1.1;
@@ -268,7 +268,7 @@ void FavoriteItemDelegate::drawFavoriteItemName(
     }
 
     QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name);
+    int nameWidth = fontMetricsWidth(fontMetrics, name);
 
     painter->setPen(option.state & QStyle::State_Selected
                     ? option.palette.color(QPalette::Active, QPalette::WindowText)

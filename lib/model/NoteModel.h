@@ -31,15 +31,12 @@
 #include <QAbstractItemModel>
 #include <QScopedPointer>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/bimap.hpp>
-#endif
 
 namespace quentier {
 
@@ -126,10 +123,10 @@ public:
         const Account & account,
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteCache & noteCache, NotebookCache & notebookCache,
-        QObject * parent = Q_NULLPTR,
+        QObject * parent = nullptr,
         const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted,
         const NoteSortingMode::type noteSortingMode = NoteSortingMode::ModifiedAscending,
-        NoteFilters * pFilters = Q_NULLPTR);
+        NoteFilters * pFilters = nullptr);
 
     virtual ~NoteModel();
 
@@ -289,53 +286,53 @@ public:
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(
-        const QModelIndex & modelIndex) const Q_DECL_OVERRIDE;
+        const QModelIndex & modelIndex) const override;
 
     virtual QVariant data(
         const QModelIndex & index,
-        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+        int role = Qt::DisplayRole) const override;
 
     virtual QVariant headerData(
         int section, Qt::Orientation orientation,
-        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+        int role = Qt::DisplayRole) const override;
 
     virtual int rowCount(
-        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+        const QModelIndex & parent = QModelIndex()) const override;
 
     virtual int columnCount(
-        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+        const QModelIndex & parent = QModelIndex()) const override;
 
     virtual QModelIndex index(
         int row, int column,
-        const QModelIndex & parent = QModelIndex()) const Q_DECL_OVERRIDE;
+        const QModelIndex & parent = QModelIndex()) const override;
 
-    virtual QModelIndex parent(const QModelIndex & index) const Q_DECL_OVERRIDE;
+    virtual QModelIndex parent(const QModelIndex & index) const override;
 
     virtual bool setHeaderData(
         int section, Qt::Orientation orientation, const QVariant & value,
-        int role = Qt::EditRole) Q_DECL_OVERRIDE;
+        int role = Qt::EditRole) override;
 
     virtual bool setData(
         const QModelIndex & index, const QVariant & value,
-        int role = Qt::EditRole) Q_DECL_OVERRIDE;
+        int role = Qt::EditRole) override;
 
     virtual bool insertRows(
         int row, int count,
-        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+        const QModelIndex & parent = QModelIndex()) override;
 
     virtual bool removeRows(
         int row, int count,
-        const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+        const QModelIndex & parent = QModelIndex()) override;
 
-    virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
+    virtual void sort(int column, Qt::SortOrder order) override;
 
-    virtual bool canFetchMore(const QModelIndex & parent) const Q_DECL_OVERRIDE;
-    virtual void fetchMore(const QModelIndex & parent) Q_DECL_OVERRIDE;
+    virtual bool canFetchMore(const QModelIndex & parent) const override;
+    virtual void fetchMore(const QModelIndex & parent) override;
 
     // IStartable interface
-    virtual void start() Q_DECL_OVERRIDE;
-    virtual bool isStarted() const Q_DECL_OVERRIDE { return m_isStarted; }
-    virtual void stop(const StopMode::type stopMode) Q_DECL_OVERRIDE;
+    virtual void start() override;
+    virtual bool isStarted() const override { return m_isStarted; }
+    virtual void stop(const StopMode::type stopMode) override;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);

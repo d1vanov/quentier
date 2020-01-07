@@ -40,13 +40,13 @@ class AddOrEditTagDialog: public QDialog
     Q_OBJECT
 public:
     explicit AddOrEditTagDialog(
-        TagModel * pTagModel, QWidget * parent = Q_NULLPTR,
+        TagModel * pTagModel, QWidget * parent = nullptr,
         const QString & editedTagLocalUid = QString());
 
     virtual ~AddOrEditTagDialog();
 
 private Q_SLOTS:
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
     void onTagNameEdited(const QString & tagName);
     void onParentTagNameChanged(const QString & parentTagName);
 

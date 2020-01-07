@@ -24,32 +24,23 @@ SUPPRESS_WARNINGS
 #include <client/linux/handler/exception_handler.h>
 RESTORE_WARNINGS
 
-#include <QStringList>
+#include <QGlobalStatic>
 #include <QFileInfo>
 #include <QProcess>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-#include <QGlobalStatic>
-#endif
+#include <QStringList>
 
 #include <unistd.h>
 
 namespace quentier {
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
 Q_GLOBAL_STATIC(QString, quentierCrashHandlerFilePath)
 Q_GLOBAL_STATIC(QString, quentierSymbolsFilePath)
 Q_GLOBAL_STATIC(QString, libquentierSymbolsFilePath)
 Q_GLOBAL_STATIC(QString, quentierMinidumpStackwalkFilePath)
-#else
-static QString quentierCrashHandlerFilePath;
-static QString quentierSymbolsFilePath;
-static QString libquentierSymbolsFilePath;
-static QString quentierMinidumpStackwalkFilePath;
-#endif
 
-static bool dumpCallback(const google_breakpad::MinidumpDescriptor & descriptor,
-                         void * context, bool succeeded)
+static bool dumpCallback(
+    const google_breakpad::MinidumpDescriptor & descriptor,
+    void * context, bool succeeded)
 {
     Q_UNUSED(context)
 
@@ -60,26 +51,16 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor & descriptor,
 
         QStringList crashHandlerArgs;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
         crashHandlerArgs << *quentierSymbolsFilePath;
         crashHandlerArgs << *libquentierSymbolsFilePath;
         crashHandlerArgs << *quentierMinidumpStackwalkFilePath;
-#else
-        crashHandlerArgs << quentierSymbolsFilePath;
-        crashHandlerArgs << libquentierSymbolsFilePath;
-        crashHandlerArgs << quentierMinidumpStackwalkFilePath;
-#endif
         crashHandlerArgs << minidumpFileLocation;
 
         QProcess * pProcessHandle = new QProcess();
         QObject::connect(pProcessHandle, SIGNAL(finished(int,QProcess::ExitStatus)),
                          pProcessHandle, SLOT(deleteLater()));
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
         QString * pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
-#else
-        QString * pQuentierCrashHandlerFilePath = &quentierCrashHandlerFilePath;
-#endif
 
         Q_UNUSED(pProcessHandle->start(*pQuentierCrashHandlerFilePath,
                                        crashHandlerArgs))
@@ -101,7 +82,6 @@ void setupBreakpad(const QApplication & app)
     QString appFilePath = app.applicationFilePath();
     QFileInfo appFileInfo(appFilePath);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     *quentierCrashHandlerFilePath =
         appFileInfo.absolutePath() +
         QString::fromUtf8("/quentier_crash_handler");
@@ -112,18 +92,6 @@ void setupBreakpad(const QApplication & app)
 
     findCompressedSymbolsFiles(app, *quentierSymbolsFilePath,
                                *libquentierSymbolsFilePath);
-#else
-    quentierCrashHandlerFilePath =
-        appFileInfo.absolutePath() +
-        QString::fromUtf8("/quentier_crash_handler");
-
-    quentierMinidumpStackwalkFilePath =
-        appFileInfo.absolutePath() +
-        QString::fromUtf8("/quentier_minidump_stackwalk");
-
-    findCompressedSymbolsFiles(app, quentierSymbolsFilePath,
-                               libquentierSymbolsFilePath);
-#endif
 
     pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
     pBreakpadHandler = new google_breakpad::ExceptionHandler(*pBreakpadDescriptor,

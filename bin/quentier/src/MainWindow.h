@@ -31,6 +31,7 @@
 #include <lib/model/FavoritesModel.h>
 #include <lib/widget/NoteEditorWidget.h>
 #include <lib/widget/NoteEditorTabsAndWindowsCoordinator.h>
+#include <lib/widget/panel/SidePanelStyleController.h>
 
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
@@ -43,21 +44,21 @@
 
 #include <quentier/synchronization/AuthenticationManager.h>
 
-#include <QtCore>
-
-#if QT_VERSION >= 0x050000
-#include <QtWidgets/QMainWindow>
-#else
-#include <QMainWindow>
-#endif
-
-#include <QTextListFormat>
+#include <QLinearGradient>
 #include <QMap>
-#include <QStandardItemModel>
-#include <QStringList>
 #include <QMovie>
 #include <QNetworkProxy>
+#include <QStandardItemModel>
+#include <QStringList>
 #include <QScopedPointer>
+#include <QTextListFormat>
+#include <QVector>
+
+#include <QtCore>
+#include <QtWidgets/QMainWindow>
+
+#include <memory>
+#include <vector>
 
 namespace Ui {
 class MainWindow;
@@ -70,12 +71,15 @@ QT_FORWARD_DECLARE_CLASS(QActionGroup)
 QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
 namespace quentier {
+
+QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
+QT_FORWARD_DECLARE_CLASS(NoteCountLabelController)
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
-QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
+QT_FORWARD_DECLARE_CLASS(PreferencesDialog)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
-QT_FORWARD_DECLARE_CLASS(NoteCountLabelController)
-}
+
+} // namespace quentier
 
 using namespace quentier;
 
@@ -83,7 +87,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(QWidget * pParentWidget = Q_NULLPTR);
+    explicit MainWindow(QWidget * pParentWidget = nullptr);
     virtual ~MainWindow();
 
     void show();
@@ -222,11 +226,8 @@ private Q_SLOTS:
     void onSwitchIconThemeToNativeAction();
     void onSwitchIconThemeToTangoAction();
     void onSwitchIconThemeToOxygenAction();
-
-    void onSwitchPanelStyle(const QString & panelStyle);
-    void onSwitchPanelStyleToBuiltIn();
-    void onSwitchPanelStyleToLighter();
-    void onSwitchPanelStyleToDarker();
+    void onSwitchIconThemeToBreezeAction();
+    void onSwitchIconThemeToBreezeDarkAction();
 
     // View buttons slots
     void onNewNotebookCreationRequested();
@@ -291,6 +292,11 @@ private Q_SLOTS:
     void onDisableNativeMenuBarPreferenceChanged();
     void onRunSyncEachNumMinitesPreferenceChanged(int runSyncEachNumMinutes);
 
+    void onPanelFontColorChanged(QColor color);
+    void onPanelBackgroundColorChanged(QColor color);
+    void onPanelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
+    void onPanelBackgroundLinearGradientChanged(QLinearGradient gradient);
+
     // Note search-related slots
     void onSaveNoteSearchQueryButtonPressed();
 
@@ -346,14 +352,14 @@ private Q_SLOTS:
         ErrorString errorDescription);
 
 private:
-    virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void focusInEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
-    virtual void focusOutEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
-    virtual void showEvent(QShowEvent * pShowEvent) Q_DECL_OVERRIDE;
-    virtual void hideEvent(QHideEvent * pHideEvent) Q_DECL_OVERRIDE;
-    virtual void changeEvent(QEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void resizeEvent(QResizeEvent * pEvent) override;
+    virtual void closeEvent(QCloseEvent * pEvent) override;
+    virtual void timerEvent(QTimerEvent * pEvent) override;
+    virtual void focusInEvent(QFocusEvent * pFocusEvent) override;
+    virtual void focusOutEvent(QFocusEvent * pFocusEvent) override;
+    virtual void showEvent(QShowEvent * pShowEvent) override;
+    virtual void hideEvent(QHideEvent * pHideEvent) override;
+    virtual void changeEvent(QEvent * pEvent) override;
 
 private:
     void centerWidget(QWidget & widget);
@@ -413,6 +419,7 @@ private:
     void connectNoteSearchActionsToSlots();
     void connectToolbarButtonsToSlots();
     void connectSystemTrayIconManagerSignalsToSlots();
+    void connectToPreferencesDialogSignals(PreferencesDialog & dialog);
 
     void addMenuActionsToMainWindow();
     void updateSubMenuWithAvailableAccounts();
@@ -460,55 +467,9 @@ private:
 
     void adjustNoteListAndFiltersSplitterSizes();
 
-    void clearDir(const QString & path);
-
-    class StyleSheetProperty
-    {
-    public:
-        struct Target
-        {
-            enum type {
-                None = 0,
-                ButtonHover,
-                ButtonPressed
-            };
-        };
-
-        StyleSheetProperty(const Target::type targetType = Target::None,
-                           const char * name = Q_NULLPTR,
-                           const QString & value = QString()) :
-            m_targetType(targetType),
-            m_name(name),
-            m_value(value)
-        {}
-
-        Target::type    m_targetType;
-        const char *    m_name;
-        QString         m_value;
-    };
-
-    typedef QVector<StyleSheetProperty> StyleSheetProperties;
-
-    void collectBaseStyleSheets();
-    void setupPanelOverlayStyleSheets();
-
-    void getPanelStyleSheetProperties(
-        const QString & panelStyleOption, StyleSheetProperties & properties) const;
-
-    void setPanelsOverlayStyleSheet(const StyleSheetProperties & properties);
-
-    // This method performs a nasty hack - it searches for some properties within
-    // the passed in stylesheet and alters some of these; the whole workflow is
-    // based on weak assumptions about the structure of the stylesheet so once
-    // it is sufficiently altered, this method would stop working. Don't program
-    // like this, kids.
-    QString alterStyleSheet(
-        const QString & originalStyleSheet,
-        const StyleSheetProperties & properties);
-
-    bool isInsideStyleBlock(
-        const QString & styleSheet, const QString & styleBlockStartSearchString,
-        const int currentIndex, bool & error) const;
+    void restorePanelColors();
+    void setupGenericPanelStyleControllers();
+    void setupSidePanelStyleControllers();
 
     bool getShowNoteThumbnailsPreference() const;
     bool getDisableNativeMenuBarPreference() const;
@@ -528,13 +489,7 @@ private:
      */
     void toggleShowNoteThumbnails() const;
 
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    // Qt4 has a problem with zero-size QSplitter handles - they don't work that
-    // way. Hence, need to set the alternate stylesheet for Qt4 version, with
-    // non-zero-size QSplitter handles and some other elements' boundaries removed
-    void fixupQt4StyleSheets();
-#endif
+    QString fallbackIconThemeName() const;
 
 private:
     Ui::MainWindow *        m_pUI;
@@ -603,16 +558,12 @@ private:
 
     QUndoStack *            m_pUndoStack;
 
-    struct StyleSheetInfo
-    {
-        QPointer<QWidget>   m_targetWidget;
-        QString             m_baseStyleSheet;
-        QString             m_overlayStyleSheet;
-    };
-
-    QHash<QWidget*, StyleSheetInfo>    m_styleSheetInfo;
-
-    QString                     m_currentPanelStyle;
+    QColor              m_overridePanelFontColor;
+    QColor              m_overridePanelBackgroundColor;
+    QLinearGradient     m_overridePanelBackgroundGradient;
+    bool                m_panelUseBackgroundGradient = false;
+    std::vector<std::unique_ptr<PanelStyleController>>      m_genericPanelStyleControllers;
+    std::vector<std::unique_ptr<SidePanelStyleController>>  m_sidePanelStyleControllers;
 
     quentier::ShortcutManager   m_shortcutManager;
     QHash<int, QAction*>        m_shortcutKeyToAction;

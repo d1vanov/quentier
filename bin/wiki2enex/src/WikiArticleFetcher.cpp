@@ -55,11 +55,11 @@ WikiArticleFetcher::WikiArticleFetcher(
     m_started(false),
     m_finished(false),
     m_note(),
-    m_pApiUrlFetcher(Q_NULLPTR),
+    m_pApiUrlFetcher(nullptr),
     m_languageCode(),
     m_articleTitle(),
-    m_pArticleContentsFetcher(Q_NULLPTR),
-    m_pWikiArticleToNote(Q_NULLPTR)
+    m_pArticleContentsFetcher(nullptr),
+    m_pWikiArticleToNote(nullptr)
 {}
 
 WikiArticleFetcher::~WikiArticleFetcher()
@@ -134,7 +134,7 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
     if (m_pApiUrlFetcher) {
         m_pApiUrlFetcher->disconnect(this);
         m_pApiUrlFetcher->deleteLater();
-        m_pApiUrlFetcher = Q_NULLPTR;
+        m_pApiUrlFetcher = nullptr;
     }
 
     if (!status) {
@@ -208,7 +208,7 @@ void WikiArticleFetcher::onWikiArticleDownloadFinished(
     if (m_pArticleContentsFetcher) {
         m_pArticleContentsFetcher->disconnect(this);
         m_pArticleContentsFetcher->deleteLater();
-        m_pArticleContentsFetcher = Q_NULLPTR;
+        m_pArticleContentsFetcher = nullptr;
     }
 
     if (!status) {
@@ -357,19 +357,19 @@ void WikiArticleFetcher::clear()
     if (m_pApiUrlFetcher) {
         m_pApiUrlFetcher->disconnect(this);
         m_pApiUrlFetcher->deleteLater();
-        m_pApiUrlFetcher = Q_NULLPTR;
+        m_pApiUrlFetcher = nullptr;
     }
 
     if (m_pArticleContentsFetcher) {
         m_pArticleContentsFetcher->disconnect(this);
         m_pArticleContentsFetcher->deleteLater();
-        m_pArticleContentsFetcher = Q_NULLPTR;
+        m_pArticleContentsFetcher = nullptr;
     }
 
     if (m_pWikiArticleToNote) {
         m_pWikiArticleToNote->disconnect(this);
         m_pWikiArticleToNote->deleteLater();
-        m_pWikiArticleToNote = Q_NULLPTR;
+        m_pWikiArticleToNote = nullptr;
     }
 }
 

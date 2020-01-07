@@ -35,10 +35,7 @@
 #include <QFile>
 #include <QCoreApplication>
 #include <QMetaType>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
 #include <QTimeZone>
-#endif
 
 #include <algorithm>
 
@@ -101,8 +98,8 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     m_logFilePosRequestedToBeRead(),
     m_currentLogFileSize(0),
     m_currentLogFileSizePollingTimer(),
-    m_pReadLogFileIOThread(Q_NULLPTR),
-    m_pFileReaderAsync(Q_NULLPTR),
+    m_pReadLogFileIOThread(nullptr),
+    m_pFileReaderAsync(nullptr),
     m_targetSaveFile(),
     m_internalLogEnabled(false),
     m_internalLogFile(applicationPersistentStoragePath() +
@@ -142,7 +139,7 @@ LogViewerModel::~LogViewerModel()
 {
     if (m_pFileReaderAsync) {
         m_pFileReaderAsync->disconnect(this);
-        m_pFileReaderAsync = Q_NULLPTR;
+        m_pFileReaderAsync = nullptr;
     }
 }
 
@@ -208,15 +205,10 @@ void LogViewerModel::setLogFileName(
     m_currentLogFileSizePollingTimer.start(
         LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC, this);
 
-    // NOTE: for unknown reason QFileSystemWatcher from Qt4 fails to add any log
-    // file path + also hangs the process; hence, using only the current log file
-    // size polling timer as the means to watch the log file's changes with Qt4
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString filePath = m_currentLogFileInfo.absoluteFilePath();
     if (!m_currentLogFileWatcher.files().contains(filePath)) {
         m_currentLogFileWatcher.addPath(filePath);
     }
-#endif
 
     qint64 startPos = (m_filteringOptions.m_startLogFilePos.isSet()
                        ? m_filteringOptions.m_startLogFilePos.ref()
@@ -382,7 +374,7 @@ bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
     if (m_pFileReaderAsync) {
         m_pFileReaderAsync->disconnect(this);
         m_pFileReaderAsync->deleteLater();
-        m_pFileReaderAsync = Q_NULLPTR;
+        m_pFileReaderAsync = nullptr;
     }
 
     QFile currentLogFile(m_currentLogFileInfo.absoluteFilePath());
@@ -450,7 +442,7 @@ void LogViewerModel::clear()
     if (m_pFileReaderAsync) {
         m_pFileReaderAsync->disconnect(this);
         m_pFileReaderAsync->deleteLater();
-        m_pFileReaderAsync = Q_NULLPTR;
+        m_pFileReaderAsync = nullptr;
     }
 
     // NOTE: not changing anything about the internal log
@@ -464,12 +456,12 @@ const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
     const QVector<Data> * pLogFileDataChunk =
         dataChunkContainingModelRow(row, &startModelRow);
     if (!pLogFileDataChunk) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     int offset = row - startModelRow;
     if (Q_UNLIKELY(pLogFileDataChunk->size() <= offset)) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const Data & data = pLogFileDataChunk->at(offset);
@@ -480,13 +472,13 @@ const QVector<LogViewerModel::Data> * LogViewerModel::dataChunkContainingModelRo
     const int row, int * pStartModelRow) const
 {
     if (Q_UNLIKELY(row < 0)) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const LogFileChunkMetadata * pLogFileChunkMetadata =
         findLogFileChunkMetadataByModelRow(row);
     if (!pLogFileChunkMetadata) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (pStartModelRow) {
@@ -503,13 +495,9 @@ QString LogViewerModel::dataEntryToString(
     QTextStream strm(&result);
 
     strm << dataEntry.m_timestamp.toString(
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-                                           QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")
-#else
-                                           QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz")
-#endif
-                                           )
-         << " "
+        QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t"));
+
+    strm << " "
          << dataEntry.m_sourceFileName
          << QNLOG_FILE_LINENUMBER_DELIMITER
          << QString::number(dataEntry.m_sourceFileLineNumber)
@@ -1256,7 +1244,7 @@ LogViewerModel::findLogFileChunkMetadataByModelRow(const int row) const
         m_logFileChunksMetadata.get<LogFileChunksMetadataByStartModelRow>();
     auto it = findLogFileChunkMetadataIteratorByModelRow(row);
     if (it == index.end()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(*it);
@@ -1269,7 +1257,7 @@ LogViewerModel::findLogFileChunkMetadataByLogFilePos(const qint64 pos) const
         m_logFileChunksMetadata.get<LogFileChunksMetadataByStartLogFilePos>();
     auto it = findLogFileChunkMetadataIteratorByLogFilePos(pos);
     if (it == index.end()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return &(*it);

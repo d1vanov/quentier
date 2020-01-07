@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2019 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,6 +20,8 @@
 #define QUENTIER_LIB_INITIALIZATION_PARSE_STARTUP_ACCOUNT_H
 
 #include <quentier/types/ErrorString.h>
+
+#include <qt5qevercloud/QEverCloud.h>
 
 namespace quentier {
 

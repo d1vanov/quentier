@@ -58,7 +58,7 @@ public:
         const Account & currentAccount,
         AccountModel & accountModel,
         const QVector<QSharedPointer<ILocalStoragePatch> > & patches,
-        const Options options, QWidget * parent = Q_NULLPTR);
+        const Options options, QWidget * parent = nullptr);
 
     virtual ~LocalStorageUpgradeDialog();
 
@@ -102,7 +102,7 @@ private:
     void showHideDialogPartsAccordingToOptions();
 
 private:
-    virtual void reject() Q_DECL_OVERRIDE;
+    virtual void reject() override;
 
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;

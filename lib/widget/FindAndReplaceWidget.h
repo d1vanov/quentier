@@ -35,7 +35,7 @@ class FindAndReplaceWidget: public QWidget
     Q_OBJECT
 public:
     explicit FindAndReplaceWidget(
-        QWidget * parent = Q_NULLPTR,
+        QWidget * parent = nullptr,
         const bool withReplace = false);
 
     virtual ~FindAndReplaceWidget();
@@ -53,8 +53,8 @@ public:
     void setReplaceEnabled(const bool enabled);
 
 public:
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
-    virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+    virtual QSize sizeHint() const override;
+    virtual QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void closed();

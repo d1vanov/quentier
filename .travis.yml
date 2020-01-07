@@ -13,12 +13,6 @@ branches:
 matrix:
     include:
         - os: linux
-          env: QT_BASE=48 COMPILER=g++-5.4 CMAKE_BUILD_TYPE=Debug
-
-        - os: linux
-          env: QT_BASE=48 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
-
-        - os: linux
           env: QT_BASE=551 COMPILER=g++-5.4 CMAKE_BUILD_TYPE=Debug
 
         - os: linux
@@ -86,19 +80,11 @@ install:
             export CXX="clang++" &&
             export CC="clang"
           fi
-        elif [ "${QT_BASE}" = "5123" ]; then
+        else
           echo "Building for Qt 5.12.3" &&
           sudo apt-add-repository -y ppa:beineri/opt-qt-5.12.3-xenial &&
           travis_wait 30 sudo apt-get -qq update &&
           sudo apt-get -qq install qt512tools qt512base qt512webchannel qt512webengine qt512websockets qt512xmlpatterns qt512translations mesa-common-dev libgl1-mesa-dev &&
-          if [ "${COMPILER}" = "clang++" ]; then
-            export CXX="clang++" &&
-            export CC="clang"
-          fi
-        else
-          echo "Building for Qt 4.8" &&
-          travis_wait 30 sudo apt-get -qq update &&
-          sudo apt-get -qq install libqt4-dev libqt4-dev-bin libqt4-network libqt4-xml libqt4-xmlpatterns libqt4-sql libqt4-sql-sqlite libqt4-test libqt4-dbus libqtwebkit-dev &&
           if [ "${COMPILER}" = "clang++" ]; then
             export CXX="clang++" &&
             export CC="clang"
@@ -149,10 +135,8 @@ install:
         if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
-        elif [ "${QT_BASE}" = "551" ]; then
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DBUILD_WITH_QT4=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
@@ -176,20 +160,6 @@ install:
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         cd ../..
       fi
-    - if [ "${QT_BASE}" = "48" ]; then
-        echo "Building qt4-mimetypes" &&
-        mkdir qt4-mimetypes &&
-        git clone https://github.com/d1vanov/qt4-mimetypes.git qt4-mimetypes &&
-        cd qt4-mimetypes &&
-        mkdir build &&
-        cd build &&
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
-        make &&
-        make install &&
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
-        cd ../..
-        ;
-      fi
     - |
       echo "Building QEverCloud" &&
       mkdir QEverCloud &&
@@ -205,10 +175,8 @@ install:
           source /opt/qt512/bin/qt512-env.sh &&
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
-        elif [ "${QT_BASE}" = "551" ]; then
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DBUILD_WITH_QT4=1 ..
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
@@ -238,21 +206,13 @@ install:
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 ..
-        elif [ "${QT_BASE}" = "551" ]; then
+        else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5_WEBKIT=1 ..
-        else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
-                -DQtKeychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/QtKeychain \
-                -DQEverCloud-qt4_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt4 \
-                -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-                -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
-                -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
-                -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_WITH_QT4=1 ..
         fi
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
@@ -309,7 +269,7 @@ script:
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
                   -DCMAKE_PREFIX_PATH=/opt/qt512 ..
           fi
-        elif [ "${QT_BASE}" = "551" ]; then
+        else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
@@ -318,15 +278,6 @@ script:
                 -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
                 -DUSE_QT5_WEBKIT=1 ..
-        else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
-                -DLibquentier-qt4_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt4 \
-                -DQtKeychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/QtKeychain \
-                -DQEverCloud-qt4_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt4 \
-                -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-                -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
-                -Dqt4-mimetypes_DIR=$(pwd)/../../qt4-mimetypes/build/installdir/lib/cmake/qt4-mimetypes \
-                -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir -DBUILD_WITH_WIKI_TOOLS=1 -DBUILD_WITH_QT4=1 ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \

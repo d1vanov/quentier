@@ -47,7 +47,7 @@ bool moveObjectToThread(
 
     pThreadMover->disconnect(&loop);
     pThreadMover->deleteLater();
-    pThreadMover = Q_NULLPTR;
+    pThreadMover = nullptr;
 
     if (result == EventLoopWithExitStatus::ExitStatus::Success) {
         return true;

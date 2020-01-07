@@ -45,12 +45,12 @@ public:
     explicit EnexImportDialog(
         const Account & account,
         NotebookModel & notebookModel,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     virtual ~EnexImportDialog();
 
-    QString importEnexFilePath(ErrorString * pErrorDescription = Q_NULLPTR) const;
-    QString notebookName(ErrorString * pErrorDescription = Q_NULLPTR) const;
+    QString importEnexFilePath(ErrorString * pErrorDescription = nullptr) const;
+    QString notebookName(ErrorString * pErrorDescription = nullptr) const;
 
 private Q_SLOTS:
     void onBrowsePushButtonClicked();
@@ -59,17 +59,13 @@ private Q_SLOTS:
 
     // Slots to track the updates of notebook model
     void dataChanged(
-        const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-        );
-#else
-        , const QVector<int> & roles = QVector<int>());
-#endif
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>());
 
     void rowsInserted(const QModelIndex & parent, int start, int end);
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);
 
-    virtual void accept() Q_DECL_OVERRIDE;
+    virtual void accept() override;
 
 private:
     void createConnections();

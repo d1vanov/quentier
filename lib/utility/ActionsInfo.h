@@ -52,7 +52,7 @@ public:
     public:
         ActionInfo();
 
-        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
+        virtual QTextStream & print(QTextStream & strm) const override;
 
         bool isEmpty() const;
 

@@ -64,15 +64,8 @@ NewListItemLineEdit::NewListItemLineEdit(
                      QNSLOT(NewListItemLineEdit,onModelRowsRemoved,
                             const QModelIndex&,int,int));
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    QObject::connect(m_pItemModel.data(),
-                     SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     this,
-                     SLOT(onModelDataChanged(QModelIndex,QModelIndex)));
-#else
     QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged,
                      this, &NewListItemLineEdit::onModelDataChanged);
-#endif
 
     // NOTE: working around what seems to be a Qt bug: when one selects some item
     // from the drop-down menu shown by QCompleter via pressing Return/Enter,
@@ -178,21 +171,14 @@ void NewListItemLineEdit::onModelRowsRemoved(
 }
 
 void NewListItemLineEdit::onModelDataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    )
-#else
-    , const QVector<int> & roles)
-#endif
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
     QNDEBUG("NewListItemLineEdit::onModelDataChanged");
 
     Q_UNUSED(topLeft)
     Q_UNUSED(bottomRight)
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     Q_UNUSED(roles)
-#endif
 
     setupCompleter();
 }

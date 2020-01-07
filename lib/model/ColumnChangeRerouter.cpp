@@ -33,14 +33,6 @@ ColumnChangeRerouter::ColumnChangeRerouter(
 
 void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    QObject::connect(model,
-                     QNSIGNAL(QAbstractItemModel,dataChanged,
-                              const QModelIndex&,const QModelIndex&),
-                     this,
-                     QNSLOT(ColumnChangeRerouter,onModelDataChanged,
-                            const QModelIndex&,const QModelIndex&));
-#else
     QObject::connect(model,
                      QNSIGNAL(QAbstractItemModel,dataChanged,
                               const QModelIndex&,const QModelIndex&,
@@ -49,16 +41,11 @@ void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
                      QNSLOT(ColumnChangeRerouter,onModelDataChanged,
                             const QModelIndex&,const QModelIndex&,
                             const QVector<int>&));
-#endif
 }
 
 void ColumnChangeRerouter::onModelDataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                            )
-#else
-                            , const QVector<int> & roles)
-#endif
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
     QNTRACE("ColumnChangeRerouter::onModelDataChanged: top left: "
             << "is valid = " << (topLeft.isValid() ? "true" : "false")
@@ -105,10 +92,5 @@ void ColumnChangeRerouter::onModelDataChanged(
 
     QNDEBUG("Emitting the dataChanged signal for column "
             << m_columnTo);
-    Q_EMIT dataChanged(newTopLeft, newBottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                    );
-#else
-                    , roles);
-#endif
+    Q_EMIT dataChanged(newTopLeft, newBottomRight, roles);
 }

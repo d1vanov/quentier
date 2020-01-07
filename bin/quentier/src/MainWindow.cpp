@@ -64,6 +64,8 @@
 #include <lib/widget/NoteFiltersManager.h>
 #include <lib/widget/NoteCountLabelController.h>
 #include <lib/widget/FindAndReplaceWidget.h>
+#include <lib/widget/PanelWidget.h>
+using quentier::PanelWidget;
 
 #include <lib/widget/TabWidget.h>
 using quentier::TabWidget;
@@ -100,11 +102,7 @@ using quentier::LogViewerWidget;
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
-#else
-#include <qt4qevercloud/QEverCloud.h>
-#endif
 
 #include <QPushButton>
 #include <QIcon>
@@ -179,20 +177,20 @@ using namespace quentier;
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
-    m_currentStatusBarChildWidget(Q_NULLPTR),
+    m_currentStatusBarChildWidget(nullptr),
     m_lastNoteEditorHtml(),
     m_nativeIconThemeName(),
     m_pAvailableAccountsActionGroup(new QActionGroup(this)),
-    m_pAvailableAccountsSubMenu(Q_NULLPTR),
+    m_pAvailableAccountsSubMenu(nullptr),
     m_pAccountManager(new AccountManager(this)),
     m_pAccount(),
-    m_pSystemTrayIconManager(Q_NULLPTR),
-    m_pLocalStorageManagerThread(Q_NULLPTR),
-    m_pLocalStorageManagerAsync(Q_NULLPTR),
+    m_pSystemTrayIconManager(nullptr),
+    m_pLocalStorageManagerThread(nullptr),
+    m_pLocalStorageManagerAsync(nullptr),
     m_lastLocalStorageSwitchUserRequest(),
-    m_pSynchronizationManagerThread(Q_NULLPTR),
-    m_pAuthenticationManager(Q_NULLPTR),
-    m_pSynchronizationManager(Q_NULLPTR),
+    m_pSynchronizationManagerThread(nullptr),
+    m_pAuthenticationManager(nullptr),
+    m_pSynchronizationManager(nullptr),
     m_synchronizationManagerHost(),
     m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest(),
     m_pendingNewEvernoteAccountAuthentication(false),
@@ -207,11 +205,11 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_tagCache(),
     m_savedSearchCache(),
     m_noteCache(),
-    m_pNotebookModel(Q_NULLPTR),
-    m_pTagModel(Q_NULLPTR),
-    m_pSavedSearchModel(Q_NULLPTR),
-    m_pNoteModel(Q_NULLPTR),
-    m_pNoteCountLabelController(Q_NULLPTR),
+    m_pNotebookModel(nullptr),
+    m_pTagModel(nullptr),
+    m_pSavedSearchModel(nullptr),
+    m_pNoteModel(nullptr),
+    m_pNoteCountLabelController(nullptr),
     m_pNotebookModelColumnChangeRerouter(
         new ColumnChangeRerouter(NotebookModel::Columns::NumNotesPerNotebook,
                                  NotebookModel::Columns::Name, this)),
@@ -224,17 +222,15 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pFavoritesModelColumnChangeRerouter(
         new ColumnChangeRerouter(FavoritesModel::Columns::NumNotesTargeted,
                                  FavoritesModel::Columns::DisplayName, this)),
-    m_pDeletedNotesModel(Q_NULLPTR),
-    m_pFavoritesModel(Q_NULLPTR),
+    m_pDeletedNotesModel(nullptr),
+    m_pFavoritesModel(nullptr),
     m_blankModel(),
-    m_pNoteFiltersManager(Q_NULLPTR),
+    m_pNoteFiltersManager(nullptr),
     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId(0),
     m_defaultAccountFirstNoteLocalUid(),
-    m_pNoteEditorTabsAndWindowsCoordinator(Q_NULLPTR),
-    m_pEditNoteDialogsManager(Q_NULLPTR),
+    m_pNoteEditorTabsAndWindowsCoordinator(nullptr),
+    m_pEditNoteDialogsManager(nullptr),
     m_pUndoStack(new QUndoStack(this)),
-    m_styleSheetInfo(),
-    m_currentPanelStyle(),
     m_shortcutManager(this),
     m_pendingGreeterDialog(false),
     m_filtersViewExpanded(false),
@@ -293,18 +289,12 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
         m_pUI->ActionIconsNative->setDisabled(true);
     }
 
-    collectBaseStyleSheets();
-    setupPanelOverlayStyleSheets();
+    setupGenericPanelStyleControllers();
+    setupSidePanelStyleControllers();
+    restorePanelColors();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    fixupQt4StyleSheets();
-#endif
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
-#endif
 
     setWindowTitleForAccount(*m_pAccount);
 
@@ -523,12 +513,10 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchIconThemeToOxygenAction));
     QObject::connect(m_pUI->ActionIconsTango, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchIconThemeToTangoAction));
-    QObject::connect(m_pUI->ActionPanelStyleBuiltIn, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchPanelStyleToBuiltIn));
-    QObject::connect(m_pUI->ActionPanelStyleLighter, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchPanelStyleToLighter));
-    QObject::connect(m_pUI->ActionPanelStyleDarker, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onSwitchPanelStyleToDarker));
+    QObject::connect(m_pUI->ActionIconsBreeze, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconThemeToBreezeAction));
+    QObject::connect(m_pUI->ActionIconsBreezeDark, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconThemeToBreezeDarkAction));
     // Service menu actions
     QObject::connect(m_pUI->ActionSynchronize, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSyncButtonPressed));
@@ -641,6 +629,105 @@ void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
                      QNSLOT(MainWindow,onHideRequestedFromTrayIcon));
 }
 
+void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
+{
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorUseLimitedFontsOptionChanged,
+        this,
+        &MainWindow::onUseLimitedFontsPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::iconThemeChanged,
+        this,
+        &MainWindow::onSwitchIconTheme);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::synchronizationDownloadNoteThumbnailsOptionChanged,
+        this,
+        &MainWindow::synchronizationDownloadNoteThumbnailsOptionChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::synchronizationDownloadInkNoteImagesOptionChanged,
+        this,
+        &MainWindow::synchronizationDownloadInkNoteImagesOptionChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::showNoteThumbnailsOptionChanged,
+        this,
+        &MainWindow::onShowNoteThumbnailsPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::disableNativeMenuBarOptionChanged,
+        this,
+        &MainWindow::onDisableNativeMenuBarPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::runSyncPeriodicallyOptionChanged,
+        this,
+        &MainWindow::onRunSyncEachNumMinitesPreferenceChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorFontColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorFontColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorBackgroundColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorBackgroundColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorHighlightColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorHighlightColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorHighlightedTextColorChanged,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorHighlightedTextColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::noteEditorColorsReset,
+        m_pNoteEditorTabsAndWindowsCoordinator,
+        &NoteEditorTabsAndWindowsCoordinator::noteEditorColorsReset);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelFontColorChanged,
+        this,
+        &MainWindow::onPanelFontColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelBackgroundColorChanged,
+        this,
+        &MainWindow::onPanelBackgroundColorChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelUseBackgroundGradientSettingChanged,
+        this,
+        &MainWindow::onPanelUseBackgroundGradientSettingChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::panelBackgroundLinearGradientChanged,
+        this,
+        &MainWindow::onPanelBackgroundLinearGradientChanged);
+}
+
 void MainWindow::addMenuActionsToMainWindow()
 {
     QNDEBUG("MainWindow::addMenuActionsToMainWindow");
@@ -732,7 +819,7 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
         }
 
         QAction * pAccountAction =
-            new QAction(availableAccountRepresentationName, Q_NULLPTR);
+            new QAction(availableAccountRepresentationName, nullptr);
         m_pAvailableAccountsSubMenu->addAction(pAccountAction);
 
         pAccountAction->setData(i);
@@ -844,19 +931,19 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
 
     if (Q_UNLIKELY(m_pUI->noteEditorsTabWidget->count() == 0)) {
         QNTRACE("No open note editors");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     int currentIndex = m_pUI->noteEditorsTabWidget->currentIndex();
     if (Q_UNLIKELY(currentIndex < 0)) {
         QNTRACE("No current note editor");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QWidget * currentWidget = m_pUI->noteEditorsTabWidget->widget(currentIndex);
     if (Q_UNLIKELY(!currentWidget)) {
         QNTRACE("No current widget");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     NoteEditorWidget * noteEditorWidget =
@@ -864,7 +951,7 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
     if (Q_UNLIKELY(!noteEditorWidget)) {
         QNWARNING("Can't cast current note tag widget's widget "
                   "to note editor widget");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return noteEditorWidget;
@@ -1381,9 +1468,9 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
         return;
     }
 
-    int filterHeaderPanelHeight = m_pUI->noteFilterHeaderPanel->height();
-    int heightDiff = std::max(splitterSizes[0] - filterHeaderPanelHeight, 0);
-    splitterSizes[0] = filterHeaderPanelHeight;
+    int filtersPanelHeight = m_pUI->noteFiltersGenericPanel->height();
+    int heightDiff = std::max(splitterSizes[0] - filtersPanelHeight, 0);
+    splitterSizes[0] = filtersPanelHeight;
     splitterSizes[1] = splitterSizes[1] + heightDiff;
     m_pUI->noteListAndFiltersSplitter->setSizes(splitterSizes);
 
@@ -1392,557 +1479,127 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
     m_pUI->noteListAndFiltersSplitter->update();
 }
 
-void MainWindow::clearDir(const QString & path)
+void MainWindow::restorePanelColors()
 {
-    QDir newDir(path);
-
-    QStringList files = newDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
-    for(auto it = files.constBegin(), end = files.constEnd(); it != end; ++it) {
-        Q_UNUSED(newDir.remove(*it))
+    if (!m_pAccount) {
+        return;
     }
 
-    QStringList dirs = newDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
-    for(auto it = dirs.constBegin(), end = dirs.constEnd(); it != end; ++it) {
-        clearDir(*it);
-        Q_UNUSED(newDir.remove(*it))
+    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings::GroupCloser groupCloser(settings);
+
+    QString fontColorName = settings.value(
+        PANEL_COLORS_FONT_COLOR_SETTINGS_KEY).toString();
+    QColor fontColor(fontColorName);
+    if (!fontColor.isValid()) {
+        fontColor = QColor(Qt::white);
     }
-}
 
-void MainWindow::collectBaseStyleSheets()
-{
-    QNDEBUG("MainWindow::collectBaseStyleSheets");
+    QString backgroundColorName = settings.value(
+        PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+    QColor backgroundColor(backgroundColorName);
+    if (!backgroundColor.isValid()) {
+        backgroundColor = QColor(Qt::darkGray);
+    }
 
-    QList<QWidget*> childWidgets = findChildren<QWidget*>();
-    for(auto it = childWidgets.constBegin(),
-        end = childWidgets.constEnd(); it != end; ++it)
+    QLinearGradient gradient(0, 0, 0, 1);
+    int rowCount = settings.beginReadArray(
+        PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+    for(int i = 0; i < rowCount; ++i)
     {
-        QWidget * widget = *it;
-        if (Q_UNLIKELY(!widget)) {
-            continue;
+        settings.setArrayIndex(i);
+
+        bool conversionResult = false;
+        double value = settings.value(
+            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY).toDouble(
+                &conversionResult);
+        if (Q_UNLIKELY(!conversionResult)) {
+            QNWARNING("Failed to convert panel background gradient row value "
+                << "to double");
+            gradient = QLinearGradient(0, 0, 0, 1);
+            break;
         }
 
-        QString styleSheet = widget->styleSheet();
-        if (styleSheet.isEmpty()) {
-            continue;
+        QString colorName = settings.value(
+            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY).toString();
+        QColor color(colorName);
+        if (!color.isValid()) {
+            QNWARNING("Failed to convert panel background gradient row color "
+                << "name to valid color: " << colorName);
+            gradient = QLinearGradient(0, 0, 0, 1);
+            break;
         }
 
-        StyleSheetInfo & info = m_styleSheetInfo[widget];
-        info.m_baseStyleSheet = styleSheet;
-        info.m_targetWidget = QPointer<QWidget>(widget);
+        gradient.setColorAt(value, color);
     }
-}
+    settings.endArray();
 
-void MainWindow::setupPanelOverlayStyleSheets()
-{
-    QNDEBUG("MainWindow::setupPanelOverlayStyleSheets");
+    bool useBackgroundGradient = settings.value(
+        PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY).toBool();
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QString panelStyle = appSettings.value(PANELS_STYLE_SETTINGS_KEY).toString();
-    appSettings.endGroup();
-
-    if (panelStyle.isEmpty()) {
-        QNDEBUG("No last chosen panel style");
-        return;
-    }
-
-    StyleSheetProperties properties;
-    getPanelStyleSheetProperties(panelStyle, properties);
-    if (Q_UNLIKELY(properties.isEmpty())) {
-        return;
-    }
-
-    m_currentPanelStyle = panelStyle;
-    setPanelsOverlayStyleSheet(properties);
-}
-
-void MainWindow::getPanelStyleSheetProperties(
-    const QString & panelStyleOption, StyleSheetProperties & properties) const
-{
-    properties.clear();
-    properties.reserve(4);
-
-    QString backgroundColorName, colorName, backgroundColorButtonHoverName,
-            backgroundColorButtonPressedName;
-
-    if (panelStyleOption == LIGHTER_PANEL_STYLE_NAME)
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers)
     {
-        QColor backgroundColor = palette().color(QPalette::Light);
-        backgroundColorName = backgroundColor.name();
-
-        QColor color = palette().color(QPalette::WindowText).name();
-        colorName = color.name();
-
-        QColor backgroundColorButtonHover = backgroundColor.darker(200);
-        backgroundColorButtonHoverName = backgroundColorButtonHover.name();
-
-        QColor backgroundColorButtonPressed = backgroundColor.lighter(150);
-        backgroundColorButtonPressedName = backgroundColorButtonPressed.name();
-    }
-    else if (panelStyleOption == DARKER_PANEL_STYLE_NAME)
-    {
-        QColor backgroundColor = palette().color(QPalette::Dark);
-        backgroundColorName = backgroundColor.name();
-
-        QColor color = palette().color(QPalette::BrightText);
-        colorName = color.name();
-
-        QColor backgroundColorButtonHover = backgroundColor.lighter(150);
-        backgroundColorButtonHoverName = backgroundColorButtonHover.name();
-
-        QColor backgroundColorButtonPressed = backgroundColor.darker(200);
-        backgroundColorButtonPressedName = backgroundColorButtonPressed.name();
-    }
-    else
-    {
-        QNDEBUG("Unidentified panel style name: " << panelStyleOption);
-        return;
-    }
-
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::None,
-                                            "background-color",
-                                            backgroundColorName));
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::None,
-                                            "color", colorName));
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::ButtonHover,
-                                            "background-color",
-                                            backgroundColorButtonHoverName));
-    properties.push_back(StyleSheetProperty(StyleSheetProperty::Target::ButtonPressed,
-                                            "background-color",
-                                            backgroundColorButtonPressedName));
-
-    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
-    {
-        QNTRACE("Computed stylesheet properties: ");
-        for(auto it = properties.constBegin(),
-            end = properties.constEnd(); it != end; ++it)
-        {
-            const StyleSheetProperty & property = *it;
-            QNTRACE("Property: target = " << property.m_targetType
-                    << ", property name = " << property.m_name
-                    << ", property value = " << property.m_value);
+        if (useBackgroundGradient) {
+            pPanelStyleController->setOverrideColors(fontColor, gradient);
+        }
+        else {
+            pPanelStyleController->setOverrideColors(fontColor, backgroundColor);
         }
     }
 
-    return;
-}
-
-void MainWindow::setPanelsOverlayStyleSheet(
-    const StyleSheetProperties & properties)
-{
-    for(auto it = m_styleSheetInfo.begin(); it != m_styleSheetInfo.end(); )
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers)
     {
-        StyleSheetInfo & info = it.value();
-
-        const QPointer<QWidget> & widget = info.m_targetWidget;
-        if (Q_UNLIKELY(widget.isNull())) {
-            it = m_styleSheetInfo.erase(it);
-            continue;
+        if (useBackgroundGradient) {
+            pPanelStyleController->setOverrideColors(fontColor, gradient);
         }
-
-        ++it;
-
-        QString widgetName = widget->objectName();
-        if (!widgetName.contains(QStringLiteral("Panel"))) {
-            continue;
+        else {
+            pPanelStyleController->setOverrideColors(fontColor, backgroundColor);
         }
-
-        if (properties.isEmpty()) {
-            widget->setStyleSheet(info.m_baseStyleSheet);
-            continue;
-        }
-
-        QString overlayStyleSheet = alterStyleSheet(info.m_baseStyleSheet,
-                                                    properties);
-        if (Q_UNLIKELY(overlayStyleSheet.isEmpty())) {
-            widget->setStyleSheet(info.m_baseStyleSheet);
-            continue;
-        }
-
-        widget->setStyleSheet(overlayStyleSheet);
     }
 }
 
-QString MainWindow::alterStyleSheet(
-    const QString & originalStyleSheet, const StyleSheetProperties & properties)
+void MainWindow::setupGenericPanelStyleControllers()
 {
-    QNDEBUG("MainWindow::alterStyleSheet: original stylesheet = "
-            << originalStyleSheet);
+    auto panels = findChildren<PanelWidget*>(
+        QRegularExpression(QStringLiteral("(.*)GenericPanel")));
 
-    QString result = originalStyleSheet;
+    m_genericPanelStyleControllers.clear();
+    m_genericPanelStyleControllers.reserve(
+        static_cast<size_t>(std::max(panels.size(), 0)));
 
-#define REPORT_ERROR()                                                         \
-    ErrorString errorDescription(QT_TR_NOOP("Can't alter the stylesheet: "     \
-                                            "stylesheet parsing failed"));     \
-    QNINFO(errorDescription << ", original stylesheet: "                       \
-           << originalStyleSheet << ", stylesheet modified so far: "           \
-           << result << ", property index = " << propertyIndex);               \
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30))    \
-// REPORT_ERROR
-
-    for(auto it = properties.constBegin(),
-        end = properties.constEnd(); it != end; ++it)
+    QString extraStyleSheet;
+    for(auto * pPanel: panels)
     {
-        const StyleSheetProperty & property = *it;
-
-        QString propertyName = QString::fromUtf8(property.m_name);
-
-        int propertyIndex = -1;
-        while(true)
-        {
-            if (propertyIndex >= result.size()) {
-                break;
-            }
-
-            propertyIndex = result.indexOf(propertyName, propertyIndex + 1);
-            if (propertyIndex < 0) {
-                break;
-            }
-
-            if (propertyIndex > 0)
-            {
-                // Check that what we've found is the start of a word
-                QChar previousChar = result[propertyIndex - 1];
-                QString previousCharString(previousChar);
-                if (!previousCharString.trimmed().isEmpty()) {
-                    continue;
-                }
-            }
-
-            bool error = false;
-            bool insideHover = isInsideStyleBlock(
-                result, QStringLiteral(":hover:!pressed"), propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            error = false;
-            bool insidePressed = isInsideStyleBlock(
-                result, QStringLiteral(":pressed"), propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            error = false;
-            bool insidePseudoButtonHover =
-                isInsideStyleBlock(
-                    result, QStringLiteral("pseudoPushButton:hover:!pressed"),
-                    propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            error = false;
-            bool insidePseudoButtonPressed =
-                isInsideStyleBlock(
-                    result, QStringLiteral("pseudoPushButton:hover:pressed"),
-                    propertyIndex, error);
-            if (Q_UNLIKELY(error)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            int propertyEndIndex =
-                result.indexOf(QStringLiteral(";"), propertyIndex + 1);
-            if (Q_UNLIKELY(propertyEndIndex < 0)) {
-                REPORT_ERROR();
-                return QString();
-            }
-
-            QString replacement =
-                propertyName + QStringLiteral(": ") + property.m_value;
-
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
-#define REPLACE()                                                              \
-            QNDEBUG("Replacing substring " << result.midRef(                   \
-                        propertyIndex, propertyEndIndex - propertyIndex)       \
-                    << " with " << replacement);                               \
-            result.replace(propertyIndex, propertyEndIndex - propertyIndex,    \
-                           replacement);                                       \
-            QNDEBUG("Stylesheet after the replacement: " << result)            \
-// REPLACE
-#else
-#define REPLACE()                                                              \
-            QNDEBUG("Replacing substring " << result.mid(                      \
-                        propertyIndex, propertyEndIndex - propertyIndex)       \
-                    << " with " << replacement);                               \
-            result.replace(propertyIndex, propertyEndIndex - propertyIndex,    \
-                           replacement);                                       \
-            QNDEBUG("Stylesheet after the replacement: " << result)            \
-// REPLACE
-#endif
-
-            if (property.m_targetType == StyleSheetProperty::Target::None)
-            {
-                if (insideHover && !insidePseudoButtonHover) {
-                    continue;
-                }
-
-                if (insidePressed && !insidePseudoButtonPressed) {
-                    continue;
-                }
-
-                REPLACE();
-            }
-            else if (property.m_targetType == StyleSheetProperty::Target::ButtonHover)
-            {
-                if (insidePressed) {
-                    continue;
-                }
-
-                if (!insideHover || insidePseudoButtonHover) {
-                    continue;
-                }
-
-                REPLACE();
-            }
-            else if (property.m_targetType == StyleSheetProperty::Target::ButtonPressed)
-            {
-                if (!insidePressed || insidePseudoButtonPressed) {
-                    continue;
-                }
-
-                REPLACE();
-            }
+        if (pPanel->objectName().startsWith(QStringLiteral("upperBar"))) {
+            QTextStream strm(&extraStyleSheet);
+            strm << "#upperBarGenericPanel {\n"
+                << "border-bottom: 1px solid black;\n"
+                << "}\n";
         }
-    }
+        else {
+            extraStyleSheet.clear();
+        }
 
-    QNDEBUG("Altered stylesheet: " << result);
-    return result;
+        m_genericPanelStyleControllers.emplace_back(
+            std::make_unique<PanelStyleController>(pPanel, extraStyleSheet));
+    }
 }
 
-bool MainWindow::isInsideStyleBlock(
-    const QString & styleSheet, const QString & styleBlockStartSearchString,
-    const int currentIndex, bool & error) const
+void MainWindow::setupSidePanelStyleControllers()
 {
-    error = false;
+    auto panels = findChildren<PanelWidget*>(
+        QRegularExpression(QStringLiteral("(.*)SidePanel")));
 
-    int blockStartIndex = styleSheet.lastIndexOf(
-        styleBlockStartSearchString, currentIndex);
-    if (blockStartIndex < 0) {
-        // No block start before the current index => not inside the style block
-        // of this kind
-        return false;
+    m_sidePanelStyleControllers.clear();
+    m_sidePanelStyleControllers.reserve(
+        static_cast<size_t>(std::max(panels.size(), 0)));
+
+    for(auto * pPanel: panels) {
+        m_sidePanelStyleControllers.emplace_back(
+            std::make_unique<SidePanelStyleController>(pPanel));
     }
-
-    int blockEndIndex = styleSheet.lastIndexOf(QStringLiteral("}"), currentIndex);
-    if (blockEndIndex > blockStartIndex) {
-        // Block end was found after the last block start before the current
-        // index => the current index is not within the style block
-        return false;
-    }
-
-    // There's no block end between block start and the current index, need to
-    // look for the block end after the current index
-    blockEndIndex = styleSheet.indexOf(QStringLiteral("}"), currentIndex + 1);
-    if (Q_UNLIKELY(blockEndIndex < 0))
-    {
-        QNDEBUG("Can't parse stylesheet: can't find block end for style block "
-                "search string " << styleBlockStartSearchString);
-        error = true;
-        return false;
-    }
-
-    // Found first style block end after the current index while the block start
-    // is before the current index => the current index is inside the style block
-    return true;
 }
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-void MainWindow::fixupQt4StyleSheets()
-{
-    QNDEBUG("MainWindow::fixupQt4StyleSheets");
-
-    QString alternateCentralWidgetStylesheet = QString::fromUtf8(
-                "QSplitter::handle {"
-                "   background-color: black;"
-                "}"
-                "QSplitter::handle:horizontal {"
-                "   width: 1px;"
-                "}"
-                "QSplitter::handle:vertical {"
-                "   height: 1px;"
-                "}"
-                "#noteEditorVerticalSplitter::handle {"
-                "   background: none;"
-                "}");
-    m_pUI->centralWidget->setStyleSheet(alternateCentralWidgetStylesheet);
-
-    QString alternateNoteListFrameStylesheet = QString::fromUtf8(
-                "#notesListAndFiltersFrame {"
-                "   border: none;"
-                "}");
-    m_pUI->notesListAndFiltersFrame->setStyleSheet(alternateNoteListFrameStylesheet);
-
-    QString alternateFilterBodyFrameStylesheet = QString::fromUtf8(
-                "#filterBodyFrame {"
-                "  padding: 0px;"
-                "  margin: 0px;"
-                "  border: none;"
-                "  border-top: 1px solid black;"
-                "}");
-    m_pUI->filterBodyFrame->setStyleSheet(alternateFilterBodyFrameStylesheet);
-
-    QString alternateViewStylesheetBase = QString::fromUtf8(
-                "{"
-                "   border: none;"
-                "   margin-top: 1px;"
-                "   background-color: transparent;"
-                "}");
-
-    QString alternateFavoritesTableViewStylesheet =
-        QString::fromUtf8("#favoritesTableView ") + alternateViewStylesheetBase;
-    m_pUI->favoritesTableView->setStyleSheet(alternateFavoritesTableViewStylesheet);
-
-    QString alternateNotebooksTreeViewStylesheet =
-        QString::fromUtf8("#notebooksTreeView ") + alternateViewStylesheetBase;
-    m_pUI->notebooksTreeView->setStyleSheet(alternateNotebooksTreeViewStylesheet);
-
-    QString alternateTagsTreeViewStylesheet =
-        QString::fromUtf8("#tagsTreeView ") + alternateViewStylesheetBase;
-    m_pUI->tagsTreeView->setStyleSheet(alternateTagsTreeViewStylesheet);
-
-    QString alternateSavedSearchTableViewStylesheet =
-        QString::fromUtf8("#savedSearchesTableView ") +
-        alternateViewStylesheetBase;
-    m_pUI->savedSearchesTableView->setStyleSheet(
-        alternateSavedSearchTableViewStylesheet);
-
-    QString alternateDeletedNotesTableViewStylesheet =
-        QString::fromUtf8("#deletedNotesTableView ") +
-        alternateViewStylesheetBase;
-    m_pUI->deletedNotesTableView->setStyleSheet(
-        alternateDeletedNotesTableViewStylesheet);
-
-    QString alternateSidePanelSplitterStylesheet = QString::fromUtf8(
-                "QFrame {"
-                "   border: none;"
-                "}"
-                "#sidePanelSplitter {"
-                "   border-bottom: 1px solid black;"
-                "}");
-    m_pUI->sidePanelSplitter->setStyleSheet(alternateSidePanelSplitterStylesheet);
-
-    QString alternateNoteListWidgetHeaderPanelStylesheet =
-        m_pUI->noteListWidgetHeaderPanel->styleSheet();
-    int index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
-        QStringLiteral("QLabel"));
-    if (Q_UNLIKELY(index < 0))
-    {
-        QNDEBUG("Can't fixup the stylesheet of note list widget "
-                "header panel: no QLabel within the stylesheet");
-        return;
-    }
-
-    index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
-        QStringLiteral("border-right"), index);
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of note list widget "
-                "header panel: no border-right property for QLabel "
-                "within the stylesheet");
-        return;
-    }
-
-    int propertyEndIndex = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(
-        QStringLiteral(";"), index);
-    if (Q_UNLIKELY(propertyEndIndex < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of note list widget "
-                "header panel: no closing \";\" for border-right "
-                "property for QLabel within the stylesheet");
-        return;
-    }
-
-    alternateNoteListWidgetHeaderPanelStylesheet.remove(
-        index, propertyEndIndex - index + 1);
-    QNDEBUG("alternateNoteListWidgetHeaderPanelStylesheet: "
-            << alternateNoteListWidgetHeaderPanelStylesheet);
-    m_pUI->noteListWidgetHeaderPanel->setStyleSheet(
-        alternateNoteListWidgetHeaderPanelStylesheet);
-
-    // Add bottom border to the header panel widgets
-    QString alternativeFavoritesHeaderPanelStylesheet =
-        m_pUI->favoritesHeaderPanel->styleSheet();
-    index = alternativeFavoritesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of favorites header "
-                "panel: no first closing curly brace found within "
-                "the stylesheet");
-        return;
-    }
-    alternativeFavoritesHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->favoritesHeaderPanel->setStyleSheet(
-        alternativeFavoritesHeaderPanelStylesheet);
-    m_pUI->favoritesHeaderPanel->setMinimumHeight(23);
-    m_pUI->favoritesHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeNotebooksHeaderPanelStylesheet =
-        m_pUI->notebooksHeaderPanel->styleSheet();
-    index = alternativeNotebooksHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of notebooks header "
-                "panel: no first closing curly brace found within "
-                "the stylesheet");
-        return;
-    }
-    alternativeNotebooksHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->notebooksHeaderPanel->setStyleSheet(
-        alternativeNotebooksHeaderPanelStylesheet);
-    m_pUI->notebooksHeaderPanel->setMinimumHeight(23);
-    m_pUI->notebooksHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeTagsHeaderPanelStylesheet =
-        m_pUI->tagsHeaderPanel->styleSheet();
-    index = alternativeTagsHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of tags header panel: "
-                "no first closing curly brace found within "
-                "the stylesheet");
-        return;
-    }
-    alternativeTagsHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->tagsHeaderPanel->setStyleSheet(alternativeTagsHeaderPanelStylesheet);
-    m_pUI->tagsHeaderPanel->setMinimumHeight(23);
-    m_pUI->tagsHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeSavedSearchesHeaderPanelStylesheet =
-        m_pUI->savedSearchesHeaderPanel->styleSheet();
-    index = alternativeSavedSearchesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of saved searches "
-                "header panel: no first closing curly brace "
-                "found within the stylesheet");
-        return;
-    }
-    alternativeSavedSearchesHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->savedSearchesHeaderPanel->setStyleSheet(
-        alternativeSavedSearchesHeaderPanelStylesheet);
-    m_pUI->savedSearchesHeaderPanel->setMinimumHeight(23);
-    m_pUI->savedSearchesHeaderPanel->setMaximumHeight(23);
-
-    QString alternativeDeletedNotesHeaderPanelStylesheet =
-        m_pUI->deletedNotesHeaderPanel->styleSheet();
-    index = alternativeDeletedNotesHeaderPanelStylesheet.indexOf(QStringLiteral("}"));
-    if (Q_UNLIKELY(index < 0)) {
-        QNDEBUG("Can't fixup the stylesheet of deleted notes "
-                "header panel: no first closing curly brace "
-                "found within the stylesheet");
-        return;
-    }
-    alternativeDeletedNotesHeaderPanelStylesheet.insert(
-        index, QStringLiteral("border-bottom: 1px solid black;"));
-    m_pUI->deletedNotesHeaderPanel->setStyleSheet(
-        alternativeDeletedNotesHeaderPanelStylesheet);
-    m_pUI->deletedNotesHeaderPanel->setMinimumHeight(23);
-    m_pUI->deletedNotesHeaderPanel->setMaximumHeight(23);
-}
-#endif
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
 {
@@ -1950,9 +1607,9 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
 
     pStatusBar->clearMessage();
 
-    if (m_currentStatusBarChildWidget != Q_NULLPTR) {
+    if (m_currentStatusBarChildWidget != nullptr) {
         pStatusBar->removeWidget(m_currentStatusBarChildWidget);
-        m_currentStatusBarChildWidget = Q_NULLPTR;
+        m_currentStatusBarChildWidget = nullptr;
     }
 
     if (duration == 0) {
@@ -2747,88 +2404,17 @@ void MainWindow::onShowPreferencesDialogAction()
     QList<QMenu*> menus = m_pUI->menuBar->findChildren<QMenu*>();
     ActionsInfo actionsInfo(menus);
 
-    QScopedPointer<PreferencesDialog> pPreferencesDialog(
-        new PreferencesDialog(*m_pAccountManager, m_shortcutManager,
-                              *m_pSystemTrayIconManager, actionsInfo, this));
+    auto pPreferencesDialog = std::make_unique<PreferencesDialog>(
+        *m_pAccountManager,
+        m_shortcutManager,
+        *m_pSystemTrayIconManager,
+        actionsInfo,
+        this);
+
     pPreferencesDialog->setWindowModality(Qt::WindowModal);
     centerDialog(*pPreferencesDialog);
-
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorUseLimitedFontsOptionChanged,bool),
-                     this,
-                     QNSLOT(MainWindow,onUseLimitedFontsPreferenceChanged,bool));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,iconThemeChanged,QString),
-                     this,
-                     QNSLOT(MainWindow,onSwitchIconTheme,QString));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,panelStyleChanged,QString),
-                     this,
-                     QNSLOT(MainWindow,onSwitchPanelStyle,QString));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              synchronizationDownloadNoteThumbnailsOptionChanged,
-                              bool),
-                     this,
-                     QNSIGNAL(MainWindow,
-                              synchronizationDownloadNoteThumbnailsOptionChanged,
-                              bool));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              synchronizationDownloadInkNoteImagesOptionChanged,
-                              bool),
-                     this,
-                     QNSIGNAL(MainWindow,
-                              synchronizationDownloadInkNoteImagesOptionChanged,
-                              bool));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,showNoteThumbnailsOptionChanged),
-                     this,
-                     QNSLOT(MainWindow,onShowNoteThumbnailsPreferenceChanged));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,disableNativeMenuBarOptionChanged),
-                     this,
-                     QNSLOT(MainWindow,onDisableNativeMenuBarPreferenceChanged));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              runSyncPeriodicallyOptionChanged,int),
-                     this,
-                     QNSLOT(MainWindow,
-                            onRunSyncEachNumMinitesPreferenceChanged,int));
-
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorFontColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorFontColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorBackgroundColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorBackgroundColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorHighlightColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorHighlightColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorHighlightedTextColorChanged,QColor),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorHighlightedTextColorChanged,QColor));
-    QObject::connect(pPreferencesDialog.data(),
-                     QNSIGNAL(PreferencesDialog,
-                              noteEditorColorsReset),
-                     m_pNoteEditorTabsAndWindowsCoordinator,
-                     QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,
-                              noteEditorColorsReset));
-
-    Q_UNUSED(pPreferencesDialog->exec());
+    connectToPreferencesDialogSignals(*pPreferencesDialog);
+    Q_UNUSED(pPreferencesDialog->exec())
 }
 
 void MainWindow::onNoteSortingModeChanged(int index)
@@ -3346,6 +2932,86 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(
         startTimer(SEC_TO_MSEC(runSyncEachNumMinutes * 60));
 }
 
+void MainWindow::onPanelFontColorChanged(QColor color)
+{
+    QNDEBUG("MainWindow::onPanelFontColorChanged: " << color.name());
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+        pPanelStyleController->setOverrideFontColor(color);
+    }
+
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+        pPanelStyleController->setOverrideFontColor(color);
+    }
+}
+
+void MainWindow::onPanelBackgroundColorChanged(QColor color)
+{
+    QNDEBUG("MainWindow::onPanelBackgroundColorChanged: " << color.name());
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG("No current account");
+        return;
+    }
+
+    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    bool useBackgroundGradient =
+        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY).toBool();
+    settings.endGroup();
+
+    if (useBackgroundGradient) {
+        QNDEBUG("Background gradient is used instead of solid color");
+        return;
+    }
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundColor(color);
+    }
+
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundColor(color);
+    }
+}
+
+void MainWindow::onPanelUseBackgroundGradientSettingChanged(
+    bool useBackgroundGradient)
+{
+    QNDEBUG("MainWindow::onPanelUseBackgroundGradientSettingChanged: "
+        << (useBackgroundGradient ? "true" : "false"));
+
+    restorePanelColors();
+}
+
+void MainWindow::onPanelBackgroundLinearGradientChanged(QLinearGradient gradient)
+{
+    QNDEBUG("MainWindow::onPanelBackgroundLinearGradientChanged");
+
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG("No current account");
+        return;
+    }
+
+    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    bool useBackgroundGradient =
+        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY).toBool();
+    settings.endGroup();
+
+    if (!useBackgroundGradient) {
+        QNDEBUG("Background color is used instead of gradient");
+        return;
+    }
+
+    for(auto & pPanelStyleController: m_genericPanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundGradient(gradient);
+    }
+
+    for(auto & pPanelStyleController: m_sidePanelStyleControllers) {
+        pPanelStyleController->setOverrideBackgroundGradient(gradient);
+    }
+}
+
 void MainWindow::onSaveNoteSearchQueryButtonPressed()
 {
     QString searchString = m_pUI->searchQueryLineEdit->text();
@@ -3622,7 +3288,7 @@ void MainWindow::onAccountSwitched(Account account)
     }
 
     bool cacheIsUsed =
-        (m_pLocalStorageManagerAsync->localStorageCacheManager() != Q_NULLPTR);
+        (m_pLocalStorageManagerAsync->localStorageCacheManager() != nullptr);
     m_pLocalStorageManagerAsync->setUseCache(false);
 
     ErrorString errorDescription;
@@ -3858,10 +3524,10 @@ void MainWindow::onShowToolbarActionToggled(bool checked)
     appSettings.endGroup();
 
     if (checked) {
-        m_pUI->upperBarPanel->show();
+        m_pUI->upperBarGenericPanel->show();
     }
     else {
-        m_pUI->upperBarPanel->hide();
+        m_pUI->upperBarGenericPanel->hide();
     }
 }
 
@@ -3890,10 +3556,16 @@ void MainWindow::onSwitchIconTheme(const QString & iconTheme)
     if (iconTheme == tr("Native")) {
         onSwitchIconThemeToNativeAction();
     }
-    else if (iconTheme == QStringLiteral("Oxygen")) {
+    else if (iconTheme == QStringLiteral("breeze")) {
+        onSwitchIconThemeToBreezeAction();
+    }
+    else if (iconTheme == QStringLiteral("breeze-dark")) {
+        onSwitchIconThemeToBreezeDarkAction();
+    }
+    else if (iconTheme == QStringLiteral("oxygen")) {
         onSwitchIconThemeToOxygenAction();
     }
-    else if (iconTheme == QStringLiteral("Tango")) {
+    else if (iconTheme == QStringLiteral("tango")) {
         onSwitchIconThemeToTangoAction();
     }
     else {
@@ -3963,92 +3635,40 @@ void MainWindow::onSwitchIconThemeToOxygenAction()
     refreshChildWidgetsThemeIcons();
 }
 
-void MainWindow::onSwitchPanelStyle(const QString & panelStyle)
+void MainWindow::onSwitchIconThemeToBreezeAction()
 {
-    QNDEBUG("MainWindow::onSwitchPanelStyle: " << panelStyle);
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconThemeToBreezeAction"));
 
-    if (panelStyle == tr("Built-in")) {
-        onSwitchPanelStyleToBuiltIn();
-    }
-    else if (panelStyle == tr("Lighter")) {
-        onSwitchPanelStyleToLighter();
-    }
-    else if (panelStyle == tr("Darker")) {
-        onSwitchPanelStyleToDarker();
-    }
-    else {
-        ErrorString error(QT_TR_NOOP("Unknown panel style selected"));
-        error.details() = panelStyle;
-        QNWARNING(error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
-    }
-}
+    QString breeze = QStringLiteral("breeze");
 
-void MainWindow::onSwitchPanelStyleToBuiltIn()
-{
-    QNDEBUG("MainWindow::onSwitchPanelStyleToBuiltIn");
-
-    if (m_currentPanelStyle.isEmpty()) {
-        ErrorString error(QT_TR_NOOP("Already using the built-in panel style"));
+    if (QIcon::themeName() == breeze) {
+        ErrorString error(QT_TR_NOOP("Already using breeze icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
     }
 
-    m_currentPanelStyle.clear();
-
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.remove(PANELS_STYLE_SETTINGS_KEY);
-    appSettings.endGroup();
-
-    setPanelsOverlayStyleSheet(StyleSheetProperties());
+    QIcon::setThemeName(breeze);
+    persistChosenIconTheme(breeze);
+    refreshChildWidgetsThemeIcons();
 }
 
-void MainWindow::onSwitchPanelStyleToLighter()
+void MainWindow::onSwitchIconThemeToBreezeDarkAction()
 {
-    QNDEBUG("MainWindow::onSwitchPanelStyleToLighter");
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconThemeToBreezeDarkAction"));
 
-    if (m_currentPanelStyle == LIGHTER_PANEL_STYLE_NAME) {
-        ErrorString error(QT_TR_NOOP("Already using the lighter panel style"));
+    QString breezeDark = QStringLiteral("breeze-dark");
+
+    if (QIcon::themeName() == breezeDark) {
+        ErrorString error(QT_TR_NOOP("Already using breeze-dark icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
         return;
     }
 
-    m_currentPanelStyle = LIGHTER_PANEL_STYLE_NAME;
-
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
-    appSettings.endGroup();
-
-    StyleSheetProperties properties;
-    getPanelStyleSheetProperties(m_currentPanelStyle, properties);
-    setPanelsOverlayStyleSheet(properties);
-}
-
-void MainWindow::onSwitchPanelStyleToDarker()
-{
-    QNDEBUG("MainWindow::onSwitchPanelStyleToDarker");
-
-    if (m_currentPanelStyle == DARKER_PANEL_STYLE_NAME) {
-        ErrorString error(QT_TR_NOOP("Already using the darker panel style"));
-        QNDEBUG(error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
-        return;
-    }
-
-    m_currentPanelStyle = DARKER_PANEL_STYLE_NAME;
-
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(PANELS_STYLE_SETTINGS_KEY, m_currentPanelStyle);
-    appSettings.endGroup();
-
-    StyleSheetProperties properties;
-    getPanelStyleSheetProperties(m_currentPanelStyle, properties);
-    setPanelsOverlayStyleSheet(properties);
+    QIcon::setThemeName(breezeDark);
+    persistChosenIconTheme(breezeDark);
+    refreshChildWidgetsThemeIcons();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestComplete(
@@ -4704,23 +4324,35 @@ void MainWindow::setupThemeIcons()
     m_nativeIconThemeName = QIcon::themeName();
     QNDEBUG("Native icon theme name: " << m_nativeIconThemeName);
 
-    if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
         QNDEBUG("There seems to be no native icon theme available: "
-                "document-open icon is not present within the theme");
+                "document-new icon is not present within the theme");
         m_nativeIconThemeName.clear();
     }
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    QString iconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
+    QString lastUsedIconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
     appSettings.endGroup();
 
-    if (!iconThemeName.isEmpty()) {
-        QNDEBUG("Last chosen icon theme: " << iconThemeName);
+    QString iconThemeName;
+    if (!lastUsedIconThemeName.isEmpty())
+    {
+        QNDEBUG("Last chosen icon theme: " << lastUsedIconThemeName);
+        iconThemeName = lastUsedIconThemeName;
     }
-    else {
-        QNDEBUG("No last chosen icon theme, fallback to oxygen");
-        iconThemeName = QStringLiteral("oxygen");
+    else
+    {
+        QNDEBUG("No last chosen icon theme");
+
+        if (!m_nativeIconThemeName.isEmpty()) {
+            QNDEBUG("Using native icon theme: " << m_nativeIconThemeName);
+            iconThemeName = m_nativeIconThemeName;
+        }
+        else {
+            iconThemeName = fallbackIconThemeName();
+            QNDEBUG("Using fallback icon theme: " << iconThemeName);
+        }
     }
 
     QIcon::setThemeName(iconThemeName);
@@ -4897,7 +4529,7 @@ void MainWindow::setupModels()
                                          NoteModel::IncludedNotes::Deleted);
     m_pDeletedNotesModel->start();
 
-    if (m_pNoteCountLabelController == Q_NULLPTR) {
+    if (m_pNoteCountLabelController == nullptr) {
         m_pNoteCountLabelController =
             new NoteCountLabelController(*m_pUI->notesCountLabelPanel, this);
     }
@@ -4931,34 +4563,34 @@ void MainWindow::clearModels()
 
     if (m_pNotebookModel) {
         delete m_pNotebookModel;
-        m_pNotebookModel = Q_NULLPTR;
+        m_pNotebookModel = nullptr;
     }
 
     if (m_pTagModel) {
         delete m_pTagModel;
-        m_pTagModel = Q_NULLPTR;
+        m_pTagModel = nullptr;
     }
 
     if (m_pSavedSearchModel) {
         delete m_pSavedSearchModel;
-        m_pSavedSearchModel = Q_NULLPTR;
+        m_pSavedSearchModel = nullptr;
     }
 
     if (m_pNoteModel) {
         m_pNoteModel->stop(IStartable::StopMode::Forced);
         delete m_pNoteModel;
-        m_pNoteModel = Q_NULLPTR;
+        m_pNoteModel = nullptr;
     }
 
     if (m_pDeletedNotesModel) {
         m_pDeletedNotesModel->stop(IStartable::StopMode::Forced);
         delete m_pDeletedNotesModel;
-        m_pDeletedNotesModel = Q_NULLPTR;
+        m_pDeletedNotesModel = nullptr;
     }
 
     if (m_pFavoritesModel) {
         delete m_pFavoritesModel;
-        m_pFavoritesModel = Q_NULLPTR;
+        m_pFavoritesModel = nullptr;
     }
 }
 
@@ -5000,9 +4632,9 @@ void MainWindow::setupShowHideStartupSettings()
     CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowNotesList"),
                                ShowNotesList, notesListAndFiltersFrame)
     CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowToolbar"),
-                               ShowToolbar, upperBarPanel)
+                               ShowToolbar, upperBarGenericPanel)
     CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowStatusBar"),
-                               ShowStatusBar, upperBarPanel)
+                               ShowStatusBar, upperBarGenericPanel)
 
 #undef CHECK_AND_SET_SHOW_SETTING
 
@@ -5031,7 +4663,7 @@ void MainWindow::setupViews()
 
         if (pPreviousFavoriteItemDelegate) {
             pPreviousFavoriteItemDelegate->deleteLater();
-            pPreviousFavoriteItemDelegate = Q_NULLPTR;
+            pPreviousFavoriteItemDelegate = nullptr;
         }
     }
 
@@ -5041,21 +4673,12 @@ void MainWindow::setupViews()
     pFavoritesTableView->setColumnWidth(FavoritesModel::Columns::Type,
                                         pFavoriteItemDelegate->sideSize());
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pFavoritesModelColumnChangeRerouter,
                      &ColumnChangeRerouter::dataChanged,
                      pFavoritesTableView,
                      &FavoriteItemView::dataChanged,
                      Qt::UniqueConnection);
     pFavoritesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    QObject::connect(m_pFavoritesModelColumnChangeRerouter,
-                     SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     pFavoritesTableView,
-                     SLOT(dataChanged(QModelIndex,QModelIndex)),
-                     Qt::UniqueConnection);
-    pFavoritesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
 
     QObject::connect(pFavoritesTableView,
                      QNSIGNAL(FavoriteItemView,notifyError,ErrorString),
@@ -5083,7 +4706,7 @@ void MainWindow::setupViews()
 
         if (pPreviousNotebookItemDelegate) {
             pPreviousNotebookItemDelegate->deleteLater();
-            pPreviousNotebookItemDelegate = Q_NULLPTR;
+            pPreviousNotebookItemDelegate = nullptr;
         }
     }
 
@@ -5108,13 +4731,12 @@ void MainWindow::setupViews()
 
         if (pPreviousNotebookDirtyColumnDelegate) {
             pPreviousNotebookDirtyColumnDelegate->deleteLater();
-            pPreviousNotebookDirtyColumnDelegate = Q_NULLPTR;
+            pPreviousNotebookDirtyColumnDelegate = nullptr;
         }
     }
 
     pNotebooksTreeView->setColumnWidth(NotebookModel::Columns::Dirty,
                                        pNotebookDirtyColumnDelegate->sideSize());
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pNotebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pNotebookModelColumnChangeRerouter,
                      QNSIGNAL(ColumnChangeRerouter,dataChanged,
@@ -5125,16 +4747,6 @@ void MainWindow::setupViews()
                             const QModelIndex&,const QModelIndex&,
                             const QVector<int>&),
                      Qt::UniqueConnection);
-#else
-    pNotebooksTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
-    QObject::connect(m_pNotebookModelColumnChangeRerouter,
-                     QNSIGNAL(ColumnChangeRerouter,dataChanged,
-                              const QModelIndex&,const QModelIndex&),
-                     pNotebooksTreeView,
-                     QNSLOT(NotebookItemView,dataChanged,
-                            const QModelIndex&,const QModelIndex&),
-                     Qt::UniqueConnection);
-#endif
 
     QObject::connect(pNotebooksTreeView,
                      QNSIGNAL(NotebookItemView,newNotebookCreationRequested),
@@ -5170,7 +4782,7 @@ void MainWindow::setupViews()
 
         if (pPreviousTagDirtyColumnDelegate) {
             pPreviousTagDirtyColumnDelegate->deleteLater();
-            pPreviousTagDirtyColumnDelegate = Q_NULLPTR;
+            pPreviousTagDirtyColumnDelegate = nullptr;
         }
     }
 
@@ -5189,11 +4801,10 @@ void MainWindow::setupViews()
 
         if (pPreviousTagItemDelegate) {
             pPreviousTagItemDelegate->deleteLater();
-            pPreviousTagItemDelegate = Q_NULLPTR;
+            pPreviousTagItemDelegate = nullptr;
         }
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pTagsTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pTagModelColumnChangeRerouter,
                      QNSIGNAL(ColumnChangeRerouter,dataChanged,
@@ -5204,16 +4815,6 @@ void MainWindow::setupViews()
                             const QModelIndex&,const QModelIndex&,
                             const QVector<int>&),
                      Qt::UniqueConnection);
-#else
-    pTagsTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
-    QObject::connect(m_pTagModelColumnChangeRerouter,
-                     QNSIGNAL(ColumnChangeRerouter,dataChanged,
-                              const QModelIndex&,const QModelIndex&),
-                     pTagsTreeView,
-                     QNSLOT(TagItemView,dataChanged,
-                            const QModelIndex&,const QModelIndex&),
-                     Qt::UniqueConnection);
-#endif
 
     QObject::connect(pTagsTreeView,
                      QNSIGNAL(TagItemView,newTagCreationRequested),
@@ -5251,18 +4852,14 @@ void MainWindow::setupViews()
 
         if (pPreviousSavedSearchDirtyColumnDelegate) {
             pPreviousSavedSearchDirtyColumnDelegate->deleteLater();
-            pPreviousSavedSearchDirtyColumnDelegate = Q_NULLPTR;
+            pPreviousSavedSearchDirtyColumnDelegate = nullptr;
         }
     }
 
     pSavedSearchesTableView->setColumnWidth(
         SavedSearchModel::Columns::Dirty,
         pSavedSearchDirtyColumnDelegate->sideSize());
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pSavedSearchesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    pSavedSearchesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
 
     QObject::connect(pSavedSearchesTableView,
                      QNSIGNAL(SavedSearchItemView,savedSearchInfoRequested),
@@ -5298,24 +4895,16 @@ void MainWindow::setupViews()
 
         if (pPreviousNoteItemDelegate) {
             pPreviousNoteItemDelegate->deleteLater();
-            pPreviousNoteItemDelegate = Q_NULLPTR;
+            pPreviousNoteItemDelegate = nullptr;
         }
     }
 
     pNoteListView->setNotebookItemView(pNotebooksTreeView);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pNoteModelColumnChangeRerouter,
                      &ColumnChangeRerouter::dataChanged,
                      pNoteListView,
                      &NoteListView::dataChanged,
                      Qt::UniqueConnection);
-#else
-    QObject::connect(m_pNoteModelColumnChangeRerouter,
-                     SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                     pNoteListView,
-                     SLOT(dataChanged(QModelIndex,QModelIndex)),
-                     Qt::UniqueConnection);
-#endif
     QObject::connect(pNoteListView,
                      QNSIGNAL(NoteListView,currentNoteChanged,QString),
                      this,
@@ -5430,15 +5019,11 @@ void MainWindow::setupViews()
 
         if (pPreviousDeletedNoteItemDelegate) {
             pPreviousDeletedNoteItemDelegate->deleteLater();
-            pPreviousDeletedNoteItemDelegate = Q_NULLPTR;
+            pPreviousDeletedNoteItemDelegate = nullptr;
         }
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     pDeletedNotesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#else
-    pDeletedNotesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
-#endif
 
     if (!m_pEditNoteDialogsManager)
     {
@@ -5545,6 +5130,24 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
     appSettings.setValue(HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
                          QStringList(hideThumbnailsForSet.values()));
     appSettings.endGroup();
+}
+
+QString MainWindow::fallbackIconThemeName() const
+{
+    const QPalette & pal = palette();
+    const QColor & windowColor = pal.color(QPalette::Window);
+
+    // lightness is the HSL color model value from 0 to 255
+    // which can be used to deduce whether light or dark color theme
+    // is used
+    int lightness = windowColor.lightness();
+
+    if (lightness < 128) {
+        // It appears that dark color theme is used
+        return QStringLiteral("breeze-dark");
+    }
+
+    return QStringLiteral("breeze");
 }
 
 void MainWindow::clearViews()
@@ -5835,12 +5438,12 @@ void MainWindow::clearSynchronizationManager()
     if (m_pSynchronizationManager) {
         m_pSynchronizationManager->disconnect(this);
         m_pSynchronizationManager->deleteLater();
-        m_pSynchronizationManager = Q_NULLPTR;
+        m_pSynchronizationManager = nullptr;
     }
 
     if (m_pAuthenticationManager) {
         m_pAuthenticationManager->deleteLater();
-        m_pAuthenticationManager = Q_NULLPTR;
+        m_pAuthenticationManager = nullptr;
     }
 
     if (m_pSynchronizationManagerThread &&
@@ -5864,7 +5467,7 @@ void MainWindow::clearSynchronizationManager()
         m_pSynchronizationManagerThread->quit();
         m_pSynchronizationManagerThread->wait();
         m_pSynchronizationManagerThread->deleteLater();
-        m_pSynchronizationManagerThread = Q_NULLPTR;
+        m_pSynchronizationManagerThread = nullptr;
 
     }
 

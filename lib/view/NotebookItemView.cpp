@@ -53,8 +53,8 @@ namespace quentier {
 
 NotebookItemView::NotebookItemView(QWidget * parent) :
     ItemView(parent),
-    m_pNotebookItemContextMenu(Q_NULLPTR),
-    m_pNotebookStackItemContextMenu(Q_NULLPTR),
+    m_pNotebookItemContextMenu(nullptr),
+    m_pNotebookStackItemContextMenu(nullptr),
     m_pNoteFiltersManager(),
     m_notebookLocalUidPendingNoteFiltersManagerReadiness(),
     m_trackingNotebookModelItemsState(false),
@@ -230,11 +230,7 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
 void NotebookItemView::setNoteModel(const NoteModel * pNoteModel)
 {
-#if QT_VERSION < 0x050000
-    m_pNoteModel = const_cast<NoteModel*>(pNoteModel);
-#else
     m_pNoteModel = pNoteModel;
-#endif
 }
 
 QModelIndex NotebookItemView::currentlySelectedItemIndex() const
@@ -709,7 +705,7 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
         }
 
         QModelIndex childIndex =
-            notebookStackItemIndex.child(0, NotebookModel::Columns::Name);
+            notebookStackItemIndex.model()->index(0, NotebookModel::Columns::Name);
         if (!childIndex.isValid()) {
             QNDEBUG("Detected invalid child item index for "
                     "the notebook stack item, breaking the loop");

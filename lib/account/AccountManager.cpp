@@ -30,10 +30,7 @@
 
 #include <QXmlStreamWriter>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
 #include <boost/scope_exit.hpp>
-#endif
 
 namespace quentier {
 
@@ -408,13 +405,8 @@ void AccountManager::detectAvailableAccounts()
         QStringRef userIdStrRef =
             accountName.rightRef(accountNameSize - lastUnderlineIndex - 1);
         bool conversionResult = false;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
         userId =
             static_cast<qevercloud::UserID>(userIdStrRef.toInt(&conversionResult));
-#else
-        userId =
-            static_cast<qevercloud::UserID>(userIdStrRef.toString().toInt(&conversionResult));
-#endif
         if (Q_UNLIKELY(!conversionResult))
         {
             QNTRACE("Skipping dir " << accountName
@@ -791,10 +783,6 @@ Account AccountManager::accountFromEnvVarHints()
 {
     QNDEBUG("AccountManager::accountFromEnvVarHints");
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 1, 0)
-#define qEnvironmentVariableIsEmpty(x) qgetenv(x).isEmpty()
-#endif
-
     if (qEnvironmentVariableIsEmpty(ACCOUNT_NAME_ENV_VAR)) {
         QNDEBUG("Account name environment variable is not set or is empty");
         return Account();
@@ -833,10 +821,6 @@ Account AccountManager::accountFromEnvVarHints()
     Account::EvernoteAccountType::type evernoteAccountType =
         Account::EvernoteAccountType::Free;
     QString evernoteHost;
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 5, 0)
-#define qEnvironmentVariableIntValue(x, ok) qgetenv(x).toInt(ok)
-#endif
 
     if (!isLocal)
     {

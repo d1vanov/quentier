@@ -44,7 +44,7 @@ public:
         QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     bool isStarted() const { return m_started; }
     bool isFinished() const { return m_finished; }

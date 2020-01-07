@@ -34,7 +34,7 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
 
     auto & localStorageManager = *pLocalStorageManager->localStorageManager();
     if (localStorageManager.isLocalStorageVersionTooHigh(errorDescription)) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches =
@@ -43,7 +43,7 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
         errorDescription.setBase(QT_TR_NOOP("Local storage requires upgrade. "
                                             "Please start Quentier before running "
                                             "wiki2account"));
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     pLocalStorageManager->moveToThread(&localStorageThread);

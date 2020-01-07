@@ -45,8 +45,8 @@ namespace quentier {
 
 NoteListView::NoteListView(QWidget * parent) :
     QListView(parent),
-    m_pNoteItemContextMenu(Q_NULLPTR),
-    m_pNotebookItemView(Q_NULLPTR),
+    m_pNoteItemContextMenu(nullptr),
+    m_pNotebookItemView(nullptr),
     m_shouldSelectFirstNoteOnNextNoteAddition(false),
     m_currentAccount(),
     m_lastCurrentNoteLocalUid()
@@ -197,19 +197,10 @@ void NoteListView::selectNotesByLocalUids(const QStringList & noteLocalUids)
 }
 
 void NoteListView::dataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    )
-#else
-    , const QVector<int> & roles)
-#endif
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
-    QListView::dataChanged(topLeft, bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-                               );
-#else
-                               , roles);
-#endif
+    QListView::dataChanged(topLeft, bottomRight, roles);
 }
 
 void NoteListView::rowsAboutToBeRemoved(
@@ -657,7 +648,7 @@ void NoteListView::showSingleNoteContextMenu(
     delete m_pNoteItemContextMenu;
     m_pNoteItemContextMenu = new QMenu(this);
 
-    const NotebookItem * pNotebookItem = Q_NULLPTR;
+    const NotebookItem * pNotebookItem = nullptr;
     if (pNotebookModel)
     {
         QModelIndex notebookIndex =
@@ -891,14 +882,14 @@ const NotebookItem * NoteListView::currentNotebookItem()
         m_pNotebookItemView->currentlySelectedItemIndex();
     if (Q_UNLIKELY(!currentNotebookItemIndex.isValid())) {
         QNDEBUG("No current notebook within the notebook view");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const NotebookModel * pNotebookModel =
         qobject_cast<const NotebookModel*>(m_pNotebookItemView->model());
     if (!pNotebookModel) {
         QNDEBUG("No notebook model is set to the notebook view");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const NotebookModelItem * pNotebookModelItem =
@@ -906,12 +897,12 @@ const NotebookItem * NoteListView::currentNotebookItem()
     if (Q_UNLIKELY(!pNotebookModelItem)) {
         REPORT_ERROR(QT_TR_NOOP("Can't find the notebook model item corresponding "
                                 "to the current item selected in the notebooks view"));
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     if (pNotebookModelItem->type() != NotebookModelItem::Type::Notebook) {
         QNDEBUG("Non-notebook item is selected within the notebook item view");
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
@@ -927,13 +918,13 @@ NoteModel * NoteListView::noteModel() const
 {
     QAbstractItemModel * pModel = model();
     if (Q_UNLIKELY(!pModel)) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     NoteModel * pNoteModel = qobject_cast<NoteModel *>(pModel);
     if (Q_UNLIKELY(!pNoteModel)) {
         QNERROR("Wrong model connected to the note list view");
-        return Q_NULLPTR;
+        return nullptr;
     }
     return pNoteModel;
 }

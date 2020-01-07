@@ -36,7 +36,7 @@ public:
         const quint32 minTagsPerNote,
         const quint32 maxTagsPerNote,
         LocalStorageManagerAsync & localStorageManagerAsync,
-        QObject * parent = Q_NULLPTR);
+        QObject * parent = nullptr);
 
     virtual ~TagController();
 

@@ -42,7 +42,7 @@ public:
     explicit EditNoteDialogsManager(
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteCache & noteCache, NotebookModel * pNotebookModel,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     void setNotebookModel(NotebookModel * pNotebookModel);
 

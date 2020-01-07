@@ -38,7 +38,7 @@ namespace quentier {
 
 DeletedNoteItemView::DeletedNoteItemView(QWidget * parent) :
     ItemView(parent),
-    m_pDeletedNoteItemContextMenu(Q_NULLPTR)
+    m_pDeletedNoteItemContextMenu(nullptr)
 {}
 
 QModelIndex DeletedNoteItemView::currentlySelectedItemIndex() const

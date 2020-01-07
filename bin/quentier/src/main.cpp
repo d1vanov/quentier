@@ -116,7 +116,7 @@ int main(int argc, char * argv[])
     catch(const quentier::DatabaseLockedException & dbLockedException)
     {
         criticalMessageBox(
-            Q_NULLPTR, QObject::tr("Quentier cannot start"),
+            nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Database is locked"),
             QObject::tr("Quentier cannot start because its database is locked. "
                         "It should only happen if another instance is already "
@@ -136,7 +136,7 @@ int main(int argc, char * argv[])
     catch(const quentier::DatabaseOpeningException & dbOpeningException)
     {
         criticalMessageBox(
-            Q_NULLPTR, QObject::tr("Quentier cannot start"),
+            nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Failed to open the local storage database"),
             QObject::tr("Quentier cannot start because it could not open "
                         "the database. On Windows it might happen if another "
@@ -151,7 +151,7 @@ int main(int argc, char * argv[])
     catch(const quentier::LocalStorageVersionTooHighException & versionTooHighException)
     {
         criticalMessageBox(
-            Q_NULLPTR, QObject::tr("Quentier cannot start"),
+            nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Local storage is too new for used libquentier version "
                         "to handle"),
             QObject::tr("The version of local storage persistence for the account "
@@ -171,7 +171,7 @@ int main(int argc, char * argv[])
     catch(const quentier::IQuentierException & exception)
     {
         internalErrorMessageBox(
-            Q_NULLPTR,
+            nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
             exception.localizedErrorMessage());
 
@@ -182,7 +182,7 @@ int main(int argc, char * argv[])
     catch(const std::exception & exception)
     {
         internalErrorMessageBox(
-            Q_NULLPTR,
+            nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
             QString::fromUtf8(exception.what()));
 

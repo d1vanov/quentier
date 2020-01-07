@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5.1)
+
+project(quentier)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/sanitizers ${CMAKE_MODULE_PATH})
@@ -15,10 +17,6 @@ include(QuentierFindQEverCloud)
 include(QuentierFindLibquentier)
 include(QuentierFindBoost)
 include(QuentierDoxygen)
-
-if(NOT USE_QT5)
-  include(QuentierFindQt4Mimetypes)
-endif()
 
 if(NOT APPLE)
   include(QuentierFindBreakpad)
@@ -46,6 +44,8 @@ set(RESOURCES
     resource/icons/app/app_icons.qrc
     resource/icons/themes/tango/tango.qrc
     resource/icons/themes/oxygen/oxygen.qrc
+    resource/icons/themes/breeze/breeze.qrc
+    resource/icons/themes/breeze-dark/breeze-dark.qrc
     resource/icons/other/icons.qrc)
 
 prepend_path(RESOURCES_FULL_PATH "${RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -61,10 +61,6 @@ endif()
 if(BREAKPAD_FOUND)
   list(APPEND THIRDPARTY_LIBS ${BREAKPAD_LIBRARIES})
   add_definitions(-DBUILDING_WITH_BREAKPAD=1)
-endif()
-
-if(NOT USE_QT5)
-  list(APPEND THIRDPARTY_LIBS ${QT4-MIMETYPES_LIBRARIES})
 endif()
 
 if(WIN32)
@@ -98,7 +94,7 @@ endif()
 include(QuentierFindNSIS)
 
 # configure version info
-if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5))
+if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE))
   message(STATUS "Quentier is being packaged as AppImage")
   set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 1")
   set(LIBQUENTIER_BINARY_NAME "libqt5quentier.so.0")
@@ -183,7 +179,7 @@ set_property(GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS ${QUENTIER_CPPCH
 include(QuentierCollectSourcesForCppcheck)
 
 # installation settings
-if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE AND USE_QT5)
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/usr")
   set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")
   set(CMAKE_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin")
@@ -203,9 +199,7 @@ endif()
 get_filename_component(LIBQUENTIER_FILE_NAME "${LIBQUENTIER_LIBRARIES}" NAME)
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
-if(USE_QT5)
-  add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
-endif()
+add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
 
 if(NOT WIN32 AND NOT APPLE)
   # install .desktop file

@@ -28,37 +28,37 @@ class SynchronizableColumnDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit SynchronizableColumnDelegate(QObject * parent = Q_NULLPTR);
+    explicit SynchronizableColumnDelegate(QObject * parent = nullptr);
 
     int sideSize() const;
 
 private:
     // QStyledItemDelegate interface
     virtual QString displayText(
-        const QVariant & value, const QLocale & locale) const Q_DECL_OVERRIDE;
+        const QVariant & value, const QLocale & locale) const override;
 
     virtual QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual void setEditorData(
-        QWidget * editor, const QModelIndex & index) const Q_DECL_OVERRIDE;
+        QWidget * editor, const QModelIndex & index) const override;
 
     virtual void setModelData(
         QWidget * editor, QAbstractItemModel * model,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual QSize sizeHint(
         const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
     virtual void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
-        const QModelIndex & index) const Q_DECL_OVERRIDE;
+        const QModelIndex & index) const override;
 
 private:
     QIcon   m_icon;

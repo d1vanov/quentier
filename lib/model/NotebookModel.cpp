@@ -45,7 +45,7 @@ NotebookModel::NotebookModel(
     ItemModel(parent),
     m_account(account),
     m_data(),
-    m_fakeRootItem(Q_NULLPTR),
+    m_fakeRootItem(nullptr),
     m_defaultNotebookLocalUid(),
     m_modelItemsByLocalUid(),
     m_modelItemsByStack(),
@@ -175,7 +175,7 @@ QModelIndex NotebookModel::indexForNotebookName(
 QModelIndex NotebookModel::indexForNotebookStack(
     const QString & stack, const QString & linkedNotebookGuid) const
 {
-    const ModelItems * pModelItemsByStack = Q_NULLPTR;
+    const ModelItems * pModelItemsByStack = nullptr;
     if (linkedNotebookGuid.isEmpty())
     {
         pModelItemsByStack = &m_modelItemsByStack;
@@ -432,9 +432,9 @@ QModelIndex NotebookModel::moveToStack(
 
     const NotebookItem & notebookItem = *notebookItemIt;
 
-    StackItems * pStackItems = Q_NULLPTR;
-    ModelItems * pModelItemsByStack = Q_NULLPTR;
-    const NotebookModelItem * pStackParentItem = Q_NULLPTR;
+    StackItems * pStackItems = nullptr;
+    ModelItems * pModelItemsByStack = nullptr;
+    const NotebookModelItem * pStackParentItem = nullptr;
 
     if (notebookItem.linkedNotebookGuid().isEmpty())
     {
@@ -628,7 +628,7 @@ QStringList NotebookModel::stacks(const QString & linkedNotebookGuid) const
 
     QStringList result;
 
-    const StackItems * pStackItems = Q_NULLPTR;
+    const StackItems * pStackItems = nullptr;
     if (linkedNotebookGuid.isEmpty())
     {
         pStackItems = &m_stackItems;
@@ -1566,7 +1566,7 @@ bool NotebookModel::setData(
                 pParentItem->notebookLinkedNotebookItem()->linkedNotebookGuid();
         }
 
-        ModelItems * pModelItemsByStack = Q_NULLPTR;
+        ModelItems * pModelItemsByStack = nullptr;
         if (linkedNotebookGuid.isEmpty())
         {
             pModelItemsByStack = &m_modelItemsByStack;
@@ -2331,12 +2331,12 @@ QStringList NotebookModel::mimeTypes() const
 QMimeData * NotebookModel::mimeData(const QModelIndexList & indexes) const
 {
     if (indexes.isEmpty()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const NotebookModelItem * pItem = itemForIndex(indexes.at(0));
     if (!pItem) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QByteArray encodedItem;
@@ -3698,7 +3698,7 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
-    const NotebookModelItem * pParentItem = Q_NULLPTR;
+    const NotebookModelItem * pParentItem = nullptr;
 
     if (!m_fakeRootItem) {
         m_fakeRootItem = new NotebookModelItem;
@@ -3706,9 +3706,9 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
 
     if (notebook.hasStack())
     {
-        ModelItems * pModelItemsByStack = Q_NULLPTR;
-        StackItems * pStackItems = Q_NULLPTR;
-        const NotebookModelItem * pGrandParentItem = Q_NULLPTR;
+        ModelItems * pModelItemsByStack = nullptr;
+        StackItems * pStackItems = nullptr;
+        const NotebookModelItem * pGrandParentItem = nullptr;
 
         if (!notebook.hasLinkedNotebookGuid())
         {
@@ -3760,7 +3760,7 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     auto modelItemIt = m_modelItemsByLocalUid.insert(
         item.localUid(),
         NotebookModelItem(NotebookModelItem::Type::Notebook,
-                          insertedItem, Q_NULLPTR));
+                          insertedItem, nullptr));
     const NotebookModelItem * insertedModelItem = &(*modelItemIt);
 
     beginInsertRows(parentIndex, row, row);
@@ -3858,7 +3858,7 @@ void NotebookModel::onNotebookUpdated(
             }
 
             NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack,
-                                                Q_NULLPTR, pNewStackItem);
+                                                nullptr, pNewStackItem);
             stackModelItemIt = m_modelItemsByStack.insert(notebook.stack(),
                                                           newStackModelItem);
             int newRow = m_fakeRootItem->numChildren();
@@ -4006,7 +4006,7 @@ NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(
     QNTRACE("NotebookModel::addNewStackModelItem: stack item = " << stackItem);
 
     NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack,
-                                        Q_NULLPTR, &stackItem);
+                                        nullptr, &stackItem);
     QNTRACE("Created new stack model item: " << newStackModelItem);
     auto it = modelItemsByStack.insert(stackItem.name(), newStackModelItem);
 
@@ -4442,8 +4442,8 @@ void NotebookModel::checkAndRemoveEmptyStackItem(
 
     removeModelItemFromParent(modelItem);
 
-    ModelItems * pModelItemsByStack = Q_NULLPTR;
-    StackItems * pStackItems = Q_NULLPTR;
+    ModelItems * pModelItemsByStack = nullptr;
+    StackItems * pStackItems = nullptr;
 
     if (linkedNotebookGuid.isEmpty())
     {
@@ -4594,7 +4594,7 @@ const NotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(
             << "linked notebook guid " << linkedNotebookGuid
             << ", will create one");
 
-    const NotebookLinkedNotebookRootItem * pLinkedNotebookItem = Q_NULLPTR;
+    const NotebookLinkedNotebookRootItem * pLinkedNotebookItem = nullptr;
     auto linkedNotebookItemIt = m_linkedNotebookItems.find(linkedNotebookGuid);
     if (linkedNotebookItemIt == m_linkedNotebookItems.end())
     {
@@ -4633,7 +4633,7 @@ const NotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(
     linkedNotebookModelItemIt = m_modelItemsByLinkedNotebookGuid.insert(
         linkedNotebookGuid,
         NotebookModelItem(NotebookModelItem::Type::LinkedNotebook,
-                          Q_NULLPTR, Q_NULLPTR, pLinkedNotebookItem));
+                          nullptr, nullptr, pLinkedNotebookItem));
 
     const NotebookModelItem * pModelItem = &(linkedNotebookModelItemIt.value());
     int row = rowForNewItem(*m_fakeRootItem, *pModelItem);
@@ -4664,7 +4664,7 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
         }
         else {
             QNTRACE("Found no notebook model item corresponding to local uid");
-            return Q_NULLPTR;
+            return nullptr;
         }
     }
 
@@ -4677,7 +4677,7 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
                 << "index internal id: " << stack
                 << ", linked notebook guid = " << linkedNotebookGuid);
 
-        const ModelItems * pModelItemsByStack = Q_NULLPTR;
+        const ModelItems * pModelItemsByStack = nullptr;
         if (linkedNotebookGuid.isEmpty())
         {
             pModelItemsByStack = &m_modelItemsByStack;
@@ -4692,7 +4692,7 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
                 QNWARNING("Found no model items by stack map "
                           << "corresponding to linked notebook guid "
                           << linkedNotebookGuid);
-                return Q_NULLPTR;
+                return nullptr;
             }
 
             pModelItemsByStack = &(modelItemsByStackIt.value());
@@ -4722,12 +4722,12 @@ const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const
         else {
             QNTRACE("Found no notebook model item corresponding "
                     "to linked notebook guid");
-            return Q_NULLPTR;
+            return nullptr;
         }
     }
 
     QNDEBUG("Found no notebook model items corresponding to model index id");
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 NotebookModel::IndexId NotebookModel::idForItem(

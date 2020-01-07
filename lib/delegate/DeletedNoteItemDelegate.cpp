@@ -50,7 +50,7 @@ QWidget * DeletedNoteItemDelegate::createEditor(
     Q_UNUSED(parent)
     Q_UNUSED(option)
     Q_UNUSED(index)
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void DeletedNoteItemDelegate::paint(
@@ -260,7 +260,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
 
         text = text.simplified();
 
-        int width = fontMetrics.width(text) + TEXT_WIDTH_MARGIN;
+        int width = fontMetricsWidth(fontMetrics, text) + TEXT_WIDTH_MARGIN;
         return QSize(width, height);
     }
     else if (column == NoteModel::Columns::DeletionTimestamp)
@@ -278,7 +278,8 @@ QSize DeletedNoteItemDelegate::doSizeHint(
 
         text.prepend(QStringLiteral(" "));
 
-        int width = FIRST_COLUMN_PADDING + fontMetrics.width(text) + TEXT_WIDTH_MARGIN;
+        int width = FIRST_COLUMN_PADDING + fontMetricsWidth(fontMetrics, text) +
+            TEXT_WIDTH_MARGIN;
         return QSize(width, height);
     }
 

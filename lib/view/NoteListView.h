@@ -41,7 +41,7 @@ class NoteListView: public QListView
 {
     Q_OBJECT
 public:
-    explicit NoteListView(QWidget * parent = Q_NULLPTR);
+    explicit NoteListView(QWidget * parent = nullptr);
 
     void setNotebookItemView(NotebookItemView * pNotebookItemView);
 
@@ -116,19 +116,14 @@ public Q_SLOTS:
      * the implementation of QListView's dataChanged protected slot
      */
     virtual void dataChanged(
-        const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < 0x050000
-        )
-#else
-        , const QVector<int> & roles = QVector<int>())
-#endif
-        Q_DECL_OVERRIDE;
+        const QModelIndex & topLeft, const QModelIndex & bottomRight,
+        const QVector<int> & roles = QVector<int>()) override;
 
     virtual void rowsAboutToBeRemoved(
-        const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
+        const QModelIndex & parent, int start, int end) override;
 
     virtual void rowsInserted(
-        const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
+        const QModelIndex & parent, int start, int end) override;
 
 protected Q_SLOTS:
     void onCreateNewNoteAction();
@@ -155,14 +150,14 @@ protected Q_SLOTS:
     void onSelectFirstNoteEvent();
     void onTrySetLastCurrentNoteByLocalUidEvent();
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 protected:
     virtual void currentChanged(
         const QModelIndex & current,
-        const QModelIndex & previous) Q_DECL_OVERRIDE;
+        const QModelIndex & previous) override;
 
-    virtual void mousePressEvent(QMouseEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void mousePressEvent(QMouseEvent * pEvent) override;
 
     const NotebookItem * currentNotebookItem();
 

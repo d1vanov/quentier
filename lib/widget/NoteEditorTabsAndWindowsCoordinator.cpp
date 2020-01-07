@@ -87,10 +87,10 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
     m_tagCache(tagCache),
     m_pTagModel(&tagModel),
     m_pTabWidget(tabWidget),
-    m_pBlankNoteEditor(Q_NULLPTR),
-    m_pIOThread(Q_NULLPTR),
-    m_pFileIOProcessorAsync(Q_NULLPTR),
-    m_pSpellChecker(Q_NULLPTR),
+    m_pBlankNoteEditor(nullptr),
+    m_pIOThread(nullptr),
+    m_pFileIOProcessorAsync(nullptr),
+    m_pSpellChecker(nullptr),
     m_connectedToLocalStorage(false),
     m_maxNumNotesInTabs(-1),
     m_localUidsOfNotesInTabbedEditors(),
@@ -100,9 +100,9 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
     m_noteEditorModeByCreateNoteRequestIds(),
     m_expungeNoteRequestIds(),
     m_inAppNoteLinkFindNoteRequestIds(),
-    m_pTabBarContextMenu(Q_NULLPTR),
+    m_pTabBarContextMenu(nullptr),
     m_localUidOfNoteToBeExpunged(),
-    m_pExpungeNoteDeadlineTimer(Q_NULLPTR),
+    m_pExpungeNoteDeadlineTimer(nullptr),
     m_trackingCurrentTab(true)
 {
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
@@ -194,7 +194,7 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
             << m_pTabWidget->count() << ", num windows = "
             << m_noteEditorWindowsByNoteLocalUid.size());
 
-    m_pBlankNoteEditor = Q_NULLPTR;
+    m_pBlankNoteEditor = nullptr;
 
     // Prevent currentChanged signal from tabs removal inside this method to mess
     // with last current tab note local uid
@@ -402,7 +402,7 @@ NoteEditorTabsAndWindowsCoordinator::noteEditorWidgetForNoteLocalUid(
         return pNoteEditorWidget.data();
     }
 
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void NoteEditorTabsAndWindowsCoordinator::addNote(
@@ -472,7 +472,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
         QNDEBUG("Currently only the blank note tab is displayed, "
                 "inserting the new note into the blank tab");
         NoteEditorWidget * pNoteEditorWidget = m_pBlankNoteEditor;
-        m_pBlankNoteEditor = Q_NULLPTR;
+        m_pBlankNoteEditor = nullptr;
 
         pNoteEditorWidget->setNoteLocalUid(noteLocalUid, isNewNote);
         insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Tab);
@@ -1605,7 +1605,7 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(
     if (closeEditor) {
         pNoteEditorWidget->hide();
         pNoteEditorWidget->deleteLater();
-        pNoteEditorWidget = Q_NULLPTR;
+        pNoteEditorWidget = nullptr;
     }
 
     if (m_pTabWidget->count() == 1) {

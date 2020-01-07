@@ -1,20 +1,11 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5.1)
 
 SET_POLICIES()
 
-if("${CMAKE_MAJOR_VERSION}" GREATER "2")
-  project(quentier_crash_handler VERSION 1.0.0)
-else()
-  project(quentier_crash_handler)
-  set(PROJECT_VERSION_MAJOR "1")
-  set(PROJECT_VERSION_MINOR "0")
-  set(PROJECT_VERSION_PATCH "0")
-  set(PROJECT_VERSION_COUNT 3)
-  set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-endif()
+project(quentier_crash_handler VERSION 1.0.0)
 
 set(PROJECT_VENDOR "Dmitry Ivanov")
-set(PROJECT_COPYRIGHT_YEAR "2017")
+set(PROJECT_COPYRIGHT_YEAR "2019")
 set(PROJECT_DOMAIN_FIRST "quentier")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
@@ -61,9 +52,12 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${SOURCES}
                ${RESOURCES_RCC})
 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  PREFIX ""
+  CXX_STANDARD 14
+  CXX_EXTENSIONS OFF)
+
 target_link_libraries(${PROJECT_NAME} quentier_utility ${LIBQUENTIER_LIBRARIES} ${QT_LIBRARIES})
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
-if(NOT BUILD_WITH_QT4)
-  add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
-endif()
+add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")

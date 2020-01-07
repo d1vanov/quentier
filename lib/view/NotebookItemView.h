@@ -38,11 +38,11 @@ class NotebookItemView: public ItemView
 {
     Q_OBJECT
 public:
-    explicit NotebookItemView(QWidget * parent = Q_NULLPTR);
+    explicit NotebookItemView(QWidget * parent = nullptr);
 
     void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
-    virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
+    virtual void setModel(QAbstractItemModel * pModel) override;
 
     void setNoteModel(const NoteModel * pNoteModel);
 
@@ -102,9 +102,9 @@ private Q_SLOTS:
 
     virtual void selectionChanged(
         const QItemSelection & selected,
-        const QItemSelection & deselected) Q_DECL_OVERRIDE;
+        const QItemSelection & deselected) override;
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
     void deleteItem(const QModelIndex & itemIndex, NotebookModel & model);
@@ -151,11 +151,7 @@ private:
 
     QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
 
-#if QT_VERSION < 0x050000
-    QPointer<NoteModel>         m_pNoteModel;
-#else
     QPointer<const NoteModel>   m_pNoteModel;
-#endif
 
     QString     m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 

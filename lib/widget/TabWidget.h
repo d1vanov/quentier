@@ -29,7 +29,7 @@ class TabWidget: public QTabWidget
 {
     Q_OBJECT
 public:
-    explicit TabWidget(QWidget * parent = Q_NULLPTR);
+    explicit TabWidget(QWidget * parent = nullptr);
 
     QTabBar * tabBar() const;
 };

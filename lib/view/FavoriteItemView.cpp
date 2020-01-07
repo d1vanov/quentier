@@ -47,7 +47,7 @@ namespace quentier {
 
 FavoriteItemView::FavoriteItemView(QWidget * parent) :
     ItemView(parent),
-    m_pFavoriteItemContextMenu(Q_NULLPTR),
+    m_pFavoriteItemContextMenu(nullptr),
     m_trackingSelection(false),
     m_modelReady(false)
 {}

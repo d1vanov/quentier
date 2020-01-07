@@ -27,10 +27,7 @@ FindAndReplaceWidget::FindAndReplaceWidget(
     m_pUI(new Ui::FindAndReplaceWidget)
 {
     m_pUI->setupUi(this);
-
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     m_pUI->findLineEdit->setClearButtonEnabled(true);
-#endif
 
     m_pUI->findLineEdit->setDragEnabled(true);
     m_pUI->replaceLineEdit->setDragEnabled(true);

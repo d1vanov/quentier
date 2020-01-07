@@ -33,7 +33,7 @@ class AboutQuentierWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AboutQuentierWidget(QWidget * parent = Q_NULLPTR);
+    explicit AboutQuentierWidget(QWidget * parent = nullptr);
     ~AboutQuentierWidget();
 
 private:

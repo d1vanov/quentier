@@ -27,7 +27,7 @@ class ModelTester: public QObject
 {
     Q_OBJECT
 public:
-    ModelTester(QObject * parent = Q_NULLPTR);
+    ModelTester(QObject * parent = nullptr);
     virtual ~ModelTester();
 
 private Q_SLOTS:

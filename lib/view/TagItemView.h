@@ -31,9 +31,9 @@ class TagItemView: public ItemView
 {
     Q_OBJECT
 public:
-    explicit TagItemView(QWidget * parent = Q_NULLPTR);
+    explicit TagItemView(QWidget * parent = nullptr);
 
-    virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
+    virtual void setModel(QAbstractItemModel * pModel) override;
 
     /**
      * @return      Valid model index if the selection exists and contains
@@ -81,9 +81,9 @@ private Q_SLOTS:
 
     virtual void selectionChanged(
         const QItemSelection & selected,
-        const QItemSelection & deselected) Q_DECL_OVERRIDE;
+        const QItemSelection & deselected) override;
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
     void deleteItem(const QModelIndex & itemIndex, TagModel & model);

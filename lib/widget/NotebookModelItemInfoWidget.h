@@ -41,7 +41,7 @@ class NotebookModelItemInfoWidget : public QWidget
 public:
     explicit NotebookModelItemInfoWidget(
         const QModelIndex & index,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
     virtual ~NotebookModelItemInfoWidget();
 
@@ -66,7 +66,7 @@ private:
     void setNotebookItem(const NotebookItem & item);
     void setStackItem(const NotebookStackItem & item, const int numChildren);
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void keyPressEvent(QKeyEvent * pEvent) override;
 
 private:
     Ui::NotebookModelItemInfoWidget * m_pUi;

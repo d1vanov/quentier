@@ -24,13 +24,10 @@
 #include <quentier/utility/Utility.h>
 #include <quentier/utility/ApplicationSettings.h>
 
-#include <QTextStream>
-#include <QDebug>
 #include <QCoreApplication>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+#include <QDebug>
+#include <QTextStream>
 #include <QTimeZone>
-#endif
 
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
@@ -251,22 +248,15 @@ LogViewerModel::LogFileParser::parseLogFileLine(
     }
 
     Data entry;
-    entry.m_timestamp =
-        QDateTime::fromString(capturedTexts[1],
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-                              QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz")
-#else
-                              QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz")
-#endif
-                             );
+    entry.m_timestamp = QDateTime::fromString(
+        capturedTexts[1],
+        QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz"));
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
     // Trying to add timezone info
     QTimeZone timezone(capturedTexts[2].toLocal8Bit());
     if (timezone.isValid()) {
         entry.m_timestamp.setTimeZone(timezone);
     }
-#endif
 
     entry.m_sourceFileName = capturedTexts[3];
     entry.m_sourceFileLineNumber = sourceFileLineNumber;

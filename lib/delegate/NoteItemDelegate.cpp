@@ -17,6 +17,7 @@
  */
 
 #include "NoteItemDelegate.h"
+#include "AbstractStyledItemDelegate.h"
 
 #include <lib/model/NoteModel.h>
 #include <lib/view/NoteListView.h>
@@ -54,7 +55,7 @@ QWidget * NoteItemDelegate::createEditor(
     Q_UNUSED(parent)
     Q_UNUSED(option)
     Q_UNUSED(index)
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void NoteItemDelegate::paint(
@@ -287,7 +288,7 @@ void NoteItemDelegate::paint(
     QNTRACE("Preview text: " << text);
 
     int linesForText = static_cast<int>(
-        std::floor(originalFontMetrics.width(text) /
+        std::floor(fontMetricsWidth(originalFontMetrics, text) /
                    previewTextRect.width() + 0.5));
     int linesAvailable = static_cast<int>(
         std::floor(static_cast<double>(previewTextRect.height()) /
@@ -556,7 +557,7 @@ QString NoteItemDelegate::timestampToString(
             text = tr("last week");
         }
         else if (pastWeeks < 5) {
-            text = tr("%n weeks ago", Q_NULLPTR, pastWeeks);
+            text = tr("%n weeks ago", nullptr, pastWeeks);
         }
     }
     else if (targetDate == yesterdayDate)
@@ -573,7 +574,7 @@ QString NoteItemDelegate::timestampToString(
     {
         int pastDays = static_cast<int>(std::floor(timePassed / MSEC_PER_DAY + 0.5));
         if (pastDays < 6) {
-            text = tr("%n days ago", Q_NULLPTR, pastDays);
+            text = tr("%n days ago", nullptr, pastDays);
         }
     }
 

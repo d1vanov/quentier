@@ -60,7 +60,7 @@ const TagModel * FilterByTagWidget::tagModel() const
 {
     const ItemModel * pItemModel = model();
     if (!pItemModel) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     return qobject_cast<const TagModel*>(pItemModel);

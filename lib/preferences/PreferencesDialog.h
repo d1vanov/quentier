@@ -50,9 +50,9 @@ public:
         ShortcutManager & shortcutManager,
         SystemTrayIconManager & systemTrayIconManager,
         ActionsInfo & actionsInfo,
-        QWidget * parent = Q_NULLPTR);
+        QWidget * parent = nullptr);
 
-    virtual ~PreferencesDialog() Q_DECL_OVERRIDE;
+    virtual ~PreferencesDialog() override;
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
@@ -69,7 +69,11 @@ Q_SIGNALS:
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
     void iconThemeChanged(const QString & iconTheme);
-    void panelStyleChanged(const QString & panelStyle);
+
+    void panelFontColorChanged(QColor color);
+    void panelBackgroundColorChanged(QColor color);
+    void panelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
+    void panelBackgroundLinearGradientChanged(QLinearGradient gradient);
 
 private Q_SLOTS:
     // System tray tab
@@ -85,6 +89,7 @@ private Q_SLOTS:
     // Appearance tab
     void onShowNoteThumbnailsCheckboxToggled(bool checked);
     void onDisableNativeMenuBarCheckboxToggled(bool checked);
+    void onPanelColorWidgetUserError(QString errorMessage);
 
     // Behaviour tab
     void onStartAtLoginCheckboxToggled(bool checked);
@@ -127,7 +132,8 @@ private Q_SLOTS:
     void onEnableLogViewerInternalLogsCheckboxToggled(bool checked);
 
 private:
-    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+    virtual void timerEvent(QTimerEvent * pEvent) override;
 
 private:
     void setupCurrentSettingsState(ActionsInfo & actionsInfo,
@@ -178,6 +184,8 @@ private:
     QPointer<QColorDialog>          m_pNoteEditorBackgroundColorDialog;
     QPointer<QColorDialog>          m_pNoteEditorHighlightColorDialog;
     QPointer<QColorDialog>          m_pNoteEditorHighlightedTextColorDialog;
+
+    int     m_clearAndHideStatusBarTimerId = 0;
 };
 
 } // namespace quentier

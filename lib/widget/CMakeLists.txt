@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5.1)
 
 SET_POLICIES()
 
 project(quentier_widget)
 
 set(HEADERS
+    AboutQuentierWidget.h
+    AbstractFilterByModelItemWidget.h
     FindAndReplaceWidget.h
     FilterByNotebookWidget.h
     FilterBySavedSearchWidget.h
@@ -14,15 +16,14 @@ set(HEADERS
     LogViewerWidget.h
     NewListItemLineEdit.h
     NotebookModelItemInfoWidget.h
-    SavedSearchModelItemInfoWidget.h
     NoteCountLabelController.h
     NoteEditorWidget.h
     NoteEditorTabsAndWindowsCoordinator.h
     NoteFiltersManager.h
     NoteTagsWidget.h
+    PanelWidget.h
+    SavedSearchModelItemInfoWidget.h
     TagModelItemInfoWidget.h
-    AbstractFilterByModelItemWidget.h
-    AboutQuentierWidget.h
     TabWidget.h
     color-picker-tool-button/ColorPickerActionWidget.h
     color-picker-tool-button/ColorPickerToolButton.h
@@ -30,9 +31,13 @@ set(HEADERS
     insert-table-tool-button/TableSettingsDialog.h
     insert-table-tool-button/TableSizeConstraintsActionWidget.h
     insert-table-tool-button/TableSizeSelectorActionWidget.h
-    insert-table-tool-button/TableSizeSelector.h)
+    insert-table-tool-button/TableSizeSelector.h
+    panel/PanelStyleController.h
+    panel/SidePanelStyleController.h)
 
 set(SOURCES
+    AboutQuentierWidget.cpp
+    AbstractFilterByModelItemWidget.cpp
     FindAndReplaceWidget.cpp
     FilterByNotebookWidget.cpp
     FilterBySavedSearchWidget.cpp
@@ -42,15 +47,14 @@ set(SOURCES
     LogViewerWidget.cpp
     NewListItemLineEdit.cpp
     NotebookModelItemInfoWidget.cpp
-    SavedSearchModelItemInfoWidget.cpp
     NoteCountLabelController.cpp
     NoteEditorWidget.cpp
     NoteEditorTabsAndWindowsCoordinator.cpp
     NoteFiltersManager.cpp
     NoteTagsWidget.cpp
+    PanelWidget.cpp
+    SavedSearchModelItemInfoWidget.cpp
     TagModelItemInfoWidget.cpp
-    AbstractFilterByModelItemWidget.cpp
-    AboutQuentierWidget.cpp
     TabWidget.cpp
     color-picker-tool-button/ColorPickerActionWidget.cpp
     color-picker-tool-button/ColorPickerToolButton.cpp
@@ -58,7 +62,9 @@ set(SOURCES
     insert-table-tool-button/TableSettingsDialog.cpp
     insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     insert-table-tool-button/TableSizeSelectorActionWidget.cpp
-    insert-table-tool-button/TableSizeSelector.cpp)
+    insert-table-tool-button/TableSizeSelector.cpp
+    panel/PanelStyleController.cpp
+    panel/SidePanelStyleController.cpp)
 
 set(FORMS
     AboutQuentierWidget.ui
@@ -75,6 +81,10 @@ set(FORMS
 qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  CXX_STANDARD 14
+  CXX_EXTENSIONS OFF)
 
 set(quentier_widget ${PROJECT_NAME} CACHE INTERNAL "quentier_widget")
 

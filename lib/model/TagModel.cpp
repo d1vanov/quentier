@@ -55,7 +55,7 @@ TagModel::TagModel(
     ItemModel(parent),
     m_account(account),
     m_data(),
-    m_fakeRootItem(Q_NULLPTR),
+    m_fakeRootItem(nullptr),
     m_cache(cache),
     m_modelItemsByLocalUid(),
     m_modelItemsByLinkedNotebookGuid(),
@@ -1040,12 +1040,12 @@ QStringList TagModel::mimeTypes() const
 QMimeData * TagModel::mimeData(const QModelIndexList & indexes) const
 {
     if (indexes.isEmpty()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const TagModelItem * pModelItem = itemForIndex(indexes.at(0));
     if (!pModelItem) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QByteArray encodedItem;
@@ -1167,7 +1167,7 @@ bool TagModel::dropMimeData(
     tagItem.setParentGuid(pNewParentTagItem->guid());
     tagItem.setDirty(true);
 
-    const TagModelItem * pModelItem = Q_NULLPTR;
+    const TagModelItem * pModelItem = nullptr;
     auto modelItemIt = m_modelItemsByLocalUid.find(tagItem.localUid());
     if (modelItemIt == m_modelItemsByLocalUid.end()) {
         TagModelItem modelItem(TagModelItem::Type::Tag, pTagItem);
@@ -1196,7 +1196,7 @@ bool TagModel::dropMimeData(
         const QString & originalItemParentLocalUid = originalTagItem.parentLocalUid();
         const QString & originalItemLinkedNotebookGuid =
             originalTagItem.linkedNotebookGuid();
-        const TagModelItem * pOriginalItemParent = Q_NULLPTR;
+        const TagModelItem * pOriginalItemParent = nullptr;
 
         if (!originalItemParentLocalUid.isEmpty())
         {
@@ -2456,7 +2456,7 @@ void TagModel::onTagAdded(const Tag & tag, const QStringList * pTagNoteLocalUids
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
-    const TagModelItem * pParentItem = Q_NULLPTR;
+    const TagModelItem * pParentItem = nullptr;
 
     if (tag.hasParentLocalUid())
     {
@@ -2552,7 +2552,7 @@ void TagModel::onTagUpdated(
         return;
     }
 
-    const TagModelItem * pNewParentItem = Q_NULLPTR;
+    const TagModelItem * pNewParentItem = nullptr;
     if (tag.hasParentLocalUid())
     {
         auto parentIt = m_modelItemsByLocalUid.find(tag.parentLocalUid());
@@ -2848,7 +2848,7 @@ const TagModelItem * TagModel::itemForId(const IndexId id) const
         if (linkedNotebookGuidIt == m_indexIdToLinkedNotebookGuidBimap.left.end()) {
             QNDEBUG("Found no tag model item corresponding to "
                     "model index internal id");
-            return Q_NULLPTR;
+            return nullptr;
         }
 
         const QString & linkedNotebookGuid = linkedNotebookGuidIt->second;
@@ -2858,7 +2858,7 @@ const TagModelItem * TagModel::itemForId(const IndexId id) const
             QNDEBUG("Found no tag linked notebook root model item "
                     "corresponding to the linked notebook guid "
                     "corresponding to model index internal id");
-            return Q_NULLPTR;
+            return nullptr;
         }
 
         return &(linkedNotebookModelItemIt.value());
@@ -2875,7 +2875,7 @@ const TagModelItem * TagModel::itemForId(const IndexId id) const
     }
 
     QNTRACE("Found no tag item corresponding to local uid");
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 TagModel::IndexId TagModel::idForItem(const TagModelItem & item) const
@@ -2999,7 +2999,7 @@ const TagModelItem * TagModel::itemForLocalUid(const QString & localUid) const
 {
     auto it = m_modelItemsByLocalUid.find(localUid);
     if (it == m_modelItemsByLocalUid.end()) {
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     const TagModelItem & item = *it;
@@ -3757,7 +3757,7 @@ QModelIndex TagModel::createTag(
         return QModelIndex();
     }
 
-    const TagModelItem * pParentItem = Q_NULLPTR;
+    const TagModelItem * pParentItem = nullptr;
 
     if (!linkedNotebookGuid.isEmpty())
     {
@@ -3918,8 +3918,8 @@ void TagModel::mapChildItems(const TagModelItem & item)
 {
     QNTRACE("TagModel::mapChildItems: " << item);
 
-    const TagItem * pTagItem = Q_NULLPTR;
-    const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem = Q_NULLPTR;
+    const TagItem * pTagItem = nullptr;
+    const TagLinkedNotebookRootItem * pTagLinkedNotebookRootItem = nullptr;
 
     if ((item.type() == TagModelItem::Type::Tag) && item.tagItem())
     {
@@ -4439,7 +4439,7 @@ const TagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
             << "notebook guid " << linkedNotebookGuid
             << ", will create one");
 
-    const TagLinkedNotebookRootItem * pLinkedNotebookItem = Q_NULLPTR;
+    const TagLinkedNotebookRootItem * pLinkedNotebookItem = nullptr;
     auto linkedNotebookItemIt = m_linkedNotebookItems.find(linkedNotebookGuid);
     if (linkedNotebookItemIt == m_linkedNotebookItems.end())
     {
@@ -4474,7 +4474,7 @@ const TagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
         m_modelItemsByLinkedNotebookGuid.insert(
             linkedNotebookGuid,
             TagModelItem(TagModelItem::Type::LinkedNotebook,
-                         Q_NULLPTR, pLinkedNotebookItem));
+                         nullptr, pLinkedNotebookItem));
     const TagModelItem * pModelItem = &(linkedNotebookModelItemIt.value());
     int row = rowForNewItem(*m_fakeRootItem, *pModelItem);
     beginInsertRows(QModelIndex(), row, row);
@@ -4522,7 +4522,7 @@ const TagModelItem & TagModel::modelItemForTagItem(const TagItem & tagItem)
         // root item
     }
 
-    const TagModelItem * pParentItem = Q_NULLPTR;
+    const TagModelItem * pParentItem = nullptr;
 
     const QString & linkedNotebookGuid = tagItem.linkedNotebookGuid();
     if (!linkedNotebookGuid.isEmpty())

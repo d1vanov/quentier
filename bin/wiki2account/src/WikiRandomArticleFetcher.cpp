@@ -34,10 +34,10 @@ WikiRandomArticleFetcher::WikiRandomArticleFetcher(
     m_networkReplyFetcherTimeout(timeoutMsec),
     m_started(false),
     m_finished(false),
-    m_pWikiArticleUrlFetcher(Q_NULLPTR),
+    m_pWikiArticleUrlFetcher(nullptr),
     m_url(),
-    m_pWikiArticleContentsFetcher(Q_NULLPTR),
-    m_pWikiArticleToNote(Q_NULLPTR),
+    m_pWikiArticleContentsFetcher(nullptr),
+    m_pWikiArticleToNote(nullptr),
     m_note()
 {}
 
@@ -94,7 +94,7 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     if (m_pWikiArticleUrlFetcher) {
         m_pWikiArticleUrlFetcher->disconnect(this);
         m_pWikiArticleUrlFetcher->deleteLater();
-        m_pWikiArticleUrlFetcher = Q_NULLPTR;
+        m_pWikiArticleUrlFetcher = nullptr;
     }
 
     if (!status)
@@ -154,7 +154,7 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
     if (m_pWikiArticleContentsFetcher) {
         m_pWikiArticleContentsFetcher->disconnect(this);
         m_pWikiArticleContentsFetcher->deleteLater();
-        m_pWikiArticleContentsFetcher = Q_NULLPTR;
+        m_pWikiArticleContentsFetcher = nullptr;
     }
 
     if (!status)
@@ -204,7 +204,7 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
     if (m_pWikiArticleToNote) {
         m_pWikiArticleToNote->disconnect(this);
         m_pWikiArticleToNote->deleteLater();
-        m_pWikiArticleToNote = Q_NULLPTR;
+        m_pWikiArticleToNote = nullptr;
     }
 
     if (!status)
@@ -234,19 +234,19 @@ void WikiRandomArticleFetcher::clear()
     if (m_pWikiArticleToNote) {
         m_pWikiArticleToNote->disconnect(this);
         m_pWikiArticleToNote->deleteLater();
-        m_pWikiArticleToNote = Q_NULLPTR;
+        m_pWikiArticleToNote = nullptr;
     }
 
     if (m_pWikiArticleContentsFetcher) {
         m_pWikiArticleContentsFetcher->disconnect(this);
         m_pWikiArticleContentsFetcher->deleteLater();
-        m_pWikiArticleContentsFetcher = Q_NULLPTR;
+        m_pWikiArticleContentsFetcher = nullptr;
     }
 
     if (m_pWikiArticleUrlFetcher) {
         m_pWikiArticleUrlFetcher->disconnect(this);
         m_pWikiArticleUrlFetcher->deleteLater();
-        m_pWikiArticleUrlFetcher = Q_NULLPTR;
+        m_pWikiArticleUrlFetcher = nullptr;
     }
 }
 

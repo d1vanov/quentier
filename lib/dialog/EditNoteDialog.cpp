@@ -369,18 +369,12 @@ void EditNoteDialog::accept()
 }
 
 void EditNoteDialog::dataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    )
-#else
-    , const QVector<int> & roles)
-#endif
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
 {
     QNDEBUG("EditNoteDialog::dataChanged");
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     Q_UNUSED(roles)
-#endif
 
     if (!topLeft.isValid() || !bottomRight.isValid()) {
         QNDEBUG("At least one of changed indexes is invalid");
@@ -492,16 +486,10 @@ void EditNoteDialog::createConnections()
 {
     QNDEBUG("EditNoteDialog::createConnections");
 
-    if (!m_pNotebookModel.isNull()) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    if (!m_pNotebookModel.isNull())
+    {
         QObject::connect(m_pNotebookModel.data(), &NotebookModel::dataChanged,
                          this, &EditNoteDialog::dataChanged);
-#else
-        QObject::connect(m_pNotebookModel.data(),
-                         SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-                         this,
-                         SLOT(dataChanged(QModelIndex,QModelIndex)));
-#endif
         QObject::connect(m_pNotebookModel.data(),
                          QNSIGNAL(NotebookModel,rowsInserted,QModelIndex,int,int),
                          this,

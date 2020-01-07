@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5.1)
 
 SET_POLICIES()
 
@@ -30,6 +30,10 @@ set(FORMS
 qt_wrap_ui(FORMS_HEADERS ${FORMS})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  CXX_STANDARD 14
+  CXX_EXTENSIONS OFF)
 
 set(quentier_account ${PROJECT_NAME} CACHE INTERNAL "quentier_account")
 
