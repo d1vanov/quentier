@@ -156,6 +156,14 @@ install:
   - set INCLUDE=%cd%\include;%INCLUDE%
   - set BOOST_ROOT=%cd%
 # OpenSSL
+# first remove AppVeyor provided OpenSSL as it seems to interfere
+  - rd /s /q C:\OpenSSL-Win32
+  - rd /s /q C:\OpenSSL-Win64
+  - rd /s /q C:\OpenSSL-v11-Win32
+  - rd /s /q C:\OpenSSL-v11-Win64
+  - rd /s /q C:\OpenSSL-v111-Win32
+  - rd /s /q C:\OpenSSL-v111-Win64
+# now download the actually needed OpenSSL and set environment variables
   - if not exist c:\dev\openssl (set SHOULD_DOWNLOAD_OPENSSL=1) else (set SHOULD_DOWNLOAD_OPENSSL=0)
   - if %SHOULD_DOWNLOAD_OPENSSL%==1 (md c:\dev\openssl) else (echo "Using cached version of openssl")
   - cd c:\dev\openssl
