@@ -16,43 +16,31 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_VERSION_INFO_H
-#define QUENTIER_VERSION_INFO_H
+#ifndef QUENTIER_UPDATE_INFO_H
+#define QUENTIER_UPDATE_INFO_H
 
 /**
  * This file contains automatically generated code including macro definitions
- * which determine packaging-specific properties of Quentier
+ * which determine version/release specific properties of Quentier used to
+ * check for updates
  */
-
-/** 
- * This macro is set to true if quentier was packaged as AppImage on Linux
- */
-@QUENTIER_PACKAGED_AS_APP_IMAGE@
 
 /**
- * This macro contains the name of libquentier binary found by CMake
+ * This macro contains the name of update channel which Quentier should use
+ * for updates checking by default
  */
-@QUENTIER_LIBQUENTIER_BINARY_NAME@
+@QUENTIER_DEFAULT_UPDATE_CHANNEL@
 
 /**
- * This macro denotes the major version number of Quentier
+ * This macro contains the name of update provider which Quentier should use
+ * for updates checking by default
  */
-@QUENTIER_MAJOR_VERSION@
+@QUENTIER_DEFAULT_UPDATE_PROVIDER@
 
 /**
- * This macro denotes the minor version number of Quentier
+ * This macro contains the timestamp of current Quentier build which Quentier
+ * would use to check for updates later
  */
-@QUENTIER_MINOR_VERSION@
+@QUENTIER_BUILD_TIMESTAMP@
 
-/**
- * This macro denotes the patch version number of Quentier
- */
-@QUENTIER_PATCH_VERSION@
-
-/**
- * This macro is set to a string holding the information about the current
- * Quentier build
- */
-@QUENTIER_BUILD_INFO@
-
-#endif // QUENTIER_VERSION_INFO_H
+#endif // QUENTIER_UPDATE_INFO_H
