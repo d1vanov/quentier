@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -332,8 +332,8 @@ Q_SIGNALS:
     void listTags(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
     void expungeTag(Tag tag, QUuid requestId);
@@ -349,14 +349,14 @@ Q_SIGNALS:
     void listAllTagsPerNote(
         Note note, LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QUuid requestId);
 
     void listAllLinkedNotebooks(
         const size_t limit, const size_t offset,
-        const LocalStorageManager::ListLinkedNotebooksOrder::type order,
-        const LocalStorageManager::OrderDirection::type orderDirection,
+        const LocalStorageManager::ListLinkedNotebooksOrder order,
+        const LocalStorageManager::OrderDirection orderDirection,
         QUuid requestId);
 
 private Q_SLOTS:
@@ -371,15 +371,15 @@ private Q_SLOTS:
     void onListTagsComplete(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QList<Tag> tags, QUuid requestId);
 
     void onListTagsFailed(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
 
@@ -436,28 +436,28 @@ private Q_SLOTS:
         QList<Tag> foundTags, Note note,
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QUuid requestId);
 
     void onListAllTagsPerNoteFailed(
         Note note, LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
     void onListAllLinkedNotebooksComplete(
         size_t limit, size_t offset,
-        LocalStorageManager::ListLinkedNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListLinkedNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QList<LinkedNotebook> foundLinkedNotebooks,
         QUuid requestId);
 
     void onListAllLinkedNotebooksFailed(
         size_t limit, size_t offset,
-        LocalStorageManager::ListLinkedNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListLinkedNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
 private:
