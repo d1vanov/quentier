@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -403,8 +403,8 @@ Q_SIGNALS:
     void listNotebooks(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
     void expungeNotebook(Notebook notebook, QUuid requestId);
@@ -415,8 +415,8 @@ Q_SIGNALS:
 
     void listAllLinkedNotebooks(
         const size_t limit, const size_t offset,
-        const LocalStorageManager::ListLinkedNotebooksOrder::type order,
-        const LocalStorageManager::OrderDirection::type orderDirection,
+        const LocalStorageManager::ListLinkedNotebooksOrder order,
+        const LocalStorageManager::OrderDirection orderDirection,
         QUuid requestId);
 
 private Q_SLOTS:
@@ -439,16 +439,16 @@ private Q_SLOTS:
     void onListNotebooksComplete(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
         QUuid requestId);
 
     void onListNotebooksFailed(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
 
@@ -486,15 +486,15 @@ private Q_SLOTS:
 
     void onListAllLinkedNotebooksComplete(
         size_t limit, size_t offset,
-        LocalStorageManager::ListLinkedNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListLinkedNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QList<LinkedNotebook> foundLinkedNotebooks,
         QUuid requestId);
 
     void onListAllLinkedNotebooksFailed(
         size_t limit, size_t offset,
-        LocalStorageManager::ListLinkedNotebooksOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListLinkedNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
 private:

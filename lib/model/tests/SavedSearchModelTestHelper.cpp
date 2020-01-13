@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -56,15 +56,15 @@ SavedSearchModelTestHelper::SavedSearchModelTestHelper(
                      QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesFailed,
                               LocalStorageManager::ListObjectsOptions,
                               size_t,size_t,
-                              LocalStorageManager::ListSavedSearchesOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListSavedSearchesOrder,
+                              LocalStorageManager::OrderDirection,
                               ErrorString,QUuid),
                      this,
                      QNSLOT(SavedSearchModelTestHelper,onListSavedSearchesFailed,
                             LocalStorageManager::ListObjectsOptions,
                             size_t,size_t,
-                            LocalStorageManager::ListSavedSearchesOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListSavedSearchesOrder,
+                            LocalStorageManager::OrderDirection,
                             ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchFailed,
@@ -484,8 +484,8 @@ void SavedSearchModelTestHelper::onFindSavedSearchFailed(
 void SavedSearchModelTestHelper::onListSavedSearchesFailed(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListSavedSearchesOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListSavedSearchesOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG("SavedSearchModelTestHelper::onListSavedSearchesFailed: "
