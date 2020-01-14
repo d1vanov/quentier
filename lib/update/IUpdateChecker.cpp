@@ -20,6 +20,10 @@
 
 namespace quentier {
 
+IUpdateChecker::IUpdateChecker(QObject * parent) :
+    QObject(parent)
+{}
+
 QString IUpdateChecker::updateChannel() const
 {
     return m_updateChannel;

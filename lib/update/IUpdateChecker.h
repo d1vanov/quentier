@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_I_UPDATE_CHECKER_H
-#define QUENTIER_I_UPDATE_CHECKER_H
+#ifndef QUENTIER_UPDATE_I_UPDATE_CHECKER_H
+#define QUENTIER_UPDATE_I_UPDATE_CHECKER_H
 
 #include "IUpdateProvider.h"
 
@@ -92,4 +92,4 @@ protected:
 
 } // namespace quentier
 
-#endif // QUENTIER_I_UPDATE_CHECKER_H
+#endif // QUENTIER_UPDATE_I_UPDATE_CHECKER_H

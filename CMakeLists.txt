@@ -105,7 +105,7 @@ endif()
 
 set(QUENTIER_LIBQUENTIER_BINARY_NAME "#define QUENTIER_LIBQUENTIER_BINARY_NAME \"${LIBQUENTIER_BINARY_NAME}\"")
 
-if (NOT QUENTIER_BUILD_INFO)
+if(NOT QUENTIER_BUILD_INFO)
   find_package(Git)
   if(GIT_FOUND)
     message(STATUS "Git found: ${GIT_EXECUTABLE}")
@@ -160,6 +160,16 @@ if (NOT QUENTIER_BUILD_INFO)
   endif()
 else()
   set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"${QUENTIER_BUILD_INFO}\"")
+endif()
+
+if(INCLUDE_UPDATE_INFO)
+  if(NOT DEFAULT_UPDATE_CHANNEL)
+    message(FATAL "No default update channel is set")
+  endif()
+
+  if(NOT DEFAULT_UPDATE_PROVIDER)
+    message(FATAL "No default update provider is set")
+  endif()
 endif()
 
 set(QUENTIER_TRANSLATABLE_SOURCES "")
