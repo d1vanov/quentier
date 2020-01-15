@@ -45,6 +45,9 @@ public:
     QString providerName() const;
     void setProviderName(QString name);
 
+    bool useContinuousUpdateChannel() const;
+    void setUseContinuousUpdateChannel(const bool use);
+
 Q_SIGNALS:
     /**
      * @brief The failure signal is emitted when IUpdateChecker cannot check
@@ -88,6 +91,7 @@ public Q_SLOTS:
 protected:
     QString     m_updateChannel;
     QString     m_providerName;
+    bool        m_useContinuousUpdateChannel = true;
 };
 
 } // namespace quentier

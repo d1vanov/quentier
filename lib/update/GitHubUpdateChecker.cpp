@@ -19,8 +19,14 @@
 #include "GitHubUpdateChecker.h"
 
 #include <lib/network/NetworkReplyFetcher.h>
+#include <lib/update/UpdateInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
+
+#include <QDateTime>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace quentier {
 
@@ -59,10 +65,102 @@ void GitHubUpdateChecker::checkForUpdates()
 void GitHubUpdateChecker::onReleasesListed(
     bool status, QByteArray fetchedData, ErrorString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(status)
-    Q_UNUSED(fetchedData)
-    Q_UNUSED(errorDescription)
+    QNDEBUG("GitHubUpdateChecker::onReleasesListed: status = "
+        << (status ? "true" : "false") << ", error description = "
+        << errorDescription << ", fetched data size = " << fetchedData.size());
+
+    if (Q_UNLIKELY(!status))
+    {
+        ErrorString error(QT_TR_NOOP("Failed to list releases from GitHub"));
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
+        QNWARNING(error);
+        Q_EMIT failure(error);
+        return;
+    }
+
+    QDateTime currentBuildCreationTime = QDateTime::fromString(
+        QString::fromUtf8(QUENTIER_BUILD_TIMESTAMP),
+        Qt::ISODate);
+    if (Q_UNLIKELY(!currentBuildCreationTime.isValid()))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Failed to parse current build creation time from string"));
+        error.details() = QString::fromUtf8(QUENTIER_BUILD_TIMESTAMP);
+        QNWARNING(error);
+        Q_EMIT failure(error);
+    }
+
+    QJsonParseError jsonParseError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(
+        fetchedData,
+        &jsonParseError);
+    if (jsonParseError.error != QJsonParseError::NoError)
+    {
+        ErrorString error(
+            QT_TR_NOOP("Failed to parse list releases response from GitHub to "
+                       "json"));
+        QNWARNING(error);
+        Q_EMIT failure(error);
+        return;
+    }
+
+    QJsonArray releases = jsonDoc.array();
+    for(const auto & release: releases)
+    {
+        if (Q_UNLIKELY(!release.isObject())) {
+            QNINFO("Skipping json field which is not an object although it "
+                << "should be a GitHub release: " <<  release);
+            continue;
+        }
+
+        auto releaseObject = release.toObject();
+
+        auto prereleaseValue = releaseObject.value(QStringLiteral("prerelease"));
+        if (Q_UNLIKELY(prereleaseValue == QJsonValue::Undefined)) {
+            QNWARNING("GitHub release field has no prerelease field: "
+                << release);
+            continue;
+        }
+
+        auto nameValue = releaseObject.value(QStringLiteral("name"));
+        if (Q_UNLIKELY(nameValue == QJsonValue::Undefined)) {
+            QNWARNING("GitHub release field has no name field: " << release);
+            continue;
+        }
+
+        if (prereleaseValue.toBool() &&
+            nameValue.toString().contains(QStringLiteral("continuous-")) &&
+            !m_useContinuousUpdateChannel)
+        {
+            QNDEBUG("Skipping release " << nameValue.toString()
+                << " as checking for continuous releases is switched off");
+            continue;
+        }
+
+        auto createdAtValue = releaseObject.value(QStringLiteral("created_at"));
+        if (Q_UNLIKELY(createdAtValue == QJsonValue::Undefined))
+        {
+            QNWARNING("GitHub release field has no created_at field: "
+                << release);
+            continue;
+        }
+
+        QDateTime createdAt = QDateTime::fromString(
+            createdAtValue.toString(),
+            Qt::ISODate);
+        if (!createdAt.isValid())
+        {
+            QNWARNING("Failed to parse datetime from created_at field of "
+                << "GitHub release: " << createdAtValue.toString());
+            continue;
+        }
+
+        // TODO: impement further
+    }
+
+    // TODO: implement further
 }
 
 } // namespace quentier

@@ -44,4 +44,14 @@ void IUpdateChecker::setProviderName(QString name)
     m_providerName = std::move(name);
 }
 
+bool IUpdateChecker::useContinuousUpdateChannel() const
+{
+    return m_useContinuousUpdateChannel;
+}
+
+void IUpdateChecker::setUseContinuousUpdateChannel(const bool use)
+{
+    m_useContinuousUpdateChannel = use;
+}
+
 } // namespace quentier
