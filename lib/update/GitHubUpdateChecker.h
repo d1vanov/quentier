@@ -26,6 +26,8 @@
 
 #include <memory>
 
+QT_FORWARD_DECLARE_CLASS(QJsonDocument)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NetworkReplyFetcher)
@@ -54,13 +56,22 @@ private Q_SLOTS:
 private:
     struct GitHubReleaseInfo
     {
+        GitHubReleaseInfo(QUrl url, QDateTime createdAt) :
+            m_htmlUrl(std::move(url)),
+            m_createdAt(std::move(createdAt))
+        {}
+
         QUrl        m_htmlUrl;
-        QDateTime   m_publishedAt;
+        QDateTime   m_createdAt;
     };
+
+    void parseListedReleases(const QJsonDocument & jsonDoc);
 
 private:
     QString     m_host;
     QString     m_scheme;
+
+    QDateTime   m_currentBuildCreationDateTime;
 
     bool        m_inProgress = false;
 
