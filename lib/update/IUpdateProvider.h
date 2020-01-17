@@ -19,11 +19,13 @@
 #ifndef QUENTIER_UPDATE_I_UPDATE_PROVIDER_H
 #define QUENTIER_UPDATE_I_UPDATE_PROVIDER_H
 
-#include <QObject>
+#include <QPointer>
 
 #include <quentier/types/ErrorString.h>
 
 namespace quentier {
+
+QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
 
 /**
  * @brief The IUpdateProvider class is a generic interface for classes capable
@@ -33,9 +35,11 @@ class IUpdateProvider: public QObject
 {
     Q_OBJECT
 public:
-    explicit IUpdateProvider(QObject * parent = nullptr);
+    explicit IUpdateProvider(
+        IUpdateChecker * pChecker = nullptr,
+        QObject * parent = nullptr);
 
-    virtual ~IUpdateProvider() = default;
+    virtual ~IUpdateProvider() override = default;
 
 Q_SIGNALS:
     /**
@@ -67,6 +71,9 @@ public Q_SLOTS:
      * of updates
      */
     virtual void run() = 0;
+
+protected:
+    QPointer<IUpdateChecker>    m_pUpdateChecker;
 
 private:
     Q_DISABLE_COPY(IUpdateProvider)

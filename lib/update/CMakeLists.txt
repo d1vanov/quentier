@@ -11,7 +11,13 @@ set(HEADERS
 
 set(SOURCES
     GitHubUpdateChecker.cpp
-    IUpdateChecker.cpp)
+    IUpdateChecker.cpp
+    IUpdateProvider.cpp)
+
+if(USE_APP_IMAGE_UPDATER_BRIDGE)
+  list(APPEND HEADERS AppImageUpdateProvider.h)
+  list(APPEND SOURCES AppImageUpdateProvider.cpp)
+endif()
 
 string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%dT%H:%M:%SZ")
 

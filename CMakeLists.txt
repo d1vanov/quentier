@@ -173,6 +173,18 @@ if(INCLUDE_UPDATE_INFO)
   if(NOT DEFAULT_UPDATE_PROVIDER)
     message(FATAL "No default update provider is set")
   endif()
+
+  if(NOT GIT_FOUND)
+    message(FATAL "Build from git repository is required to include update info")
+  endif()
+
+  if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE))
+    set(USE_APP_IMAGE_UPDATER_BRIDGE TRUE)
+    find_package(AppImageUpdaterBridge REQUIRED)
+    get_property(APP_IMAGE_UPDATER_BRIDGE_LIBRARY_LOCATION TARGET AppImageUpdaterBridge PROPERTY LOCATION)
+    message(STATUS "Found AppImageUpdaterBridge library: ${APP_IMAGE_UPDATER_BRIDGE_LIBRARY_LOCATION}")
+    list(APPEND THIRDPARTY_LIBS AppImageUpdaterBridge)
+  endif()
 endif()
 
 set(QUENTIER_TRANSLATABLE_SOURCES "")
@@ -223,25 +235,25 @@ if(NOT WIN32 AND NOT APPLE)
   install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_16.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/16x16/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_32.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_32.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_48.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_48.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_64.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_64.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_128.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_128.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_256.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_256.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_512.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_512.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
           RENAME quentier.png)
   # install metainfo file
