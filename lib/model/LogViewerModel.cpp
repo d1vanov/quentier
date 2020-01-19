@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -273,13 +273,13 @@ void LogViewerModel::setStartLogFilePosAfterCurrentFileSize()
     setStartLogFilePos(m_currentLogFileInfo.size());
 }
 
-const QVector<LogLevel::type> & LogViewerModel::disabledLogLevels() const
+const QVector<LogLevel> & LogViewerModel::disabledLogLevels() const
 {
     return m_filteringOptions.m_disabledLogLevels;
 }
 
 void LogViewerModel::setDisabledLogLevels(
-    QVector<LogLevel::type> disabledLogLevels)
+    QVector<LogLevel> disabledLogLevels)
 {
     disabledLogLevels.erase(std::unique(disabledLogLevels.begin(),
                                         disabledLogLevels.end()),
@@ -511,20 +511,20 @@ QString LogViewerModel::dataEntryToString(
 }
 
 QColor LogViewerModel::backgroundColorForLogLevel(
-    const LogLevel::type logLevel) const
+    const LogLevel logLevel) const
 {
     int alpha = 140;
     switch(logLevel)
     {
-    case LogLevel::TraceLevel:
+    case LogLevel::Trace:
         return QColor(127, 174, 255, alpha);   // Light blue
-    case LogLevel::DebugLevel:
+    case LogLevel::Debug:
         return QColor(127, 255, 142, alpha);   // Light green
-    case LogLevel::InfoLevel:
+    case LogLevel::Info:
         return QColor(252, 255, 127, alpha);   // Light yellow
-    case LogLevel::WarnLevel:
+    case LogLevel::Warning:
         return QColor(255, 212, 127, alpha);   // Orange
-    case LogLevel::ErrorLevel:
+    case LogLevel::Error:
         return QColor(255, 38, 10, alpha);     // Red
     default:
         return QColor();
@@ -721,7 +721,7 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
         case Columns::SourceFileLineNumber:
             return pDataEntry->m_sourceFileLineNumber;
         case Columns::LogLevel:
-            return pDataEntry->m_logLevel;
+            return static_cast<qint64>(pDataEntry->m_logLevel);
         case Columns::LogEntry:
             return pDataEntry->m_logEntry;
         default:
@@ -1109,7 +1109,8 @@ void LogViewerModel::requestDataEntriesChunkFromLogFile(
     const qint64 startPos, const LogFileDataEntryRequestReason::type reason)
 {
     LVMDEBUG("LogViewerModel::requestDataEntriesChunkFromLogFile: "
-             << "start pos = " << startPos << ", request reason = " << reason);
+        << "start pos = " << startPos << ", request reason = "
+        << reason);
 
     auto it = m_logFilePosRequestedToBeRead.find(startPos);
     if (it != m_logFilePosRequestedToBeRead.end()) {
@@ -1197,19 +1198,19 @@ void LogViewerModel::timerEvent(QTimerEvent * pEvent)
     QAbstractTableModel::timerEvent(pEvent);
 }
 
-QString LogViewerModel::logLevelToString(LogLevel::type logLevel)
+QString LogViewerModel::logLevelToString(LogLevel logLevel)
 {
     switch(logLevel)
     {
-    case LogLevel::TraceLevel:
+    case LogLevel::Trace:
         return QStringLiteral("Trace");
-    case LogLevel::DebugLevel:
+    case LogLevel::Debug:
         return QStringLiteral("Debug");
-    case LogLevel::InfoLevel:
+    case LogLevel::Info:
         return QStringLiteral("Info");
-    case LogLevel::WarnLevel:
+    case LogLevel::Warning:
         return QStringLiteral("Warn");
-    case LogLevel::ErrorLevel:
+    case LogLevel::Error:
         return QStringLiteral("Error");
     default:
         return QStringLiteral("Unknown");
@@ -1452,24 +1453,24 @@ QTextStream & LogViewerModel::FilteringOptions::print(QTextStream & strm) const
         {
             switch(m_disabledLogLevels[i])
             {
-            case LogLevel::TraceLevel:
+            case LogLevel::Trace:
                 strm << "Trace";
                 break;
-            case LogLevel::DebugLevel:
+            case LogLevel::Debug:
                 strm << "Debug";
                 break;
-            case LogLevel::InfoLevel:
+            case LogLevel::Info:
                 strm << "Info";
                 break;
-            case LogLevel::WarnLevel:
+            case LogLevel::Warning:
                 strm << "Warning";
                 break;
-            case LogLevel::ErrorLevel:
+            case LogLevel::Error:
                 strm << "Error";
                 break;
             default:
-                strm << "Unknown (" << m_disabledLogLevels[i]
-                     << ")";
+                strm << "Unknown ("
+                    << static_cast<qint64>(m_disabledLogLevels[i]) << ")";
                 break;
             }
 
@@ -1494,7 +1495,7 @@ QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
          << printableDateTimeFromTimestamp(m_timestamp.toMSecsSinceEpoch())
          << ", source file name = " << m_sourceFileName
          << ", line number = " << m_sourceFileLineNumber
-         << ", log level = " << m_logLevel
+         << ", log level = " << static_cast<qint64>(m_logLevel) // TODO: more proper print
          << ", log entry: " << m_logEntry;
     return strm;
 }

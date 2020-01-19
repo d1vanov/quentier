@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -114,7 +114,7 @@ private:
     QMenu *                 m_pLogEntriesContextMenu;
 
     // Backups for tracing mode
-    LogLevel::type          m_minLogLevelBeforeTracing;
+    LogLevel                m_minLogLevelBeforeTracing;
     QString                 m_filterByContentBeforeTracing;
     bool                    m_filterByLogLevelBeforeTracing[6];
     qint64                  m_startLogFilePosBeforeTracing;
