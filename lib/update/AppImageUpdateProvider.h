@@ -21,6 +21,8 @@
 
 #include "IUpdateProvider.h"
 
+#include <QJsonObject>
+
 #include <memory>
 
 namespace AppImageUpdaterBridge {
@@ -39,13 +41,23 @@ class AppImageUpdateProvider: public IUpdateProvider
 public:
     explicit AppImageUpdateProvider(QObject * parent = nullptr);
 
-    virtual ~AppImageUpdateProvider() override = default;
+    virtual ~AppImageUpdateProvider() override;
 
 public Q_SLOTS:
     virtual void run() override;
 
 private Q_SLOTS:
     void onStarted();
+    void onFinished(QJsonObject newVersionDetails, QString oldVersionPath);
+
+    void onProgress(
+        int percentage, qint64 bytesReceived, qint64 bytesTotal,
+        double indeterminateSpeed, QString speedUnits);
+
+private:
+    using AppImageDeltaRevisioner = AppImageUpdaterBridge::AppImageDeltaRevisioner;
+
+    std::unique_ptr<AppImageDeltaRevisioner> m_pDeltaRevisioner;
 };
 
 } // namespace quentier

@@ -18,20 +18,87 @@
 
 #include "AppImageUpdateProvider.h"
 
+#include <quentier/logging/QuentierLogger.h>
+
+#include <QCoreApplication>
+
+#include <appimagedeltarevisioner.hpp>
+
 namespace quentier {
 
 AppImageUpdateProvider::AppImageUpdateProvider(QObject * parent) :
     IUpdateProvider(nullptr, parent)
 {}
 
+AppImageUpdateProvider::~AppImageUpdateProvider() = default;
+
 void AppImageUpdateProvider::run()
 {
+    QNDEBUG("AppImageUpdateProvider::run");
+
+    if (m_pDeltaRevisioner) {
+        QNDEBUG("Update is already running");
+        return;
+    }
+
+    m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>(
+        QCoreApplication::applicationFilePath());
+
+    QObject::connect(
+        m_pDeltaRevisioner.get(),
+        &AppImageDeltaRevisioner::started,
+        this,
+        &AppImageUpdateProvider::onStarted);
+
+    QObject::connect(
+        m_pDeltaRevisioner.get(),
+        &AppImageDeltaRevisioner::progress,
+        this,
+        &AppImageUpdateProvider::onProgress);
+
+    QObject::connect(
+        m_pDeltaRevisioner.get(),
+        &AppImageDeltaRevisioner::finished,
+        this,
+        &AppImageUpdateProvider::onFinished);
+
     // TODO: implement
 }
 
 void AppImageUpdateProvider::onStarted()
 {
+    QNDEBUG("AppImageUpdateProvider::onStarted");
+}
+
+void AppImageUpdateProvider::onFinished(
+    QJsonObject newVersionDetails, QString oldVersionPath)
+{
+    QNDEBUG("AppImageUpdateProvider::onFinished: old version path = "
+        << oldVersionPath << ", new version details = "
+        << newVersionDetails);
+
     // TODO: implement
+}
+
+void AppImageUpdateProvider::onProgress(
+    int percentage, qint64 bytesReceived, qint64 bytesTotal,
+    double indeterminateSpeed, QString speedUnits)
+{
+    QNDEBUG("AppImageUpdateProvider::onProgress: percentage = "
+        << percentage << ", bytes received = " << bytesReceived
+        << ", bytes total = " << bytesTotal << ", indeterminate speed = "
+        << indeterminateSpeed << " " << speedUnits);
+
+    // Ensure the percentage has proper value
+    if (Q_UNLIKELY(percentage < 0)) {
+        percentage = 0;
+    }
+
+    if (Q_UNLIKELY(percentage > 100)) {
+        percentage = 100;
+    }
+
+    Q_EMIT progress(percentage * 0.01, QString());
 }
 
 } // namespace quentier
