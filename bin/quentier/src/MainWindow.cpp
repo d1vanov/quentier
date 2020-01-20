@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -5894,7 +5894,7 @@ void MainWindow::persistGeometryAndState()
             << ", side panel splitter sizes ok = "
             << (sidePanelSplitterSizesCountOk ? "true" : "false"));
 
-    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+    if (QuentierIsLogLevelActive(LogLevel::Trace))
     {
         QString str;
         QTextStream strm(&str);
@@ -6083,7 +6083,7 @@ void MainWindow::restoreSplitterSizes()
 
         splitterSizes[2] = totalWidth - splitterSizes[0] - splitterSizes[1];
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);
@@ -6122,7 +6122,7 @@ void MainWindow::restoreSplitterSizes()
 
         QNTRACE("Set splitter sizes");
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);
@@ -6157,7 +6157,7 @@ void MainWindow::restoreSplitterSizes()
             totalHeight += sidePanelSplitterSizes[i];
         }
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);
@@ -6261,7 +6261,7 @@ void MainWindow::restoreSplitterSizes()
             totalHeightAfterRestore += sidePanelSplitterSizes[i];
         }
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);

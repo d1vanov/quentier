@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -1560,7 +1560,7 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(
         persistLocalUidsOfNotesInEditorTabs();
     }
 
-    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+    if (QuentierIsLogLevelActive(LogLevel::Trace))
     {
         QString str;
         QTextStream strm(&str);

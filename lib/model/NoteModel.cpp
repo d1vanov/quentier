@@ -313,7 +313,7 @@ const QSet<QString> & NoteModel::filteredNoteLocalUids() const
 
 void NoteModel::setFilteredNoteLocalUids(const QSet<QString> & noteLocalUids)
 {
-    if (QuentierIsLogLevelActive(LogLevel::DebugLevel))
+    if (QuentierIsLogLevelActive(LogLevel::Debug))
     {
         QString str;
         QTextStream strm(&str);

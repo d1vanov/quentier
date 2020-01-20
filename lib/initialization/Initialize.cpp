@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -91,33 +91,33 @@ void parseCommandLine(
     }
 }
 
-LogLevel::type processLogLevelCommandLineOption(
+LogLevel processLogLevelCommandLineOption(
     const CommandLineParser::CommandLineOptions & options)
 {
     auto logLevelIt = options.find(QStringLiteral("logLevel"));
     if (logLevelIt == options.end()) {
-        return LogLevel::InfoLevel;
+        return LogLevel::Info;
     }
 
     QString level = logLevelIt->toString().toLower();
 
     if (level == QStringLiteral("error")) {
-        return LogLevel::ErrorLevel;
+        return LogLevel::Error;
     }
 
     if (level == QStringLiteral("warning")) {
-        return LogLevel::WarnLevel;
+        return LogLevel::Warning;
     }
 
     if (level == QStringLiteral("debug")) {
-        return LogLevel::DebugLevel;
+        return LogLevel::Debug;
     }
 
     if (level == QStringLiteral("trace")) {
-        return LogLevel::TraceLevel;
+        return LogLevel::Trace;
     }
 
-    return LogLevel::InfoLevel;
+    return LogLevel::Info;
 }
 
 bool initialize(
@@ -131,7 +131,7 @@ bool initialize(
         return false;
     }
 
-    LogLevel::type logLevel = processLogLevelCommandLineOption(cmdOptions);
+    LogLevel logLevel = processLogLevelCommandLineOption(cmdOptions);
 
     // Initialize logging
     QUENTIER_INITIALIZE_LOGGING();
@@ -161,7 +161,7 @@ bool initialize(
         if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6))
         {
             quentier::QuentierSetMinLogLevel(
-                static_cast<quentier::LogLevel::type>(minLogLevel));
+                static_cast<quentier::LogLevel>(minLogLevel));
         }
     }
 

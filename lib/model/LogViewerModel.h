@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -82,7 +82,7 @@ public:
         virtual QTextStream & print(QTextStream & strm) const override;
 
         qevercloud::Optional<qint64>    m_startLogFilePos;
-        QVector<LogLevel::type>         m_disabledLogLevels;
+        QVector<LogLevel>               m_disabledLogLevels;
         QString                         m_logEntryContentFilter;
     };
 
@@ -97,8 +97,8 @@ public:
     qint64 currentLogFileSize() const;
     void setStartLogFilePosAfterCurrentFileSize();
 
-    const QVector<LogLevel::type> & disabledLogLevels() const;
-    void setDisabledLogLevels(QVector<LogLevel::type> disabledLogLevels);
+    const QVector<LogLevel> & disabledLogLevels() const;
+    void setDisabledLogLevels(QVector<LogLevel> disabledLogLevels);
 
     const QString & logEntryContentFilter() const;
     void setLogEntryContentFilter(const QString & logEntryContentFilter);
@@ -106,7 +106,7 @@ public:
     bool wipeCurrentLogFile(ErrorString & errorDescription);
     void clear();
 
-    static QString logLevelToString(LogLevel::type logLevel);
+    static QString logLevelToString(LogLevel logLevel);
 
     void setInternalLogEnabled(const bool enabled);
     bool internalLogEnabled() const;
@@ -117,7 +117,7 @@ public:
             m_timestamp(),
             m_sourceFileName(),
             m_sourceFileLineNumber(-1),
-            m_logLevel(LogLevel::InfoLevel),
+            m_logLevel(LogLevel::Info),
             m_logEntry()
         {}
 
@@ -126,7 +126,7 @@ public:
         QDateTime       m_timestamp;
         QString         m_sourceFileName;
         qint64          m_sourceFileLineNumber;
-        LogLevel::type  m_logLevel;
+        LogLevel        m_logLevel;
         QString         m_logEntry;
     };
 
@@ -137,7 +137,7 @@ public:
 
     QString dataEntryToString(const Data & dataEntry) const;
 
-    QColor backgroundColorForLogLevel(const LogLevel::type logLevel) const;
+    QColor backgroundColorForLogLevel(const LogLevel logLevel) const;
 
     void saveModelEntriesToFile(const QString & targetFilePath);
     bool isSavingModelEntriesToFileInProgress() const;
@@ -216,8 +216,10 @@ private:
             SaveLogEntriesToFile = 1 << 4
         };
     };
-    Q_DECLARE_FLAGS(LogFileDataEntryRequestReasons,
-                    LogFileDataEntryRequestReason::type)
+
+    Q_DECLARE_FLAGS(
+        LogFileDataEntryRequestReasons,
+        LogFileDataEntryRequestReason::type)
 
     void requestDataEntriesChunkFromLogFile(
         const qint64 startPos, const LogFileDataEntryRequestReason::type reason);

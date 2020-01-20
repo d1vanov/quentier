@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,27 +32,24 @@ public:
 
     bool parseDataEntriesFromLogFile(
         const qint64 fromPos, const int maxDataEntries,
-        const QVector<LogLevel::type> & disabledLogLevels,
+        const QVector<LogLevel> & disabledLogLevels,
         const QRegExp & filterContentRegExp,
         QFile & logFile, QVector<LogViewerModel::Data> & dataEntries,
         qint64 & endPos, ErrorString & errorDescription);
 
 private:
-    struct ParseLineStatus
+    enum class ParseLineStatus
     {
-        enum type
-        {
-            AppendedToLastEntry = 0,
-            FilteredEntry,
-            CreatedNewEntry,
-            Error
-        };
+        AppendedToLastEntry = 0,
+        FilteredEntry,
+        CreatedNewEntry,
+        Error
     };
 
-    ParseLineStatus::type parseLogFileLine(
+    ParseLineStatus parseLogFileLine(
         const QString & line,
-        const ParseLineStatus::type previousParseLineStatus,
-        const QVector<LogLevel::type> & disabledLogLevels,
+        const ParseLineStatus previousParseLineStatus,
+        const QVector<LogLevel> & disabledLogLevels,
         const QRegExp & filterContentRegExp,
         QVector<LogViewerModel::Data> & dataEntries,
         ErrorString & errorDescription);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,9 +23,9 @@
 #include "LogViewerModelLogFileParser.h"
 
 #include <QFile>
+#include <QRegExp>
 #include <QStringList>
 #include <QVector>
-#include <QRegExp>
 
 namespace quentier {
 
@@ -35,7 +35,7 @@ class LogViewerModel::FileReaderAsync : public QObject
 public:
     explicit FileReaderAsync(
         const QString & targetFilePath,
-        const QVector<LogLevel::type> & disabledLogLevels,
+        const QVector<LogLevel> & disabledLogLevels,
         const QString & logEntryContentFilter,
         QObject * parent = nullptr);
 
@@ -55,7 +55,7 @@ private:
 
 private:
     QFile                           m_targetFile;
-    QVector<LogLevel::type>         m_disabledLogLevels;
+    QVector<LogLevel>               m_disabledLogLevels;
     QRegExp                         m_filterRegExp;
     LogViewerModel::LogFileParser   m_parser;
 };
