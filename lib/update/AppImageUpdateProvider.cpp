@@ -22,7 +22,7 @@
 
 #include <QCoreApplication>
 
-#include <appimagedeltarevisioner.hpp>
+#include <AppImageUpdaterBridge>
 
 namespace quentier {
 

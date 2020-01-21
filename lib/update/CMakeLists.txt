@@ -15,7 +15,9 @@ set(SOURCES
     IUpdateProvider.cpp)
 
 if(USE_APP_IMAGE_UPDATER_BRIDGE)
+  list(APPEND HEADERS AppImageUpdateChecker.h)
   list(APPEND HEADERS AppImageUpdateProvider.h)
+  list(APPEND SOURCES AppImageUpdateChecker.cpp)
   list(APPEND SOURCES AppImageUpdateProvider.cpp)
 endif()
 
