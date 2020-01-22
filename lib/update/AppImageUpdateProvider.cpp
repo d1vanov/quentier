@@ -52,17 +52,21 @@ void AppImageUpdateProvider::run()
 
     QObject::connect(
         m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::progress,
-        this,
-        &AppImageUpdateProvider::onProgress);
-
-    QObject::connect(
-        m_pDeltaRevisioner.get(),
         &AppImageDeltaRevisioner::finished,
         this,
         &AppImageUpdateProvider::onFinished);
 
-    // TODO: implement
+    QObject::connect(
+        m_pDeltaRevisioner.get(),
+        &AppImageDeltaRevisioner::error,
+        this,
+        &AppImageUpdateProvider::onError);
+
+    QObject::connect(
+        m_pDeltaRevisioner.get(),
+        &AppImageDeltaRevisioner::progress,
+        this,
+        &AppImageUpdateProvider::onProgress);
 }
 
 void AppImageUpdateProvider::onStarted()
@@ -77,7 +81,20 @@ void AppImageUpdateProvider::onFinished(
         << oldVersionPath << ", new version details = "
         << newVersionDetails);
 
-    // TODO: implement
+    Q_EMIT finished(true, ErrorString(), true);
+}
+
+void AppImageUpdateProvider::onError(qint16 errorCode)
+{
+    auto errorDescription = AppImageUpdaterBridge::errorCodeToString(errorCode);
+
+    QNDEBUG("AppImageUpdateProvider::onError: error code = " << errorCode
+        << ": " << errorDescription);
+
+    ErrorString error(QT_TR_NOOP("Failed to update AppImage"));
+    error.details() = errorDescription;
+
+    Q_EMIT finished(false, error, false);
 }
 
 void AppImageUpdateProvider::onProgress(

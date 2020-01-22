@@ -50,6 +50,8 @@ private Q_SLOTS:
     void onStarted();
     void onFinished(QJsonObject newVersionDetails, QString oldVersionPath);
 
+    void onError(qint16 errorCode);
+
     void onProgress(
         int percentage, qint64 bytesReceived, qint64 bytesTotal,
         double indeterminateSpeed, QString speedUnits);
