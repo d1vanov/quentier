@@ -28,6 +28,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QSysInfo>
 
 namespace quentier {
 
@@ -129,7 +130,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
     for(const auto & release: releases)
     {
         if (Q_UNLIKELY(!release.isObject())) {
-            QNINFO("Skipping json field which is not an object although it "
+            QNWARNING("Skipping json field which is not an object although it "
                 << "should be a GitHub release: " <<  release);
             continue;
         }
@@ -242,6 +243,11 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
             continue;
         }
 
+        // Now need to check whether the release contains the required assets
+        if (!checkReleaseAssets(releaseObject)) {
+            continue;
+        }
+
         // That's it, we found a new appropriate release, need to update latest
         // release info
 
@@ -274,6 +280,81 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
     m_pLatestReleaseInfo = std::make_unique<GitHubReleaseInfo>(
         latestReleaseUrl,
         latestReleaseCreationDateTime);
+}
+
+bool GitHubUpdateChecker::checkReleaseAssets(
+    const QJsonObject & releaseObject) const
+{
+    QRegularExpression assetNameRegex;
+
+    auto kernelType = QSysInfo::kernelType();
+    if (kernelType == QStringLiteral("linux")) {
+        assetNameRegex.setPattern(QStringLiteral("(.*)\\.AppImage"));
+    }
+    else if (kernelType == QStringLiteral("darwin")) {
+        assetNameRegex.setPattern(QStringLiteral("Quentier_mac_x86_64\\.zip"));
+    }
+    else if (kernelType.startsWith(QStringLiteral("win")))
+    {
+        auto arch = QSysInfo::currentCpuArchitecture();
+        if (arch.endsWith(QStringLiteral("64"))) {
+            assetNameRegex.setPattern(
+                QStringLiteral("((.*)windows(.*)x64.zip)|((.*)x64.exe)"));
+        }
+        else {
+            assetNameRegex.setPattern(
+                QStringLiteral("((.*)windows(.*)x86.zip)|((.*)Win32.exe)"));
+        }
+    }
+    else
+    {
+        QNWARNING("Failed to determine kernel type: " << kernelType);
+        return true;
+    }
+
+    Q_ASSERT(assetNameRegex.isValid());
+
+    auto assetsValue = releaseObject.value(QStringLiteral("assets"));
+    if (Q_UNLIKELY(assetsValue == QJsonValue::Undefined)) {
+        QNWARNING("GitHub release appears to have no assets: " << releaseObject);
+        return false;
+    }
+
+    if (Q_UNLIKELY(!assetsValue.isArray())) {
+        QNWARNING("GitHub release assets are not organized into an array: "
+            << releaseObject);
+        return false;
+    }
+
+    bool foundMatchingAsset = false;
+
+    auto assetsArray = assetsValue.toArray();
+    for(const auto & asset: assetsArray)
+    {
+        if (Q_UNLIKELY(!asset.isObject())) {
+            QNWARNING("Skipping release asset field which is not an object "
+                << "although it should be a GitHub release asset: " << asset);
+            continue;
+        }
+
+        auto assetObject = asset.toObject();
+
+        auto assetNameValue = assetObject.value(QStringLiteral("name"));
+        if (Q_UNLIKELY(assetNameValue == QJsonValue::Undefined)) {
+            QNWARNING("GitHub release asset has no name field: " << asset);
+            continue;
+        }
+
+        auto assetName = assetNameValue.toString();
+        if (assetNameRegex.match(assetName).hasMatch()) {
+            QNDEBUG("Found matching asset: pattern = "
+                << assetNameRegex.pattern() << ", asset name = " << assetName);
+            foundMatchingAsset = true;
+            break;
+        }
+    }
+
+    return foundMatchingAsset;
 }
 
 } // namespace quentier

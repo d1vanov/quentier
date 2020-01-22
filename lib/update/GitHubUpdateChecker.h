@@ -27,6 +27,7 @@
 #include <memory>
 
 QT_FORWARD_DECLARE_CLASS(QJsonDocument)
+QT_FORWARD_DECLARE_CLASS(QJsonObject)
 
 namespace quentier {
 
@@ -66,6 +67,8 @@ private:
     };
 
     void parseListedReleases(const QJsonDocument & jsonDoc);
+
+    bool checkReleaseAssets(const QJsonObject & releaseObject) const;
 
 private:
     QString     m_host;
