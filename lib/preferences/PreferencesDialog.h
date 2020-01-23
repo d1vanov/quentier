@@ -75,6 +75,13 @@ Q_SIGNALS:
     void panelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
     void panelBackgroundLinearGradientChanged(QLinearGradient gradient);
 
+    void checkForUpdatesOptionChanged(bool enabled);
+    void checkForUpdatesOnStartupOptionChanged(bool enabled);
+    void useContinuousUpdateChannelOptionChanged(bool enabled);
+    void checkForUpdatesIntervalChanged(qint64 intervalMsec);
+    void updateChannelChanged(QString channel);
+    void updateProviderChanged(QString providerName);
+
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);
