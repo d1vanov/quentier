@@ -4415,7 +4415,7 @@ void MainWindow::setupLocalStorageManager()
         throw quentier::LocalStorageVersionTooHighException(errorDescription);
     }
 
-    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches =
+    QVector<std::shared_ptr<ILocalStoragePatch>> localStoragePatches =
         localStorageManager.requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty())
     {
@@ -5301,7 +5301,7 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
     }
 
     errorDescription.clear();
-    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches =
+    QVector<std::shared_ptr<ILocalStoragePatch>> localStoragePatches =
         m_pLocalStorageManagerAsync->localStorageManager()->requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty())
     {

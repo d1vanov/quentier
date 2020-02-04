@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,7 +37,7 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
         return nullptr;
     }
 
-    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches =
+    QVector<std::shared_ptr<ILocalStoragePatch> > localStoragePatches =
         localStorageManager.requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty()) {
         errorDescription.setBase(QT_TR_NOOP("Local storage requires upgrade. "
