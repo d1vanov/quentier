@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,17 +29,17 @@ namespace Ui {
 class PreferencesDialog;
 }
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
 QT_FORWARD_DECLARE_CLASS(QColorDialog)
 QT_FORWARD_DECLARE_CLASS(QFrame)
 QT_FORWARD_DECLARE_CLASS(QLineEdit)
+QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
+QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
-QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 
 class PreferencesDialog: public QDialog
 {
@@ -102,6 +102,13 @@ private Q_SLOTS:
     void onStartAtLoginCheckboxToggled(bool checked);
     void onStartAtLoginOptionChanged(int option);
 
+    void onCheckForUpdatesCheckboxToggled(bool checked);
+    void onCheckForUpdatesOnStartupCheckboxToggled(bool checked);
+    void onUseContinuousUpdateChannelCheckboxToggled(bool checked);
+    void onCheckForUpdatesIntervalChanged(int option);
+    void onUpdateChannelChanged(const QString & channel);
+    void onUpdateProviderChanged(const QString & provider);
+
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
 
@@ -143,8 +150,9 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) override;
 
 private:
-    void setupCurrentSettingsState(ActionsInfo & actionsInfo,
-                                   ShortcutManager & shortcutManager);
+    void setupCurrentSettingsState(
+        ActionsInfo & actionsInfo, ShortcutManager & shortcutManager);
+
     void setupSystemTraySettings();
     void setupStartAtLoginSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
@@ -165,7 +173,9 @@ private:
     void setNoteEditorBackgroundColorToDemoFrame(const QColor & color);
     void setNoteEditorHighlightColorToDemoFrame(const QColor & color);
     void setNoteEditorHighlightedTextColorToDemoFrame(const QColor & color);
-    void setNoteEditorColorToDemoFrameImpl(const QColor & color, QFrame & frame);
+
+    void setNoteEditorColorToDemoFrameImpl(
+        const QColor & color, QFrame & frame);
 
     QColor noteEditorFontColor() const;
     QColor noteEditorBackgroundColor() const;
@@ -177,7 +187,23 @@ private:
     void saveNoteEditorBackgroundColor(const QColor & color);
     void saveNoteEditorHighlightColor(const QColor & color);
     void saveNoteEditorHighlightedTextColor(const QColor & color);
-    void saveNoteEditorColorImpl(const QColor & color, const QString & settingKey);
+
+    void saveNoteEditorColorImpl(
+        const QColor & color, const QString & settingKey);
+
+    enum class CheckForUpdatesInterval
+    {
+        FIFTEEN_MINUTES = 0,
+        HALF_AN_HOUR = 1,
+        HOUR = 2,
+        TWO_HOURS = 3,
+        FOUR_HOURS = 4,
+        DAILY = 5,
+        WEEKLY = 6,
+        MONTHLY = 7
+    };
+
+    qint64 checkForUpdatesIntervalOptionToMsec(int option) const;
 
 private:
     Ui::PreferencesDialog *         m_pUi;

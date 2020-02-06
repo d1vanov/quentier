@@ -43,6 +43,31 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// Check for updates related settings keys
+#define CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME QStringLiteral("CheckForUpdates")
+
+#define CHECK_FOR_UPDATES_SETTINGS_KEY QStringLiteral("CheckForUpdates")
+
+#define CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY                              \
+    QStringLiteral("CheckForUpdatesOnStartup")                                 \
+// CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY
+
+#define USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY                             \
+    QStringLiteral("UseContinuousUpdateChannel")                               \
+// USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY
+
+#define CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY                                \
+    QStringLiteral("CheckForUpdatesInterval")                                  \
+// CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY
+
+#define CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY                                \
+    QStringLiteral("CheckForUpdatesProvider")                                  \
+// CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY
+
+#define CHECK_FOR_UPDATES_CHANNEL_KEY QStringLiteral("CheckForUpdatesChannel")
+
+////////////////////////////////////////////////////////////////////////////////
+
 // System tray related settings keys
 #define SYSTEM_TRAY_SETTINGS_GROUP_NAME QStringLiteral("SystemTray")
 
