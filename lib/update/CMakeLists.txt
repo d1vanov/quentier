@@ -7,12 +7,14 @@ project(quentier_update)
 set(HEADERS
     GitHubUpdateChecker.h
     IUpdateChecker.h
-    IUpdateProvider.h)
+    IUpdateProvider.h
+    UpdateManager.h)
 
 set(SOURCES
     GitHubUpdateChecker.cpp
     IUpdateChecker.cpp
-    IUpdateProvider.cpp)
+    IUpdateProvider.cpp
+    UpdateManager.cpp)
 
 if(USE_APP_IMAGE_UPDATER_BRIDGE)
   list(APPEND HEADERS AppImageUpdateChecker.h)

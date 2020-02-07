@@ -66,6 +66,10 @@
 
 #define CHECK_FOR_UPDATES_CHANNEL_KEY QStringLiteral("CheckForUpdatesChannel")
 
+#define LAST_CHECK_FOR_UPDATES_TIMESTAMP_SETTINGS_KEY                          \
+    QStringLiteral("LastCheckForUpdatesTimestamp")                             \
+// LAST_CHECK_FOR_UPDATES_TIMESTAMP_SETTINGS_KEY
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // System tray related settings keys
