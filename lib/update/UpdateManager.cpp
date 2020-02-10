@@ -24,6 +24,9 @@
 #include <QDateTime>
 #include <QTimerEvent>
 
+#include <algorithm>
+#include <limits>
+
 namespace quentier {
 
 UpdateManager::UpdateManager(QObject * parent) :
@@ -64,7 +67,11 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
         return;
     }
 
-    qint64 msecLeft = m_checkForUpdatesIntervalMsec - msecPassed;
+    int msecLeft = static_cast<int>(
+        std::min(
+            m_checkForUpdatesIntervalMsec - msecPassed,
+            qint64(std::numeric_limits<int>::max())));
+
     m_nextUpdateCheckTimerId = startTimer(msecLeft);
 
     QNDEBUG("Last check for updates was done at "
