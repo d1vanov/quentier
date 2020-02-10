@@ -51,6 +51,8 @@ using quentier::ShortcutSettingsWidget;
 #include <algorithm>
 #include <limits>
 
+#define GITHUB_RELEASES_UPDATE_PROVIDER QStringLiteral("GitHub releases")
+
 namespace quentier {
 
 QString trayActionToString(SystemTrayIconManager::TrayAction action);
@@ -346,8 +348,7 @@ void PreferencesDialog::onCheckForUpdatesCheckboxToggled(bool checked)
     QNDEBUG("PreferencesDialog::onCheckForUpdatesCheckboxToggled: "
         << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
     appSettings.setValue(CHECK_FOR_UPDATES_SETTINGS_KEY, checked);
     appSettings.endGroup();
@@ -360,8 +361,7 @@ void PreferencesDialog::onCheckForUpdatesOnStartupCheckboxToggled(bool checked)
     QNDEBUG("PreferencesDialog::onCheckForUpdatesOnStartupCheckboxToggled: "
         << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
     appSettings.setValue(CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY, checked);
     appSettings.endGroup();
@@ -374,8 +374,7 @@ void PreferencesDialog::onUseContinuousUpdateChannelCheckboxToggled(bool checked
     QNDEBUG("PreferencesDialog::onUseContinuousUpdateChannelCheckboxToggled: "
         << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
     appSettings.setValue(USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY, checked);
     appSettings.endGroup();
@@ -389,8 +388,7 @@ void PreferencesDialog::onCheckForUpdatesIntervalChanged(int option)
     QNDEBUG("PreferencesDialog::onCheckForUpdatesIntervalChanged: option = "
         << option << ", msec = " << msec);
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
     appSettings.setValue(CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY, msec);
     appSettings.endGroup();
@@ -402,8 +400,7 @@ void PreferencesDialog::onUpdateChannelChanged(const QString & channel)
 {
     QNDEBUG("PreferencesDialog::onUpdateChannelChanged: " << channel);
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
     appSettings.setValue(CHECK_FOR_UPDATES_CHANNEL_KEY, channel);
     appSettings.endGroup();
@@ -415,8 +412,7 @@ void PreferencesDialog::onUpdateProviderChanged(const QString & provider)
 {
     QNDEBUG("PreferencesDialog::onUpdateProviderChanged: " << provider);
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
     appSettings.setValue(CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY, provider);
     appSettings.endGroup();
@@ -939,6 +935,7 @@ void PreferencesDialog::setupCurrentSettingsState(
 
     // 4) Behaviour tab
     setupStartAtLoginSettings();
+    setupCheckForUpdatesSettings();
 
     // 5) Synchronization tab
     if (currentAccount.type() == Account::Type::Local)
@@ -1164,10 +1161,74 @@ void PreferencesDialog::setupStartAtLoginSettings()
     m_pUi->startAtLoginOptionComboBox->setEnabled(startAtLoginOptions.first);
 }
 
+void PreferencesDialog::setupCheckForUpdatesSettings()
+{
+    QNDEBUG("PreferencesDialog::setupCheckForUpdatesSettings");
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
+
+    bool checkForUpdatesEnabled = appSettings.value(
+        CHECK_FOR_UPDATES_SETTINGS_KEY,
+        DEFAULT_CHECK_FOR_UPDATES).toBool();
+
+    bool checkForUpdatesOnStartupEnabled = appSettings.value(
+        CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY,
+        DEFAULT_CHECK_FOR_UPDATES_ON_STARTUP).toBool();
+
+    int checkForUpdatesIntervalOptionIndex = appSettings.value(
+        CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY,
+        DEFAULT_CHECK_FOR_UPDATES_INTERVAL_OPTION_INDEX).toInt();
+
+    QString updateChannel = appSettings.value(
+        CHECK_FOR_UPDATES_CHANNEL_KEY,
+        DEFAULT_UPDATES_CHANNEL).toString();
+
+#if !QUENTIER_PACKAGED_AS_APP_IMAGE
+    // Only GtiHub provider is available, so should hide the combo box allowing
+    // one to choose between providers
+    m_pUi->updateProviderComboBox->hide();
+
+    // Should also hide the checkbox allowing to choose between continuous and
+    // non-continuous releases
+    m_pUi->useContinuousUpdateChannelCheckBox->hide();
+
+    bool useContinuousUpdateChannel = true;
+    QString updateProvider = GITHUB_RELEASES_UPDATE_PROVIDER;
+#else
+    bool useContinuousUpdateChannel = appSettings.value(
+        USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY,
+        DEFAULT_USE_CONTINUOUS_UPDATE_CHANNEL).toBool();
+
+    QString updateProvider = appSettings.value(
+        CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY,
+        DEFAULT_UPDATES_PROVIDER).toString();
+#endif
+
+    appSettings.endGroup();
+
+    m_pUi->checkForUpdatesCheckBox->setChecked(checkForUpdatesEnabled);
+
+    m_pUi->checkForUpdatesOnStartupCheckBox->setChecked(
+        checkForUpdatesOnStartupEnabled);
+
+    // TODO: fill combobox options
+    m_pUi->checkForUpdatesIntervalComboBox->setCurrentIndex(
+        checkForUpdatesIntervalOptionIndex);
+
+    m_pUi->useContinuousUpdateChannelCheckBox->setChecked(
+        useContinuousUpdateChannel);
+
+    m_pUi->updateChannelComboBox->setCurrentText(updateChannel);
+    m_pUi->updateProviderComboBox->setCurrentText(updateProvider);
+
+    // TODO: continue from here
+}
+
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
 {
     QNDEBUG("PreferencesDialog::setupRunSyncEachNumMinutesComboBox: "
-            << currentNumMinutes);
+        << currentNumMinutes);
 
     QStringList runSyncPeriodicallyOptions;
     runSyncPeriodicallyOptions.reserve(5);

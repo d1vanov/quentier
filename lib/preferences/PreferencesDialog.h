@@ -155,6 +155,7 @@ private:
 
     void setupSystemTraySettings();
     void setupStartAtLoginSettings();
+    void setupCheckForUpdatesSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupAppearanceSettingsState(const ActionsInfo & actionsInfo);
     void setupNetworkProxySettingsState();

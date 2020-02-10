@@ -20,6 +20,7 @@
 #define QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H
 
 #include <lib/utility/StartAtLogin.h>
+#include <lib/utility/VersionInfo.h>
 
 #include <QtGlobal>
 
@@ -51,5 +52,17 @@
 #define DEFAULT_DOWNLOAD_INK_NOTE_IMAGES (true)
 
 #define DEFAULT_RUN_SYNC_EACH_NUM_MINUTES (15)
+
+#define DEFAULT_CHECK_FOR_UPDATES (true)
+#define DEFAULT_CHECK_FOR_UPDATES_ON_STARTUP (true)
+#define DEFAULT_UPDATES_CHANNEL (QStringLiteral("stable"))
+#define DEFAULT_USE_CONTINUOUS_UPDATE_CHANNEL (true)
+#define DEFAULT_CHECK_FOR_UPDATES_INTERVAL_OPTION_INDEX (0)
+
+#if QUENTIER_PACKAGED_AS_APP_IMAGE
+#define DEFAULT_UPDATES_PROVIDER (QStringLiteral("AppImage"))
+#else
+#define DEFAULT_UPDATES_PROVIDER (QStringLiteral("GitHub releases"))
+#endif
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H
