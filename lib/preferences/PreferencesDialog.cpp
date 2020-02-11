@@ -1212,17 +1212,51 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
     m_pUi->checkForUpdatesOnStartupCheckBox->setChecked(
         checkForUpdatesOnStartupEnabled);
 
-    // TODO: fill combobox options
+    QStringList checkForUpdatesIntervalOptions;
+    checkForUpdatesIntervalOptions.reserve(8);
+    checkForUpdatesIntervalOptions << tr("15 minutes");
+    checkForUpdatesIntervalOptions << tr("30 minutes");
+    checkForUpdatesIntervalOptions << tr("hour");
+    checkForUpdatesIntervalOptions << tr("2 hours");
+    checkForUpdatesIntervalOptions << tr("4 hours");
+    checkForUpdatesIntervalOptions << tr("day");
+    checkForUpdatesIntervalOptions << tr("week");
+    checkForUpdatesIntervalOptions << tr("month");
+
+    auto * pCheckForUpdatesIntervalComboBoxModel = new QStringListModel(this);
+    pCheckForUpdatesIntervalComboBoxModel->setStringList(
+        checkForUpdatesIntervalOptions);
+
+    m_pUi->checkForUpdatesIntervalComboBox->setModel(
+        pCheckForUpdatesIntervalComboBoxModel);
+
     m_pUi->checkForUpdatesIntervalComboBox->setCurrentIndex(
         checkForUpdatesIntervalOptionIndex);
 
     m_pUi->useContinuousUpdateChannelCheckBox->setChecked(
         useContinuousUpdateChannel);
 
-    m_pUi->updateChannelComboBox->setCurrentText(updateChannel);
-    m_pUi->updateProviderComboBox->setCurrentText(updateProvider);
+    QStringList updateChannels;
+    updateChannels.reserve(2);
+    updateChannels << tr("Stable");
+    updateChannels << tr("Unstable");
 
-    // TODO: continue from here
+    auto * pUpdateChannelsComboBoxModel = new QStringListModel(this);
+    pUpdateChannelsComboBoxModel->setStringList(updateChannels);
+    m_pUi->updateChannelComboBox->setModel(pUpdateChannelsComboBoxModel);
+    m_pUi->updateChannelComboBox->setCurrentText(updateChannel);
+
+    QStringList updateProviders;
+#if QUENTIER_PACKAGED_AS_APP_IMAGE
+    updateProviders.reserve(2);
+    updateProviders << tr("AppImage");
+#endif
+    updateProviders << tr("GitHub");
+
+    auto * pUpdateProvidersComboBoxModel = new QStringListModel(this);
+    pUpdateProvidersComboBoxModel->setStringList(updateProviders);
+    m_pUi->updateProviderComboBox->setModel(pUpdateProvidersComboBoxModel);
+    m_pUi->updateProviderComboBox->setCurrentText(updateProvider);
 }
 
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
@@ -1238,7 +1272,7 @@ void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes
     runSyncPeriodicallyOptions << tr("Every 30 minutes");
     runSyncPeriodicallyOptions << tr("Every hour");
 
-    QStringListModel * pRunSyncPeriodicallyComboBoxModel = new QStringListModel(this);
+    auto * pRunSyncPeriodicallyComboBoxModel = new QStringListModel(this);
     pRunSyncPeriodicallyComboBoxModel->setStringList(runSyncPeriodicallyOptions);
     m_pUi->runSyncPeriodicallyComboBox->setModel(pRunSyncPeriodicallyComboBoxModel);
 
