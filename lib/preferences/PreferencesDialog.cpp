@@ -21,6 +21,7 @@
 #include "DefaultDisableNativeMenuBar.h"
 #include "DefaultSettings.h"
 #include "SettingsNames.h"
+#include "UpdateSettings.h"
 
 #include "panel_colors/PanelColorsHandlerWidget.h"
 using quentier::PanelColorsHandlerWidget;
@@ -384,7 +385,8 @@ void PreferencesDialog::onUseContinuousUpdateChannelCheckboxToggled(bool checked
 
 void PreferencesDialog::onCheckForUpdatesIntervalChanged(int option)
 {
-    auto msec = checkForUpdatesIntervalOptionToMsec(option);
+    auto msec = checkForUpdatesIntervalMsecFromOption(
+        static_cast<CheckForUpdatesInterval>(option));
     QNDEBUG("PreferencesDialog::onCheckForUpdatesIntervalChanged: option = "
         << option << ", msec = " << msec);
 
@@ -1165,24 +1167,20 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
 {
     QNDEBUG("PreferencesDialog::setupCheckForUpdatesSettings");
 
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
+    bool checkForUpdatesEnabled = false;
+    bool checkForUpdatesOnStartupEnabled = false;
+    bool useContinuousUpdateChannel = false;
+    int checkForUpdatesIntervalOption = -1;
+    QString updateChannel;
+    UpdateProvider updateProvider;
 
-    bool checkForUpdatesEnabled = appSettings.value(
-        CHECK_FOR_UPDATES_SETTINGS_KEY,
-        DEFAULT_CHECK_FOR_UPDATES).toBool();
-
-    bool checkForUpdatesOnStartupEnabled = appSettings.value(
-        CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY,
-        DEFAULT_CHECK_FOR_UPDATES_ON_STARTUP).toBool();
-
-    int checkForUpdatesIntervalOptionIndex = appSettings.value(
-        CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY,
-        DEFAULT_CHECK_FOR_UPDATES_INTERVAL_OPTION_INDEX).toInt();
-
-    QString updateChannel = appSettings.value(
-        CHECK_FOR_UPDATES_CHANNEL_KEY,
-        DEFAULT_UPDATES_CHANNEL).toString();
+    readPersistentUpdateSettings(
+        checkForUpdatesEnabled,
+        checkForUpdatesOnStartupEnabled,
+        useContinuousUpdateChannel,
+        checkForUpdatesIntervalOption,
+        updateChannel,
+        updateProvider);
 
 #if !QUENTIER_PACKAGED_AS_APP_IMAGE
     // Only GtiHub provider is available, so should hide the combo box allowing
@@ -1192,20 +1190,7 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
     // Should also hide the checkbox allowing to choose between continuous and
     // non-continuous releases
     m_pUi->useContinuousUpdateChannelCheckBox->hide();
-
-    bool useContinuousUpdateChannel = true;
-    QString updateProvider = GITHUB_RELEASES_UPDATE_PROVIDER;
-#else
-    bool useContinuousUpdateChannel = appSettings.value(
-        USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY,
-        DEFAULT_USE_CONTINUOUS_UPDATE_CHANNEL).toBool();
-
-    QString updateProvider = appSettings.value(
-        CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY,
-        DEFAULT_UPDATES_PROVIDER).toString();
 #endif
-
-    appSettings.endGroup();
 
     m_pUi->checkForUpdatesCheckBox->setChecked(checkForUpdatesEnabled);
 
@@ -1231,7 +1216,7 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
         pCheckForUpdatesIntervalComboBoxModel);
 
     m_pUi->checkForUpdatesIntervalComboBox->setCurrentIndex(
-        checkForUpdatesIntervalOptionIndex);
+        checkForUpdatesIntervalOption);
 
     m_pUi->useContinuousUpdateChannelCheckBox->setChecked(
         useContinuousUpdateChannel);
@@ -1249,14 +1234,16 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
     QStringList updateProviders;
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
     updateProviders.reserve(2);
-    updateProviders << tr("AppImage");
+    updateProviders << updateProviderName(UpdateProvider::APPIMAGE);
 #endif
-    updateProviders << tr("GitHub");
+    updateProviders << updateProviderName(UpdateProvider::GITHUB);
 
     auto * pUpdateProvidersComboBoxModel = new QStringListModel(this);
     pUpdateProvidersComboBoxModel->setStringList(updateProviders);
     m_pUi->updateProviderComboBox->setModel(pUpdateProvidersComboBoxModel);
-    m_pUi->updateProviderComboBox->setCurrentText(updateProvider);
+
+    m_pUi->updateProviderComboBox->setCurrentIndex(
+        static_cast<int>(updateProvider));
 }
 
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
@@ -2105,31 +2092,6 @@ void PreferencesDialog::saveNoteEditorColorImpl(
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
     appSettings.setValue(settingKey, color.name());
     appSettings.endGroup();
-}
-
-qint64 PreferencesDialog::checkForUpdatesIntervalOptionToMsec(
-    int option) const
-{
-    switch(static_cast<CheckForUpdatesInterval>(option))
-    {
-    case CheckForUpdatesInterval::FIFTEEN_MINUTES:
-        return 15ll * 60 * 1000;
-    case CheckForUpdatesInterval::HALF_AN_HOUR:
-        return 30ll * 60 * 1000;
-    case CheckForUpdatesInterval::HOUR:
-        return 60ll * 60 * 1000;
-    case CheckForUpdatesInterval::TWO_HOURS:
-        return 120ll * 60 * 1000;
-    case CheckForUpdatesInterval::FOUR_HOURS:
-        return 240ll * 60 * 1000;
-    case CheckForUpdatesInterval::DAILY:
-        return 24ll * 60 * 60 * 1000;
-    case CheckForUpdatesInterval::MONTHLY:
-        return 30ll * 24 * 60 * 60 * 1000;
-    case CheckForUpdatesInterval::WEEKLY:
-    default:
-        return 7ll * 24 * 60 * 60 * 1000;
-    }
 }
 
 QString trayActionToString(SystemTrayIconManager::TrayAction action)

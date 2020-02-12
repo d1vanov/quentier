@@ -31,14 +31,44 @@ class UpdateManager: public QObject
 public:
     explicit UpdateManager(QObject * parent = nullptr);
 
+    bool isEnabled() const
+    {
+        return m_updateCheckEnabled;
+    }
+
+    bool shouldCheckForUpdatesOnStartup() const
+    {
+        return m_checkForUpdatesOnStartup;
+    }
+
+    bool useContinuousUpdateChannel() const
+    {
+        return m_useContinuousUpdateChannel;
+    }
+
+    qint64 checkForUpdatesIntervalMsec() const
+    {
+        return m_checkForUpdatesIntervalMsec;
+    }
+
+    const QString & updateChannel() const
+    {
+        return m_updateChannel;
+    }
+
+    const QString & updateProviderName() const
+    {
+        return m_updateProviderName;
+    }
+
+Q_SIGNALS:
+    void notifyError(ErrorString errorDescription);
+
 private:
     void readPersistentSettings();
     void setupNextCheckForUpdatesTimer();
 
     void checkForUpdates();
-
-Q_SIGNALS:
-    void notifyError(ErrorString errorDescription);
 
 private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;

@@ -19,6 +19,8 @@
 #ifndef QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H
 #define QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H
 
+#include "UpdateSettings.h"
+
 #include <lib/utility/StartAtLogin.h>
 #include <lib/utility/VersionInfo.h>
 
@@ -60,9 +62,9 @@
 #define DEFAULT_CHECK_FOR_UPDATES_INTERVAL_OPTION_INDEX (0)
 
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
-#define DEFAULT_UPDATES_PROVIDER (QStringLiteral("AppImage"))
+#define DEFAULT_UPDATES_PROVIDER UpdateProvider::APPIMAGE
 #else
-#define DEFAULT_UPDATES_PROVIDER (QStringLiteral("GitHub releases"))
+#define DEFAULT_UPDATES_PROVIDER UpdateProvider::GITHUB
 #endif
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H

@@ -192,20 +192,6 @@ private:
     void saveNoteEditorColorImpl(
         const QColor & color, const QString & settingKey);
 
-    enum class CheckForUpdatesInterval
-    {
-        FIFTEEN_MINUTES = 0,
-        HALF_AN_HOUR = 1,
-        HOUR = 2,
-        TWO_HOURS = 3,
-        FOUR_HOURS = 4,
-        DAILY = 5,
-        WEEKLY = 6,
-        MONTHLY = 7
-    };
-
-    qint64 checkForUpdatesIntervalOptionToMsec(int option) const;
-
 private:
     Ui::PreferencesDialog *         m_pUi;
     AccountManager &                m_accountManager;

@@ -18,7 +18,10 @@
 
 #include "UpdateManager.h"
 
+#include <lib/preferences/UpdateSettings.h>
+
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/Utility.h>
 
 #include <QDateTime>
@@ -37,7 +40,21 @@ UpdateManager::UpdateManager(QObject * parent) :
 
 void UpdateManager::readPersistentSettings()
 {
-    // TODO: implement
+    int checkForUpdatesOption = -1;
+    UpdateProvider updateProvider;
+
+    readPersistentUpdateSettings(
+        m_updateCheckEnabled,
+        m_checkForUpdatesOnStartup,
+        m_useContinuousUpdateChannel,
+        checkForUpdatesOption,
+        m_updateChannel,
+        updateProvider);
+
+    m_checkForUpdatesIntervalMsec = checkForUpdatesIntervalMsecFromOption(
+        static_cast<CheckForUpdatesInterval>(checkForUpdatesOption));
+
+    m_updateProviderName = ::quentier::updateProviderName(updateProvider);
 }
 
 void UpdateManager::setupNextCheckForUpdatesTimer()
