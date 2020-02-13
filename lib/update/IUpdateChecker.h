@@ -21,6 +21,8 @@
 
 #include "IUpdateProvider.h"
 
+#include <lib/preferences/UpdateSettings.h>
+
 #include <QUrl>
 
 #include <memory>
@@ -41,9 +43,6 @@ public:
 
     QString updateChannel() const;
     void setUpdateChannel(QString channel);
-
-    QString providerName() const;
-    void setProviderName(QString name);
 
     bool useContinuousUpdateChannel() const;
     void setUseContinuousUpdateChannel(const bool use);
@@ -90,9 +89,13 @@ public Q_SLOTS:
 
 protected:
     QString     m_updateChannel;
-    QString     m_providerName;
     bool        m_useContinuousUpdateChannel = true;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+IUpdateChecker * newUpdateChecker(
+    const UpdateProvider updateProvider, QObject * parent = nullptr);
 
 } // namespace quentier
 

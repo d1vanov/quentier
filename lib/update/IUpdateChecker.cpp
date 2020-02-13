@@ -17,6 +17,8 @@
  */
 
 #include "IUpdateChecker.h"
+#include "AppImageUpdateChecker.h"
+#include "GitHubUpdateChecker.h"
 
 namespace quentier {
 
@@ -34,16 +36,6 @@ void IUpdateChecker::setUpdateChannel(QString channel)
     m_updateChannel = std::move(channel);
 }
 
-QString IUpdateChecker::providerName() const
-{
-    return m_providerName;
-}
-
-void IUpdateChecker::setProviderName(QString name)
-{
-    m_providerName = std::move(name);
-}
-
 bool IUpdateChecker::useContinuousUpdateChannel() const
 {
     return m_useContinuousUpdateChannel;
@@ -52,6 +44,21 @@ bool IUpdateChecker::useContinuousUpdateChannel() const
 void IUpdateChecker::setUseContinuousUpdateChannel(const bool use)
 {
     m_useContinuousUpdateChannel = use;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+IUpdateChecker * newUpdateChecker(
+    const UpdateProvider updateProvider, QObject * parent)
+{
+    switch(updateProvider)
+    {
+    case UpdateProvider::APPIMAGE:
+        return new AppImageUpdateChecker(parent);
+    case UpdateProvider::GITHUB:
+    default:
+        return new GitHubUpdateChecker(parent);
+    }
 }
 
 } // namespace quentier

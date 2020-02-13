@@ -19,9 +19,16 @@
 #ifndef QUENTIER_UPDATE_UPDATE_MANAGER_H
 #define QUENTIER_UPDATE_UPDATE_MANAGER_H
 
+#include "IUpdateProvider.h"
+
+#include <lib/preferences/UpdateSettings.h>
+
 #include <quentier/types/ErrorString.h>
 
 #include <QObject>
+#include <QUrl>
+
+#include <memory>
 
 namespace quentier {
 
@@ -56,19 +63,29 @@ public:
         return m_updateChannel;
     }
 
-    const QString & updateProviderName() const
+    UpdateProvider updateProvider() const
     {
-        return m_updateProviderName;
+        return m_updateProvider;
     }
 
 Q_SIGNALS:
+    void notifyUpdatesAvailableAtUrl(QUrl downloadUrl);
+    void notifyUpdatesAvailable(std::shared_ptr<IUpdateProvider> provider);
+
     void notifyError(ErrorString errorDescription);
+
+public Q_SLOTS:
+    void checkForUpdates();
+
+private Q_SLOTS:
+    void onCheckForUpdatesError(ErrorString errorDescription);
+    void onNoUpdatesAvailable();
+    void onUpdatesAvailableAtUrl(QUrl downloadUrl);
+    void onUpdatesAvailable(std::shared_ptr<IUpdateProvider> provider);
 
 private:
     void readPersistentSettings();
     void setupNextCheckForUpdatesTimer();
-
-    void checkForUpdates();
 
 private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;
@@ -83,7 +100,8 @@ private:
 
     qint64  m_checkForUpdatesIntervalMsec = 0;
     QString m_updateChannel;
-    QString m_updateProviderName;
+
+    UpdateProvider  m_updateProvider;
 
     qint64  m_lastCheckForUpdatesTimestamp = 0;
 

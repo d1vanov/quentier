@@ -18,7 +18,7 @@
 
 #include "UpdateManager.h"
 
-#include <lib/preferences/UpdateSettings.h>
+#include "IUpdateChecker.h"
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -41,7 +41,6 @@ UpdateManager::UpdateManager(QObject * parent) :
 void UpdateManager::readPersistentSettings()
 {
     int checkForUpdatesOption = -1;
-    UpdateProvider updateProvider;
 
     readPersistentUpdateSettings(
         m_updateCheckEnabled,
@@ -49,12 +48,10 @@ void UpdateManager::readPersistentSettings()
         m_useContinuousUpdateChannel,
         checkForUpdatesOption,
         m_updateChannel,
-        updateProvider);
+        m_updateProvider);
 
     m_checkForUpdatesIntervalMsec = checkForUpdatesIntervalMsecFromOption(
         static_cast<CheckForUpdatesInterval>(checkForUpdatesOption));
-
-    m_updateProviderName = ::quentier::updateProviderName(updateProvider);
 }
 
 void UpdateManager::setupNextCheckForUpdatesTimer()
@@ -75,7 +72,8 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
 
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     qint64 msecPassed = now - m_lastCheckForUpdatesTimestamp;
-    if (msecPassed >= m_checkForUpdatesIntervalMsec) {
+    if (msecPassed >= m_checkForUpdatesIntervalMsec)
+    {
         QNINFO("Last check for updates was too long ago ("
             << printableDateTimeFromTimestamp(m_lastCheckForUpdatesTimestamp)
             << ", now is " << printableDateTimeFromTimestamp(now)
@@ -103,7 +101,87 @@ void UpdateManager::checkForUpdates()
 {
     QNDEBUG("UpdateManager::checkForUpdates");
 
-    // TODO: implement
+    auto * pUpdateChecker = newUpdateChecker(m_updateProvider, this);
+    pUpdateChecker->setUpdateChannel(m_updateChannel);
+    pUpdateChecker->setUseContinuousUpdateChannel(m_useContinuousUpdateChannel);
+
+    QObject::connect(
+        pUpdateChecker,
+        &IUpdateChecker::failure,
+        this,
+        &UpdateManager::onCheckForUpdatesError);
+
+    QObject::connect(
+        pUpdateChecker,
+        &IUpdateChecker::noUpdatesAvailable,
+        this,
+        &UpdateManager::onNoUpdatesAvailable);
+
+    QObject::connect(
+        pUpdateChecker,
+        qOverload<QUrl>(&IUpdateChecker::updatesAvailable),
+        this,
+        &UpdateManager::onUpdatesAvailableAtUrl);
+
+    QObject::connect(
+        pUpdateChecker,
+        qOverload<std::shared_ptr<IUpdateProvider>>(
+            &IUpdateChecker::updatesAvailable),
+        this,
+        &UpdateManager::onUpdatesAvailable);
+
+    pUpdateChecker->checkForUpdates();
+}
+
+void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
+{
+    QNDEBUG("UpdateManager::onCheckForUpdatesError: " << errorDescription);
+
+    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
+    if (pUpdateChecker) {
+        pUpdateChecker->disconnect(this);
+        pUpdateChecker->deleteLater();
+    }
+
+    Q_EMIT notifyError(errorDescription);
+}
+
+void UpdateManager::onNoUpdatesAvailable()
+{
+    QNDEBUG("UpdateManager::onNoUpdatesAvailable");
+
+    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
+    if (pUpdateChecker) {
+        pUpdateChecker->disconnect(this);
+        pUpdateChecker->deleteLater();
+    }
+}
+
+void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
+{
+    QNDEBUG("UpdateManager::onUpdatesAvailableAtUrl: " << downloadUrl);
+
+    Q_EMIT notifyUpdatesAvailableAtUrl(downloadUrl);
+
+    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
+    if (pUpdateChecker) {
+        pUpdateChecker->disconnect(this);
+        pUpdateChecker->deleteLater();
+    }
+}
+
+void UpdateManager::onUpdatesAvailable(
+    std::shared_ptr<IUpdateProvider> provider)
+{
+    QNDEBUG("UpdateManager::onUpdatesAvailable");
+
+    Q_EMIT notifyUpdatesAvailable(provider);
+
+    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
+    if (pUpdateChecker) {
+        pUpdateChecker->disconnect(this);
+        pUpdateChecker->deleteLater();
+    }
 }
 
 void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
@@ -122,7 +200,10 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
 
     QNDEBUG("Timer event for timer id " << timerId);
 
-    // TODO: implement further
+    if (timerId == m_nextUpdateCheckTimerId) {
+        checkForUpdates();
+        setupNextCheckForUpdatesTimer();
+    }
 }
 
 } // namespace quentier
