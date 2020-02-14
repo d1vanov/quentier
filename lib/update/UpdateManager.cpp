@@ -22,6 +22,7 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/MessageBox.h>
 #include <quentier/utility/Utility.h>
 
 #include <QDateTime>
@@ -97,6 +98,15 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
         << ", timer id = " << m_nextUpdateCheckTimerId);
 }
 
+void UpdateManager::recycleUpdateChecker(QObject * sender)
+{
+    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender);
+    if (pUpdateChecker) {
+        pUpdateChecker->disconnect(this);
+        pUpdateChecker->deleteLater();
+    }
+}
+
 void UpdateManager::checkForUpdates()
 {
     QNDEBUG("UpdateManager::checkForUpdates");
@@ -137,37 +147,36 @@ void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
 {
     QNDEBUG("UpdateManager::onCheckForUpdatesError: " << errorDescription);
 
-    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
-    if (pUpdateChecker) {
-        pUpdateChecker->disconnect(this);
-        pUpdateChecker->deleteLater();
-    }
-
     Q_EMIT notifyError(errorDescription);
+    recycleUpdateChecker(sender());
 }
 
 void UpdateManager::onNoUpdatesAvailable()
 {
     QNDEBUG("UpdateManager::onNoUpdatesAvailable");
-
-    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
-    if (pUpdateChecker) {
-        pUpdateChecker->disconnect(this);
-        pUpdateChecker->deleteLater();
-    }
+    recycleUpdateChecker(sender());
 }
 
 void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
 {
     QNDEBUG("UpdateManager::onUpdatesAvailableAtUrl: " << downloadUrl);
 
-    Q_EMIT notifyUpdatesAvailableAtUrl(downloadUrl);
+    recycleUpdateChecker(sender());
 
-    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
-    if (pUpdateChecker) {
-        pUpdateChecker->disconnect(this);
-        pUpdateChecker->deleteLater();
+    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+    int res = informationMessageBox(
+        parentWidget,
+        tr("Updates available"),
+        tr("A newer version of Quentier is available. Would you like to "
+           "download it?"),
+        QString(),
+        QMessageBox::Ok | QMessageBox::No);
+    if (res != QMessageBox::Ok) {
+        QNDEBUG("User refused to download updates");
+        return;
     }
+
+    openUrl(downloadUrl);
 }
 
 void UpdateManager::onUpdatesAvailable(
@@ -175,13 +184,67 @@ void UpdateManager::onUpdatesAvailable(
 {
     QNDEBUG("UpdateManager::onUpdatesAvailable");
 
-    Q_EMIT notifyUpdatesAvailable(provider);
+    recycleUpdateChecker(sender());
 
-    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender());
-    if (pUpdateChecker) {
-        pUpdateChecker->disconnect(this);
-        pUpdateChecker->deleteLater();
+    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+    int res = informationMessageBox(
+        parentWidget,
+        tr("Updates available"),
+        tr("A newer version of Quentier is available. Would you like to "
+           "download and install it?"),
+        QString(),
+        QMessageBox::Ok | QMessageBox::No);
+    if (res != QMessageBox::Ok) {
+        QNDEBUG("User refused to download and install updates");
+        return;
     }
+
+    if (m_currentUpdateProvider) {
+        m_currentUpdateProvider->disconnect(this);
+        m_currentUpdateProvider.reset();
+    }
+
+    m_currentUpdateProvider = std::move(provider);
+
+    QObject::connect(
+        m_currentUpdateProvider.get(),
+        &IUpdateProvider::finished,
+        this,
+        &UpdateManager::onUpdateProviderFinished);
+
+    QObject::connect(
+        m_currentUpdateProvider.get(),
+        &IUpdateProvider::progress,
+        this,
+        &UpdateManager::onUpdateProviderProgress);
+
+    m_currentUpdateProvider->run();
+}
+
+void UpdateManager::onUpdateProviderFinished(
+    bool status, ErrorString errorDescription, bool needsRestart)
+{
+    QNDEBUG("UpdateManager::onUpdateProviderFinished: status = "
+        << (status ? "true" : "false") << ", error description = "
+        << errorDescription << ", needs restart = "
+        << (needsRestart ? "true" : "false"));
+
+    if (!status) {
+        Q_EMIT notifyError(errorDescription);
+        return;
+    }
+
+    if (needsRestart) {
+        // TODO: implement this somehow
+    }
+}
+
+void UpdateManager::onUpdateProviderProgress(double value, QString message)
+{
+    QNDEBUG("UpdateManager::onUpdateProviderProgress: value = "
+        << value << ", message = " << message);
+
+    // TODO: implement
 }
 
 void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)

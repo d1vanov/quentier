@@ -69,9 +69,6 @@ public:
     }
 
 Q_SIGNALS:
-    void notifyUpdatesAvailableAtUrl(QUrl downloadUrl);
-    void notifyUpdatesAvailable(std::shared_ptr<IUpdateProvider> provider);
-
     void notifyError(ErrorString errorDescription);
 
 public Q_SLOTS:
@@ -83,9 +80,15 @@ private Q_SLOTS:
     void onUpdatesAvailableAtUrl(QUrl downloadUrl);
     void onUpdatesAvailable(std::shared_ptr<IUpdateProvider> provider);
 
+    void onUpdateProviderFinished(
+        bool status, ErrorString errorDescription, bool needsRestart);
+
+    void onUpdateProviderProgress(double value, QString message);
+
 private:
     void readPersistentSettings();
     void setupNextCheckForUpdatesTimer();
+    void recycleUpdateChecker(QObject * sender);
 
 private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;
@@ -106,6 +109,8 @@ private:
     qint64  m_lastCheckForUpdatesTimestamp = 0;
 
     int     m_nextUpdateCheckTimerId = -1;
+
+    std::shared_ptr<IUpdateProvider>    m_currentUpdateProvider;
 };
 
 } // namespace quentier
