@@ -20,12 +20,16 @@
 
 #include "IUpdateChecker.h"
 
+#include <lib/utility/ExitCodes.h>
+
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/Utility.h>
 
+#include <QApplication>
 #include <QDateTime>
+#include <QProgressDialog>
 #include <QTimerEvent>
 
 #include <algorithm>
@@ -38,6 +42,8 @@ UpdateManager::UpdateManager(QObject * parent) :
 {
     readPersistentSettings();
 }
+
+UpdateManager::~UpdateManager() = default;
 
 void UpdateManager::readPersistentSettings()
 {
@@ -169,7 +175,7 @@ void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
         tr("Updates available"),
         tr("A newer version of Quentier is available. Would you like to "
            "download it?"),
-        QString(),
+        {},
         QMessageBox::Ok | QMessageBox::No);
     if (res != QMessageBox::Ok) {
         QNDEBUG("User refused to download updates");
@@ -186,6 +192,8 @@ void UpdateManager::onUpdatesAvailable(
 
     recycleUpdateChecker(sender());
 
+    Q_ASSERT(provider);
+
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
     int res = informationMessageBox(
         parentWidget,
@@ -199,26 +207,38 @@ void UpdateManager::onUpdatesAvailable(
         return;
     }
 
-    if (m_currentUpdateProvider) {
-        m_currentUpdateProvider->disconnect(this);
-        m_currentUpdateProvider.reset();
+    if (m_pCurrentUpdateProvider) {
+        m_pCurrentUpdateProvider->disconnect(this);
+        m_pCurrentUpdateProvider.reset();
     }
 
-    m_currentUpdateProvider = std::move(provider);
+    m_pCurrentUpdateProvider = std::move(provider);
 
     QObject::connect(
-        m_currentUpdateProvider.get(),
+        m_pCurrentUpdateProvider.get(),
         &IUpdateProvider::finished,
         this,
         &UpdateManager::onUpdateProviderFinished);
 
     QObject::connect(
-        m_currentUpdateProvider.get(),
+        m_pCurrentUpdateProvider.get(),
         &IUpdateProvider::progress,
         this,
         &UpdateManager::onUpdateProviderProgress);
 
-    m_currentUpdateProvider->run();
+    m_pUpdateProgressDialog.reset(new QProgressDialog(
+        tr("Updating, please wait..."),
+        {},
+        0,
+        100,
+        parentWidget));
+
+    // Forbid cancelling the update
+    m_pUpdateProgressDialog->setCancelButton(nullptr);
+
+    m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
+
+    m_pCurrentUpdateProvider->run();
 }
 
 void UpdateManager::onUpdateProviderFinished(
@@ -229,14 +249,34 @@ void UpdateManager::onUpdateProviderFinished(
         << errorDescription << ", needs restart = "
         << (needsRestart ? "true" : "false"));
 
+    Q_ASSERT(m_pUpdateProgressDialog);
+    m_pUpdateProgressDialog->setValue(100);
+    m_pUpdateProgressDialog->close();
+    m_pUpdateProgressDialog.reset();
+
     if (!status) {
         Q_EMIT notifyError(errorDescription);
         return;
     }
 
-    if (needsRestart) {
-        // TODO: implement this somehow
+    if (!needsRestart) {
+        return;
     }
+
+    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+    int res = questionMessageBox(
+        parentWidget,
+        tr("Restart is required"),
+        tr("Restart is required in order to complete the update. Would you "
+           "like to restart now?"),
+        {},
+        QMessageBox::Ok | QMessageBox::No);
+    if (res != QMessageBox::Ok) {
+        QNDEBUG("User refused to restart after update");
+        return;
+    }
+
+    qApp->exit(RESTART_EXIT_CODE);
 }
 
 void UpdateManager::onUpdateProviderProgress(double value, QString message)
@@ -244,7 +284,12 @@ void UpdateManager::onUpdateProviderProgress(double value, QString message)
     QNDEBUG("UpdateManager::onUpdateProviderProgress: value = "
         << value << ", message = " << message);
 
-    // TODO: implement
+    Q_ASSERT(m_pUpdateProgressDialog);
+
+    int percentage = static_cast<int>(value * 100.0);
+    percentage = std::max(percentage, 100);
+
+    m_pUpdateProgressDialog->setValue(percentage);
 }
 
 void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)

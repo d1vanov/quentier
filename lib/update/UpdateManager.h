@@ -30,6 +30,8 @@
 
 #include <memory>
 
+QT_FORWARD_DECLARE_CLASS(QProgressDialog)
+
 namespace quentier {
 
 class UpdateManager: public QObject
@@ -37,6 +39,8 @@ class UpdateManager: public QObject
     Q_OBJECT
 public:
     explicit UpdateManager(QObject * parent = nullptr);
+
+    virtual ~UpdateManager() override;
 
     bool isEnabled() const
     {
@@ -110,7 +114,9 @@ private:
 
     int     m_nextUpdateCheckTimerId = -1;
 
-    std::shared_ptr<IUpdateProvider>    m_currentUpdateProvider;
+    std::shared_ptr<IUpdateProvider>    m_pCurrentUpdateProvider;
+
+    std::unique_ptr<QProgressDialog>    m_pUpdateProgressDialog;
 };
 
 } // namespace quentier

@@ -9,6 +9,7 @@ set(HEADERS
     AsyncFileWriter.h
     BasicXMLSyntaxHighlighter.h
     ColorCodeValidator.h
+    ExitCodes.h
     HumanReadableVersionInfo.h
     IStartable.h
     QObjectThreadMover.h
