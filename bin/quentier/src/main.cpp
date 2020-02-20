@@ -24,6 +24,8 @@
 #include <lib/exception/LocalStorageVersionTooHighException.h>
 #include <lib/initialization/Initialize.h>
 #include <lib/initialization/LoadDependencies.h>
+#include <lib/utility/ExitCodes.h>
+#include <lib/utility/RestartApp.h>
 
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/MessageBox.h>
@@ -190,5 +192,8 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    return app.exec();
+    int exitCode = app.exec();
+    if (exitCode == RESTART_EXIT_CODE) {
+        restartApp(argc, argv);
+    }
 }
