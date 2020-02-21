@@ -49,11 +49,9 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         return;
     }
 
-    restartScriptFile.setAutoRemove(false);
-
+    QFileInfo restartScriptFileInfo(restartScriptFile);
     QTextStream restartScriptStrm(&restartScriptFile);
 
-    QString commandLine;
     if (delaySeconds > 0)
     {
 #ifdef Q_OS_WIN
@@ -66,6 +64,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         restartScriptStrm << "sleep ";
         restartScriptStrm << QString::number(delaySeconds);
         restartScriptStrm << "\n";
+        restartScriptStrm << "chmod 755 "
+            << restartScriptFileInfo.absoluteFilePath() << "\n";
 #endif
     }
 
@@ -78,10 +78,13 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 
     restartScriptStrm.flush();
 
-    QFileInfo restartScriptFileInfo(restartScriptFile);
+    QString commandLine;
+#ifndef Q_OS_WIN
+    commandLine += QStringLiteral("sh ");
+#endif
+    commandLine += restartScriptFileInfo.absoluteFilePath();
 
-    bool res = QProcess::startDetached(
-        restartScriptFileInfo.absoluteFilePath());
+    bool res = QProcess::startDetached(commandLine);
     if (Q_UNLIKELY(!res)) {
         std::cerr << "Failed to launch script for application restart"
             << std::endl;
