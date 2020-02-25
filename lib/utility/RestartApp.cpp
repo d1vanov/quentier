@@ -70,11 +70,30 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     }
 
     QCoreApplication app(argc, argv);
+
+#ifdef Q_OS_MAC
+    QString appFilePath = app.applicationFilePath();
+    int appSuffixIndex = appFilePath.lastIndexOf(QStringLiteral(".app"));
+    if (Q_UNLIKELY(appSuffixIndex < 0))
+    {
+        restartScriptStrm << app.applicationFilePath();
+        if (argc > 1) {
+            restartScriptStrm << " ";
+            restartScriptStrm << app.arguments().join(QStringLiteral(" "));
+        }
+    }
+    else
+    {
+        appFilePath = appFilePath.left(appSuffixIndex) + QStringLiteral(".app");
+        restartScriptStrm << "open " << appFilePath << "\n";
+    }
+#else
     restartScriptStrm << app.applicationFilePath();
     if (argc > 1) {
         restartScriptStrm << " ";
         restartScriptStrm << app.arguments().join(QStringLiteral(" "));
     }
+#endif
 
     restartScriptStrm.flush();
 
