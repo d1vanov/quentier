@@ -20,29 +20,28 @@
 #define QUENTIER_MAINWINDOW_H
 
 #include <lib/account/AccountManager.h>
-#include <lib/model/NotebookCache.h>
-#include <lib/model/TagCache.h>
-#include <lib/model/SavedSearchCache.h>
-#include <lib/model/NoteCache.h>
-#include <lib/model/NotebookModel.h>
-#include <lib/model/TagModel.h>
-#include <lib/model/SavedSearchModel.h>
-#include <lib/model/NoteModel.h>
 #include <lib/model/FavoritesModel.h>
-#include <lib/widget/NoteEditorWidget.h>
+#include <lib/model/NoteCache.h>
+#include <lib/model/NoteModel.h>
+#include <lib/model/NotebookCache.h>
+#include <lib/model/NotebookModel.h>
+#include <lib/model/SavedSearchCache.h>
+#include <lib/model/SavedSearchModel.h>
+#include <lib/model/TagCache.h>
+#include <lib/model/TagModel.h>
 #include <lib/widget/NoteEditorTabsAndWindowsCoordinator.h>
+#include <lib/widget/NoteEditorWidget.h>
 #include <lib/widget/panel/SidePanelStyleController.h>
 
-#include <quentier/utility/ShortcutManager.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/synchronization/AuthenticationManager.h>
 #include <quentier/synchronization/SynchronizationManager.h>
+#include <quentier/utility/ShortcutManager.h>
 
 #include <quentier/utility/VersionInfo.h>
 #if !LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
 #error "Quentier needs libquentier built with authentication manager"
 #endif
-
-#include <quentier/synchronization/AuthenticationManager.h>
 
 #include <QLinearGradient>
 #include <QMap>
@@ -64,9 +63,8 @@ namespace Ui {
 class MainWindow;
 }
 
-QT_FORWARD_DECLARE_CLASS(QUrl)
-QT_FORWARD_DECLARE_CLASS(QUndoStack)
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
+QT_FORWARD_DECLARE_CLASS(QUrl)
 
 QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
@@ -78,6 +76,10 @@ QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(PreferencesDialog)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
+
+#ifdef WITH_UPDATE_MANAGER
+QT_FORWARD_DECLARE_CLASS(UpdateManager)
+#endif
 
 } // namespace quentier
 
@@ -351,6 +353,10 @@ private Q_SLOTS:
     void onDefaultAccountFirstNotebookAndNoteCreatorError(
         ErrorString errorDescription);
 
+#ifdef WITH_UPDATE_MANAGER
+    void onUpdateManagerError(ErrorString errorDescription);
+#endif
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) override;
     virtual void closeEvent(QCloseEvent * pEvent) override;
@@ -556,8 +562,6 @@ private:
     NoteEditorTabsAndWindowsCoordinator *   m_pNoteEditorTabsAndWindowsCoordinator;
     EditNoteDialogsManager *                m_pEditNoteDialogsManager;
 
-    QUndoStack *            m_pUndoStack;
-
     QColor              m_overridePanelFontColor;
     QColor              m_overridePanelBackgroundColor;
     QLinearGradient     m_overridePanelBackgroundGradient;
@@ -568,6 +572,10 @@ private:
     quentier::ShortcutManager   m_shortcutManager;
     QHash<int, QAction*>        m_shortcutKeyToAction;
     QHash<QString, QAction*>    m_nonStandardShortcutKeyToAction;
+
+#ifdef WITH_UPDATE_MANAGER
+    UpdateManager *         m_pUpdateManager;
+#endif
 
     bool                    m_pendingGreeterDialog;
     bool                    m_pendingFirstShutdownDialog;

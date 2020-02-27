@@ -18,52 +18,57 @@
 
 #include "MainWindow.h"
 
-#include <lib/delegate/NotebookItemDelegate.h>
-#include <lib/delegate/SynchronizableColumnDelegate.h>
+#include <lib/delegate/DeletedNoteItemDelegate.h>
 #include <lib/delegate/DirtyColumnDelegate.h>
 #include <lib/delegate/FavoriteItemDelegate.h>
 #include <lib/delegate/FromLinkedNotebookColumnDelegate.h>
+#include <lib/delegate/NotebookItemDelegate.h>
 #include <lib/delegate/NoteItemDelegate.h>
+#include <lib/delegate/SynchronizableColumnDelegate.h>
 #include <lib/delegate/TagItemDelegate.h>
-#include <lib/delegate/DeletedNoteItemDelegate.h>
+#include <lib/dialog/AddOrEditNotebookDialog.h>
+#include <lib/dialog/AddOrEditSavedSearchDialog.h>
+#include <lib/dialog/AddOrEditTagDialog.h>
 #include <lib/dialog/EditNoteDialog.h>
 #include <lib/dialog/EditNoteDialogsManager.h>
-#include <lib/dialog/AddOrEditNotebookDialog.h>
-#include <lib/dialog/AddOrEditTagDialog.h>
-#include <lib/dialog/AddOrEditSavedSearchDialog.h>
 #include <lib/dialog/FirstShutdownDialog.h>
-#include <lib/dialog/LocalStorageUpgradeDialog.h>
 #include <lib/dialog/LocalStorageVersionTooHighDialog.h>
+#include <lib/dialog/LocalStorageUpgradeDialog.h>
 #include <lib/dialog/WelcomeToQuentierDialog.h>
 #include <lib/enex/EnexExportDialog.h>
-#include <lib/enex/EnexImportDialog.h>
 #include <lib/enex/EnexExporter.h>
+#include <lib/enex/EnexImportDialog.h>
 #include <lib/enex/EnexImporter.h>
 #include <lib/exception/LocalStorageVersionTooHighException.h>
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
+#include <lib/preferences/SettingsNames.h>
 #include <lib/tray/SystemTrayIconManager.h>
-#include <lib/utility/AsyncFileWriter.h>
+
+#ifdef WITH_UPDATE_MANAGER
+#include <lib/update/UpdateManager.h>
+#endif
+
 #include <lib/utility/ActionsInfo.h>
+#include <lib/utility/AsyncFileWriter.h>
 #include <lib/utility/QObjectThreadMover.h>
-#include <lib/view/ItemView.h>
 #include <lib/view/DeletedNoteItemView.h>
+#include <lib/view/FavoriteItemView.h>
+#include <lib/view/ItemView.h>
 #include <lib/view/NotebookItemView.h>
 #include <lib/view/NoteListView.h>
-#include <lib/view/TagItemView.h>
 #include <lib/view/SavedSearchItemView.h>
-#include <lib/view/FavoriteItemView.h>
+#include <lib/view/TagItemView.h>
 #include <lib/widget/color-picker-tool-button/ColorPickerToolButton.h>
 #include <lib/widget/insert-table-tool-button/InsertTableToolButton.h>
 #include <lib/widget/insert-table-tool-button/TableSettingsDialog.h>
+#include <lib/widget/FindAndReplaceWidget.h>
 #include <lib/widget/NoteFiltersManager.h>
 #include <lib/widget/NoteCountLabelController.h>
-#include <lib/widget/FindAndReplaceWidget.h>
 #include <lib/widget/PanelWidget.h>
 using quentier::PanelWidget;
 
@@ -82,59 +87,59 @@ using quentier::FilterBySavedSearchWidget;
 #include <lib/widget/LogViewerWidget.h>
 using quentier::LogViewerWidget;
 
-#include <lib/widget/NotebookModelItemInfoWidget.h>
-#include <lib/widget/TagModelItemInfoWidget.h>
-#include <lib/widget/SavedSearchModelItemInfoWidget.h>
 #include <lib/widget/AboutQuentierWidget.h>
+#include <lib/widget/NotebookModelItemInfoWidget.h>
+#include <lib/widget/SavedSearchModelItemInfoWidget.h>
+#include <lib/widget/TagModelItemInfoWidget.h>
 
 #include <quentier/note_editor/NoteEditor.h>
 
 #include "ui_MainWindow.h"
 
+#include <quentier/local_storage/NoteSearchQuery.h>
+#include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Resource.h>
-#include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
+#include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
-#include <quentier/local_storage/NoteSearchQuery.h>
-#include <quentier/logging/QuentierLogger.h>
 
 #include <qt5qevercloud/QEverCloud.h>
 
-#include <QPushButton>
+#include <QCheckBox>
+#include <QClipboard>
+#include <QColorDialog>
+#include <QCryptographicHash>
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QFocusEvent>
+#include <QFontDatabase>
+#include <QKeySequence>
 #include <QIcon>
 #include <QLabel>
+#include <QMenu>
+#include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QPalette>
+#include <QPushButton>
+#include <QResizeEvent>
+#include <QScopedPointer>
 #include <QTextEdit>
 #include <QTextCursor>
 #include <QTextList>
-#include <QColorDialog>
-#include <QFile>
-#include <QScopedPointer>
-#include <QMessageBox>
-#include <QtDebug>
-#include <QFontDatabase>
-#include <QKeySequence>
-#include <QUndoStack>
-#include <QCryptographicHash>
-#include <QXmlStreamWriter>
-#include <QDateTime>
-#include <QCheckBox>
-#include <QPalette>
-#include <QToolTip>
-#include <QResizeEvent>
-#include <QTimerEvent>
-#include <QFocusEvent>
-#include <QMenu>
 #include <QThreadPool>
-#include <QDir>
-#include <QClipboard>
-#include <QNetworkAccessManager>
+#include <QTimerEvent>
+#include <QToolTip>
+#include <QXmlStreamWriter>
 
-#include <cmath>
+#include <QtDebug>
+
 #include <algorithm>
+#include <cmath>
 
 #define NOTIFY_ERROR(error)                                                    \
     QNWARNING(QString::fromUtf8(error));                                       \
@@ -230,8 +235,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_defaultAccountFirstNoteLocalUid(),
     m_pNoteEditorTabsAndWindowsCoordinator(nullptr),
     m_pEditNoteDialogsManager(nullptr),
-    m_pUndoStack(new QUndoStack(this)),
     m_shortcutManager(this),
+#ifdef WITH_UPDATE_MANAGER
+    m_pUpdateManager(new UpdateManager(this)),
+#endif
     m_pendingGreeterDialog(false),
     m_filtersViewExpanded(false),
     m_onceSetupNoteSortingModeComboBox(false),
@@ -331,6 +338,20 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     // this will emit event with initial thumbnail show/hide state
     onShowNoteThumbnailsPreferenceChanged();
+
+#ifdef WITH_UPDATE_MANAGER
+    QObject::connect(
+        m_pUpdateManager,
+        &UpdateManager::notifyError,
+        this,
+        &MainWindow::onUpdateManagerError);
+
+    if (m_pUpdateManager->isEnabled() &&
+        m_pUpdateManager->shouldCheckForUpdatesOnStartup())
+    {
+        m_pUpdateManager->checkForUpdates();
+    }
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -4071,6 +4092,14 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError(
     }
 }
 
+#ifdef WITH_UPDATE_MANAGER
+void MainWindow::onUpdateManagerError(ErrorString errorDescription)
+{
+    QNDEBUG("MainWindow::onUpdateManagerError: " << errorDescription);
+    onSetStatusBarText(errorDescription.localizedString());
+}
+#endif
+
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
 {
     QMainWindow::resizeEvent(pEvent);
@@ -5099,7 +5128,10 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
                           QLatin1String(""));
     appSettings.endGroup();
 
-    return QSet<QString>::fromList(hideThumbnailsFor.toStringList());
+    auto hideThumbnailsForList = hideThumbnailsFor.toStringList();
+    return QSet<QString>(
+        hideThumbnailsForList.begin(),
+        hideThumbnailsForList.end());
 }
 
 void MainWindow::toggleShowNoteThumbnails() const

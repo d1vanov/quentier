@@ -185,6 +185,7 @@ if(INCLUDE_UPDATE_INFO)
     get_property(APP_IMAGE_UPDATER_BRIDGE_INCLUDE_DIR TARGET AppImageUpdaterBridge PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
     include_directories(${APP_IMAGE_UPDATER_BRIDGE_INCLUDE_DIR})
     list(APPEND THIRDPARTY_LIBS AppImageUpdaterBridge)
+    add_definitions(-DWITH_UPDATE_MANAGER=1)
   endif()
 endif()
 

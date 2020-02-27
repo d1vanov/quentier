@@ -80,6 +80,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${quentier_network}
                       ${quentier_preferences}
                       ${quentier_tray}
+                      ${quentier_update}
                       ${quentier_utility}
                       ${quentier_view}
                       ${quentier_widget}
