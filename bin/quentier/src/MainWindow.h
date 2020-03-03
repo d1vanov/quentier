@@ -78,6 +78,7 @@ QT_FORWARD_DECLARE_CLASS(PreferencesDialog)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
 
 #ifdef WITH_UPDATE_MANAGER
+QT_FORWARD_DECLARE_CLASS(UpdateManagerIdleInfoProvider)
 QT_FORWARD_DECLARE_CLASS(UpdateManager)
 #endif
 
@@ -574,6 +575,7 @@ private:
     QHash<QString, QAction*>    m_nonStandardShortcutKeyToAction;
 
 #ifdef WITH_UPDATE_MANAGER
+    std::shared_ptr<UpdateManagerIdleInfoProvider>  m_pUpdateManagerIdleInfoProvider;
     UpdateManager *         m_pUpdateManager;
 #endif
 

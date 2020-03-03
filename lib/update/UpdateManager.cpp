@@ -37,8 +37,10 @@
 
 namespace quentier {
 
-UpdateManager::UpdateManager(QObject * parent) :
-    QObject(parent)
+UpdateManager::UpdateManager(
+        IIdleStateInfoProviderPtr idleStateInfoProvider, QObject * parent) :
+    QObject(parent),
+    m_pIdleStateInfoProvider(std::move(idleStateInfoProvider))
 {
     readPersistentSettings();
 }
@@ -169,6 +171,9 @@ void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
 
     recycleUpdateChecker(sender());
 
+    // FIXME: use idle state info provider to find out whether now is an
+    // appropriate moment to ask user about the update
+
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
     int res = informationMessageBox(
         parentWidget,
@@ -193,6 +198,9 @@ void UpdateManager::onUpdatesAvailable(
     recycleUpdateChecker(sender());
 
     Q_ASSERT(provider);
+
+    // FIXME: use idle state info provider to find out whether now is an
+    // appropriate moment to ask user about the update
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
     int res = informationMessageBox(

@@ -38,7 +38,27 @@ class UpdateManager: public QObject
 {
     Q_OBJECT
 public:
-    explicit UpdateManager(QObject * parent = nullptr);
+    /**
+     * @brief The IIdleStateInfoProvider interface tells UpdateManager how much
+     * time the app has been idle i.e. for how much time the user hasn't touched
+     * the app.
+     *
+     * UpdateManager uses this information to make a decision whether to show
+     * the update notification right now or to wait until the app is idle for
+     * a sufficient time so the notification won't get in the way of the user.
+     */
+    class IIdleStateInfoProvider
+    {
+    public:
+        virtual qint64 idleTime() = 0;
+    };
+
+    using IIdleStateInfoProviderPtr = std::shared_ptr<IIdleStateInfoProvider>;
+
+public:
+    explicit UpdateManager(
+        IIdleStateInfoProviderPtr idleStateInfoProvider,
+        QObject * parent = nullptr);
 
     virtual ~UpdateManager() override;
 
@@ -101,6 +121,8 @@ private:
     Q_DISABLE_COPY(UpdateManager);
 
 private:
+    IIdleStateInfoProviderPtr   m_pIdleStateInfoProvider;
+
     bool    m_updateCheckEnabled = false;
     bool    m_checkForUpdatesOnStartup = false;
     bool    m_useContinuousUpdateChannel = false;

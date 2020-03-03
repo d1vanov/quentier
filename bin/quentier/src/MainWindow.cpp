@@ -179,6 +179,18 @@ using quentier::LogViewerWidget;
 
 using namespace quentier;
 
+#ifdef WITH_UPDATE_MANAGER
+class UpdateManagerIdleInfoProvider: public UpdateManager::IIdleStateInfoProvider
+{
+public:
+    virtual qint64 idleTime() override
+    {
+        // FIXME: implement
+        return -1;
+    }
+};
+#endif
+
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
@@ -237,7 +249,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pEditNoteDialogsManager(nullptr),
     m_shortcutManager(this),
 #ifdef WITH_UPDATE_MANAGER
-    m_pUpdateManager(new UpdateManager(this)),
+    m_pUpdateManagerIdleInfoProvider(
+        std::make_shared<UpdateManagerIdleInfoProvider>())
+    m_pUpdateManager(new UpdateManager(m_pUpdateManagerIdleInfoProvider, this)),
 #endif
     m_pendingGreeterDialog(false),
     m_filtersViewExpanded(false),
