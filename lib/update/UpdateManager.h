@@ -114,6 +114,11 @@ private:
     void setupNextCheckForUpdatesTimer();
     void recycleUpdateChecker(QObject * sender);
 
+    bool checkIdleState() const;
+    void scheduleNextIdleStateCheckForUpdateNotification();
+
+    void askUserAndLaunchUpdate();
+
 private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;
 
@@ -136,7 +141,13 @@ private:
 
     int     m_nextUpdateCheckTimerId = -1;
 
+    int     m_nextIdleStatePollTimerId = -1;
+
+    QUrl    m_currentUpdateUrl;
+    bool    m_currentUpdateUrlOnceOpened = false;
+
     std::shared_ptr<IUpdateProvider>    m_pCurrentUpdateProvider;
+    bool    m_updateProviderStarted = false;
 
     std::unique_ptr<QProgressDialog>    m_pUpdateProgressDialog;
 };

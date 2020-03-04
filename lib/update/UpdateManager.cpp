@@ -37,6 +37,12 @@
 
 namespace quentier {
 
+// 5 minutes in msec
+#define MIN_IDLE_TIME_FOR_UPDATE_NOTIFICATION 180000
+
+// 15 minutes in msec
+#define IDLE_STATE_POLL_INTERVAL 900000
+
 UpdateManager::UpdateManager(
         IIdleStateInfoProviderPtr idleStateInfoProvider, QObject * parent) :
     QObject(parent),
@@ -115,9 +121,122 @@ void UpdateManager::recycleUpdateChecker(QObject * sender)
     }
 }
 
+bool UpdateManager::checkIdleState() const
+{
+    qint64 idleTime = m_pIdleStateInfoProvider->idleTime();
+    if (idleTime < 0) {
+        return true;
+    }
+
+    return idleTime >= MIN_IDLE_TIME_FOR_UPDATE_NOTIFICATION;
+}
+
+void UpdateManager::scheduleNextIdleStateCheckForUpdateNotification()
+{
+    QNDEBUG("UpdateManager::scheduleNextIdleStateCheckForUpdateNotification");
+
+    if (m_nextIdleStatePollTimerId >= 0) {
+        QNDEBUG("Next idle state poll timer is already active");
+        return;
+    }
+
+    m_nextIdleStatePollTimerId = startTimer(IDLE_STATE_POLL_INTERVAL);
+}
+
+void UpdateManager::askUserAndLaunchUpdate()
+{
+    QNDEBUG("UpdateManager::askUserAndLaunchUpdate");
+
+    if (m_pCurrentUpdateProvider)
+    {
+        if (m_updateProviderStarted) {
+            QNDEBUG("Update provider has already been started");
+            return;
+        }
+
+        QNDEBUG("Update provider is ready, notifying user");
+
+        QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+        int res = informationMessageBox(
+            parentWidget,
+            tr("Updates available"),
+            tr("A newer version of Quentier is available. Would you like to "
+            "download and install it?"),
+            QString(),
+            QMessageBox::Ok | QMessageBox::No);
+        if (res != QMessageBox::Ok) {
+            QNDEBUG("User refused to download and install updates");
+            return;
+        }
+
+        QObject::connect(
+            m_pCurrentUpdateProvider.get(),
+            &IUpdateProvider::finished,
+            this,
+            &UpdateManager::onUpdateProviderFinished);
+
+        QObject::connect(
+            m_pCurrentUpdateProvider.get(),
+            &IUpdateProvider::progress,
+            this,
+            &UpdateManager::onUpdateProviderProgress);
+
+        m_pUpdateProgressDialog.reset(new QProgressDialog(
+            tr("Updating, please wait..."),
+            {},
+            0,
+            100,
+            parentWidget));
+
+        // Forbid cancelling the update
+        m_pUpdateProgressDialog->setCancelButton(nullptr);
+
+        m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
+
+        m_pCurrentUpdateProvider->run();
+        m_updateProviderStarted = true;
+    }
+    else if (!m_currentUpdateUrl.isEmpty())
+    {
+        if (m_currentUpdateUrlOnceOpened) {
+            QNDEBUG("Update download URL has already been opened");
+            return;
+        }
+
+        QNDEBUG("Update download URL is ready, notifying user");
+
+        QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+        int res = informationMessageBox(
+            parentWidget,
+            tr("Updates available"),
+            tr("A newer version of Quentier is available. Would you like to "
+            "download it?"),
+            {},
+            QMessageBox::Ok | QMessageBox::No);
+        if (res != QMessageBox::Ok) {
+            QNDEBUG("User refused to download updates");
+            return;
+        }
+
+        openUrl(m_currentUpdateUrl);
+        m_currentUpdateUrlOnceOpened = true;
+    }
+}
+
 void UpdateManager::checkForUpdates()
 {
     QNDEBUG("UpdateManager::checkForUpdates");
+
+    if (m_pCurrentUpdateProvider) {
+        m_pCurrentUpdateProvider->disconnect(this);
+        m_pCurrentUpdateProvider.reset();
+        m_updateProviderStarted = false;
+    }
+
+    if (!m_currentUpdateUrl.isEmpty()) {
+        m_currentUpdateUrl = QUrl();
+        m_currentUpdateUrlOnceOpened = false;
+    }
 
     auto * pUpdateChecker = newUpdateChecker(m_updateProvider, this);
     pUpdateChecker->setUpdateChannel(m_updateChannel);
@@ -171,23 +290,15 @@ void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
 
     recycleUpdateChecker(sender());
 
-    // FIXME: use idle state info provider to find out whether now is an
-    // appropriate moment to ask user about the update
+    m_currentUpdateUrl = downloadUrl;
+    m_currentUpdateUrlOnceOpened = false;
 
-    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
-    int res = informationMessageBox(
-        parentWidget,
-        tr("Updates available"),
-        tr("A newer version of Quentier is available. Would you like to "
-           "download it?"),
-        {},
-        QMessageBox::Ok | QMessageBox::No);
-    if (res != QMessageBox::Ok) {
-        QNDEBUG("User refused to download updates");
+    if (!checkIdleState()) {
+        scheduleNextIdleStateCheckForUpdateNotification();
         return;
     }
 
-    openUrl(downloadUrl);
+    askUserAndLaunchUpdate();
 }
 
 void UpdateManager::onUpdatesAvailable(
@@ -199,54 +310,20 @@ void UpdateManager::onUpdatesAvailable(
 
     Q_ASSERT(provider);
 
-    // FIXME: use idle state info provider to find out whether now is an
-    // appropriate moment to ask user about the update
-
-    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
-    int res = informationMessageBox(
-        parentWidget,
-        tr("Updates available"),
-        tr("A newer version of Quentier is available. Would you like to "
-           "download and install it?"),
-        QString(),
-        QMessageBox::Ok | QMessageBox::No);
-    if (res != QMessageBox::Ok) {
-        QNDEBUG("User refused to download and install updates");
-        return;
-    }
-
     if (m_pCurrentUpdateProvider) {
         m_pCurrentUpdateProvider->disconnect(this);
         m_pCurrentUpdateProvider.reset();
     }
 
     m_pCurrentUpdateProvider = std::move(provider);
+    m_updateProviderStarted = false;
 
-    QObject::connect(
-        m_pCurrentUpdateProvider.get(),
-        &IUpdateProvider::finished,
-        this,
-        &UpdateManager::onUpdateProviderFinished);
+    if (!checkIdleState()) {
+        scheduleNextIdleStateCheckForUpdateNotification();
+        return;
+    }
 
-    QObject::connect(
-        m_pCurrentUpdateProvider.get(),
-        &IUpdateProvider::progress,
-        this,
-        &UpdateManager::onUpdateProviderProgress);
-
-    m_pUpdateProgressDialog.reset(new QProgressDialog(
-        tr("Updating, please wait..."),
-        {},
-        0,
-        100,
-        parentWidget));
-
-    // Forbid cancelling the update
-    m_pUpdateProgressDialog->setCancelButton(nullptr);
-
-    m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
-
-    m_pCurrentUpdateProvider->run();
+    askUserAndLaunchUpdate();
 }
 
 void UpdateManager::onUpdateProviderFinished(
@@ -316,9 +393,23 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
 
     QNDEBUG("Timer event for timer id " << timerId);
 
-    if (timerId == m_nextUpdateCheckTimerId) {
+    if (timerId == m_nextUpdateCheckTimerId)
+    {
+        m_nextUpdateCheckTimerId = -1;
+
+        if (m_updateProviderStarted || m_currentUpdateUrlOnceOpened) {
+            QNDEBUG("Will not check for updates on timer: update has already "
+                << "been launched");
+            return;
+        }
+
         checkForUpdates();
         setupNextCheckForUpdatesTimer();
+    }
+    else if (timerId == m_nextIdleStatePollTimerId)
+    {
+        m_nextIdleStatePollTimerId = -1;
+        askUserAndLaunchUpdate();
     }
 }
 
