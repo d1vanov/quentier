@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -133,6 +133,13 @@ public:
      * check and removal.
      */
     bool hasBeenModified() const;
+
+    /**
+     * @return the number of milliseconds since the last user's interaction
+     * with the note editor or -1 if there was no interaction or if no note
+     * is loaded at the moment
+     */
+    qint64 idleTime() const;
 
     /**
      * @return                  Title or preview text of the note managed by

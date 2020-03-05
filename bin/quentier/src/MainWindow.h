@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -389,6 +389,10 @@ private:
     void setupAccountSpecificUiElements();
     void setupNoteFilters();
     void setupNoteEditorTabWidgetsCoordinator();
+
+#ifdef WITH_UPDATE_MANAGER
+    void setupUpdateManager();
+#endif
 
     bool checkLocalStorageVersion(const Account & account);
 

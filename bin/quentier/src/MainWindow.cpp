@@ -183,11 +183,17 @@ using namespace quentier;
 class UpdateManagerIdleInfoProvider: public UpdateManager::IIdleStateInfoProvider
 {
 public:
+    UpdateManagerIdleInfoProvider(NoteEditorTabsAndWindowsCoordinator & c) :
+        m_coordinator(c)
+    {}
+
     virtual qint64 idleTime() override
     {
-        // FIXME: implement
-        return -1;
+        return m_coordinator.minIdleTime();
     }
+
+private:
+    NoteEditorTabsAndWindowsCoordinator & m_coordinator;
 };
 #endif
 
@@ -249,9 +255,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pEditNoteDialogsManager(nullptr),
     m_shortcutManager(this),
 #ifdef WITH_UPDATE_MANAGER
-    m_pUpdateManagerIdleInfoProvider(
-        std::make_shared<UpdateManagerIdleInfoProvider>())
-    m_pUpdateManager(new UpdateManager(m_pUpdateManagerIdleInfoProvider, this)),
+    m_pUpdateManager(nullptr),
 #endif
     m_pendingGreeterDialog(false),
     m_filtersViewExpanded(false),
@@ -354,17 +358,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     onShowNoteThumbnailsPreferenceChanged();
 
 #ifdef WITH_UPDATE_MANAGER
-    QObject::connect(
-        m_pUpdateManager,
-        &UpdateManager::notifyError,
-        this,
-        &MainWindow::onUpdateManagerError);
-
-    if (m_pUpdateManager->isEnabled() &&
-        m_pUpdateManager->shouldCheckForUpdatesOnStartup())
-    {
-        m_pUpdateManager->checkForUpdates();
-    }
+    setupUpdateManager();
 #endif
 }
 
@@ -5309,6 +5303,31 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
                      m_pUI->noteListView,
                      QNSLOT(NoteListView,setCurrentNoteByLocalUid,QString));
 }
+
+#ifdef WITH_UPDATE_MANAGER
+void MainWindow::setupUpdateManager()
+{
+    QNDEBUG("MainWindow::setupUpdateManager");
+
+    Q_ASSERT(m_pNoteEditorTabsAndWindowsCoordinator);
+    m_pUpdateManagerIdleInfoProvider =
+        std::make_shared<UpdateManagerIdleInfoProvider>(
+            *m_pNoteEditorTabsAndWindowsCoordinator);
+    m_pUpdateManager = new UpdateManager(m_pUpdateManagerIdleInfoProvider, this);
+
+    QObject::connect(
+        m_pUpdateManager,
+        &UpdateManager::notifyError,
+        this,
+        &MainWindow::onUpdateManagerError);
+
+    if (m_pUpdateManager->isEnabled() &&
+        m_pUpdateManager->shouldCheckForUpdatesOnStartup())
+    {
+        m_pUpdateManager->checkForUpdates();
+    }
+}
+#endif
 
 bool MainWindow::checkLocalStorageVersion(const Account & account)
 {

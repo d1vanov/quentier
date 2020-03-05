@@ -638,6 +638,27 @@ void NoteEditorTabsAndWindowsCoordinator::saveAllNoteEditorsContents()
     }
 }
 
+qint64 NoteEditorTabsAndWindowsCoordinator::minIdleTime() const
+{
+    qint64 minIdleTime = -1;
+
+    QList<NoteEditorWidget*> noteEditorWidgets =
+        m_pTabWidget->findChildren<NoteEditorWidget*>();
+    for(const auto * pNoteEditorWidget: qAsConst(noteEditorWidgets))
+    {
+        qint64 idleTime = pNoteEditorWidget->idleTime();
+        if (idleTime < 0) {
+            continue;
+        }
+
+        if (minIdleTime > idleTime) {
+            minIdleTime = idleTime;
+        }
+    }
+
+    return minIdleTime;
+}
+
 bool NoteEditorTabsAndWindowsCoordinator::eventFilter(
     QObject * pWatched, QEvent * pEvent)
 {
