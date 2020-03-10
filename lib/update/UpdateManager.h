@@ -34,6 +34,8 @@ QT_FORWARD_DECLARE_CLASS(QProgressDialog)
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
+
 class UpdateManager: public QObject
 {
     Q_OBJECT
@@ -112,7 +114,7 @@ private Q_SLOTS:
 private:
     void readPersistentSettings();
     void setupNextCheckForUpdatesTimer();
-    void recycleUpdateChecker(QObject * sender);
+    void recycleUpdateChecker();
 
     bool checkIdleState() const;
     void scheduleNextIdleStateCheckForUpdateNotification();
@@ -148,6 +150,8 @@ private:
 
     std::shared_ptr<IUpdateProvider>    m_pCurrentUpdateProvider;
     bool    m_updateProviderStarted = false;
+
+    IUpdateChecker*     m_pCurrentUpdateChecker = nullptr;
 
     std::unique_ptr<QProgressDialog>    m_pUpdateProgressDialog;
 };

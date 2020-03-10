@@ -102,6 +102,12 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
             m_checkForUpdatesIntervalMsec - msecPassed,
             qint64(std::numeric_limits<int>::max())));
 
+    if (m_nextUpdateCheckTimerId >= 0) {
+        QNDEBUG("Next update check timer was active, killing it to relaunch");
+        killTimer(m_nextUpdateCheckTimerId);
+        m_nextUpdateCheckTimerId = -1;
+    }
+
     m_nextUpdateCheckTimerId = startTimer(msecLeft);
 
     QNDEBUG("Last check for updates was done at "
@@ -112,12 +118,12 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
         << ", timer id = " << m_nextUpdateCheckTimerId);
 }
 
-void UpdateManager::recycleUpdateChecker(QObject * sender)
+void UpdateManager::recycleUpdateChecker()
 {
-    auto * pUpdateChecker = qobject_cast<IUpdateChecker*>(sender);
-    if (pUpdateChecker) {
-        pUpdateChecker->disconnect(this);
-        pUpdateChecker->deleteLater();
+    if (m_pCurrentUpdateChecker) {
+        m_pCurrentUpdateChecker->disconnect(this);
+        m_pCurrentUpdateChecker->deleteLater();
+        m_pCurrentUpdateChecker = nullptr;
     }
 }
 
@@ -238,36 +244,46 @@ void UpdateManager::checkForUpdates()
         m_currentUpdateUrlOnceOpened = false;
     }
 
-    auto * pUpdateChecker = newUpdateChecker(m_updateProvider, this);
-    pUpdateChecker->setUpdateChannel(m_updateChannel);
-    pUpdateChecker->setUseContinuousUpdateChannel(m_useContinuousUpdateChannel);
+    if (m_pCurrentUpdateChecker) {
+        m_pCurrentUpdateChecker->disconnect(this);
+        m_pCurrentUpdateChecker->deleteLater();
+        m_pCurrentUpdateChecker = nullptr;
+    }
+
+    m_pCurrentUpdateChecker = newUpdateChecker(m_updateProvider, this);
+    m_pCurrentUpdateChecker->setUpdateChannel(m_updateChannel);
+    m_pCurrentUpdateChecker->setUseContinuousUpdateChannel(m_useContinuousUpdateChannel);
 
     QObject::connect(
-        pUpdateChecker,
+        m_pCurrentUpdateChecker,
         &IUpdateChecker::failure,
         this,
-        &UpdateManager::onCheckForUpdatesError);
+        &UpdateManager::onCheckForUpdatesError,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
-        pUpdateChecker,
+        m_pCurrentUpdateChecker,
         &IUpdateChecker::noUpdatesAvailable,
         this,
-        &UpdateManager::onNoUpdatesAvailable);
+        &UpdateManager::onNoUpdatesAvailable,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
-        pUpdateChecker,
+        m_pCurrentUpdateChecker,
         qOverload<QUrl>(&IUpdateChecker::updatesAvailable),
         this,
-        &UpdateManager::onUpdatesAvailableAtUrl);
+        &UpdateManager::onUpdatesAvailableAtUrl,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
-        pUpdateChecker,
+        m_pCurrentUpdateChecker,
         qOverload<std::shared_ptr<IUpdateProvider>>(
             &IUpdateChecker::updatesAvailable),
         this,
-        &UpdateManager::onUpdatesAvailable);
+        &UpdateManager::onUpdatesAvailable,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
-    pUpdateChecker->checkForUpdates();
+    m_pCurrentUpdateChecker->checkForUpdates();
 }
 
 void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
@@ -275,20 +291,20 @@ void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
     QNDEBUG("UpdateManager::onCheckForUpdatesError: " << errorDescription);
 
     Q_EMIT notifyError(errorDescription);
-    recycleUpdateChecker(sender());
+    recycleUpdateChecker();
 }
 
 void UpdateManager::onNoUpdatesAvailable()
 {
     QNDEBUG("UpdateManager::onNoUpdatesAvailable");
-    recycleUpdateChecker(sender());
+    recycleUpdateChecker();
 }
 
 void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
 {
     QNDEBUG("UpdateManager::onUpdatesAvailableAtUrl: " << downloadUrl);
 
-    recycleUpdateChecker(sender());
+    recycleUpdateChecker();
 
     m_currentUpdateUrl = downloadUrl;
     m_currentUpdateUrlOnceOpened = false;
@@ -306,7 +322,7 @@ void UpdateManager::onUpdatesAvailable(
 {
     QNDEBUG("UpdateManager::onUpdatesAvailable");
 
-    recycleUpdateChecker(sender());
+    recycleUpdateChecker();
 
     Q_ASSERT(provider);
 
