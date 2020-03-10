@@ -359,6 +359,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
 #ifdef WITH_UPDATE_MANAGER
     setupUpdateManager();
+#else
+    m_pUI->ActionCheckForUpdates->setVisible(false);
 #endif
 }
 
@@ -554,6 +556,8 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onShowNoteSource));
     QObject::connect(m_pUI->ActionViewLogs, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onViewLogsActionTriggered));
+    QObject::connect(m_pUI->ActionCheckForUpdates, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onCheckForUpdatesActionTriggered));
     QObject::connect(m_pUI->ActionAbout, QNSIGNAL(QAction,triggered),
                      this,
                      QNSLOT(MainWindow,onShowInfoAboutQuentierActionTriggered));
@@ -3111,6 +3115,18 @@ void MainWindow::onViewLogsActionTriggered()
     pLogViewerWidget = new LogViewerWidget(this);
     pLogViewerWidget->setAttribute(Qt::WA_DeleteOnClose);
     pLogViewerWidget->show();
+}
+
+void MainWindow::onCheckForUpdatesActionTriggered()
+{
+    QNDEBUG("MainWindow::onCheckForUpdatesActionTriggered");
+
+#ifdef WITH_UPDATE_MANAGER
+    m_pUpdateManager->checkForUpdates();
+#else
+    onSetStatusBarText(
+        tr("Checking for updates is not supported in this build of Quentier"));
+#endif
 }
 
 void MainWindow::onShowInfoAboutQuentierActionTriggered()

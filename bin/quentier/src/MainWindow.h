@@ -311,6 +311,7 @@ private Q_SLOTS:
     void onHideRequestedFromTrayIcon();
 
     void onViewLogsActionTriggered();
+    void onCheckForUpdatesActionTriggered();
     void onShowInfoAboutQuentierActionTriggered();
 
     void onNoteEditorError(ErrorString error);

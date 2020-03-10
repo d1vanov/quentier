@@ -2728,6 +2728,7 @@ border-bottom: 1px solid black;
     <addaction name="ActionViewLogs"/>
     <addaction name="ActionShowNoteSource"/>
     <addaction name="ActionAbout"/>
+    <addaction name="ActionCheckForUpdates"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -3506,11 +3507,6 @@ border-bottom: 1px solid black;
     <string>&amp;Release notes</string>
    </property>
   </action>
-  <action name="ActionCheckForUpdates">
-   <property name="text">
-    <string>Check for updates</string>
-   </property>
-  </action>
   <action name="ActionViewLogs">
    <property name="text">
     <string>&amp;View logs</string>
@@ -3990,6 +3986,11 @@ border-bottom: 1px solid black;
     <string>Breeze &amp;dark</string>
    </property>
   </action>
+  <action name="ActionCheckForUpdates">
+   <property name="text">
+    <string>&amp;Check for updates</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -4054,6 +4055,7 @@ border-bottom: 1px solid black;
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="../../../resource/icons/other/icons.qrc"/>
   <include location="../../../resource/icons/other/icons.qrc"/>
  </resources>
  <connections/>
