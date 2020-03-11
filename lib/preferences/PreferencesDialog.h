@@ -82,6 +82,8 @@ Q_SIGNALS:
     void updateChannelChanged(QString channel);
     void updateProviderChanged(QString providerName);
 
+    void checkForUpdatesRequested();
+
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);

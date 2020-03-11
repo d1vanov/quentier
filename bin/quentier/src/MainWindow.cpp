@@ -759,6 +759,12 @@ void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
         &PreferencesDialog::panelBackgroundLinearGradientChanged,
         this,
         &MainWindow::onPanelBackgroundLinearGradientChanged);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesRequested,
+        this,
+        &MainWindow::onCheckForUpdatesActionTriggered);
 }
 
 void MainWindow::addMenuActionsToMainWindow()

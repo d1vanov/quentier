@@ -1664,6 +1664,12 @@ void PreferencesDialog::createConnections()
 #endif
 
     QObject::connect(
+        m_pUi->checkForUpdatesPushButton,
+        &QPushButton::pressed,
+        this,
+        &PreferencesDialog::checkForUpdatesRequested);
+
+    QObject::connect(
         m_pUi->showNoteThumbnailsCheckBox,
         &QCheckBox::toggled,
         this,
