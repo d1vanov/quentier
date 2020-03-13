@@ -1167,6 +1167,19 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
 {
     QNDEBUG("PreferencesDialog::setupCheckForUpdatesSettings");
 
+#ifndef WITH_UPDATE_MANAGER
+    m_pUi->checkForUpdatesCheckBox->setVisible(false);
+    m_pUi->checkForUpdatesOnStartupCheckBox->setVisible(false);
+    m_pUi->useContinuousUpdateChannelCheckBox->setVisible(false);
+    m_pUi->checkForUpdatesIntervalLabel->setVisible(false);
+    m_pUi->checkForUpdatesIntervalComboBox->setVisible(false);
+    m_pUi->updateProviderLabel->setVisible(false);
+    m_pUi->updateProviderComboBox->setVisible(false);
+    m_pUi->updateChannelLabel->setVisible(false);
+    m_pUi->updateChannelComboBox->setVisible(false);
+    m_pUi->checkForUpdatesPushButton->setVisible(false);
+    m_pUi->updateSettingsGroupBox->setVisible(false);
+#else
     bool checkForUpdatesEnabled = false;
     bool checkForUpdatesOnStartupEnabled = false;
     bool useContinuousUpdateChannel = false;
@@ -1183,7 +1196,7 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
         updateProvider);
 
 #if !QUENTIER_PACKAGED_AS_APP_IMAGE
-    // Only GtiHub provider is available, so should hide the combo box allowing
+    // Only GitHub provider is available, so should hide the combo box allowing
     // one to choose between providers
     m_pUi->updateProviderComboBox->hide();
 
@@ -1244,6 +1257,8 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
 
     m_pUi->updateProviderComboBox->setCurrentIndex(
         static_cast<int>(updateProvider));
+
+#endif // WITH_UPDATE_MANAGER
 }
 
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
@@ -1607,6 +1622,7 @@ void PreferencesDialog::createConnections()
         SLOT(onDoubleClickTrayActionChanged(int)));
 #endif
 
+#ifdef WITH_UPDATE_MANAGER
     QObject::connect(
         m_pUi->checkForUpdatesCheckBox,
         &QCheckBox::toggled,
@@ -1668,6 +1684,8 @@ void PreferencesDialog::createConnections()
         &QPushButton::pressed,
         this,
         &PreferencesDialog::checkForUpdatesRequested);
+
+#endif // WITH_UPDATE_MANAGER
 
     QObject::connect(
         m_pUi->showNoteThumbnailsCheckBox,
