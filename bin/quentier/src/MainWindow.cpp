@@ -1774,6 +1774,9 @@ void MainWindow::onSynchronizationStopped()
 
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncApiRateLimitExceeded = false;
+
+    m_syncInProgress = false;
+    scheduleSyncButtonAnimationStop();
 }
 
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
