@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,14 +19,14 @@
 #ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_MANAGER_H
 #define QUENTIER_LIB_ACCOUNT_ACCOUNT_MANAGER_H
 
+#include <quentier/exception/IQuentierException.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/exception/IQuentierException.h>
 
-#include <QObject>
-#include <QVector>
 #include <QDir>
 #include <QNetworkProxy>
+#include <QObject>
+#include <QVector>
 
 namespace quentier {
 
@@ -73,17 +73,17 @@ public:
     /**
      * Attempts to create a new local account
      *
-     * @param name                          If specified, name to be used for
-     *                                      the new account; if name is not set,
-     *                                      it would be chosen automatically
-     * @return                              Either non-empty Account object if
-     *                                      creation was successful or empty
-     *                                      Account object otherwise
+     * @param name          If specified, name to be used for the new account;
+     *                      if name is not set, it would be chosen automatically
+     * @return              Either non-empty Account object if creation was
+     *                      successful or empty Account object otherwise
      */
     Account createNewLocalAccount(QString name = QString());
 
 Q_SIGNALS:
-    void evernoteAccountAuthenticationRequested(QString host, QNetworkProxy proxy);
+    void evernoteAccountAuthenticationRequested(
+        QString host, QNetworkProxy proxy);
+
     void switchedAccount(Account account);
     void accountUpdated(Account account);
     void notifyError(ErrorString error);
@@ -102,20 +102,21 @@ private:
 
     Account createDefaultAccount(ErrorString & errorDescription);
 
-    Account createLocalAccount(const QString & name,
-                               const QString & displayName,
-                               ErrorString & errorDescription);
+    Account createLocalAccount(
+        const QString & name, const QString & displayName,
+        ErrorString & errorDescription);
 
     bool createAccountInfo(const Account & account);
 
-    bool writeAccountInfo(const QString & name, const QString & displayName,
-                          const bool isLocal, const qevercloud::UserID id,
-                          const QString & evernoteAccountType,
-                          const QString & evernoteHost, const QString & shardId,
-                          ErrorString & errorDescription);
+    bool writeAccountInfo(
+        const QString & name, const QString & displayName,
+        const bool isLocal, const qevercloud::UserID id,
+        const QString & evernoteAccountType,
+        const QString & evernoteHost, const QString & shardId,
+        ErrorString & errorDescription);
 
     QString evernoteAccountTypeToString(
-        const Account::EvernoteAccountType::type type) const;
+        const Account::EvernoteAccountType type) const;
 
     void readComplementaryAccountInfo(Account & account);
 
@@ -128,11 +129,10 @@ private:
      */
     Account accountFromEnvVarHints();
 
-    Account findAccount(const bool isLocal,
-                        const QString & accountName,
-                        const qevercloud::UserID id,
-                        const Account::EvernoteAccountType::type type,
-                        const QString & evernoteHost);
+    Account findAccount(
+        const bool isLocal, const QString & accountName,
+        const qevercloud::UserID id, const Account::EvernoteAccountType type,
+        const QString & evernoteHost);
 
     void updateLastUsedAccount(const Account & account);
 
