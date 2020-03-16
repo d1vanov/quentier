@@ -29,6 +29,7 @@
 
 #include <QApplication>
 #include <QDateTime>
+#include <QMetaObject>
 #include <QProgressDialog>
 #include <QTimerEvent>
 
@@ -49,6 +50,21 @@ UpdateManager::UpdateManager(
     m_pIdleStateInfoProvider(std::move(idleStateInfoProvider))
 {
     readPersistentSettings();
+
+    if (m_updateCheckEnabled)
+    {
+        if (m_checkForUpdatesOnStartup)
+        {
+            QMetaObject::invokeMethod(
+                this,
+                "checkForUpdates",
+                Qt::QueuedConnection);
+        }
+        else
+        {
+            setupNextCheckForUpdatesTimer();
+        }
+    }
 }
 
 UpdateManager::~UpdateManager() = default;
@@ -172,6 +188,7 @@ void UpdateManager::askUserAndLaunchUpdate()
             QMessageBox::Ok | QMessageBox::No);
         if (res != QMessageBox::Ok) {
             QNDEBUG("User refused to download and install updates");
+            setupNextCheckForUpdatesTimer();
             return;
         }
 
@@ -221,12 +238,15 @@ void UpdateManager::askUserAndLaunchUpdate()
             QMessageBox::Ok | QMessageBox::No);
         if (res != QMessageBox::Ok) {
             QNDEBUG("User refused to download updates");
+            setupNextCheckForUpdatesTimer();
             return;
         }
 
         openUrl(m_currentUpdateUrl);
         m_currentUpdateUrlOnceOpened = true;
     }
+
+    setupNextCheckForUpdatesTimer();
 }
 
 void UpdateManager::checkForUpdates()
@@ -291,13 +311,17 @@ void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
     QNDEBUG("UpdateManager::onCheckForUpdatesError: " << errorDescription);
 
     Q_EMIT notifyError(errorDescription);
+
     recycleUpdateChecker();
+    setupNextCheckForUpdatesTimer();
 }
 
 void UpdateManager::onNoUpdatesAvailable()
 {
     QNDEBUG("UpdateManager::onNoUpdatesAvailable");
+
     recycleUpdateChecker();
+    setupNextCheckForUpdatesTimer();
 }
 
 void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
@@ -416,11 +440,10 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
         if (m_updateProviderStarted || m_currentUpdateUrlOnceOpened) {
             QNDEBUG("Will not check for updates on timer: update has already "
                 << "been launched");
-            return;
         }
-
-        checkForUpdates();
-        setupNextCheckForUpdatesTimer();
+        else {
+            checkForUpdates();
+        }
     }
     else if (timerId == m_nextIdleStatePollTimerId)
     {

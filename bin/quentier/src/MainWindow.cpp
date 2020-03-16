@@ -5350,12 +5350,6 @@ void MainWindow::setupUpdateManager()
         &UpdateManager::notifyError,
         this,
         &MainWindow::onUpdateManagerError);
-
-    if (m_pUpdateManager->isEnabled() &&
-        m_pUpdateManager->shouldCheckForUpdatesOnStartup())
-    {
-        m_pUpdateManager->checkForUpdates();
-    }
 }
 #endif
 
