@@ -5162,9 +5162,14 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
     appSettings.endGroup();
 
     auto hideThumbnailsForList = hideThumbnailsFor.toStringList();
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     return QSet<QString>(
         hideThumbnailsForList.begin(),
         hideThumbnailsForList.end());
+#else
+    return QSet<QString>::fromList(hideThumbnailsForList);
+#endif
 }
 
 void MainWindow::toggleShowNoteThumbnails() const
