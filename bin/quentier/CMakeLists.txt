@@ -69,21 +69,26 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 add_sanitizers(${PROJECT_NAME})
 
+set(QUENTIER_INTERNAL_LIBS
+    ${quentier_account}
+    ${quentier_delegate}
+    ${quentier_dialog}
+    ${quentier_enex}
+    ${quentier_exception}
+    ${quentier_initialization}
+    ${quentier_model}
+    ${quentier_network}
+    ${quentier_preferences}
+    ${quentier_tray}
+    ${quentier_utility}
+    ${quentier_view}
+    ${quentier_widget})
+if(INCLUDE_UPDATE_INFO)
+  list(APPEND QUENTIER_INTERNAL_LIBS ${quentier_update})
+endif()
+
 target_link_libraries(${PROJECT_NAME}
-                      ${quentier_account}
-                      ${quentier_delegate}
-                      ${quentier_dialog}
-                      ${quentier_enex}
-                      ${quentier_exception}
-                      ${quentier_initialization}
-                      ${quentier_model}
-                      ${quentier_network}
-                      ${quentier_preferences}
-                      ${quentier_tray}
-                      ${quentier_update}
-                      ${quentier_utility}
-                      ${quentier_view}
-                      ${quentier_widget}
+                      ${QUENTIER_INTERNAL_LIBS}
                       ${THIRDPARTY_LIBS})
 
 if(BREAKPAD_FOUND)
