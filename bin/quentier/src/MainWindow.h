@@ -472,7 +472,7 @@ private:
     template <class T>
     void refreshThemeIcons();
 
-    void showHideViewColumnsForAccountType(const Account::Type::type accountType);
+    void showHideViewColumnsForAccountType(const Account::Type accountType);
 
     void expandFiltersView();
     void foldFiltersView();

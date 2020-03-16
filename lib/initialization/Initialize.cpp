@@ -266,7 +266,7 @@ bool processAccountCommandLineOption(
     }
 
     bool foundAccount = false;
-    Account::EvernoteAccountType::type evernoteAccountType =
+    Account::EvernoteAccountType evernoteAccountType =
         Account::EvernoteAccountType::Free;
 
     AccountManager accountManager;
@@ -318,7 +318,7 @@ bool processAccountCommandLineOption(
                                    : QByteArray("0")));
     qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(userId));
     qputenv(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
-            QByteArray::number(evernoteAccountType));
+            QByteArray::number(static_cast<qint64>(evernoteAccountType)));
     qputenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR, evernoteHost.toLocal8Bit());
 
     return true;

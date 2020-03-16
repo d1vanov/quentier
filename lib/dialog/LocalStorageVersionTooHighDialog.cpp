@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -200,21 +200,7 @@ void LocalStorageVersionTooHighDialog::initializeDetails(
     details += tr("Account type");
     details += QStringLiteral(": ");
 
-    switch(currentAccount.type())
-    {
-    case Account::Type::Local:
-        details += tr("local");
-        break;
-    case Account::Type::Evernote:
-        details += QStringLiteral("Evernote");
-        break;
-    default:
-        details += tr("Unknown");
-        details += QStringLiteral(": ");
-        details += QString::number(currentAccount.type());
-        break;
-    }
-
+    details += ToString(currentAccount.type());
     details += QStringLiteral("\n");
 
     details += tr("Current local storage persistence version");

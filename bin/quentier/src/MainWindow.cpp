@@ -1445,7 +1445,7 @@ void MainWindow::refreshNoteEditorWidgetsSpecialIcons()
 }
 
 void MainWindow::showHideViewColumnsForAccountType(
-    const Account::Type::type accountType)
+    const Account::Type accountType)
 {
     QNDEBUG("MainWindow::showHideViewColumnsForAccountType: " << accountType);
 
@@ -1813,6 +1813,9 @@ void MainWindow::onSynchronizationStopped()
 
     onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
     m_syncApiRateLimitExceeded = false;
+
+    m_syncInProgress = false;
+    scheduleSyncButtonAnimationStop();
 }
 
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
@@ -5117,7 +5120,7 @@ void MainWindow::setupViews()
                          Qt::UniqueConnection);
     }
 
-    Account::Type::type currentAccountType = Account::Type::Local;
+    Account::Type currentAccountType = Account::Type::Local;
     if (m_pAccount) {
         currentAccountType = m_pAccount->type();
     }
