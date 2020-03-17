@@ -26,6 +26,8 @@
 #include <quentier/utility/ApplicationSettings.h>
 
 #include <QCoreApplication>
+#include <QDebug>
+#include <QTextStream>
 
 namespace quentier {
 
@@ -115,6 +117,91 @@ QString updateProviderName(const UpdateProvider updateProvider)
         return QString::fromUtf8("Unknown: ") +
             QString::number(static_cast<int>(updateProvider));
     }
+}
+
+namespace {
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void printCheckForUpdatesInterval(T & t, const CheckForUpdatesInterval interval)
+{
+    switch(interval)
+    {
+    case CheckForUpdatesInterval::FIFTEEN_MINUTES:
+        t << "15 minutes";
+        break;
+    case CheckForUpdatesInterval::HALF_AN_HOUR:
+        t << "30 minutes";
+        break;
+    case CheckForUpdatesInterval::HOUR:
+        t << "1 hour";
+        break;
+    case CheckForUpdatesInterval::TWO_HOURS:
+        t << "2 hours";
+        break;
+    case CheckForUpdatesInterval::FOUR_HOURS:
+        t << "4 hours";
+        break;
+    case CheckForUpdatesInterval::DAILY:
+        t << "1 day";
+        break;
+    case CheckForUpdatesInterval::MONTHLY:
+        t << "1 month";
+        break;
+    case CheckForUpdatesInterval::WEEKLY:
+        t << "1 week";
+        break;
+    default:
+        t << "Unknown: option value = " << static_cast<qint64>(interval);
+        break;
+    }
+}
+
+template <typename T>
+void printUpdateProvider(T & t, const UpdateProvider provider)
+{
+    switch(provider)
+    {
+    case UpdateProvider::GITHUB:
+        t << "GitHub";
+        break;
+    case UpdateProvider::APPIMAGE:
+        t << "AppImage";
+        break;
+    default:
+        t << "Unknown: option value = " << static_cast<qint64>(provider);
+        break;
+    }
+}
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////
+
+QTextStream & operator<<(
+    QTextStream & strm, const CheckForUpdatesInterval interval)
+{
+    printCheckForUpdatesInterval(strm, interval);
+    return strm;
+}
+
+QDebug & operator<<(QDebug & dbg, const CheckForUpdatesInterval interval)
+{
+    printCheckForUpdatesInterval(dbg, interval);
+    return dbg;
+}
+
+QTextStream & operator<<(QTextStream & strm, const UpdateProvider provider)
+{
+    printUpdateProvider(strm, provider);
+    return strm;
+}
+
+QDebug & operator<<(QDebug & dbg, const UpdateProvider provider)
+{
+    printUpdateProvider(dbg, provider);
+    return dbg;
 }
 
 } // namespace quentier

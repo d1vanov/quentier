@@ -69,9 +69,16 @@ public:
         return m_updateCheckEnabled;
     }
 
+    void setEnabled(const bool enabled);
+
     bool shouldCheckForUpdatesOnStartup() const
     {
         return m_checkForUpdatesOnStartup;
+    }
+
+    void setShouldCheckForUpdatesOnStartup(const bool check)
+    {
+        m_checkForUpdatesOnStartup = check;
     }
 
     bool useContinuousUpdateChannel() const
@@ -79,20 +86,28 @@ public:
         return m_useContinuousUpdateChannel;
     }
 
+    void setUseContinuousUpdateChannel(const bool continuous);
+
     qint64 checkForUpdatesIntervalMsec() const
     {
         return m_checkForUpdatesIntervalMsec;
     }
+
+    void setCheckForUpdatesIntervalMsec(const qint64 interval);
 
     const QString & updateChannel() const
     {
         return m_updateChannel;
     }
 
+    void setUpdateChannel(QString channel);
+
     UpdateProvider updateProvider() const
     {
         return m_updateProvider;
     }
+
+    void setUpdateProvider(UpdateProvider provider);
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -120,6 +135,17 @@ private:
     void scheduleNextIdleStateCheckForUpdateNotification();
 
     void askUserAndLaunchUpdate();
+
+    /**
+     * @return      False if update provider is in progress and thus was not
+     *              cleared, true otherwise
+     */
+    bool clearCurrentUpdateProvider();
+
+    void clearCurrentUpdateUrl();
+    void clearCurrentUpdateChecker();
+
+    void restartUpdateCheckerIfActive();
 
 private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;
@@ -149,7 +175,7 @@ private:
     bool    m_currentUpdateUrlOnceOpened = false;
 
     std::shared_ptr<IUpdateProvider>    m_pCurrentUpdateProvider;
-    bool    m_updateProviderStarted = false;
+    bool    m_updateProviderInProgress = false;
 
     IUpdateChecker*     m_pCurrentUpdateChecker = nullptr;
 

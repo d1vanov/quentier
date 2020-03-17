@@ -21,6 +21,9 @@
 
 #include <QString>
 
+QT_FORWARD_DECLARE_CLASS(QDebug)
+QT_FORWARD_DECLARE_CLASS(QTextStream)
+
 namespace quentier {
 
 enum class CheckForUpdatesInterval
@@ -35,11 +38,19 @@ enum class CheckForUpdatesInterval
     MONTHLY = 7
 };
 
+QTextStream & operator<<(
+    QTextStream & strm, const CheckForUpdatesInterval interval);
+
+QDebug& operator<<(QDebug & dbg, const CheckForUpdatesInterval interval);
+
 enum class UpdateProvider
 {
     GITHUB = 0,
     APPIMAGE = 1
 };
+
+QTextStream & operator<<(QTextStream & strm, const UpdateProvider provider);
+QDebug & operator<<(QDebug & dbg, const UpdateProvider provider);
 
 void readPersistentUpdateSettings(
     bool & checkForUpdatesEnabled,

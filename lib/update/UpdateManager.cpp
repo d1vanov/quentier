@@ -69,6 +69,101 @@ UpdateManager::UpdateManager(
 
 UpdateManager::~UpdateManager() = default;
 
+void UpdateManager::setEnabled(const bool enabled)
+{
+    QNDEBUG("UpdateManager::setEnabled: " << (enabled ? "true" : "false"));
+
+    if (m_updateCheckEnabled == enabled) {
+        QNDEBUG("Already " << (enabled ? "enabled" : "disabled"));
+        return;
+    }
+
+    m_updateCheckEnabled = enabled;
+
+    if (m_updateCheckEnabled) {
+        setupNextCheckForUpdatesTimer();
+        return;
+    }
+
+    if (!clearCurrentUpdateProvider()) {
+        QNINFO("UpdateManager was disabled but update provider "
+            << "has already been started, won't cancel it");
+        return;
+    }
+
+    clearCurrentUpdateUrl();
+    clearCurrentUpdateChecker();
+
+    if (m_nextUpdateCheckTimerId >= 0) {
+        killTimer(m_nextUpdateCheckTimerId);
+        m_nextUpdateCheckTimerId = -1;
+    }
+
+    if (m_nextIdleStatePollTimerId >= 0) {
+        killTimer(m_nextIdleStatePollTimerId);
+        m_nextIdleStatePollTimerId = -1;
+    }
+}
+
+void UpdateManager::setUseContinuousUpdateChannel(const bool continuous)
+{
+    QNDEBUG("UpdateManager::setUseContinuousUpdateChannel: "
+        << (continuous ? "true" : "false"));
+
+    if (m_useContinuousUpdateChannel == continuous) {
+        QNDEBUG("Already using "
+            << (continuous ? "continuous" : "non-continuous")
+            << " update channel");
+        return;
+    }
+
+    m_useContinuousUpdateChannel = continuous;
+    restartUpdateCheckerIfActive();
+}
+
+void UpdateManager::setCheckForUpdatesIntervalMsec(const qint64 interval)
+{
+    QNDEBUG("UpdateManager::setCheckForUpdatesIntervalMsec: " << interval);
+
+    if (m_checkForUpdatesIntervalMsec == interval) {
+        return;
+    }
+
+    m_checkForUpdatesIntervalMsec = interval;
+
+    if (m_nextUpdateCheckTimerId >= 0) {
+        killTimer(m_nextUpdateCheckTimerId);
+        m_nextUpdateCheckTimerId = -1;
+        setupNextCheckForUpdatesTimer();
+    }
+}
+
+void UpdateManager::setUpdateChannel(QString channel)
+{
+    QNDEBUG("UpdateManager::setUpdateChannel: " << channel);
+
+    if (m_updateChannel == channel) {
+        QNDEBUG("Update channel didn't change");
+        return;
+    }
+
+    m_updateChannel = std::move(channel);
+    restartUpdateCheckerIfActive();
+}
+
+void UpdateManager::setUpdateProvider(UpdateProvider provider)
+{
+    QNDEBUG("UpdateManager::setUpdateProvider: " << provider);
+
+    if (m_updateProvider == provider) {
+        QNDEBUG("Update provider didn't change");
+        return;
+    }
+
+    m_updateProvider = provider;
+    restartUpdateCheckerIfActive();
+}
+
 void UpdateManager::readPersistentSettings()
 {
     int checkForUpdatesOption = -1;
@@ -171,7 +266,7 @@ void UpdateManager::askUserAndLaunchUpdate()
 
     if (m_pCurrentUpdateProvider)
     {
-        if (m_updateProviderStarted) {
+        if (m_updateProviderInProgress) {
             QNDEBUG("Update provider has already been started");
             return;
         }
@@ -217,7 +312,7 @@ void UpdateManager::askUserAndLaunchUpdate()
         m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
 
         m_pCurrentUpdateProvider->run();
-        m_updateProviderStarted = true;
+        m_updateProviderInProgress = true;
     }
     else if (!m_currentUpdateUrl.isEmpty())
     {
@@ -249,26 +344,68 @@ void UpdateManager::askUserAndLaunchUpdate()
     setupNextCheckForUpdatesTimer();
 }
 
-void UpdateManager::checkForUpdates()
+bool UpdateManager::clearCurrentUpdateProvider()
 {
-    QNDEBUG("UpdateManager::checkForUpdates");
+    QNDEBUG("UpdateManager::clearCurrentUpdateProvider");
 
-    if (m_pCurrentUpdateProvider) {
-        m_pCurrentUpdateProvider->disconnect(this);
-        m_pCurrentUpdateProvider.reset();
-        m_updateProviderStarted = false;
+    if (!m_pCurrentUpdateProvider) {
+        return true;
     }
+
+    if (m_updateProviderInProgress) {
+        return false;
+    }
+
+    m_pCurrentUpdateProvider->disconnect(this);
+    m_pCurrentUpdateProvider.reset();
+    return true;
+}
+
+void UpdateManager::clearCurrentUpdateUrl()
+{
+    QNDEBUG("UpdateManager::clearCurrentUpdateUrl");
 
     if (!m_currentUpdateUrl.isEmpty()) {
         m_currentUpdateUrl = QUrl();
         m_currentUpdateUrlOnceOpened = false;
     }
+}
+
+void UpdateManager::clearCurrentUpdateChecker()
+{
+    QNDEBUG("UpdateManager::clearCurrentUpdateChecker");
 
     if (m_pCurrentUpdateChecker) {
         m_pCurrentUpdateChecker->disconnect(this);
         m_pCurrentUpdateChecker->deleteLater();
         m_pCurrentUpdateChecker = nullptr;
     }
+}
+
+void UpdateManager::restartUpdateCheckerIfActive()
+{
+    QNDEBUG("UpdateManager::restartUpdateCheckerIfActive");
+
+    if (!m_pCurrentUpdateChecker) {
+        return;
+    }
+
+    clearCurrentUpdateChecker();
+    checkForUpdates();
+}
+
+void UpdateManager::checkForUpdates()
+{
+    QNDEBUG("UpdateManager::checkForUpdates");
+
+    if (!clearCurrentUpdateProvider()) {
+        QNDEBUG("Update provider is already in progress, won't "
+            << "check for updates right now");
+        return;
+    }
+
+    clearCurrentUpdateUrl();
+    clearCurrentUpdateChecker();
 
     m_pCurrentUpdateChecker = newUpdateChecker(m_updateProvider, this);
     m_pCurrentUpdateChecker->setUpdateChannel(m_updateChannel);
@@ -356,7 +493,7 @@ void UpdateManager::onUpdatesAvailable(
     }
 
     m_pCurrentUpdateProvider = std::move(provider);
-    m_updateProviderStarted = false;
+    m_updateProviderInProgress = false;
 
     if (!checkIdleState()) {
         scheduleNextIdleStateCheckForUpdateNotification();
@@ -378,6 +515,8 @@ void UpdateManager::onUpdateProviderFinished(
     m_pUpdateProgressDialog->setValue(100);
     m_pUpdateProgressDialog->close();
     m_pUpdateProgressDialog.reset();
+
+    m_updateProviderInProgress = false;
 
     if (!status) {
         Q_EMIT notifyError(errorDescription);
@@ -437,7 +576,7 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
     {
         m_nextUpdateCheckTimerId = -1;
 
-        if (m_updateProviderStarted || m_currentUpdateUrlOnceOpened) {
+        if (m_updateProviderInProgress || m_currentUpdateUrlOnceOpened) {
             QNDEBUG("Will not check for updates on timer: update has already "
                 << "been launched");
         }
