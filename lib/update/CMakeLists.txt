@@ -47,6 +47,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
+target_link_libraries(${PROJECT_NAME} ${quentier_network})
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 14
   CXX_EXTENSIONS OFF)
