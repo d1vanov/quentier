@@ -167,15 +167,15 @@ endif()
 
 if(INCLUDE_UPDATE_INFO)
   if(NOT DEFAULT_UPDATE_CHANNEL)
-    message(FATAL "No default update channel is set")
+    message(FATAL_ERROR "No default update channel is set")
   endif()
 
   if(NOT DEFAULT_UPDATE_PROVIDER)
-    message(FATAL "No default update provider is set")
+    message(FATAL_ERROR "No default update provider is set")
   endif()
 
   if(NOT GIT_FOUND)
-    message(FATAL "Build from git repository is required to include update info")
+    message(FATAL_ERROR "Build from git repository is required to include update info")
   endif()
 
   if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE))
