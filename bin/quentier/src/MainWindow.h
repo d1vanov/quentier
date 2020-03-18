@@ -29,6 +29,11 @@
 #include <lib/model/SavedSearchModel.h>
 #include <lib/model/TagCache.h>
 #include <lib/model/TagModel.h>
+
+#ifdef WITH_UPDATE_MANAGER
+#include <lib/update/UpdateManager.h>
+#endif
+
 #include <lib/widget/NoteEditorTabsAndWindowsCoordinator.h>
 #include <lib/widget/NoteEditorWidget.h>
 #include <lib/widget/panel/SidePanelStyleController.h>
@@ -76,11 +81,6 @@ QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(PreferencesDialog)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
-
-#ifdef WITH_UPDATE_MANAGER
-QT_FORWARD_DECLARE_CLASS(UpdateManagerIdleInfoProvider)
-QT_FORWARD_DECLARE_CLASS(UpdateManager)
-#endif
 
 } // namespace quentier
 
@@ -580,7 +580,7 @@ private:
     QHash<QString, QAction*>    m_nonStandardShortcutKeyToAction;
 
 #ifdef WITH_UPDATE_MANAGER
-    std::shared_ptr<UpdateManagerIdleInfoProvider>  m_pUpdateManagerIdleInfoProvider;
+    std::shared_ptr<UpdateManager::IIdleStateInfoProvider>  m_pUpdateManagerIdleInfoProvider;
     UpdateManager *         m_pUpdateManager;
 #endif
 

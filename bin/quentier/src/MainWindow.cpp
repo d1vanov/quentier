@@ -47,11 +47,8 @@
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/UpdateSettings.h>
 #include <lib/tray/SystemTrayIconManager.h>
-
-#ifdef WITH_UPDATE_MANAGER
-#include <lib/update/UpdateManager.h>
-#endif
 
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
@@ -180,7 +177,8 @@ using quentier::LogViewerWidget;
 using namespace quentier;
 
 #ifdef WITH_UPDATE_MANAGER
-class UpdateManagerIdleInfoProvider: public UpdateManager::IIdleStateInfoProvider
+class UpdateManagerIdleInfoProvider final:
+    public UpdateManager::IIdleStateInfoProvider
 {
 public:
     UpdateManagerIdleInfoProvider(NoteEditorTabsAndWindowsCoordinator & c) :
@@ -765,6 +763,56 @@ void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
         &PreferencesDialog::checkForUpdatesRequested,
         this,
         &MainWindow::onCheckForUpdatesActionTriggered);
+
+#if WITH_UPDATE_MANAGER
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesOptionChanged,
+        this,
+        [this] (bool enabled) {
+            this->m_pUpdateManager->setEnabled(enabled);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesOnStartupOptionChanged,
+        this,
+        [this] (bool enabled) {
+            this->m_pUpdateManager->setShouldCheckForUpdatesOnStartup(enabled);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::useContinuousUpdateChannelOptionChanged,
+        this,
+        [this] (bool enabled) {
+            this->m_pUpdateManager->setUseContinuousUpdateChannel(enabled);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesIntervalChanged,
+        this,
+        [this] (qint64 intervalMsec) {
+            this->m_pUpdateManager->setCheckForUpdatesIntervalMsec(intervalMsec);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::updateChannelChanged,
+        this,
+        [this] (QString channel) {
+            this->m_pUpdateManager->setUpdateChannel(std::move(channel));
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::updateProviderChanged,
+        this,
+        [this] (UpdateProvider provider) {
+            this->m_pUpdateManager->setUpdateProvider(provider);
+        });
+#endif
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -5340,9 +5388,11 @@ void MainWindow::setupUpdateManager()
     QNDEBUG("MainWindow::setupUpdateManager");
 
     Q_ASSERT(m_pNoteEditorTabsAndWindowsCoordinator);
-    m_pUpdateManagerIdleInfoProvider =
-        std::make_shared<UpdateManagerIdleInfoProvider>(
-            *m_pNoteEditorTabsAndWindowsCoordinator);
+
+    m_pUpdateManagerIdleInfoProvider.reset(
+        new UpdateManagerIdleInfoProvider(
+            *m_pNoteEditorTabsAndWindowsCoordinator));
+
     m_pUpdateManager = new UpdateManager(m_pUpdateManagerIdleInfoProvider, this);
 
     QObject::connect(

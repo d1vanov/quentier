@@ -21,7 +21,6 @@
 #include "DefaultDisableNativeMenuBar.h"
 #include "DefaultSettings.h"
 #include "SettingsNames.h"
-#include "UpdateSettings.h"
 
 #include "panel_colors/PanelColorsHandlerWidget.h"
 using quentier::PanelColorsHandlerWidget;
@@ -410,13 +409,14 @@ void PreferencesDialog::onUpdateChannelChanged(const QString & channel)
     Q_EMIT updateChannelChanged(channel);
 }
 
-void PreferencesDialog::onUpdateProviderChanged(const QString & provider)
+void PreferencesDialog::onUpdateProviderChanged(int index)
 {
+    UpdateProvider provider = static_cast<UpdateProvider>(index);
     QNDEBUG("PreferencesDialog::onUpdateProviderChanged: " << provider);
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY, provider);
+    appSettings.setValue(CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY, index);
     appSettings.endGroup();
 
     Q_EMIT updateProviderChanged(provider);
@@ -1247,9 +1247,12 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
     QStringList updateProviders;
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
     updateProviders.reserve(2);
-    updateProviders << updateProviderName(UpdateProvider::APPIMAGE);
 #endif
     updateProviders << updateProviderName(UpdateProvider::GITHUB);
+
+#if QUENTIER_PACKAGED_AS_APP_IMAGE
+    updateProviders << updateProviderName(UpdateProvider::APPIMAGE);
+#endif
 
     auto * pUpdateProvidersComboBoxModel = new QStringListModel(this);
     pUpdateProvidersComboBoxModel->setStringList(updateProviders);
@@ -1656,7 +1659,7 @@ void PreferencesDialog::createConnections()
 
     QObject::connect(
         m_pUi->updateProviderComboBox,
-        qOverload<const QString &>(&QComboBox::currentIndexChanged),
+        qOverload<int>(&QComboBox::currentIndexChanged),
         this,
         &PreferencesDialog::onUpdateProviderChanged);
 #else
@@ -1674,9 +1677,9 @@ void PreferencesDialog::createConnections()
 
     QObject::connect(
         m_pUi->updateProviderComboBox,
-        SIGNAL(currentIndexChanged(QString)),
+        SIGNAL(currentIndexChanged(int)),
         this,
-        SLOT(onUpdateProviderChanged(QString)));
+        SLOT(onUpdateProviderChanged(int)));
 #endif
 
     QObject::connect(

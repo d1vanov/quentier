@@ -19,10 +19,12 @@
 #ifndef QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
 #define QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
 
+#include "UpdateSettings.h"
+
 #include <quentier/utility/Macros.h>
 
-#include <QDialog>
 #include <QColor>
+#include <QDialog>
 #include <QPointer>
 
 namespace Ui {
@@ -80,7 +82,7 @@ Q_SIGNALS:
     void useContinuousUpdateChannelOptionChanged(bool enabled);
     void checkForUpdatesIntervalChanged(qint64 intervalMsec);
     void updateChannelChanged(QString channel);
-    void updateProviderChanged(QString providerName);
+    void updateProviderChanged(UpdateProvider provider);
 
     void checkForUpdatesRequested();
 
@@ -109,7 +111,7 @@ private Q_SLOTS:
     void onUseContinuousUpdateChannelCheckboxToggled(bool checked);
     void onCheckForUpdatesIntervalChanged(int option);
     void onUpdateChannelChanged(const QString & channel);
-    void onUpdateProviderChanged(const QString & provider);
+    void onUpdateProviderChanged(int index);
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
