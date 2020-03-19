@@ -419,6 +419,9 @@ void PreferencesDialog::onUpdateProviderChanged(int index)
     appSettings.setValue(CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY, index);
     appSettings.endGroup();
 
+    m_pUi->useContinuousUpdateChannelCheckBox->setEnabled(
+        provider == UpdateProvider::GITHUB);
+
     Q_EMIT updateProviderChanged(provider);
 }
 
@@ -1199,10 +1202,6 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
     // Only GitHub provider is available, so should hide the combo box allowing
     // one to choose between providers
     m_pUi->updateProviderComboBox->hide();
-
-    // Should also hide the checkbox allowing to choose between continuous and
-    // non-continuous releases
-    m_pUi->useContinuousUpdateChannelCheckBox->hide();
 #endif
 
     m_pUi->checkForUpdatesCheckBox->setChecked(checkForUpdatesEnabled);
@@ -1261,6 +1260,9 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
     m_pUi->updateProviderComboBox->setCurrentIndex(
         static_cast<int>(updateProvider));
 
+    if (updateProvider == UpdateProvider::APPIMAGE) {
+        m_pUi->useContinuousUpdateChannelCheckBox->setEnabled(false);
+    }
 #endif // WITH_UPDATE_MANAGER
 }
 
