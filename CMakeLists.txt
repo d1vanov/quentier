@@ -94,7 +94,7 @@ endif()
 include(QuentierFindNSIS)
 
 # configure version info
-if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE))
+if(QUENTIER_PACKAGED_AS_APP_IMAGE OR (("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") AND CREATE_BUNDLE))
   message(STATUS "Quentier is being packaged as AppImage")
   set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 1")
   set(LIBQUENTIER_BINARY_NAME "libqt5quentier.so.0")
@@ -178,6 +178,9 @@ if(INCLUDE_UPDATE_INFO)
     message(FATAL_ERROR "Build from git repository is required to include update info")
   endif()
 
+  message(STATUS "QUENTIER_PACKAGED_AS_APP_IMAGE = ${QUENTIER_PACKAGED_AS_APP_IMAGE}")
+  message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
+  message(STATUS "CREATE_BUNDLE = ${CREATE_BUNDLE}")
   if(QUENTIER_PACKAGED_AS_APP_IMAGE OR (("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") AND CREATE_BUNDLE))
     set(USE_APP_IMAGE_UPDATER_BRIDGE TRUE)
     find_package(AppImageUpdaterBridge REQUIRED)
