@@ -24,10 +24,10 @@
  * which determine packaging-specific properties of Quentier
  */
 
-/** 
+/**
  * This macro is set to true if quentier was packaged as AppImage on Linux
  */
-@QUENTIER_PACKAGED_AS_APP_IMAGE@
+@QUENTIER_PACKAGED_AS_APP_IMAGE_DEFINE@
 
 /**
  * This macro contains the name of libquentier binary found by CMake
