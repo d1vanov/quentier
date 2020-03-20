@@ -19,7 +19,9 @@
 #ifndef QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
 #define QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
 
+#ifdef WITH_UPDATE_MANAGER
 #include "UpdateSettings.h"
+#endif
 
 #include <quentier/utility/Macros.h>
 
@@ -77,6 +79,7 @@ Q_SIGNALS:
     void panelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
     void panelBackgroundLinearGradientChanged(QLinearGradient gradient);
 
+#if WITH_UPDATE_MANAGER
     void checkForUpdatesOptionChanged(bool enabled);
     void checkForUpdatesOnStartupOptionChanged(bool enabled);
     void useContinuousUpdateChannelOptionChanged(bool enabled);
@@ -85,6 +88,7 @@ Q_SIGNALS:
     void updateProviderChanged(UpdateProvider provider);
 
     void checkForUpdatesRequested();
+#endif
 
 private Q_SLOTS:
     // System tray tab
@@ -106,12 +110,14 @@ private Q_SLOTS:
     void onStartAtLoginCheckboxToggled(bool checked);
     void onStartAtLoginOptionChanged(int option);
 
+#ifdef WITH_UPDATE_MANAGER
     void onCheckForUpdatesCheckboxToggled(bool checked);
     void onCheckForUpdatesOnStartupCheckboxToggled(bool checked);
     void onUseContinuousUpdateChannelCheckboxToggled(bool checked);
     void onCheckForUpdatesIntervalChanged(int option);
     void onUpdateChannelChanged(const QString & channel);
     void onUpdateProviderChanged(int index);
+#endif
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);

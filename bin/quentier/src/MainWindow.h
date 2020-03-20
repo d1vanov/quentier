@@ -311,7 +311,6 @@ private Q_SLOTS:
     void onHideRequestedFromTrayIcon();
 
     void onViewLogsActionTriggered();
-    void onCheckForUpdatesActionTriggered();
     void onShowInfoAboutQuentierActionTriggered();
 
     void onNoteEditorError(ErrorString error);
@@ -356,6 +355,7 @@ private Q_SLOTS:
         ErrorString errorDescription);
 
 #ifdef WITH_UPDATE_MANAGER
+    void onCheckForUpdatesActionTriggered();
     void onUpdateManagerError(ErrorString errorDescription);
 #endif
 

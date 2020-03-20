@@ -9,7 +9,6 @@ set(HEADERS
     DefaultSettings.h
     SettingsNames.h
     PreferencesDialog.h
-    UpdateSettings.h
     panel_colors/PanelColorsHandlerWidget.h
     shortcut_settings/ShortcutButton.h
     shortcut_settings/ShortcutSettingsWidget.h)
@@ -17,10 +16,14 @@ set(HEADERS
 set(SOURCES
     DefaultDisableNativeMenuBar.cpp
     PreferencesDialog.cpp
-    UpdateSettings.cpp
     panel_colors/PanelColorsHandlerWidget.cpp
     shortcut_settings/ShortcutButton.cpp
     shortcut_settings/ShortcutSettingsWidget.cpp)
+
+if(INCLUDE_UPDATE_INFO)
+  list(APPEND HEADERS UpdateSettings.h)
+  list(APPEND SOURCES UpdateSettings.cpp)
+endif()
 
 set(FORMS
     PreferencesDialog.ui

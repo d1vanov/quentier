@@ -35,7 +35,7 @@ namespace quentier {
 GitHubUpdateChecker::GitHubUpdateChecker(QObject * parent) :
     IUpdateChecker(parent),
     m_currentBuildCreationDateTime(QDateTime::fromString(
-        QString::fromUtf8(QUENTIER_BUILD_TIMESTAMP),
+        QUENTIER_BUILD_TIMESTAMP,
         Qt::ISODate))
 {}
 
@@ -88,7 +88,7 @@ void GitHubUpdateChecker::onReleasesListed(
     if (Q_UNLIKELY(!m_currentBuildCreationDateTime.isValid())) {
         ErrorString error(
             QT_TR_NOOP("Failed to parse current build creation time from string"));
-        error.details() = QString::fromUtf8(QUENTIER_BUILD_TIMESTAMP);
+        error.details() = QUENTIER_BUILD_TIMESTAMP;
         QNWARNING(error);
         Q_EMIT failure(error);
     }
@@ -196,7 +196,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
 
         auto targetCommit = targetCommitValue.toString();
 
-        if (targetCommit.startsWith(QString::fromUtf8(QUENTIER_BUILD_GIT_COMMIT))) {
+        if (targetCommit.startsWith(QUENTIER_BUILD_GIT_COMMIT)) {
             QNDEBUG("Skipping release " << name << " as its target commit matches "
                 << "the build commit of Quentier: " << QUENTIER_BUILD_GIT_COMMIT);
             continue;

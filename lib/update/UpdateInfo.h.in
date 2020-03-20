@@ -19,6 +19,8 @@
 #ifndef QUENTIER_UPDATE_INFO_H
 #define QUENTIER_UPDATE_INFO_H
 
+#include <lib/preferences/UpdateSettings.h>
+
 /**
  * This file contains automatically generated code including macro definitions
  * which determine version/release specific properties of Quentier used to

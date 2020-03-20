@@ -60,7 +60,7 @@ void readPersistentUpdateSettings(
 
     updateChannel = appSettings.value(
         CHECK_FOR_UPDATES_CHANNEL_KEY,
-        DEFAULT_UPDATES_CHANNEL).toString();
+        DEFAULT_UPDATE_CHANNEL).toString();
 
 #if !QUENTIER_PACKAGED_AS_APP_IMAGE
     // Only GitHub provider is available

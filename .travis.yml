@@ -268,7 +268,7 @@ script:
                   -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DBUILD_WITH_WIKI_TOOLS=1 \
                   -DINCLUDE_UPDATE_INFO=$INCLUDE_UPDATE_INFO \
                   -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
-                  -DDEFAULT_UPDATE_PROVIDER="AppImage" \
+                  -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" \
                   ..
           else
             cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
@@ -302,7 +302,7 @@ script:
               -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_WITH_WIKI_TOOLS=1 \
               -DINCLUDE_UPDATE_INFO=$INCLUDE_UPDATE_INFO \
               -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
-              -DDEFAULT_UPDATE_PROVIDER="GitHub" \
+              -DDEFAULT_UPDATE_PROVIDER="GITHUB" \
               ..
       fi
     - make

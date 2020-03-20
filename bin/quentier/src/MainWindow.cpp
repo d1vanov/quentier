@@ -554,11 +554,13 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onShowNoteSource));
     QObject::connect(m_pUI->ActionViewLogs, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onViewLogsActionTriggered));
-    QObject::connect(m_pUI->ActionCheckForUpdates, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(MainWindow,onCheckForUpdatesActionTriggered));
     QObject::connect(m_pUI->ActionAbout, QNSIGNAL(QAction,triggered),
                      this,
                      QNSLOT(MainWindow,onShowInfoAboutQuentierActionTriggered));
+#ifdef WITH_UPDATE_MANAGER
+    QObject::connect(m_pUI->ActionCheckForUpdates, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onCheckForUpdatesActionTriggered));
+#endif
 }
 
 void MainWindow::connectViewButtonsToSlots()
@@ -758,13 +760,13 @@ void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
         this,
         &MainWindow::onPanelBackgroundLinearGradientChanged);
 
+#if WITH_UPDATE_MANAGER
     QObject::connect(
         &dialog,
         &PreferencesDialog::checkForUpdatesRequested,
         this,
         &MainWindow::onCheckForUpdatesActionTriggered);
 
-#if WITH_UPDATE_MANAGER
     QObject::connect(
         &dialog,
         &PreferencesDialog::checkForUpdatesOptionChanged,
@@ -3174,18 +3176,6 @@ void MainWindow::onViewLogsActionTriggered()
     pLogViewerWidget->show();
 }
 
-void MainWindow::onCheckForUpdatesActionTriggered()
-{
-    QNDEBUG("MainWindow::onCheckForUpdatesActionTriggered");
-
-#ifdef WITH_UPDATE_MANAGER
-    m_pUpdateManager->checkForUpdates();
-#else
-    onSetStatusBarText(
-        tr("Checking for updates is not supported in this build of Quentier"));
-#endif
-}
-
 void MainWindow::onShowInfoAboutQuentierActionTriggered()
 {
     QNDEBUG("MainWindow::onShowInfoAboutQuentierActionTriggered");
@@ -4174,12 +4164,18 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError(
 }
 
 #ifdef WITH_UPDATE_MANAGER
+void MainWindow::onCheckForUpdatesActionTriggered()
+{
+    QNDEBUG("MainWindow::onCheckForUpdatesActionTriggered");
+    m_pUpdateManager->checkForUpdates();
+}
+
 void MainWindow::onUpdateManagerError(ErrorString errorDescription)
 {
     QNDEBUG("MainWindow::onUpdateManagerError: " << errorDescription);
     onSetStatusBarText(errorDescription.localizedString());
 }
-#endif
+#endif // WITH_UPDATE_MANAGER
 
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
 {

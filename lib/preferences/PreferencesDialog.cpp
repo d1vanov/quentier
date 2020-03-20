@@ -343,6 +343,7 @@ void PreferencesDialog::onStartAtLoginOptionChanged(int option)
     }
 }
 
+#ifdef WITH_UPDATE_MANAGER
 void PreferencesDialog::onCheckForUpdatesCheckboxToggled(bool checked)
 {
     QNDEBUG("PreferencesDialog::onCheckForUpdatesCheckboxToggled: "
@@ -424,6 +425,7 @@ void PreferencesDialog::onUpdateProviderChanged(int index)
 
     Q_EMIT updateProviderChanged(provider);
 }
+#endif // WITH_UPDATE_MANAGER
 
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
