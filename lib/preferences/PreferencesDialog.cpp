@@ -51,8 +51,6 @@ using quentier::ShortcutSettingsWidget;
 #include <algorithm>
 #include <limits>
 
-#define GITHUB_RELEASES_UPDATE_PROVIDER QStringLiteral("GitHub releases")
-
 namespace quentier {
 
 QString trayActionToString(SystemTrayIconManager::TrayAction action);
