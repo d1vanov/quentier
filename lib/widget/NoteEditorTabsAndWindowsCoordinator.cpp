@@ -651,7 +651,7 @@ qint64 NoteEditorTabsAndWindowsCoordinator::minIdleTime() const
             continue;
         }
 
-        if (minIdleTime > idleTime) {
+        if ((minIdleTime < 0) || (minIdleTime > idleTime)) {
             minIdleTime = idleTime;
         }
     }
