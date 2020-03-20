@@ -178,7 +178,7 @@ if(INCLUDE_UPDATE_INFO)
     message(FATAL_ERROR "Build from git repository is required to include update info")
   endif()
 
-  if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE))
+  if(QUENTIER_PACKAGED_AS_APP_IMAGE OR (("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") AND CREATE_BUNDLE))
     set(USE_APP_IMAGE_UPDATER_BRIDGE TRUE)
     find_package(AppImageUpdaterBridge REQUIRED)
     get_property(APP_IMAGE_UPDATER_BRIDGE_LIBRARY_LOCATION TARGET AppImageUpdaterBridge PROPERTY LOCATION)
