@@ -17,7 +17,11 @@
  */
 
 #include "IUpdateChecker.h"
+
+#if QUENTIER_PACKAGED_AS_APP_IMAGE
 #include "AppImageUpdateChecker.h"
+#endif
+
 #include "GitHubUpdateChecker.h"
 
 namespace quentier {
@@ -54,7 +58,9 @@ IUpdateChecker * newUpdateChecker(
     switch(updateProvider)
     {
     case UpdateProvider::APPIMAGE:
+#if QUENTIER_PACKAGED_AS_APP_IMAGE
         return new AppImageUpdateChecker(parent);
+#endif
     case UpdateProvider::GITHUB:
     default:
         return new GitHubUpdateChecker(parent);
