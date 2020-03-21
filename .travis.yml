@@ -97,7 +97,7 @@ install:
           cd AppImageUpdaterBridge/AppImageUpdaterBridge-1.1.6 &&
           mkdir build &&
           cd build &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 .. &&
           make &&
           make install &&
           export APPIMAGE_UPDATER_BRIDGE_DIR=$(pwd)/installdir/lib/cmake/AppImageUpdaterBridge &&
