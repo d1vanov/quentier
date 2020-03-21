@@ -71,7 +71,18 @@ install:
           sudo make install &&
           cd .. &&
           sudo wget -c "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool &&
-          sudo chmod a+x /usr/local/bin/appimagetool
+          sudo chmod a+x /usr/local/bin/appimagetool &&
+          wget -c -nv "https://github.com/antony-jr/AppImageUpdaterBridge/archive/v1.1.6.tar.gz" &&
+          mkdir AppImageUpdaterBridge &&
+          tar xvf v1.1.6.tar.gz -C AppImageUpdaterBridge &&
+          cd AppImageUpdaterBridge/AppImageUpdaterBridge-1.1.6 &&
+          mkdir build &&
+          cd build &&
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
+          make &&
+          make install &&
+          export APPIMAGE_UPDATER_BRIDGE_DIR=$(pwd)/installdir/lib/cmake/AppImageUpdaterBridge &&
+          cd ../../..
         fi
         if [ "${QT_BASE}" = "551" ]; then
           echo "Building for Qt 5.5.1" &&
@@ -269,6 +280,7 @@ script:
                   -DINCLUDE_UPDATE_INFO=$INCLUDE_UPDATE_INFO \
                   -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
                   -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" \
+                  -DAppImageUpdaterBridge_DIR=$APPIMAGE_UPDATER_BRIDGE_DIR \
                   ..
           else
             cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
