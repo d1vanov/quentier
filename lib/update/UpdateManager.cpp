@@ -425,6 +425,7 @@ void UpdateManager::checkForUpdates()
         &UpdateManager::onNoUpdatesAvailable,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_pCurrentUpdateChecker,
         qOverload<QUrl>(&IUpdateChecker::updatesAvailable),
@@ -439,6 +440,21 @@ void UpdateManager::checkForUpdates()
         this,
         &UpdateManager::onUpdatesAvailable,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+#else
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        SIGNAL(updatesAvailable(QUrl)),
+        this,
+        SLOT(onUpdatesAvailableAtUrl(QUrl)),
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        SIGNAL(updatesAvailable(std::shared_ptr<IUpdateProvider>)),
+        this,
+        SLOT(onUpdatesAvailable(std::shared_ptr<IUpdateProvider>)),
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+#endif
 
     m_pCurrentUpdateChecker->checkForUpdates();
 }
