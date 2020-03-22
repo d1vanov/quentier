@@ -94,72 +94,100 @@ endif()
 include(QuentierFindNSIS)
 
 # configure version info
-if(QUENTIER_PACKAGED_AS_APP_IMAGE OR ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE))
+if(QUENTIER_PACKAGED_AS_APP_IMAGE OR (("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") AND CREATE_BUNDLE))
   message(STATUS "Quentier is being packaged as AppImage")
-  set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 1")
+  set(QUENTIER_PACKAGED_AS_APP_IMAGE_DEFINE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 1")
   set(LIBQUENTIER_BINARY_NAME "libqt5quentier.so.0")
 else()
-  set(QUENTIER_PACKAGED_AS_APP_IMAGE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 0")
+  set(QUENTIER_PACKAGED_AS_APP_IMAGE_DEFINE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 0")
   get_filename_component(LIBQUENTIER_BINARY_NAME "${LIBQUENTIER_LIBRARY_LOCATION}" NAME)
 endif()
 
 set(QUENTIER_LIBQUENTIER_BINARY_NAME "#define QUENTIER_LIBQUENTIER_BINARY_NAME \"${LIBQUENTIER_BINARY_NAME}\"")
 
-if (NOT QUENTIER_BUILD_INFO)
-  find_package(Git)
-  if(GIT_FOUND)
-    message(STATUS "Git found: ${GIT_EXECUTABLE}")
+find_package(Git)
+if(GIT_FOUND)
+  message(STATUS "Git found: ${GIT_EXECUTABLE}")
 
-    # Get git branch
-    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      OUTPUT_VARIABLE QUENTIER_GIT_BRANCH
-      RESULT_VARIABLE QUENTIER_GIT_BRANCH_RETURN_CODE
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(NOT "${QUENTIER_GIT_BRANCH_RETURN_CODE}" STREQUAL "0")
-      message(AUTHOR_WARNING "Failed to determine the current git branch, return code ${QUENTIER_GIT_BRANCH_RETURN_CODE}")
-      set(QUENTIER_GIT_BRANCH "unknown branch")
-    else()
-      if(${QUENTIER_GIT_BRANCH} STREQUAL "HEAD")
-        # Can happen if running on detached HEAD, can happen in CI jobs; workaround: try to get the current branch from environment variables
-        set(APPVEYOR_REPO_BRANCH "$ENV{APPVEYOR_REPO_BRANCH}")
-        set(TRAVIS_BRANCH "$ENV{TRAVIS_BRANCH}")
-        if(NOT "${APPVEYOR_REPO_BRANCH}" STREQUAL "")
-          set(QUENTIER_GIT_BRANCH "${APPVEYOR_REPO_BRANCH}")
-        elseif(NOT "${TRAVIS_BRANCH}" STREQUAL "")
-          set(QUENTIER_GIT_BRANCH "${TRAVIS_BRANCH}")
-        endif()
+  # Get git branch
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    OUTPUT_VARIABLE QUENTIER_GIT_BRANCH
+    RESULT_VARIABLE QUENTIER_GIT_BRANCH_RETURN_CODE
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT "${QUENTIER_GIT_BRANCH_RETURN_CODE}" STREQUAL "0")
+    message(AUTHOR_WARNING "Failed to determine the current git branch, return code ${QUENTIER_GIT_BRANCH_RETURN_CODE}")
+    set(QUENTIER_GIT_BRANCH "unknown branch")
+  else()
+    if(${QUENTIER_GIT_BRANCH} STREQUAL "HEAD")
+      # Can happen if running on detached HEAD, can happen in CI jobs; workaround: try to get the current branch from environment variables
+      set(APPVEYOR_REPO_BRANCH "$ENV{APPVEYOR_REPO_BRANCH}")
+      set(TRAVIS_BRANCH "$ENV{TRAVIS_BRANCH}")
+      if(NOT "${APPVEYOR_REPO_BRANCH}" STREQUAL "")
+        set(QUENTIER_GIT_BRANCH "${APPVEYOR_REPO_BRANCH}")
+      elseif(NOT "${TRAVIS_BRANCH}" STREQUAL "")
+        set(QUENTIER_GIT_BRANCH "${TRAVIS_BRANCH}")
       endif()
-      message(STATUS "Git branch: ${QUENTIER_GIT_BRANCH}")
     endif()
+    message(STATUS "Git branch: ${QUENTIER_GIT_BRANCH}")
+  endif()
 
-    # Get last commit short hash
-    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      OUTPUT_VARIABLE QUENTIER_GIT_REVISION
-      RESULT_VARIABLE QUENTIER_GIT_REVISION_RETURN_CODE
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(NOT "${QUENTIER_GIT_REVISION_RETURN_CODE}" STREQUAL "0")
-      message(AUTHOR_WARNING "Failed to determine the current git revision")
-      set(QUENTIER_GIT_REVISION "unknown revision")
-    else()
-      message(STATUS "Last commit short hash: ${QUENTIER_GIT_REVISION}")
-    endif()
+  # Get last commit short hash
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    OUTPUT_VARIABLE QUENTIER_GIT_REVISION
+    RESULT_VARIABLE QUENTIER_GIT_REVISION_RETURN_CODE
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT "${QUENTIER_GIT_REVISION_RETURN_CODE}" STREQUAL "0")
+    message(AUTHOR_WARNING "Failed to determine the current git revision")
+    set(QUENTIER_GIT_REVISION "unknown")
+  else()
+    message(STATUS "Last commit short hash: ${QUENTIER_GIT_REVISION}")
+  endif()
 
-    # Check for uncommitted changes
-    execute_process(COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      RESULT_VARIABLE QUENTIER_GIT_DIRTY_STATE)
-    if(NOT "${QUENTIER_GIT_DIRTY_STATE}" STREQUAL "0")
-      set(QUENTIER_GIT_REVISION "${QUENTIER_GIT_REVISION}, with uncommitted changes")
-    endif()
+  # Check for uncommitted changes
+  set(QUENTIER_GIT_REVISION_SUFFIX "")
+  execute_process(COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    RESULT_VARIABLE QUENTIER_GIT_DIRTY_STATE)
+  if(NOT "${QUENTIER_GIT_DIRTY_STATE}" STREQUAL "0")
+    set(QUENTIER_GIT_REVISION_SUFFIX ", with uncommitted changes")
+  endif()
+endif()
 
-    set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"${QUENTIER_GIT_BRANCH}, ${QUENTIER_GIT_REVISION}\"")
+if(NOT QUENTIER_BUILD_INFO)
+  if(GIT_FOUND)
+    set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"${QUENTIER_GIT_BRANCH}, ${QUENTIER_GIT_REVISION}${QUENTIER_GIT_REVISION_SUFFIX}\"")
   else()
     set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"unknown\"")
   endif()
 else()
   set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"${QUENTIER_BUILD_INFO}\"")
+endif()
+
+if(INCLUDE_UPDATE_INFO)
+  if(NOT DEFAULT_UPDATE_CHANNEL)
+    message(FATAL_ERROR "No default update channel is set")
+  endif()
+
+  if(NOT DEFAULT_UPDATE_PROVIDER)
+    message(FATAL_ERROR "No default update provider is set")
+  endif()
+
+  if(NOT GIT_FOUND)
+    message(FATAL_ERROR "Build from git repository is required to include update info")
+  endif()
+
+  if(QUENTIER_PACKAGED_AS_APP_IMAGE OR (("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") AND CREATE_BUNDLE))
+    set(USE_APP_IMAGE_UPDATER_BRIDGE TRUE)
+    find_package(AppImageUpdaterBridge REQUIRED)
+    get_property(APP_IMAGE_UPDATER_BRIDGE_LIBRARY_LOCATION TARGET AppImageUpdaterBridge PROPERTY LOCATION)
+    get_property(APP_IMAGE_UPDATER_BRIDGE_INCLUDE_DIR TARGET AppImageUpdaterBridge PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+    include_directories(${APP_IMAGE_UPDATER_BRIDGE_INCLUDE_DIR})
+    list(APPEND THIRDPARTY_LIBS AppImageUpdaterBridge)
+  endif()
+
+  add_definitions(-DWITH_UPDATE_MANAGER=1)
 endif()
 
 set(QUENTIER_TRANSLATABLE_SOURCES "")
@@ -210,25 +238,25 @@ if(NOT WIN32 AND NOT APPLE)
   install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_16.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/16x16/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_32.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_32.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/32x32/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_48.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_48.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_64.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_64.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_128.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_128.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_256.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_256.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_512.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_512.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps"
           RENAME quentier.png)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/icons/app/quentier_icon_1024.png
           DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
           RENAME quentier.png)
   # install metainfo file

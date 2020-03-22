@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,27 +19,31 @@
 #ifndef QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
 #define QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
 
+#ifdef WITH_UPDATE_MANAGER
+#include "UpdateSettings.h"
+#endif
+
 #include <quentier/utility/Macros.h>
 
-#include <QDialog>
 #include <QColor>
+#include <QDialog>
 #include <QPointer>
 
 namespace Ui {
 class PreferencesDialog;
 }
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
 QT_FORWARD_DECLARE_CLASS(QColorDialog)
 QT_FORWARD_DECLARE_CLASS(QFrame)
 QT_FORWARD_DECLARE_CLASS(QLineEdit)
+QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
+QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
-QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 
 class PreferencesDialog: public QDialog
 {
@@ -75,6 +79,17 @@ Q_SIGNALS:
     void panelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
     void panelBackgroundLinearGradientChanged(QLinearGradient gradient);
 
+#if WITH_UPDATE_MANAGER
+    void checkForUpdatesOptionChanged(bool enabled);
+    void checkForUpdatesOnStartupOptionChanged(bool enabled);
+    void useContinuousUpdateChannelOptionChanged(bool enabled);
+    void checkForUpdatesIntervalChanged(qint64 intervalMsec);
+    void updateChannelChanged(QString channel);
+    void updateProviderChanged(UpdateProvider provider);
+
+    void checkForUpdatesRequested();
+#endif
+
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);
@@ -94,6 +109,15 @@ private Q_SLOTS:
     // Behaviour tab
     void onStartAtLoginCheckboxToggled(bool checked);
     void onStartAtLoginOptionChanged(int option);
+
+#ifdef WITH_UPDATE_MANAGER
+    void onCheckForUpdatesCheckboxToggled(bool checked);
+    void onCheckForUpdatesOnStartupCheckboxToggled(bool checked);
+    void onUseContinuousUpdateChannelCheckboxToggled(bool checked);
+    void onCheckForUpdatesIntervalChanged(int option);
+    void onUpdateChannelChanged(const QString & channel);
+    void onUpdateProviderChanged(int index);
+#endif
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
@@ -136,10 +160,12 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) override;
 
 private:
-    void setupCurrentSettingsState(ActionsInfo & actionsInfo,
-                                   ShortcutManager & shortcutManager);
+    void setupCurrentSettingsState(
+        ActionsInfo & actionsInfo, ShortcutManager & shortcutManager);
+
     void setupSystemTraySettings();
     void setupStartAtLoginSettings();
+    void setupCheckForUpdatesSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupAppearanceSettingsState(const ActionsInfo & actionsInfo);
     void setupNetworkProxySettingsState();
@@ -158,7 +184,9 @@ private:
     void setNoteEditorBackgroundColorToDemoFrame(const QColor & color);
     void setNoteEditorHighlightColorToDemoFrame(const QColor & color);
     void setNoteEditorHighlightedTextColorToDemoFrame(const QColor & color);
-    void setNoteEditorColorToDemoFrameImpl(const QColor & color, QFrame & frame);
+
+    void setNoteEditorColorToDemoFrameImpl(
+        const QColor & color, QFrame & frame);
 
     QColor noteEditorFontColor() const;
     QColor noteEditorBackgroundColor() const;
@@ -170,7 +198,9 @@ private:
     void saveNoteEditorBackgroundColor(const QColor & color);
     void saveNoteEditorHighlightColor(const QColor & color);
     void saveNoteEditorHighlightedTextColor(const QColor & color);
-    void saveNoteEditorColorImpl(const QColor & color, const QString & settingKey);
+
+    void saveNoteEditorColorImpl(
+        const QColor & color, const QString & settingKey);
 
 private:
     Ui::PreferencesDialog *         m_pUi;
