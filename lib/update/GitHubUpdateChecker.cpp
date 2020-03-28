@@ -34,6 +34,8 @@ namespace quentier {
 
 GitHubUpdateChecker::GitHubUpdateChecker(QObject * parent) :
     IUpdateChecker(parent),
+    m_host(QStringLiteral("api.github.com")),
+    m_scheme(QStringLiteral("https")),
     m_currentBuildCreationDateTime(QDateTime::fromString(
         QUENTIER_BUILD_TIMESTAMP,
         Qt::ISODate))
@@ -51,7 +53,7 @@ void GitHubUpdateChecker::checkForUpdates()
     QUrl url;
     url.setHost(m_host);
     url.setScheme(m_scheme);
-    url.setPath(QStringLiteral("repos/d1vanov/quentier/releases"));
+    url.setPath(QStringLiteral("/repos/d1vanov/quentier/releases"));
 
     auto * pListReleasesReplyFetcher = new NetworkReplyFetcher(
         &m_nam,
