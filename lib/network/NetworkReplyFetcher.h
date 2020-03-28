@@ -24,6 +24,7 @@
 
 #include <QObject>
 #include <QNetworkReply>
+#include <QPointer>
 #include <QSslError>
 #include <QUrl>
 
@@ -77,6 +78,7 @@ private Q_SLOTS:
     void checkForTimeout();
 
 private:
+    void clearNetworkReply();
     void clear();
     void finishWithError(ErrorString errorDescription);
 
@@ -86,7 +88,8 @@ private:
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
     QUrl                    m_url;
-    QNetworkReply *         m_pNetworkReply;
+    QPointer<QNetworkReply> m_pNetworkReply;
+    QByteArray              m_fetchedData;
 
     bool        m_started;
     bool        m_finished;

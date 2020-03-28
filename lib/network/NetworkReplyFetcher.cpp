@@ -49,7 +49,7 @@ NetworkReplyFetcher::NetworkReplyFetcher(
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
     m_url(url),
-    m_pNetworkReply(nullptr),
+    m_pNetworkReply(),
     m_started(false),
     m_finished(false),
     m_timeoutMsec(timeoutMsec),
@@ -69,11 +69,7 @@ NetworkReplyFetcher::~NetworkReplyFetcher()
 
 QByteArray NetworkReplyFetcher::fetchedData() const
 {
-    if (!m_finished || !m_pNetworkReply) {
-        return QByteArray();
-    }
-
-    return m_pNetworkReply->readAll();
+    return m_fetchedData;
 }
 
 void NetworkReplyFetcher::start()
@@ -100,25 +96,25 @@ void NetworkReplyFetcher::start()
     request.setUrl(m_url);
     m_pNetworkReply = m_pNetworkAccessManager->get(request);
 
-    QObject::connect(m_pNetworkReply, QNSIGNAL(QNetworkReply,finished),
+    QObject::connect(m_pNetworkReply.data(), QNSIGNAL(QNetworkReply,finished),
                      this, QNSLOT(NetworkReplyFetcher,onReplyFinished));
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
-    QObject::connect(m_pNetworkReply,
+    QObject::connect(m_pNetworkReply.data(),
                      QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
                      this,
                      QNSLOT(NetworkReplyFetcher,onReplyError,
                             QNetworkReply::NetworkError));
 #else
-    QObject::connect(m_pNetworkReply, SIGNAL(error(QNetworkReply::NetworkError)),
+    QObject::connect(m_pNetworkReply.data(), SIGNAL(error(QNetworkReply::NetworkError)),
                      this, SLOT(onReplyError(QNetworkReply::NetworkError)));
 #endif
 
-    QObject::connect(m_pNetworkReply,
+    QObject::connect(m_pNetworkReply.data(),
                      QNSIGNAL(QNetworkReply,sslErrors,QList<QSslError>),
                      this,
                      QNSLOT(NetworkReplyFetcher,onReplySslErrors,QList<QSslError>));
-    QObject::connect(m_pNetworkReply,
+    QObject::connect(m_pNetworkReply.data(),
                      QNSIGNAL(QNetworkReply,downloadProgress,qint64,qint64),
                      this,
                      QNSLOT(NetworkReplyFetcher,onDownloadProgress,qint64,qint64));
@@ -149,6 +145,7 @@ void NetworkReplyFetcher::onReplyFinished()
         dbg << statusCodeAttribute;
 
         errorDescription.details() += str;
+        clearNetworkReply();
         finishWithError(errorDescription);
         return;
     }
@@ -156,8 +153,10 @@ void NetworkReplyFetcher::onReplyFinished()
     m_started = false;
     m_finished = true;
 
-    QByteArray fetchedData = m_pNetworkReply->readAll();
-    Q_EMIT finished(true, fetchedData, ErrorString());
+    m_fetchedData = m_pNetworkReply->readAll();
+    clearNetworkReply();
+
+    Q_EMIT finished(true, m_fetchedData, ErrorString());
 }
 
 void NetworkReplyFetcher::onReplyError(QNetworkReply::NetworkError error)
@@ -169,9 +168,10 @@ void NetworkReplyFetcher::onReplyError(QNetworkReply::NetworkError error)
     errorDescription.details() += QString::number(error);
     errorDescription.details() += QStringLiteral(")");
 
-    if (m_pNetworkReply) {
+    if (!m_pNetworkReply.isNull()) {
         errorDescription.details() += QStringLiteral(" ");
         errorDescription.details() += m_pNetworkReply->errorString();
+        clearNetworkReply();
     }
 
     finishWithError(errorDescription);
@@ -192,6 +192,7 @@ void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
         errorDescription.details() += QStringLiteral("; ");
     }
 
+    clearNetworkReply();
     finishWithError(errorDescription);
 }
 
@@ -224,14 +225,19 @@ void NetworkReplyFetcher::checkForTimeout()
         return;
     }
 
-    if (m_pNetworkReply) {
+    clearNetworkReply();
+
+    ErrorString errorDescription(QT_TR_NOOP("connection timeout"));
+    finishWithError(errorDescription);
+}
+
+void NetworkReplyFetcher::clearNetworkReply()
+{
+    if (!m_pNetworkReply.isNull()) {
         m_pNetworkReply->disconnect(this);
         m_pNetworkReply->deleteLater();
         m_pNetworkReply = nullptr;
     }
-
-    ErrorString errorDescription(QT_TR_NOOP("connection timeout"));
-    finishWithError(errorDescription);
 }
 
 void NetworkReplyFetcher::clear()
@@ -241,11 +247,7 @@ void NetworkReplyFetcher::clear()
     m_started = false;
     m_finished = false;
 
-    if (m_pNetworkReply) {
-        m_pNetworkReply->disconnect(this);
-        m_pNetworkReply->deleteLater();
-        m_pNetworkReply = nullptr;
-    }
+    clearNetworkReply();
 
     if (m_pTimeoutTimer) {
         m_pTimeoutTimer->disconnect(this);
