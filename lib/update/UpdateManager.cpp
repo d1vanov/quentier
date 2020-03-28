@@ -456,6 +456,7 @@ void UpdateManager::checkForUpdates()
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 #endif
 
+    m_lastCheckForUpdatesTimestamp = QDateTime::currentMSecsSinceEpoch();
     m_pCurrentUpdateChecker->checkForUpdates();
 }
 
