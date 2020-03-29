@@ -102,13 +102,22 @@ void setupBreakpad(const QApplication & app)
 
 #define CONVERT_PATH(path)                                                     \
     path = QDir::toNativeSeparators(path);                                     \
-    path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"))           \
+    path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"));          \
+    path.prepend(QString::fromUtf8("\""));                                     \
+    path.append(QString::fromUtf8("\""));                                      \
 // CONVERT_PATH
 
     QString minidumpsStorageFolderPath =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 
     CONVERT_PATH(minidumpsStorageFolderPath);
+    // NOTE: removing quotes from this path for two reasons:
+    // 1. This path shouldn't contain spaces so it's not necessary to escape them
+    // 2. Minidump file path would be appended to this path in exception handler,
+    //    so the resulting path would otherwise have an opening quote, quote in
+    //    the middle of the path and no closing quote
+    minidumpsStorageFolderPath.remove(0, 1);
+    minidumpsStorageFolderPath.chop(1);
 
     *quentierMinidumpsStorageFolderPath = minidumpsStorageFolderPath.toStdWString();
 
@@ -117,6 +126,11 @@ void setupBreakpad(const QApplication & app)
         QString::fromUtf8("/quentier_crash_handler.exe");
 
     CONVERT_PATH(crashHandlerFilePath);
+    // NOTE: removing quotes from this path because it would be the first argument
+    // to WinAPI's CreateProcess call and this one shouldn't be surrounded by
+    // quotes
+    crashHandlerFilePath.chop(1);
+    crashHandlerFilePath.remove(0, 1);
 
     *quentierCrashHandlerFilePath = crashHandlerFilePath.toStdWString();
 
