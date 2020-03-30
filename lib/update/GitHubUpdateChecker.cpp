@@ -181,7 +181,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
             continue;
         }
 
-        if (m_currentBuildCreationDateTime <= createdAt) {
+        if (m_currentBuildCreationDateTime >= createdAt) {
             QNDEBUG("Skipping release " << name << " as its creation time "
                 << createdAt << " is no greater than Quentier build time: "
                 << m_currentBuildCreationDateTime);
