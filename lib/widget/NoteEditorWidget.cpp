@@ -355,16 +355,17 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
 
         QTimer::singleShot(0, this, SLOT(updateNoteInLocalStorage()));
 
-        int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
+        Q_UNUSED(eventLoop.exec(QEventLoop::ExcludeUserInputEvents))
+        auto status = eventLoop.exitStatus();
 
-        if (result == EventLoopWithExitStatus::ExitStatus::Failure)
+        if (status == EventLoopWithExitStatus::ExitStatus::Failure)
         {
             errorDescription.setBase(QT_TR_NOOP("Failed to convert the editor "
                                                 "contents to note"));
             QNWARNING(errorDescription);
             return NoteSaveStatus::Failed;
         }
-        else if (result == EventLoopWithExitStatus::ExitStatus::Timeout)
+        else if (status == EventLoopWithExitStatus::ExitStatus::Timeout)
         {
             errorDescription.setBase(QT_TR_NOOP("The conversion of note editor "
                                                 "contents to note failed to "

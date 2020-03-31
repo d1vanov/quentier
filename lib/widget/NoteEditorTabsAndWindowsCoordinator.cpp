@@ -2335,12 +2335,14 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
     m_localUidOfNoteToBeExpunged = noteLocalUid;
     QTimer::singleShot(0, this, SLOT(expungeNoteFromLocalStorage()));
 
-    int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
-    if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
+    Q_UNUSED(eventLoop.exec(QEventLoop::ExcludeUserInputEvents))
+    auto status = eventLoop.exitStatus();
+
+    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
         QNWARNING("Failed to expunge the empty unedited note from "
                   "the local storage");
     }
-    else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QNWARNING("The expunging of note from local storage took "
                   "too much time to finish");
     }
