@@ -62,6 +62,10 @@ UpdateManager::UpdateManager(
         }
         else
         {
+            // pretend we've just checked for update to ensure the check
+            // won't run immediately
+            m_lastCheckForUpdatesTimestamp = QDateTime::currentMSecsSinceEpoch();
+
             setupNextCheckForUpdatesTimer();
         }
     }
