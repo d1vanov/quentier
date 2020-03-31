@@ -45,6 +45,11 @@ public:
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
 
+    explicit NetworkReplyFetcher(
+        const QUrl & url,
+        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
+        QObject * parent = nullptr);
+
     virtual ~NetworkReplyFetcher();
 
     const QUrl & url() const { return m_url; }
@@ -91,19 +96,19 @@ private:
     QPointer<QNetworkReply> m_pNetworkReply;
     QByteArray              m_fetchedData;
 
-    bool        m_started;
-    bool        m_finished;
+    bool        m_started = false;
+    bool        m_finished = false;
 
-    qint64      m_timeoutMsec;
-    qint64      m_lastNetworkTime;
-    QTimer *    m_pTimeoutTimer;
-    bool        m_timedOut;
+    qint64      m_timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC;
+    qint64      m_lastNetworkTime = 0;
+    QTimer *    m_pTimeoutTimer = nullptr;
+    bool        m_timedOut = false;
 
-    qint64      m_bytesFetched;
-    qint64      m_bytesTotal;
+    qint64      m_bytesFetched = 0;
+    qint64      m_bytesTotal = 0;
 
-    bool        m_status;
-    int         m_httpStatusCode;
+    bool        m_status = false;
+    int         m_httpStatusCode = 0;
 };
 
 } // namespace quentier

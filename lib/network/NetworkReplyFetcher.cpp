@@ -49,21 +49,20 @@ NetworkReplyFetcher::NetworkReplyFetcher(
     QObject(parent),
     m_pNetworkAccessManager(pNetworkAccessManager),
     m_url(url),
-    m_pNetworkReply(),
-    m_started(false),
-    m_finished(false),
-    m_timeoutMsec(timeoutMsec),
-    m_lastNetworkTime(0),
-    m_pTimeoutTimer(nullptr),
-    m_timedOut(false),
-    m_bytesFetched(0),
-    m_bytesTotal(0),
-    m_status(false),
-    m_httpStatusCode(0)
+    m_timeoutMsec(timeoutMsec)
+{}
+
+NetworkReplyFetcher::NetworkReplyFetcher(
+        const QUrl & url, const qint64 timeoutMsec, QObject* parent) :
+    QObject(parent),
+    m_pNetworkAccessManager(new QNetworkAccessManager(this)),
+    m_url(url),
+    m_timeoutMsec(timeoutMsec)
 {}
 
 NetworkReplyFetcher::~NetworkReplyFetcher()
 {
+    QNDEBUG("NetworkReplyFetcher::~NetworkReplyFetcher");
     clear();
 }
 

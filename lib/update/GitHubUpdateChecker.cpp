@@ -41,6 +41,11 @@ GitHubUpdateChecker::GitHubUpdateChecker(QObject * parent) :
         Qt::ISODate))
 {}
 
+GitHubUpdateChecker::~GitHubUpdateChecker()
+{
+    QNDEBUG("GitHubUpdateChecker::~GitHubUpdateChecker");
+}
+
 void GitHubUpdateChecker::checkForUpdates()
 {
     QNDEBUG("GitHubUpdateChecker::checkForUpdates");
@@ -56,7 +61,6 @@ void GitHubUpdateChecker::checkForUpdates()
     url.setPath(QStringLiteral("/repos/d1vanov/quentier/releases"));
 
     auto * pListReleasesReplyFetcher = new NetworkReplyFetcher(
-        &m_nam,
         url,
         NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         this);
@@ -66,6 +70,8 @@ void GitHubUpdateChecker::checkForUpdates()
         &NetworkReplyFetcher::finished,
         this,
         &GitHubUpdateChecker::onReleasesListed);
+
+    m_inProgress = true;
     pListReleasesReplyFetcher->start();
 }
 
@@ -75,6 +81,15 @@ void GitHubUpdateChecker::onReleasesListed(
     QNDEBUG("GitHubUpdateChecker::onReleasesListed: status = "
         << (status ? "true" : "false") << ", error description = "
         << errorDescription << ", fetched data size = " << fetchedData.size());
+
+    auto * pFetcher = qobject_cast<NetworkReplyFetcher*>(sender());
+    if (pFetcher) {
+        pFetcher->disconnect(this);
+        pFetcher->deleteLater();
+        pFetcher = nullptr;
+    }
+
+    m_inProgress = false;
 
     if (Q_UNLIKELY(!status))
     {
@@ -129,7 +144,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
     Q_ASSERT(versionedReleaseRegex.isValid());
 
     QJsonArray releases = jsonDoc.array();
-    for(const auto & release: releases)
+    for(const auto release: releases)
     {
         if (Q_UNLIKELY(!release.isObject())) {
             QNWARNING("Skipping json field which is not an object although it "
@@ -331,7 +346,7 @@ bool GitHubUpdateChecker::checkReleaseAssets(
     bool foundMatchingAsset = false;
 
     auto assetsArray = assetsValue.toArray();
-    for(const auto & asset: assetsArray)
+    for(const auto asset: assetsArray)
     {
         if (Q_UNLIKELY(!asset.isObject())) {
             QNWARNING("Skipping release asset field which is not an object "

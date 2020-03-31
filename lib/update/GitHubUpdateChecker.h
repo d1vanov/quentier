@@ -31,15 +31,13 @@ QT_FORWARD_DECLARE_CLASS(QJsonObject)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NetworkReplyFetcher)
-
 class GitHubUpdateChecker: public IUpdateChecker
 {
     Q_OBJECT
 public:
     explicit GitHubUpdateChecker(QObject * parent = nullptr);
 
-    virtual ~GitHubUpdateChecker() = default;
+    virtual ~GitHubUpdateChecker() override;
 
     QString host() const { return m_host; }
     void setHost(QString host) { m_host = std::move(host); }
@@ -77,10 +75,6 @@ private:
     QDateTime   m_currentBuildCreationDateTime;
 
     bool        m_inProgress = false;
-
-    QNetworkAccessManager   m_nam;
-
-    NetworkReplyFetcher *   m_pListReleasesReplyFetcher = nullptr;
 
     std::unique_ptr<GitHubReleaseInfo>  m_pLatestReleaseInfo;
 };
