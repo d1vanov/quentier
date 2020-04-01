@@ -396,9 +396,14 @@ void PreferencesDialog::onCheckForUpdatesIntervalChanged(int option)
     Q_EMIT checkForUpdatesIntervalChanged(msec);
 }
 
-void PreferencesDialog::onUpdateChannelChanged(const QString & channel)
+void PreferencesDialog::onUpdateChannelChanged(int index)
 {
-    QNDEBUG("PreferencesDialog::onUpdateChannelChanged: " << channel);
+    QNDEBUG("PreferencesDialog::onUpdateChannelChanged: " << index);
+
+    QString channel =
+        (index == 0)
+        ? QStringLiteral("master")
+        : QStringLiteral("development");
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
@@ -1241,7 +1246,13 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
     auto * pUpdateChannelsComboBoxModel = new QStringListModel(this);
     pUpdateChannelsComboBoxModel->setStringList(updateChannels);
     m_pUi->updateChannelComboBox->setModel(pUpdateChannelsComboBoxModel);
-    m_pUi->updateChannelComboBox->setCurrentText(updateChannel);
+
+    if (updateChannel == QStringLiteral("development")) {
+        m_pUi->updateChannelComboBox->setCurrentIndex(1);
+    }
+    else {
+        m_pUi->updateChannelComboBox->setCurrentIndex(0);
+    }
 
     QStringList updateProviders;
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
@@ -1655,7 +1666,7 @@ void PreferencesDialog::createConnections()
 
     QObject::connect(
         m_pUi->updateChannelComboBox,
-        qOverload<const QString &>(&QComboBox::currentIndexChanged),
+        qOverload<int>(&QComboBox::currentIndexChanged),
         this,
         &PreferencesDialog::onUpdateChannelChanged);
 
@@ -1673,9 +1684,9 @@ void PreferencesDialog::createConnections()
 
     QObject::connect(
         m_pUi->updateChannelComboBox,
-        SIGNAL(currentIndexChanged(QString)),
+        SIGNAL(currentIndexChanged(int)),
         this,
-        SLOT(onUpdateChannelChanged(QString)));
+        SLOT(onUpdateChannelChanged(int)));
 
     QObject::connect(
         m_pUi->updateProviderComboBox,

@@ -115,7 +115,7 @@ private Q_SLOTS:
     void onCheckForUpdatesOnStartupCheckboxToggled(bool checked);
     void onUseContinuousUpdateChannelCheckboxToggled(bool checked);
     void onCheckForUpdatesIntervalChanged(int option);
-    void onUpdateChannelChanged(const QString & channel);
+    void onUpdateChannelChanged(int index);
     void onUpdateProviderChanged(int index);
 #endif
 
