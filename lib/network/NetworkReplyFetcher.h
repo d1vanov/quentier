@@ -83,8 +83,6 @@ private Q_SLOTS:
     void checkForTimeout();
 
 private:
-    void clearNetworkReply();
-    void clear();
     void finishWithError(ErrorString errorDescription);
 
 private:
