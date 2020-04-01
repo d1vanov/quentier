@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,7 +38,7 @@ QList<Tag> prepareTags(
     TagController controller(minTagsPerNote, maxTagsPerNote,
                              localStorageManagerAsync);
 
-    int status = -1;
+    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
         timer.setInterval(PREPARE_TAGS_TIMEOUT);
@@ -62,7 +62,8 @@ QList<Tag> prepareTags(
         timer.start();
         slotInvokingTimer.singleShot(0, &controller, SLOT(start()));
 
-        status = loop.exec();
+        Q_UNUSED(loop.exec())
+        status = loop.exitStatus();
         errorDescription = loop.errorDescription();
     }
 

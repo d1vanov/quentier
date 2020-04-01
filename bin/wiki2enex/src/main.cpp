@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     QVector<Note> notes(1);
     Note & note = notes.back();
 
-    int status = -1;
+    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
         timer.setInterval(600000);
@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
 
         timer.start();
         slotInvokingTimer.singleShot(0, &fetcher, SLOT(start()));
-        status = loop.exec();
+        Q_UNUSED(loop.exec())
+        status = loop.exitStatus();
         errorDescription = loop.errorDescription();
         note = fetcher.note();
     }

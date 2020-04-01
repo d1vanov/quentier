@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,7 +39,7 @@ QList<Notebook> prepareNotebooks(
     NotebookController controller(targetNotebookName, numNewNotebooks,
                                   localStorageManagerAsync);
 
-    int status = -1;
+    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
         timer.setInterval(PREPARE_NOTEBOOKS_TIMEOUT);
@@ -63,7 +63,8 @@ QList<Notebook> prepareNotebooks(
         timer.start();
         slotInvokingTimer.singleShot(0, &controller, SLOT(start()));
 
-        status = loop.exec();
+        Q_UNUSED(loop.exec())
+        status = loop.exitStatus();
         errorDescription = loop.errorDescription();
     }
 
