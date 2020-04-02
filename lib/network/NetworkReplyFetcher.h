@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H
 #define QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QNetworkReply>
@@ -39,12 +39,6 @@ class NetworkReplyFetcher: public QObject
 {
     Q_OBJECT
 public:
-    explicit NetworkReplyFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
-        const QUrl & url,
-        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
-        QObject * parent = nullptr);
-
     explicit NetworkReplyFetcher(
         const QUrl & url,
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
@@ -68,17 +62,17 @@ public:
     qint64 bytesTotal() const { return m_bytesTotal; }
 
 Q_SIGNALS:
-    void finished(bool status, QByteArray fetchedData,
-                  ErrorString errorDescription);
+    void finished(
+        bool status, QByteArray fetchedData, ErrorString errorDescription);
+
     void downloadProgress(qint64 bytesFetched, qint64 bytesTotal);
 
 public Q_SLOTS:
     void start();
 
 private Q_SLOTS:
-    void onReplyFinished();
-    void onReplyError(QNetworkReply::NetworkError error);
-    void onReplySslErrors(QList<QSslError> errors);
+    void onReplyFinished(QNetworkReply * pReply);
+    void onReplySslErrors(QNetworkReply * pReply, QList<QSslError> errors);
     void onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
     void checkForTimeout();
 
@@ -91,7 +85,6 @@ private:
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
     QUrl                    m_url;
-    QPointer<QNetworkReply> m_pNetworkReply;
     QByteArray              m_fetchedData;
 
     bool        m_started = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -85,7 +85,6 @@ private:
 
     double  m_currentProgress;
 
-    QNetworkAccessManager *     m_pNetworkAccessManager;
     QHash<WikiRandomArticleFetcher*, double>    m_wikiRandomArticleFetchersWithProgress;
     QSet<QUuid>     m_addNoteRequestIds;
 };

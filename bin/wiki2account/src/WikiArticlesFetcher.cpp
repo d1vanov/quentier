@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,7 +39,6 @@ WikiArticlesFetcher::WikiArticlesFetcher(
     m_numNotes(numNotes),
     m_notebookIndex(0),
     m_currentProgress(0.0),
-    m_pNetworkAccessManager(nullptr),
     m_wikiRandomArticleFetchersWithProgress(),
     m_addNoteRequestIds()
 {
@@ -55,13 +54,12 @@ void WikiArticlesFetcher::start()
 {
     QNDEBUG("WikiArticlesFetcher::start");
 
-    m_pNetworkAccessManager = new QNetworkAccessManager(this);
-
     const qint64 timeoutMsec = -1;
     for(quint32 i = 0; i < m_numNotes; ++i)
     {
         WikiRandomArticleFetcher * pFetcher =
-            new WikiRandomArticleFetcher(m_pNetworkAccessManager, timeoutMsec);
+            new WikiRandomArticleFetcher(timeoutMsec);
+
         m_wikiRandomArticleFetchersWithProgress[pFetcher] = 0.0;
 
         QObject::connect(pFetcher,

@@ -23,7 +23,6 @@
 
 #include <QCoreApplication>
 #include <QDebug>
-#include <QNetworkAccessManager>
 #include <QTime>
 #include <QTimer>
 #include <QUrl>
@@ -56,7 +55,6 @@ int main(int argc, char *argv[])
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
 
-    QNetworkAccessManager networkAccessManager;
     ENMLConverter enmlConverter;
     ErrorString errorDescription;
 
@@ -69,7 +67,7 @@ int main(int argc, char *argv[])
         timer.setInterval(600000);
         timer.setSingleShot(true);
 
-        WikiArticleFetcher fetcher(&networkAccessManager, enmlConverter, url);
+        WikiArticleFetcher fetcher(enmlConverter, url);
 
         EventLoopWithExitStatus loop;
         QObject::connect(&timer, QNSIGNAL(QTimer,timeout),

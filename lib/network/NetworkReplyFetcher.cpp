@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,9 +22,9 @@
 #include <quentier/utility/Utility.h>
 
 #include <QDateTime>
+#include <QDebug>
 #include <QNetworkAccessManager>
 #include <QTimer>
-#include <QDebug>
 
 #define RFLOG_IMPL(message, macro)                                             \
     macro("<" << m_url << ">: " << message)                                    \
@@ -42,17 +42,6 @@
 namespace quentier {
 
 NetworkReplyFetcher::NetworkReplyFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
-        const QUrl & url,
-        const qint64 timeoutMsec,
-        QObject * parent) :
-    QObject(parent),
-    m_pNetworkAccessManager(pNetworkAccessManager),
-    m_url(url),
-    m_timeoutMsec(timeoutMsec)
-{}
-
-NetworkReplyFetcher::NetworkReplyFetcher(
         const QUrl & url, const qint64 timeoutMsec, QObject* parent) :
     QObject(parent),
     m_pNetworkAccessManager(new QNetworkAccessManager(this)),
@@ -67,10 +56,6 @@ NetworkReplyFetcher::NetworkReplyFetcher(
 NetworkReplyFetcher::~NetworkReplyFetcher()
 {
     QNDEBUG("NetworkReplyFetcher::~NetworkReplyFetcher");
-
-    if (!m_pNetworkReply.isNull()) {
-        m_pNetworkReply->deleteLater();
-    }
 }
 
 QByteArray NetworkReplyFetcher::fetchedData() const
@@ -100,42 +85,29 @@ void NetworkReplyFetcher::start()
 
     QNetworkRequest request;
     request.setUrl(m_url);
-    m_pNetworkReply = m_pNetworkAccessManager->get(request);
 
     QObject::connect(
-        m_pNetworkReply.data(),
-        &QNetworkReply::finished,
+        m_pNetworkAccessManager,
+        &QNetworkAccessManager::finished,
         this,
         &NetworkReplyFetcher::onReplyFinished);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
-        m_pNetworkReply.data(),
-        QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
-        this,
-        &NetworkReplyFetcher::onReplyError);
-#else
-    QObject::connect(
-        m_pNetworkReply.data(),
-        SIGNAL(error(QNetworkReply::NetworkError)),
-        this,
-        SLOT(onReplyError(QNetworkReply::NetworkError)));
-#endif
-
-    QObject::connect(
-        m_pNetworkReply.data(),
-        &QNetworkReply::sslErrors,
+        m_pNetworkAccessManager,
+        &QNetworkAccessManager::sslErrors,
         this,
         &NetworkReplyFetcher::onReplySslErrors);
 
+    auto * pReply = m_pNetworkAccessManager->get(request);
+
     QObject::connect(
-        m_pNetworkReply.data(),
+        pReply,
         &QNetworkReply::downloadProgress,
         this,
         &NetworkReplyFetcher::onDownloadProgress);
 }
 
-void NetworkReplyFetcher::onReplyFinished()
+void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
 {
     RFDEBUG("NetworkReplyFetcher::onReplyFinished");
 
@@ -146,66 +118,60 @@ void NetworkReplyFetcher::onReplyFinished()
         m_pTimeoutTimer = nullptr;
     }
 
-    if (!m_pNetworkReply.isNull())
+    if (pReply->error())
     {
-        QVariant statusCodeAttribute =
-            m_pNetworkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+        ErrorString errorDescription(QT_TR_NOOP("network error"));
+        errorDescription.details() += QStringLiteral("(");
+        errorDescription.details() += QString::number(pReply->error());
+        errorDescription.details() += QStringLiteral(") ");
+        errorDescription.details() += pReply->errorString();
+        finishWithError(errorDescription);
 
-        bool conversionResult = false;
-        m_httpStatusCode = statusCodeAttribute.toInt(&conversionResult);
-        if (Q_UNLIKELY(!conversionResult))
-        {
-            ErrorString errorDescription(
-                QT_TR_NOOP("Failed to convert HTTP status code to int"));
-
-            QString str;
-            QDebug dbg(&str);
-            dbg << statusCodeAttribute;
-
-            errorDescription.details() += str;
-            finishWithError(errorDescription);
-            return;
-        }
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+        pReply->deleteLater();
+#endif
+        return;
     }
-    else
+
+    QVariant statusCodeAttribute =
+        pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+    bool conversionResult = false;
+    m_httpStatusCode = statusCodeAttribute.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult))
     {
-        // Assume we're OK
-        m_httpStatusCode = 200;
+        ErrorString errorDescription(
+            QT_TR_NOOP("Failed to convert HTTP status code to int"));
+
+        QString str;
+        QDebug dbg(&str);
+        dbg << statusCodeAttribute;
+
+        errorDescription.details() += str;
+        finishWithError(errorDescription);
+        return;
     }
 
     m_started = false;
     m_finished = true;
 
-    m_fetchedData = m_pNetworkReply->readAll();
+    m_fetchedData = pReply->readAll();
 
     Q_EMIT finished(true, m_fetchedData, ErrorString());
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+    pReply->deleteLater();
+#endif
 }
 
-void NetworkReplyFetcher::onReplyError(QNetworkReply::NetworkError error)
-{
-    RFDEBUG("NetworkReplyFetcher::onReplyError: " << error);
-
-    ErrorString errorDescription(QT_TR_NOOP("network error"));
-    errorDescription.details() += QStringLiteral("(");
-    errorDescription.details() += QString::number(error);
-    errorDescription.details() += QStringLiteral(")");
-
-    if (!m_pNetworkReply.isNull()) {
-        errorDescription.details() += QStringLiteral(" ");
-        errorDescription.details() += m_pNetworkReply->errorString();
-    }
-
-    finishWithError(errorDescription);
-}
-
-void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
+void NetworkReplyFetcher::onReplySslErrors(
+    QNetworkReply * pReply, QList<QSslError> errors)
 {
     RFDEBUG("NetworkReplyFetcher::onReplySslErrors");
 
     ErrorString errorDescription(QT_TR_NOOP("SSL errors"));
 
-    for(auto it = errors.constBegin(), end = errors.constEnd(); it != end; ++it) {
-        const QSslError & error = *it;
+    for(const auto & error: qAsConst(errors)) {
         errorDescription.details() += QStringLiteral("(");
         errorDescription.details() += error.error();
         errorDescription.details() += QStringLiteral(") ");
@@ -214,12 +180,19 @@ void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
     }
 
     finishWithError(errorDescription);
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+    pReply->deleteLater();
+#else
+    Q_UNUSED(pReply)
+#endif
 }
 
-void NetworkReplyFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal)
+void NetworkReplyFetcher::onDownloadProgress(
+    qint64 bytesFetched, qint64 bytesTotal)
 {
     RFDEBUG("NetworkReplyFetcher::onDownloadProgress: fetched "
-            << bytesFetched << " bytes, total " << bytesTotal << " bytes");
+        << bytesFetched << " bytes, total " << bytesTotal << " bytes");
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
     Q_EMIT downloadProgress(bytesFetched, bytesTotal);
