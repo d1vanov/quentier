@@ -5450,17 +5450,6 @@ void MainWindow::clearSynchronizationManager()
     if (m_pSynchronizationManagerThread &&
         m_pSynchronizationManagerThread->isRunning())
     {
-        QNetworkAccessManager * pQEverCloudNetworkAccessManager =
-            qevercloud::evernoteNetworkAccessManager();
-
-        ErrorString errorDescription;
-        bool res = quentier::moveObjectToThread(*pQEverCloudNetworkAccessManager,
-                                                *QThread::currentThread(),
-                                                errorDescription);
-        if (Q_UNLIKELY(!res)) {
-            QNWARNING(errorDescription);
-        }
-
         QObject::disconnect(m_pSynchronizationManagerThread,
                             QNSIGNAL(QThread,finished),
                             m_pSynchronizationManagerThread,
@@ -5529,12 +5518,6 @@ void MainWindow::setupSynchronizationManagerThread()
 
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
     m_pAuthenticationManager->moveToThread(m_pSynchronizationManagerThread);
-
-    // NOTE: moving QEverCloud's network access manager to synchronization
-    // manager's thread as well
-    QNetworkAccessManager * pQEverCloudNetworkAccessManager =
-        qevercloud::evernoteNetworkAccessManager();
-    pQEverCloudNetworkAccessManager->moveToThread(m_pSynchronizationManagerThread);
 }
 
 void MainWindow::setupRunSyncPeriodicallyTimer()
