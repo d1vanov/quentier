@@ -240,10 +240,17 @@ void NetworkReplyFetcher::recycleNetworkReply(QNetworkReply * pReply)
 {
     // NOTE: this is what Qt does since 5.14 when
     // QNetworkAccessManager::setAutoDeleteReplies(true) is called
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     QMetaObject::invokeMethod(
         pReply,
         [pReply] { pReply->deleteLater(); },
         Qt::QueuedConnection);
+#else
+    QMetaObject::invokeMethod(
+        pReply,
+        SLOT(deleteLater()),
+        Qt::QueuedConnection);
+#endif
 }
 
 } // namespace quentier
