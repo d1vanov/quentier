@@ -47,11 +47,7 @@ NetworkReplyFetcher::NetworkReplyFetcher(
     m_pNetworkAccessManager(new QNetworkAccessManager(this)),
     m_url(url),
     m_timeoutMsec(timeoutMsec)
-{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-    m_pNetworkAccessManager->setAutoDeleteReplies(true);
-#endif
-}
+{}
 
 NetworkReplyFetcher::~NetworkReplyFetcher()
 {
@@ -111,6 +107,12 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
 {
     RFDEBUG("NetworkReplyFetcher::onReplyFinished");
 
+    if (m_finished) {
+        QNDEBUG("Already finished, probably due to timeout");
+        recycleNetworkReply(pReply);
+        return;
+    }
+
     if (m_pTimeoutTimer) {
         m_pTimeoutTimer->stop();
         m_pTimeoutTimer->disconnect(this);
@@ -127,9 +129,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
         errorDescription.details() += pReply->errorString();
         finishWithError(errorDescription);
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-        pReply->deleteLater();
-#endif
+        recycleNetworkReply(pReply);
         return;
     }
 
@@ -149,6 +149,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
 
         errorDescription.details() += str;
         finishWithError(errorDescription);
+        recycleNetworkReply(pReply);
         return;
     }
 
@@ -158,16 +159,19 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
     m_fetchedData = pReply->readAll();
 
     Q_EMIT finished(true, m_fetchedData, ErrorString());
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    pReply->deleteLater();
-#endif
+    recycleNetworkReply(pReply);
 }
 
 void NetworkReplyFetcher::onReplySslErrors(
     QNetworkReply * pReply, QList<QSslError> errors)
 {
     RFDEBUG("NetworkReplyFetcher::onReplySslErrors");
+
+    if (m_finished) {
+        QNDEBUG("Already finished, probably due to timeout");
+        recycleNetworkReply(pReply);
+        return;
+    }
 
     ErrorString errorDescription(QT_TR_NOOP("SSL errors"));
 
@@ -180,12 +184,7 @@ void NetworkReplyFetcher::onReplySslErrors(
     }
 
     finishWithError(errorDescription);
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    pReply->deleteLater();
-#else
-    Q_UNUSED(pReply)
-#endif
+    recycleNetworkReply(pReply);
 }
 
 void NetworkReplyFetcher::onDownloadProgress(
@@ -193,6 +192,11 @@ void NetworkReplyFetcher::onDownloadProgress(
 {
     RFDEBUG("NetworkReplyFetcher::onDownloadProgress: fetched "
         << bytesFetched << " bytes, total " << bytesTotal << " bytes");
+
+    if (m_finished) {
+        QNDEBUG("Already finished, probably due to timeout");
+        return;
+    }
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
     Q_EMIT downloadProgress(bytesFetched, bytesTotal);
@@ -230,6 +234,16 @@ void NetworkReplyFetcher::finishWithError(ErrorString errorDescription)
     m_finished = true;
 
     Q_EMIT finished(false, QByteArray(), errorDescription);
+}
+
+void NetworkReplyFetcher::recycleNetworkReply(QNetworkReply * pReply)
+{
+    // NOTE: this is what Qt does since 5.14 when
+    // QNetworkAccessManager::setAutoDeleteReplies(true) is called
+    QMetaObject::invokeMethod(
+        pReply,
+        [pReply] { pReply->deleteLater(); },
+        Qt::QueuedConnection);
 }
 
 } // namespace quentier

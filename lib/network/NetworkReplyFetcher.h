@@ -78,6 +78,7 @@ private Q_SLOTS:
 
 private:
     void finishWithError(ErrorString errorDescription);
+    void recycleNetworkReply(QNetworkReply * pReply);
 
 private:
     Q_DISABLE_COPY(NetworkReplyFetcher)
