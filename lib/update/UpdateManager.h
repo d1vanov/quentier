@@ -53,6 +53,8 @@ public:
     {
     public:
         virtual qint64 idleTime() = 0;
+
+        virtual ~IIdleStateInfoProvider()= default;
     };
 
     using IIdleStateInfoProviderPtr = std::shared_ptr<IIdleStateInfoProvider>;
@@ -151,7 +153,7 @@ private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;
 
 private:
-    Q_DISABLE_COPY(UpdateManager);
+    Q_DISABLE_COPY(UpdateManager)
 
 private:
     IIdleStateInfoProviderPtr   m_pIdleStateInfoProvider;

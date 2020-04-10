@@ -27,6 +27,8 @@ void setQtWebEngineFlags();
 
 void setupBreakpad(const QApplication & app);
 
+void detachBreakpad();
+
 void findCompressedSymbolsFiles(
     const QApplication & app,
     QString & quentierCompressedSymbolsFilePath,

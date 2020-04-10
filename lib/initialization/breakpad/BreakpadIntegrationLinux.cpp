@@ -74,8 +74,8 @@ static bool dumpCallback(
     }
 }
 
-static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = NULL;
-static google_breakpad::ExceptionHandler * pBreakpadHandler = NULL;
+static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = nullptr;
+static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
 
 void setupBreakpad(const QApplication & app)
 {
@@ -97,6 +97,19 @@ void setupBreakpad(const QApplication & app)
     pBreakpadHandler = new google_breakpad::ExceptionHandler(*pBreakpadDescriptor,
                                                              NULL, dumpCallback,
                                                              NULL, true, -1);
+}
+
+void detachBreakpad()
+{
+    if (pBreakpadHandler) {
+        delete pBreakpadHandler;
+        pBreakpadHandler = nullptr;
+    }
+
+    if (pBreakpadDescriptor) {
+        delete pBreakpadDescriptor;
+        pBreakpadDescriptor = nullptr;
+    }
 }
 
 } // namespace quentier

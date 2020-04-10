@@ -196,4 +196,7 @@ int main(int argc, char * argv[])
     if (exitCode == RESTART_EXIT_CODE) {
         restartApp(argc, argv);
     }
+
+    finalize();
+    return exitCode;
 }

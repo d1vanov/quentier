@@ -107,8 +107,15 @@ bool processOverrideSystemTrayAvailabilityCommandLineOption(
  * @return                  True if no error was detected during
  *                          the initialization, false otherwise
  */
-bool initialize(QuentierApplication & app,
-                const CommandLineParser::CommandLineOptions & cmdOptions);
+bool initialize(
+    QuentierApplication & app,
+    const CommandLineParser::CommandLineOptions & cmdOptions);
+
+/**
+ * @brief finalize          Finalizes various things to ensure Quentier quits
+ *                          cleanly
+ */
+void finalize();
 
 } // namespace quentier
 

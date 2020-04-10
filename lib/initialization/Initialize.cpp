@@ -338,4 +338,11 @@ bool processOverrideSystemTrayAvailabilityCommandLineOption(
     return true;
 }
 
+void finalize()
+{
+#ifdef BUILDING_WITH_BREAKPAD
+    detachBreakpad();
+#endif
+}
+
 } // namespace quentier
