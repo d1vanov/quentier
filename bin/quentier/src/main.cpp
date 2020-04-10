@@ -47,6 +47,8 @@ int main(int argc, char * argv[])
     // Loading the dependencies manually - required on Windows
     loadDependencies();
 
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
     QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));

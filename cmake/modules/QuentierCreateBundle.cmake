@@ -20,14 +20,14 @@ function(CreateQuentierBundle)
   # 4) libxml2
   # 5) libtidy5
   # 6) libhunspell
-  # 
+  #
   # However, there are a few more dependencies. One group is represented by the dependencies of libquentier's dependencie:
   # 7) iconv (for libxml2)
   # 8) zlib (for libxml2 / iconv)
-  # 
+  #
   # And, of course, need to deploy libquentier itself
   # 9) libquentier
-  # 
+  #
   # Also, quentier has one or more additional dependencies of its own:
   # 10) boost program options
   # 11) Google breakpad, if used
@@ -36,7 +36,7 @@ function(CreateQuentierBundle)
 
   find_package(Iconv REQUIRED)
   find_package(ZLIB REQUIRED)
-  
+
   # Need to collect the dirs of all thirdparty libraries
   set(THIRDPARTY_LIB_DIRS "")
 
@@ -51,11 +51,11 @@ function(CreateQuentierBundle)
   list(REMOVE_DUPLICATES OPENSSL_LIB_DIRS)
   list(APPEND THIRDPARTY_LIB_DIRS ${OPENSSL_LIB_DIRS})
 
-  # 2) QEverCloud 
+  # 2) QEverCloud
   get_property(QEVERCLOUD_LIBRARY_LOCATION TARGET ${QEVERCLOUD_LIBRARIES} PROPERTY LOCATION)
   get_filename_component(QEVERCLOUD_LIB_DIR "${QEVERCLOUD_LIBRARY_LOCATION}" PATH)
   list(APPEND THIRDPARTY_LIB_DIRS "${QEVERCLOUD_LIB_DIR}")
-  
+
   # 3) QtKeychain
   get_property(QTKEYCHAIN_LIBRARY_LOCATION TARGET ${QTKEYCHAIN_LIBRARIES} PROPERTY LOCATION)
   get_filename_component(QTKEYCHAIN_LIB_DIR "${QTKEYCHAIN_LIBRARY_LOCATION}" PATH)
@@ -341,9 +341,9 @@ function(CreateQuentierBundle)
             set(ENV{LD_LIBRARY_PATH} \"${Qt5Core_DIR}/../../../lib:${DIRS}\")
             set(ENV{ARCH} \"${ARCH}\")
             execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
-                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/org.quentier.Quentier.desktop -verbose=0 -bundle-non-qt-libs)
+                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/org.quentier.Quentier.desktop -verbose=0 -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs=\"libnss3.so,libnssutil3.so\")
             execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
-                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/org.quentier.Quentier.desktop -appimage)
+                            COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/org.quentier.Quentier.desktop -appimage -extra-plugins=iconengines,imageformats -exclude-libs=\"libnss3.so,libnssutil3.so\")
             " COMPONENT Runtime)
   endif()
 endfunction()
