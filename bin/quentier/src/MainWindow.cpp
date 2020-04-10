@@ -4437,26 +4437,6 @@ void MainWindow::setupThemeIcons()
         m_nativeIconThemeName.clear();
     }
 
-    if (quentier::QuentierIsLogLevelActive(quentier::LogLevel::Debug))
-    {
-        QString iconThemeSearchPaths;
-        QTextStream iconThemeSearchPathsStrm(&iconThemeSearchPaths);
-
-        iconThemeSearchPathsStrm << "Icon theme search paths:\n";
-        for(const auto & path: QIcon::themeSearchPaths()) {
-            iconThemeSearchPathsStrm << "  " << path << "\n";
-        }
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-        iconThemeSearchPathsStrm << "Icon theme fallback search paths:\n";
-        for(const auto & path: QIcon::fallbackSearchPaths()) {
-            iconThemeSearchPathsStrm << "  " << path << "\n";
-        }
-#endif
-
-        QNDEBUG(iconThemeSearchPaths);
-    }
-
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
     QString lastUsedIconThemeName = appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
