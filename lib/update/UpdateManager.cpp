@@ -469,6 +469,20 @@ void UpdateManager::checkForUpdates()
     QNDEBUG("UpdateManager::checkForUpdates");
 
     m_currentUpdateCheckInvokedByUser = true;
+    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+
+    m_pCheckForUpdatesProgressDialog.reset(new QProgressDialog(
+        tr("Checking for updates, please wait..."),
+        {},
+        0,
+        100,
+        parentWidget));
+
+    // Forbid cancelling the check for updates
+    m_pCheckForUpdatesProgressDialog->setCancelButton(nullptr);
+
+    m_pCheckForUpdatesProgressDialog->setWindowModality(Qt::WindowModal);
+
     checkForUpdatesImpl();
 }
 
@@ -479,6 +493,8 @@ void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
     if (m_currentUpdateCheckInvokedByUser)
     {
         m_currentUpdateCheckInvokedByUser = false;
+        closeCheckForUpdatesProgressDialog();
+
         QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
         Q_UNUSED(warningMessageBox(
@@ -501,6 +517,8 @@ void UpdateManager::onNoUpdatesAvailable()
     if (m_currentUpdateCheckInvokedByUser)
     {
         m_currentUpdateCheckInvokedByUser = false;
+        closeCheckForUpdatesProgressDialog();
+
         QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
         Q_UNUSED(informationMessageBox(
@@ -519,8 +537,9 @@ void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
     QNDEBUG("UpdateManager::onUpdatesAvailableAtUrl: " << downloadUrl);
 
     if (m_currentUpdateCheckInvokedByUser) {
-        // Message box would be displayed below
         m_currentUpdateCheckInvokedByUser = false;
+        closeCheckForUpdatesProgressDialog();
+        // Message box would be displayed below
     }
 
     recycleUpdateChecker();
@@ -542,8 +561,9 @@ void UpdateManager::onUpdatesAvailable(
     QNDEBUG("UpdateManager::onUpdatesAvailable");
 
     if (m_currentUpdateCheckInvokedByUser) {
-        // Message box would be displayed below
         m_currentUpdateCheckInvokedByUser = false;
+        closeCheckForUpdatesProgressDialog();
+        // Message box would be displayed below
     }
 
     recycleUpdateChecker();
@@ -617,6 +637,14 @@ void UpdateManager::onUpdateProviderProgress(double value, QString message)
     percentage = std::max(percentage, 100);
 
     m_pUpdateProgressDialog->setValue(percentage);
+}
+
+void UpdateManager::closeCheckForUpdatesProgressDialog()
+{
+    Q_ASSERT(m_pCheckForUpdatesProgressDialog);
+    m_pCheckForUpdatesProgressDialog->setValue(100);
+    m_pCheckForUpdatesProgressDialog->close();
+    m_pCheckForUpdatesProgressDialog.reset();
 }
 
 void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)

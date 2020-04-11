@@ -154,6 +154,8 @@ private:
 
     void restartUpdateCheckerIfActive();
 
+    void closeCheckForUpdatesProgressDialog();
+
 private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;
 
@@ -187,6 +189,7 @@ private:
     IUpdateChecker*     m_pCurrentUpdateChecker = nullptr;
     bool    m_currentUpdateCheckInvokedByUser = false;
 
+    std::unique_ptr<QProgressDialog>    m_pCheckForUpdatesProgressDialog;
     std::unique_ptr<QProgressDialog>    m_pUpdateProgressDialog;
 };
 
