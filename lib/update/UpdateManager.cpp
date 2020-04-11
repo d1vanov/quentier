@@ -57,7 +57,7 @@ UpdateManager::UpdateManager(
         {
             QMetaObject::invokeMethod(
                 this,
-                "checkForUpdates",
+                "checkForUpdatesImpl",
                 Qt::QueuedConnection);
         }
         else
@@ -168,6 +168,72 @@ void UpdateManager::setUpdateProvider(UpdateProvider provider)
     restartUpdateCheckerIfActive();
 }
 
+void UpdateManager::checkForUpdatesImpl()
+{
+    QNDEBUG("UpdateManager::checkForUpdatesImpl");
+
+    if (!clearCurrentUpdateProvider()) {
+        QNDEBUG("Update provider is already in progress, won't "
+            << "check for updates right now");
+        return;
+    }
+
+    clearCurrentUpdateUrl();
+    clearCurrentUpdateChecker();
+
+    m_pCurrentUpdateChecker = newUpdateChecker(m_updateProvider, this);
+    m_pCurrentUpdateChecker->setUpdateChannel(m_updateChannel);
+    m_pCurrentUpdateChecker->setUseContinuousUpdateChannel(m_useContinuousUpdateChannel);
+
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        &IUpdateChecker::failure,
+        this,
+        &UpdateManager::onCheckForUpdatesError,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        &IUpdateChecker::noUpdatesAvailable,
+        this,
+        &UpdateManager::onNoUpdatesAvailable,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        qOverload<QUrl>(&IUpdateChecker::updatesAvailable),
+        this,
+        &UpdateManager::onUpdatesAvailableAtUrl,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        qOverload<std::shared_ptr<IUpdateProvider>>(
+            &IUpdateChecker::updatesAvailable),
+        this,
+        &UpdateManager::onUpdatesAvailable,
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+#else
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        SIGNAL(updatesAvailable(QUrl)),
+        this,
+        SLOT(onUpdatesAvailableAtUrl(QUrl)),
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+
+    QObject::connect(
+        m_pCurrentUpdateChecker,
+        SIGNAL(updatesAvailable(std::shared_ptr<IUpdateProvider>)),
+        this,
+        SLOT(onUpdatesAvailable(std::shared_ptr<IUpdateProvider>)),
+        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
+#endif
+
+    m_lastCheckForUpdatesTimestamp = QDateTime::currentMSecsSinceEpoch();
+    m_pCurrentUpdateChecker->checkForUpdates();
+}
+
 void UpdateManager::readPersistentSettings()
 {
     int checkForUpdatesOption = -1;
@@ -196,7 +262,7 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
 
     if (Q_UNLIKELY(m_lastCheckForUpdatesTimestamp <= 0)) {
         QNINFO("No last check for updates timestamp, checking for updates now");
-        checkForUpdates();
+        checkForUpdatesImpl();
         return;
     }
 
@@ -208,7 +274,7 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
             << printableDateTimeFromTimestamp(m_lastCheckForUpdatesTimestamp)
             << ", now is " << printableDateTimeFromTimestamp(now)
             << "), checking for updates now");
-        checkForUpdates();
+        checkForUpdatesImpl();
         return;
     }
 
@@ -282,8 +348,8 @@ void UpdateManager::askUserAndLaunchUpdate()
             parentWidget,
             tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
-            "download and install it?"),
-            QString(),
+               "download and install it?"),
+            {},
             QMessageBox::Ok | QMessageBox::No);
         if (res != QMessageBox::Ok) {
             QNDEBUG("User refused to download and install updates");
@@ -332,7 +398,7 @@ void UpdateManager::askUserAndLaunchUpdate()
             parentWidget,
             tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
-            "download it?"),
+               "download it?"),
             {},
             QMessageBox::Ok | QMessageBox::No);
         if (res != QMessageBox::Ok) {
@@ -395,78 +461,32 @@ void UpdateManager::restartUpdateCheckerIfActive()
     }
 
     clearCurrentUpdateChecker();
-    checkForUpdates();
+    checkForUpdatesImpl();
 }
 
 void UpdateManager::checkForUpdates()
 {
     QNDEBUG("UpdateManager::checkForUpdates");
 
-    if (!clearCurrentUpdateProvider()) {
-        QNDEBUG("Update provider is already in progress, won't "
-            << "check for updates right now");
-        return;
-    }
-
-    clearCurrentUpdateUrl();
-    clearCurrentUpdateChecker();
-
-    m_pCurrentUpdateChecker = newUpdateChecker(m_updateProvider, this);
-    m_pCurrentUpdateChecker->setUpdateChannel(m_updateChannel);
-    m_pCurrentUpdateChecker->setUseContinuousUpdateChannel(m_useContinuousUpdateChannel);
-
-    QObject::connect(
-        m_pCurrentUpdateChecker,
-        &IUpdateChecker::failure,
-        this,
-        &UpdateManager::onCheckForUpdatesError,
-        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
-
-    QObject::connect(
-        m_pCurrentUpdateChecker,
-        &IUpdateChecker::noUpdatesAvailable,
-        this,
-        &UpdateManager::onNoUpdatesAvailable,
-        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
-    QObject::connect(
-        m_pCurrentUpdateChecker,
-        qOverload<QUrl>(&IUpdateChecker::updatesAvailable),
-        this,
-        &UpdateManager::onUpdatesAvailableAtUrl,
-        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
-
-    QObject::connect(
-        m_pCurrentUpdateChecker,
-        qOverload<std::shared_ptr<IUpdateProvider>>(
-            &IUpdateChecker::updatesAvailable),
-        this,
-        &UpdateManager::onUpdatesAvailable,
-        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
-#else
-    QObject::connect(
-        m_pCurrentUpdateChecker,
-        SIGNAL(updatesAvailable(QUrl)),
-        this,
-        SLOT(onUpdatesAvailableAtUrl(QUrl)),
-        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
-
-    QObject::connect(
-        m_pCurrentUpdateChecker,
-        SIGNAL(updatesAvailable(std::shared_ptr<IUpdateProvider>)),
-        this,
-        SLOT(onUpdatesAvailable(std::shared_ptr<IUpdateProvider>)),
-        Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
-#endif
-
-    m_lastCheckForUpdatesTimestamp = QDateTime::currentMSecsSinceEpoch();
-    m_pCurrentUpdateChecker->checkForUpdates();
+    m_currentUpdateCheckInvokedByUser = true;
+    checkForUpdatesImpl();
 }
 
 void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
 {
     QNDEBUG("UpdateManager::onCheckForUpdatesError: " << errorDescription);
+
+    if (m_currentUpdateCheckInvokedByUser)
+    {
+        m_currentUpdateCheckInvokedByUser = false;
+        QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+
+        Q_UNUSED(warningMessageBox(
+            parentWidget,
+            tr("Failed to check for updates"),
+            tr("Error occurred during the attempt to check for updates"),
+            errorDescription.localizedString()))
+    }
 
     Q_EMIT notifyError(errorDescription);
 
@@ -478,6 +498,18 @@ void UpdateManager::onNoUpdatesAvailable()
 {
     QNDEBUG("UpdateManager::onNoUpdatesAvailable");
 
+    if (m_currentUpdateCheckInvokedByUser)
+    {
+        m_currentUpdateCheckInvokedByUser = false;
+        QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+
+        Q_UNUSED(informationMessageBox(
+            parentWidget,
+            tr("No updates"),
+            tr("No updates are available at this time"),
+            {}))
+    }
+
     recycleUpdateChecker();
     setupNextCheckForUpdatesTimer();
 }
@@ -485,6 +517,11 @@ void UpdateManager::onNoUpdatesAvailable()
 void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
 {
     QNDEBUG("UpdateManager::onUpdatesAvailableAtUrl: " << downloadUrl);
+
+    if (m_currentUpdateCheckInvokedByUser) {
+        // Message box would be displayed below
+        m_currentUpdateCheckInvokedByUser = false;
+    }
 
     recycleUpdateChecker();
 
@@ -503,6 +540,11 @@ void UpdateManager::onUpdatesAvailable(
     std::shared_ptr<IUpdateProvider> provider)
 {
     QNDEBUG("UpdateManager::onUpdatesAvailable");
+
+    if (m_currentUpdateCheckInvokedByUser) {
+        // Message box would be displayed below
+        m_currentUpdateCheckInvokedByUser = false;
+    }
 
     recycleUpdateChecker();
 
@@ -602,7 +644,7 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
                 << "been launched");
         }
         else {
-            checkForUpdates();
+            checkForUpdatesImpl();
         }
     }
     else if (timerId == m_nextIdleStatePollTimerId)

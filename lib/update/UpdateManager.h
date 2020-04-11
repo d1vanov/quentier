@@ -115,6 +115,9 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
 public Q_SLOTS:
+    /**
+     * Public slot for update checks invoked by user explicitly
+     */
     void checkForUpdates();
 
 private Q_SLOTS:
@@ -127,6 +130,8 @@ private Q_SLOTS:
         bool status, ErrorString errorDescription, bool needsRestart);
 
     void onUpdateProviderProgress(double value, QString message);
+
+    void checkForUpdatesImpl();
 
 private:
     void readPersistentSettings();
@@ -180,6 +185,7 @@ private:
     bool    m_updateProviderInProgress = false;
 
     IUpdateChecker*     m_pCurrentUpdateChecker = nullptr;
+    bool    m_currentUpdateCheckInvokedByUser = false;
 
     std::unique_ptr<QProgressDialog>    m_pUpdateProgressDialog;
 };
