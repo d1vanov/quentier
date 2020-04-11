@@ -246,10 +246,7 @@ void NetworkReplyFetcher::recycleNetworkReply(QNetworkReply * pReply)
         [pReply] { pReply->deleteLater(); },
         Qt::QueuedConnection);
 #else
-    QMetaObject::invokeMethod(
-        pReply,
-        SLOT(deleteLater()),
-        Qt::QueuedConnection);
+    pReply->deleteLater();
 #endif
 }
 
