@@ -45,5 +45,5 @@
     <provides>
         <id>org.quentier.Quentier.desktop</id>
     </provides>
-    <updatecontact>dm.vl.ivanov@gmail.com</updatecontact>
+    <update_contact>dm.vl.ivanov@gmail.com</update_contact>
 </component>
