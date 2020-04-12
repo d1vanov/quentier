@@ -41,8 +41,7 @@ void AppImageUpdateProvider::run()
         return;
     }
 
-    m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>(
-        QCoreApplication::applicationFilePath());
+    m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
 
     QObject::connect(
         m_pDeltaRevisioner.get(),
@@ -67,6 +66,8 @@ void AppImageUpdateProvider::run()
         &AppImageDeltaRevisioner::progress,
         this,
         &AppImageUpdateProvider::onProgress);
+
+    m_pDeltaRevisioner->start();
 }
 
 void AppImageUpdateProvider::onStarted()
