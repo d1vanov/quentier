@@ -18,6 +18,8 @@
 
 #include "IUpdateChecker.h"
 
+#include <lib/utility/VersionInfo.h>
+
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
 #include "AppImageUpdateChecker.h"
 #endif

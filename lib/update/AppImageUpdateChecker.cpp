@@ -43,8 +43,7 @@ void AppImageUpdateChecker::checkForUpdates()
         return;
     }
 
-    m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>(
-        QCoreApplication::applicationFilePath());
+    m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
 
     QObject::connect(
         m_pDeltaRevisioner.get(),
@@ -57,6 +56,8 @@ void AppImageUpdateChecker::checkForUpdates()
         &AppImageDeltaRevisioner::error,
         this,
         &AppImageUpdateChecker::onCheckForUpdatesError);
+
+    m_pDeltaRevisioner->checkForUpdate();
 }
 
 void AppImageUpdateChecker::onCheckForUpdatesReady(
