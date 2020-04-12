@@ -62,7 +62,7 @@ install:
         if [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ]; then
           sudo apt-get -qq install appstreamcli &&
           wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" &&
-          sudo mv linuxdeployqt-6-x86_64.AppImage /usr/local/bin/linuxdeployqt
+          sudo mv linuxdeployqt-6-x86_64.AppImage /usr/local/bin/linuxdeployqt &&
           sudo chmod a+x /usr/local/bin/linuxdeployqt &&
           wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 &&
           tar xf patchelf-0.9.tar.bz2 &&
@@ -334,7 +334,7 @@ script:
           export VERSION=$(git rev-parse --short HEAD)
         fi
         make DESTDIR=appdir install &&
-        linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so" &&
+        /usr/local/bin/linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so" &&
         mkdir -p appdir/usr/share/libquentier/translations &&
         cp -r ../../libquentier/build/installdir/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/ &&
         if [ "${TRAVIS_BRANCH}" = "development" ]; then
