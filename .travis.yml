@@ -60,6 +60,7 @@ install:
         sudo apt-get -qq install libxml2-dev libboost-dev libboost-program-options-dev libssl-dev libhunspell-dev &&
         sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test &&
         if [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ]; then
+          sudo apt-get -qq install appstreamcli &&
           wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" &&
           sudo mv linuxdeployqt-6-x86_64.AppImage /usr/local/bin/linuxdeployqt
           sudo chmod a+x /usr/local/bin/linuxdeployqt &&
@@ -341,7 +342,6 @@ script:
         else
           /usr/local/bin/appimagetool -u "gh-releases-zsync|d1vanov|quentier|continuous-master|Quentier*-x86_64.AppImage.zsync" appdir
         fi
-        linuxdeployqt appdir/usr/share/applications/*.desktop -appimage -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so" &&
         find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
       else
         make install
