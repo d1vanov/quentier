@@ -60,7 +60,7 @@ install:
         sudo apt-get -qq install libxml2-dev libboost-dev libboost-program-options-dev libssl-dev libhunspell-dev &&
         sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test &&
         if [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ]; then
-          sudo apt-get -qq install appstreamcli &&
+          sudo apt-get -qq install appstream &&
           wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage" &&
           sudo mv linuxdeployqt-6-x86_64.AppImage /usr/local/bin/linuxdeployqt &&
           sudo chmod a+x /usr/local/bin/linuxdeployqt &&
@@ -334,7 +334,7 @@ script:
           export VERSION=$(git rev-parse --short HEAD)
         fi
         make DESTDIR=appdir install &&
-        /usr/local/bin/linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so" &&
+        linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so" &&
         mkdir -p appdir/usr/share/libquentier/translations &&
         cp -r ../../libquentier/build/installdir/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/ &&
         if [ "${TRAVIS_BRANCH}" = "development" ]; then
