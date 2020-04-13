@@ -26,11 +26,16 @@
 
 #include "GitHubUpdateChecker.h"
 
+#include <QMetaType>
+
 namespace quentier {
 
 IUpdateChecker::IUpdateChecker(QObject * parent) :
     QObject(parent)
-{}
+{
+    qRegisterMetaType<std::shared_ptr<IUpdateProvider> >(
+        "std::shared_ptr<IUpdateProvider>");
+}
 
 QString IUpdateChecker::updateChannel() const
 {
