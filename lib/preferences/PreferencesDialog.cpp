@@ -423,8 +423,9 @@ void PreferencesDialog::onUpdateProviderChanged(int index)
     appSettings.setValue(CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY, index);
     appSettings.endGroup();
 
-    m_pUi->useContinuousUpdateChannelCheckBox->setEnabled(
-        provider == UpdateProvider::GITHUB);
+    bool usingGitHubProvider = (provider == UpdateProvider::GITHUB);
+    m_pUi->useContinuousUpdateChannelCheckBox->setEnabled(usingGitHubProvider);
+    m_pUi->updateChannelComboBox->setEnabled(usingGitHubProvider);
 
     Q_EMIT updateProviderChanged(provider);
 }
@@ -1273,6 +1274,7 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
 
     if (updateProvider == UpdateProvider::APPIMAGE) {
         m_pUi->useContinuousUpdateChannelCheckBox->setEnabled(false);
+        m_pUi->updateChannelComboBox->setEnabled(false);
     }
 #endif // WITH_UPDATE_MANAGER
 }
