@@ -14,7 +14,7 @@ set(HEADERS
     IStartable.h
     QObjectThreadMover.h
     QObjectThreadMover_p.h
-    RestartApp.h
+    ReplaceAndRestartApp.h
     StartAtLogin.h
     SuppressWarningsMacro.h)
 
@@ -26,7 +26,7 @@ set(SOURCES
     HumanReadableVersionInfo.cpp
     QObjectThreadMover.cpp
     QObjectThreadMover_p.cpp
-    RestartApp.cpp
+    ReplaceAndRestartApp.cpp
     StartAtLogin.cpp)
 
 if(WIN32)

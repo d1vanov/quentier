@@ -381,6 +381,9 @@ void UpdateManager::askUserAndLaunchUpdate()
 
         m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
 
+        // Show the dialog as soon as any progress is set
+        m_pUpdateProgressDialog->setMinimumDuration(0);
+
         m_pCurrentUpdateProvider->run();
         m_updateProviderInProgress = true;
     }
