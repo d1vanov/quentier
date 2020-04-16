@@ -21,6 +21,7 @@
 #include <quentier/utility/Macros.h>
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QFileInfo>
 #include <QGlobalStatic>
 #include <QProcess>
@@ -177,12 +178,43 @@ void replaceAndRestartApp(int argc, char * argv[], int delaySeconds)
     Q_UNUSED(quentierBinaryPathWithinBundle)
 #endif
 
+    auto paths = appReplacementPathsHolder->paths();
+
     // 2) Write instructions to the script to replace old app installation
     // with the new one
 
     if (!currentAppInstallationBundlePath.isEmpty())
     {
-        // TODO: write instructions to script file
+#ifdef Q_OS_WIN
+        restartScriptStrm << "rd /s /q \""
+            << QDir::toNativeSeparators(currentAppInstallationBundlePath)
+            << "\"\r\n";
+
+        restartScriptStrm << "move /y \""
+            << QDir::toNativeSeparators(paths.first)
+            << "\" \""
+            << QDir::toNativeSeparators(currentAppInstallationBundlePath)
+            << "\"\\r\n";
+#else
+        auto escapedCurrentAppInstallationBundlePath =
+            currentAppInstallationBundlePath;
+
+        escapedCurrentAppInstallationBundlePath.replace(
+            QStringLiteral(" "),
+            QStringLiteral("\\ "));
+
+        restartScriptStrm << "rm -rf "
+            << escapedCurrentAppInstallationBundlePath
+            << "\n";
+
+        auto escapedNewAppBundlePath = paths.first;
+        escapedNewAppBundlePath.replace(
+            QStringLiteral(" "),
+            QStringLiteral("\\ "));
+
+        restartScriptStrm << "mv " << escapedNewAppBundlePath
+            << " " << escapedCurrentAppInstallationBundlePath << "\n";
+#endif
     }
 
     // 3) Write instructions to the script to start app within the new
@@ -198,7 +230,8 @@ void replaceAndRestartApp(int argc, char * argv[], int delaySeconds)
     }
     else
     {
-        restartScriptStrm << "open " << currentAppInstallationBundlePath << "\n";
+        restartScriptStrm << "open " << currentAppInstallationBundlePath
+            << "\n";
     }
 #else
     restartScriptStrm << app.applicationFilePath();
@@ -210,9 +243,19 @@ void replaceAndRestartApp(int argc, char * argv[], int delaySeconds)
 
     restartScriptStrm.flush();
 
-    // 4) Make script file executable
 #ifndef Q_OS_WIN
-    // TODO: implement
+    // 4) Make script file executable
+    int chmodRes = QProcess::execute(
+        QStringLiteral("chmod"),
+        QStringList()
+            << QStringLiteral("755")
+            << restartScriptFileInfo.absoluteFilePath());
+    if (Q_UNLIKELY(chmodRes != 0)) {
+        std::cerr << "Failed to mark the temporary script file executable: "
+            << restartScriptFileInfo.absoluteFilePath().toStdString()
+            << std::endl;
+        return;
+    }
 #endif
 
     // 5) Launch the script
