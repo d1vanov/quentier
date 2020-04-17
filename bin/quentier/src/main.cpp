@@ -195,7 +195,7 @@ int main(int argc, char * argv[])
     }
 
     int exitCode = app.exec();
-    if (exitCode == RESTART_EXIT_CODE) {
+    if (exitCode == REPLACE_AND_RESTART_EXIT_CODE) {
         replaceAndRestartApp(argc, argv);
     }
 

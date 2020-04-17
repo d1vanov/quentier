@@ -626,7 +626,7 @@ void UpdateManager::onUpdateProviderFinished(
         return;
     }
 
-    qApp->exit(RESTART_EXIT_CODE);
+    qApp->exit(REPLACE_AND_RESTART_EXIT_CODE);
 }
 
 void UpdateManager::onUpdateProviderProgress(double value, QString message)

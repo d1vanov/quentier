@@ -180,21 +180,39 @@ void replaceAndRestartApp(int argc, char * argv[], int delaySeconds)
 
     auto paths = appReplacementPathsHolder->paths();
 
-    // 2) Write instructions to the script to replace old app installation
-    // with the new one
+    // 2) Write instructions to the script to replace the existing app
+    // installation with the new one
 
     if (!currentAppInstallationBundlePath.isEmpty())
     {
 #ifdef Q_OS_WIN
-        restartScriptStrm << "rd /s /q \""
-            << QDir::toNativeSeparators(currentAppInstallationBundlePath)
-            << "\"\r\n";
+        auto nativeCurrentAppInstallationBundlePath = QDir::toNativeSeparators(
+            currentAppInstallationBundlePath);
 
+        // Delete previous backup in case it was left around
+        restartScriptStrm << "rd /s /q \""
+            << nativeCurrentAppInstallationBundlePath
+            << "_backup\"\r\n";
+
+        // Move existing app installation to backup location
+        restartScriptStrm << "move /y \""
+            << nativeCurrentAppInstallationBundlePath
+            << "\" \""
+            << nativeCurrentAppInstallationBundlePath
+            << "_backup\"\r\n";
+
+        // Move freshly downloaded app to the place where the existing
+        // installation used to reside
         restartScriptStrm << "move /y \""
             << QDir::toNativeSeparators(paths.first)
             << "\" \""
-            << QDir::toNativeSeparators(currentAppInstallationBundlePath)
-            << "\"\\r\n";
+            << nativeCurrentAppInstallationBundlePath
+            << "\"\r\n";
+
+        // Remove backup
+        restartScriptStrm << "rd /s /q \""
+            << nativeCurrentAppInstallationBundlePath
+            << "_backup\"\r\n";
 #else
         auto escapedCurrentAppInstallationBundlePath =
             currentAppInstallationBundlePath;
@@ -203,10 +221,20 @@ void replaceAndRestartApp(int argc, char * argv[], int delaySeconds)
             QStringLiteral(" "),
             QStringLiteral("\\ "));
 
+        // Delete previous backup in case it was left around
         restartScriptStrm << "rm -rf "
             << escapedCurrentAppInstallationBundlePath
-            << "\n";
+            << "_backup\n";
 
+        // Move existing app installation to backup location
+        restartScriptStrm << "mv "
+            << escapedCurrentAppInstallationBundlePath
+            << " "
+            << escapedCurrentAppInstallationBundlePath
+            << "_backup\n";
+
+        // Move freshly downloaded app to the place where the existing
+        // installation used to reside
         auto escapedNewAppBundlePath = paths.first;
         escapedNewAppBundlePath.replace(
             QStringLiteral(" "),
@@ -214,6 +242,11 @@ void replaceAndRestartApp(int argc, char * argv[], int delaySeconds)
 
         restartScriptStrm << "mv " << escapedNewAppBundlePath
             << " " << escapedCurrentAppInstallationBundlePath << "\n";
+
+        // Remove backup
+        restartScriptStrm << "rm -rf "
+            << escapedCurrentAppInstallationBundlePath
+            << "_backup\n";
 #endif
     }
 
@@ -244,7 +277,7 @@ void replaceAndRestartApp(int argc, char * argv[], int delaySeconds)
     restartScriptStrm.flush();
 
 #ifndef Q_OS_WIN
-    // 4) Make script file executable
+    // 4) Make the script file executable
     int chmodRes = QProcess::execute(
         QStringLiteral("chmod"),
         QStringList()
