@@ -34,16 +34,15 @@
 #include <quentier/exception/DatabaseOpeningException.h>
 #include <quentier/exception/IQuentierException.h>
 
-#include <QScopedPointer>
-
 #if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
 #include <QSessionManager>
 #endif
 
 #include <QTime>
 
-#include <iostream>
 #include <exception>
+#include <iostream>
+#include <memory>
 
 using namespace quentier;
 
@@ -96,7 +95,7 @@ int main(int argc, char * argv[])
 
     SetupStartupSettings();
 
-    QScopedPointer<MainWindow> pMainWindow;
+    std::unique_ptr<MainWindow> pMainWindow;
     try
     {
         pMainWindow.reset(new MainWindow);
