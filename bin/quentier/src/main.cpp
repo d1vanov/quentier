@@ -65,14 +65,27 @@ int main(int argc, char * argv[])
     app.setQuitOnLastWindowClosed(false);
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+    auto restartHintSetter =
+        [] (QSessionManager & manager) {
+            manager.setRestartHint(QSessionManager::RestartNever);
+        };
+
     QObject::connect(
         &app,
         &QuentierApplication::saveStateRequest,
         &app,
-        [] (QSessionManager & manager) {
-            manager.setRestartHint(QSessionManager::RestartNever);
-        });
-#endif
+        restartHintSetter);
+
+    QObject::connect(
+        &app,
+        &QuentierApplication::commitDataRequest,
+        &app,
+        restartHintSetter);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+    app.setFallbackSessionManagementEnabled(false);
+#endif // Qt 5.6.0
+#endif // Qt 5.14.0
 
     ParseCommandLineResult parseCmdResult;
     ParseCommandLine(argc, argv, parseCmdResult);
