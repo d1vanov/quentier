@@ -34,7 +34,7 @@
 #include <quentier/exception/DatabaseOpeningException.h>
 #include <quentier/exception/IQuentierException.h>
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 #include <QSessionManager>
 #endif
 
@@ -55,7 +55,7 @@ int main(int argc, char * argv[])
 
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
 #endif
 
@@ -64,7 +64,7 @@ int main(int argc, char * argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     QObject::connect(
         &app,
         &QuentierApplication::saveStateRequest,
