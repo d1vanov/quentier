@@ -21,8 +21,14 @@
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QCoreApplication>
+#include <QFileInfo>
+#include <QProcess>
+#include <QTemporaryFile>
+#include <QTextStream>
 
 #include <AppImageUpdaterBridge>
+
+#include <cstdio>
 
 namespace quentier {
 
@@ -31,6 +37,89 @@ AppImageUpdateProvider::AppImageUpdateProvider(QObject * parent) :
 {}
 
 AppImageUpdateProvider::~AppImageUpdateProvider() = default;
+
+bool AppImageUpdateProvider::canCancelUpdate()
+{
+    // AppImageUpdateProvider only downloads the update in fact, it doesn't
+    // mess with the existing installation so it can be safely interrupted
+    return true;
+}
+
+bool AppImageUpdateProvider::inProgress()
+{
+    return m_pDeltaRevisioner.get();
+}
+
+void AppImageUpdateProvider::prepareForRestart()
+{
+    QString replaceAppImageScriptFileNameTemplate =
+        QStringLiteral("replace_quentier_appimage_XXXXXX.sh");
+
+    QTemporaryFile replaceAppImageScriptFile(
+        replaceAppImageScriptFileNameTemplate);
+
+    if (Q_UNLIKELY(!replaceAppImageScriptFile.open())) {
+        QNWARNING("Failed to open temporary file to write restart script: "
+            << replaceAppImageScriptFile.errorString());
+        return;
+    }
+
+    QFileInfo replaceAppImageScriptFileInfo(replaceAppImageScriptFile);
+    QTextStream replaceAppImageScriptStrm(&replaceAppImageScriptFile);
+    auto escapedOldVersionFilePath = m_oldVersionFilePath;
+
+    escapedOldVersionFilePath.replace(
+        QStringLiteral(" "),
+        QStringLiteral("\\ "));
+
+    // Delete previous backup in case it was left around
+    replaceAppImageScriptStrm << "rm -rf "
+        << escapedOldVersionFilePath
+        << ".bak\n";
+
+    // Move old file to backup
+    replaceAppImageScriptStrm << "mv "
+        << escapedOldVersionFilePath << " "
+        << escapedOldVersionFilePath << ".bak\n";
+
+    // Move freshly downloaded app to the place where the existing
+    // installation used to reside
+    auto escapedNewVersionFilePath = m_newVersionFilePath;
+
+    escapedNewVersionFilePath.replace(
+        QStringLiteral(" "),
+        QStringLiteral("\\ "));
+
+    replaceAppImageScriptStrm << "mv " << escapedNewVersionFilePath
+        << " " << escapedOldVersionFilePath << "\n";
+
+    // Remove backup
+    replaceAppImageScriptStrm << "rm -rf "
+        << escapedOldVersionFilePath << ".bak\n";
+
+    replaceAppImageScriptStrm.flush();
+
+    // Make the script file executable
+    int chmodRes = QProcess::execute(
+        QStringLiteral("chmod"),
+        QStringList()
+            << QStringLiteral("755")
+            << replaceAppImageScriptFileInfo.absoluteFilePath());
+    if (Q_UNLIKELY(chmodRes != 0)) {
+        QNWARNING("Failed to mark the AppImage replacement script file "
+            << "executable: "
+            << replaceAppImageScriptFileInfo.absoluteFilePath());
+        return;
+    }
+
+    // Execute the script
+    int scriptRes = QProcess::execute(
+        QStringLiteral("sh"),
+        QStringList() << replaceAppImageScriptFileInfo.absoluteFilePath());
+    if (Q_UNLIKELY(scriptRes != 0)) {
+        QNWARNING("Failed to execute AppImage replacement script");
+    }
+}
 
 void AppImageUpdateProvider::run()
 {
@@ -70,6 +159,14 @@ void AppImageUpdateProvider::run()
     m_pDeltaRevisioner->start();
 }
 
+void AppImageUpdateProvider::cancel()
+{
+    QNDEBUG("AppImageUpdateProvider::cancel");
+
+    recycleDeltaRevisioner();
+    Q_EMIT cancelled();
+}
+
 void AppImageUpdateProvider::onStarted()
 {
     QNDEBUG("AppImageUpdateProvider::onStarted");
@@ -82,7 +179,25 @@ void AppImageUpdateProvider::onFinished(
         << oldVersionPath << ", new version details = "
         << newVersionDetails);
 
-    Q_EMIT finished(true, ErrorString(), true);
+    m_oldVersionFilePath = oldVersionPath;
+
+    m_newVersionFilePath =
+        newVersionDetails[QStringLiteral("AbsolutePath")].toString();
+
+    QVariantMap updateProviderInfoMap;
+    updateProviderInfoMap[QStringLiteral("OldVersionPath")] = oldVersionPath;
+
+    updateProviderInfoMap[QStringLiteral("NewVersionPath")] =
+        m_newVersionFilePath;
+
+    recycleDeltaRevisioner();
+
+    Q_EMIT finished(
+        /* status = */ true,
+        ErrorString(),
+        /* needs restart = */ true,
+        UpdateProvider::APPIMAGE,
+        QJsonObject::fromVariantMap(updateProviderInfoMap));
 }
 
 void AppImageUpdateProvider::onError(qint16 errorCode)
@@ -95,7 +210,14 @@ void AppImageUpdateProvider::onError(qint16 errorCode)
     ErrorString error(QT_TR_NOOP("Failed to update AppImage"));
     error.details() = errorDescription;
 
-    Q_EMIT finished(false, error, false);
+    recycleDeltaRevisioner();
+
+    Q_EMIT finished(
+        /* status = */ false,
+        error,
+        /* needs restart = */ false,
+        UpdateProvider::APPIMAGE,
+        {});
 }
 
 void AppImageUpdateProvider::onProgress(
@@ -117,6 +239,17 @@ void AppImageUpdateProvider::onProgress(
     }
 
     Q_EMIT progress(percentage * 0.01, QString());
+}
+
+void AppImageUpdateProvider::recycleDeltaRevisioner()
+{
+    QNDEBUG("AppImageUpdateProvider::recycleDeltaRevisioner");
+
+    m_pDeltaRevisioner->disconnect(this);
+    m_pDeltaRevisioner->deleteLater();
+
+    Q_UNUSED(m_pDeltaRevisioner.release())
+    m_pDeltaRevisioner.reset();
 }
 
 } // namespace quentier

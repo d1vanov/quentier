@@ -20,9 +20,8 @@
 #define QUENTIER_UTILITY_EXIT_CODES_H
 
 /**
- * Special exit code used to detect that the freshly downloaded new version
- * of the app should replace the old version and then be started
+ * Special exit code used to detect that the app should be restarted
  */
-#define REPLACE_AND_RESTART_EXIT_CODE (-123456789)
+#define RESTART_EXIT_CODE (-123456789)
 
 #endif // QUENTIER_UTILITY_EXIT_CODES_H

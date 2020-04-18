@@ -19,12 +19,16 @@
 #include "IUpdateProvider.h"
 #include "IUpdateChecker.h"
 
+#include <QMetaType>
+
 namespace quentier {
 
 IUpdateProvider::IUpdateProvider(
         IUpdateChecker * pUpdateChecker, QObject * parent) :
     QObject(parent),
     m_pUpdateChecker(pUpdateChecker)
-{}
+{
+    qRegisterMetaType<UpdateProvider>("UpdateProvider");
+}
 
 } // namespace quentier

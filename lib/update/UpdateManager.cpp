@@ -31,6 +31,7 @@
 #include <QDateTime>
 #include <QMetaObject>
 #include <QProgressDialog>
+#include <QPushButton>
 #include <QTimerEvent>
 
 #include <algorithm>
@@ -369,6 +370,7 @@ void UpdateManager::askUserAndLaunchUpdate()
             this,
             &UpdateManager::onUpdateProviderProgress);
 
+
         m_pUpdateProgressDialog.reset(new QProgressDialog(
             tr("Updating, please wait..."),
             {},
@@ -376,13 +378,25 @@ void UpdateManager::askUserAndLaunchUpdate()
             100,
             parentWidget));
 
-        // Forbid cancelling the update
-        m_pUpdateProgressDialog->setCancelButton(nullptr);
-
         m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
 
-        // Show the dialog as soon as any progress is set
+        m_pUpdateProgressDialog->setMinimum(0);
+        m_pUpdateProgressDialog->setMaximum(100);
         m_pUpdateProgressDialog->setMinimumDuration(0);
+
+        // Show progress dialog right away - downloading can be quite slow
+        // so immediate feedback is required
+        m_pUpdateProgressDialog->show();
+
+        auto * pCancelButton = new QPushButton;
+        m_pUpdateProgressDialog->setCancelButton(pCancelButton);
+        m_pUpdateProgressDialog->setCancelButtonText(tr("Cancel"));
+
+        QObject::connect(
+            pCancelButton,
+            &QPushButton::clicked,
+            this,
+            &UpdateManager::onCancelUpdateProvider);
 
         m_pCurrentUpdateProvider->run();
         m_updateProviderInProgress = true;
@@ -590,19 +604,20 @@ void UpdateManager::onUpdatesAvailable(
 }
 
 void UpdateManager::onUpdateProviderFinished(
-    bool status, ErrorString errorDescription, bool needsRestart)
+    bool status, ErrorString errorDescription, bool needsRestart,
+    UpdateProvider updateProviderKind, QJsonObject updateProviderInfo)
 {
     QNDEBUG("UpdateManager::onUpdateProviderFinished: status = "
         << (status ? "true" : "false") << ", error description = "
         << errorDescription << ", needs restart = "
-        << (needsRestart ? "true" : "false"));
+        << (needsRestart ? "true" : "false")
+        << ", update provider kind = " << updateProviderKind
+        << ", update provider info: " << updateProviderInfo.toVariantMap());
 
-    Q_ASSERT(m_pUpdateProgressDialog);
-    m_pUpdateProgressDialog->setValue(100);
-    m_pUpdateProgressDialog->close();
-    m_pUpdateProgressDialog.reset();
+    closeUpdateProgressDialog();
 
     m_updateProviderInProgress = false;
+    m_lastUpdateProviderProgress = 0;
 
     if (!status) {
         Q_EMIT notifyError(errorDescription);
@@ -626,7 +641,10 @@ void UpdateManager::onUpdateProviderFinished(
         return;
     }
 
-    qApp->exit(REPLACE_AND_RESTART_EXIT_CODE);
+    Q_ASSERT(m_pCurrentUpdateProvider);
+    m_pCurrentUpdateProvider->prepareForRestart();
+
+    qApp->exit(RESTART_EXIT_CODE);
 }
 
 void UpdateManager::onUpdateProviderProgress(double value, QString message)
@@ -639,7 +657,49 @@ void UpdateManager::onUpdateProviderProgress(double value, QString message)
     int percentage = static_cast<int>(value * 100.0);
     percentage = std::max(percentage, 100);
 
+    if (percentage <= m_lastUpdateProviderProgress) {
+        return;
+    }
+
+    m_lastUpdateProviderProgress = percentage;
+    QNDEBUG("Setting update progress percentage: " << percentage);
     m_pUpdateProgressDialog->setValue(percentage);
+}
+
+void UpdateManager::onCancelUpdateProvider()
+{
+    QNDEBUG("UpdateManager::onCancelUpdateProvider");
+
+    Q_ASSERT(m_pCurrentUpdateProvider);
+
+    QObject::connect(
+        m_pCurrentUpdateProvider.get(),
+        &IUpdateProvider::cancelled,
+        this,
+        [&] {
+            QNDEBUG("Successfully cancelled the update");
+            closeUpdateProgressDialog();
+        });
+
+    QObject::connect(
+        m_pCurrentUpdateProvider.get(),
+        &IUpdateProvider::canCancelUpdate,
+        this,
+        [&] {
+            ErrorString error(QT_TR_NOOP("Failed to cancel the update"));
+            QNWARNING(error);
+            notifyError(error);
+        });
+
+    m_pCurrentUpdateProvider->cancel();
+}
+
+void UpdateManager::closeUpdateProgressDialog()
+{
+    Q_ASSERT(m_pUpdateProgressDialog);
+    m_pUpdateProgressDialog->setValue(100);
+    m_pUpdateProgressDialog->close();
+    m_pUpdateProgressDialog.reset();
 }
 
 void UpdateManager::closeCheckForUpdatesProgressDialog()

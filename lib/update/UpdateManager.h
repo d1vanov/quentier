@@ -25,6 +25,7 @@
 
 #include <quentier/types/ErrorString.h>
 
+#include <QJsonObject>
 #include <QObject>
 #include <QUrl>
 
@@ -127,9 +128,11 @@ private Q_SLOTS:
     void onUpdatesAvailable(std::shared_ptr<IUpdateProvider> provider);
 
     void onUpdateProviderFinished(
-        bool status, ErrorString errorDescription, bool needsRestart);
+        bool status, ErrorString errorDescription, bool needsRestart,
+        UpdateProvider updateProviderKind, QJsonObject updateProviderInfo);
 
     void onUpdateProviderProgress(double value, QString message);
+    void onCancelUpdateProvider();
 
     void checkForUpdatesImpl();
 
@@ -154,6 +157,7 @@ private:
 
     void restartUpdateCheckerIfActive();
 
+    void closeUpdateProgressDialog();
     void closeCheckForUpdatesProgressDialog();
 
 private:
@@ -185,6 +189,7 @@ private:
 
     std::shared_ptr<IUpdateProvider>    m_pCurrentUpdateProvider;
     bool    m_updateProviderInProgress = false;
+    int     m_lastUpdateProviderProgress = 0;
 
     IUpdateChecker*     m_pCurrentUpdateChecker = nullptr;
     bool    m_currentUpdateCheckInvokedByUser = false;

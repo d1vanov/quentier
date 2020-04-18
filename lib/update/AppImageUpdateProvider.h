@@ -43,8 +43,15 @@ public:
 
     virtual ~AppImageUpdateProvider() override;
 
+    virtual bool canCancelUpdate() override;
+
+    virtual bool inProgress() override;
+
+    virtual void prepareForRestart() override;
+
 public Q_SLOTS:
     virtual void run() override;
+    virtual void cancel() override;
 
 private Q_SLOTS:
     void onStarted();
@@ -57,9 +64,14 @@ private Q_SLOTS:
         double indeterminateSpeed, QString speedUnits);
 
 private:
+    void recycleDeltaRevisioner();
+
+private:
     using AppImageDeltaRevisioner = AppImageUpdaterBridge::AppImageDeltaRevisioner;
 
     std::unique_ptr<AppImageDeltaRevisioner> m_pDeltaRevisioner;
+    QString     m_oldVersionFilePath;
+    QString     m_newVersionFilePath;
 };
 
 } // namespace quentier
