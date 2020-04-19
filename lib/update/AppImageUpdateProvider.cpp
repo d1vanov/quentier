@@ -84,6 +84,12 @@ void AppImageUpdateProvider::run()
         this,
         &AppImageUpdateProvider::onProgress);
 
+    QObject::connect(
+        m_pDeltaRevisioner.get(),
+        &AppImageDeltaRevisioner::logger,
+        this,
+        &AppImageUpdateProvider::onLogEntry);
+
     m_pDeltaRevisioner->start();
 }
 
@@ -175,6 +181,20 @@ void AppImageUpdateProvider::onProgress(
     }
 
     Q_EMIT progress(percentage * 0.01, QString());
+}
+
+void AppImageUpdateProvider::onLogEntry(QString message, QString appImagePath)
+{
+    message = message.trimmed();
+    if (message.startsWith(QStringLiteral("FATAL"))) {
+        QNERROR("[" << appImagePath << "]: " << message);
+    }
+    else if (message.startsWith(QStringLiteral("WARNING"))) {
+        QNWARNING("[" << appImagePath << "]: " << message);
+    }
+    else {
+        QNDEBUG("[" << appImagePath << "]: " << message);
+    }
 }
 
 bool AppImageUpdateProvider::replaceAppImage(

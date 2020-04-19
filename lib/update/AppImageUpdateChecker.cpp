@@ -57,6 +57,12 @@ void AppImageUpdateChecker::checkForUpdates()
         this,
         &AppImageUpdateChecker::onCheckForUpdatesError);
 
+    QObject::connect(
+        m_pDeltaRevisioner.get(),
+        &AppImageDeltaRevisioner::logger,
+        this,
+        &AppImageUpdateChecker::onLogEntry);
+
     m_pDeltaRevisioner->checkForUpdate();
 }
 
@@ -89,6 +95,20 @@ void AppImageUpdateChecker::onCheckForUpdatesError(qint16 errorCode)
     error.details() = errorDescription;
 
     Q_EMIT failure(error);
+}
+
+void AppImageUpdateChecker::onLogEntry(QString message, QString appImagePath)
+{
+    message = message.trimmed();
+    if (message.startsWith(QStringLiteral("FATAL"))) {
+        QNERROR("[" << appImagePath << "]: " << message);
+    }
+    else if (message.startsWith(QStringLiteral("WARNING"))) {
+        QNWARNING("[" << appImagePath << "]: " << message);
+    }
+    else {
+        QNDEBUG("[" << appImagePath << "]: " << message);
+    }
 }
 
 } // namespace quentier

@@ -59,6 +59,8 @@ private Q_SLOTS:
         int percentage, qint64 bytesReceived, qint64 bytesTotal,
         double indeterminateSpeed, QString speedUnits);
 
+    void onLogEntry(QString message, QString appImagePath);
+
 private:
     bool replaceAppImage(
         QString oldVersionPath, QString newVersionPath,

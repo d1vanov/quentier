@@ -50,6 +50,8 @@ private Q_SLOTS:
     void onCheckForUpdatesReady(bool ready, QJsonObject updateInfo);
     void onCheckForUpdatesError(qint16 errorCode);
 
+    void onLogEntry(QString message, QString appImagePath);
+
 private:
     using AppImageDeltaRevisioner = AppImageUpdaterBridge::AppImageDeltaRevisioner;
 
