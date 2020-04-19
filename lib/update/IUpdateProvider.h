@@ -25,8 +25,6 @@
 
 #include <quentier/types/ErrorString.h>
 
-#include <QJsonObject>
-
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
@@ -59,15 +57,6 @@ public:
      */
     virtual bool inProgress() = 0;
 
-    /**
-     * @brief The prepareForRestart method needs to be called after the update
-     * which requires application restart is completed and before the app is
-     * going to restart.
-     *
-     * Update provider can perform arbitrary actions in this method.
-     */
-    virtual void prepareForRestart() = 0;
-
 Q_SIGNALS:
     /**
      * @brief The finished signal is emitted when the process of
@@ -80,13 +69,10 @@ Q_SIGNALS:
      *                              complete the update, false otherwise
      * @param updateProviderKind    Type of update provider which was used
      *                              to install updates
-     * @param updateProviderInfo    Arbitrary information specific to particular
-     *                              update provider composed as a json
      */
     void finished(
         bool status, ErrorString errorDescription,
-        bool needsRestart, UpdateProvider updateProviderKind,
-        QJsonObject updateProviderInfo);
+        bool needsRestart, UpdateProvider updateProviderKind);
 
     /**
      * @brief The progress signal is emitted to notify the client code about

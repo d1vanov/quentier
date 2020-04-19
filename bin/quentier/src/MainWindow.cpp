@@ -52,6 +52,7 @@
 
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
+#include <lib/utility/ExitCodes.h>
 #include <lib/utility/QObjectThreadMover.h>
 #include <lib/view/DeletedNoteItemView.h>
 #include <lib/view/FavoriteItemView.h>
@@ -3135,7 +3136,7 @@ void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
 void MainWindow::onQuitRequestedFromSystemTrayIcon()
 {
     QNINFO("MainWindow::onQuitRequestedFromSystemTrayIcon");
-    onQuitAction();
+    quitApp();
 }
 
 void MainWindow::onAccountSwitchRequested(Account account)
@@ -4061,13 +4062,7 @@ void MainWindow::onNewAccountCreationRequested()
 void MainWindow::onQuitAction()
 {
     QNDEBUG("MainWindow::onQuitAction");
-
-    if (m_pNoteEditorTabsAndWindowsCoordinator) {
-        // That would save the modified notes
-        m_pNoteEditorTabsAndWindowsCoordinator->clear();
-    }
-
-    qApp->quit();
+    quitApp();
 }
 
 void MainWindow::onShortcutChanged(
@@ -4175,6 +4170,12 @@ void MainWindow::onUpdateManagerError(ErrorString errorDescription)
     QNDEBUG("MainWindow::onUpdateManagerError: " << errorDescription);
     onSetStatusBarText(errorDescription.localizedString());
 }
+
+void MainWindow::onUpdateManagerRequestsRestart()
+{
+    QNDEBUG("MainWindow::onUpdateManagerRequestsRestart");
+    quitApp(RESTART_EXIT_CODE);
+}
 #endif // WITH_UPDATE_MANAGER
 
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
@@ -4218,7 +4219,7 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
     persistGeometryAndState();
     QNINFO("Closing application");
     QMainWindow::closeEvent(pEvent);
-    onQuitAction();
+    quitApp();
 }
 
 void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
@@ -5265,6 +5266,16 @@ QString MainWindow::fallbackIconThemeName() const
     return QStringLiteral("breeze");
 }
 
+void MainWindow::quitApp(int exitCode)
+{
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        // That would save the modified notes
+        m_pNoteEditorTabsAndWindowsCoordinator->clear();
+    }
+
+    qApp->exit(exitCode);
+}
+
 void MainWindow::clearViews()
 {
     QNDEBUG("MainWindow::clearViews");
@@ -5396,6 +5407,12 @@ void MainWindow::setupUpdateManager()
         &UpdateManager::notifyError,
         this,
         &MainWindow::onUpdateManagerError);
+
+    QObject::connect(
+        m_pUpdateManager,
+        &UpdateManager::restartAfterUpdateRequested,
+        this,
+        &MainWindow::onUpdateManagerRequestsRestart);
 }
 #endif
 

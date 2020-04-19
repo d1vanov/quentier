@@ -114,6 +114,7 @@ public:
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
+    void restartAfterUpdateRequested();
 
 public Q_SLOTS:
     /**
@@ -129,7 +130,7 @@ private Q_SLOTS:
 
     void onUpdateProviderFinished(
         bool status, ErrorString errorDescription, bool needsRestart,
-        UpdateProvider updateProviderKind, QJsonObject updateProviderInfo);
+        UpdateProvider updateProviderKind);
 
     void onUpdateProviderProgress(double value, QString message);
     void onCancelUpdateProvider();

@@ -20,8 +20,6 @@
 
 #include "IUpdateChecker.h"
 
-#include <lib/utility/ExitCodes.h>
-
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
@@ -605,17 +603,15 @@ void UpdateManager::onUpdatesAvailable(
 
 void UpdateManager::onUpdateProviderFinished(
     bool status, ErrorString errorDescription, bool needsRestart,
-    UpdateProvider updateProviderKind, QJsonObject updateProviderInfo)
+    UpdateProvider updateProviderKind)
 {
     QNDEBUG("UpdateManager::onUpdateProviderFinished: status = "
         << (status ? "true" : "false") << ", error description = "
         << errorDescription << ", needs restart = "
         << (needsRestart ? "true" : "false")
-        << ", update provider kind = " << updateProviderKind
-        << ", update provider info: " << updateProviderInfo.toVariantMap());
+        << ", update provider kind = " << updateProviderKind);
 
     closeUpdateProgressDialog();
-
     m_updateProviderInProgress = false;
     m_lastUpdateProviderProgress = 0;
 
@@ -641,10 +637,7 @@ void UpdateManager::onUpdateProviderFinished(
         return;
     }
 
-    Q_ASSERT(m_pCurrentUpdateProvider);
-    m_pCurrentUpdateProvider->prepareForRestart();
-
-    qApp->exit(RESTART_EXIT_CODE);
+    Q_EMIT restartAfterUpdateRequested();
 }
 
 void UpdateManager::onUpdateProviderProgress(double value, QString message)
@@ -655,7 +648,7 @@ void UpdateManager::onUpdateProviderProgress(double value, QString message)
     Q_ASSERT(m_pUpdateProgressDialog);
 
     int percentage = static_cast<int>(value * 100.0);
-    percentage = std::max(percentage, 100);
+    percentage = std::min(percentage, 100);
 
     if (percentage <= m_lastUpdateProviderProgress) {
         return;
@@ -678,12 +671,15 @@ void UpdateManager::onCancelUpdateProvider()
         this,
         [&] {
             QNDEBUG("Successfully cancelled the update");
+
             closeUpdateProgressDialog();
+            m_updateProviderInProgress = false;
+            m_lastUpdateProviderProgress = 0;
         });
 
     QObject::connect(
         m_pCurrentUpdateProvider.get(),
-        &IUpdateProvider::canCancelUpdate,
+        &IUpdateProvider::cannotCancelUpdate,
         this,
         [&] {
             ErrorString error(QT_TR_NOOP("Failed to cancel the update"));

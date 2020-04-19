@@ -357,6 +357,7 @@ private Q_SLOTS:
 #ifdef WITH_UPDATE_MANAGER
     void onCheckForUpdatesActionTriggered();
     void onUpdateManagerError(ErrorString errorDescription);
+    void onUpdateManagerRequestsRestart();
 #endif
 
 private:
@@ -502,6 +503,8 @@ private:
     void toggleShowNoteThumbnails() const;
 
     QString fallbackIconThemeName() const;
+
+    void quitApp(int exitCode = 0);
 
 private:
     Ui::MainWindow *        m_pUI;

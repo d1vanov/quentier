@@ -19,6 +19,7 @@
 #include "AppImageUpdateProvider.h"
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Utility.h>
 
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -40,85 +41,12 @@ AppImageUpdateProvider::~AppImageUpdateProvider() = default;
 
 bool AppImageUpdateProvider::canCancelUpdate()
 {
-    // AppImageUpdateProvider only downloads the update in fact, it doesn't
-    // mess with the existing installation so it can be safely interrupted
-    return true;
+    return m_canCancelUpdate;
 }
 
 bool AppImageUpdateProvider::inProgress()
 {
     return m_pDeltaRevisioner.get();
-}
-
-void AppImageUpdateProvider::prepareForRestart()
-{
-    QString replaceAppImageScriptFileNameTemplate =
-        QStringLiteral("replace_quentier_appimage_XXXXXX.sh");
-
-    QTemporaryFile replaceAppImageScriptFile(
-        replaceAppImageScriptFileNameTemplate);
-
-    if (Q_UNLIKELY(!replaceAppImageScriptFile.open())) {
-        QNWARNING("Failed to open temporary file to write restart script: "
-            << replaceAppImageScriptFile.errorString());
-        return;
-    }
-
-    QFileInfo replaceAppImageScriptFileInfo(replaceAppImageScriptFile);
-    QTextStream replaceAppImageScriptStrm(&replaceAppImageScriptFile);
-    auto escapedOldVersionFilePath = m_oldVersionFilePath;
-
-    escapedOldVersionFilePath.replace(
-        QStringLiteral(" "),
-        QStringLiteral("\\ "));
-
-    // Delete previous backup in case it was left around
-    replaceAppImageScriptStrm << "rm -rf "
-        << escapedOldVersionFilePath
-        << ".bak\n";
-
-    // Move old file to backup
-    replaceAppImageScriptStrm << "mv "
-        << escapedOldVersionFilePath << " "
-        << escapedOldVersionFilePath << ".bak\n";
-
-    // Move freshly downloaded app to the place where the existing
-    // installation used to reside
-    auto escapedNewVersionFilePath = m_newVersionFilePath;
-
-    escapedNewVersionFilePath.replace(
-        QStringLiteral(" "),
-        QStringLiteral("\\ "));
-
-    replaceAppImageScriptStrm << "mv " << escapedNewVersionFilePath
-        << " " << escapedOldVersionFilePath << "\n";
-
-    // Remove backup
-    replaceAppImageScriptStrm << "rm -rf "
-        << escapedOldVersionFilePath << ".bak\n";
-
-    replaceAppImageScriptStrm.flush();
-
-    // Make the script file executable
-    int chmodRes = QProcess::execute(
-        QStringLiteral("chmod"),
-        QStringList()
-            << QStringLiteral("755")
-            << replaceAppImageScriptFileInfo.absoluteFilePath());
-    if (Q_UNLIKELY(chmodRes != 0)) {
-        QNWARNING("Failed to mark the AppImage replacement script file "
-            << "executable: "
-            << replaceAppImageScriptFileInfo.absoluteFilePath());
-        return;
-    }
-
-    // Execute the script
-    int scriptRes = QProcess::execute(
-        QStringLiteral("sh"),
-        QStringList() << replaceAppImageScriptFileInfo.absoluteFilePath());
-    if (Q_UNLIKELY(scriptRes != 0)) {
-        QNWARNING("Failed to execute AppImage replacement script");
-    }
 }
 
 void AppImageUpdateProvider::run()
@@ -179,25 +107,34 @@ void AppImageUpdateProvider::onFinished(
         << oldVersionPath << ", new version details = "
         << newVersionDetails);
 
-    m_oldVersionFilePath = oldVersionPath;
-
-    m_newVersionFilePath =
+    auto newVersionPath =
         newVersionDetails[QStringLiteral("AbsolutePath")].toString();
 
-    QVariantMap updateProviderInfoMap;
-    updateProviderInfoMap[QStringLiteral("OldVersionPath")] = oldVersionPath;
-
-    updateProviderInfoMap[QStringLiteral("NewVersionPath")] =
-        m_newVersionFilePath;
-
     recycleDeltaRevisioner();
+
+    m_canCancelUpdate = false;
+
+    ErrorString errorDescription;
+    if (!replaceAppImage(oldVersionPath, newVersionPath, errorDescription))
+    {
+        m_canCancelUpdate = true;
+
+        Q_EMIT finished(
+            /* status = */ false,
+            errorDescription,
+            /* needs restart = */ false,
+            UpdateProvider::APPIMAGE);
+
+        return;
+    }
+
+    m_canCancelUpdate = true;
 
     Q_EMIT finished(
         /* status = */ true,
         ErrorString(),
         /* needs restart = */ true,
-        UpdateProvider::APPIMAGE,
-        QJsonObject::fromVariantMap(updateProviderInfoMap));
+        UpdateProvider::APPIMAGE);
 }
 
 void AppImageUpdateProvider::onError(qint16 errorCode)
@@ -216,8 +153,7 @@ void AppImageUpdateProvider::onError(qint16 errorCode)
         /* status = */ false,
         error,
         /* needs restart = */ false,
-        UpdateProvider::APPIMAGE,
-        {});
+        UpdateProvider::APPIMAGE);
 }
 
 void AppImageUpdateProvider::onProgress(
@@ -239,6 +175,94 @@ void AppImageUpdateProvider::onProgress(
     }
 
     Q_EMIT progress(percentage * 0.01, QString());
+}
+
+bool AppImageUpdateProvider::replaceAppImage(
+    QString oldVersionPath, QString newVersionPath,
+    ErrorString errorDescription)
+{
+    QNDEBUG("AppImageUpdateProvider::replaceAppImage");
+
+    QString oldVersionBackupPath = oldVersionPath + QStringLiteral(".bak");
+
+    auto removeBackup = [&] {
+        QFileInfo oldVersionBackupInfo(oldVersionBackupPath);
+        if (oldVersionBackupInfo.exists())
+        {
+            if (oldVersionBackupInfo.isFile())
+            {
+                if (!removeFile(oldVersionBackupPath))
+                {
+                    errorDescription.setBase(
+                        QT_TR_NOOP("Failed to remove previous AppImage "
+                                   "backup"));
+
+                    errorDescription.details() = oldVersionBackupPath;
+                    QNWARNING(errorDescription);
+                    return false;
+                }
+            }
+            else if (!removeDir(oldVersionBackupPath))
+            {
+                errorDescription.setBase(
+                    QT_TR_NOOP("Failed to remove dir in place of AppImage "
+                               "backup"));
+
+                errorDescription.details() = oldVersionBackupPath;
+            }
+        }
+
+        return true;
+    };
+
+    // 1) Remove backup if it exists
+    if (!removeBackup()) {
+        return false;
+    }
+
+    // 2) Backup the original AppImage
+    ErrorString error;
+    if (!renameFile(oldVersionPath, oldVersionBackupPath, error))
+    {
+        errorDescription.setBase(
+            QT_TR_NOOP("Failed to backup old version of AppImage"));
+
+        errorDescription.appendBase(error.base());
+        errorDescription.appendBase(error.additionalBases());
+        errorDescription.details() = error.details();
+        QNWARNING(errorDescription);
+        return false;
+    }
+
+    // 3) Move new AppImage in place of the old one
+    error.clear();
+    if (!renameFile(newVersionPath, oldVersionPath, error))
+    {
+        errorDescription.setBase(
+            QT_TR_NOOP("Failed to move the new AppImage in place of "
+                       "the old one"));
+
+        errorDescription.appendBase(error.base());
+        errorDescription.appendBase(error.additionalBases());
+        errorDescription.details() = error.details();
+        QNWARNING(errorDescription);
+
+        // Best effort undo: try to restore the backup
+        error.clear();
+        if (!renameFile(oldVersionBackupPath, oldVersionPath, error)) {
+            QNWARNING("Failed to restore AppImage from backup: "
+                << error << "; backup path: " << oldVersionBackupPath);
+        }
+
+        return false;
+    }
+
+    // 4) Remove backup
+    if (!removeBackup()) {
+        return false;
+    }
+
+    return true;
 }
 
 void AppImageUpdateProvider::recycleDeltaRevisioner()
