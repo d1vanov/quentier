@@ -92,17 +92,16 @@ install:
           fi
         fi
         if [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ]; then
-          wget -c -nv "https://github.com/antony-jr/AppImageUpdaterBridge/archive/v1.1.6.tar.gz" &&
-          mkdir AppImageUpdaterBridge &&
-          tar xvf v1.1.6.tar.gz -C AppImageUpdaterBridge &&
-          cd AppImageUpdaterBridge/AppImageUpdaterBridge-1.1.6 &&
+          git clone https://github.com/antony-jr/AppImageUpdaterBridge.git &&
+          cd AppImageUpdaterBridge &&
+          git checkout master &&
           mkdir build &&
           cd build &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 .. &&
           make &&
           make install &&
           export APPIMAGE_UPDATER_BRIDGE_DIR=$(pwd)/installdir/lib/cmake/AppImageUpdaterBridge &&
-          cd ../../..
+          cd ../..
         fi
       else
         brew update &&
