@@ -24,6 +24,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
+#include <QRegExp>
 #include <QString>
 #include <QTemporaryFile>
 #include <QTextStream>
@@ -113,7 +114,24 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     }
 #else
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
-    appFilePath = QProcessEnvironment::systemEnvironment().value("APPIMAGE");
+    auto appImageFilePath = QProcessEnvironment::systemEnvironment().value(
+        "APPIMAGE");
+
+    if (!appImageFilePath.isEmpty())
+    {
+        // Check if it's AppImageLauncher's path, if so then use the map file
+        // to get the actual AppImage path
+        QRegExp rx(QStringLiteral("/run/user/*/appimagelauncherfs/*.AppImage"));
+        rx.setPatternSyntax(QRegExp::Wildcard);
+
+        if (rx.exactMatch(appImageFilePath)) {
+            appImageFilePath = {};
+        }
+    }
+
+    if (!appImageFilePath.isEmpty()) {
+        appFilePath = appImageFilePath;
+    }
 #endif
 
     appFilePath.replace(
