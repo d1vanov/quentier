@@ -21,6 +21,7 @@
 #include <quentier/utility/Macros.h>
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QFileInfo>
 #include <QProcess>
 #include <QString>
@@ -34,7 +35,7 @@ namespace quentier {
 void restartApp(int argc, char * argv[], int delaySeconds)
 {
     QString restartScriptFileNameTemplate =
-        QStringLiteral("quentier_restart_script_XXXXXX.");
+        QStringLiteral("/quentier_restart_script_XXXXXX.");
 
 #ifdef Q_OS_WIN
     restartScriptFileNameTemplate += QStringLiteral("bat");
@@ -44,7 +45,9 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 
     QTextStream Cerr (stderr);
 
-    QTemporaryFile restartScriptFile(restartScriptFileNameTemplate);
+    QTemporaryFile restartScriptFile(
+        QDir::tempPath() + restartScriptFileNameTemplate);
+
     if (Q_UNLIKELY(!restartScriptFile.open())) {
         Cerr << "Failed to open temporary file to write restart script: "
             << restartScriptFile.errorString() << "\n";
@@ -109,6 +112,10 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         restartScriptStrm << app.arguments().join(QStringLiteral(" "));
     }
 #else
+#if QUENTIER_PACKAGED_AS_APP_IMAGE
+    appFilePath = QProcessEnvironment::systemEnvironment().value("APPIMAGE");
+#endif
+
     appFilePath.replace(
         QStringLiteral(" "),
         QStringLiteral("\\ "));
