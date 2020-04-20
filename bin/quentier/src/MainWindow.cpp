@@ -369,8 +369,22 @@ MainWindow::~MainWindow()
 
     clearSynchronizationManager();
 
-    if (m_pLocalStorageManagerThread) {
+    if (m_pLocalStorageManagerThread)
+    {
+        QNDEBUG("Local storage manager thread is active, stopping it");
+
+        QObject::disconnect(
+            m_pLocalStorageManagerThread,
+            &QThread::finished,
+            m_pLocalStorageManagerThread,
+            &QThread::deleteLater);
+
         m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+
+        QNDEBUG("Deleting LocalStorageManagerAsync");
+        delete m_pLocalStorageManagerAsync;
+        m_pLocalStorageManagerAsync = nullptr;
     }
 
     delete m_pUI;
