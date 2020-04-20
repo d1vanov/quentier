@@ -365,6 +365,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
 MainWindow::~MainWindow()
 {
+    QNDEBUG("MainWindow::~MainWindow");
+
     clearSynchronizationManager();
 
     if (m_pLocalStorageManagerThread) {
