@@ -483,6 +483,11 @@ void UpdateManager::checkForUpdates()
 {
     QNDEBUG("UpdateManager::checkForUpdates");
 
+    if (m_updateInstalledPendingRestart) {
+        offerUserToRestart();
+        return;
+    }
+
     m_currentUpdateCheckInvokedByUser = true;
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
@@ -624,20 +629,8 @@ void UpdateManager::onUpdateProviderFinished(
         return;
     }
 
-    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
-    int res = questionMessageBox(
-        parentWidget,
-        tr("Restart is required"),
-        tr("Restart is required in order to complete the update. Would you "
-           "like to restart now?"),
-        {},
-        QMessageBox::Ok | QMessageBox::No);
-    if (res != QMessageBox::Ok) {
-        QNDEBUG("User refused to restart after update");
-        return;
-    }
-
-    Q_EMIT restartAfterUpdateRequested();
+    m_updateInstalledPendingRestart = true;
+    offerUserToRestart();
 }
 
 void UpdateManager::onUpdateProviderProgress(double value, QString message)
@@ -730,6 +723,9 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
             QNDEBUG("Will not check for updates on timer: update has already "
                 << "been launched");
         }
+        else if (m_updateInstalledPendingRestart) {
+            QNDEBUG("Update is already installed, pending app restart");
+        }
         else {
             checkForUpdatesImpl();
         }
@@ -739,6 +735,27 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
         m_nextIdleStatePollTimerId = -1;
         askUserAndLaunchUpdate();
     }
+}
+
+void UpdateManager::offerUserToRestart()
+{
+    QNDEBUG("UpdateManager::offerUserToRestart");
+
+    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+
+    int res = questionMessageBox(
+        parentWidget,
+        tr("Restart is required"),
+        tr("Restart is required in order to complete the update. Would you "
+           "like to restart now?"),
+        {},
+        QMessageBox::Ok | QMessageBox::No);
+    if (res != QMessageBox::Ok) {
+        QNDEBUG("User refused to restart after update");
+        return;
+    }
+
+    Q_EMIT restartAfterUpdateRequested();
 }
 
 } // namespace quentier

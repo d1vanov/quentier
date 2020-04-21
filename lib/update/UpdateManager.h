@@ -164,6 +164,8 @@ private:
 private:
     virtual void timerEvent(QTimerEvent * pTimerEvent) override;
 
+    void offerUserToRestart();
+
 private:
     Q_DISABLE_COPY(UpdateManager)
 
@@ -191,6 +193,8 @@ private:
     std::shared_ptr<IUpdateProvider>    m_pCurrentUpdateProvider;
     bool    m_updateProviderInProgress = false;
     int     m_lastUpdateProviderProgress = 0;
+
+    bool    m_updateInstalledPendingRestart = false;
 
     IUpdateChecker*     m_pCurrentUpdateChecker = nullptr;
     bool    m_currentUpdateCheckInvokedByUser = false;
