@@ -20,6 +20,8 @@
 
 #include <quentier/utility/Macros.h>
 
+#include <lib/utility/VersionInfo.h>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -44,10 +46,14 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     restartScriptFileNameTemplate += QStringLiteral("sh");
 #endif
 
-    QTextStream Cerr (stderr);
+    QTextStream Cerr(stderr);
 
     QTemporaryFile restartScriptFile(
         QDir::tempPath() + restartScriptFileNameTemplate);
+
+    // Keep the file for a while in case its contents would need to be
+    // investigated
+    restartScriptFile.setAutoRemove(false);
 
     if (Q_UNLIKELY(!restartScriptFile.open())) {
         Cerr << "Failed to open temporary file to write restart script: "
@@ -114,8 +120,13 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     }
 #else
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
+    Cerr << "Preparing Quentier AppImage for restart\n";
+
     auto appImageFilePath = QProcessEnvironment::systemEnvironment().value(
-        "APPIMAGE");
+        QStringLiteral("APPIMAGE"));
+
+    Cerr << "AppImage file path from process envitonment: " << appImageFilePath
+        << "\n";
 
     if (!appImageFilePath.isEmpty())
     {
@@ -124,8 +135,20 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         QRegExp rx(QStringLiteral("/run/user/*/appimagelauncherfs/*.AppImage"));
         rx.setPatternSyntax(QRegExp::Wildcard);
 
-        if (rx.exactMatch(appImageFilePath)) {
-            appImageFilePath = {};
+        if (rx.exactMatch(appImageFilePath))
+        {
+            Cerr << "AppImageLauncher is installed\n";
+            auto arguments = QCoreApplication::arguments();
+            if(!arguments.isEmpty()) {
+                appImageFilePath = QFileInfo(arguments.at(0)).absolutePath() +
+                    QStringLiteral("/") +
+                    QFileInfo(arguments.at(0)).fileName();
+                Cerr << "AppImage file path from program arguments: "
+                    << appImageFilePath << "\n";
+            }
+            else {
+                appImageFilePath = QString();
+            }
         }
     }
 
@@ -133,6 +156,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         appFilePath = appImageFilePath;
     }
 #endif
+
+    Cerr << "Quentier app file path to be restarted: " << appFilePath << "\n";
 
     appFilePath.replace(
         QStringLiteral(" "),
