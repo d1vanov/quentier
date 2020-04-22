@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,18 +24,14 @@
 #include <QDebug>
 #include <QtGlobal>
 
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace quentier {
 
 CommandLineParser::CommandLineParser(
-        int argc, char * argv[],
-        const QHash<QString,CommandLineOptionData> & availableCmdOptions) :
-    m_responseMessage(),
-    m_shouldQuit(false),
-    m_errorDescription(),
-    m_parsedArgs()
+    int argc, char * argv[],
+    const QHash<QString,OptionData> & availableCmdOptions)
 {
     if (argc < 2) {
         return;
@@ -187,9 +183,40 @@ ErrorString CommandLineParser::errorDescription() const
     return m_errorDescription;
 }
 
-CommandLineParser::CommandLineOptions CommandLineParser::options() const
+CommandLineParser::Options CommandLineParser::options() const
 {
-    return m_parsedArgs;
+    return m_options;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+QDebug & operator<<(QDebug & dbg, const CommandLineParser::ArgumentType type)
+{
+    using ArgumentType = CommandLineParser::ArgumentType;
+
+    switch(type)
+    {
+    case ArgumentType::None:
+        dbg << "None";
+        break;
+    case ArgumentType::String:
+        dbg << "String";
+        break;
+    case ArgumentType::Bool:
+        dbg << "Bool";
+        break;
+    case ArgumentType::Int:
+        dbg << "Int";
+        break;
+    case ArgumentType::Double:
+        dbg << "Double";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

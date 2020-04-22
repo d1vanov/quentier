@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,32 +22,33 @@
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
 
-#include <QString>
 #include <QHash>
+#include <QString>
+
+QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
 class CommandLineParser
 {
 public:
-    struct CommandLineArgumentType
+    enum class ArgumentType
     {
-        enum type
-        {
-            None = 0,
-            String,
-            Bool,
-            Int,
-            Double
-        };
+        None = 0,
+        String,
+        Bool,
+        Int,
+        Double
     };
 
-    struct CommandLineOptionData
+    friend QDebug & operator<<(QDebug & dbg, const ArgumentType type);
+
+    struct OptionData
     {
         QString m_name;
         QString m_description;
         QChar m_singleLetterKey;
-        CommandLineArgumentType::type m_type;
+        ArgumentType m_type = ArgumentType::None;
     };
 
     using Options = QHash<QString, QVariant>;
@@ -55,7 +56,7 @@ public:
 public:
     explicit CommandLineParser(
         int argc, char * argv[],
-        const QHash<QString, CommandLineOptionData> & availableCmdOptions);
+        const QHash<QString, OptionData> & availableCmdOptions);
 
     bool hasError() const;
     ErrorString errorDescription() const;

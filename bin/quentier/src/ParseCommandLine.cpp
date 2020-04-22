@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@ namespace quentier {
 
 void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
 {
-    QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
+    QHash<QString,CommandLineParser::OptionData> availableCmdOptions;
     composeCommonAvailableCommandLineOptions(availableCmdOptions);
 
     auto & overrideSystemTrayAvailabilityData =
@@ -54,8 +54,7 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
     auto & startMinimizedData =
         availableCmdOptions[QStringLiteral("startMinimized")];
 
-    startMinimizedData.m_description = QCoreApplication::translate(
-        "CommandLineParser",
+    startMinimizedData.m_description = QStringLiteral(
         "start Quentier with its main window minimized to the task bar");
 
     auto & logLevelData = availableCmdOptions[QStringLiteral("logLevel")];
