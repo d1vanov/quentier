@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,7 @@
 namespace quentier {
 
 bool processNotebookOptions(
-    const CommandLineParser::CommandLineOptions & options,
+    const CommandLineParser::Options & options,
     QString & targetNotebookName, quint32 & numNewNotebooks)
 {
     auto targetNotebookNameIt = options.find(QStringLiteral("notebook"));

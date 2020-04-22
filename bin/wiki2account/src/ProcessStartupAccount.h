@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,7 @@
 namespace quentier {
 
 Account processStartupAccount(
-    const CommandLineParser::CommandLineOptions & options);
+    const CommandLineParser::Options & options);
 
 } // namespace quentier
 

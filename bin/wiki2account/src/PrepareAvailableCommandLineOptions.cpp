@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,37 +21,43 @@
 namespace quentier {
 
 void prepareAvailableCommandLineOptions(
-    QHash<QString,CommandLineParser::CommandLineOptionData> & options)
+    QHash<QString,CommandLineParser::OptionData> & options)
 {
     composeCommonAvailableCommandLineOptions(options);
 
     auto & newAccountData = options[QStringLiteral("new-account")];
-    newAccountData.m_description =
-        QStringLiteral("add notes created from wiki articles to a new local account");
+
+    newAccountData.m_description = QStringLiteral(
+        "add notes created from wiki articles to a new local account");
 
     auto & notebookData = options[QStringLiteral("notebook")];
-    notebookData.m_description =
-        QStringLiteral("name of the notebook into which notes created from wiki "
-                       "articles should be put; incompatible with --num-notebooks");
+
+    notebookData.m_description = QStringLiteral(
+        "name of the notebook into which notes created from wiki "
+        "articles should be put; incompatible with --num-notebooks");
 
     auto & numNewNotebooksData = options[QStringLiteral("num-notebooks")];
-    numNewNotebooksData.m_description =
-        QStringLiteral("number of new notebooks into which notes created from "
-                       "wiki articles should be put; incompatible with --notebook");
+
+    numNewNotebooksData.m_description = QStringLiteral(
+        "number of new notebooks into which notes created from "
+        "wiki articles should be put; incompatible with --notebook");
 
     auto & numNotesData = options[QStringLiteral("num-notes")];
-    numNotesData.m_description =
-        QStringLiteral("number of notes which should be created from wiki articles");
+
+    numNotesData.m_description = QStringLiteral(
+        "number of notes which should be created from wiki articles");
 
     auto & minTagsPerNote = options[QStringLiteral("min-tags-per-note")];
-    minTagsPerNote.m_description =
-        QStringLiteral("min number of new tags to be assigned to notes created "
-                       "from wiki articles; by default 0");
+
+    minTagsPerNote.m_description = QStringLiteral(
+        "min number of new tags to be assigned to notes created "
+        "from wiki articles; by default 0");
 
     auto & maxTagsPerNote = options[QStringLiteral("max-tags-per-note")];
-    maxTagsPerNote.m_description =
-        QStringLiteral("max number of new tags to be assigned to notes created "
-                       "from wiki articles; by default 0");
+
+    maxTagsPerNote.m_description = QStringLiteral(
+        "max number of new tags to be assigned to notes created "
+        "from wiki articles; by default 0");
 }
 
 } // namespace quentier
