@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2account"));
 
-    QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
+    QHash<QString,CommandLineParser::OptionData> availableCmdOptions;
     prepareAvailableCommandLineOptions(availableCmdOptions);
 
     ParseCommandLineResult parseCmdResult;

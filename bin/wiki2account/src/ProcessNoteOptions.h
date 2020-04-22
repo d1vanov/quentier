@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,7 @@ namespace quentier {
  *                                  were processed successfully, false otherwise
  */
 bool processNoteOptions(
-    const CommandLineParser::CommandLineOptions & options, quint32 & numNotes);
+    const CommandLineParser::Options & options, quint32 & numNotes);
 
 } // namespace quentier
 
