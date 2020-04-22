@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,42 +22,37 @@
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
 
-#include <QString>
 #include <QHash>
+#include <QString>
+
+QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
 class CommandLineParser
 {
 public:
-    struct CommandLineArgumentType
+    enum class ArgumentType
     {
-        enum type
-        {
-            None = 0,
-            String,
-            Bool,
-            Int,
-            Double
-        };
+        None = 0,
+        String,
+        Bool,
+        Int,
+        Double
     };
 
-    struct CommandLineOptionData
-    {
-        CommandLineOptionData() :
-            m_description(),
-            m_singleLetterKey(),
-            m_type(CommandLineArgumentType::None)
-        {}
+    friend QDebug & operator<<(QDebug & dbg, const ArgumentType type);
 
+    struct OptionData
+    {
         QString m_description;
         QChar m_singleLetterKey;
-        CommandLineArgumentType::type m_type;
+        ArgumentType m_type = ArgumentType::None;
     };
 
     explicit CommandLineParser(
         int argc, char * argv[],
-        const QHash<QString, CommandLineOptionData> & availableCmdOptions);
+        const QHash<QString, OptionData> & availableCmdOptions);
 
     QString responseMessage() const;
     bool shouldQuit() const;
@@ -65,17 +60,17 @@ public:
     bool hasError() const;
     ErrorString errorDescription() const;
 
-    typedef QHash<QString, QVariant> CommandLineOptions;
-    CommandLineOptions options() const;
+    using Options = QHash<QString, QVariant>;
+    Options options() const;
 
 private:
     Q_DISABLE_COPY(CommandLineParser)
 
 private:
-    QString             m_responseMessage;
-    bool                m_shouldQuit;
-    ErrorString         m_errorDescription;
-    CommandLineOptions  m_parsedArgs;
+    QString         m_responseMessage;
+    bool            m_shouldQuit = false;
+    ErrorString     m_errorDescription;
+    Options         m_options;
 };
 
 } // namespace quentier

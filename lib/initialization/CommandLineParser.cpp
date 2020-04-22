@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,17 +20,19 @@
 
 #include <lib/utility/HumanReadableVersionInfo.h>
 
+#include <QDebug>
 #include <QtGlobal>
 
-#include <string>
 #include <sstream>
+#include <string>
 
 #include <boost/program_options.hpp>
 
 // Overloaded function required in order to use boost::program_options along
 // with QString
-void validate(boost::any & value, const std::vector<std::string> & values,
-              QString *, int)
+void validate(
+    boost::any & value, const std::vector<std::string> & values,
+    QString *, int)
 {
     using namespace boost::program_options;
 
@@ -47,12 +49,8 @@ void validate(boost::any & value, const std::vector<std::string> & values,
 namespace quentier {
 
 CommandLineParser::CommandLineParser(
-        int argc, char * argv[],
-        const QHash<QString,CommandLineOptionData> & availableCmdOptions) :
-    m_responseMessage(),
-    m_shouldQuit(false),
-    m_errorDescription(),
-    m_parsedArgs()
+    int argc, char * argv[],
+    const QHash<QString,OptionData> & availableCmdOptions)
 {
     if (argc < 2) {
         return;
@@ -68,7 +66,7 @@ CommandLineParser::CommandLineParser(
             end = availableCmdOptions.constEnd(); it != end; ++it)
         {
             const QString & option = it.key();
-            const CommandLineOptionData & data = it.value();
+            const OptionData & data = it.value();
 
             QString key = option;
             if (!data.m_singleLetterKey.isNull()) {
@@ -81,25 +79,25 @@ CommandLineParser::CommandLineParser(
 
             switch(data.m_type)
             {
-            case CommandLineArgumentType::String:
+            case ArgumentType::String:
                 desc.add_options()
                     (keyData.constData(),
                      po::value<QString>(),
                      descData.constData());
                 break;
-            case CommandLineArgumentType::Bool:
+            case ArgumentType::Bool:
                 desc.add_options()
                     (keyData.constData(),
                      po::value<bool>(),
                      descData.constData());
                 break;
-            case CommandLineArgumentType::Int:
+            case ArgumentType::Int:
                 desc.add_options()
                     (keyData.constData(),
                      po::value<qint64>(),
                      descData.constData());
                 break;
-            case CommandLineArgumentType::Double:
+            case ArgumentType::Double:
                 desc.add_options()
                     (keyData.constData(),
                      po::value<double>(),
@@ -136,41 +134,41 @@ CommandLineParser::CommandLineParser(
                 QStringLiteral("\nUses libquentier: ") +
                 libquentierRuntimeInfo() +
                 QStringLiteral("\n");
+
             m_shouldQuit = true;
             return;
         }
 
-        for(auto it = varsMap.begin(), end = varsMap.end(); it != end; ++it)
+        for(const auto & pair: varsMap)
         {
-            if ( (it->first == "help") ||
-                 (it->first == "version") )
-            {
+            if ((pair.first == "help") || (pair.first == "version")) {
                 continue;
             }
 
-            const auto & value = it->second.value();
+            const auto & value = pair.second.value();
             const std::type_info & valueType = value.type();
-            QString key = QString::fromLocal8Bit(it->first.c_str());
+            QString key = QString::fromLocal8Bit(pair.first.c_str());
 
             if (valueType == typeid(QString)) {
-                m_parsedArgs[key] = QVariant(boost::any_cast<QString>(value));
+                m_options[key] = QVariant(boost::any_cast<QString>(value));
             }
             else if (valueType == typeid(int)) {
-                m_parsedArgs[key] = QVariant(boost::any_cast<int>(value));
+                m_options[key] = QVariant(boost::any_cast<int>(value));
             }
             else if (valueType == typeid(bool)) {
-                m_parsedArgs[key] = QVariant(boost::any_cast<bool>(value));
+                m_options[key] = QVariant(boost::any_cast<bool>(value));
             }
             else {
-                m_parsedArgs[key] = QVariant();
+                m_options[key] = QVariant();
             }
         }
     }
     catch(const po::error & error)
     {
-        m_errorDescription.setBase(
-            QT_TRANSLATE_NOOP("CommandLineParser",
-                              "Error parsing the command line arguments"));
+        m_errorDescription.setBase(QT_TRANSLATE_NOOP(
+            "CommandLineParser",
+            "Error parsing the command line arguments"));
+
         m_errorDescription.details() = QString::fromLocal8Bit(error.what());
     }
 }
@@ -195,9 +193,40 @@ ErrorString CommandLineParser::errorDescription() const
     return m_errorDescription;
 }
 
-CommandLineParser::CommandLineOptions CommandLineParser::options() const
+CommandLineParser::Options CommandLineParser::options() const
 {
-    return m_parsedArgs;
+    return m_options;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+QDebug & operator<<(QDebug & dbg, const CommandLineParser::ArgumentType type)
+{
+    using ArgumentType = CommandLineParser::ArgumentType;
+
+    switch(type)
+    {
+    case ArgumentType::None:
+        dbg << "None";
+        break;
+    case ArgumentType::String:
+        dbg << "String";
+        break;
+    case ArgumentType::Bool:
+        dbg << "Bool";
+        break;
+    case ArgumentType::Int:
+        dbg << "Int";
+        break;
+    case ArgumentType::Double:
+        dbg << "Double";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier
