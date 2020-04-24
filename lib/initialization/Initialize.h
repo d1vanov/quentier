@@ -30,18 +30,8 @@ QT_FORWARD_DECLARE_CLASS(Account)
 
 class ParseCommandLineResult
 {
-public:
-    ParseCommandLineResult() :
-        m_shouldQuit(false),
-        m_responseMessage(),
-        m_errorDescription(),
-        m_cmdOptions()
-    {}
-
-    bool            m_shouldQuit;
-    QString         m_responseMessage;
-    ErrorString     m_errorDescription;
-    CommandLineParser::CommandLineOptions   m_cmdOptions;
+    CommandLineParser::Options  m_cmdOptions;
+    ErrorString                 m_errorDescription;
 };
 
 /**

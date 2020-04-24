@@ -24,6 +24,7 @@
 
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/utility/HumanReadableVersionInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/Utility.h>
@@ -34,6 +35,7 @@
 #include <quentier/utility/VersionInfo.h>
 
 #include <QFileInfo>
+#include <QtGlobal>
 
 #ifdef BUILDING_WITH_BREAKPAD
 #include "breakpad/BreakpadIntegration.h"
@@ -47,22 +49,22 @@ void composeCommonAvailableCommandLineOptions(
     typedef CommandLineParser::CommandLineOptionData OptionData;
     typedef CommandLineParser::CommandLineArgumentType ArgumentType;
 
-    OptionData & helpData = availableCmdOptions[QStringLiteral("help")];
-    helpData.m_singleLetterKey = QChar::fromLatin1('h');
-    helpData.m_description = QStringLiteral("show help message");
-    helpData.m_type = ArgumentType::None;
+    OptionData & storageDirData =
+        availableCmdOptions[QStringLiteral("storageDir")];
 
-    OptionData & versionData = availableCmdOptions[QStringLiteral("version")];
-    versionData.m_singleLetterKey = QChar::fromLatin1('v');
-    versionData.m_description = QStringLiteral("show version info");
-    versionData.m_type = ArgumentType::None;
+    storageDirData.m_name =
+        QCoreApplication::translate("CommandLineParser", "storageDir");
 
-    OptionData & storageDirData = availableCmdOptions[QStringLiteral("storageDir")];
-    storageDirData.m_description =
-        QStringLiteral("set directory with the app's persistence");
+    storageDirData.m_description = QStringLiteral(
+        "set directory with the app's persistence");
+
     storageDirData.m_type = ArgumentType::String;
 
     OptionData & accountData = availableCmdOptions[QStringLiteral("account")];
+
+    accountData.m_name =
+        QCoreApplication::translate("CommandLineParser", "account_spec");
+
     accountData.m_description = QStringLiteral(
         "set the account to use by default:\n"
         "local_<Name>\n"
@@ -80,13 +82,10 @@ void parseCommandLine(
 {
     quentier::CommandLineParser cmdParser(argc, argv, availableCmdOptions);
 
-    result.m_shouldQuit = cmdParser.shouldQuit();
-
     if (cmdParser.hasError()) {
         result.m_errorDescription = cmdParser.errorDescription();
     }
     else {
-        result.m_responseMessage = cmdParser.responseMessage();
         result.m_cmdOptions = cmdParser.options();
     }
 }
@@ -120,6 +119,22 @@ LogLevel::type processLogLevelCommandLineOption(
     return LogLevel::InfoLevel;
 }
 
+void initializeAppVersion(QuentierApplication & app)
+{
+    QString appVersion =
+        quentierVersion() + QStringLiteral(", build info: ") +
+        quentierBuildInfo() + QStringLiteral("\nBuilt with Qt ") +
+        QStringLiteral(QT_VERSION_STR) + QStringLiteral(", uses Qt ") +
+        QString::fromUtf8(qVersion()) +
+        QStringLiteral("\nBuilt with libquentier: ") +
+        libquentierBuildTimeInfo() +
+        QStringLiteral("\nUses libquentier: ") +
+        libquentierRuntimeInfo() +
+        QStringLiteral("\n");
+
+    app.setApplicationVersion(appVersion);
+}
+
 bool initialize(
     QuentierApplication & app,
     const CommandLineParser::CommandLineOptions & cmdOptions)
@@ -131,11 +146,13 @@ bool initialize(
         return false;
     }
 
-    LogLevel::type logLevel = processLogLevelCommandLineOption(cmdOptions);
+    initializeAppVersion(app);
+
+    auto pLogLevel = processLogLevelCommandLineOption(cmdOptions);
 
     // Initialize logging
     QUENTIER_INITIALIZE_LOGGING();
-    QuentierSetMinLogLevel(logLevel);
+    QuentierSetMinLogLevel(pLogLevel ? *pLogLevel : LogLevel::Info);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
 
 #ifdef BUILDING_WITH_BREAKPAD
@@ -150,18 +167,24 @@ bool initialize(
     setupApplicationIcon(app);
     setupTranslations(app);
 
-    // Restore the last active min log level
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    if (appSettings.contains(CURRENT_MIN_LOG_LEVEL))
+    if (!pLogLevel)
     {
-        bool conversionResult = false;
-        int minLogLevel = appSettings.value(CURRENT_MIN_LOG_LEVEL)
-                          .toInt(&conversionResult);
-        if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6))
+        // Log level was not specified on the command line, restore the last
+        // active min log level
+        ApplicationSettings appSettings;
+        appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+        if (appSettings.contains(CURRENT_MIN_LOG_LEVEL))
         {
-            quentier::QuentierSetMinLogLevel(
-                static_cast<quentier::LogLevel::type>(minLogLevel));
+            bool conversionResult = false;
+
+            int minLogLevel = appSettings.value(
+                CURRENT_MIN_LOG_LEVEL).toInt(&conversionResult);
+
+            if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6))
+            {
+                quentier::QuentierSetMinLogLevel(
+                    static_cast<quentier::LogLevel>(minLogLevel));
+            }
         }
     }
 

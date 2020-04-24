@@ -44,38 +44,30 @@ public:
 
     struct CommandLineOptionData
     {
-        CommandLineOptionData() :
-            m_description(),
-            m_singleLetterKey(),
-            m_type(CommandLineArgumentType::None)
-        {}
-
+        QString m_name;
         QString m_description;
         QChar m_singleLetterKey;
         CommandLineArgumentType::type m_type;
     };
 
+    using Options = QHash<QString, QVariant>;
+
+public:
     explicit CommandLineParser(
         int argc, char * argv[],
         const QHash<QString, CommandLineOptionData> & availableCmdOptions);
 
-    QString responseMessage() const;
-    bool shouldQuit() const;
-
     bool hasError() const;
     ErrorString errorDescription() const;
 
-    typedef QHash<QString, QVariant> CommandLineOptions;
-    CommandLineOptions options() const;
+    Options options() const;
 
 private:
     Q_DISABLE_COPY(CommandLineParser)
 
 private:
-    QString             m_responseMessage;
-    bool                m_shouldQuit;
-    ErrorString         m_errorDescription;
-    CommandLineOptions  m_parsedArgs;
+    ErrorString     m_errorDescription;
+    Options         m_options;
 };
 
 } // namespace quentier
