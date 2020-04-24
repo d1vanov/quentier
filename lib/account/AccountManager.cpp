@@ -146,6 +146,10 @@ int AccountManager::execManageAccountsDialog()
                      this,
                      QNSLOT(AccountManager,onLocalAccountAdditionRequested,
                             QString,QString));
+    QObject::connect(pManageAccountsDialog.data(),
+                     QNSIGNAL(ManageAccountsDialog,revokeAuthentication,qevercloud::UserID),
+                     this,
+                     QNSIGNAL(AccountManager,revokeAuthentication,qevercloud::UserID));
     return pManageAccountsDialog->exec();
 }
 

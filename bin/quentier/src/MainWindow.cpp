@@ -1045,6 +1045,9 @@ void MainWindow::connectSynchronizationManager()
                      m_pSynchronizationManager,
                      QNSLOT(SynchronizationManager,authenticateCurrentAccount),
                      Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+    QObject::connect(this, QNSIGNAL(MainWindow,revokeAuthentication,qevercloud::UserID),
+                     m_pSynchronizationManager,
+                     QNSLOT(SynchronizationManager,revokeAuthentication,qevercloud::UserID));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronize),
                      m_pSynchronizationManager,
                      QNSLOT(SynchronizationManager,synchronize),
@@ -3385,6 +3388,12 @@ void MainWindow::onAccountManagerError(ErrorString errorDescription)
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
 }
 
+void MainWindow::onRevokeAuthentication(qevercloud::UserID userId)
+{
+    QNDEBUG("MainWindow::onRevokeAuthentication: user id = " << userId);
+    Q_EMIT revokeAuthentication(userId);
+}
+
 void MainWindow::onShowSidePanelActionToggled(bool checked)
 {
     QNDEBUG("MainWindow::onShowSidePanelActionToggled: checked = "
@@ -4390,6 +4399,10 @@ void MainWindow::setupAccountManager()
                      QNSIGNAL(AccountManager,notifyError,ErrorString),
                      this,
                      QNSLOT(MainWindow,onAccountManagerError,ErrorString));
+    QObject::connect(m_pAccountManager,
+                     QNSIGNAL(AccountManager,revokeAuthentication,qevercloud::UserID),
+                     this,
+                     QNSLOT(MainWindow,onRevokeAuthentication,qevercloud::UserID));
 }
 
 void MainWindow::setupLocalStorageManager()
