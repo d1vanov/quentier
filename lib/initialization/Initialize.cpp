@@ -50,10 +50,10 @@ void composeCommonAvailableCommandLineOptions(
     typedef CommandLineParser::CommandLineArgumentType ArgumentType;
 
     OptionData & storageDirData =
-        availableCmdOptions[QStringLiteral("storageDir")];
+        availableCmdOptions[QStringLiteral("storage-dir")];
 
     storageDirData.m_name =
-        QCoreApplication::translate("CommandLineParser", "storageDir");
+        QCoreApplication::translate("CommandLineParser", "storage dir");
 
     storageDirData.m_description = QStringLiteral(
         "set directory with the app's persistence");
@@ -63,7 +63,7 @@ void composeCommonAvailableCommandLineOptions(
     OptionData & accountData = availableCmdOptions[QStringLiteral("account")];
 
     accountData.m_name =
-        QCoreApplication::translate("CommandLineParser", "account_spec");
+        QCoreApplication::translate("CommandLineParser", "account spec");
 
     accountData.m_description = QStringLiteral(
         "set the account to use by default:\n"
