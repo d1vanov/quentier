@@ -24,6 +24,7 @@
 
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/utility/HumanReadableVersionInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -34,6 +35,7 @@
 #include <quentier/utility/VersionInfo.h>
 
 #include <QFileInfo>
+#include <QtGlobal>
 
 #ifdef BUILDING_WITH_BREAKPAD
 #include "breakpad/BreakpadIntegration.h"
@@ -47,18 +49,11 @@ void composeCommonAvailableCommandLineOptions(
     using OptionData = CommandLineParser::OptionData;
     using ArgumentType = CommandLineParser::ArgumentType;
 
-    OptionData & helpData = availableCmdOptions[QStringLiteral("help")];
-    helpData.m_singleLetterKey = QChar::fromLatin1('h');
-    helpData.m_description = QStringLiteral("show help message");
-    helpData.m_type = ArgumentType::None;
-
-    OptionData & versionData = availableCmdOptions[QStringLiteral("version")];
-    versionData.m_singleLetterKey = QChar::fromLatin1('v');
-    versionData.m_description = QStringLiteral("show version info");
-    versionData.m_type = ArgumentType::None;
-
     OptionData & storageDirData =
         availableCmdOptions[QStringLiteral("storageDir")];
+
+    storageDirData.m_name =
+        QCoreApplication::translate("CommandLineParser", "storageDir");
 
     storageDirData.m_description = QStringLiteral(
         "set directory with the app's persistence");
@@ -66,6 +61,9 @@ void composeCommonAvailableCommandLineOptions(
     storageDirData.m_type = ArgumentType::String;
 
     OptionData & accountData = availableCmdOptions[QStringLiteral("account")];
+
+    accountData.m_name =
+        QCoreApplication::translate("CommandLineParser", "account_spec");
 
     accountData.m_description = QStringLiteral(
         "set the account to use by default:\n"
@@ -85,13 +83,10 @@ void parseCommandLine(
 {
     quentier::CommandLineParser cmdParser(argc, argv, availableCmdOptions);
 
-    result.m_shouldQuit = cmdParser.shouldQuit();
-
     if (cmdParser.hasError()) {
         result.m_errorDescription = cmdParser.errorDescription();
     }
     else {
-        result.m_responseMessage = cmdParser.responseMessage();
         result.m_cmdOptions = cmdParser.options();
     }
 }
@@ -125,6 +120,22 @@ std::unique_ptr<LogLevel> processLogLevelCommandLineOption(
     return {};
 }
 
+void initializeAppVersion(QuentierApplication & app)
+{
+    QString appVersion =
+        quentierVersion() + QStringLiteral(", build info: ") +
+        quentierBuildInfo() + QStringLiteral("\nBuilt with Qt ") +
+        QStringLiteral(QT_VERSION_STR) + QStringLiteral(", uses Qt ") +
+        QString::fromUtf8(qVersion()) +
+        QStringLiteral("\nBuilt with libquentier: ") +
+        libquentierBuildTimeInfo() +
+        QStringLiteral("\nUses libquentier: ") +
+        libquentierRuntimeInfo() +
+        QStringLiteral("\n");
+
+    app.setApplicationVersion(appVersion);
+}
+
 bool initialize(
     QuentierApplication & app,
     const CommandLineParser::Options & cmdOptions)
@@ -135,6 +146,8 @@ bool initialize(
     if (!processStorageDirCommandLineOption(cmdOptions)) {
         return false;
     }
+
+    initializeAppVersion(app);
 
     auto pLogLevel = processLogLevelCommandLineOption(cmdOptions);
 

@@ -30,11 +30,8 @@ QT_FORWARD_DECLARE_CLASS(Account)
 
 struct ParseCommandLineResult
 {
-    bool            m_shouldQuit = false;
-    QString         m_responseMessage;
-    ErrorString     m_errorDescription;
-
-    CommandLineParser::Options   m_cmdOptions;
+    CommandLineParser::Options  m_cmdOptions;
+    ErrorString                 m_errorDescription;
 };
 
 /**

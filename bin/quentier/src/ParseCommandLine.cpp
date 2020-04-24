@@ -20,6 +20,7 @@
 
 #include <lib/initialization/Initialize.h>
 
+#include <QCoreApplication>
 #include <QHash>
 
 namespace quentier {
@@ -30,32 +31,39 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
     composeCommonAvailableCommandLineOptions(availableCmdOptions);
 
     auto & overrideSystemTrayAvailabilityData =
-        availableCmdOptions[QStringLiteral("overrideSystemTrayAvailability")];
+        availableCmdOptions[QStringLiteral("tray-available")];
+
+    overrideSystemTrayAvailabilityData.m_singleLetterKey =
+        QChar::fromLatin1('t');
 
     overrideSystemTrayAvailabilityData.m_type =
         CommandLineParser::ArgumentType::Bool;
 
-    overrideSystemTrayAvailabilityData.m_description = QStringLiteral(
-        "override the availability of the system tray\n"
-        "(0 - override to false,\n"
-        "any other value - override to true)");
+    overrideSystemTrayAvailabilityData.m_description =
+        QCoreApplication::translate(
+            "CommandLineParser",
+            "override the availability of the system tray");
 
     auto & startMinimizedToTrayData =
-        availableCmdOptions[QStringLiteral("startMinimizedToTray")];
+        availableCmdOptions[QStringLiteral("start-in-tray")];
 
-    startMinimizedToTrayData.m_description = QStringLiteral(
+    startMinimizedToTrayData.m_description = QCoreApplication::translate(
+        "CommandLineParser",
         "start Quentier minimized to system tray");
 
     auto & startMinimizedData =
-        availableCmdOptions[QStringLiteral("startMinimized")];
+        availableCmdOptions[QStringLiteral("start-minimized")];
 
-    startMinimizedData.m_description = QStringLiteral(
+    startMinimizedData.m_description = QCoreApplication::translate(
+        "CommandLineParser",
         "start Quentier with its main window minimized to the task bar");
 
     auto & logLevelData = availableCmdOptions[QStringLiteral("logLevel")];
     logLevelData.m_type = CommandLineParser::ArgumentType::String;
+    logLevelData.m_name = QStringLiteral("logLevel");
 
-    logLevelData.m_description = QStringLiteral(
+    logLevelData.m_description = QCoreApplication::translate(
+        "CommandLineParser",
         "start Quentier with specified log level: error, "
         "warning, info, debug or trace");
 
