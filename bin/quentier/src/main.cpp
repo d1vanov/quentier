@@ -54,6 +54,8 @@ int main(int argc, char * argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
+    initializeAppVersion(app);
+
     ParseCommandLineResult parseCmdResult;
     ParseCommandLine(argc, argv, parseCmdResult);
     if (!parseCmdResult.m_errorDescription.isEmpty()) {

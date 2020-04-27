@@ -65,8 +65,7 @@ CommandLineParser::CommandLineParser(
 
         QCommandLineOption opt(optionParts);
 
-        if ((data.m_type != ArgumentType::Bool) &&
-            (data.m_type != ArgumentType::None))
+        if (data.m_type != ArgumentType::None)
         {
             if (!data.m_name.isEmpty()) {
                 opt.setValueName(data.m_name);
@@ -118,7 +117,8 @@ CommandLineParser::CommandLineParser(
             value = value.toLower();
             if ( (value == QStringLiteral("yes")) ||
                  (value == QStringLiteral("true")) ||
-                 (value == QStringLiteral("on")) )
+                 (value == QStringLiteral("on")) ||
+                 (value == QStringLiteral("1")) )
             {
                 m_options[optionName] = true;
             }

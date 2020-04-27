@@ -89,6 +89,11 @@ bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::CommandLineOptions & options);
 
 /**
+ * Initializes version string for QuentierApplication instance
+ */
+void initializeAppVersion(QuentierApplication & app);
+
+/**
  * Initializes various things Quentier requires before actually launching the app,
  * including parsing of command line arguments
  *
