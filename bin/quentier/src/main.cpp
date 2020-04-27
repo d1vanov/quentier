@@ -87,6 +87,8 @@ int main(int argc, char * argv[])
 #endif // Qt 5.6.0
 #endif // Qt 5.14.0
 
+    initializeAppVersion(app);
+
     ParseCommandLineResult parseCmdResult;
     ParseCommandLine(argc, argv, parseCmdResult);
     if (!parseCmdResult.m_errorDescription.isEmpty()) {

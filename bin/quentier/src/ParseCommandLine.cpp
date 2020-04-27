@@ -31,13 +31,13 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
     composeCommonAvailableCommandLineOptions(availableCmdOptions);
 
     auto & overrideSystemTrayAvailabilityData =
-        availableCmdOptions[QStringLiteral("tray-available")];
-
-    overrideSystemTrayAvailabilityData.m_singleLetterKey =
-        QChar::fromLatin1('t');
+        availableCmdOptions[QStringLiteral("overrideSystemTrayAvailability")];
 
     overrideSystemTrayAvailabilityData.m_type =
         CommandLineParser::ArgumentType::Bool;
+
+    overrideSystemTrayAvailabilityData.m_name =
+        QStringLiteral("on/off");
 
     overrideSystemTrayAvailabilityData.m_description =
         QCoreApplication::translate(
@@ -45,14 +45,14 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
             "override the availability of the system tray");
 
     auto & startMinimizedToTrayData =
-        availableCmdOptions[QStringLiteral("start-in-tray")];
+        availableCmdOptions[QStringLiteral("startMinimizedToTray")];
 
     startMinimizedToTrayData.m_description = QCoreApplication::translate(
         "CommandLineParser",
         "start Quentier minimized to system tray");
 
     auto & startMinimizedData =
-        availableCmdOptions[QStringLiteral("start-minimized")];
+        availableCmdOptions[QStringLiteral("startMinimized")];
 
     startMinimizedData.m_description = QCoreApplication::translate(
         "CommandLineParser",

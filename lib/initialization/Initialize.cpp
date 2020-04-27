@@ -123,6 +123,7 @@ std::unique_ptr<LogLevel> processLogLevelCommandLineOption(
 void initializeAppVersion(QuentierApplication & app)
 {
     QString appVersion =
+        QStringLiteral("\n") +
         quentierVersion() + QStringLiteral(", build info: ") +
         quentierBuildInfo() + QStringLiteral("\nBuilt with Qt ") +
         QStringLiteral(QT_VERSION_STR) + QStringLiteral(", uses Qt ") +
@@ -146,8 +147,6 @@ bool initialize(
     if (!processStorageDirCommandLineOption(cmdOptions)) {
         return false;
     }
-
-    initializeAppVersion(app);
 
     auto pLogLevel = processLogLevelCommandLineOption(cmdOptions);
 
