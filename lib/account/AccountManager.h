@@ -89,6 +89,7 @@ Q_SIGNALS:
     void notifyError(ErrorString error);
     void accountAdded(Account account);
     void accountRemoved(Account account);
+    void revokeAuthentication(qevercloud::UserID userId);
 
 public Q_SLOTS:
     void switchAccount(const Account & account);

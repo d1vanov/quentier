@@ -161,6 +161,12 @@ int AccountManager::execManageAccountsDialog()
         this,
         &AccountManager::onLocalAccountAdditionRequested);
 
+    QObject::connect(
+        pManageAccountsDialog.get(),
+        &ManageAccountsDialog::revokeAuthentication,
+        this,
+        &AccountManager::revokeAuthentication);
+
     return pManageAccountsDialog->exec();
 }
 
