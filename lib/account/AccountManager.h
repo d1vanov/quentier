@@ -30,8 +30,6 @@
 
 QT_FORWARD_DECLARE_CLASS(QDebug)
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
-
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountModel)
