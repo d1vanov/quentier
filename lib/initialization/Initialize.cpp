@@ -353,20 +353,7 @@ bool processAccountCommandLineOption(
         return false;
     }
 
-    qputenv(ACCOUNT_NAME_ENV_VAR, accountName.toLocal8Bit());
-
-    qputenv(
-        ACCOUNT_TYPE_ENV_VAR,
-        (isLocal ? QByteArray("1") : QByteArray("0")));
-
-    qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(userId));
-
-    qputenv(
-        ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
-        QByteArray::number(static_cast<qint64>(evernoteAccountType)));
-
-    qputenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR, evernoteHost.toLocal8Bit());
-
+    accountManager.setStartupAccount(*pStartupAccount);
     return true;
 }
 

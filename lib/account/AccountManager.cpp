@@ -29,6 +29,7 @@
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
 
+#include <QDebug>
 #include <QXmlStreamWriter>
 
 #include <boost/scope_exit.hpp>
@@ -75,31 +76,151 @@ AccountModel & AccountManager::accountModel()
     return *m_pAccountModel;
 }
 
-Account AccountManager::currentAccount()
+void AccountManager::setStartupAccount(const Account & account)
+{
+    QNDEBUG("AccountManager::setStartupAccount: " << account);
+
+    qputenv(ACCOUNT_NAME_ENV_VAR, account.name().toLocal8Bit());
+
+    qputenv(
+        ACCOUNT_TYPE_ENV_VAR,
+        ((account.type() == Account::Type::Local)
+         ? QByteArray("1")
+         : QByteArray("0")));
+
+    qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(account.id()));
+
+    qputenv(
+        ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
+        QByteArray::number(static_cast<qint64>(account.evernoteAccountType())));
+
+    qputenv(
+        ACCOUNT_EVERNOTE_HOST_ENV_VAR,
+        account.evernoteHost().toLocal8Bit());
+}
+
+Account AccountManager::startupAccount()
+{
+    QNDEBUG("AccountManager::startupAccount");
+
+    if (qEnvironmentVariableIsEmpty(ACCOUNT_NAME_ENV_VAR)) {
+        QNDEBUG("Account name environment variable is not set or is empty");
+        return Account();
+    }
+
+    if (qEnvironmentVariableIsEmpty(ACCOUNT_TYPE_ENV_VAR)) {
+        QNDEBUG("Account type environment variable is not set or is empty");
+        return Account();
+    }
+
+    QByteArray accountType = qgetenv(ACCOUNT_TYPE_ENV_VAR);
+    bool isLocal = (accountType == QByteArray("1"));
+
+    if (!isLocal)
+    {
+        if (qEnvironmentVariableIsEmpty(ACCOUNT_ID_ENV_VAR)) {
+            QNDEBUG("Account id environment variable is not set or is empty");
+            return Account();
+        }
+
+        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR)) {
+            QNDEBUG("Evernote account type environment variable is not set or "
+                << "is empty");
+            return Account();
+        }
+
+        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_HOST_ENV_VAR)) {
+            QNDEBUG("Evernote host environment variable is not set or is empty");
+            return Account();
+        }
+    }
+
+    QString accountName = QString::fromLocal8Bit(qgetenv(ACCOUNT_NAME_ENV_VAR));
+    qevercloud::UserID id = -1;
+    QString evernoteHost;
+
+    Account::EvernoteAccountType evernoteAccountType =
+        Account::EvernoteAccountType::Free;
+
+    if (!isLocal)
+    {
+        bool conversionResult = false;
+
+        id = static_cast<qevercloud::UserID>(
+            qEnvironmentVariableIntValue(
+                ACCOUNT_ID_ENV_VAR,
+                &conversionResult));
+
+        if (!conversionResult) {
+            QNDEBUG("Could not convert the account id to integer");
+            return Account();
+        }
+
+        conversionResult = false;
+
+        evernoteAccountType = static_cast<Account::EvernoteAccountType>(
+            qEnvironmentVariableIntValue(
+                ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
+                &conversionResult));
+
+        if (!conversionResult) {
+            QNDEBUG("Could not convert the Evernote account type "
+                << "to integer");
+            return Account();
+        }
+
+        evernoteHost = QString::fromLocal8Bit(
+            qgetenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR));
+    }
+
+    return findAccount(
+        isLocal,
+        accountName,
+        id,
+        evernoteAccountType,
+        evernoteHost);
+}
+
+Account AccountManager::currentAccount(AccountSource * pAccountSource)
 {
     QNDEBUG("AccountManager::currentAccount");
 
-    Account account = accountFromEnvVarHints();
-    if (!account.isEmpty()) {
+    Account account = startupAccount();
+    if (!account.isEmpty())
+    {
+        if (pAccountSource) {
+            *pAccountSource = AccountSource::Startup;
+        }
+
         return account;
     }
 
     account = lastUsedAccount();
-    if (account.isEmpty())
+    if (!account.isEmpty())
     {
-        ErrorString errorDescription;
-        account = createDefaultAccount(errorDescription);
-        if (Q_UNLIKELY(account.isEmpty()))
-        {
-            ErrorString error(
-                QT_TR_NOOP("Can't initialize the default account"));
-            error.appendBase(errorDescription.base());
-            error.appendBase(errorDescription.additionalBases());
-            error.details() = errorDescription.details();
-            throw AccountInitializationException(error);
+        if (pAccountSource) {
+            *pAccountSource = AccountSource::LastUsed;
         }
 
-        updateLastUsedAccount(account);
+        return account;
+    }
+
+    ErrorString errorDescription;
+    account = createDefaultAccount(errorDescription);
+    if (Q_UNLIKELY(account.isEmpty()))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Can't initialize the default account"));
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
+        throw AccountInitializationException(error);
+    }
+
+    updateLastUsedAccount(account);
+
+    if (pAccountSource) {
+        *pAccountSource = AccountSource::NewDefault;
     }
 
     return account;
@@ -843,84 +964,6 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
     QNTRACE("Account after reading in the complementary info: " << account);
 }
 
-Account AccountManager::accountFromEnvVarHints()
-{
-    QNDEBUG("AccountManager::accountFromEnvVarHints");
-
-    if (qEnvironmentVariableIsEmpty(ACCOUNT_NAME_ENV_VAR)) {
-        QNDEBUG("Account name environment variable is not set or is empty");
-        return Account();
-    }
-
-    if (qEnvironmentVariableIsEmpty(ACCOUNT_TYPE_ENV_VAR)) {
-        QNDEBUG("Account type environment variable is not set or is empty");
-        return Account();
-    }
-
-    QByteArray accountType = qgetenv(ACCOUNT_TYPE_ENV_VAR);
-    bool isLocal = (accountType == QByteArray("1"));
-
-    if (!isLocal)
-    {
-        if (qEnvironmentVariableIsEmpty(ACCOUNT_ID_ENV_VAR)) {
-            QNDEBUG("Account id environment variable is not set or is empty");
-            return Account();
-        }
-
-        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR)) {
-            QNDEBUG("Evernote account type environment variable is not set or "
-                << "is empty");
-            return Account();
-        }
-
-        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_HOST_ENV_VAR)) {
-            QNDEBUG("Evernote host environment variable is not set or is empty");
-            return Account();
-        }
-    }
-
-    QString accountName = QString::fromLocal8Bit(qgetenv(ACCOUNT_NAME_ENV_VAR));
-
-    qevercloud::UserID id = -1;
-    Account::EvernoteAccountType evernoteAccountType =
-        Account::EvernoteAccountType::Free;
-    QString evernoteHost;
-
-    if (!isLocal)
-    {
-        bool conversionResult = false;
-        id = static_cast<qevercloud::UserID>(
-            qEnvironmentVariableIntValue(ACCOUNT_ID_ENV_VAR, &conversionResult));
-        if (!conversionResult) {
-            QNDEBUG("Could not convert the account id to integer");
-            return Account();
-        }
-
-        conversionResult = false;
-
-        evernoteAccountType = static_cast<Account::EvernoteAccountType>(
-            qEnvironmentVariableIntValue(
-                ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
-                &conversionResult));
-
-        if (!conversionResult) {
-            QNDEBUG("Could not convert the Evernote account type "
-                << "to integer");
-            return Account();
-        }
-
-        evernoteHost = QString::fromLocal8Bit(
-            qgetenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR));
-    }
-
-    return findAccount(
-        isLocal,
-        accountName,
-        id,
-        evernoteAccountType,
-        evernoteHost);
-}
-
 Account AccountManager::lastUsedAccount()
 {
     QNDEBUG("AccountManager::lastUsedAccount");
@@ -1067,6 +1110,31 @@ const QString
 AccountManager::AccountInitializationException::exceptionDisplayName() const
 {
     return QStringLiteral("AccountInitializationException");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+QDebug & operator<<(QDebug & dbg, const AccountManager::AccountSource source)
+{
+    using AccountSource = AccountManager::AccountSource;
+
+    switch(source)
+    {
+    case AccountSource::Startup:
+        dbg << "startup";
+        break;
+    case AccountSource::LastUsed:
+        dbg << "last used";
+        break;
+    case AccountSource::NewDefault:
+        dbg << "new default";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(source) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier
