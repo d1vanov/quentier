@@ -28,6 +28,8 @@
 #include <QDir>
 #include <QNetworkProxy>
 
+QT_FORWARD_DECLARE_CLASS(QDebug)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountModel)
@@ -54,18 +56,54 @@ public:
     AccountModel & accountModel();
 
     /**
+     * Sets the account which should be used on app's startup. This method is
+     * intended to be called in the early stages of the app's startup, when
+     * the account which needs to be used is found within command line arguments
+     * or from any other source but before the app has constructed its main
+     * widgets.
+     *
+     * The passed in account's description is stored in the environment
+     * variables so that even another instance of AccountManager can retrieve
+     * the previously stored startup account in startupAccount method.
+     */
+    void setStartupAccount(const Account & account);
+
+    /**
+     * Provides the account which should be used on app's startup. If no account
+     * was previously specified via setStartupAccount method, the result is the
+     * same as from calling currentAccount
+     */
+    Account startupAccount();
+
+    /**
      * Tries to restore the last used account from the app settings
      *
-     * @return              Non-empty account in case of success, empty one
-     *                      otherwise
+     * @return                  Non-empty account in case of success, empty one
+     *                          otherwise
      */
     Account lastUsedAccount();
 
     /**
+     * @brief The AccountSource enum describes the source of account returned
+     * from currentAccount method
+     */
+    enum class AccountSource
+    {
+        Startup = 0,
+        LastUsed,
+        NewDefault
+    };
+
+    friend QDebug & operator<<(QDebug & dbg, const AccountSource source);
+
+    /**
      * Attempts to retrieve the last used account from the app settings, in case
      * of failure creates and returns the default local account
+     *
+     * @param pAccountSource    If not nullptr, after the call *pAccountSource
+     *                          would contain the source of the returned account
      */
-    Account currentAccount();
+    Account currentAccount(AccountSource * pAccountSource = nullptr);
 
     int execAddAccountDialog();
     int execManageAccountsDialog();
