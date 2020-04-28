@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
     if (!parseCmdResult.m_errorDescription.isEmpty()) {
         std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
-                        .toLocal8Bit().constData();
+            .toLocal8Bit().constData();
         return 1;
     }
 
