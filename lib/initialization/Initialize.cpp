@@ -50,7 +50,7 @@ void composeCommonAvailableCommandLineOptions(
     using ArgumentType = CommandLineParser::ArgumentType;
 
     OptionData & storageDirData =
-        availableCmdOptions[QStringLiteral("storage-dir")];
+        availableCmdOptions[QStringLiteral("storageDir")];
 
     storageDirData.m_name =
         QCoreApplication::translate("CommandLineParser", "storage dir");
