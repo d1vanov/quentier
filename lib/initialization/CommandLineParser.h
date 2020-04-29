@@ -45,30 +45,28 @@ public:
 
     struct OptionData
     {
+        QString m_name;
         QString m_description;
         QChar m_singleLetterKey;
         ArgumentType m_type = ArgumentType::None;
     };
 
+    using Options = QHash<QString, QVariant>;
+
+public:
     explicit CommandLineParser(
         int argc, char * argv[],
         const QHash<QString, OptionData> & availableCmdOptions);
 
-    QString responseMessage() const;
-    bool shouldQuit() const;
-
     bool hasError() const;
     ErrorString errorDescription() const;
 
-    using Options = QHash<QString, QVariant>;
     Options options() const;
 
 private:
     Q_DISABLE_COPY(CommandLineParser)
 
 private:
-    QString         m_responseMessage;
-    bool            m_shouldQuit = false;
     ErrorString     m_errorDescription;
     Options         m_options;
 };
