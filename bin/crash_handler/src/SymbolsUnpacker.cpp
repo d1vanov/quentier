@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,6 +21,7 @@
 
 #include <VersionInfo.h>
 
+#include <quentier/utility/VersionInfo.h>
 #include <quentier/utility/Utility.h>
 
 #include <QFileInfo>
@@ -28,6 +29,7 @@
 #include <QTemporaryFile>
 #include <QDir>
 #include <QRegExp>
+
 #include <iostream>
 #include <fstream>
 #include <cstring>
@@ -227,17 +229,32 @@ void SymbolsUnpacker::run()
         return;
     }
 
+#ifdef Q_OS_LINUX
+    if (symbolsSourceName == QStringLiteral("quentier"))
+    {
+        symbolsSourceName += QStringLiteral("-");
+        symbolsSourceName += QString::fromUtf8(QUENTIER_MAJOR_VERSION);
+        symbolsSourceName += QStringLiteral(".");
+        symbolsSourceName += QString::fromUtf8(QUENTIER_MINOR_VERSION);
+        symbolsSourceName += QStringLiteral(".");
+        symbolsSourceName += QString::fromUtf8(QUENTIER_PATCH_VERSION);
+    }
+#endif
+
 #if defined(_MSC_VER)
     symbolsSourceName += QStringLiteral(".pdb");
 #else
-    if (symbolsSourceName.contains(QStringLiteral("lib"))) {
-        symbolsSourceName = QString::fromUtf8(QUENTIER_LIBQUENTIER_BINARY_NAME);
-    }
-    else if (QUENTIER_PACKAGED_AS_APP_IMAGE) {
-        // NOTE: when AppImage-packaged quentier crashes, the symbols id of
-        // the executable is composed of all-zeros, presumably due to crashed
-        // binary being AppRun, the tiny file
-        symbolsId = QStringLiteral("000000000000000000000000000000000");
+    if (symbolsSourceName.contains(QStringLiteral("libquentier")) ||
+        symbolsSourceName.contains(QStringLiteral("libqt5quentier")))
+    {
+        if (QUENTIER_PACKAGED_AS_APP_IMAGE) {
+            symbolsSourceName = QStringLiteral("libqt5quentier.so.");
+            symbolsSourceName += QString::number(LIB_QUENTIER_VERSION_MAJOR);
+        }
+        else {
+            symbolsSourceName =
+                QString::fromUtf8(QUENTIER_LIBQUENTIER_BINARY_NAME);
+        }
     }
 #endif
 
