@@ -1878,7 +1878,14 @@ void MainWindow::onSynchronizationStopped()
 {
     QNINFO("MainWindow::onSynchronizationStopped");
 
-    onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
+    if (m_syncInProgress) {
+        m_syncInProgress = false;
+        onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
+        scheduleSyncButtonAnimationStop();
+        setupRunSyncPeriodicallyTimer();
+    }
+    // Otherwise sync was stopped after SynchronizationManager failure
+
     m_syncApiRateLimitExceeded = false;
 
     m_syncInProgress = false;
@@ -1888,7 +1895,14 @@ void MainWindow::onSynchronizationStopped()
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNERROR("MainWindow::onSynchronizationManagerFailure: " << errorDescription);
+
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
+
+    m_syncInProgress = false;
+    scheduleSyncButtonAnimationStop();
+
+    setupRunSyncPeriodicallyTimer();
+
     Q_EMIT stopSynchronization();
 }
 
