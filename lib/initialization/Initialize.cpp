@@ -306,7 +306,6 @@ bool processAccountCommandLineOption(
     }
 
     bool foundAccount = false;
-    auto evernoteAccountType = Account::EvernoteAccountType::Free;
 
     AccountManager accountManager;
     const auto & availableAccounts = accountManager.availableAccounts();
@@ -333,9 +332,6 @@ bool processAccountCommandLineOption(
 
         pStartupAccount.reset(new Account(availableAccount));
         foundAccount = true;
-        if (!isLocal) {
-            evernoteAccountType = availableAccount.evernoteAccountType();
-        }
         break;
     }
 
