@@ -23,10 +23,11 @@
 #include <lib/model/NotebookCache.h>
 #include <lib/model/TagCache.h>
 
-#include <quentier/types/Account.h>
-#include <quentier/utility/LRUCache.hpp>
-#include <quentier/types/Note.h>
 #include <quentier/local_storage/LocalStorageManager.h>
+#include <quentier/types/Account.h>
+#include <quentier/types/Note.h>
+#include <quentier/utility/LRUCache.hpp>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QTabWidget>
 #include <QSet>
@@ -35,8 +36,13 @@
 #include <QPointer>
 #include <QUuid>
 
+SAVE_WARNINGS
+GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+
 #include <boost/circular_buffer.hpp>
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
 QT_FORWARD_DECLARE_CLASS(QThread)

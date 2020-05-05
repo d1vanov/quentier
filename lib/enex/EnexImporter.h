@@ -19,17 +19,23 @@
 #ifndef QUENTIER_LIB_ENEX_ENEX_IMPORTER_H
 #define QUENTIER_LIB_ENEX_ENEX_IMPORTER_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/Tag.h>
 #include <quentier/types/Notebook.h>
+#include <quentier/types/Tag.h>
+#include <quentier/utility/Macros.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QObject>
 #include <QUuid>
 #include <QHash>
 
+SAVE_WARNINGS
+GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 namespace quentier {
 

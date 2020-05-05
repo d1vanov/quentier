@@ -25,13 +25,21 @@
 
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
+#include <quentier/utility/SuppressWarnings.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QDebug>
 #include <QXmlStreamWriter>
 
+SAVE_WARNINGS
+GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+
 #include <boost/scope_exit.hpp>
+
+RESTORE_WARNINGS
+
+#include <memory>
 
 namespace quentier {
 
