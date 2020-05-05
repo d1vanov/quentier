@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,7 +26,7 @@
 namespace quentier {
 
 bool processNoteOptions(
-    const CommandLineParser::CommandLineOptions & options, quint32 & numNotes)
+    const CommandLineParser::Options & options, quint32 & numNotes)
 {
     auto numNotesIt = options.find(QStringLiteral("num-notes"));
     if (numNotesIt != options.end())

@@ -111,12 +111,11 @@ public:
     /**
      * Attempts to create a new local account
      *
-     * @param name                          If specified, name to be used for
-     *                                      the new account; if name is not set,
-     *                                      it would be chosen automatically
-     * @return                              Either non-empty Account object if
-     *                                      creation was successful or empty
-     *                                      Account object otherwise
+     * @param name              If specified, name to be used for the new
+     *                          account; if name is not set, it would be chosen
+     *                          automatically
+     * @return                  Either non-empty Account object if creation was
+     *                          successful or empty Account object otherwise
      */
     Account createNewLocalAccount(QString name = QString());
 

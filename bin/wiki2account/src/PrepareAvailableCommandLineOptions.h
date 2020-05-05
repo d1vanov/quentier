@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 namespace quentier {
 
 void prepareAvailableCommandLineOptions(
-    QHash<QString,CommandLineParser::CommandLineOptionData> & options);
+    QHash<QString,CommandLineParser::OptionData> & options);
 
 } // namespace quentier
 

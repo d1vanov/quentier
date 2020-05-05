@@ -54,18 +54,14 @@ int main(int argc, char * argv[])
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
 
+    initializeAppVersion(app);
+
     ParseCommandLineResult parseCmdResult;
     ParseCommandLine(argc, argv, parseCmdResult);
-    if (parseCmdResult.m_shouldQuit)
-    {
-        if (!parseCmdResult.m_errorDescription.isEmpty()) {
-            std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
-                         .toLocal8Bit().constData();
-            return 1;
-        }
-
-        std::cout << parseCmdResult.m_responseMessage.toLocal8Bit().constData();
-        return 0;
+    if (!parseCmdResult.m_errorDescription.isEmpty()) {
+        std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
+            .toLocal8Bit().constData();
+        return 1;
     }
 
     bool res = initialize(app, parseCmdResult.m_cmdOptions);

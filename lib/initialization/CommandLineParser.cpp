@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,169 +20,157 @@
 
 #include <lib/utility/HumanReadableVersionInfo.h>
 
+#include <QCommandLineParser>
+#include <QDebug>
 #include <QtGlobal>
 
-#include <string>
 #include <sstream>
-
-#include <boost/program_options.hpp>
-
-// Overloaded function required in order to use boost::program_options along
-// with QString
-void validate(boost::any & value, const std::vector<std::string> & values,
-              QString *, int)
-{
-    using namespace boost::program_options;
-
-    // Make sure no previous assignment to 'value' was made.
-    validators::check_first_occurrence(value);
-
-    // Extract the first string from 'values'. If there is more than
-    // one string, it's an error, and exception will be thrown.
-    const std::string & str = validators::get_single_string(values);
-
-    value = boost::any(QString::fromLocal8Bit(str.c_str()));
-}
+#include <string>
 
 namespace quentier {
 
 CommandLineParser::CommandLineParser(
-        int argc, char * argv[],
-        const QHash<QString,CommandLineOptionData> & availableCmdOptions) :
-    m_responseMessage(),
-    m_shouldQuit(false),
-    m_errorDescription(),
-    m_parsedArgs()
+    int argc, char * argv[],
+    const QHash<QString,OptionData> & availableCmdOptions)
 {
     if (argc < 2) {
         return;
     }
 
-    namespace po = boost::program_options;
+    QCommandLineParser parser;
 
-    try
+    parser.setApplicationDescription(QCoreApplication::translate(
+        "CommandLineParser",
+        "Cross-platform desktop Evernote client"));
+
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    for(auto it = availableCmdOptions.constBegin(),
+        end = availableCmdOptions.constEnd(); it != end; ++it)
     {
-        po::options_description desc("Allowed options");
+        const QString & option = it.key();
+        const OptionData & data = it.value();
 
-        for(auto it = availableCmdOptions.constBegin(),
-            end = availableCmdOptions.constEnd(); it != end; ++it)
-        {
-            const QString & option = it.key();
-            const CommandLineOptionData & data = it.value();
-
-            QString key = option;
-            if (!data.m_singleLetterKey.isNull()) {
-                key += QStringLiteral(",");
-                key += data.m_singleLetterKey;
-            }
-
-            QByteArray keyData = key.toLocal8Bit();
-            QByteArray descData = data.m_description.toLocal8Bit();
-
-            switch(data.m_type)
-            {
-            case CommandLineArgumentType::String:
-                desc.add_options()
-                    (keyData.constData(),
-                     po::value<QString>(),
-                     descData.constData());
-                break;
-            case CommandLineArgumentType::Bool:
-                desc.add_options()
-                    (keyData.constData(),
-                     po::value<bool>(),
-                     descData.constData());
-                break;
-            case CommandLineArgumentType::Int:
-                desc.add_options()
-                    (keyData.constData(),
-                     po::value<qint64>(),
-                     descData.constData());
-                break;
-            case CommandLineArgumentType::Double:
-                desc.add_options()
-                    (keyData.constData(),
-                     po::value<double>(),
-                     descData.constData());
-                break;
-            default:
-                desc.add_options()
-                    (keyData.constData(), descData.constData());
-                break;
-            }
+        QStringList optionParts;
+        if (!data.m_singleLetterKey.isNull()) {
+            optionParts << data.m_singleLetterKey;
         }
 
-        po::variables_map varsMap;
-        po::store(po::parse_command_line(argc, argv, desc), varsMap);
-        po::notify(varsMap);
+        optionParts << option;
 
-        if (varsMap.count("help")) {
-            std::stringstream sstrm;
-            desc.print(sstrm);
-            m_responseMessage = QString::fromLocal8Bit(sstrm.str().c_str());
-            m_shouldQuit = true;
-            return;
-        }
+        QCommandLineOption opt(optionParts);
 
-        if (varsMap.count("version"))
+        if (data.m_type != ArgumentType::None)
         {
-            m_responseMessage =
-                quentierVersion() + QStringLiteral(", build info: ") +
-                quentierBuildInfo() + QStringLiteral("\nBuilt with Qt ") +
-                QStringLiteral(QT_VERSION_STR) + QStringLiteral(", uses Qt ") +
-                QString::fromUtf8(qVersion()) +
-                QStringLiteral("\nBuilt with libquentier: ") +
-                libquentierBuildTimeInfo() +
-                QStringLiteral("\nUses libquentier: ") +
-                libquentierRuntimeInfo() +
-                QStringLiteral("\n");
-            m_shouldQuit = true;
-            return;
-        }
-
-        for(auto it = varsMap.begin(), end = varsMap.end(); it != end; ++it)
-        {
-            if ( (it->first == "help") ||
-                 (it->first == "version") )
-            {
-                continue;
-            }
-
-            const auto & value = it->second.value();
-            const std::type_info & valueType = value.type();
-            QString key = QString::fromLocal8Bit(it->first.c_str());
-
-            if (valueType == typeid(QString)) {
-                m_parsedArgs[key] = QVariant(boost::any_cast<QString>(value));
-            }
-            else if (valueType == typeid(int)) {
-                m_parsedArgs[key] = QVariant(boost::any_cast<int>(value));
-            }
-            else if (valueType == typeid(bool)) {
-                m_parsedArgs[key] = QVariant(boost::any_cast<bool>(value));
+            if (!data.m_name.isEmpty()) {
+                opt.setValueName(data.m_name);
             }
             else {
-                m_parsedArgs[key] = QVariant();
+                opt.setValueName(QStringLiteral("arg"));
             }
         }
+
+        if (!data.m_description.isEmpty()) {
+            opt.setDescription(data.m_description);
+        }
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 3)
+        else {
+            // Workaround for https://bugreports.qt.io/browse/QTBUG-70174
+            opt.setDescription(QStringLiteral("\n"));
+        }
+#endif
+
+        parser.addOption(opt);
     }
-    catch(const po::error & error)
+
+    QStringList arguments;
+    arguments.reserve(argc);
+    for(int i = 0; i < argc; ++i) {
+        arguments << QString::fromLocal8Bit(argv[i]);
+    }
+
+    parser.process(arguments);
+
+    QStringList optionNames = parser.optionNames();
+    for(const auto & optionName: qAsConst(optionNames))
     {
-        m_errorDescription.setBase(
-            QT_TRANSLATE_NOOP("CommandLineParser",
-                              "Error parsing the command line arguments"));
-        m_errorDescription.details() = QString::fromLocal8Bit(error.what());
+        auto it = availableCmdOptions.find(optionName);
+        if (Q_UNLIKELY(it == availableCmdOptions.end())) {
+            continue;
+        }
+
+        const auto & optionData = it.value();
+        QString value = parser.value(optionName);
+
+        switch(optionData.m_type)
+        {
+        case ArgumentType::String:
+            m_options[optionName] = value;
+            break;
+        case ArgumentType::Bool:
+        {
+            value = value.toLower();
+            if ( (value == QStringLiteral("yes")) ||
+                 (value == QStringLiteral("true")) ||
+                 (value == QStringLiteral("on")) ||
+                 (value == QStringLiteral("1")) )
+            {
+                m_options[optionName] = true;
+            }
+            else
+            {
+                m_options[optionName] = false;
+            }
+            break;
+        }
+        case ArgumentType::Int:
+        {
+            bool conversionResult = false;
+            int valueInt = value.toInt(&conversionResult);
+            if (!conversionResult)
+            {
+                m_errorDescription.setBase(QCoreApplication::translate(
+                    "CommandLineParser",
+                    "Failed to convert option value to int"));
+                m_errorDescription.details() = optionName;
+                m_errorDescription.details() += QStringLiteral("=");
+                m_errorDescription.details() += value;
+            }
+            else
+            {
+                m_options[optionName] = valueInt;
+            }
+            break;
+        }
+        case ArgumentType::Double:
+        {
+            bool conversionResult = false;
+            double valueDouble = value.toDouble(&conversionResult);
+            if (!conversionResult)
+            {
+                m_errorDescription.setBase(QCoreApplication::translate(
+                    "CommandLineParser",
+                    "Failed to convert option value to double"));
+                m_errorDescription.details() = optionName;
+                m_errorDescription.details() += QStringLiteral("=");
+                m_errorDescription.details() += value;
+            }
+            else
+            {
+                m_options[optionName] = valueDouble;
+            }
+            break;
+        }
+        default:
+            m_options[optionName] = QVariant();
+            break;
+        }
+
+        if (hasError()) {
+            break;
+        }
     }
-}
-
-QString CommandLineParser::responseMessage() const
-{
-    return m_responseMessage;
-}
-
-bool CommandLineParser::shouldQuit() const
-{
-    return m_shouldQuit;
 }
 
 bool CommandLineParser::hasError() const
@@ -195,9 +183,40 @@ ErrorString CommandLineParser::errorDescription() const
     return m_errorDescription;
 }
 
-CommandLineParser::CommandLineOptions CommandLineParser::options() const
+CommandLineParser::Options CommandLineParser::options() const
 {
-    return m_parsedArgs;
+    return m_options;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+QDebug & operator<<(QDebug & dbg, const CommandLineParser::ArgumentType type)
+{
+    using ArgumentType = CommandLineParser::ArgumentType;
+
+    switch(type)
+    {
+    case ArgumentType::None:
+        dbg << "None";
+        break;
+    case ArgumentType::String:
+        dbg << "String";
+        break;
+    case ArgumentType::Bool:
+        dbg << "Bool";
+        break;
+    case ArgumentType::Int:
+        dbg << "Int";
+        break;
+    case ArgumentType::Double:
+        dbg << "Double";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

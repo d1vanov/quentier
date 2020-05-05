@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,6 +22,7 @@
 #include <lib/initialization/Initialize.h>
 
 #include <iostream>
+#include <memory>
 
 namespace quentier {
 
@@ -54,14 +55,14 @@ Account createNewLocalAccount(
 
 
 Account processStartupAccount(
-    const CommandLineParser::CommandLineOptions & options)
+    const CommandLineParser::Options & options)
 {
-    QScopedPointer<Account> pAccount;
+    std::unique_ptr<Account> pAccount;
     if (!processAccountCommandLineOption(options, pAccount)) {
         return Account();
     }
 
-    if (!pAccount.isNull()) {
+    if (pAccount) {
         return *pAccount;
     }
 

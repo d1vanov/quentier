@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -52,21 +52,15 @@ int main(int argc, char *argv[])
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2account"));
 
-    QHash<QString,CommandLineParser::CommandLineOptionData> availableCmdOptions;
+    QHash<QString,CommandLineParser::OptionData> availableCmdOptions;
     prepareAvailableCommandLineOptions(availableCmdOptions);
 
     ParseCommandLineResult parseCmdResult;
     parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
-    if (parseCmdResult.m_shouldQuit)
-    {
-        if (!parseCmdResult.m_errorDescription.isEmpty()) {
-            std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
-                         .toLocal8Bit().constData();
-            return 1;
-        }
-
-        std::cout << parseCmdResult.m_responseMessage.toLocal8Bit().constData();
-        return 0;
+    if (!parseCmdResult.m_errorDescription.isEmpty()) {
+        std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
+            .toLocal8Bit().constData();
+        return 1;
     }
 
     auto storageDirIt = parseCmdResult.m_cmdOptions.find(QStringLiteral("storageDir"));
