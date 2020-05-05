@@ -32,11 +32,15 @@
 #include <quentier/types/SavedSearch.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/LRUCache.hpp>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
 #include <QHash>
+
+SAVE_WARNINGS
+GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -44,6 +48,8 @@
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 namespace quentier {
 

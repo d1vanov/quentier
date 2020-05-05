@@ -21,13 +21,19 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/StringUtils.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QWidget>
 #include <QPointer>
 #include <QHash>
 #include <QSet>
 
+SAVE_WARNINGS
+GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 QT_FORWARD_DECLARE_CLASS(FlowLayout)
 

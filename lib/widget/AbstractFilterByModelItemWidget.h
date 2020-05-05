@@ -21,11 +21,17 @@
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QWidget>
 #include <QPointer>
 
+SAVE_WARNINGS
+GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 QT_FORWARD_DECLARE_CLASS(FlowLayout)
 

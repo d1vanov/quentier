@@ -28,6 +28,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/LRUCache.hpp>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QAbstractItemModel>
 #include <QUuid>
@@ -35,10 +36,15 @@
 #include <QHash>
 #include <QStringList>
 
+SAVE_WARNINGS
+GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 #define TAG_MODEL_MIME_TYPE                                                    \
     QStringLiteral("application/x-com.quentier.tagmodeldatalist")              \
