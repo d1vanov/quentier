@@ -15,8 +15,7 @@ set(HEADERS
     QObjectThreadMover.h
     QObjectThreadMover_p.h
     RestartApp.h
-    StartAtLogin.h
-    SuppressWarningsMacro.h)
+    StartAtLogin.h)
 
 set(SOURCES
     ActionsInfo.cpp

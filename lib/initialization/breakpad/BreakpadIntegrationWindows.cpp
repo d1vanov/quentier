@@ -18,13 +18,22 @@
 
 #include "BreakpadIntegration.h"
 
-#include <lib/utility/SuppressWarningsMacro.h>
+#include <quentier/utility/SuppressWarnings.h>
 
-SUPPRESS_WARNINGS
+SAVE_WARNINGS
+
+CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
+CLANG_SUPPRESS_WARNING(-Wsign-conversion)
+GCC_SUPPRESS_WARNING(-Wconversion)
+MSVC_SUPPRESS_WARNING(4365)
+MSVC_SUPPRESS_WARNING(4244)
+MSVC_SUPPRESS_WARNING(4305)
+
 #include <client/windows/handler/exception_handler.h>
 #include <client/windows/crash_generation/minidump_generator.h>
 #include <client/windows/crash_generation/client_info.h>
 #include <client/windows/crash_generation/crash_generation_client.h>
+
 RESTORE_WARNINGS
 
 #include <QByteArray>

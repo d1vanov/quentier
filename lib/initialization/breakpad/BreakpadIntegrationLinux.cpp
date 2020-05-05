@@ -18,10 +18,19 @@
 
 #include "BreakpadIntegration.h"
 
-#include <lib/utility/SuppressWarningsMacro.h>
+#include <quentier/utility/SuppressWarnings.h>
 
-SUPPRESS_WARNINGS
+SAVE_WARNINGS
+
+CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
+CLANG_SUPPRESS_WARNING(-Wsign-conversion)
+GCC_SUPPRESS_WARNING(-Wconversion)
+MSVC_SUPPRESS_WARNING(4365)
+MSVC_SUPPRESS_WARNING(4244)
+MSVC_SUPPRESS_WARNING(4305)
+
 #include <client/linux/handler/exception_handler.h>
+
 RESTORE_WARNINGS
 
 #include <QGlobalStatic>
