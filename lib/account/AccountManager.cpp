@@ -144,9 +144,7 @@ Account AccountManager::startupAccount()
     QString accountName = QString::fromLocal8Bit(qgetenv(ACCOUNT_NAME_ENV_VAR));
     qevercloud::UserID id = -1;
     QString evernoteHost;
-
-    Account::EvernoteAccountType evernoteAccountType =
-        Account::EvernoteAccountType::Free;
+    auto evernoteAccountType = Account::EvernoteAccountType::Free;
 
     if (!isLocal)
     {
