@@ -111,7 +111,7 @@ Q_SIGNALS:
 
     void authenticate();
     void authenticateCurrentAccount();
-    void revokeAuthentication(qevercloud::UserID userId);
+
     void noteInfoDialogRequested(QString noteLocalUid);
     void synchronize();
     void stopSynchronization();
@@ -174,9 +174,6 @@ private Q_SLOTS:
     void onAuthenticationFinished(
         bool success, ErrorString errorDescription, Account account);
 
-    void onAuthenticationRevoked(
-        bool success, ErrorString errorDescription, qevercloud::UserID userId);
-
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone(bool somethingDownloaded);
 
@@ -213,7 +210,6 @@ private Q_SLOTS:
     void onAccountAdded(Account account);
     void onAccountRemoved(Account account);
     void onAccountManagerError(ErrorString errorDescription);
-    void onRevokeAuthentication(qevercloud::UserID userId);
 
     // Toggle view slots
     void onShowSidePanelActionToggled(bool checked);

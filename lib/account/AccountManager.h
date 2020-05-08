@@ -128,10 +128,18 @@ Q_SIGNALS:
     void notifyError(ErrorString error);
     void accountAdded(Account account);
     void accountRemoved(Account account);
-    void revokeAuthentication(qevercloud::UserID userId);
+
+    void revokeAuthenticationRequested(qevercloud::UserID userId);
+
+// private signals
+    void authenticationRevoked(
+        bool success, ErrorString errorDescription, qevercloud::UserID userId);
 
 public Q_SLOTS:
     void switchAccount(const Account & account);
+
+    void onAuthenticationRevoked(
+        bool success, ErrorString errorDescription, qevercloud::UserID userId);
 
 private Q_SLOTS:
     void onLocalAccountAdditionRequested(QString name, QString fullName);

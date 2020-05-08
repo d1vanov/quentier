@@ -290,7 +290,13 @@ int AccountManager::execManageAccountsDialog()
         pManageAccountsDialog.get(),
         &ManageAccountsDialog::revokeAuthentication,
         this,
-        &AccountManager::revokeAuthentication);
+        &AccountManager::revokeAuthenticationRequested);
+
+    QObject::connect(
+        this,
+        &AccountManager::authenticationRevoked,
+        pManageAccountsDialog.get(),
+        &ManageAccountsDialog::onAuthenticationRevoked);
 
     return pManageAccountsDialog->exec();
 }
@@ -406,6 +412,16 @@ void AccountManager::switchAccount(const Account & account)
 
     updateLastUsedAccount(complementedAccount);
     Q_EMIT switchedAccount(complementedAccount);
+}
+
+void AccountManager::onAuthenticationRevoked(
+    bool success, ErrorString errorDescription, qevercloud::UserID userId)
+{
+    QNDEBUG("AccountManager::onAuthenticationRevoked: success = "
+        << (success ? "true" : "false") << ", error description = "
+        << errorDescription << ", user id = " << userId);
+
+    Q_EMIT authenticationRevoked(success, errorDescription, userId);
 }
 
 void AccountManager::onLocalAccountAdditionRequested(
