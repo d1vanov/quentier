@@ -325,11 +325,16 @@ Q_SIGNALS:
         const QString & userId, const QString & shardId,
         const QString & noteGuid, const QString & linkText);
 
-public Q_SLOTS:
+public:
+    virtual void dragEnterEvent(QDragEnterEvent * pEvent) override;
+    virtual void dragMoveEvent(QDragMoveEvent * pEvent) override;
+    virtual void dropEvent(QDropEvent * pEvent) override;
+
     virtual void closeEvent(QCloseEvent * pEvent) override;
 
     virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
 
+public Q_SLOTS:
     // Slots for toolbar button actions or external actions
     void onEditorTextBoldToggled();
     void onEditorTextItalicToggled();
