@@ -558,7 +558,7 @@ private:
     void removeItemByLocalUid(const QString & localUid);
     void notebookToItem(const Notebook & notebook, NotebookItem & item);
 
-    void removeModelItemFromParent(const INotebookModelItem & modelItem);
+    void removeModelItemFromParent(INotebookModelItem & modelItem);
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
@@ -582,7 +582,7 @@ private:
     void switchDefaultNotebookLocalUid(const QString & localUid);
     void switchLastUsedNotebookLocalUid(const QString & localUid);
 
-    void checkAndRemoveEmptyStackItem(const INotebookModelItem & modelItem);
+    void checkAndRemoveEmptyStackItem(INotebookModelItem & modelItem);
 
     void setNotebookFavorited(const QModelIndex & index, const bool favorited);
 
@@ -742,7 +742,7 @@ private:
 
     ModelItems::iterator addNewStackModelItem(
         const NotebookStackItem & stackItem,
-        const INotebookModelItem & parentItem,
+        INotebookModelItem & parentItem,
         ModelItems & modelItemsByStack);
 
 private:

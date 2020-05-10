@@ -133,7 +133,7 @@ QDebug & operator<<(QDebug & dbg, const INotebookModelItem::Type type)
 
 QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item)
 {
-    qint32 type = static_cast<quint32>(item.type());
+    qint32 type = static_cast<qint32>(item.type());
     out << type;
 
     qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.m_pParent);
