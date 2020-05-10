@@ -29,7 +29,13 @@ set(HEADERS
     FavoritesModelItem.h
     LogViewerModel.h
     LogViewerModelFileReaderAsync.h
-    LogViewerModelLogFileParser.h)
+    LogViewerModelLogFileParser.h
+    notebook/AllNotebooksRootItem.h
+    notebook/INotebookModelItem.h
+    notebook/InvisibleRootItem.h
+    notebook/NotebookItem.h
+    notebook/NotebookLinkedNotebookRootItem.h
+    notebook/NotebookStackItem.h)
 
 set(SOURCES
     ColumnChangeRerouter.cpp
@@ -51,7 +57,11 @@ set(SOURCES
     FavoritesModelItem.cpp
     LogViewerModel.cpp
     LogViewerModelFileReaderAsync.cpp
-    LogViewerModelLogFileParser.cpp)
+    LogViewerModelLogFileParser.cpp
+    notebook/INotebookModelItem.cpp
+    notebook/NotebookItem.cpp
+    notebook/NotebookLinkedNotebookRootItem.cpp
+    notebook/NotebookStackItem.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
