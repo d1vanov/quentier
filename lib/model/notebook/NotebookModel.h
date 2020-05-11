@@ -92,7 +92,7 @@ public:
     friend QDebug & operator<<(QDebug & dbg, const Column column);
 
     INotebookModelItem * itemForIndex(const QModelIndex & index) const;
-    QModelIndex indexForItem(INotebookModelItem * pItem) const;
+    QModelIndex indexForItem(const INotebookModelItem * pItem) const;
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
@@ -558,7 +558,18 @@ private:
     void removeItemByLocalUid(const QString & localUid);
     void notebookToItem(const Notebook & notebook, NotebookItem & item);
 
-    void removeModelItemFromParent(INotebookModelItem & modelItem);
+    enum class RemoveEmptyParentStack
+    {
+        Yes,
+        No
+    };
+
+    friend QDebug & operator<<(
+        QDebug & dbg, const RemoveEmptyParentStack option);
+
+    void removeModelItemFromParent(
+        INotebookModelItem & modelItem,
+        RemoveEmptyParentStack option = RemoveEmptyParentStack::Yes);
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
@@ -739,6 +750,14 @@ private:
     // item with the corresponding local uid
     bool updateNoteCountPerNotebookIndex(
         const NotebookItem & item, const NotebookDataByLocalUid::iterator it);
+
+    bool notebookItemMatchesByLinkedNotebook(
+        const NotebookItem & item, const QString & linkedNotebookGuid) const;
+
+    const StackItems * stackItems(const QString & linkedNotebookGuid) const;
+
+    std::pair<StackItems*, INotebookModelItem*> stackItemsWithParent(
+        const QString & linkedNotebookGuid);
 
     ModelItems::iterator addNewStackModelItem(
         const StackItem & stackItem,

@@ -50,6 +50,18 @@ public:
 
     virtual QTextStream & print(QTextStream & strm) const override;
 
+    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    {
+        out << m_name;
+        return out;
+    }
+
+    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    {
+        in >> m_name;
+        return in;
+    }
+
 private:
     QString     m_name;
 };

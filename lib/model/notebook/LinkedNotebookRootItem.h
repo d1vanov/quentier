@@ -59,6 +59,20 @@ public:
 
     virtual QTextStream & print(QTextStream & strm) const override;
 
+    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    {
+        out << m_linkedNotebookGuid;
+        out << m_username;
+        return out;
+    }
+
+    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    {
+        in >> m_linkedNotebookGuid;
+        in >> m_username;
+        return in;
+    }
+
 private:
     QString     m_username;
     QString     m_linkedNotebookGuid;

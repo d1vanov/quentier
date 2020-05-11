@@ -54,7 +54,7 @@ public:
 
     INotebookModelItem * childAtRow(const int row) const;
 
-    int rowForChild(INotebookModelItem * pChild) const;
+    int rowForChild(const INotebookModelItem * pChild) const;
 
     bool hasChildren() const
     {
@@ -82,6 +82,9 @@ public:
 
     friend QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item);
     friend QDataStream & operator>>(QDataStream & in, INotebookModelItem & item);
+
+    template <typename T>
+    T * cast();
 
 protected:
     INotebookModelItem *        m_pParent;

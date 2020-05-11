@@ -18,10 +18,18 @@
 
 #include "INotebookModelItem.h"
 
+#include "AllNotebooksRootItem.h"
+#include "InvisibleRootItem.h"
+#include "LinkedNotebookRootItem.h"
+#include "NotebookItem.h"
+#include "StackItem.h"
+
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QDataStream>
 #include <QDebug>
+
+#include <algorithm>
 
 namespace quentier {
 
@@ -43,9 +51,12 @@ INotebookModelItem * INotebookModelItem::childAtRow(const int row) const
     return m_children[row];
 }
 
-int INotebookModelItem::rowForChild(INotebookModelItem * pChild) const
+int INotebookModelItem::rowForChild(const INotebookModelItem * pChild) const
 {
-    return m_children.indexOf(pChild);
+    return std::find(
+        m_children.begin(),
+        m_children.end(),
+        pChild) != m_children.end();
 }
 
 void INotebookModelItem::insertChild(
@@ -152,8 +163,14 @@ QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item)
 
 QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
 {
-    qint32 type = 0;
-    in >> type;
+    // NOTE: not reading the type here! It is assumed that client code
+    // would read the type first in order to determine the type of the item
+    // which needs to be created first and only then deserialized from data
+    // stream
+
+    qulonglong parent;
+    in >> parent;
+    item.m_pParent = reinterpret_cast<INotebookModelItem*>(parent);
 
     qint32 numChildren = 0;
     in >> numChildren;
@@ -169,5 +186,26 @@ QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
 
     return item.deserializeItemData(in);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+#define DEFINE_CAST_IMPLEMENTATION(ItemType, ItemEnum)                         \
+template <>                                                                    \
+ItemType * INotebookModelItem::cast()                                          \
+{                                                                              \
+    if (type() == INotebookModelItem::Type::ItemEnum) {                        \
+        return dynamic_cast<ItemType*>(this);                                  \
+    }                                                                          \
+    return nullptr;                                                            \
+}                                                                              \
+// DEFINE_CAST_IMPLEMENTATION
+
+DEFINE_CAST_IMPLEMENTATION(AllNotebooksRootItem, AllNotebooksRoot)
+DEFINE_CAST_IMPLEMENTATION(InvisibleRootItem, InvisibleRoot)
+DEFINE_CAST_IMPLEMENTATION(LinkedNotebookRootItem, LinkedNotebook)
+DEFINE_CAST_IMPLEMENTATION(NotebookItem, Notebook)
+DEFINE_CAST_IMPLEMENTATION(StackItem, Stack)
+
+#undef DEFINE_CAST_IMPLEMENTATION
 
 } // namespace quentier

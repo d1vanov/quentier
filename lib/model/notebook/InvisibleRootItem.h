@@ -36,6 +36,16 @@ public:
         strm << "InsivibleRootItem";
         return strm;
     }
+
+    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    {
+        return out;
+    }
+
+    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    {
+        return in;
+    }
 };
 
 } // namespace quentier
