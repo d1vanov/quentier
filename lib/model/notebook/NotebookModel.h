@@ -746,6 +746,29 @@ private:
     INotebookModelItem * itemForId(const IndexId id) const;
     IndexId idForItem(const INotebookModelItem & item) const;
 
+    Qt::ItemFlags adjustFlagsForColumn(
+        const int column, Qt::ItemFlags flags) const;
+
+    // Helper methods for notebook items
+
+    bool setNotebookData(
+        NotebookItem & notebookItem, const QModelIndex & modelIndex,
+        const QVariant & value);
+
+    bool setNotebookName(
+        NotebookItem & notebookItem, const QString & newName);
+
+    bool setNotebookSynchronizable(
+        NotebookItem & notebookItem, const bool synchronizable);
+
+    bool setNotebookIsDefault(
+        NotebookItem & notebookItem, const bool isDefault);
+
+    bool setNotebookIsLastUsed(
+        NotebookItem & notebookItem, const bool isLastUsed);
+
+    bool canRemoveNotebookItem(const NotebookItem & notebookItem);
+
     // Returns true if successfully incremented the note count for the notebook
     // item with the corresponding local uid
     bool updateNoteCountPerNotebookIndex(
@@ -754,10 +777,28 @@ private:
     bool notebookItemMatchesByLinkedNotebook(
         const NotebookItem & item, const QString & linkedNotebookGuid) const;
 
+    Qt::ItemFlags flagsForNotebookItem(
+        const NotebookItem & notebookItem, const int column,
+        Qt::ItemFlags flags) const;
+
+    // Helper methods for stack items
+
+    bool setStackData(
+        StackItem & stackItem, const QModelIndex & modelIndex,
+        const QVariant & value);
+
     const StackItems * stackItems(const QString & linkedNotebookGuid) const;
 
     std::pair<StackItems*, INotebookModelItem*> stackItemsWithParent(
         const QString & linkedNotebookGuid);
+
+    StackItem & findOrCreateStackItem(
+        const QString & stack, StackItems & stackItems,
+        INotebookModelItem * pParentItem);
+
+    Qt::ItemFlags flagsForStackItem(
+        const StackItem & stackItem, const int column,
+        Qt::ItemFlags flags) const;
 
     ModelItems::iterator addNewStackModelItem(
         const StackItem & stackItem,
@@ -807,7 +848,7 @@ private:
 
     QSet<QUuid>             m_noteCountPerNotebookRequestIds;
 
-    QHash<QString,QString>  m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids;
+    QHash<QString,QString>  m_linkedNotebookUsernamesByGuids;
     size_t                  m_listLinkedNotebooksOffset = 0;
     QUuid                   m_listLinkedNotebooksRequestId;
 
