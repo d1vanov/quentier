@@ -33,9 +33,9 @@ set(HEADERS
     notebook/AllNotebooksRootItem.h
     notebook/INotebookModelItem.h
     notebook/InvisibleRootItem.h
+    notebook/LinkedNotebookRootItem.h
     notebook/NotebookItem.h
-    notebook/NotebookLinkedNotebookRootItem.h
-    notebook/NotebookStackItem.h)
+    notebook/StackItem.h)
 
 set(SOURCES
     ColumnChangeRerouter.cpp
@@ -59,9 +59,9 @@ set(SOURCES
     LogViewerModelFileReaderAsync.cpp
     LogViewerModelLogFileParser.cpp
     notebook/INotebookModelItem.cpp
+    notebook/LinkedNotebookRootItem.cpp
     notebook/NotebookItem.cpp
-    notebook/NotebookLinkedNotebookRootItem.cpp
-    notebook/NotebookStackItem.cpp)
+    notebook/StackItem.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 

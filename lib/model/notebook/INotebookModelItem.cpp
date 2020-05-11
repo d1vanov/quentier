@@ -147,7 +147,7 @@ QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item)
         out << childItemPtr;
     }
 
-    return out;
+    return item.serializeItemData(out);
 }
 
 QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
@@ -158,15 +158,6 @@ QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
     qint32 numChildren = 0;
     in >> numChildren;
 
-    if (numChildren != 0 &&
-        (type != static_cast<quint32>(INotebookModelItem::Type::Notebook)))
-    {
-        QNWARNING("Notebook model item of notebook type cannot have children "
-            << "but there are " << numChildren << " after deserialization, "
-            << ", ignoring them");
-        return in;
-    }
-
     item.m_children.clear();
     item.m_children.reserve(numChildren);
     for(qint32 i = 0; i < numChildren; ++i) {
@@ -176,7 +167,7 @@ QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
             << reinterpret_cast<INotebookModelItem*>(childItemPtr);
     }
 
-    return in;
+    return item.deserializeItemData(in);
 }
 
 } // namespace quentier

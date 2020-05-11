@@ -164,4 +164,16 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
     return strm;
 }
 
+QDataStream & NotebookItem::serializeItemData(QDataStream & out) const
+{
+    out << m_localUid;
+    return out;
+}
+
+QDataStream & NotebookItem::deserializeItemData(QDataStream & in)
+{
+    in >> m_localUid;
+    return in;
+}
+
 } // namespace quentier

@@ -24,8 +24,8 @@
 
 #include "INotebookModelItem.h"
 #include "NotebookItem.h"
-#include "NotebookLinkedNotebookRootItem.h"
-#include "NotebookStackItem.h"
+#include "LinkedNotebookRootItem.h"
+#include "StackItem.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
@@ -109,7 +109,7 @@ public:
      *                          stack from user's own account it considered,
      *                          otherwise the item corresponding linked notebook
      *                          guid would be considered
-     * @return                  The model index of the NotebookStackItem
+     * @return                  The model index of the StackItem
      *                          corresponding to the given stack
      */
     QModelIndex indexForNotebookStack(
@@ -119,7 +119,7 @@ public:
      * @param                   The linked notebook guid which corresponding
      *                          linked notebook item's index is required
      * @return                  The model index of
-     *                          the NotebookLinkedNotebookRootItem
+     *                          the LinkedNotebookRootItem
      *                          corresponding to the given linked notebook guid
      */
     QModelIndex indexForLinkedNotebookGuid(
@@ -643,19 +643,19 @@ private:
             const NotebookItem * pLhs, const NotebookItem * pRhs) const;
 
         bool operator()(
-            const NotebookStackItem & lhs, const NotebookStackItem & rhs) const;
+            const StackItem & lhs, const StackItem & rhs) const;
 
         bool operator()(
-            const NotebookStackItem * pLhs,
-            const NotebookStackItem * pRhs) const;
+            const StackItem * pLhs,
+            const StackItem * pRhs) const;
 
         bool operator()(
-            const NotebookLinkedNotebookRootItem & lhs,
-            const NotebookLinkedNotebookRootItem & rhs) const;
+            const LinkedNotebookRootItem & lhs,
+            const LinkedNotebookRootItem & rhs) const;
 
         bool operator()(
-            const NotebookLinkedNotebookRootItem * lhs,
-            const NotebookLinkedNotebookRootItem * rhs) const;
+            const LinkedNotebookRootItem * lhs,
+            const LinkedNotebookRootItem * rhs) const;
 
         bool operator()(
             const INotebookModelItem & lhs,
@@ -675,19 +675,19 @@ private:
             const NotebookItem * pLhs, const NotebookItem * pRhs) const;
 
         bool operator()(
-            const NotebookStackItem & lhs, const NotebookStackItem & rhs) const;
+            const StackItem & lhs, const StackItem & rhs) const;
 
         bool operator()(
-            const NotebookStackItem * pLhs,
-            const NotebookStackItem * pRhs) const;
+            const StackItem * pLhs,
+            const StackItem * pRhs) const;
 
         bool operator()(
-            const NotebookLinkedNotebookRootItem & lhs,
-            const NotebookLinkedNotebookRootItem & rhs) const;
+            const LinkedNotebookRootItem & lhs,
+            const LinkedNotebookRootItem & rhs) const;
 
         bool operator()(
-            const NotebookLinkedNotebookRootItem * pLhs,
-            const NotebookLinkedNotebookRootItem * pRhs) const;
+            const LinkedNotebookRootItem * pLhs,
+            const LinkedNotebookRootItem * pRhs) const;
 
         bool operator()(
             const INotebookModelItem & lhs,
@@ -699,8 +699,8 @@ private:
     };
 
     using ModelItems = QMap<QString, INotebookModelItem*>;
-    using StackItems = QMap<QString, NotebookStackItem> ;
-    using LinkedNotebookItems = QMap<QString, NotebookLinkedNotebookRootItem>;
+    using StackItems = QMap<QString, StackItem> ;
+    using LinkedNotebookItems = QMap<QString, LinkedNotebookRootItem>;
 
     using IndexId = quintptr;
 
@@ -741,7 +741,7 @@ private:
         const NotebookItem & item, const NotebookDataByLocalUid::iterator it);
 
     ModelItems::iterator addNewStackModelItem(
-        const NotebookStackItem & stackItem,
+        const StackItem & stackItem,
         INotebookModelItem & parentItem,
         ModelItems & modelItemsByStack);
 

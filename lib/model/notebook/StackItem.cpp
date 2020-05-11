@@ -16,44 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H
-
-#include "INotebookModelItem.h"
+#include "StackItem.h"
 
 namespace quentier {
 
-class NotebookStackItem: public INotebookModelItem
+QTextStream & StackItem::print(QTextStream & strm) const
 {
-public:
-    NotebookStackItem(QString name = {}) :
-        m_name(std::move(name))
-    {}
-
-    virtual ~NotebookStackItem() override = default;
-
-    const QString & name() const
-    {
-        return m_name;
-    }
-
-    void setName(QString name)
-    {
-        m_name = std::move(name);
-    }
-
-public:
-    virtual Type type() const override
-    {
-        return Type::Stack;
-    }
-
-    virtual QTextStream & print(QTextStream & strm) const override;
-
-private:
-    QString     m_name;
-};
+    strm << "Notebook stack: " << m_name;
+    return strm;
+}
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H

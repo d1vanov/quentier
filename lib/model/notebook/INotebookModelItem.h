@@ -77,6 +77,9 @@ public:
 
     INotebookModelItem * takeChild(const int row);
 
+    virtual QDataStream & serializeItemData(QDataStream & out) const = 0;
+    virtual QDataStream & deserializeItemData(QDataStream & in) = 0;
+
     friend QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item);
     friend QDataStream & operator>>(QDataStream & in, INotebookModelItem & item);
 

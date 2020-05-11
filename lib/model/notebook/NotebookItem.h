@@ -142,6 +142,9 @@ public:
 
     virtual QTextStream & print(QTextStream & strm) const override;
 
+    virtual QDataStream & serializeItemData(QDataStream & out) const override;
+    virtual QDataStream & deserializeItemData(QDataStream & in) override;
+
 private:
     QString     m_localUid;
     QString     m_guid;
