@@ -767,6 +767,12 @@ private:
     bool setNotebookIsLastUsed(
         NotebookItem & notebookItem, const bool isLastUsed);
 
+    QVariant notebookData(
+        const NotebookItem & notebookItem, const Column column) const;
+
+    QVariant notebookAccessibleData(
+        const NotebookItem & notebookItem, const Column column) const;
+
     bool canRemoveNotebookItem(const NotebookItem & notebookItem);
 
     // Returns true if successfully incremented the note count for the notebook
@@ -786,6 +792,11 @@ private:
     bool setStackData(
         StackItem & stackItem, const QModelIndex & modelIndex,
         const QVariant & value);
+
+    QVariant stackData(const StackItem & stackItem, const Column column) const;
+
+    QVariant stackAccessibleData(
+        const StackItem & stackItem, const Column column) const;
 
     const StackItems * stackItems(const QString & linkedNotebookGuid) const;
 

@@ -86,6 +86,9 @@ public:
     template <typename T>
     T * cast();
 
+    template <typename T>
+    const T * cast() const;
+
 protected:
     INotebookModelItem *        m_pParent;
     QList<INotebookModelItem*>  m_children;

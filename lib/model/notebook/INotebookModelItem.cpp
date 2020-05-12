@@ -198,6 +198,15 @@ ItemType * INotebookModelItem::cast()                                          \
     }                                                                          \
     return nullptr;                                                            \
 }                                                                              \
+                                                                               \
+template <>                                                                    \
+const ItemType * INotebookModelItem::cast() const                              \
+{                                                                              \
+    if (type() == INotebookModelItem::Type::ItemEnum) {                        \
+        return dynamic_cast<const ItemType*>(this);                            \
+    }                                                                          \
+    return nullptr;                                                            \
+}                                                                              \
 // DEFINE_CAST_IMPLEMENTATION
 
 DEFINE_CAST_IMPLEMENTATION(AllNotebooksRootItem, AllNotebooksRoot)
