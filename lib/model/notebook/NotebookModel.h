@@ -829,11 +829,6 @@ private:
     QString                 m_defaultNotebookLocalUid;
     QString                 m_lastUsedNotebookLocalUid;
 
-    ModelItems                  m_modelItemsByLocalUid;
-    ModelItems                  m_modelItemsByStack;
-    ModelItems                  m_modelItemsByLinkedNotebookGuid;
-    QMap<QString, ModelItems>   m_modelItemsByStackByLinkedNotebookGuid;
-
     StackItems                  m_stackItems;
     QMap<QString, StackItems>   m_stackItemsByLinkedNotebookGuid;
 
@@ -860,6 +855,7 @@ private:
     QSet<QUuid>             m_noteCountPerNotebookRequestIds;
 
     QHash<QString,QString>  m_linkedNotebookUsernamesByGuids;
+
     size_t                  m_listLinkedNotebooksOffset = 0;
     QUuid                   m_listLinkedNotebooksRequestId;
 
