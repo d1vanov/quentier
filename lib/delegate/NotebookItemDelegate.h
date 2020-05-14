@@ -26,6 +26,8 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
+
 class NotebookItemDelegate: public AbstractStyledItemDelegate
 {
     Q_OBJECT
@@ -63,6 +65,13 @@ private:
         const QModelIndex & index) const override;
 
 private:
+    const INotebookModelItem * notebookModelItem(
+        const QModelIndex & index) const;
+
+    void paintItem(
+        QPainter * painter, const QStyleOptionViewItem & option,
+        const QModelIndex & index, const INotebookModelItem & item) const;
+
     void drawEllipse(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const;

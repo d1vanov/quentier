@@ -4050,7 +4050,7 @@ void NotebookModel::checkAndCreateModelRootItems()
 INotebookModelItem * NotebookModel::itemForId(const IndexId id) const
 {
     // this is called too often to be DEBUG level
-    QNTRACE("NotebookModelItem * NotebookModel::itemForId: " << id);
+    QNTRACE("NotebookModel::itemForId: " << id);
 
     auto localUidIt = m_indexIdToLocalUidBimap.left.find(id);
     if (localUidIt != m_indexIdToLocalUidBimap.left.end())

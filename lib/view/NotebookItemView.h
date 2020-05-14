@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,12 +27,12 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
-QT_FORWARD_DECLARE_CLASS(NotebookStackItem)
-QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
+QT_FORWARD_DECLARE_CLASS(StackItem)
 
 class NotebookItemView: public ItemView
 {
@@ -113,7 +113,7 @@ private:
         const NotebookItem & item, const QPoint & point, NotebookModel & model);
 
     void showNotebookStackItemContextMenu(
-        const NotebookStackItem & item, const NotebookModelItem & modelItem,
+        const StackItem & item, const INotebookModelItem & modelItem,
         const QPoint & point, NotebookModel & model);
 
     void saveNotebookModelItemsState();
@@ -145,9 +145,38 @@ private:
 
     void setSelectedNotebookToNoteFilterManager(const QString & notebookLocalUid);
 
+    // Helper structs and methods to access common data pieces in slots
+
+    struct NotebookCommonData
+    {
+        NotebookModel * m_pModel = nullptr;
+        QModelIndex     m_index;
+        QAction *       m_pAction = nullptr;
+    };
+
+    bool fetchCurrentNotebookCommonData(
+        NotebookCommonData & data, ErrorString & errorDescription) const;
+
+    struct NotebookItemData: public NotebookCommonData
+    {
+        QString     m_localUid;
+    };
+
+    bool fetchCurrentNotebookItemData(
+        NotebookItemData & itemData, ErrorString & errorDescription) const;
+
+    struct NotebookStackData: public NotebookCommonData
+    {
+        QString     m_stack;
+        QString     m_id;
+    };
+
+    bool fetchCurrentNotebookStackData(
+        NotebookStackData & stackData, ErrorString & errorDescription) const;
+
 private:
-    QMenu *     m_pNotebookItemContextMenu;
-    QMenu *     m_pNotebookStackItemContextMenu;
+    QMenu *     m_pNotebookItemContextMenu = nullptr;
+    QMenu *     m_pNotebookStackItemContextMenu = nullptr;
 
     QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
 
@@ -155,9 +184,9 @@ private:
 
     QString     m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 
-    bool        m_trackingNotebookModelItemsState;
-    bool        m_trackingSelection;
-    bool        m_modelReady;
+    bool        m_trackingNotebookModelItemsState = false;
+    bool        m_trackingSelection = false;
+    bool        m_modelReady = false;
 };
 
 } // namespace quentier

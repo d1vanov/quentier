@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,9 +19,9 @@
 #ifndef QUENTIER_LIB_VIEW_NOTE_LIST_VIEW_H
 #define QUENTIER_LIB_VIEW_NOTE_LIST_VIEW_H
 
-#include <quentier/utility/Macros.h>
-#include <quentier/types/ErrorString.h>
 #include <quentier/types/Account.h>
+#include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
 
 #include <QListView>
 
@@ -29,8 +29,8 @@ QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookItemView)
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
+QT_FORWARD_DECLARE_CLASS(NotebookItemView)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 
 /**
@@ -103,7 +103,6 @@ public Q_SLOTS:
         bool showThumbnailsForAllNotes,
         const QSet<QString> & hideThumbnailsLocalUids);
 
-
     /**
      * The slot which can watch for external changes of selected notes
      * and reflect that change in the view
@@ -154,8 +153,7 @@ protected Q_SLOTS:
 
 protected:
     virtual void currentChanged(
-        const QModelIndex & current,
-        const QModelIndex & previous) override;
+        const QModelIndex & current, const QModelIndex & previous) override;
 
     virtual void mousePressEvent(QMouseEvent * pEvent) override;
 
@@ -199,18 +197,18 @@ private:
     QStringList actionDataStringList();
 
 protected:
-    QMenu *             m_pNoteItemContextMenu;
-    NotebookItemView *  m_pNotebookItemView;
-    bool                m_shouldSelectFirstNoteOnNextNoteAddition;
+    QMenu *             m_pNoteItemContextMenu = nullptr;
+    NotebookItemView *  m_pNotebookItemView = nullptr;
+    bool                m_shouldSelectFirstNoteOnNextNoteAddition = false;
 
     Account             m_currentAccount;
 
     QString             m_lastCurrentNoteLocalUid;
 
     /**
-     * Current value of "shown thumbnails for all notes".
+     * Current value of "show thumbnails for all notes".
      */
-    bool                m_showThumbnailsForAllNotes;
+    bool                m_showThumbnailsForAllNotes = true;
 
     /**
      * Set with local uids of notes where thumbnail was manually hidden.

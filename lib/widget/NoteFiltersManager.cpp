@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -17,15 +17,16 @@
  */
 
 #include "NoteFiltersManager.h"
-#include "FilterByTagWidget.h"
+
 #include "FilterByNotebookWidget.h"
+#include "FilterByTagWidget.h"
 #include "FilterBySavedSearchWidget.h"
 
 #include <lib/preferences/SettingsNames.h>
 #include <lib/model/NoteModel.h>
 #include <lib/model/SavedSearchModel.h>
-#include <lib/model/NotebookModel.h>
 #include <lib/model/TagModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -1216,29 +1217,38 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
     }
 
     QString autoSelectedNotebookLocalUid;
+    auto lastUsedNotebookIndex = pModel->lastUsedNotebookIndex();
 
-    QModelIndex lastUsedNotebookIndex = pModel->lastUsedNotebookIndex();
-    const NotebookModelItem * pLastUsedNotebookModelItem =
-        pModel->itemForIndex(lastUsedNotebookIndex);
-    if (pLastUsedNotebookModelItem &&
-        pLastUsedNotebookModelItem->notebookItem())
+    const auto * pLastUsedNotebookModelItem = pModel->itemForIndex(
+        lastUsedNotebookIndex);
+
+    if (pLastUsedNotebookModelItem)
     {
-        autoSelectedNotebookLocalUid =
-            pLastUsedNotebookModelItem->notebookItem()->localUid();
+        const auto * pLastUsedNotebookItem =
+            pLastUsedNotebookModelItem->cast<NotebookItem>();
+        if (pLastUsedNotebookItem) {
+            autoSelectedNotebookLocalUid =
+                pLastUsedNotebookItem->localUid();
+        }
     }
 
     if (autoSelectedNotebookLocalUid.isEmpty())
     {
         QNDEBUG("No last used notebook local uid, trying default notebook");
 
-        QModelIndex defaultNotebookIndex = pModel->defaultNotebookIndex();
-        const NotebookModelItem * pDefaultNotebookModelItem =
-            pModel->itemForIndex(defaultNotebookIndex);
-        if (pDefaultNotebookModelItem &&
-            pDefaultNotebookModelItem->notebookItem())
+        auto defaultNotebookIndex = pModel->defaultNotebookIndex();
+
+        const auto * pDefaultNotebookModelItem = pModel->itemForIndex(
+            defaultNotebookIndex);
+
+        if (pDefaultNotebookModelItem)
         {
-            autoSelectedNotebookLocalUid =
-                pDefaultNotebookModelItem->notebookItem()->localUid();
+            const auto * pDefaultNotebookItem =
+                pDefaultNotebookModelItem->cast<NotebookItem>();
+            if (pDefaultNotebookItem) {
+                autoSelectedNotebookLocalUid =
+                    pDefaultNotebookItem->localUid();
+            }
         }
     }
 
@@ -1255,6 +1265,7 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
         }
 
         const QString & firstNotebookName = notebookNames.at(0);
+
         autoSelectedNotebookLocalUid =
             pModel->localUidForItemName(firstNotebookName, QString());
     }

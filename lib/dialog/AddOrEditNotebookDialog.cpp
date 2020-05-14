@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,29 +21,26 @@
 
 #include <lib/preferences/SettingsNames.h>
 
-#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
 
-#include <QStringListModel>
 #include <QPushButton>
+#include <QStringListModel>
 
 #define LAST_SELECTED_STACK QStringLiteral("LastSelectedNotebookStack")
 
 namespace quentier {
 
 AddOrEditNotebookDialog::AddOrEditNotebookDialog(
-        NotebookModel * pNotebookModel,
-        QWidget * parent,
+        NotebookModel * pNotebookModel, QWidget * parent,
         const QString & editedNotebookLocalUid) :
     QDialog(parent),
     m_pUi(new Ui::AddOrEditNotebookDialog),
     m_pNotebookModel(pNotebookModel),
-    m_pNotebookStacksModel(nullptr),
-    m_editedNotebookLocalUid(editedNotebookLocalUid),
-    m_stringUtils()
+    m_editedNotebookLocalUid(editedNotebookLocalUid)
 {
     QNDEBUG("AddOrEditNotebookDialog: edited notebook local uid = "
-            << editedNotebookLocalUid);
+        << editedNotebookLocalUid);
 
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);
@@ -57,16 +54,16 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
         }
         else
         {
-            QModelIndex editedNotebookIndex =
-                m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
-            const NotebookModelItem * pModelItem =
-                m_pNotebookModel->itemForIndex(editedNotebookIndex);
-            if (pModelItem &&
-                (pModelItem->type() == NotebookModelItem::Type::Notebook) &&
-                pModelItem->notebookItem())
-            {
+            auto editedNotebookIndex = m_pNotebookModel->indexForLocalUid(
+                m_editedNotebookLocalUid);
+
+            const auto * pModelItem = m_pNotebookModel->itemForIndex(
+                editedNotebookIndex);
+
+            const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
+            if (pNotebookItem) {
                 stacks = m_pNotebookModel->stacks(
-                    pModelItem->notebookItem()->linkedNotebookGuid());
+                    pNotebookItem->linkedNotebookGuid());
             }
         }
     }
@@ -81,49 +78,54 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
 
     if (!m_editedNotebookLocalUid.isEmpty() && !m_pNotebookModel.isNull())
     {
-        QModelIndex editedNotebookIndex =
-            m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
-        const NotebookModelItem * pModelItem =
-            m_pNotebookModel->itemForIndex(editedNotebookIndex);
+        auto editedNotebookIndex = m_pNotebookModel->indexForLocalUid(
+            m_editedNotebookLocalUid);
+
+        const auto * pModelItem = m_pNotebookModel->itemForIndex(
+            editedNotebookIndex);
+
         if (!pModelItem)
         {
-            m_pUi->statusBar->setText(tr("Can't find the edited notebook within "
-                                         "the model"));
-            m_pUi->statusBar->setHidden(false);
-        }
-        else if (pModelItem->type() != NotebookModelItem::Type::Notebook)
-        {
-            m_pUi->statusBar->setText(tr("Internal error: the edited item is "
-                                         "not a notebook"));
-            m_pUi->statusBar->setHidden(false);
-        }
-        else if (!pModelItem->notebookItem())
-        {
-            m_pUi->statusBar->setText(tr("Internal error: the edited item's "
-                                         "pointer to notebook item is null"));
+            m_pUi->statusBar->setText(
+                tr("Can't find the edited notebook within the model"));
+
             m_pUi->statusBar->setHidden(false);
         }
         else
         {
-            const NotebookItem * pNotebookItem = pModelItem->notebookItem();
-            m_pUi->notebookNameLineEdit->setText(pNotebookItem->name());
-            const QString & stack = pNotebookItem->stack();
-            if (!stack.isEmpty())
+            const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
+            if (!pNotebookItem)
             {
-                int index = stacks.indexOf(stack);
-                if (index >= 0) {
-                    m_pUi->notebookStackComboBox->setCurrentIndex(index);
+                m_pUi->statusBar->setText(
+                    tr("Internal error: the edited item is not a notebook"));
+
+                m_pUi->statusBar->setHidden(false);
+            }
+            else
+            {
+                m_pUi->notebookNameLineEdit->setText(pNotebookItem->name());
+                const QString & stack = pNotebookItem->stack();
+                if (!stack.isEmpty())
+                {
+                    int index = stacks.indexOf(stack);
+                    if (index >= 0) {
+                        m_pUi->notebookStackComboBox->setCurrentIndex(index);
+                    }
                 }
             }
         }
     }
     else if (!stacks.isEmpty() && !m_pNotebookModel.isNull())
     {
-        ApplicationSettings appSettings(m_pNotebookModel->account(),
-                                        QUENTIER_UI_SETTINGS);
+        ApplicationSettings appSettings(
+            m_pNotebookModel->account(),
+            QUENTIER_UI_SETTINGS);
+
         appSettings.beginGroup(QStringLiteral("AddOrEditNotebookDialog"));
-        QString lastSelectedStack =
-            appSettings.value(LAST_SELECTED_STACK).toString();
+
+        QString lastSelectedStack = appSettings.value(
+            LAST_SELECTED_STACK).toString();
+
         appSettings.endGroup();
 
         int index = stacks.indexOf(lastSelectedStack);
@@ -149,7 +151,7 @@ void AddOrEditNotebookDialog::accept()
     m_stringUtils.removeNewlines(stack);
 
     QNDEBUG("AddOrEditNotebookDialog::accept: notebook name = "
-            << notebookName << ", stack: " << stack);
+        << notebookName << ", stack: " << stack);
 
 #define REPORT_ERROR(error)                                                    \
     m_pUi->statusBar->setText(tr(error));                                      \
@@ -166,7 +168,7 @@ void AddOrEditNotebookDialog::accept()
     if (m_editedNotebookLocalUid.isEmpty())
     {
         QNDEBUG("Edited notebook local uid is empty, adding new notebook "
-                "to the model");
+            << "to the model");
 
         ErrorString errorDescription;
         QModelIndex index = m_pNotebookModel->createNotebook(
@@ -184,43 +186,40 @@ void AddOrEditNotebookDialog::accept()
     else
     {
         QNDEBUG("Edited notebook local uid is not empty, editing "
-                "the existing notebook within the model");
+            << "the existing notebook within the model");
 
-        QModelIndex index =
-            m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
-        const NotebookModelItem * pModelItem =
-            m_pNotebookModel->itemForIndex(index);
+        auto index = m_pNotebookModel->indexForLocalUid(
+            m_editedNotebookLocalUid);
+
+        const auto * pModelItem = m_pNotebookModel->itemForIndex(index);
         if (Q_UNLIKELY(!pModelItem)) {
             REPORT_ERROR("Can't edit notebook: notebook was not found "
                          "in the model");
             return;
         }
 
-        if (Q_UNLIKELY(pModelItem->type() != NotebookModelItem::Type::Notebook)) {
+        const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
+        if (Q_UNLIKELY(!pNotebookItem)) {
             REPORT_ERROR("Can't edit notebook: the edited model item is not "
                          "a notebook");
             return;
         }
 
-        const NotebookItem * pNotebookItem = pModelItem->notebookItem();
-        if (Q_UNLIKELY(!pNotebookItem)) {
-            REPORT_ERROR("Internal error, can't edit notebook: the edited model "
-                         "item has null pointer to the notebook item");
-            return;
-        }
-
         // If needed, update the notebook name
-        QModelIndex nameIndex =
-            m_pNotebookModel->index(index.row(), NotebookModel::Columns::Name,
-                                    index.parent());
+        QModelIndex nameIndex = m_pNotebookModel->index(
+            index.row(),
+            static_cast<int>(NotebookModel::Column::Name),
+            index.parent());
+
         if (pNotebookItem->name().toUpper() != notebookName.toUpper())
         {
             bool res = m_pNotebookModel->setData(nameIndex, notebookName);
             if (Q_UNLIKELY(!res))
             {
-                // Probably the new name collides with some existing notebook's name
-                QModelIndex existingItemIndex = m_pNotebookModel->indexForNotebookName(
-                    notebookName, pNotebookItem->linkedNotebookGuid());
+                // Probably new name collides with some existing notebook's name
+                auto existingItemIndex = m_pNotebookModel->indexForNotebookName(
+                    notebookName,
+                    pNotebookItem->linkedNotebookGuid());
 
                 if (existingItemIndex.isValid() &&
                     ((existingItemIndex.row() != nameIndex.row()) ||
@@ -243,8 +242,10 @@ void AddOrEditNotebookDialog::accept()
 
         if (pNotebookItem->stack() != stack)
         {
-            QModelIndex movedItemIndex =
-                m_pNotebookModel->moveToStack(nameIndex, stack);
+            auto movedItemIndex = m_pNotebookModel->moveToStack(
+                nameIndex,
+                stack);
+
             if (Q_UNLIKELY(!movedItemIndex.isValid())) {
                 REPORT_ERROR("Can't set this stack for the notebook");
                 return;
@@ -260,7 +261,7 @@ void AddOrEditNotebookDialog::accept()
 void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
 {
     QNDEBUG("AddOrEditNotebookDialog::onNotebookNameEdited: "
-            << notebookName);
+        << notebookName);
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
         QNDEBUG("Notebook model is missing");
@@ -270,34 +271,39 @@ void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
     QString linkedNotebookGuid;
     if (!m_editedNotebookLocalUid.isEmpty())
     {
-        QModelIndex index =
-            m_pNotebookModel->indexForLocalUid(m_editedNotebookLocalUid);
-        const NotebookModelItem * pModelItem =
-            m_pNotebookModel->itemForIndex(index);
+        auto index = m_pNotebookModel->indexForLocalUid(
+            m_editedNotebookLocalUid);
+
+        const auto * pModelItem = m_pNotebookModel->itemForIndex(index);
         if (Q_UNLIKELY(!pModelItem))
         {
-            m_pUi->statusBar->setText(tr("Can't edit notebook: notebook was "
-                                         "not found in the model"));
+            m_pUi->statusBar->setText(
+                tr("Can't edit notebook: notebook was "
+                   "not found in the model"));
+
             m_pUi->statusBar->setHidden(false);
             m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
             return;
         }
 
-        if (Q_UNLIKELY(pModelItem->type() != NotebookModelItem::Type::Notebook))
-        {
-            m_pUi->statusBar->setText(tr("Can't edit notebook: the edited model "
-                                         "item is not a notebook"));
-            m_pUi->statusBar->setHidden(false);
-            m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
-            return;
-        }
-
-        const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+        const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
         if (Q_UNLIKELY(!pNotebookItem))
         {
-            m_pUi->statusBar->setText(tr("Internal error, can't edit notebook: "
-                                         "the edited model item has null pointer "
-                                         "to the notebook item"));
+            m_pUi->statusBar->setText(
+                tr("Can't edit notebook: the edited model "
+                   "item is not a notebook"));
+
+            m_pUi->statusBar->setHidden(false);
+            m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+            return;
+        }
+
+        if (Q_UNLIKELY(!pNotebookItem))
+        {
+            m_pUi->statusBar->setText(
+                tr("Internal error, can't edit notebook: the edited model item o"
+                   "has null pointer to the notebook item"));
+
             m_pUi->statusBar->setHidden(false);
             m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
             return;
@@ -306,12 +312,16 @@ void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
         linkedNotebookGuid = pNotebookItem->linkedNotebookGuid();
     }
 
-    QModelIndex itemIndex =
-        m_pNotebookModel->indexForNotebookName(notebookName, linkedNotebookGuid);
+    auto itemIndex = m_pNotebookModel->indexForNotebookName(
+        notebookName,
+        linkedNotebookGuid);
+
     if (itemIndex.isValid())
     {
-        m_pUi->statusBar->setText(tr("The notebook name must be unique in case "
-                                     "insensitive manner"));
+        m_pUi->statusBar->setText(
+            tr("The notebook name must be unique in case "
+               "insensitive manner"));
+
         m_pUi->statusBar->setHidden(false);
         m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
         return;
@@ -331,8 +341,10 @@ void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
         return;
     }
 
-    ApplicationSettings appSettings(m_pNotebookModel->account(),
-                                    QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_pNotebookModel->account(),
+        QUENTIER_UI_SETTINGS);
+
     appSettings.beginGroup(QStringLiteral("AddOrEditNotebookDialog"));
     appSettings.setValue(LAST_SELECTED_STACK, stack);
     appSettings.endGroup();
@@ -340,21 +352,32 @@ void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
 
 void AddOrEditNotebookDialog::createConnections()
 {
-    QObject::connect(m_pUi->notebookNameLineEdit,
-                     QNSIGNAL(QLineEdit,textEdited,const QString&),
-                     this,
-                     QNSLOT(AddOrEditNotebookDialog,onNotebookNameEdited,
-                            const QString&));
+    QObject::connect(
+        m_pUi->notebookNameLineEdit,
+        &QLineEdit::textEdited,
+        this,
+        &AddOrEditNotebookDialog::onNotebookNameEdited);
 
-    QObject::connect(m_pUi->notebookStackComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SLOT(onNotebookStackChanged(QString)));
-    QObject::connect(m_pUi->notebookStackComboBox,
-                     QNSIGNAL(QComboBox,editTextChanged,const QString&),
-                     this,
-                     QNSLOT(AddOrEditNotebookDialog,onNotebookStackChanged,
-                            const QString &));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->notebookStackComboBox,
+        qOverload<const QString&>(&QComboBox::currentIndexChanged),
+        this,
+        &AddOrEditNotebookDialog::onNotebookStackChanged);
+        SLOT(onNotebookStackChanged(QString));
+#else
+    QObject::connect(
+        m_pUi->notebookStackComboBox,
+        SIGNAL(currentIndexChanged(QString)),
+        this,
+        SLOT(onNotebookStackChanged(QString)));
+#endif
+
+    QObject::connect(
+        m_pUi->notebookStackComboBox,
+        &QComboBox::editTextChanged,
+        this,
+        &AddOrEditNotebookDialog::onNotebookStackChanged);
 }
 
 } // namespace quentier

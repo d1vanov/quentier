@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_DIALOG_ADD_OR_EDIT_NOTEBOOK_DIALOG_H
 #define QUENTIER_LIB_DIALOG_ADD_OR_EDIT_NOTEBOOK_DIALOG_H
 
-#include <lib/model/NotebookModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
@@ -42,13 +42,15 @@ public:
     explicit AddOrEditNotebookDialog(
         NotebookModel * pNotebookModel,
         QWidget * parent = nullptr,
-        const QString & editedNotebookLocalUid = QString());
+        const QString & editedNotebookLocalUid = {});
 
     ~AddOrEditNotebookDialog();
 
 private Q_SLOTS:
     virtual void accept() override;
+
     void onNotebookNameEdited(const QString & notebookName);
+
     void onNotebookStackChanged(const QString & stack);
 
 private:
@@ -57,7 +59,7 @@ private:
 private:
     Ui::AddOrEditNotebookDialog *   m_pUi;
     QPointer<NotebookModel>         m_pNotebookModel;
-    QStringListModel *              m_pNotebookStacksModel;
+    QStringListModel *              m_pNotebookStacksModel = nullptr;
     QString                         m_editedNotebookLocalUid;
     StringUtils                     m_stringUtils;
 };
