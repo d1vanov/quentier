@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,7 +41,6 @@ class WikiArticleToNote: public QObject
     Q_OBJECT
 public:
     explicit WikiArticleToNote(
-        QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
@@ -81,7 +80,6 @@ private:
     bool preprocessHtmlForConversionToEnml();
 
 private:
-    QNetworkAccessManager * m_pNetworkAccessManager;
     ENMLConverter &         m_enmlConverter;
     const qint64            m_networkReplyFetcherTimeout;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,16 +39,22 @@ class ManageAccountsDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ManageAccountsDialog(AccountManager & accountManager,
-                                  const int currentAccountRow = -1,
-                                  QWidget * parent = nullptr);
+    explicit ManageAccountsDialog(
+        AccountManager & accountManager, const int currentAccountRow = -1,
+        QWidget * parent = nullptr);
+
     virtual ~ManageAccountsDialog();
 
 Q_SIGNALS:
-    void evernoteAccountAdditionRequested(QString evernoteServer,
-                                          QNetworkProxy proxy);
+    void evernoteAccountAdditionRequested(
+        QString evernoteServer, QNetworkProxy proxy);
+
     void localAccountAdditionRequested(QString name, QString fullName);
     void revokeAuthentication(qevercloud::UserID id);
+
+public Q_SLOTS:
+    void onAuthenticationRevoked(
+        bool success, ErrorString errorDescription, qevercloud::UserID userId);
 
 private Q_SLOTS:
     void onAddAccountButtonPressed();
@@ -56,8 +62,8 @@ private Q_SLOTS:
     void onDeleteAccountButtonPressed();
     void onBadAccountDisplayNameEntered(ErrorString errorDescription, int row);
 
-    void onAccountSelectionChanged(const QItemSelection & selected,
-                                   const QItemSelection & deselected);
+    void onAccountSelectionChanged(
+        const QItemSelection & selected, const QItemSelection & deselected);
 
 private:
     void setStatusBarText(const QString & text);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,29 +20,33 @@
 #define QUENTIER_MAINWINDOW_H
 
 #include <lib/account/AccountManager.h>
-#include <lib/model/NotebookCache.h>
-#include <lib/model/TagCache.h>
-#include <lib/model/SavedSearchCache.h>
-#include <lib/model/NoteCache.h>
-#include <lib/model/NotebookModel.h>
-#include <lib/model/TagModel.h>
-#include <lib/model/SavedSearchModel.h>
-#include <lib/model/NoteModel.h>
 #include <lib/model/FavoritesModel.h>
-#include <lib/widget/NoteEditorWidget.h>
+#include <lib/model/NoteCache.h>
+#include <lib/model/NoteModel.h>
+#include <lib/model/NotebookCache.h>
+#include <lib/model/NotebookModel.h>
+#include <lib/model/SavedSearchCache.h>
+#include <lib/model/SavedSearchModel.h>
+#include <lib/model/TagCache.h>
+#include <lib/model/TagModel.h>
+
+#ifdef WITH_UPDATE_MANAGER
+#include <lib/update/UpdateManager.h>
+#endif
+
 #include <lib/widget/NoteEditorTabsAndWindowsCoordinator.h>
+#include <lib/widget/NoteEditorWidget.h>
 #include <lib/widget/panel/SidePanelStyleController.h>
 
-#include <quentier/utility/ShortcutManager.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/synchronization/AuthenticationManager.h>
 #include <quentier/synchronization/SynchronizationManager.h>
+#include <quentier/utility/ShortcutManager.h>
 
 #include <quentier/utility/VersionInfo.h>
 #if !LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
 #error "Quentier needs libquentier built with authentication manager"
 #endif
-
-#include <quentier/synchronization/AuthenticationManager.h>
 
 #include <QLinearGradient>
 #include <QMap>
@@ -64,9 +68,8 @@ namespace Ui {
 class MainWindow;
 }
 
-QT_FORWARD_DECLARE_CLASS(QUrl)
-QT_FORWARD_DECLARE_CLASS(QUndoStack)
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
+QT_FORWARD_DECLARE_CLASS(QUrl)
 
 QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
@@ -108,7 +111,7 @@ Q_SIGNALS:
 
     void authenticate();
     void authenticateCurrentAccount();
-    void revokeAuthentication(qevercloud::UserID userId);
+
     void noteInfoDialogRequested(QString noteLocalUid);
     void synchronize();
     void stopSynchronization();
@@ -171,9 +174,6 @@ private Q_SLOTS:
     void onAuthenticationFinished(
         bool success, ErrorString errorDescription, Account account);
 
-    void onAuthenticationRevoked(
-        bool success, ErrorString errorDescription, qevercloud::UserID userId);
-
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone(bool somethingDownloaded);
 
@@ -210,7 +210,6 @@ private Q_SLOTS:
     void onAccountAdded(Account account);
     void onAccountRemoved(Account account);
     void onAccountManagerError(ErrorString errorDescription);
-    void onRevokeAuthentication(qevercloud::UserID userId);
 
     // Toggle view slots
     void onShowSidePanelActionToggled(bool checked);
@@ -353,6 +352,12 @@ private Q_SLOTS:
     void onDefaultAccountFirstNotebookAndNoteCreatorError(
         ErrorString errorDescription);
 
+#ifdef WITH_UPDATE_MANAGER
+    void onCheckForUpdatesActionTriggered();
+    void onUpdateManagerError(ErrorString errorDescription);
+    void onUpdateManagerRequestsRestart();
+#endif
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) override;
     virtual void closeEvent(QCloseEvent * pEvent) override;
@@ -384,6 +389,10 @@ private:
     void setupAccountSpecificUiElements();
     void setupNoteFilters();
     void setupNoteEditorTabWidgetsCoordinator();
+
+#ifdef WITH_UPDATE_MANAGER
+    void setupUpdateManager();
+#endif
 
     bool checkLocalStorageVersion(const Account & account);
 
@@ -462,7 +471,7 @@ private:
     template <class T>
     void refreshThemeIcons();
 
-    void showHideViewColumnsForAccountType(const Account::Type::type accountType);
+    void showHideViewColumnsForAccountType(const Account::Type accountType);
 
     void expandFiltersView();
     void foldFiltersView();
@@ -492,6 +501,8 @@ private:
     void toggleShowNoteThumbnails() const;
 
     QString fallbackIconThemeName() const;
+
+    void quitApp(int exitCode = 0);
 
 private:
     Ui::MainWindow *        m_pUI;
@@ -558,8 +569,6 @@ private:
     NoteEditorTabsAndWindowsCoordinator *   m_pNoteEditorTabsAndWindowsCoordinator;
     EditNoteDialogsManager *                m_pEditNoteDialogsManager;
 
-    QUndoStack *            m_pUndoStack;
-
     QColor              m_overridePanelFontColor;
     QColor              m_overridePanelBackgroundColor;
     QLinearGradient     m_overridePanelBackgroundGradient;
@@ -570,6 +579,11 @@ private:
     quentier::ShortcutManager   m_shortcutManager;
     QHash<int, QAction*>        m_shortcutKeyToAction;
     QHash<QString, QAction*>    m_nonStandardShortcutKeyToAction;
+
+#ifdef WITH_UPDATE_MANAGER
+    std::shared_ptr<UpdateManager::IIdleStateInfoProvider>  m_pUpdateManagerIdleInfoProvider;
+    UpdateManager *         m_pUpdateManager;
+#endif
 
     bool                    m_pendingGreeterDialog;
     bool                    m_pendingFirstShutdownDialog;

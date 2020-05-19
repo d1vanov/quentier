@@ -24,6 +24,8 @@
 #include <lib/exception/LocalStorageVersionTooHighException.h>
 #include <lib/initialization/Initialize.h>
 #include <lib/initialization/LoadDependencies.h>
+#include <lib/utility/ExitCodes.h>
+#include <lib/utility/RestartApp.h>
 
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/MessageBox.h>
@@ -32,11 +34,15 @@
 #include <quentier/exception/DatabaseOpeningException.h>
 #include <quentier/exception/IQuentierException.h>
 
-#include <QScopedPointer>
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+#include <QSessionManager>
+#endif
+
 #include <QTime>
 
-#include <iostream>
 #include <exception>
+#include <iostream>
+#include <memory>
 
 using namespace quentier;
 
@@ -49,10 +55,37 @@ int main(int argc, char * argv[])
 
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
+#endif
+
     QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+    auto restartHintSetter =
+        [] (QSessionManager & manager) {
+            manager.setRestartHint(QSessionManager::RestartNever);
+        };
+
+    QObject::connect(
+        &app,
+        &QuentierApplication::saveStateRequest,
+        &app,
+        restartHintSetter);
+
+    QObject::connect(
+        &app,
+        &QuentierApplication::commitDataRequest,
+        &app,
+        restartHintSetter);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+    app.setFallbackSessionManagementEnabled(false);
+#endif // Qt 5.6.0
+#endif // Qt 5.14.0
 
     initializeAppVersion(app);
 
@@ -71,7 +104,7 @@ int main(int argc, char * argv[])
 
     SetupStartupSettings();
 
-    QScopedPointer<MainWindow> pMainWindow;
+    std::unique_ptr<MainWindow> pMainWindow;
     try
     {
         pMainWindow.reset(new MainWindow);
@@ -188,5 +221,15 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    return app.exec();
+    int exitCode = app.exec();
+
+    pMainWindow.reset();
+
+    if (exitCode == RESTART_EXIT_CODE) {
+        exitCode = 0;
+        restartApp(argc, argv);
+    }
+
+    finalize();
+    return exitCode;
 }

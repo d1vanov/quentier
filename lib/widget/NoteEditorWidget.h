@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -133,6 +133,13 @@ public:
      * check and removal.
      */
     bool hasBeenModified() const;
+
+    /**
+     * @return the number of milliseconds since the last user's interaction
+     * with the note editor or -1 if there was no interaction or if no note
+     * is loaded at the moment
+     */
+    qint64 idleTime() const;
 
     /**
      * @return                  Title or preview text of the note managed by
@@ -318,11 +325,16 @@ Q_SIGNALS:
         const QString & userId, const QString & shardId,
         const QString & noteGuid, const QString & linkText);
 
-public Q_SLOTS:
+public:
+    virtual void dragEnterEvent(QDragEnterEvent * pEvent) override;
+    virtual void dragMoveEvent(QDragMoveEvent * pEvent) override;
+    virtual void dropEvent(QDropEvent * pEvent) override;
+
     virtual void closeEvent(QCloseEvent * pEvent) override;
 
     virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
 
+public Q_SLOTS:
     // Slots for toolbar button actions or external actions
     void onEditorTextBoldToggled();
     void onEditorTextItalicToggled();

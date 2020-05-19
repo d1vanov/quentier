@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -217,8 +217,8 @@ Q_SIGNALS:
     void listSavedSearches(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListSavedSearchesOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListSavedSearchesOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QUuid requestId);
 
     void expungeSavedSearch(SavedSearch search, QUuid requestId);
@@ -243,15 +243,15 @@ private Q_SLOTS:
     void onListSavedSearchesComplete(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListSavedSearchesOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListSavedSearchesOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QList<SavedSearch> foundSearches, QUuid requestId);
 
     void onListSavedSearchesFailed(
         LocalStorageManager::ListObjectsOptions flag,
         size_t limit, size_t offset,
-        LocalStorageManager::ListSavedSearchesOrder::type order,
-        LocalStorageManager::OrderDirection::type orderDirection,
+        LocalStorageManager::ListSavedSearchesOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,7 +41,7 @@ void AccountModel::setAccounts(const QVector<Account> & accounts)
 {
     QNDEBUG("AccountModel::setAccounts");
 
-    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+    if (QuentierIsLogLevelActive(LogLevel::Trace))
     {
         QString str;
         QTextStream strm(&str);
@@ -73,7 +73,7 @@ bool AccountModel::addAccount(const Account & account)
 
     // Check whether this account is already within the list of accounts
     bool foundExistingAccount = false;
-    Account::Type::type type = account.type();
+    Account::Type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
     for(auto it = m_accounts.constBegin(),
         end = m_accounts.constEnd(); it != end; ++it)
@@ -113,7 +113,7 @@ bool AccountModel::removeAccount(const Account & account)
 {
     QNDEBUG("AccountModel::removeAccount: " << account);
 
-    Account::Type::type type = account.type();
+    Account::Type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
     int index = 0;
     for(auto it = m_accounts.constBegin(),

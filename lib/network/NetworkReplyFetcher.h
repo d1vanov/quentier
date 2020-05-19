@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,11 +19,12 @@
 #ifndef QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H
 #define QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QNetworkReply>
+#include <QPointer>
 #include <QSslError>
 #include <QUrl>
 
@@ -39,7 +40,6 @@ class NetworkReplyFetcher: public QObject
     Q_OBJECT
 public:
     explicit NetworkReplyFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
         const QUrl & url,
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
@@ -62,23 +62,23 @@ public:
     qint64 bytesTotal() const { return m_bytesTotal; }
 
 Q_SIGNALS:
-    void finished(bool status, QByteArray fetchedData,
-                  ErrorString errorDescription);
+    void finished(
+        bool status, QByteArray fetchedData, ErrorString errorDescription);
+
     void downloadProgress(qint64 bytesFetched, qint64 bytesTotal);
 
 public Q_SLOTS:
     void start();
 
 private Q_SLOTS:
-    void onReplyFinished();
-    void onReplyError(QNetworkReply::NetworkError error);
-    void onReplySslErrors(QList<QSslError> errors);
+    void onReplyFinished(QNetworkReply * pReply);
+    void onReplySslErrors(QNetworkReply * pReply, QList<QSslError> errors);
     void onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
     void checkForTimeout();
 
 private:
-    void clear();
     void finishWithError(ErrorString errorDescription);
+    void recycleNetworkReply(QNetworkReply * pReply);
 
 private:
     Q_DISABLE_COPY(NetworkReplyFetcher)
@@ -86,21 +86,21 @@ private:
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
     QUrl                    m_url;
-    QNetworkReply *         m_pNetworkReply;
+    QByteArray              m_fetchedData;
 
-    bool        m_started;
-    bool        m_finished;
+    bool        m_started = false;
+    bool        m_finished = false;
 
-    qint64      m_timeoutMsec;
-    qint64      m_lastNetworkTime;
-    QTimer *    m_pTimeoutTimer;
-    bool        m_timedOut;
+    qint64      m_timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC;
+    qint64      m_lastNetworkTime = 0;
+    QTimer *    m_pTimeoutTimer = nullptr;
+    bool        m_timedOut = false;
 
-    qint64      m_bytesFetched;
-    qint64      m_bytesTotal;
+    qint64      m_bytesFetched = 0;
+    qint64      m_bytesTotal = 0;
 
-    bool        m_status;
-    int         m_httpStatusCode;
+    bool        m_status = false;
+    int         m_httpStatusCode = 0;
 };
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,7 @@ namespace quentier {
 
 LogViewerModel::FileReaderAsync::FileReaderAsync(
         const QString & targetFilePath,
-        const QVector<LogLevel::type> & disabledLogLevels,
+        const QVector<LogLevel> & disabledLogLevels,
         const QString & logEntryContentFilter, QObject * parent) :
     QObject(parent),
     m_targetFile(targetFilePath),
@@ -50,17 +50,30 @@ void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(
     QVector<LogViewerModel::Data> dataEntries;
     qint64 endPos = -1;
     ErrorString errorDescription;
-    bool res = m_parser.parseDataEntriesFromLogFile(fromPos, maxDataEntries,
-                                                    m_disabledLogLevels,
-                                                    m_filterRegExp, m_targetFile,
-                                                    dataEntries, endPos,
-                                                    errorDescription);
-    if (res) {
-        Q_EMIT readLogFileDataEntries(fromPos, endPos, dataEntries, ErrorString());
+    bool res = m_parser.parseDataEntriesFromLogFile(
+        fromPos,
+        maxDataEntries,
+        m_disabledLogLevels,
+        m_filterRegExp,
+        m_targetFile,
+        dataEntries,
+        endPos,
+        errorDescription);
+    if (res)
+    {
+        Q_EMIT readLogFileDataEntries(
+            fromPos,
+            endPos,
+            dataEntries,
+            ErrorString());
     }
-    else {
-        Q_EMIT readLogFileDataEntries(fromPos, -1, QVector<LogViewerModel::Data>(),
-                                      errorDescription);
+    else
+    {
+        Q_EMIT readLogFileDataEntries(
+            fromPos,
+            -1,
+            QVector<LogViewerModel::Data>(),
+            errorDescription);
     }
 }
 

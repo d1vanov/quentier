@@ -54,7 +54,8 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
     auto & startMinimizedData =
         availableCmdOptions[QStringLiteral("startMinimized")];
 
-    startMinimizedData.m_description = QStringLiteral(
+    startMinimizedData.m_description = QCoreApplication::translate(
+        "CommandLineParser",
         "start Quentier with its main window minimized to the task bar");
 
     auto & logLevelData = availableCmdOptions[QStringLiteral("logLevel")];

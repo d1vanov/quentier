@@ -105,6 +105,12 @@ void initializeAppVersion(QuentierApplication & app);
 bool initialize(
     QuentierApplication & app, const CommandLineParser::Options & cmdOptions);
 
+/**
+ * @brief finalize          Finalizes various things to ensure Quentier quits
+ *                          cleanly
+ */
+void finalize();
+
 } // namespace quentier
 
 #endif // QUENTIER_LIB_INITIALIZATION_INITIALIZE_H

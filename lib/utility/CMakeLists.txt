@@ -9,12 +9,13 @@ set(HEADERS
     AsyncFileWriter.h
     BasicXMLSyntaxHighlighter.h
     ColorCodeValidator.h
+    ExitCodes.h
     HumanReadableVersionInfo.h
     IStartable.h
     QObjectThreadMover.h
     QObjectThreadMover_p.h
-    StartAtLogin.h
-    SuppressWarningsMacro.h)
+    RestartApp.h
+    StartAtLogin.h)
 
 set(SOURCES
     ActionsInfo.cpp
@@ -24,6 +25,7 @@ set(SOURCES
     HumanReadableVersionInfo.cpp
     QObjectThreadMover.cpp
     QObjectThreadMover_p.cpp
+    RestartApp.cpp
     StartAtLogin.cpp)
 
 if(WIN32)

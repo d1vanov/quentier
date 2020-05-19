@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,23 +33,29 @@ bool moveObjectToThread(
     pThreadMover->moveToThread(object.thread());
 
     EventLoopWithExitStatus loop;
-    QObject::connect(pThreadMover, QNSIGNAL(ThreadMover,finished),
-                     &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-    QObject::connect(pThreadMover,
-                     QNSIGNAL(ThreadMover,notifyError,ErrorString),
-                     &loop,
-                     QNSLOT(EventLoopWithExitStatus,
-                            exitAsFailureWithErrorString,ErrorString));
+
+    QObject::connect(
+        pThreadMover,
+        &ThreadMover::finished,
+        &loop,
+        &EventLoopWithExitStatus::exitAsSuccess);
+
+    QObject::connect(
+        pThreadMover,
+        &ThreadMover::notifyError,
+        &loop,
+        &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
     QTimer slotInvokingTimer;
     slotInvokingTimer.singleShot(0, pThreadMover, SLOT(start()));
-    int result = loop.exec(QEventLoop::ExcludeUserInputEvents);
+    Q_UNUSED(loop.exec(QEventLoop::ExcludeUserInputEvents))
+    auto status = loop.exitStatus();
 
     pThreadMover->disconnect(&loop);
     pThreadMover->deleteLater();
     pThreadMover = nullptr;
 
-    if (result == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
         return true;
     }
 
@@ -58,5 +64,3 @@ bool moveObjectToThread(
 }
 
 } // namespace quentier
-
-// #include "QObjectThreadMover.moc"

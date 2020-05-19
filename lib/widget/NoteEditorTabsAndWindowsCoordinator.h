@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -110,6 +110,8 @@ public:
     void refreshNoteEditorWidgetsSpecialIcons();
 
     void saveAllNoteEditorsContents();
+
+    qint64 minIdleTime() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString error);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,6 +26,8 @@
 #include <QVector>
 #include <QSharedPointer>
 #include <QFlags>
+
+#include <memory>
 
 namespace Ui {
 class LocalStorageUpgradeDialog;
@@ -57,7 +59,7 @@ public:
     explicit LocalStorageUpgradeDialog(
         const Account & currentAccount,
         AccountModel & accountModel,
-        const QVector<QSharedPointer<ILocalStoragePatch> > & patches,
+        const QVector<std::shared_ptr<ILocalStoragePatch> > & patches,
         const Options options, QWidget * parent = nullptr);
 
     virtual ~LocalStorageUpgradeDialog();
@@ -106,7 +108,7 @@ private:
 
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;
-    QVector<QSharedPointer<ILocalStoragePatch> >    m_patches;
+    QVector<std::shared_ptr<ILocalStoragePatch>>    m_patches;
     AccountFilterModel *    m_pAccountFilterModel;
     Options     m_options;
     int         m_currentPatchIndex;

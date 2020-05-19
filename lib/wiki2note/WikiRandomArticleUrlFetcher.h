@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,7 +38,6 @@ class WikiRandomArticleUrlFetcher: public QObject
     Q_OBJECT
 public:
     explicit WikiRandomArticleUrlFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
 
@@ -73,7 +72,6 @@ private:
     void finishWithError(const ErrorString & errorDescription);
 
 private:
-    QNetworkAccessManager * m_pNetworkAccessManager;
     const qint64            m_networkReplyFetcherTimeout;
 
     NetworkReplyFetcher *   m_pNetworkReplyFetcher;

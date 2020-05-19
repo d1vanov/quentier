@@ -18,13 +18,22 @@
 
 #include "BreakpadIntegration.h"
 
-#include <lib/utility/SuppressWarningsMacro.h>
+#include <quentier/utility/SuppressWarnings.h>
 
-SUPPRESS_WARNINGS
+SAVE_WARNINGS
+
+CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
+CLANG_SUPPRESS_WARNING(-Wsign-conversion)
+GCC_SUPPRESS_WARNING(-Wconversion)
+MSVC_SUPPRESS_WARNING(4365)
+MSVC_SUPPRESS_WARNING(4244)
+MSVC_SUPPRESS_WARNING(4305)
+
 #include <client/windows/handler/exception_handler.h>
 #include <client/windows/crash_generation/minidump_generator.h>
 #include <client/windows/crash_generation/client_info.h>
 #include <client/windows/crash_generation/crash_generation_client.h>
+
 RESTORE_WARNINGS
 
 #include <QByteArray>
@@ -33,11 +42,24 @@ RESTORE_WARNINGS
 #include <QList>
 #include <QStandardPaths>
 
+#include <rtcapi.h>
 #include <tchar.h>
 #include <windows.h>
 
 #include <iostream>
 #include <string>
+
+int null_exception_handler(LPEXCEPTION_POINTERS)
+{
+    exit(1);
+}
+
+int null_runtime_check_handler(
+    int /* errorType */, const char * /* filename */, int /* linenumber */,
+    const char * /* moduleName */, const char * /* format */, ...)
+{
+    exit(1);
+}
 
 namespace quentier {
 
@@ -93,7 +115,7 @@ bool ShowDumpResults(const wchar_t * dump_path,
     return succeeded;
 }
 
-static google_breakpad::ExceptionHandler * pBreakpadHandler = NULL;
+static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
 
 void setupBreakpad(const QApplication & app)
 {
@@ -102,13 +124,22 @@ void setupBreakpad(const QApplication & app)
 
 #define CONVERT_PATH(path)                                                     \
     path = QDir::toNativeSeparators(path);                                     \
-    path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"))           \
+    path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"));          \
+    path.prepend(QString::fromUtf8("\""));                                     \
+    path.append(QString::fromUtf8("\""));                                      \
 // CONVERT_PATH
 
     QString minidumpsStorageFolderPath =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 
     CONVERT_PATH(minidumpsStorageFolderPath);
+    // NOTE: removing quotes from this path for two reasons:
+    // 1. This path shouldn't contain spaces so it's not necessary to escape them
+    // 2. Minidump file path would be appended to this path in exception handler,
+    //    so the resulting path would otherwise have an opening quote, quote in
+    //    the middle of the path and no closing quote
+    minidumpsStorageFolderPath.remove(0, 1);
+    minidumpsStorageFolderPath.chop(1);
 
     *quentierMinidumpsStorageFolderPath = minidumpsStorageFolderPath.toStdWString();
 
@@ -117,6 +148,11 @@ void setupBreakpad(const QApplication & app)
         QString::fromUtf8("/quentier_crash_handler.exe");
 
     CONVERT_PATH(crashHandlerFilePath);
+    // NOTE: removing quotes from this path because it would be the first argument
+    // to WinAPI's CreateProcess call and this one shouldn't be surrounded by
+    // quotes
+    crashHandlerFilePath.chop(1);
+    crashHandlerFilePath.remove(0, 1);
 
     *quentierCrashHandlerFilePath = crashHandlerFilePath.toStdWString();
 
@@ -155,6 +191,21 @@ void setupBreakpad(const QApplication & app)
         std::wstring(minidumpsStorageFolderPathData), NULL, ShowDumpResults,
         NULL, google_breakpad::ExceptionHandler::HANDLER_ALL, MiniDumpNormal,
         (const wchar_t*)NULL, NULL);
+}
+
+void detachBreakpad()
+{
+    if (pBreakpadHandler) {
+        delete pBreakpadHandler;
+        pBreakpadHandler = nullptr;
+    }
+
+    // WinAPI magic to disable Windows error reporting dialog in case of crashes:
+    // https://stackoverflow.com/a/15660790/1217285
+    DWORD dwMode = SetErrorMode(SEM_NOGPFAULTERRORBOX);
+    SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX);
+    SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)&null_exception_handler);
+    _RTC_SetErrorFunc(&null_runtime_check_handler);
 }
 
 } // namespace quentier

@@ -18,10 +18,19 @@
 
 #include "BreakpadIntegration.h"
 
-#include <lib/utility/SuppressWarningsMacro.h>
+#include <quentier/utility/SuppressWarnings.h>
 
-SUPPRESS_WARNINGS
+SAVE_WARNINGS
+
+CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
+CLANG_SUPPRESS_WARNING(-Wsign-conversion)
+GCC_SUPPRESS_WARNING(-Wconversion)
+MSVC_SUPPRESS_WARNING(4365)
+MSVC_SUPPRESS_WARNING(4244)
+MSVC_SUPPRESS_WARNING(4305)
+
 #include <client/linux/handler/exception_handler.h>
+
 RESTORE_WARNINGS
 
 #include <QGlobalStatic>
@@ -74,8 +83,8 @@ static bool dumpCallback(
     }
 }
 
-static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = NULL;
-static google_breakpad::ExceptionHandler * pBreakpadHandler = NULL;
+static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = nullptr;
+static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
 
 void setupBreakpad(const QApplication & app)
 {
@@ -97,6 +106,19 @@ void setupBreakpad(const QApplication & app)
     pBreakpadHandler = new google_breakpad::ExceptionHandler(*pBreakpadDescriptor,
                                                              NULL, dumpCallback,
                                                              NULL, true, -1);
+}
+
+void detachBreakpad()
+{
+    if (pBreakpadHandler) {
+        delete pBreakpadHandler;
+        pBreakpadHandler = nullptr;
+    }
+
+    if (pBreakpadDescriptor) {
+        delete pBreakpadDescriptor;
+        pBreakpadDescriptor = nullptr;
+    }
 }
 
 } // namespace quentier

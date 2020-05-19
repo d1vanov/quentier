@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -61,7 +61,7 @@ bool FetchNotes(
                      QNSLOT(WikiArticlesFetchingTracker,
                             onWikiArticlesFetchingProgressUpdate,double));
 
-    int status = -1;
+    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
         EventLoopWithExitStatus loop;
         QObject::connect(&tracker,
@@ -79,7 +79,8 @@ bool FetchNotes(
         slotInvokingTimer.setSingleShot(true);
         slotInvokingTimer.singleShot(0, pFetcher, SLOT(start()));
 
-        status = loop.exec();
+        Q_UNUSED(loop.exec())
+        status = loop.exitStatus();
     }
 
     pFetcher->deleteLater();

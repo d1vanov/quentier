@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,30 +18,33 @@
 
 #include "ManageAccountsDialog.h"
 #include "ui_ManageAccountsDialog.h"
-#include "DeleteAccountDialog.h"
+
+#include "AccountDelegate.h"
 #include "AccountManager.h"
 #include "AccountModel.h"
-#include "AccountDelegate.h"
 #include "AddAccountDialog.h"
+#include "DeleteAccountDialog.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/StringUtils.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/MessageBox.h>
+#include <quentier/utility/StringUtils.h>
 
 #include <QAbstractTableModel>
-#include <QStyledItemDelegate>
-#include <QScopedPointer>
 #include <QRegExp>
+#include <QStyledItemDelegate>
 #include <QToolTip>
 #include <QItemSelection>
+
+#include <memory>
 
 #define NUM_ACCOUNTS_MODEL_COLUMNS (3)
 
 namespace quentier {
 
-ManageAccountsDialog::ManageAccountsDialog(AccountManager & accountManager,
-                                           const int currentAccountRow,
-                                           QWidget * parent) :
+ManageAccountsDialog::ManageAccountsDialog(
+        AccountManager & accountManager, const int currentAccountRow,
+        QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::ManageAccountsDialog),
     m_accountManager(accountManager)
@@ -56,45 +59,115 @@ ManageAccountsDialog::ManageAccountsDialog(AccountManager & accountManager,
     m_pUi->tableView->setModel(&accountModel);
     AccountDelegate * pDelegate = new AccountDelegate(this);
     m_pUi->tableView->setItemDelegate(pDelegate);
-    m_pUi->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_pUi->tableView->horizontalHeader()->setSectionResizeMode(
+        QHeaderView::Stretch);
 
     int numAvailableAccounts = accountModel.accounts().size();
-    if ((currentAccountRow >= 0) && (currentAccountRow < numAvailableAccounts)) {
-        QModelIndex index = accountModel.index(currentAccountRow,
-                                               AccountModel::Columns::Username);
+    if ((currentAccountRow >= 0) &&
+        (currentAccountRow < numAvailableAccounts))
+    {
+        QModelIndex index = accountModel.index(
+            currentAccountRow,
+            AccountModel::Columns::Username);
         m_pUi->tableView->setCurrentIndex(index);
     }
 
-    QObject::connect(&accountModel,
-                     QNSIGNAL(AccountModel,badAccountDisplayName,
-                              ErrorString,int),
-                     this,
-                     QNSLOT(ManageAccountsDialog,onBadAccountDisplayNameEntered,
-                            ErrorString,int));
-    QObject::connect(m_pUi->addNewAccountButton,
-                     QNSIGNAL(QPushButton,pressed),
-                     this,
-                     QNSLOT(ManageAccountsDialog,onAddAccountButtonPressed));
-    QObject::connect(m_pUi->revokeAuthenticationButton,
-                     QNSIGNAL(QPushButton,pressed),
-                     this,
-                     QNSLOT(ManageAccountsDialog,
-                            onRevokeAuthenticationButtonPressed));
-    QObject::connect(m_pUi->deleteAccountButton,
-                     QNSIGNAL(QPushButton,pressed),
-                     this,
-                     QNSLOT(ManageAccountsDialog,onDeleteAccountButtonPressed));
-    QObject::connect(m_pUi->tableView->selectionModel(),
-                     QNSIGNAL(QItemSelectionModel,selectionChanged,
-                              QItemSelection,QItemSelection),
-                     this,
-                     QNSLOT(ManageAccountsDialog,onAccountSelectionChanged,
-                            QItemSelection,QItemSelection));
+    QObject::connect(
+        &accountModel,
+        &AccountModel::badAccountDisplayName,
+        this,
+        &ManageAccountsDialog::onBadAccountDisplayNameEntered);
+
+    QObject::connect(
+        m_pUi->addNewAccountButton,
+        &QPushButton::pressed,
+        this,
+        &ManageAccountsDialog::onAddAccountButtonPressed);
+
+    QObject::connect(
+        m_pUi->deleteAccountButton,
+        &QPushButton::pressed,
+        this,
+        &ManageAccountsDialog::onDeleteAccountButtonPressed);
+
+    QObject::connect(
+        m_pUi->tableView->selectionModel(),
+        &QItemSelectionModel::selectionChanged,
+        this,
+        &ManageAccountsDialog::onAccountSelectionChanged);
+
+    // Revoke authentication button would only work if current account is
+    // Evernote one, not a local one. So hiding the button if current account
+    // is local
+    Account currentAccount = m_accountManager.currentAccount();
+    if (currentAccount.type() != Account::Type::Evernote) {
+        m_pUi->revokeAuthenticationButton->hide();
+    }
+    else {
+        QObject::connect(
+            m_pUi->revokeAuthenticationButton,
+            &QPushButton::pressed,
+            this,
+            &ManageAccountsDialog::onRevokeAuthenticationButtonPressed);
+    }
 }
 
 ManageAccountsDialog::~ManageAccountsDialog()
 {
     delete m_pUi;
+}
+
+void ManageAccountsDialog::onAuthenticationRevoked(
+    bool success, ErrorString errorDescription, qevercloud::UserID userId)
+{
+    QNDEBUG("ManageAccountsDialog::onAuthenticationRevoked: success = "
+        << (success ? "true" : "false") << ", error description = "
+        << errorDescription << ", user id = " << userId);
+
+    if (!success)
+    {
+        QNWARNING("Failed to revoke authentication for account with id "
+            << userId << ": " << errorDescription);
+
+        Q_UNUSED(warningMessageBox(
+            this,
+            tr("Failed to revoke authentication"),
+            tr("Failed to revoke authentication for account with id") +
+            QStringLiteral(" ") + QString::number(userId) +
+            QStringLiteral(": ") + errorDescription.localizedString()));
+
+        return;
+    }
+
+    Account accountWithRevokedAuthentication;
+    bool foundAccountWithRevokedAuthentication = false;
+    const auto & availableAccounts = m_accountManager.availableAccounts();
+
+    for(const auto & availableAccount: availableAccounts)
+    {
+        if (availableAccount.type() != Account::Type::Evernote) {
+            continue;
+        }
+
+        if (availableAccount.id() != userId) {
+            continue;
+        }
+
+        accountWithRevokedAuthentication = availableAccount;
+        foundAccountWithRevokedAuthentication = true;
+        break;
+    }
+
+    if (foundAccountWithRevokedAuthentication) {
+        setStatusBarText(tr("Revoked authentication for account") +
+            QStringLiteral(": ") + accountWithRevokedAuthentication.name() +
+            QStringLiteral(" (id = ") + QString::number(userId) +
+            QStringLiteral(")"));
+    }
+    else {
+        QNWARNING("Failed to find the account for which the authentication "
+            << "was revoked: " << userId);
+    }
 }
 
 void ManageAccountsDialog::onAddAccountButtonPressed()
@@ -103,22 +176,24 @@ void ManageAccountsDialog::onAddAccountButtonPressed()
 
     setStatusBarText(QString());
 
-    QScopedPointer<AddAccountDialog> addAccountDialog(
-        new AddAccountDialog(m_accountManager.accountModel().accounts(), this));
-    addAccountDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(addAccountDialog.data(),
+    auto pAddAccountDialog = std::make_unique<AddAccountDialog>(
+        m_accountManager.accountModel().accounts(),
+        this);
+
+    pAddAccountDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pAddAccountDialog.get(),
                      QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,
                               QString,QNetworkProxy),
                      this,
                      QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,
                               QString,QNetworkProxy));
-    QObject::connect(addAccountDialog.data(),
+    QObject::connect(pAddAccountDialog.get(),
                      QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,
                               QString,QString),
                      this,
                      QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,
                               QString,QString));
-    Q_UNUSED(addAccountDialog->exec())
+    Q_UNUSED(pAddAccountDialog->exec())
 }
 
 void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
@@ -144,7 +219,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
     }
 
     const QVector<Account> & availableAccounts =
-        m_accountManager.accountModel().accounts();
+        m_accountManager.availableAccounts();
 
     if (Q_UNLIKELY(currentRow >= availableAccounts.size())) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
@@ -157,6 +232,33 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
     const Account & availableAccount = availableAccounts.at(currentRow);
     if (availableAccount.type() == Account::Type::Local) {
         QNDEBUG("The current account is local, nothing to do");
+        setStatusBarText(tr("Can't revoke authentication for local account"));
+        return;
+    }
+
+    QString accountDetails;
+    QTextStream strm(&accountDetails);
+    strm << tr("name") << " = " << availableAccount.name();
+
+    auto accountDisplayName = availableAccount.displayName();
+    if (!accountDisplayName.isEmpty()) {
+        strm << " (" << availableAccount.displayName() << ")";
+    }
+
+    strm << ", " << tr("evernote server") << " = " <<
+        availableAccount.evernoteHost();
+
+    strm.flush();
+
+    int res = questionMessageBox(
+        this,
+        tr("Revoke authentication?"),
+        tr("Are you sure you want to revoke authentication for this account?"),
+        accountDetails);
+
+    if (res == QMessageBox::Cancel) {
+        QNDEBUG("Revoking authentication for account was cancelled: "
+            << availableAccount);
         return;
     }
 
@@ -229,9 +331,11 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
         return;
     }
 
-    QScopedPointer<DeleteAccountDialog> pDeleteAccountDialog(
-        new DeleteAccountDialog(accountToDelete, m_accountManager.accountModel(),
-                                this));
+    auto pDeleteAccountDialog = std::make_unique<DeleteAccountDialog>(
+        accountToDelete,
+        m_accountManager.accountModel(),
+        this);
+
     pDeleteAccountDialog->setWindowModality(Qt::WindowModal);
     Q_UNUSED(pDeleteAccountDialog->exec())
 }

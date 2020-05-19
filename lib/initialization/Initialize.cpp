@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -91,7 +91,7 @@ void parseCommandLine(
     }
 }
 
-std::unique_ptr<LogLevel::type> processLogLevelCommandLineOption(
+std::unique_ptr<LogLevel> processLogLevelCommandLineOption(
     const CommandLineParser::Options & options)
 {
     auto logLevelIt = options.find(QStringLiteral("logLevel"));
@@ -102,19 +102,19 @@ std::unique_ptr<LogLevel::type> processLogLevelCommandLineOption(
     QString level = logLevelIt->toString().toLower();
 
     if (level == QStringLiteral("error")) {
-        return std::make_unique<LogLevel::type>(LogLevel::ErrorLevel);
+        return std::make_unique<LogLevel>(LogLevel::Error);
     }
 
     if (level == QStringLiteral("warning")) {
-        return std::make_unique<LogLevel::type>(LogLevel::WarnLevel);
+        return std::make_unique<LogLevel>(LogLevel::Warning);
     }
 
     if (level == QStringLiteral("debug")) {
-        return std::make_unique<LogLevel::type>(LogLevel::DebugLevel);
+        return std::make_unique<LogLevel>(LogLevel::Debug);
     }
 
     if (level == QStringLiteral("trace")) {
-        return std::make_unique<LogLevel::type>(LogLevel::TraceLevel);
+        return std::make_unique<LogLevel>(LogLevel::Trace);
     }
 
     return {};
@@ -152,7 +152,7 @@ bool initialize(
 
     // Initialize logging
     QUENTIER_INITIALIZE_LOGGING();
-    QuentierSetMinLogLevel(pLogLevel ? *pLogLevel : LogLevel::InfoLevel);
+    QuentierSetMinLogLevel(pLogLevel ? *pLogLevel : LogLevel::Info);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
 
 #ifdef BUILDING_WITH_BREAKPAD
@@ -183,7 +183,7 @@ bool initialize(
             if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6))
             {
                 quentier::QuentierSetMinLogLevel(
-                    static_cast<quentier::LogLevel::type>(minLogLevel));
+                    static_cast<quentier::LogLevel>(minLogLevel));
             }
         }
     }
@@ -367,6 +367,13 @@ bool processOverrideSystemTrayAvailabilityCommandLineOption(
     }
 
     return true;
+}
+
+void finalize()
+{
+#ifdef BUILDING_WITH_BREAKPAD
+    detachBreakpad();
+#endif
 }
 
 } // namespace quentier

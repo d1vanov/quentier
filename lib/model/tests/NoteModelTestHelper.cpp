@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -76,15 +76,15 @@ NoteModelTestHelper::NoteModelTestHelper(
                      QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
                               LocalStorageManager::ListObjectsOptions,
                               LocalStorageManager::GetNoteOptions,size_t,size_t,
-                              LocalStorageManager::ListNotesOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListNotesOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,ErrorString,QUuid),
                      this,
                      QNSLOT(NoteModelTestHelper,onListNotesFailed,
                             LocalStorageManager::ListObjectsOptions,
                             LocalStorageManager::GetNoteOptions,size_t,size_t,
-                            LocalStorageManager::ListNotesOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListNotesOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,
@@ -760,8 +760,8 @@ void NoteModelTestHelper::onListNotesFailed(
     LocalStorageManager::ListObjectsOptions flag,
     LocalStorageManager::GetNoteOptions options,
     size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListNotesOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG("NoteModelTestHelper::onListNotesFailed: flag = "

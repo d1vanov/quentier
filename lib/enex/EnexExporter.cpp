@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -429,14 +429,16 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
 
     QString enex;
     ENMLConverter converter;
-    ENMLConverter::EnexExportTags::type exportTagsOption =
-        (m_includeTags
-         ? ENMLConverter::EnexExportTags::Yes
-         : ENMLConverter::EnexExportTags::No);
-    bool res = converter.exportNotesToEnex(notes, tagNameByTagLocalUid,
-                                           exportTagsOption, enex,
-                                           errorDescription,
-                                           QUENTIER_ENEX_VERSION);
+    auto exportTagsOption = (m_includeTags
+        ? ENMLConverter::EnexExportTags::Yes
+        : ENMLConverter::EnexExportTags::No);
+    bool res = converter.exportNotesToEnex(
+        notes,
+        tagNameByTagLocalUid,
+        exportTagsOption,
+        enex,
+        errorDescription,
+        QUENTIER_ENEX_VERSION);
     if (!res) {
         return QString();
     }

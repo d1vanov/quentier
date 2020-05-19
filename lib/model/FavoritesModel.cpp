@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -927,8 +927,8 @@ void FavoritesModel::onListNotesComplete(
     LocalStorageManager::ListObjectsOptions flag,
     LocalStorageManager::GetNoteOptions options,
     size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListNotesOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, QList<Note> foundNotes, QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
@@ -973,8 +973,8 @@ void FavoritesModel::onListNotesFailed(
     LocalStorageManager::ListObjectsOptions flag,
     LocalStorageManager::GetNoteOptions options,
     size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListNotesOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
@@ -1131,8 +1131,8 @@ void FavoritesModel::onFindNotebookFailed(
 void FavoritesModel::onListNotebooksComplete(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListNotebooksOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListNotebooksOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
     QUuid requestId)
 {
@@ -1174,8 +1174,8 @@ void FavoritesModel::onListNotebooksComplete(
 void FavoritesModel::onListNotebooksFailed(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListNotebooksOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListNotebooksOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
@@ -1321,8 +1321,8 @@ void FavoritesModel::onFindTagFailed(
 void FavoritesModel::onListTagsComplete(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListTagsOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListTagsOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
@@ -1361,8 +1361,8 @@ void FavoritesModel::onListTagsComplete(
 void FavoritesModel::onListTagsFailed(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListTagsOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListTagsOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
@@ -1521,8 +1521,8 @@ void FavoritesModel::onFindSavedSearchFailed(
 void FavoritesModel::onListSavedSearchesComplete(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListSavedSearchesOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListSavedSearchesOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QList<SavedSearch> foundSearches, QUuid requestId)
 {
     if (requestId != m_listSavedSearchesRequestId) {
@@ -1559,8 +1559,8 @@ void FavoritesModel::onListSavedSearchesComplete(
 void FavoritesModel::onListSavedSearchesFailed(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListSavedSearchesOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListSavedSearchesOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listSavedSearchesRequestId) {
@@ -1721,15 +1721,15 @@ void FavoritesModel::createConnections(
                      QNSIGNAL(FavoritesModel,listNotes,
                               LocalStorageManager::ListObjectsOptions,
                               LocalStorageManager::GetNoteOptions,size_t,size_t,
-                              LocalStorageManager::ListNotesOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListNotesOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListNotesRequest,
                             LocalStorageManager::ListObjectsOptions,
                             LocalStorageManager::GetNoteOptions,size_t,size_t,
-                            LocalStorageManager::ListNotesOrder::type,
-                            LocalStorageManager::OrderDirection::type,QString,QUuid));
+                            LocalStorageManager::ListNotesOrder,
+                            LocalStorageManager::OrderDirection,QString,QUuid));
     QObject::connect(this,
                      QNSIGNAL(FavoritesModel,updateNotebook,Notebook,QUuid),
                      &localStorageManagerAsync,
@@ -1743,14 +1743,14 @@ void FavoritesModel::createConnections(
     QObject::connect(this,
                      QNSIGNAL(FavoritesModel,listNotebooks,
                               LocalStorageManager::ListObjectsOptions,size_t,
-                              size_t,LocalStorageManager::ListNotebooksOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              size_t,LocalStorageManager::ListNotebooksOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListNotebooksRequest,
                             LocalStorageManager::ListObjectsOptions,size_t,
-                            size_t,LocalStorageManager::ListNotebooksOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            size_t,LocalStorageManager::ListNotebooksOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,QUuid));
     QObject::connect(this,
                      QNSIGNAL(FavoritesModel,updateTag,Tag,QUuid),
@@ -1764,14 +1764,14 @@ void FavoritesModel::createConnections(
     QObject::connect(this,
                      QNSIGNAL(FavoritesModel,listTags,
                               LocalStorageManager::ListObjectsOptions,size_t,
-                              size_t,LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              size_t,LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListTagsRequest,
                             LocalStorageManager::ListObjectsOptions,size_t,
-                            size_t,LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            size_t,LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,QUuid));
     QObject::connect(this,
                      QNSIGNAL(FavoritesModel,updateSavedSearch,SavedSearch,QUuid),
@@ -1786,13 +1786,13 @@ void FavoritesModel::createConnections(
     QObject::connect(this,
                      QNSIGNAL(FavoritesModel,listSavedSearches,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListSavedSearchesOrder::type,
-                              LocalStorageManager::OrderDirection::type,QUuid),
+                              LocalStorageManager::ListSavedSearchesOrder,
+                              LocalStorageManager::OrderDirection,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListSavedSearchesRequest,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListSavedSearchesOrder::type,
-                            LocalStorageManager::OrderDirection::type,QUuid));
+                            LocalStorageManager::ListSavedSearchesOrder,
+                            LocalStorageManager::OrderDirection,QUuid));
     QObject::connect(this,
                      QNSIGNAL(FavoritesModel,noteCountPerNotebook,
                               Notebook,LocalStorageManager::NoteCountOptions,QUuid),
@@ -1856,30 +1856,30 @@ void FavoritesModel::createConnections(
                      QNSIGNAL(LocalStorageManagerAsync,listNotesComplete,
                               LocalStorageManager::ListObjectsOptions,
                               LocalStorageManager::GetNoteOptions,size_t,size_t,
-                              LocalStorageManager::ListNotesOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListNotesOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,QList<Note>,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListNotesComplete,
                             LocalStorageManager::ListObjectsOptions,
                             LocalStorageManager::GetNoteOptions,
                             size_t,size_t,
-                            LocalStorageManager::ListNotesOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListNotesOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,QList<Note>,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
                               LocalStorageManager::ListObjectsOptions,
                               LocalStorageManager::GetNoteOptions,size_t,size_t,
-                              LocalStorageManager::ListNotesOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListNotesOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,ErrorString,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListNotesFailed,
                             LocalStorageManager::ListObjectsOptions,
                             LocalStorageManager::GetNoteOptions,size_t,size_t,
-                            LocalStorageManager::ListNotesOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListNotesOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,
@@ -1916,26 +1916,26 @@ void FavoritesModel::createConnections(
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listNotebooksComplete,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListNotebooksOrder::type,
-                              LocalStorageManager::OrderDirection::type,QString,
+                              LocalStorageManager::ListNotebooksOrder,
+                              LocalStorageManager::OrderDirection,QString,
                               QList<Notebook>,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListNotebooksComplete,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListNotebooksOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListNotebooksOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,QList<Notebook>,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listNotebooksFailed,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListNotebooksOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListNotebooksOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,ErrorString,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListNotebooksFailed,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListNotebooksOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListNotebooksOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,
@@ -1969,26 +1969,26 @@ void FavoritesModel::createConnections(
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listTagsComplete,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,QList<Tag>,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListTagsComplete,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,QList<Tag>,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listTagsFailed,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,ErrorString,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListTagsFailed,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,
@@ -2029,25 +2029,25 @@ void FavoritesModel::createConnections(
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesComplete,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListSavedSearchesOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListSavedSearchesOrder,
+                              LocalStorageManager::OrderDirection,
                               QList<SavedSearch>,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListSavedSearchesComplete,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListSavedSearchesOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListSavedSearchesOrder,
+                            LocalStorageManager::OrderDirection,
                             QList<SavedSearch>,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listSavedSearchesFailed,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListSavedSearchesOrder::type,
-                              LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
+                              LocalStorageManager::ListSavedSearchesOrder,
+                              LocalStorageManager::OrderDirection,ErrorString,QUuid),
                      this,
                      QNSLOT(FavoritesModel,onListSavedSearchesFailed,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListSavedSearchesOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListSavedSearchesOrder,
+                            LocalStorageManager::OrderDirection,
                             ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeSavedSearchComplete,
@@ -2092,10 +2092,10 @@ void FavoritesModel::requestNotesList()
     QNDEBUG("FavoritesModel::requestNotesList: offset = " << m_listNotesOffset);
 
     LocalStorageManager::ListObjectsOptions flags =
-        LocalStorageManager::ListFavoritedElements;
-    LocalStorageManager::ListNotesOrder::type order =
+        LocalStorageManager::ListObjectsOption::ListFavoritedElements;
+    LocalStorageManager::ListNotesOrder order =
         LocalStorageManager::ListNotesOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction =
+    LocalStorageManager::OrderDirection direction =
         LocalStorageManager::OrderDirection::Ascending;
 
     m_listNotesRequestId = QUuid::createUuid();
@@ -2116,10 +2116,11 @@ void FavoritesModel::requestNotebooksList()
     // the information about the restrictions for various notebooks + for
     // the collection of notebook names to forbid any two notebooks within
     // the account to have the same name in a case-insensitive manner
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
-    LocalStorageManager::ListNotebooksOrder::type order =
+    LocalStorageManager::ListObjectsOptions flags =
+        LocalStorageManager::ListObjectsOption::ListAll;
+    LocalStorageManager::ListNotebooksOrder order =
         LocalStorageManager::ListNotebooksOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction =
+    LocalStorageManager::OrderDirection direction =
         LocalStorageManager::OrderDirection::Ascending;
 
     m_listNotebooksRequestId = QUuid::createUuid();
@@ -2137,10 +2138,11 @@ void FavoritesModel::requestTagsList()
     // NOTE: the subscription to all tags is necessary for the collection of tag
     // names to forbid any two tags within the account to have the same name
     // in a case-insensitive manner
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
-    LocalStorageManager::ListTagsOrder::type order =
+    LocalStorageManager::ListObjectsOptions flags =
+        LocalStorageManager::ListObjectsOption::ListAll;
+    LocalStorageManager::ListTagsOrder order =
         LocalStorageManager::ListTagsOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction =
+    LocalStorageManager::OrderDirection direction =
         LocalStorageManager::OrderDirection::Ascending;
 
     m_listTagsRequestId = QUuid::createUuid();
@@ -2158,10 +2160,11 @@ void FavoritesModel::requestSavedSearchesList()
     // NOTE: the subscription to all saved searches is necessary for the collection
     // of saved search names to forbid any two saved searches within the account
     // to have the same name in a case-insensitive manner
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
-    LocalStorageManager::ListSavedSearchesOrder::type order =
+    LocalStorageManager::ListObjectsOptions flags =
+        LocalStorageManager::ListObjectsOption::ListAll;
+    LocalStorageManager::ListSavedSearchesOrder order =
         LocalStorageManager::ListSavedSearchesOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction =
+    LocalStorageManager::OrderDirection direction =
         LocalStorageManager::OrderDirection::Ascending;
 
     m_listSavedSearchesRequestId = QUuid::createUuid();

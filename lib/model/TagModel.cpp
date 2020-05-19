@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -1425,8 +1425,8 @@ void TagModel::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requ
 void TagModel::onListTagsComplete(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListTagsOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListTagsOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, QList<Tag> tags, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
@@ -1469,8 +1469,8 @@ void TagModel::onListTagsComplete(
 void TagModel::onListTagsFailed(
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListTagsOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListTagsOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
@@ -1960,8 +1960,8 @@ void TagModel::onListAllTagsPerNoteComplete(
     QList<Tag> foundTags, Note note,
     LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListTagsOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListTagsOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QUuid requestId)
 {
     auto it = m_listTagsPerNoteRequestIds.find(requestId);
@@ -1985,8 +1985,8 @@ void TagModel::onListAllTagsPerNoteComplete(
 void TagModel::onListAllTagsPerNoteFailed(
     Note note, LocalStorageManager::ListObjectsOptions flag,
     size_t limit, size_t offset,
-    LocalStorageManager::ListTagsOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListTagsOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_listTagsPerNoteRequestIds.find(requestId);
@@ -2007,8 +2007,8 @@ void TagModel::onListAllTagsPerNoteFailed(
 
 void TagModel::onListAllLinkedNotebooksComplete(
     size_t limit, size_t offset,
-    LocalStorageManager::ListLinkedNotebooksOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListLinkedNotebooksOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     QList<LinkedNotebook> foundLinkedNotebooks,
     QUuid requestId)
 {
@@ -2049,8 +2049,8 @@ void TagModel::onListAllLinkedNotebooksComplete(
 
 void TagModel::onListAllLinkedNotebooksFailed(
     size_t limit, size_t offset,
-    LocalStorageManager::ListLinkedNotebooksOrder::type order,
-    LocalStorageManager::OrderDirection::type orderDirection,
+    LocalStorageManager::ListLinkedNotebooksOrder order,
+    LocalStorageManager::OrderDirection orderDirection,
     ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_listLinkedNotebooksRequestId) {
@@ -2091,15 +2091,15 @@ void TagModel::createConnections(
                      QNSIGNAL(TagModel,listTags,
                               LocalStorageManager::ListObjectsOptions,
                               size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListTagsRequest,
                             LocalStorageManager::ListObjectsOptions,
                             size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,QUuid));
     QObject::connect(this,
                      QNSIGNAL(TagModel,expungeTag,Tag,QUuid),
@@ -2129,23 +2129,23 @@ void TagModel::createConnections(
                      QNSIGNAL(TagModel,listAllTagsPerNote,
                               Note,LocalStorageManager::ListObjectsOptions,
                               size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,QUuid),
+                              LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListAllTagsPerNoteRequest,
                             Note,LocalStorageManager::ListObjectsOptions,
                             size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,QUuid));
+                            LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,QUuid));
     QObject::connect(this,
                      QNSIGNAL(TagModel,listAllLinkedNotebooks,size_t,size_t,
-                              LocalStorageManager::ListLinkedNotebooksOrder::type,
-                              LocalStorageManager::OrderDirection::type,QUuid),
+                              LocalStorageManager::ListLinkedNotebooksOrder,
+                              LocalStorageManager::OrderDirection,QUuid),
                      &localStorageManagerAsync,
                      QNSLOT(LocalStorageManagerAsync,onListAllLinkedNotebooksRequest,
                             size_t,size_t,
-                            LocalStorageManager::ListLinkedNotebooksOrder::type,
-                            LocalStorageManager::OrderDirection::type,QUuid));
+                            LocalStorageManager::ListLinkedNotebooksOrder,
+                            LocalStorageManager::OrderDirection,QUuid));
 
     // localStorageManagerAsync's signals to local slots
     QObject::connect(&localStorageManagerAsync,
@@ -2180,29 +2180,29 @@ void TagModel::createConnections(
                      QNSIGNAL(LocalStorageManagerAsync,listTagsComplete,
                               LocalStorageManager::ListObjectsOptions,
                               size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,QList<Tag>,QUuid),
                      this,
                      QNSLOT(TagModel,onListTagsComplete,
                             LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,QList<Tag>,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               listTagsWithNoteLocalUidsFailed,
                               LocalStorageManager::ListObjectsOptions,
                               size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,
                               QString,ErrorString,QUuid),
                      this,
                      QNSLOT(TagModel,onListTagsFailed,
                             LocalStorageManager::ListObjectsOptions,
                             size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,
                             QString,ErrorString,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,
@@ -2312,35 +2312,35 @@ void TagModel::createConnections(
                      QNSIGNAL(LocalStorageManagerAsync,listAllTagsPerNoteComplete,
                               QList<Tag>,Note,LocalStorageManager::ListObjectsOptions,
                               size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,QUuid),
+                              LocalStorageManager::ListTagsOrder,
+                              LocalStorageManager::OrderDirection,QUuid),
                      this,
                      QNSLOT(TagModel,onListAllTagsPerNoteComplete,
                             QList<Tag>,Note,LocalStorageManager::ListObjectsOptions,
                             size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,QUuid));
+                            LocalStorageManager::ListTagsOrder,
+                            LocalStorageManager::OrderDirection,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,
                               listAllLinkedNotebooksComplete,size_t,size_t,
-                              LocalStorageManager::ListLinkedNotebooksOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListLinkedNotebooksOrder,
+                              LocalStorageManager::OrderDirection,
                               QList<LinkedNotebook>,QUuid),
                      this,
                      QNSLOT(TagModel,onListAllLinkedNotebooksComplete,size_t,size_t,
-                            LocalStorageManager::ListLinkedNotebooksOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListLinkedNotebooksOrder,
+                            LocalStorageManager::OrderDirection,
                             QList<LinkedNotebook>,QUuid));
     QObject::connect(&localStorageManagerAsync,
                      QNSIGNAL(LocalStorageManagerAsync,listAllLinkedNotebooksFailed,
                               size_t,size_t,
-                              LocalStorageManager::ListLinkedNotebooksOrder::type,
-                              LocalStorageManager::OrderDirection::type,
+                              LocalStorageManager::ListLinkedNotebooksOrder,
+                              LocalStorageManager::OrderDirection,
                               ErrorString,QUuid),
                      this,
                      QNSLOT(TagModel,onListAllLinkedNotebooksFailed,size_t,size_t,
-                            LocalStorageManager::ListLinkedNotebooksOrder::type,
-                            LocalStorageManager::OrderDirection::type,
+                            LocalStorageManager::ListLinkedNotebooksOrder,
+                            LocalStorageManager::OrderDirection,
                             ErrorString,QUuid));
 }
 
@@ -2348,10 +2348,11 @@ void TagModel::requestTagsList()
 {
     QNTRACE("TagModel::requestTagsList: offset = " << m_listTagsOffset);
 
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
-    LocalStorageManager::ListTagsOrder::type order =
+    LocalStorageManager::ListObjectsOptions flags =
+        LocalStorageManager::ListObjectsOption::ListAll;
+    LocalStorageManager::ListTagsOrder order =
         LocalStorageManager::ListTagsOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction =
+    LocalStorageManager::OrderDirection direction =
         LocalStorageManager::OrderDirection::Ascending;
 
     m_listTagsRequestId = QUuid::createUuid();
@@ -2383,7 +2384,8 @@ void TagModel::requestTagsPerNote(const Note & note)
     QNTRACE("Emitting the request to list tags per note: request id = "
             << requestId);
     Q_EMIT listAllTagsPerNote(
-        note, LocalStorageManager::ListAll, /* limit = */ 0, /* offset = */ 0,
+        note, LocalStorageManager::ListObjectsOption::ListAll,
+        /* limit = */ 0, /* offset = */ 0,
         LocalStorageManager::ListTagsOrder::NoOrder,
         LocalStorageManager::OrderDirection::Ascending, requestId);
 }
@@ -2402,9 +2404,9 @@ void TagModel::requestLinkedNotebooksList()
 {
     QNTRACE("TagModel::requestLinkedNotebooksList");
 
-    LocalStorageManager::ListLinkedNotebooksOrder::type order =
+    LocalStorageManager::ListLinkedNotebooksOrder order =
         LocalStorageManager::ListLinkedNotebooksOrder::NoOrder;
-    LocalStorageManager::OrderDirection::type direction =
+    LocalStorageManager::OrderDirection direction =
         LocalStorageManager::OrderDirection::Ascending;
 
     m_listLinkedNotebooksRequestId = QUuid::createUuid();

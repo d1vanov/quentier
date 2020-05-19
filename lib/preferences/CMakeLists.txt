@@ -20,6 +20,11 @@ set(SOURCES
     shortcut_settings/ShortcutButton.cpp
     shortcut_settings/ShortcutSettingsWidget.cpp)
 
+if(INCLUDE_UPDATE_INFO)
+  list(APPEND HEADERS UpdateSettings.h)
+  list(APPEND SOURCES UpdateSettings.cpp)
+endif()
+
 set(FORMS
     PreferencesDialog.ui
     panel_colors/PanelColorsHandlerWidget.ui

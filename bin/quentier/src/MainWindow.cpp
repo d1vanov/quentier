@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,52 +18,55 @@
 
 #include "MainWindow.h"
 
-#include <lib/delegate/NotebookItemDelegate.h>
-#include <lib/delegate/SynchronizableColumnDelegate.h>
+#include <lib/delegate/DeletedNoteItemDelegate.h>
 #include <lib/delegate/DirtyColumnDelegate.h>
 #include <lib/delegate/FavoriteItemDelegate.h>
 #include <lib/delegate/FromLinkedNotebookColumnDelegate.h>
+#include <lib/delegate/NotebookItemDelegate.h>
 #include <lib/delegate/NoteItemDelegate.h>
+#include <lib/delegate/SynchronizableColumnDelegate.h>
 #include <lib/delegate/TagItemDelegate.h>
-#include <lib/delegate/DeletedNoteItemDelegate.h>
+#include <lib/dialog/AddOrEditNotebookDialog.h>
+#include <lib/dialog/AddOrEditSavedSearchDialog.h>
+#include <lib/dialog/AddOrEditTagDialog.h>
 #include <lib/dialog/EditNoteDialog.h>
 #include <lib/dialog/EditNoteDialogsManager.h>
-#include <lib/dialog/AddOrEditNotebookDialog.h>
-#include <lib/dialog/AddOrEditTagDialog.h>
-#include <lib/dialog/AddOrEditSavedSearchDialog.h>
 #include <lib/dialog/FirstShutdownDialog.h>
-#include <lib/dialog/LocalStorageUpgradeDialog.h>
 #include <lib/dialog/LocalStorageVersionTooHighDialog.h>
+#include <lib/dialog/LocalStorageUpgradeDialog.h>
 #include <lib/dialog/WelcomeToQuentierDialog.h>
 #include <lib/enex/EnexExportDialog.h>
-#include <lib/enex/EnexImportDialog.h>
 #include <lib/enex/EnexExporter.h>
+#include <lib/enex/EnexImportDialog.h>
 #include <lib/enex/EnexImporter.h>
 #include <lib/exception/LocalStorageVersionTooHighException.h>
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
+#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/UpdateSettings.h>
 #include <lib/tray/SystemTrayIconManager.h>
-#include <lib/utility/AsyncFileWriter.h>
+
 #include <lib/utility/ActionsInfo.h>
+#include <lib/utility/AsyncFileWriter.h>
+#include <lib/utility/ExitCodes.h>
 #include <lib/utility/QObjectThreadMover.h>
-#include <lib/view/ItemView.h>
 #include <lib/view/DeletedNoteItemView.h>
+#include <lib/view/FavoriteItemView.h>
+#include <lib/view/ItemView.h>
 #include <lib/view/NotebookItemView.h>
 #include <lib/view/NoteListView.h>
-#include <lib/view/TagItemView.h>
 #include <lib/view/SavedSearchItemView.h>
-#include <lib/view/FavoriteItemView.h>
+#include <lib/view/TagItemView.h>
 #include <lib/widget/color-picker-tool-button/ColorPickerToolButton.h>
 #include <lib/widget/insert-table-tool-button/InsertTableToolButton.h>
 #include <lib/widget/insert-table-tool-button/TableSettingsDialog.h>
+#include <lib/widget/FindAndReplaceWidget.h>
 #include <lib/widget/NoteFiltersManager.h>
 #include <lib/widget/NoteCountLabelController.h>
-#include <lib/widget/FindAndReplaceWidget.h>
 #include <lib/widget/PanelWidget.h>
 using quentier::PanelWidget;
 
@@ -82,59 +85,59 @@ using quentier::FilterBySavedSearchWidget;
 #include <lib/widget/LogViewerWidget.h>
 using quentier::LogViewerWidget;
 
-#include <lib/widget/NotebookModelItemInfoWidget.h>
-#include <lib/widget/TagModelItemInfoWidget.h>
-#include <lib/widget/SavedSearchModelItemInfoWidget.h>
 #include <lib/widget/AboutQuentierWidget.h>
+#include <lib/widget/NotebookModelItemInfoWidget.h>
+#include <lib/widget/SavedSearchModelItemInfoWidget.h>
+#include <lib/widget/TagModelItemInfoWidget.h>
 
 #include <quentier/note_editor/NoteEditor.h>
 
 #include "ui_MainWindow.h"
 
+#include <quentier/local_storage/NoteSearchQuery.h>
+#include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Resource.h>
-#include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
+#include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
-#include <quentier/local_storage/NoteSearchQuery.h>
-#include <quentier/logging/QuentierLogger.h>
 
 #include <qt5qevercloud/QEverCloud.h>
 
-#include <QPushButton>
+#include <QCheckBox>
+#include <QClipboard>
+#include <QColorDialog>
+#include <QCryptographicHash>
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QFocusEvent>
+#include <QFontDatabase>
+#include <QKeySequence>
 #include <QIcon>
 #include <QLabel>
+#include <QMenu>
+#include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QPalette>
+#include <QPushButton>
+#include <QResizeEvent>
+#include <QScopedPointer>
 #include <QTextEdit>
 #include <QTextCursor>
 #include <QTextList>
-#include <QColorDialog>
-#include <QFile>
-#include <QScopedPointer>
-#include <QMessageBox>
-#include <QtDebug>
-#include <QFontDatabase>
-#include <QKeySequence>
-#include <QUndoStack>
-#include <QCryptographicHash>
-#include <QXmlStreamWriter>
-#include <QDateTime>
-#include <QCheckBox>
-#include <QPalette>
-#include <QToolTip>
-#include <QResizeEvent>
-#include <QTimerEvent>
-#include <QFocusEvent>
-#include <QMenu>
 #include <QThreadPool>
-#include <QDir>
-#include <QClipboard>
-#include <QNetworkAccessManager>
+#include <QTimerEvent>
+#include <QToolTip>
+#include <QXmlStreamWriter>
 
-#include <cmath>
+#include <QtDebug>
+
 #include <algorithm>
+#include <cmath>
 
 #define NOTIFY_ERROR(error)                                                    \
     QNWARNING(QString::fromUtf8(error));                                       \
@@ -173,6 +176,25 @@ using quentier::LogViewerWidget;
 #define NOTIFY_SIDE_BORDERS_CONTROLLER_DELAY (200)
 
 using namespace quentier;
+
+#ifdef WITH_UPDATE_MANAGER
+class UpdateManagerIdleInfoProvider final:
+    public UpdateManager::IIdleStateInfoProvider
+{
+public:
+    UpdateManagerIdleInfoProvider(NoteEditorTabsAndWindowsCoordinator & c) :
+        m_coordinator(c)
+    {}
+
+    virtual qint64 idleTime() override
+    {
+        return m_coordinator.minIdleTime();
+    }
+
+private:
+    NoteEditorTabsAndWindowsCoordinator & m_coordinator;
+};
+#endif
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
@@ -230,8 +252,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_defaultAccountFirstNoteLocalUid(),
     m_pNoteEditorTabsAndWindowsCoordinator(nullptr),
     m_pEditNoteDialogsManager(nullptr),
-    m_pUndoStack(new QUndoStack(this)),
     m_shortcutManager(this),
+#ifdef WITH_UPDATE_MANAGER
+    m_pUpdateManager(nullptr),
+#endif
     m_pendingGreeterDialog(false),
     m_filtersViewExpanded(false),
     m_onceSetupNoteSortingModeComboBox(false),
@@ -328,14 +352,36 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     // this will emit event with initial thumbnail show/hide state
     onShowNoteThumbnailsPreferenceChanged();
+
+#ifdef WITH_UPDATE_MANAGER
+    setupUpdateManager();
+#else
+    m_pUI->ActionCheckForUpdates->setVisible(false);
+#endif
 }
 
 MainWindow::~MainWindow()
 {
+    QNDEBUG("MainWindow::~MainWindow");
+
     clearSynchronizationManager();
 
-    if (m_pLocalStorageManagerThread) {
+    if (m_pLocalStorageManagerThread)
+    {
+        QNDEBUG("Local storage manager thread is active, stopping it");
+
+        QObject::disconnect(
+            m_pLocalStorageManagerThread,
+            &QThread::finished,
+            m_pLocalStorageManagerThread,
+            &QThread::deleteLater);
+
         m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+
+        QNDEBUG("Deleting LocalStorageManagerAsync");
+        delete m_pLocalStorageManagerAsync;
+        m_pLocalStorageManagerAsync = nullptr;
     }
 
     delete m_pUI;
@@ -525,6 +571,10 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionAbout, QNSIGNAL(QAction,triggered),
                      this,
                      QNSLOT(MainWindow,onShowInfoAboutQuentierActionTriggered));
+#ifdef WITH_UPDATE_MANAGER
+    QObject::connect(m_pUI->ActionCheckForUpdates, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onCheckForUpdatesActionTriggered));
+#endif
 }
 
 void MainWindow::connectViewButtonsToSlots()
@@ -723,6 +773,62 @@ void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
         &PreferencesDialog::panelBackgroundLinearGradientChanged,
         this,
         &MainWindow::onPanelBackgroundLinearGradientChanged);
+
+#if WITH_UPDATE_MANAGER
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesRequested,
+        this,
+        &MainWindow::onCheckForUpdatesActionTriggered);
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesOptionChanged,
+        this,
+        [this] (bool enabled) {
+            this->m_pUpdateManager->setEnabled(enabled);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesOnStartupOptionChanged,
+        this,
+        [this] (bool enabled) {
+            this->m_pUpdateManager->setShouldCheckForUpdatesOnStartup(enabled);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::useContinuousUpdateChannelOptionChanged,
+        this,
+        [this] (bool enabled) {
+            this->m_pUpdateManager->setUseContinuousUpdateChannel(enabled);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::checkForUpdatesIntervalChanged,
+        this,
+        [this] (qint64 intervalMsec) {
+            this->m_pUpdateManager->setCheckForUpdatesIntervalMsec(intervalMsec);
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::updateChannelChanged,
+        this,
+        [this] (QString channel) {
+            this->m_pUpdateManager->setUpdateChannel(std::move(channel));
+        });
+
+    QObject::connect(
+        &dialog,
+        &PreferencesDialog::updateProviderChanged,
+        this,
+        [this] (UpdateProvider provider) {
+            this->m_pUpdateManager->setUpdateProvider(provider);
+        });
+#endif
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1042,7 +1148,8 @@ void MainWindow::connectSynchronizationManager()
                      m_pSynchronizationManager,
                      QNSLOT(SynchronizationManager,authenticateCurrentAccount),
                      Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-    QObject::connect(this, QNSIGNAL(MainWindow,revokeAuthentication,qevercloud::UserID),
+    QObject::connect(m_pAccountManager,
+                     QNSIGNAL(AccountManager,revokeAuthenticationRequested,qevercloud::UserID),
                      m_pSynchronizationManager,
                      QNSLOT(SynchronizationManager,revokeAuthentication,qevercloud::UserID));
     QObject::connect(this, QNSIGNAL(MainWindow,synchronize),
@@ -1082,8 +1189,8 @@ void MainWindow::connectSynchronizationManager()
     QObject::connect(m_pSynchronizationManager,
                      QNSIGNAL(SynchronizationManager,authenticationRevoked,
                               bool,ErrorString,qevercloud::UserID),
-                     this,
-                     QNSLOT(MainWindow,onAuthenticationRevoked,
+                     m_pAccountManager,
+                     QNSLOT(AccountManager,onAuthenticationRevoked,
                             bool,ErrorString,qevercloud::UserID),
                      Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
     QObject::connect(m_pSynchronizationManager,
@@ -1211,8 +1318,8 @@ void MainWindow::disconnectSynchronizationManager()
     QObject::disconnect(m_pSynchronizationManager,
                         QNSIGNAL(SynchronizationManager,authenticationRevoked,
                                  bool,ErrorString,qevercloud::UserID),
-                        this,
-                        QNSLOT(MainWindow,onAuthenticationRevoked,
+                        m_pAccountManager,
+                        QNSLOT(AccountManager,onAuthenticationRevoked,
                                bool,ErrorString,qevercloud::UserID));
     QObject::disconnect(m_pSynchronizationManager,
                         QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
@@ -1406,7 +1513,7 @@ void MainWindow::refreshNoteEditorWidgetsSpecialIcons()
 }
 
 void MainWindow::showHideViewColumnsForAccountType(
-    const Account::Type::type accountType)
+    const Account::Type accountType)
 {
     QNDEBUG("MainWindow::showHideViewColumnsForAccountType: " << accountType);
 
@@ -1781,6 +1888,9 @@ void MainWindow::onSynchronizationStopped()
     // Otherwise sync was stopped after SynchronizationManager failure
 
     m_syncApiRateLimitExceeded = false;
+
+    m_syncInProgress = false;
+    scheduleSyncButtonAnimationStop();
 }
 
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
@@ -1806,7 +1916,9 @@ void MainWindow::onSynchronizationFinished(
         onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
     }
     else {
-        onSetStatusBarText(QString());
+        onSetStatusBarText(
+            tr("The account is already in sync with Evernote service"),
+            SEC_TO_MSEC(5));
     }
 
     m_syncInProgress = false;
@@ -1867,24 +1979,6 @@ void MainWindow::onAuthenticationFinished(
         m_pendingSwitchToNewEvernoteAccount = true;
         m_pAccountManager->switchAccount(account);
     }
-}
-
-void MainWindow::onAuthenticationRevoked(
-    bool success, ErrorString errorDescription, qevercloud::UserID userId)
-{
-    QNINFO("MainWindow::onAuthenticationRevoked: success = "
-           << (success ? "true" : "false")
-           << ", error description = " << errorDescription
-           << ", user id = " << userId);
-
-    if (!success) {
-        onSetStatusBarText(tr("Couldn't revoke the authentication") +
-                           QStringLiteral(": ") + errorDescription.localizedString(),
-                           SEC_TO_MSEC(30));
-        return;
-    }
-
-    QNINFO("Revoked authentication for user with id " << userId);
 }
 
 void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
@@ -3057,7 +3151,7 @@ void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
 void MainWindow::onQuitRequestedFromSystemTrayIcon()
 {
     QNINFO("MainWindow::onQuitRequestedFromSystemTrayIcon");
-    onQuitAction();
+    quitApp();
 }
 
 void MainWindow::onAccountSwitchRequested(Account account)
@@ -3397,12 +3491,6 @@ void MainWindow::onAccountManagerError(ErrorString errorDescription)
 {
     QNDEBUG("MainWindow::onAccountManagerError: " << errorDescription);
     onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
-}
-
-void MainWindow::onRevokeAuthentication(qevercloud::UserID userId)
-{
-    QNDEBUG("MainWindow::onRevokeAuthentication: user id = " << userId);
-    Q_EMIT revokeAuthentication(userId);
 }
 
 void MainWindow::onShowSidePanelActionToggled(bool checked)
@@ -3989,13 +4077,7 @@ void MainWindow::onNewAccountCreationRequested()
 void MainWindow::onQuitAction()
 {
     QNDEBUG("MainWindow::onQuitAction");
-
-    if (m_pNoteEditorTabsAndWindowsCoordinator) {
-        // That would save the modified notes
-        m_pNoteEditorTabsAndWindowsCoordinator->clear();
-    }
-
-    qApp->quit();
+    quitApp();
 }
 
 void MainWindow::onShortcutChanged(
@@ -4091,6 +4173,26 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError(
     }
 }
 
+#ifdef WITH_UPDATE_MANAGER
+void MainWindow::onCheckForUpdatesActionTriggered()
+{
+    QNDEBUG("MainWindow::onCheckForUpdatesActionTriggered");
+    m_pUpdateManager->checkForUpdates();
+}
+
+void MainWindow::onUpdateManagerError(ErrorString errorDescription)
+{
+    QNDEBUG("MainWindow::onUpdateManagerError: " << errorDescription);
+    onSetStatusBarText(errorDescription.localizedString());
+}
+
+void MainWindow::onUpdateManagerRequestsRestart()
+{
+    QNDEBUG("MainWindow::onUpdateManagerRequestsRestart");
+    quitApp(RESTART_EXIT_CODE);
+}
+#endif // WITH_UPDATE_MANAGER
+
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
 {
     QMainWindow::resizeEvent(pEvent);
@@ -4132,7 +4234,7 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
     persistGeometryAndState();
     QNINFO("Closing application");
     QMainWindow::closeEvent(pEvent);
-    onQuitAction();
+    quitApp();
 }
 
 void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
@@ -4410,10 +4512,6 @@ void MainWindow::setupAccountManager()
                      QNSIGNAL(AccountManager,notifyError,ErrorString),
                      this,
                      QNSLOT(MainWindow,onAccountManagerError,ErrorString));
-    QObject::connect(m_pAccountManager,
-                     QNSIGNAL(AccountManager,revokeAuthentication,qevercloud::UserID),
-                     this,
-                     QNSLOT(MainWindow,onRevokeAuthentication,qevercloud::UserID));
 }
 
 void MainWindow::setupLocalStorageManager()
@@ -4439,7 +4537,7 @@ void MainWindow::setupLocalStorageManager()
         throw quentier::LocalStorageVersionTooHighException(errorDescription);
     }
 
-    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches =
+    QVector<std::shared_ptr<ILocalStoragePatch>> localStoragePatches =
         localStorageManager.requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty())
     {
@@ -5082,7 +5180,7 @@ void MainWindow::setupViews()
                          Qt::UniqueConnection);
     }
 
-    Account::Type::type currentAccountType = Account::Type::Local;
+    Account::Type currentAccountType = Account::Type::Local;
     if (m_pAccount) {
         currentAccountType = m_pAccount->type();
     }
@@ -5123,7 +5221,15 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
                           QLatin1String(""));
     appSettings.endGroup();
 
-    return QSet<QString>::fromList(hideThumbnailsFor.toStringList());
+    auto hideThumbnailsForList = hideThumbnailsFor.toStringList();
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    return QSet<QString>(
+        hideThumbnailsForList.begin(),
+        hideThumbnailsForList.end());
+#else
+    return QSet<QString>::fromList(hideThumbnailsForList);
+#endif
 }
 
 void MainWindow::toggleShowNoteThumbnails() const
@@ -5173,6 +5279,16 @@ QString MainWindow::fallbackIconThemeName() const
     }
 
     return QStringLiteral("breeze");
+}
+
+void MainWindow::quitApp(int exitCode)
+{
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        // That would save the modified notes
+        m_pNoteEditorTabsAndWindowsCoordinator->clear();
+    }
+
+    qApp->exit(exitCode);
 }
 
 void MainWindow::clearViews()
@@ -5288,6 +5404,33 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
                      QNSLOT(NoteListView,setCurrentNoteByLocalUid,QString));
 }
 
+#ifdef WITH_UPDATE_MANAGER
+void MainWindow::setupUpdateManager()
+{
+    QNDEBUG("MainWindow::setupUpdateManager");
+
+    Q_ASSERT(m_pNoteEditorTabsAndWindowsCoordinator);
+
+    m_pUpdateManagerIdleInfoProvider.reset(
+        new UpdateManagerIdleInfoProvider(
+            *m_pNoteEditorTabsAndWindowsCoordinator));
+
+    m_pUpdateManager = new UpdateManager(m_pUpdateManagerIdleInfoProvider, this);
+
+    QObject::connect(
+        m_pUpdateManager,
+        &UpdateManager::notifyError,
+        this,
+        &MainWindow::onUpdateManagerError);
+
+    QObject::connect(
+        m_pUpdateManager,
+        &UpdateManager::restartAfterUpdateRequested,
+        this,
+        &MainWindow::onUpdateManagerRequestsRestart);
+}
+#endif
+
 bool MainWindow::checkLocalStorageVersion(const Account & account)
 {
     QNDEBUG("MainWindow::checkLocalStorageVersion: account = " << account);
@@ -5325,7 +5468,7 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
     }
 
     errorDescription.clear();
-    QVector<QSharedPointer<ILocalStoragePatch> > localStoragePatches =
+    QVector<std::shared_ptr<ILocalStoragePatch>> localStoragePatches =
         m_pLocalStorageManagerAsync->localStorageManager()->requiredLocalStoragePatches();
     if (!localStoragePatches.isEmpty())
     {
@@ -5474,10 +5617,12 @@ void MainWindow::clearSynchronizationManager()
     if (m_pSynchronizationManagerThread &&
         m_pSynchronizationManagerThread->isRunning())
     {
-        QObject::disconnect(m_pSynchronizationManagerThread,
-                            QNSIGNAL(QThread,finished),
-                            m_pSynchronizationManagerThread,
-                            QNSLOT(QThread,deleteLater));
+        QObject::disconnect(
+            m_pSynchronizationManagerThread,
+            QNSIGNAL(QThread,finished),
+            m_pSynchronizationManagerThread,
+            QNSLOT(QThread,deleteLater));
+
         m_pSynchronizationManagerThread->quit();
         m_pSynchronizationManagerThread->wait();
         m_pSynchronizationManagerThread->deleteLater();
@@ -5901,7 +6046,7 @@ void MainWindow::persistGeometryAndState()
             << ", side panel splitter sizes ok = "
             << (sidePanelSplitterSizesCountOk ? "true" : "false"));
 
-    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+    if (QuentierIsLogLevelActive(LogLevel::Trace))
     {
         QString str;
         QTextStream strm(&str);
@@ -6090,7 +6235,7 @@ void MainWindow::restoreSplitterSizes()
 
         splitterSizes[2] = totalWidth - splitterSizes[0] - splitterSizes[1];
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);
@@ -6129,7 +6274,7 @@ void MainWindow::restoreSplitterSizes()
 
         QNTRACE("Set splitter sizes");
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);
@@ -6164,7 +6309,7 @@ void MainWindow::restoreSplitterSizes()
             totalHeight += sidePanelSplitterSizes[i];
         }
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);
@@ -6268,7 +6413,7 @@ void MainWindow::restoreSplitterSizes()
             totalHeightAfterRestore += sidePanelSplitterSizes[i];
         }
 
-        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        if (QuentierIsLogLevelActive(LogLevel::Trace))
         {
             QString str;
             QTextStream strm(&str);

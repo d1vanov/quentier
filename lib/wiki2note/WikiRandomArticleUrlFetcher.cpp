@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,11 +27,9 @@
 namespace quentier {
 
 WikiRandomArticleUrlFetcher::WikiRandomArticleUrlFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
         const qint64 timeoutMsec,
         QObject * parent) :
     QObject(parent),
-    m_pNetworkAccessManager(pNetworkAccessManager),
     m_networkReplyFetcherTimeout(timeoutMsec),
     m_pNetworkReplyFetcher(nullptr),
     m_started(false),
@@ -64,7 +62,7 @@ void WikiRandomArticleUrlFetcher::start()
                               "&rnnamespace=0"));
 
     m_pNetworkReplyFetcher = new NetworkReplyFetcher(
-        m_pNetworkAccessManager, query, m_networkReplyFetcherTimeout);
+        query, m_networkReplyFetcherTimeout);
 
     QObject::connect(this, QNSIGNAL(WikiRandomArticleUrlFetcher,startFetching),
                      m_pNetworkReplyFetcher, QNSLOT(NetworkReplyFetcher,start));

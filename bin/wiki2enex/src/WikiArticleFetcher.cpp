@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,12 +44,10 @@
 namespace quentier {
 
 WikiArticleFetcher::WikiArticleFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
         const QUrl & url,
         QObject * parent) :
     QObject(parent),
-    m_pNetworkAccessManager(pNetworkAccessManager),
     m_enmlConverter(enmlConverter),
     m_url(url),
     m_started(false),
@@ -86,7 +84,7 @@ void WikiArticleFetcher::start()
         return;
     }
 
-    m_pApiUrlFetcher = new NetworkReplyFetcher(m_pNetworkAccessManager, url);
+    m_pApiUrlFetcher = new NetworkReplyFetcher(url);
 
     QObject::connect(m_pApiUrlFetcher,
                      QNSIGNAL(NetworkReplyFetcher,finished,
@@ -159,8 +157,7 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
     QUrl url(articleUrl);
     WADEBUG("Starting to fetch wiki article content: " << url);
 
-    m_pArticleContentsFetcher =
-        new NetworkReplyFetcher(m_pNetworkAccessManager, url);
+    m_pArticleContentsFetcher = new NetworkReplyFetcher(url);
 
     QObject::connect(m_pArticleContentsFetcher,
                      QNSIGNAL(NetworkReplyFetcher,finished,
@@ -218,7 +215,7 @@ void WikiArticleFetcher::onWikiArticleDownloadFinished(
 
     const qint64 timeoutMsec = 180000;
     m_pWikiArticleToNote = new WikiArticleToNote(
-        m_pNetworkAccessManager, m_enmlConverter, timeoutMsec, this);
+        m_enmlConverter, timeoutMsec, this);
 
     QObject::connect(m_pWikiArticleToNote,
                      QNSIGNAL(WikiArticleToNote,progress,double),

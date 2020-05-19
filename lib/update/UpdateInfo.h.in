@@ -1,0 +1,60 @@
+/*
+ * Copyright 2020 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef QUENTIER_UPDATE_INFO_H
+#define QUENTIER_UPDATE_INFO_H
+
+#include <lib/preferences/UpdateSettings.h>
+
+/**
+ * This file contains automatically generated code including macro definitions
+ * which determine version/release specific properties of Quentier used to
+ * check for updates
+ */
+
+/**
+ * This macro contains the name of update channel which Quentier should use
+ * for updates checking by default
+ */
+@QUENTIER_DEFAULT_UPDATE_CHANNEL@
+
+/**
+ * This macro contains the name of update provider which Quentier should use
+ * for updates checking by default
+ */
+@QUENTIER_DEFAULT_UPDATE_PROVIDER@
+
+/**
+ * This macro contains the timestamp of current Quentier build which Quentier
+ * would use to check for updates later
+ */
+@QUENTIER_BUILD_TIMESTAMP@
+
+/**
+ * This macro contains the git branch from which Quentier was built or empty
+ * string if this information is not available
+ */
+@QUENTIER_BUILD_GIT_BRANCH@
+
+/**
+ * This macro contains the git commit hash from which Quentier was build or
+ * empty string if this information is not available
+ */
+@QUENTIER_BUILD_GIT_COMMIT@
+
+#endif // QUENTIER_UPDATE_INFO_H

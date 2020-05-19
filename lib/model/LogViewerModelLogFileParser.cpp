@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -113,7 +113,7 @@ LogViewerModel::LogFileParser::LogFileParser() :
 
 bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
     const qint64 fromPos, const int maxDataEntries,
-    const QVector<LogLevel::type> & disabledLogLevels,
+    const QVector<LogLevel> & disabledLogLevels,
     const QRegExp & filterContentRegExp, QFile & logFile,
     QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
     ErrorString & errorDescription)
@@ -145,14 +145,14 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
     int numFoundMatches = 0;
     dataEntries.clear();
     dataEntries.reserve(maxDataEntries);
-    ParseLineStatus::type previousParseLineStatus = ParseLineStatus::FilteredEntry;
+    ParseLineStatus previousParseLineStatus = ParseLineStatus::FilteredEntry;
     bool insideEntry = false;
     while(!strm.atEnd())
     {
         line = strm.readLine();
         LVMPDEBUG("Processing line " << line);
 
-        ParseLineStatus::type parseLineStatus =
+        ParseLineStatus parseLineStatus =
             parseLogFileLine(line, previousParseLineStatus, disabledLogLevels,
                              filterContentRegExp, dataEntries, errorDescription);
         if (parseLineStatus == ParseLineStatus::Error) {
@@ -196,11 +196,11 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
     return true;
 }
 
-LogViewerModel::LogFileParser::ParseLineStatus::type
+LogViewerModel::LogFileParser::ParseLineStatus
 LogViewerModel::LogFileParser::parseLogFileLine(
     const QString & line,
-    const ParseLineStatus::type previousParseLineStatus,
-    const QVector<LogLevel::type> & disabledLogLevels,
+    const ParseLineStatus previousParseLineStatus,
+    const QVector<LogLevel> & disabledLogLevels,
     const QRegExp & filterContentRegExp,
     QVector<LogViewerModel::Data> & dataEntries,
     ErrorString & errorDescription)
@@ -264,23 +264,23 @@ LogViewerModel::LogFileParser::parseLogFileLine(
     const QString & logLevel = capturedTexts[5];
     if (logLevel == QStringLiteral("Trace"))
     {
-        entry.m_logLevel = LogLevel::TraceLevel;
+        entry.m_logLevel = LogLevel::Trace;
     }
     else if (logLevel == QStringLiteral("Debug"))
     {
-        entry.m_logLevel = LogLevel::DebugLevel;
+        entry.m_logLevel = LogLevel::Debug;
     }
     else if (logLevel == QStringLiteral("Info"))
     {
-        entry.m_logLevel = LogLevel::InfoLevel;
+        entry.m_logLevel = LogLevel::Info;
     }
     else if (logLevel == QStringLiteral("Warn"))
     {
-        entry.m_logLevel = LogLevel::WarnLevel;
+        entry.m_logLevel = LogLevel::Warning;
     }
     else if (logLevel == QStringLiteral("Error"))
     {
-        entry.m_logLevel = LogLevel::ErrorLevel;
+        entry.m_logLevel = LogLevel::Error;
     }
     else
     {

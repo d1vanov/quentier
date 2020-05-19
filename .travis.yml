@@ -91,6 +91,18 @@ install:
             export CC="clang"
           fi
         fi
+        if [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ]; then
+          git clone https://github.com/antony-jr/AppImageUpdaterBridge.git &&
+          cd AppImageUpdaterBridge &&
+          git checkout master &&
+          mkdir build &&
+          cd build &&
+          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 .. &&
+          make &&
+          make install &&
+          export APPIMAGE_UPDATER_BRIDGE_DIR=$(pwd)/installdir/lib/cmake/AppImageUpdaterBridge &&
+          cd ../..
+        fi
       else
         brew update &&
         brew unlink cmake &&
@@ -204,15 +216,15 @@ install:
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-                -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-                -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
+                -DTIDY_HTML5_INCLUDE_DIR=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
+                -DTIDY_HTML5_LIBRARIES=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         else
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-                -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-                -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
+                -DTIDY_HTML5_INCLUDE_DIR=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
+                -DTIDY_HTML5_LIBRARIES=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DCMAKE_VERBOSE_MAKEFILE=ON -DUSE_QT5_WEBKIT=1 ..
         fi
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
@@ -223,8 +235,8 @@ install:
               -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
               -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-              -DTIDY_HTML5_INCLUDE_PATH=/usr/local/include \
-              -DTIDY_HTML5_LIB=/usr/local/lib/libtidy.dylib \
+              -DTIDY_HTML5_INCLUDE_DIR=/usr/local/include \
+              -DTIDY_HTML5_LIBRARIES=/usr/local/lib/libtidy.dylib \
               -DCMAKE_VERBOSE_MAKEFILE=ON ..
       fi
       make &&
@@ -248,6 +260,13 @@ script:
       cd $QUENTIER_DIR &&
       mkdir build &&
       cd build &&
+      if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "development" ]; then
+        export INCLUDE_UPDATE_INFO=YES &&
+        export DEFAULT_UPDATE_CHANNEL=$TRAVIS_BRANCH
+      else
+        export INCLUDE_UPDATE_INFO=NO &&
+        export DEFAULT_UPDATE_CHANNEL=""
+      fi
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         if [ "${QT_BASE}" = "5123" ]; then
           if [ "${COMPILER}" = "g++-5.4" ]; then
@@ -256,17 +275,22 @@ script:
                   -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                   -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                   -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-                  -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-                  -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
+                  -DTIDY_HTML5_INCLUDE_DIR=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
+                  -DTIDY_HTML5_LIBRARIES=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
-                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DBUILD_WITH_WIKI_TOOLS=1 ..
+                  -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 -DBUILD_WITH_WIKI_TOOLS=1 \
+                  -DINCLUDE_UPDATE_INFO=$INCLUDE_UPDATE_INFO \
+                  -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
+                  -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" \
+                  -DAppImageUpdaterBridge_DIR=$APPIMAGE_UPDATER_BRIDGE_DIR \
+                  ..
           else
             cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                   -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                   -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                   -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-                  -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-                  -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
+                  -DTIDY_HTML5_INCLUDE_DIR=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
+                  -DTIDY_HTML5_LIBRARIES=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                   -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
                   -DCMAKE_PREFIX_PATH=/opt/qt512 ..
           fi
@@ -275,8 +299,8 @@ script:
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-                -DTIDY_HTML5_INCLUDE_PATH=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
-                -DTIDY_HTML5_LIB=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
+                -DTIDY_HTML5_INCLUDE_DIR=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
+                -DTIDY_HTML5_LIBRARIES=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DBREAKPAD_ROOT=$(pwd)/../../breakpad/installdir \
                 -DUSE_QT5_WEBKIT=1 ..
         fi
@@ -287,9 +311,13 @@ script:
               -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
               -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
-              -DTIDY_HTML5_INCLUDE_PATH=/usr/local/include \
-              -DTIDY_HTML5_LIB=/usr/local/lib/libtidy.dylib \
-              -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_WITH_WIKI_TOOLS=1 ..
+              -DTIDY_HTML5_INCLUDE_DIR=/usr/local/include \
+              -DTIDY_HTML5_LIBRARIES=/usr/local/lib/libtidy.dylib \
+              -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_WITH_WIKI_TOOLS=1 \
+              -DINCLUDE_UPDATE_INFO=$INCLUDE_UPDATE_INFO \
+              -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
+              -DDEFAULT_UPDATE_PROVIDER="GITHUB" \
+              ..
       fi
     - make
     - make check

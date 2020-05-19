@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -636,6 +636,27 @@ void NoteEditorTabsAndWindowsCoordinator::saveAllNoteEditorsContents()
             Q_EMIT notifyError(errorDescription);
         }
     }
+}
+
+qint64 NoteEditorTabsAndWindowsCoordinator::minIdleTime() const
+{
+    qint64 minIdleTime = -1;
+
+    QList<NoteEditorWidget*> noteEditorWidgets =
+        m_pTabWidget->findChildren<NoteEditorWidget*>();
+    for(const auto * pNoteEditorWidget: qAsConst(noteEditorWidgets))
+    {
+        qint64 idleTime = pNoteEditorWidget->idleTime();
+        if (idleTime < 0) {
+            continue;
+        }
+
+        if ((minIdleTime < 0) || (minIdleTime > idleTime)) {
+            minIdleTime = idleTime;
+        }
+    }
+
+    return minIdleTime;
 }
 
 bool NoteEditorTabsAndWindowsCoordinator::eventFilter(
@@ -1560,7 +1581,7 @@ void NoteEditorTabsAndWindowsCoordinator::removeNoteEditorTab(
         persistLocalUidsOfNotesInEditorTabs();
     }
 
-    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+    if (QuentierIsLogLevelActive(LogLevel::Trace))
     {
         QString str;
         QTextStream strm(&str);
@@ -2314,12 +2335,14 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
     m_localUidOfNoteToBeExpunged = noteLocalUid;
     QTimer::singleShot(0, this, SLOT(expungeNoteFromLocalStorage()));
 
-    int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
-    if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
+    Q_UNUSED(eventLoop.exec(QEventLoop::ExcludeUserInputEvents))
+    auto status = eventLoop.exitStatus();
+
+    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
         QNWARNING("Failed to expunge the empty unedited note from "
                   "the local storage");
     }
-    else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QNWARNING("The expunging of note from local storage took "
                   "too much time to finish");
     }

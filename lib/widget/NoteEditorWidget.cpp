@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,6 +34,7 @@
 // Doh, Qt Designer's inability to work with namespaces in the expected way
 // is deeply disappointing
 #include <quentier/note_editor/NoteEditor.h>
+#include <quentier/note_editor/INoteEditorBackend.h>
 using quentier::FindAndReplaceWidget;
 using quentier::NoteEditor;
 using quentier::NoteTagsWidget;
@@ -51,6 +52,7 @@ using quentier::InsertTableToolButton;
 
 #include <QDateTime>
 #include <QFontDatabase>
+#include <QMimeData>
 #include <QScopedPointer>
 #include <QThread>
 #include <QColor>
@@ -100,6 +102,7 @@ NoteEditorWidget::NoteEditorWidget(
     m_isNewNote(false)
 {
     m_pUi->setupUi(this);
+    setAcceptDrops(true);
 
     setupSpecialIcons();
     setupFontsComboBox();
@@ -120,6 +123,8 @@ NoteEditorWidget::NoteEditorWidget(
 
     setupNoteEditorColors();
     setupBlankEditor();
+
+    m_pUi->noteEditor->backend()->widget()->installEventFilter(this);
 
     BasicXMLSyntaxHighlighter * highlighter =
         new BasicXMLSyntaxHighlighter(m_pUi->noteSourceView->document());
@@ -197,6 +202,15 @@ bool NoteEditorWidget::isModified() const
 bool NoteEditorWidget::hasBeenModified() const
 {
     return m_noteHasBeenModified || m_noteTitleHasBeenEdited;
+}
+
+qint64 NoteEditorWidget::idleTime() const
+{
+    if (m_pCurrentNote.isNull() || m_pCurrentNotebook.isNull()) {
+        return -1;
+    }
+
+    return m_pUi->noteEditor->idleTime();
 }
 
 QString NoteEditorWidget::titleOrPreview() const
@@ -346,16 +360,17 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
 
         QTimer::singleShot(0, this, SLOT(updateNoteInLocalStorage()));
 
-        int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
+        Q_UNUSED(eventLoop.exec(QEventLoop::ExcludeUserInputEvents))
+        auto status = eventLoop.exitStatus();
 
-        if (result == EventLoopWithExitStatus::ExitStatus::Failure)
+        if (status == EventLoopWithExitStatus::ExitStatus::Failure)
         {
             errorDescription.setBase(QT_TR_NOOP("Failed to convert the editor "
                                                 "contents to note"));
             QNWARNING(errorDescription);
             return NoteSaveStatus::Failed;
         }
-        else if (result == EventLoopWithExitStatus::ExitStatus::Timeout)
+        else if (status == EventLoopWithExitStatus::ExitStatus::Timeout)
         {
             errorDescription.setBase(QT_TR_NOOP("The conversion of note editor "
                                                 "contents to note failed to "
@@ -668,6 +683,130 @@ void NoteEditorWidget::refreshSpecialIcons()
     setupSpecialIcons();
 }
 
+void NoteEditorWidget::dragEnterEvent(QDragEnterEvent * pEvent)
+{
+    QNTRACE("NoteEditorWidget::dragEnterEvent");
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING("Detected null pointer to QDragEnterEvent in "
+            << "NoteEditorWidget's dragEnterEvent");
+        return;
+    }
+
+    const auto * pMimeData = pEvent->mimeData();
+    if (Q_UNLIKELY(!pMimeData)) {
+        QNWARNING("Null pointer to mime data from drag enter event "
+            << "was detected");
+        return;
+    }
+
+    if (!pMimeData->hasFormat(TAG_MODEL_MIME_TYPE)) {
+        QNTRACE("Not tag mime type, skipping");
+        return;
+    }
+
+    pEvent->acceptProposedAction();
+}
+
+void NoteEditorWidget::dragMoveEvent(QDragMoveEvent * pEvent)
+{
+    QNTRACE("NoteEditorWidget::dragMoveEvent");
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING("Detected null pointer to QDropMoveEvent in "
+            << "NoteEditorWidget's dragMoveEvent");
+        return;
+    }
+
+    const auto * pMimeData = pEvent->mimeData();
+    if (Q_UNLIKELY(!pMimeData)) {
+        QNWARNING("Null pointer to mime data from drag move event "
+            << "was detected");
+        return;
+    }
+
+    if (!pMimeData->hasFormat(TAG_MODEL_MIME_TYPE)) {
+        QNTRACE("Not tag mime type, skipping");
+        return;
+    }
+
+    pEvent->acceptProposedAction();
+}
+
+void NoteEditorWidget::dropEvent(QDropEvent * pEvent)
+{
+    QNTRACE("NoteEditorWidget::dropEvent");
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING("Detected null pointer to QDropEvent in "
+            << "NoteEditorWidget's dropEvent");
+        return;
+    }
+
+    const auto * pMimeData = pEvent->mimeData();
+    if (Q_UNLIKELY(!pMimeData)) {
+        QNWARNING("Null pointer to mime data from drop event "
+            << "was detected");
+        return;
+    }
+
+    if (!pMimeData->hasFormat(TAG_MODEL_MIME_TYPE)) {
+        return;
+    }
+
+    QByteArray data = qUncompress(pMimeData->data(TAG_MODEL_MIME_TYPE));
+    TagModelItem item;
+    QDataStream in(&data, QIODevice::ReadOnly);
+    in >> item;
+
+    if (item.type() != TagModelItem::Type::Tag) {
+        QNDEBUG("Can only drop tag model items of tag type onto "
+            << "NoteEditorWidget");
+        return;
+    }
+
+    const TagItem * pTagItem = item.tagItem();
+    if (Q_UNLIKELY(!pTagItem)) {
+        QNWARNING("Null pointer to tag item within tag model item dropped "
+            << "into NoteEditorWidget");
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
+        QNDEBUG("Can't drop tag onto NoteEditorWidget: no note is set to "
+            << "the editor");
+        return;
+    }
+
+    if (m_pCurrentNote->tagLocalUids().contains(pTagItem->localUid())) {
+        QNDEBUG("Note set to the note editor (" << m_pCurrentNote->localUid()
+            << ")is already marked with tag with local uid "
+            << pTagItem->localUid());
+        return;
+    }
+
+    QNDEBUG("Adding tag with local uid " << pTagItem->localUid()
+        << " to note with local uid " << m_pCurrentNote->localUid());
+
+    m_pCurrentNote->addTagLocalUid(pTagItem->localUid());
+
+    if (!pTagItem->guid().isEmpty()) {
+        m_pCurrentNote->addTagGuid(pTagItem->guid());
+    }
+
+    QStringList tagLocalUids = m_pCurrentNote->tagLocalUids();
+
+    QStringList tagGuids;
+    if (m_pCurrentNote->hasTagGuids()) {
+        tagGuids = m_pCurrentNote->tagGuids();
+    }
+
+    m_pUi->noteEditor->setTagIds(tagLocalUids, tagGuids);
+    updateNoteInLocalStorage();
+
+    pEvent->acceptProposedAction();
+}
+
 void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
@@ -718,6 +857,64 @@ bool NoteEditorWidget::eventFilter(QObject * pWatched, QEvent * pEvent)
         }
         else if (eventType == QEvent::FocusOut) {
             QNDEBUG("Note editor lost focus");
+        }
+    }
+    else if (pWatched == m_pUi->noteEditor->backend()->widget())
+    {
+        QEvent::Type eventType = pEvent->type();
+        if (eventType == QEvent::DragEnter)
+        {
+            QNTRACE("Detected drag enter event for note editor");
+
+            auto * pDragEnterEvent = dynamic_cast<QDragEnterEvent*>(pEvent);
+            if (pDragEnterEvent && pDragEnterEvent->mimeData() &&
+                pDragEnterEvent->mimeData()->hasFormat(TAG_MODEL_MIME_TYPE))
+            {
+                QNDEBUG("Stealing drag enter event with tag data from "
+                    << "note editor");
+                dragEnterEvent(pDragEnterEvent);
+                return true;
+            }
+            else
+            {
+                QNTRACE("Detected no tag data in the event");
+            }
+        }
+        else if (eventType == QEvent::DragMove)
+        {
+            QNTRACE("Detected drag move event for note editor");
+
+            auto * pDragMoveEvent = dynamic_cast<QDragMoveEvent*>(pEvent);
+            if (pDragMoveEvent && pDragMoveEvent->mimeData() &&
+                pDragMoveEvent->mimeData()->hasFormat(TAG_MODEL_MIME_TYPE))
+            {
+                QNDEBUG("Stealing drag move event with tag data from "
+                    << "note editor");
+                dragMoveEvent(pDragMoveEvent);
+                return true;
+            }
+            else
+            {
+                QNTRACE("Detected no tag data in the event");
+            }
+        }
+        else if (eventType == QEvent::Drop)
+        {
+            QNTRACE("Detected drop event for note editor");
+
+            auto * pDropEvent = dynamic_cast<QDropEvent*>(pEvent);
+            if (pDropEvent && pDropEvent->mimeData() &&
+                pDropEvent->mimeData()->hasFormat(TAG_MODEL_MIME_TYPE))
+            {
+                QNDEBUG("Stealing drop event with tag data from "
+                    << "note editor");
+                dropEvent(pDropEvent);
+                return true;
+            }
+            else
+            {
+                QNTRACE("Detected no tag data in the event");
+            }
         }
     }
 

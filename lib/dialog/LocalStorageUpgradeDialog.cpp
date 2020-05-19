@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,7 +36,7 @@ namespace quentier {
 
 LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
         const Account & currentAccount, AccountModel & accountModel,
-        const QVector<QSharedPointer<ILocalStoragePatch> > & patches,
+        const QVector<std::shared_ptr<ILocalStoragePatch> > & patches,
         const Options options, QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::LocalStorageUpgradeDialog),
@@ -90,7 +90,7 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
     setPatchInfoLabel();
 
     if (!m_patches.isEmpty()) {
-        ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].data();
+        ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].get();
         setPatchDescriptions(*pPatch);
     }
 
@@ -173,7 +173,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
 
     lockControls();
 
-    ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].data();
+    ILocalStoragePatch * pPatch = m_patches[m_currentPatchIndex].get();
 
     if (m_pUi->backupLocalStorageCheckBox->isChecked())
     {
@@ -317,7 +317,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
     }
 
     // Otherwise set patch descriptions
-    setPatchDescriptions(*m_patches[m_currentPatchIndex].data());
+    setPatchDescriptions(*m_patches[m_currentPatchIndex].get());
     unlockControls();
 }
 

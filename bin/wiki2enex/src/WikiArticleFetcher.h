@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,6 @@ class WikiArticleFetcher: public QObject
     Q_OBJECT
 public:
     explicit WikiArticleFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
         ENMLConverter & enmlConverter,
         const QUrl & url,
         QObject * parent = nullptr);
@@ -78,7 +77,6 @@ private:
     void clear();
 
 private:
-    QNetworkAccessManager * m_pNetworkAccessManager;
     ENMLConverter &         m_enmlConverter;
     QUrl        m_url;
 

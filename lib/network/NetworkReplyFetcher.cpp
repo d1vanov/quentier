@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,9 +22,9 @@
 #include <quentier/utility/Utility.h>
 
 #include <QDateTime>
+#include <QDebug>
 #include <QNetworkAccessManager>
 #include <QTimer>
-#include <QDebug>
 
 #define RFLOG_IMPL(message, macro)                                             \
     macro("<" << m_url << ">: " << message)                                    \
@@ -42,38 +42,21 @@
 namespace quentier {
 
 NetworkReplyFetcher::NetworkReplyFetcher(
-        QNetworkAccessManager * pNetworkAccessManager,
-        const QUrl & url,
-        const qint64 timeoutMsec,
-        QObject * parent) :
+        const QUrl & url, const qint64 timeoutMsec, QObject* parent) :
     QObject(parent),
-    m_pNetworkAccessManager(pNetworkAccessManager),
+    m_pNetworkAccessManager(new QNetworkAccessManager(this)),
     m_url(url),
-    m_pNetworkReply(nullptr),
-    m_started(false),
-    m_finished(false),
-    m_timeoutMsec(timeoutMsec),
-    m_lastNetworkTime(0),
-    m_pTimeoutTimer(nullptr),
-    m_timedOut(false),
-    m_bytesFetched(0),
-    m_bytesTotal(0),
-    m_status(false),
-    m_httpStatusCode(0)
+    m_timeoutMsec(timeoutMsec)
 {}
 
 NetworkReplyFetcher::~NetworkReplyFetcher()
 {
-    clear();
+    QNDEBUG("NetworkReplyFetcher::~NetworkReplyFetcher");
 }
 
 QByteArray NetworkReplyFetcher::fetchedData() const
 {
-    if (!m_finished || !m_pNetworkReply) {
-        return QByteArray();
-    }
-
-    return m_pNetworkReply->readAll();
+    return m_fetchedData;
 }
 
 void NetworkReplyFetcher::start()
@@ -98,35 +81,37 @@ void NetworkReplyFetcher::start()
 
     QNetworkRequest request;
     request.setUrl(m_url);
-    m_pNetworkReply = m_pNetworkAccessManager->get(request);
 
-    QObject::connect(m_pNetworkReply, QNSIGNAL(QNetworkReply,finished),
-                     this, QNSLOT(NetworkReplyFetcher,onReplyFinished));
+    QObject::connect(
+        m_pNetworkAccessManager,
+        &QNetworkAccessManager::finished,
+        this,
+        &NetworkReplyFetcher::onReplyFinished);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
-    QObject::connect(m_pNetworkReply,
-                     QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
-                     this,
-                     QNSLOT(NetworkReplyFetcher,onReplyError,
-                            QNetworkReply::NetworkError));
-#else
-    QObject::connect(m_pNetworkReply, SIGNAL(error(QNetworkReply::NetworkError)),
-                     this, SLOT(onReplyError(QNetworkReply::NetworkError)));
-#endif
+    QObject::connect(
+        m_pNetworkAccessManager,
+        &QNetworkAccessManager::sslErrors,
+        this,
+        &NetworkReplyFetcher::onReplySslErrors);
 
-    QObject::connect(m_pNetworkReply,
-                     QNSIGNAL(QNetworkReply,sslErrors,QList<QSslError>),
-                     this,
-                     QNSLOT(NetworkReplyFetcher,onReplySslErrors,QList<QSslError>));
-    QObject::connect(m_pNetworkReply,
-                     QNSIGNAL(QNetworkReply,downloadProgress,qint64,qint64),
-                     this,
-                     QNSLOT(NetworkReplyFetcher,onDownloadProgress,qint64,qint64));
+    auto * pReply = m_pNetworkAccessManager->get(request);
+
+    QObject::connect(
+        pReply,
+        &QNetworkReply::downloadProgress,
+        this,
+        &NetworkReplyFetcher::onDownloadProgress);
 }
 
-void NetworkReplyFetcher::onReplyFinished()
+void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
 {
     RFDEBUG("NetworkReplyFetcher::onReplyFinished");
+
+    if (m_finished) {
+        QNDEBUG("Already finished, probably due to timeout");
+        recycleNetworkReply(pReply);
+        return;
+    }
 
     if (m_pTimeoutTimer) {
         m_pTimeoutTimer->stop();
@@ -135,8 +120,22 @@ void NetworkReplyFetcher::onReplyFinished()
         m_pTimeoutTimer = nullptr;
     }
 
+    if (pReply->error())
+    {
+        ErrorString errorDescription(QT_TR_NOOP("network error"));
+        errorDescription.details() += QStringLiteral("(");
+        errorDescription.details() += QString::number(pReply->error());
+        errorDescription.details() += QStringLiteral(") ");
+        errorDescription.details() += pReply->errorString();
+        finishWithError(errorDescription);
+
+        recycleNetworkReply(pReply);
+        return;
+    }
+
     QVariant statusCodeAttribute =
-        m_pNetworkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+        pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
     bool conversionResult = false;
     m_httpStatusCode = statusCodeAttribute.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult))
@@ -150,41 +149,33 @@ void NetworkReplyFetcher::onReplyFinished()
 
         errorDescription.details() += str;
         finishWithError(errorDescription);
+        recycleNetworkReply(pReply);
         return;
     }
 
     m_started = false;
     m_finished = true;
 
-    QByteArray fetchedData = m_pNetworkReply->readAll();
-    Q_EMIT finished(true, fetchedData, ErrorString());
+    m_fetchedData = pReply->readAll();
+
+    Q_EMIT finished(true, m_fetchedData, ErrorString());
+    recycleNetworkReply(pReply);
 }
 
-void NetworkReplyFetcher::onReplyError(QNetworkReply::NetworkError error)
-{
-    RFDEBUG("NetworkReplyFetcher::onReplyError: " << error);
-
-    ErrorString errorDescription(QT_TR_NOOP("network error"));
-    errorDescription.details() += QStringLiteral("(");
-    errorDescription.details() += QString::number(error);
-    errorDescription.details() += QStringLiteral(")");
-
-    if (m_pNetworkReply) {
-        errorDescription.details() += QStringLiteral(" ");
-        errorDescription.details() += m_pNetworkReply->errorString();
-    }
-
-    finishWithError(errorDescription);
-}
-
-void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
+void NetworkReplyFetcher::onReplySslErrors(
+    QNetworkReply * pReply, QList<QSslError> errors)
 {
     RFDEBUG("NetworkReplyFetcher::onReplySslErrors");
 
+    if (m_finished) {
+        QNDEBUG("Already finished, probably due to timeout");
+        recycleNetworkReply(pReply);
+        return;
+    }
+
     ErrorString errorDescription(QT_TR_NOOP("SSL errors"));
 
-    for(auto it = errors.constBegin(), end = errors.constEnd(); it != end; ++it) {
-        const QSslError & error = *it;
+    for(const auto & error: qAsConst(errors)) {
         errorDescription.details() += QStringLiteral("(");
         errorDescription.details() += error.error();
         errorDescription.details() += QStringLiteral(") ");
@@ -193,12 +184,19 @@ void NetworkReplyFetcher::onReplySslErrors(QList<QSslError> errors)
     }
 
     finishWithError(errorDescription);
+    recycleNetworkReply(pReply);
 }
 
-void NetworkReplyFetcher::onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal)
+void NetworkReplyFetcher::onDownloadProgress(
+    qint64 bytesFetched, qint64 bytesTotal)
 {
     RFDEBUG("NetworkReplyFetcher::onDownloadProgress: fetched "
-            << bytesFetched << " bytes, total " << bytesTotal << " bytes");
+        << bytesFetched << " bytes, total " << bytesTotal << " bytes");
+
+    if (m_finished) {
+        QNDEBUG("Already finished, probably due to timeout");
+        return;
+    }
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
     Q_EMIT downloadProgress(bytesFetched, bytesTotal);
@@ -224,42 +222,8 @@ void NetworkReplyFetcher::checkForTimeout()
         return;
     }
 
-    if (m_pNetworkReply) {
-        m_pNetworkReply->disconnect(this);
-        m_pNetworkReply->deleteLater();
-        m_pNetworkReply = nullptr;
-    }
-
     ErrorString errorDescription(QT_TR_NOOP("connection timeout"));
     finishWithError(errorDescription);
-}
-
-void NetworkReplyFetcher::clear()
-{
-    RFDEBUG("NetworkReplyFetcher::clear");
-
-    m_started = false;
-    m_finished = false;
-
-    if (m_pNetworkReply) {
-        m_pNetworkReply->disconnect(this);
-        m_pNetworkReply->deleteLater();
-        m_pNetworkReply = nullptr;
-    }
-
-    if (m_pTimeoutTimer) {
-        m_pTimeoutTimer->disconnect(this);
-        m_pTimeoutTimer->deleteLater();
-        m_pTimeoutTimer = nullptr;
-    }
-
-    m_lastNetworkTime = 0;
-    m_timedOut = false;
-    m_bytesFetched = 0;
-    m_bytesTotal = 0;
-
-    m_status = false;
-    m_httpStatusCode = 0;
 }
 
 void NetworkReplyFetcher::finishWithError(ErrorString errorDescription)
@@ -270,6 +234,20 @@ void NetworkReplyFetcher::finishWithError(ErrorString errorDescription)
     m_finished = true;
 
     Q_EMIT finished(false, QByteArray(), errorDescription);
+}
+
+void NetworkReplyFetcher::recycleNetworkReply(QNetworkReply * pReply)
+{
+    // NOTE: this is what Qt does since 5.14 when
+    // QNetworkAccessManager::setAutoDeleteReplies(true) is called
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    QMetaObject::invokeMethod(
+        pReply,
+        [pReply] { pReply->deleteLater(); },
+        Qt::QueuedConnection);
+#else
+    pReply->deleteLater();
+#endif
 }
 
 } // namespace quentier

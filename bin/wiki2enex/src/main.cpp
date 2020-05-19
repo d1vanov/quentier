@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,7 +23,6 @@
 
 #include <QCoreApplication>
 #include <QDebug>
-#include <QNetworkAccessManager>
 #include <QTime>
 #include <QTimer>
 #include <QUrl>
@@ -56,20 +55,19 @@ int main(int argc, char *argv[])
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
 
-    QNetworkAccessManager networkAccessManager;
     ENMLConverter enmlConverter;
     ErrorString errorDescription;
 
     QVector<Note> notes(1);
     Note & note = notes.back();
 
-    int status = -1;
+    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
         timer.setInterval(600000);
         timer.setSingleShot(true);
 
-        WikiArticleFetcher fetcher(&networkAccessManager, enmlConverter, url);
+        WikiArticleFetcher fetcher(enmlConverter, url);
 
         EventLoopWithExitStatus loop;
         QObject::connect(&timer, QNSIGNAL(QTimer,timeout),
@@ -88,7 +86,8 @@ int main(int argc, char *argv[])
 
         timer.start();
         slotInvokingTimer.singleShot(0, &fetcher, SLOT(start()));
-        status = loop.exec();
+        Q_UNUSED(loop.exec())
+        status = loop.exitStatus();
         errorDescription = loop.errorDescription();
         note = fetcher.note();
     }

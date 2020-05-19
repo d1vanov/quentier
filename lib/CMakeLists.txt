@@ -12,6 +12,11 @@ add_subdirectory(model)
 add_subdirectory(network)
 add_subdirectory(preferences)
 add_subdirectory(tray)
+
+if(INCLUDE_UPDATE_INFO)
+  add_subdirectory(update)
+endif()
+
 add_subdirectory(utility)
 add_subdirectory(view)
 add_subdirectory(widget)

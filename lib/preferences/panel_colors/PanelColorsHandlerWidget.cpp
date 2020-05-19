@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -387,8 +387,8 @@ void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorEntered()
         return;
     }
 
-    auto * pDemoFrameWidget = qobject_cast<QWidget*>(
-        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2));
+    auto * pDemoFrameWidget =
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2);
     if (pDemoFrameWidget)
     {
         auto * pDemoFrame = pDemoFrameWidget->findChild<QFrame*>();
@@ -438,8 +438,8 @@ void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorSelected(
         pLineEdit->setText(color.name());
     }
 
-    auto * pDemoFrameWidget = qobject_cast<QWidget*>(
-        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2));
+    auto * pDemoFrameWidget =
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2);
     if (pDemoFrameWidget)
     {
         auto * pDemoFrame = pDemoFrameWidget->findChild<QFrame*>();
@@ -597,8 +597,8 @@ bool PanelColorsHandlerWidget::eventFilter(QObject * pObject, QEvent * pEvent)
     int rowCount = m_pUi->backgroundGradientTableWidget->rowCount();
     for(int i = 0; i < rowCount; ++i)
     {
-        auto * pDemoFrameWidget = qobject_cast<QWidget*>(
-            m_pUi->backgroundGradientTableWidget->cellWidget(i, 2));
+        auto * pDemoFrameWidget =
+            m_pUi->backgroundGradientTableWidget->cellWidget(i, 2);
         if (!pDemoFrameWidget) {
             continue;
         }
@@ -899,8 +899,8 @@ void PanelColorsHandlerWidget::setNamesToBackgroundGradientTableWidgetRow(
     Q_ASSERT(pColorNameLineEdit);
     pColorNameLineEdit->setObjectName(rowName);
 
-    auto * pColorDemoFrameWidget = qobject_cast<QWidget*>(
-        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2));
+    auto * pColorDemoFrameWidget =
+        m_pUi->backgroundGradientTableWidget->cellWidget(rowIndex, 2);
     Q_ASSERT(pColorDemoFrameWidget);
     auto * pColorDemoFrame = pColorDemoFrameWidget->findChild<QFrame*>();
     Q_ASSERT(pColorDemoFrame);
