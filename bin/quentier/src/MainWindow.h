@@ -24,11 +24,11 @@
 #include <lib/model/NoteCache.h>
 #include <lib/model/NoteModel.h>
 #include <lib/model/NotebookCache.h>
-#include <lib/model/NotebookModel.h>
 #include <lib/model/SavedSearchCache.h>
 #include <lib/model/SavedSearchModel.h>
 #include <lib/model/TagCache.h>
 #include <lib/model/TagModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 
 #ifdef WITH_UPDATE_MANAGER
 #include <lib/update/UpdateManager.h>

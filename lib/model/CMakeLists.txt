@@ -16,11 +16,6 @@ set(HEADERS
     TagItem.h
     TagLinkedNotebookRootItem.h
     TagCache.h
-    NotebookModel.h
-    NotebookModelItem.h
-    NotebookItem.h
-    NotebookStackItem.h
-    NotebookLinkedNotebookRootItem.h
     NotebookCache.h
     NoteModelItem.h
     NoteModel.h
@@ -35,6 +30,7 @@ set(HEADERS
     notebook/InvisibleRootItem.h
     notebook/LinkedNotebookRootItem.h
     notebook/NotebookItem.h
+    notebook/NotebookModel.h
     notebook/StackItem.h)
 
 set(SOURCES
@@ -46,11 +42,6 @@ set(SOURCES
     TagModelItem.cpp
     TagItem.cpp
     TagLinkedNotebookRootItem.cpp
-    NotebookModel.cpp
-    NotebookModelItem.cpp
-    NotebookItem.cpp
-    NotebookStackItem.cpp
-    NotebookLinkedNotebookRootItem.cpp
     NoteModelItem.cpp
     NoteModel.cpp
     FavoritesModel.cpp
@@ -61,6 +52,7 @@ set(SOURCES
     notebook/INotebookModelItem.cpp
     notebook/LinkedNotebookRootItem.cpp
     notebook/NotebookItem.cpp
+    notebook/NotebookModel.cpp
     notebook/StackItem.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})

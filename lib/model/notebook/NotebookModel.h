@@ -811,11 +811,6 @@ private:
         const StackItem & stackItem, const int column,
         Qt::ItemFlags flags) const;
 
-    ModelItems::iterator addNewStackModelItem(
-        const StackItem & stackItem,
-        INotebookModelItem & parentItem,
-        ModelItems & modelItemsByStack);
-
 private:
     Account                 m_account;
 
@@ -824,7 +819,7 @@ private:
     INotebookModelItem *    m_pInvisibleRootItem = nullptr;
 
     INotebookModelItem *    m_pAllNotebooksRootItem = nullptr;
-    IndexId                 m_allNotebooksRootItemIndexId = 0;
+    IndexId                 m_allNotebooksRootItemIndexId = 1;
 
     QString                 m_defaultNotebookLocalUid;
     QString                 m_lastUsedNotebookLocalUid;
@@ -837,7 +832,7 @@ private:
     mutable IndexIdToLocalUidBimap                      m_indexIdToLocalUidBimap;
     mutable IndexIdToStackAndLinkedNotebookGuidBimap    m_indexIdToStackAndLinkedNotebookGuidBimap;
     mutable IndexIdToLinkedNotebookGuidBimap            m_indexIdToLinkedNotebookGuidBimap;
-    mutable IndexId                                     m_lastFreeIndexId = 1;
+    mutable IndexId                                     m_lastFreeIndexId = 2;
 
     NotebookCache &         m_cache;
 

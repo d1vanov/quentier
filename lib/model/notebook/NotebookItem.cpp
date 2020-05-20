@@ -160,7 +160,10 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
         << (canCreateNotes() ? "true" : "false")
         << ", can update notes = "
         << (canUpdateNotes() ? "true" : "false")
-        << ", num notes per notebook = " << m_noteCount;
+        << ", num notes per notebook = " << m_noteCount
+        << ", parent: " << m_pParent
+        << ", parent type: "
+        << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
     return strm;
 }
 

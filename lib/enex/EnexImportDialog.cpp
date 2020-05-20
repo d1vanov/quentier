@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,7 +19,7 @@
 #include "EnexImportDialog.h"
 #include "ui_EnexImportDialog.h"
 
-#include <lib/model/NotebookModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -227,8 +227,8 @@ void EnexImportDialog::dataChanged(
         return;
     }
 
-    if ((topLeft.column() > NotebookModel::Columns::Name) ||
-        (bottomRight.column() < NotebookModel::Columns::Name))
+    if ((topLeft.column() > static_cast<int>(NotebookModel::Column::Name) ||
+        (bottomRight.column() < static_cast<int>(NotebookModel::Column::Name))))
     {
         QNTRACE("The updated indexed don't contain the notebook name");
         return;
@@ -263,8 +263,11 @@ void EnexImportDialog::rowsAboutToBeRemoved(
 
     for(int i = start; i <= end; ++i)
     {
-        QModelIndex index =
-            m_pNotebookModel->index(i, NotebookModel::Columns::Name, parent);
+        auto index = m_pNotebookModel->index(
+            i,
+            static_cast<int>(NotebookModel::Column::Name),
+            parent);
+
         QString removedNotebookName = m_pNotebookModel->data(index).toString();
         if (Q_UNLIKELY(removedNotebookName.isEmpty())) {
             continue;
@@ -345,8 +348,7 @@ void EnexImportDialog::fillNotebookNames()
     QStringList notebookNames;
 
     if (!m_pNotebookModel.isNull()) {
-        NotebookModel::NotebookFilters filter(
-            NotebookModel::NotebookFilter::CanCreateNotes);
+        NotebookModel::Filters filter(NotebookModel::Filter::CanCreateNotes);
         notebookNames = m_pNotebookModel->notebookNames(filter);
     }
 

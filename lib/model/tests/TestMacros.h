@@ -26,7 +26,7 @@
 #define FAIL(text)                                                             \
     QString str;                                                               \
     QTextStream strm(&str);                                                    \
-    strm << text;                                                              \
+    strm << __FILE__ << ":" << __LINE__ << " " << text;                        \
     Q_EMIT failure(ErrorString(str));                                          \
     return                                                                     \
 // FAIL

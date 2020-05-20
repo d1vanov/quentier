@@ -233,17 +233,22 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteModel(nullptr),
     m_pNoteCountLabelController(nullptr),
     m_pNotebookModelColumnChangeRerouter(
-        new ColumnChangeRerouter(NotebookModel::Columns::NumNotesPerNotebook,
-                                 NotebookModel::Columns::Name, this)),
+        new ColumnChangeRerouter(
+            static_cast<int>(NotebookModel::Column::NumNotesPerNotebook),
+            static_cast<int>(NotebookModel::Column::Name),
+            this)),
     m_pTagModelColumnChangeRerouter(
-        new ColumnChangeRerouter(TagModel::Columns::NumNotesPerTag,
-                                 TagModel::Columns::Name, this)),
+        new ColumnChangeRerouter(
+            TagModel::Columns::NumNotesPerTag,
+            TagModel::Columns::Name, this)),
     m_pNoteModelColumnChangeRerouter(
-        new ColumnChangeRerouter(NoteModel::Columns::PreviewText,
-                                 NoteModel::Columns::Title, this)),
+        new ColumnChangeRerouter(
+            NoteModel::Columns::PreviewText,
+            NoteModel::Columns::Title, this)),
     m_pFavoritesModelColumnChangeRerouter(
-        new ColumnChangeRerouter(FavoritesModel::Columns::NumNotesTargeted,
-                                 FavoritesModel::Columns::DisplayName, this)),
+        new ColumnChangeRerouter(
+            FavoritesModel::Columns::NumNotesTargeted,
+            FavoritesModel::Columns::DisplayName, this)),
     m_pDeletedNotesModel(nullptr),
     m_pFavoritesModel(nullptr),
     m_blankModel(),
@@ -1066,68 +1071,73 @@ void MainWindow::createNewNote(
     QNDEBUG("MainWindow::createNewNote: note editor mode = " << noteEditorMode);
 
     if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
-        QNDEBUG("No note editor tabs and windows coordinator, "
-                "probably the button was pressed too quickly on "
-                "startup, skipping");
+        QNDEBUG("No note editor tabs and windows coordinator, probably "
+            << "the button was pressed too quickly on startup, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_pNoteModel)) {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: note "
-                                                  "model is unexpectedly null")))
+        Q_UNUSED(internalErrorMessageBox(
+            this,
+            tr("Can't create a new note: note model is unexpectedly null")))
         return;
     }
 
     if (Q_UNLIKELY(!m_pNotebookModel)) {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: "
-                                                  "notebook model is unexpectedly "
-                                                  "null")))
+        Q_UNUSED(internalErrorMessageBox(
+            this,
+            tr("Can't create a new note: notebook model is unexpectedly null")))
         return;
     }
 
-    QModelIndex currentNotebookIndex =
+    auto currentNotebookIndex =
         m_pUI->notebooksTreeView->currentlySelectedItemIndex();
+
     if (Q_UNLIKELY(!currentNotebookIndex.isValid())) {
-        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
-                                       tr("Please select the notebook in which "
-                                          "you want to create the note; if you "
-                                          "don't have any notebooks yet, create "
-                                          "one")))
+        Q_UNUSED(informationMessageBox(
+            this,
+            tr("No notebook is selected"),
+            tr("Please select the notebook in which you want to create "
+               "the note; if you don't have any notebooks yet, create one")))
         return;
     }
 
-    const NotebookModelItem * pNotebookModelItem =
-        m_pNotebookModel->itemForIndex(currentNotebookIndex);
+    const auto * pNotebookModelItem = m_pNotebookModel->itemForIndex(
+        currentNotebookIndex);
+
     if (Q_UNLIKELY(!pNotebookModelItem)) {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: can't "
-                                                  "find the notebook model item "
-                                                  "corresponding to the currently "
-                                                  "selected notebook")))
+        Q_UNUSED(internalErrorMessageBox(
+            this,
+            tr("Can't create a new note: can't find the notebook model item "
+               "corresponding to the currently selected notebook")))
         return;
     }
 
-    if (Q_UNLIKELY(pNotebookModelItem->type() != NotebookModelItem::Type::Notebook))
+    if (Q_UNLIKELY(pNotebookModelItem->type() !=
+                   INotebookModelItem::Type::Notebook))
     {
-        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
-                                       tr("Please select the notebook in which "
-                                          "you want to create the note (currently "
-                                          "the notebook stack seems to be selected)")))
+        Q_UNUSED(informationMessageBox(
+            this,
+            tr("No notebook is selected"),
+            tr("Please select the notebook in which you want to create "
+               "the note (currently the notebook stack seems to be selected)")))
         return;
     }
 
-    const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
+    const auto * pNotebookItem = pNotebookModelItem->cast<NotebookItem>();
     if (Q_UNLIKELY(!pNotebookItem))
     {
-        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: "
-                                                  "the notebook model item has "
-                                                  "notebook type but null pointer "
-                                                  "to the actual notebook item")))
+        Q_UNUSED(internalErrorMessageBox(
+            this,
+            tr("Can't create a new note: the notebook model item has notebook "
+               "type but null pointer to the actual notebook item")))
         return;
     }
 
-    m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(pNotebookItem->localUid(),
-                                                          pNotebookItem->guid(),
-                                                          noteEditorMode);
+    m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(
+        pNotebookItem->localUid(),
+        pNotebookItem->guid(),
+        noteEditorMode);
 }
 
 void MainWindow::connectSynchronizationManager()
@@ -1519,9 +1529,15 @@ void MainWindow::showHideViewColumnsForAccountType(
 
     bool isLocal = (accountType == Account::Type::Local);
 
-    NotebookItemView * notebooksTreeView = m_pUI->notebooksTreeView;
-    notebooksTreeView->setColumnHidden(NotebookModel::Columns::Published, isLocal);
-    notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
+    auto * notebooksTreeView = m_pUI->notebooksTreeView;
+
+    notebooksTreeView->setColumnHidden(
+        static_cast<int>(NotebookModel::Column::Published),
+        isLocal);
+
+    notebooksTreeView->setColumnHidden(
+        static_cast<int>(NotebookModel::Column::Dirty),
+        isLocal);
 
     TagItemView * tagsTreeView = m_pUI->tagsTreeView;
     tagsTreeView->setColumnHidden(TagModel::Columns::Dirty, isLocal);
@@ -4626,30 +4642,55 @@ void MainWindow::setupModels()
 
     clearModels();
 
-    NoteModel::NoteSortingMode::type noteSortingMode = restoreNoteSortingMode();
+    auto noteSortingMode = restoreNoteSortingMode();
     if (noteSortingMode == NoteModel::NoteSortingMode::None) {
         noteSortingMode = NoteModel::NoteSortingMode::ModifiedDescending;
     }
 
-    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManagerAsync,
-                                 m_noteCache, m_notebookCache, this,
-                                 NoteModel::IncludedNotes::NonDeleted,
-                                 noteSortingMode);
-    m_pFavoritesModel = new FavoritesModel(*m_pAccount,
-                                           *m_pLocalStorageManagerAsync,
-                                           m_noteCache, m_notebookCache,
-                                           m_tagCache, m_savedSearchCache, this);
-    m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManagerAsync,
-                                         m_notebookCache, this);
-    m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManagerAsync,
-                               m_tagCache, this);
-    m_pSavedSearchModel = new SavedSearchModel(*m_pAccount,
-                                               *m_pLocalStorageManagerAsync,
-                                               m_savedSearchCache, this);
-    m_pDeletedNotesModel = new NoteModel(*m_pAccount,
-                                         *m_pLocalStorageManagerAsync,
-                                         m_noteCache, m_notebookCache, this,
-                                         NoteModel::IncludedNotes::Deleted);
+    m_pNoteModel = new NoteModel(
+        *m_pAccount,
+        *m_pLocalStorageManagerAsync,
+        m_noteCache,
+        m_notebookCache,
+        this,
+        NoteModel::IncludedNotes::NonDeleted,
+        noteSortingMode);
+
+    m_pFavoritesModel = new FavoritesModel(
+        *m_pAccount,
+        *m_pLocalStorageManagerAsync,
+        m_noteCache,
+        m_notebookCache,
+        m_tagCache,
+        m_savedSearchCache,
+        this);
+
+    m_pNotebookModel = new NotebookModel(
+        *m_pAccount,
+        *m_pLocalStorageManagerAsync,
+        m_notebookCache,
+        this);
+
+    m_pTagModel = new TagModel(
+        *m_pAccount,
+        *m_pLocalStorageManagerAsync,
+        m_tagCache,
+        this);
+
+    m_pSavedSearchModel = new SavedSearchModel(
+        *m_pAccount,
+        *m_pLocalStorageManagerAsync,
+        m_savedSearchCache,
+        this);
+
+    m_pDeletedNotesModel = new NoteModel(
+        *m_pAccount,
+        *m_pLocalStorageManagerAsync,
+        m_noteCache,
+        m_notebookCache,
+        this,
+        NoteModel::IncludedNotes::Deleted);
+
     m_pDeletedNotesModel->start();
 
     if (m_pNoteCountLabelController == nullptr) {
@@ -4773,12 +4814,12 @@ void MainWindow::setupViews()
     // TODO: in future should implement the persistent setting of which columns
     // to show or not to show
 
-    FavoriteItemView * pFavoritesTableView = m_pUI->favoritesTableView;
+    auto * pFavoritesTableView = m_pUI->favoritesTableView;
+    auto * pPreviousFavoriteItemDelegate = pFavoritesTableView->itemDelegate();
 
-    QAbstractItemDelegate * pPreviousFavoriteItemDelegate =
-        pFavoritesTableView->itemDelegate();
-    FavoriteItemDelegate * pFavoriteItemDelegate =
-        qobject_cast<FavoriteItemDelegate*>(pPreviousFavoriteItemDelegate);
+    auto * pFavoriteItemDelegate = qobject_cast<FavoriteItemDelegate*>(
+        pPreviousFavoriteItemDelegate);
+
     if (!pFavoriteItemDelegate)
     {
         pFavoriteItemDelegate = new FavoriteItemDelegate(pFavoritesTableView);
@@ -4791,37 +4832,47 @@ void MainWindow::setupViews()
     }
 
     // This column's values would be displayed along with the favorite item's name
-    pFavoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted,
-                                         true);
-    pFavoritesTableView->setColumnWidth(FavoritesModel::Columns::Type,
-                                        pFavoriteItemDelegate->sideSize());
+    pFavoritesTableView->setColumnHidden(
+        FavoritesModel::Columns::NumNotesTargeted,
+        true);
 
-    QObject::connect(m_pFavoritesModelColumnChangeRerouter,
-                     &ColumnChangeRerouter::dataChanged,
-                     pFavoritesTableView,
-                     &FavoriteItemView::dataChanged,
-                     Qt::UniqueConnection);
-    pFavoritesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    pFavoritesTableView->setColumnWidth(
+        FavoritesModel::Columns::Type,
+        pFavoriteItemDelegate->sideSize());
 
-    QObject::connect(pFavoritesTableView,
-                     QNSIGNAL(FavoriteItemView,notifyError,ErrorString),
-                     this,
-                     QNSLOT(MainWindow,onModelViewError,ErrorString),
-                     Qt::UniqueConnection);
-    QObject::connect(pFavoritesTableView,
-                     QNSIGNAL(FavoriteItemView,favoritedItemInfoRequested),
-                     this,
-                     QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed),
-                     Qt::UniqueConnection);
+    QObject::connect(
+        m_pFavoritesModelColumnChangeRerouter,
+        &ColumnChangeRerouter::dataChanged,
+        pFavoritesTableView,
+        &FavoriteItemView::dataChanged,
+        Qt::UniqueConnection);
 
-    NotebookItemView * pNotebooksTreeView = m_pUI->notebooksTreeView;
+    pFavoritesTableView->header()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
+
+    QObject::connect(
+        pFavoritesTableView,
+        &FavoriteItemView::notifyError,
+        this,
+        &MainWindow::onModelViewError,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pFavoritesTableView,
+        &FavoriteItemView::favoritedItemInfoRequested,
+        this,
+        &MainWindow::onFavoritedItemInfoButtonPressed,
+        Qt::UniqueConnection);
+
+    auto * pNotebooksTreeView = m_pUI->notebooksTreeView;
     pNotebooksTreeView->setNoteFiltersManager(*m_pNoteFiltersManager);
     pNotebooksTreeView->setNoteModel(m_pNoteModel);
 
-    QAbstractItemDelegate * pPreviousNotebookItemDelegate =
-        pNotebooksTreeView->itemDelegate();
-    NotebookItemDelegate * pNotebookItemDelegate =
-        qobject_cast<NotebookItemDelegate*>(pPreviousNotebookItemDelegate);
+    auto * pPreviousNotebookItemDelegate = pNotebooksTreeView->itemDelegate();
+
+    auto * pNotebookItemDelegate = qobject_cast<NotebookItemDelegate*>(
+        pPreviousNotebookItemDelegate);
+
     if (!pNotebookItemDelegate)
     {
         pNotebookItemDelegate = new NotebookItemDelegate(pNotebooksTreeView);
@@ -4834,23 +4885,37 @@ void MainWindow::setupViews()
     }
 
     // This column's values would be displayed along with the notebook's name
-    pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::NumNotesPerNotebook,
-                                        true);
-    pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::Synchronizable,
-                                        true);
-    pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::LastUsed, true);
-    pNotebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook,
-                                        true);
+    pNotebooksTreeView->setColumnHidden(
+        static_cast<int>(NotebookModel::Column::NumNotesPerNotebook),
+        true);
 
-    QAbstractItemDelegate * pPreviousNotebookDirtyColumnDelegate =
-        pNotebooksTreeView->itemDelegateForColumn(NotebookModel::Columns::Dirty);
-    DirtyColumnDelegate * pNotebookDirtyColumnDelegate =
-        qobject_cast<DirtyColumnDelegate*>(pPreviousNotebookDirtyColumnDelegate);
+    pNotebooksTreeView->setColumnHidden(
+        static_cast<int>(NotebookModel::Column::Synchronizable),
+        true);
+
+    pNotebooksTreeView->setColumnHidden(
+        static_cast<int>(NotebookModel::Column::LastUsed),
+        true);
+
+    pNotebooksTreeView->setColumnHidden(
+        static_cast<int>(NotebookModel::Column::FromLinkedNotebook),
+        true);
+
+    auto * pPreviousNotebookDirtyColumnDelegate =
+        pNotebooksTreeView->itemDelegateForColumn(
+            static_cast<int>(NotebookModel::Column::Dirty));
+
+    auto * pNotebookDirtyColumnDelegate = qobject_cast<DirtyColumnDelegate*>(
+        pPreviousNotebookDirtyColumnDelegate);
+
     if (!pNotebookDirtyColumnDelegate)
     {
-        pNotebookDirtyColumnDelegate = new DirtyColumnDelegate(pNotebooksTreeView);
-        pNotebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,
-                                                     pNotebookDirtyColumnDelegate);
+        pNotebookDirtyColumnDelegate = new DirtyColumnDelegate(
+            pNotebooksTreeView);
+
+        pNotebooksTreeView->setItemDelegateForColumn(
+            static_cast<int>(NotebookModel::Column::Dirty),
+            pNotebookDirtyColumnDelegate);
 
         if (pPreviousNotebookDirtyColumnDelegate) {
             pPreviousNotebookDirtyColumnDelegate->deleteLater();
@@ -4858,34 +4923,40 @@ void MainWindow::setupViews()
         }
     }
 
-    pNotebooksTreeView->setColumnWidth(NotebookModel::Columns::Dirty,
-                                       pNotebookDirtyColumnDelegate->sideSize());
-    pNotebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    QObject::connect(m_pNotebookModelColumnChangeRerouter,
-                     QNSIGNAL(ColumnChangeRerouter,dataChanged,
-                              const QModelIndex&,const QModelIndex&,
-                              const QVector<int>&),
-                     pNotebooksTreeView,
-                     QNSLOT(NotebookItemView,dataChanged,
-                            const QModelIndex&,const QModelIndex&,
-                            const QVector<int>&),
-                     Qt::UniqueConnection);
+    pNotebooksTreeView->setColumnWidth(
+        static_cast<int>(NotebookModel::Column::Dirty),
+        pNotebookDirtyColumnDelegate->sideSize());
 
-    QObject::connect(pNotebooksTreeView,
-                     QNSIGNAL(NotebookItemView,newNotebookCreationRequested),
-                     this,
-                     QNSLOT(MainWindow,onNewNotebookCreationRequested),
-                     Qt::UniqueConnection);
-    QObject::connect(pNotebooksTreeView,
-                     QNSIGNAL(NotebookItemView,notebookInfoRequested),
-                     this,
-                     QNSLOT(MainWindow,onNotebookInfoButtonPressed),
-                     Qt::UniqueConnection);
-    QObject::connect(pNotebooksTreeView,
-                     QNSIGNAL(NotebookItemView,notifyError,ErrorString),
-                     this,
-                     QNSLOT(MainWindow,onModelViewError,ErrorString),
-                     Qt::UniqueConnection);
+    pNotebooksTreeView->header()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
+
+    QObject::connect(
+        m_pNotebookModelColumnChangeRerouter,
+        &ColumnChangeRerouter::dataChanged,
+        pNotebooksTreeView,
+        &NotebookItemView::dataChanged,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNotebooksTreeView,
+        &NotebookItemView::newNotebookCreationRequested,
+        this,
+        &MainWindow::onNewNotebookCreationRequested,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNotebooksTreeView,
+        &NotebookItemView::notebookInfoRequested,
+        this,
+        &MainWindow::onNotebookInfoButtonPressed,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNotebooksTreeView,
+        &NotebookItemView::notifyError,
+        this,
+        &MainWindow::onModelViewError,
+        Qt::UniqueConnection);
 
     TagItemView * pTagsTreeView = m_pUI->tagsTreeView;
     // This column's values would be displayed along with the notebook's name
@@ -4893,15 +4964,19 @@ void MainWindow::setupViews()
     pTagsTreeView->setColumnHidden(TagModel::Columns::Synchronizable, true);
     pTagsTreeView->setColumnHidden(TagModel::Columns::FromLinkedNotebook, true);
 
-    QAbstractItemDelegate * pPreviousTagDirtyColumnDelegate =
+    auto * pPreviousTagDirtyColumnDelegate =
         pTagsTreeView->itemDelegateForColumn(TagModel::Columns::Dirty);
-    DirtyColumnDelegate * pTagDirtyColumnDelegate =
-        qobject_cast<DirtyColumnDelegate*>(pPreviousTagDirtyColumnDelegate);
+
+    auto * pTagDirtyColumnDelegate = qobject_cast<DirtyColumnDelegate*>(
+        pPreviousTagDirtyColumnDelegate);
+
     if (!pTagDirtyColumnDelegate)
     {
         pTagDirtyColumnDelegate = new DirtyColumnDelegate(pTagsTreeView);
-        pTagsTreeView->setItemDelegateForColumn(TagModel::Columns::Dirty,
-                                                pTagDirtyColumnDelegate);
+
+        pTagsTreeView->setItemDelegateForColumn(
+            TagModel::Columns::Dirty,
+            pTagDirtyColumnDelegate);
 
         if (pPreviousTagDirtyColumnDelegate) {
             pPreviousTagDirtyColumnDelegate->deleteLater();
@@ -4909,18 +4984,23 @@ void MainWindow::setupViews()
         }
     }
 
-    pTagsTreeView->setColumnWidth(TagModel::Columns::Dirty,
-                                  pTagDirtyColumnDelegate->sideSize());
+    pTagsTreeView->setColumnWidth(
+        TagModel::Columns::Dirty,
+        pTagDirtyColumnDelegate->sideSize());
 
-    QAbstractItemDelegate * pPreviousTagItemDelegate =
+    auto * pPreviousTagItemDelegate =
         pTagsTreeView->itemDelegateForColumn(TagModel::Columns::Name);
-    TagItemDelegate * pTagItemDelegate =
-        qobject_cast<TagItemDelegate*>(pPreviousTagItemDelegate);
+
+    auto * pTagItemDelegate = qobject_cast<TagItemDelegate*>(
+        pPreviousTagItemDelegate);
+
     if (!pTagItemDelegate)
     {
         pTagItemDelegate = new TagItemDelegate(pTagsTreeView);
-        pTagsTreeView->setItemDelegateForColumn(TagModel::Columns::Name,
-                                                pTagItemDelegate);
+
+        pTagsTreeView->setItemDelegateForColumn(
+            TagModel::Columns::Name,
+            pTagItemDelegate);
 
         if (pPreviousTagItemDelegate) {
             pPreviousTagItemDelegate->deleteLater();
@@ -4928,47 +5008,59 @@ void MainWindow::setupViews()
         }
     }
 
-    pTagsTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    QObject::connect(m_pTagModelColumnChangeRerouter,
-                     QNSIGNAL(ColumnChangeRerouter,dataChanged,
-                              const QModelIndex&,const QModelIndex&,
-                              const QVector<int>&),
-                     pTagsTreeView,
-                     QNSLOT(TagItemView,dataChanged,
-                            const QModelIndex&,const QModelIndex&,
-                            const QVector<int>&),
-                     Qt::UniqueConnection);
+    pTagsTreeView->header()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
 
-    QObject::connect(pTagsTreeView,
-                     QNSIGNAL(TagItemView,newTagCreationRequested),
-                     this,
-                     QNSLOT(MainWindow,onNewTagCreationRequested),
-                     Qt::UniqueConnection);
-    QObject::connect(pTagsTreeView,
-                     QNSIGNAL(TagItemView,tagInfoRequested),
-                     this,
-                     QNSLOT(MainWindow,onTagInfoButtonPressed),
-                     Qt::UniqueConnection);
-    QObject::connect(pTagsTreeView,
-                     QNSIGNAL(TagItemView,notifyError,ErrorString),
-                     this,
-                     QNSLOT(MainWindow,onModelViewError,ErrorString),
-                     Qt::UniqueConnection);
+    QObject::connect(
+        m_pTagModelColumnChangeRerouter,
+        &ColumnChangeRerouter::dataChanged,
+        pTagsTreeView,
+        &TagItemView::dataChanged,
+        Qt::UniqueConnection);
 
-    SavedSearchItemView * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
-    pSavedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query,
-                                             true);
-    pSavedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Synchronizable,
-                                             true);
+    QObject::connect(
+        pTagsTreeView,
+        &TagItemView::newTagCreationRequested,
+        this,
+        &MainWindow::onNewTagCreationRequested,
+        Qt::UniqueConnection);
 
-    QAbstractItemDelegate * pPreviousSavedSearchDirtyColumnDelegate =
-        pSavedSearchesTableView->itemDelegateForColumn(SavedSearchModel::Columns::Dirty);
-    DirtyColumnDelegate * pSavedSearchDirtyColumnDelegate =
-        qobject_cast<DirtyColumnDelegate*>(pPreviousSavedSearchDirtyColumnDelegate);
+    QObject::connect(
+        pTagsTreeView,
+        &TagItemView::tagInfoRequested,
+        this,
+        &MainWindow::onTagInfoButtonPressed,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pTagsTreeView,
+        &TagItemView::notifyError,
+        this,
+        &MainWindow::onModelViewError,
+        Qt::UniqueConnection);
+
+    auto * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
+
+    pSavedSearchesTableView->setColumnHidden(
+        SavedSearchModel::Columns::Query,
+        true);
+
+    pSavedSearchesTableView->setColumnHidden(
+        SavedSearchModel::Columns::Synchronizable,
+        true);
+
+    auto * pPreviousSavedSearchDirtyColumnDelegate =
+        pSavedSearchesTableView->itemDelegateForColumn(
+            SavedSearchModel::Columns::Dirty);
+
+    auto * pSavedSearchDirtyColumnDelegate = qobject_cast<DirtyColumnDelegate*>(
+        pPreviousSavedSearchDirtyColumnDelegate);
+
     if (!pSavedSearchDirtyColumnDelegate)
     {
-        pSavedSearchDirtyColumnDelegate =
-            new DirtyColumnDelegate(pSavedSearchesTableView);
+        pSavedSearchDirtyColumnDelegate = new DirtyColumnDelegate(
+            pSavedSearchesTableView);
+
         pSavedSearchesTableView->setItemDelegateForColumn(
             SavedSearchModel::Columns::Dirty,
             pSavedSearchDirtyColumnDelegate);
@@ -4982,37 +5074,44 @@ void MainWindow::setupViews()
     pSavedSearchesTableView->setColumnWidth(
         SavedSearchModel::Columns::Dirty,
         pSavedSearchDirtyColumnDelegate->sideSize());
-    pSavedSearchesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    QObject::connect(pSavedSearchesTableView,
-                     QNSIGNAL(SavedSearchItemView,savedSearchInfoRequested),
-                     this,
-                     QNSLOT(MainWindow,onSavedSearchInfoButtonPressed),
-                     Qt::UniqueConnection);
-    QObject::connect(pSavedSearchesTableView,
-                     QNSIGNAL(SavedSearchItemView,newSavedSearchCreationRequested),
-                     this,
-                     QNSLOT(MainWindow,onNewSavedSearchCreationRequested),
-                     Qt::UniqueConnection);
-    QObject::connect(pSavedSearchesTableView,
-                     QNSIGNAL(SavedSearchItemView,notifyError,ErrorString),
-                     this,
-                     QNSLOT(MainWindow,onModelViewError,ErrorString),
-                     Qt::UniqueConnection);
+    pSavedSearchesTableView->header()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
 
-    NoteListView * pNoteListView = m_pUI->noteListView;
+    QObject::connect(
+        pSavedSearchesTableView,
+        &SavedSearchItemView::savedSearchInfoRequested,
+        this,
+        &MainWindow::onSavedSearchInfoButtonPressed,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pSavedSearchesTableView,
+        &SavedSearchItemView::newSavedSearchCreationRequested,
+        this,
+        &MainWindow::onNewSavedSearchCreationRequested,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pSavedSearchesTableView,
+        &SavedSearchItemView::notifyError,
+        this,
+        &MainWindow::onModelViewError,
+        Qt::UniqueConnection);
+
+    auto * pNoteListView = m_pUI->noteListView;
     if (m_pAccount) {
         pNoteListView->setCurrentAccount(*m_pAccount);
     }
 
-    QAbstractItemDelegate * pPreviousNoteItemDelegate =
-        pNoteListView->itemDelegate();
-    NoteItemDelegate * pNoteItemDelegate =
-        qobject_cast<NoteItemDelegate*>(pPreviousNoteItemDelegate);
+    auto * pPreviousNoteItemDelegate = pNoteListView->itemDelegate();
+
+    auto * pNoteItemDelegate = qobject_cast<NoteItemDelegate*>(
+        pPreviousNoteItemDelegate);
+
     if (!pNoteItemDelegate)
     {
         pNoteItemDelegate = new NoteItemDelegate(pNoteListView);
-
         pNoteListView->setModelColumn(NoteModel::Columns::Title);
         pNoteListView->setItemDelegate(pNoteItemDelegate);
 
@@ -5023,58 +5122,69 @@ void MainWindow::setupViews()
     }
 
     pNoteListView->setNotebookItemView(pNotebooksTreeView);
-    QObject::connect(m_pNoteModelColumnChangeRerouter,
-                     &ColumnChangeRerouter::dataChanged,
-                     pNoteListView,
-                     &NoteListView::dataChanged,
-                     Qt::UniqueConnection);
-    QObject::connect(pNoteListView,
-                     QNSIGNAL(NoteListView,currentNoteChanged,QString),
-                     this,
-                     QNSLOT(MainWindow,onCurrentNoteInListChanged,QString),
-                     Qt::UniqueConnection);
-    QObject::connect(pNoteListView,
-                     QNSIGNAL(NoteListView,openNoteInSeparateWindowRequested,
-                              QString),
-                     this,
-                     QNSLOT(MainWindow,onOpenNoteInSeparateWindow,QString),
-                     Qt::UniqueConnection);
-    QObject::connect(pNoteListView,
-                     QNSIGNAL(NoteListView,enexExportRequested,QStringList),
-                     this,
-                     QNSLOT(MainWindow,onExportNotesToEnexRequested,QStringList),
-                     Qt::UniqueConnection);
-    QObject::connect(pNoteListView,
-                     QNSIGNAL(NoteListView,newNoteCreationRequested),
-                     this,
-                     QNSLOT(MainWindow,onNewNoteCreationRequested),
-                     Qt::UniqueConnection);
-    QObject::connect(pNoteListView,
-                     QNSIGNAL(NoteListView,copyInAppNoteLinkRequested,
-                              QString,QString),
-                     this,
-                     QNSLOT(MainWindow,onCopyInAppLinkNoteRequested,
-                            QString,QString),
-                     Qt::UniqueConnection);
-    QObject::connect(pNoteListView,
-                     QNSIGNAL(NoteListView,toggleThumbnailsPreference,QString),
-                     this,
-                     QNSLOT(MainWindow,onToggleThumbnailsPreference,QString),
-                     Qt::UniqueConnection);
-    QObject::connect(this,
-                     QNSIGNAL(MainWindow,showNoteThumbnailsStateChanged,
-                              bool,QSet<QString>),
-                     pNoteListView,
-                     QNSLOT(NoteListView,setShowNoteThumbnailsState,
-                            bool,QSet<QString>),
-                     Qt::UniqueConnection);
-    QObject::connect(this,
-                     QNSIGNAL(MainWindow,showNoteThumbnailsStateChanged,
-                              bool,QSet<QString>),
-                     pNoteItemDelegate,
-                     QNSLOT(NoteItemDelegate,setShowNoteThumbnailsState,
-                            bool,QSet<QString>),
-                     Qt::UniqueConnection);
+
+    QObject::connect(
+        m_pNoteModelColumnChangeRerouter,
+        &ColumnChangeRerouter::dataChanged,
+        pNoteListView,
+        &NoteListView::dataChanged,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNoteListView,
+        &NoteListView::currentNoteChanged,
+        this,
+        &MainWindow::onCurrentNoteInListChanged,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNoteListView,
+        &NoteListView::openNoteInSeparateWindowRequested,
+        this,
+        &MainWindow::onOpenNoteInSeparateWindow,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNoteListView,
+        &NoteListView::enexExportRequested,
+        this,
+        &MainWindow::onExportNotesToEnexRequested,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNoteListView,
+        &NoteListView::newNoteCreationRequested,
+        this,
+        &MainWindow::onNewNoteCreationRequested,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNoteListView,
+        &NoteListView::copyInAppNoteLinkRequested,
+        this,
+        &MainWindow::onCopyInAppLinkNoteRequested,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        pNoteListView,
+        &NoteListView::toggleThumbnailsPreference,
+        this,
+        &MainWindow::onToggleThumbnailsPreference,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        this,
+        &MainWindow::showNoteThumbnailsStateChanged,
+        pNoteListView,
+        &NoteListView::setShowNoteThumbnailsState,
+        Qt::UniqueConnection);
+
+    QObject::connect(
+        this,
+        &MainWindow::showNoteThumbnailsStateChanged,
+        pNoteItemDelegate,
+        &NoteItemDelegate::setShowNoteThumbnailsState,
+        Qt::UniqueConnection);
 
 
     if (!m_onceSetupNoteSortingModeComboBox)
@@ -5090,54 +5200,85 @@ void MainWindow::setupViews()
         noteSortingModes << tr("Size (ascending)");
         noteSortingModes << tr("Size (descending)");
 
-        QStringListModel * pNoteSortingModeModel = new QStringListModel(this);
+        auto * pNoteSortingModeModel = new QStringListModel(this);
         pNoteSortingModeModel->setStringList(noteSortingModes);
 
         m_pUI->noteSortingModeComboBox->setModel(pNoteSortingModeModel);
         m_onceSetupNoteSortingModeComboBox = true;
     }
 
-    NoteModel::NoteSortingMode::type noteSortingMode = restoreNoteSortingMode();
+    auto noteSortingMode = restoreNoteSortingMode();
     if (noteSortingMode == NoteModel::NoteSortingMode::None) {
         noteSortingMode = NoteModel::NoteSortingMode::ModifiedDescending;
         QNDEBUG("Couldn't restore the note sorting mode, fallback "
-                << "to the default one of " << noteSortingMode);
+            << "to the default one of " << noteSortingMode);
     }
 
     m_pUI->noteSortingModeComboBox->setCurrentIndex(noteSortingMode);
 
-    QObject::connect(m_pUI->noteSortingModeComboBox,
-                     SIGNAL(currentIndexChanged(int)),
-                     this,
-                     SLOT(onNoteSortingModeChanged(int)),
-                     Qt::UniqueConnection);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUI->noteSortingModeComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &MainWindow::onNoteSortingModeChanged,
+        Qt::UniqueConnection);
+#else
+    QObject::connect(
+        m_pUI->noteSortingModeComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onNoteSortingModeChanged(int)),
+        Qt::UniqueConnection);
+#endif
+
     onNoteSortingModeChanged(m_pUI->noteSortingModeComboBox->currentIndex());
 
-    DeletedNoteItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::CreationTimestamp, true);
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::ModificationTimestamp, true);
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::PreviewText, true);
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::ThumbnailImage, true);
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::TagNameList, true);
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::Size, true);
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::Synchronizable, true);
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::NotebookName, true);
+    auto * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
 
-    QAbstractItemDelegate * pPreviousDeletedNoteItemDelegate =
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::CreationTimestamp,
+        true);
+
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::ModificationTimestamp,
+        true);
+
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::PreviewText,
+        true);
+
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::ThumbnailImage,
+        true);
+
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::TagNameList,
+        true);
+
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::Size,
+        true);
+
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::Synchronizable,
+        true);
+
+    pDeletedNotesTableView->setColumnHidden(
+        NoteModel::Columns::NotebookName,
+        true);
+
+    auto * pPreviousDeletedNoteItemDelegate =
         pDeletedNotesTableView->itemDelegate();
-    DeletedNoteItemDelegate * pDeletedNoteItemDelegate =
-        qobject_cast<DeletedNoteItemDelegate*>(pPreviousDeletedNoteItemDelegate);
+
+    auto * pDeletedNoteItemDelegate = qobject_cast<DeletedNoteItemDelegate*>(
+        pPreviousDeletedNoteItemDelegate);
+
     if (!pDeletedNoteItemDelegate)
     {
-        pDeletedNoteItemDelegate = new DeletedNoteItemDelegate(pDeletedNotesTableView);
+        pDeletedNoteItemDelegate = new DeletedNoteItemDelegate(
+            pDeletedNotesTableView);
+
         pDeletedNotesTableView->setItemDelegate(pDeletedNoteItemDelegate);
 
         if (pPreviousDeletedNoteItemDelegate) {
@@ -5146,13 +5287,17 @@ void MainWindow::setupViews()
         }
     }
 
-    pDeletedNotesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    pDeletedNotesTableView->header()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
 
     if (!m_pEditNoteDialogsManager)
     {
-        m_pEditNoteDialogsManager =
-            new EditNoteDialogsManager(*m_pLocalStorageManagerAsync,
-                                       m_noteCache, m_pNotebookModel, this);
+        m_pEditNoteDialogsManager = new EditNoteDialogsManager(
+            *m_pLocalStorageManagerAsync,
+            m_noteCache,
+            m_pNotebookModel,
+            this);
+
         QObject::connect(pNoteListView,
                          QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
                          m_pEditNoteDialogsManager,

@@ -90,7 +90,7 @@ public:
     const T * cast() const;
 
 protected:
-    INotebookModelItem *        m_pParent;
+    INotebookModelItem *        m_pParent = nullptr;
     QList<INotebookModelItem*>  m_children;
 };
 

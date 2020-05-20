@@ -135,7 +135,7 @@ QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
         return QModelIndex();
     }
 
-    const NotebookItem & item = *it;
+    const auto & item = *it;
     return indexForItem(&item);
 }
 
@@ -636,14 +636,14 @@ QModelIndex NotebookModel::createNotebook(
 
     auto insertionResult = localUidIndex.insert(item);
 
-    INotebookModelItem * pAddedNotebookItem = const_cast<NotebookItem*>(
+    auto * pAddedNotebookItem = const_cast<NotebookItem*>(
         &(*insertionResult.first));
 
     beginInsertRows(parentIndex, row, row);
     pAddedNotebookItem->setParent(pParentItem);
     endInsertRows();
 
-    updateNotebookInLocalStorage(item);
+    updateNotebookInLocalStorage(*pAddedNotebookItem);
 
     QModelIndex addedNotebookIndex = indexForLocalUid(item.localUid());
 
@@ -986,7 +986,7 @@ QModelIndex NotebookModel::parent(const QModelIndex & index) const
     if (pParentItem == m_pAllNotebooksRootItem) {
         return createIndex(
             0,
-            index.column(),
+            static_cast<int>(Column::Name),
             m_allNotebooksRootItemIndexId);
     }
 
@@ -1374,6 +1374,18 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             << "\nParent item after removing the child "
             << "notebook item from it: " << *pParentItem);
 
+        Q_UNUSED(localUidIndex.erase(notebookItemIt))
+
+        QNTRACE("Erased the notebook item corresponding to local uid "
+            << localUid);
+
+        auto indexIt = m_indexIdToLocalUidBimap.right.find(localUid);
+        if (indexIt != m_indexIdToLocalUidBimap.right.end()) {
+            m_indexIdToLocalUidBimap.right.erase(indexIt);
+        }
+
+        expungeNotebookFromLocalStorage(localUid);
+
         if (!pParentItem) {
             continue;
         }
@@ -1410,18 +1422,6 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 
         QNTRACE("Marked notebook stack " << pParentStackItem->name()
             << " as the one scheduled for removal");
-
-        Q_UNUSED(localUidIndex.erase(notebookItemIt))
-
-        QNTRACE("Erased the notebook item corresponding to local uid "
-            << localUid);
-
-        auto indexIt = m_indexIdToLocalUidBimap.right.find(localUid);
-        if (indexIt != m_indexIdToLocalUidBimap.right.end()) {
-            m_indexIdToLocalUidBimap.right.erase(indexIt);
-        }
-
-        expungeNotebookFromLocalStorage(localUid);
     }
 
     QNTRACE("Finished removing notebook items, switching "
@@ -2764,9 +2764,6 @@ void NotebookModel::onNotebookUpdated(
     QNTRACE("NotebookModel::onNotebookUpdated: notebook local uid = "
         << notebook.localUid());
 
-    NotebookItem notebookItemCopy;
-    notebookToItem(notebook, notebookItemCopy);
-
     auto * pModelItem = const_cast<NotebookItem*>(&(*it));
     auto * pParentItem = pModelItem->parent();
     if (Q_UNLIKELY(!pParentItem)) {
@@ -2857,8 +2854,8 @@ void NotebookModel::onNotebookUpdated(
         notebookStackChanged = true;
     }
 
-    int numNotesPerNotebook = it->noteCount();
-    notebookItemCopy.setNoteCount(numNotesPerNotebook);
+    NotebookItem notebookItemCopy(*it);
+    notebookToItem(notebook, notebookItemCopy);
 
     auto & localUidIndex = m_data.get<ByLocalUid>();
     localUidIndex.replace(it, notebookItemCopy);
@@ -3067,8 +3064,6 @@ bool NotebookModel::setStackData(
         }
     }
 
-    auto stackItemsWithParentPair = stackItemsWithParent(linkedNotebookGuid);
-
     // Change the stack item
     StackItem newStackItem = stackItem;
     newStackItem.setName(newStack);
@@ -3166,14 +3161,6 @@ bool NotebookModel::setStackData(
 
     beginInsertRows(parentItemIndex, stackItemRow, stackItemRow);
     pParentItem->insertChild(stackItemRow, &(*stackItemIt));
-
-    IndexId indexId = m_lastFreeIndexId++;
-
-    m_indexIdToStackAndLinkedNotebookGuidBimap.insert(
-        IndexIdToStackAndLinkedNotebookGuidBimap::value_type(
-            indexId,
-            std::pair<QString,QString>(newStack,linkedNotebookGuid)));
-
     endInsertRows();
 
     // 3) Move all children of the previous stack items to the new one
@@ -3401,32 +3388,6 @@ Qt::ItemFlags NotebookModel::flagsForStackItem(
     return flags;
 }
 
-NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(
-    const StackItem & stackItem,
-    INotebookModelItem & parentItem,
-    ModelItems & modelItemsByStack)
-{
-    QNTRACE("NotebookModel::addNewStackModelItem: stack item = " << stackItem);
-
-    INotebookModelItem * pNewStackModelItem =
-        const_cast<StackItem*>(&stackItem);
-
-    auto it = modelItemsByStack.insert(stackItem.name(), pNewStackModelItem);
-
-    int row = rowForNewItem(parentItem, *pNewStackModelItem);
-    QNTRACE("Will insert the new item at row " << row);
-
-    QModelIndex parentIndex = indexForItem(&parentItem);
-
-    beginInsertRows(parentIndex, row, row);
-    parentItem.insertChild(row, it.value());
-    endInsertRows();
-
-    QNTRACE("New stack model item after inserting into the parent "
-        << "item: " << it.value() << "\nParent item: " << parentItem);
-    return it;
-}
-
 void NotebookModel::removeItemByLocalUid(const QString & localUid)
 {
     QNTRACE("NotebookModel::removeItemByLocalUid: local uid = " << localUid);
@@ -3632,7 +3593,7 @@ void NotebookModel::updateItemRowWithRespectToSorting(
         pParentItem = m_pAllNotebooksRootItem;
         int row = rowForNewItem(*pParentItem, modelItem);
 
-        beginInsertRows(QModelIndex(), row, row);
+        beginInsertRows(indexForItem(pParentItem), row, row);
         pParentItem->insertChild(row, &modelItem);
         endInsertRows();
         return;
@@ -4037,6 +3998,7 @@ void NotebookModel::checkAndCreateModelRootItems()
 {
     if (Q_UNLIKELY(!m_pInvisibleRootItem)) {
         m_pInvisibleRootItem = new InvisibleRootItem;
+        QNDEBUG("Created invisible root item");
     }
 
     if (Q_UNLIKELY(!m_pAllNotebooksRootItem)) {
@@ -4044,6 +4006,7 @@ void NotebookModel::checkAndCreateModelRootItems()
         beginInsertRows(QModelIndex(), 0, 0);
         m_pAllNotebooksRootItem->setParent(m_pInvisibleRootItem);
         endInsertRows();
+        QNDEBUG("Created all notebooks root item");
     }
 }
 
@@ -4051,6 +4014,10 @@ INotebookModelItem * NotebookModel::itemForId(const IndexId id) const
 {
     // this is called too often to be DEBUG level
     QNTRACE("NotebookModel::itemForId: " << id);
+
+    if (id == m_allNotebooksRootItemIndexId) {
+        return m_pAllNotebooksRootItem;
+    }
 
     auto localUidIt = m_indexIdToLocalUidBimap.left.find(id);
     if (localUidIt != m_indexIdToLocalUidBimap.left.end())
@@ -4195,6 +4162,10 @@ NotebookModel::IndexId NotebookModel::idForItem(
         }
 
         return it->second;
+    }
+
+    if (&item == m_pAllNotebooksRootItem) {
+        return m_allNotebooksRootItemIndexId;
     }
 
     QNWARNING("Detected attempt to assign id to unidentified "
@@ -4552,8 +4523,6 @@ bool NotebookModel::updateNoteCountPerNotebookIndex(
     const NotebookItem & item, const NotebookDataByLocalUid::iterator it)
 {
     QNTRACE("NotebookModel::updateNoteCountPerNotebookIndex: " << item);
-
-    const QString & notebookLocalUid = item.localUid();
 
     auto * pModelItem = const_cast<NotebookItem*>(&(*it));
     auto * pParentItem = pModelItem->parent();

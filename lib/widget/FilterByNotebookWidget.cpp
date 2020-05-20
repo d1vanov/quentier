@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,7 +18,7 @@
 
 #include "FilterByNotebookWidget.h"
 
-#include <lib/model/NotebookModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>

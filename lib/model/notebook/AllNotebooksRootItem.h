@@ -30,7 +30,11 @@ public:
 
     virtual QTextStream & print(QTextStream & strm) const override
     {
-        strm << "AllNotebooksRootItem";
+        strm << "AllNotebooksRootItem"
+            << ", child count: " << m_children.size()
+            << ", parent: " << m_pParent
+            << ", parent type: "
+            << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
         return strm;
     }
 

@@ -29,8 +29,6 @@
 #include <QDataStream>
 #include <QDebug>
 
-#include <algorithm>
-
 namespace quentier {
 
 void INotebookModelItem::setParent(INotebookModelItem * parent)
@@ -53,10 +51,7 @@ INotebookModelItem * INotebookModelItem::childAtRow(const int row) const
 
 int INotebookModelItem::rowForChild(const INotebookModelItem * pChild) const
 {
-    return std::find(
-        m_children.begin(),
-        m_children.end(),
-        pChild) != m_children.end();
+    return m_children.indexOf(const_cast<INotebookModelItem*>(pChild));
 }
 
 void INotebookModelItem::insertChild(

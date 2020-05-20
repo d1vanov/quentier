@@ -29,7 +29,11 @@ LinkedNotebookRootItem::LinkedNotebookRootItem(
 QTextStream & LinkedNotebookRootItem::print(QTextStream & strm) const
 {
     strm << "Linked notebook root item: m_username = " << m_username
-        << ", linked notebook guid = " << m_linkedNotebookGuid;
+        << ", linked notebook guid = " << m_linkedNotebookGuid
+        << ", child count: " << m_children.size()
+        << ", parent: " << m_pParent
+        << ", parent type: "
+        << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
     return strm;
 }
 
