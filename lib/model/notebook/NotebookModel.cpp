@@ -1650,6 +1650,8 @@ bool NotebookModel::dropMimeData(
         return false;
     }
 
+    notebookItem = *it;
+
     auto * pOriginalParentItem = it->parent();
     int originalRow = -1;
     if (pOriginalParentItem) {

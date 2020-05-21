@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -56,7 +56,10 @@ QWidget * NotebookItemDelegate::createEditor(
         return nullptr;
     }
 
-    if (pModelItem->type() == INotebookModelItem::Type::LinkedNotebook) {
+    auto type = pModelItem->type();
+    if ((type != INotebookModelItem::Type::Notebook) &&
+        (type != INotebookModelItem::Type::Stack))
+    {
         return nullptr;
     }
 
@@ -72,7 +75,9 @@ void NotebookItemDelegate::paint(
     const QModelIndex & index) const
 {
     painter->save();
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+
+    painter->setRenderHints(
+        QPainter::Antialiasing | QPainter::TextAntialiasing);
 
     if (option.state & QStyle::State_Selected) {
         painter->fillRect(option.rect, option.palette.highlight());
@@ -173,10 +178,6 @@ void NotebookItemDelegate::paintItem(
         return;
     }
 
-    if (item.type() == INotebookModelItem::Type::AllNotebooksRoot) {
-        return;
-    }
-
     if (column == static_cast<int>(NotebookModel::Column::Default))
     {
         bool isDefault = index.model()->data(index).toBool();
@@ -266,8 +267,12 @@ void NotebookItemDelegate::drawNotebookName(
     }
 
     if (name.isEmpty()) {
+        name = index.data().toString().simplified();
+    }
+
+    if (name.isEmpty()) {
         QNDEBUG("NotebookItemDelegate::drawNotebookName: "
-                "notebook name is empty");
+            << "notebook name is empty");
         return;
     }
 
@@ -341,7 +346,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
     QString nameSuffix;
     if (!conversionResult)
     {
-        QNDEBUG("Failed to convert the number of notes per notebook to int: "
+        QNTRACE("Failed to convert the number of notes per notebook to int: "
             << noteCount);
     }
     else if (noteCountInt > 0)

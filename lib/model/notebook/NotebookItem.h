@@ -153,7 +153,7 @@ private:
     QString     m_name;
     QString     m_stack;
 
-    int         m_noteCount;
+    int         m_noteCount = 0;
 
     // Using a bitset to save some space as compared to more straigforward
     // alternative of using booleans

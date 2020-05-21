@@ -1292,6 +1292,10 @@ void NotebookItemView::restoreNotebookModelItemsState(
 
     setLinkedNotebooksExpanded(expandedLinkedNotebookItemsGuids, model);
     m_trackingNotebookModelItemsState = wasTrackingNotebookItemsState;
+
+    // All notebooks root item should always be expanded by default for now
+    auto allNotebooksRootItemIndex = model.index(0, 0, QModelIndex());
+    setExpanded(allNotebooksRootItemIndex, true);
 }
 
 void NotebookItemView::setStacksExpanded(
