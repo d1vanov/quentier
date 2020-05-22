@@ -138,12 +138,20 @@ private:
 
     void clearSelectionImpl();
 
+    void selectAllNotebooksRootItem(const NotebookModel & notebookModel);
+
     void setFavoritedFlag(const QAction & action, const bool favorited);
 
     void prepareForNotebookModelChange();
     void postProcessNotebookModelChange();
 
-    void setSelectedNotebookToNoteFilterManager(const QString & notebookLocalUid);
+    void setSelectedNotebookToNoteFiltersManager(
+        const QString & notebookLocalUid);
+
+    void clearNotebooksFromNoteFiltersManager();
+
+    void disconnectFromNoteFiltersManagerFilterChanged();
+    void connectToNoteFiltersManagerFilterChanged();
 
     // Helper structs and methods to access common data pieces in slots
 

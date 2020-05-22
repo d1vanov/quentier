@@ -59,6 +59,8 @@ public:
     void clear();
     void resetFilterToNotebookLocalUid(const QString & notebookLocalUid);
 
+    void removeNotebooksFromFilter();
+
     /**
      * @return              True if all filters have already been properly
      *                      initialized, false otherwise
@@ -157,6 +159,9 @@ private:
     void checkAndRefreshNotesSearchQuery();
 
     bool setAutomaticFilterByNotebook();
+
+    void persistFilterByNotebookClearedState(const bool state);
+    bool notebookFilterWasCleared() const;
 
 private:
     Account                         m_account;

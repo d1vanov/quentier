@@ -116,21 +116,11 @@ void NotebookItemView::setNoteFiltersManager(
             return;
         }
 
-        QObject::disconnect(
-            m_pNoteFiltersManager.data(),
-            &NoteFiltersManager::filterChanged,
-            this,
-            &NotebookItemView::onNoteFilterChanged);
+        disconnectFromNoteFiltersManagerFilterChanged();
     }
 
     m_pNoteFiltersManager = &noteFiltersManager;
-
-    QObject::connect(
-        m_pNoteFiltersManager.data(),
-        &NoteFiltersManager::filterChanged,
-        this,
-        &NotebookItemView::onNoteFilterChanged,
-        Qt::UniqueConnection);
+    connectToNoteFiltersManagerFilterChanged();
 }
 
 void NotebookItemView::setModel(QAbstractItemModel * pModel)
@@ -705,13 +695,13 @@ void NotebookItemView::onNoteFilterChanged()
 
     if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
         QNDEBUG("Filter by search string is active");
-        clearSelectionImpl();
+        selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
 
     if (!m_pNoteFiltersManager->savedSearchLocalUidInFilter().isEmpty()) {
         QNDEBUG("Filter by saved search is active");
-        clearSelectionImpl();
+        selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
 
@@ -721,14 +711,14 @@ void NotebookItemView::onNoteFilterChanged()
     if (notebookLocalUids.size() != 1) {
         QNDEBUG("Not exactly one notebook local uid is within the filter: "
             << notebookLocalUids.join(QStringLiteral(", ")));
-        clearSelectionImpl();
+        selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
 
     auto notebookIndex = pNotebookModel->indexForLocalUid(notebookLocalUids[0]);
     if (Q_UNLIKELY(!notebookIndex.isValid())) {
         QNWARNING("The filtered notebook local uid's index is invalid");
-        clearSelectionImpl();
+        selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
 
@@ -759,7 +749,7 @@ void NotebookItemView::onNoteFiltersManagerReady()
         m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 
     m_notebookLocalUidPendingNoteFiltersManagerReadiness.clear();
-    setSelectedNotebookToNoteFilterManager(notebookLocalUid);
+    setSelectedNotebookToNoteFiltersManager(notebookLocalUid);
 }
 
 void NotebookItemView::selectionChanged(
@@ -1384,6 +1374,12 @@ void NotebookItemView::restoreFilteredNotebook(
     auto filteredNotebookLocalUids =
         m_pNoteFiltersManager->notebookLocalUidsInFilter();
 
+    if (filteredNotebookLocalUids.isEmpty()) {
+        QNDEBUG("No notebooks within filter, selecting all notebooks root item");
+        selectAllNotebooksRootItem(model);
+        return;
+    }
+
     if (filteredNotebookLocalUids.size() != 1) {
         QNDEBUG("Not exactly one notebook local uid within filter: "
             << filteredNotebookLocalUids.join(QStringLiteral(",")));
@@ -1438,12 +1434,14 @@ void NotebookItemView::selectionChangedImpl(
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
         QNDEBUG("Non-notebook model is used");
+        clearNotebooksFromNoteFiltersManager();
         return;
     }
 
     auto selectedIndexes = selected.indexes();
     if (selectedIndexes.isEmpty()) {
         QNDEBUG("The new selection is empty");
+        clearNotebooksFromNoteFiltersManager();
         return;
     }
 
@@ -1456,6 +1454,7 @@ void NotebookItemView::selectionChangedImpl(
 
     if (!sourceIndex.isValid()) {
         QNDEBUG("Not exactly one row is selected");
+        clearNotebooksFromNoteFiltersManager();
         return;
     }
 
@@ -1463,6 +1462,7 @@ void NotebookItemView::selectionChangedImpl(
     if (Q_UNLIKELY(!pModelItem)) {
         REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the notebook model "
                                 "item corresponging to the selected index"))
+        clearNotebooksFromNoteFiltersManager();
         return;
     }
 
@@ -1470,23 +1470,25 @@ void NotebookItemView::selectionChangedImpl(
 
     if (pModelItem->type() == INotebookModelItem::Type::AllNotebooksRoot) {
         QNDEBUG("All notebooks root item has been selected");
-        setSelectedNotebookToNoteFilterManager(QString());
+        clearNotebooksFromNoteFiltersManager();
         return;
     }
 
     const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
     if (!pNotebookItem) {
         QNDEBUG("Non-notebook item is selected");
+        clearNotebooksFromNoteFiltersManager();
         return;
     }
 
     if (!pNotebookItem->linkedNotebookGuid().isEmpty()) {
         QNDEBUG("Notebook from the linked notebook is selected, "
-                "won't do anything");
+            << "won't do anything");
+        clearNotebooksFromNoteFiltersManager();
         return;
     }
 
-    setSelectedNotebookToNoteFilterManager(pNotebookItem->localUid());
+    setSelectedNotebookToNoteFiltersManager(pNotebookItem->localUid());
 }
 
 void NotebookItemView::clearSelectionImpl()
@@ -1503,7 +1505,32 @@ void NotebookItemView::clearSelectionImpl()
         return;
     }
 
-    setSelectedNotebookToNoteFilterManager(QString());
+    setSelectedNotebookToNoteFiltersManager(QString());
+}
+
+void NotebookItemView::selectAllNotebooksRootItem(const NotebookModel & model)
+{
+    QNDEBUG("NotebookItemView::selectAllNotebooksRootItem");
+
+    auto * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Can't select all notebooks root item: "
+                       "no selection model in the view"))
+        return;
+    }
+
+    m_trackingSelection = false;
+
+    pSelectionModel->select(
+        model.index(0, 0),
+        QItemSelectionModel::ClearAndSelect |
+        QItemSelectionModel::Rows |
+        QItemSelectionModel::Current);
+
+    m_trackingSelection = true;
+
+    clearNotebooksFromNoteFiltersManager();
 }
 
 void NotebookItemView::setFavoritedFlag(
@@ -1571,10 +1598,10 @@ void NotebookItemView::postProcessNotebookModelChange()
     m_trackingSelection = true;
 }
 
-void NotebookItemView::setSelectedNotebookToNoteFilterManager(
+void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
     const QString & notebookLocalUid)
 {
-    QNDEBUG("NotebookItemView::setSelectedNotebookToNoteFilterManager: "
+    QNDEBUG("NotebookItemView::setSelectedNotebookToNoteFiltersManager: "
         << notebookLocalUid);
 
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
@@ -1614,14 +1641,52 @@ void NotebookItemView::setSelectedNotebookToNoteFilterManager(
         return;
     }
 
+    disconnectFromNoteFiltersManagerFilterChanged();
+    m_pNoteFiltersManager->resetFilterToNotebookLocalUid(notebookLocalUid);
+    connectToNoteFiltersManagerFilterChanged();
+}
+
+void NotebookItemView::clearNotebooksFromNoteFiltersManager()
+{
+    QNDEBUG("NotebookItemView::clearNotebooksFromNoteFiltersManager");
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        QNDEBUG("Note filters manager is null");
+        return;
+    }
+
+    if (!m_pNoteFiltersManager->isReady())
+    {
+        QNDEBUG("Note filters manager is not ready yet, will "
+            << "postpone clearing notebooks from it");
+
+        QObject::connect(
+            m_pNoteFiltersManager.data(),
+            &NoteFiltersManager::ready,
+            this,
+            [this] {
+                clearNotebooksFromNoteFiltersManager();
+            });
+
+        return;
+    }
+
+    disconnectFromNoteFiltersManagerFilterChanged();
+    m_pNoteFiltersManager->removeNotebooksFromFilter();
+    connectToNoteFiltersManagerFilterChanged();
+}
+
+void NotebookItemView::disconnectFromNoteFiltersManagerFilterChanged()
+{
     QObject::disconnect(
         m_pNoteFiltersManager.data(),
         &NoteFiltersManager::filterChanged,
         this,
         &NotebookItemView::onNoteFilterChanged);
+}
 
-    m_pNoteFiltersManager->resetFilterToNotebookLocalUid(notebookLocalUid);
-
+void NotebookItemView::connectToNoteFiltersManagerFilterChanged()
+{
     QObject::connect(
         m_pNoteFiltersManager.data(),
         &NoteFiltersManager::filterChanged,
