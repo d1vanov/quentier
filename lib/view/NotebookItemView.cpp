@@ -39,6 +39,10 @@
     QStringLiteral("LastExpandedLinkedNotebookItemsGuids")                     \
 // LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY
 
+#define ALL_NOTEBOOKS_ROOT_ITEM_EXPANDED_KEY                                   \
+    QStringLiteral("AllNotebooksRootItemExpanded")                             \
+// ALL_NOTEBOOKS_ROOT_ITEM_EXPANDED_KEY
+
 #define REPORT_ERROR(error)                                                    \
     {                                                                          \
         ErrorString errorToReport(error);                                      \
@@ -1240,6 +1244,12 @@ void NotebookItemView::saveNotebookModelItemsState()
         LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY,
         expandedLinkedNotebookItemsGuids);
 
+    auto allNotebooksRootItemIndex = pNotebookModel->index(0, 0);
+
+    appSettings.setValue(
+        ALL_NOTEBOOKS_ROOT_ITEM_EXPANDED_KEY,
+        isExpanded(allNotebooksRootItemIndex));
+
     appSettings.endGroup();
 }
 
@@ -1278,6 +1288,9 @@ void NotebookItemView::restoreNotebookModelItemsState(
     auto expandedLinkedNotebookItemsGuids = appSettings.value(
         LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY).toStringList();
 
+    auto allNotebooksRootItemExpandedPreference = appSettings.value(
+        ALL_NOTEBOOKS_ROOT_ITEM_EXPANDED_KEY);
+
     appSettings.endGroup();
 
     bool wasTrackingNotebookItemsState = m_trackingNotebookModelItemsState;
@@ -1293,9 +1306,14 @@ void NotebookItemView::restoreNotebookModelItemsState(
     setLinkedNotebooksExpanded(expandedLinkedNotebookItemsGuids, model);
     m_trackingNotebookModelItemsState = wasTrackingNotebookItemsState;
 
-    // All notebooks root item should always be expanded by default for now
-    auto allNotebooksRootItemIndex = model.index(0, 0, QModelIndex());
-    setExpanded(allNotebooksRootItemIndex, true);
+    bool allNotebooksRootItemExpanded = true;
+    if (allNotebooksRootItemExpandedPreference.isValid()) {
+        allNotebooksRootItemExpanded =
+            allNotebooksRootItemExpandedPreference.toBool();
+    }
+
+    auto allNotebooksRootItemIndex = model.index(0, 0);
+    setExpanded(allNotebooksRootItemIndex, allNotebooksRootItemExpanded);
 }
 
 void NotebookItemView::setStacksExpanded(

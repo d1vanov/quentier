@@ -3953,7 +3953,7 @@ INotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(
         return linkedNotebookItemIt.value();
     }
 
-    QNWARNING("Found no existing linked notebook item corresponding to "
+    QNDEBUG("Found no existing linked notebook item corresponding to "
         << "linked notebook guid " << linkedNotebookGuid);
 
     auto linkedNotebookOwnerUsernameIt =
