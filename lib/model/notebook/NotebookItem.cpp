@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,49 +18,20 @@
 
 #include "NotebookItem.h"
 
-#include <cstddef>
-
 namespace quentier {
 
 NotebookItem::NotebookItem(
-        const QString & localUid,
-        const QString & guid,
-        const QString & linkedNotebookGuid,
-        const QString & name,
-        const QString & stack,
-        const bool isSynchronizable,
-        const bool isUpdatable,
-        const bool nameIsUpdatable,
-        const bool isDirty,
-        const bool isDefault,
-        const bool isLastUsed,
-        const bool isPublished,
-        const bool isFavorited,
-        const bool canCreateNotes,
-        const bool canUpdateNotes,
-        const int numNotesPerNotebook) :
-    m_localUid(localUid),
-    m_guid(guid),
-    m_linkedNotebookGuid(linkedNotebookGuid),
-    m_name(name),
-    m_stack(stack),
-    m_flags(),
-    m_numNotesPerNotebook(numNotesPerNotebook)
+        QString localUid, QString guid, QString linkedNotebookGuid,
+        QString name, QString stack) :
+    m_localUid(std::move(localUid)),
+    m_guid(std::move(guid)),
+    m_linkedNotebookGuid(std::move(linkedNotebookGuid)),
+    m_name(std::move(name)),
+    m_stack(std::move(stack))
 {
-    setSynchronizable(isSynchronizable);
-    setUpdatable(isUpdatable);
-    setNameIsUpdatable(nameIsUpdatable);
-    setDirty(isDirty);
-    setDefault(isDefault);
-    setLastUsed(isLastUsed);
-    setPublished(isPublished);
-    setFavorited(isFavorited);
-    setCanCreateNotes(canCreateNotes);
-    setCanUpdateNotes(canUpdateNotes);
+    setCanCreateNotes(true);
+    setCanUpdateNotes(true);
 }
-
-NotebookItem::~NotebookItem()
-{}
 
 bool NotebookItem::isSynchronizable() const
 {
@@ -165,32 +136,47 @@ void NotebookItem::setCanUpdateNotes(const bool flag)
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
     strm << "Notebook item: local uid = " << m_localUid
-         << ", guid = " << m_guid
-         << ", linked notebook guid = " << m_linkedNotebookGuid
-         << ", name = " << m_name
-         << ", stack = " << m_stack
-         << ", is synchronizable = "
-         << (isSynchronizable() ? "true" : "false")
-         << ", is updatable = "
-         << (isUpdatable() ? "true" : "false")
-         << ", name is updatable = "
-         << (nameIsUpdatable() ? "true" : "false")
-         << ", is dirty = "
-         << (isDirty() ? "true" : "false")
-         << ", is default = "
-         << (isDefault() ? "true" : "false")
-         << ", is last used = "
-         << (isLastUsed() ? "true" : "false")
-         << ", is published = "
-         << (isPublished() ? "true" : "false")
-         << ", is favorited = "
-         << (isFavorited() ? "true" : "false")
-         << ", can create notes = "
-         << (canCreateNotes() ? "true" : "false")
-         << ", can update notes = "
-         << (canUpdateNotes() ? "true" : "false")
-         << ", num notes per notebook = " << m_numNotesPerNotebook;
+        << ", guid = " << m_guid
+        << ", linked notebook guid = " << m_linkedNotebookGuid
+        << ", name = " << m_name
+        << ", stack = " << m_stack
+        << ", is synchronizable = "
+        << (isSynchronizable() ? "true" : "false")
+        << ", is updatable = "
+        << (isUpdatable() ? "true" : "false")
+        << ", name is updatable = "
+        << (nameIsUpdatable() ? "true" : "false")
+        << ", is dirty = "
+        << (isDirty() ? "true" : "false")
+        << ", is default = "
+        << (isDefault() ? "true" : "false")
+        << ", is last used = "
+        << (isLastUsed() ? "true" : "false")
+        << ", is published = "
+        << (isPublished() ? "true" : "false")
+        << ", is favorited = "
+        << (isFavorited() ? "true" : "false")
+        << ", can create notes = "
+        << (canCreateNotes() ? "true" : "false")
+        << ", can update notes = "
+        << (canUpdateNotes() ? "true" : "false")
+        << ", num notes per notebook = " << m_noteCount
+        << ", parent: " << m_pParent
+        << ", parent type: "
+        << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
     return strm;
+}
+
+QDataStream & NotebookItem::serializeItemData(QDataStream & out) const
+{
+    out << m_localUid;
+    return out;
+}
+
+QDataStream & NotebookItem::deserializeItemData(QDataStream & in)
+{
+    in >> m_localUid;
+    return in;
 }
 
 } // namespace quentier

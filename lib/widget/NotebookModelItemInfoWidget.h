@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,16 +32,14 @@ QT_FORWARD_DECLARE_CLASS(QModelIndex)
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
-QT_FORWARD_DECLARE_CLASS(NotebookStackItem)
+QT_FORWARD_DECLARE_CLASS(StackItem)
 
 class NotebookModelItemInfoWidget : public QWidget
 {
     Q_OBJECT
-
 public:
     explicit NotebookModelItemInfoWidget(
-        const QModelIndex & index,
-        QWidget * parent = nullptr);
+        const QModelIndex & index, QWidget * parent = nullptr);
 
     virtual ~NotebookModelItemInfoWidget();
 
@@ -64,7 +62,7 @@ private:
     void setStackStuffHidden(const bool flag);
 
     void setNotebookItem(const NotebookItem & item);
-    void setStackItem(const NotebookStackItem & item, const int numChildren);
+    void setStackItem(const StackItem & item, const int numChildren);
 
     virtual void keyPressEvent(QKeyEvent * pEvent) override;
 

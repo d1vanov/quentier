@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,24 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NotebookLinkedNotebookRootItem.h"
+#include "LinkedNotebookRootItem.h"
 
 namespace quentier {
 
-QTextStream & NotebookLinkedNotebookRootItem::print(QTextStream & strm) const
+LinkedNotebookRootItem::LinkedNotebookRootItem(
+        QString username, QString linkedNotebookGuid) :
+    m_username(std::move(username)),
+    m_linkedNotebookGuid(std::move(linkedNotebookGuid))
+{}
+
+QTextStream & LinkedNotebookRootItem::print(QTextStream & strm) const
 {
-    strm << "Notebook linked notebook root item: m_username = " << m_username
-         << ", linked notebook guid = " << m_linkedNotebookGuid;
+    strm << "Linked notebook root item: m_username = " << m_username
+        << ", linked notebook guid = " << m_linkedNotebookGuid
+        << ", child count: " << m_children.size()
+        << ", parent: " << m_pParent
+        << ", parent type: "
+        << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
     return strm;
 }
 

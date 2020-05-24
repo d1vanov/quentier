@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,17 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NotebookStackItem.h"
+#include "StackItem.h"
 
 namespace quentier {
 
-QTextStream & NotebookStackItem::print(QTextStream & strm) const
+QTextStream & StackItem::print(QTextStream & strm) const
 {
-    strm << "Notebook stack: " << m_name;
+    strm << "Notebook stack: " << m_name
+        << ", child count: " << m_children.size()
+        << ", parent: " << m_pParent
+        << ", parent type: "
+        << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
     return strm;
 }
 

@@ -24,7 +24,7 @@
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
-QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
+QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
 
 class NotebookModelTestHelper: public QObject
 {
@@ -56,27 +56,31 @@ private Q_SLOTS:
         size_t limit, size_t offset,
         LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
+        QString linkedNotebookGuid, ErrorString errorDescription,
+        QUuid requestId);
 
     void onExpungeNotebookFailed(
         Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
 private:
     bool checkSorting(
-        const NotebookModel & model, const NotebookModelItem * item) const;
+        const NotebookModel & model,
+        const INotebookModelItem * pModelItem) const;
 
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
     {
         bool operator()(
-            const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+            const INotebookModelItem * pLhs,
+            const INotebookModelItem * pRhs) const;
     };
 
     struct GreaterByName
     {
         bool operator()(
-            const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+            const INotebookModelItem * pLhs,
+            const INotebookModelItem * pRhs) const;
     };
 
 private:

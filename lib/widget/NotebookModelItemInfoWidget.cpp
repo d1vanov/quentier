@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,7 +19,7 @@
 #include "NotebookModelItemInfoWidget.h"
 #include "ui_NotebookModelItemInfoWidget.h"
 
-#include <lib/model/NotebookModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 
 #include <QKeyEvent>
 
@@ -28,8 +28,7 @@
 namespace quentier {
 
 NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
-        const QModelIndex & index,
-        QWidget * parent) :
+        const QModelIndex & index, QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::NotebookModelItemInfoWidget)
 {
@@ -38,42 +37,44 @@ NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
     setWindowTitle(tr("Notebook info"));    // Assume it's notebook for now
     setCheckboxesReadOnly();
 
-    QObject::connect(m_pUi->okButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(NotebookModelItemInfoWidget,close));
+    QObject::connect(
+        m_pUi->okButton,
+        &QPushButton::clicked,
+        this,
+        &NotebookModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
         setInvalidIndex();
         return;
     }
 
-    const NotebookModel * pNotebookModel =
-        qobject_cast<const NotebookModel*>(index.model());
+    const auto * pNotebookModel = qobject_cast<const NotebookModel*>(
+        index.model());
+
     if (Q_UNLIKELY(!pNotebookModel)) {
         setNonNotebookModel();
         return;
     }
 
-    const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(index);
+    const auto * pModelItem = pNotebookModel->itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
         setNoModelItem();
         return;
     }
 
-    if ((pModelItem->type() == NotebookModelItem::Type::Notebook) &&
-        pModelItem->notebookItem())
-    {
-        setNotebookItem(*(pModelItem->notebookItem()));
+    const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
+    if (pNotebookItem) {
+        setNotebookItem(*pNotebookItem);
+        return;
     }
-    else if ((pModelItem->type() == NotebookModelItem::Type::Stack) &&
-             pModelItem->notebookStackItem())
-    {
-        setStackItem(*(pModelItem->notebookStackItem()),
-                     pModelItem->children().size());
+
+    const auto * pStackItem = pModelItem->cast<StackItem>();
+    if (pStackItem) {
+        setStackItem(*pStackItem, pModelItem->childrenCount());
+        return;
     }
-    else
-    {
-        setMessedUpModelItemType();
-    }
+
+    setMessedUpModelItemType();
 }
 
 NotebookModelItemInfoWidget::~NotebookModelItemInfoWidget()
@@ -85,7 +86,8 @@ void NotebookModelItemInfoWidget::setCheckboxesReadOnly()
 {
 #define SET_CHECKBOX_READ_ONLY(name)                                           \
     m_pUi->notebook##name##CheckBox->setAttribute(                             \
-        Qt::WA_TransparentForMouseEvents, true);                               \
+        Qt::WA_TransparentForMouseEvents,                                      \
+        true);                                                                 \
     m_pUi->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)               \
 // SET_CHECKBOX_READ_ONLY
 
@@ -124,6 +126,7 @@ void NotebookModelItemInfoWidget::setNoModelItem()
 
     m_pUi->statusBarLabel->setText(
         tr("No notebook model item was found for index"));
+
     m_pUi->statusBarLabel->show();
 }
 
@@ -133,6 +136,7 @@ void NotebookModelItemInfoWidget::setMessedUpModelItemType()
 
     m_pUi->statusBarLabel->setText(
         tr("Internal error: improper type of notebook model item"));
+
     m_pUi->statusBarLabel->show();
 }
 
@@ -212,19 +216,25 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
 
     m_pUi->notebookNameLineEdit->setText(item.name());
     m_pUi->notebookStackLineEdit->setText(item.stack());
+
     m_pUi->notebookNumNotesLineEdit->setText(
-        QString::number(std::max(item.numNotesPerNotebook(), 0)));
+        QString::number(std::max(item.noteCount(), 0)));
+
     m_pUi->notebookSynchronizableCheckBox->setChecked(item.isSynchronizable());
     m_pUi->notebookDirtyCheckBox->setChecked(item.isDirty());
     m_pUi->notebookUpdatableCheckBox->setChecked(item.isUpdatable());
+
     m_pUi->notebookNameUpdatableCheckBox->setChecked(
         item.isUpdatable() && item.nameIsUpdatable());
+
     m_pUi->notebookDefaultCheckBox->setChecked(item.isDefault());
     m_pUi->notebookLastUsedCheckBox->setChecked(item.isLastUsed());
     m_pUi->notebookPublishedCheckBox->setChecked(item.isPublished());
     m_pUi->notebookFavoritedCheckBox->setChecked(item.isFavorited());
+
     m_pUi->notebookFromLinkedNotebookCheckBox->setChecked(
         !item.linkedNotebookGuid().isEmpty());
+
     m_pUi->notebookGuidLineEdit->setText(item.guid());
     m_pUi->notebookLocalUidLineEdit->setText(item.localUid());
 
@@ -233,13 +243,14 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
 }
 
 void NotebookModelItemInfoWidget::setStackItem(
-    const NotebookStackItem & item, const int numChildren)
+    const StackItem & item, const int numChildren)
 {
     hideNotebookStuff();
     showStackStuff();
     m_pUi->statusBarLabel->hide();
 
     m_pUi->stackNameLineEdit->setText(item.name());
+
     m_pUi->stackNumNotebooksLineEdit->setText(
         QString::number(std::max(numChildren, 0)));
 

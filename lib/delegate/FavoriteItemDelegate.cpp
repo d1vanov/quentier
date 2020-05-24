@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,8 +20,8 @@
 
 #include <lib/model/FavoritesModel.h>
 #include <lib/model/FavoritesModelItem.h>
-#include <lib/model/NotebookModel.h>
 #include <lib/model/TagModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 

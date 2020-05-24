@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,12 +41,17 @@ class EditNoteDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit EditNoteDialog(const Note & note, NotebookModel * pNotebookModel,
-                            QWidget * parent = nullptr,
-                            const bool readOnlyMode = false);
-    virtual ~EditNoteDialog();
+    explicit EditNoteDialog(
+        const Note & note, NotebookModel * pNotebookModel,
+        QWidget * parent = nullptr,
+        const bool readOnlyMode = false);
 
-    const Note & note() const { return m_note; }
+    virtual ~EditNoteDialog() override;
+
+    const Note & note() const
+    {
+        return m_note;
+    }
 
 private Q_SLOTS:
     virtual void accept() override;
@@ -54,23 +59,33 @@ private Q_SLOTS:
     // Slots to track the updates of notebook model
     void dataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
-        const QVector<int> & roles = QVector<int>());
+        const QVector<int> & roles = {});
 
     void rowsInserted(const QModelIndex & parent, int start, int end);
+
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);
 
-    // Slots for QDateTimeEdit and QDoubleSpinBox edits capturing. Unfortunately,
-    // Qt doesn't offer a simple way to have null/empty values in these editors,
-    // instead they have some default value on creation; workaround:
-    // capture editing events from these editors, treat each editing event as
-    // setting the value to some 'non-empty' one; otherwise treat the value from
-    // the editor as an empty one
+    /**
+     * Slots for QDateTimeEdit and QDoubleSpinBox edits capturing.
+     * Unfortunately, Qt doesn't offer a simple way to have null/empty values
+     * in these editors, instead they have some default value on creation;
+     * workaround: capture editing events from these editors, treat each
+     * editing event as setting the value to some 'non-empty' one; otherwise
+     * treat the value from the editor as an empty one
+     */
+
     void onCreationDateTimeEdited(const QDateTime & dateTime);
+
     void onModificationDateTimeEdited(const QDateTime & dateTime);
+
     void onDeletionDateTimeEdited(const QDateTime & dateTime);
+
     void onSubjectDateTimeEdited(const QDateTime & dateTime);
+
     void onLatitudeValueChanged(double value);
+
     void onLongitudeValueChanged(double value);
+
     void onAltitudeValueChanged(double value);
 
 private:
@@ -86,15 +101,15 @@ private:
 
     StringUtils             m_stringUtils;
 
-    bool                    m_creationDateTimeEdited;
-    bool                    m_modificationDateTimeEdited;
-    bool                    m_deletionDateTimeEdited;
-    bool                    m_subjectDateTimeEdited;
-    bool                    m_latitudeEdited;
-    bool                    m_longitudeEdited;
-    bool                    m_altitudeEdited;
+    bool    m_creationDateTimeEdited = false;
+    bool    m_modificationDateTimeEdited = false;
+    bool    m_deletionDateTimeEdited = false;
+    bool    m_subjectDateTimeEdited = false;
+    bool    m_latitudeEdited = false;
+    bool    m_longitudeEdited = false;
+    bool    m_altitudeEdited = false;
 
-    bool                    m_readOnlyMode;
+    bool    m_readOnlyMode;
 };
 
 } // namespace quentier

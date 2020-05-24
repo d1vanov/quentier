@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -17,15 +17,16 @@
  */
 
 #include "NoteFiltersManager.h"
-#include "FilterByTagWidget.h"
+
 #include "FilterByNotebookWidget.h"
+#include "FilterByTagWidget.h"
 #include "FilterBySavedSearchWidget.h"
 
 #include <lib/preferences/SettingsNames.h>
 #include <lib/model/NoteModel.h>
 #include <lib/model/SavedSearchModel.h>
-#include <lib/model/NotebookModel.h>
 #include <lib/model/TagModel.h>
+#include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -36,8 +37,12 @@
 
 namespace quentier {
 
+// DEPRECATED: NOTE_FILTERS_GROUP_KEY should be used instead
 #define NOTE_SEARCH_STRING_GROUP_KEY QStringLiteral("NoteSearchStringFilter")
+
+#define NOTE_FILTERS_GROUP_KEY QStringLiteral("NoteFilters")
 #define NOTE_SEARCH_STRING_KEY QStringLiteral("SearchString")
+#define NOTEBOOK_FILTER_CLEARED QStringLiteral("NotebookFilterCleared")
 
 NoteFiltersManager::NoteFiltersManager(
         const Account & account,
@@ -165,7 +170,7 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(
     const QString & notebookLocalUid)
 {
     QNDEBUG("NoteFiltersManager::resetFilterToNotebookLocalUid: "
-            << notebookLocalUid);
+        << notebookLocalUid);
 
     if (notebookLocalUid.isEmpty()) {
         clearFilterByNotebookWidgetItems();
@@ -173,8 +178,7 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(
         return;
     }
 
-    const NotebookModel * pNotebookModel =
-        m_filterByNotebookWidget.notebookModel();
+    const auto * pNotebookModel = m_filterByNotebookWidget.notebookModel();
     if (Q_UNLIKELY(!pNotebookModel)) {
         QNDEBUG("Notebook model in the filter by notebook widget is null");
         clearFilterByNotebookWidgetItems();
@@ -193,11 +197,13 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(
 
     clearFilterWidgetsItems();
 
-    QObject::disconnect(&m_filterByNotebookWidget,
-                        QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
-                        this,
-                        QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString));
+    QObject::disconnect(
+        &m_filterByNotebookWidget,
+        &FilterByNotebookWidget::addedItemToFilter,
+        this,
+        &NoteFiltersManager::onAddedNotebookToFilter);
 
+    persistFilterByNotebookClearedState(false);
     m_filterByNotebookWidget.addItemToFilter(notebookLocalUid, name);
 
     QObject::connect(&m_filterByNotebookWidget,
@@ -206,6 +212,15 @@ void NoteFiltersManager::resetFilterToNotebookLocalUid(
                      QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
                      Qt::UniqueConnection);
 
+    evaluate();
+}
+
+void NoteFiltersManager::removeNotebooksFromFilter()
+{
+    QNDEBUG("NoteFiltersManager::removeNotebooksFromFilter");
+
+    persistFilterByNotebookClearedState(true);
+    clearFilterByNotebookWidgetItems();
     evaluate();
 }
 
@@ -866,9 +881,12 @@ void NoteFiltersManager::persistSearchString()
     QNDEBUG("NoteFiltersManager::persistSearchString");
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_SEARCH_STRING_GROUP_KEY);
+    appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     appSettings.setValue(NOTE_SEARCH_STRING_KEY, m_searchLineEdit.text());
     appSettings.endGroup();
+
+    // Remove old group where this preference used to reside
+    appSettings.remove(NOTE_SEARCH_STRING_GROUP_KEY);
 }
 
 void NoteFiltersManager::restoreSearchString()
@@ -876,10 +894,19 @@ void NoteFiltersManager::restoreSearchString()
     QNDEBUG("NoteFiltersManager::restoreSearchString");
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_SEARCH_STRING_GROUP_KEY);
-    m_lastSearchString = appSettings.value(NOTE_SEARCH_STRING_KEY).toString();
+
+    appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
+    auto lastSearchStringValue = appSettings.value(NOTE_SEARCH_STRING_KEY);
     appSettings.endGroup();
 
+    // Backward compatibility: look for preference in old location as a fallback
+    if (!lastSearchStringValue.isValid()) {
+        appSettings.beginGroup(NOTE_SEARCH_STRING_GROUP_KEY);
+        lastSearchStringValue = appSettings.value(NOTE_SEARCH_STRING_KEY);
+        appSettings.endGroup();
+    }
+
+    m_lastSearchString = lastSearchStringValue.toString();
     m_searchLineEdit.setText(m_lastSearchString);
 
     if (m_lastSearchString.isEmpty()) {
@@ -887,11 +914,12 @@ void NoteFiltersManager::restoreSearchString()
     }
 
     ErrorString error;
-    NoteSearchQuery query = createNoteSearchQuery(m_lastSearchString, error);
+    auto query = createNoteSearchQuery(m_lastSearchString, error);
     if (query.isEmpty()) {
         QToolTip::showText(
             m_searchLineEdit.mapToGlobal(QPoint(0, m_searchLineEdit.height())),
-            error.localizedString(), &m_searchLineEdit);
+            error.localizedString(),
+            &m_searchLineEdit);
     }
 }
 
@@ -1204,7 +1232,13 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
 {
     QNDEBUG("NoteFiltersManager::setAutomaticFilterByNotebook");
 
-    const NotebookModel * pModel = m_filterByNotebookWidget.notebookModel();
+    if (notebookFilterWasCleared()) {
+        QNDEBUG("Notebook filter was cleared, won't set automatic filter "
+            << "by notebook");
+        return true;
+    }
+
+    const auto * pModel = m_filterByNotebookWidget.notebookModel();
     if (!pModel) {
         QNDEBUG("Notebook model is not set to filter by notebook widget yet");
         return false;
@@ -1216,29 +1250,38 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
     }
 
     QString autoSelectedNotebookLocalUid;
+    auto lastUsedNotebookIndex = pModel->lastUsedNotebookIndex();
 
-    QModelIndex lastUsedNotebookIndex = pModel->lastUsedNotebookIndex();
-    const NotebookModelItem * pLastUsedNotebookModelItem =
-        pModel->itemForIndex(lastUsedNotebookIndex);
-    if (pLastUsedNotebookModelItem &&
-        pLastUsedNotebookModelItem->notebookItem())
+    const auto * pLastUsedNotebookModelItem = pModel->itemForIndex(
+        lastUsedNotebookIndex);
+
+    if (pLastUsedNotebookModelItem)
     {
-        autoSelectedNotebookLocalUid =
-            pLastUsedNotebookModelItem->notebookItem()->localUid();
+        const auto * pLastUsedNotebookItem =
+            pLastUsedNotebookModelItem->cast<NotebookItem>();
+        if (pLastUsedNotebookItem) {
+            autoSelectedNotebookLocalUid =
+                pLastUsedNotebookItem->localUid();
+        }
     }
 
     if (autoSelectedNotebookLocalUid.isEmpty())
     {
         QNDEBUG("No last used notebook local uid, trying default notebook");
 
-        QModelIndex defaultNotebookIndex = pModel->defaultNotebookIndex();
-        const NotebookModelItem * pDefaultNotebookModelItem =
-            pModel->itemForIndex(defaultNotebookIndex);
-        if (pDefaultNotebookModelItem &&
-            pDefaultNotebookModelItem->notebookItem())
+        auto defaultNotebookIndex = pModel->defaultNotebookIndex();
+
+        const auto * pDefaultNotebookModelItem = pModel->itemForIndex(
+            defaultNotebookIndex);
+
+        if (pDefaultNotebookModelItem)
         {
-            autoSelectedNotebookLocalUid =
-                pDefaultNotebookModelItem->notebookItem()->localUid();
+            const auto * pDefaultNotebookItem =
+                pDefaultNotebookModelItem->cast<NotebookItem>();
+            if (pDefaultNotebookItem) {
+                autoSelectedNotebookLocalUid =
+                    pDefaultNotebookItem->localUid();
+            }
         }
     }
 
@@ -1255,6 +1298,7 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
         }
 
         const QString & firstNotebookName = notebookNames.at(0);
+
         autoSelectedNotebookLocalUid =
             pModel->localUidForItemName(firstNotebookName, QString());
     }
@@ -1270,24 +1314,54 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
         pModel->itemNameForLocalUid(autoSelectedNotebookLocalUid);
 
     QNDEBUG("Auto selecting notebook: local uid = "
-            << autoSelectedNotebookLocalUid << ", name: "
-            << autoSelectedNotebookName);
+        << autoSelectedNotebookLocalUid << ", name: "
+        << autoSelectedNotebookName);
 
-    QObject::disconnect(&m_filterByNotebookWidget,
-                        QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
-                        this,
-                        QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString));
+    QObject::disconnect(
+        &m_filterByNotebookWidget,
+        &FilterByNotebookWidget::addedItemToFilter,
+        this,
+        &NoteFiltersManager::onAddedNotebookToFilter);
 
     m_filterByNotebookWidget.addItemToFilter(
-        autoSelectedNotebookLocalUid, autoSelectedNotebookName);
+        autoSelectedNotebookLocalUid,
+        autoSelectedNotebookName);
 
-    QObject::connect(&m_filterByNotebookWidget,
-                     QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
-                     this,
-                     QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
-                     Qt::UniqueConnection);
+    QObject::connect(
+        &m_filterByNotebookWidget,
+        &FilterByNotebookWidget::addedItemToFilter,
+        this,
+        &NoteFiltersManager::onAddedNotebookToFilter,
+        Qt::UniqueConnection);
 
     return true;
+}
+
+void NoteFiltersManager::persistFilterByNotebookClearedState(const bool state)
+{
+    QNDEBUG("NoteFiltersManager::persistFilterByNotebookClearedState: "
+        << (state ? "true" : "false"));
+
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
+    appSettings.setValue(NOTEBOOK_FILTER_CLEARED, state);
+    appSettings.endGroup();
+}
+
+bool NoteFiltersManager::notebookFilterWasCleared() const
+{
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
+    auto notebookFilterWasCleared = appSettings.value(NOTEBOOK_FILTER_CLEARED);
+    appSettings.endGroup();
+
+    if (!notebookFilterWasCleared.isValid()) {
+        return false;
+    }
+
+    return notebookFilterWasCleared.toBool();
 }
 
 NoteSearchQuery NoteFiltersManager::createNoteSearchQuery(

@@ -58,6 +58,11 @@ void DirtyColumnDelegate::paint(
     QPainter * painter, const QStyleOptionViewItem & option,
     const QModelIndex & index) const
 {
+    auto data = index.data();
+    if (!data.isValid()) {
+        return;
+    }
+
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
 
@@ -65,13 +70,7 @@ void DirtyColumnDelegate::paint(
         painter->fillRect(option.rect, option.palette.highlight());
     }
 
-    bool dirty = false;
-
-    const QAbstractItemModel * model = index.model();
-    if (model) {
-        dirty = model->data(index).toBool();
-    }
-
+    bool dirty = data.toBool();
     if (dirty) {
         painter->setBrush(QBrush(Qt::red));
     }

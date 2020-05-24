@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,6 +25,8 @@
 #include <QSize>
 
 namespace quentier {
+
+QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
 
 class NotebookItemDelegate: public AbstractStyledItemDelegate
 {
@@ -63,6 +65,13 @@ private:
         const QModelIndex & index) const override;
 
 private:
+    const INotebookModelItem * notebookModelItem(
+        const QModelIndex & index) const;
+
+    void paintItem(
+        QPainter * painter, const QStyleOptionViewItem & option,
+        const QModelIndex & index, const INotebookModelItem & item) const;
+
     void drawEllipse(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const;

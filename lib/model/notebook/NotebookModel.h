@@ -19,28 +19,31 @@
 #ifndef QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_H
 #define QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_H
 
-#include "ItemModel.h"
-#include "NotebookModelItem.h"
-#include "NotebookCache.h"
+#include "../ItemModel.h"
+#include "../NotebookCache.h"
+
+#include "INotebookModelItem.h"
+#include "NotebookItem.h"
+#include "LinkedNotebookRootItem.h"
+#include "StackItem.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
 #include <quentier/utility/SuppressWarnings.h>
 
-#include <QAbstractItemModel>
-#include <QUuid>
-#include <QSet>
-#include <QMap>
-#include <QHash>
 #include <QFlags>
+#include <QHash>
+#include <QMap>
+#include <QSet>
+#include <QUuid>
 
 SAVE_WARNINGS
 GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
 
+#include <boost/bimap.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include <boost/bimap.hpp>
 
 RESTORE_WARNINGS
 
@@ -51,6 +54,8 @@ RESTORE_WARNINGS
 // NOTEBOOK_MODEL_MIME_TYPE
 
 #define NOTEBOOK_MODEL_MIME_DATA_MAX_COMPRESSION (9)
+
+QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
@@ -65,42 +70,46 @@ public:
 
     virtual ~NotebookModel();
 
-    const Account & account() const { return m_account; }
-    void updateAccount(const Account & account);
-
-    struct Columns
+    const Account & account() const
     {
-        enum type {
-            Name = 0,
-            Synchronizable,
-            Dirty,
-            Default,
-            LastUsed,
-            Published,
-            FromLinkedNotebook,
-            NumNotesPerNotebook
-        };
+        return m_account;
+    }
+
+    void setAccount(Account account);
+
+    enum class Column
+    {
+        Name = 0,
+        Synchronizable,
+        Dirty,
+        Default,
+        LastUsed,
+        Published,
+        FromLinkedNotebook,
+        NoteCount
     };
 
-    const NotebookModelItem * itemForIndex(const QModelIndex & index) const;
-    QModelIndex indexForItem(const NotebookModelItem * item) const;
+    friend QDebug & operator<<(QDebug & dbg, const Column column);
+
+    INotebookModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const INotebookModelItem * pItem) const;
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
     QModelIndex indexForNotebookName(
         const QString & notebookName,
-        const QString & linkedNotebookGuid = QString()) const;
+        const QString & linkedNotebookGuid = {}) const;
 
     /**
-     * @param                   The name of the notebook stack which item's index
-     *                          is required
+     * @param                   The name of the notebook stack which item's
+     *                          index is required
      * @param                   The linked notebook guid for which the notebook
-     *                          stack item's index is required; if null or empty,
-     *                          the item corresponding to the notebook stack
-     *                          from user's own account it considered, otherwise
-     *                          the item corresponding linked notebook guid would
-     *                          be considered
-     * @return                  The model index of the NotebookStackItem
+     *                          stack item's index is required; if null or
+     *                          empty, the item corresponding to the notebook
+     *                          stack from user's own account it considered,
+     *                          otherwise the item corresponding linked notebook
+     *                          guid would be considered
+     * @return                  The model index of the StackItem
      *                          corresponding to the given stack
      */
     QModelIndex indexForNotebookStack(
@@ -109,42 +118,50 @@ public:
     /**
      * @param                   The linked notebook guid which corresponding
      *                          linked notebook item's index is required
-     * @return                  The model index of the NotebookLinkedNotebookRootItem
+     * @return                  The model index of
+     *                          the LinkedNotebookRootItem
      *                          corresponding to the given linked notebook guid
      */
     QModelIndex indexForLinkedNotebookGuid(
         const QString & linkedNotebookGuid) const;
 
     /**
-     * C++98-style struct wrapper for the enum defining filter for methods listing
-     * stuff related to multiple notebook items
+     * @return                  The model index of the AllNotebooksRootItem
      */
-    struct NotebookFilter
+    QModelIndex allNotebooksRootItemIndex() const;
+
+    /**
+     * Enum defining filter for methods listing stuff related to multiple
+     * notebook items
+     */
+    enum class Filter
     {
-        enum type {
-            NoFilter = 0x0,
-            CanCreateNotes = 0x1,
-            CannotCreateNotes = 0x2,
-            CanUpdateNotes = 0x3,
-            CannotUpdateNotes = 0x4,
-            CanUpdateNotebook = 0x5,
-            CannotUpdateNotebook = 0x6,
-            CanRenameNotebook = 0x7,
-            CannotRenameNotebook = 0x8
-        };
+        NoFilter = 0x0,
+        CanCreateNotes = 0x1,
+        CannotCreateNotes = 0x2,
+        CanUpdateNotes = 0x3,
+        CannotUpdateNotes = 0x4,
+        CanUpdateNotebook = 0x5,
+        CannotUpdateNotebook = 0x6,
+        CanRenameNotebook = 0x7,
+        CannotRenameNotebook = 0x8
     };
 
-    Q_DECLARE_FLAGS(NotebookFilters, NotebookFilter::type)
+    Q_DECLARE_FLAGS(Filters, Filter)
+
+    friend QDebug & operator<<(QDebug & dbg, const Filter filter);
+    friend QDebug & operator<<(QDebug & dbg, const Filters filters);
 
     /**
      * @param filter                Filter for the listed notebook names
      * @param linkedNotebookGuid    The optional guid of the linked notebook to
      *                              which the returned notebook names belong;
-     *                              if it is null (i.e. linkedNotebookGuid.isNull()
-     *                              returns true), the notebook names would be
-     *                              returned ignoring their belonging to user's
-     *                              own account or linked notebook; if it's not
-     *                              null but empty (i.e. linkedNotebookGuid.isEmpty()
+     *                              if it is null (i.e.
+     *                              linkedNotebookGuid.isNull() returns true),
+     *                              the notebook names would be returned
+     *                              ignoring their belonging to user's own
+     *                              account or linked notebook; if it's not null
+     *                              but empty (i.e. linkedNotebookGuid.isEmpty()
      *                              returns true), only the names of notebooks
      *                              from user's own account would be returned.
      *                              Otherwise only the names of notebooks from
@@ -154,8 +171,7 @@ public:
      *                              with the filter
      */
     QStringList notebookNames(
-        const NotebookFilters filters,
-        const QString & linkedNotebookGuid = QString()) const;
+        const Filters filters, const QString & linkedNotebookGuid = {}) const;
 
     /**
      * @return                      The list of indexes stored as persistent
@@ -179,7 +195,7 @@ public:
     QModelIndex lastUsedNotebookIndex() const;
 
     /**
-     * @brief moveToStack - moves the notebook item pointed to by the index
+     * @brief moveToStack moves the notebook item pointed to by the index
      * to the specified stack
      * @param index                 The index of the notebook item to be moved
      *                              to the stack
@@ -199,7 +215,7 @@ public:
     QModelIndex moveToStack(const QModelIndex & index, const QString & stack);
 
     /**
-     * @brief removeFromStack - removes the notebook item pointed to by the index
+     * @brief removeFromStack removes the notebook item pointed to by the index
      * from its stack (if any)
      * @param index                 The index of the notebook item to be removed
      *                              from its stack
@@ -213,11 +229,12 @@ public:
     /**
      * @brief stacks
      * @param linkedNotebookGuid    The guid of the linked notebook from which
-     *                              the stacks are requested; if empty, the stacks
-     *                              from user's own account are returned
+     *                              the stacks are requested; if empty,
+     *                              the stacks from user's own account are
+     *                              returned
      * @return                      The sorted list of existing notebook stacks
      */
-    QStringList stacks(const QString & linkedNotebookGuid = QString()) const;
+    QStringList stacks(const QString & linkedNotebookGuid = {}) const;
 
     /**
      * @return the linked notebook owners' names by linked notebook guid
@@ -225,12 +242,12 @@ public:
     const QHash<QString,QString> & linkedNotebookOwnerNamesByGuid() const;
 
     /**
-     * @brief createNotebook - convenience method to create a new notebook within
-     * the model
+     * @brief createNotebook is the convenience method to create a new notebook
+     * within the model
      * @param notebookName          The name of the new notebook
      * @param notebookStack         The stack of the new notebook
      * @param errorDescription      The textual description of the error if
-     *                              notebook was not created successfully
+     *                              the notebook could not be created
      * @return                      Either valid model index if notebook was
      *                              created successfully or invalid model index
      *                              otherwise
@@ -244,7 +261,7 @@ public:
      * @param column                The column which name needs to be returned
      * @return                      The name of the column
      */
-    QString columnName(const Columns::type column) const;
+    QString columnName(const Column column) const;
 
     /**
      * @brief allNotebooksListed
@@ -259,8 +276,8 @@ public:
      * @brief favoriteNotebook - marks the notebook pointed to by the index as
      * favorited
      *
-     * Favorited property of Notebook class is not represented as a column within
-     * the @link NotebookModel @endlink so this method doesn't change anything
+     * Favorited property of Notebook class is not represented as a column
+     * within the NotebookModel so this method doesn't change anything
      * in the model but only the underlying notebook object persisted
      * in the local storage
      *
@@ -273,9 +290,10 @@ public:
      * pointed to by the index; does nothing if the notebook was not favorited
      * prior to the call
      *
-     * Favorited property of Notebook class is not represented as a column within
-     * the NotebookModel so this method doesn't change anything in the model but
-     * only the underlying notebook object persisted in the local storage
+     * Favorited property of Notebook class is not represented as a column
+     * within the NotebookModel so this method doesn't change anything in
+     * the model but only the underlying notebook object persisted in
+     * the local storage
      *
      * @param index                 The index of the notebook to be unfavorited
      */
@@ -293,14 +311,25 @@ public:
     virtual QStringList itemNames(
         const QString & linkedNotebookGuid) const override;
 
-    virtual int nameColumn() const override { return Columns::Name; }
-    virtual int sortingColumn() const override { return m_sortedColumn; }
+    virtual int nameColumn() const override
+    {
+        return static_cast<int>(Column::Name);
+    }
+
+    virtual int sortingColumn() const override
+    {
+        return static_cast<int>(m_sortedColumn);
+    }
 
     virtual Qt::SortOrder sortOrder() const override
-    { return m_sortOrder; }
+    {
+        return m_sortOrder;
+    }
 
     virtual bool allItemsListed() const override
-    { return allNotebooksListed(); }
+    {
+        return allNotebooksListed();
+    }
 
 public:
     // QAbstractItemModel interface
@@ -364,14 +393,16 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
     /**
-     * @brief notifyAllNotebooksListed - the signal emitted when the notebook model
-     * has received the information on all notebooks stored in the local storage
+     * @brief notifyAllNotebooksListed is the signal emitted when the notebook
+     * model has received the information on all notebooks stored in
+     * the local storage
      */
     void notifyAllNotebooksListed();
 
     /**
-     * @brief notifyNotebookStackRenamed - the signal emitted after the notebook
-     * stack has been renamed
+     * @brief notifyNotebookStackRenamed is the signal emitted after
+     * the notebook stack has been renamed
+     *
      * @param previousStackName         The name of the notebook stack prior to
      *                                  renaming
      * @param newStackName              The new name of the notebook stack
@@ -383,8 +414,9 @@ Q_SIGNALS:
         const QString & linkedNotebookGuid);
 
     /**
-     * @brief notifyNotebookStackChanged - the signal emitted after the notebook
-     * has been assigned to another stack
+     * @brief notifyNotebookStackChanged is the signal emitted after
+     * the notebook has been assigned to another stack
+     *
      * @param notebookIndex             The model index of the notebook which
      *                                  stack has been changed
      */
@@ -511,10 +543,10 @@ private:
     void requestLinkedNotebooksList();
 
     QVariant dataImpl(
-        const NotebookModelItem & item, const Columns::type column) const;
+        const INotebookModelItem & item, const Column column) const;
 
     QVariant dataAccessibleText(
-        const NotebookModelItem & item, const Columns::type column) const;
+        const INotebookModelItem & item, const Column column) const;
 
     bool canUpdateNotebookItem(const NotebookItem & item) const;
 
@@ -526,15 +558,27 @@ private:
     void removeItemByLocalUid(const QString & localUid);
     void notebookToItem(const Notebook & notebook, NotebookItem & item);
 
-    void removeModelItemFromParent(const NotebookModelItem & modelItem);
+    enum class RemoveEmptyParentStack
+    {
+        Yes,
+        No
+    };
+
+    friend QDebug & operator<<(
+        QDebug & dbg, const RemoveEmptyParentStack option);
+
+    void removeModelItemFromParent(
+        INotebookModelItem & modelItem,
+        RemoveEmptyParentStack option = RemoveEmptyParentStack::Yes);
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
     int rowForNewItem(
-        const NotebookModelItem & parentItem,
-        const NotebookModelItem & newItem) const;
+        const INotebookModelItem & parentItem,
+        const INotebookModelItem & newItem) const;
 
-    void updateItemRowWithRespectToSorting(const NotebookModelItem & modelItem);
+    void updateItemRowWithRespectToSorting(
+        INotebookModelItem & modelItem);
 
     void updatePersistentModelIndices();
 
@@ -549,15 +593,17 @@ private:
     void switchDefaultNotebookLocalUid(const QString & localUid);
     void switchLastUsedNotebookLocalUid(const QString & localUid);
 
-    void checkAndRemoveEmptyStackItem(const NotebookModelItem & modelItem);
+    void checkAndRemoveEmptyStackItem(INotebookModelItem & modelItem);
 
     void setNotebookFavorited(const QModelIndex & index, const bool favorited);
 
     void beginRemoveNotebooks();
     void endRemoveNotebooks();
 
-    const NotebookModelItem & findOrCreateLinkedNotebookModelItem(
+    INotebookModelItem & findOrCreateLinkedNotebookModelItem(
         const QString & linkedNotebookGuid);
+
+    void checkAndCreateModelRootItems();
 
 private:
     struct ByLocalUid{};
@@ -565,7 +611,7 @@ private:
     struct ByStack{};
     struct ByLinkedNotebookGuid{};
 
-    typedef boost::multi_index_container<
+    using NotebookData = boost::multi_index_container<
         NotebookItem,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<
@@ -586,69 +632,95 @@ private:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByLinkedNotebookGuid>,
                 boost::multi_index::const_mem_fun<
-                    NotebookItem,const QString&,&NotebookItem::linkedNotebookGuid>
+                    NotebookItem,const QString&,
+                    &NotebookItem::linkedNotebookGuid>
             >
         >
-    > NotebookData;
+    >;
 
-    typedef NotebookData::index<ByLocalUid>::type NotebookDataByLocalUid;
-    typedef NotebookData::index<ByNameUpper>::type NotebookDataByNameUpper;
-    typedef NotebookData::index<ByStack>::type NotebookDataByStack;
-    typedef NotebookData::index<ByLinkedNotebookGuid>::type
-        NotebookDataByLinkedNotebookGuid;
+    using NotebookDataByLocalUid = NotebookData::index<ByLocalUid>::type ;
+    using NotebookDataByNameUpper = NotebookData::index<ByNameUpper>::type;
+    using NotebookDataByStack = NotebookData::index<ByStack>::type;
+
+    using NotebookDataByLinkedNotebookGuid =
+        NotebookData::index<ByLinkedNotebookGuid>::type;
 
     struct LessByName
     {
-        bool operator()(const NotebookItem & lhs, const NotebookItem & rhs) const;
-        bool operator()(const NotebookItem * lhs, const NotebookItem * rhs) const;
+        bool operator()(
+            const NotebookItem & lhs, const NotebookItem & rhs) const;
 
-        bool operator()(const NotebookStackItem & lhs,
-                        const NotebookStackItem & rhs) const;
-        bool operator()(const NotebookStackItem * lhs,
-                        const NotebookStackItem * rhs) const;
+        bool operator()(
+            const NotebookItem * pLhs, const NotebookItem * pRhs) const;
 
-        bool operator()(const NotebookLinkedNotebookRootItem & lhs,
-                        const NotebookLinkedNotebookRootItem & rhs) const;
-        bool operator()(const NotebookLinkedNotebookRootItem * lhs,
-                        const NotebookLinkedNotebookRootItem * rhs) const;
+        bool operator()(
+            const StackItem & lhs, const StackItem & rhs) const;
 
-        bool operator()(const NotebookModelItem & lhs,
-                        const NotebookModelItem & rhs) const;
-        bool operator()(const NotebookModelItem * lhs,
-                        const NotebookModelItem * rhs) const;
+        bool operator()(
+            const StackItem * pLhs,
+            const StackItem * pRhs) const;
+
+        bool operator()(
+            const LinkedNotebookRootItem & lhs,
+            const LinkedNotebookRootItem & rhs) const;
+
+        bool operator()(
+            const LinkedNotebookRootItem * lhs,
+            const LinkedNotebookRootItem * rhs) const;
+
+        bool operator()(
+            const INotebookModelItem & lhs,
+            const INotebookModelItem & rhs) const;
+
+        bool operator()(
+            const INotebookModelItem * pLhs,
+            const INotebookModelItem * pRhs) const;
     };
 
     struct GreaterByName
     {
-        bool operator()(const NotebookItem & lhs, const NotebookItem & rhs) const;
-        bool operator()(const NotebookItem * lhs, const NotebookItem * rhs) const;
+        bool operator()(
+            const NotebookItem & lhs, const NotebookItem & rhs) const;
 
-        bool operator()(const NotebookStackItem & lhs,
-                        const NotebookStackItem & rhs) const;
-        bool operator()(const NotebookStackItem * lhs,
-                        const NotebookStackItem * rhs) const;
+        bool operator()(
+            const NotebookItem * pLhs, const NotebookItem * pRhs) const;
 
-        bool operator()(const NotebookLinkedNotebookRootItem & lhs,
-                        const NotebookLinkedNotebookRootItem & rhs) const;
-        bool operator()(const NotebookLinkedNotebookRootItem * lhs,
-                        const NotebookLinkedNotebookRootItem * rhs) const;
+        bool operator()(
+            const StackItem & lhs, const StackItem & rhs) const;
 
-        bool operator()(const NotebookModelItem & lhs,
-                        const NotebookModelItem & rhs) const;
-        bool operator()(const NotebookModelItem * lhs,
-                        const NotebookModelItem * rhs) const;
+        bool operator()(
+            const StackItem * pLhs,
+            const StackItem * pRhs) const;
+
+        bool operator()(
+            const LinkedNotebookRootItem & lhs,
+            const LinkedNotebookRootItem & rhs) const;
+
+        bool operator()(
+            const LinkedNotebookRootItem * pLhs,
+            const LinkedNotebookRootItem * pRhs) const;
+
+        bool operator()(
+            const INotebookModelItem & lhs,
+            const INotebookModelItem & rhs) const;
+
+        bool operator()(
+            const INotebookModelItem * pLhs,
+            const INotebookModelItem * pRhs) const;
     };
 
-    typedef QMap<QString, NotebookModelItem> ModelItems;
-    typedef QMap<QString, NotebookStackItem> StackItems;
-    typedef QMap<QString, NotebookLinkedNotebookRootItem> LinkedNotebookItems;
+    using ModelItems = QMap<QString, INotebookModelItem*>;
+    using StackItems = QMap<QString, StackItem> ;
+    using LinkedNotebookItems = QMap<QString, LinkedNotebookRootItem>;
 
-    typedef quintptr IndexId;
+    using IndexId = quintptr;
 
-    typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
-    typedef boost::bimap<IndexId, std::pair<QString,QString> >
-        IndexIdToStackAndLinkedNotebookGuidBimap;
-    typedef boost::bimap<IndexId, QString> IndexIdToLinkedNotebookGuidBimap;
+    using IndexIdToLocalUidBimap = boost::bimap<IndexId, QString>;
+
+    using IndexIdToStackAndLinkedNotebookGuidBimap =
+        boost::bimap<IndexId, std::pair<QString,QString>>;
+
+    using IndexIdToLinkedNotebookGuidBimap = boost::bimap<IndexId, QString>;
 
     class RemoveRowsScopeGuard
     {
@@ -671,32 +743,86 @@ private:
 
     void onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linkedNotebook);
 
-    const NotebookModelItem * itemForId(const IndexId id) const;
-    IndexId idForItem(const NotebookModelItem & item) const;
+    INotebookModelItem * itemForId(const IndexId id) const;
+    IndexId idForItem(const INotebookModelItem & item) const;
+
+    Qt::ItemFlags adjustFlagsForColumn(
+        const int column, Qt::ItemFlags flags) const;
+
+    // Helper methods for notebook items
+
+    bool setNotebookData(
+        NotebookItem & notebookItem, const QModelIndex & modelIndex,
+        const QVariant & value);
+
+    bool setNotebookName(
+        NotebookItem & notebookItem, const QString & newName);
+
+    bool setNotebookSynchronizable(
+        NotebookItem & notebookItem, const bool synchronizable);
+
+    bool setNotebookIsDefault(
+        NotebookItem & notebookItem, const bool isDefault);
+
+    bool setNotebookIsLastUsed(
+        NotebookItem & notebookItem, const bool isLastUsed);
+
+    QVariant notebookData(
+        const NotebookItem & notebookItem, const Column column) const;
+
+    QVariant notebookAccessibleData(
+        const NotebookItem & notebookItem, const Column column) const;
+
+    bool canRemoveNotebookItem(const NotebookItem & notebookItem);
 
     // Returns true if successfully incremented the note count for the notebook
     // item with the corresponding local uid
     bool updateNoteCountPerNotebookIndex(
         const NotebookItem & item, const NotebookDataByLocalUid::iterator it);
 
-    ModelItems::iterator addNewStackModelItem(
-        const NotebookStackItem & stackItem,
-        const NotebookModelItem & parentItem,
-        ModelItems & modelItemsByStack);
+    bool notebookItemMatchesByLinkedNotebook(
+        const NotebookItem & item, const QString & linkedNotebookGuid) const;
+
+    Qt::ItemFlags flagsForNotebookItem(
+        const NotebookItem & notebookItem, const int column,
+        Qt::ItemFlags flags) const;
+
+    // Helper methods for stack items
+
+    bool setStackData(
+        StackItem & stackItem, const QModelIndex & modelIndex,
+        const QVariant & value);
+
+    QVariant stackData(const StackItem & stackItem, const Column column) const;
+
+    QVariant stackAccessibleData(
+        const StackItem & stackItem, const Column column) const;
+
+    const StackItems * stackItems(const QString & linkedNotebookGuid) const;
+
+    std::pair<StackItems*, INotebookModelItem*> stackItemsWithParent(
+        const QString & linkedNotebookGuid);
+
+    StackItem & findOrCreateStackItem(
+        const QString & stack, StackItems & stackItems,
+        INotebookModelItem * pParentItem);
+
+    Qt::ItemFlags flagsForStackItem(
+        const StackItem & stackItem, const int column,
+        Qt::ItemFlags flags) const;
 
 private:
     Account                 m_account;
 
     NotebookData            m_data;
-    NotebookModelItem *     m_fakeRootItem;
+
+    INotebookModelItem *    m_pInvisibleRootItem = nullptr;
+
+    INotebookModelItem *    m_pAllNotebooksRootItem = nullptr;
+    IndexId                 m_allNotebooksRootItemIndexId = 1;
 
     QString                 m_defaultNotebookLocalUid;
     QString                 m_lastUsedNotebookLocalUid;
-
-    ModelItems                  m_modelItemsByLocalUid;
-    ModelItems                  m_modelItemsByStack;
-    ModelItems                  m_modelItemsByLinkedNotebookGuid;
-    QMap<QString, ModelItems>   m_modelItemsByStackByLinkedNotebookGuid;
 
     StackItems                  m_stackItems;
     QMap<QString, StackItems>   m_stackItemsByLinkedNotebookGuid;
@@ -706,11 +832,11 @@ private:
     mutable IndexIdToLocalUidBimap                      m_indexIdToLocalUidBimap;
     mutable IndexIdToStackAndLinkedNotebookGuidBimap    m_indexIdToStackAndLinkedNotebookGuidBimap;
     mutable IndexIdToLinkedNotebookGuidBimap            m_indexIdToLinkedNotebookGuidBimap;
-    mutable IndexId                                     m_lastFreeIndexId;
+    mutable IndexId                                     m_lastFreeIndexId = 2;
 
     NotebookCache &         m_cache;
 
-    size_t                  m_listNotebooksOffset;
+    size_t                  m_listNotebooksOffset = 0;
     QUuid                   m_listNotebooksRequestId;
     QSet<QUuid>             m_notebookItemsNotYetInLocalStorageUids;
 
@@ -723,20 +849,21 @@ private:
 
     QSet<QUuid>             m_noteCountPerNotebookRequestIds;
 
-    QHash<QString,QString>  m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids;
-    size_t                  m_listLinkedNotebooksOffset;
+    QHash<QString,QString>  m_linkedNotebookUsernamesByGuids;
+
+    size_t                  m_listLinkedNotebooksOffset = 0;
     QUuid                   m_listLinkedNotebooksRequestId;
 
-    Columns::type           m_sortedColumn;
-    Qt::SortOrder           m_sortOrder;
+    Column                  m_sortedColumn = Column::Name;
+    Qt::SortOrder           m_sortOrder = Qt::AscendingOrder;
 
-    mutable int             m_lastNewNotebookNameCounter;
+    mutable int             m_lastNewNotebookNameCounter = 0;
 
-    bool                    m_allNotebooksListed;
-    bool                    m_allLinkedNotebooksListed;
+    bool                    m_allNotebooksListed = false;
+    bool                    m_allLinkedNotebooksListed = false;
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(NotebookModel::NotebookFilters)
+Q_DECLARE_OPERATORS_FOR_FLAGS(NotebookModel::Filters)
 
 } // namespace quentier
 

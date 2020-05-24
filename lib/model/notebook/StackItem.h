@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,21 +19,48 @@
 #ifndef QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H
 #define QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H
 
-#include <quentier/utility/Printable.h>
+#include "INotebookModelItem.h"
 
 namespace quentier {
 
-class NotebookStackItem: public Printable
+class StackItem: public INotebookModelItem
 {
 public:
-    NotebookStackItem(const QString & name = QString()) :
-        m_name(name)
+    StackItem(QString name = {}) :
+        m_name(std::move(name))
     {}
 
-    const QString & name() const { return m_name; }
-    void setName(const QString & name) { m_name = name; }
+    virtual ~StackItem() override = default;
+
+    const QString & name() const
+    {
+        return m_name;
+    }
+
+    void setName(QString name)
+    {
+        m_name = std::move(name);
+    }
+
+public:
+    virtual Type type() const override
+    {
+        return Type::Stack;
+    }
 
     virtual QTextStream & print(QTextStream & strm) const override;
+
+    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    {
+        out << m_name;
+        return out;
+    }
+
+    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    {
+        in >> m_name;
+        return in;
+    }
 
 private:
     QString     m_name;
