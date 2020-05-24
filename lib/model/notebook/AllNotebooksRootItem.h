@@ -16,6 +16,9 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_ALL_NOTEBOOKS_ROOT_ITEM_H
+#define QUENTIER_LIB_MODEL_NOTEBOOK_ALL_NOTEBOOKS_ROOT_ITEM_H
+
 #include "INotebookModelItem.h"
 
 namespace quentier {
@@ -50,3 +53,5 @@ public:
 };
 
 } // namespace quentier
+
+#endif // QUENTIER_LIB_MODEL_NOTEBOOK_ALL_NOTEBOOKS_ROOT_ITEM_H
