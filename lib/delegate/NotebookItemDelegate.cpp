@@ -336,7 +336,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
 
     QModelIndex noteCountIndex = model->index(
         index.row(),
-        static_cast<int>(NotebookModel::Column::NumNotesPerNotebook),
+        static_cast<int>(NotebookModel::Column::NoteCount),
         index.parent());
 
     QVariant noteCount = model->data(noteCountIndex);

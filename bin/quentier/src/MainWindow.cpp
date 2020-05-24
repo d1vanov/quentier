@@ -234,7 +234,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteCountLabelController(nullptr),
     m_pNotebookModelColumnChangeRerouter(
         new ColumnChangeRerouter(
-            static_cast<int>(NotebookModel::Column::NumNotesPerNotebook),
+            static_cast<int>(NotebookModel::Column::NoteCount),
             static_cast<int>(NotebookModel::Column::Name),
             this)),
     m_pTagModelColumnChangeRerouter(
@@ -4886,7 +4886,7 @@ void MainWindow::setupViews()
 
     // This column's values would be displayed along with the notebook's name
     pNotebooksTreeView->setColumnHidden(
-        static_cast<int>(NotebookModel::Column::NumNotesPerNotebook),
+        static_cast<int>(NotebookModel::Column::NoteCount),
         true);
 
     pNotebooksTreeView->setColumnHidden(

@@ -685,8 +685,8 @@ QString NotebookModel::columnName(const NotebookModel::Column column) const
         return tr("Published");
     case Column::FromLinkedNotebook:
         return tr("External");
-    case Column::NumNotesPerNotebook:
-        return tr("Num notes");
+    case Column::NoteCount:
+        return tr("Note count");
     default:
         return QString();
     }
@@ -876,8 +876,8 @@ QVariant NotebookModel::data(const QModelIndex & index, int role) const
     case Column::FromLinkedNotebook:
         column = Column::FromLinkedNotebook;
         break;
-    case Column::NumNotesPerNotebook:
-        column = Column::NumNotesPerNotebook;
+    case Column::NoteCount:
+        column = Column::NoteCount;
         break;
     default:
         return QVariant();
@@ -1059,9 +1059,9 @@ bool NotebookModel::setData(
         return false;
     }
 
-    if (modelIndex.column() == static_cast<int>(Column::NumNotesPerNotebook)) {
+    if (modelIndex.column() == static_cast<int>(Column::NoteCount)) {
         REPORT_ERROR(
-            QT_TR_NOOP("The \"notes per notebook\" column can't be set "
+            QT_TR_NOOP("The \"note count\" column can't be set "
                        "manually"));
         return false;
     }
@@ -4440,7 +4440,7 @@ QVariant NotebookModel::notebookData(
         return notebookItem.isPublished();
     case Column::FromLinkedNotebook:
         return !notebookItem.linkedNotebookGuid().isEmpty();
-    case Column::NumNotesPerNotebook:
+    case Column::NoteCount:
         return notebookItem.noteCount();
     default:
         return QVariant();
@@ -4486,7 +4486,7 @@ QVariant NotebookModel::notebookAccessibleData(
              ? tr("from linked notebook")
              : tr("from own account"));
         break;
-    case Column::NumNotesPerNotebook:
+    case Column::NoteCount:
         accessibleText +=
             tr("number of notes per notebook") +
             QStringLiteral(": ") +
@@ -4561,12 +4561,12 @@ bool NotebookModel::updateNoteCountPerNotebookIndex(
 
     QModelIndex modelIndexFrom = createIndex(
         row,
-        static_cast<int>(Column::NumNotesPerNotebook),
+        static_cast<int>(Column::NoteCount),
         modelItemId);
 
     QModelIndex modelIndexTo = createIndex(
         row,
-        static_cast<int>(Column::NumNotesPerNotebook),
+        static_cast<int>(Column::NoteCount),
         modelItemId);
 
     Q_EMIT dataChanged(modelIndexFrom, modelIndexTo);
@@ -4822,7 +4822,7 @@ QDebug & operator<<(QDebug & dbg, const NotebookModel::Column column)
     case Column::FromLinkedNotebook:
         dbg << "From linked notebook";
         break;
-    case Column::NumNotesPerNotebook:
+    case Column::NoteCount:
         dbg << "Note count";
         break;
     default:

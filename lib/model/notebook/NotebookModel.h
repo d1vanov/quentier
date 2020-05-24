@@ -86,7 +86,7 @@ public:
         LastUsed,
         Published,
         FromLinkedNotebook,
-        NumNotesPerNotebook
+        NoteCount
     };
 
     friend QDebug & operator<<(QDebug & dbg, const Column column);
