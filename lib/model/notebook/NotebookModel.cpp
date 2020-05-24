@@ -3585,14 +3585,21 @@ void NotebookModel::updateItemRowWithRespectToSorting(
     auto * pParentItem = modelItem.parent();
     if (Q_UNLIKELY(!pParentItem))
     {
-        // FIXME: although it's extremely unlikely, need to consider the case
-        // in which modelItem is of notebook type and it has a non-empty
-        // linked notebook guid. In this case its parent should be the
-        // corresponding LinkedNotebookRootItem
+        QString linkedNotebookGuid;
+        const auto * pNotebookItem = modelItem.cast<NotebookItem>();
+        if (pNotebookItem) {
+            linkedNotebookGuid = pNotebookItem->linkedNotebookGuid();
+        }
 
-        checkAndCreateModelRootItems();
+        if (!linkedNotebookGuid.isEmpty()) {
+            pParentItem = &(findOrCreateLinkedNotebookModelItem(
+                linkedNotebookGuid));
+        }
+        else {
+            checkAndCreateModelRootItems();
+            pParentItem = m_pAllNotebooksRootItem;
+        }
 
-        pParentItem = m_pAllNotebooksRootItem;
         int row = rowForNewItem(*pParentItem, modelItem);
 
         beginInsertRows(indexForItem(pParentItem), row, row);
