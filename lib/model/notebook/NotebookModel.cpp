@@ -4835,15 +4835,64 @@ QDebug & operator<<(QDebug & dbg, const NotebookModel::Column column)
 
 QDebug & operator<<(QDebug & dbg, const NotebookModel::Filter filter)
 {
-    // TODO: implement
-    Q_UNUSED(filter)
+    using Filter = NotebookModel::Filter;
+
+    switch(filter)
+    {
+    case Filter::NoFilter:
+        dbg << "No filter";
+        break;
+    case Filter::CanCreateNotes:
+        dbg << "Can create notes";
+        break;
+    case Filter::CannotCreateNotes:
+        dbg << "Cannot create notes";
+        break;
+    case Filter::CanUpdateNotes:
+        dbg << "Can update notes";
+        break;
+    case Filter::CannotUpdateNotes:
+        dbg << "Cannot update notes";
+        break;
+    case Filter::CanUpdateNotebook:
+        dbg << "Can update notebook";
+        break;
+    case Filter::CannotUpdateNotebook:
+        dbg << "Cannot update notebook";
+        break;
+    case Filter::CanRenameNotebook:
+        dbg << "Can rename notebook";
+        break;
+    case Filter::CannotRenameNotebook:
+        dbg << "Cannot rename notebook";
+        break;
+    }
+
     return dbg;
 }
 
 QDebug & operator<<(QDebug & dbg, const NotebookModel::Filters filters)
 {
-    // TODO: implement
-    Q_UNUSED(filters)
+    using Filter = NotebookModel::Filter;
+
+    dbg << "Enabled NotebookModel::Filters:\n";
+
+    auto checkFlag = [&] (const Filter filter, const char * text)
+    {
+        if (filters.testFlag(filter)) {
+            dbg << "  " << text << "\n";
+        }
+    };
+
+    checkFlag(Filter::CanCreateNotes, "can create notes");
+    checkFlag(Filter::CannotCreateNotes, "cannot create notes");
+    checkFlag(Filter::CanUpdateNotes, "can update notes");
+    checkFlag(Filter::CannotUpdateNotes, "cannot update notes");
+    checkFlag(Filter::CanUpdateNotebook, "can update notebook");
+    checkFlag(Filter::CannotUpdateNotebook, "cannot update notebook");
+    checkFlag(Filter::CanRenameNotebook, "can rename notebook");
+    checkFlag(Filter::CannotRenameNotebook, "cannot rename notebook");
+
     return dbg;
 }
 
