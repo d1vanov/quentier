@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_ITEM_H
+#ifndef QUENTIER_LIB_MODEL_TAG_MODEL_ITEM_H
+#define QUENTIER_LIB_MODEL_TAG_MODEL_ITEM_H
 
 #include <quentier/utility/Printable.h>
 
@@ -26,42 +26,41 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class INotebookModelItem: public Printable
+class ITagModelItem: public Printable
 {
 public:
     enum class Type
     {
-        AllNotebooksRoot,
+        AllTagsRoot,
         InvisibleRoot,
-        Notebook,
         LinkedNotebook,
-        Stack
+        Tag
     };
 
     friend QDebug & operator<<(QDebug & dbg, const Type type);
 
 public:
-    virtual ~INotebookModelItem() = default;
+    virtual ~ITagModelItem() = default;
 
     virtual Type type() const = 0;
 
-    INotebookModelItem * parent() const
+    ITagModelItem * parent() const
     {
         return m_pParent;
     }
 
-    void setParent(INotebookModelItem * pParent);
+    void setParent(ITagModelItem * pParent);
 
-    INotebookModelItem * childAtRow(const int row) const;
+    ITagModelItem * childAtRow(const int row) const;
 
-    int rowForChild(const INotebookModelItem * pChild) const;
+    int rowForChild(const ITagModelItem * pChild) const;
 
     bool hasChildren() const
     {
         return !m_children.isEmpty();
     }
 
-    QList<INotebookModelItem*> children() const
+    QList<ITagModelItem*> children() const
     {
         return m_children;
     }
@@ -71,17 +70,25 @@ public:
         return m_children.size();
     }
 
-    void insertChild(const int row, INotebookModelItem * pItem);
-    void addChild(INotebookModelItem * pItem);
+    void insertChild(const int row, ITagModelItem * pItem);
+    void addChild(ITagModelItem * pItem);
     bool swapChildren(const int srcRow, const int dstRow);
 
-    INotebookModelItem * takeChild(const int row);
+    ITagModelItem * takeChild(const int row);
+
+    template <typename Comparator>
+    void sortChildren(Comparator comparator) const
+    {
+        std::sort(m_children.begin(), m_children.end(), comparator);
+    }
 
     virtual QDataStream & serializeItemData(QDataStream & out) const = 0;
     virtual QDataStream & deserializeItemData(QDataStream & in) = 0;
 
-    friend QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item);
-    friend QDataStream & operator>>(QDataStream & in, INotebookModelItem & item);
+    friend QDataStream & operator<<(
+        QDataStream & out, const ITagModelItem & item);
+
+    friend QDataStream & operator>>(QDataStream & in, ITagModelItem & item);
 
     template <typename T>
     T * cast();
@@ -90,10 +97,10 @@ public:
     const T * cast() const;
 
 protected:
-    INotebookModelItem *        m_pParent = nullptr;
-    QList<INotebookModelItem*>  m_children;
+    ITagModelItem *         m_pParent;
+    QList<ITagModelItem*>   m_children;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_ITEM_H
+#endif // QUENTIER_LIB_MODEL_TAG_MODEL_ITEM_H
