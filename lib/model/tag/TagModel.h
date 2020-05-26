@@ -514,19 +514,19 @@ private:
     bool hasSynchronizableChildren(const ITagModelItem * item) const;
 
     void mapChildItems();
-    void mapChildItems(const ITagModelItem & item);
+    void mapChildItems(ITagModelItem & item);
 
     QString nameForNewTag(const QString & linkedNotebookGuid) const;
     void removeItemByLocalUid(const QString & localUid);
 
-    void removeModelItemFromParent(const ITagModelItem & item);
+    void removeModelItemFromParent(ITagModelItem & item);
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
     int rowForNewItem(
         const ITagModelItem & parentItem, const ITagModelItem & newItem) const;
 
-    void updateItemRowWithRespectToSorting(const ITagModelItem & item);
+    void updateItemRowWithRespectToSorting(ITagModelItem & item);
     void updatePersistentModelIndices();
     void updateTagInLocalStorage(const TagItem & item);
 
@@ -541,12 +541,13 @@ private:
     ITagModelItem & findOrCreateLinkedNotebookModelItem(
         const QString & linkedNotebookGuid);
 
-    const ITagModelItem & modelItemForTagItem(const TagItem & tagItem);
-
     void checkAndRemoveEmptyLinkedNotebookRootItem(
-        const ITagModelItem & modelItem);
+        ITagModelItem & modelItem);
 
     void checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem);
+
+    void fixupItemParent(ITagModelItem & item);
+    void setItemParent(ITagModelItem & item, ITagModelItem & parent);
 
 private:
     struct ByLocalUid{};
@@ -587,10 +588,10 @@ private:
     using TagDataByLinkedNotebookGuid =
         TagData::index<ByLinkedNotebookGuid>::type;
 
-    typedef quintptr IndexId;
+    using IndexId = quintptr;
 
-    typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
-    typedef boost::bimap<IndexId, QString> IndexIdToLinkedNotebookGuidBimap;
+    using IndexIdToLocalUidBimap = boost::bimap<IndexId, QString>;
+    using IndexIdToLinkedNotebookGuidBimap = boost::bimap<IndexId, QString>;
 
     struct LessByName
     {
@@ -610,7 +611,6 @@ private:
             const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
     };
 
-    using ModelItems = QMap<QString, ITagModelItem*>;
     using LinkedNotebookItems = QMap<QString, LinkedNotebookRootItem>;
 
     class RemoveRowsScopeGuard
@@ -659,9 +659,6 @@ private:
     IndexId                 m_allTagsRootItemIndexId = 1;
 
     TagCache &              m_cache;
-
-    ModelItems              m_modelItemsByLocalUid;
-    ModelItems              m_modelItemsByLinkedNotebookGuid;
 
     LinkedNotebookItems     m_linkedNotebookItems;
 

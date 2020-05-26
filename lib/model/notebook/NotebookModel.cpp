@@ -3634,12 +3634,9 @@ void NotebookModel::updatePersistentModelIndices()
     QNTRACE("NotebookModel::updatePersistentModelIndices");
 
     // Ensure any persistent model indices would be updated appropriately
-    QModelIndexList indices = persistentIndexList();
-    for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
-    {
-        const QModelIndex & index = *it;
+    auto indices = persistentIndexList();
+    for(const auto & index: qAsConst(indices)) {
         auto * pItem = itemForId(static_cast<IndexId>(index.internalId()));
-
         QModelIndex replacementIndex = indexForItem(pItem);
         changePersistentIndex(index, replacementIndex);
     }
