@@ -24,7 +24,7 @@
 #include "FavoritesModelTestHelper.h"
 
 #include <lib/model/SavedSearchModel.h>
-#include <lib/model/TagModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/utility/SysInfo.h>
@@ -327,7 +327,6 @@ void ModelTester::testTagModelItemSerialization()
     using namespace quentier;
 
     TagItem parentTagItem(UidGenerator::Generate(), UidGenerator::Generate());
-    TagModelItem parentItem(TagModelItem::Type::Tag, &parentTagItem);
 
     TagItem item;
     item.setLocalUid(UidGenerator::Generate());
@@ -339,22 +338,24 @@ void ModelTester::testTagModelItemSerialization()
     item.setGuid(UidGenerator::Generate());
     item.setParentLocalUid(parentTagItem.localUid());
     item.setParentGuid(parentTagItem.guid());
-
-    TagModelItem modelItem(TagModelItem::Type::Tag, &item);
-    modelItem.setParent(&parentItem);
+    item.setParent(&parentTagItem);
 
     QByteArray encodedItem;
     QDataStream out(&encodedItem, QIODevice::WriteOnly);
-    out << modelItem;
+    out << item;
 
     QDataStream in(&encodedItem, QIODevice::ReadOnly);
-    TagModelItem restoredItem;
+    qint32 type = 0;
+    in >> type;
+
+    QVERIFY(type == static_cast<int>(ITagModelItem::Type::Tag));
+
+    TagItem restoredItem;
     in >> restoredItem;
 
-    QVERIFY2(restoredItem.tagItem() != nullptr,
-             qnPrintable("Null pointer to tag item"));
-    QVERIFY2(restoredItem.tagItem() == &item,
-             qnPrintable("Wrong pointer to the tag item"));
+    QVERIFY(restoredItem.localUid() == item.localUid());
+    QVERIFY(restoredItem.guid() == item.guid());
+    QVERIFY(restoredItem.parent() == item.parent());
 }
 
 int main(int argc, char *argv[])

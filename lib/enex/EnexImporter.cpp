@@ -18,8 +18,8 @@
 
 #include "EnexImporter.h"
 
-#include <lib/model/TagModel.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>

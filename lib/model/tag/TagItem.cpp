@@ -56,12 +56,14 @@ QTextStream & TagItem::print(QTextStream & strm) const
 QDataStream & TagItem::serializeItemData(QDataStream & out) const
 {
     out << m_localUid;
+    out << m_guid;
     return out;
 }
 
 QDataStream & TagItem::deserializeItemData(QDataStream & in)
 {
     in >> m_localUid;
+    in >> m_guid;
     return in;
 }
 

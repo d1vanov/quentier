@@ -25,8 +25,8 @@
 #include <lib/preferences/SettingsNames.h>
 #include <lib/model/NoteModel.h>
 #include <lib/model/SavedSearchModel.h>
-#include <lib/model/TagModel.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
