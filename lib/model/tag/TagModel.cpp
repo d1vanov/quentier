@@ -1128,7 +1128,7 @@ bool TagModel::dropMimeData(
     QString parentLinkedNotebookGuid;
 
     auto * pParentLinkedNotebookItem =
-        pNewParentItem->cast<LinkedNotebookRootItem>();
+        pNewParentItem->cast<TagLinkedNotebookRootItem>();
     if (pParentLinkedNotebookItem)
     {
         parentLinkedNotebookGuid =
@@ -2762,7 +2762,7 @@ void TagModel::onLinkedNotebookAddedOrUpdated(
                   << " but no linked notebook item; will try to correct");
         linkedNotebookItemIt = m_linkedNotebookItems.insert(
             linkedNotebookGuid,
-            LinkedNotebookRootItem(linkedNotebook.username(), linkedNotebookGuid));
+            TagLinkedNotebookRootItem(linkedNotebook.username(), linkedNotebookGuid));
     }
     else
     {
@@ -2808,7 +2808,7 @@ ITagModelItem * TagModel::itemForId(const IndexId id) const
             return nullptr;
         }
 
-        return const_cast<LinkedNotebookRootItem*>(&(it.value()));
+        return const_cast<TagLinkedNotebookRootItem*>(&(it.value()));
     }
 
     const QString & localUid = localUidIt->second;
@@ -2844,7 +2844,7 @@ TagModel::IndexId TagModel::idForItem(const ITagModelItem & item) const
         return it->second;
     }
 
-    const auto * pLinkedNotebookItem = item.cast<LinkedNotebookRootItem>();
+    const auto * pLinkedNotebookItem = item.cast<TagLinkedNotebookRootItem>();
     if (pLinkedNotebookItem)
     {
         auto it = m_indexIdToLinkedNotebookGuidBimap.right.find(
@@ -2888,7 +2888,7 @@ QVariant TagModel::dataImpl(
         }
     }
 
-    const auto * pLinkedNotebookItem = item.cast<LinkedNotebookRootItem>();
+    const auto * pLinkedNotebookItem = item.cast<TagLinkedNotebookRootItem>();
     if (pLinkedNotebookItem)
     {
         switch(column)
@@ -3742,8 +3742,6 @@ QModelIndex TagModel::createTag(
         QNDEBUG("Will put the new tag under parent item: " << *pParentItem);
     }
 
-    QModelIndex parentIndex = indexForItem(pParentItem);
-
     TagItem item;
     item.setLocalUid(UidGenerator::Generate());
     Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.insert(item.localUid()))
@@ -3793,7 +3791,7 @@ QString TagModel::columnName(const TagModel::Column column) const
 bool TagModel::hasSynchronizableChildren(const ITagModelItem * pModelItem) const
 {
     const auto * pLinkedNotebookItem =
-        pModelItem->cast<LinkedNotebookRootItem>();
+        pModelItem->cast<TagLinkedNotebookRootItem>();
 
     if (pLinkedNotebookItem) {
         return true;
@@ -3841,7 +3839,7 @@ void TagModel::mapChildItems(ITagModelItem & item)
     QNTRACE("TagModel::mapChildItems: " << item);
 
     const auto * pTagItem = item.cast<TagItem>();
-    const auto * pLinkedNotebookItem = item.cast<LinkedNotebookRootItem>();
+    const auto * pLinkedNotebookItem = item.cast<TagLinkedNotebookRootItem>();
 
     if (Q_UNLIKELY(!pTagItem && !pLinkedNotebookItem)) {
         return;
@@ -4319,7 +4317,7 @@ ITagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
     const QString & linkedNotebookOwnerUsername =
         linkedNotebookOwnerUsernameIt.value();
 
-    LinkedNotebookRootItem linkedNotebookItem(
+    TagLinkedNotebookRootItem linkedNotebookItem(
         linkedNotebookOwnerUsername,
         linkedNotebookGuid);
 
@@ -4345,7 +4343,7 @@ void TagModel::checkAndRemoveEmptyLinkedNotebookRootItem(
         return;
     }
 
-    auto * pLinkedNotebookItem = modelItem.cast<LinkedNotebookRootItem>();
+    auto * pLinkedNotebookItem = modelItem.cast<TagLinkedNotebookRootItem>();
     if (!pLinkedNotebookItem) {
         return;
     }
@@ -4439,7 +4437,7 @@ void TagModel::fixupItemParent(ITagModelItem & item)
         return;
     }
 
-    auto * pLinkedNotebookItem = item.cast<LinkedNotebookRootItem>();
+    auto * pLinkedNotebookItem = item.cast<TagLinkedNotebookRootItem>();
     if (pLinkedNotebookItem) {
         setItemParent(item, *m_pAllTagsRootItem);
         return;
@@ -4517,7 +4515,8 @@ void TagModel::checkAndCreateModelRootItems()
     }                                                                          \
     else if (item.type() == ITagModelItem::Type::LinkedNotebook)               \
     {                                                                          \
-        const auto * pLinkedNotebookItem = item.cast<LinkedNotebookRootItem>();\
+        const auto * pLinkedNotebookItem =                                     \
+            item.cast<TagLinkedNotebookRootItem>();                            \
         if (pLinkedNotebookItem) {                                             \
             itemName = pLinkedNotebookItem->username().toUpper();              \
         }                                                                      \
@@ -4633,6 +4632,37 @@ TagModel::RemoveRowsScopeGuard::RemoveRowsScopeGuard(TagModel & model) :
 TagModel::RemoveRowsScopeGuard::~RemoveRowsScopeGuard()
 {
     m_model.endRemoveTags();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+QDebug & operator<<(QDebug & dbg, const TagModel::Column column)
+{
+    using Column = TagModel::Column;
+
+    switch(column)
+    {
+    case Column::Name:
+        dbg << "name";
+        break;
+    case Column::Synchronizable:
+        dbg << "synchronizable";
+        break;
+    case Column::Dirty:
+        dbg << "dirty";
+        break;
+    case Column::FromLinkedNotebook:
+        dbg << "from linked notebook";
+        break;
+    case Column::NoteCount:
+        dbg << "note count";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(column) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

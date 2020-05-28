@@ -23,8 +23,8 @@
 #include "../TagCache.h"
 
 #include "ITagModelItem.h"
-#include "LinkedNotebookRootItem.h"
 #include "TagItem.h"
+#include "TagLinkedNotebookRootItem.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
@@ -611,7 +611,7 @@ private:
             const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
     };
 
-    using LinkedNotebookItems = QMap<QString, LinkedNotebookRootItem>;
+    using LinkedNotebookItems = QMap<QString, TagLinkedNotebookRootItem>;
 
     class RemoveRowsScopeGuard
     {

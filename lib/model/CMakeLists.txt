@@ -11,10 +11,6 @@ set(HEADERS
     SavedSearchModel.h
     SavedSearchModelItem.h
     SavedSearchCache.h
-    TagModel.h
-    TagModelItem.h
-    TagItem.h
-    TagLinkedNotebookRootItem.h
     TagCache.h
     NotebookCache.h
     NoteModelItem.h
@@ -31,17 +27,17 @@ set(HEADERS
     notebook/LinkedNotebookRootItem.h
     notebook/NotebookItem.h
     notebook/NotebookModel.h
-    notebook/StackItem.h)
+    notebook/StackItem.h
+    tag/ITagModelItem.h
+    tag/TagLinkedNotebookRootItem.h
+    tag/TagItem.h
+    tag/TagModel.h)
 
 set(SOURCES
     ColumnChangeRerouter.cpp
     ItemModel.cpp
     SavedSearchModel.cpp
     SavedSearchModelItem.cpp
-    TagModel.cpp
-    TagModelItem.cpp
-    TagItem.cpp
-    TagLinkedNotebookRootItem.cpp
     NoteModelItem.cpp
     NoteModel.cpp
     FavoritesModel.cpp
@@ -53,7 +49,11 @@ set(SOURCES
     notebook/LinkedNotebookRootItem.cpp
     notebook/NotebookItem.cpp
     notebook/NotebookModel.cpp
-    notebook/StackItem.cpp)
+    notebook/StackItem.cpp
+    tag/ITagModelItem.cpp
+    tag/TagLinkedNotebookRootItem.cpp
+    tag/TagModel.cpp
+    tag/TagItem.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 

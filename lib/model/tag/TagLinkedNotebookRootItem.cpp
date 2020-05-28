@@ -16,17 +16,17 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "LinkedNotebookRootItem.h"
+#include "TagLinkedNotebookRootItem.h"
 
 namespace quentier {
 
-LinkedNotebookRootItem::LinkedNotebookRootItem(
+TagLinkedNotebookRootItem::TagLinkedNotebookRootItem(
         QString username, QString linkedNotebookGuid) :
     m_username(std::move(username)),
     m_linkedNotebookGuid(std::move(linkedNotebookGuid))
 {}
 
-QTextStream & LinkedNotebookRootItem::print(QTextStream & strm) const
+QTextStream & TagLinkedNotebookRootItem::print(QTextStream & strm) const
 {
     strm << "Linked notebook root item: m_username = " << m_username
         << ", linked notebook guid = " << m_linkedNotebookGuid

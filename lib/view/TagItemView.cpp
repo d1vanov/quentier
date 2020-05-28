@@ -1047,7 +1047,7 @@ void TagItemView::saveTagItemsState()
         }
 
         const auto * pLinkedNotebookItem =
-            pModelItem->cast<LinkedNotebookRootItem>();
+            pModelItem->cast<TagLinkedNotebookRootItem>();
 
         if (pLinkedNotebookItem) {
             expandedLinkedNotebookItemsGuids

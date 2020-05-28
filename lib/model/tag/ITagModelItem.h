@@ -77,7 +77,7 @@ public:
     ITagModelItem * takeChild(const int row);
 
     template <typename Comparator>
-    void sortChildren(Comparator comparator) const
+    void sortChildren(Comparator comparator)
     {
         std::sort(m_children.begin(), m_children.end(), comparator);
     }

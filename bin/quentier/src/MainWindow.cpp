@@ -239,8 +239,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
             this)),
     m_pTagModelColumnChangeRerouter(
         new ColumnChangeRerouter(
-            TagModel::Columns::NumNotesPerTag,
-            TagModel::Columns::Name, this)),
+            static_cast<int>(TagModel::Column::NoteCount),
+            static_cast<int>(TagModel::Column::Name), this)),
     m_pNoteModelColumnChangeRerouter(
         new ColumnChangeRerouter(
             NoteModel::Columns::PreviewText,
@@ -1540,7 +1540,10 @@ void MainWindow::showHideViewColumnsForAccountType(
         isLocal);
 
     TagItemView * tagsTreeView = m_pUI->tagsTreeView;
-    tagsTreeView->setColumnHidden(TagModel::Columns::Dirty, isLocal);
+
+    tagsTreeView->setColumnHidden(
+        static_cast<int>(TagModel::Column::Dirty),
+        isLocal);
 
     SavedSearchItemView * savedSearchesTableView = m_pUI->savedSearchesTableView;
     savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Dirty,
@@ -4959,13 +4962,23 @@ void MainWindow::setupViews()
         Qt::UniqueConnection);
 
     TagItemView * pTagsTreeView = m_pUI->tagsTreeView;
-    // This column's values would be displayed along with the notebook's name
-    pTagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true);
-    pTagsTreeView->setColumnHidden(TagModel::Columns::Synchronizable, true);
-    pTagsTreeView->setColumnHidden(TagModel::Columns::FromLinkedNotebook, true);
+
+    // These columns' values would be displayed along with the tag's name
+    pTagsTreeView->setColumnHidden(
+        static_cast<int>(TagModel::Column::NoteCount),
+        true);
+
+    pTagsTreeView->setColumnHidden(
+        static_cast<int>(TagModel::Column::Synchronizable),
+        true);
+
+    pTagsTreeView->setColumnHidden(
+        static_cast<int>(TagModel::Column::FromLinkedNotebook),
+        true);
 
     auto * pPreviousTagDirtyColumnDelegate =
-        pTagsTreeView->itemDelegateForColumn(TagModel::Columns::Dirty);
+        pTagsTreeView->itemDelegateForColumn(
+            static_cast<int>(TagModel::Column::Dirty));
 
     auto * pTagDirtyColumnDelegate = qobject_cast<DirtyColumnDelegate*>(
         pPreviousTagDirtyColumnDelegate);
@@ -4975,7 +4988,7 @@ void MainWindow::setupViews()
         pTagDirtyColumnDelegate = new DirtyColumnDelegate(pTagsTreeView);
 
         pTagsTreeView->setItemDelegateForColumn(
-            TagModel::Columns::Dirty,
+            static_cast<int>(TagModel::Column::Dirty),
             pTagDirtyColumnDelegate);
 
         if (pPreviousTagDirtyColumnDelegate) {
@@ -4985,11 +4998,12 @@ void MainWindow::setupViews()
     }
 
     pTagsTreeView->setColumnWidth(
-        TagModel::Columns::Dirty,
+        static_cast<int>(TagModel::Column::Dirty),
         pTagDirtyColumnDelegate->sideSize());
 
     auto * pPreviousTagItemDelegate =
-        pTagsTreeView->itemDelegateForColumn(TagModel::Columns::Name);
+        pTagsTreeView->itemDelegateForColumn(
+            static_cast<int>(TagModel::Column::Name));
 
     auto * pTagItemDelegate = qobject_cast<TagItemDelegate*>(
         pPreviousTagItemDelegate);
@@ -4999,7 +5013,7 @@ void MainWindow::setupViews()
         pTagItemDelegate = new TagItemDelegate(pTagsTreeView);
 
         pTagsTreeView->setItemDelegateForColumn(
-            TagModel::Columns::Name,
+            static_cast<int>(TagModel::Column::Name),
             pTagItemDelegate);
 
         if (pPreviousTagItemDelegate) {

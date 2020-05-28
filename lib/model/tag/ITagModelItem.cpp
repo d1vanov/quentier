@@ -20,8 +20,8 @@
 
 #include "AllTagsRootItem.h"
 #include "InvisibleRootItem.h"
-#include "LinkedNotebookRootItem.h"
 #include "TagItem.h"
+#include "TagLinkedNotebookRootItem.h"
 
 #include <QDataStream>
 
@@ -198,7 +198,7 @@ const ItemType * ITagModelItem::cast() const                                   \
 
 DEFINE_CAST_IMPLEMENTATION(AllTagsRootItem, AllTagsRoot)
 DEFINE_CAST_IMPLEMENTATION(InvisibleRootItem, InvisibleRoot)
-DEFINE_CAST_IMPLEMENTATION(LinkedNotebookRootItem, LinkedNotebook)
+DEFINE_CAST_IMPLEMENTATION(TagLinkedNotebookRootItem, LinkedNotebook)
 DEFINE_CAST_IMPLEMENTATION(TagItem, Tag)
 
 #undef DEFINE_CAST_IMPLEMENTATION

@@ -41,7 +41,7 @@ class AddOrEditTagDialog: public QDialog
 public:
     explicit AddOrEditTagDialog(
         TagModel * pTagModel, QWidget * parent = nullptr,
-        const QString & editedTagLocalUid = {});
+        QString editedTagLocalUid = {});
 
     virtual ~AddOrEditTagDialog();
 
@@ -57,7 +57,7 @@ private:
 private:
     Ui::AddOrEditTagDialog *    m_pUi;
     QPointer<TagModel>          m_pTagModel;
-    QStringListModel *          m_pTagNamesModel;
+    QStringListModel *          m_pTagNamesModel = nullptr;
     QString                     m_editedTagLocalUid;
 
     // The name specified at any given moment in the line editor

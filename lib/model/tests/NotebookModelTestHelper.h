@@ -23,8 +23,8 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
 QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
+QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
 class NotebookModelTestHelper: public QObject
 {

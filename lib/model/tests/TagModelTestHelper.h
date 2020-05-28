@@ -23,8 +23,8 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(ITagModelItem)
 QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(TagModelItem)
 
 class TagModelTestHelper: public QObject
 {
@@ -47,7 +47,8 @@ private Q_SLOTS:
     void onUpdateTagFailed(
         Tag tag, ErrorString errorDescription, QUuid requestId);
 
-    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+    void onFindTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onListTagsFailed(
         LocalStorageManager::ListObjectsOptions flag,
@@ -62,7 +63,7 @@ private Q_SLOTS:
 
 private:
     bool checkSorting(
-        const TagModel & model, const TagModelItem * rootItem,
+        const TagModel & model, const ITagModelItem * pRootItem,
         ErrorString & errorDescription) const;
 
     void notifyFailureWithStackTrace(ErrorString errorDescription);
@@ -70,13 +71,13 @@ private:
     struct LessByName
     {
         bool operator()(
-            const TagModelItem * lhs, const TagModelItem * rhs) const;
+            const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
     };
 
     struct GreaterByName
     {
         bool operator()(
-            const TagModelItem * lhs, const TagModelItem * rhs) const;
+            const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
     };
 
 private:

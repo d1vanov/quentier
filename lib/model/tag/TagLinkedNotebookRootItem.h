@@ -23,13 +23,13 @@
 
 namespace quentier {
 
-class LinkedNotebookRootItem: public ITagModelItem
+class TagLinkedNotebookRootItem: public ITagModelItem
 {
 public:
-    LinkedNotebookRootItem(
+    TagLinkedNotebookRootItem(
         QString username = {}, QString linkedNotebookGuid = {});
 
-    virtual ~LinkedNotebookRootItem() override = default;
+    virtual ~TagLinkedNotebookRootItem() override = default;
 
     const QString & username() const
     {

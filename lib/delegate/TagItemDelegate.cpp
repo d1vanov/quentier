@@ -158,7 +158,7 @@ void TagItemDelegate::drawTagName(
     QString name;
 
     const auto * pLinkedNotebookItem =
-        pModelItem->cast<LinkedNotebookRootItem>();
+        pModelItem->cast<TagLinkedNotebookRootItem>();
 
     if (pLinkedNotebookItem) {
         QRect iconRect = adjustedOption.rect;
