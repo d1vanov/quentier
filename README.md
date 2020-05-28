@@ -60,19 +60,11 @@ sudo add-apt-repository ppa:d1vanov/quentier-stable
 sudo apt-get update
 sudo apt-get install quentier-qt5
 ```
-Alternatively, if you run Qt4-based desktop environment (KDE 4), you might want to install Qt4-based Quentier instead:
-```
-sudo apt-get install quentier-qt4
-```
 This PPA is for stable Quentier builds from master branch. Alternatively, the PPA for unstable version of Quentier is [the following](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-development):
 ```
 sudo add-apt-repository ppa:d1vanov/quentier-development
 sudo apt-get update
 sudo apt-get install quentier-qt5
-```
-or
-```
-sudo apt-get install quentier-qt4
 ```
 
 For users of other Linux distributions there are also prepared repositories with native packages:
