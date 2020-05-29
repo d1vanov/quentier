@@ -189,7 +189,7 @@ void TagModelTestHelper::test()
         // Should not be able to change the dirty flag manually
         QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for local uid");
+            FAIL("Can't get valid tag item model index for local uid");
         }
 
         QModelIndex secondParentIndex = model->parent(secondIndex);
@@ -200,7 +200,7 @@ void TagModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for dirty column");
+            FAIL("Can't get valid tag item model index for dirty column");
         }
 
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
@@ -229,7 +229,7 @@ void TagModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for "
+            FAIL("Can't get valid tag item model index for "
                  "synchronizable column");
         }
 
@@ -286,7 +286,7 @@ void TagModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for dirty column");
+            FAIL("Can't get valid tag item model index for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
@@ -309,7 +309,7 @@ void TagModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for "
+            FAIL("Can't get valid tag item model index for "
                  "synchronizable column");
         }
 
@@ -346,7 +346,7 @@ void TagModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for dirty column");
+            FAIL("Can't get valid tag item model index for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
@@ -367,7 +367,7 @@ void TagModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for name column");
+            FAIL("Can't get valid tag item model index for name column");
         }
 
         QString newName = QStringLiteral("Second (name modified)");
@@ -395,7 +395,7 @@ void TagModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for dirty column");
+            FAIL("Can't get valid tag item model index for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
@@ -419,7 +419,7 @@ void TagModelTestHelper::test()
         QModelIndex secondIndexAfterFailedRemoval =
             model->indexForLocalUid(second.localUid());
         if (!secondIndexAfterFailedRemoval.isValid()) {
-            FAIL("Can't get the valid tag item model index after "
+            FAIL("Can't get valid tag item model index after "
                  "the failed row removal attempt");
         }
 
@@ -431,7 +431,7 @@ void TagModelTestHelper::test()
         // Should be able to remove the row with a (local) tag having empty guid
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for local uid");
+            FAIL("Can't get valid tag item model index for local uid");
         }
 
         QModelIndex firstParentIndex = model->parent(firstIndex);
@@ -445,7 +445,7 @@ void TagModelTestHelper::test()
             first.localUid());
 
         if (firstIndexAfterRemoval.isValid()) {
-            FAIL("Was able to get the valid model index for "
+            FAIL("Was able to get valid model index for "
                  "the removed tag item by local uid which is not intended");
         }
 
@@ -460,7 +460,7 @@ void TagModelTestHelper::test()
             twelveth.localUid());
 
         if (!twelvethIndex.isValid()) {
-            FAIL("Can't get the valid index to tag model item by local uid");
+            FAIL("Can't get valid index to tag model item by local uid");
         }
 
         twelvethIndex = model->index(
@@ -469,7 +469,7 @@ void TagModelTestHelper::test()
             twelvethIndex.parent());
 
         if (!twelvethIndex.isValid()) {
-            FAIL("Can't get the valid tag item model index for "
+            FAIL("Can't get valid tag item model index for "
                  "dirty column");
         }
 
@@ -620,7 +620,7 @@ void TagModelTestHelper::test()
             pFirstEighthChild);
 
         if (!firstEighthChildIndex.isValid()) {
-            FAIL("Can't get the valid tag model item index for given tag item");
+            FAIL("Can't get valid tag model item index for given tag item");
         }
 
         const auto * pFirstEighthChildTag = pFirstEighthChild->cast<TagItem>();
@@ -672,7 +672,7 @@ void TagModelTestHelper::test()
         // ascending order
         QModelIndex fifthIndex = model->indexForLocalUid(fifth.localUid());
         if (!fifthIndex.isValid()) {
-            FAIL("Can't get the valid tag model item index for local uid");
+            FAIL("Can't get valid tag model item index for local uid");
         }
 
         const auto * pFifthItem = model->itemForIndex(fifthIndex);
@@ -977,7 +977,7 @@ bool TagModelTestHelper::checkSorting(
             }
 
             const auto * pTagItem = pTagModelItem->cast<TagItem>();
-            if (!pTagItem) {
+            if (pTagItem) {
                 errorDescription.details() += QStringLiteral("tag: ");
                 errorDescription.details() += pTagItem->name();
                 errorDescription.details() += QStringLiteral("; ");
@@ -997,7 +997,8 @@ bool TagModelTestHelper::checkSorting(
                 continue;
             }
 
-            errorDescription.details() += QStringLiteral("<unknown>; ");
+            errorDescription.details() += QStringLiteral("unknown: ");
+            errorDescription.details() += pTagModelItem->toString();
         }
 
         errorDescription.details() += QStringLiteral("\nSorted child tags: ");
@@ -1030,7 +1031,8 @@ bool TagModelTestHelper::checkSorting(
                 continue;
             }
 
-            errorDescription.details() += QStringLiteral("<unknown>; ");
+            errorDescription.details() += QStringLiteral("unknown: ");
+            errorDescription.details() += pTagModelItem->toString();
         }
 
         return false;

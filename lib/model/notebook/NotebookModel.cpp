@@ -2499,7 +2499,7 @@ QVariant NotebookModel::dataImpl(
             return tr("All notebooks");
         }
         else {
-            return QVariant();
+            return {};
         }
     }
 
@@ -2513,7 +2513,7 @@ QVariant NotebookModel::dataImpl(
         return stackData(*pStackItem, column);
     }
 
-    return QVariant();
+    return {};
 }
 
 QVariant NotebookModel::dataAccessibleText(
@@ -3258,7 +3258,7 @@ QVariant NotebookModel::stackData(
     case Column::Name:
         return stackItem.name();
     default:
-        return QVariant();
+        return {};
     }
 }
 
@@ -4439,7 +4439,7 @@ QVariant NotebookModel::notebookData(
     case Column::NoteCount:
         return notebookItem.noteCount();
     default:
-        return QVariant();
+        return {};
     }
 }
 

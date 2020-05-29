@@ -687,8 +687,8 @@ private:
     size_t                  m_listLinkedNotebooksOffset= 0;
     QUuid                   m_listLinkedNotebooksRequestId;
 
-    Column                  m_sortedColumn;
-    Qt::SortOrder           m_sortOrder;
+    Column                  m_sortedColumn = Column::Name;
+    Qt::SortOrder           m_sortOrder = Qt::AscendingOrder;
 
     struct Restrictions
     {

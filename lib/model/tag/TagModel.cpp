@@ -265,12 +265,7 @@ QVariant TagModel::data(const QModelIndex & index, int role) const
         return {};
     }
 
-    if (pItem == m_pAllTagsRootItem)
-    {
-        if (columnIndex == static_cast<int>(Column::Name)) {
-            return tr("All tags");
-        }
-
+    if (pItem == m_pInvisibleRootItem) {
         return {};
     }
 
@@ -2783,6 +2778,10 @@ ITagModelItem * TagModel::itemForId(const IndexId id) const
 {
     QNTRACE("TagModel::itemForId: " << id);
 
+    if (id == m_allTagsRootItemIndexId) {
+        return m_pAllTagsRootItem;
+    }
+
     auto localUidIt = m_indexIdToLocalUidBimap.left.find(id);
     if (localUidIt == m_indexIdToLocalUidBimap.left.end())
     {
@@ -2862,12 +2861,27 @@ TagModel::IndexId TagModel::idForItem(const ITagModelItem & item) const
         return it->second;
     }
 
+    if (&item == m_pAllTagsRootItem) {
+        return m_allTagsRootItemIndexId;
+    }
+
+    QNWARNING("Detected attempt to assign id to unidentified "
+        << "tag model item: " << item);
     return 0;
 }
 
 QVariant TagModel::dataImpl(
     const ITagModelItem & item, const Column column) const
 {
+    if (&item == m_pAllTagsRootItem)
+    {
+        if (column == Column::Name) {
+            return tr("All tags");
+        }
+
+        return {};
+    }
+
     const auto * pTagItem = item.cast<TagItem>();
     if (pTagItem)
     {

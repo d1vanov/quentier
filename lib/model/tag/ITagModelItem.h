@@ -97,7 +97,7 @@ public:
     const T * cast() const;
 
 protected:
-    ITagModelItem *         m_pParent;
+    ITagModelItem *         m_pParent = nullptr;
     QList<ITagModelItem*>   m_children;
 };
 
