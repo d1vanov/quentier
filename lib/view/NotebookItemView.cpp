@@ -745,6 +745,14 @@ void NotebookItemView::onNoteFiltersManagerReady()
         return;
     }
 
+    auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (pNotebookModel &&
+        !shouldFilterBySelectedNotebook(pNotebookModel->account()))
+    {
+        QNDEBUG("Filtering by selected notebook is switched off");
+        return;
+    }
+
     QString notebookLocalUid =
         m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 
@@ -1438,6 +1446,11 @@ void NotebookItemView::selectionChangedImpl(
         return;
     }
 
+    if (!shouldFilterBySelectedNotebook(pNotebookModel->account())) {
+        QNDEBUG("Filtering by selected notebook is switched off");
+        return;
+    }
+
     auto selectedIndexes = selected.indexes();
     if (selectedIndexes.isEmpty()) {
         QNDEBUG("The new selection is empty");
@@ -1505,7 +1518,9 @@ void NotebookItemView::clearSelectionImpl()
         return;
     }
 
-    setSelectedNotebookToNoteFiltersManager(QString());
+    if (shouldFilterBySelectedNotebook(pNotebookModel->account())) {
+        clearNotebooksFromNoteFiltersManager();
+    }
 }
 
 void NotebookItemView::selectAllNotebooksRootItem(const NotebookModel & model)
@@ -1642,7 +1657,7 @@ void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
     }
 
     disconnectFromNoteFiltersManagerFilterChanged();
-    m_pNoteFiltersManager->resetFilterToNotebookLocalUid(notebookLocalUid);
+    m_pNoteFiltersManager->setNotebookToFilter(notebookLocalUid);
     connectToNoteFiltersManagerFilterChanged();
 }
 
@@ -1693,6 +1708,25 @@ void NotebookItemView::connectToNoteFiltersManagerFilterChanged()
         this,
         &NotebookItemView::onNoteFilterChanged,
         Qt::UniqueConnection);
+}
+
+bool NotebookItemView::shouldFilterBySelectedNotebook(
+    const Account & account) const
+{
+    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+
+    auto filterBySelectedNotebook = appSettings.value(
+        FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
+
+    appSettings.endGroup();
+
+    if (!filterBySelectedNotebook.isValid()) {
+        return true;
+    }
+
+    return filterBySelectedNotebook.toBool();
 }
 
 bool NotebookItemView::fetchCurrentNotebookCommonData(

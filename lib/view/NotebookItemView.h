@@ -27,6 +27,7 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
@@ -152,6 +153,8 @@ private:
 
     void disconnectFromNoteFiltersManagerFilterChanged();
     void connectToNoteFiltersManagerFilterChanged();
+
+    bool shouldFilterBySelectedNotebook(const Account & account) const;
 
     // Helper structs and methods to access common data pieces in slots
 
