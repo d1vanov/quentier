@@ -23,8 +23,12 @@
 
 #include <quentier/types/ErrorString.h>
 
+#include <QPointer>
+
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(Account)
+QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
 class TagItemView: public ItemView
@@ -32,6 +36,8 @@ class TagItemView: public ItemView
     Q_OBJECT
 public:
     explicit TagItemView(QWidget * parent = nullptr);
+
+    void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
     virtual void setModel(QAbstractItemModel * pModel) override;
 
@@ -79,6 +85,10 @@ private Q_SLOTS:
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
     void onTagParentChanged(const QModelIndex & index);
 
+    void onNoteFilterChanged();
+
+    void onNoteFiltersManagerReady();
+
     virtual void selectionChanged(
         const QItemSelection & selected,
         const QItemSelection & deselected) override;
@@ -100,16 +110,32 @@ private:
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
 
+    void selectAllTagsRootItem(const TagModel & model);
+
     void setFavoritedFlag(const QAction & action, const bool favorited);
 
     void prepareForTagModelChange();
     void postProcessTagModelChange();
+
+    void setSelectedTagToNoteFiltersManager(
+        const QString & tagLocalUid);
+
+    void clearTagsFromNoteFiltersManager();
+
+    void disconnectFromNoteFiltersManagerFilterChanged();
+    void connectToNoteFiltersManagerFilterChanged();
+
+    bool shouldFilterBySelectedTag(const Account & account) const;
 
 private:
     QMenu *     m_pTagItemContextMenu;
     bool        m_trackingTagItemsState;
     bool        m_trackingSelection;
     bool        m_modelReady;
+
+    QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
+
+    QString     m_tagLocalUidPendingNoteFiltersManagerReadiness;
 };
 
 } // namespace quentier

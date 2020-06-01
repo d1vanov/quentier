@@ -1642,8 +1642,8 @@ void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
     }
 
     if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
-        QNDEBUG("Filter by search string is active, won't reset "
-            << "filter to seleted notebook");
+        QNDEBUG("Filter by search string is active, won't set "
+            << "the seleted notebook to filter");
         return;
     }
 
@@ -1651,8 +1651,8 @@ void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
         m_pNoteFiltersManager->savedSearchLocalUidInFilter();
 
     if (!savedSearchLocalUidInFilter.isEmpty()) {
-        QNDEBUG("Filter by saved search is active, won't reset "
-            << "filter to selected notebook");
+        QNDEBUG("Filter by saved search is active, won't set "
+            << "the selected notebook to filter");
         return;
     }
 

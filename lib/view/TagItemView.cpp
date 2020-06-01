@@ -21,6 +21,7 @@
 #include <lib/dialog/AddOrEditTagDialog.h>
 #include <lib/model/tag/TagModel.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -64,6 +65,23 @@ TagItemView::TagItemView(QWidget * parent) :
                      this,
                      QNSLOT(TagItemView,onTagItemCollapsedOrExpanded,
                             const QModelIndex&));
+}
+
+void TagItemView::setNoteFiltersManager(
+    NoteFiltersManager & noteFiltersManager)
+{
+    if (!m_pNoteFiltersManager.isNull())
+    {
+        if (m_pNoteFiltersManager.data() == &noteFiltersManager) {
+            QNDEBUG("Already using this note filters manager");
+            return;
+        }
+
+        disconnectFromNoteFiltersManagerFilterChanged();
+    }
+
+    m_pNoteFiltersManager = &noteFiltersManager;
+    connectToNoteFiltersManagerFilterChanged();
 }
 
 void TagItemView::setModel(QAbstractItemModel * pModel)
@@ -707,6 +725,86 @@ void TagItemView::onTagParentChanged(const QModelIndex & tagIndex)
     restoreLastSavedSelection(*pTagModel);
 }
 
+void TagItemView::onNoteFilterChanged()
+{
+    QNDEBUG("TagItemView::onNoteFilterChanged");
+
+    auto * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG("Non-tag model is used");
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        QNDEBUG("Note filters manager is null");
+        return;
+    }
+
+    if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
+        QNDEBUG("Filter by search string is active");
+        selectAllTagsRootItem(*pTagModel);
+        return;
+    }
+
+    if (!m_pNoteFiltersManager->savedSearchLocalUidInFilter().isEmpty()) {
+        QNDEBUG("Filter by saved search is active");
+        selectAllTagsRootItem(*pTagModel);
+        return;
+    }
+
+    const auto & tagLocalUids =
+        m_pNoteFiltersManager->tagLocalUidsInFilter();
+
+    if (tagLocalUids.size() != 1) {
+        QNDEBUG("Not exactly one tag local uid is within the filter: "
+            << tagLocalUids.join(QStringLiteral(", ")));
+        selectAllTagsRootItem(*pTagModel);
+        return;
+    }
+
+    auto tagIndex = pTagModel->indexForLocalUid(tagLocalUids[0]);
+    if (Q_UNLIKELY(!tagIndex.isValid())) {
+        QNWARNING("The filtered tag local uid's index is invalid");
+        selectAllTagsRootItem(*pTagModel);
+        return;
+    }
+
+    setCurrentIndex(tagIndex);
+}
+
+void TagItemView::onNoteFiltersManagerReady()
+{
+    QNDEBUG("TagItemView::onNoteFiltersManagerReady");
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        QNDEBUG("Note filters manager is null");
+        return;
+    }
+
+    QObject::disconnect(
+        m_pNoteFiltersManager.data(),
+        &NoteFiltersManager::ready,
+        this,
+        &TagItemView::onNoteFiltersManagerReady);
+
+    if (m_tagLocalUidPendingNoteFiltersManagerReadiness.isEmpty()) {
+        QNDEBUG("No tag local uid to set to the filter");
+        return;
+    }
+
+    auto * pTagModel = qobject_cast<TagModel*>(model());
+    if (pTagModel &&
+        !shouldFilterBySelectedTag(pTagModel->account()))
+    {
+        QNDEBUG("Filtering by selected tag is switched off");
+        return;
+    }
+
+    QString tagLocalUid = m_tagLocalUidPendingNoteFiltersManagerReadiness;
+    m_tagLocalUidPendingNoteFiltersManagerReadiness.clear();
+    setSelectedTagToNoteFiltersManager(tagLocalUid);
+}
+
 void TagItemView::selectionChanged(
     const QItemSelection & selected, const QItemSelection & deselected)
 {
@@ -1189,16 +1287,23 @@ void TagItemView::selectionChangedImpl(
 
     Q_UNUSED(deselected)
 
-    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    auto * pTagModel = qobject_cast<TagModel*>(model());
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG("Non-tag model is used");
+        clearTagsFromNoteFiltersManager();
         return;
     }
 
-    QModelIndexList selectedIndexes = selected.indexes();
+    if (!shouldFilterBySelectedTag(pTagModel->account())) {
+        QNDEBUG("Filtering by selected tag is switched off");
+        return;
+    }
+
+    auto selectedIndexes = selected.indexes();
 
     if (selectedIndexes.isEmpty()) {
         QNDEBUG("The new selection is empty");
+        clearTagsFromNoteFiltersManager();
         return;
     }
 
@@ -1211,6 +1316,7 @@ void TagItemView::selectionChangedImpl(
 
     if (!sourceIndex.isValid()) {
         QNDEBUG("Not exactly one row is selected");
+        clearTagsFromNoteFiltersManager();
         return;
     }
 
@@ -1222,12 +1328,24 @@ void TagItemView::selectionChangedImpl(
         return;
     }
 
-    const TagItem * pTagItem = pModelItem->cast<TagItem>();
+    const auto * pTagItem = pModelItem->cast<TagItem>();
     if (Q_UNLIKELY(!pTagItem)) {
         QNDEBUG("The selected tag model item is not of a tag type");
+        clearTagsFromNoteFiltersManager();
         return;
     }
 
+    if (!pTagItem->linkedNotebookGuid().isEmpty()) {
+        QNDEBUG("Tag from the linked notebook is selected, "
+            << "won't do anything");
+        clearTagsFromNoteFiltersManager();
+        return;
+    }
+
+    setSelectedTagToNoteFiltersManager(pTagItem->localUid());
+
+    // FIXME: only use this when filtering by selected tag is off
+    /*
     QNTRACE("Currently selected tag item: " << *pTagItem);
 
     ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
@@ -1237,6 +1355,32 @@ void TagItemView::selectionChangedImpl(
 
     QNDEBUG("Persisted the currently selected tag local uid: "
         << pTagItem->localUid());
+    */
+}
+
+void TagItemView::selectAllTagsRootItem(const TagModel & model)
+{
+    QNDEBUG("TagItemView::selectAllTagsRootItem");
+
+    auto * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Can't select all tags root item: "
+                       "no selection model in the view"))
+        return;
+    }
+
+    m_trackingSelection = false;
+
+    pSelectionModel->select(
+        model.index(0, 0),
+        QItemSelectionModel::ClearAndSelect |
+        QItemSelectionModel::Rows |
+        QItemSelectionModel::Current);
+
+    m_trackingSelection = true;
+
+    clearTagsFromNoteFiltersManager();
 }
 
 void TagItemView::setFavoritedFlag(const QAction & action, const bool favorited)
@@ -1302,6 +1446,121 @@ void TagItemView::postProcessTagModelChange()
 
     restoreLastSavedSelection(*pTagModel);
     m_trackingSelection = true;
+}
+
+void TagItemView::setSelectedTagToNoteFiltersManager(
+    const QString & tagLocalUid)
+{
+    QNDEBUG("TagItemView::setSelectedTagToNoteFiltersManager: "
+        << tagLocalUid);
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        QNDEBUG("Note filters manager is null");
+        return;
+    }
+
+    if (!m_pNoteFiltersManager->isReady())
+    {
+        QNDEBUG("Note filters manager is not ready yet, will "
+            << "postpone setting the tag to it: "
+            << tagLocalUid);
+
+        QObject::connect(
+            m_pNoteFiltersManager.data(),
+            &NoteFiltersManager::ready,
+            this,
+            &TagItemView::onNoteFiltersManagerReady,
+            Qt::UniqueConnection);
+
+        m_tagLocalUidPendingNoteFiltersManagerReadiness = tagLocalUid;
+        return;
+    }
+
+    if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
+        QNDEBUG("Filter by search string is active, won't set "
+            << "the seleted tag to filter");
+        return;
+    }
+
+    const QString & savedSearchLocalUidInFilter =
+        m_pNoteFiltersManager->savedSearchLocalUidInFilter();
+
+    if (!savedSearchLocalUidInFilter.isEmpty()) {
+        QNDEBUG("Filter by saved search is active, won't set "
+            << "the selected tag to filter");
+        return;
+    }
+
+    disconnectFromNoteFiltersManagerFilterChanged();
+    m_pNoteFiltersManager->setTagToFilter(tagLocalUid);
+    connectToNoteFiltersManagerFilterChanged();
+}
+
+void TagItemView::clearTagsFromNoteFiltersManager()
+{
+    QNDEBUG("TagItemView::clearTagsFromNoteFiltersManager");
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        QNDEBUG("Note filters manager is null");
+        return;
+    }
+
+    if (!m_pNoteFiltersManager->isReady())
+    {
+        QNDEBUG("Note filters manager is not ready yet, will "
+            << "postpone clearing tags from it");
+
+        QObject::connect(
+            m_pNoteFiltersManager.data(),
+            &NoteFiltersManager::ready,
+            this,
+            [this] {
+                clearTagsFromNoteFiltersManager();
+            });
+
+        return;
+    }
+
+    disconnectFromNoteFiltersManagerFilterChanged();
+    m_pNoteFiltersManager->removeTagsFromFilter();
+    connectToNoteFiltersManagerFilterChanged();
+}
+
+void TagItemView::disconnectFromNoteFiltersManagerFilterChanged()
+{
+    QObject::disconnect(
+        m_pNoteFiltersManager.data(),
+        &NoteFiltersManager::filterChanged,
+        this,
+        &TagItemView::onNoteFilterChanged);
+}
+
+void TagItemView::connectToNoteFiltersManagerFilterChanged()
+{
+    QObject::connect(
+        m_pNoteFiltersManager.data(),
+        &NoteFiltersManager::filterChanged,
+        this,
+        &TagItemView::onNoteFilterChanged,
+        Qt::UniqueConnection);
+}
+
+bool TagItemView::shouldFilterBySelectedTag(const Account & account) const
+{
+    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+
+    auto filterBySelectedTag = appSettings.value(
+        FILTER_BY_SELECTED_TAG_SETTINGS_KEY);
+
+    appSettings.endGroup();
+
+    if (!filterBySelectedTag.isValid()) {
+        return true;
+    }
+
+    return filterBySelectedTag.toBool();
 }
 
 } // namespace quentier
