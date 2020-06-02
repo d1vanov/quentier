@@ -128,7 +128,10 @@ private:
         const QStringList & expandedLinkedNotebookGuids,
         const NotebookModel & model);
 
-    void restoreFilteredNotebook(
+    void saveSelectedNotebook(
+        const Account & account, const QString & notebookLocalUid);
+
+    void restoreSelectedNotebook(
         const NotebookModel & model);
 
     void selectionChangedImpl(

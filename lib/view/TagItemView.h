@@ -105,7 +105,8 @@ private:
     void setLinkedNotebooksExpanded(
         const QStringList & linkedNotebookGuids, const TagModel & model);
 
-    void restoreLastSavedSelection(const TagModel & model);
+    void saveSelectedTag(const Account & account, const QString & tagLocalUid);
+    void restoreSelectedTag(const TagModel & model);
 
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);

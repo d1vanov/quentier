@@ -31,7 +31,10 @@
 #include <QContextMenuEvent>
 #include <QScopedPointer>
 
+#define TAG_ITEM_VIEW_GROUP_KEY QStringLiteral("TagItemView")
+
 #define LAST_SELECTED_TAG_KEY QStringLiteral("LastSelectedTagLocalUid")
+
 #define LAST_EXPANDED_TAG_ITEMS_KEY QStringLiteral("LastExpandedTagLocalUids")
 
 #define LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY                                \
@@ -176,7 +179,7 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
     if (pTagModel->allTagsListed()) {
         QNDEBUG("All tags are already listed within the model");
         restoreTagItemsState(*pTagModel);
-        restoreLastSavedSelection(*pTagModel);
+        restoreSelectedTag(*pTagModel);
         m_modelReady = true;
         m_trackingSelection = true;
         m_trackingTagItemsState = true;
@@ -267,7 +270,7 @@ void TagItemView::onAllTagsListed()
                         this, QNSLOT(TagItemView,onAllTagsListed));
 
     restoreTagItemsState(*pTagModel);
-    restoreLastSavedSelection(*pTagModel);
+    restoreSelectedTag(*pTagModel);
 
     m_modelReady = true;
     m_trackingSelection = true;
@@ -722,7 +725,7 @@ void TagItemView::onTagParentChanged(const QModelIndex & tagIndex)
     }
 
     restoreTagItemsState(*pTagModel);
-    restoreLastSavedSelection(*pTagModel);
+    restoreSelectedTag(*pTagModel);
 }
 
 void TagItemView::onNoteFilterChanged()
@@ -1232,9 +1235,20 @@ void TagItemView::setLinkedNotebooksExpanded(
     }
 }
 
-void TagItemView::restoreLastSavedSelection(const TagModel & model)
+void TagItemView::saveSelectedTag(
+    const Account & account, const QString & tagLocalUid)
 {
-    QNDEBUG("TagItemView::restoreLastSavedSelection");
+    QNDEBUG("TagItemView::saveSelectedTag: " << tagLocalUid);
+
+    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
+    appSettings.setValue(LAST_SELECTED_TAG_KEY, tagLocalUid);
+    appSettings.endGroup();
+}
+
+void TagItemView::restoreSelectedTag(const TagModel & model)
+{
+    QNDEBUG("TagItemView::restoreSelectedTag");
 
     auto * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -1244,32 +1258,64 @@ void TagItemView::restoreLastSavedSelection(const TagModel & model)
         return;
     }
 
-    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("TagItemView"));
+    QString selectedTagLocalUid;
 
-    QString lastSelectedTagLocalUid = appSettings.value(
-        LAST_SELECTED_TAG_KEY).toString();
+    if (shouldFilterBySelectedTag(model.account()))
+    {
+        if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+            QNDEBUG("Note filters manager is null");
+            return;
+        }
 
-    appSettings.endGroup();
+        auto filteredTagLocalUids =
+            m_pNoteFiltersManager->tagLocalUidsInFilter();
 
-    if (lastSelectedTagLocalUid.isEmpty()) {
+        if (filteredTagLocalUids.isEmpty()) {
+            QNDEBUG("No tags within filter, selecting all tags "
+                << "root item");
+            selectAllTagsRootItem(model);
+            return;
+        }
+
+        if (filteredTagLocalUids.size() != 1) {
+            QNDEBUG("Not exactly one tag local uid within filter: "
+                << filteredTagLocalUids.join(QStringLiteral(",")));
+            return;
+        }
+
+        selectedTagLocalUid = filteredTagLocalUids.at(0);
+    }
+    else
+    {
+        QNDEBUG("Filtering by selected tag is switched off");
+
+        ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
+
+        selectedTagLocalUid = appSettings.value(
+            LAST_SELECTED_TAG_KEY).toString();
+
+        appSettings.endGroup();
+    }
+
+    QNTRACE("Selecting tag local uid: " << selectedTagLocalUid);
+
+    if (selectedTagLocalUid.isEmpty()) {
         QNDEBUG("Found no last selected tag local uid");
         return;
     }
 
-    QNTRACE("Last selected tag local uid: " << lastSelectedTagLocalUid);
+    QModelIndex selectedTagIndex = model.indexForLocalUid(
+        selectedTagLocalUid);
 
-    QModelIndex lastSelectedTagIndex = model.indexForLocalUid(
-        lastSelectedTagLocalUid);
-
-    if (!lastSelectedTagIndex.isValid()) {
+    if (!selectedTagIndex.isValid()) {
         QNDEBUG("Tag model returned invalid index for the last "
             << "selected tag local uid");
         return;
     }
 
     pSelectionModel->select(
-        lastSelectedTagIndex,
+        selectedTagIndex,
         QItemSelectionModel::ClearAndSelect |
         QItemSelectionModel::Rows |
         QItemSelectionModel::Current);
@@ -1291,11 +1337,6 @@ void TagItemView::selectionChangedImpl(
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG("Non-tag model is used");
         clearTagsFromNoteFiltersManager();
-        return;
-    }
-
-    if (!shouldFilterBySelectedTag(pTagModel->account())) {
-        QNDEBUG("Filtering by selected tag is switched off");
         return;
     }
 
@@ -1342,20 +1383,14 @@ void TagItemView::selectionChangedImpl(
         return;
     }
 
-    setSelectedTagToNoteFiltersManager(pTagItem->localUid());
+    saveSelectedTag(pTagModel->account(), pTagItem->localUid());
 
-    // FIXME: only use this when filtering by selected tag is off
-    /*
-    QNTRACE("Currently selected tag item: " << *pTagItem);
-
-    ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("TagItemView"));
-    appSettings.setValue(LAST_SELECTED_TAG_KEY, pTagItem->localUid());
-    appSettings.endGroup();
-
-    QNDEBUG("Persisted the currently selected tag local uid: "
-        << pTagItem->localUid());
-    */
+    if (shouldFilterBySelectedTag(pTagModel->account())) {
+        setSelectedTagToNoteFiltersManager(pTagItem->localUid());
+    }
+    else {
+        QNDEBUG("Filtering by selected tag is switched off");
+    }
 }
 
 void TagItemView::selectAllTagsRootItem(const TagModel & model)
@@ -1444,7 +1479,7 @@ void TagItemView::postProcessTagModelChange()
     restoreTagItemsState(*pTagModel);
     m_trackingTagItemsState = true;
 
-    restoreLastSavedSelection(*pTagModel);
+    restoreSelectedTag(*pTagModel);
     m_trackingSelection = true;
 }
 
