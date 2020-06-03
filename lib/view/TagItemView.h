@@ -111,6 +111,8 @@ private:
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
 
+    void handleNoSelectedTag(const Account & account);
+
     void selectAllTagsRootItem(const TagModel & model);
 
     void setFavoritedFlag(const QAction & action, const bool favorited);

@@ -790,22 +790,26 @@ void TagItemView::onNoteFiltersManagerReady()
         this,
         &TagItemView::onNoteFiltersManagerReady);
 
-    if (m_tagLocalUidPendingNoteFiltersManagerReadiness.isEmpty()) {
-        QNDEBUG("No tag local uid to set to the filter");
-        return;
-    }
-
-    auto * pTagModel = qobject_cast<TagModel*>(model());
-    if (pTagModel &&
-        !shouldFilterBySelectedTag(pTagModel->account()))
-    {
-        QNDEBUG("Filtering by selected tag is switched off");
-        return;
-    }
-
     QString tagLocalUid = m_tagLocalUidPendingNoteFiltersManagerReadiness;
     m_tagLocalUidPendingNoteFiltersManagerReadiness.clear();
-    setSelectedTagToNoteFiltersManager(tagLocalUid);
+
+    auto * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG("Non-tag model is used");
+        return;
+    }
+
+    saveSelectedTag(pTagModel->account(), tagLocalUid);
+
+    if (shouldFilterBySelectedTag(pTagModel->account()))
+    {
+        if (!tagLocalUid.isEmpty()) {
+            setSelectedTagToNoteFiltersManager(tagLocalUid);
+        }
+        else {
+            clearTagsFromNoteFiltersManager();
+        }
+    }
 }
 
 void TagItemView::selectionChanged(
@@ -1336,7 +1340,6 @@ void TagItemView::selectionChangedImpl(
     auto * pTagModel = qobject_cast<TagModel*>(model());
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG("Non-tag model is used");
-        clearTagsFromNoteFiltersManager();
         return;
     }
 
@@ -1344,7 +1347,7 @@ void TagItemView::selectionChangedImpl(
 
     if (selectedIndexes.isEmpty()) {
         QNDEBUG("The new selection is empty");
-        clearTagsFromNoteFiltersManager();
+        handleNoSelectedTag(pTagModel->account());
         return;
     }
 
@@ -1357,7 +1360,7 @@ void TagItemView::selectionChangedImpl(
 
     if (!sourceIndex.isValid()) {
         QNDEBUG("Not exactly one row is selected");
-        clearTagsFromNoteFiltersManager();
+        handleNoSelectedTag(pTagModel->account());
         return;
     }
 
@@ -1366,20 +1369,21 @@ void TagItemView::selectionChangedImpl(
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the tag model item "
                        "corresponding to the selected index"))
+        handleNoSelectedTag(pTagModel->account());
         return;
     }
 
     const auto * pTagItem = pModelItem->cast<TagItem>();
     if (Q_UNLIKELY(!pTagItem)) {
         QNDEBUG("The selected tag model item is not of a tag type");
-        clearTagsFromNoteFiltersManager();
+        handleNoSelectedTag(pTagModel->account());
         return;
     }
 
     if (!pTagItem->linkedNotebookGuid().isEmpty()) {
         QNDEBUG("Tag from the linked notebook is selected, "
             << "won't do anything");
-        clearTagsFromNoteFiltersManager();
+        handleNoSelectedTag(pTagModel->account());
         return;
     }
 
@@ -1390,6 +1394,15 @@ void TagItemView::selectionChangedImpl(
     }
     else {
         QNDEBUG("Filtering by selected tag is switched off");
+    }
+}
+
+void TagItemView::handleNoSelectedTag(const Account & account)
+{
+    saveSelectedTag(account, QString());
+
+    if (shouldFilterBySelectedTag(account)) {
+        clearTagsFromNoteFiltersManager();
     }
 }
 
@@ -1415,7 +1428,7 @@ void TagItemView::selectAllTagsRootItem(const TagModel & model)
 
     m_trackingSelection = true;
 
-    clearTagsFromNoteFiltersManager();
+    handleNoSelectedTag(model.account());
 }
 
 void TagItemView::setFavoritedFlag(const QAction & action, const bool favorited)
@@ -1545,13 +1558,14 @@ void TagItemView::clearTagsFromNoteFiltersManager()
         QNDEBUG("Note filters manager is not ready yet, will "
             << "postpone clearing tags from it");
 
+        m_tagLocalUidPendingNoteFiltersManagerReadiness.clear();
+
         QObject::connect(
             m_pNoteFiltersManager.data(),
             &NoteFiltersManager::ready,
             this,
-            [this] {
-                clearTagsFromNoteFiltersManager();
-            });
+            &TagItemView::onNoteFiltersManagerReady,
+            Qt::UniqueConnection);
 
         return;
     }

@@ -137,10 +137,7 @@ private:
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
 
-    void persistSelectedNotebookLocalUid(
-        const NotebookModel & notebookModel, const QString & notebookLocalUid);
-
-    void clearSelectionImpl();
+    void handleNoSelectedNotebook(const Account & account);
 
     void selectAllNotebooksRootItem(const NotebookModel & notebookModel);
 
