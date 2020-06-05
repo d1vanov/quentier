@@ -90,6 +90,9 @@ Q_SIGNALS:
     void checkForUpdatesRequested();
 #endif
 
+    void filterByNotebookOptionChanged(bool enabled);
+    void filterByTagOptionChanged(bool enabled);
+
 private Q_SLOTS:
     // System tray tab
     void onShowSystemTrayIconCheckboxToggled(bool checked);
@@ -118,6 +121,9 @@ private Q_SLOTS:
     void onUpdateChannelChanged(int index);
     void onUpdateProviderChanged(int index);
 #endif
+
+    void onFilterByNotebookCheckboxToggled(bool checked);
+    void onFilterByTagCheckboxToggled(bool checked);
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
@@ -166,6 +172,7 @@ private:
     void setupSystemTraySettings();
     void setupStartAtLoginSettings();
     void setupCheckForUpdatesSettings();
+    void setupFilteringSettings();
     void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
     void setupAppearanceSettingsState(const ActionsInfo & actionsInfo);
     void setupNetworkProxySettingsState();

@@ -431,6 +431,34 @@ void PreferencesDialog::onUpdateProviderChanged(int index)
 }
 #endif // WITH_UPDATE_MANAGER
 
+void PreferencesDialog::onFilterByNotebookCheckboxToggled(bool checked)
+{
+    QNDEBUG("PreferencesDialog::onFilterByNotebookCheckboxToggled: "
+        << (checked ? "checked" : "unchecked"));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY, checked);
+    appSettings.endGroup();
+
+    Q_EMIT filterByNotebookOptionChanged(checked);
+}
+
+void PreferencesDialog::onFilterByTagCheckboxToggled(bool checked)
+{
+    QNDEBUG("PreferencesDialog::onFilterByTagCheckboxToggled: "
+        << (checked ? "checked" : "unchecked"));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(FILTER_BY_SELECTED_TAG_SETTINGS_KEY, checked);
+    appSettings.endGroup();
+
+    Q_EMIT filterByTagOptionChanged(checked);
+}
+
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
     QNDEBUG("PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: "
@@ -947,6 +975,7 @@ void PreferencesDialog::setupCurrentSettingsState(
     // 4) Behaviour tab
     setupStartAtLoginSettings();
     setupCheckForUpdatesSettings();
+    setupFilteringSettings();
 
     // 5) Synchronization tab
     if (currentAccount.type() == Account::Type::Local)
@@ -1277,6 +1306,38 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
         m_pUi->updateChannelComboBox->setEnabled(false);
     }
 #endif // WITH_UPDATE_MANAGER
+}
+
+void PreferencesDialog::setupFilteringSettings()
+{
+    QNDEBUG("PreferencesDialog::setupFilteringSettings");
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+
+    bool filterByNotebook = DEFAULT_FILTER_BY_SELECTED_NOTEBOOK;
+
+    auto filterByNotebookValue = appSettings.value(
+        FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
+
+    if (filterByNotebookValue.isValid()) {
+        filterByNotebook = filterByNotebookValue.toBool();
+    }
+
+    bool filterByTag = DEFAULT_FILTER_BY_SELECTED_TAG;
+
+    auto filterByTagValue = appSettings.value(
+        FILTER_BY_SELECTED_TAG_SETTINGS_KEY);
+
+    if (filterByTagValue.isValid()) {
+        filterByTag = filterByTagValue.toBool();
+    }
+
+    appSettings.endGroup();
+
+    m_pUi->filterBySelectedNotebookCheckBox->setChecked(filterByNotebook);
+    m_pUi->filterBySelectedTagCheckBox->setChecked(filterByTag);
 }
 
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(int currentNumMinutes)
@@ -1704,6 +1765,18 @@ void PreferencesDialog::createConnections()
         &PreferencesDialog::checkForUpdatesRequested);
 
 #endif // WITH_UPDATE_MANAGER
+
+    QObject::connect(
+        m_pUi->filterBySelectedNotebookCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onFilterByNotebookCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->filterBySelectedTagCheckBox,
+        &QCheckBox::toggled,
+        this,
+        &PreferencesDialog::onFilterByTagCheckboxToggled);
 
     QObject::connect(
         m_pUi->showNoteThumbnailsCheckBox,

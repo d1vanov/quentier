@@ -23,7 +23,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="appearanceTab">
       <attribute name="title">
@@ -297,6 +297,42 @@ padding: 0 3px;
              </widget>
             </item>
            </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="filteringGroupBox">
+         <property name="styleSheet">
+          <string notr="true">QGroupBox {
+border: 2px solid gray;
+border-radius: 8px;
+margin-top: 1ex;
+}
+
+QGroupBox::title {
+subcontrol-origin: margin;
+subcontrol-position: top left;
+padding: 0 3px;
+}</string>
+         </property>
+         <property name="title">
+          <string>Filtering</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QCheckBox" name="filterBySelectedNotebookCheckBox">
+            <property name="text">
+             <string>Filter by selected notebook</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="filterBySelectedTagCheckBox">
+            <property name="text">
+             <string>Filter by selected tag</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -796,7 +832,7 @@ padding: 0 3px;
        <item>
         <widget class="QLabel" name="networkProxyLabel">
          <property name="text">
-          <string>Network proxy settings:</string>
+          <string>N&amp;etwork proxy settings:</string>
          </property>
          <property name="buddy">
           <cstring>preferencesTabWidget</cstring>
@@ -874,7 +910,7 @@ padding: 0 3px;
           <item row="4" column="0">
            <widget class="QLabel" name="networkProxyPortLabel">
             <property name="text">
-             <string>&amp;Port:</string>
+             <string>P&amp;ort:</string>
             </property>
             <property name="buddy">
              <cstring>networkProxyPortSpinBox</cstring>
