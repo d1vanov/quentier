@@ -4961,7 +4961,8 @@ void MainWindow::setupViews()
         &MainWindow::onModelViewError,
         Qt::UniqueConnection);
 
-    TagItemView * pTagsTreeView = m_pUI->tagsTreeView;
+    auto * pTagsTreeView = m_pUI->tagsTreeView;
+    pTagsTreeView->setNoteFiltersManager(*m_pNoteFiltersManager);
 
     // These columns' values would be displayed along with the tag's name
     pTagsTreeView->setColumnHidden(

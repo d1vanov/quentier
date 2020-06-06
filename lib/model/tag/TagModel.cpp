@@ -2752,12 +2752,20 @@ void TagModel::onLinkedNotebookAddedOrUpdated(
     auto linkedNotebookItemIt = m_linkedNotebookItems.find(linkedNotebookGuid);
     if (linkedNotebookItemIt == m_linkedNotebookItems.end())
     {
-        QNWARNING("Found linked notebook model item for linked notebook guid "
-                  << linkedNotebookGuid
-                  << " but no linked notebook item; will try to correct");
+        QNDEBUG("Found no existing linked notebook item for linked notebook "
+            << "guid " << linkedNotebookGuid << ", creating one");
+
         linkedNotebookItemIt = m_linkedNotebookItems.insert(
             linkedNotebookGuid,
-            TagLinkedNotebookRootItem(linkedNotebook.username(), linkedNotebookGuid));
+            TagLinkedNotebookRootItem(
+                linkedNotebook.username(),
+                linkedNotebookGuid));
+
+        auto * pLinkedNotebookItem = &(linkedNotebookItemIt.value());
+        int row = rowForNewItem(*m_pAllTagsRootItem, *pLinkedNotebookItem);
+        beginInsertRows(indexForItem(m_pAllTagsRootItem), row, row);
+        m_pAllTagsRootItem->insertChild(row, pLinkedNotebookItem);
+        endInsertRows();
     }
     else
     {
@@ -3082,7 +3090,7 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     auto * pTagItem = pModelItem->cast<TagItem>();
     if (!pTagItem) {
         REPORT_ERROR(QT_TR_NOOP("Can't promote non-tag items"));
-        return QModelIndex();
+        return {};
     }
 
     checkAndCreateModelRootItems();
@@ -3454,7 +3462,7 @@ QModelIndex TagModel::moveToParent(
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the tag item being "
                        "moved to another parent within the tag model"));
-        return QModelIndex();
+        return {};
     }
 
     fixupItemParent(*pModelItem);
@@ -3528,7 +3536,7 @@ QModelIndex TagModel::moveToParent(
                            "one of its child tags"));
             QNINFO(error);
             Q_EMIT notifyError(error);
-            return QModelIndex();
+            return {};
         }
     }
 
@@ -3749,7 +3757,7 @@ QModelIndex TagModel::createTag(
                            "found within the model"));
 
             errorDescription.details() = parentTagName;
-            return QModelIndex();
+            return {};
         }
 
         pParentItem = const_cast<TagItem*>(&(*parentTagIt));
@@ -4343,7 +4351,7 @@ ITagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
     QNTRACE("Linked notebook root item: " << *pLinkedNotebookItem);
 
     int row = rowForNewItem(*m_pAllTagsRootItem, *pLinkedNotebookItem);
-    beginInsertRows(QModelIndex(), row, row);
+    beginInsertRows(indexForItem(m_pAllTagsRootItem), row, row);
     m_pAllTagsRootItem->insertChild(row, pLinkedNotebookItem);
     endInsertRows();
 

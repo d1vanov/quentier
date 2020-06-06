@@ -1164,10 +1164,8 @@ void NotebookItemView::saveNotebookModelItemsState()
     QStringList expandedLinkedNotebookItemsGuids;
 
     auto indexes = pNotebookModel->persistentIndexes();
-    for(auto it = indexes.constBegin(),
-        end = indexes.constEnd(); it != end; ++it)
+    for(const auto & index: qAsConst(indexes))
     {
-        const QModelIndex & index = *it;
         if (!isExpanded(index)) {
             continue;
         }
@@ -1312,7 +1310,6 @@ void NotebookItemView::restoreNotebookModelItemsState(
     }
 
     setLinkedNotebooksExpanded(expandedLinkedNotebookItemsGuids, model);
-    m_trackingNotebookModelItemsState = wasTrackingNotebookItemsState;
 
     bool allNotebooksRootItemExpanded = true;
     if (allNotebooksRootItemExpandedPreference.isValid()) {
@@ -1322,6 +1319,8 @@ void NotebookItemView::restoreNotebookModelItemsState(
 
     auto allNotebooksRootItemIndex = model.index(0, 0);
     setExpanded(allNotebooksRootItemIndex, allNotebooksRootItemExpanded);
+
+    m_trackingNotebookModelItemsState = wasTrackingNotebookItemsState;
 }
 
 void NotebookItemView::setStacksExpanded(

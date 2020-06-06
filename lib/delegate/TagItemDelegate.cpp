@@ -63,6 +63,10 @@ QWidget * TagItemDelegate::createEditor(
         return nullptr;
     }
 
+    if (pModelItem->type() == ITagModelItem::Type::AllTagsRoot) {
+        return nullptr;
+    }
+
     if (index.column() != static_cast<int>(TagModel::Column::Name)) {
         return nullptr;
     }
@@ -173,7 +177,13 @@ void TagItemDelegate::drawTagName(
         name = pTagItem->name();
     }
 
-    name = name.simplified();
+    if (name.isEmpty()) {
+        name = index.data().toString().simplified();
+    }
+    else {
+        name = name.simplified();
+    }
+
     if (name.isEmpty()) {
         QNDEBUG("TagItemDelegate::drawTagName: tag model item name is empty");
         return;
