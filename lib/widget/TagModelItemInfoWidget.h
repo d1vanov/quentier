@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,7 +31,7 @@ QT_FORWARD_DECLARE_CLASS(QModelIndex)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(TagModelItem)
+QT_FORWARD_DECLARE_CLASS(ITagModelItem)
 QT_FORWARD_DECLARE_CLASS(TagItem)
 
 class TagModelItemInfoWidget: public QWidget
@@ -51,7 +51,7 @@ private:
     void setInvalidIndex();
     void setNoModelItem();
     void setNonTagItem();
-    void setTagItem(const TagModelItem & modelItem, const TagItem & item);
+    void setTagItem(const ITagModelItem & modelItem, const TagItem & item);
 
     void hideAll();
 

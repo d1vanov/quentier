@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,7 +19,7 @@
 #include "NewListItemLineEdit.h"
 #include "ui_NewListItemLineEdit.h"
 
-#include <lib/model/TagModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/VersionInfo.h>

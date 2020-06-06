@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_DIALOG_ADD_OR_EDIT_TAG_DIALOG_H
 #define QUENTIER_LIB_DIALOG_ADD_OR_EDIT_TAG_DIALOG_H
 
-#include <lib/model/TagModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
@@ -41,7 +41,7 @@ class AddOrEditTagDialog: public QDialog
 public:
     explicit AddOrEditTagDialog(
         TagModel * pTagModel, QWidget * parent = nullptr,
-        const QString & editedTagLocalUid = QString());
+        QString editedTagLocalUid = {});
 
     virtual ~AddOrEditTagDialog();
 
@@ -57,7 +57,7 @@ private:
 private:
     Ui::AddOrEditTagDialog *    m_pUi;
     QPointer<TagModel>          m_pTagModel;
-    QStringListModel *          m_pTagNamesModel;
+    QStringListModel *          m_pTagNamesModel = nullptr;
     QString                     m_editedTagLocalUid;
 
     // The name specified at any given moment in the line editor

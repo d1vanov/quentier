@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -67,5 +67,8 @@
 #define DEFAULT_USE_CONTINUOUS_UPDATE_CHANNEL (true)
 #define DEFAULT_CHECK_FOR_UPDATES_INTERVAL_OPTION_INDEX (0)
 #endif
+
+#define DEFAULT_FILTER_BY_SELECTED_NOTEBOOK (true)
+#define DEFAULT_FILTER_BY_SELECTED_TAG (true)
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULT_SETTINGS_H

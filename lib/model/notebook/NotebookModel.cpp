@@ -84,11 +84,11 @@ QModelIndex NotebookModel::indexForItem(const INotebookModelItem * pItem) const
         << (pItem ? pItem->toString() : QStringLiteral("<null>")));
 
     if (!pItem) {
-        return QModelIndex();
+        return {};
     }
 
     if (pItem == m_pInvisibleRootItem) {
-        return QModelIndex();
+        return {};
     }
 
     if (pItem == m_pAllNotebooksRootItem) {
@@ -100,9 +100,9 @@ QModelIndex NotebookModel::indexForItem(const INotebookModelItem * pItem) const
 
     const INotebookModelItem * pParentItem = pItem->parent();
     if (!pParentItem) {
-        QNWARNING("The notebook model item has no parent, "
+        QNWARNING("Notebook model item has no parent, "
             << "returning invalid index for it: " << *pItem);
-        return QModelIndex();
+        return {};
     }
 
     QNTRACE("Parent item: " << *pParentItem);
@@ -113,14 +113,14 @@ QModelIndex NotebookModel::indexForItem(const INotebookModelItem * pItem) const
         QNWARNING("Internal error: can't get the row of the child "
             << "item in parent in NotebookModel, child item: "
             << *pItem << "\nParent item: " << *pParentItem);
-        return QModelIndex();
+        return {};
     }
 
     IndexId id = idForItem(*pItem);
     if (Q_UNLIKELY(id == 0)) {
         QNWARNING("The notebook model item has the internal id of 0: "
             << *pItem);
-        return QModelIndex();
+        return {};
     }
 
     return createIndex(row, static_cast<int>(Column::Name), id);
@@ -835,21 +835,21 @@ Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
 QVariant NotebookModel::data(const QModelIndex & index, int role) const
 {
     if (!index.isValid()) {
-        return QVariant();
+        return {};
     }
 
     int columnIndex = index.column();
     if ((columnIndex < 0) || (columnIndex >= NUM_NOTEBOOK_MODEL_COLUMNS)) {
-        return QVariant();
+        return {};
     }
 
     auto * pModelItem = itemForIndex(index);
     if (!pModelItem) {
-        return QVariant();
+        return {};
     }
 
     if (pModelItem == m_pInvisibleRootItem) {
-        return QVariant();
+        return {};
     }
 
     Column column;
@@ -880,7 +880,7 @@ QVariant NotebookModel::data(const QModelIndex & index, int role) const
         column = Column::NoteCount;
         break;
     default:
-        return QVariant();
+        return {};
     }
 
     switch(role)
@@ -893,7 +893,7 @@ QVariant NotebookModel::data(const QModelIndex & index, int role) const
     case Qt::AccessibleDescriptionRole:
         return dataAccessibleText(*pModelItem, column);
     default:
-        return QVariant();
+        return {};
     }
 }
 
@@ -942,22 +942,22 @@ QModelIndex NotebookModel::index(
         (parent.isValid() &&
          (parent.column() != static_cast<int>(Column::Name))))
     {
-        return QModelIndex();
+        return {};
     }
 
     auto * pParentItem = itemForIndex(parent);
     if (!pParentItem) {
-        return QModelIndex();
+        return {};
     }
 
     auto * pModelItem = pParentItem->childAtRow(row);
     if (!pModelItem) {
-        return QModelIndex();
+        return {};
     }
 
     IndexId id = idForItem(*pModelItem);
     if (Q_UNLIKELY(id == 0)) {
-        return QModelIndex();
+        return {};
     }
 
     return createIndex(row, column, id);
@@ -966,21 +966,21 @@ QModelIndex NotebookModel::index(
 QModelIndex NotebookModel::parent(const QModelIndex & index) const
 {
     if (!index.isValid()) {
-        return QModelIndex();
+        return {};
     }
 
     auto * pChildItem = itemForIndex(index);
     if (!pChildItem) {
-        return QModelIndex();
+        return {};
     }
 
     auto * pParentItem = pChildItem->parent();
     if (!pParentItem) {
-        return QModelIndex();
+        return {};
     }
 
     if (pParentItem == m_pInvisibleRootItem) {
-        return QModelIndex();
+        return {};
     }
 
     if (pParentItem == m_pAllNotebooksRootItem) {
@@ -992,7 +992,7 @@ QModelIndex NotebookModel::parent(const QModelIndex & index) const
 
     auto * pGrandParentItem = pParentItem->parent();
     if (!pGrandParentItem) {
-        return QModelIndex();
+        return {};
     }
 
     int row = pGrandParentItem->rowForChild(pParentItem);
@@ -1000,12 +1000,12 @@ QModelIndex NotebookModel::parent(const QModelIndex & index) const
         QNWARNING("Internal inconsistency detected in NotebookModel: parent of "
             << "the item can't find the item within its children: item = "
             << *pParentItem << "\nParent item: " << *pGrandParentItem);
-        return QModelIndex();
+        return {};
     }
 
     IndexId id = idForItem(*pParentItem);
     if (Q_UNLIKELY(id == 0)) {
-        return QModelIndex();
+        return {};
     }
 
     return createIndex(row, static_cast<int>(Column::Name), id);
@@ -1077,7 +1077,7 @@ bool NotebookModel::setData(
     if (Q_UNLIKELY(pModelItem == m_pInvisibleRootItem)) {
         REPORT_ERROR(
             QT_TR_NOOP("Can't set data for the invisible root item "
-                       "within the noteobok model"));
+                       "within the notebook model"));
         return false;
     }
 
@@ -1579,8 +1579,9 @@ bool NotebookModel::dropMimeData(
 
     auto * pNewParentItem = itemForIndex(parentIndex);
     if (!pNewParentItem) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error, can't drop the notebook: "
-                                "no new parent item was found"));
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error, can't drop notebook: no new parent "
+                       "item was found"));
         return false;
     }
 
@@ -1603,16 +1604,27 @@ bool NotebookModel::dropMimeData(
     QByteArray data = qUncompress(pMimeData->data(NOTEBOOK_MODEL_MIME_TYPE));
     QDataStream in(&data, QIODevice::ReadOnly);
 
-    quint32 type = 0;
+    qint32 type = 0;
     in >> type;
 
-    if (type != static_cast<quint32>(INotebookModelItem::Type::Notebook)) {
+    if (type != static_cast<qint32>(INotebookModelItem::Type::Notebook)) {
         QNDEBUG("Cannot drop items of unsupported types: " << type);
         return false;
     }
 
     NotebookItem notebookItem;
     in >> notebookItem;
+
+    auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(notebookItem.localUid());
+    if (it == localUidIndex.end()) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: failed to find the notebook being "
+                       "dropped in the notebook model"));
+        return false;
+    }
+
+    notebookItem = *it;
 
     QString parentLinkedNotebookGuid;
 
@@ -1640,17 +1652,6 @@ bool NotebookModel::dropMimeData(
                                 "and those from linked notebooks"));
         return false;
     }
-
-    auto & localUidIndex = m_data.get<ByLocalUid>();
-    auto it = localUidIndex.find(notebookItem.localUid());
-    if (it == localUidIndex.end()) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: failed to find the dropped "
-                                "model item by local uid in the notebook "
-                                "model"));
-        return false;
-    }
-
-    notebookItem = *it;
 
     auto * pOriginalParentItem = it->parent();
     int originalRow = -1;
@@ -1853,11 +1854,9 @@ void NotebookModel::onListNotebooksComplete(
         << ", num found notebooks = "
         << foundNotebooks.size() << ", request id = " << requestId);
 
-    for(auto it = foundNotebooks.constBegin(),
-        end = foundNotebooks.constEnd(); it != end; ++it)
-    {
-        onNotebookAddedOrUpdated(*it);
-        requestNoteCountForNotebook(*it);
+    for(const auto & notebook: qAsConst(foundNotebooks)) {
+        onNotebookAddedOrUpdated(notebook);
+        requestNoteCountForNotebook(notebook);
     }
 
     m_listNotebooksRequestId = QUuid();
@@ -2500,7 +2499,7 @@ QVariant NotebookModel::dataImpl(
             return tr("All notebooks");
         }
         else {
-            return QVariant();
+            return {};
         }
     }
 
@@ -2514,7 +2513,7 @@ QVariant NotebookModel::dataImpl(
         return stackData(*pStackItem, column);
     }
 
-    return QVariant();
+    return {};
 }
 
 QVariant NotebookModel::dataAccessibleText(
@@ -3259,7 +3258,7 @@ QVariant NotebookModel::stackData(
     case Column::Name:
         return stackItem.name();
     default:
-        return QVariant();
+        return {};
     }
 }
 
@@ -3635,12 +3634,9 @@ void NotebookModel::updatePersistentModelIndices()
     QNTRACE("NotebookModel::updatePersistentModelIndices");
 
     // Ensure any persistent model indices would be updated appropriately
-    QModelIndexList indices = persistentIndexList();
-    for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
-    {
-        const QModelIndex & index = *it;
+    auto indices = persistentIndexList();
+    for(const auto & index: qAsConst(indices)) {
         auto * pItem = itemForId(static_cast<IndexId>(index.internalId()));
-
         QModelIndex replacementIndex = indexForItem(pItem);
         changePersistentIndex(index, replacementIndex);
     }
@@ -4443,7 +4439,7 @@ QVariant NotebookModel::notebookData(
     case Column::NoteCount:
         return notebookItem.noteCount();
     default:
-        return QVariant();
+        return {};
     }
 }
 

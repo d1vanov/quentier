@@ -17,32 +17,33 @@
  */
 
 #include "NoteEditorTabsAndWindowsCoordinator.h"
-#include "NoteEditorWidget.h"
-#include "TabWidget.h"
 
-#include <lib/preferences/SettingsNames.h>
+#include "TabWidget.h"
+#include "NoteEditorWidget.h"
+
+#include <lib/model/tag/TagModel.h>
 #include <lib/preferences/DefaultSettings.h>
-#include <lib/model/TagModel.h>
+#include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/MessageBox.h>
-#include <quentier/utility/FileIOProcessorAsync.h>
-#include <quentier/utility/EventLoopWithExitStatus.h>
-#include <quentier/note_editor/SpellChecker.h>
 #include <quentier/note_editor/NoteEditor.h>
+#include <quentier/note_editor/SpellChecker.h>
+#include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/EventLoopWithExitStatus.h>
+#include <quentier/utility/FileIOProcessorAsync.h>
+#include <quentier/utility/MessageBox.h>
 
-#include <QUndoStack>
-#include <QTabBar>
-#include <QCloseEvent>
-#include <QThread>
-#include <QMenu>
-#include <QContextMenuEvent>
-#include <QKeyEvent>
-#include <QEvent>
-#include <QTimerEvent>
-#include <QTimer>
 #include <QApplication>
+#include <QCloseEvent>
+#include <QContextMenuEvent>
+#include <QEvent>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QTabBar>
+#include <QThread>
+#include <QTimer>
+#include <QTimerEvent>
+#include <QUndoStack>
 
 #include <algorithm>
 

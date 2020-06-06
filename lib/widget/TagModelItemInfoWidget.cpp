@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,7 +19,7 @@
 #include "TagModelItemInfoWidget.h"
 #include "ui_TagModelItemInfoWidget.h"
 
-#include <lib/model/TagModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <QKeyEvent>
 
@@ -50,13 +50,13 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(
         return;
     }
 
-    const TagModelItem * pModelItem = pTagModel->itemForIndex(index);
+    const auto * pModelItem = pTagModel->itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
         setNoModelItem();
         return;
     }
 
-    const TagItem * pTagItem = pModelItem->tagItem();
+    const TagItem * pTagItem = pModelItem->cast<TagItem>();
     if (Q_UNLIKELY(!pTagItem)) {
         setNonTagItem();
         return;
@@ -119,21 +119,24 @@ void TagModelItemInfoWidget::setNonTagItem()
 }
 
 void TagModelItemInfoWidget::setTagItem(
-    const TagModelItem & modelItem, const TagItem & item)
+    const ITagModelItem & modelItem, const TagItem & item)
 {
     m_pUi->statusBarLabel->hide();
 
     m_pUi->tagNameLineEdit->setText(item.name());
 
-    const TagModelItem * pParentItem = modelItem.parent();
+    const auto * pParentItem = modelItem.parent();
     const QString & parentLocalUid = item.parentLocalUid();
 
-    if (pParentItem && pParentItem->tagItem() && !parentLocalUid.isEmpty()) {
-        m_pUi->parentTagLineEdit->setText(pParentItem->tagItem()->name());
+    const auto * pParentTagItem =
+        (pParentItem ? pParentItem->cast<TagItem>() : nullptr);
+
+    if (pParentTagItem && !parentLocalUid.isEmpty()) {
+        m_pUi->parentTagLineEdit->setText(pParentTagItem->name());
     }
 
-    m_pUi->childrenLineEdit->setText(QString::number(modelItem.numChildren()));
-    m_pUi->numNotesLineEdit->setText(QString::number(item.numNotesPerTag()));
+    m_pUi->childrenLineEdit->setText(QString::number(modelItem.childrenCount()));
+    m_pUi->numNotesLineEdit->setText(QString::number(item.noteCount()));
 
     m_pUi->synchronizableCheckBox->setChecked(item.isSynchronizable());
     m_pUi->dirtyCheckBox->setChecked(item.isDirty());

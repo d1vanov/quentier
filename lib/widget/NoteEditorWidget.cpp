@@ -17,18 +17,20 @@
  */
 
 #include "NoteEditorWidget.h"
-#include "NoteTagsWidget.h"
-#include "NewListItemLineEdit.h"
+
 #include "FindAndReplaceWidget.h"
+#include "NewListItemLineEdit.h"
+#include "NoteTagsWidget.h"
+
+#include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
-#include "color-picker-tool-button/ColorPickerToolButton.h"
 
-#include <lib/preferences/SettingsNames.h>
-#include <lib/preferences/DefaultSettings.h>
-#include <lib/model/TagModel.h>
 #include <lib/enex/EnexExportDialog.h>
 #include <lib/delegate/LimitedFontsDelegate.h>
+#include <lib/model/tag/TagModel.h>
+#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/SettingsNames.h>
 #include <lib/utility/BasicXMLSyntaxHighlighter.h>
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
@@ -755,22 +757,19 @@ void NoteEditorWidget::dropEvent(QDropEvent * pEvent)
     }
 
     QByteArray data = qUncompress(pMimeData->data(TAG_MODEL_MIME_TYPE));
-    TagModelItem item;
     QDataStream in(&data, QIODevice::ReadOnly);
-    in >> item;
 
-    if (item.type() != TagModelItem::Type::Tag) {
+    qint32 type = 0;
+    in >> type;
+
+    if (type != static_cast<qint32>(ITagModelItem::Type::Tag)) {
         QNDEBUG("Can only drop tag model items of tag type onto "
             << "NoteEditorWidget");
         return;
     }
 
-    const TagItem * pTagItem = item.tagItem();
-    if (Q_UNLIKELY(!pTagItem)) {
-        QNWARNING("Null pointer to tag item within tag model item dropped "
-            << "into NoteEditorWidget");
-        return;
-    }
+    TagItem item;
+    in >> item;
 
     if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
         QNDEBUG("Can't drop tag onto NoteEditorWidget: no note is set to "
@@ -778,20 +777,20 @@ void NoteEditorWidget::dropEvent(QDropEvent * pEvent)
         return;
     }
 
-    if (m_pCurrentNote->tagLocalUids().contains(pTagItem->localUid())) {
+    if (m_pCurrentNote->tagLocalUids().contains(item.localUid())) {
         QNDEBUG("Note set to the note editor (" << m_pCurrentNote->localUid()
             << ")is already marked with tag with local uid "
-            << pTagItem->localUid());
+            << item.localUid());
         return;
     }
 
-    QNDEBUG("Adding tag with local uid " << pTagItem->localUid()
+    QNDEBUG("Adding tag with local uid " << item.localUid()
         << " to note with local uid " << m_pCurrentNote->localUid());
 
-    m_pCurrentNote->addTagLocalUid(pTagItem->localUid());
+    m_pCurrentNote->addTagLocalUid(item.localUid());
 
-    if (!pTagItem->guid().isEmpty()) {
-        m_pCurrentNote->addTagGuid(pTagItem->guid());
+    if (!item.guid().isEmpty()) {
+        m_pCurrentNote->addTagGuid(item.guid());
     }
 
     QStringList tagLocalUids = m_pCurrentNote->tagLocalUids();

@@ -25,8 +25,8 @@
 #include <lib/preferences/SettingsNames.h>
 #include <lib/model/NoteModel.h>
 #include <lib/model/SavedSearchModel.h>
-#include <lib/model/TagModel.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -43,6 +43,7 @@ namespace quentier {
 #define NOTE_FILTERS_GROUP_KEY QStringLiteral("NoteFilters")
 #define NOTE_SEARCH_STRING_KEY QStringLiteral("SearchString")
 #define NOTEBOOK_FILTER_CLEARED QStringLiteral("NotebookFilterCleared")
+#define TAG_FILTER_CLEARED QStringLiteral("TagFilterCleared")
 
 NoteFiltersManager::NoteFiltersManager(
         const Account & account,
@@ -166,52 +167,13 @@ void NoteFiltersManager::clear()
     evaluate();
 }
 
-void NoteFiltersManager::resetFilterToNotebookLocalUid(
-    const QString & notebookLocalUid)
+void NoteFiltersManager::setNotebookToFilter(const QString & notebookLocalUid)
 {
-    QNDEBUG("NoteFiltersManager::resetFilterToNotebookLocalUid: "
+    QNDEBUG("NoteFiltersManager::setNotebookToFilter: "
         << notebookLocalUid);
 
-    if (notebookLocalUid.isEmpty()) {
-        clearFilterByNotebookWidgetItems();
-        evaluate();
-        return;
-    }
-
-    const auto * pNotebookModel = m_filterByNotebookWidget.notebookModel();
-    if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Notebook model in the filter by notebook widget is null");
-        clearFilterByNotebookWidgetItems();
-        evaluate();
-        return;
-    }
-
-    const QString name = pNotebookModel->itemNameForLocalUid(notebookLocalUid);
-    if (name.isEmpty()) {
-        QNWARNING("Failed to find the notebook name for notebook local uid "
-                  << notebookLocalUid);
-        clearFilterByNotebookWidgetItems();
-        evaluate();
-        return;
-    }
-
-    clearFilterWidgetsItems();
-
-    QObject::disconnect(
-        &m_filterByNotebookWidget,
-        &FilterByNotebookWidget::addedItemToFilter,
-        this,
-        &NoteFiltersManager::onAddedNotebookToFilter);
-
-    persistFilterByNotebookClearedState(false);
-    m_filterByNotebookWidget.addItemToFilter(notebookLocalUid, name);
-
-    QObject::connect(&m_filterByNotebookWidget,
-                     QNSIGNAL(FilterByNotebookWidget,addedItemToFilter,QString),
-                     this,
-                     QNSLOT(NoteFiltersManager,onAddedNotebookToFilter,QString),
-                     Qt::UniqueConnection);
-
+    clearFilterByNotebookWidgetItems();
+    setNotebookToFilterImpl(notebookLocalUid);
     evaluate();
 }
 
@@ -221,6 +183,24 @@ void NoteFiltersManager::removeNotebooksFromFilter()
 
     persistFilterByNotebookClearedState(true);
     clearFilterByNotebookWidgetItems();
+    evaluate();
+}
+
+void NoteFiltersManager::setTagToFilter(const QString & tagLocalUid)
+{
+    QNDEBUG("NoteFiltersManager::setTagToFilter: " << tagLocalUid);
+
+    clearFilterByTagWidgetItems();
+    setTagToFilterImpl(tagLocalUid);
+    evaluate();
+}
+
+void NoteFiltersManager::removeTagsFromFilter()
+{
+    QNDEBUG("NoteFiltersManager::removeTagsFromFilter");
+
+    persistFilterByTagClearedState(true);
+    clearFilterByTagWidgetItems();
     evaluate();
 }
 
@@ -1214,6 +1194,78 @@ void NoteFiltersManager::checkFiltersReadiness()
     Q_EMIT ready();
 }
 
+void NoteFiltersManager::setNotebookToFilterImpl(
+    const QString & notebookLocalUid)
+{
+    if (notebookLocalUid.isEmpty()) {
+        return;
+    }
+
+    const auto * pNotebookModel = m_filterByNotebookWidget.notebookModel();
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG("Notebook model in the filter by notebook widget is null");
+        return;
+    }
+
+    const QString name = pNotebookModel->itemNameForLocalUid(notebookLocalUid);
+    if (name.isEmpty()) {
+        QNWARNING("Failed to find notebook name for notebook local uid "
+            << notebookLocalUid);
+        return;
+    }
+
+    QObject::disconnect(
+        &m_filterByNotebookWidget,
+        &FilterByNotebookWidget::addedItemToFilter,
+        this,
+        &NoteFiltersManager::onAddedNotebookToFilter);
+
+    persistFilterByNotebookClearedState(false);
+    m_filterByNotebookWidget.addItemToFilter(notebookLocalUid, name);
+
+    QObject::connect(
+        &m_filterByNotebookWidget,
+        &FilterByNotebookWidget::addedItemToFilter,
+        this,
+        &NoteFiltersManager::onAddedNotebookToFilter,
+        Qt::UniqueConnection);
+}
+
+void NoteFiltersManager::setTagToFilterImpl(const QString & tagLocalUid)
+{
+    if (tagLocalUid.isEmpty()) {
+        return;
+    }
+
+    const auto * pTagModel = m_filterByTagWidget.tagModel();
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG("Tag model in the filter by tag widget is null");
+        return;
+    }
+
+    const QString name = pTagModel->itemNameForLocalUid(tagLocalUid);
+    if (name.isEmpty()) {
+        QNWARNING("Failed to find tag name for tag local uid: " << tagLocalUid);
+        return;
+    }
+
+    QObject::disconnect(
+        &m_filterByTagWidget,
+        &FilterByTagWidget::addedItemToFilter,
+        this,
+        &NoteFiltersManager::onAddedTagToFilter);
+
+    persistFilterByTagClearedState(false);
+    m_filterByTagWidget.addItemToFilter(tagLocalUid, name);
+
+    QObject::connect(
+        &m_filterByTagWidget,
+        &FilterByTagWidget::addedItemToFilter,
+        this,
+        &NoteFiltersManager::onAddedTagToFilter,
+        Qt::UniqueConnection);
+}
+
 void NoteFiltersManager::checkAndRefreshNotesSearchQuery()
 {
     QNDEBUG("NoteFiltersManager::checkAndRefreshNotesSearchQuery");
@@ -1362,6 +1414,33 @@ bool NoteFiltersManager::notebookFilterWasCleared() const
     }
 
     return notebookFilterWasCleared.toBool();
+}
+
+void NoteFiltersManager::persistFilterByTagClearedState(const bool state)
+{
+    QNDEBUG("NoteFiltersManager::persistFilterByTagClearedState: "
+        << (state ? "true" : "false"));
+
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
+    appSettings.setValue(TAG_FILTER_CLEARED, state);
+    appSettings.endGroup();
+}
+
+bool NoteFiltersManager::tagFilterWasCleared() const
+{
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
+    auto tagFilterWasCleared = appSettings.value(TAG_FILTER_CLEARED);
+    appSettings.endGroup();
+
+    if (!tagFilterWasCleared.isValid()) {
+        return false;
+    }
+
+    return tagFilterWasCleared.toBool();
 }
 
 NoteSearchQuery NoteFiltersManager::createNoteSearchQuery(

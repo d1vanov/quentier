@@ -57,9 +57,12 @@ public:
     bool isFilterBySearchStringActive() const;
 
     void clear();
-    void resetFilterToNotebookLocalUid(const QString & notebookLocalUid);
 
+    void setNotebookToFilter(const QString & notebookLocalUid);
     void removeNotebooksFromFilter();
+
+    void setTagToFilter(const QString & tagLocalUid);
+    void removeTagsFromFilter();
 
     /**
      * @return              True if all filters have already been properly
@@ -156,12 +159,18 @@ private:
 
     void checkFiltersReadiness();
 
+    void setNotebookToFilterImpl(const QString & notebookLocalUid);
+    void setTagToFilterImpl(const QString & tagLocalUid);
+
     void checkAndRefreshNotesSearchQuery();
 
     bool setAutomaticFilterByNotebook();
 
     void persistFilterByNotebookClearedState(const bool state);
     bool notebookFilterWasCleared() const;
+
+    void persistFilterByTagClearedState(const bool state);
+    bool tagFilterWasCleared() const;
 
 private:
     Account                         m_account;

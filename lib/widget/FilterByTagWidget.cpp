@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,7 +18,7 @@
 
 #include "FilterByTagWidget.h"
 
-#include <lib/model/TagModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,17 +19,17 @@
 #ifndef QUENTIER_LIB_ENEX_ENEX_EXPORTER_H
 #define QUENTIER_LIB_ENEX_ENEX_EXPORTER_H
 
-#include <quentier/utility/Macros.h>
+#include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
-#include <quentier/local_storage/LocalStorageManager.h>
+#include <quentier/utility/Macros.h>
 
-#include <QObject>
-#include <QStringList>
-#include <QSet>
 #include <QHash>
-#include <QUuid>
+#include <QObject>
 #include <QPointer>
+#include <QSet>
+#include <QStringList>
+#include <QUuid>
 
 namespace quentier {
 
@@ -47,18 +47,26 @@ public:
         TagModel & tagModel, QObject * parent = nullptr);
 
     const QString & targetEnexFilePath() const
-    { return m_targetEnexFilePath; }
+    {
+        return m_targetEnexFilePath;
+    }
 
-    void setTargetEnexFilePath(const QString & path)
-    { m_targetEnexFilePath = path; }
+    void setTargetEnexFilePath(QString path)
+    {
+        m_targetEnexFilePath = std::move(path);
+    }
 
     const QStringList & noteLocalUids() const
-    { return m_noteLocalUids; }
+    {
+        return m_noteLocalUids;
+    }
 
     void setNoteLocalUids(const QStringList & noteLocalUids);
 
     bool includeTags() const
-    { return m_includeTags; }
+    {
+        return m_includeTags;
+    }
 
     void setIncludeTags(const bool includeTags);
 
@@ -72,14 +80,18 @@ Q_SIGNALS:
     void failedToExportNotesToEnex(ErrorString errorDescription);
 
 // private signals:
-    void findNote(Note note, LocalStorageManager::GetNoteOptions options,
-                  QUuid requestId);
+    void findNote(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
 
 private Q_SLOTS:
-    void onFindNoteComplete(Note note, LocalStorageManager::GetNoteOptions options,
-                            QUuid requestId);
-    void onFindNoteFailed(Note note, LocalStorageManager::GetNoteOptions options,
-                          ErrorString errorDescription, QUuid requestId);
+    void onFindNoteComplete(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
+
+    void onFindNoteFailed(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        ErrorString errorDescription, QUuid requestId);
 
     void onAllTagsListed();
 
@@ -98,8 +110,8 @@ private:
     QStringList                             m_noteLocalUids;
     QSet<QUuid>                             m_findNoteRequestIds;
     QHash<QString, Note>                    m_notesByLocalUid;
-    bool                                    m_includeTags;
-    bool                                    m_connectedToLocalStorage;
+    bool                                    m_includeTags = false;
+    bool                                    m_connectedToLocalStorage = false;
 };
 
 } // namespace quentier

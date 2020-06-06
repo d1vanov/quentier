@@ -27,6 +27,7 @@
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
@@ -127,16 +128,16 @@ private:
         const QStringList & expandedLinkedNotebookGuids,
         const NotebookModel & model);
 
-    void restoreFilteredNotebook(
+    void saveSelectedNotebook(
+        const Account & account, const QString & notebookLocalUid);
+
+    void restoreSelectedNotebook(
         const NotebookModel & model);
 
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
 
-    void persistSelectedNotebookLocalUid(
-        const NotebookModel & notebookModel, const QString & notebookLocalUid);
-
-    void clearSelectionImpl();
+    void handleNoSelectedNotebook(const Account & account);
 
     void selectAllNotebooksRootItem(const NotebookModel & notebookModel);
 
@@ -152,6 +153,8 @@ private:
 
     void disconnectFromNoteFiltersManagerFilterChanged();
     void connectToNoteFiltersManagerFilterChanged();
+
+    bool shouldFilterBySelectedNotebook(const Account & account) const;
 
     // Helper structs and methods to access common data pieces in slots
 

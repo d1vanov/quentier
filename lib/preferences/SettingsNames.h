@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -175,6 +175,21 @@
 #define PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY              \
     QStringLiteral("BackgroundGradientLineColor")                              \
 // PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Side panels filtering via selection settings keys
+#define SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME                    \
+    QStringLiteral("SidePanelsFilterBySelection")                              \
+// SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME
+
+#define FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY                               \
+    QStringLiteral("FilterBySelectedNotebook")                                 \
+// FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY
+
+#define FILTER_BY_SELECTED_TAG_SETTINGS_KEY                                    \
+    QStringLiteral("FilterBySelectedTag")                                      \
+// FILTER_BY_SELECTED_TAG_SETTINGS_KEY
 
 ////////////////////////////////////////////////////////////////////////////////
 

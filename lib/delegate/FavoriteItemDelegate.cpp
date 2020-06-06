@@ -20,8 +20,8 @@
 
 #include <lib/model/FavoritesModel.h>
 #include <lib/model/FavoritesModelItem.h>
-#include <lib/model/TagModel.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/tag/TagModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 
@@ -36,7 +36,6 @@ namespace quentier {
 FavoriteItemDelegate::FavoriteItemDelegate(QObject * parent) :
     AbstractStyledItemDelegate(parent),
     m_notebookIcon(QIcon::fromTheme(QStringLiteral("x-office-address-book"))),
-    m_tagIcon(),
     m_noteIcon(QIcon::fromTheme(QStringLiteral("x-office-document"))),
     m_savedSearchIcon(QIcon::fromTheme(QStringLiteral("edit-find"))),
     m_unknownTypeIcon(QIcon::fromTheme(QStringLiteral("image-missing"))),
@@ -77,8 +76,8 @@ void FavoriteItemDelegate::paint(
     QPainter * painter, const QStyleOptionViewItem & option,
     const QModelIndex & index) const
 {
-    const QAbstractItemModel * model = index.model();
-    if (Q_UNLIKELY(!model)) {
+    const auto * pModel = index.model();
+    if (Q_UNLIKELY(!pModel)) {
         return;
     }
 
@@ -88,7 +87,7 @@ void FavoriteItemDelegate::paint(
     int column = index.column();
     if (column == FavoritesModel::Columns::Type)
     {
-        QVariant type = model->data(index);
+        QVariant type = pModel->data(index);
         bool conversionResult = false;
         int typeInt = type.toInt(&conversionResult);
         if (conversionResult)
@@ -126,23 +125,23 @@ void FavoriteItemDelegate::paint(
 }
 
 void FavoriteItemDelegate::setEditorData(
-    QWidget * editor, const QModelIndex & index) const
+    QWidget * pEditor, const QModelIndex & index) const
 {
     if (index.isValid() &&
         (index.column() == FavoritesModel::Columns::DisplayName))
     {
-        AbstractStyledItemDelegate::setEditorData(editor, index);
+        AbstractStyledItemDelegate::setEditorData(pEditor, index);
     }
 }
 
 void FavoriteItemDelegate::setModelData(
-    QWidget * editor, QAbstractItemModel * model,
+    QWidget * pEditor, QAbstractItemModel * pModel,
     const QModelIndex & index) const
 {
     if (index.isValid() &&
         (index.column() == FavoritesModel::Columns::DisplayName))
     {
-        AbstractStyledItemDelegate::setModelData(editor, model, index);
+        AbstractStyledItemDelegate::setModelData(pEditor, pModel, index);
     }
 }
 
@@ -175,32 +174,39 @@ void FavoriteItemDelegate::updateEditorGeometry(
 QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    const QAbstractItemModel * model = index.model();
-    if (Q_UNLIKELY(!model)) {
+    const auto * pModel = index.model();
+    if (Q_UNLIKELY(!pModel)) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = model->data(index).toString().simplified();
+    QString name = pModel->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QString nameSuffix;
 
-    QModelIndex itemTypeIndex =
-        model->index(index.row(), FavoritesModel::Columns::Type, index.parent());
-    QVariant itemType = model->data(itemTypeIndex);
+    QModelIndex itemTypeIndex = pModel->index(
+        index.row(),
+        FavoritesModel::Columns::Type,
+        index.parent());
+
+    QVariant itemType = pModel->data(itemTypeIndex);
     bool conversionResult = false;
-    FavoritesModelItem::Type::type itemTypeInt =
-        static_cast<FavoritesModelItem::Type::type>(itemType.toInt(&conversionResult));
+
+    auto itemTypeInt = static_cast<FavoritesModelItem::Type::type>(
+        itemType.toInt(&conversionResult));
+
     if (conversionResult &&
         ((itemTypeInt == FavoritesModelItem::Type::Notebook) ||
          (itemTypeInt == FavoritesModelItem::Type::Tag)))
     {
-        QModelIndex numNotesIndex =
-            model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted,
-                         index.parent());
-        QVariant numNotes = model->data(numNotesIndex);
+        QModelIndex numNotesIndex = pModel->index(
+            index.row(),
+            FavoritesModel::Columns::NumNotesTargeted,
+            index.parent());
+
+        QVariant numNotes = pModel->data(numNotesIndex);
         conversionResult = false;
         int numNotesInt = numNotes.toInt(&conversionResult);
         if (conversionResult && (numNotesInt > 0)) {
@@ -215,18 +221,22 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
     int fontHeight = fontMetrics.height();
 
     double margin = 1.1;
-    return QSize(std::max(static_cast<int>(std::floor(nameWidth * margin + 0.5)),
-                          option.rect.width()),
-                 std::max(static_cast<int>(std::floor(fontHeight * margin + 0.5)),
-                          option.rect.height()));
+
+    return QSize(
+        std::max(
+            static_cast<int>(std::floor(nameWidth * margin + 0.5)),
+            option.rect.width()),
+        std::max(
+            static_cast<int>(std::floor(fontHeight * margin + 0.5)),
+            option.rect.height()));
 }
 
 void FavoriteItemDelegate::drawFavoriteItemName(
     QPainter * painter, const QModelIndex & index,
     const QStyleOptionViewItem & option) const
 {
-    const QAbstractItemModel * model = index.model();
-    if (Q_UNLIKELY(!model)) {
+    const auto * pModel = index.model();
+    if (Q_UNLIKELY(!pModel)) {
         return;
     }
 
@@ -234,7 +244,7 @@ void FavoriteItemDelegate::drawFavoriteItemName(
         painter->fillRect(option.rect, option.palette.highlight());
     }
 
-    QString name = model->data(index).toString().simplified();
+    QString name = pModel->data(index).toString().simplified();
     if (name.isEmpty()) {
         QNDEBUG("FavoriteItemDelegate::drawFavoriteItemName: "
                 "item name is empty");
@@ -243,10 +253,12 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     QString nameSuffix;
 
-    QModelIndex numNotesPerItemIndex =
-        model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted,
-                     index.parent());
-    QVariant numNotesPerItem = model->data(numNotesPerItemIndex);
+    QModelIndex numNotesPerItemIndex = pModel->index(
+        index.row(),
+        FavoritesModel::Columns::NumNotesTargeted,
+        index.parent());
+
+    QVariant numNotesPerItem = pModel->data(numNotesPerItemIndex);
     bool conversionResult = false;
     int numNotesPerItemInt = numNotesPerItem.toInt(&conversionResult);
     if (conversionResult && (numNotesPerItemInt > 0)) {
@@ -257,11 +269,14 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     adjustDisplayedText(name, option, nameSuffix);
 
-    painter->setPen(option.state & QStyle::State_Selected
-                    ? option.palette.highlightedText().color()
-                    : option.palette.windowText().color());
-    painter->drawText(option.rect, name,
-                      QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    painter->setPen(
+        option.state & QStyle::State_Selected
+        ? option.palette.highlightedText().color()
+        : option.palette.windowText().color());
+
+    painter->drawText(
+        option.rect, name,
+        QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     if (nameSuffix.isEmpty()) {
         return;
@@ -270,11 +285,15 @@ void FavoriteItemDelegate::drawFavoriteItemName(
     QFontMetrics fontMetrics(option.font);
     int nameWidth = fontMetricsWidth(fontMetrics, name);
 
-    painter->setPen(option.state & QStyle::State_Selected
-                    ? option.palette.color(QPalette::Active, QPalette::WindowText)
-                    : option.palette.color(QPalette::Active, QPalette::Highlight));
-    painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix,
-                      QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    painter->setPen(
+        option.state & QStyle::State_Selected
+        ? option.palette.color(QPalette::Active, QPalette::WindowText)
+        : option.palette.color(QPalette::Active, QPalette::Highlight));
+
+    painter->drawText(
+        option.rect.translated(nameWidth, 0),
+        nameSuffix,
+        QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
 } // namespace quentier
