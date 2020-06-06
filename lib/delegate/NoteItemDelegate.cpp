@@ -25,10 +25,11 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
-#include <QPainter>
 #include <QDateTime>
-#include <QTextOption>
 #include <QListView>
+#include <QPainter>
+#include <QPainterPath>
+#include <QTextOption>
 
 #include <cmath>
 
