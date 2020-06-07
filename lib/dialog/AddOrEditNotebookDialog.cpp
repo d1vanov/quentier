@@ -332,8 +332,9 @@ void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(false);
 }
 
-void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
+void AddOrEditNotebookDialog::onNotebookStackChanged(int stackIndex)
 {
+    QString stack = m_pUi->notebookStackComboBox->itemText(stackIndex);
     QNDEBUG("AddOrEditNotebookDialog::onNotebookStackChanged: " << stack);
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
@@ -361,16 +362,16 @@ void AddOrEditNotebookDialog::createConnections()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_pUi->notebookStackComboBox,
-        qOverload<const QString&>(&QComboBox::currentIndexChanged),
+        qOverload<int>(&QComboBox::currentIndexChanged),
         this,
         &AddOrEditNotebookDialog::onNotebookStackChanged);
         SLOT(onNotebookStackChanged(QString));
 #else
     QObject::connect(
         m_pUi->notebookStackComboBox,
-        SIGNAL(currentIndexChanged(QString)),
+        SIGNAL(currentIndexChanged(int)),
         this,
-        SLOT(onNotebookStackChanged(QString)));
+        SLOT(onNotebookStackChanged(int)));
 #endif
 
     QObject::connect(

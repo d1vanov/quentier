@@ -302,8 +302,15 @@ void EditNoteDialogsManager::raiseEditNoteDialog(
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE("Emitting the request to update note: request id = " << requestId);
-    Q_EMIT updateNote(editedNote, LocalStorageManager::UpdateNoteOptions(0),
-                      requestId);
+
+    Q_EMIT updateNote(
+        editedNote,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::UpdateNoteOptions(),
+#else
+        LocalStorageManager::UpdateNoteOptions(0),
+#endif
+        requestId);
 }
 
 } // namespace quentier

@@ -282,6 +282,12 @@ void PreferencesDialog::onPanelColorWidgetUserError(QString errorMessage)
     m_clearAndHideStatusBarTimerId = startTimer(15000);
 }
 
+void PreferencesDialog::onIconThemeChanged(int iconThemeIndex)
+{
+    QString iconThemeName = m_pUi->iconThemeComboBox->itemText(iconThemeIndex);
+    Q_EMIT iconThemeChanged(iconThemeName);
+}
+
 void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
 {
     QNDEBUG("PreferencesDialog::onStartAtLoginCheckboxToggled: "
@@ -1452,15 +1458,15 @@ void PreferencesDialog::setupAppearanceSettingsState(
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_pUi->iconThemeComboBox,
-        qOverload<const QString&>(&QComboBox::currentIndexChanged),
+        qOverload<int>(&QComboBox::currentIndexChanged),
         this,
-        &PreferencesDialog::iconThemeChanged);
+        &PreferencesDialog::onIconThemeChanged);
 #else
     QObject::connect(
         m_pUi->iconThemeComboBox,
-        SIGNAL(currentIndexChanged(QString)),
+        SIGNAL(currentIndexChanged(int)),
         this,
-        SIGNAL(iconThemeChanged(QString)));
+        SLOT(onIconThemeChanged(int)));
 #endif
 }
 

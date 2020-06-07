@@ -188,13 +188,14 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 #endif
 
     // 5) Launch the script
-    QString commandLine;
+    QStringList args;
 #ifndef Q_OS_WIN
-    commandLine += QStringLiteral("sh ");
+    args += QStringLiteral("sh ");
 #endif
-    commandLine += restartScriptFileInfo.absoluteFilePath();
+    args += restartScriptFileInfo.absoluteFilePath();
 
-    bool res = QProcess::startDetached(commandLine);
+    QString program = args.takeFirst();
+    bool res = QProcess::startDetached(program, args);
     if (Q_UNLIKELY(!res)) {
         Cerr << "Failed to launch script for application restart\n";
     }

@@ -1889,10 +1889,16 @@ void NoteEditorWidget::onEditorInAppLinkPasteRequested(
     dummyNote.unsetLocalUid();
     dummyNote.setGuid(noteGuid);
     QNTRACE("Emitting the request to find note by guid for "
-            << "the purpose of in-app note link insertion: "
-            << "request id = " << requestId
-            << ", note guid = " << noteGuid);
+        << "the purpose of in-app note link insertion: "
+        << "request id = " << requestId
+        << ", note guid = " << noteGuid);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    LocalStorageManager::GetNoteOptions options;
+#else
     LocalStorageManager::GetNoteOptions options(0);
+#endif
+
     Q_EMIT findNote(dummyNote, options, requestId);
 }
 

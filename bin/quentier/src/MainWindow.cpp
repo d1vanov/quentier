@@ -4546,7 +4546,11 @@ void MainWindow::setupLocalStorageManager()
 
     m_pLocalStorageManagerAsync = new LocalStorageManagerAsync(
         *m_pAccount,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::StartupOptions());
+#else
         LocalStorageManager::StartupOptions(0));
+#endif
 
     m_pLocalStorageManagerAsync->init();
 
@@ -4564,11 +4568,17 @@ void MainWindow::setupLocalStorageManager()
                 << localStoragePatches.size()
                 << " pending local storage patches");
         QScopedPointer<LocalStorageUpgradeDialog> pUpgradeDialog(
-            new LocalStorageUpgradeDialog(*m_pAccount,
-                                          m_pAccountManager->accountModel(),
-                                          localStoragePatches,
-                                          LocalStorageUpgradeDialog::Options(0),
-                                          this));
+            new LocalStorageUpgradeDialog(
+                *m_pAccount,
+                m_pAccountManager->accountModel(),
+                localStoragePatches,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+                LocalStorageUpgradeDialog::Options(),
+#else
+                LocalStorageUpgradeDialog::Options(0),
+#endif
+                this));
+
         QObject::connect(pUpgradeDialog.data(),
                          QNSIGNAL(LocalStorageUpgradeDialog,shouldQuitApp),
                          this,
