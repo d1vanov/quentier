@@ -2350,13 +2350,23 @@ void NoteModel::requestNotesList()
     if (!hasFilters())
     {
         NMDEBUG("Emitting the request to list notes: offset = "
-                << m_listNotesOffset << ", request id = "
-                << m_listNotesRequestId << ", order = "
-                << order << ", direction = " << direction);
+            << m_listNotesOffset << ", request id = "
+            << m_listNotesRequestId << ", order = "
+            << order << ", direction = " << direction);
 
-        Q_EMIT listNotes(flags, LocalStorageManager::GetNoteOptions(0),
-                         NOTE_LIST_QUERY_LIMIT, m_listNotesOffset, order,
-                         direction, QString(), m_listNotesRequestId);
+        Q_EMIT listNotes(
+            flags,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            LocalStorageManager::GetNoteOptions(),
+#else
+            LocalStorageManager::GetNoteOptions(0),
+#endif
+            NOTE_LIST_QUERY_LIMIT,
+            m_listNotesOffset, order,
+            direction,
+            QString(),
+            m_listNotesRequestId);
+
         return;
     }
 
@@ -2379,16 +2389,26 @@ void NoteModel::requestNotesList()
         }
 
         NMDEBUG("Emitting the request to list notes by local uids: "
-                << ", request id = " << m_listNotesRequestId
-                << ", order = " << order
-                << ", direction = " << direction
-                << ", note local uids: "
-                << noteLocalUids.join(QStringLiteral(", ")));
+            << ", request id = " << m_listNotesRequestId
+            << ", order = " << order
+            << ", direction = " << direction
+            << ", note local uids: "
+            << noteLocalUids.join(QStringLiteral(", ")));
 
-        Q_EMIT listNotesByLocalUids(noteLocalUids,
-                                    LocalStorageManager::GetNoteOptions(0),
-                                    flags, NOTE_LIST_QUERY_LIMIT, 0, order, direction,
-                                    m_listNotesRequestId);
+        Q_EMIT listNotesByLocalUids(
+            noteLocalUids,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            LocalStorageManager::GetNoteOptions(),
+#else
+            LocalStorageManager::GetNoteOptions(0),
+#endif
+            flags,
+            NOTE_LIST_QUERY_LIMIT,
+            0,
+            order,
+            direction,
+            m_listNotesRequestId);
+
         return;
     }
 
@@ -2396,20 +2416,29 @@ void NoteModel::requestNotesList()
     const QStringList & tagLocalUids = m_pFilters->filteredTagLocalUids();
 
     NMDEBUG("Emitting the request to list notes per notebooks "
-            << "and tags: offset = " << m_listNotesOffset
-            << ", request id = " << m_listNotesRequestId
-            << ", order = " << order
-            << ", direction = " << direction
-            << ", notebook local uids: "
-            << notebookLocalUids.join(QStringLiteral(", "))
-            << "; tag local uids: "
-            << tagLocalUids.join(QStringLiteral(", ")));
+        << "and tags: offset = " << m_listNotesOffset
+        << ", request id = " << m_listNotesRequestId
+        << ", order = " << order
+        << ", direction = " << direction
+        << ", notebook local uids: "
+        << notebookLocalUids.join(QStringLiteral(", "))
+        << "; tag local uids: "
+        << tagLocalUids.join(QStringLiteral(", ")));
 
     Q_EMIT listNotesPerNotebooksAndTags(
-        notebookLocalUids, tagLocalUids,
+        notebookLocalUids,
+        tagLocalUids,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::GetNoteOptions(),
+#else
         LocalStorageManager::GetNoteOptions(0),
-        flags, NOTE_LIST_QUERY_LIMIT, m_listNotesOffset,
-        order, direction, m_listNotesRequestId);
+#endif
+        flags,
+        NOTE_LIST_QUERY_LIMIT,
+        m_listNotesOffset,
+        order,
+        direction,
+        m_listNotesRequestId);
 }
 
 void NoteModel::requestNotesCount()
@@ -2546,7 +2575,11 @@ int NoteModel::rowForNewItem(const NoteModelItem & item) const
 
 LocalStorageManager::NoteCountOptions NoteModel::noteCountOptions() const
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    LocalStorageManager::NoteCountOptions noteCountOptions;
+#else
     LocalStorageManager::NoteCountOptions noteCountOptions = 0;
+#endif
 
     if (m_includedNotes != IncludedNotes::Deleted) {
         noteCountOptions |=
@@ -2564,7 +2597,7 @@ LocalStorageManager::NoteCountOptions NoteModel::noteCountOptions() const
 void NoteModel::processTagExpunging(const QString & tagLocalUid)
 {
     NMTRACE("NoteModel::processTagExpunging: tag local uid = "
-            << tagLocalUid);
+        << tagLocalUid);
 
     auto tagDataIt = m_tagDataByTagLocalUid.find(tagLocalUid);
     if (tagDataIt == m_tagDataByTagLocalUid.end()) {
@@ -2599,14 +2632,14 @@ void NoteModel::processTagExpunging(const QString & tagLocalUid)
     Q_UNUSED(m_tagLocalUidToNoteLocalUid.remove(tagLocalUid))
 
     NMTRACE("Affected notes local uids: "
-            << affectedNotesLocalUids.join(QStringLiteral(", ")));
+        << affectedNotesLocalUids.join(QStringLiteral(", ")));
     for(auto it = affectedNotesLocalUids.constBegin(),
         end = affectedNotesLocalUids.constEnd(); it != end; ++it)
     {
         auto noteItemIt = localUidIndex.find(*it);
         if (Q_UNLIKELY(noteItemIt == localUidIndex.end())) {
             NMDEBUG("Can't find the note pointed to by the expunged "
-                    << "tag by local uid: note local uid = " << noteIt.value());
+                << "tag by local uid: note local uid = " << noteIt.value());
             continue;
         }
 
@@ -2651,8 +2684,8 @@ void NoteModel::removeItemByLocalUid(const QString & localUid)
     int row = static_cast<int>(std::distance(index.begin(), indexIt));
     if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
         NMWARNING("Invalid row index for the note model item "
-                  << "to remove: index = " << row
-                  << ", item: " << item);
+            << "to remove: index = " << row
+            << ", item: " << item);
         return;
     }
 
@@ -2665,7 +2698,7 @@ bool NoteModel::updateItemRowWithRespectToSorting(
     const NoteModelItem & item, ErrorString & errorDescription)
 {
     NMDEBUG("NoteModel::updateItemRowWithRespectToSorting: item local uid = "
-            << item.localUid());
+        << item.localUid());
 
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto localUidIt = localUidIndex.find(item.localUid());
@@ -2802,8 +2835,14 @@ void NoteModel::saveNoteInLocalStorage(
         Q_UNUSED(m_cache.remove(note.localUid()))
 
         NMTRACE("Emitting the request to update the note in local storage: id = "
-                << requestId << ", note: " << note);
+            << requestId << ", note: " << note);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::UpdateNoteOptions options;
+#else
         LocalStorageManager::UpdateNoteOptions options(0);
+#endif
+
         if (saveTags) {
             options |= LocalStorageManager::UpdateNoteOption::UpdateTags;
         }
@@ -3865,7 +3904,12 @@ bool NoteModel::NoteFilters::setFilteredNoteLocalUids(
 bool NoteModel::NoteFilters::setFilteredNoteLocalUids(
     const QStringList & noteLocalUids)
 {
-    return setFilteredNoteLocalUids(QSet<QString>::fromList(noteLocalUids));
+    return setFilteredNoteLocalUids(
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+        QSet<QString>(noteLocalUids.constBegin(), noteLocalUids.constEnd()));
+#else
+        QSet<QString>::fromList(noteLocalUids));
+#endif
 }
 
 void NoteModel::NoteFilters::clearFilteredNoteLocalUids()

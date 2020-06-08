@@ -278,11 +278,14 @@ void ShortcutSettingsWidget::initialize(const Account & account,
             }
         }
 
-        setModified(*(pShortcutItem->m_pTreeWidgetItem),
-                    pShortcutItem->m_isModified);
+        setModified(
+            *pShortcutItem->m_pTreeWidgetItem,
+            pShortcutItem->m_isModified);
 
-        pShortcutItem->m_pTreeWidgetItem->setData(0, Qt::UserRole,
-                                                  qVariantFromValue(pShortcutItem));
+        pShortcutItem->m_pTreeWidgetItem->setData(
+            0,
+            Qt::UserRole,
+            QVariant::fromValue(pShortcutItem));
 
         Q_UNUSED(markCollisions(*pShortcutItem))
     }

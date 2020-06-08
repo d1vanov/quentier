@@ -72,7 +72,7 @@ Q_SIGNALS:
     void disableNativeMenuBarOptionChanged();
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
 
-    void iconThemeChanged(const QString & iconTheme);
+    void iconThemeChanged(QString iconThemeName);
 
     void panelFontColorChanged(QColor color);
     void panelBackgroundColorChanged(QColor color);
@@ -108,6 +108,7 @@ private Q_SLOTS:
     void onShowNoteThumbnailsCheckboxToggled(bool checked);
     void onDisableNativeMenuBarCheckboxToggled(bool checked);
     void onPanelColorWidgetUserError(QString errorMessage);
+    void onIconThemeChanged(int iconThemeIndex);
 
     // Behaviour tab
     void onStartAtLoginCheckboxToggled(bool checked);

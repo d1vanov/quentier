@@ -48,7 +48,9 @@ using namespace quentier;
 
 int main(int argc, char * argv[])
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
     qsrand(static_cast<quint32>(QTime::currentTime().msec()));
+#endif
 
     // Loading the dependencies manually - required on Windows
     loadDependencies();

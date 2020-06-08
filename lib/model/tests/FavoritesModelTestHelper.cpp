@@ -564,8 +564,16 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_fourthNote.setFavorited(true);
+
         m_pLocalStorageManagerAsync->onUpdateNoteRequest(
-            m_fourthNote, LocalStorageManager::UpdateNoteOptions(0), QUuid());
+            m_fourthNote,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            LocalStorageManager::UpdateNoteOptions(),
+#else
+            LocalStorageManager::UpdateNoteOptions(0),
+#endif
+            QUuid());
+
         fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
         if (!fourthNoteIndex.isValid()) {
             FAIL("Can't get the valid model index for the favorites "
@@ -668,8 +676,15 @@ void FavoritesModelTestHelper::launchTest()
         }
 
         m_thirdNote.setFavorited(false);
+
         m_pLocalStorageManagerAsync->onUpdateNoteRequest(
-            m_thirdNote, LocalStorageManager::UpdateNoteOptions(0), QUuid());
+            m_thirdNote,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            LocalStorageManager::UpdateNoteOptions(),
+#else
+            LocalStorageManager::UpdateNoteOptions(0),
+#endif
+            QUuid());
 
         thirdNoteIndex = model->indexForLocalUid(m_thirdNote.localUid());
         if (thirdNoteIndex.isValid()) {
@@ -694,8 +709,15 @@ void FavoritesModelTestHelper::launchTest()
         m_pLocalStorageManagerAsync->onUpdateTagRequest(m_thirdTag, QUuid());
 
         m_thirdNote.setFavorited(true);
+
         m_pLocalStorageManagerAsync->onUpdateNoteRequest(
-            m_thirdNote, LocalStorageManager::UpdateNoteOptions(0), QUuid());
+            m_thirdNote,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            LocalStorageManager::UpdateNoteOptions(),
+#else
+            LocalStorageManager::UpdateNoteOptions(0),
+#endif
+            QUuid());
 
         thirdNotebookIndex = model->indexForLocalUid(m_thirdNotebook.localUid());
         if (!thirdNotebookIndex.isValid()) {

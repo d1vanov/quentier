@@ -2100,11 +2100,22 @@ void FavoritesModel::requestNotesList()
 
     m_listNotesRequestId = QUuid::createUuid();
     QNTRACE("Emitting the request to list notes: offset = "
-            << m_listNotesOffset << ", request id = "
-            << m_listNotesRequestId);
-    Q_EMIT listNotes(flags, LocalStorageManager::GetNoteOptions(0),
-                     NOTE_LIST_LIMIT, m_listNotesOffset, order, direction,
-                     QString(), m_listNotesRequestId);
+        << m_listNotesOffset << ", request id = "
+        << m_listNotesRequestId);
+
+    Q_EMIT listNotes(
+        flags,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::GetNoteOptions(),
+#else
+        LocalStorageManager::GetNoteOptions(0),
+#endif
+        NOTE_LIST_LIMIT,
+        m_listNotesOffset,
+        order,
+        direction,
+        QString(),
+        m_listNotesRequestId);
 }
 
 void FavoritesModel::requestNotebooksList()
@@ -2641,8 +2652,16 @@ void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
     Q_UNUSED(m_noteCache.remove(note.localUid()))
 
     QNTRACE("Emitting the request to update the note in the local "
-            << "storage: id = " << requestId << ", note: " << note);
-    Q_EMIT updateNote(note, LocalStorageManager::UpdateNoteOptions(0), requestId);
+        << "storage: id = " << requestId << ", note: " << note);
+
+    Q_EMIT updateNote(
+        note,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::UpdateNoteOptions(),
+#else
+        LocalStorageManager::UpdateNoteOptions(0),
+#endif
+        requestId);
 }
 
 void FavoritesModel::updateNotebookInLocalStorage(const FavoritesModelItem & item)
@@ -2859,9 +2878,17 @@ void FavoritesModel::unfavoriteNote(const QString & localUid)
     Q_UNUSED(m_noteCache.remove(note.localUid()))
 
     QNTRACE("Emitting the request to update the note in the local "
-            << "storage: id = " << requestId
-            << ", note: " << note);
-    Q_EMIT updateNote(note, LocalStorageManager::UpdateNoteOptions(0), requestId);
+        << "storage: id = " << requestId
+        << ", note: " << note);
+
+    Q_EMIT updateNote(
+        note,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::UpdateNoteOptions(),
+#else
+        LocalStorageManager::UpdateNoteOptions(0),
+#endif
+        requestId);
 }
 
 void FavoritesModel::unfavoriteNotebook(const QString & localUid)

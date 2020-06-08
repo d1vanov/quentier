@@ -2761,6 +2761,8 @@ void TagModel::onLinkedNotebookAddedOrUpdated(
                 linkedNotebook.username(),
                 linkedNotebookGuid));
 
+        checkAndCreateModelRootItems();
+
         auto * pLinkedNotebookItem = &(linkedNotebookItemIt.value());
         int row = rowForNewItem(*m_pAllTagsRootItem, *pLinkedNotebookItem);
         beginInsertRows(indexForItem(m_pAllTagsRootItem), row, row);

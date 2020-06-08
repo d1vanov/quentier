@@ -919,9 +919,15 @@ void NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked(
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_inAppNoteLinkFindNoteRequestIds.insert(requestId))
     QNTRACE("Emitting the request to find note by guid for opening "
-            << "it inside a new note editor tab: request id = "
-            << requestId << ", note: " << dummyNote);
+        << "it inside a new note editor tab: request id = "
+        << requestId << ", note: " << dummyNote);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    LocalStorageManager::GetNoteOptions options;
+#else
     LocalStorageManager::GetNoteOptions options(0);
+#endif
+
     Q_EMIT findNote(dummyNote, options, requestId);
 }
 
