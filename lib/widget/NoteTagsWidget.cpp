@@ -413,7 +413,7 @@ void NoteTagsWidget::onNewTagNameEntered()
     newItemLineEditHadFocus = pNewItemLineEdit->hasFocus();
     Q_UNUSED(m_pLayout->removeWidget(pNewItemLineEdit))
 
-    ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
+    ListItemWidget * pTagWidget = new ListItemWidget(tagName, tagLocalUid, this);
     pTagWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     pTagWidget->setItemRemovable(m_tagRestrictions.m_canUpdateNote);
     QObject::connect(pTagWidget,
@@ -769,14 +769,16 @@ void NoteTagsWidget::updateLayout()
 
         m_currentNoteTagLocalUidToNameBimap.insert(
             TagLocalUidToNameBimap::value_type(tagLocalUid, tagName));
+
         tagNames << tagName;
     }
 
     for(int i = 0, size = tagNames.size(); i < size; ++i)
     {
         const QString & tagName = tagNames[i];
+        const QString & tagLocalUid = tagLocalUids[i];
 
-        ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
+        ListItemWidget * pTagWidget = new ListItemWidget(tagName, tagLocalUid, this);
         pTagWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
         pTagWidget->setItemRemovable(m_tagRestrictions.m_canUpdateNote);
         QObject::connect(pTagWidget,

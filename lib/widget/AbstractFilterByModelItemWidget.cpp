@@ -212,7 +212,7 @@ void AbstractFilterByModelItemWidget::addItemToFilter(
     Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(
         ItemLocalUidToNameBimap::value_type(localUid, itemName)))
 
-    ListItemWidget * pItemWidget = new ListItemWidget(itemName, this);
+    ListItemWidget * pItemWidget = new ListItemWidget(itemName, localUid, this);
     QObject::connect(pItemWidget,
                      QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                      this,
@@ -427,7 +427,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
 
     m_pLayout->removeWidget(pNewItemLineEdit);
 
-    ListItemWidget * pItemWidget = new ListItemWidget(newItemName, this);
+    ListItemWidget * pItemWidget = new ListItemWidget(newItemName, localUid, this);
     QObject::connect(pItemWidget,
                      QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                      this,
@@ -583,7 +583,7 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
         Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(
             ItemLocalUidToNameBimap::value_type(*it, itemName)))
 
-        ListItemWidget * pItemWidget = new ListItemWidget(itemName, this);
+        ListItemWidget * pItemWidget = new ListItemWidget(itemName, *it, this);
         QObject::connect(pItemWidget,
                          QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                          this,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,17 +23,49 @@
 
 namespace quentier {
 
-ListItemWidget::ListItemWidget(const QString & name, QWidget *parent) :
+ListItemWidget::ListItemWidget(
+        const QString & itemName, const QString & itemLocalUid, QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::ListItemWidget)
 {
     m_pUi->setupUi(this);
 
-    setName(name);
+    m_itemLocalUid = itemLocalUid;
+    setName(itemName);
     adjustSize();
 
-    QObject::connect(m_pUi->deleteItemButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(ListItemWidget,onRemoveItemButtonPressed));
+    m_pUi->userLabel->hide();
+    m_pUi->linkedNotebookUsernameLabel->hide();
+
+    QObject::connect(
+        m_pUi->deleteItemButton,
+        &QPushButton::clicked,
+        this,
+        &ListItemWidget::onRemoveItemButtonPressed);
+}
+
+ListItemWidget::ListItemWidget(
+        const QString & itemName, const QString & itemLocalUid,
+        const QString & linkedNotebookOwnerName,
+        const QString & linkedNotebookGuid, QWidget * parent) :
+    QWidget(parent),
+    m_pUi(new Ui::ListItemWidget)
+{
+    m_pUi->setupUi(this);
+
+    m_itemLocalUid = itemLocalUid;
+    setName(itemName);
+
+    m_linkedNotebookGuid = linkedNotebookGuid;
+    setLinkedNotebookOwnerName(linkedNotebookOwnerName);
+
+    adjustSize();
+
+    QObject::connect(
+        m_pUi->deleteItemButton,
+        &QPushButton::clicked,
+        this,
+        &ListItemWidget::onRemoveItemButtonPressed);
 }
 
 ListItemWidget::~ListItemWidget()
@@ -49,6 +81,26 @@ QString ListItemWidget::name() const
 void ListItemWidget::setName(const QString & name)
 {
     m_pUi->itemNameLabel->setText(name);
+}
+
+QString ListItemWidget::linkedNotebookOwnerName() const
+{
+    return m_pUi->linkedNotebookUsernameLabel->text();
+}
+
+void ListItemWidget::setLinkedNotebookOwnerName(const QString & name)
+{
+    m_pUi->linkedNotebookUsernameLabel->setText(name);
+}
+
+QString ListItemWidget::linkedNotebookGuid() const
+{
+    return m_linkedNotebookGuid;
+}
+
+void ListItemWidget::setLinkedNotebookGuid(QString guid)
+{
+    m_linkedNotebookGuid = std::move(guid);
 }
 
 QSize ListItemWidget::sizeHint() const
