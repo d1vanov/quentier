@@ -51,6 +51,8 @@ private Q_SLOTS:
 
     void onNotebookNameEdited(const QString & notebookName);
 
+    void onNotebookStackIndexChanged(int stackIndex);
+
     void onNotebookStackChanged(const QString & stack);
 
 private:
