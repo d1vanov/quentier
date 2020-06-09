@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -19,9 +19,9 @@
 #ifndef QUENTIER_LIB_WIDGET_NOTE_FILTERS_MANAGER_H
 #define QUENTIER_LIB_WIDGET_NOTE_FILTERS_MANAGER_H
 
-#include <quentier/utility/Macros.h>
-#include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/NoteSearchQuery.h>
+#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QPointer>
@@ -31,9 +31,9 @@ QT_FORWARD_DECLARE_CLASS(QLineEdit)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
 QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
+QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
@@ -79,7 +79,8 @@ Q_SIGNALS:
     void filterChanged();
 
     /**
-     * @brief ready signal is emitted when all filters become properly initialized
+     * @brief ready signal is emitted when all filters become properly
+     * initialized
      */
     void ready();
 
@@ -89,15 +90,23 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     // Slots for FilterByTagWidget's signals
-    void onAddedTagToFilter(const QString & tagName);
-    void onRemovedTagFromFilter(const QString & tagName);
+    void onAddedTagToFilter(
+        const QString & tagLocalUid, const QString & tagName);
+
+    void onRemovedTagFromFilter(
+        const QString & tagLocalUid, const QString & tagName);
+
     void onTagsClearedFromFilter();
     void onTagsFilterUpdated();
     void onTagsFilterReady();
 
     // Slots for FilterByNotebookWidget's signals
-    void onAddedNotebookToFilter(const QString & notebookName);
-    void onRemovedNotebookFromFilter(const QString & notebookName);
+    void onAddedNotebookToFilter(
+        const QString & notebookLocalUid, const QString & notebookName);
+
+    void onRemovedNotebookFromFilter(
+        const QString & notebookLocalUid,  const QString & notebookName);
+
     void onNotebooksClearedFromFilter();
     void onNotebooksFilterUpdated();
     void onNotebooksFilterReady();
@@ -188,11 +197,11 @@ private:
     QUuid           m_findNoteLocalUidsForSearchStringRequestId;
     QUuid           m_findNoteLocalUidsForSavedSearchQueryRequestId;
 
-    bool            m_autoFilterNotebookWhenReady;
+    bool            m_autoFilterNotebookWhenReady = false;
 
-    bool            m_noteSearchQueryValidated;
+    bool            m_noteSearchQueryValidated = false;
 
-    bool            m_isReady;
+    bool            m_isReady = false;
 };
 
 } // namespace quentier

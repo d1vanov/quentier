@@ -26,8 +26,7 @@
 namespace quentier {
 
 FilterByTagWidget::FilterByTagWidget(QWidget * parent) :
-    AbstractFilterByModelItemWidget(QStringLiteral("Tag"), parent),
-    m_pLocalStorageManager()
+    AbstractFilterByModelItemWidget(QStringLiteral("Tag"), parent)
 {}
 
 void FilterByTagWidget::setLocalStorageManager(
@@ -35,30 +34,28 @@ void FilterByTagWidget::setLocalStorageManager(
 {
     m_pLocalStorageManager = &localStorageManagerAsync;
 
-    QObject::connect(m_pLocalStorageManager.data(),
-                     QNSIGNAL(LocalStorageManagerAsync,updateTagComplete,
-                              Tag,QUuid),
-                     this,
-                     QNSLOT(FilterByTagWidget,onUpdateTagCompleted,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(),
-                     QNSIGNAL(LocalStorageManagerAsync,expungeTagComplete,
-                              Tag,QStringList,QUuid),
-                     this,
-                     QNSLOT(FilterByTagWidget,onExpungeTagCompleted,
-                            Tag,QStringList,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(),
-                     QNSIGNAL(LocalStorageManagerAsync,
-                              expungeNotelessTagsFromLinkedNotebooksComplete,
-                              QUuid),
-                     this,
-                     QNSLOT(FilterByTagWidget,
-                            onExpungeNotelessTagsFromLinkedNotebooksCompleted,
-                            QUuid));
+    QObject::connect(
+        m_pLocalStorageManager.data(),
+        &LocalStorageManagerAsync::updateTagComplete,
+        this,
+        &FilterByTagWidget::onUpdateTagCompleted);
+
+    QObject::connect(
+        m_pLocalStorageManager.data(),
+        &LocalStorageManagerAsync::expungeTagComplete,
+        this,
+        &FilterByTagWidget::onExpungeTagCompleted);
+
+    QObject::connect(
+        m_pLocalStorageManager.data(),
+        &LocalStorageManagerAsync::expungeNotelessTagsFromLinkedNotebooksComplete,
+        this,
+        &FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted);
 }
 
 const TagModel * FilterByTagWidget::tagModel() const
 {
-    const ItemModel * pItemModel = model();
+    const auto * pItemModel = model();
     if (!pItemModel) {
         return nullptr;
     }
@@ -69,7 +66,7 @@ const TagModel * FilterByTagWidget::tagModel() const
 void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
     QNDEBUG("FilterByTagWidget::onUpdateTagCompleted: request id = "
-            << requestId << ", tag = " << tag);
+        << requestId << ", tag = " << tag);
 
     if (Q_UNLIKELY(!tag.hasName())) {
         QNWARNING("Found tag without a name: " << tag);
@@ -84,17 +81,16 @@ void FilterByTagWidget::onExpungeTagCompleted(
     Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
     QNDEBUG("FilterByTagWidget::onExpungeTagCompleted: request id = "
-            << requestId << ", tag = " << tag
-            << "\nExpunged child tag local uids: "
-            << expungedChildTagLocalUids.join(QStringLiteral(", ")));
+        << requestId << ", tag = " << tag
+        << "\nExpunged child tag local uids: "
+        << expungedChildTagLocalUids.join(QStringLiteral(", ")));
 
     QStringList expungedTagLocalUids;
     expungedTagLocalUids << tag.localUid();
     expungedTagLocalUids << expungedChildTagLocalUids;
-    for(auto it = expungedTagLocalUids.constBegin(),
-        end = expungedTagLocalUids.constEnd(); it != end; ++it)
-    {
-        onItemRemovedFromLocalStorage(*it);
+
+    for(const auto & expungedTagLocalUid: qAsConst(expungedTagLocalUids)) {
+        onItemRemovedFromLocalStorage(expungedTagLocalUid);
     }
 }
 
@@ -102,8 +98,8 @@ void FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted(
     QUuid requestId)
 {
     QNDEBUG("FilterByTagWidget::"
-            << "onExpungeNotelessTagsFromLinkedNotebooksCompleted: request id = "
-            << requestId);
+        << "onExpungeNotelessTagsFromLinkedNotebooksCompleted: request id = "
+        << requestId);
 
     update();
 }

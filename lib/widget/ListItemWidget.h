@@ -54,10 +54,13 @@ public:
     ~ListItemWidget();
 
     QString name() const;
-    void setName(const QString & name);
+    void setName(QString name);
+
+    QString localUid() const;
+    void setLocalUid(QString localUid);
 
     QString linkedNotebookOwnerName() const;
-    void setLinkedNotebookOwnerName(const QString & name);
+    void setLinkedNotebookOwnerName(QString name);
 
     QString linkedNotebookGuid() const;
     void setLinkedNotebookGuid(QString guid);
@@ -66,7 +69,7 @@ public:
     virtual QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
-    void itemRemovedFromList(QString name);
+    void itemRemovedFromList(QString localUid, QString name);
 
 public Q_SLOTS:
     void setItemRemovable(bool removable);

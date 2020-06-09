@@ -78,9 +78,19 @@ QString ListItemWidget::name() const
     return m_pUi->itemNameLabel->text();
 }
 
-void ListItemWidget::setName(const QString & name)
+void ListItemWidget::setName(QString name)
 {
-    m_pUi->itemNameLabel->setText(name);
+    m_pUi->itemNameLabel->setText(std::move(name));
+}
+
+QString ListItemWidget::localUid() const
+{
+    return m_itemLocalUid;
+}
+
+void ListItemWidget::setLocalUid(QString localUid)
+{
+    m_itemLocalUid = std::move(localUid);
 }
 
 QString ListItemWidget::linkedNotebookOwnerName() const
@@ -88,9 +98,9 @@ QString ListItemWidget::linkedNotebookOwnerName() const
     return m_pUi->linkedNotebookUsernameLabel->text();
 }
 
-void ListItemWidget::setLinkedNotebookOwnerName(const QString & name)
+void ListItemWidget::setLinkedNotebookOwnerName(QString name)
 {
-    m_pUi->linkedNotebookUsernameLabel->setText(name);
+    m_pUi->linkedNotebookUsernameLabel->setText(std::move(name));
 }
 
 QString ListItemWidget::linkedNotebookGuid() const
@@ -101,6 +111,15 @@ QString ListItemWidget::linkedNotebookGuid() const
 void ListItemWidget::setLinkedNotebookGuid(QString guid)
 {
     m_linkedNotebookGuid = std::move(guid);
+
+    if (m_linkedNotebookGuid.isEmpty()) {
+        m_pUi->userLabel->hide();
+        m_pUi->linkedNotebookUsernameLabel->hide();
+    }
+    else {
+        m_pUi->userLabel->show();
+        m_pUi->linkedNotebookUsernameLabel->show();
+    }
 }
 
 QSize ListItemWidget::sizeHint() const
@@ -120,7 +139,9 @@ void ListItemWidget::setItemRemovable(bool removable)
 
 void ListItemWidget::onRemoveItemButtonPressed()
 {
-    Q_EMIT itemRemovedFromList(m_pUi->itemNameLabel->text());
+    Q_EMIT itemRemovedFromList(
+        m_itemLocalUid,
+        m_pUi->itemNameLabel->text());
 }
 
 } // namespace quentier

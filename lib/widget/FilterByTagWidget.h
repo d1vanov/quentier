@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,11 +21,11 @@
 
 #include "AbstractFilterByModelItemWidget.h"
 
-#include <quentier/types/Tag.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/types/Tag.h>
 
-#include <QUuid>
 #include <QPointer>
+#include <QUuid>
 
 namespace quentier {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -49,6 +49,7 @@ public:
 
 Q_SIGNALS:
     void ready();
+    void currentSavedSearchNameChanged(const QString & savedSearchName);
 
 private Q_SLOTS:
     void onAllSavedSearchesListed();
@@ -58,12 +59,12 @@ private Q_SLOTS:
 
     void onModelDataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
-        const QVector<int> & roles = QVector<int>());
+        const QVector<int> & roles = {});
 
     void persistSelectedSavedSearch();
     void restoreSelectedSavedSearch();
 
-    void onCurrentSavedSearchChanged(const QString & savedSearchName);
+    void onCurrentSavedSearchChanged(int index);
 
 private:
     void updateSavedSearchesInComboBox();
@@ -77,9 +78,9 @@ private:
     QString                     m_currentSavedSearchName;
     QString                     m_currentSavedSearchLocalUid;
 
-    bool                        m_settingCurrentIndex;
+    bool                        m_settingCurrentIndex = false;
 
-    bool                        m_isReady;
+    bool                        m_isReady = false;
 };
 
 } // namespace quentier

@@ -26,8 +26,7 @@
 namespace quentier {
 
 FilterByNotebookWidget::FilterByNotebookWidget(QWidget * parent) :
-    AbstractFilterByModelItemWidget(QStringLiteral("Notebook"), parent),
-    m_pLocalStorageManager()
+    AbstractFilterByModelItemWidget(QStringLiteral("Notebook"), parent)
 {}
 
 void FilterByNotebookWidget::setLocalStorageManager(
@@ -35,23 +34,22 @@ void FilterByNotebookWidget::setLocalStorageManager(
 {
     m_pLocalStorageManager = &localStorageManagerAsync;
 
-    QObject::connect(m_pLocalStorageManager.data(),
-                     QNSIGNAL(LocalStorageManagerAsync,updateNotebookComplete,
-                              Notebook,QUuid),
-                     this,
-                     QNSLOT(FilterByNotebookWidget,onUpdateNotebookCompleted,
-                            Notebook,QUuid));
-    QObject::connect(m_pLocalStorageManager.data(),
-                     QNSIGNAL(LocalStorageManagerAsync,expungeNotebookComplete,
-                              Notebook,QUuid),
-                     this,
-                     QNSLOT(FilterByNotebookWidget,onExpungeNotebookCompleted,
-                            Notebook,QUuid));
+    QObject::connect(
+        m_pLocalStorageManager.data(),
+        &LocalStorageManagerAsync::updateNotebookComplete,
+        this,
+        &FilterByNotebookWidget::onUpdateNotebookCompleted);
+
+    QObject::connect(
+        m_pLocalStorageManager.data(),
+        &LocalStorageManagerAsync::expungeNotebookComplete,
+        this,
+        &FilterByNotebookWidget::onExpungeNotebookCompleted);
 }
 
 const NotebookModel * FilterByNotebookWidget::notebookModel() const
 {
-    const ItemModel * pItemModel = model();
+    const auto * pItemModel = model();
     if (!pItemModel) {
         return nullptr;
     }
@@ -63,7 +61,7 @@ void FilterByNotebookWidget::onUpdateNotebookCompleted(
     Notebook notebook, QUuid requestId)
 {
     QNDEBUG("FilterByNotebookWidget::onUpdateNotebookCompleted: request id = "
-            << requestId << ", notebook = " << notebook);
+        << requestId << ", notebook = " << notebook);
 
     if (Q_UNLIKELY(!notebook.hasName())) {
         QNWARNING("Found notebook without a name: " << notebook);
@@ -78,7 +76,7 @@ void FilterByNotebookWidget::onExpungeNotebookCompleted(
     Notebook notebook, QUuid requestId)
 {
     QNDEBUG("FilterByNotebookWidget::onExpungeNotebookCompleted: request id = "
-            << requestId << ", notebook = " << notebook);
+        << requestId << ", notebook = " << notebook);
 
     onItemRemovedFromLocalStorage(notebook.localUid());
 }
