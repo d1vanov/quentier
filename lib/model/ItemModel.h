@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,6 +23,9 @@
 
 #include <QAbstractItemModel>
 #include <QStringList>
+#include <QVector>
+
+QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
@@ -49,8 +52,9 @@ public:
      * @param linkedNotebookGuid    The guid of a linked notebook to which
      *                              the item which local uid is returned belongs
      *                              (if any)
-     * @return                      The local uid corresponding to the item name;
-     *                              empty string if no item with such name exists
+     * @return                      The local uid corresponding to the item
+     *                              name; empty string if no item with such name
+     *                              exists
      */
     virtual QString localUidForItemName(
         const QString & itemName, const QString & linkedNotebookGuid) const = 0;
@@ -73,16 +77,38 @@ public:
      *                              returns true), the item names would be
      *                              returned ignoring their belonging to user's
      *                              own account or linked notebook; if it's not
-     *                              null but empty (i.e. linkedNotebookGuid.isEmpty()
-     *                              returns true), only the names of tags from
-     *                              user's own account would be returned.
-     *                              Otherwise only the names of tags from
-     *                              the corresponding linked notebook would be
-     *                              returned
+     *                              null but empty (i.e.
+     *                              linkedNotebookGuid.isEmpty() returns true),
+     *                              only the names of tags from user's own
+     *                              account would be returned. Otherwise only
+     *                              the names of tags from the corresponding
+     *                              linked notebook would be returned
      * @return                      The sorted list of names of the items stored
      *                              within the model
      */
     virtual QStringList itemNames(const QString & linkedNotebookGuid) const = 0;
+
+    struct LinkedNotebookInfo
+    {
+        LinkedNotebookInfo() = default;
+
+        LinkedNotebookInfo(QString guid, QString username) :
+            m_guid(std::move(guid)),
+            m_username(std::move(username))
+        {}
+
+        QString     m_guid;
+        QString     m_username;
+    };
+
+    friend QDebug & operator<<(QDebug & dbg, const LinkedNotebookInfo & info);
+
+    /**
+     * @brief linkedNotebooksInfo
+     * @return                      Linked notebook guids and corresponding
+     *                              usernames
+     */
+    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const = 0;
 
     /**
      * @brief nameColumn

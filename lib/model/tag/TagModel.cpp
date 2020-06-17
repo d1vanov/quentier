@@ -173,6 +173,18 @@ QStringList TagModel::itemNames(const QString & linkedNotebookGuid) const
     return tagNames(linkedNotebookGuid);
 }
 
+QVector<ItemModel::LinkedNotebookInfo> TagModel::linkedNotebooksInfo() const
+{
+    QVector<LinkedNotebookInfo> infos;
+    infos.reserve(m_linkedNotebookItems.size());
+
+    for(const auto & it: qevercloud::toRange(m_linkedNotebookItems)) {
+        infos.push_back(LinkedNotebookInfo(it.key(), it.value().username()));
+    }
+
+    return infos;
+}
+
 bool TagModel::allItemsListed() const
 {
     return m_allTagsListed && m_allLinkedNotebooksListed;

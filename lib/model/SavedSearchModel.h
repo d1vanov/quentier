@@ -20,27 +20,28 @@
 #define QUENTIER_LIB_MODEL_SAVED_SEARCH_MODEL_H
 
 #include "ItemModel.h"
-#include "SavedSearchModelItem.h"
-#include "SavedSearchCache.h"
 
-#include <quentier/types/SavedSearch.h>
-#include <quentier/types/Account.h>
+#include "SavedSearchCache.h"
+#include "SavedSearchModelItem.h"
+
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/types/Account.h>
+#include <quentier/types/SavedSearch.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
 
 #include <QAbstractItemModel>
-#include <QUuid>
 #include <QSet>
+#include <QUuid>
 
 SAVE_WARNINGS
 GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
 
 #include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
 
 RESTORE_WARNINGS
 
@@ -58,7 +59,11 @@ public:
 
     virtual ~SavedSearchModel();
 
-    const Account & account() const { return m_account; }
+    const Account & account() const
+    {
+        return m_account;
+    }
+
     void updateAccount(const Account & account);
 
     struct Columns
@@ -145,6 +150,8 @@ public:
 
     virtual QStringList itemNames(
         const QString & linkedNotebookGuid) const override;
+
+    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override;
 
     virtual int nameColumn() const override { return Columns::Name; }
     virtual int sortingColumn() const override { return m_sortedColumn; }

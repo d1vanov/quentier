@@ -311,6 +311,8 @@ public:
     virtual QStringList itemNames(
         const QString & linkedNotebookGuid) const override;
 
+    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override;
+
     virtual int nameColumn() const override
     {
         return static_cast<int>(Column::Name);

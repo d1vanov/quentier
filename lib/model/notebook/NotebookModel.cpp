@@ -795,6 +795,18 @@ QStringList NotebookModel::itemNames(const QString & linkedNotebookGuid) const
     return result;
 }
 
+QVector<ItemModel::LinkedNotebookInfo> NotebookModel::linkedNotebooksInfo() const
+{
+    QVector<LinkedNotebookInfo> infos;
+    infos.reserve(m_linkedNotebookItems.size());
+
+    for(const auto & it: qevercloud::toRange(m_linkedNotebookItems)) {
+        infos.push_back(LinkedNotebookInfo(it.key(), it.value().username()));
+    }
+
+    return infos;
+}
+
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);

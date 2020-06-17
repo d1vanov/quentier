@@ -307,6 +307,11 @@ QStringList SavedSearchModel::itemNames(const QString & linkedNotebookGuid) cons
     return savedSearchNames();
 }
 
+QVector<ItemModel::LinkedNotebookInfo> SavedSearchModel::linkedNotebooksInfo() const
+{
+    return {};
+}
+
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
