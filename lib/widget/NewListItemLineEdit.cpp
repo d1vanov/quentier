@@ -24,11 +24,11 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/VersionInfo.h>
 
-#include <QKeyEvent>
+#include <QAbstractItemView>
 #include <QCompleter>
+#include <QKeyEvent>
 #include <QModelIndex>
 #include <QStringListModel>
-#include <QAbstractItemView>
 
 #include <algorithm>
 
@@ -36,14 +36,12 @@ namespace quentier {
 
 NewListItemLineEdit::NewListItemLineEdit(
         ItemModel * pItemModel,
-        const QStringList & reservedItemNames,
-        const QString & linkedNotebookGuid,
+        QVector<ItemInfo> reservedItems,
         QWidget * parent) :
     QLineEdit(parent),
     m_pUi(new Ui::NewListItemLineEdit),
     m_pItemModel(pItemModel),
-    m_reservedItemNames(reservedItemNames),
-    m_linkedNotebookGuid(linkedNotebookGuid),
+    m_reservedItems(std::move(reservedItems)),
     m_pItemNamesModel(new QStringListModel(this)),
     m_pCompleter(new QCompleter(this))
 {
@@ -51,30 +49,45 @@ NewListItemLineEdit::NewListItemLineEdit(
     setPlaceholderText(tr("Click here to add") + QStringLiteral("..."));
     setupCompleter();
 
-    QObject::connect(m_pItemModel.data(),
-                     QNSIGNAL(ItemModel,rowsInserted,
-                              const QModelIndex&,int,int),
-                     this,
-                     QNSLOT(NewListItemLineEdit,onModelRowsInserted,
-                            const QModelIndex&,int,int));
-    QObject::connect(m_pItemModel.data(),
-                     QNSIGNAL(ItemModel,rowsRemoved,
-                              const QModelIndex&,int,int),
-                     this,
-                     QNSLOT(NewListItemLineEdit,onModelRowsRemoved,
-                            const QModelIndex&,int,int));
+    QObject::connect(
+        m_pItemModel.data(),
+        &ItemModel::rowsInserted,
+        this,
+        &NewListItemLineEdit::onModelRowsInserted);
 
-    QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged,
-                     this, &NewListItemLineEdit::onModelDataChanged);
+    QObject::connect(
+        m_pItemModel.data(),
+        &ItemModel::rowsRemoved,
+        this,
+        &NewListItemLineEdit::onModelRowsRemoved);
 
-    // NOTE: working around what seems to be a Qt bug: when one selects some item
-    // from the drop-down menu shown by QCompleter via pressing Return/Enter,
-    // the line edit can't be cleared unless one presses Enter once again;
-    // see this thread for more details:
+    QObject::connect(
+        m_pItemModel.data(),
+        &ItemModel::dataChanged,
+        this,
+        &NewListItemLineEdit::onModelDataChanged);
+
+    // NOTE: working around what seems to be a Qt bug: when one selects some
+    // item from the drop-down menu shown by QCompleter via pressing
+    // Return/Enter, the line edit can't be cleared unless one presses Enter
+    // once again; see this thread for more details:
     // http://stackoverflow.com/questions/11865129/fail-to-clear-qlineedit-after-selecting-item-from-qcompleter
 
-    QObject::connect(m_pCompleter, SIGNAL(activated(const QString&)),
-                     this, SLOT(clear()), Qt::QueuedConnection);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pCompleter,
+        qOverload<const QString&>(&QCompleter::activated),
+        this,
+        &NewListItemLineEdit::clear,
+        Qt::QueuedConnection);
+#else
+    QObject::connect(
+        m_pCompleter,
+        SIGNAL(activated(const QString&)),
+        this,
+        SLOT(clear()),
+        Qt::QueuedConnection);
+#endif
 
     QNTRACE("Created NewListItemLineEdit: " << this);
 }
@@ -85,24 +98,49 @@ NewListItemLineEdit::~NewListItemLineEdit()
     delete m_pUi;
 }
 
-QStringList NewListItemLineEdit::reservedItemNames() const
+QVector<NewListItemLineEdit::ItemInfo> NewListItemLineEdit::reservedItems() const
 {
-    return m_reservedItemNames;
+    return m_reservedItems;
 }
 
-void NewListItemLineEdit::updateReservedItemNames(
-    const QStringList & reservedItemNames)
+void NewListItemLineEdit::setReservedItems(QVector<ItemInfo> items)
 {
-    QNDEBUG("NewListItemLineEdit::updateReservedItemNames: "
-            << reservedItemNames.join(QStringLiteral(", ")));
-
-    m_reservedItemNames = reservedItemNames;
-    setupCompleter();
+    m_reservedItems = std::move(items);
 }
 
-QString NewListItemLineEdit::linkedNotebookGuid() const
+void NewListItemLineEdit::addReservedItem(ItemInfo item)
 {
-    return m_linkedNotebookGuid;
+    for(const auto & reservedItem: qAsConst(m_reservedItems))
+    {
+        if ((reservedItem.m_name == item.m_name) &&
+            (reservedItem.m_linkedNotebookGuid == item.m_linkedNotebookGuid) &&
+            (reservedItem.m_linkedNotebookUsername ==
+             item.m_linkedNotebookUsername))
+        {
+            // This item is already reserved, nothing to do
+            return;
+        }
+    }
+
+    m_reservedItems.push_back(std::move(item));
+}
+
+void NewListItemLineEdit::removeReservedItem(ItemInfo item)
+{
+    for(auto it = m_reservedItems.begin(), end = m_reservedItems.end();
+        it != end; ++it)
+    {
+        const auto & reservedItem = *it;
+
+        if ((reservedItem.m_name == item.m_name) &&
+            (reservedItem.m_linkedNotebookGuid == item.m_linkedNotebookGuid) &&
+            (reservedItem.m_linkedNotebookUsername ==
+             item.m_linkedNotebookUsername))
+        {
+            m_reservedItems.erase(it);
+            return;
+        }
+    }
 }
 
 QSize NewListItemLineEdit::sizeHint() const
@@ -185,35 +223,16 @@ void NewListItemLineEdit::onModelDataChanged(
 
 void NewListItemLineEdit::setupCompleter()
 {
-    QNDEBUG("NewListItemLineEdit::setupCompleter: reserved item names: "
-            << m_reservedItemNames.join(QStringLiteral(", ")));
+    QNDEBUG("NewListItemLineEdit::setupCompleter");
 
     m_pCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     m_pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
 
-    QStringList itemNames;
-    if (!m_pItemModel.isNull())
-    {
-        itemNames = m_pItemModel->itemNames(m_linkedNotebookGuid);
-        QNTRACE("Model item names: " << itemNames.join(QStringLiteral(", ")));
-
-        for(auto it = m_reservedItemNames.constBegin(),
-            end = m_reservedItemNames.constEnd(); it != end; ++it)
-        {
-            auto nit = std::lower_bound(
-                itemNames.constBegin(), itemNames.constEnd(), *it);
-            if ((nit != itemNames.constEnd()) && (*nit == *it)) {
-                int offset = static_cast<int>(
-                    std::distance(itemNames.constBegin(), nit));
-                Q_UNUSED(itemNames.erase(
-                    QStringList::iterator(itemNames.begin() + offset)))
-            }
-        }
-    }
-
+    auto itemNames = itemNamesForCompleter();
     m_pItemNamesModel->setStringList(itemNames);
+
     QNTRACE("The item names to set to the completer: "
-            << itemNames.join(QStringLiteral(", ")));
+        << itemNames.join(QStringLiteral(", ")));
 
     m_pCompleter->setModel(m_pItemNamesModel);
     setCompleter(m_pCompleter);
@@ -223,6 +242,32 @@ void NewListItemLineEdit::setupCompleter()
     m_pCompleter->setCompletionMode(QCompleter::InlineCompletion);
 #endif
 
+}
+
+QStringList NewListItemLineEdit::itemNamesForCompleter() const
+{
+    if (m_pItemModel.isNull()) {
+        return {};
+    }
+
+    // First list item names corresponding to user's own account
+    auto itemNames = m_pItemModel->itemNames(QLatin1String(""));
+
+    // Now add items corresponding to linked notebooks
+    auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();
+    for(const auto & info: qAsConst(linkedNotebooksInfo))
+    {
+        auto linkedNotebookItemNames = m_pItemModel->itemNames(info.m_guid);
+        for(auto & itemName: linkedNotebookItemNames) {
+            itemName += QStringLiteral(" \\ @");
+            itemName += info.m_username;
+        }
+
+        itemNames << linkedNotebookItemNames;
+    }
+
+    std::sort(itemNames.begin(), itemNames.end());
+    return itemNames;
 }
 
 } // namespace quentier

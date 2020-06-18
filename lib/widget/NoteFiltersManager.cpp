@@ -208,19 +208,27 @@ bool NoteFiltersManager::isReady() const
 }
 
 void NoteFiltersManager::onAddedTagToFilter(
-    const QString & tagLocalUid, const QString & tagName)
+    const QString & tagLocalUid, const QString & tagName,
+    const QString & linkedNotebookGuid,
+    const QString & linkedNotebookUsername)
 {
     QNDEBUG("NoteFiltersManager::onAddedTagToFilter: local uid = "
-        << tagLocalUid << ", name = " << tagName);
+        << tagLocalUid << ", name = " << tagName
+        << ", linked notebook guid = " << linkedNotebookGuid
+        << ", linked notebook username = " << linkedNotebookUsername);
 
     onTagsFilterUpdated();
 }
 
 void NoteFiltersManager::onRemovedTagFromFilter(
-    const QString & tagLocalUid, const QString & tagName)
+    const QString & tagLocalUid, const QString & tagName,
+    const QString & linkedNotebookGuid,
+    const QString & linkedNotebookUsername)
 {
     QNDEBUG("NoteFiltersManager::onRemovedTagFromFilter: local uid = "
-        << tagLocalUid << ", name = " << tagName);
+        << tagLocalUid << ", name = " << tagName
+        << ", linked notebook guid = " << linkedNotebookGuid
+        << ", linked notebook username = " << linkedNotebookUsername);
 
     onTagsFilterUpdated();
 }
@@ -258,19 +266,27 @@ void NoteFiltersManager::onTagsFilterReady()
 }
 
 void NoteFiltersManager::onAddedNotebookToFilter(
-    const QString & notebookLocalUid, const QString & notebookName)
+    const QString & notebookLocalUid, const QString & notebookName,
+    const QString & linkedNotebookGuid,
+    const QString & linkedNotebookUsername)
 {
     QNDEBUG("NoteFiltersManager::onAddedNotebookToFilter: local uid = "
-        << notebookLocalUid << ", name = " << notebookName);
+        << notebookLocalUid << ", name = " << notebookName
+        << ", linked notebook guid = " << linkedNotebookGuid
+        << ", linked notebook username = " << linkedNotebookUsername);
 
     onNotebooksFilterUpdated();
 }
 
 void NoteFiltersManager::onRemovedNotebookFromFilter(
-    const QString & notebookLocalUid, const QString & notebookName)
+    const QString & notebookLocalUid, const QString & notebookName,
+    const QString & linkedNotebookGuid,
+    const QString & linkedNotebookUsername)
 {
     QNDEBUG("NoteFiltersManager::onRemovedNotebookFromFilter: local uid = "
-        << notebookLocalUid << ", name = " << notebookName);
+        << notebookLocalUid << ", name = " << notebookName
+        << ", linked notebook guid = " << linkedNotebookGuid
+        << ", linked notebook username = " << linkedNotebookUsername);
 
     onNotebooksFilterUpdated();
 }

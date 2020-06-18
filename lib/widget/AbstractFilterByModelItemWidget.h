@@ -72,23 +72,37 @@ Q_SIGNALS:
      * @brief addedItemToFilter signal is emitted when the item is added to
      * the filter
      *
-     * @param itemLocalUid          The local uid of the item added to
-     *                              the filter
-     * @param itemName              The name of the item added to the filter
+     * @param itemLocalUid              The local uid of the item added to
+     *                                  filter
+     * @param itemName                  The name of the item added to filter
+     * @param linkedNotebookGuid        The linked notebook guid of the item
+     *                                  added to filter
+     * @param linkedNotebookUsername    The linked notebook username
+     *                                  corresponding to the item added to
+     *                                  filter
      */
     void addedItemToFilter(
-        const QString & itemLocalUid, const QString & itemName);
+        const QString & itemLocalUid, const QString & itemName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     /**
      * @brief itemRemovedFromFilter signal is emitted when the item is removed
      * from the filter
      *
-     * @param itemLocalUid          The local uid of the item removed from
-     *                              the filter
-     * @param itemName              The name of the item removed from the filter
+     * @param itemLocalUid              The local uid of the item removed from
+     *                                  filter
+     * @param itemName                  The name of the item removed from filter
+     * @param linkedNotebookGuid        The linked notebook guid of the item
+     *                                  removed from filter
+     * @param linkedNotebookUsername    The linked notebook username
+     *                                  corresponding to the item removed from
+     *                                  filter
      */
     void itemRemovedFromFilter(
-        const QString & itemLocalUid, const QString & itemName);
+        const QString & itemLocalUid, const QString & itemName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     /**
      * @brief cleared signal is emitted when all items are removed from the
@@ -128,7 +142,11 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onNewItemAdded();
-    void onItemRemovedFromList(QString localUid, QString name);
+
+    void onItemRemovedFromList(
+        QString localUid, QString name, QString linkedNotebookGuid,
+        QString linkedNotebookUsername);
+
     void onModelReady();
 
 private:

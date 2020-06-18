@@ -418,9 +418,29 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         return;
     }
 
+    QString newItemLinkedNotebookUsername;
+    if (newItemName.contains(QStringLiteral("\\")))
+    {
+        auto nameParts = newItemName.split(QStringLiteral("\\"));
+        if (nameParts.size() == 2) {
+            newItemName = nameParts[0].trimmed();
+            newItemLinkedNotebookUsername = nameParts[1].trimmed().remove(0, 1);
+        }
+    }
+
+    auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();
+    QString newItemLinkedNotebookGuid;
+    for(const auto & linkedNotebookInfo: qAsConst(linkedNotebooksInfo))
+    {
+        if (linkedNotebookInfo.m_username == newItemLinkedNotebookUsername) {
+            newItemLinkedNotebookGuid = linkedNotebookInfo.m_guid;
+            break;
+        }
+    }
+
     QString localUid = m_pItemModel->localUidForItemName(
         newItemName,
-        /* linked notebook guid = */ {});
+        newItemLinkedNotebookGuid);
 
     if (localUid.isEmpty())
     {
@@ -433,9 +453,11 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         return;
     }
 
-    QStringList filteredItemNames = pNewItemLineEdit->reservedItemNames();
-    filteredItemNames << newItemName;
-    pNewItemLineEdit->updateReservedItemNames(filteredItemNames);
+    NewListItemLineEdit::ItemInfo newReservedItem;
+    newReservedItem.m_name = newItemName;
+    newReservedItem.m_linkedNotebookGuid = newItemLinkedNotebookGuid;
+    newReservedItem.m_linkedNotebookUsername = newItemLinkedNotebookUsername;
+    pNewItemLineEdit->addReservedItem(std::move(newReservedItem));
 
     m_pLayout->removeWidget(pNewItemLineEdit);
 
@@ -455,17 +477,27 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
     }
 
     AFTRACE("Successfully added the new item to filter: local uid = "
-        << localUid << ", name = " << newItemName);
+        << localUid << ", name = " << newItemName << ", linked notebook guid = "
+        << newItemLinkedNotebookGuid << ", linked notebook username = "
+        << newItemLinkedNotebookUsername);
 
-    Q_EMIT addedItemToFilter(localUid, newItemName);
+    Q_EMIT addedItemToFilter(
+        localUid,
+        newItemName,
+        newItemLinkedNotebookGuid,
+        newItemLinkedNotebookUsername);
+
     persistFilteredItems();
 }
 
 void AbstractFilterByModelItemWidget::onItemRemovedFromList(
-    QString localUid, QString name)
+    QString localUid, QString name, QString linkedNotebookGuid,
+    QString linkedNotebookUsername)
 {
     AFDEBUG("AbstractFilterByModelItemWidget::onItemRemovedFromList: local "
-        "uid = " << localUid << " name = " << name);
+        << "uid = " << localUid << " name = " << name << ", linked notebook "
+        << "guid = " << linkedNotebookGuid << ", linked notebook username = "
+        << linkedNotebookUsername);
 
     int numItems = m_pLayout->count();
     for(int i = 0; i < numItems; ++i)
@@ -490,20 +522,23 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(
         break;
     }
 
-    AFTRACE("Removed item from filter: local uid = " << localUid
-        << ", name = " << name);
-
-    Q_EMIT itemRemovedFromFilter(localUid, name);
+    Q_EMIT itemRemovedFromFilter(
+        localUid,
+        name,
+        linkedNotebookGuid,
+        linkedNotebookUsername);
 
     persistFilteredItems();
 
     auto * pNewItemLineEdit = findNewItemWidget();
     if (pNewItemLineEdit)
     {
-        QStringList filteredItemNames = pNewItemLineEdit->reservedItemNames();
-        if (filteredItemNames.removeOne(name)) {
-            pNewItemLineEdit->updateReservedItemNames(filteredItemNames);
-        }
+        NewListItemLineEdit::ItemInfo removedItemInfo;
+        removedItemInfo.m_name = name;
+        removedItemInfo.m_linkedNotebookGuid = linkedNotebookGuid;
+        removedItemInfo.m_linkedNotebookUsername = linkedNotebookUsername;
+
+        pNewItemLineEdit->removeReservedItem(removedItemInfo);
     }
 }
 
@@ -630,10 +665,10 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
         return;
     }
 
-    QStringList existingNames;
+    QVector<NewListItemLineEdit::ItemInfo> reservedItems;
 
     int numItems = m_pLayout->count();
-    existingNames.reserve(numItems);
+    reservedItems.reserve(numItems);
 
     for(int i = 0; i < numItems; ++i)
     {
@@ -647,13 +682,19 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
             continue;
         }
 
-        existingNames << pItemWidget->name();
+        NewListItemLineEdit::ItemInfo reservedItem;
+        reservedItem.m_name = pItemWidget->name();
+        reservedItem.m_linkedNotebookGuid = pItemWidget->linkedNotebookGuid();
+
+        reservedItem.m_linkedNotebookUsername =
+            pItemWidget->linkedNotebookUsername();
+
+        reservedItems.push_back(std::move(reservedItem));
     }
 
     auto * pNewItemLineEdit = new NewListItemLineEdit(
         m_pItemModel.data(),
-        existingNames,
-        /* fake linked notebook guid = */ QLatin1String(""),
+        std::move(reservedItems),
         this);
 
     QObject::connect(

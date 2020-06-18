@@ -24,7 +24,8 @@
 namespace quentier {
 
 ListItemWidget::ListItemWidget(
-        const QString & itemName, const QString & itemLocalUid, QWidget * parent) :
+        const QString & itemName, const QString & itemLocalUid,
+        QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::ListItemWidget)
 {
@@ -46,7 +47,7 @@ ListItemWidget::ListItemWidget(
 
 ListItemWidget::ListItemWidget(
         const QString & itemName, const QString & itemLocalUid,
-        const QString & linkedNotebookOwnerName,
+        const QString & linkedNotebookUsername,
         const QString & linkedNotebookGuid, QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::ListItemWidget)
@@ -57,7 +58,7 @@ ListItemWidget::ListItemWidget(
     setName(itemName);
 
     m_linkedNotebookGuid = linkedNotebookGuid;
-    setLinkedNotebookOwnerName(linkedNotebookOwnerName);
+    setLinkedNotebookUsername(linkedNotebookUsername);
 
     adjustSize();
 
@@ -93,12 +94,12 @@ void ListItemWidget::setLocalUid(QString localUid)
     m_itemLocalUid = std::move(localUid);
 }
 
-QString ListItemWidget::linkedNotebookOwnerName() const
+QString ListItemWidget::linkedNotebookUsername() const
 {
     return m_pUi->linkedNotebookUsernameLabel->text();
 }
 
-void ListItemWidget::setLinkedNotebookOwnerName(QString name)
+void ListItemWidget::setLinkedNotebookUsername(QString name)
 {
     m_pUi->linkedNotebookUsernameLabel->setText(std::move(name));
 }
@@ -141,7 +142,9 @@ void ListItemWidget::onRemoveItemButtonPressed()
 {
     Q_EMIT itemRemovedFromList(
         m_itemLocalUid,
-        m_pUi->itemNameLabel->text());
+        m_pUi->itemNameLabel->text(),
+        m_linkedNotebookGuid,
+        m_pUi->linkedNotebookUsernameLabel->text());
 }
 
 } // namespace quentier

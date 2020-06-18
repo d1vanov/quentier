@@ -91,10 +91,14 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for FilterByTagWidget's signals
     void onAddedTagToFilter(
-        const QString & tagLocalUid, const QString & tagName);
+        const QString & tagLocalUid, const QString & tagName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     void onRemovedTagFromFilter(
-        const QString & tagLocalUid, const QString & tagName);
+        const QString & tagLocalUid, const QString & tagName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     void onTagsClearedFromFilter();
     void onTagsFilterUpdated();
@@ -102,10 +106,14 @@ private Q_SLOTS:
 
     // Slots for FilterByNotebookWidget's signals
     void onAddedNotebookToFilter(
-        const QString & notebookLocalUid, const QString & notebookName);
+        const QString & notebookLocalUid, const QString & notebookName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     void onRemovedNotebookFromFilter(
-        const QString & notebookLocalUid,  const QString & notebookName);
+        const QString & notebookLocalUid,  const QString & notebookName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     void onNotebooksClearedFromFilter();
     void onNotebooksFilterUpdated();
