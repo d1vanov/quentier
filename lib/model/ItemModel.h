@@ -111,6 +111,17 @@ public:
     virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const = 0;
 
     /**
+     * @brief linkedNotebookUsername
+     * @param linkedNotebooGuid     The linked notebook guid which corresponding
+     *                              username is requested
+     * @return                      Username corresponding to the passed in
+     *                              linked notebook guid or empty string
+     */
+    virtual QString linkedNotebookUsername(
+        const QString & linkedNotebookGuid) const = 0;
+
+
+    /**
      * @brief nameColumn
      * @return                      The column containing the names of items
      *                              stored within the model

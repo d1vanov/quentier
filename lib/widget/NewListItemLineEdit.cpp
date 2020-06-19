@@ -98,6 +98,17 @@ NewListItemLineEdit::~NewListItemLineEdit()
     delete m_pUi;
 }
 
+const QString & NewListItemLineEdit::targetLinkedNotebookGuid() const
+{
+    return m_targetLinkedNotebookGuid;
+}
+
+void NewListItemLineEdit::setTargetLinkedNotebookGuid(
+    QString linkedNotebookGuid)
+{
+    m_targetLinkedNotebookGuid = std::move(linkedNotebookGuid);
+}
+
 QVector<NewListItemLineEdit::ItemInfo> NewListItemLineEdit::reservedItems() const
 {
     return m_reservedItems;
@@ -250,20 +261,40 @@ QStringList NewListItemLineEdit::itemNamesForCompleter() const
         return {};
     }
 
-    // First list item names corresponding to user's own account
-    auto itemNames = m_pItemModel->itemNames(QLatin1String(""));
+    QStringList itemNames;
 
-    // Now add items corresponding to linked notebooks
-    auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();
-    for(const auto & info: qAsConst(linkedNotebooksInfo))
+    if (!m_targetLinkedNotebookGuid.isNull())
     {
-        auto linkedNotebookItemNames = m_pItemModel->itemNames(info.m_guid);
-        for(auto & itemName: linkedNotebookItemNames) {
-            itemName += QStringLiteral(" \\ @");
-            itemName += info.m_username;
-        }
+        itemNames = m_pItemModel->itemNames(m_targetLinkedNotebookGuid);
 
-        itemNames << linkedNotebookItemNames;
+        if (!m_targetLinkedNotebookGuid.isEmpty())
+        {
+            QString linkedNotebookUsername = m_pItemModel->linkedNotebookUsername(
+                m_targetLinkedNotebookGuid);
+
+            for(auto & itemName: itemNames) {
+                itemName += QStringLiteral(" \\ @");
+                itemName += linkedNotebookUsername;
+            }
+        }
+    }
+    else
+    {
+        // First list item names corresponding to user's own account
+        auto itemNames = m_pItemModel->itemNames(QLatin1String(""));
+
+        // Now add items corresponding to linked notebooks
+        auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();
+        for(const auto & info: qAsConst(linkedNotebooksInfo))
+        {
+            auto linkedNotebookItemNames = m_pItemModel->itemNames(info.m_guid);
+            for(auto & itemName: linkedNotebookItemNames) {
+                itemName += QStringLiteral(" \\ @");
+                itemName += info.m_username;
+            }
+
+            itemNames << linkedNotebookItemNames;
+        }
     }
 
     std::sort(itemNames.begin(), itemNames.end());

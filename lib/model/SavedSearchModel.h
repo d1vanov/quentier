@@ -153,6 +153,9 @@ public:
 
     virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override;
 
+    virtual QString linkedNotebookUsername(
+        const QString & linkedNotebookGuid) const override;
+
     virtual int nameColumn() const override { return Columns::Name; }
     virtual int sortingColumn() const override { return m_sortedColumn; }
     virtual Qt::SortOrder sortOrder() const override { return m_sortOrder; }

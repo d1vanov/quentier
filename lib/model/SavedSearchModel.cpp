@@ -312,6 +312,13 @@ QVector<ItemModel::LinkedNotebookInfo> SavedSearchModel::linkedNotebooksInfo() c
     return {};
 }
 
+QString SavedSearchModel::linkedNotebookUsername(
+    const QString & linkedNotebookGuid) const
+{
+    Q_UNUSED(linkedNotebookGuid)
+    return {};
+}
+
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);

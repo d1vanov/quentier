@@ -59,6 +59,9 @@ public:
 
     virtual ~NewListItemLineEdit();
 
+    const QString & targetLinkedNotebookGuid() const;
+    void setTargetLinkedNotebookGuid(QString linkedNotebookGuid);
+
     QVector<ItemInfo> reservedItems() const;
     void setReservedItems(QVector<ItemInfo> items);
 
@@ -94,6 +97,7 @@ private:
     QVector<ItemInfo>           m_reservedItems;
     QStringListModel *          m_pItemNamesModel;
     QCompleter *                m_pCompleter;
+    QString                     m_targetLinkedNotebookGuid;
 };
 
 } // namespace quentier

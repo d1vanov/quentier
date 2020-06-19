@@ -185,6 +185,18 @@ QVector<ItemModel::LinkedNotebookInfo> TagModel::linkedNotebooksInfo() const
     return infos;
 }
 
+QString TagModel::linkedNotebookUsername(
+    const QString & linkedNotebookGuid) const
+{
+    auto it = m_linkedNotebookItems.find(linkedNotebookGuid);
+    if (it != m_linkedNotebookItems.end()) {
+        const auto & item = it.value();
+        return item.username();
+    }
+
+    return {};
+}
+
 bool TagModel::allItemsListed() const
 {
     return m_allTagsListed && m_allLinkedNotebooksListed;

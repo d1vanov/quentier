@@ -900,12 +900,15 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
         }
     }
 
-    // FIXME: must implement a way to limit possible items with
-    // m_currentLinkedNotebookGuid
     auto * pNewTagLineEdit = new NewListItemLineEdit(
         m_pTagModel,
         reservedItems,
         this);
+
+    pNewTagLineEdit->setTargetLinkedNotebookGuid(
+        m_currentLinkedNotebookGuid.isEmpty()
+        ? QLatin1String("")
+        : m_currentLinkedNotebookGuid);
 
     QObject::connect(
         pNewTagLineEdit,

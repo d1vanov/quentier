@@ -807,6 +807,18 @@ QVector<ItemModel::LinkedNotebookInfo> NotebookModel::linkedNotebooksInfo() cons
     return infos;
 }
 
+QString NotebookModel::linkedNotebookUsername(
+    const QString & linkedNotebookGuid) const
+{
+    auto it = m_linkedNotebookItems.find(linkedNotebookGuid);
+    if (it != m_linkedNotebookItems.end()) {
+        const auto & item = it.value();
+        return item.username();
+    }
+
+    return {};
+}
+
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
