@@ -60,7 +60,7 @@ public:
         const QString & itemName, const QString & linkedNotebookGuid) const = 0;
 
     /**
-     * @brief itemNameForLocalUid - finds item name for local uid
+     * @brief itemNameForLocalUid   Finds item name for local uid
      * @param localUid              The local uid of the item for which the name
      *                              is required
      * @return                      The name of the item corresponding to
@@ -68,6 +68,24 @@ public:
      *                              such local uid exists
      */
     virtual QString itemNameForLocalUid(const QString & localUid) const = 0;
+
+    struct ItemInfo
+    {
+        QString     m_name;
+        QString     m_localUid;
+        QString     m_linkedNotebookGuid;
+        QString     m_linkedNotebookUsername;
+    };
+
+    friend QDebug & operator<<(QDebug & dbg, const ItemInfo & itemInfo);
+
+    /**
+     * @brief itemInfoForLocalUid   Finds item info for local uid
+     * @param localUid              The local uid of the item which info is
+     *                              required
+     * @return                      Model item info
+     */
+    virtual ItemInfo itemInfoForLocalUid(const QString & localUid) const = 0;
 
     /**
      * @brief itemNames

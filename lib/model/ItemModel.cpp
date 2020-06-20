@@ -37,4 +37,14 @@ QDebug & operator<<(QDebug & dbg, const ItemModel::LinkedNotebookInfo & info)
     return dbg;
 }
 
+QDebug & operator<<(QDebug & dbg, const ItemModel::ItemInfo & itemInfo)
+{
+    dbg << "Item info: local uid = " << itemInfo.m_localUid
+        << ", name = " << itemInfo.m_name
+        << ", linked notebook guid = " << itemInfo.m_linkedNotebookGuid
+        << ", linked notebook username = " << itemInfo.m_linkedNotebookUsername;
+
+    return dbg;
+}
+
 } // namespace quentier

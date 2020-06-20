@@ -1288,8 +1288,8 @@ void NoteFiltersManager::setNotebookToFilterImpl(
         return;
     }
 
-    const QString name = pNotebookModel->itemNameForLocalUid(notebookLocalUid);
-    if (name.isEmpty()) {
+    auto itemInfo = pNotebookModel->itemInfoForLocalUid(notebookLocalUid);
+    if (itemInfo.m_localUid.isEmpty()) {
         QNWARNING("Failed to find notebook name for notebook local uid "
             << notebookLocalUid);
         return;
@@ -1302,7 +1302,12 @@ void NoteFiltersManager::setNotebookToFilterImpl(
         &NoteFiltersManager::onAddedNotebookToFilter);
 
     persistFilterByNotebookClearedState(false);
-    m_filterByNotebookWidget.addItemToFilter(notebookLocalUid, name);
+
+    m_filterByNotebookWidget.addItemToFilter(
+        notebookLocalUid,
+        itemInfo.m_name,
+        itemInfo.m_linkedNotebookGuid,
+        itemInfo.m_linkedNotebookUsername);
 
     QObject::connect(
         &m_filterByNotebookWidget,
@@ -1324,8 +1329,8 @@ void NoteFiltersManager::setTagToFilterImpl(const QString & tagLocalUid)
         return;
     }
 
-    const QString name = pTagModel->itemNameForLocalUid(tagLocalUid);
-    if (name.isEmpty()) {
+    auto itemInfo = pTagModel->itemInfoForLocalUid(tagLocalUid);
+    if (itemInfo.m_localUid.isEmpty()) {
         QNWARNING("Failed to find tag name for tag local uid: " << tagLocalUid);
         return;
     }
@@ -1337,7 +1342,11 @@ void NoteFiltersManager::setTagToFilterImpl(const QString & tagLocalUid)
         &NoteFiltersManager::onAddedTagToFilter);
 
     persistFilterByTagClearedState(false);
-    m_filterByTagWidget.addItemToFilter(tagLocalUid, name);
+    m_filterByTagWidget.addItemToFilter(
+        tagLocalUid,
+        itemInfo.m_name,
+        itemInfo.m_linkedNotebookGuid,
+        itemInfo.m_linkedNotebookUsername);
 
     QObject::connect(
         &m_filterByTagWidget,
@@ -1445,12 +1454,18 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
         return true;
     }
 
-    QString autoSelectedNotebookName =
-        pModel->itemNameForLocalUid(autoSelectedNotebookLocalUid);
+    auto itemInfo = pModel->itemInfoForLocalUid(autoSelectedNotebookLocalUid);
+    if (Q_UNLIKELY(itemInfo.m_localUid.isEmpty())) {
+        QNWARNING("Failed fo find notebook item for auto selected local uid "
+            << autoSelectedNotebookLocalUid);
+        // NOTE: returning true because false is only for cases
+        // in which filter is waiting for something
+        return true;
+    }
 
     QNDEBUG("Auto selecting notebook: local uid = "
         << autoSelectedNotebookLocalUid << ", name: "
-        << autoSelectedNotebookName);
+        << itemInfo.m_name);
 
     QObject::disconnect(
         &m_filterByNotebookWidget,
@@ -1460,7 +1475,9 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
 
     m_filterByNotebookWidget.addItemToFilter(
         autoSelectedNotebookLocalUid,
-        autoSelectedNotebookName);
+        itemInfo.m_name,
+        itemInfo.m_linkedNotebookGuid,
+        itemInfo.m_linkedNotebookUsername);
 
     QObject::connect(
         &m_filterByNotebookWidget,

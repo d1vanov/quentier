@@ -989,16 +989,15 @@ void NotebookItemView::showNotebookItemContextMenu(
         auto * pTargetStackSubMenu = m_pNotebookItemContextMenu->addMenu(
             tr("Move to stack"));
 
-        for(auto it = stacks.constBegin(),
-            end = stacks.constEnd(); it != end; ++it)
+        for(const auto & stack: qAsConst(stacks))
         {
             QStringList dataPair;
             dataPair.reserve(2);
-            dataPair << *it;
+            dataPair << stack;
             dataPair << item.localUid();
 
             ADD_CONTEXT_MENU_ACTION(
-                *it,
+                stack,
                 pTargetStackSubMenu,
                 onMoveNotebookToStackAction,
                 dataPair,
@@ -1099,10 +1098,8 @@ void NotebookItemView::showNotebookStackItemContextMenu(
         allChildrenUpdatable = true;
 
         auto children = pModelItem->children();
-        for(auto it = children.constBegin(),
-            end = children.constEnd(); it != end; ++it)
+        for(const auto * pChildItem: qAsConst(children))
         {
-            const auto * pChildItem = *it;
             if (Q_UNLIKELY(!pChildItem)) {
                 QNWARNING("Found null child at stack item: " << *pModelItem);
                 continue;
@@ -1225,9 +1222,8 @@ void NotebookItemView::saveNotebookModelItemsState()
 
     appSettings.beginGroup(QStringLiteral("NotebookItemView"));
 
-    for(auto it = expandedStackItemsByLinkedNotebookGuid.constBegin(),
-        end = expandedStackItemsByLinkedNotebookGuid.constEnd();
-        it != end; ++it)
+    for(const auto & it:
+        qevercloud::toRange(qAsConst(expandedStackItemsByLinkedNotebookGuid)))
     {
         const QString & linkedNotebookGuid = it.key();
         const QStringList & stackItemNames = it.value();
@@ -1274,8 +1270,8 @@ void NotebookItemView::restoreNotebookModelItemsState(
         appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
 
     QHash<QString,QStringList> expandedStacksByLinkedNotebookGuid;
-    for(auto it = linkedNotebookOwnerNamesByGuid.constBegin(),
-        end = linkedNotebookOwnerNamesByGuid.constEnd(); it != end; ++it)
+    for(const auto & it:
+        qevercloud::toRange(qAsConst(linkedNotebookOwnerNamesByGuid)))
     {
         const QString & linkedNotebookGuid = it.key();
 
@@ -1303,8 +1299,8 @@ void NotebookItemView::restoreNotebookModelItemsState(
     m_trackingNotebookModelItemsState = false;
     setStacksExpanded(expandedStacks, model, QString());
 
-    for(auto it = expandedStacksByLinkedNotebookGuid.constBegin(),
-        end = expandedStacksByLinkedNotebookGuid.constEnd(); it != end; ++it)
+    for(const auto & it:
+        qevercloud::toRange(qAsConst(expandedStacksByLinkedNotebookGuid)))
     {
         setStacksExpanded(it.value(), model, it.key());
     }
@@ -1330,11 +1326,8 @@ void NotebookItemView::setStacksExpanded(
     QNDEBUG("NotebookItemView::setStacksExpanded: "
         << "linked notebook guid = " << linkedNotebookGuid);
 
-    for(auto it = expandedStackNames.constBegin(),
-        end = expandedStackNames.constEnd(); it != end; ++it)
+    for(const auto & expandedStack: qAsConst(expandedStackNames))
     {
-        const QString & expandedStack = *it;
-
         QModelIndex index = model.indexForNotebookStack(
             expandedStack,
             linkedNotebookGuid);
@@ -1354,11 +1347,9 @@ void NotebookItemView::setLinkedNotebooksExpanded(
     QNDEBUG("NotebookItemView::setLinkedNotebooksExpanded: "
         << expandedLinkedNotebookGuids.join(QStringLiteral(", ")));
 
-    for(auto it = expandedLinkedNotebookGuids.constBegin(),
-        end = expandedLinkedNotebookGuids.constEnd(); it != end; ++it)
+    for(const auto & expandedLinkedNotebookGuid:
+        qAsConst(expandedLinkedNotebookGuids))
     {
-        const QString & expandedLinkedNotebookGuid = *it;
-
         QModelIndex index = model.indexForLinkedNotebookGuid(
             expandedLinkedNotebookGuid);
 
@@ -1514,13 +1505,6 @@ void NotebookItemView::selectionChangedImpl(
     const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
     if (!pNotebookItem) {
         QNDEBUG("Non-notebook item is selected");
-        handleNoSelectedNotebook(pNotebookModel->account());
-        return;
-    }
-
-    if (!pNotebookItem->linkedNotebookGuid().isEmpty()) {
-        QNDEBUG("Notebook from the linked notebook is selected, "
-            << "won't do anything");
         handleNoSelectedNotebook(pNotebookModel->account());
         return;
     }

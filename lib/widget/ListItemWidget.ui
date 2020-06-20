@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>90</width>
+    <width>112</width>
     <height>23</height>
    </rect>
   </property>
@@ -84,6 +84,10 @@ background-color: rgb(205, 221, 229);
 }
 
 #itemNameLabel {
+color: black;
+}
+
+#linkedNotebookUsernameLabel {
 color: black;
 }</string>
      </property>
@@ -170,8 +174,23 @@ color: black;
       </item>
       <item>
        <widget class="QLabel" name="linkedNotebookUsernameLabel">
-        <property name="text">
-         <string>TextLabel</string>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>

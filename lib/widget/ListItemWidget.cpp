@@ -47,8 +47,8 @@ ListItemWidget::ListItemWidget(
 
 ListItemWidget::ListItemWidget(
         const QString & itemName, const QString & itemLocalUid,
-        const QString & linkedNotebookUsername,
-        const QString & linkedNotebookGuid, QWidget * parent) :
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername, QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::ListItemWidget)
 {
@@ -57,8 +57,14 @@ ListItemWidget::ListItemWidget(
     m_itemLocalUid = itemLocalUid;
     setName(itemName);
 
-    m_linkedNotebookGuid = linkedNotebookGuid;
-    setLinkedNotebookUsername(linkedNotebookUsername);
+    if (linkedNotebookGuid.isEmpty()) {
+        m_pUi->userLabel->hide();
+        m_pUi->linkedNotebookUsernameLabel->hide();
+    }
+    else {
+        m_linkedNotebookGuid = linkedNotebookGuid;
+        setLinkedNotebookUsername(linkedNotebookUsername);
+    }
 
     adjustSize();
 

@@ -208,10 +208,13 @@ bool AbstractFilterByModelItemWidget::isReady() const
 }
 
 void AbstractFilterByModelItemWidget::addItemToFilter(
-    const QString & localUid, const QString & itemName)
+    const QString & localUid, const QString & itemName,
+    const QString & linkedNotebookGuid, const QString & linkedNotebookUsername)
 {
     AFDEBUG("AbstractFilterByModelItemWidget::addItemToFilter: local uid = "
-        << localUid << ", name = " << itemName);
+        << localUid << ", name = " << itemName << ", linked notebook guid = "
+        << linkedNotebookGuid << ", linked notebook username = "
+        << linkedNotebookUsername);
 
     int numItems = m_pLayout->count();
     for(int i = 0; i < numItems; ++i)
@@ -239,10 +242,17 @@ void AbstractFilterByModelItemWidget::addItemToFilter(
         }
 
         pItemWidget->setName(itemName);
+        pItemWidget->setLinkedNotebookGuid(linkedNotebookGuid);
+        pItemWidget->setLinkedNotebookUsername(linkedNotebookUsername);
         return;
     }
 
-    auto * pItemWidget = new ListItemWidget(itemName, localUid, this);
+    auto * pItemWidget = new ListItemWidget(
+        itemName,
+        localUid,
+        linkedNotebookGuid,
+        linkedNotebookUsername,
+        this);
 
     QObject::connect(
         pItemWidget,
@@ -461,7 +471,12 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
 
     m_pLayout->removeWidget(pNewItemLineEdit);
 
-    auto * pItemWidget = new ListItemWidget(newItemName, localUid, this);
+    auto * pItemWidget = new ListItemWidget(
+        newItemName,
+        localUid,
+        newItemLinkedNotebookGuid,
+        newItemLinkedNotebookUsername,
+        this);
 
     QObject::connect(
         pItemWidget,
@@ -630,13 +645,18 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
 
     for(const auto & itemLocalUid: qAsConst(itemLocalUids))
     {
-        QString itemName = m_pItemModel->itemNameForLocalUid(itemLocalUid);
-        if (itemName.isEmpty()) {
+        auto itemInfo = m_pItemModel->itemInfoForLocalUid(itemLocalUid);
+        if (itemInfo.m_localUid.isEmpty()) {
             AFTRACE("Found no item name for local uid " << itemLocalUid);
             continue;
         }
 
-        auto * pItemWidget = new ListItemWidget(itemName, itemLocalUid, this);
+        auto * pItemWidget = new ListItemWidget(
+            itemInfo.m_name,
+            itemLocalUid,
+            itemInfo.m_linkedNotebookGuid,
+            itemInfo.m_linkedNotebookUsername,
+            this);
 
         QObject::connect(
             pItemWidget,

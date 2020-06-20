@@ -123,7 +123,11 @@ Q_SIGNALS:
     void ready();
 
 public Q_SLOTS:
-    void addItemToFilter(const QString & localUid, const QString & itemName);
+    void addItemToFilter(
+        const QString & localUid, const QString & itemName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
+
     void clear();
 
     /**

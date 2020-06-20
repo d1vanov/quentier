@@ -252,7 +252,6 @@ void NewListItemLineEdit::setupCompleter()
     QNDEBUG("Working around Qt bug https://bugreports.qt.io/browse/QTBUG-56652");
     m_pCompleter->setCompletionMode(QCompleter::InlineCompletion);
 #endif
-
 }
 
 QStringList NewListItemLineEdit::itemNamesForCompleter() const
@@ -281,7 +280,7 @@ QStringList NewListItemLineEdit::itemNamesForCompleter() const
     else
     {
         // First list item names corresponding to user's own account
-        auto itemNames = m_pItemModel->itemNames(QLatin1String(""));
+        itemNames = m_pItemModel->itemNames(QLatin1String(""));
 
         // Now add items corresponding to linked notebooks
         auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();

@@ -47,8 +47,8 @@ public:
 
     explicit ListItemWidget(const QString & itemName,
         const QString & itemLocalUid,
-        const QString & linkedNotebookUsername,
         const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername,
         QWidget *parent = nullptr);
 
     ~ListItemWidget();
