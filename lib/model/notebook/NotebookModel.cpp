@@ -750,10 +750,33 @@ QString NotebookModel::itemNameForLocalUid(const QString & localUid) const
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
         QNTRACE("No notebook item with such local uid");
-        return QString();
+        return {};
     }
 
     return it->name();
+}
+
+ItemModel::ItemInfo NotebookModel::itemInfoForLocalUid(
+    const QString & localUid) const
+{
+    QNTRACE("NotebookModel::itemInfoForLocalUid: " << localUid);
+
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNTRACE("No notebook item with such local uid");
+        return {};
+    }
+
+    ItemModel::ItemInfo info;
+    info.m_localUid = it->localUid();
+    info.m_name = it->name();
+    info.m_linkedNotebookGuid = it->linkedNotebookGuid();
+
+    info.m_linkedNotebookUsername = linkedNotebookUsername(
+        info.m_linkedNotebookGuid);
+
+    return info;
 }
 
 QStringList NotebookModel::itemNames(const QString & linkedNotebookGuid) const
@@ -793,6 +816,30 @@ QStringList NotebookModel::itemNames(const QString & linkedNotebookGuid) const
     }
 
     return result;
+}
+
+QVector<ItemModel::LinkedNotebookInfo> NotebookModel::linkedNotebooksInfo() const
+{
+    QVector<LinkedNotebookInfo> infos;
+    infos.reserve(m_linkedNotebookItems.size());
+
+    for(const auto & it: qevercloud::toRange(m_linkedNotebookItems)) {
+        infos.push_back(LinkedNotebookInfo(it.key(), it.value().username()));
+    }
+
+    return infos;
+}
+
+QString NotebookModel::linkedNotebookUsername(
+    const QString & linkedNotebookGuid) const
+{
+    auto it = m_linkedNotebookItems.find(linkedNotebookGuid);
+    if (it != m_linkedNotebookItems.end()) {
+        const auto & item = it.value();
+        return item.username();
+    }
+
+    return {};
 }
 
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const

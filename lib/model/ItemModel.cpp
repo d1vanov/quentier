@@ -18,6 +18,8 @@
 
 #include "ItemModel.h"
 
+#include <QDebug>
+
 namespace quentier {
 
 ItemModel::ItemModel(QObject * parent) :
@@ -26,5 +28,23 @@ ItemModel::ItemModel(QObject * parent) :
 
 ItemModel::~ItemModel()
 {}
+
+QDebug & operator<<(QDebug & dbg, const ItemModel::LinkedNotebookInfo & info)
+{
+    dbg << "Linked notebook guid = " << info.m_guid
+        << ", username = " << info.m_username;
+
+    return dbg;
+}
+
+QDebug & operator<<(QDebug & dbg, const ItemModel::ItemInfo & itemInfo)
+{
+    dbg << "Item info: local uid = " << itemInfo.m_localUid
+        << ", name = " << itemInfo.m_name
+        << ", linked notebook guid = " << itemInfo.m_linkedNotebookGuid
+        << ", linked notebook username = " << itemInfo.m_linkedNotebookUsername;
+
+    return dbg;
+}
 
 } // namespace quentier

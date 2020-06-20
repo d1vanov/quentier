@@ -259,7 +259,15 @@ public:
     virtual QString itemNameForLocalUid(
         const QString & localUid) const override;
 
+    virtual ItemInfo itemInfoForLocalUid(
+        const QString & localUid) const override;
+
     virtual QStringList itemNames(
+        const QString & linkedNotebookGuid) const override;
+
+    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override;
+
+    virtual QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const override;
 
     virtual int nameColumn() const override
@@ -545,6 +553,9 @@ private:
         ITagModelItem & modelItem);
 
     void checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem);
+
+    bool tagItemMatchesByLinkedNotebook(
+        const TagItem & item, const QString & linkedNotebookGuid) const;
 
     void fixupItemParent(ITagModelItem & item);
     void setItemParent(ITagModelItem & item, ITagModelItem & parent);

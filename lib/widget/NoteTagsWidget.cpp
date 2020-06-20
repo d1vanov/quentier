@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -223,8 +223,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
             continue;
         }
 
-        ListItemWidget * pTagItemWidget =
-            qobject_cast<ListItemWidget*>(pItem->widget());
+        auto * pTagItemWidget = qobject_cast<ListItemWidget*>(pItem->widget());
         if (Q_UNLIKELY(!pTagItemWidget)) {
             continue;
         }
@@ -243,17 +242,19 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
             continue;
         }
 
-        NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
+        auto * pNewItemLineEdit = findNewItemWidget();
         if (pNewItemLineEdit)
         {
-            QStringList reservedTagNames = pNewItemLineEdit->reservedItemNames();
-            QNTRACE("Reserved tag names before removing the name of the just "
-                    << "removed tag from it: "
-                    << reservedTagNames.join(QStringLiteral(", "))
-                    << "; the name of the removed tag: " << tagName);
-            if (reservedTagNames.removeOne(tagName)) {
-                pNewItemLineEdit->updateReservedItemNames(reservedTagNames);
-            }
+            NewListItemLineEdit::ItemInfo removedItemInfo;
+            removedItemInfo.m_name = tagName;
+
+            removedItemInfo.m_linkedNotebookGuid =
+                pTagItemWidget->linkedNotebookGuid();
+
+            removedItemInfo.m_linkedNotebookUsername =
+                pTagItemWidget->linkedNotebookUsername();
+
+            pNewItemLineEdit->removeReservedItem(removedItemInfo);
         }
 
         Q_UNUSED(m_pLayout->takeAt(i));
@@ -406,25 +407,45 @@ void NoteTagsWidget::onNewTagNameEntered()
 
     bool newItemLineEditHadFocus = false;
 
-    QStringList reservedTagNames = pNewItemLineEdit->reservedItemNames();
-    reservedTagNames << tagName;
-    pNewItemLineEdit->updateReservedItemNames(reservedTagNames);
+    NewListItemLineEdit::ItemInfo reservedItemInfo;
+    reservedItemInfo.m_name = tagName;
+    reservedItemInfo.m_linkedNotebookGuid = pTagItem->linkedNotebookGuid();
+
+    if (!reservedItemInfo.m_linkedNotebookGuid.isEmpty())
+    {
+        auto linkedNotebooksInfo = m_pTagModel->linkedNotebooksInfo();
+        for(const auto & linkedNotebookInfo: qAsConst(linkedNotebooksInfo))
+        {
+            if (linkedNotebookInfo.m_guid ==
+                reservedItemInfo.m_linkedNotebookGuid)
+            {
+                reservedItemInfo.m_linkedNotebookUsername =
+                    linkedNotebookInfo.m_username;
+                break;
+            }
+        }
+    }
+
+    pNewItemLineEdit->addReservedItem(std::move(reservedItemInfo));
 
     newItemLineEditHadFocus = pNewItemLineEdit->hasFocus();
     Q_UNUSED(m_pLayout->removeWidget(pNewItemLineEdit))
 
-    ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
+    auto * pTagWidget = new ListItemWidget(tagName, tagLocalUid, this);
     pTagWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     pTagWidget->setItemRemovable(m_tagRestrictions.m_canUpdateNote);
-    QObject::connect(pTagWidget,
-                     QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
-                     this,
-                     QNSLOT(NoteTagsWidget,onTagRemoved,QString));
-    QObject::connect(this,
-                     QNSIGNAL(NoteTagsWidget,
-                              canUpdateNoteRestrictionChanged,bool),
-                     pTagWidget,
-                     QNSLOT(ListItemWidget,setItemRemovable,bool));
+
+    QObject::connect(
+        pTagWidget,
+        &ListItemWidget::itemRemovedFromList,
+        this,
+        &NoteTagsWidget::onTagRemoved);
+
+    QObject::connect(
+        this,
+        &NoteTagsWidget::canUpdateNoteRestrictionChanged,
+        pTagWidget,
+        &ListItemWidget::setItemRemovable);
 
     m_pLayout->addWidget(pTagWidget);
 
@@ -769,14 +790,16 @@ void NoteTagsWidget::updateLayout()
 
         m_currentNoteTagLocalUidToNameBimap.insert(
             TagLocalUidToNameBimap::value_type(tagLocalUid, tagName));
+
         tagNames << tagName;
     }
 
     for(int i = 0, size = tagNames.size(); i < size; ++i)
     {
         const QString & tagName = tagNames[i];
+        const QString & tagLocalUid = tagLocalUids[i];
 
-        ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
+        ListItemWidget * pTagWidget = new ListItemWidget(tagName, tagLocalUid, this);
         pTagWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
         pTagWidget->setItemRemovable(m_tagRestrictions.m_canUpdateNote);
         QObject::connect(pTagWidget,
@@ -817,13 +840,14 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
     const int numItems = m_pLayout->count();
     for(int i = 0; i < numItems; ++i)
     {
-        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        auto * pItem = m_pLayout->itemAt(i);
         if (Q_UNLIKELY(!pItem)) {
             continue;
         }
 
-        NewListItemLineEdit * pNewItemWidget =
-            qobject_cast<NewListItemLineEdit*>(pItem->widget());
+        auto * pNewItemWidget = qobject_cast<NewListItemLineEdit*>(
+            pItem->widget());
+
         if (!pNewItemWidget) {
             continue;
         }
@@ -850,26 +874,54 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
         return;
     }
 
-    QStringList existingTagNames;
-    existingTagNames.reserve(
+    QVector<NewListItemLineEdit::ItemInfo> reservedItems;
+    reservedItems.reserve(
         static_cast<int>(m_currentNoteTagLocalUidToNameBimap.size()));
+
     for(auto it = m_currentNoteTagLocalUidToNameBimap.right.begin(),
         end = m_currentNoteTagLocalUidToNameBimap.right.end(); it != end; ++it)
     {
-        existingTagNames << it->first;
+        NewListItemLineEdit::ItemInfo item;
+        item.m_name = it->first;
+        item.m_linkedNotebookGuid = m_currentLinkedNotebookGuid;
+
+        if (!item.m_linkedNotebookGuid.isEmpty())
+        {
+            auto linkedNotebooksInfo = m_pTagModel->linkedNotebooksInfo();
+            for(const auto & linkedNotebookInfo: qAsConst(linkedNotebooksInfo))
+            {
+                if (linkedNotebookInfo.m_guid == item.m_linkedNotebookGuid) {
+                    item.m_linkedNotebookUsername =
+                        linkedNotebookInfo.m_username;
+
+                    break;
+                }
+            }
+        }
     }
 
-    NewListItemLineEdit * pNewTagLineEdit = new NewListItemLineEdit(
-        m_pTagModel, existingTagNames, m_currentLinkedNotebookGuid, this);
+    auto * pNewTagLineEdit = new NewListItemLineEdit(
+        m_pTagModel,
+        reservedItems,
+        this);
 
-    QObject::connect(pNewTagLineEdit,
-                     QNSIGNAL(NewListItemLineEdit,returnPressed),
-                     this,
-                     QNSLOT(NoteTagsWidget,onNewTagNameEntered));
-    QObject::connect(pNewTagLineEdit,
-                     QNSIGNAL(NewListItemLineEdit,receivedFocusFromWindowSystem),
-                     this,
-                     QNSIGNAL(NoteTagsWidget,newTagLineEditReceivedFocusFromWindowSystem));
+    pNewTagLineEdit->setTargetLinkedNotebookGuid(
+        m_currentLinkedNotebookGuid.isEmpty()
+        ? QLatin1String("")
+        : m_currentLinkedNotebookGuid);
+
+    QObject::connect(
+        pNewTagLineEdit,
+        &NewListItemLineEdit::returnPressed,
+        this,
+        &NoteTagsWidget::onNewTagNameEntered);
+
+    QObject::connect(
+        pNewTagLineEdit,
+        &NewListItemLineEdit::receivedFocusFromWindowSystem,
+        this,
+        &NoteTagsWidget::newTagLineEditReceivedFocusFromWindowSystem);
+
     m_pLayout->addWidget(pNewTagLineEdit);
 }
 

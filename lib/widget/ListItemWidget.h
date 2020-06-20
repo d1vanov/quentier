@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -42,18 +42,36 @@ class ListItemWidget: public QWidget
 public:
     explicit ListItemWidget(
         const QString & itemName,
+        const QString & itemLocalUid,
         QWidget * parent = nullptr);
+
+    explicit ListItemWidget(const QString & itemName,
+        const QString & itemLocalUid,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername,
+        QWidget *parent = nullptr);
 
     ~ListItemWidget();
 
     QString name() const;
-    void setName(const QString & name);
+    void setName(QString name);
+
+    QString localUid() const;
+    void setLocalUid(QString localUid);
+
+    QString linkedNotebookUsername() const;
+    void setLinkedNotebookUsername(QString name);
+
+    QString linkedNotebookGuid() const;
+    void setLinkedNotebookGuid(QString guid);
 
     virtual QSize sizeHint() const override;
     virtual QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
-    void itemRemovedFromList(QString name);
+    void itemRemovedFromList(
+        QString localUid, QString name, QString linkedNotebookGuid,
+        QString linkedNotebookUsername);
 
 public Q_SLOTS:
     void setItemRemovable(bool removable);
@@ -63,6 +81,9 @@ private Q_SLOTS:
 
 private:
     Ui::ListItemWidget * m_pUi;
+
+    QString     m_itemLocalUid;
+    QString     m_linkedNotebookGuid;
 };
 
 } // namespace quentier

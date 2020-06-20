@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>90</width>
+    <width>112</width>
     <height>23</height>
    </rect>
   </property>
@@ -85,6 +85,10 @@ background-color: rgb(205, 221, 229);
 
 #itemNameLabel {
 color: black;
+}
+
+#linkedNotebookUsernameLabel {
+color: black;
 }</string>
      </property>
      <property name="frameShape">
@@ -117,6 +121,59 @@ color: black;
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="userLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../../resource/icons/other/icons.qrc">:/user/user.png</pixmap>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="linkedNotebookUsernameLabel">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -183,6 +240,8 @@ color: black;
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../resource/icons/other/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

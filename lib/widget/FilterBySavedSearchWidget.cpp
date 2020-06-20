@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,8 @@
 #include <lib/model/SavedSearchModel.h>
 #include <lib/preferences/SettingsNames.h>
 
-#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
 
 #include <QModelIndex>
 
@@ -35,19 +35,23 @@
 namespace quentier {
 
 FilterBySavedSearchWidget::FilterBySavedSearchWidget(QWidget * parent) :
-    QComboBox(parent),
-    m_account(),
-    m_pSavedSearchModel(),
-    m_availableSavedSearchesModel(),
-    m_currentSavedSearchName(),
-    m_currentSavedSearchLocalUid(),
-    m_settingCurrentIndex(false),
-    m_isReady(false)
+    QComboBox(parent)
 {
     setModel(&m_availableSavedSearchesModel);
 
-    QObject::connect(this, SIGNAL(currentIndexChanged(QString)),
-                     this, SLOT(onCurrentSavedSearchChanged(QString)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        this,
+        qOverload<int>(&FilterBySavedSearchWidget::currentIndexChanged),
+        this,
+        &FilterBySavedSearchWidget::onCurrentSavedSearchChanged);
+#else
+    QObject::connect(
+        this,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onCurrentSavedSearchChanged(int)));
+#endif
 }
 
 void FilterBySavedSearchWidget::switchAccount(
@@ -58,22 +62,23 @@ void FilterBySavedSearchWidget::switchAccount(
     if (!m_pSavedSearchModel.isNull() &&
         (m_pSavedSearchModel.data() != pSavedSearchModel))
     {
-        QObject::disconnect(m_pSavedSearchModel.data(),
-                            QNSIGNAL(SavedSearchModel,rowsInserted,
-                                     const QModelIndex&,int,int),
-                            this,
-                            QNSLOT(FilterBySavedSearchWidget,onModelRowsInserted,
-                                   const QModelIndex&,int,int));
-        QObject::disconnect(m_pSavedSearchModel.data(),
-                            QNSIGNAL(SavedSearchModel,rowsRemoved,
-                                     const QModelIndex&,int,int),
-                            this,
-                            QNSLOT(FilterBySavedSearchWidget,onModelRowsRemoved,
-                                   const QModelIndex&,int,int));
-        QObject::disconnect(m_pSavedSearchModel.data(),
-                            &SavedSearchModel::dataChanged,
-                            this,
-                            &FilterBySavedSearchWidget::onModelDataChanged);
+        QObject::disconnect(
+            m_pSavedSearchModel.data(),
+            &SavedSearchModel::rowsInserted,
+            this,
+            &FilterBySavedSearchWidget::onModelRowsInserted);
+
+        QObject::disconnect(
+            m_pSavedSearchModel.data(),
+            &SavedSearchModel::rowsRemoved,
+            this,
+            &FilterBySavedSearchWidget::onModelRowsRemoved);
+
+        QObject::disconnect(
+            m_pSavedSearchModel.data(),
+            &SavedSearchModel::dataChanged,
+            this,
+            &FilterBySavedSearchWidget::onModelDataChanged);
     }
 
     m_pSavedSearchModel = pSavedSearchModel;
@@ -81,10 +86,11 @@ void FilterBySavedSearchWidget::switchAccount(
     if (!m_pSavedSearchModel.isNull() &&
         !m_pSavedSearchModel->allSavedSearchesListed())
     {
-        QObject::connect(m_pSavedSearchModel.data(),
-                         QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
-                         this,
-                         QNSLOT(FilterBySavedSearchWidget,onAllSavedSearchesListed));
+        QObject::connect(
+            m_pSavedSearchModel.data(),
+            &SavedSearchModel::notifyAllSavedSearchesListed,
+            this,
+            &FilterBySavedSearchWidget::onAllSavedSearchesListed);
     }
     else
     {
@@ -105,7 +111,7 @@ void FilterBySavedSearchWidget::switchAccount(
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
         QNTRACE("The new model is null");
-        m_availableSavedSearchesModel.setStringList(QStringList());
+        m_availableSavedSearchesModel.setStringList({});
         return;
     }
 
@@ -145,8 +151,10 @@ QString FilterBySavedSearchWidget::filteredSavedSearchLocalUid() const
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
-    QString savedSearchLocalUid =
-        appSettings.value(LAST_FILTERED_SAVED_SEARCH_KEY).toString();
+
+    QString savedSearchLocalUid = appSettings.value(
+        LAST_FILTERED_SAVED_SEARCH_KEY).toString();
+
     appSettings.endGroup();
 
     return savedSearchLocalUid;
@@ -156,13 +164,16 @@ void FilterBySavedSearchWidget::onAllSavedSearchesListed()
 {
     QNDEBUG("FilterBySavedSearchWidget::onAllSavedSearchesListed");
 
-    QObject::disconnect(m_pSavedSearchModel.data(),
-                        QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
-                        this,
-                        QNSLOT(FilterBySavedSearchWidget,onAllSavedSearchesListed));
+    QObject::disconnect(
+        m_pSavedSearchModel.data(),
+        &SavedSearchModel::notifyAllSavedSearchesListed,
+        this,
+        &FilterBySavedSearchWidget::onAllSavedSearchesListed);
+
     connectoToSavedSearchModel();
     restoreSelectedSavedSearch();
     updateSavedSearchesInComboBox();
+
     m_isReady = true;
     Q_EMIT ready();
 }
@@ -207,7 +218,7 @@ void FilterBySavedSearchWidget::onModelDataChanged(
 void FilterBySavedSearchWidget::persistSelectedSavedSearch()
 {
     QNDEBUG("FilterBySavedSearchWidget::persistSelectedSavedSearch: account = "
-            << m_account);
+        << m_account);
 
     if (m_account.isEmpty()) {
         QNDEBUG("The account is empty, nothing to persist");
@@ -216,12 +227,15 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
+
     appSettings.setValue(
-        LAST_FILTERED_SAVED_SEARCH_KEY, m_currentSavedSearchLocalUid);
+        LAST_FILTERED_SAVED_SEARCH_KEY,
+        m_currentSavedSearchLocalUid);
+
     appSettings.endGroup();
 
-    QNTRACE("Successfully persisted the last selected saved search in the filter: "
-            << m_currentSavedSearchLocalUid);
+    QNTRACE("Successfully persisted the last selected saved search in "
+        << "the filter: " << m_currentSavedSearchLocalUid);
 }
 
 void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
@@ -240,8 +254,10 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
-    m_currentSavedSearchLocalUid =
-        appSettings.value(LAST_FILTERED_SAVED_SEARCH_KEY).toString();
+
+    m_currentSavedSearchLocalUid = appSettings.value(
+        LAST_FILTERED_SAVED_SEARCH_KEY).toString();
+
     appSettings.endGroup();
 
     if (m_currentSavedSearchLocalUid.isEmpty()) {
@@ -250,15 +266,18 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
     }
 }
 
-void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(
-    const QString & savedSearchName)
+void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(int index)
 {
+    QString savedSearchName = itemText(index);
+
     QNDEBUG("FilterBySavedSearchWidget::onCurrentSavedSearchChanged: "
-            << savedSearchName);
+        << savedSearchName);
+
+    Q_EMIT currentSavedSearchNameChanged(savedSearchName);
 
     if (m_settingCurrentIndex) {
         QNTRACE("This time the current index was set programmatically, won't "
-                "do anything");
+            << "do anything");
         return;
     }
 
@@ -275,11 +294,12 @@ void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(
     else
     {
         m_currentSavedSearchLocalUid = m_pSavedSearchModel->localUidForItemName(
-            savedSearchName, /* linked notebook guid = */ QString());
+            savedSearchName,
+            /* linked notebook guid = */ {});
 
         if (m_currentSavedSearchLocalUid.isEmpty()) {
             QNWARNING("Wasn't able to find the saved search local uid for "
-                      << "chosen saved search name: " << savedSearchName);
+                << "chosen saved search name: " << savedSearchName);
             m_currentSavedSearchName.resize(0);
         }
         else {
@@ -307,20 +327,25 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
 
     if (Q_UNLIKELY(m_currentSavedSearchName.isEmpty())) {
         QNDEBUG("Wasn't able to find the saved search name for restored saved "
-                "search local uid");
+            << "search local uid");
         m_currentSavedSearchLocalUid.resize(0);
         m_currentSavedSearchName.resize(0);
     }
 
-    QStringList savedSearchNames = m_pSavedSearchModel->savedSearchNames();
+    auto savedSearchNames = m_pSavedSearchModel->savedSearchNames();
     savedSearchNames.prepend(QString());
 
     int index = 0;
     auto it = std::lower_bound(
-        savedSearchNames.constBegin(), savedSearchNames.constEnd(),
+        savedSearchNames.constBegin(),
+        savedSearchNames.constEnd(),
         m_currentSavedSearchName);
-    if ((it != savedSearchNames.constEnd()) && (*it == m_currentSavedSearchName)) {
-        index = static_cast<int>(std::distance(savedSearchNames.constBegin(), it));
+
+    if ((it != savedSearchNames.constEnd()) &&
+        (*it == m_currentSavedSearchName))
+    {
+        index = static_cast<int>(
+            std::distance(savedSearchNames.constBegin(), it));
     }
 
     m_settingCurrentIndex = true;
@@ -333,23 +358,23 @@ void FilterBySavedSearchWidget::connectoToSavedSearchModel()
 {
     QNDEBUG("FilterBySavedSearchWidget::connectoToSavedSearchModel");
 
-    QObject::connect(m_pSavedSearchModel.data(),
-                     QNSIGNAL(SavedSearchModel,rowsInserted,
-                              const QModelIndex&,int,int),
-                     this,
-                     QNSLOT(FilterBySavedSearchWidget,onModelRowsInserted,
-                            const QModelIndex&,int,int));
-    QObject::connect(m_pSavedSearchModel.data(),
-                     QNSIGNAL(SavedSearchModel,rowsRemoved,
-                              const QModelIndex&,int,int),
-                     this,
-                     QNSLOT(FilterBySavedSearchWidget,onModelRowsRemoved,
-                            const QModelIndex&,int,int));
+    QObject::connect(
+        m_pSavedSearchModel.data(),
+        &SavedSearchModel::rowsInserted,
+        this,
+        &FilterBySavedSearchWidget::onModelRowsInserted);
 
-    QObject::connect(m_pSavedSearchModel.data(),
-                     &SavedSearchModel::dataChanged,
-                     this,
-                     &FilterBySavedSearchWidget::onModelDataChanged);
+    QObject::connect(
+        m_pSavedSearchModel.data(),
+        &SavedSearchModel::rowsRemoved,
+        this,
+        &FilterBySavedSearchWidget::onModelRowsRemoved);
+
+    QObject::connect(
+        m_pSavedSearchModel.data(),
+        &SavedSearchModel::dataChanged,
+        this,
+        &FilterBySavedSearchWidget::onModelDataChanged);
 }
 
 } // namespace quentier

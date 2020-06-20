@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,13 +26,6 @@
 #include <QWidget>
 #include <QPointer>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
-
-#include <boost/bimap.hpp>
-
-RESTORE_WARNINGS
-
 QT_FORWARD_DECLARE_CLASS(FlowLayout)
 
 namespace quentier {
@@ -53,7 +46,10 @@ public:
     explicit AbstractFilterByModelItemWidget(
         const QString & name, QWidget * parent = nullptr);
 
-    const Account & account() const { return m_account; }
+    const Account & account() const
+    {
+        return m_account;
+    }
 
     void switchAccount(const Account & account, ItemModel * pItemModel);
 
@@ -76,17 +72,37 @@ Q_SIGNALS:
      * @brief addedItemToFilter signal is emitted when the item is added to
      * the filter
      *
-     * @param itemName - the name of the item added to the filted
+     * @param itemLocalUid              The local uid of the item added to
+     *                                  filter
+     * @param itemName                  The name of the item added to filter
+     * @param linkedNotebookGuid        The linked notebook guid of the item
+     *                                  added to filter
+     * @param linkedNotebookUsername    The linked notebook username
+     *                                  corresponding to the item added to
+     *                                  filter
      */
-    void addedItemToFilter(const QString & itemName);
+    void addedItemToFilter(
+        const QString & itemLocalUid, const QString & itemName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     /**
      * @brief itemRemovedFromFilter signal is emitted when the item is removed
      * from the filter
      *
-     * @param itemName - the name of the item removed from the filter
+     * @param itemLocalUid              The local uid of the item removed from
+     *                                  filter
+     * @param itemName                  The name of the item removed from filter
+     * @param linkedNotebookGuid        The linked notebook guid of the item
+     *                                  removed from filter
+     * @param linkedNotebookUsername    The linked notebook username
+     *                                  corresponding to the item removed from
+     *                                  filter
      */
-    void itemRemovedFromFilter(const QString & itemName);
+    void itemRemovedFromFilter(
+        const QString & itemLocalUid, const QString & itemName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
 
     /**
      * @brief cleared signal is emitted when all items are removed from the
@@ -107,7 +123,11 @@ Q_SIGNALS:
     void ready();
 
 public Q_SLOTS:
-    void addItemToFilter(const QString & localUid, const QString & itemName);
+    void addItemToFilter(
+        const QString & localUid, const QString & itemName,
+        const QString & linkedNotebookGuid,
+        const QString & linkedNotebookUsername);
+
     void clear();
 
     /**
@@ -126,7 +146,11 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onNewItemAdded();
-    void onItemRemovedFromList(QString name);
+
+    void onItemRemovedFromList(
+        QString localUid, QString name, QString linkedNotebookGuid,
+        QString linkedNotebookUsername);
+
     void onModelReady();
 
 private:
@@ -140,13 +164,10 @@ private:
 
 private:
     QString                     m_name;
-    FlowLayout *                m_pLayout;
+    FlowLayout *                m_pLayout = nullptr;
     Account                     m_account;
     QPointer<ItemModel>         m_pItemModel;
-    bool                        m_isReady;
-
-    typedef boost::bimap<QString, QString> ItemLocalUidToNameBimap;
-    ItemLocalUidToNameBimap     m_filteredItemsLocalUidToNameBimap;
+    bool                        m_isReady = false;
 };
 
 } // namespace quentier

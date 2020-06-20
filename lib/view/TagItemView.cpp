@@ -1453,13 +1453,6 @@ void TagItemView::selectionChangedImpl(
         return;
     }
 
-    if (!pTagItem->linkedNotebookGuid().isEmpty()) {
-        QNDEBUG("Tag from the linked notebook is selected, "
-            << "won't do anything");
-        handleNoSelectedTag(pTagModel->account());
-        return;
-    }
-
     saveSelectedTag(pTagModel->account(), pTagItem->localUid());
 
     if (shouldFilterBySelectedTag(pTagModel->account())) {

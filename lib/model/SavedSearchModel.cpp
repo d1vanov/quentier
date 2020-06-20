@@ -287,24 +287,52 @@ QString SavedSearchModel::itemNameForLocalUid(const QString & localUid) const
 {
     QNDEBUG("SavedSearchModel::itemNameForLocalUid: " << localUid);
 
-    const SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
         QNTRACE("No saved search with such local uid");
-        return QString();
+        return {};
     }
 
-    const SavedSearchModelItem & item = *it;
-    return item.m_name;
+    return it->m_name;
+}
+
+ItemModel::ItemInfo SavedSearchModel::itemInfoForLocalUid(
+    const QString & localUid) const
+{
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNTRACE("No saved search with such local uid");
+        return {};
+    }
+
+    ItemModel::ItemInfo info;
+    info.m_localUid = it->m_localUid;
+    info.m_name = it->m_name;
+
+    return info;
 }
 
 QStringList SavedSearchModel::itemNames(const QString & linkedNotebookGuid) const
 {
     if (!linkedNotebookGuid.isEmpty()) {
-        return QStringList();
+        return {};
     }
 
     return savedSearchNames();
+}
+
+QVector<ItemModel::LinkedNotebookInfo> SavedSearchModel::linkedNotebooksInfo() const
+{
+    return {};
+}
+
+QString SavedSearchModel::linkedNotebookUsername(
+    const QString & linkedNotebookGuid) const
+{
+    Q_UNUSED(linkedNotebookGuid)
+    return {};
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const

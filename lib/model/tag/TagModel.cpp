@@ -168,9 +168,56 @@ QString TagModel::itemNameForLocalUid(const QString & localUid) const
     return it->name();
 }
 
+ItemModel::ItemInfo TagModel::itemInfoForLocalUid(
+    const QString & localUid) const
+{
+    QNTRACE("TagModel::itemInfoForLocalUid: " << localUid);
+
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNTRACE("No tag item with such local uid");
+        return {};
+    }
+
+    ItemModel::ItemInfo info;
+    info.m_localUid = it->localUid();
+    info.m_name = it->name();
+    info.m_linkedNotebookGuid = it->linkedNotebookGuid();
+
+    info.m_linkedNotebookUsername = linkedNotebookUsername(
+        info.m_linkedNotebookGuid);
+
+    return info;
+}
+
 QStringList TagModel::itemNames(const QString & linkedNotebookGuid) const
 {
     return tagNames(linkedNotebookGuid);
+}
+
+QVector<ItemModel::LinkedNotebookInfo> TagModel::linkedNotebooksInfo() const
+{
+    QVector<LinkedNotebookInfo> infos;
+    infos.reserve(m_linkedNotebookItems.size());
+
+    for(const auto & it: qevercloud::toRange(m_linkedNotebookItems)) {
+        infos.push_back(LinkedNotebookInfo(it.key(), it.value().username()));
+    }
+
+    return infos;
+}
+
+QString TagModel::linkedNotebookUsername(
+    const QString & linkedNotebookGuid) const
+{
+    auto it = m_linkedNotebookItems.find(linkedNotebookGuid);
+    if (it != m_linkedNotebookItems.end()) {
+        const auto & item = it.value();
+        return item.username();
+    }
+
+    return {};
 }
 
 bool TagModel::allItemsListed() const
@@ -3631,12 +3678,11 @@ QStringList TagModel::tagNames(const QString & linkedNotebookGuid) const
 
     for(const auto & item: nameIndex)
     {
-        if (item.linkedNotebookGuid() != linkedNotebookGuid) {
+        if (!tagItemMatchesByLinkedNotebook(item, linkedNotebookGuid)) {
             continue;
         }
 
-        const QString tagName = item.name();
-        result << tagName;
+        result << item.name();
     }
 
     return result;
@@ -4442,6 +4488,28 @@ void TagModel::checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem)
         << "request id = " << requestId);
 
     Q_EMIT findNotebook(notebook, requestId);
+}
+
+bool TagModel::tagItemMatchesByLinkedNotebook(
+    const TagItem & item, const QString & linkedNotebookGuid) const
+{
+    if (linkedNotebookGuid.isNull()) {
+        return true;
+    }
+
+    if (item.linkedNotebookGuid().isEmpty() != linkedNotebookGuid.isEmpty()) {
+        return false;
+    }
+
+    if (linkedNotebookGuid.isEmpty()) {
+        return true;
+    }
+
+    if (item.linkedNotebookGuid() != linkedNotebookGuid) {
+        return false;
+    }
+
+    return true;
 }
 
 void TagModel::fixupItemParent(ITagModelItem & item)

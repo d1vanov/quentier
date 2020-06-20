@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,17 +21,20 @@
 
 #include <quentier/utility/Macros.h>
 
+#include <QHash>
 #include <QLineEdit>
 #include <QPointer>
 #include <QVector>
+
+#include <utility>
 
 namespace Ui {
 class NewListItemLineEdit;
 }
 
 QT_FORWARD_DECLARE_CLASS(QCompleter)
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
 QT_FORWARD_DECLARE_CLASS(QModelIndex)
+QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
@@ -41,18 +44,29 @@ class NewListItemLineEdit: public QLineEdit
 {
     Q_OBJECT
 public:
+    struct ItemInfo
+    {
+        QString     m_name;
+        QString     m_linkedNotebookGuid;
+        QString     m_linkedNotebookUsername;
+    };
+
+public:
     explicit NewListItemLineEdit(
         ItemModel * pItemModel,
-        const QStringList & reservedItemNames,
-        const QString & linkedNotebookGuid,
+        QVector<ItemInfo> reservedItems,
         QWidget * parent = nullptr);
 
     virtual ~NewListItemLineEdit();
 
-    QStringList reservedItemNames() const;
-    void updateReservedItemNames(const QStringList & reservedItemNames);
+    const QString & targetLinkedNotebookGuid() const;
+    void setTargetLinkedNotebookGuid(QString linkedNotebookGuid);
 
-    QString linkedNotebookGuid() const;
+    QVector<ItemInfo> reservedItems() const;
+    void setReservedItems(QVector<ItemInfo> items);
+
+    void addReservedItem(ItemInfo item);
+    void removeReservedItem(ItemInfo item);
 
     virtual QSize sizeHint() const override;
     virtual QSize minimumSizeHint() const override;
@@ -75,13 +89,15 @@ private Q_SLOTS:
 private:
     void setupCompleter();
 
+    QStringList itemNamesForCompleter() const;
+
 private:
     Ui::NewListItemLineEdit *   m_pUi;
     QPointer<ItemModel>         m_pItemModel;
-    QStringList                 m_reservedItemNames;
-    QString                     m_linkedNotebookGuid;
+    QVector<ItemInfo>           m_reservedItems;
     QStringListModel *          m_pItemNamesModel;
     QCompleter *                m_pCompleter;
+    QString                     m_targetLinkedNotebookGuid;
 };
 
 } // namespace quentier

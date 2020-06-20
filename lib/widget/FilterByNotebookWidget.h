@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,11 +21,11 @@
 
 #include "AbstractFilterByModelItemWidget.h"
 
-#include <quentier/types/Notebook.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/types/Notebook.h>
 
-#include <QUuid>
 #include <QPointer>
+#include <QUuid>
 
 namespace quentier {
 
@@ -38,7 +38,8 @@ class FilterByNotebookWidget: public AbstractFilterByModelItemWidget
 public:
     explicit FilterByNotebookWidget(QWidget * parent = nullptr);
 
-    void setLocalStorageManager(LocalStorageManagerAsync & localStorageManagerAsync);
+    void setLocalStorageManager(
+        LocalStorageManagerAsync & localStorageManagerAsync);
 
     const NotebookModel * notebookModel() const;
 
