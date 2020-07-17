@@ -28,6 +28,8 @@
 #include <QObject>
 #include <QVector>
 
+#include <memory>
+
 QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
@@ -185,7 +187,7 @@ private:
     void updateLastUsedAccount(const Account & account);
 
 private:
-    QScopedPointer<AccountModel>   m_pAccountModel;
+    std::unique_ptr<AccountModel>   m_pAccountModel;
 };
 
 } // namespace quentier

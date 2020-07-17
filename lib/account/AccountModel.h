@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,10 +19,10 @@
 #ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_MODEL_H
 #define QUENTIER_LIB_ACCOUNT_ACCOUNT_MODEL_H
 
-#include <quentier/utility/Macros.h>
-#include <quentier/utility/StringUtils.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
+#include <quentier/utility/StringUtils.h>
 
 #include <QAbstractTableModel>
 #include <QPointer>
@@ -87,12 +87,16 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
     virtual int rowCount(const QModelIndex & parent) const override;
     virtual int columnCount(const QModelIndex & parent) const override;
-    virtual QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const override;
-    virtual QVariant data(const QModelIndex & index,
-                          int role = Qt::DisplayRole) const override;
-    virtual bool setData(const QModelIndex & index, const QVariant & value,
-                         int role) override;
+
+    virtual QVariant headerData(
+        int section, Qt::Orientation orientation,
+        int role = Qt::DisplayRole) const override;
+
+    virtual QVariant data(
+        const QModelIndex & index, int role = Qt::DisplayRole) const override;
+
+    virtual bool setData(
+        const QModelIndex & index, const QVariant & value, int role) override;
 
 private:
     Q_DISABLE_COPY(AccountModel)

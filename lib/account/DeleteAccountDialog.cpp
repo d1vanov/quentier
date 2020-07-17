@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,23 +17,23 @@
  */
 
 #include "DeleteAccountDialog.h"
-#include "ui_DeleteAccountDialog.h"
-#include "AccountModel.h"
 
+#include "AccountModel.h"
+#include "ui_DeleteAccountDialog.h"
+
+#include <quentier/logging/QuentierLogger.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
-#include <quentier/types/ErrorString.h>
-#include <quentier/logging/QuentierLogger.h>
 
-#include <QPushButton>
 #include <QDir>
 #include <QFileInfo>
+#include <QPushButton>
 
 namespace quentier {
 
-DeleteAccountDialog::DeleteAccountDialog(const Account & account,
-                                         AccountModel & model,
-                                         QWidget * parent) :
+DeleteAccountDialog::DeleteAccountDialog(
+        const Account & account, AccountModel & model, QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::DeleteAccountDialog),
     m_account(account),
@@ -45,26 +45,33 @@ DeleteAccountDialog::DeleteAccountDialog(const Account & account,
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     m_pUi->statusBarLabel->hide();
 
-    QString warning = QStringLiteral("<html><head/><body><p>"
-                                     "<span style=\"font-size:12pt; "
-                                     "font-weight:600; color:#ff0000;\">");
+    QString warning = QStringLiteral(
+        "<html><head/><body><p>"
+        "<span style=\"font-size:12pt; "
+        "font-weight:600; color:#ff0000;\">");
+
     warning += tr("WARNING! The account deletion is permanent and "
                   "cannot be reverted!");
+
     warning += QStringLiteral("</span></p><p>");
 
     if (m_account.type() == Account::Type::Evernote) {
-        warning += tr("The account to be deleted is Evernote one; only Quentier's "
-                      "locally synchronized account data would be deleted, your "
-                      "Evernote account itself won't be touched");
+        warning += tr("The account to be deleted is Evernote one; only "
+                      "Quentier's locally synchronized account data would be "
+                      "deleted, your Evernote account itself won't be touched");
         warning += QStringLiteral("</p><p>");
     }
 
     warning += QStringLiteral("<span style=\"font-weight:600;\">");
     warning += tr("Enter");
     warning += QStringLiteral(" \"Yes\" ");
+
     warning += tr("to the below form to confirm your intention to delete "
                   "the account data");
-    warning += QStringLiteral(".</span></p><p><span style=\" font-weight:600;\">");
+
+    warning += QStringLiteral(
+        ".</span></p><p><span style=\" font-weight:600;\">");
+
     warning += tr("Account details");
     warning += QStringLiteral(": </span></p><p>");
 
@@ -119,8 +126,11 @@ DeleteAccountDialog::DeleteAccountDialog(const Account & account,
     warning += QStringLiteral("</p></body></html>");
     m_pUi->warningLabel->setText(warning);
 
-    QObject::connect(m_pUi->confirmationLineEdit, SIGNAL(textEdited(QString)),
-                     this, SLOT(onConfirmationLineEditTextEdited(QString)));
+    QObject::connect(
+        m_pUi->confirmationLineEdit,
+        &QLineEdit::textEdited,
+        this,
+        &DeleteAccountDialog::onConfirmationLineEditTextEdited);
 }
 
 DeleteAccountDialog::~DeleteAccountDialog()
@@ -130,7 +140,8 @@ DeleteAccountDialog::~DeleteAccountDialog()
 
 void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
 {
-    QNDEBUG("DeleteAccountDialog::onConfirmationLineEditTextEdited: " << text);
+    QNDEBUG("account", "DeleteAccountDialog::onConfirmationLineEditTextEdited: "
+        << text);
 
     bool confirmed = (text.toLower() == QStringLiteral("yes"));
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(confirmed);
@@ -138,16 +149,19 @@ void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
 
 void DeleteAccountDialog::accept()
 {
-    QNINFO("DeleteAccountDialog::accept: account = " << m_account);
+    QNINFO("account", "DeleteAccountDialog::accept: account = " << m_account);
 
     m_pUi->statusBarLabel->setText(QString());
     m_pUi->statusBarLabel->hide();
 
     bool res = m_model.removeAccount(m_account);
-    if (Q_UNLIKELY(!res)) {
-        ErrorString error(QT_TR_NOOP("Internal error: failed to remove "
-                                     "the account from account model"));
-        QNWARNING(error);
+    if (Q_UNLIKELY(!res))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Internal error: failed to remove "
+                       "the account from account model"));
+
+        QNWARNING("account", error);
         setStatusBarText(error.localizedString());
         return;
     }
@@ -159,8 +173,8 @@ void DeleteAccountDialog::accept()
         // Double check
         QFileInfo pathInfo(path);
         if (pathInfo.exists()) {
-            QNWARNING("Failed to remove account's persistence storage: "
-                      << QDir::toNativeSeparators(path));
+            QNWARNING("account", "Failed to remove account's persistence "
+                << "storage: " << QDir::toNativeSeparators(path));
         }
     }
 

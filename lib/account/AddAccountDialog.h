@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,9 +35,11 @@ class AddAccountDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit AddAccountDialog(const QVector<quentier::Account> & availableAccounts,
-                              QWidget * parent = nullptr);
-    ~AddAccountDialog();
+    explicit AddAccountDialog(
+        const QVector<quentier::Account> & availableAccounts,
+        QWidget * parent = nullptr);
+
+    virtual ~AddAccountDialog() override;
 
     bool isLocal() const;
     QString localAccountName() const;
@@ -47,8 +49,9 @@ public:
     bool localAccountAlreadyExists(const QString & name) const;
 
 Q_SIGNALS:
-    void evernoteAccountAdditionRequested(QString evernoteServer,
-                                          QNetworkProxy proxy);
+    void evernoteAccountAdditionRequested(
+        QString evernoteServer, QNetworkProxy proxy);
+
     void localAccountAdditionRequested(QString name, QString fullName);
 
 private Q_SLOTS:
@@ -76,7 +79,7 @@ private:
 private:
     Ui::AddAccountDialog *      m_pUi;
     QVector<quentier::Account>  m_availableAccounts;
-    bool                        m_onceSuggestedFullName;
+    bool                        m_onceSuggestedFullName = false;
 };
 
 } // namespace quentier

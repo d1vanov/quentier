@@ -29,9 +29,7 @@
 namespace quentier {
 
 AccountModel::AccountModel(QObject * parent) :
-    QAbstractTableModel(parent),
-    m_accounts(),
-    m_stringUtils()
+    QAbstractTableModel(parent)
 {}
 
 AccountModel::~AccountModel()
@@ -39,7 +37,7 @@ AccountModel::~AccountModel()
 
 void AccountModel::setAccounts(const QVector<Account> & accounts)
 {
-    QNDEBUG("AccountModel::setAccounts");
+    QNDEBUG("account", "AccountModel::setAccounts");
 
     if (QuentierIsLogLevelActive(LogLevel::Trace))
     {
@@ -54,11 +52,11 @@ void AccountModel::setAccounts(const QVector<Account> & accounts)
         }
 
         strm.flush();
-        QNTRACE(str);
+        QNTRACE("account", str);
     }
 
     if (m_accounts == accounts) {
-        QNDEBUG("Accounts haven't changed");
+        QNDEBUG("account", "Accounts haven't changed");
         return;
     }
 
@@ -69,7 +67,7 @@ void AccountModel::setAccounts(const QVector<Account> & accounts)
 
 bool AccountModel::addAccount(const Account & account)
 {
-    QNDEBUG("AccountModel::addAccount: " << account);
+    QNDEBUG("account", "AccountModel::addAccount: " << account);
 
     // Check whether this account is already within the list of accounts
     bool foundExistingAccount = false;
@@ -96,7 +94,7 @@ bool AccountModel::addAccount(const Account & account)
     }
 
     if (foundExistingAccount) {
-        QNDEBUG("Account already exists");
+        QNDEBUG("account", "Account already exists");
         return false;
     }
 
@@ -111,7 +109,7 @@ bool AccountModel::addAccount(const Account & account)
 
 bool AccountModel::removeAccount(const Account & account)
 {
-    QNDEBUG("AccountModel::removeAccount: " << account);
+    QNDEBUG("account", "AccountModel::removeAccount: " << account);
 
     Account::Type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
@@ -187,8 +185,8 @@ int AccountModel::columnCount(const QModelIndex & parent) const
     return NUM_ACCOUNTS_MODEL_COLUMNS;
 }
 
-QVariant AccountModel::headerData(int section, Qt::Orientation orientation,
-                                  int role) const
+QVariant AccountModel::headerData(
+    int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole) {
         return QVariant();
@@ -265,13 +263,18 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
                 return QString();
             }
 
-            if (account.evernoteHost() == QStringLiteral("sandbox.evernote.com")) {
+            if (account.evernoteHost() ==
+                QStringLiteral("sandbox.evernote.com"))
+            {
                 return QStringLiteral("Evernote sandbox");
             }
-            else if (account.evernoteHost() == QStringLiteral("app.yinxiang.com")) {
+            else if (account.evernoteHost() ==
+                     QStringLiteral("app.yinxiang.com"))
+            {
                 return QStringLiteral("Yinxiang Biji");
             }
-            else {
+            else
+            {
                 return QStringLiteral("Evernote");
             }
         }
@@ -280,8 +283,8 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
     }
 }
 
-bool AccountModel::setData(const QModelIndex & index,
-                           const QVariant & value, int role)
+bool AccountModel::setData(
+    const QModelIndex & index, const QVariant & value, int role)
 {
     if (!index.isValid()) {
         return false;
@@ -312,7 +315,7 @@ bool AccountModel::setData(const QModelIndex & index,
             QString displayName = value.toString().trimmed();
             m_stringUtils.removeNewlines(displayName);
 
-            const Account & account = m_accounts.at(row);
+            const auto & account = m_accounts.at(row);
 
             if (account.type() == Account::Type::Evernote)
             {
@@ -320,20 +323,26 @@ bool AccountModel::setData(const QModelIndex & index,
 
                 if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN)
                 {
-                    ErrorString error(QT_TR_NOOP("Account name length is below "
-                                                 "the acceptable level"));
-                    error.details() =
-                        QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
+                    ErrorString error(
+                        QT_TR_NOOP("Account name length is below "
+                                   "the acceptable level"));
+
+                    error.details() = QString::number(
+                        qevercloud::EDAM_USER_NAME_LEN_MIN);
+
                     Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
 
                 if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX)
                 {
-                    ErrorString error(QT_TR_NOOP("Account name length is above "
-                                                 "the acceptable level"));
-                    error.details() =
-                        QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+                    ErrorString error(
+                        QT_TR_NOOP("Account name length is above "
+                                   "the acceptable level"));
+
+                    error.details() = QString::number(
+                        qevercloud::EDAM_USER_NAME_LEN_MAX);
+
                     Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
@@ -346,15 +355,18 @@ bool AccountModel::setData(const QModelIndex & index,
                         QT_TR_NOOP("Account name doesn't match the Evernote's "
                                    "regular expression for user names; consider "
                                    "simplifying the entered name"));
-                    error.details() =
-                        QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+
+                    error.details() = QString::number(
+                        qevercloud::EDAM_USER_NAME_LEN_MAX);
+
                     Q_EMIT badAccountDisplayName(error, row);
                     return false;
                 }
             }
 
             if (account.displayName() == displayName) {
-                QNDEBUG("The account display name has not really changed");
+                QNDEBUG("account", "The account display name has not really "
+                    << "changed");
                 return true;
             }
 

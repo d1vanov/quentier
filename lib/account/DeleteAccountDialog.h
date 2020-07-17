@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_ACCOUNT_DELETE_ACOUNT_DIALOG_H
 #define QUENTIER_LIB_ACCOUNT_DELETE_ACOUNT_DIALOG_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
+#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 #include <QPointer>
@@ -37,9 +37,11 @@ class DeleteAccountDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit DeleteAccountDialog(const Account & account, AccountModel & model,
-                                 QWidget * parent = nullptr);
-    virtual ~DeleteAccountDialog();
+    explicit DeleteAccountDialog(
+        const Account & account, AccountModel & model,
+        QWidget * parent = nullptr);
+
+    virtual ~DeleteAccountDialog() override;
 
 private Q_SLOTS:
     void onConfirmationLineEditTextEdited(const QString & text);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_FILTER_MODEL_H
 #define QUENTIER_LIB_ACCOUNT_ACCOUNT_FILTER_MODEL_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
+#include <quentier/utility/Macros.h>
 
 #include <QSortFilterProxyModel>
 #include <QVector>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #include "AccountDelegate.h"
 #include "AccountModel.h"
 
-#include <QLineEdit>
 #include <QFontMetrics>
+#include <QLineEdit>
 
 namespace quentier {
 
