@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,7 +32,9 @@ void LimitedFontsDelegate::paint(
     const QModelIndex & index) const
 {
     painter->save();
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+
+    painter->setRenderHints(
+        QPainter::Antialiasing | QPainter::TextAntialiasing);
 
     if (option.state & QStyle::State_Selected) {
         painter->fillRect(option.rect, option.palette.highlight());
@@ -70,12 +72,16 @@ bool LimitedFontsDelegate::doPaint(
     font.setFamily(fontFamily);
     painter->setFont(font);
 
-    painter->setPen(option.state & QStyle::State_Selected
-                    ? option.palette.highlightedText().color()
-                    : option.palette.windowText().color());
+    painter->setPen(
+        option.state & QStyle::State_Selected
+        ? option.palette.highlightedText().color()
+        : option.palette.windowText().color());
 
-    painter->drawText(option.rect, fontFamily,
-                      QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    painter->drawText(
+        option.rect,
+        fontFamily,
+        QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+
     return true;
 }
 

@@ -237,8 +237,9 @@ void NotebookItemDelegate::drawNotebookName(
         QRect iconRect = adjustedOption.rect;
         iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
         m_userIcon.paint(painter, iconRect);
-        adjustedOption.rect.setLeft(adjustedOption.rect.left() +
-                                    iconRect.width() + 2);
+
+        adjustedOption.rect.setLeft(
+            adjustedOption.rect.left() + iconRect.width() + 2);
     }
 
     QString name;
@@ -271,7 +272,7 @@ void NotebookItemDelegate::drawNotebookName(
     }
 
     if (name.isEmpty()) {
-        QNDEBUG("NotebookItemDelegate::drawNotebookName: "
+        QNDEBUG("delegate", "NotebookItemDelegate::drawNotebookName: "
             << "notebook name is empty");
         return;
     }
@@ -319,18 +320,19 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index,
     const int columnNameWidth) const
 {
-    QNTRACE("NotebookItemDelegate::notebookNameSizeHint: "
+    QNTRACE("delegate", "NotebookItemDelegate::notebookNameSizeHint: "
         << "column name width = " << columnNameWidth);
 
-    const QAbstractItemModel * model = index.model();
+    const auto * model = index.model();
     if (Q_UNLIKELY(!model)) {
-        QNDEBUG("No model, fallback to the default size hint");
+        QNDEBUG("delegate", "No model, fallback to the default size hint");
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
-        QNDEBUG("Notebook name is empty, fallback to the default size hint");
+        QNDEBUG("delegate", "Notebook name is empty, fallback to the default "
+            << "size hint");
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
@@ -346,13 +348,14 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
     QString nameSuffix;
     if (!conversionResult)
     {
-        QNTRACE("Failed to convert the number of notes per notebook to int: "
-            << noteCount);
+        QNTRACE("delegate", "Failed to convert the number of notes per "
+            << "notebook to int: " << noteCount);
     }
     else if (noteCountInt > 0)
     {
-        QNTRACE("Appending num notes per notebook to the notebook name: "
-            << noteCountInt);
+        QNTRACE("delegate", "Appending num notes per notebook to the notebook "
+            << "name: " << noteCountInt);
+
         nameSuffix = QStringLiteral(" (");
         nameSuffix += QString::number(noteCountInt);
         nameSuffix += QStringLiteral(")");
@@ -376,10 +379,10 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
         static_cast<int>(std::floor(fontHeight * (1.0 + margin) + 0.5)),
         option.rect.height());
 
-    QSize size = QSize(width, height);
+    QNTRACE("delegate", "Computed size: width = " << width << ", height = "
+        << height);
 
-    QNTRACE("Computed size: width = " << width << ", height = " << height);
-    return size;
+    return QSize(width, height);
 }
 
 } // namespace quentier

@@ -79,7 +79,9 @@ void TagItemDelegate::paint(
     const QModelIndex & index) const
 {
     painter->save();
-    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+
+    painter->setRenderHints(
+        QPainter::Antialiasing | QPainter::TextAntialiasing);
 
     if (index.isValid() &&
         (index.column() == static_cast<int>(TagModel::Column::Name)))
@@ -115,7 +117,7 @@ QSize TagItemDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (Q_UNLIKELY(!index.isValid())) {
-        return QSize();
+        return {};
     }
 
     if (index.column() == static_cast<int>(TagModel::Column::Name)) {
@@ -142,19 +144,22 @@ void TagItemDelegate::drawTagName(
 {
     const auto * pModel = index.model();
     if (Q_UNLIKELY(!pModel)) {
-        QNDEBUG("TagItemDelegate::drawTagName: can't draw, no model");
+        QNDEBUG("delegate", "TagItemDelegate::drawTagName: can't draw, "
+            << "no model");
         return;
     }
 
     const auto * pTagModel = qobject_cast<const TagModel*>(pModel);
     if (Q_UNLIKELY(!pTagModel)) {
-        QNDEBUG("TagItemDelegate::drawTagName: non-tag model is set");
+        QNDEBUG("delegate", "TagItemDelegate::drawTagName: non-tag model is "
+            << "set");
         return;
     }
 
     const auto * pModelItem = pTagModel->itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
-        QNDEBUG("TagItemDelegate::drawTagName: no model item for given index");
+        QNDEBUG("delegate", "TagItemDelegate::drawTagName: no model item for "
+            << "given index");
         return;
     }
 
@@ -164,11 +169,15 @@ void TagItemDelegate::drawTagName(
     const auto * pLinkedNotebookItem =
         pModelItem->cast<TagLinkedNotebookRootItem>();
 
-    if (pLinkedNotebookItem) {
+    if (pLinkedNotebookItem)
+    {
         QRect iconRect = adjustedOption.rect;
         iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
         m_userIcon.paint(painter, iconRect);
-        adjustedOption.rect.setLeft(adjustedOption.rect.left() + iconRect.width() + 2);
+
+        adjustedOption.rect.setLeft(
+            adjustedOption.rect.left() + iconRect.width() + 2);
+
         name = pLinkedNotebookItem->username();
     }
 
@@ -185,7 +194,8 @@ void TagItemDelegate::drawTagName(
     }
 
     if (name.isEmpty()) {
-        QNDEBUG("TagItemDelegate::drawTagName: tag model item name is empty");
+        QNDEBUG("delegate", "TagItemDelegate::drawTagName: tag model item name "
+            << "is empty");
         return;
     }
 

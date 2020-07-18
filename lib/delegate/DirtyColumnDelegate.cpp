@@ -83,12 +83,19 @@ void DirtyColumnDelegate::paint(
     int radius = std::min(side, DIRTY_CIRCLE_RADIUS);
     int diameter = 2 * radius;
     QPoint center = option.rect.center();
-    center.setX(std::min(center.x(), (option.rect.left() +
-                                      std::max(colNameWidth, side)/2 + 1)));
+
+    center.setX(
+        std::min(
+            center.x(),
+            (option.rect.left() + std::max(colNameWidth, side)/2 + 1)));
+
     painter->setPen(QColor());
-    painter->drawEllipse(QRectF(center.x() - radius,
-                                center.y() - radius,
-                                diameter, diameter));
+
+    painter->drawEllipse(
+        QRectF(
+            center.x() - radius,
+            center.y() - radius,
+            diameter, diameter));
 
     painter->restore();
 }
@@ -115,22 +122,23 @@ QSize DirtyColumnDelegate::sizeHint(
     Q_UNUSED(option)
 
     if (Q_UNLIKELY(!index.isValid())) {
-        return QSize();
+        return {};
     }
 
     int column = index.column();
 
     QString columnName;
-    const QAbstractItemModel * model = index.model();
+    const auto * model = index.model();
     if (Q_LIKELY(model && (model->columnCount(index.parent()) > column))) {
-        // NOTE: assuming the delegate would only be used in horizontal layouts...
+        // NOTE: assuming the delegate would only be used in horizontal layouts
         columnName = model->headerData(column, Qt::Horizontal).toString();
     }
 
     QFontMetrics fontMetrics(option.font);
     double margin = 0.1;
-    int columnNameWidth = static_cast<int>(
-        std::floor(fontMetricsWidth(fontMetrics, columnName) * (1.0 + margin) + 0.5));
+
+    int columnNameWidth = static_cast<int>(std::floor(
+        fontMetricsWidth(fontMetrics, columnName) * (1.0 + margin) + 0.5));
 
     int side = DIRTY_CIRCLE_RADIUS;
     side += 1;

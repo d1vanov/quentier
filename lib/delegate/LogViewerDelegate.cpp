@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -119,20 +119,24 @@ QSize LogViewerDelegate::sizeHint(
     if (index.column() == LogViewerModel::Columns::SourceFileName)
     {
         int numSubRows = 1;
+
         int originalWidth = static_cast<int>(
             std::floor(
                 fontMetricsWidth(fontMetrics, pDataEntry->m_sourceFileName) *
                     (1.0 + m_margin) + 0.5));
+
         int width = originalWidth;
         while(width > MAX_SOURCE_FILE_NAME_COLUMN_WIDTH) {
             ++numSubRows;
             width -= MAX_SOURCE_FILE_NAME_COLUMN_WIDTH;
         }
 
-        size.setWidth(std::min(originalWidth, MAX_SOURCE_FILE_NAME_COLUMN_WIDTH));
-        size.setHeight(static_cast<int>(
-                std::floor(fontMetrics.lineSpacing() *
-                           (numSubRows + 1 + m_margin) + 0.5)));
+        size.setWidth(
+            std::min(originalWidth, MAX_SOURCE_FILE_NAME_COLUMN_WIDTH));
+
+        size.setHeight(static_cast<int>(std::floor(
+            fontMetrics.lineSpacing() * (numSubRows + 1 + m_margin) + 0.5)));
+
         return size;
     }
 
@@ -144,15 +148,20 @@ QSize LogViewerDelegate::sizeHint(
     while(true)
     {
         int lineEndPos = -1;
-        int index = pDataEntry->m_logEntry.indexOf(m_newlineChar,
-                                                   (lineStartPos + 1));
+
+        int index = pDataEntry->m_logEntry.indexOf(
+            m_newlineChar,
+            (lineStartPos + 1));
+
         if (index < 0)
         {
-            lineEndPos = (lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
+            lineEndPos =
+                (lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
 
-            int previousWhitespaceIndex =
-                pDataEntry->m_logEntry.lastIndexOf(m_whitespaceChar,
-                                                   (lineEndPos - 1));
+            int previousWhitespaceIndex = pDataEntry->m_logEntry.lastIndexOf(
+                m_whitespaceChar,
+                (lineEndPos - 1));
+
             if (previousWhitespaceIndex > lineStartPos) {
                 lineEndPos = previousWhitespaceIndex;
             }
@@ -161,13 +170,16 @@ QSize LogViewerDelegate::sizeHint(
         {
             lineEndPos = index;
 
-            if (lineEndPos - lineStartPos > LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
+            if (lineEndPos - lineStartPos >
+                LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
             {
-                lineEndPos = lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
+                lineEndPos =
+                    lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
 
-                int previousWhitespaceIndex =
-                    pDataEntry->m_logEntry.lastIndexOf(m_whitespaceChar,
-                                                       (lineEndPos - 1));
+                int previousWhitespaceIndex = pDataEntry->m_logEntry.lastIndexOf(
+                    m_whitespaceChar,
+                    (lineEndPos - 1));
+
                 if (previousWhitespaceIndex > lineStartPos) {
                     lineEndPos = previousWhitespaceIndex;
                 }
@@ -180,9 +192,10 @@ QSize LogViewerDelegate::sizeHint(
 
         bool lastIteration = (lineEndPos == logEntrySize);
 
-        logEntryLineBuffer =
-            pDataEntry->m_logEntry.mid(lineStartPos,
-                                       (lineEndPos - lineStartPos)).trimmed();
+        logEntryLineBuffer = pDataEntry->m_logEntry.mid(
+            lineStartPos,
+            (lineEndPos - lineStartPos)).trimmed();
+
         int lineSize = logEntryLineBuffer.size();
         if (lineSize > maxLineSize) {
             maxLineSize = lineSize;
@@ -197,12 +210,14 @@ QSize LogViewerDelegate::sizeHint(
         lineStartPos = lineEndPos;
     }
 
-    size.setWidth(static_cast<int>(
-            std::floor(fontMetricsWidth(fontMetrics, QStringLiteral("w")) *
-                       (maxLineSize + 2 + m_margin) + 0.5)));
-    size.setHeight(static_cast<int>(
-            std::floor((numDisplayedLines + 1) *
-                       fontMetrics.lineSpacing() + m_margin)));
+    size.setWidth(static_cast<int>(std::floor(
+        fontMetricsWidth(
+            fontMetrics,
+            QStringLiteral("w")) * (maxLineSize + 2 + m_margin) + 0.5)));
+
+    size.setHeight(static_cast<int>(std::floor(
+        (numDisplayedLines + 1) * fontMetrics.lineSpacing() + m_margin)));
+
     return size;
 }
 
@@ -218,29 +233,33 @@ bool LogViewerDelegate::paintImpl(
         return false;
     }
 
-    const LogViewerModel * pModel =
-        qobject_cast<const LogViewerModel*>(index.model());
+    const auto * pModel = qobject_cast<const LogViewerModel*>(index.model());
     if (Q_UNLIKELY(!pModel)) {
         return false;
     }
 
     int row = index.row();
-    const LogViewerModel::Data * pDataEntry = pModel->dataEntry(row);
+    const auto * pDataEntry = pModel->dataEntry(row);
     if (Q_UNLIKELY(!pDataEntry)) {
         return false;
     }
 
     pPainter->save();
-    pPainter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-    if (option.state & QStyle::State_Selected) {
+    pPainter->setRenderHints(
+        QPainter::Antialiasing | QPainter::TextAntialiasing);
+
+    if (option.state & QStyle::State_Selected)
+    {
         pPainter->fillRect(option.rect, option.palette.highlight());
         pPainter->setPen(option.palette.highlightedText().color());
     }
-    else {
+    else
+    {
         pPainter->fillRect(
             option.rect,
             QBrush(pModel->backgroundColorForLogLevel(pDataEntry->m_logLevel)));
+
         pPainter->setPen(Qt::black);
     }
 
@@ -257,7 +276,10 @@ bool LogViewerDelegate::paintImpl(
             const QDateTime & timestamp = pDataEntry->m_timestamp;
             QDate date = timestamp.date();
             QTime time = timestamp.time();
-            QString printedTimestamp = date.toString(Qt::DefaultLocaleShortDate);
+
+            QString printedTimestamp = date.toString(
+                Qt::DefaultLocaleShortDate);
+
             printedTimestamp += QStringLiteral(" ");
             printedTimestamp += time.toString(QStringLiteral("HH:mm:ss:zzz"));
             pPainter->drawText(adjustedRect, printedTimestamp, textOption);
@@ -267,22 +289,26 @@ bool LogViewerDelegate::paintImpl(
         {
             QTextOption textOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignTop));
             textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
-            pPainter->drawText(adjustedRect, pDataEntry->m_sourceFileName,
-                               textOption);
+
+            pPainter->drawText(
+                adjustedRect,
+                pDataEntry->m_sourceFileName,
+                textOption);
         }
         break;
     case LogViewerModel::Columns::SourceFileLineNumber:
-        pPainter->drawText(adjustedRect,
-                           QString::number(pDataEntry->m_sourceFileLineNumber),
-                           textOption);
+        pPainter->drawText(
+            adjustedRect,
+            QString::number(pDataEntry->m_sourceFileLineNumber),
+            textOption);
         break;
     case LogViewerModel::Columns::LogLevel:
-        pPainter->drawText(adjustedRect,
-                           LogViewerModel::logLevelToString(pDataEntry->m_logLevel),
-                           textOption);
+        pPainter->drawText(
+            adjustedRect,
+            LogViewerModel::logLevelToString(pDataEntry->m_logLevel),
+            textOption);
         break;
     case LogViewerModel::Columns::LogEntry:
-        // pPainter->drawText(adjustedRect, pDataEntry->m_logEntry, textOption);
         {
             QFontMetrics fontMetrics(option.font);
             paintLogEntry(*pPainter, adjustedRect, *pDataEntry, fontMetrics);
@@ -328,15 +354,20 @@ void LogViewerDelegate::paintLogEntry(
     while(true)
     {
         int lineEndPos = -1;
-        int index = dataEntry.m_logEntry.indexOf(m_newlineChar,
-                                                 (lineStartPos + 1));
+
+        int index = dataEntry.m_logEntry.indexOf(
+            m_newlineChar,
+            (lineStartPos + 1));
+
         if (index < 0)
         {
-            lineEndPos = (lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
+            lineEndPos =
+                (lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE);
 
-            int previousWhitespaceIndex =
-                dataEntry.m_logEntry.lastIndexOf(m_whitespaceChar,
-                                                 (lineEndPos - 1));
+            int previousWhitespaceIndex = dataEntry.m_logEntry.lastIndexOf(
+                m_whitespaceChar,
+                (lineEndPos - 1));
+
             if (previousWhitespaceIndex > lineStartPos) {
                 lineEndPos = previousWhitespaceIndex;
             }
@@ -345,13 +376,16 @@ void LogViewerDelegate::paintLogEntry(
         {
             lineEndPos = index;
 
-            if (lineEndPos - lineStartPos > LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
+            if (lineEndPos - lineStartPos >
+                LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE)
             {
-                lineEndPos = lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
+                lineEndPos =
+                    lineStartPos + LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE;
 
-                int previousWhitespaceIndex =
-                    dataEntry.m_logEntry.lastIndexOf(m_whitespaceChar,
-                                                     (lineEndPos - 1));
+                int previousWhitespaceIndex = dataEntry.m_logEntry.lastIndexOf(
+                    m_whitespaceChar,
+                    (lineEndPos - 1));
+
                 if (previousWhitespaceIndex > lineStartPos) {
                     lineEndPos = previousWhitespaceIndex;
                 }
@@ -364,9 +398,10 @@ void LogViewerDelegate::paintLogEntry(
 
         bool lastIteration = (lineEndPos == logEntrySize);
 
-        logEntryLineBuffer =
-            dataEntry.m_logEntry.mid(lineStartPos,
-                                     (lineEndPos - lineStartPos)).trimmed();
+        logEntryLineBuffer = dataEntry.m_logEntry.mid(
+            lineStartPos,
+            (lineEndPos - lineStartPos)).trimmed();
+
         painter.drawText(currentRect, logEntryLineBuffer, textOption);
 
         if (lastIteration) {

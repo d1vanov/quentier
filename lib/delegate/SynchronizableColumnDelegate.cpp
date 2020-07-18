@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,11 +26,11 @@
 
 SynchronizableColumnDelegate::SynchronizableColumnDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
-    m_icon(),
     m_iconSize(SIDE_SIZE, SIDE_SIZE)
 {
-    m_icon.addFile(QStringLiteral(":/sync_icons/stat_notify_sync.png"),
-                   m_iconSize);
+    m_icon.addFile(
+        QStringLiteral(":/sync_icons/stat_notify_sync.png"),
+        m_iconSize);
 }
 
 int SynchronizableColumnDelegate::sideSize() const
@@ -56,7 +56,7 @@ QWidget * SynchronizableColumnDelegate::createEditor(
         return nullptr;
     }
 
-    const QAbstractItemModel * model = index.model();
+    const auto * model = index.model();
     if (Q_UNLIKELY(!model)) {
         return nullptr;
     }
@@ -68,7 +68,7 @@ QWidget * SynchronizableColumnDelegate::createEditor(
         return nullptr;
     }
 
-    QCheckBox * checkbox = new QCheckBox(parent);
+    auto * checkbox = new QCheckBox(parent);
     checkbox->setCheckState(Qt::Unchecked);
 
     return checkbox;
@@ -103,9 +103,12 @@ void SynchronizableColumnDelegate::paint(
         int radius = std::min(side, NON_SYNCHRONIZABLE_CIRCLE_RADIUS);
         int diameter = 2 * radius;
         QPoint center = option.rect.center();
-        painter->drawEllipse(QRectF(center.x() - radius,
-                                    center.y() - radius,
-                                    diameter, diameter));
+
+        painter->drawEllipse(
+            QRectF(
+                center.x() - radius,
+                center.y() - radius,
+                diameter, diameter));
     }
 
     painter->restore();
@@ -114,12 +117,12 @@ void SynchronizableColumnDelegate::paint(
 void SynchronizableColumnDelegate::setEditorData(
     QWidget * editor, const QModelIndex & index) const
 {
-    QCheckBox * checkbox = qobject_cast<QCheckBox*>(editor);
+    auto * checkbox = qobject_cast<QCheckBox*>(editor);
     if (Q_UNLIKELY(!checkbox)) {
         return;
     }
 
-    const QAbstractItemModel * model = index.model();
+    const auto * model = index.model();
     if (Q_UNLIKELY(!model)) {
         return;
     }
@@ -140,7 +143,7 @@ void SynchronizableColumnDelegate::setModelData(
         return;
     }
 
-    QCheckBox * checkbox = qobject_cast<QCheckBox*>(editor);
+    auto * checkbox = qobject_cast<QCheckBox*>(editor);
     if (Q_UNLIKELY(!checkbox)) {
         return;
     }
@@ -155,7 +158,7 @@ QSize SynchronizableColumnDelegate::sizeHint(
     Q_UNUSED(option)
 
     if (Q_UNLIKELY(!index.isValid())) {
-        return QSize();
+        return {};
     }
 
     return m_iconSize;

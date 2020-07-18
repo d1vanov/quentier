@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,8 @@
 
 #include <quentier/utility/Macros.h>
 
-#include <QStyledItemDelegate>
 #include <QIcon>
+#include <QStyledItemDelegate>
 
 class SynchronizableColumnDelegate: public QStyledItemDelegate
 {

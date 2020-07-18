@@ -246,8 +246,8 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     QString name = pModel->data(index).toString().simplified();
     if (name.isEmpty()) {
-        QNDEBUG("FavoriteItemDelegate::drawFavoriteItemName: "
-                "item name is empty");
+        QNDEBUG("delegate", "FavoriteItemDelegate::drawFavoriteItemName: "
+            << "item name is empty");
         return;
     }
 

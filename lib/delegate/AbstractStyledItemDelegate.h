@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -49,7 +49,7 @@ protected:
     explicit AbstractStyledItemDelegate(QObject * parent = nullptr);
 
 public:
-    virtual ~AbstractStyledItemDelegate();
+    virtual ~AbstractStyledItemDelegate() override;
 
 protected:
     /**
@@ -61,8 +61,8 @@ protected:
      * @param option            Style option from which the font is determined
      * @param index             The model index of the item for which column
      *                          the name width is needed
-     * @param orientation       Horizontal or vertical, by default the horizontal
-     *                          one is used
+     * @param orientation       Horizontal or vertical, by default
+     *                          the horizontal one is used
      * @return                  The column name width or negative value if that
      *                          width could not be determined
      */
@@ -80,13 +80,13 @@ protected:
      *                          shortened
      * @param option            The used style option
      * @param textSuffix        The text suffix that needs to be displayed
-     *                          nevertheless, even if the primary part of the text
-     *                          exceeds the width of the option's rect
+     *                          nevertheless, even if the primary part of
+     *                          the text exceeds the width of the option's rect
      */
     void adjustDisplayedText(
         QString & displayedText,
         const QStyleOptionViewItem & option,
-        const QString & nameSuffix = QString()) const;
+        const QString & nameSuffix = {}) const;
 };
 
 } // namespace quentier
