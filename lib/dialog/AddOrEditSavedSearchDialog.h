@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,7 +26,8 @@
 
 #include <QDialog>
 #include <QPointer>
-#include <QScopedPointer>
+
+#include <memory>
 
 namespace Ui {
 class AddOrEditSavedSearchDialog;
@@ -43,9 +44,9 @@ public:
     explicit AddOrEditSavedSearchDialog(
         SavedSearchModel * pSavedSearchModel,
         QWidget * parent = nullptr,
-        const QString & editedSavedSearchLocalUid = QString());
+        const QString & editedSavedSearchLocalUid = {});
 
-    ~AddOrEditSavedSearchDialog();
+    virtual ~AddOrEditSavedSearchDialog() override;
 
     void setQuery(const QString & query);
 
@@ -61,7 +62,7 @@ private:
 private:
     Ui::AddOrEditSavedSearchDialog *    m_pUi;
     QPointer<SavedSearchModel>          m_pSavedSearchModel;
-    QScopedPointer<NoteSearchQuery>     m_pSearchQuery;
+    std::unique_ptr<NoteSearchQuery>    m_pSearchQuery;
     QString                             m_editedSavedSearchLocalUid;
     StringUtils                         m_stringUtils;
 };

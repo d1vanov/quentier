@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,7 @@ class WelcomeToQuentierDialog: public QDialog
     Q_OBJECT
 public:
     explicit WelcomeToQuentierDialog(QWidget * parent = nullptr);
-    ~WelcomeToQuentierDialog();
+    virtual ~WelcomeToQuentierDialog() override;
 
     QString evernoteServer() const;
 

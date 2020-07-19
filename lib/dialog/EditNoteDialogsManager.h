@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,11 +23,11 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 
-#include <QObject>
-#include <QUuid>
-#include <QSet>
 #include <QHash>
+#include <QObject>
 #include <QPointer>
+#include <QSet>
+#include <QUuid>
 
 namespace quentier {
 
@@ -80,8 +80,10 @@ private Q_SLOTS:
 
 private:
     void createConnections();
-    void findNoteAndRaiseEditNoteDialog(const QString & noteLocalUid,
-                                        const bool readOnlyFlag);
+
+    void findNoteAndRaiseEditNoteDialog(
+        const QString & noteLocalUid, const bool readOnlyFlag);
+
     void raiseEditNoteDialog(const Note & note, const bool readOnlyFlag);
 
 private:
@@ -93,8 +95,7 @@ private:
 
     // NOTE: the bool value in this hash is a "read only" flag for the dialog
     // which should be raised on the found note
-    typedef QHash<QUuid, bool> FindNoteRequestIdToReadOnlyFlagHash;
-    FindNoteRequestIdToReadOnlyFlagHash m_findNoteRequestIds;
+    QHash<QUuid, bool>                  m_findNoteRequestIds;
 
     QSet<QUuid>                         m_updateNoteRequestIds;
 

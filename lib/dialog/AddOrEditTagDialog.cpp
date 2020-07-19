@@ -42,9 +42,7 @@ AddOrEditTagDialog::AddOrEditTagDialog(
     QDialog(parent),
     m_pUi(new Ui::AddOrEditTagDialog),
     m_pTagModel(pTagModel),
-    m_editedTagLocalUid(std::move(editedTagLocalUid)),
-    m_currentTagName(),
-    m_stringUtils()
+    m_editedTagLocalUid(std::move(editedTagLocalUid))
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);
@@ -112,13 +110,13 @@ void AddOrEditTagDialog::accept()
 
     QString parentTagName = m_pUi->parentTagNameComboBox->currentText();
 
-    QNDEBUG("AddOrEditTagDialog::accept: tag name = " << tagName
+    QNDEBUG("dialog", "AddOrEditTagDialog::accept: tag name = " << tagName
         << ", parent tag name = " << parentTagName);
 
 #define REPORT_ERROR(error)                                                    \
     ErrorString errorDescription(error);                                       \
     m_pUi->statusBar->setText(errorDescription.localizedString());             \
-    QNWARNING(errorDescription);                                               \
+    QNWARNING("dialog", errorDescription);                                     \
     m_pUi->statusBar->setHidden(false)                                         \
 // REPORT_ERROR
 
@@ -131,11 +129,12 @@ void AddOrEditTagDialog::accept()
 
     if (m_editedTagLocalUid.isEmpty())
     {
-        QNDEBUG("Edited tag local uid is empty, adding new tag to the model");
+        QNDEBUG("dialog", "Edited tag local uid is empty, adding new tag to "
+            << "the model");
 
         ErrorString errorDescription;
 
-        QModelIndex index = m_pTagModel->createTag(
+        auto index = m_pTagModel->createTag(
             tagName,
             parentTagName,
             /* linked notebook guid = */ QString(),
@@ -143,17 +142,17 @@ void AddOrEditTagDialog::accept()
 
         if (!index.isValid()) {
             m_pUi->statusBar->setText(errorDescription.localizedString());
-            QNWARNING(errorDescription);
+            QNWARNING("dialog", errorDescription);
             m_pUi->statusBar->setHidden(false);
             return;
         }
     }
     else
     {
-        QNDEBUG("Edited tag local uid is not empty, editing "
+        QNDEBUG("dialog", "Edited tag local uid is not empty, editing "
             << "the existing tag within the model");
 
-        QModelIndex index = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
+        auto index = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
         const auto * pModelItem = m_pTagModel->itemForIndex(index);
         if (Q_UNLIKELY(!pModelItem)) {
             REPORT_ERROR(
@@ -171,7 +170,7 @@ void AddOrEditTagDialog::accept()
         }
 
         // If needed, update the tag name
-        QModelIndex nameIndex = m_pTagModel->index(
+        auto nameIndex = m_pTagModel->index(
             index.row(),
             static_cast<int>(TagModel::Column::Name),
             index.parent());
@@ -182,7 +181,7 @@ void AddOrEditTagDialog::accept()
             if (Q_UNLIKELY(!res))
             {
                 // Probably the new name collides with some existing tag's name
-                QModelIndex existingItemIndex = m_pTagModel->indexForTagName(
+                auto existingItemIndex = m_pTagModel->indexForTagName(
                     tagName,
                     pTagItem->linkedNotebookGuid());
 
@@ -208,14 +207,14 @@ void AddOrEditTagDialog::accept()
 
         const auto * pParentItem = pModelItem->parent();
 
-        const TagItem * pParentTagItem =
+        const auto * pParentTagItem =
             (pParentItem ? pParentItem->cast<TagItem>() : nullptr);
 
         if (!pParentItem ||
             (pParentTagItem &&
              pParentTagItem->nameUpper() != parentTagName.toUpper()))
         {
-            QModelIndex movedItemIndex = m_pTagModel->moveToParent(
+            auto movedItemIndex = m_pTagModel->moveToParent(
                 nameIndex,
                 parentTagName);
 
@@ -231,26 +230,27 @@ void AddOrEditTagDialog::accept()
 
 void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
 {
-    QNDEBUG("AddOrEditTagDialog::onTagNameEdited: " << tagName);
+    QNDEBUG("dialog", "AddOrEditTagDialog::onTagNameEdited: " << tagName);
 
     if (Q_UNLIKELY(m_currentTagName == tagName)) {
-        QNTRACE("Current tag name hasn't changed");
+        QNTRACE("dialog", "Current tag name hasn't changed");
         return;
     }
 
     if (Q_UNLIKELY(m_pTagModel.isNull())) {
-        QNTRACE("Tag model is missing");
+        QNTRACE("dialog", "Tag model is missing");
         return;
     }
 
     QString linkedNotebookGuid;
     if (!m_editedTagLocalUid.isEmpty())
     {
-        QModelIndex index = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
+        auto index = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
         const auto * pModelItem = m_pTagModel->itemForIndex(index);
         if (Q_UNLIKELY(!pModelItem))
         {
-            QNDEBUG("Found no tag model item for edited tag local uid");
+            QNDEBUG("dialog", "Found no tag model item for edited tag local "
+                << "uid");
 
             m_pUi->statusBar->setText(
                 tr("Can't edit tag: the tag was not found "
@@ -267,7 +267,7 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
         }
     }
 
-    QModelIndex itemIndex = m_pTagModel->indexForTagName(
+    auto itemIndex = m_pTagModel->indexForTagName(
         tagName,
         linkedNotebookGuid);
 
@@ -294,7 +294,7 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
 
     // 1) If previous tag name corresponds to a real tag and is missing within
     //    the tag names, need to insert it there
-    QModelIndex previousTagNameIndex = m_pTagModel->indexForTagName(
+    auto previousTagNameIndex = m_pTagModel->indexForTagName(
         m_currentTagName,
         linkedNotebookGuid);
 
@@ -355,10 +355,11 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
 
 void AddOrEditTagDialog::onParentTagNameChanged(const QString & parentTagName)
 {
-    QNDEBUG("AddOrEditTagDialog::onParentTagNameChanged: " << parentTagName);
+    QNDEBUG("dialog", "AddOrEditTagDialog::onParentTagNameChanged: "
+        << parentTagName);
 
     if (Q_UNLIKELY(m_pTagModel.isNull())) {
-        QNDEBUG("No tag model is set, nothing to do");
+        QNDEBUG("dialog", "No tag model is set, nothing to do");
         return;
     }
 
@@ -389,21 +390,21 @@ void AddOrEditTagDialog::createConnections()
 bool AddOrEditTagDialog::setupEditedTagItem(
     QStringList & tagNames, int & currentIndex)
 {
-    QNDEBUG("AddOrEditTagDialog::setupEditedTagItem");
+    QNDEBUG("dialog", "AddOrEditTagDialog::setupEditedTagItem");
 
     currentIndex = -1;
 
     if (m_editedTagLocalUid.isEmpty()) {
-        QNDEBUG("Edited tag's local uid is empty");
+        QNDEBUG("dialog", "Edited tag's local uid is empty");
         return false;
     }
 
     if (Q_UNLIKELY(m_pTagModel.isNull())) {
-        QNDEBUG("Tag model is null");
+        QNDEBUG("dialog", "Tag model is null");
         return false;
     }
 
-    QModelIndex editedTagIndex = m_pTagModel->indexForLocalUid(
+    auto editedTagIndex = m_pTagModel->indexForLocalUid(
         m_editedTagLocalUid);
 
     const auto * pModelItem = m_pTagModel->itemForIndex(editedTagIndex);
@@ -416,7 +417,7 @@ bool AddOrEditTagDialog::setupEditedTagItem(
         return false;
     }
 
-    const TagItem * pTagItem = pModelItem->cast<TagItem>();
+    const auto * pTagItem = pModelItem->cast<TagItem>();
     if (Q_UNLIKELY(!pTagItem))
     {
         m_pUi->statusBar->setText(
@@ -458,7 +459,7 @@ bool AddOrEditTagDialog::setupEditedTagItem(
     }
 
     if (tagNames.isEmpty()) {
-        QNDEBUG("Tag names list has become empty after removing "
+        QNDEBUG("dialog", "Tag names list has become empty after removing "
             << "the current tag's name");
         return true;
     }
@@ -470,13 +471,13 @@ bool AddOrEditTagDialog::setupEditedTagItem(
     {
         const auto * pChildItem = pModelItem->childAtRow(i);
         if (Q_UNLIKELY(!pChildItem)) {
-            QNWARNING("Found null child item at row " << i);
+            QNWARNING("dialog", "Found null child item at row " << i);
             continue;
         }
 
         const auto * pChildTagItem = pChildItem->cast<TagItem>();
         if (Q_UNLIKELY(!pChildTagItem)) {
-            QNWARNING("Found tag model item without the actual "
+            QNWARNING("dialog", "Found tag model item without the actual "
                 << "tag item within the list of tag item's children");
             continue;
         }
@@ -496,10 +497,10 @@ bool AddOrEditTagDialog::setupEditedTagItem(
     }
 
     // 3) If the current tag has a parent, set it's name as the current one
-    QModelIndex editedTagParentIndex = editedTagIndex.parent();
+    auto editedTagParentIndex = editedTagIndex.parent();
     const auto * pParentItem = pModelItem->parent();
 
-    const TagItem * pParentTagItem =
+    const auto * pParentTagItem =
         (pParentItem ? pParentItem->cast<TagItem>() : nullptr);
 
     if (editedTagParentIndex.isValid() && pParentTagItem)

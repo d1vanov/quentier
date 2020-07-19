@@ -44,7 +44,7 @@ public:
         QWidget * parent = nullptr,
         const QString & editedNotebookLocalUid = {});
 
-    ~AddOrEditNotebookDialog();
+    virtual ~AddOrEditNotebookDialog() override;
 
 private Q_SLOTS:
     virtual void accept() override;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,18 +36,20 @@ WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
     evernoteServers << QStringLiteral("Yinxiang Biji");
     evernoteServers << QStringLiteral("Evernote sandbox");
 
-    m_pUi->evernoteServerComboBox->setModel(new QStringListModel(evernoteServers));
+    m_pUi->evernoteServerComboBox->setModel(
+        new QStringListModel(evernoteServers));
 
-    QObject::connect(m_pUi->continueWithLocalAccountPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(WelcomeToQuentierDialog,
-                            onContinueWithLocalAccountPushButtonPressed));
-    QObject::connect(m_pUi->loginToEvernoteAccountPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(WelcomeToQuentierDialog,
-                            onLogInToEvernoteAccountPushButtonPressed));
+    QObject::connect(
+        m_pUi->continueWithLocalAccountPushButton,
+        &QPushButton::clicked,
+        this,
+        &WelcomeToQuentierDialog::onContinueWithLocalAccountPushButtonPressed);
+
+    QObject::connect(
+        m_pUi->loginToEvernoteAccountPushButton,
+        &QPushButton::clicked,
+        this,
+        &WelcomeToQuentierDialog::onLogInToEvernoteAccountPushButtonPressed);
 }
 
 WelcomeToQuentierDialog::~WelcomeToQuentierDialog()

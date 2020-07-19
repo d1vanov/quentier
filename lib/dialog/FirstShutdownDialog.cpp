@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,14 +28,17 @@ FirstShutdownDialog::FirstShutdownDialog(QWidget * parent) :
     m_pUi->setupUi(this);
     setWindowTitle(tr("Keep the app running or quit?"));
 
-    QObject::connect(m_pUi->closeToTrayPushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(FirstShutdownDialog,onCloseToTrayPushButtonPressed));
-    QObject::connect(m_pUi->closePushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(FirstShutdownDialog,onClosePushButtonPressed));
+    QObject::connect(
+        m_pUi->closeToTrayPushButton,
+        &QPushButton::clicked,
+        this,
+        &FirstShutdownDialog::onCloseToTrayPushButtonPressed);
+
+    QObject::connect(
+        m_pUi->closePushButton,
+        &QPushButton::clicked,
+        this,
+        &FirstShutdownDialog::onClosePushButtonPressed);
 }
 
 FirstShutdownDialog::~FirstShutdownDialog()

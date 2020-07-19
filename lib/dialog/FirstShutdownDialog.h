@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,7 @@ class FirstShutdownDialog: public QDialog
     Q_OBJECT
 public:
     explicit FirstShutdownDialog(QWidget * parent = nullptr);
-    ~FirstShutdownDialog();
+    virtual ~FirstShutdownDialog() override;
 
 private Q_SLOTS:
     void onCloseToTrayPushButtonPressed();

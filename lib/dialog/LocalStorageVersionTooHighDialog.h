@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -47,7 +47,7 @@ public:
         LocalStorageManager & localStorageManager,
         QWidget * parent = nullptr);
 
-    ~LocalStorageVersionTooHighDialog();
+    virtual ~LocalStorageVersionTooHighDialog() override;
 
 Q_SIGNALS:
     void shouldSwitchToAccount(Account account);
@@ -68,8 +68,11 @@ private:
 
 private:
     void createConnections();
-    void initializeDetails(const Account & currentAccount,
-                           LocalStorageManager & localStorageManager);
+
+    void initializeDetails(
+        const Account & currentAccount,
+        LocalStorageManager & localStorageManager);
+
     void setErrorToStatusBar(const ErrorString & error);
 
 private:

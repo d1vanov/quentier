@@ -62,7 +62,7 @@ public:
         const QVector<std::shared_ptr<ILocalStoragePatch> > & patches,
         const Options options, QWidget * parent = nullptr);
 
-    virtual ~LocalStorageUpgradeDialog();
+    virtual ~LocalStorageUpgradeDialog() override;
 
     bool isUpgradeDone() const { return m_upgradeDone; }
 
@@ -108,11 +108,15 @@ private:
 
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;
+
     QVector<std::shared_ptr<ILocalStoragePatch>>    m_patches;
+
     AccountFilterModel *    m_pAccountFilterModel;
+
     Options     m_options;
-    int         m_currentPatchIndex;
-    bool        m_upgradeDone;
+
+    int         m_currentPatchIndex = 0;
+    bool        m_upgradeDone = false;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(LocalStorageUpgradeDialog::Options)
