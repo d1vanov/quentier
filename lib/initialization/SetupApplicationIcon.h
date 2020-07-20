@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,6 +27,6 @@ QT_FORWARD_DECLARE_CLASS(QuentierApplication)
 
 void setupApplicationIcon(QuentierApplication & app);
 
-}
+} // namespace quentier
 
 #endif // QUENTIER_LIB_INITIALIZATION_SETUP_APPLICATION_ICON_H

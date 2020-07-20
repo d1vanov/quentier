@@ -92,7 +92,7 @@ CommandLineParser::CommandLineParser(
 
     parser.process(arguments);
 
-    QStringList optionNames = parser.optionNames();
+    auto optionNames = parser.optionNames();
     for(const auto & optionName: qAsConst(optionNames))
     {
         auto it = availableCmdOptions.find(optionName);

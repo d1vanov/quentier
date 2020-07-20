@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,11 +21,11 @@
 #include <quentier/utility/VersionInfo.h>
 
 #include <QCoreApplication>
+#include <QDebug>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QPluginLoader>
 #include <QStringList>
-#include <QDirIterator>
-#include <QDebug>
 
 namespace quentier {
 

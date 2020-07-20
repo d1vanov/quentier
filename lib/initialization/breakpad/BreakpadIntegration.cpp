@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,19 +18,21 @@
 
 #include "BreakpadIntegration.h"
 
-#include <quentier/utility/Macros.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Macros.h>
 
-#include <QString>
 #include <QFileInfoList>
 #include <QDir>
+#include <QString>
 
 namespace quentier {
 
 void setQtWebEngineFlags()
 {
     const char * envVar = "QTWEBENGINE_CHROMIUM_FLAGS";
-    const char * disableInProcessStackTraces = "--disable-in-process-stack-traces";
+
+    const char * disableInProcessStackTraces =
+        "--disable-in-process-stack-traces";
 
     QByteArray flags = qgetenv(envVar);
     if (!flags.contains(disableInProcessStackTraces)) {
@@ -43,7 +45,7 @@ void findCompressedSymbolsFiles(
     QString & quentierCompressedSymbolsFilePath,
     QString & libquentierCompressedSymbolsFilePath)
 {
-    QNDEBUG("findCompressedSymbolsFiles");
+    QNDEBUG("initialization", "findCompressedSymbolsFiles");
 
     quentierCompressedSymbolsFilePath.resize(0);
     libquentierCompressedSymbolsFilePath.resize(0);
@@ -53,11 +55,11 @@ void findCompressedSymbolsFiles(
 
     QDir appDir(appFileInfo.absoluteDir());
 
-    QFileInfoList fileInfosNearApp = appDir.entryInfoList(QDir::Files);
+    auto fileInfosNearApp = appDir.entryInfoList(QDir::Files);
     for(auto it = fileInfosNearApp.constBegin(),
         end = fileInfosNearApp.constEnd(); it != end; ++it)
     {
-        const QFileInfo & fileInfo = *it;
+        const auto & fileInfo = *it;
         QString fileName = fileInfo.fileName();
         if (!fileName.endsWith(QStringLiteral(".syms.compressed"))) {
             continue;
@@ -65,10 +67,14 @@ void findCompressedSymbolsFiles(
 
         if (fileName.startsWith(QStringLiteral("lib")))
         {
-            if (fileName.contains(QStringLiteral("quentier"))) {
-                libquentierCompressedSymbolsFilePath = fileInfo.absoluteFilePath();
-                QNDEBUG("Found libquentier's compressed symbols file: "
-                        << libquentierCompressedSymbolsFilePath);
+            if (fileName.contains(QStringLiteral("quentier")))
+            {
+                libquentierCompressedSymbolsFilePath =
+                    fileInfo.absoluteFilePath();
+
+                QNDEBUG("initialization", "Found libquentier's compressed "
+                    << "symbols file: "
+                    << libquentierCompressedSymbolsFilePath);
             }
 
             continue;
@@ -76,8 +82,8 @@ void findCompressedSymbolsFiles(
 
         if (fileName.startsWith(QStringLiteral("quentier"))) {
             quentierCompressedSymbolsFilePath = fileInfo.absoluteFilePath();
-            QNDEBUG("Found quentier's compressed symbols file: "
-                    << quentierCompressedSymbolsFilePath);
+            QNDEBUG("initialization", "Found quentier's compressed symbols "
+                << "file: " << quentierCompressedSymbolsFilePath);
             continue;
         }
     }

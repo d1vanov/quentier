@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -63,8 +63,8 @@ bool parseStartupAccount(
     {
         errorDescription.setBase(
             QT_TRANSLATE_NOOP("ParseStartupAccount",
-                              "Wrong account specification on the command line: "
-                              "can't deduce the type of the account"));
+                              "Wrong account specification on the command "
+                              "line: can't deduce the type of the account"));
         errorDescription.details() = accountStr;
         qWarning() << errorDescription.localizedString();
         return false;
@@ -92,8 +92,8 @@ bool parseStartupAccount(
             errorDescription.setBase(
                 QT_TRANSLATE_NOOP("ParseStartupAccount",
                                   "Wrong account specification on the command "
-                                  "line: can't parse user id, failed to convert "
-                                  "from string to integer"));
+                                  "line: can't parse user id, failed to "
+                                  "convert from string to integer"));
             errorDescription.details() = accountStr;
             qWarning() << errorDescription.localizedString()
                        << ", user id str = " << userIdStr.toString();
@@ -120,18 +120,19 @@ bool parseStartupAccount(
     {
         errorDescription.setBase(
             QT_TRANSLATE_NOOP("ParseStartupAccount",
-                              "Wrong account specification on the command line: "
-                              "account name is empty"));
+                              "Wrong account specification on the command "
+                              "line: account name is empty"));
         errorDescription.details() = accountStr;
         qWarning() << errorDescription.localizedString();
         return false;
     }
 
     qDebug() << "Parsed startup account: is local = "
-             << (isLocal ? "true" : "false")
-             << ", user id = " << userId
-             << ", evernote host = " << evernoteHost
-             << ", account name = " << accountName;
+        << (isLocal ? "true" : "false")
+        << ", user id = " << userId
+        << ", evernote host = " << evernoteHost
+        << ", account name = " << accountName;
+
     return true;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -65,14 +65,20 @@ static bool dumpCallback(
         crashHandlerArgs << *quentierMinidumpStackwalkFilePath;
         crashHandlerArgs << minidumpFileLocation;
 
-        QProcess * pProcessHandle = new QProcess();
-        QObject::connect(pProcessHandle, SIGNAL(finished(int,QProcess::ExitStatus)),
-                         pProcessHandle, SLOT(deleteLater()));
+        auto * pProcessHandle = new QProcess();
+
+        QObject::connect(
+            pProcessHandle,
+            SIGNAL(finished(int,QProcess::ExitStatus)),
+            pProcessHandle,
+            SLOT(deleteLater()));
 
         QString * pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
 
-        Q_UNUSED(pProcessHandle->start(*pQuentierCrashHandlerFilePath,
-                                       crashHandlerArgs))
+        Q_UNUSED(pProcessHandle->start(
+            *pQuentierCrashHandlerFilePath,
+            crashHandlerArgs))
+
         pProcessHandle->waitForFinished(-1);
         return true;
     }
@@ -99,13 +105,20 @@ void setupBreakpad(const QApplication & app)
         appFileInfo.absolutePath() +
         QString::fromUtf8("/quentier_minidump_stackwalk");
 
-    findCompressedSymbolsFiles(app, *quentierSymbolsFilePath,
-                               *libquentierSymbolsFilePath);
+    findCompressedSymbolsFiles(
+        app,
+        *quentierSymbolsFilePath,
+        *libquentierSymbolsFilePath);
 
     pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
-    pBreakpadHandler = new google_breakpad::ExceptionHandler(*pBreakpadDescriptor,
-                                                             NULL, dumpCallback,
-                                                             NULL, true, -1);
+
+    pBreakpadHandler = new google_breakpad::ExceptionHandler(
+        *pBreakpadDescriptor,
+        nullptr,
+        dumpCallback,
+        nullptr,
+        true,
+        -1);
 }
 
 void detachBreakpad()

@@ -29,10 +29,10 @@ MSVC_SUPPRESS_WARNING(4365)
 MSVC_SUPPRESS_WARNING(4244)
 MSVC_SUPPRESS_WARNING(4305)
 
-#include <client/windows/handler/exception_handler.h>
-#include <client/windows/crash_generation/minidump_generator.h>
 #include <client/windows/crash_generation/client_info.h>
 #include <client/windows/crash_generation/crash_generation_client.h>
+#include <client/windows/crash_generation/minidump_generator.h>
+#include <client/windows/handler/exception_handler.h>
 
 RESTORE_WARNINGS
 
@@ -67,12 +67,9 @@ Q_GLOBAL_STATIC(std::wstring, quentierMinidumpsStorageFolderPath)
 Q_GLOBAL_STATIC(std::wstring, quentierCrashHandlerFilePath)
 Q_GLOBAL_STATIC(std::wstring, quentierCrashHandlerArgs)
 
-bool ShowDumpResults(const wchar_t * dump_path,
-                     const wchar_t * minidump_id,
-                     void * context,
-                     EXCEPTION_POINTERS * exinfo,
-                     MDRawAssertionInfo * assertion,
-                     bool succeeded)
+bool ShowDumpResults(
+    const wchar_t * dump_path, const wchar_t * minidump_id, void * context,
+    EXCEPTION_POINTERS * exinfo, MDRawAssertionInfo * assertion, bool succeeded)
 {
     Q_UNUSED(context)
     Q_UNUSED(exinfo)
@@ -104,8 +101,17 @@ bool ShowDumpResults(const wchar_t * dump_path,
     const TCHAR * crashHandlerFilePath = pQuentierCrashHandlerFilePath->c_str();
     TCHAR * argsData = const_cast<TCHAR*>(pQuentierCrashHandlerArgs->c_str());
 
-    if (CreateProcess(crashHandlerFilePath, argsData, NULL, NULL, FALSE,
-                      0, NULL, NULL, &startupInfo, &processInfo))
+    if (CreateProcess(
+            crashHandlerFilePath,
+            argsData,
+            nullptr,
+            nullptr,
+            FALSE,
+            0,
+            nullptr,
+            nullptr,
+            &startupInfo,
+            &processInfo))
     {
         WaitForSingleObject(processInfo.hProcess,INFINITE);
         CloseHandle(processInfo.hThread);
@@ -134,31 +140,37 @@ void setupBreakpad(const QApplication & app)
 
     CONVERT_PATH(minidumpsStorageFolderPath);
     // NOTE: removing quotes from this path for two reasons:
-    // 1. This path shouldn't contain spaces so it's not necessary to escape them
-    // 2. Minidump file path would be appended to this path in exception handler,
-    //    so the resulting path would otherwise have an opening quote, quote in
-    //    the middle of the path and no closing quote
+    // 1. This path shouldn't contain spaces so it's not necessary to escape
+    //    them
+    // 2. Minidump file path would be appended to this path in exception
+    //    handler, so the resulting path would otherwise have an opening quote,
+    //    quote in the middle of the path and no closing quote
     minidumpsStorageFolderPath.remove(0, 1);
     minidumpsStorageFolderPath.chop(1);
 
-    *quentierMinidumpsStorageFolderPath = minidumpsStorageFolderPath.toStdWString();
+    *quentierMinidumpsStorageFolderPath =
+        minidumpsStorageFolderPath.toStdWString();
 
     QString crashHandlerFilePath =
         appFileInfo.absolutePath() +
         QString::fromUtf8("/quentier_crash_handler.exe");
 
     CONVERT_PATH(crashHandlerFilePath);
-    // NOTE: removing quotes from this path because it would be the first argument
-    // to WinAPI's CreateProcess call and this one shouldn't be surrounded by
-    // quotes
+    // NOTE: removing quotes from this path because it would be the first
+    // argument to WinAPI's CreateProcess call and this one shouldn't be
+    // surrounded by quotes
     crashHandlerFilePath.chop(1);
     crashHandlerFilePath.remove(0, 1);
 
     *quentierCrashHandlerFilePath = crashHandlerFilePath.toStdWString();
 
     QString quentierSymbolsFilePath, libquentierSymbolsFilePath;
-    findCompressedSymbolsFiles(app, quentierSymbolsFilePath,
-                               libquentierSymbolsFilePath);
+
+    findCompressedSymbolsFiles(
+        app,
+        quentierSymbolsFilePath,
+        libquentierSymbolsFilePath);
+
     CONVERT_PATH(quentierSymbolsFilePath);
     CONVERT_PATH(libquentierSymbolsFilePath);
 
@@ -170,12 +182,16 @@ void setupBreakpad(const QApplication & app)
 
     std::wstring * pQuentierCrashHandlerArgs = NULL;
     pQuentierCrashHandlerArgs = quentierCrashHandlerArgs;
+
     const wchar_t * minidumpsStorageFolderPathData =
         quentierMinidumpsStorageFolderPath->c_str();
 
     *pQuentierCrashHandlerArgs = quentierSymbolsFilePath.toStdWString();
     pQuentierCrashHandlerArgs->append(L" ");
-    pQuentierCrashHandlerArgs->append(libquentierSymbolsFilePath.toStdWString());
+
+    pQuentierCrashHandlerArgs->append(
+        libquentierSymbolsFilePath.toStdWString());
+
     pQuentierCrashHandlerArgs->append(L" ");
     pQuentierCrashHandlerArgs->append(minidumpStackwalkFilePath.toStdWString());
     pQuentierCrashHandlerArgs->append(L" ");
@@ -188,9 +204,14 @@ void setupBreakpad(const QApplication & app)
         static_cast<size_t>(pQuentierCrashHandlerArgs->size() + 1000));
 
     pBreakpadHandler = new google_breakpad::ExceptionHandler(
-        std::wstring(minidumpsStorageFolderPathData), NULL, ShowDumpResults,
-        NULL, google_breakpad::ExceptionHandler::HANDLER_ALL, MiniDumpNormal,
-        (const wchar_t*)NULL, NULL);
+        std::wstring(minidumpsStorageFolderPathData),
+        nullptr,
+        ShowDumpResults,
+        nullptr,
+        google_breakpad::ExceptionHandler::HANDLER_ALL,
+        MiniDumpNormal,
+        (const wchar_t*)nullptr,
+        nullptr);
 }
 
 void detachBreakpad()
@@ -200,11 +221,14 @@ void detachBreakpad()
         pBreakpadHandler = nullptr;
     }
 
-    // WinAPI magic to disable Windows error reporting dialog in case of crashes:
-    // https://stackoverflow.com/a/15660790/1217285
+    // WinAPI magic to disable Windows error reporting dialog in case of
+    // crashes: https://stackoverflow.com/a/15660790/1217285
     DWORD dwMode = SetErrorMode(SEM_NOGPFAULTERRORBOX);
     SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX);
-    SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)&null_exception_handler);
+
+    SetUnhandledExceptionFilter(
+        (LPTOP_LEVEL_EXCEPTION_FILTER)&null_exception_handler);
+
     _RTC_SetErrorFunc(&null_runtime_check_handler);
 }
 

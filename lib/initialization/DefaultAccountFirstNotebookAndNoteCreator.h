@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,10 +19,10 @@
 #ifndef QUENTIER_LIB_INITIALIZATION_DEFAULT_ACCOUNT_FIRST_NOTEBOOK_AND_NOTE_CREATOR_H
 #define QUENTIER_LIB_INITIALIZATION_DEFAULT_ACCOUNT_FIRST_NOTEBOOK_AND_NOTE_CREATOR_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
+#include <quentier/types/Notebook.h>
+#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QPointer>
@@ -60,15 +60,19 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
+
     void onAddNotebookFailed(
         Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, ErrorString errorDescription,
-                         QUuid requestId);
+
+    void onAddNoteFailed(
+        Note note, ErrorString errorDescription, QUuid requestId);
 
 private:
-    void connectToLocalStorage(LocalStorageManagerAsync & localStorageManagerAsync);
+    void connectToLocalStorage(
+        LocalStorageManagerAsync & localStorageManagerAsync);
+
     void emitAddNotebookRequest();
     void emitAddNoteRequest(const Notebook & notebook);
 

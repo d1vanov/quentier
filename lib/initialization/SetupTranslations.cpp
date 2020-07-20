@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,14 +20,14 @@
 
 #include <lib/preferences/SettingsNames.h>
 
-#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
 
-#include <QTranslator>
 #include <QFileInfoList>
-#include <QStringList>
 #include <QDir>
 #include <QLocale>
+#include <QStringList>
+#include <QTranslator>
 
 namespace quentier {
 
@@ -43,26 +43,29 @@ void loadTranslations(
     QFileInfo searchPathInfo(searchPath);
     if (!searchPathInfo.exists())
     {
-        QNDEBUG("The translations search path read from app "
-                << "settings doesn't exist (" << searchPath
-                << "), fallback to the default search path ("
-                << defaultSearchPath << ")");
+        QNDEBUG("initialization", "The translations search path read from app "
+            << "settings doesn't exist (" << searchPath
+            << "), fallback to the default search path ("
+            << defaultSearchPath << ")");
+
         searchPathInfo.setFile(defaultSearchPath);
     }
     else if (!searchPathInfo.isDir())
     {
-        QNDEBUG("The translations search path read from app "
-                << "settings is not a directory (" << searchPath
-                << "), fallback to the default search path ("
-                << defaultSearchPath << ")");
+        QNDEBUG("initialization", "The translations search path read from app "
+            << "settings is not a directory (" << searchPath
+            << "), fallback to the default search path ("
+            << defaultSearchPath << ")");
+
         searchPathInfo.setFile(defaultSearchPath);
     }
     else if (!searchPathInfo.isReadable())
     {
-        QNDEBUG("The translations search path read from app "
-                << "settings is not readable (" << searchPath
-                << "), fallback to the default search path ("
-                << defaultSearchPath << ")");
+        QNDEBUG("initialization", "The translations search path read from app "
+            << "settings is not readable (" << searchPath
+            << "), fallback to the default search path ("
+            << defaultSearchPath << ")");
+
         searchPathInfo.setFile(defaultSearchPath);
     }
 
@@ -72,48 +75,50 @@ void loadTranslations(
     nameFilter << filter;
 
     QString systemLocaleName = QLocale::system().name();
-    QNDEBUG("System locale name: " << systemLocaleName);
+    QNDEBUG("initialization", "System locale name: " << systemLocaleName);
 
     QDir searchDir(searchPath);
-    QFileInfoList translationFileInfos = searchDir.entryInfoList(nameFilter);
-    for(auto it = translationFileInfos.constBegin(),
-        end = translationFileInfos.constEnd(); it != end; ++it)
+    auto translationFileInfos = searchDir.entryInfoList(nameFilter);
+    for(const auto & translationFileInfo: qAsConst(translationFileInfos))
     {
-        const QFileInfo & translationFileInfo = *it;
         QString translationBaseName = translationFileInfo.baseName();
-        int underscoreIndex = translationBaseName.lastIndexOf(QStringLiteral("_"));
+
+        int underscoreIndex = translationBaseName.lastIndexOf(
+            QStringLiteral("_"));
+
         if (underscoreIndex > 0) {
-            underscoreIndex = translationBaseName.lastIndexOf(QStringLiteral("_"),
-                                                              underscoreIndex-1);
+            underscoreIndex = translationBaseName.lastIndexOf(
+                QStringLiteral("_"),
+                underscoreIndex-1);
         }
 
         if (underscoreIndex > 0)
         {
             QString langCode = translationBaseName.mid(underscoreIndex + 1);
             if (langCode == systemLocaleName) {
-                QNDEBUG("Loading the translation for system locale: "
-                        << langCode << ", file "
-                        << translationBaseName);
+                QNDEBUG("initialization", "Loading the translation for system "
+                    << "locale: " << langCode << ", file "
+                    << translationBaseName);
                 translator.load(translationFileInfo.absoluteFilePath());
             }
             else {
-                QNDEBUG("Skipping translation not matching "
-                        << "the system locale: " << langCode
-                        << ", file: " << translationBaseName);
+                QNDEBUG("initialization", "Skipping translation not matching "
+                    << "the system locale: " << langCode << ", file: "
+                    << translationBaseName);
             }
         }
         else
         {
-            QNDEBUG("Failed to figure out the language and country "
-                    << "code corresponding to the translation file "
-                    << translationBaseName);
+            QNDEBUG("initialization", "Failed to figure out the language and "
+                << "country code corresponding to the translation file "
+                << translationBaseName);
         }
     }
 }
 
 void setupTranslations(QuentierApplication & app)
 {
-    QNDEBUG("setupTranslations");
+    QNDEBUG("initialization", "setupTranslations");
 
     QString defaultLibquentierTranslationsSearchPath =
         app.applicationDirPath() +
@@ -122,8 +127,9 @@ void setupTranslations(QuentierApplication & app)
 #else
         QStringLiteral("/../share/libquentier/translations");
 #endif
-    QNDEBUG("Default libquentier translations search path: "
-            << defaultLibquentierTranslationsSearchPath);
+
+    QNDEBUG("initialization", "Default libquentier translations search path: "
+        << defaultLibquentierTranslationsSearchPath);
 
     QString defaultQuentierTranslationsSearchPath =
         app.applicationDirPath() +
@@ -132,20 +138,27 @@ void setupTranslations(QuentierApplication & app)
 #else
         QStringLiteral("/../share/quentier/translations");
 #endif
-    QNDEBUG("Default quentier translations search path: "
-            << defaultLibquentierTranslationsSearchPath);
 
-    QTranslator * pTranslator = new QTranslator;
+    QNDEBUG("initialization", "Default quentier translations search path: "
+        << defaultLibquentierTranslationsSearchPath);
 
-    QNDEBUG("Loading translations for libquentier");
-    loadTranslations(defaultLibquentierTranslationsSearchPath,
-                     LIBQUENTIER_TRANSLATIONS_SEARCH_PATH,
-                     QStringLiteral("libquentier_*.qm"), *pTranslator);
+    auto * pTranslator = new QTranslator;
 
-    QNDEBUG("Loading translations for quentier");
-    loadTranslations(defaultQuentierTranslationsSearchPath,
-                     QUENTIER_TRANSLATIONS_SEARCH_PATH,
-                     QStringLiteral("quentier_*.qm"), *pTranslator);
+    QNDEBUG("initialization", "Loading translations for libquentier");
+
+    loadTranslations(
+        defaultLibquentierTranslationsSearchPath,
+        LIBQUENTIER_TRANSLATIONS_SEARCH_PATH,
+        QStringLiteral("libquentier_*.qm"),
+        *pTranslator);
+
+    QNDEBUG("initialization", "Loading translations for quentier");
+
+    loadTranslations(
+        defaultQuentierTranslationsSearchPath,
+        QUENTIER_TRANSLATIONS_SEARCH_PATH,
+        QStringLiteral("quentier_*.qm"),
+        *pTranslator);
 
     app.installTranslator(pTranslator);
 }

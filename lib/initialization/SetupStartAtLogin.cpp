@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,51 +18,55 @@
 
 #include "SetupStartAtLogin.h"
 
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/SettingsNames.h>
 #include <lib/utility/StartAtLogin.h>
 
-#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/ApplicationSettings.h>
 
 namespace quentier {
 
 void setupStartQuentierAtLogin()
 {
-    QNDEBUG("setupStartQuentierAtLogin");
+    QNDEBUG("initialization", "setupStartQuentierAtLogin");
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
     if (appSettings.contains(SHOULD_START_AUTOMATICALLY_AT_LOGIN)) {
-        QNDEBUG("Start automatically at login setting is present "
-                "within settings, nothing to do");
+        QNDEBUG("initialization", "Start automatically at login setting is "
+            << "present within settings, nothing to do");
         appSettings.endGroup();
         return;
     }
 
-    QNDEBUG("Start automatically at login setting is not present, "
-            "will set it to the default value");
+    QNDEBUG("initialization", "Start automatically at login setting is not "
+        << "present, will set it to the default value");
 
     bool shouldStartAutomaticallyAtLogin =
         DEFAULT_SHOULD_START_AUTOMATICALLY_AT_LOGIN_OPTION;
+
     if (!shouldStartAutomaticallyAtLogin) {
-        QNDEBUG("Should not start automatically at login by default");
+        QNDEBUG("initialization", "Should not start automatically at login by "
+            << "default");
         appSettings.endGroup();
         return;
     }
 
     appSettings.endGroup();
 
-    StartQuentierAtLoginOption::type option =
-        DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
+    auto option = DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
 
     ErrorString errorDescription;
-    bool res = setStartQuentierAtLoginOption(shouldStartAutomaticallyAtLogin,
-                                             errorDescription, option);
+
+    bool res = setStartQuentierAtLoginOption(
+        shouldStartAutomaticallyAtLogin,
+        errorDescription, option);
+
     if (Q_UNLIKELY(!res)) {
-        QNWARNING("Failed to set Quentier to start automatically "
-                  << "at login: " << errorDescription);
+        QNWARNING("initialization", "Failed to set Quentier to start "
+            << "automatically at login: " << errorDescription);
     }
 }
 
