@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_DIALOG_ENEX_IMPORT_DIALOG_H
 #define QUENTIER_LIB_DIALOG_ENEX_IMPORT_DIALOG_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
+#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 #include <QPointer>
@@ -54,7 +54,7 @@ public:
 
 private Q_SLOTS:
     void onBrowsePushButtonClicked();
-    void onNotebookNameEdited(const QString & name);
+    void onNotebookNameEdited(int notebookNameIndex);
     void onEnexFilePathEdited(const QString & path);
 
     // Slots to track the updates of notebook model

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,9 +26,9 @@
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/SuppressWarnings.h>
 
+#include <QHash>
 #include <QObject>
 #include <QUuid>
-#include <QHash>
 
 SAVE_WARNINGS
 GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
@@ -48,8 +48,7 @@ class EnexImporter: public QObject
     Q_OBJECT
 public:
     explicit EnexImporter(
-        const QString & enexFilePath,
-        const QString & notebookName,
+        const QString & enexFilePath, const QString & notebookName,
         LocalStorageManagerAsync & localStorageManagerAsync,
         TagModel & tagModel, NotebookModel & notebookModel,
         QObject * parent = nullptr);
@@ -71,15 +70,19 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+
     void onExpungeTagComplete(
         Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
+
     void onAddNotebookFailed(
         Notebook notebook, ErrorString errorDescription, QUuid requestId);
+
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
+
     void onAddNoteFailed(
         Note note, ErrorString errorDescription, QUuid requestId);
 
@@ -97,27 +100,27 @@ private:
     void addNotebookToLocalStorage(const QString & notebookName);
 
 private:
-    LocalStorageManagerAsync &              m_localStorageManagerAsync;
-    TagModel &                              m_tagModel;
-    NotebookModel &                         m_notebookModel;
-    QString                                 m_enexFilePath;
-    QString                                 m_notebookName;
-    QString                                 m_notebookLocalUid;
+    LocalStorageManagerAsync &  m_localStorageManagerAsync;
+    TagModel &      m_tagModel;
+    NotebookModel & m_notebookModel;
+    QString         m_enexFilePath;
+    QString         m_notebookName;
+    QString         m_notebookLocalUid;
 
-    QHash<QString, QStringList>             m_tagNamesByImportedNoteLocalUid;
+    QHash<QString, QStringList> m_tagNamesByImportedNoteLocalUid;
 
-    typedef boost::bimap<QString, QUuid> AddTagRequestIdByTagNameBimap;
-    AddTagRequestIdByTagNameBimap           m_addTagRequestIdByTagNameBimap;
+    using AddTagRequestIdByTagNameBimap = boost::bimap<QString, QUuid>;
+    AddTagRequestIdByTagNameBimap   m_addTagRequestIdByTagNameBimap;
 
-    QSet<QString>                           m_expungedTagLocalUids;
+    QSet<QString>   m_expungedTagLocalUids;
 
-    QUuid                                   m_addNotebookRequestId;
+    QUuid           m_addNotebookRequestId;
 
-    QVector<Note>                           m_notesPendingTagAddition;
-    QSet<QUuid>                             m_addNoteRequestIds;
+    QVector<Note>   m_notesPendingTagAddition;
+    QSet<QUuid>     m_addNoteRequestIds;
 
-    bool                                    m_pendingNotebookModelToStart;
-    bool                                    m_connectedToLocalStorage;
+    bool            m_pendingNotebookModelToStart = false;
+    bool            m_connectedToLocalStorage = false;
 };
 
 } // namespace quentier

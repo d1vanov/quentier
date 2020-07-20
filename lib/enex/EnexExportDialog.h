@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_DIALOG_ENEX_EXPORT_DIALOG_H
 #define QUENTIER_LIB_DIALOG_ENEX_EXPORT_DIALOG_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
+#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 
@@ -37,9 +37,9 @@ public:
     explicit EnexExportDialog(
         const Account & account,
         QWidget * parent = nullptr,
-        const QString & suggestedFileName = QString());
+        const QString & suggestedFileName = {});
 
-    virtual ~EnexExportDialog();
+    virtual ~EnexExportDialog() override;
 
     bool exportTags() const;
     QString exportEnexFilePath() const;

@@ -27,14 +27,14 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
 
-#include <QStringListModel>
-#include <QModelIndex>
 #include <QCompleter>
 #include <QFileInfo>
-#include <QScopedPointer>
 #include <QFileDialog>
+#include <QModelIndex>
+#include <QStringListModel>
 
 #include <algorithm>
+#include <memory>
 
 namespace quentier {
 
@@ -69,13 +69,15 @@ EnexImportDialog::~EnexImportDialog()
     delete m_pUi;
 }
 
-QString EnexImportDialog::importEnexFilePath(ErrorString * pErrorDescription) const
+QString EnexImportDialog::importEnexFilePath(
+    ErrorString * pErrorDescription) const
 {
-    QNDEBUG("EnexImportDialog::importEnexFilePath");
+    QNDEBUG("enex", "EnexImportDialog::importEnexFilePath");
 
-    QString currentFilePath =
-        QDir::fromNativeSeparators(m_pUi->filePathLineEdit->text());
-    QNTRACE("Current file path: " << currentFilePath);
+    QString currentFilePath = QDir::fromNativeSeparators(
+        m_pUi->filePathLineEdit->text());
+
+    QNTRACE("enex", "Current file path: " << currentFilePath);
 
     if (currentFilePath.isEmpty()) {
         return QString();
@@ -84,10 +86,10 @@ QString EnexImportDialog::importEnexFilePath(ErrorString * pErrorDescription) co
     QFileInfo fileInfo(currentFilePath);
     if (!fileInfo.exists())
     {
-        QNDEBUG("ENEX file at specified path doesn't exist");
+        QNDEBUG("enex", "ENEX file at specified path doesn't exist");
         if (pErrorDescription) {
-            pErrorDescription->setBase(QT_TR_NOOP("ENEX file at specified path "
-                                                  "doesn't exist"));
+            pErrorDescription->setBase(
+                QT_TR_NOOP("ENEX file at specified path doesn't exist"));
         }
 
         return QString();
@@ -95,10 +97,10 @@ QString EnexImportDialog::importEnexFilePath(ErrorString * pErrorDescription) co
 
     if (!fileInfo.isFile())
     {
-        QNDEBUG("The specified path is not a file");
+        QNDEBUG("enex", "The specified path is not a file");
         if (pErrorDescription) {
-            pErrorDescription->setBase(QT_TR_NOOP("The specified path is not "
-                                                  "a file"));
+            pErrorDescription->setBase(
+                QT_TR_NOOP("The specified path is not a file"));
         }
 
         return QString();
@@ -106,10 +108,10 @@ QString EnexImportDialog::importEnexFilePath(ErrorString * pErrorDescription) co
 
     if (!fileInfo.isReadable())
     {
-        QNDEBUG("The specified file is not readable");
+        QNDEBUG("enex", "The specified file is not readable");
         if (pErrorDescription) {
-            pErrorDescription->setBase(QT_TR_NOOP("The specified file is not "
-                                                  "readable"));
+            pErrorDescription->setBase(
+                QT_TR_NOOP("The specified file is not readable"));
         }
 
         return QString();
@@ -134,82 +136,95 @@ QString EnexImportDialog::notebookName(ErrorString * pErrorDescription) const
 
 void EnexImportDialog::onBrowsePushButtonClicked()
 {
-    QNDEBUG("EnexImportDialog::onBrowsePushButtonClicked");
+    QNDEBUG("enex", "EnexImportDialog::onBrowsePushButtonClicked");
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+    ApplicationSettings appSettings(
+        m_currentAccount,
+        QUENTIER_AUXILIARY_SETTINGS);
+
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
-    QString lastEnexImportPath =
-        appSettings.value(LAST_IMPORT_ENEX_PATH_SETTINGS_KEY).toString();
+
+    QString lastEnexImportPath = appSettings.value(
+        LAST_IMPORT_ENEX_PATH_SETTINGS_KEY).toString();
+
     appSettings.endGroup();
 
     if (lastEnexImportPath.isEmpty()) {
         lastEnexImportPath = documentsPath();
     }
 
-    QScopedPointer<QFileDialog> pEnexFileDialog(
-        new QFileDialog(this,
-                        tr("Please select the ENEX file to import"),
-                        lastEnexImportPath));
+    auto pEnexFileDialog = std::make_unique<QFileDialog>(
+        this,
+        tr("Please select the ENEX file to import"),
+        lastEnexImportPath);
+
     pEnexFileDialog->setWindowModality(Qt::WindowModal);
     pEnexFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
     pEnexFileDialog->setFileMode(QFileDialog::ExistingFile);
     pEnexFileDialog->setDefaultSuffix(QStringLiteral("enex"));
 
     if (pEnexFileDialog->exec() != QDialog::Accepted) {
-        QNDEBUG("The import of ENEX was cancelled");
+        QNDEBUG("enex", "The import of ENEX was cancelled");
         return;
     }
 
-    QStringList selectedFiles = pEnexFileDialog->selectedFiles();
+    auto selectedFiles = pEnexFileDialog->selectedFiles();
     int numSelectedFiles = selectedFiles.size();
 
     if (numSelectedFiles == 0) {
-        QNDEBUG("No ENEX file was selected");
+        QNDEBUG("enex", "No ENEX file was selected");
         setStatusText(tr("No ENEX file was selected"));
         return;
     }
 
     if (numSelectedFiles > 1) {
-        QNDEBUG("More than one ENEX files were selected");
+        QNDEBUG("enex", "More than one ENEX files were selected");
         setStatusText(tr("More than one ENEX files were selected"));
         return;
     }
 
     QFileInfo enexFileInfo(selectedFiles[0]);
     if (!enexFileInfo.exists()) {
-        QNDEBUG("The selected ENEX file does not exist");
+        QNDEBUG("enex", "The selected ENEX file does not exist");
         setStatusText(tr("The selected ENEX file does not exist"));
         return;
     }
 
     if (!enexFileInfo.isReadable()) {
-        QNDEBUG("The selected ENEX file is not readable");
+        QNDEBUG("enex", "The selected ENEX file is not readable");
         setStatusText(tr("The selected ENEX file is not readable"));
         return;
     }
 
     lastEnexImportPath = pEnexFileDialog->directory().absolutePath();
 
-    if (!lastEnexImportPath.isEmpty()) {
+    if (!lastEnexImportPath.isEmpty())
+    {
         appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
-        appSettings.setValue(LAST_IMPORT_ENEX_PATH_SETTINGS_KEY, lastEnexImportPath);
+
+        appSettings.setValue(
+            LAST_IMPORT_ENEX_PATH_SETTINGS_KEY,
+            lastEnexImportPath);
+
         appSettings.endGroup();
     }
 
     m_pUi->filePathLineEdit->setText(
         QDir::toNativeSeparators(enexFileInfo.absoluteFilePath()));
+
     checkConditionsAndEnableDisableOkButton();
 }
 
-void EnexImportDialog::onNotebookNameEdited(const QString & name)
+void EnexImportDialog::onNotebookNameEdited(int notebookNameIndex)
 {
-    QNDEBUG("EnexImportDialog::onNotebookNameEdited: " << name);
+    QString name = m_pUi->notebookNameComboBox->itemText(notebookNameIndex);
+    QNDEBUG("enex", "EnexImportDialog::onNotebookNameEdited: " << name);
     checkConditionsAndEnableDisableOkButton();
 }
 
 void EnexImportDialog::onEnexFilePathEdited(const QString & path)
 {
-    QNDEBUG("EnexImportDialog::onEnexFilePathEdited: " << path);
+    QNDEBUG("enex", "EnexImportDialog::onEnexFilePathEdited: " << path);
     checkConditionsAndEnableDisableOkButton();
 }
 
@@ -217,12 +232,12 @@ void EnexImportDialog::dataChanged(
     const QModelIndex & topLeft, const QModelIndex & bottomRight,
     const QVector<int> & roles)
 {
-    QNDEBUG("EnexImportDialog::dataChanged");
+    QNDEBUG("enex", "EnexImportDialog::dataChanged");
 
     Q_UNUSED(roles)
 
     if (!topLeft.isValid() || !bottomRight.isValid()) {
-        QNDEBUG("At least one of changed indexes is invalid");
+        QNDEBUG("enex", "At least one of changed indexes is invalid");
         fillNotebookNames();
         return;
     }
@@ -230,7 +245,7 @@ void EnexImportDialog::dataChanged(
     if ((topLeft.column() > static_cast<int>(NotebookModel::Column::Name) ||
         (bottomRight.column() < static_cast<int>(NotebookModel::Column::Name))))
     {
-        QNTRACE("The updated indexed don't contain the notebook name");
+        QNTRACE("enex", "The updated indexed don't contain the notebook name");
         return;
     }
 
@@ -240,7 +255,7 @@ void EnexImportDialog::dataChanged(
 void EnexImportDialog::rowsInserted(
     const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG("EnexImportDialog::rowsInserted");
+    QNDEBUG("enex", "EnexImportDialog::rowsInserted");
 
     Q_UNUSED(parent)
     Q_UNUSED(start)
@@ -252,14 +267,14 @@ void EnexImportDialog::rowsInserted(
 void EnexImportDialog::rowsAboutToBeRemoved(
     const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG("EnexImportDialog::rowsAboutToBeRemoved");
+    QNDEBUG("enex", "EnexImportDialog::rowsAboutToBeRemoved");
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
-        QNDEBUG("Notebook model is null, nothing to do");
+        QNDEBUG("enex", "Notebook model is null, nothing to do");
         return;
     }
 
-    QStringList currentNotebookNames = m_pNotebookNamesModel->stringList();
+    auto currentNotebookNames = m_pNotebookNamesModel->stringList();
 
     for(int i = start; i <= end; ++i)
     {
@@ -273,15 +288,18 @@ void EnexImportDialog::rowsAboutToBeRemoved(
             continue;
         }
 
-        auto it = std::lower_bound(currentNotebookNames.constBegin(),
-                                   currentNotebookNames.constEnd(),
-                                   removedNotebookName);
+        auto it = std::lower_bound(
+            currentNotebookNames.constBegin(),
+            currentNotebookNames.constEnd(),
+            removedNotebookName);
+
         if ((it != currentNotebookNames.constEnd()) &&
             (*it == removedNotebookName))
         {
             int offset = static_cast<int>(
                 std::distance(currentNotebookNames.constBegin(), it));
-            QStringList::iterator nit = currentNotebookNames.begin() + offset;
+
+            auto nit = currentNotebookNames.begin() + offset;
             Q_UNUSED(currentNotebookNames.erase(nit));
         }
     }
@@ -291,13 +309,20 @@ void EnexImportDialog::rowsAboutToBeRemoved(
 
 void EnexImportDialog::accept()
 {
-    QNDEBUG("EnexImportDialog::accept");
+    QNDEBUG("enex", "EnexImportDialog::accept");
 
     QString notebookName = m_pUi->notebookNameComboBox->currentText();
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+    ApplicationSettings appSettings(
+        m_currentAccount,
+        QUENTIER_AUXILIARY_SETTINGS);
+
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
-    appSettings.setValue(LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY, notebookName);
+
+    appSettings.setValue(
+        LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY,
+        notebookName);
+
     appSettings.endGroup();
 
     QDialog::accept();
@@ -305,45 +330,65 @@ void EnexImportDialog::accept()
 
 void EnexImportDialog::createConnections()
 {
-    QNDEBUG("EnexImportDialog::createConnections");
+    QNDEBUG("enex", "EnexImportDialog::createConnections");
 
-    QObject::connect(m_pUi->browsePushButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(EnexImportDialog,onBrowsePushButtonClicked));
-    QObject::connect(m_pUi->filePathLineEdit,
-                     QNSIGNAL(QLineEdit,textEdited,QString),
-                     this,
-                     QNSLOT(EnexImportDialog,onEnexFilePathEdited,QString));
-    QObject::connect(m_pUi->notebookNameComboBox,
-                     QNSIGNAL(QComboBox,editTextChanged,QString),
-                     this,
-                     QNSLOT(EnexImportDialog,onNotebookNameEdited,QString));
-    QObject::connect(m_pUi->notebookNameComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this,
-                     SLOT(onNotebookNameEdited(QString)));
+    QObject::connect(
+        m_pUi->browsePushButton,
+        &QPushButton::clicked,
+        this,
+        &EnexImportDialog::onBrowsePushButtonClicked);
+
+    QObject::connect(
+        m_pUi->filePathLineEdit,
+        &QLineEdit::textEdited,
+        this,
+        &EnexImportDialog::onEnexFilePathEdited);
+
+    QObject::connect(
+        m_pUi->notebookNameComboBox,
+        &QComboBox::editTextChanged,
+        this,
+        &EnexImportDialog::onNotebookNameEdited);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->notebookNameComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &EnexImportDialog::onNotebookNameEdited);
+#else
+    QObject::connect(
+        m_pUi->notebookNameComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onNotebookNameEdited(int)));
+#endif
 
     if (!m_pNotebookModel.isNull())
     {
-        QObject::connect(m_pNotebookModel.data(), &NotebookModel::dataChanged,
-                         this, &EnexImportDialog::dataChanged);
-        QObject::connect(m_pNotebookModel.data(),
-                         QNSIGNAL(NotebookModel,rowsInserted,QModelIndex,int,int),
-                         this,
-                         QNSLOT(EnexImportDialog,rowsInserted,QModelIndex,int,int));
-        QObject::connect(m_pNotebookModel.data(),
-                         QNSIGNAL(NotebookModel,rowsAboutToBeRemoved,
-                                  QModelIndex,int,int),
-                         this,
-                         QNSLOT(EnexImportDialog,rowsAboutToBeRemoved,
-                                QModelIndex,int,int));
+        QObject::connect(
+            m_pNotebookModel.data(),
+            &NotebookModel::dataChanged,
+            this,
+            &EnexImportDialog::dataChanged);
+
+        QObject::connect(
+            m_pNotebookModel.data(),
+            &NotebookModel::rowsInserted,
+            this,
+            &EnexImportDialog::rowsInserted);
+
+        QObject::connect(
+            m_pNotebookModel.data(),
+            &NotebookModel::rowsAboutToBeRemoved,
+            this,
+            &EnexImportDialog::rowsAboutToBeRemoved);
     }
 }
 
 void EnexImportDialog::fillNotebookNames()
 {
-    QNDEBUG("EnexImportDialog::fillNotebookNames");
+    QNDEBUG("enex", "EnexImportDialog::fillNotebookNames");
 
     QStringList notebookNames;
 
@@ -357,26 +402,35 @@ void EnexImportDialog::fillNotebookNames()
 
 void EnexImportDialog::fillDialogContents()
 {
-    QNDEBUG("EnexImportDialog::fillDialogContents");
+    QNDEBUG("enex", "EnexImportDialog::fillDialogContents");
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+    ApplicationSettings appSettings(
+        m_currentAccount,
+        QUENTIER_AUXILIARY_SETTINGS);
+
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
-    QString lastImportEnexNotebookName =
-        appSettings.value(LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY).toString();
+
+    QString lastImportEnexNotebookName = appSettings.value(
+        LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY).toString();
+
     appSettings.endGroup();
 
     if (lastImportEnexNotebookName.isEmpty()) {
         lastImportEnexNotebookName = tr("Imported notes");
     }
 
-    QStringList notebookNames = m_pNotebookNamesModel->stringList();
-    auto it = std::lower_bound(notebookNames.constBegin(),
-                               notebookNames.constEnd(),
-                               lastImportEnexNotebookName);
+    auto notebookNames = m_pNotebookNamesModel->stringList();
+
+    auto it = std::lower_bound(
+        notebookNames.constBegin(),
+        notebookNames.constEnd(),
+        lastImportEnexNotebookName);
+
     if ((it != notebookNames.constEnd()) && (*it == lastImportEnexNotebookName))
     {
-        int notebookNameIndex =
-            static_cast<int>(std::distance(notebookNames.constBegin(), it));
+        int notebookNameIndex = static_cast<int>(
+            std::distance(notebookNames.constBegin(), it));
+
         m_pUi->notebookNameComboBox->setCurrentIndex(notebookNameIndex);
     }
     else
@@ -396,7 +450,7 @@ void EnexImportDialog::setStatusText(const QString & text)
 
 void EnexImportDialog::clearAndHideStatus()
 {
-    QNDEBUG("EnexImportDialog::clearAndHideStatus");
+    QNDEBUG("enex", "EnexImportDialog::clearAndHideStatus");
 
     m_pUi->statusTextLabel->setText(QString());
     m_pUi->statusTextLabel->setHidden(true);
@@ -404,14 +458,15 @@ void EnexImportDialog::clearAndHideStatus()
 
 void EnexImportDialog::checkConditionsAndEnableDisableOkButton()
 {
-    QNDEBUG("EnexImportDialog::"
-            "checkConditionsAndEnableDisableOkButton");
+    QNDEBUG(
+        "enex",
+        "EnexImportDialog::checkConditionsAndEnableDisableOkButton");
 
     ErrorString error;
     QString enexFilePath = importEnexFilePath(&error);
     if (enexFilePath.isEmpty()) {
-        QNDEBUG("The enex file path is invalid, disabling the ok "
-                "button");
+        QNDEBUG("enex", "The enex file path is invalid, disabling the ok "
+            << "button");
         m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
         setStatusText(error.localizedString());
         return;
@@ -419,8 +474,8 @@ void EnexImportDialog::checkConditionsAndEnableDisableOkButton()
 
     QString currentNotebookName = notebookName(&error);
     if (currentNotebookName.isEmpty()) {
-        QNDEBUG("Notebook name is not set or is not valid, "
-                "disabling the ok button");
+        QNDEBUG("enex", "Notebook name is not set or is not valid, "
+            << "disabling the ok button");
         m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
         setStatusText(error.localizedString());
         return;
