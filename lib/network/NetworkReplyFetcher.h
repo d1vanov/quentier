@@ -44,22 +44,54 @@ public:
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
 
-    virtual ~NetworkReplyFetcher();
+    virtual ~NetworkReplyFetcher() override;
 
-    const QUrl & url() const { return m_url; }
+    const QUrl & url() const
+    {
+        return m_url;
+    }
 
-    bool isStarted() const { return m_started; }
-    bool isFinished() const { return m_finished; }
+    bool isStarted() const
+    {
+        return m_started;
+    }
 
-    qint64 timeoutMsec() const { return m_timeoutMsec; }
-    bool timedOut() const { return m_timedOut; }
+    bool isFinished() const
+    {
+        return m_finished;
+    }
 
-    bool status() const { return m_status; }
-    int statusCode() const { return m_httpStatusCode; }
+    qint64 timeoutMsec() const
+    {
+        return m_timeoutMsec;
+    }
+
+    bool timedOut() const
+    {
+        return m_timedOut;
+    }
+
+    bool status() const
+    {
+        return m_status;
+    }
+
+    int statusCode() const
+    {
+        return m_httpStatusCode;
+    }
 
     QByteArray fetchedData() const;
-    qint64 bytesFetched() const { return m_bytesFetched; }
-    qint64 bytesTotal() const { return m_bytesTotal; }
+
+    qint64 bytesFetched() const
+    {
+        return m_bytesFetched;
+    }
+
+    qint64 bytesTotal() const
+    {
+        return m_bytesTotal;
+    }
 
 Q_SIGNALS:
     void finished(

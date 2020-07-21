@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -46,27 +46,29 @@ void parseNetworkProxySettings(
  *                                                  the settings of provided
  *                                                  proxy for the given account
  *
- * @param account                                   Account for which the settings
- *                                                  are persisted; if empty,
- *                                                  the application-wise settings
- *                                                  are persisted
- * @param proxy                                     Network proxy which setttings
- *                                                  are to be persisted
+ * @param account                                   Account for which
+ *                                                  the settings are persisted;
+ *                                                  if empty,
+ *                                                  the application-wise
+ *                                                  settings are persisted
+ * @param proxy                                     Network proxy which
+ *                                                  setttings are to be
+ *                                                  persisted
  */
 void persistNetworkProxySettingsForAccount(
     const Account & account, const QNetworkProxy & proxy);
 
 /**
  * @brief restoreNetworkProxySettingsForAccount     Helper function setting
- *                                                  the application network proxy
- *                                                  built from persisted settings
- *                                                  for the given account
- *                                                  or application-wise settings
- *                                                  if the passed in account is
- *                                                  empty
- * @param account                                   Account for which the network
- *                                                  proxy settings are to be
- *                                                  restored
+ *                                                  the application network
+ *                                                  proxy built from persisted
+ *                                                  settings for the given
+ *                                                  account or application-wise
+ *                                                  settings if the passed in
+ *                                                  account is empty
+ * @param account                                   Account for which
+ *                                                  the network proxy settings
+ *                                                  are to be restored
  */
 void restoreNetworkProxySettingsForAccount(const Account & account);
 

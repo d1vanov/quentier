@@ -27,7 +27,7 @@
 #include <QTimer>
 
 #define RFLOG_IMPL(message, macro)                                             \
-    macro("<" << m_url << ">: " << message)                                    \
+    macro("network", "<" << m_url << ">: " << message)                         \
 // RFLOG_IMPL
 
 #define RFTRACE(message) RFLOG_IMPL(message, QNTRACE)
@@ -51,7 +51,7 @@ NetworkReplyFetcher::NetworkReplyFetcher(
 
 NetworkReplyFetcher::~NetworkReplyFetcher()
 {
-    QNDEBUG("NetworkReplyFetcher::~NetworkReplyFetcher");
+    RFDEBUG("NetworkReplyFetcher::~NetworkReplyFetcher");
 }
 
 QByteArray NetworkReplyFetcher::fetchedData() const
@@ -108,7 +108,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
     RFDEBUG("NetworkReplyFetcher::onReplyFinished");
 
     if (m_finished) {
-        QNDEBUG("Already finished, probably due to timeout");
+        RFDEBUG("Already finished, probably due to timeout");
         recycleNetworkReply(pReply);
         return;
     }
@@ -168,7 +168,7 @@ void NetworkReplyFetcher::onReplySslErrors(
     RFDEBUG("NetworkReplyFetcher::onReplySslErrors");
 
     if (m_finished) {
-        QNDEBUG("Already finished, probably due to timeout");
+        RFDEBUG("Already finished, probably due to timeout");
         recycleNetworkReply(pReply);
         return;
     }
@@ -194,7 +194,7 @@ void NetworkReplyFetcher::onDownloadProgress(
         << bytesFetched << " bytes, total " << bytesTotal << " bytes");
 
     if (m_finished) {
-        QNDEBUG("Already finished, probably due to timeout");
+        RFDEBUG("Already finished, probably due to timeout");
         return;
     }
 
