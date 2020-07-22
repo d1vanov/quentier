@@ -30,7 +30,6 @@
 #include <quentier/utility/SuppressWarnings.h>
 
 #include <QAbstractItemModel>
-#include <QScopedPointer>
 
 SAVE_WARNINGS
 GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
@@ -43,6 +42,8 @@ GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
 #include <boost/bimap.hpp>
 
 RESTORE_WARNINGS
+
+#include <memory>
 
 namespace quentier {
 
@@ -98,7 +99,7 @@ public:
     class NoteFilters
     {
     public:
-        NoteFilters();
+        NoteFilters() = default;
 
         bool isEmpty() const;
 
@@ -131,12 +132,17 @@ public:
         NoteCache & noteCache, NotebookCache & notebookCache,
         QObject * parent = nullptr,
         const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted,
-        const NoteSortingMode::type noteSortingMode = NoteSortingMode::ModifiedAscending,
+        const NoteSortingMode::type noteSortingMode =
+        NoteSortingMode::ModifiedAscending,
         NoteFilters * pFilters = nullptr);
 
-    virtual ~NoteModel();
+    virtual ~NoteModel() override;
 
-    const Account & account() const { return m_account; }
+    const Account & account() const
+    {
+        return m_account;
+    }
+
     void updateAccount(const Account & account);
 
     Columns::type sortingColumn() const;
@@ -205,7 +211,8 @@ public:
      * there's a chance the model wan't contain the note pointed to by the local
      * uid. In that case the deletion won't be successful.
      *
-     * @param noteLocalUid          The local uid of note to be marked as deleted
+     * @param noteLocalUid          The local uid of note to be marked as
+     *                              deleted
      * @param errorDescription      Textual description of the error if the note
      *                              could not be marked as deleted
      * @return                      True if the note was deleted successfully,
@@ -283,8 +290,8 @@ public:
      * @param noteLocalUid          The local uid of the note to be unfavorited
      * @param errorDescription      Textual description of the error if the note
      *                              could not be unfavorited
-     * @return                      True if the note was unfavorited successfully,
-     *                              false otherwise
+     * @return                      True if the note was unfavorited
+     *                              successfully, false otherwise
      */
     bool unfavoriteNote(
         const QString & noteLocalUid, ErrorString & errorDescription);
@@ -337,7 +344,12 @@ public:
 
     // IStartable interface
     virtual void start() override;
-    virtual bool isStarted() const override { return m_isStarted; }
+
+    virtual bool isStarted() const override
+    {
+        return m_isStarted;
+    }
+
     virtual void stop(const StopMode::type stopMode) override;
 
 Q_SIGNALS:
@@ -535,7 +547,9 @@ private Q_SLOTS:
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     void onFindTagComplete(Tag tag, QUuid requestId);
-    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onFindTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onUpdateTagComplete(Tag tag, QUuid requestId);
@@ -571,8 +585,8 @@ private:
      * @param newItem       New note model item about to be inserted into
      *                      the model
      * @return              The appropriate row before which the new item should
-     *                      be inserted according to the current sorting criteria
-     *                      and column
+     *                      be inserted according to the current sorting
+     *                      criteria and column
      */
     int rowForNewItem(const NoteModelItem & newItem) const;
 
@@ -587,10 +601,13 @@ private:
         const NoteModelItem & item, const bool saveTags = false);
 
     QVariant dataImpl(const int row, const Columns::type column) const;
-    QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
-    bool setDataImpl(const QModelIndex & index, const QVariant & value,
-                     ErrorString & errorDescription);
+    QVariant dataAccessibleText(
+        const int row, const Columns::type column) const;
+
+    bool setDataImpl(
+        const QModelIndex & index, const QVariant & value,
+        ErrorString & errorDescription);
 
     bool removeRowsImpl(int row, int count, ErrorString & errorDescription);
 
@@ -610,7 +627,7 @@ private:
     struct ByLocalUid{};
     struct ByNotebookLocalUid{};
 
-    typedef boost::multi_index_container<
+    using NoteData = boost::multi_index_container<
         NoteModelItem,
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<
@@ -627,11 +644,13 @@ private:
                     NoteModelItem,const QString&,&NoteModelItem::notebookLocalUid>
             >
         >
-    > NoteData;
+    >;
 
-    typedef NoteData::index<ByIndex>::type NoteDataByIndex;
-    typedef NoteData::index<ByLocalUid>::type NoteDataByLocalUid;
-    typedef NoteData::index<ByNotebookLocalUid>::type NoteDataByNotebookLocalUid;
+    using NoteDataByIndex = NoteData::index<ByIndex>::type;
+    using NoteDataByLocalUid = NoteData::index<ByLocalUid>::type;
+
+    using NoteDataByNotebookLocalUid =
+        NoteData::index<ByNotebookLocalUid>::type;
 
     class NoteComparator
     {
@@ -642,7 +661,8 @@ private:
             m_sortOrder(sortOrder)
         {}
 
-        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        bool operator()(
+            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
 
     private:
         Columns::type   m_sortedColumn;
@@ -651,17 +671,10 @@ private:
 
     struct NotebookData
     {
-        NotebookData() :
-            m_name(),
-            m_guid(),
-            m_canCreateNotes(false),
-            m_canUpdateNotes(false)
-        {}
-
         QString m_name;
         QString m_guid;
-        bool    m_canCreateNotes;
-        bool    m_canUpdateNotes;
+        bool    m_canCreateNotes = false;
+        bool    m_canUpdateNotes = false;
     };
 
     struct TagData
@@ -670,7 +683,7 @@ private:
         QString m_guid;
     };
 
-    typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
+    using LocalUidToRequestIdBimap = boost::bimap<QString, QUuid>;
 
 private:
     // WARNING: this method assumes the iterator passed to it is not end()
@@ -697,28 +710,28 @@ private:
     NoteSortingMode::type       m_noteSortingMode;
 
     LocalStorageManagerAsync &  m_localStorageManagerAsync;
-    bool                        m_connectedToLocalStorage;
+    bool                        m_connectedToLocalStorage = false;
 
-    bool                        m_isStarted;
+    bool                        m_isStarted = false;
 
     NoteData                    m_data;
-    qint32                      m_totalFilteredNotesCount;
+    qint32                      m_totalFilteredNotesCount = 0;
 
     NoteCache &                 m_cache;
     NotebookCache &             m_notebookCache;
 
-    QScopedPointer<NoteFilters> m_pFilters;
-    QScopedPointer<NoteFilters> m_pUpdatedNoteFilters;
+    std::unique_ptr<NoteFilters>    m_pFilters;
+    std::unique_ptr<NoteFilters>    m_pUpdatedNoteFilters;
 
     // Upper bound for the amount of notes stored within the note model.
     // Can be increased through calls to fetchMore()
     size_t                      m_maxNoteCount;
 
-    size_t                      m_listNotesOffset;
+    size_t                      m_listNotesOffset = 0;
     QUuid                       m_listNotesRequestId;
     QUuid                       m_getNoteCountRequestId;
 
-    qint32                      m_totalAccountNotesCount;
+    qint32                      m_totalAccountNotesCount = 0;
     QUuid                       m_getFullNoteCountPerAccountRequestId;
 
     QHash<QString, NotebookData>    m_notebookDataByNotebookLocalUid;

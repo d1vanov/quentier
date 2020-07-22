@@ -25,12 +25,12 @@
 #include "TagCache.h"
 #include "SavedSearchCache.h"
 
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/Tag.h>
 #include <quentier/types/SavedSearch.h>
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/types/Tag.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
 
@@ -64,9 +64,13 @@ public:
         TagCache & tagCache, SavedSearchCache & savedSearchCache,
         QObject * parent = nullptr);
 
-    virtual ~FavoritesModel();
+    virtual ~FavoritesModel() override;
 
-    const Account & account() const { return m_account; }
+    const Account & account() const
+    {
+        return m_account;
+    }
+
     void updateAccount(const Account & account);
 
     struct Columns
@@ -79,18 +83,28 @@ public:
         };
     };
 
-    int sortingColumn() const { return m_sortedColumn; }
-    Qt::SortOrder sortOrder() const { return m_sortOrder; }
+    int sortingColumn() const
+    {
+        return m_sortedColumn;
+    }
+
+    Qt::SortOrder sortOrder() const
+    {
+        return m_sortOrder;
+    }
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
+
     const FavoritesModelItem * itemForLocalUid(const QString & localUid) const;
+
     const FavoritesModelItem * itemAtRow(const int row) const;
 
     /**
      * @brief allItemsListed
      * @return      True if the favorites model has received the information
-     *              about all favorited notes, notebooks, tags and saved searches
-     *              stored in the local storage by the moment; false otherwise
+     *              about all favorited notes, notebooks, tags and saved
+     *              searches stored in the local storage by the moment; false
+     *              otherwise
      */
     bool allItemsListed() const { return m_allItemsListed; }
 
@@ -204,7 +218,8 @@ Q_SIGNALS:
         QUuid requestId);
 
     void noteCountPerTag(
-        Tag tag, LocalStorageManager::NoteCountOptions options, QUuid requestId);
+        Tag tag, LocalStorageManager::NoteCountOptions options,
+        QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -289,9 +304,14 @@ private Q_SLOTS:
     // For tags:
     void onAddTagComplete(Tag tag, QUuid requestId);
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onUpdateTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
+
     void onFindTagComplete(Tag tag, QUuid requestId);
-    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onFindTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onListTagsComplete(
         LocalStorageManager::ListObjectsOptions flag,
@@ -373,12 +393,18 @@ private:
         };
     };
 
-    void requestNoteCountForNotebook(const QString & notebookLocalUid,
-                                     const NoteCountRequestOption::type option);
-    void requestNoteCountForAllNotebooks(const NoteCountRequestOption::type option);
+    void requestNoteCountForNotebook(
+        const QString & notebookLocalUid,
+        const NoteCountRequestOption::type option);
 
-    void checkAndIncrementNoteCountPerNotebook(const QString & notebookLocalUid);
-    void checkAndDecrementNoteCountPerNotebook(const QString & notebookLocalUid);
+    void requestNoteCountForAllNotebooks(
+        const NoteCountRequestOption::type option);
+
+    void checkAndIncrementNoteCountPerNotebook(
+        const QString & notebookLocalUid);
+
+    void checkAndDecrementNoteCountPerNotebook(
+        const QString & notebookLocalUid);
 
     void checkAndAdjustNoteCountPerNotebook(
         const QString & notebookLocalUid, const bool increment);
@@ -390,11 +416,14 @@ private:
 
     void checkAndIncrementNoteCountPerTag(const QString & tagLocalUid);
     void checkAndDecrementNoteCountPerTag(const QString & tagLocalUid);
-    void checkAndAdjustNoteCountPerTag(const QString & tagLocalUid,
-                                       const bool increment);
+
+    void checkAndAdjustNoteCountPerTag(
+        const QString & tagLocalUid, const bool increment);
 
     QVariant dataImpl(const int row, const Columns::type column) const;
-    QVariant dataAccessibleText(const int row, const Columns::type column) const;
+
+    QVariant dataAccessibleText(
+        const int row, const Columns::type column) const;
 
     void removeItemByLocalUid(const QString & localUid);
     void updateItemRowWithRespectToSorting(const FavoritesModelItem & item);
@@ -418,8 +447,8 @@ private:
     void onTagAddedOrUpdated(const Tag & tag);
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
-    void updateItemColumnInView(const FavoritesModelItem & item,
-                                const Columns::type column);
+    void updateItemColumnInView(
+        const FavoritesModelItem & item, const Columns::type column);
 
     void checkAllItemsListed();
 
@@ -427,7 +456,7 @@ private:
     struct ByLocalUid{};
     struct ByIndex{};
 
-    typedef boost::multi_index_container<
+    using FavoritesData = boost::multi_index_container<
         FavoritesModelItem,
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<
@@ -439,42 +468,38 @@ private:
                     FavoritesModelItem,const QString&,&FavoritesModelItem::localUid>
             >
         >
-    > FavoritesData;
+    >;
 
-    typedef FavoritesData::index<ByLocalUid>::type FavoritesDataByLocalUid;
-    typedef FavoritesData::index<ByIndex>::type FavoritesDataByIndex;
+    using FavoritesDataByLocalUid = FavoritesData::index<ByLocalUid>::type;
+    using FavoritesDataByIndex = FavoritesData::index<ByIndex>::type;
 
     struct NotebookRestrictionsData
     {
-        NotebookRestrictionsData() :
-            m_canUpdateNotes(false),
-            m_canUpdateNotebook(false),
-            m_canUpdateTags(false)
-        {}
-
-        bool    m_canUpdateNotes;
-        bool    m_canUpdateNotebook;
-        bool    m_canUpdateTags;
+        bool    m_canUpdateNotes = false;
+        bool    m_canUpdateNotebook = false;
+        bool    m_canUpdateTags = false;
     };
 
     class Comparator
     {
     public:
-        Comparator(const Columns::type column,
-                   const Qt::SortOrder sortOrder) :
+        Comparator(
+                const Columns::type column,
+                const Qt::SortOrder sortOrder) :
             m_sortedColumn(column),
             m_sortOrder(sortOrder)
         {}
 
-        bool operator()(const FavoritesModelItem & lhs,
-                        const FavoritesModelItem & rhs) const;
+        bool operator()(
+            const FavoritesModelItem & lhs,
+            const FavoritesModelItem & rhs) const;
 
     private:
         Columns::type   m_sortedColumn;
         Qt::SortOrder   m_sortOrder;
     };
 
-    typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
+    using LocalUidToRequestIdBimap = boost::bimap<QString, QUuid>;
 
 private:
     Account                 m_account;
@@ -488,16 +513,16 @@ private:
     QSet<QString>           m_lowerCaseTagNames;
     QSet<QString>           m_lowerCaseSavedSearchNames;
 
-    size_t                  m_listNotesOffset;
+    size_t                  m_listNotesOffset = 0;
     QUuid                   m_listNotesRequestId;
 
-    size_t                  m_listNotebooksOffset;
+    size_t                  m_listNotebooksOffset = 0;
     QUuid                   m_listNotebooksRequestId;
 
-    size_t                  m_listTagsOffset;
+    size_t                  m_listTagsOffset = 0;
     QUuid                   m_listTagsRequestId;
 
-    size_t                  m_listSavedSearchesOffset;
+    size_t                  m_listSavedSearchesOffset = 0;
     QUuid                   m_listSavedSearchesRequestId;
 
     QSet<QUuid>             m_updateNoteRequestIds;
@@ -530,10 +555,10 @@ private:
 
     QHash<QString, NotebookRestrictionsData>    m_notebookRestrictionsData;
 
-    Columns::type           m_sortedColumn;
-    Qt::SortOrder           m_sortOrder;
+    Columns::type           m_sortedColumn = Columns::DisplayName;
+    Qt::SortOrder           m_sortOrder = Qt::AscendingOrder;
 
-    bool                    m_allItemsListed;
+    bool                    m_allItemsListed = false;
 };
 
 } // namespace quentier

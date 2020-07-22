@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,30 +33,27 @@ ColumnChangeRerouter::ColumnChangeRerouter(
 
 void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
 {
-    QObject::connect(model,
-                     QNSIGNAL(QAbstractItemModel,dataChanged,
-                              const QModelIndex&,const QModelIndex&,
-                              const QVector<int>&),
-                     this,
-                     QNSLOT(ColumnChangeRerouter,onModelDataChanged,
-                            const QModelIndex&,const QModelIndex&,
-                            const QVector<int>&));
+    QObject::connect(
+        model,
+        &QAbstractItemModel::dataChanged,
+        this,
+        &ColumnChangeRerouter::onModelDataChanged);
 }
 
 void ColumnChangeRerouter::onModelDataChanged(
     const QModelIndex & topLeft, const QModelIndex & bottomRight,
     const QVector<int> & roles)
 {
-    QNTRACE("ColumnChangeRerouter::onModelDataChanged: top left: "
-            << "is valid = " << (topLeft.isValid() ? "true" : "false")
-            << ", row = " << topLeft.row()
-            << ", column = " << topLeft.column()
-            << "; bottom right: is valid = "
-            << (bottomRight.isValid() ? "true" : "false")
-            << ", row = " << bottomRight.row()
-            << ", column = " << bottomRight.column()
-            << ", column from = " << m_columnFrom
-            << ", column to = " << m_columnTo);
+    QNTRACE("model", "ColumnChangeRerouter::onModelDataChanged: top left: "
+        << "is valid = " << (topLeft.isValid() ? "true" : "false")
+        << ", row = " << topLeft.row()
+        << ", column = " << topLeft.column()
+        << "; bottom right: is valid = "
+        << (bottomRight.isValid() ? "true" : "false")
+        << ", row = " << bottomRight.row()
+        << ", column = " << bottomRight.column()
+        << ", column from = " << m_columnFrom
+        << ", column to = " << m_columnTo);
 
     if (!topLeft.isValid() || !bottomRight.isValid()) {
         return;
@@ -66,31 +63,37 @@ void ColumnChangeRerouter::onModelDataChanged(
     int columnRight = bottomRight.column();
 
     if ((columnLeft <= m_columnTo) && (columnRight >= m_columnTo)) {
-        QNTRACE("Already includes column to");
+        QNTRACE("model", "Already includes column to");
         return;
     }
 
     if ((columnLeft > m_columnFrom) || (columnRight < m_columnFrom)) {
-        QNTRACE("Doesn't include column from");
+        QNTRACE("model", "Doesn't include column from");
         return;
     }
 
-    const QAbstractItemModel * model = topLeft.model();
+    const auto * model = topLeft.model();
     if (Q_UNLIKELY(!model)) {
         model = bottomRight.model();
     }
 
     if (Q_UNLIKELY(!model)) {
-        QNDEBUG("No model");
+        QNDEBUG("model", "No model");
         return;
     }
 
-    QModelIndex newTopLeft = model->index(topLeft.row(), m_columnTo,
-                                          topLeft.parent());
-    QModelIndex newBottomRight = model->index(bottomRight.row(), m_columnTo,
-                                              bottomRight.parent());
+    auto newTopLeft = model->index(
+        topLeft.row(),
+        m_columnTo,
+        topLeft.parent());
 
-    QNDEBUG("Emitting the dataChanged signal for column "
-            << m_columnTo);
+    auto newBottomRight = model->index(
+        bottomRight.row(),
+        m_columnTo,
+        bottomRight.parent());
+
+    QNDEBUG("model", "Emitting the dataChanged signal for column "
+        << m_columnTo);
+
     Q_EMIT dataChanged(newTopLeft, newBottomRight, roles);
 }

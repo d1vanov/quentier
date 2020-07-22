@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,17 +21,17 @@
 namespace quentier {
 
 SavedSearchModelItem::SavedSearchModelItem(
-        const QString & localUid,
-        const QString & guid,
-        const QString & name,
-        const QString & query,
+        QString localUid,
+        QString guid,
+        QString name,
+        QString query,
         const bool isSynchronizable,
         const bool isDirty,
         const bool isFavorited) :
-    m_localUid(localUid),
-    m_guid(guid),
-    m_name(name),
-    m_query(query),
+    m_localUid(std::move(localUid)),
+    m_guid(std::move(guid)),
+    m_name(std::move(name)),
+    m_query(std::move(query)),
     m_isSynchronizable(isSynchronizable),
     m_isDirty(isDirty),
     m_isFavorited(isFavorited)
@@ -40,15 +40,15 @@ SavedSearchModelItem::SavedSearchModelItem(
 QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
 {
     strm << "Saved search model item: local uid = " << m_localUid
-         << ", guid = " << m_guid
-         << ", name = " << m_name << ", query = "
-         << m_query << ", is synchronizable = "
-         << (m_isSynchronizable ? "true" : "false")
-         << ", is dirty = "
-         << (m_isDirty ? "true" : "false")
-         << ", is favorited = "
-         << (m_isFavorited ? "true" : "false")
-         << "\n";
+        << ", guid = " << m_guid
+        << ", name = " << m_name << ", query = "
+        << m_query << ", is synchronizable = "
+        << (m_isSynchronizable ? "true" : "false")
+        << ", is dirty = "
+        << (m_isDirty ? "true" : "false")
+        << ", is favorited = "
+        << (m_isFavorited ? "true" : "false")
+        << "\n";
 
     return strm;
 }

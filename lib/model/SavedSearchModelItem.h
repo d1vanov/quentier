@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,17 +27,20 @@ class SavedSearchModelItem: public Printable
 {
 public:
     explicit SavedSearchModelItem(
-        const QString & localUid = QString(),
-        const QString & guid = QString(),
-        const QString & name = QString(),
-        const QString & query = QString(),
+        QString localUid = {},
+        QString guid = {},
+        QString name = {},
+        QString query = {},
         const bool isSynchronizable = false,
         const bool isDirty = false,
         const bool isFavorited = false);
 
     virtual QTextStream & print(QTextStream & strm) const override;
 
-    QString nameUpper() const { return m_name.toUpper(); }
+    QString nameUpper() const
+    {
+        return m_name.toUpper();
+    }
 
     QString     m_localUid;
     QString     m_guid;

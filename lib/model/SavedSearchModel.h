@@ -83,14 +83,14 @@ public:
 
     /**
      * @brief savedSearchNames
-     * @return the sorted (in case insensitive manner) list of saved search names
-     * existing within the saved search model
+     * @return the sorted (in case insensitive manner) list of saved search
+     * names existing within the saved search model
      */
     QStringList savedSearchNames() const;
 
     /**
-     * @brief createSavedSearch - convenience method to create a new saved search
-     * within the model
+     * @brief createSavedSearch - convenience method to create a new saved
+     * search within the model
      * @param savedSearchName       The name of the new saved search
      * @param searchQuery           The search query being saved
      * @param errorDescription      The textual description of the error if
@@ -121,7 +121,8 @@ public:
      * the model but only the underlying saved search object persisted in
      * the local storage
      *
-     * @param index                 The index of the saved search to be favorited
+     * @param index                 The index of the saved search to be
+     *                              favorited
      */
     void favoriteSavedSearch(const QModelIndex & index);
 
@@ -135,7 +136,8 @@ public:
      * the model but only the underlying saved search object persisted in
      * the local storage
      *
-     * @param index                 The index of the saved search to be unfavorited
+     * @param index                 The index of the saved search to be
+     *                              unfavorited
      */
     void unfavoriteSavedSearch(const QModelIndex & index);
 
@@ -159,11 +161,25 @@ public:
     virtual QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const override;
 
-    virtual int nameColumn() const override { return Columns::Name; }
-    virtual int sortingColumn() const override { return m_sortedColumn; }
-    virtual Qt::SortOrder sortOrder() const override { return m_sortOrder; }
+    virtual int nameColumn() const override
+    {
+        return Columns::Name;
+    }
+
+    virtual int sortingColumn() const override
+    {
+        return m_sortedColumn;
+    }
+
+    virtual Qt::SortOrder sortOrder() const override
+    {
+        return m_sortOrder;
+    }
+
     virtual bool allItemsListed() const override
-    { return m_allSavedSearchesListed; }
+    {
+        return m_allSavedSearchesListed;
+    }
 
 public:
     // QAbstractItemModel interface
@@ -279,7 +295,9 @@ private:
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
     QVariant dataImpl(const int row, const Columns::type column) const;
-    QVariant dataAccessibleText(const int row, const Columns::type column) const;
+
+    QVariant dataAccessibleText(
+        const int row, const Columns::type column) const;
 
     QString nameForNewSavedSearch() const;
 
@@ -292,14 +310,15 @@ private:
 
     void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
 
-    void setSavedSearchFavorited(const QModelIndex & index, const bool favorited);
+    void setSavedSearchFavorited(
+        const QModelIndex & index, const bool favorited);
 
 private:
     struct ByLocalUid{};
     struct ByIndex{};
     struct ByNameUpper{};
 
-    typedef boost::multi_index_container<
+    using SavedSearchData = boost::multi_index_container<
         SavedSearchModelItem,
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<
@@ -316,22 +335,26 @@ private:
                     SavedSearchModelItem,QString,&SavedSearchModelItem::nameUpper>
             >
         >
-    > SavedSearchData;
+    >;
 
-    typedef SavedSearchData::index<ByLocalUid>::type SavedSearchDataByLocalUid;
-    typedef SavedSearchData::index<ByIndex>::type SavedSearchDataByIndex;
-    typedef SavedSearchData::index<ByNameUpper>::type SavedSearchDataByNameUpper;
+    using SavedSearchDataByLocalUid = SavedSearchData::index<ByLocalUid>::type;
+    using SavedSearchDataByIndex = SavedSearchData::index<ByIndex>::type;
+
+    using SavedSearchDataByNameUpper =
+        SavedSearchData::index<ByNameUpper>::type;
 
     struct LessByName
     {
-        bool operator()(const SavedSearchModelItem & lhs,
-                        const SavedSearchModelItem & rhs) const;
+        bool operator()(
+            const SavedSearchModelItem & lhs,
+            const SavedSearchModelItem & rhs) const;
     };
 
     struct GreaterByName
     {
-        bool operator()(const SavedSearchModelItem & lhs,
-                        const SavedSearchModelItem & rhs) const;
+        bool operator()(
+            const SavedSearchModelItem & lhs,
+            const SavedSearchModelItem & rhs) const;
     };
 
     QModelIndex indexForLocalUidIndexIterator(
@@ -340,7 +363,7 @@ private:
 private:
     Account                 m_account;
     SavedSearchData         m_data;
-    size_t                  m_listSavedSearchesOffset;
+    size_t                  m_listSavedSearchesOffset = 0;
     QUuid                   m_listSavedSearchesRequestId;
     QSet<QUuid>             m_savedSearchItemsNotYetInLocalStorageUids;
 
@@ -353,12 +376,12 @@ private:
     QSet<QUuid>             m_findSavedSearchToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findSavedSearchToPerformUpdateRequestIds;
 
-    Columns::type           m_sortedColumn;
-    Qt::SortOrder           m_sortOrder;
+    Columns::type           m_sortedColumn = Columns::Name;
+    Qt::SortOrder           m_sortOrder = Qt::AscendingOrder;
 
-    mutable int             m_lastNewSavedSearchNameCounter;
+    mutable int             m_lastNewSavedSearchNameCounter = 0;
 
-    bool                    m_allSavedSearchesListed;
+    bool                    m_allSavedSearchesListed = false;
 };
 
 } // namespace quentier

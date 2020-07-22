@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -46,28 +46,44 @@ public:
         int numNotesTargeted = 0);
 
     Type::type type() const
-    { return m_type; }
+    {
+        return m_type;
+    }
 
     void setType(const Type::type type)
-    { m_type = type; }
+    {
+        m_type = type;
+    }
 
     const QString & localUid() const
-    { return m_localUid; }
+    {
+        return m_localUid;
+    }
 
     void setLocalUid(const QString & localUid)
-    { m_localUid = localUid; }
+    {
+        m_localUid = localUid;
+    }
 
     const QString & displayName() const
-    { return m_displayName; }
+    {
+        return m_displayName;
+    }
 
     void setDisplayName(const QString & displayName)
-    { m_displayName = displayName; }
+    {
+        m_displayName = displayName;
+    }
 
     int numNotesTargeted() const
-    { return m_numNotesTargeted; }
+    {
+        return m_numNotesTargeted;
+    }
 
     void setNumNotesTargeted(const int numNotesTargeted)
-    { m_numNotesTargeted = numNotesTargeted; }
+    {
+        m_numNotesTargeted = numNotesTargeted;
+    }
 
     virtual QTextStream & print(QTextStream & strm) const override;
 

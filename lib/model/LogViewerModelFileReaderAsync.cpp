@@ -33,8 +33,7 @@ LogViewerModel::FileReaderAsync::FileReaderAsync(
     QObject(parent),
     m_targetFile(targetFilePath),
     m_disabledLogLevels(disabledLogLevels),
-    m_filterRegExp(logEntryContentFilter, Qt::CaseSensitive, QRegExp::Wildcard),
-    m_parser()
+    m_filterRegExp(logEntryContentFilter, Qt::CaseSensitive, QRegExp::Wildcard)
 {}
 
 LogViewerModel::FileReaderAsync::~FileReaderAsync()

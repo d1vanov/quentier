@@ -36,7 +36,8 @@
     {                                                                          \
         QString msg;                                                           \
         QDebug dbg(&msg);                                                      \
-        __QNLOG_QDEBUG_HELPER();                                               \
+        dbg.nospace();                                                         \
+        dbg.noquote();                                                         \
         dbg << message;                                                        \
         QString relativeSourceFileName = QStringLiteral(__FILE__);             \
         int prefixIndex =                                                      \
@@ -86,12 +87,13 @@ namespace quentier {
     "\\s+"                                                                     \
     REGEX_QNLOG_SOURCE_LINENUMBER                                              \
     "\\s+"                                                                     \
-    "\\[(\\w+)\\]:\\s(.+$)"                                                    \
+    "\\[(\\w+)\\]:\\s\\[[a-zA-Z0-9:]+\\]:\\s(.+$)"                             \
 // REGEX_QNLOG_LINE
 
 LogViewerModel::LogFileParser::LogFileParser() :
-    m_logParsingRegex(QStringLiteral(REGEX_QNLOG_LINE),
-                      Qt::CaseInsensitive, QRegExp::RegExp),
+    m_logParsingRegex(
+        QStringLiteral(REGEX_QNLOG_LINE),
+        Qt::CaseInsensitive, QRegExp::RegExp),
     m_internalLogFile(
         applicationPersistentStoragePath() +
         QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt")),
@@ -99,8 +101,10 @@ LogViewerModel::LogFileParser::LogFileParser() :
 {
     ApplicationSettings appSettings;
     appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    QVariant enableLogViewerInternalLogsValue =
-        appSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+
+    QVariant enableLogViewerInternalLogsValue = appSettings.value(
+        ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+
     appSettings.endGroup();
 
     bool enableLogViewerInternalLogs = false;
@@ -118,10 +122,10 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
     QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
     ErrorString & errorDescription)
 {
-    LVMPDEBUG("LogViewerModel::LogFileParser::"
-              << "parseDataEntriesFromLogFile: from pos = "
-              << fromPos << ", max data entries = "
-              << maxDataEntries);
+    LVMPDEBUG(
+        "LogViewerModel::LogFileParser::parseDataEntriesFromLogFile: "
+            << "from pos = " << fromPos << ", max data entries = "
+            << maxDataEntries);
 
     if (!logFile.isOpen() && !logFile.open(QIODevice::ReadOnly)) {
         QFileInfo targetFileInfo(logFile);
@@ -133,9 +137,12 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
 
     QTextStream strm(&logFile);
 
-    if (!strm.seek(fromPos)) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to read the data from log "
-                                            "file: failed to seek at position"));
+    if (!strm.seek(fromPos))
+    {
+        errorDescription.setBase(
+            QT_TR_NOOP("Failed to read the data from log "
+                       "file: failed to seek at position"));
+
         errorDescription.details() = QString::number(fromPos);
         LVMPDEBUG(errorDescription);
         return false;
@@ -152,9 +159,14 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
         line = strm.readLine();
         LVMPDEBUG("Processing line " << line);
 
-        ParseLineStatus parseLineStatus =
-            parseLogFileLine(line, previousParseLineStatus, disabledLogLevels,
-                             filterContentRegExp, dataEntries, errorDescription);
+        auto parseLineStatus = parseLogFileLine(
+            line,
+            previousParseLineStatus,
+            disabledLogLevels,
+            filterContentRegExp,
+            dataEntries,
+            errorDescription);
+
         if (parseLineStatus == ParseLineStatus::Error) {
             LVMPDEBUG("Returning error: " << errorDescription);
             return false;
@@ -230,19 +242,27 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     QStringList capturedTexts = m_logParsingRegex.capturedTexts();
 
-    if (capturedTexts.size() != 7) {
-        errorDescription.setBase(QT_TR_NOOP("Error parsing the log file's contents: "
-                                            "unexpected number of captures by regex"));
+    if (capturedTexts.size() != 7)
+    {
+        errorDescription.setBase(
+            QT_TR_NOOP("Error parsing the log file's contents: "
+                       "unexpected number of captures by regex"));
+
         errorDescription.details() += QString::number(capturedTexts.size());
         return ParseLineStatus::Error;
     }
 
     bool convertedSourceLineNumberToInt = false;
-    int sourceFileLineNumber = capturedTexts[4].toInt(&convertedSourceLineNumberToInt);
-    if (!convertedSourceLineNumberToInt) {
-        errorDescription.setBase(QT_TR_NOOP("Error parsing the log file's contents: "
-                                            "failed to convert the source line number "
-                                            "to int"));
+
+    int sourceFileLineNumber = capturedTexts[4].toInt(
+        &convertedSourceLineNumberToInt);
+
+    if (!convertedSourceLineNumberToInt)
+    {
+        errorDescription.setBase(
+            QT_TR_NOOP("Error parsing the log file's contents: failed to "
+                       "convert the source line number to int"));
+
         errorDescription.details() += capturedTexts[3];
         return ParseLineStatus::Error;
     }
@@ -284,9 +304,10 @@ LogViewerModel::LogFileParser::parseLogFileLine(
     }
     else
     {
-        errorDescription.setBase(QT_TR_NOOP("Error parsing the log file's "
-                                            "contents: failed to parse "
-                                            "the log level"));
+        errorDescription.setBase(
+            QT_TR_NOOP("Error parsing the log file's contents: failed to parse "
+                       "the log level"));
+
         errorDescription.details() += logLevel;
         return ParseLineStatus::Error;
     }

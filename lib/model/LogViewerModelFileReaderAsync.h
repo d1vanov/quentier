@@ -39,7 +39,7 @@ public:
         const QString & logEntryContentFilter,
         QObject * parent = nullptr);
 
-    virtual ~FileReaderAsync();
+    virtual ~FileReaderAsync() override;
 
 Q_SIGNALS:
     void readLogFileDataEntries(

@@ -93,9 +93,10 @@ public:
     };
 
     QString logFileName() const;
-    void setLogFileName(const QString & logFileName,
-                        const FilteringOptions & filteringOptions =
-                        FilteringOptions());
+
+    void setLogFileName(
+        const QString & logFileName,
+        const FilteringOptions & filteringOptions = {});
 
     qint64 startLogFilePos() const;
     void setStartLogFilePos(const qint64 startLogFilePos);
@@ -119,20 +120,12 @@ public:
 
     struct Data: public Printable
     {
-        Data() :
-            m_timestamp(),
-            m_sourceFileName(),
-            m_sourceFileLineNumber(-1),
-            m_logLevel(LogLevel::Info),
-            m_logEntry()
-        {}
-
         virtual QTextStream & print(QTextStream & strm) const override;
 
         QDateTime       m_timestamp;
         QString         m_sourceFileName;
-        qint64          m_sourceFileLineNumber;
-        LogLevel        m_logLevel;
+        qint64          m_sourceFileLineNumber = -1;
+        LogLevel        m_logLevel = LogLevel::Info;
         QString         m_logEntry;
     };
 
@@ -186,10 +179,10 @@ Q_SIGNALS:
 public:
     // QAbstractTableModel interface
     virtual int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+        const QModelIndex & parent = {}) const override;
 
     virtual int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+        const QModelIndex & parent = {}) const override;
 
     virtual QVariant data(
         const QModelIndex & index,
@@ -257,12 +250,35 @@ private:
             m_endLogFilePos(endLogFilePos)
         {}
 
-        bool isEmpty() const { return (m_number < 0); }
-        int number() const { return m_number; }
-        int startModelRow() const { return m_startModelRow; }
-        int endModelRow() const { return m_endModelRow; }
-        qint64 startLogFilePos() const { return m_startLogFilePos; }
-        qint64 endLogFilePos() const { return m_endLogFilePos; }
+        bool isEmpty() const
+        {
+            return (m_number < 0);
+        }
+
+        int number() const
+        {
+            return m_number;
+        }
+
+        int startModelRow() const
+        {
+            return m_startModelRow;
+        }
+
+        int endModelRow() const
+        {
+            return m_endModelRow;
+        }
+
+        qint64 startLogFilePos() const
+        {
+            return m_startLogFilePos;
+        }
+
+        qint64 endLogFilePos() const
+        {
+            return m_endLogFilePos;
+        }
 
         virtual QTextStream & print(QTextStream & strm) const override;
 
@@ -286,7 +302,8 @@ private:
 
     struct LowerBoundByStartLogFilePosComparator
     {
-        bool operator()(const LogFileChunkMetadata & lhs, const qint64 pos) const
+        bool operator()(
+            const LogFileChunkMetadata & lhs, const qint64 pos) const
         {
             return lhs.startLogFilePos() < pos;
         }
@@ -296,7 +313,7 @@ private:
     struct LogFileChunksMetadataByStartModelRow{};
     struct LogFileChunksMetadataByStartLogFilePos{};
 
-    typedef boost::multi_index_container<
+    using LogFileChunksMetadata = boost::multi_index_container<
         LogFileChunkMetadata,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<
@@ -315,21 +332,21 @@ private:
                     LogFileChunkMetadata,qint64,&LogFileChunkMetadata::startLogFilePos>
             >
         >
-    > LogFileChunksMetadata;
+    >;
 
-    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByNumber>::type
-        LogFileChunksMetadataIndexByNumber;
-    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartModelRow>::type
-        LogFileChunksMetadataIndexByStartModelRow;
-    typedef LogFileChunksMetadata::index<LogFileChunksMetadataByStartLogFilePos>::type
-        LogFileChunksMetadataIndexByStartLogFilePos;
+    using LogFileChunksMetadataIndexByNumber =
+        LogFileChunksMetadata::index<LogFileChunksMetadataByNumber>::type;
+    using LogFileChunksMetadataIndexByStartModelRow =
+        LogFileChunksMetadata::index<LogFileChunksMetadataByStartModelRow>::type;
+    using LogFileChunksMetadataIndexByStartLogFilePos =
+        LogFileChunksMetadata::index<LogFileChunksMetadataByStartLogFilePos>::type;
 
 private:
-    const LogFileChunkMetadata *
-    findLogFileChunkMetadataByModelRow(const int row) const;
+    const LogFileChunkMetadata * findLogFileChunkMetadataByModelRow(
+        const int row) const;
 
-    const LogFileChunkMetadata *
-    findLogFileChunkMetadataByLogFilePos(const qint64 pos) const;
+    const LogFileChunkMetadata * findLogFileChunkMetadataByLogFilePos(
+        const qint64 pos) const;
 
     LogFileChunksMetadataIndexByStartModelRow::const_iterator
     findLogFileChunkMetadataIteratorByModelRow(const int row) const;
@@ -338,31 +355,31 @@ private:
     findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
 
 private:
-    bool                m_isActive;
+    bool                m_isActive = false;
     QFileInfo           m_currentLogFileInfo;
     FileSystemWatcher   m_currentLogFileWatcher;
 
     FilteringOptions    m_filteringOptions;
 
     char                m_currentLogFileStartBytes[256];
-    qint64              m_currentLogFileStartBytesRead;
+    qint64              m_currentLogFileStartBytesRead = 0;
 
     LogFileChunksMetadata               m_logFileChunksMetadata;
     LRUCache<qint32, QVector<Data> >    m_logFileChunkDataCache;
 
-    bool                m_canReadMoreLogFileChunks;
+    bool                m_canReadMoreLogFileChunks = false;
 
     QHash<qint64, LogFileDataEntryRequestReasons>   m_logFilePosRequestedToBeRead;
 
-    qint64              m_currentLogFileSize;
+    qint64              m_currentLogFileSize = 0;
     QBasicTimer         m_currentLogFileSizePollingTimer;
 
-    QThread *           m_pReadLogFileIOThread;
-    FileReaderAsync *   m_pFileReaderAsync;
+    QThread *           m_pReadLogFileIOThread = nullptr;
+    FileReaderAsync *   m_pFileReaderAsync = nullptr;
 
     QFile               m_targetSaveFile;
 
-    bool                m_internalLogEnabled;
+    bool                m_internalLogEnabled = false;
     mutable QFile       m_internalLogFile;
 };
 
