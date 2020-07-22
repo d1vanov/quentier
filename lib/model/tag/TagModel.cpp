@@ -40,13 +40,13 @@
 
 #define REPORT_ERROR(error, ...)                                               \
     ErrorString errorDescription(error);                                       \
-    QNWARNING(errorDescription << "" __VA_ARGS__ );                            \
+    QNWARNING("model:tag", errorDescription << "" __VA_ARGS__ );               \
     Q_EMIT notifyError(errorDescription)                                       \
 // REPORT_ERROR
 
 #define REPORT_INFO(info, ...)                                                 \
     ErrorString errorDescription(info);                                        \
-    QNINFO(errorDescription << "" __VA_ARGS__ );                               \
+    QNINFO("model:tag", errorDescription << "" __VA_ARGS__ );                  \
     Q_EMIT notifyError(errorDescription)                                       \
 // REPORT_INFO
 
@@ -74,7 +74,7 @@ TagModel::~TagModel()
 
 void TagModel::setAccount(const Account & account)
 {
-    QNTRACE("TagModel::setAccount: " << account);
+    QNTRACE("model:tag", "TagModel::setAccount: " << account);
     m_account = account;
 }
 
@@ -85,7 +85,7 @@ bool TagModel::allTagsListed() const
 
 void TagModel::favoriteTag(const QModelIndex & index)
 {
-    QNDEBUG("TagModel::favoriteTag: index: is valid = "
+    QNDEBUG("model:tag", "TagModel::favoriteTag: index: is valid = "
         << (index.isValid() ? "true" : "false")
         << ", row = " << index.row()
         << ", column = " << index.column()
@@ -96,7 +96,7 @@ void TagModel::favoriteTag(const QModelIndex & index)
 
 void TagModel::unfavoriteTag(const QModelIndex & index)
 {
-    QNDEBUG("TagModel::unfavoriteTag: index: is valid = "
+    QNDEBUG("model:tag", "TagModel::unfavoriteTag: index: is valid = "
         << (index.isValid() ? "true" : "false")
         << ", row = " << index.row()
         << ", column = " << index.column()
@@ -107,8 +107,8 @@ void TagModel::unfavoriteTag(const QModelIndex & index)
 
 bool TagModel::tagHasSynchronizedChildTags(const QString & tagLocalUid) const
 {
-    QNTRACE("TagModel::tagHasSynchronizedChildTags: tag local uid = "
-        << tagLocalUid);
+    QNTRACE("model:tag", "TagModel::tagHasSynchronizedChildTags: tag "
+        << "local uid = " << tagLocalUid);
 
     const auto & parentLocalUidIndex = m_data.get<ByParentLocalUid>();
     auto range = parentLocalUidIndex.equal_range(tagLocalUid);
@@ -135,19 +135,19 @@ bool TagModel::tagHasSynchronizedChildTags(const QString & tagLocalUid) const
 QString TagModel::localUidForItemName(
     const QString & itemName, const QString & linkedNotebookGuid) const
 {
-    QNTRACE("TagModel::localUidForItemName: name = " << itemName
+    QNTRACE("model:tag", "TagModel::localUidForItemName: name = " << itemName
         << ", linked notebook guid = " << linkedNotebookGuid);
 
     QModelIndex index = indexForTagName(itemName, linkedNotebookGuid);
     const auto * pItem = itemForIndex(index);
     if (!pItem) {
-        QNTRACE("No tag with such name was found");
+        QNTRACE("model:tag", "No tag with such name was found");
         return {};
     }
 
     const auto * pTagItem = pItem->cast<TagItem>();
     if (!pTagItem) {
-        QNTRACE("Tag model item is not of tag type");
+        QNTRACE("model:tag", "Tag model item is not of tag type");
         return {};
     }
 
@@ -156,12 +156,12 @@ QString TagModel::localUidForItemName(
 
 QString TagModel::itemNameForLocalUid(const QString & localUid) const
 {
-    QNTRACE("TagModel::itemNameForLocalUid: " << localUid);
+    QNTRACE("model:tag", "TagModel::itemNameForLocalUid: " << localUid);
 
     const auto & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNTRACE("No tag item with such local uid");
+        QNTRACE("model:tag", "No tag item with such local uid");
         return {};
     }
 
@@ -171,12 +171,12 @@ QString TagModel::itemNameForLocalUid(const QString & localUid) const
 ItemModel::ItemInfo TagModel::itemInfoForLocalUid(
     const QString & localUid) const
 {
-    QNTRACE("TagModel::itemInfoForLocalUid: " << localUid);
+    QNTRACE("model:tag", "TagModel::itemInfoForLocalUid: " << localUid);
 
     const auto & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNTRACE("No tag item with such local uid");
+        QNTRACE("model:tag", "No tag item with such local uid");
         return {};
     }
 
@@ -453,7 +453,7 @@ QModelIndex TagModel::parent(const QModelIndex & index) const
     int row = pGrandParentItem->rowForChild(pParentItem);
     if (Q_UNLIKELY(row < 0))
     {
-        QNWARNING("Internal inconsistency detected in TagModel: "
+        QNWARNING("model:tag", "Internal inconsistency detected in TagModel: "
             << "parent of the item can't find the item "
             << "within its children: item = " << *pParentItem
             << "\nParent item: " << *pGrandParentItem);
@@ -481,18 +481,18 @@ bool TagModel::setHeaderData(
 bool TagModel::setData(
     const QModelIndex & modelIndex, const QVariant & value, int role)
 {
-    QNTRACE("TagModel::setData: row = " << modelIndex.row()
+    QNTRACE("model:tag", "TagModel::setData: row = " << modelIndex.row()
         << ", column = " << modelIndex.column()
         << ", internal id = " << modelIndex.internalId()
         << ", value = " << value << ", role = " << role);
 
     if (role != Qt::EditRole) {
-        QNDEBUG("Non-edit role, skipping");
+        QNDEBUG("model:tag", "Non-edit role, skipping");
         return false;
     }
 
     if (!modelIndex.isValid()) {
-        QNDEBUG("The model index is invalid, skipping");
+        QNDEBUG("model:tag", "The model index is invalid, skipping");
         return false;
     }
 
@@ -526,7 +526,7 @@ bool TagModel::setData(
 
     auto * pTagItem = pItem->cast<TagItem>();
     if (!pTagItem) {
-        QNDEBUG("The model index points to a non-tag item");
+        QNDEBUG("model:tag", "The model index points to a non-tag item");
         return false;
     }
 
@@ -548,7 +548,7 @@ bool TagModel::setData(
         QString newName = value.toString().trimmed();
         bool changed = (newName != tagItemCopy.name());
         if (!changed) {
-            QNDEBUG("Tag name hasn't changed");
+            QNDEBUG("model:tag", "Tag name hasn't changed");
             return true;
         }
 
@@ -559,7 +559,7 @@ bool TagModel::setData(
                 QT_TR_NOOP("Can't change tag name: no two tags within "
                            "the account are allowed to have the same name in "
                            "a case-insensitive manner"));
-            QNINFO(error << ", suggested name = " << newName);
+            QNINFO("model:tag", error << ", suggested name = " << newName);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -570,7 +570,7 @@ bool TagModel::setData(
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
-            QNINFO(error << "; suggested name = " << newName);
+            QNINFO("model:tag", error << "; suggested name = " << newName);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -586,7 +586,7 @@ bool TagModel::setData(
             ErrorString error(
                 QT_TR_NOOP("Can't make tag synchronizable within a local "
                            "account"));
-            QNINFO(error);
+            QNINFO("model:tag", error);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -596,7 +596,7 @@ bool TagModel::setData(
             ErrorString error(
                 QT_TR_NOOP("Can't make an already synchronizable "
                            "tag not synchronizable"));
-            QNINFO(error << ", already synchronizable tag item: "
+            QNINFO("model:tag", error << ", already synchronizable tag item: "
                 << tagItemCopy);
             Q_EMIT notifyError(error);
             return false;
@@ -608,8 +608,8 @@ bool TagModel::setData(
         break;
     }
     default:
-        QNINFO("Can't edit data for column " << modelIndex.column()
-            << " in the tag model");
+        QNINFO("model:tag", "Can't edit data for column "
+            << modelIndex.column() << " in the tag model");
         return false;
     }
 
@@ -619,8 +619,8 @@ bool TagModel::setData(
 
     if (shouldMakeParentsSynchronizable)
     {
-        QNDEBUG("Making the parents of the tag made synchronizable "
-            << "also synchronizable");
+        QNDEBUG("model:tag", "Making the parents of the tag made "
+            << "synchronizable also synchronizable");
 
         auto * pProcessedItem = pItem;
         TagItem dummy;
@@ -652,7 +652,7 @@ bool TagModel::setData(
                 ErrorString error(
                     QT_TR_NOOP("Can't find one of currently made "
                                "synchronizable tag's parent tags"));
-                QNWARNING(error << ", item: " << dummy);
+                QNWARNING("model:tag", error << ", item: " << dummy);
                 Q_EMIT notifyError(error);
                 return false;
             }
@@ -665,7 +665,7 @@ bool TagModel::setData(
                     QT_TR_NOOP("Can't get valid model index for one of "
                                "currently made synchronizable tag's parent "
                                "tags"));
-                QNWARNING(error << ", item for which the index "
+                QNWARNING("model:tag", error << ", item for which the index "
                     << "was requested: " << dummy);
                 Q_EMIT notifyError(error);
                 return false;
@@ -684,7 +684,8 @@ bool TagModel::setData(
     auto it = index.find(tagItemCopy.localUid());
     if (Q_UNLIKELY(it == index.end())) {
         ErrorString error(QT_TR_NOOP("Can't find the tag being modified"));
-        QNWARNING(error << " by its local uid , item: " << tagItemCopy);
+        QNWARNING("model:tag", error << " by its local uid , item: "
+            << tagItemCopy);
         Q_EMIT notifyError(error);
         return false;
     }
@@ -698,13 +699,13 @@ bool TagModel::setData(
 
     updateTagInLocalStorage(tagItemCopy);
 
-    QNDEBUG("Successfully set the data");
+    QNDEBUG("model:tag", "Successfully set the data");
     return true;
 }
 
 bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
 {
-    QNTRACE("TagModel::insertRows: row = " << row
+    QNTRACE("model:tag", "TagModel::insertRows: row = " << row
         << ", count = " << count
         << ", parent index: row = "
         << parent.row() << ", column = " << parent.column()
@@ -718,7 +719,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
          : m_pInvisibleRootItem);
 
     if (Q_UNLIKELY(!pParentItem)) {
-        QNWARNING("Can't insert row into the tag model: can't "
+        QNWARNING("model:tag", "Can't insert row into the tag model: can't "
             << "find parent item per model index");
         return false;
     }
@@ -726,7 +727,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     if ((pParentItem != m_pAllTagsRootItem) &&
         !canCreateTagItem(*pParentItem))
     {
-        QNINFO("Can't insert row into under the tag model item: "
+        QNINFO("model:tag", "Can't insert row into under the tag model item: "
             << "restrictions apply: " << *pParentItem);
         return false;
     }
@@ -739,7 +740,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
             QT_TR_NOOP("Can't create tag(s): the account can "
                        "contain a limited number of tags"));
         error.details() = QString::number(m_account.tagCountMax());
-        QNINFO(error);
+        QNINFO("model:tag", error);
         Q_EMIT notifyError(error);
         return false;
     }
@@ -784,13 +785,13 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         updateTagInLocalStorage(*it);
     }
 
-    QNDEBUG("Successfully inserted the rows");
+    QNDEBUG("model:tag", "Successfully inserted the rows");
     return true;
 }
 
 bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
 {
-    QNTRACE("TagModel::removeRows: row = " << row
+    QNTRACE("model:tag", "TagModel::removeRows: row = " << row
         << ", count = " << count
         << ", parent index: row = " << parent.row()
         << ", column = " << parent.column()
@@ -807,7 +808,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
          : m_pInvisibleRootItem);
 
     if (!pParentItem) {
-        QNDEBUG("No item corresponding to parent index");
+        QNDEBUG("model:tag", "No item corresponding to parent index");
         return false;
     }
 
@@ -818,7 +819,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         auto * pModelItem = pParentItem->childAtRow(row + i);
         if (!pModelItem) {
-            QNWARNING("Detected null pointer to child tag item "
+            QNWARNING("model:tag", "Detected null pointer to child tag item "
                 << "on attempt to remove row " << (row + i)
                 << " from parent item: " << *pParentItem);
             continue;
@@ -828,7 +829,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         if (!pTagItem) {
             ErrorString error(
                 QT_TR_NOOP("Can't remove a non-tag item from tag model"));
-            QNINFO(error);
+            QNINFO("model:tag", error);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -836,7 +837,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         if (!pTagItem->linkedNotebookGuid().isEmpty()) {
             ErrorString error(
                 QT_TR_NOOP("Can't remove tag from a linked notebook"));
-            QNINFO(error);
+            QNINFO("model:tag", error);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -845,7 +846,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
             ErrorString error(
                 QT_TR_NOOP("Can't remove tag already synchronized with "
                            "Evernote"));
-            QNINFO(error);
+            QNINFO("model:tag", error);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -854,7 +855,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
             ErrorString error(
                 QT_TR_NOOP("Can't remove tag which has some child "
                            "tags already synchronized with Evernote"));
-            QNINFO(error);
+            QNINFO("model:tag", error);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -873,7 +874,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         auto * pModelItem = pParentItem->childAtRow(row + i);
         if (Q_UNLIKELY(!pModelItem)) {
-            QNWARNING("Detected null pointer to tag model item "
+            QNWARNING("model:tag", "Detected null pointer to tag model item "
                 << "within the items to be removed");
             continue;
         }
@@ -910,8 +911,9 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
 
             auto tagItemIt = localUidIndex.find(childItemCopy.localUid());
             if (Q_UNLIKELY(tagItemIt == localUidIndex.end())) {
-                QNINFO("The tag item which parent is being removed was not "
-                    << "found within the model. Adding it there");
+                QNINFO("model:tag", "The tag item which parent is being "
+                    << "removed was not found within the model. Adding it "
+                    << "there");
                 Q_UNUSED(localUidIndex.insert(childItemCopy))
             }
             else {
@@ -951,7 +953,8 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         QUuid requestId = QUuid::createUuid();
         Q_UNUSED(m_expungeTagRequestIds.insert(requestId))
         Q_EMIT expungeTag(tag, requestId);
-        QNTRACE("Emitted the request to expunge the tag from "
+
+        QNTRACE("model:tag", "Emitted the request to expunge the tag from "
             << "the local storage: request id = " << requestId
             << ", tag local uid: " << pTagItem->localUid());
 
@@ -983,13 +986,13 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         endInsertRows();
     }
 
-    QNDEBUG("Successfully removed row(s)");
+    QNDEBUG("model:tag", "Successfully removed row(s)");
     return true;
 }
 
 void TagModel::sort(int column, Qt::SortOrder order)
 {
-    QNTRACE("TagModel::sort: column = " << column
+    QNTRACE("model:tag", "TagModel::sort: column = " << column
         << ", order = " << order << " ("
         << (order == Qt::AscendingOrder ? "ascending" : "descending")
         << ")");
@@ -1000,7 +1003,8 @@ void TagModel::sort(int column, Qt::SortOrder order)
     }
 
     if (order == m_sortOrder) {
-        QNDEBUG("The sort order already established, nothing to do");
+        QNDEBUG("model:tag", "The sort order already established, nothing to "
+            << "do");
         return;
     }
 
@@ -1045,7 +1049,7 @@ void TagModel::sort(int column, Qt::SortOrder order)
     updatePersistentModelIndices();
     Q_EMIT layoutChanged();
 
-    QNDEBUG("Successfully sorted the tag model");
+    QNDEBUG("model:tag", "Successfully sorted the tag model");
 }
 
 QStringList TagModel::mimeTypes() const
@@ -1087,7 +1091,7 @@ bool TagModel::dropMimeData(
     const QMimeData * pMimeData, Qt::DropAction action, int row, int column,
     const QModelIndex & parentIndex)
 {
-    QNTRACE("TagModel::dropMimeData: action = " << action
+    QNTRACE("model:tag", "TagModel::dropMimeData: action = " << action
         << ", row = " << row << ", column = "
         << column << ", parent index: is valid = "
         << (parentIndex.isValid() ? "true" : "false")
@@ -1144,7 +1148,7 @@ bool TagModel::dropMimeData(
     in >> type;
 
     if (type != static_cast<qint32>(ITagModelItem::Type::Tag)) {
-        QNDEBUG("Can only drag-drop tag model items of tag type");
+        QNDEBUG("model:tag", "Can only drag-drop tag model items of tag type");
         return false;
     }
 
@@ -1196,7 +1200,7 @@ bool TagModel::dropMimeData(
         {
             ErrorString error(
                 QT_TR_NOOP("Can't move tag under one of its child tags"));
-            QNINFO(error);
+            QNINFO("model:tag", error);
             Q_EMIT notifyError(error);
             return false;
         }
@@ -1205,7 +1209,8 @@ bool TagModel::dropMimeData(
     }
 
     if (pNewParentItem == pTagItem->parent()) {
-        QNDEBUG("Item is already under the chosen parent, nothing to do");
+        QNDEBUG("model:tag", "Item is already under the chosen parent, nothing "
+            << "to do");
         return true;
     }
 
@@ -1253,7 +1258,7 @@ bool TagModel::dropMimeData(
 
 void TagModel::onAddTagComplete(Tag tag, QUuid requestId)
 {
-    QNTRACE("TagModel::onAddTagComplete: tag = " << tag
+    QNTRACE("model:tag", "TagModel::onAddTagComplete: tag = " << tag
         << "\nRequest id = " << requestId);
 
     auto it = m_addTagRequestIds.find(requestId);
@@ -1274,7 +1279,7 @@ void TagModel::onAddTagFailed(
         return;
     }
 
-    QNDEBUG("TagModel::onAddTagFailed: tag = " << tag
+    QNDEBUG("model:tag", "TagModel::onAddTagFailed: tag = " << tag
         << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
@@ -1285,7 +1290,7 @@ void TagModel::onAddTagFailed(
 
 void TagModel::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
-    QNTRACE("TagModel::onUpdateTagComplete: tag = " << tag
+    QNTRACE("model:tag", "TagModel::onUpdateTagComplete: tag = " << tag
         << "\nRequest id = " << requestId);
 
     auto it = m_updateTagRequestIds.find(requestId);
@@ -1309,7 +1314,7 @@ void TagModel::onUpdateTagFailed(
         return;
     }
 
-    QNDEBUG("TagModel::onUpdateTagFailed: tag = " << tag
+    QNDEBUG("model:tag", "TagModel::onUpdateTagFailed: tag = " << tag
         << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
@@ -1317,7 +1322,7 @@ void TagModel::onUpdateTagFailed(
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.insert(requestId))
 
-    QNTRACE("Emitting the request to find a tag: local uid = "
+    QNTRACE("model:tag", "Emitting the request to find a tag: local uid = "
         << tag.localUid() << ", request id = " << requestId);
 
     Q_EMIT findTag(tag, requestId);
@@ -1341,7 +1346,7 @@ void TagModel::onFindTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    QNTRACE("TagModel::onFindTagComplete: tag = " << tag
+    QNTRACE("model:tag", "TagModel::onFindTagComplete: tag = " << tag
         << "\nRequest id = " << requestId);
 
     if (restoreUpdateIt != m_findTagToRestoreFailedUpdateRequestIds.end())
@@ -1364,7 +1369,7 @@ void TagModel::onFindTagComplete(Tag tag, QUuid requestId)
     else if (checkAfterErasureIt !=
              m_findTagAfterNotelessTagsErasureRequestIds.end())
     {
-        QNDEBUG("Tag still exists after expunging the noteless "
+        QNDEBUG("model:tag", "Tag still exists after expunging the noteless "
             << "tags from linked notebooks: " << tag);
 
         Q_UNUSED(m_findTagAfterNotelessTagsErasureRequestIds.erase(
@@ -1392,7 +1397,7 @@ void TagModel::onFindTagFailed(
         return;
     }
 
-    QNTRACE("TagModel::onFindTagFailed: tag = " << tag
+    QNTRACE("model:tag", "TagModel::onFindTagFailed: tag = " << tag
         << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
@@ -1408,7 +1413,7 @@ void TagModel::onFindTagFailed(
     else if (checkAfterErasureIt !=
              m_findTagAfterNotelessTagsErasureRequestIds.end())
     {
-        QNDEBUG("Tag no longer exists after the noteless tags "
+        QNDEBUG("model:tag", "Tag no longer exists after the noteless tags "
             << "from linked notebooks erasure");
 
         Q_UNUSED(m_findTagAfterNotelessTagsErasureRequestIds.erase(
@@ -1431,7 +1436,7 @@ void TagModel::onListTagsComplete(
         return;
     }
 
-    QNTRACE("TagModel::onListTagsComplete: flag = " << flag
+    QNTRACE("model:tag", "TagModel::onListTagsComplete: flag = " << flag
         << ", limit = " << limit << ", offset = " << offset
         << ", order = " << order << ", direction = " << orderDirection
         << ", linked notebook guid = "
@@ -1448,7 +1453,7 @@ void TagModel::onListTagsComplete(
     m_listTagsRequestId = QUuid();
 
     if (!tags.isEmpty()) {
-        QNTRACE("The number of found tags is greater than zero, "
+        QNTRACE("model:tag", "The number of found tags is greater than zero, "
             << "requesting more tags from the local storage");
         m_listTagsOffset += static_cast<size_t>(tags.size());
         requestTagsList();
@@ -1475,7 +1480,7 @@ void TagModel::onListTagsFailed(
         return;
     }
 
-    QNDEBUG("TagModel::onListTagsFailed: flag = " << flag
+    QNDEBUG("model:tag", "TagModel::onListTagsFailed: flag = " << flag
         << ", limit = " << limit << ", offset = " << offset
         << ", order = " << order << ", direction = " << orderDirection
         << ", linked notebook guid = "
@@ -1492,7 +1497,7 @@ void TagModel::onListTagsFailed(
 void TagModel::onExpungeTagComplete(
     Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    QNTRACE("TagModel::onExpungeTagComplete: tag = " << tag
+    QNTRACE("model:tag", "TagModel::onExpungeTagComplete: tag = " << tag
         << "\nExpunged child tag local uids: "
         << expungedChildTagLocalUids.join(QStringLiteral(", "))
         << ", request id = " << requestId);
@@ -1517,7 +1522,7 @@ void TagModel::onExpungeTagFailed(
         return;
     }
 
-    QNDEBUG("TagModel::onExpungeTagFailed: tag = " << tag
+    QNDEBUG("model:tag", "TagModel::onExpungeTagFailed: tag = " << tag
         << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
@@ -1537,7 +1542,7 @@ void TagModel::onGetNoteCountPerTagComplete(
         return;
     }
 
-    QNTRACE("TagModel::onGetNoteCountPerTagComplete: tag = "
+    QNTRACE("model:tag", "TagModel::onGetNoteCountPerTagComplete: tag = "
         << tag << "\nRequest id = " << requestId
         << ", note count = " << noteCount);
 
@@ -1557,7 +1562,7 @@ void TagModel::onGetNoteCountPerTagFailed(
         return;
     }
 
-    QNDEBUG("TagModel::onGetNoteCountPerTagFailed: "
+    QNDEBUG("model:tag", "TagModel::onGetNoteCountPerTagFailed: "
         << "error description = " << errorDescription
         << ", tag = " << tag << ", request id = " << requestId);
 
@@ -1581,7 +1586,7 @@ void TagModel::onGetNoteCountsPerAllTagsComplete(
         return;
     }
 
-    QNTRACE("TagModel::onGetNoteCountsPerAllTagsComplete: note "
+    QNTRACE("model:tag", "TagModel::onGetNoteCountsPerAllTagsComplete: note "
         << "counts were received for " << noteCountsPerTagLocalUid.size()
         << " tag local uids; request id = " << requestId);
 
@@ -1649,8 +1654,9 @@ void TagModel::onGetNoteCountsPerAllTagsFailed(
         return;
     }
 
-    QNDEBUG("TagModel::onGetNoteCountsPerAllTagsFailed: error description = "
-        << errorDescription << ", request id = " << requestId);
+    QNDEBUG("model:tag", "TagModel::onGetNoteCountsPerAllTagsFailed: error "
+        << "description = " << errorDescription << ", request id = "
+        << requestId);
 
     m_noteCountsPerAllTagsRequestId = QUuid();
 
@@ -1663,8 +1669,10 @@ void TagModel::onGetNoteCountsPerAllTagsFailed(
 
 void TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId)
 {
-    QNTRACE("TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete: "
-        << "request id = " << requestId);
+    QNTRACE(
+        "model:tag",
+        "TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete: "
+            << "request id = " << requestId);
 
     auto & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -1683,7 +1691,7 @@ void TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId)
         Tag tag;
         tag.setLocalUid(item.localUid());
 
-        QNTRACE("Emitting the request to find tag from linked "
+        QNTRACE("model:tag", "Emitting the request to find tag from linked "
             << "notebook to check for its existence: "
             << item.localUid() << ", request id = " << requestId);
 
@@ -1698,7 +1706,7 @@ void TagModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
         return;
     }
 
-    QNTRACE("TagModel::onFindNotebookComplete: notebook: "
+    QNTRACE("model:tag", "TagModel::onFindNotebookComplete: notebook: "
         << notebook << "\nRequest id = " << requestId);
 
     Q_UNUSED(m_findNotebookRequestForLinkedNotebookGuid.right.erase(it))
@@ -1714,8 +1722,8 @@ void TagModel::onFindNotebookFailed(
         return;
     }
 
-    QNWARNING("TagModel::onFindNotebookFailed: notebook = " << notebook
-        << "\nError description = " << errorDescription
+    QNWARNING("model:tag", "TagModel::onFindNotebookFailed: notebook = "
+        << notebook << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
     Q_UNUSED(m_findNotebookRequestForLinkedNotebookGuid.right.erase(it))
@@ -1723,7 +1731,7 @@ void TagModel::onFindNotebookFailed(
 
 void TagModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    QNTRACE("TagModel::onUpdateNotebookComplete: local uid = "
+    QNTRACE("model:tag", "TagModel::onUpdateNotebookComplete: local uid = "
         << notebook.localUid());
 
     Q_UNUSED(requestId)
@@ -1732,7 +1740,7 @@ void TagModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 
 void TagModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    QNTRACE("TagModel::onExpungeNotebookComplete: local uid = "
+    QNTRACE("model:tag", "TagModel::onExpungeNotebookComplete: local uid = "
         << notebook.localUid() << ", linked notebook guid = "
         << (notebook.hasLinkedNotebookGuid()
             ? notebook.linkedNotebookGuid()
@@ -1766,8 +1774,8 @@ void TagModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 
 void TagModel::onAddNoteComplete(Note note, QUuid requestId)
 {
-    QNTRACE("TagModel::onAddNoteComplete: note = " << note << "\nRequest id = "
-        << requestId);
+    QNTRACE("model:tag", "TagModel::onAddNoteComplete: note = " << note
+        << "\nRequest id = " << requestId);
 
     if (Q_UNLIKELY(note.hasDeletionTimestamp())) {
         return;
@@ -1776,13 +1784,13 @@ void TagModel::onAddNoteComplete(Note note, QUuid requestId)
     if (!note.hasTagLocalUids())
     {
         if (note.hasTagGuids()) {
-            QNDEBUG("The note has tag guids but not tag local uids, need to "
-                << "request the proper list of tags from this note before "
-                << "their note counts can be updated");
+            QNDEBUG("model:tag", "The note has tag guids but not tag local "
+                << "uids, need to request the proper list of tags from this "
+                << "note before their note counts can be updated");
             requestTagsPerNote(note);
         }
         else {
-            QNDEBUG("The note has no tags => no need to update "
+            QNDEBUG("model:tag", "The note has no tags => no need to update "
                 << "the note count per any tag");
         }
 
@@ -1801,7 +1809,7 @@ void TagModel::onNoteTagListChanged(
     QString noteLocalUid, QStringList previousNoteTagLocalUids,
     QStringList newNoteTagLocalUids)
 {
-    QNDEBUG("TagModel::onNoteTagListChanged: note local uid = "
+    QNDEBUG("model:tag", "TagModel::onNoteTagListChanged: note local uid = "
         << noteLocalUid << ", previous note tag local uids = "
         << previousNoteTagLocalUids.join(QStringLiteral(","))
         << ", new note tag local uids = "
@@ -1835,7 +1843,8 @@ void TagModel::onNoteTagListChanged(
         auto itemIt = localUidIndex.find(tagLocalUid);
         if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
             // Probably this tag was expunged
-            QNDEBUG("No tag was found in the model: " << tagLocalUid);
+            QNDEBUG("model:tag", "No tag was found in the model: "
+                << tagLocalUid);
             continue;
         }
 
@@ -1859,7 +1868,8 @@ void TagModel::onNoteTagListChanged(
         auto itemIt = localUidIndex.find(tagLocalUid);
         if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
             // Probably this tag was expunged
-            QNDEBUG("No tag was found in the model: " << tagLocalUid);
+            QNDEBUG("model:tag", "No tag was found in the model: "
+                << tagLocalUid);
             continue;
         }
 
@@ -1871,7 +1881,7 @@ void TagModel::onNoteTagListChanged(
 
 void TagModel::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    QNTRACE("TagModel::onExpungeNoteComplete: note = " << note
+    QNTRACE("model:tag", "TagModel::onExpungeNoteComplete: note = " << note
         << "\nRequest id = " << requestId);
 
     if (note.hasTagLocalUids())
@@ -1886,14 +1896,14 @@ void TagModel::onExpungeNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QNDEBUG("Note has no tag local uids");
+    QNDEBUG("model:tag", "Note has no tag local uids");
     requestNoteCountsPerAllTags();
 }
 
 void TagModel::onAddLinkedNotebookComplete(
     LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    QNTRACE("TagModel::onAddLinkedNotebookComplete: request id = "
+    QNTRACE("model:tag", "TagModel::onAddLinkedNotebookComplete: request id = "
         << requestId << ", linked notebook: " << linkedNotebook);
 
     onLinkedNotebookAddedOrUpdated(linkedNotebook);
@@ -1902,7 +1912,7 @@ void TagModel::onAddLinkedNotebookComplete(
 void TagModel::onUpdateLinkedNotebookComplete(
     LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    QNTRACE("TagModel::onUpdateLinkedNotebookComplete: request id = "
+    QNTRACE("model:tag", "TagModel::onUpdateLinkedNotebookComplete: request id = "
         << requestId << ", linked notebook: " << linkedNotebook);
 
     onLinkedNotebookAddedOrUpdated(linkedNotebook);
@@ -1911,11 +1921,11 @@ void TagModel::onUpdateLinkedNotebookComplete(
 void TagModel::onExpungeLinkedNotebookComplete(
     LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    QNTRACE("TagModel::onExpungeLinkedNotebookComplete: request id = "
-        << requestId << ", linked notebook: " << linkedNotebook);
+    QNTRACE("model:tag", "TagModel::onExpungeLinkedNotebookComplete: request "
+        << "id = " << requestId << ", linked notebook: " << linkedNotebook);
 
     if (Q_UNLIKELY(!linkedNotebook.hasGuid())) {
-        QNWARNING("Received linked notebook expunged event but "
+        QNWARNING("model:tag", "Received linked notebook expunged event but "
             << "the linked notebook has no guid: " << linkedNotebook
             << ", request id = " << requestId);
         return;
@@ -1979,7 +1989,7 @@ void TagModel::onListAllTagsPerNoteComplete(
         return;
     }
 
-    QNTRACE("TagModel::onListAllTagsPerNoteComplete: note = "
+    QNTRACE("model:tag", "TagModel::onListAllTagsPerNoteComplete: note = "
         << note << "\nFlag = " << flag << ", limit = " << limit << ", offset = "
         << offset << ", order = " << order << ", order direction = "
         << orderDirection << ", request id = " << requestId);
@@ -2001,8 +2011,8 @@ void TagModel::onListAllTagsPerNoteFailed(
         return;
     }
 
-    QNWARNING("TagModel::onListAllTagsPerNoteFailed: note = " << note
-        << "\nFlag = " << flag << ", limit = " << limit << ", offset = "
+    QNWARNING("model:tag", "TagModel::onListAllTagsPerNoteFailed: note = "
+        << note << "\nFlag = " << flag << ", limit = " << limit << ", offset = "
         << offset << ", order = " << order << ", order direction = "
         << orderDirection << ", request id = " << requestId
         << ", error description = " << errorDescription);
@@ -2023,7 +2033,7 @@ void TagModel::onListAllLinkedNotebooksComplete(
         return;
     }
 
-    QNTRACE("TagModel::onListAllLinkedNotebooksComplete: limit = " << limit
+    QNTRACE("model:tag", "TagModel::onListAllLinkedNotebooksComplete: limit = " << limit
         << ", offset = " << offset << ", order = " << order
         << ", order direction = " << orderDirection << ", request id = "
         << requestId);
@@ -2036,11 +2046,12 @@ void TagModel::onListAllLinkedNotebooksComplete(
 
     if (!foundLinkedNotebooks.isEmpty())
     {
-        QNTRACE("The number of found linked notebooks is not empty, "
-            << "requesting more linked notebooks from the local storage");
+        QNTRACE("model:tag", "The number of found linked notebooks is not "
+            << "empty, requesting more linked notebooks from the local "
+            << "storage");
 
-        m_listLinkedNotebooksOffset +=
-            static_cast<size_t>(foundLinkedNotebooks.size());
+        m_listLinkedNotebooksOffset += static_cast<size_t>(
+            foundLinkedNotebooks.size());
 
         requestLinkedNotebooksList();
         return;
@@ -2064,8 +2075,8 @@ void TagModel::onListAllLinkedNotebooksFailed(
         return;
     }
 
-    QNTRACE("TagModel::onListAllLinkedNotebooksFailed: limit = " << limit
-        << ", offset = " << offset << ", order = " << order
+    QNTRACE("model:tag", "TagModel::onListAllLinkedNotebooksFailed: limit = "
+        << limit << ", offset = " << offset << ", order = " << order
         << ", order direction = " << orderDirection << ", error description = "
         << errorDescription << ", request id = " << requestId);
 
@@ -2077,7 +2088,7 @@ void TagModel::onListAllLinkedNotebooksFailed(
 void TagModel::createConnections(
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    QNTRACE("TagModel::createConnections");
+    QNTRACE("model:tag", "TagModel::createConnections");
 
     // Local signals to localStorageManagerAsync's slots
 
@@ -2313,7 +2324,7 @@ void TagModel::createConnections(
 
 void TagModel::requestTagsList()
 {
-    QNTRACE("TagModel::requestTagsList: offset = " << m_listTagsOffset);
+    QNTRACE("model:tag", "TagModel::requestTagsList: offset = " << m_listTagsOffset);
 
     LocalStorageManager::ListObjectsOptions flags =
         LocalStorageManager::ListObjectsOption::ListAll;
@@ -2323,8 +2334,8 @@ void TagModel::requestTagsList()
 
     m_listTagsRequestId = QUuid::createUuid();
 
-    QNTRACE("Emitting the request to list tags: offset = " << m_listTagsOffset
-        << ", request id = " << m_listTagsRequestId);
+    QNTRACE("model:tag", "Emitting the request to list tags: offset = "
+        << m_listTagsOffset << ", request id = " << m_listTagsRequestId);
 
     Q_EMIT listTags(
         flags,
@@ -2338,12 +2349,12 @@ void TagModel::requestTagsList()
 
 void TagModel::requestNoteCountForTag(const Tag & tag)
 {
-    QNTRACE("TagModel::requestNoteCountForTag: " << tag);
+    QNTRACE("model:tag", "TagModel::requestNoteCountForTag: " << tag);
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_noteCountPerTagRequestIds.insert(requestId))
 
-    QNTRACE("Emitting the request to compute the number of notes "
+    QNTRACE("model:tag", "Emitting the request to compute the number of notes "
         << "per tag, request id = " << requestId);
 
     LocalStorageManager::NoteCountOptions options(
@@ -2354,13 +2365,13 @@ void TagModel::requestNoteCountForTag(const Tag & tag)
 
 void TagModel::requestTagsPerNote(const Note & note)
 {
-    QNTRACE("TagModel::requestTagsPerNote: " << note);
+    QNTRACE("model:tag", "TagModel::requestTagsPerNote: " << note);
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_listTagsPerNoteRequestIds.insert(requestId))
 
-    QNTRACE("Emitting the request to list tags per note: request id = "
-        << requestId);
+    QNTRACE("model:tag", "Emitting the request to list tags per note: request "
+        << "id = " << requestId);
 
     Q_EMIT listAllTagsPerNote(
         note,
@@ -2374,7 +2385,7 @@ void TagModel::requestTagsPerNote(const Note & note)
 
 void TagModel::requestNoteCountsPerAllTags()
 {
-    QNTRACE("TagModel::requestNoteCountsPerAllTags");
+    QNTRACE("model:tag", "TagModel::requestNoteCountsPerAllTags");
 
     m_noteCountsPerAllTagsRequestId = QUuid::createUuid();
 
@@ -2388,14 +2399,14 @@ void TagModel::requestNoteCountsPerAllTags()
 
 void TagModel::requestLinkedNotebooksList()
 {
-    QNTRACE("TagModel::requestLinkedNotebooksList");
+    QNTRACE("model:tag", "TagModel::requestLinkedNotebooksList");
 
     auto order = LocalStorageManager::ListLinkedNotebooksOrder::NoOrder;
     auto direction = LocalStorageManager::OrderDirection::Ascending;
 
     m_listLinkedNotebooksRequestId = QUuid::createUuid();
 
-    QNTRACE("Emitting the request to list linked notebooks: "
+    QNTRACE("model:tag", "Emitting the request to list linked notebooks: "
         << "offset = " << m_listLinkedNotebooksOffset
         << ", request id = " << m_listLinkedNotebooksRequestId);
 
@@ -2439,7 +2450,7 @@ void TagModel::onTagAddedOrUpdated(
 void TagModel::onTagAdded(
     const Tag & tag, const QStringList * pTagNoteLocalUids)
 {
-    QNTRACE("TagModel::onTagAdded: tag local uid = "
+    QNTRACE("model:tag", "TagModel::onTagAdded: tag local uid = "
         << tag.localUid() << ", tag note local uids: "
         << (pTagNoteLocalUids
             ? pTagNoteLocalUids->join(QStringLiteral(", "))
@@ -2494,7 +2505,7 @@ void TagModel::onTagUpdated(
     const Tag & tag, TagDataByLocalUid::iterator it,
     const QStringList * pTagNoteLocalUids)
 {
-    QNTRACE("TagModel::onTagUpdated: tag local uid = "
+    QNTRACE("model:tag", "TagModel::onTagUpdated: tag local uid = "
         << tag.localUid() << ", tag note local uids: "
         << (pTagNoteLocalUids
             ? pTagNoteLocalUids->join(QStringLiteral(", "))
@@ -2517,7 +2528,7 @@ void TagModel::onTagUpdated(
             QT_TR_NOOP("Tag model item being updated does not "
                        "have a parent item linked with it"));
 
-        QNWARNING(error << ", tag: " << tag << "\nTag model item: "
+        QNWARNING("model:tag", error << ", tag: " << tag << "\nTag model item: "
             << *pTagItem);
 
         Q_EMIT notifyError(error);
@@ -2531,7 +2542,7 @@ void TagModel::onTagUpdated(
             QT_TR_NOOP("Can't find the row of the updated tag "
                        "item within its parent"));
 
-        QNWARNING(error << ", tag: " << tag << "\nTag model item: "
+        QNWARNING("model:tag", error << ", tag: " << tag << "\nTag model item: "
             << *pTagItem);
 
         Q_EMIT notifyError(error);
@@ -2655,7 +2666,7 @@ void TagModel::tagToItem(const Tag & tag, TagItem & item)
     item.setDirty(tag.isDirty());
     item.setFavorited(tag.isFavorited());
 
-    QNTRACE("Created tag model item from tag; item: " << item
+    QNTRACE("model:tag", "Created tag model item from tag; item: " << item
         << "\nTag: " << tag);
 }
 
@@ -2710,14 +2721,14 @@ bool TagModel::canCreateTagItem(const ITagModelItem & parentItem) const
 
 void TagModel::updateRestrictionsFromNotebook(const Notebook & notebook)
 {
-    QNTRACE("TagModel::updateRestrictionsFromNotebook: local uid = "
-        << notebook.localUid() << ", linked notebook guid = "
+    QNTRACE("model:tag", "TagModel::updateRestrictionsFromNotebook: "
+        << "local uid = " << notebook.localUid() << ", linked notebook guid = "
         << (notebook.hasLinkedNotebookGuid()
             ? notebook.linkedNotebookGuid()
             : QStringLiteral("<null>")));
 
     if (!notebook.hasLinkedNotebookGuid()) {
-        QNDEBUG("Not a linked notebook, ignoring it");
+        QNDEBUG("model:tag", "Not a linked notebook, ignoring it");
         return;
     }
 
@@ -2746,8 +2757,8 @@ void TagModel::updateRestrictionsFromNotebook(const Notebook & notebook)
     m_tagRestrictionsByLinkedNotebookGuid[notebook.linkedNotebookGuid()] =
         restrictions;
 
-    QNTRACE("Set restrictions for tags from linked notebook with guid "
-        << notebook.linkedNotebookGuid() << ": can create tags = "
+    QNTRACE("model:tag", "Set restrictions for tags from linked notebook with "
+        << "guid " << notebook.linkedNotebookGuid() << ": can create tags = "
         << (restrictions.m_canCreateTags ? "true" : "false")
         << ", can update tags = "
         << (restrictions.m_canUpdateTags ? "true" : "false"));
@@ -2756,16 +2767,17 @@ void TagModel::updateRestrictionsFromNotebook(const Notebook & notebook)
 void TagModel::onLinkedNotebookAddedOrUpdated(
     const LinkedNotebook & linkedNotebook)
 {
-    QNTRACE("TagModel::onLinkedNotebookAddedOrUpdated: " << linkedNotebook);
+    QNTRACE("model:tag", "TagModel::onLinkedNotebookAddedOrUpdated: "
+        << linkedNotebook);
 
     if (Q_UNLIKELY(!linkedNotebook.hasGuid())) {
-        QNWARNING("Can't process the addition or update of "
+        QNWARNING("model:tag", "Can't process the addition or update of "
             << "a linked notebook without guid: " << linkedNotebook);
         return;
     }
 
     if (Q_UNLIKELY(!linkedNotebook.hasUsername())) {
-        QNWARNING("Can't process the addition or update of "
+        QNWARNING("model:tag", "Can't process the addition or update of "
             << "a linked notebook without username: " << linkedNotebook);
         return;
     }
@@ -2778,17 +2790,19 @@ void TagModel::onLinkedNotebookAddedOrUpdated(
     if (it != m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.end())
     {
         if (it.value() == linkedNotebook.username()) {
-            QNDEBUG("The username hasn't changed, nothing to do");
+            QNDEBUG("model:tag", "The username hasn't changed, nothing to do");
             return;
         }
 
         it.value() = linkedNotebook.username();
-        QNDEBUG("Updated the username corresponding to linked notebook guid "
-            << linkedNotebookGuid << " to " << linkedNotebook.username());
+
+        QNDEBUG("model:tag", "Updated the username corresponding to linked "
+            << "notebook guid " << linkedNotebookGuid << " to "
+            << linkedNotebook.username());
     }
     else
     {
-        QNDEBUG("Adding new username " << linkedNotebook.username()
+        QNDEBUG("model:tag", "Adding new username " << linkedNotebook.username()
             << " corresponding to linked notebook guid " << linkedNotebookGuid);
 
         it = m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.insert(
@@ -2799,8 +2813,9 @@ void TagModel::onLinkedNotebookAddedOrUpdated(
     auto linkedNotebookItemIt = m_linkedNotebookItems.find(linkedNotebookGuid);
     if (linkedNotebookItemIt == m_linkedNotebookItems.end())
     {
-        QNDEBUG("Found no existing linked notebook item for linked notebook "
-            << "guid " << linkedNotebookGuid << ", creating one");
+        QNDEBUG("model:tag", "Found no existing linked notebook item for "
+            << "linked notebook guid " << linkedNotebookGuid
+            << ", creating one");
 
         linkedNotebookItemIt = m_linkedNotebookItems.insert(
             linkedNotebookGuid,
@@ -2819,7 +2834,8 @@ void TagModel::onLinkedNotebookAddedOrUpdated(
     else
     {
         linkedNotebookItemIt->setUsername(linkedNotebook.username());
-        QNTRACE("Updated the linked notebook username to "
+
+        QNTRACE("model:tag", "Updated the linked notebook username to "
             << linkedNotebook.username()
             << " for linked notebook item corresponding to "
             << "linked notebook guid " << linkedNotebookGuid);
@@ -2833,7 +2849,7 @@ void TagModel::onLinkedNotebookAddedOrUpdated(
 
 ITagModelItem * TagModel::itemForId(const IndexId id) const
 {
-    QNTRACE("TagModel::itemForId: " << id);
+    QNTRACE("model:tag", "TagModel::itemForId: " << id);
 
     if (id == m_allTagsRootItemIndexId) {
         return m_pAllTagsRootItem;
@@ -2848,7 +2864,7 @@ ITagModelItem * TagModel::itemForId(const IndexId id) const
         if (linkedNotebookGuidIt ==
             m_indexIdToLinkedNotebookGuidBimap.left.end())
         {
-            QNDEBUG("Found no tag model item corresponding to "
+            QNDEBUG("model:tag", "Found no tag model item corresponding to "
                 << "model index internal id");
 
             return nullptr;
@@ -2857,7 +2873,7 @@ ITagModelItem * TagModel::itemForId(const IndexId id) const
         const QString & linkedNotebookGuid = linkedNotebookGuidIt->second;
         auto it = m_linkedNotebookItems.find(linkedNotebookGuid);
         if (it == m_linkedNotebookItems.end()) {
-            QNDEBUG("Found no tag linked notebook root model item "
+            QNDEBUG("model:tag", "Found no tag linked notebook root model item "
                 << "corresponding to the linked notebook guid "
                 << "corresponding to model index internal id");
 
@@ -2869,7 +2885,7 @@ ITagModelItem * TagModel::itemForId(const IndexId id) const
 
     const QString & localUid = localUidIt->second;
 
-    QNTRACE("Found tag local uid corresponding to model index "
+    QNTRACE("model:tag", "Found tag local uid corresponding to model index "
         << "internal id: " << localUid);
 
     const auto & localUidIndex = m_data.get<ByLocalUid>();
@@ -2878,7 +2894,9 @@ ITagModelItem * TagModel::itemForId(const IndexId id) const
         return const_cast<TagItem*>(&(*it));
     }
 
-    QNTRACE("Found no tag item corresponding to local uid " << localUid);
+    QNTRACE("model:tag", "Found no tag item corresponding to local uid "
+        << localUid);
+
     return nullptr;
 }
 
@@ -2922,7 +2940,7 @@ TagModel::IndexId TagModel::idForItem(const ITagModelItem & item) const
         return m_allTagsRootItemIndexId;
     }
 
-    QNWARNING("Detected attempt to assign id to unidentified "
+    QNWARNING("model:tag", "Detected attempt to assign id to unidentified "
         << "tag model item: " << item);
     return 0;
 }
@@ -3056,14 +3074,14 @@ QModelIndex TagModel::indexForItem(const ITagModelItem * pItem) const
 
     auto * pParentItem = pItem->parent();
     if (!pParentItem) {
-        QNWARNING("Tag model item has no parent, returning invalid index: "
-            << *pItem);
+        QNWARNING("model:tag", "Tag model item has no parent, returning "
+            << "invalid index: " << *pItem);
         return {};
     }
 
     int row = pParentItem->rowForChild(pItem);
     if (Q_UNLIKELY(row < 0)) {
-        QNWARNING("Internal error: can't get row of the child "
+        QNWARNING("model:tag", "Internal error: can't get row of the child "
             << "item in parent in TagModel, child item: "
             << *pItem << "\nParent item: " << *pParentItem);
         return {};
@@ -3105,12 +3123,12 @@ QModelIndex TagModel::indexForTagName(
 QModelIndex TagModel::indexForLinkedNotebookGuid(
     const QString & linkedNotebookGuid) const
 {
-    QNTRACE("TagModel::indexForLinkedNotebookGuid: linked notebook guid = "
-        << linkedNotebookGuid);
+    QNTRACE("model:tag", "TagModel::indexForLinkedNotebookGuid: "
+        << "linked notebook guid = " << linkedNotebookGuid);
 
     auto it = m_linkedNotebookItems.find(linkedNotebookGuid);
     if (it == m_linkedNotebookItems.end()) {
-        QNDEBUG("Found no model item for linked notebook guid "
+        QNDEBUG("model:tag", "Found no model item for linked notebook guid "
             << linkedNotebookGuid);
         return {};
     }
@@ -3121,7 +3139,7 @@ QModelIndex TagModel::indexForLinkedNotebookGuid(
 
 QModelIndex TagModel::promote(const QModelIndex & itemIndex)
 {
-    QNTRACE("TagModel::promote");
+    QNTRACE("model:tag", "TagModel::promote");
 
     if (!itemIndex.isValid()) {
         REPORT_ERROR(
@@ -3154,7 +3172,8 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
 
     int row = pParentItem->rowForChild(pModelItem);
     if (row < 0) {
-        QNDEBUG("Can't find row of promoted item within its parent item");
+        QNDEBUG("model:tag", "Can't find row of promoted item within its "
+            << "parent item");
         return {};
     }
 
@@ -3246,7 +3265,7 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     auto & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(tagItemCopy.localUid());
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNINFO("The promoted tag model item was not found in "
+        QNINFO("model:tag", "The promoted tag model item was not found in "
             << "the index which is odd. Adding it there");
         Q_UNUSED(localUidIndex.insert(tagItemCopy))
     }
@@ -3272,7 +3291,7 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
 
 QModelIndex TagModel::demote(const QModelIndex & itemIndex)
 {
-    QNTRACE("TagModel::demote");
+    QNTRACE("model:tag", "TagModel::demote");
 
     if (!itemIndex.isValid()) {
         REPORT_ERROR(QT_TR_NOOP("Can't demote tag: model index is invalid"));
@@ -3358,7 +3377,7 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
                            "from different linked notebooks"));
         }
 
-        QNINFO(error << ", item attempted to be demoted: "
+        QNINFO("model:tag", error << ", item attempted to be demoted: "
             << *pModelItem << "\nSibling item: " << *pSiblingItem);
         Q_EMIT notifyError(error);
         return {};
@@ -3441,7 +3460,7 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     auto & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(tagItemCopy.localUid());
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNINFO("The demoted tag model item was not found in "
+        QNINFO("model:tag", "The demoted tag model item was not found in "
             << "the index which is odd. Adding it there");
         Q_UNUSED(localUidIndex.insert(tagItemCopy))
     }
@@ -3473,7 +3492,8 @@ QModelIndexList TagModel::persistentIndexes() const
 QModelIndex TagModel::moveToParent(
     const QModelIndex & index, const QString & parentTagName)
 {
-    QNTRACE("TagModel::moveToParent: parent tag name = " << parentTagName);
+    QNTRACE("model:tag", "TagModel::moveToParent: parent tag name = "
+        << parentTagName);
 
     if (Q_UNLIKELY(parentTagName.isEmpty())) {
         return removeFromParent(index);
@@ -3489,12 +3509,12 @@ QModelIndex TagModel::moveToParent(
     }
 
     if (Q_UNLIKELY(pModelItem == m_pAllTagsRootItem)) {
-        QNDEBUG("Can't move all tags root item to a new parent");
+        QNDEBUG("model:tag", "Can't move all tags root item to a new parent");
         return {};
     }
 
     if (Q_UNLIKELY(pModelItem == m_pInvisibleRootItem)) {
-        QNDEBUG("Can't move invisible root item to a new parent");
+        QNDEBUG("model:tag", "Can't move invisible root item to a new parent");
         return {};
     }
 
@@ -3521,7 +3541,7 @@ QModelIndex TagModel::moveToParent(
     if (pParentTagItem &&
         (pParentTagItem->nameUpper() == parentTagName.toUpper()))
     {
-        QNDEBUG("The tag is already under the parent with "
+        QNDEBUG("model:tag", "The tag is already under the parent with "
             << "the correct name, nothing to do");
         return index;
     }
@@ -3573,8 +3593,8 @@ QModelIndex TagModel::moveToParent(
     {
         const auto * pChildItem = pModelItem->childAtRow(i);
         if (Q_UNLIKELY(!pChildItem)) {
-            QNWARNING("Found null child tag model item at row " << i
-                << ", parent item: " << *pModelItem);
+            QNWARNING("model:tag", "Found null child tag model item at row "
+                << i << ", parent item: " << *pModelItem);
             continue;
         }
 
@@ -3583,7 +3603,7 @@ QModelIndex TagModel::moveToParent(
             ErrorString error(
                 QT_TR_NOOP("Can't set the parent of the tag to "
                            "one of its child tags"));
-            QNINFO(error);
+            QNINFO("model:tag", error);
             Q_EMIT notifyError(error);
             return {};
         }
@@ -3613,7 +3633,7 @@ QModelIndex TagModel::moveToParent(
 
 QModelIndex TagModel::removeFromParent(const QModelIndex & index)
 {
-    QNTRACE("TagModel::removeFromParent");
+    QNTRACE("model:tag", "TagModel::removeFromParent");
 
     auto * pModelItem = itemForId(static_cast<IndexId>(index.internalId()));
     if (Q_UNLIKELY(!pModelItem)) {
@@ -3638,7 +3658,7 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
         REPORT_ERROR(
             QT_TR_NOOP("Can't find the tag to be removed from its "
                        "parent within the tag model"));
-        QNDEBUG("Tag item: " << *pTagItem);
+        QNDEBUG("model:tag", "Tag item: " << *pTagItem);
         return {};
     }
 
@@ -3654,17 +3674,19 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
 
     checkAndCreateModelRootItems();
 
-    QNDEBUG("Setting all tags root item as the new parent for the tag");
+    QNDEBUG("model:tag", "Setting all tags root item as the new parent for "
+        << "the tag");
+
     setItemParent(*pModelItem, *m_pAllTagsRootItem);
 
-    QModelIndex newIndex = indexForItem(pModelItem);
+    auto newIndex = indexForItem(pModelItem);
     Q_EMIT notifyTagParentChanged(newIndex);
     return newIndex;
 }
 
 QStringList TagModel::tagNames(const QString & linkedNotebookGuid) const
 {
-    QNTRACE("TagModel::tagNames: linked notebook guid = "
+    QNTRACE("model:tag", "TagModel::tagNames: linked notebook guid = "
         << linkedNotebookGuid << " (null = "
         << (linkedNotebookGuid.isNull() ? "true" : "false")
         << ", empty = "
@@ -3692,7 +3714,7 @@ QModelIndex TagModel::createTag(
     const QString & tagName, const QString & parentTagName,
     const QString & linkedNotebookGuid, ErrorString & errorDescription)
 {
-    QNTRACE("TagModel::createTag: tag name = " << tagName
+    QNTRACE("model:tag", "TagModel::createTag: tag name = " << tagName
         << ", parent tag name = " << parentTagName
         << ", linked notebook guid = " << linkedNotebookGuid);
 
@@ -3809,7 +3831,9 @@ QModelIndex TagModel::createTag(
         }
 
         pParentItem = const_cast<TagItem*>(&(*parentTagIt));
-        QNDEBUG("Will put the new tag under parent item: " << *pParentItem);
+
+        QNDEBUG("model:tag", "Will put the new tag under parent item: "
+            << *pParentItem);
     }
 
     TagItem item;
@@ -3858,7 +3882,8 @@ QString TagModel::columnName(const TagModel::Column column) const
     }
 }
 
-bool TagModel::hasSynchronizableChildren(const ITagModelItem * pModelItem) const
+bool TagModel::hasSynchronizableChildren(
+    const ITagModelItem * pModelItem) const
 {
     const auto * pLinkedNotebookItem =
         pModelItem->cast<TagLinkedNotebookRootItem>();
@@ -3875,7 +3900,8 @@ bool TagModel::hasSynchronizableChildren(const ITagModelItem * pModelItem) const
     auto children = pModelItem->children();
     for(const auto * pChild: qAsConst(children)) {
         if (Q_UNLIKELY(!pChild)) {
-            QNWARNING("Found null child at tag model item: " << *pModelItem);
+            QNWARNING("model:tag", "Found null child at tag model item: "
+                << *pModelItem);
             continue;
         }
 
@@ -3889,7 +3915,7 @@ bool TagModel::hasSynchronizableChildren(const ITagModelItem * pModelItem) const
 
 void TagModel::mapChildItems()
 {
-    QNTRACE("TagModel::mapChildItems");
+    QNTRACE("model:tag", "TagModel::mapChildItems");
 
     auto & localUidIndex = m_data.get<ByLocalUid>();
     for(auto & item: localUidIndex) {
@@ -3906,7 +3932,7 @@ void TagModel::mapChildItems()
 
 void TagModel::mapChildItems(ITagModelItem & item)
 {
-    QNTRACE("TagModel::mapChildItems: " << item);
+    QNTRACE("model:tag", "TagModel::mapChildItems: " << item);
 
     const auto * pTagItem = item.cast<TagItem>();
     const auto * pLinkedNotebookItem = item.cast<TagLinkedNotebookRootItem>();
@@ -3999,12 +4025,12 @@ QString TagModel::nameForNewTag(const QString & linkedNotebookGuid) const
 
 void TagModel::removeItemByLocalUid(const QString & localUid)
 {
-    QNTRACE("TagModel::removeItemByLocalUid: " << localUid);
+    QNTRACE("model:tag", "TagModel::removeItemByLocalUid: " << localUid);
 
     auto & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(localUid);
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        QNDEBUG("Can't find item to remove from the tag model");
+        QNDEBUG("model:tag", "Can't find item to remove from the tag model");
         return;
     }
 
@@ -4015,7 +4041,7 @@ void TagModel::removeItemByLocalUid(const QString & localUid)
 
     int row = pParentItem->rowForChild(pTagItem);
     if (Q_UNLIKELY(row < 0)) {
-        QNWARNING("Internal error: can't get the child item's row "
+        QNWARNING("model:tag", "Internal error: can't get the child item's row "
             << "within its parent in the tag model, child item: " << *pTagItem
             << "\nParent item: " << *pParentItem);
         return;
@@ -4051,24 +4077,24 @@ void TagModel::removeItemByLocalUid(const QString & localUid)
 
 void TagModel::removeModelItemFromParent(ITagModelItem & item)
 {
-    QNTRACE("TagModel::removeModelItemFromParent: " << item);
+    QNTRACE("model:tag", "TagModel::removeModelItemFromParent: " << item);
 
     auto * pParentItem = item.parent();
     if (Q_UNLIKELY(!pParentItem)) {
-        QNDEBUG("No parent item, nothing to do");
+        QNDEBUG("model:tag", "No parent item, nothing to do");
         return;
     }
 
-    QNTRACE("Parent item: " << *pParentItem);
+    QNTRACE("model:tag", "Parent item: " << *pParentItem);
     int row = pParentItem->rowForChild(&item);
     if (Q_UNLIKELY(row < 0)) {
-        QNWARNING("Can't find the child tag item's row within its "
+        QNWARNING("model:tag", "Can't find the child tag item's row within its "
             << "parent; child item = " << item
             << ", parent item = " << *pParentItem);
         return;
     }
 
-    QNTRACE("Removing the child at row " << row);
+    QNTRACE("model:tag", "Removing the child at row " << row);
 
     auto parentIndex = indexForItem(pParentItem);
     beginRemoveRows(parentIndex, row, row);
@@ -4079,11 +4105,11 @@ void TagModel::removeModelItemFromParent(ITagModelItem & item)
 int TagModel::rowForNewItem(
     const ITagModelItem & parentItem, const ITagModelItem & newItem) const
 {
-    QNTRACE("TagModel::rowForNewItem: new item = " << newItem
+    QNTRACE("model:tag", "TagModel::rowForNewItem: new item = " << newItem
         << ", parent item = " << parentItem);
 
     if (m_sortedColumn != Column::Name) {
-        QNDEBUG("Won't sort on column " << m_sortedColumn);
+        QNDEBUG("model:tag", "Won't sort on column " << m_sortedColumn);
         // Sorting by other columns is not yet implemented
         return parentItem.childrenCount();
     }
@@ -4114,16 +4140,17 @@ int TagModel::rowForNewItem(
         row = static_cast<int>(std::distance(children.constBegin(), it));
     }
 
-    QNTRACE("Appropriate row = " << row);
+    QNTRACE("model:tag", "Appropriate row = " << row);
     return row;
 }
 
 void TagModel::updateItemRowWithRespectToSorting(ITagModelItem & item)
 {
-    QNTRACE("TagModel::updateItemRowWithRespectToSorting: item = " << item);
+    QNTRACE("model:tag", "TagModel::updateItemRowWithRespectToSorting: item = "
+        << item);
 
     if (m_sortedColumn != Column::Name) {
-        QNDEBUG("Won't sort on column " << m_sortedColumn);
+        QNDEBUG("model:tag", "Won't sort on column " << m_sortedColumn);
         // Sorting by other columns is not yet implemented
         return;
     }
@@ -4133,7 +4160,7 @@ void TagModel::updateItemRowWithRespectToSorting(ITagModelItem & item)
 
     int currentItemRow = pParentItem->rowForChild(&item);
     if (Q_UNLIKELY(currentItemRow < 0)) {
-        QNWARNING("Can't update tag model item's row: can't find "
+        QNWARNING("model:tag", "Can't update tag model item's row: can't find "
             << "its original row within parent: " << item);
         return;
     }
@@ -4148,13 +4175,13 @@ void TagModel::updateItemRowWithRespectToSorting(ITagModelItem & item)
     pParentItem->insertChild(appropriateRow, &item);
     endInsertRows();
 
-    QNTRACE("Moved item from row " << currentItemRow << " to row "
+    QNTRACE("model:tag", "Moved item from row " << currentItemRow << " to row "
         << appropriateRow << "; item: " << item);
 }
 
 void TagModel::updatePersistentModelIndices()
 {
-    QNTRACE("TagModel::updatePersistentModelIndices");
+    QNTRACE("model:tag", "TagModel::updatePersistentModelIndices");
 
     // Ensure any persistent model indices would be updated appropriately
     auto indices = persistentIndexList();
@@ -4167,7 +4194,7 @@ void TagModel::updatePersistentModelIndices()
 
 void TagModel::updateTagInLocalStorage(const TagItem & item)
 {
-    QNTRACE("TagModel::updateTagInLocalStorage: local uid = "
+    QNTRACE("model:tag", "TagModel::updateTagInLocalStorage: local uid = "
         << item.localUid());
 
     Tag tag;
@@ -4177,7 +4204,7 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 
     if (notYetSavedItemIt == m_tagItemsNotYetInLocalStorageUids.end())
     {
-        QNDEBUG("Updating the tag");
+        QNDEBUG("model:tag", "Updating the tag");
 
         const auto * pCachedTag = m_cache.get(item.localUid());
         if (Q_UNLIKELY(!pCachedTag))
@@ -4188,8 +4215,9 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
             Tag dummy;
             dummy.setLocalUid(item.localUid());
 
-            QNDEBUG("Emitting the request to find tag: local uid = "
-                << item.localUid() << ", request id = " << requestId);
+            QNDEBUG("model:tag", "Emitting the request to find tag: "
+                << "local uid = " << item.localUid() << ", request id = "
+                << requestId);
 
             Q_EMIT findTag(dummy, requestId);
             return;
@@ -4206,7 +4234,7 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
     {
         Q_UNUSED(m_addTagRequestIds.insert(requestId));
 
-        QNTRACE("Emitting the request to add the tag to the local "
+        QNTRACE("model:tag", "Emitting the request to add the tag to the local "
             << "storage: id = " << requestId << ", tag: " << tag);
 
         Q_EMIT addTag(tag, requestId);
@@ -4220,7 +4248,7 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
         // remove its stale copy from the cache
         Q_UNUSED(m_cache.remove(tag.localUid()))
 
-        QNTRACE("Emitting the request to update tag in the local "
+        QNTRACE("model:tag", "Emitting the request to update tag in the local "
             << "storage: id = " << requestId << ", tag: " << tag);
 
         Q_EMIT updateTag(tag, requestId);
@@ -4248,7 +4276,7 @@ void TagModel::setNoteCountForTag(
     auto itemIt = localUidIndex.find(tagLocalUid);
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
         // Probably this tag was expunged
-        QNDEBUG("No tag receiving the note count update was found "
+        QNDEBUG("model:tag", "No tag receiving the note count update was found "
             << "in the model: " << tagLocalUid);
         return;
     }
@@ -4265,7 +4293,7 @@ void TagModel::setNoteCountForTag(
             QT_TR_NOOP("Can't find the row of tag model item being updated "
                        "with the note count within its parent"));
 
-        QNWARNING(error << ", tag local uid: " << tagLocalUid
+        QNWARNING("model:tag", error << ", tag local uid: " << tagLocalUid
             << "\nTag model item: " << *pModelItem);
 
         Q_EMIT notifyError(error);
@@ -4310,7 +4338,7 @@ void TagModel::setTagFavorited(const QModelIndex & index, const bool favorited)
     }
 
     if (favorited == pTagItem->isFavorited()) {
-        QNDEBUG("Favorited flag's value hasn't changed");
+        QNDEBUG("model:tag", "Favorited flag's value hasn't changed");
         return;
     }
 
@@ -4345,14 +4373,15 @@ void TagModel::endRemoveTags()
 ITagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
     const QString & linkedNotebookGuid)
 {
-    QNTRACE("TagModel::findOrCreateLinkedNotebookModelItem: "
+    QNTRACE("model:tag", "TagModel::findOrCreateLinkedNotebookModelItem: "
         << linkedNotebookGuid);
 
     checkAndCreateModelRootItems();
 
     if (Q_UNLIKELY(linkedNotebookGuid.isEmpty())) {
-        QNWARNING("Detected the request for finding of creation of a linked "
-            << "notebook model item for empty linked notebook guid");
+        QNWARNING("model:tag", "Detected the request for finding of creation "
+            << "of a linked notebook model item for empty linked notebook "
+            << "guid");
         return *m_pAllTagsRootItem;
     }
 
@@ -4360,13 +4389,14 @@ ITagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
         linkedNotebookGuid);
 
     if (linkedNotebookItemIt != m_linkedNotebookItems.end()) {
-        QNDEBUG("Found existing linked notebook model item for "
+        QNDEBUG("model:tag", "Found existing linked notebook model item for "
             << "linked notebook guid " << linkedNotebookGuid);
         return linkedNotebookItemIt.value();
     }
 
-    QNTRACE("Found no existing linked notebook item corresponding to linked "
-        << "notebook guid " << linkedNotebookGuid << ", will create one");
+    QNTRACE("model:tag", "Found no existing linked notebook item corresponding "
+        << "to linked notebook guid " << linkedNotebookGuid << ", will create "
+        << "one");
 
     auto linkedNotebookOwnerUsernameIt =
         m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.find(
@@ -4375,7 +4405,7 @@ ITagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
     if (Q_UNLIKELY(linkedNotebookOwnerUsernameIt ==
                    m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.end()))
     {
-        QNDEBUG("Found no linked notebook owner's username "
+        QNDEBUG("model:tag", "Found no linked notebook owner's username "
             << "for linked notebook guid " << linkedNotebookGuid);
 
         linkedNotebookOwnerUsernameIt =
@@ -4396,7 +4426,7 @@ ITagModelItem & TagModel::findOrCreateLinkedNotebookModelItem(
         linkedNotebookItem);
 
     auto * pLinkedNotebookItem = &(linkedNotebookItemIt.value());
-    QNTRACE("Linked notebook root item: " << *pLinkedNotebookItem);
+    QNTRACE("model:tag", "Linked notebook root item: " << *pLinkedNotebookItem);
 
     int row = rowForNewItem(*m_pAllTagsRootItem, *pLinkedNotebookItem);
     beginInsertRows(indexForItem(m_pAllTagsRootItem), row, row);
@@ -4422,7 +4452,7 @@ void TagModel::checkAndRemoveEmptyLinkedNotebookRootItem(
         return;
     }
 
-    QNTRACE("Removed the last child from the linked notebook "
+    QNTRACE("model:tag", "Removed the last child from the linked notebook "
         << "root item, will remove that item as well");
 
     removeModelItemFromParent(modelItem);
@@ -4444,11 +4474,12 @@ void TagModel::checkAndRemoveEmptyLinkedNotebookRootItem(
 
 void TagModel::checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem)
 {
-    QNTRACE("TagModel::checkAndFindLinkedNotebookRestrictions: " << tagItem);
+    QNTRACE("model:tag", "TagModel::checkAndFindLinkedNotebookRestrictions: "
+        << tagItem);
 
     const QString & linkedNotebookGuid = tagItem.linkedNotebookGuid();
     if (linkedNotebookGuid.isEmpty()) {
-        QNTRACE("No linked notebook guid");
+        QNTRACE("model:tag", "No linked notebook guid");
         return;
     }
 
@@ -4456,7 +4487,7 @@ void TagModel::checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem)
         linkedNotebookGuid);
 
     if (restrictionsIt != m_tagRestrictionsByLinkedNotebookGuid.end()) {
-        QNTRACE("Already have the tag restrictions for linked "
+        QNTRACE("model:tag", "Already have the tag restrictions for linked "
             << "notebook guid " << linkedNotebookGuid);
         return;
     }
@@ -4465,13 +4496,13 @@ void TagModel::checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem)
         linkedNotebookGuid);
 
     if (it != m_findNotebookRequestForLinkedNotebookGuid.left.end()) {
-        QNTRACE("Already emitted the request to find tag "
+        QNTRACE("model:tag", "Already emitted the request to find tag "
             << "restrictions for linked notebook guid "
             << linkedNotebookGuid);
         return;
     }
 
-    QUuid requestId = QUuid::createUuid();
+    auto requestId = QUuid::createUuid();
 
     m_findNotebookRequestForLinkedNotebookGuid.insert(
         LinkedNotebookGuidWithFindNotebookRequestIdBimap::value_type(
@@ -4482,7 +4513,7 @@ void TagModel::checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem)
     notebook.unsetLocalUid();
     notebook.setLinkedNotebookGuid(linkedNotebookGuid);
 
-    QNTRACE("Emitted the request to find notebook by linked "
+    QNTRACE("model:tag", "Emitted the request to find notebook by linked "
         << "notebook guid: " << linkedNotebookGuid
         << ", for the purpose of finding the tag restrictions; "
         << "request id = " << requestId);
@@ -4548,7 +4579,7 @@ void TagModel::fixupItemParent(ITagModelItem & item)
                 setItemParent(item, *pParentItem);
             }
             else {
-                QNDEBUG("No tag corresponding to parent local uid "
+                QNDEBUG("model:tag", "No tag corresponding to parent local uid "
                     << parentTagLocalUid << ", setting all tags root item "
                     << "as parent");
                 setItemParent(item, *m_pAllTagsRootItem);
@@ -4585,7 +4616,7 @@ void TagModel::checkAndCreateModelRootItems()
 {
     if (Q_UNLIKELY(!m_pInvisibleRootItem)) {
         m_pInvisibleRootItem = new InvisibleRootItem;
-        QNDEBUG("Created invisible root item");
+        QNDEBUG("model:tag", "Created invisible root item");
     }
 
     if (Q_UNLIKELY(!m_pAllTagsRootItem)) {
@@ -4593,7 +4624,7 @@ void TagModel::checkAndCreateModelRootItems()
         beginInsertRows(QModelIndex(), 0, 0);
         m_pAllTagsRootItem->setParent(m_pInvisibleRootItem);
         endInsertRows();
-        QNDEBUG("Created all tags root item");
+        QNDEBUG("model:tag", "Created all tags root item");
     }
 }
 
