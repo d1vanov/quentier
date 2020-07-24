@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -137,12 +137,12 @@ private:
 
 private:
     AccountManager &            m_accountManager;
-    QSystemTrayIcon *           m_pSystemTrayIcon;
-    QMenu *                     m_pTrayIconContextMenu;
-    QMenu *                     m_pAccountsTrayIconSubMenu;
-    QMenu *                     m_pTrayIconKindSubMenu;
-    QActionGroup *              m_pAvailableAccountsActionGroup;
-    QActionGroup *              m_pTrayIconKindsActionGroup;
+    QSystemTrayIcon *           m_pSystemTrayIcon = nullptr;
+    QMenu *                     m_pTrayIconContextMenu = nullptr;
+    QMenu *                     m_pAccountsTrayIconSubMenu = nullptr;
+    QMenu *                     m_pTrayIconKindSubMenu = nullptr;
+    QActionGroup *              m_pAvailableAccountsActionGroup = nullptr;
+    QActionGroup *              m_pTrayIconKindsActionGroup = nullptr;
 };
 
 } // namespace quentier
