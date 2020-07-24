@@ -69,6 +69,7 @@ void readPersistentUpdateSettings(
     int updateProviderIndex = appSettings.value(
         CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY,
         static_cast<int>(DEFAULT_UPDATE_PROVIDER)).toInt();
+
     if (updateProviderIndex >= 0 && updateProviderIndex <= 1) {
         updateProvider = static_cast<UpdateProvider>(updateProviderIndex);
     }

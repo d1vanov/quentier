@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,18 +17,19 @@
  */
 
 /**
- * The contents of this file were heavily inspired by the source code of Qt Creator,
- * a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code is licensed
- * under GNU GPL v.3 license with two permissive exceptions although they
- * don't apply to this derived work.
+ * The contents of this file were heavily inspired by the source code of
+ * Qt Creator, a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code
+ * is licensed under GNU GPL v.3 license with two permissive exceptions although
+ * they don't apply to this derived work.
  */
 
 #ifndef QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H
 #define QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H
 
 #include <quentier/utility/Macros.h>
-#include <QPushButton>
+
 #include <QKeySequence>
+#include <QPushButton>
 
 namespace quentier {
 
@@ -55,9 +56,9 @@ private Q_SLOTS:
 private:
     QString     m_uncheckedText;
     QString     m_checkedText;
-    mutable int m_preferredWidth;
-    int         m_key[4];
-    int         m_keyNum;
+    mutable int m_preferredWidth = -1;
+    int         m_key[4] = {0, 0, 0, 0};
+    int         m_keyNum = -1;
 };
 
 } // namespace quentier

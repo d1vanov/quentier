@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,22 +17,23 @@
  */
 
 /**
- * The contents of this file were heavily inspired by the source code of Qt Creator,
- * a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code is licensed
- * under GNU GPL v.3 license with two permissive exceptions although they
- * don't apply to this derived work.
+ * The contents of this file were heavily inspired by the source code of
+ * Qt Creator, a Qt and C/C++ IDE by The Qt Company Ltd., 2016. That source code
+ * is licensed under GNU GPL v.3 license with two permissive exceptions although
+ * they don't apply to this derived work.
  */
 
 #ifndef QUENTIER_DIALOGS_SHORTCUT_SETTINGS_WIDGET_H
 #define QUENTIER_DIALOGS_SHORTCUT_SETTINGS_WIDGET_H
 
+#include <quentier/types/Account.h>
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/Printable.h>
-#include <quentier/types/Account.h>
-#include <QWidget>
+
+#include <QHash>
 #include <QList>
 #include <QPointer>
-#include <QHash>
+#include <QWidget>
 
 QT_FORWARD_DECLARE_CLASS(QTreeWidgetItem)
 
@@ -48,27 +49,16 @@ QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 class ShortcutItem: public Printable
 {
 public:
-    ShortcutItem() :
-        m_actionKey(-1),
-        m_nonStandardActionKey(),
-        m_actionName(),
-        m_context(),
-        m_category(),
-        m_isModified(false),
-        m_keySequence(),
-        m_pTreeWidgetItem(nullptr)
-    {}
-
     virtual QTextStream & print(QTextStream & strm) const override;
 
-    int                 m_actionKey;
+    int                 m_actionKey = -1;
     QString             m_nonStandardActionKey;
     QString             m_actionName;
     QString             m_context;
     QString             m_category;
-    bool                m_isModified;
+    bool                m_isModified = false;
     QKeySequence        m_keySequence;
-    QTreeWidgetItem *   m_pTreeWidgetItem;
+    QTreeWidgetItem *   m_pTreeWidgetItem = nullptr;
 };
 
 class ShortcutSettingsWidget: public QWidget
@@ -76,15 +66,18 @@ class ShortcutSettingsWidget: public QWidget
     Q_OBJECT
 public:
     ShortcutSettingsWidget(QWidget * parent = nullptr);
-    virtual ~ShortcutSettingsWidget();
 
-    void initialize(const Account & currentAccount,
-                    const ActionsInfo & actionsInfo,
-                    ShortcutManager * pShortcutManager);
+    virtual ~ShortcutSettingsWidget() override;
+
+    void initialize(
+        const Account & currentAccount,
+        const ActionsInfo & actionsInfo,
+        ShortcutManager * pShortcutManager);
 
 private Q_SLOTS:
-    void onCurrentActionChanged(QTreeWidgetItem * pCurrentItem,
-                                QTreeWidgetItem * pPreviousItem);
+    void onCurrentActionChanged(
+        QTreeWidgetItem * pCurrentItem, QTreeWidgetItem * pPreviousItem);
+
     void resetToDefault();
     void resetAll();
     void onActionFilterChanged(const QString & filter);
@@ -97,7 +90,9 @@ private:
     bool markCollisions(ShortcutItem & item);
     void setModified(QTreeWidgetItem & item, bool modified);
 
-    bool filterColumn(const QString & filter, QTreeWidgetItem & item, int column);
+    bool filterColumn(
+        const QString & filter, QTreeWidgetItem & item, int column);
+
     bool filterItem(const QString & filter, QTreeWidgetItem & item);
 
     void clear();

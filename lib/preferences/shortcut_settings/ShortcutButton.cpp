@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,10 +24,12 @@
  */
 
 #include "ShortcutButton.h"
+
 #include <quentier/logging/QuentierLogger.h>
+
+#include <QApplication>
 #include <QEvent>
 #include <QKeyEvent>
-#include <QApplication>
 
 namespace quentier {
 
@@ -59,24 +61,20 @@ static int translateModifiers(Qt::KeyboardModifiers state, const QString & text)
 }
 
 ShortcutButton::ShortcutButton(QWidget * parent) :
-    QPushButton(parent),
-    m_uncheckedText(),
-    m_checkedText(),
-    m_preferredWidth(-1),
-    m_key(),
-    m_keyNum(-1)
+    QPushButton(parent)
 {
-    for(int i = 0; i < 4; ++i) {
-        m_key[i] = 0;
-    }
-
     setToolTip(tr("Click and type the new key sequence."));
     setCheckable(true);
+
     m_checkedText = tr("Stop recording");
     m_uncheckedText = tr("Record");
     updateText();
-    QObject::connect(this, QNSIGNAL(ShortcutButton,toggled,bool),
-                     this, QNSLOT(ShortcutButton,handleToggleChange,bool));
+
+    QObject::connect(
+        this,
+        &ShortcutButton::toggled,
+        this,
+        &ShortcutButton::handleToggleChange);
 }
 
 QSize ShortcutButton::sizeHint() const
@@ -87,7 +85,7 @@ QSize ShortcutButton::sizeHint() const
 
         const QString originalText = text();
 
-        ShortcutButton * that = const_cast<ShortcutButton*>(this);
+        auto * that = const_cast<ShortcutButton*>(this);
         that->setText(m_checkedText);
 
         m_preferredWidth = QPushButton::sizeHint().width();
@@ -110,10 +108,11 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
         return true;
     }
 
-    QEvent::Type eventType = pEvent->type();
+    auto eventType = pEvent->type();
 
     if (eventType == QEvent::ShortcutOverride) {
-        QNDEBUG(QStringLiteral("ShortcutButton: detected shortcut override event"));
+        QNDEBUG("preferences", "ShortcutButton: detected shortcut override "
+            << "event");
         pEvent->accept();
         return true;
     }
@@ -132,10 +131,10 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
 
     if (eventType == QEvent::KeyPress)
     {
-        QKeyEvent * pKeyEvent = dynamic_cast<QKeyEvent*>(pEvent);
+        auto * pKeyEvent = dynamic_cast<QKeyEvent*>(pEvent);
         if (Q_UNLIKELY(!pKeyEvent)) {
-            QNWARNING(QStringLiteral("Failed to cast QEvent of KeyPress type "
-                                     "to QKeyEvent"));
+            QNWARNING("preferences", "Failed to cast QEvent of KeyPress type "
+                << "to QKeyEvent");
             return true;
         }
 
@@ -147,7 +146,10 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
             return false;
         }
 
-        nextKey |= translateModifiers(pKeyEvent->modifiers(), pKeyEvent->text());
+        nextKey |= translateModifiers(
+            pKeyEvent->modifiers(),
+            pKeyEvent->text());
+
         switch (m_keyNum) {
         case 0:
             m_key[0] = nextKey;
@@ -167,8 +169,9 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
 
         ++m_keyNum;
         pKeyEvent->accept();
-        Q_EMIT keySequenceChanged(QKeySequence(m_key[0], m_key[1],
-                                               m_key[2], m_key[3]));
+
+        Q_EMIT keySequenceChanged(
+            QKeySequence(m_key[0], m_key[1], m_key[2], m_key[3]));
 
         if (m_keyNum > 3) {
             setChecked(false);
