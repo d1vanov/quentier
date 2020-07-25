@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@ class TableSizeSelector : public QFrame
 {
     Q_OBJECT
 public:
-    explicit TableSizeSelector(QWidget * parent = 0);
+    explicit TableSizeSelector(QWidget * parent = nullptr);
 
 Q_SIGNALS:
     void tableSizeSelected(int rows, int columns);
@@ -44,10 +44,10 @@ private:
     virtual QSize sizeHint() const;
 
 private:
-    int         m_currentRow;
-    int         m_currentColumn;
-    double      m_rowHeight;
-    double      m_columnWidth;
+    int         m_currentRow = -1;
+    int         m_currentColumn = -1;
+    double      m_rowHeight = 0.0;
+    double      m_columnWidth = 0.0;
     QRectF      m_rect;
 };
 

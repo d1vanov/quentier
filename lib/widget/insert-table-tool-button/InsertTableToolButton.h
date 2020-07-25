@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 Dmitry Ivanov
+ * Copyright 2015-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -40,8 +40,8 @@ private Q_SLOTS:
     void onTableSizeConstraintsChosen(double width, bool relative);
 
 private:
-    double      m_currentWidth;
-    bool        m_currentWidthIsRelative;
+    double      m_currentWidth = 0.0;
+    bool        m_currentWidthIsRelative = false;
     QMenu *     m_menu;
 };
 

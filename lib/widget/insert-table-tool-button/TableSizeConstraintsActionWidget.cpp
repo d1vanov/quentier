@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,21 +28,18 @@ namespace quentier {
 
 TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
         QWidget * parent) :
-    QWidgetAction(parent),
-    m_currentWidth(400.0),
-    m_currentWidthTypeIsRelative(false)
+    QWidgetAction(parent)
 {
-    QWidget * layoutContainer = new QWidget(parent);
+    auto * layoutContainer = new QWidget(parent);
+    auto * layout = new QHBoxLayout(layoutContainer);
 
-    QHBoxLayout * layout = new QHBoxLayout(layoutContainer);
-
-    QDoubleSpinBox * widthSpinBox = new QDoubleSpinBox(layoutContainer);
+    auto * widthSpinBox = new QDoubleSpinBox(layoutContainer);
     widthSpinBox->setMinimum(1.0);
     widthSpinBox->setMaximum(2000.0);
     widthSpinBox->setDecimals(2);
     widthSpinBox->setValue(m_currentWidth);
 
-    QComboBox * widthTypeComboBox = new QComboBox(layoutContainer);
+    auto * widthTypeComboBox = new QComboBox(layoutContainer);
     widthTypeComboBox->addItem(tr("pixels"));
     widthTypeComboBox->addItem(QStringLiteral("%"));
     widthTypeComboBox->setCurrentIndex(m_currentWidthTypeIsRelative ? 1 : 0);
@@ -53,10 +50,32 @@ TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
     layoutContainer->setLayout(layout);
     setDefaultWidget(layoutContainer);
 
-    QObject::connect(widthSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(onWidthChange(double)));
-    QObject::connect(widthTypeComboBox, SIGNAL(currentIndexChanged(QString)),
-                     this, SLOT(onWidthTypeChange(QString)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        widthSpinBox,
+        qOverload<double>(&QDoubleSpinBox::valueChanged),
+        this,
+        &TableSizeConstraintsActionWidget::onWidthChange);
+
+    QObject::connect(
+        widthTypeComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &TableSizeConstraintsActionWidget::onWidthTypeChange);
+#else
+    QObject::connect(
+        widthSpinBox,
+        SIGNAL(valueChanged(double)),
+        this,
+        SLOT(onWidthChange(double)));
+
+    QObject::connect(
+        widthTypeComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onWidthTypeChange(int)));
+#endif
+
 }
 
 double TableSizeConstraintsActionWidget::width() const
@@ -72,11 +91,19 @@ bool TableSizeConstraintsActionWidget::isRelative() const
 void TableSizeConstraintsActionWidget::onWidthChange(double width)
 {
     m_currentWidth = width;
-    Q_EMIT chosenTableWidthConstraints(m_currentWidth, m_currentWidthTypeIsRelative);
+
+    Q_EMIT chosenTableWidthConstraints(
+        m_currentWidth,
+        m_currentWidthTypeIsRelative);
 }
 
-void TableSizeConstraintsActionWidget::onWidthTypeChange(QString widthType)
+void TableSizeConstraintsActionWidget::onWidthTypeChange(int widthTypeIndex)
 {
+    auto * pComboBox = qobject_cast<QComboBox*>(sender());
+    Q_ASSERT(pComboBox);
+
+    QString widthType = pComboBox->itemText(widthTypeIndex);
+
     if (widthType == QStringLiteral("%")) {
         m_currentWidthTypeIsRelative = true;
     }
@@ -84,7 +111,9 @@ void TableSizeConstraintsActionWidget::onWidthTypeChange(QString widthType)
         m_currentWidthTypeIsRelative = false;
     }
 
-    Q_EMIT chosenTableWidthConstraints(m_currentWidth, m_currentWidthTypeIsRelative);
+    Q_EMIT chosenTableWidthConstraints(
+        m_currentWidth,
+        m_currentWidthTypeIsRelative);
 }
 
 } // namespace quentier

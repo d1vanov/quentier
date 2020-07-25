@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 Dmitry Ivanov
+ * Copyright 2015-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_WIDGET_COLOR_PICKER_TOOL_BUTTON_H
 #define QUENTIER_LIB_WIDGET_COLOR_PICKER_TOOL_BUTTON_H
 
-#include <QToolButton>
 #include <QColor>
+#include <QToolButton>
 
 QT_FORWARD_DECLARE_CLASS(QMenu)
 
@@ -30,7 +30,7 @@ class ColorPickerToolButton: public QToolButton
 {
     Q_OBJECT
 public:
-    explicit ColorPickerToolButton(QWidget * parent = 0);
+    explicit ColorPickerToolButton(QWidget * parent = nullptr);
 
 Q_SIGNALS:
     void colorSelected(QColor color);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,8 @@ class AboutQuentierWidget : public QWidget
     Q_OBJECT
 public:
     explicit AboutQuentierWidget(QWidget * parent = nullptr);
-    ~AboutQuentierWidget();
+
+    virtual ~AboutQuentierWidget() override;
 
 private:
     Ui::AboutQuentierWidget *   m_pUi;

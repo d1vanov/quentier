@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 Dmitry Ivanov
+ * Copyright 2015-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,7 +29,7 @@ class ColorPickerActionWidget: public QWidgetAction
 {
     Q_OBJECT
 public:
-    explicit ColorPickerActionWidget(QWidget * parent = 0);
+    explicit ColorPickerActionWidget(QWidget * parent = nullptr);
 
 Q_SIGNALS:
     void colorSelected(QColor color);

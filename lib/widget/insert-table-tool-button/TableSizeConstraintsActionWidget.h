@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@ class TableSizeConstraintsActionWidget: public QWidgetAction
 {
     Q_OBJECT
 public:
-    explicit TableSizeConstraintsActionWidget(QWidget * parent = 0);
+    explicit TableSizeConstraintsActionWidget(QWidget * parent = nullptr);
 
     double width() const;
     bool isRelative() const;
@@ -37,11 +37,11 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onWidthChange(double width);
-    void onWidthTypeChange(QString widthType);
+    void onWidthTypeChange(int widthTypeIndex);
 
 private:
-    double  m_currentWidth;
-    bool    m_currentWidthTypeIsRelative;
+    double  m_currentWidth = 400.0;
+    bool    m_currentWidthTypeIsRelative = false;
 };
 
 } // namespace quentier

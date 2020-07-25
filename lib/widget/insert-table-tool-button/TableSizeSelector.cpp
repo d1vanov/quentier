@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,8 +20,8 @@
 
 #include <quentier/utility/Macros.h>
 
-#include <QPainter>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QToolTip>
 
 #define MAX_ROWS (10)
@@ -30,12 +30,7 @@
 namespace quentier {
 
 TableSizeSelector::TableSizeSelector(QWidget * parent) :
-    QFrame(parent),
-    m_currentRow(-1),
-    m_currentColumn(-1),
-    m_rowHeight(0),
-    m_columnWidth(0),
-    m_rect()
+    QFrame(parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -79,15 +74,17 @@ void TableSizeSelector::paintEvent(QPaintEvent * event)
     // Drawing rows grid
     for(int i = 0; i <= MAX_ROWS; ++i) {
         double verticalPos = i * m_rowHeight;
-        painter.drawLine(QPointF(0.0, verticalPos),
-                         QPointF(m_rect.width(), verticalPos));
+        painter.drawLine(
+            QPointF(0.0, verticalPos),
+            QPointF(m_rect.width(), verticalPos));
     }
 
     // Drawing columns grid
     for(int i = 0; i <= MAX_COLUMNS; ++i) {
         double horizontalPos = i * m_columnWidth;
-        painter.drawLine(QPointF(horizontalPos, 0.0),
-                         QPointF(horizontalPos, m_rect.height()));
+        painter.drawLine(
+            QPointF(horizontalPos, 0.0),
+            QPointF(horizontalPos, m_rect.height()));
     }
 }
 
@@ -104,8 +101,11 @@ void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
         m_currentColumn = MAX_COLUMNS;
     }
 
-    QToolTip::showText(event->globalPos(), QString::number(m_currentRow) +
-                       QStringLiteral("x") + QString::number(m_currentColumn));
+    QToolTip::showText(
+        event->globalPos(),
+        QString::number(m_currentRow) +
+        QStringLiteral("x") + QString::number(m_currentColumn));
+
     repaint();
 }
 

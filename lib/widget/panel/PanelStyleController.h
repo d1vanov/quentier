@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,7 +35,10 @@ namespace quentier {
 class PanelStyleController
 {
 public:
-    explicit PanelStyleController(QFrame * pPanel, QString extraStyleSheet = {});
+    explicit PanelStyleController(
+        QFrame * pPanel,
+        QString extraStyleSheet = {});
+
     virtual ~PanelStyleController() = default;
 
     QFrame * panel();

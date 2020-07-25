@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 Dmitry Ivanov
+ * Copyright 2015-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,41 +17,52 @@
  */
 
 #include "InsertTableToolButton.h"
+
 #include "TableSettingsDialog.h"
-#include "TableSizeSelectorActionWidget.h"
 #include "TableSizeConstraintsActionWidget.h"
+#include "TableSizeSelectorActionWidget.h"
 
 #include <QMenu>
+
+#include <memory>
 
 namespace quentier {
 
 InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
     QToolButton(parent),
-    m_currentWidth(0.0),
-    m_currentWidthIsRelative(false),
     m_menu(new QMenu(this))
 {
-    TableSizeSelectorActionWidget * sizeSelectorAction =
-        new TableSizeSelectorActionWidget(this);
+    auto * sizeSelectorAction = new TableSizeSelectorActionWidget(this);
     m_menu->addAction(sizeSelectorAction);
 
-    TableSizeConstraintsActionWidget * constraintsSelectorAction =
-        new TableSizeConstraintsActionWidget(this);
+    auto * constraintsSelectorAction = new TableSizeConstraintsActionWidget(
+        this);
+
     m_menu->addAction(constraintsSelectorAction);
 
     setMenu(m_menu);
 
-    QAction * showTableSettingsDialogAction = new QAction(this);
-    QObject::connect(showTableSettingsDialogAction, SIGNAL(triggered(bool)),
-                     this, SLOT(onTableSettingsDialogAction()));
+    auto * showTableSettingsDialogAction = new QAction(this);
+
+    QObject::connect(
+        showTableSettingsDialogAction,
+        &QAction::triggered,
+        this,
+        &InsertTableToolButton::onTableSettingsDialogAction);
 
     setDefaultAction(showTableSettingsDialogAction);
 
-    QObject::connect(sizeSelectorAction, SIGNAL(tableSizeSelected(int,int)),
-                     this, SLOT(onTableSizeChosen(int,int)));
-    QObject::connect(constraintsSelectorAction,
-                     SIGNAL(chosenTableWidthConstraints(double,bool)),
-                     this, SLOT(onTableSizeConstraintsChosen(double,bool)));
+    QObject::connect(
+        sizeSelectorAction,
+        &TableSizeSelectorActionWidget::tableSizeSelected,
+        this,
+        &InsertTableToolButton::onTableSizeChosen);
+
+    QObject::connect(
+        constraintsSelectorAction,
+        &TableSizeConstraintsActionWidget::chosenTableWidthConstraints,
+        this,
+        &InsertTableToolButton::onTableSizeConstraintsChosen);
 
     m_currentWidth = constraintsSelectorAction->width();
     m_currentWidthIsRelative = constraintsSelectorAction->isRelative();
@@ -59,15 +70,15 @@ InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
 
 void InsertTableToolButton::onTableSettingsDialogAction()
 {
-    QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(
-        new TableSettingsDialog(this));
-    TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
-    if (tableSettingsDialog->exec() == QDialog::Accepted)
+    auto pTableSettingsDialog = std::make_unique<TableSettingsDialog>(
+        this);
+
+    if (pTableSettingsDialog->exec() == QDialog::Accepted)
     {
-        int numRows = tableSettingsDialog->numRows();
-        int numColumns = tableSettingsDialog->numColumns();
-        double tableWidth = tableSettingsDialog->tableWidth();
-        bool relativeWidth = tableSettingsDialog->relativeWidth();
+        int numRows = pTableSettingsDialog->numRows();
+        int numColumns = pTableSettingsDialog->numColumns();
+        double tableWidth = pTableSettingsDialog->tableWidth();
+        bool relativeWidth = pTableSettingsDialog->relativeWidth();
 
         onTableSizeChosen(numRows, numColumns);
         onTableSizeConstraintsChosen(tableWidth, relativeWidth);
@@ -76,10 +87,15 @@ void InsertTableToolButton::onTableSettingsDialogAction()
 
 void InsertTableToolButton::onTableSizeChosen(int rows, int columns)
 {
-    Q_EMIT createdTable(rows, columns, m_currentWidth, m_currentWidthIsRelative);
+    Q_EMIT createdTable(
+        rows,
+        columns,
+        m_currentWidth,
+        m_currentWidthIsRelative);
 }
 
-void InsertTableToolButton::onTableSizeConstraintsChosen(double width, bool relative)
+void InsertTableToolButton::onTableSizeConstraintsChosen(
+    double width, bool relative)
 {
     m_currentWidth = width;
     m_currentWidthIsRelative = relative;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,15 +32,22 @@ TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
     ui->warningLine->clear();
     ui->warningLine->setHidden(true);
 
-    QComboBox * pTableWidthModeComboBox = ui->tableWidthModeComboBox;
+    auto * pTableWidthModeComboBox = ui->tableWidthModeComboBox;
     pTableWidthModeComboBox->addItem(tr("pixels"));
     pTableWidthModeComboBox->addItem(tr("% of page width"));
     pTableWidthModeComboBox->setCurrentIndex(1);
 
-    QObject::connect(ui->buttonBox, SIGNAL(accepted()),
-                     this, SLOT(onOkButtonPressed()));
-    QObject::connect(ui->buttonBox, SIGNAL(rejected()),
-                     this, SLOT(onCancelButtonPressed()));
+    QObject::connect(
+        ui->buttonBox,
+        &QDialogButtonBox::accepted,
+        this,
+        &TableSettingsDialog::onOkButtonPressed);
+
+    QObject::connect(
+        ui->buttonBox,
+        &QDialogButtonBox::rejected,
+        this,
+        &TableSettingsDialog::onCancelButtonPressed);
 }
 
 TableSettingsDialog::~TableSettingsDialog()
@@ -70,14 +77,20 @@ bool TableSettingsDialog::relativeWidth() const
 
 void TableSettingsDialog::onOkButtonPressed()
 {
-    QNDEBUG("TableSettingsDialog::onOkButtonPressed");
+    QNDEBUG(
+        "widget:insert-table-tool-button",
+        "TableSettingsDialog::onOkButtonPressed");
 
     QString error;
     bool res = verifySettings(error);
-    if (!res) {
-        QNTRACE("Error: " << error);
-        ui->warningLine->setText(QStringLiteral("<font color=red>") + error +
-                                 QStringLiteral("</font>"));
+    if (!res)
+    {
+        QNTRACE("widget:insert-table-tool-button", "Error: " << error);
+
+        ui->warningLine->setText(
+            QStringLiteral("<font color=red>") + error +
+            QStringLiteral("</font>"));
+
         ui->warningLine->setHidden(false);
         return;
     }
@@ -92,15 +105,20 @@ void TableSettingsDialog::onOkButtonPressed()
     m_tableWidth = ui->tableWidthDoubleSpinBox->value();
     m_relativeWidth = checkRelativeWidth();
 
-    QNTRACE("Accepted: num rows = " << m_numRows << ", num columns = "
-            << m_numColumns << ", table width = " << m_tableWidth << ", "
-            << (m_relativeWidth ? "relative" : "absolute") << " width");
+    QNTRACE("widget:insert-table-tool-button", "Accepted: num rows = "
+        << m_numRows << ", num columns = " << m_numColumns << ", table width = "
+        << m_tableWidth << ", " << (m_relativeWidth ? "relative" : "absolute")
+        << " width");
+
     accept();
 }
 
 void TableSettingsDialog::onCancelButtonPressed()
 {
-    QNDEBUG("TableSettingsDialog::onCancelButtonPressed");
+    QNDEBUG(
+        "widget:insert-table-tool-button",
+        "TableSettingsDialog::onCancelButtonPressed");
+
     reject();
 }
 

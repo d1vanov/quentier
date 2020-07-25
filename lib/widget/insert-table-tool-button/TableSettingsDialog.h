@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,7 @@ class TableSettingsDialog : public QDialog
     Q_OBJECT
 public:
     explicit TableSettingsDialog(QWidget * parent = nullptr);
-    virtual ~TableSettingsDialog();
+    virtual ~TableSettingsDialog() override;
 
     int numRows() const;
     int numColumns() const;
@@ -52,10 +52,10 @@ private:
 private:
     Ui::TableSettingsDialog *ui;
 
-    int     m_numRows;
-    int     m_numColumns;
-    double  m_tableWidth;
-    bool    m_relativeWidth;
+    int     m_numRows = 0;
+    int     m_numColumns = 0;
+    double  m_tableWidth = 0.0;
+    bool    m_relativeWidth = false;
 };
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,6 +17,7 @@
  */
 
 #include "TableSizeSelectorActionWidget.h"
+
 #include "TableSizeSelector.h"
 
 #include <QHBoxLayout>
@@ -27,14 +28,17 @@ TableSizeSelectorActionWidget::TableSizeSelectorActionWidget(QWidget * parent) :
     QWidgetAction(parent),
     m_selector(new TableSizeSelector(parent))
 {
-    QObject::connect(m_selector, SIGNAL(tableSizeSelected(int,int)),
-                     this, SIGNAL(tableSizeSelected(int,int)));
+    QObject::connect(
+        m_selector,
+        &TableSizeSelector::tableSizeSelected,
+        this,
+        &TableSizeSelectorActionWidget::tableSizeSelected);
 
-    QHBoxLayout * layout = new QHBoxLayout(parent);
+    auto * layout = new QHBoxLayout(parent);
     layout->addWidget(m_selector);
     layout->setAlignment(Qt::AlignCenter);
 
-    QWidget * layoutContainer = new QWidget(parent);
+    auto * layoutContainer = new QWidget(parent);
     layoutContainer->setLayout(layout);
 
     setDefaultWidget(layoutContainer);
