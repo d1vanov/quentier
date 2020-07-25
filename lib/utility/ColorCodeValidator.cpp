@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -101,11 +101,11 @@ bool ColorCodeValidator::isHexDigit(const QChar & chr) const
     }
 
     return (chr == QChar::fromLatin1('A')) ||
-           (chr == QChar::fromLatin1('B')) ||
-           (chr == QChar::fromLatin1('C')) ||
-           (chr == QChar::fromLatin1('D')) ||
-           (chr == QChar::fromLatin1('E')) ||
-           (chr == QChar::fromLatin1('F'));
+        (chr == QChar::fromLatin1('B')) ||
+        (chr == QChar::fromLatin1('C')) ||
+        (chr == QChar::fromLatin1('D')) ||
+        (chr == QChar::fromLatin1('E')) ||
+        (chr == QChar::fromLatin1('F'));
 }
 
 } // namespace quentier

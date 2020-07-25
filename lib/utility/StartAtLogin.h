@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -53,11 +53,11 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin();
  * @param shouldStartAtLogin    True if Quentier should start automatically at
  *                              login, false otherwise
  * @param errorDescription      The textual description of the error if
- *                              the command meant to make Quentier start at login
- *                              or to stop doing so has failed
- * @param option                The option specifying how exactly Quentier should
- *                              start automatically at login, only meaningful if
- *                              shouldStartAtLogin is true
+ *                              the command meant to make Quentier start at
+ *                              login or to stop doing so has failed
+ * @param option                The option specifying how exactly Quentier
+ *                              should start automatically at login, only
+ *                              meaningful if shouldStartAtLogin is true
  * @return                      True if the option to start or not to start
  *                              Quentier at login automatically was set
  *                              successfully, false otherwise

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,10 +31,11 @@ namespace quentier {
  * to be invoked in a particular thread), you can only change it from "current
  * thread" to "some other thread" but not otherwise. I.e. you can "push" the
  * object to some thread but you cannot "pull" it from some other thread
- * into the current thread (or some yet another thread). The workaround is to call
- * QObject::moveToThread from the thread which is currently assigned to the object.
- * This is what this function does using an intermediate QObject waiting in a
- * blocking fashion for the thread affinity change to happen before returning.
+ * into the current thread (or some yet another thread). The workaround is to
+ * call QObject::moveToThread from the thread which is currently assigned to
+ * the object. This is what this function does using an intermediate QObject
+ * waiting in a blocking fashion for the thread affinity change to happen before
+ * returning.
  *
  * @param object                The object which needs to be moved from its
  *                              assigned thread to the target thread; the

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,20 +21,18 @@
 
 #include <quentier/utility/Printable.h>
 
-#include <QList>
 #include <QHash>
 #include <QKeySequence>
+#include <QList>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
 QT_FORWARD_DECLARE_CLASS(QAction)
+QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
 struct ActionKeyWithContext
 {
-    ActionKeyWithContext() : m_key(-1), m_context() {}
-
-    int     m_key;
+    int     m_key = -1;
     QString m_context;
 };
 
@@ -50,8 +48,6 @@ public:
     class ActionInfo: public Printable
     {
     public:
-        ActionInfo();
-
         virtual QTextStream & print(QTextStream & strm) const override;
 
         bool isEmpty() const;
@@ -60,7 +56,7 @@ public:
         QString         m_localizedName;
         QString         m_context;
         QString         m_category;
-        int             m_shortcutKey;
+        int             m_shortcutKey = -1;
         QString         m_nonStandardShortcutKey;
         QKeySequence    m_shortcut;
     };
@@ -74,8 +70,9 @@ public:
     class Iterator
     {
     public:
-        Iterator(const int menuIndex, const int actionIndex,
-                 const ActionsInfo & actionsInfo);
+        Iterator(
+            const int menuIndex, const int actionIndex,
+            const ActionsInfo & actionsInfo);
 
         const ActionInfo actionInfo() const;
 

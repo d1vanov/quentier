@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,8 +31,8 @@ BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :
 
 void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 {
-    // Special treatment for xml element regex as we use captured text to emulate
-    // lookbehind
+    // Special treatment for xml element regex as we use captured text to
+    // emulate lookbehind
     int xmlElementIndex = m_xmlElementRegex.indexIn(text);
     while(xmlElementIndex >= 0)
     {
@@ -77,12 +77,10 @@ void BasicXMLSyntaxHighlighter::setRegexes()
 {
     m_xmlElementRegex.setPattern(
         QStringLiteral("<[\\s]*[/]?[\\s]*([^\\n]\\w*)(?=[\\s/>])"));
-    m_xmlAttributeRegex.setPattern(
-        QStringLiteral("\\w+(?=\\=)"));
-    m_xmlValueRegex.setPattern(
-        QStringLiteral("\"[^\\n\"]+\"(?=[\\s/>])"));
-    m_xmlCommentRegex.setPattern(
-        QStringLiteral("<!--[^\\n]*-->"));
+
+    m_xmlAttributeRegex.setPattern(QStringLiteral("\\w+(?=\\=)"));
+    m_xmlValueRegex.setPattern(QStringLiteral("\"[^\\n\"]+\"(?=[\\s/>])"));
+    m_xmlCommentRegex.setPattern(QStringLiteral("<!--[^\\n]*-->"));
 
     m_xmlKeywordRegexes = QList<QRegExp>()
         << QRegExp(QStringLiteral("<\\?")) << QRegExp(QStringLiteral("/>"))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,16 +32,22 @@ ThreadMover::ThreadMover(
 void ThreadMover::start()
 {
     QThread * pCurrentThread = QObject::thread();
-    if (Q_UNLIKELY(!pCurrentThread || !pCurrentThread->isRunning())) {
-        ErrorString error(QT_TR_NOOP("Can't move object to another thread: "
-                                     "current object's thread is not running"));
+    if (Q_UNLIKELY(!pCurrentThread || !pCurrentThread->isRunning()))
+    {
+        ErrorString error(
+            QT_TR_NOOP("Can't move object to another thread: "
+                       "current object's thread is not running"));
+
         Q_EMIT notifyError(error);
         return;
     }
 
-    if (!m_targetThread.isRunning()) {
-        ErrorString error(QT_TR_NOOP("Can't move object to another thread: "
-                                     "target thread is not running"));
+    if (!m_targetThread.isRunning())
+    {
+        ErrorString error(
+            QT_TR_NOOP("Can't move object to another thread: "
+                       "target thread is not running"));
+
         Q_EMIT notifyError(error);
         return;
     }

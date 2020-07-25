@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_UTILITY_ASYNC_FILE_WRITER_H
 #define QUENTIER_LIB_UTILITY_ASYNC_FILE_WRITER_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QRunnable>
@@ -28,14 +28,12 @@
 
 namespace quentier {
 
-class AsyncFileWriter: public QObject,
-                       public QRunnable
+class AsyncFileWriter: public QObject, public QRunnable
 {
     Q_OBJECT
 public:
     explicit AsyncFileWriter(
-        const QString & filePath,
-        const QByteArray & dataToWrite,
+        const QString & filePath, const QByteArray & dataToWrite,
         QObject * parent = nullptr);
 
 Q_SIGNALS:

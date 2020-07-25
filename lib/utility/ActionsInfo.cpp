@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,14 +35,13 @@ const ActionsInfo::ActionInfo
 ActionsInfo::findActionInfo(
     const QString & actionName, const QString & context) const
 {
-    QNDEBUG("ActionsInfo::findActionInfo: action name = "
-            << actionName << ", context = " << context);
+    QNDEBUG("utility", "ActionsInfo::findActionInfo: action name = "
+        << actionName << ", context = " << context);
 
     // First look for menu whose name matches the "context"
     const QMenu * pTargetMenu = nullptr;
-    for(auto it = m_menus.constBegin(), end = m_menus.constEnd(); it != end; ++it)
+    for(const auto * pMenu: qAsConst(m_menus))
     {
-        const QMenu * pMenu = *it;
         if (Q_UNLIKELY(!pMenu)) {
             continue;
         }
@@ -58,10 +57,9 @@ ActionsInfo::findActionInfo(
     }
 
     // Now look for action with matching text
-    const QList<QAction*> actions = pTargetMenu->actions();
-    for(auto it = actions.constBegin(), end = actions.constEnd(); it != end; ++it)
+    const auto actions = pTargetMenu->actions();
+    for(auto * pAction: qAsConst(actions))
     {
-        QAction * pAction = *it;
         if (Q_UNLIKELY(!pAction)) {
             continue;
         }
@@ -70,8 +68,8 @@ ActionsInfo::findActionInfo(
             continue;
         }
 
-        ActionInfo info = fromAction(pAction, pTargetMenu->title());
-        QNDEBUG("Found action info: " << info);
+        auto info = fromAction(pAction, pTargetMenu->title());
+        QNDEBUG("utility", "Found action info: " << info);
         return info;
     }
 
@@ -93,11 +91,11 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
     info.m_category = category;
     info.m_category.remove(QChar::fromLatin1('&'), Qt::CaseInsensitive);
 
-    QVariant actionData = pAction->data();
+    auto actionData = pAction->data();
 
     if (actionData.canConvert<ActionKeyWithContext>())
     {
-        ActionKeyWithContext keyWithContext = actionData.value<ActionKeyWithContext>();
+        auto keyWithContext = actionData.value<ActionKeyWithContext>();
         info.m_shortcutKey = keyWithContext.m_key;
         info.m_context = keyWithContext.m_context;
     }
@@ -105,8 +103,10 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
     {
         ActionNonStandardKeyWithContext nonStandardKeyWithContext =
             actionData.value<ActionNonStandardKeyWithContext>();
+
         info.m_nonStandardShortcutKey =
             nonStandardKeyWithContext.m_nonStandardActionKey;
+
         info.m_context = nonStandardKeyWithContext.m_context;
     }
 
@@ -128,12 +128,12 @@ const ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
         return ActionInfo();
     }
 
-    const QMenu * pMenu = m_actionsInfo.m_menus.at(m_menuIndex);
+    const auto * pMenu = m_actionsInfo.m_menus.at(m_menuIndex);
     if (Q_UNLIKELY(!pMenu)) {
         return ActionInfo();
     }
 
-    const QList<QAction*> actions = pMenu->actions();
+    const auto actions = pMenu->actions();
     if (Q_UNLIKELY(m_actionIndex >= actions.size())) {
         return ActionInfo();
     }
@@ -144,8 +144,8 @@ const ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
 bool ActionsInfo::Iterator::operator==(const Iterator & other) const
 {
     return ( (&m_actionsInfo == &other.m_actionsInfo) &&
-             (m_menuIndex == other.m_menuIndex) &&
-             (m_actionIndex == other.m_actionIndex) );
+        (m_menuIndex == other.m_menuIndex) &&
+        (m_actionIndex == other.m_actionIndex) );
 }
 
 bool ActionsInfo::Iterator::operator!=(const Iterator & other) const
@@ -172,12 +172,12 @@ void ActionsInfo::Iterator::increment()
         return;
     }
 
-    const QMenu * pMenu = m_actionsInfo.m_menus.at(m_menuIndex);
+    const auto * pMenu = m_actionsInfo.m_menus.at(m_menuIndex);
     if (Q_UNLIKELY(!pMenu)) {
         return;
     }
 
-    const QList<QAction*> actions = pMenu->actions();
+    const auto actions = pMenu->actions();
     if (Q_UNLIKELY(m_actionIndex >= actions.size())) {
         return;
     }
@@ -200,32 +200,24 @@ ActionsInfo::Iterator ActionsInfo::end() const
     return Iterator(m_menus.size(), 0, *this);
 }
 
-ActionsInfo::ActionInfo::ActionInfo() :
-    m_name(),
-    m_localizedName(),
-    m_context(),
-    m_shortcutKey(-1),
-    m_nonStandardShortcutKey(),
-    m_shortcut()
-{}
-
 QTextStream & ActionsInfo::ActionInfo::print(QTextStream & strm) const
 {
     strm << "ActionInfo: name = " << m_name
-         << ", localized name = " << m_localizedName
-         << ", context = " << m_context
-         << ", shortcut key = " << m_shortcutKey
-         << ", non-standard shortcut key = "
-         << m_nonStandardShortcutKey
-         << ", shortcut = "
-         << m_shortcut.toString(QKeySequence::PortableText);
+        << ", localized name = " << m_localizedName
+        << ", context = " << m_context
+        << ", shortcut key = " << m_shortcutKey
+        << ", non-standard shortcut key = "
+        << m_nonStandardShortcutKey
+        << ", shortcut = "
+        << m_shortcut.toString(QKeySequence::PortableText);
+
     return strm;
 }
 
 bool ActionsInfo::ActionInfo::isEmpty() const
 {
     return m_name.isEmpty() || m_context.isEmpty() ||
-           (m_shortcutKey < 0 && m_nonStandardShortcutKey.isEmpty());
+        (m_shortcutKey < 0 && m_nonStandardShortcutKey.isEmpty());
 }
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,25 +36,25 @@ AsyncFileWriter::AsyncFileWriter(
 
 void AsyncFileWriter::run()
 {
-    QNDEBUG("AsyncFileWriter::run: file path = " << m_filePath);
+    QNDEBUG("utility", "AsyncFileWriter::run: file path = " << m_filePath);
 
     QFile file(m_filePath);
     if (!file.open(QIODevice::WriteOnly)) {
         ErrorString error(QT_TR_NOOP("can't open file for writing"));
         error.details() = file.errorString();
-        QNWARNING(error);
+        QNWARNING("utility", error);
         Q_EMIT fileWriteFailed(error);
     }
 
     qint64 dataSize = static_cast<qint64>(m_dataToWrite.size());
     qint64 bytesWritten = file.write(m_dataToWrite);
     if (bytesWritten != dataSize) {
-        QNDEBUG("Couldn't write the entire file: expected "
-                << dataSize << ", got only " << bytesWritten);
+        QNDEBUG("utility", "Couldn't write the entire file: expected "
+            << dataSize << ", got only " << bytesWritten);
         Q_EMIT fileWriteIncomplete(bytesWritten, dataSize);
     }
     else {
-        QNDEBUG("Successfully written the file");
+        QNDEBUG("utility", "Successfully written the file");
         Q_EMIT fileSuccessfullyWritten(m_filePath);
     }
 }

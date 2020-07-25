@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,19 +20,19 @@
 
 #include <VersionInfo.h>
 
-#include <quentier/utility/VersionInfo.h>
 #include <quentier/utility/Macros.h>
+#include <quentier/utility/VersionInfo.h>
 
 namespace quentier {
 
 QString quentierVersion()
 {
     return QStringLiteral("Quentier ") +
-           QStringLiteral(QUENTIER_MAJOR_VERSION) +
-           QStringLiteral(".") +
-           QStringLiteral(QUENTIER_MINOR_VERSION) +
-           QStringLiteral(".") +
-           QStringLiteral(QUENTIER_PATCH_VERSION);
+        QStringLiteral(QUENTIER_MAJOR_VERSION) +
+        QStringLiteral(".") +
+        QStringLiteral(QUENTIER_MINOR_VERSION) +
+        QStringLiteral(".") +
+        QStringLiteral(QUENTIER_PATCH_VERSION);
 }
 
 QString quentierBuildInfo()
@@ -43,14 +43,14 @@ QString quentierBuildInfo()
 QString libquentierBuildTimeInfo()
 {
     QString info = QStringLiteral(QUENTIER_LIBQUENTIER_BINARY_NAME) +
-                   QStringLiteral("; version ") +
-                   QString::number(LIB_QUENTIER_VERSION_MAJOR) +
-                   QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_MINOR) +
-                   QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_PATCH) +
-                   QStringLiteral(", build info: ") +
-                   QStringLiteral(LIB_QUENTIER_BUILD_INFO) +
-                   QStringLiteral(", built with Qt ") +
-                   quentier::libquentierBuiltWithQtVersion();
+        QStringLiteral("; version ") +
+        QString::number(LIB_QUENTIER_VERSION_MAJOR) +
+        QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_MINOR) +
+        QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_PATCH) +
+        QStringLiteral(", build info: ") +
+        QStringLiteral(LIB_QUENTIER_BUILD_INFO) +
+        QStringLiteral(", built with Qt ") +
+        quentier::libquentierBuiltWithQtVersion();
 
 #if LIB_QUENTIER_USE_QT_WEB_ENGINE
     info += QStringLiteral("; uses QtWebEngine");
@@ -62,15 +62,15 @@ QString libquentierBuildTimeInfo()
 QString libquentierRuntimeInfo()
 {
     QString info = QStringLiteral("version ") +
-                   QString::number(quentier::libquentierVersionMajor()) +
-                   QStringLiteral(".") +
-                   QString::number(quentier::libquentierVersionMinor()) +
-                   QStringLiteral(".") +
-                   QString::number(quentier::libquentierVersionPatch()) +
-                   QStringLiteral(", build info: ") +
-                   quentier::libquentierBuildInfo() +
-                   QStringLiteral(", built with Qt ") +
-                   quentier::libquentierBuiltWithQtVersion();
+        QString::number(quentier::libquentierVersionMajor()) +
+        QStringLiteral(".") +
+        QString::number(quentier::libquentierVersionMinor()) +
+        QStringLiteral(".") +
+        QString::number(quentier::libquentierVersionPatch()) +
+        QStringLiteral(", build info: ") +
+        quentier::libquentierBuildInfo() +
+        QStringLiteral(", built with Qt ") +
+        quentier::libquentierBuiltWithQtVersion();
 
     if (quentier::libquentierUsesQtWebEngine()) {
         info += QStringLiteral("; uses QtWebEngine");
