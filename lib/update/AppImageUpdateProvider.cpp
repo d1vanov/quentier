@@ -51,10 +51,10 @@ bool AppImageUpdateProvider::inProgress()
 
 void AppImageUpdateProvider::run()
 {
-    QNDEBUG("AppImageUpdateProvider::run");
+    QNDEBUG("update", "AppImageUpdateProvider::run");
 
     if (m_pDeltaRevisioner) {
-        QNDEBUG("Update is already running");
+        QNDEBUG("update", "Update is already running");
         return;
     }
 
@@ -95,7 +95,7 @@ void AppImageUpdateProvider::run()
 
 void AppImageUpdateProvider::cancel()
 {
-    QNDEBUG("AppImageUpdateProvider::cancel");
+    QNDEBUG("update", "AppImageUpdateProvider::cancel");
 
     recycleDeltaRevisioner();
     Q_EMIT cancelled();
@@ -103,13 +103,13 @@ void AppImageUpdateProvider::cancel()
 
 void AppImageUpdateProvider::onStarted()
 {
-    QNDEBUG("AppImageUpdateProvider::onStarted");
+    QNDEBUG("update", "AppImageUpdateProvider::onStarted");
 }
 
 void AppImageUpdateProvider::onFinished(
     QJsonObject newVersionDetails, QString oldVersionPath)
 {
-    QNDEBUG("AppImageUpdateProvider::onFinished: old version path = "
+    QNDEBUG("update", "AppImageUpdateProvider::onFinished: old version path = "
         << oldVersionPath << ", new version details = "
         << newVersionDetails);
 
@@ -147,8 +147,8 @@ void AppImageUpdateProvider::onError(qint16 errorCode)
 {
     auto errorDescription = AppImageUpdaterBridge::errorCodeToString(errorCode);
 
-    QNDEBUG("AppImageUpdateProvider::onError: error code = " << errorCode
-        << ": " << errorDescription);
+    QNDEBUG("update", "AppImageUpdateProvider::onError: error code = "
+        << errorCode << ": " << errorDescription);
 
     ErrorString error(QT_TR_NOOP("Failed to update AppImage"));
     error.details() = errorDescription;
@@ -166,7 +166,7 @@ void AppImageUpdateProvider::onProgress(
     int percentage, qint64 bytesReceived, qint64 bytesTotal,
     double indeterminateSpeed, QString speedUnits)
 {
-    QNDEBUG("AppImageUpdateProvider::onProgress: percentage = "
+    QNDEBUG("update", "AppImageUpdateProvider::onProgress: percentage = "
         << percentage << ", bytes received = " << bytesReceived
         << ", bytes total = " << bytesTotal << ", indeterminate speed = "
         << indeterminateSpeed << " " << speedUnits);
@@ -187,13 +187,13 @@ void AppImageUpdateProvider::onLogEntry(QString message, QString appImagePath)
 {
     message = message.trimmed();
     if (message.startsWith(QStringLiteral("FATAL"))) {
-        QNERROR("[" << appImagePath << "]: " << message);
+        QNERROR("update", "[" << appImagePath << "]: " << message);
     }
     else if (message.startsWith(QStringLiteral("WARNING"))) {
-        QNWARNING("[" << appImagePath << "]: " << message);
+        QNWARNING("update", "[" << appImagePath << "]: " << message);
     }
     else {
-        QNDEBUG("[" << appImagePath << "]: " << message);
+        QNDEBUG("update", "[" << appImagePath << "]: " << message);
     }
 }
 
@@ -201,7 +201,7 @@ bool AppImageUpdateProvider::replaceAppImage(
     QString oldVersionPath, QString newVersionPath,
     ErrorString errorDescription)
 {
-    QNDEBUG("AppImageUpdateProvider::replaceAppImage");
+    QNDEBUG("update", "AppImageUpdateProvider::replaceAppImage");
 
     QString oldVersionBackupPath = oldVersionPath + QStringLiteral(".bak");
 
@@ -218,7 +218,7 @@ bool AppImageUpdateProvider::replaceAppImage(
                                    "backup"));
 
                     errorDescription.details() = oldVersionBackupPath;
-                    QNWARNING(errorDescription);
+                    QNWARNING("update", errorDescription);
                     return false;
                 }
             }
@@ -250,7 +250,7 @@ bool AppImageUpdateProvider::replaceAppImage(
         errorDescription.appendBase(error.base());
         errorDescription.appendBase(error.additionalBases());
         errorDescription.details() = error.details();
-        QNWARNING(errorDescription);
+        QNWARNING("update", errorDescription);
         return false;
     }
 
@@ -265,12 +265,12 @@ bool AppImageUpdateProvider::replaceAppImage(
         errorDescription.appendBase(error.base());
         errorDescription.appendBase(error.additionalBases());
         errorDescription.details() = error.details();
-        QNWARNING(errorDescription);
+        QNWARNING("update", errorDescription);
 
         // Best effort undo: try to restore the backup
         error.clear();
         if (!renameFile(oldVersionBackupPath, oldVersionPath, error)) {
-            QNWARNING("Failed to restore AppImage from backup: "
+            QNWARNING("update", "Failed to restore AppImage from backup: "
                 << error << "; backup path: " << oldVersionBackupPath);
         }
 
@@ -287,7 +287,7 @@ bool AppImageUpdateProvider::replaceAppImage(
 
 void AppImageUpdateProvider::recycleDeltaRevisioner()
 {
-    QNDEBUG("AppImageUpdateProvider::recycleDeltaRevisioner");
+    QNDEBUG("update", "AppImageUpdateProvider::recycleDeltaRevisioner");
 
     m_pDeltaRevisioner->disconnect(this);
     m_pDeltaRevisioner->deleteLater();

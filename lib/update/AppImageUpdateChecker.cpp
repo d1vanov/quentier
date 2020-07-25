@@ -36,10 +36,10 @@ AppImageUpdateChecker::~AppImageUpdateChecker() = default;
 
 void AppImageUpdateChecker::checkForUpdates()
 {
-    QNDEBUG("AppImageUpdateChecker::checkForUpdates");
+    QNDEBUG("update", "AppImageUpdateChecker::checkForUpdates");
 
     if (m_pDeltaRevisioner) {
-        QNDEBUG("Checking for updates is already in progress");
+        QNDEBUG("update", "Checking for updates is already in progress");
         return;
     }
 
@@ -69,8 +69,9 @@ void AppImageUpdateChecker::checkForUpdates()
 void AppImageUpdateChecker::onCheckForUpdatesReady(
     bool ready, QJsonObject updateInfo)
 {
-    QNDEBUG("AppImageUpdateChecker::onCheckForUpdatesReady: updates available = "
-        << (ready ? "true" : "false") << ", update info: " << updateInfo);
+    QNDEBUG("update", "AppImageUpdateChecker::onCheckForUpdatesReady: updates "
+        << "available = " << (ready ? "true" : "false") << ", update info: "
+        << updateInfo);
 
     m_pDeltaRevisioner->deleteLater();
     Q_UNUSED(m_pDeltaRevisioner.release());
@@ -88,8 +89,8 @@ void AppImageUpdateChecker::onCheckForUpdatesError(qint16 errorCode)
 {
     auto errorDescription = AppImageUpdaterBridge::errorCodeToString(errorCode);
 
-    QNWARNING("AppImageUpdateChecker::onCheckForUpdatesError: error code = "
-        << errorCode << ": " << errorDescription);
+    QNWARNING("update", "AppImageUpdateChecker::onCheckForUpdatesError: "
+        << "error code = " << errorCode << ": " << errorDescription);
 
     ErrorString error(QT_TR_NOOP("Failed to check for AppImage updates"));
     error.details() = errorDescription;
@@ -101,13 +102,13 @@ void AppImageUpdateChecker::onLogEntry(QString message, QString appImagePath)
 {
     message = message.trimmed();
     if (message.startsWith(QStringLiteral("FATAL"))) {
-        QNERROR("[" << appImagePath << "]: " << message);
+        QNERROR("update", "[" << appImagePath << "]: " << message);
     }
     else if (message.startsWith(QStringLiteral("WARNING"))) {
-        QNWARNING("[" << appImagePath << "]: " << message);
+        QNWARNING("update", "[" << appImagePath << "]: " << message);
     }
     else {
-        QNDEBUG("[" << appImagePath << "]: " << message);
+        QNDEBUG("update", "[" << appImagePath << "]: " << message);
     }
 }
 
