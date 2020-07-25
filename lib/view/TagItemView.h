@@ -131,10 +131,10 @@ private:
     bool shouldFilterBySelectedTag(const Account & account) const;
 
 private:
-    QMenu *     m_pTagItemContextMenu;
-    bool        m_trackingTagItemsState;
-    bool        m_trackingSelection;
-    bool        m_modelReady;
+    QMenu *     m_pTagItemContextMenu = nullptr;
+    bool        m_trackingTagItemsState = false;
+    bool        m_trackingSelection = false;
+    bool        m_modelReady = false;
 
     QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
 

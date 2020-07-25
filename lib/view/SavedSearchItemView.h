@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -92,9 +92,9 @@ private:
     void postProcessSavedSearchModelChange();
 
 private:
-    QMenu *     m_pSavedSearchItemContextMenu;
-    bool        m_trackingSelection;
-    bool        m_modelReady;
+    QMenu *     m_pSavedSearchItemContextMenu = nullptr;
+    bool        m_trackingSelection = false;
+    bool        m_modelReady = false;
 };
 
 } // namespace quentier

@@ -52,7 +52,7 @@
 #define REPORT_ERROR(error)                                                    \
     {                                                                          \
         ErrorString errorToReport(error);                                      \
-        QNWARNING(errorToReport);                                              \
+        QNWARNING("view:notebook", errorToReport);                             \
         Q_EMIT notifyError(errorToReport);                                     \
     }                                                                          \
 // REPORT_ERROR
@@ -113,12 +113,12 @@ NotebookItemView::NotebookItemView(QWidget * parent) :
 void NotebookItemView::setNoteFiltersManager(
     NoteFiltersManager & noteFiltersManager)
 {
-    QNDEBUG("NotebookItemView::setNoteFiltersManager");
+    QNDEBUG("view:notebook", "NotebookItemView::setNoteFiltersManager");
 
     if (!m_pNoteFiltersManager.isNull())
     {
         if (m_pNoteFiltersManager.data() == &noteFiltersManager) {
-            QNDEBUG("Already using this note filters manager");
+            QNDEBUG("view:notebook", "Already using this note filters manager");
             return;
         }
 
@@ -131,7 +131,7 @@ void NotebookItemView::setNoteFiltersManager(
 
 void NotebookItemView::setModel(QAbstractItemModel * pModel)
 {
-    QNDEBUG("NotebookItemView::setModel");
+    QNDEBUG("view:notebook", "NotebookItemView::setModel");
 
     auto * pPreviousModel = qobject_cast<NotebookModel*>(model());
     if (pPreviousModel) {
@@ -145,7 +145,8 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(pModel);
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model has been set to the notebook view");
+        QNDEBUG("view:notebook", "Non-notebook model has been set to "
+            << "the notebook view");
         ItemView::setModel(pModel);
         return;
     }
@@ -208,7 +209,7 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
     if (pNotebookModel->allNotebooksListed())
     {
-        QNDEBUG("All notebooks are already listed within "
+        QNDEBUG("view:notebook", "All notebooks are already listed within "
             << "the model, need to select the appropriate one");
 
         restoreNotebookModelItemsState(*pNotebookModel);
@@ -234,24 +235,24 @@ void NotebookItemView::setNoteModel(const NoteModel * pNoteModel)
 
 QModelIndex NotebookItemView::currentlySelectedItemIndex() const
 {
-    QNDEBUG("NotebookItemView::currentlySelectedItemIndex");
+    QNDEBUG("view:notebook", "NotebookItemView::currentlySelectedItemIndex");
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
-        return QModelIndex();
+        QNDEBUG("view:notebook", "Non-notebook model is used");
+        return {};
     }
 
     auto * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        QNDEBUG("No selection model in the view");
-        return QModelIndex();
+        QNDEBUG("view:notebook", "No selection model in the view");
+        return {};
     }
 
     auto indexes = selectedIndexes();
     if (indexes.isEmpty()) {
-        QNDEBUG("The selection contains no model indexes");
-        return QModelIndex();
+        QNDEBUG("view:notebook", "The selection contains no model indexes");
+        return {};
     }
 
     return singleRow(
@@ -262,18 +263,18 @@ QModelIndex NotebookItemView::currentlySelectedItemIndex() const
 
 void NotebookItemView::deleteSelectedItem()
 {
-    QNDEBUG("NotebookItemView::deleteSelectedItem");
+    QNDEBUG("view:notebook", "NotebookItemView::deleteSelectedItem");
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
     auto indexes = selectedIndexes();
     if (indexes.isEmpty())
     {
-        QNDEBUG("No notebooks are selected, nothing to deete");
+        QNDEBUG("view:notebook", "No notebooks are selected, nothing to deete");
 
         Q_UNUSED(informationMessageBox(
             this,
@@ -284,14 +285,15 @@ void NotebookItemView::deleteSelectedItem()
         return;
     }
 
-    QModelIndex index = singleRow(
+    auto index = singleRow(
         indexes,
         *pNotebookModel,
         static_cast<int>(NotebookModel::Column::Name));
 
     if (!index.isValid())
     {
-        QNDEBUG("Not exactly one notebook within the selection");
+        QNDEBUG("view:notebook", "Not exactly one notebook within "
+            << "the selection");
 
         Q_UNUSED(informationMessageBox(
             this,
@@ -307,12 +309,13 @@ void NotebookItemView::deleteSelectedItem()
 
 void NotebookItemView::onAllNotebooksListed()
 {
-    QNDEBUG("NotebookItemView::onAllNotebooksListed");
+    QNDEBUG("view:notebook", "NotebookItemView::onAllNotebooksListed");
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        REPORT_ERROR(QT_TR_NOOP("Can't cast the model set to the notebook item "
-                                "view to the notebook model"))
+        REPORT_ERROR(
+            QT_TR_NOOP("Can't cast the model set to the notebook item view to "
+                       "the notebook model"))
         return;
     }
 
@@ -332,13 +335,13 @@ void NotebookItemView::onAllNotebooksListed()
 
 void NotebookItemView::onAboutToAddNotebook()
 {
-    QNDEBUG("NotebookItemView::onAboutToAddNotebook");
+    QNDEBUG("view:notebook", "NotebookItemView::onAboutToAddNotebook");
     prepareForNotebookModelChange();
 }
 
 void NotebookItemView::onAddedNotebook(const QModelIndex & index)
 {
-    QNDEBUG("NotebookItemView::onAddedNotebook");
+    QNDEBUG("view:notebook", "NotebookItemView::onAddedNotebook");
 
     Q_UNUSED(index)
     postProcessNotebookModelChange();
@@ -346,7 +349,7 @@ void NotebookItemView::onAddedNotebook(const QModelIndex & index)
 
 void NotebookItemView::onAboutToUpdateNotebook(const QModelIndex & index)
 {
-    QNDEBUG("NotebookItemView::onAboutToUpdateNotebook");
+    QNDEBUG("view:notebook", "NotebookItemView::onAboutToUpdateNotebook");
 
     Q_UNUSED(index)
     prepareForNotebookModelChange();
@@ -354,7 +357,7 @@ void NotebookItemView::onAboutToUpdateNotebook(const QModelIndex & index)
 
 void NotebookItemView::onUpdatedNotebook(const QModelIndex & index)
 {
-    QNDEBUG("NotebookItemView::onUpdatedNotebook");
+    QNDEBUG("view:notebook", "NotebookItemView::onUpdatedNotebook");
 
     Q_UNUSED(index)
     postProcessNotebookModelChange();
@@ -362,25 +365,25 @@ void NotebookItemView::onUpdatedNotebook(const QModelIndex & index)
 
 void NotebookItemView::onAboutToRemoveNotebooks()
 {
-    QNDEBUG("NotebookItemView::onAboutToRemoveNotebooks");
+    QNDEBUG("view:notebook", "NotebookItemView::onAboutToRemoveNotebooks");
     prepareForNotebookModelChange();
 }
 
 void NotebookItemView::onRemovedNotebooks()
 {
-    QNDEBUG("NotebookItemView::onRemovedNotebooks");
+    QNDEBUG("view:notebook", "NotebookItemView::onRemovedNotebooks");
     postProcessNotebookModelChange();
 }
 
 void NotebookItemView::onCreateNewNotebookAction()
 {
-    QNDEBUG("NotebookItemView::onCreateNewNotebookAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onCreateNewNotebookAction");
     Q_EMIT newNotebookCreationRequested();
 }
 
 void NotebookItemView::onRenameNotebookAction()
 {
-    QNDEBUG("NotebookItemView::onRenameNotebookAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onRenameNotebookAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't rename notebook"));
     FETCH_ITEM_DATA(errorPrefix)
@@ -389,7 +392,7 @@ void NotebookItemView::onRenameNotebookAction()
 
 void NotebookItemView::onDeleteNotebookAction()
 {
-    QNDEBUG("NotebookItemView::onDeleteNotebookAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onDeleteNotebookAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't delete notebook"));
     FETCH_ITEM_DATA(errorPrefix)
@@ -398,7 +401,7 @@ void NotebookItemView::onDeleteNotebookAction()
 
 void NotebookItemView::onSetNotebookDefaultAction()
 {
-    QNDEBUG("NotebookItemView::onSetNotebookDefaultAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onSetNotebookDefaultAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't set notebook as default"));
     FETCH_ITEM_DATA(errorPrefix)
@@ -410,7 +413,7 @@ void NotebookItemView::onSetNotebookDefaultAction()
 
     bool res = itemData.m_pModel->setData(itemIndex, true);
     if (res) {
-        QNDEBUG("Successfully set the notebook as default");
+        QNDEBUG("view:notebook", "Successfully set the notebook as default");
         return;
     }
 
@@ -423,13 +426,13 @@ void NotebookItemView::onSetNotebookDefaultAction()
 
 void NotebookItemView::onShowNotebookInfoAction()
 {
-    QNDEBUG("NotebookItemView::onShowNotebookInfoAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onShowNotebookInfoAction");
     Q_EMIT notebookInfoRequested();
 }
 
 void NotebookItemView::onEditNotebookAction()
 {
-    QNDEBUG("NotebookItemView::onEditNotebookAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onEditNotebookAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't edit notebook"));
     FETCH_ITEM_DATA(errorPrefix)
@@ -445,23 +448,23 @@ void NotebookItemView::onEditNotebookAction()
 
 void NotebookItemView::onMoveNotebookToStackAction()
 {
-    QNDEBUG("NotebookItemView::onMoveNotebookToStackAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onMoveNotebookToStackAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't move notebook to stack"));
     FETCH_STACK_DATA(errorPrefix)
 
-    QModelIndex itemIndex = stackData.m_pModel->indexForLocalUid(stackData.m_id);
+    auto itemIndex = stackData.m_pModel->indexForLocalUid(stackData.m_id);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't move notebook to stack, "
-                                "can't get valid model index for notebook's "
-                                "local uid"))
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: can't move notebook to stack, can't "
+                       "get valid model index for notebook's local uid"))
         return;
     }
 
     bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
 
-    QModelIndex index = stackData.m_pModel->moveToStack(
+    auto index = stackData.m_pModel->moveToStack(
         itemIndex,
         stackData.m_stack);
 
@@ -472,19 +475,22 @@ void NotebookItemView::onMoveNotebookToStackAction()
         return;
     }
 
-    QNDEBUG("Successfully moved the notebook item to the target stack");
+    QNDEBUG("view:notebook", "Successfully moved the notebook item to "
+        << "the target stack");
 }
 
 void NotebookItemView::onRemoveNotebookFromStackAction()
 {
-    QNDEBUG("NotebookItemView::onRemoveNotebookFromStackAction");
+    QNDEBUG(
+        "view:notebook",
+        "NotebookItemView::onRemoveNotebookFromStackAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't remove notebook from stack"));
     FETCH_ITEM_DATA(errorPrefix)
 
     bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
-    QModelIndex index = itemData.m_pModel->removeFromStack(itemData.m_index);
+    auto index = itemData.m_pModel->removeFromStack(itemData.m_index);
     m_trackingSelection = wasTrackingSelection;
 
     if (!index.isValid()) {
@@ -492,12 +498,13 @@ void NotebookItemView::onRemoveNotebookFromStackAction()
         return;
     }
 
-    QNDEBUG("Successfully removed the notebook item from its stack");
+    QNDEBUG("view:notebook", "Successfully removed the notebook item from its "
+        << "stack");
 }
 
 void NotebookItemView::onRenameNotebookStackAction()
 {
-    QNDEBUG("NotebookItemView::onRenameNotebookStackAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onRenameNotebookStackAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't rename notebook stack"));
     FETCH_STACK_DATA(errorPrefix)
@@ -520,7 +527,9 @@ void NotebookItemView::onRenameNotebookStackAction()
 
 void NotebookItemView::onRemoveNotebooksFromStackAction()
 {
-    QNDEBUG("NotebookItemView::onRemoveNotebooksFromStackAction");
+    QNDEBUG(
+        "view:notebook",
+        "NotebookItemView::onRemoveNotebooksFromStackAction");
 
     ErrorString errorPrefix(QT_TR_NOOP("Can't remove notebooks from stack"));
     FETCH_STACK_DATA(errorPrefix)
@@ -532,7 +541,8 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
             stackData.m_id);
 
         if (!notebookStackItemIndex.isValid()) {
-            QNDEBUG("Notebook stack item index is invalid, breaking the loop");
+            QNDEBUG("view:notebook", "Notebook stack item index is invalid, "
+                << "breaking the loop");
             break;
         }
 
@@ -541,7 +551,7 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
             static_cast<int>(NotebookModel::Column::Name));
 
         if (!childIndex.isValid()) {
-            QNDEBUG("Detected invalid child item index for "
+            QNDEBUG("view:notebook", "Detected invalid child item index for "
                 << "the notebook stack item, breaking the loop");
             break;
         }
@@ -552,17 +562,19 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
         m_trackingSelection = wasTrackingSelection;
     }
 
-    QNDEBUG("Successfully removed notebook items from the stack");
+    QNDEBUG("view:notebook", "Successfully removed notebook items from "
+        << "the stack");
 }
 
 void NotebookItemView::onFavoriteAction()
 {
-    QNDEBUG("NotebookItemView::onFavoriteAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onFavoriteAction");
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
+    auto * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't favorite notebook, "
-                                "can't cast the slot invoker to QAction"))
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: can't favorite notebook, can't cast "
+                       "the slot invoker to QAction"))
         return;
     }
 
@@ -571,12 +583,13 @@ void NotebookItemView::onFavoriteAction()
 
 void NotebookItemView::onUnfavoriteAction()
 {
-    QNDEBUG("NotebookItemView::onUnfavoriteAction");
+    QNDEBUG("view:notebook", "NotebookItemView::onUnfavoriteAction");
 
-    QAction * pAction = qobject_cast<QAction*>(sender());
+    auto * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't unfavorite notebook, "
-                                "can't cast the slot invoker to QAction"))
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: can't unfavorite notebook, can't cast "
+                       "the slot invoker to QAction"))
         return;
     }
 
@@ -586,17 +599,18 @@ void NotebookItemView::onUnfavoriteAction()
 void NotebookItemView::onNotebookModelItemCollapsedOrExpanded(
     const QModelIndex & index)
 {
-    QNTRACE("NotebookItemView::onNotebookModelItemCollapsedOrExpanded: "
-        << "index: valid = "
-        << (index.isValid() ? "true" : "false")
-        << ", row = " << index.row() << ", column = " << index.column()
-        << ", parent: valid = "
-        << (index.parent().isValid() ? "true" : "false")
-        << ", row = " << index.parent().row()
-        << ", column = " << index.parent().column());
+    QNTRACE(
+        "view:notebook",
+        "NotebookItemView::onNotebookModelItemCollapsedOrExpanded: "
+            << "index: valid = " << (index.isValid() ? "true" : "false")
+            << ", row = " << index.row() << ", column = " << index.column()
+            << ", parent: valid = "
+            << (index.parent().isValid() ? "true" : "false")
+            << ", row = " << index.parent().row()
+            << ", column = " << index.parent().column());
 
     if (!m_trackingNotebookModelItemsState) {
-        QNDEBUG("Not tracking the expanded/collapsed state of "
+        QNDEBUG("view:notebook", "Not tracking the expanded/collapsed state of "
             << "notebook model items at the moment");
         return;
     }
@@ -608,15 +622,15 @@ void NotebookItemView::onNotebookStackRenamed(
     const QString & previousStackName, const QString & newStackName,
     const QString & linkedNotebookGuid)
 {
-    QNDEBUG("NotebookItemView::onNotebookStackRenamed: "
+    QNDEBUG("view:notebook", "NotebookItemView::onNotebookStackRenamed: "
         << "previous stack name = " << previousStackName
         << ", new stack name = " << newStackName
         << ", linked notebook guid = " << linkedNotebookGuid);
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNWARNING("Received notebook stack item rename event but "
-            << "can't cast the model to the notebook one");
+        QNWARNING("view:notebook", "Received notebook stack item rename event "
+            << "but can't cast the model to the notebook one");
         return;
     }
 
@@ -635,7 +649,7 @@ void NotebookItemView::onNotebookStackRenamed(
 
     int previousStackIndex = expandedStacks.indexOf(previousStackName);
     if (previousStackIndex < 0) {
-        QNDEBUG("The renamed stack item hasn't been expanded");
+        QNDEBUG("view:notebook", "The renamed stack item hasn't been expanded");
     }
     else {
         expandedStacks.replace(previousStackIndex, newStackName);
@@ -648,16 +662,16 @@ void NotebookItemView::onNotebookStackRenamed(
         linkedNotebookGuid);
 
     if (Q_UNLIKELY(!newStackItemIndex.isValid())) {
-        QNWARNING("Can't select the just renamed notebook stack: "
-            << "notebook model returned invalid index for "
-            << "the new notebook stack name");
+        QNWARNING("view:notebook", "Can't select the just renamed notebook "
+            << "stack: notebook model returned invalid index for the new "
+            << "notebook stack name");
         return;
     }
 
     auto * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        QNWARNING("Can't select the just renamed notebook stack: "
-            << "no selection model in the view");
+        QNWARNING("view:notebook", "Can't select the just renamed notebook "
+            << "stack: no selection model in the view");
         return;
     }
 
@@ -670,13 +684,13 @@ void NotebookItemView::onNotebookStackRenamed(
 
 void NotebookItemView::onNotebookStackChanged(const QModelIndex & index)
 {
-    QNDEBUG("NotebookItemView::onNotebookStackChanged");
+    QNDEBUG("view:notebook", "NotebookItemView::onNotebookStackChanged");
 
     Q_UNUSED(index)
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
@@ -686,27 +700,27 @@ void NotebookItemView::onNotebookStackChanged(const QModelIndex & index)
 
 void NotebookItemView::onNoteFilterChanged()
 {
-    QNDEBUG("NotebookItemView::onNoteFilterChanged");
+    QNDEBUG("view:notebook", "NotebookItemView::onNoteFilterChanged");
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
-        QNDEBUG("Note filters manager is null");
+        QNDEBUG("view:notebook", "Note filters manager is null");
         return;
     }
 
     if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
-        QNDEBUG("Filter by search string is active");
+        QNDEBUG("view:notebook", "Filter by search string is active");
         selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
 
     if (!m_pNoteFiltersManager->savedSearchLocalUidInFilter().isEmpty()) {
-        QNDEBUG("Filter by saved search is active");
+        QNDEBUG("view:notebook", "Filter by saved search is active");
         selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
@@ -715,15 +729,16 @@ void NotebookItemView::onNoteFilterChanged()
         m_pNoteFiltersManager->notebookLocalUidsInFilter();
 
     if (notebookLocalUids.size() != 1) {
-        QNDEBUG("Not exactly one notebook local uid is within the filter: "
-            << notebookLocalUids.join(QStringLiteral(", ")));
+        QNDEBUG("view:notebook", "Not exactly one notebook local uid is within "
+            << "the filter: " << notebookLocalUids.join(QStringLiteral(", ")));
         selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
 
     auto notebookIndex = pNotebookModel->indexForLocalUid(notebookLocalUids[0]);
     if (Q_UNLIKELY(!notebookIndex.isValid())) {
-        QNWARNING("The filtered notebook local uid's index is invalid");
+        QNWARNING("view:notebook", "The filtered notebook local uid's index is "
+            << "invalid");
         selectAllNotebooksRootItem(*pNotebookModel);
         return;
     }
@@ -733,10 +748,10 @@ void NotebookItemView::onNoteFilterChanged()
 
 void NotebookItemView::onNoteFiltersManagerReady()
 {
-    QNDEBUG("NotebookItemView::onNoteFiltersManagerReady");
+    QNDEBUG("view:notebook", "NotebookItemView::onNoteFiltersManagerReady");
 
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
-        QNDEBUG("Note filters manager is null");
+        QNDEBUG("view:notebook", "Note filters manager is null");
         return;
     }
 
@@ -753,7 +768,7 @@ void NotebookItemView::onNoteFiltersManagerReady()
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
@@ -773,7 +788,7 @@ void NotebookItemView::onNoteFiltersManagerReady()
 void NotebookItemView::selectionChanged(
     const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNDEBUG("NotebookItemView::selectionChanged");
+    QNDEBUG("view:notebook", "NotebookItemView::selectionChanged");
 
     selectionChangedImpl(selected, deselected);
     ItemView::selectionChanged(selected, deselected);
@@ -781,33 +796,35 @@ void NotebookItemView::selectionChanged(
 
 void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 {
-    QNDEBUG("NotebookItemView::contextMenuEvent");
+    QNDEBUG("view:notebook", "NotebookItemView::contextMenuEvent");
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING("Detected Qt error: notebook item view received "
-            << "context menu event with null pointer "
-            << "to the context menu event");
+        QNWARNING("view:notebook", "Detected Qt error: notebook item view "
+            << "received context menu event with null pointer to the context "
+            << "menu event");
         return;
     }
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used, not doing anything");
+        QNDEBUG("view:notebook", "Non-notebook model is used, not doing "
+            << "anything");
         return;
     }
 
-    QModelIndex clickedItemIndex = indexAt(pEvent->pos());
+    auto clickedItemIndex = indexAt(pEvent->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        QNDEBUG("Clicked item index is not valid, not doing anything");
+        QNDEBUG("view:notebook", "Clicked item index is not valid, not doing "
+            << "anything");
         return;
     }
 
     const auto * pModelItem = pNotebookModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pModelItem)) {
         REPORT_ERROR(
-            QT_TR_NOOP("Can't show the context menu for the notebook "
-                       "model item: no item corresponding to the clicked "
-                       "item's index"))
+            QT_TR_NOOP("Can't show the context menu for the notebook model "
+                       "item: no item corresponding to the clicked item's "
+                       "index"))
         return;
     }
 
@@ -835,12 +852,13 @@ void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 void NotebookItemView::deleteItem(
     const QModelIndex & itemIndex, NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::deleteItem");
+    QNDEBUG("view:notebook", "NotebookItemView::deleteItem");
 
     const auto * pModelItem = model.itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't find the notebook model "
-                                "item meant to be deleted"))
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: can't find the notebook model "
+                       "item meant to be deleted"))
         return;
     }
 
@@ -859,13 +877,13 @@ void NotebookItemView::deleteItem(
             QMessageBox::Ok | QMessageBox::No);
 
         if (confirm != QMessageBox::Ok) {
-            QNDEBUG("Notebook deletion was not confirmed");
+            QNDEBUG("view:notebook", "Notebook deletion was not confirmed");
             return;
         }
 
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
-            QNDEBUG("Successfully deleted notebook");
+            QNDEBUG("view:notebook", "Successfully deleted notebook");
             return;
         }
 
@@ -891,13 +909,14 @@ void NotebookItemView::deleteItem(
             QMessageBox::Ok | QMessageBox::No);
 
         if (confirm != QMessageBox::Ok) {
-            QNDEBUG("Notebook stack deletion was not confirmed");
+            QNDEBUG("view:notebook", "Notebook stack deletion was not "
+                << "confirmed");
             return;
         }
 
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
-            QNDEBUG("Successfully deleted notebook stack");
+            QNDEBUG("view:notebook", "Successfully deleted notebook stack");
             return;
         }
 
@@ -913,14 +932,14 @@ void NotebookItemView::deleteItem(
             QT_TR_NOOP("Internal error: can't delete notebook(s): "
                        "found notebook model item of unknown type"))
 
-        QNWARNING(*pModelItem);
+        QNWARNING("view:notebook", *pModelItem);
     }
 }
 
 void NotebookItemView::showNotebookItemContextMenu(
     const NotebookItem & item, const QPoint & point, NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::showNotebookItemContextMenu: ("
+    QNDEBUG("view:notebook", "NotebookItemView::showNotebookItemContextMenu: ("
         << point.x() << ", " << point.y() << "), item: " << item);
 
     delete m_pNotebookItemContextMenu;
@@ -1058,8 +1077,10 @@ void NotebookItemView::showNotebookStackItemContextMenu(
     const StackItem & item, const INotebookModelItem & modelItem,
     const QPoint & point, NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::showNotebookStackItemContextMenu: ("
-        << point.x() << ", " << point.y() << ", item: " << item);
+    QNDEBUG(
+        "view:notebook",
+        "NotebookItemView::showNotebookStackItemContextMenu: ("
+            << point.x() << ", " << point.y() << ", item: " << item);
 
     delete m_pNotebookStackItemContextMenu;
     m_pNotebookStackItemContextMenu = new QMenu(this);
@@ -1101,15 +1122,16 @@ void NotebookItemView::showNotebookStackItemContextMenu(
         for(const auto * pChildItem: qAsConst(children))
         {
             if (Q_UNLIKELY(!pChildItem)) {
-                QNWARNING("Found null child at stack item: " << *pModelItem);
+                QNWARNING("view:notebook", "Found null child at stack item: "
+                    << *pModelItem);
                 continue;
             }
 
             const auto * pNotebookItem = pChildItem->cast<NotebookItem>();
             if (Q_UNLIKELY(!pNotebookItem)) {
-                QNWARNING("Found child of non-notebook type at "
-                    << "stack item: " << *pModelItem
-                    << "\nChild item: " << *pChildItem);
+                QNWARNING("view:notebook", "Found child of non-notebook type "
+                    << "at stack item: " << *pModelItem << "\nChild item: "
+                    << *pChildItem);
                 continue;
             }
 
@@ -1149,11 +1171,11 @@ void NotebookItemView::showNotebookStackItemContextMenu(
 
 void NotebookItemView::saveNotebookModelItemsState()
 {
-    QNDEBUG("NotebookItemView::saveNotebookModelItemsState");
+    QNDEBUG("view:notebook", "NotebookItemView::saveNotebookModelItemsState");
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
@@ -1169,9 +1191,9 @@ void NotebookItemView::saveNotebookModelItemsState()
 
         const auto * pModelItem = pNotebookModel->itemForIndex(index);
         if (Q_UNLIKELY(!pModelItem)) {
-            QNWARNING("Can't save the state of notebook stack expanded/folded "
-                << "state: no notebook model item corresponding to the "
-                << "persistent notebook model index");
+            QNWARNING("view:notebook", "Can't save the state of notebook stack "
+                << "expanded/folded state: no notebook model item "
+                << "corresponding to the persistent notebook model index");
             continue;
         }
 
@@ -1186,10 +1208,12 @@ void NotebookItemView::saveNotebookModelItemsState()
             QString linkedNotebookGuid;
             const auto * pParentItem = pModelItem->parent();
             if (pParentItem &&
-                (pParentItem->type() == INotebookModelItem::Type::LinkedNotebook))
+                (pParentItem->type() ==
+                 INotebookModelItem::Type::LinkedNotebook))
             {
                 auto * pLinkedNotebookItem =
                     pParentItem->cast<LinkedNotebookRootItem>();
+
                 if (pLinkedNotebookItem) {
                     linkedNotebookGuid =
                         pLinkedNotebookItem->linkedNotebookGuid();
@@ -1198,12 +1222,14 @@ void NotebookItemView::saveNotebookModelItemsState()
 
             const QString & stackItemName = pStackItem->name();
             if (Q_UNLIKELY(stackItemName.isEmpty())) {
-                QNDEBUG("Skipping the notebook stack item without a name");
+                QNDEBUG("view:notebook", "Skipping the notebook stack item "
+                    << "without a name");
                 continue;
             }
 
             expandedStackItemsByLinkedNotebookGuid[linkedNotebookGuid].append(
                 stackItemName);
+
             continue;
         }
 
@@ -1235,9 +1261,11 @@ void NotebookItemView::saveNotebookModelItemsState()
         else
         {
             QString key = LAST_EXPANDED_STACK_ITEMS_KEY;
+
             if (!linkedNotebookGuid.isEmpty()) {
                 key += QStringLiteral("/") + linkedNotebookGuid;
             }
+
             appSettings.setValue(key, stackItemNames);
         }
     }
@@ -1258,7 +1286,9 @@ void NotebookItemView::saveNotebookModelItemsState()
 void NotebookItemView::restoreNotebookModelItemsState(
     const NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::restoreNotebookModelItemsState");
+    QNDEBUG(
+        "view:notebook",
+        "NotebookItemView::restoreNotebookModelItemsState");
 
     const auto & linkedNotebookOwnerNamesByGuid =
         model.linkedNotebookOwnerNamesByGuid();
@@ -1266,8 +1296,8 @@ void NotebookItemView::restoreNotebookModelItemsState(
     ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("NotebookItemView"));
 
-    auto expandedStacks =
-        appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
+    auto expandedStacks = appSettings.value(
+        LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
 
     QHash<QString,QStringList> expandedStacksByLinkedNotebookGuid;
     for(const auto & it:
@@ -1323,12 +1353,12 @@ void NotebookItemView::setStacksExpanded(
     const QStringList & expandedStackNames, const NotebookModel & model,
     const QString & linkedNotebookGuid)
 {
-    QNDEBUG("NotebookItemView::setStacksExpanded: "
+    QNDEBUG("view:notebook", "NotebookItemView::setStacksExpanded: "
         << "linked notebook guid = " << linkedNotebookGuid);
 
     for(const auto & expandedStack: qAsConst(expandedStackNames))
     {
-        QModelIndex index = model.indexForNotebookStack(
+        auto index = model.indexForNotebookStack(
             expandedStack,
             linkedNotebookGuid);
 
@@ -1344,13 +1374,13 @@ void NotebookItemView::setLinkedNotebooksExpanded(
     const QStringList & expandedLinkedNotebookGuids,
     const NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::setLinkedNotebooksExpanded: "
+    QNDEBUG("view:notebook", "NotebookItemView::setLinkedNotebooksExpanded: "
         << expandedLinkedNotebookGuids.join(QStringLiteral(", ")));
 
     for(const auto & expandedLinkedNotebookGuid:
         qAsConst(expandedLinkedNotebookGuids))
     {
-        QModelIndex index = model.indexForLinkedNotebookGuid(
+        auto index = model.indexForLinkedNotebookGuid(
             expandedLinkedNotebookGuid);
 
         if (!index.isValid()) {
@@ -1364,7 +1394,7 @@ void NotebookItemView::setLinkedNotebooksExpanded(
 void NotebookItemView::saveSelectedNotebook(
     const Account & account, const QString & notebookLocalUid)
 {
-    QNDEBUG("NotebookItemView::saveSelectedNotebook: "
+    QNDEBUG("view:notebook", "NotebookItemView::saveSelectedNotebook: "
         << notebookLocalUid);
 
     ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
@@ -1376,7 +1406,7 @@ void NotebookItemView::saveSelectedNotebook(
 void NotebookItemView::restoreSelectedNotebook(
     const NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::restoreSelectedNotebook");
+    QNDEBUG("view:notebook", "NotebookItemView::restoreSelectedNotebook");
 
     auto * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -1391,7 +1421,7 @@ void NotebookItemView::restoreSelectedNotebook(
     if (shouldFilterBySelectedNotebook(model.account()))
     {
         if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
-            QNDEBUG("Note filters manager is null");
+            QNDEBUG("view:notebook", "Note filters manager is null");
             return;
         }
 
@@ -1399,14 +1429,15 @@ void NotebookItemView::restoreSelectedNotebook(
             m_pNoteFiltersManager->notebookLocalUidsInFilter();
 
         if (filteredNotebookLocalUids.isEmpty()) {
-            QNDEBUG("No notebooks within filter, selecting all notebooks "
-                << "root item");
+            QNDEBUG("view:notebook", "No notebooks within filter, selecting "
+                << "all notebooks root item");
             selectAllNotebooksRootItem(model);
             return;
         }
 
         if (filteredNotebookLocalUids.size() != 1) {
-            QNDEBUG("Not exactly one notebook local uid within filter: "
+            QNDEBUG("view:notebook", "Not exactly one notebook local uid "
+                << "within filter: "
                 << filteredNotebookLocalUids.join(QStringLiteral(",")));
             return;
         }
@@ -1424,19 +1455,20 @@ void NotebookItemView::restoreSelectedNotebook(
         appSettings.endGroup();
     }
 
-    QNTRACE("Selecting notebook local uid: " << selectedNotebookLocalUid);
+    QNTRACE("view:notebook", "Selecting notebook local uid: "
+        << selectedNotebookLocalUid);
 
     if (selectedNotebookLocalUid.isEmpty()) {
-        QNDEBUG("Found no last selected notebook local uid");
+        QNDEBUG("view:notebook", "Found no last selected notebook local uid");
         return;
     }
 
-    QModelIndex selectedNotebookIndex = model.indexForLocalUid(
+    auto selectedNotebookIndex = model.indexForLocalUid(
         selectedNotebookLocalUid);
 
     if (!selectedNotebookIndex.isValid()) {
-        QNDEBUG("Notebook model returned invalid index for the last "
-            << "selected notebook local uid");
+        QNDEBUG("view:notebook", "Notebook model returned invalid index for "
+            << "the last selected notebook local uid");
         return;
     }
 
@@ -1450,10 +1482,11 @@ void NotebookItemView::restoreSelectedNotebook(
 void NotebookItemView::selectionChangedImpl(
     const QItemSelection & selected, const QItemSelection & deselected)
 {
-    QNTRACE("NotebookItemView::selectionChangedImpl");
+    QNTRACE("view:notebook", "NotebookItemView::selectionChangedImpl");
 
     if (!m_trackingSelection) {
-        QNTRACE("Not tracking selection at this time, skipping");
+        QNTRACE("view:notebook", "Not tracking selection at this time, "
+            << "skipping");
         return;
     }
 
@@ -1461,50 +1494,53 @@ void NotebookItemView::selectionChangedImpl(
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
     auto selectedIndexes = selected.indexes();
     if (selectedIndexes.isEmpty()) {
-        QNDEBUG("The new selection is empty");
+        QNDEBUG("view:notebook", "The new selection is empty");
         handleNoSelectedNotebook(pNotebookModel->account());
         return;
     }
 
     // Need to figure out how many rows the new selection covers; if exactly 1,
     // persist this selection so that it can be resurrected on the next startup
-    QModelIndex sourceIndex = singleRow(
+    auto sourceIndex = singleRow(
         selectedIndexes,
         *pNotebookModel,
         static_cast<int>(NotebookModel::Column::Name));
 
     if (!sourceIndex.isValid()) {
-        QNDEBUG("Not exactly one row is selected");
+        QNDEBUG("view:notebook", "Not exactly one row is selected");
         handleNoSelectedNotebook(pNotebookModel->account());
         return;
     }
 
     const auto * pModelItem = pNotebookModel->itemForIndex(sourceIndex);
-    if (Q_UNLIKELY(!pModelItem)) {
+    if (Q_UNLIKELY(!pModelItem))
+    {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the notebook model "
                        "item corresponging to the selected index"))
+
         handleNoSelectedNotebook(pNotebookModel->account());
         return;
     }
 
-    QNTRACE("Currently selected notebook model item: " << *pModelItem);
+    QNTRACE("view:notebook", "Currently selected notebook model item: "
+        << *pModelItem);
 
     if (pModelItem->type() == INotebookModelItem::Type::AllNotebooksRoot) {
-        QNDEBUG("All notebooks root item has been selected");
+        QNDEBUG("view:notebook", "All notebooks root item has been selected");
         handleNoSelectedNotebook(pNotebookModel->account());
         return;
     }
 
     const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
     if (!pNotebookItem) {
-        QNDEBUG("Non-notebook item is selected");
+        QNDEBUG("view:notebook", "Non-notebook item is selected");
         handleNoSelectedNotebook(pNotebookModel->account());
         return;
     }
@@ -1515,7 +1551,8 @@ void NotebookItemView::selectionChangedImpl(
         setSelectedNotebookToNoteFiltersManager(pNotebookItem->localUid());
     }
     else {
-        QNDEBUG("Filtering by selected notebook is switched off");
+        QNDEBUG("view:notebook", "Filtering by selected notebook is switched "
+            << "off");
     }
 }
 
@@ -1530,7 +1567,7 @@ void NotebookItemView::handleNoSelectedNotebook(const Account & account)
 
 void NotebookItemView::selectAllNotebooksRootItem(const NotebookModel & model)
 {
-    QNDEBUG("NotebookItemView::selectAllNotebooksRootItem");
+    QNDEBUG("view:notebook", "NotebookItemView::selectAllNotebooksRootItem");
 
     auto * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
@@ -1558,23 +1595,25 @@ void NotebookItemView::setFavoritedFlag(
 {
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
     QString itemLocalUid = action.data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag "
-                                "for the notebook, can't get notebook's local "
-                                "uid from QAction"))
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: can't set the favorited flag "
+                       "for the notebook, can't get notebook's local "
+                       "uid from QAction"))
         return;
     }
 
     auto itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR(QT_TR_NOOP("Internal error: can't set the favorited flag "
-                                "for the notebook, the model returned invalid "
-                                "index for the notebook's local uid"))
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: can't set the favorited flag "
+                       "for the notebook, the model returned invalid "
+                       "index for the notebook's local uid"))
         return;
     }
 
@@ -1589,7 +1628,7 @@ void NotebookItemView::setFavoritedFlag(
 void NotebookItemView::prepareForNotebookModelChange()
 {
     if (!m_modelReady) {
-        QNDEBUG("The model is not ready yet");
+        QNDEBUG("view:notebook", "The model is not ready yet");
         return;
     }
 
@@ -1601,13 +1640,13 @@ void NotebookItemView::prepareForNotebookModelChange()
 void NotebookItemView::postProcessNotebookModelChange()
 {
     if (!m_modelReady) {
-        QNDEBUG("The model is not ready yet");
+        QNDEBUG("view:notebook", "The model is not ready yet");
         return;
     }
 
     auto * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return;
     }
 
@@ -1621,17 +1660,19 @@ void NotebookItemView::postProcessNotebookModelChange()
 void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
     const QString & notebookLocalUid)
 {
-    QNDEBUG("NotebookItemView::setSelectedNotebookToNoteFiltersManager: "
-        << notebookLocalUid);
+    QNDEBUG(
+        "view:notebook",
+        "NotebookItemView::setSelectedNotebookToNoteFiltersManager: "
+            << notebookLocalUid);
 
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
-        QNDEBUG("Note filters manager is null");
+        QNDEBUG("view:notebook", "Note filters manager is null");
         return;
     }
 
     if (!m_pNoteFiltersManager->isReady())
     {
-        QNDEBUG("Note filters manager is not ready yet, will "
+        QNDEBUG("view:notebook", "Note filters manager is not ready yet, will "
             << "postpone setting the notebook to it: "
             << notebookLocalUid);
 
@@ -1647,7 +1688,7 @@ void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
     }
 
     if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
-        QNDEBUG("Filter by search string is active, won't set "
+        QNDEBUG("view:notebook", "Filter by search string is active, won't set "
             << "the seleted notebook to filter");
         return;
     }
@@ -1656,7 +1697,7 @@ void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
         m_pNoteFiltersManager->savedSearchLocalUidInFilter();
 
     if (!savedSearchLocalUidInFilter.isEmpty()) {
-        QNDEBUG("Filter by saved search is active, won't set "
+        QNDEBUG("view:notebook", "Filter by saved search is active, won't set "
             << "the selected notebook to filter");
         return;
     }
@@ -1668,16 +1709,18 @@ void NotebookItemView::setSelectedNotebookToNoteFiltersManager(
 
 void NotebookItemView::clearNotebooksFromNoteFiltersManager()
 {
-    QNDEBUG("NotebookItemView::clearNotebooksFromNoteFiltersManager");
+    QNDEBUG(
+        "view:notebook",
+        "NotebookItemView::clearNotebooksFromNoteFiltersManager");
 
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
-        QNDEBUG("Note filters manager is null");
+        QNDEBUG("view:notebook", "Note filters manager is null");
         return;
     }
 
     if (!m_pNoteFiltersManager->isReady())
     {
-        QNDEBUG("Note filters manager is not ready yet, will "
+        QNDEBUG("view:notebook", "Note filters manager is not ready yet, will "
             << "postpone clearing notebooks from it");
 
         m_notebookLocalUidPendingNoteFiltersManagerReadiness.clear();
@@ -1747,7 +1790,7 @@ bool NotebookItemView::fetchCurrentNotebookCommonData(
 
     data.m_pModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!data.m_pModel)) {
-        QNDEBUG("Non-notebook model is used");
+        QNDEBUG("view:notebook", "Non-notebook model is used");
         return false;
     }
 

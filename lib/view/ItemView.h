@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,16 +39,17 @@ public:
 public Q_SLOTS:
     /**
      * @brief dataChanged slot redefines the QTreeView's implementation: it
-     * forces the columns affected by the data change to be automatically resized
-     * after the change was processed; the QTreeView's implementation does not
-     * do so
+     * forces the columns affected by the data change to be automatically
+     * resized after the change was processed; the QTreeView's implementation
+     * does not do so
+     *
      * @param topLeft       Top left model index of the changed data
      * @param bottomRight   Bottom right model index of the changed data
      * @param roles         The roles under which the data has been changed
      */
     virtual void dataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
-        const QVector<int> & roles = QVector<int>()) override;
+        const QVector<int> & roles = {}) override;
 
 protected:
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,20 +30,20 @@ void ItemView::dataChanged(
     const QModelIndex & topLeft, const QModelIndex & bottomRight,
     const QVector<int> & roles)
 {
-    QNTRACE("ItemView::dataChanged: top left: row = "
-            << topLeft.row() << ", column = " << topLeft.column()
-            << ", bottom right: row = " << bottomRight.row()
-            << ", column = " << bottomRight.column());
+    QNTRACE("view:item_view", "ItemView::dataChanged: top left: row = "
+        << topLeft.row() << ", column = " << topLeft.column()
+        << ", bottom right: row = " << bottomRight.row()
+        << ", column = " << bottomRight.column());
 
     QTreeView::dataChanged(topLeft, bottomRight, roles);
 
     /**
      * The default implementation of QTreeView doesn't resize the columns after
      * the data change has been processed, regardless of the resize mode used.
-     * In the ideal world the affected columns should only be automatically resized
-     * if they don't have enough space to display the changed data but for now,
-     * as a shortcut, the affected columns are always resized to ensure their
-     * width is enough to display the changed data
+     * In the ideal world the affected columns should only be automatically
+     * resized if they don't have enough space to display the changed data but
+     * for now, as a shortcut, the affected columns are always resized to ensure
+     * their width is enough to display the changed data
      */
 
     if (Q_UNLIKELY(!topLeft.isValid() || !bottomRight.isValid())) {
@@ -63,9 +63,9 @@ QModelIndex ItemView::singleRow(
 {
     int row = -1;
     QModelIndex sourceIndex;
-    for(auto it = indexes.constBegin(), end = indexes.constEnd(); it != end; ++it)
+
+    for(const auto & index: qAsConst(indexes))
     {
-        const QModelIndex & index = *it;
         if (Q_UNLIKELY(!index.isValid())) {
             continue;
         }

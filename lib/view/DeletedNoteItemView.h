@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -59,7 +59,7 @@ private:
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    QMenu *     m_pDeletedNoteItemContextMenu;
+    QMenu *     m_pDeletedNoteItemContextMenu = nullptr;
 };
 
 } // namespace quentier

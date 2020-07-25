@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -81,9 +81,9 @@ private:
     void postProcessFavoritedModelChange();
 
 private:
-    QMenu *     m_pFavoriteItemContextMenu;
-    bool        m_trackingSelection;
-    bool        m_modelReady;
+    QMenu *     m_pFavoriteItemContextMenu = nullptr;
+    bool        m_trackingSelection = false;
+    bool        m_modelReady = false;
 };
 
 } // namespace quentier
