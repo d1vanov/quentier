@@ -21,14 +21,14 @@
 
 #include <lib/model/LogViewerModel.h>
 
-#include <quentier/utility/Macros.h>
-#include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
+#include <quentier/utility/FileSystemWatcher.h>
 
-#include <QWidget>
 #include <QBasicTimer>
 #include <QModelIndex>
+#include <QWidget>
 
 namespace Ui {
 class LogViewerWidget;
@@ -44,7 +44,8 @@ class LogViewerWidget : public QWidget
     Q_OBJECT
 public:
     explicit LogViewerWidget(QWidget * parent = nullptr);
-    virtual ~LogViewerWidget();
+
+    virtual ~LogViewerWidget() override;
 
 private:
     void setupLogLevels();
@@ -57,7 +58,7 @@ private Q_SLOTS:
     void onFilterByContentEditingFinished();
     void onFilterByLogLevelCheckboxToggled(int state);
 
-    void onCurrentLogFileChanged(const QString & currentLogFile);
+    void onCurrentLogFileChanged(int currentLogFileIndex);
 
     void onLogFileDirRemoved(const QString & path);
     void onLogFileDirChanged(const QString & path);
@@ -111,13 +112,13 @@ private:
     QBasicTimer             m_logViewerModelLoadingTimer;
 
     QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
-    QMenu *                 m_pLogEntriesContextMenu;
+    QMenu *                 m_pLogEntriesContextMenu = nullptr;
 
     // Backups for tracing mode
-    LogLevel                m_minLogLevelBeforeTracing;
+    LogLevel                m_minLogLevelBeforeTracing = LogLevel::Info;
     QString                 m_filterByContentBeforeTracing;
     bool                    m_filterByLogLevelBeforeTracing[6];
-    qint64                  m_startLogFilePosBeforeTracing;
+    qint64                  m_startLogFilePosBeforeTracing = -1;
 };
 
 } // namespace quentier

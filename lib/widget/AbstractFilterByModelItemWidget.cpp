@@ -33,28 +33,24 @@
 #define LAST_FILTERED_ITEMS_KEY QStringLiteral("LastFilteredItems")
 
 #define AFTRACE(message)                                                       \
-    QNTRACE("[" << m_name << "] " << message)                                  \
+    QNTRACE("widget", "[" << m_name << "] " << message)                        \
 // AFTRACE
 
 #define AFDEBUG(message)                                                       \
-    QNDEBUG("[" << m_name << "] " << message)                                  \
+    QNDEBUG("widget", "[" << m_name << "] " << message)                        \
 // AFDEBUG
 
 #define AFINFO(message)                                                        \
-    QNINFO("[" << m_name << "] " << message)                                   \
+    QNINFO("widget", "[" << m_name << "] " << message)                         \
 // AFINFO
 
 #define AFWARNING(message)                                                     \
-    QNWARNING("[" << m_name << "] " << message)                                \
+    QNWARNING("widget", "[" << m_name << "] " << message)                      \
 // AFWARNING
 
-#define AFCRITICAL(message)                                                    \
-    QNCRITICAL("[" << m_name << "] " << message)                               \
-// AFCRITICAL
-
-#define AFFATAL(message)                                                       \
-    QNFATAL("[" << m_name << "] " << message)                                  \
-// AFFATAL
+#define AFERROR(message)                                                       \
+    QNERROR("widget", "[" << m_name << "] " << message)                        \
+// AFERROR
 
 namespace quentier {
 

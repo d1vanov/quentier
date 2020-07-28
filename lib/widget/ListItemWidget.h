@@ -51,7 +51,7 @@ public:
         const QString & linkedNotebookUsername,
         QWidget *parent = nullptr);
 
-    ~ListItemWidget();
+    virtual ~ListItemWidget() override;
 
     QString name() const;
     void setName(QString name);

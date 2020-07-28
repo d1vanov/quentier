@@ -38,6 +38,8 @@ class FilterByNotebookWidget: public AbstractFilterByModelItemWidget
 public:
     explicit FilterByNotebookWidget(QWidget * parent = nullptr);
 
+    virtual ~FilterByNotebookWidget() override;
+
     void setLocalStorageManager(
         LocalStorageManagerAsync & localStorageManagerAsync);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,7 +38,7 @@ public:
         QWidget * parent = nullptr,
         const bool withReplace = false);
 
-    virtual ~FindAndReplaceWidget();
+    virtual ~FindAndReplaceWidget() override;
 
     QString textToFind() const;
     void setTextToFind(const QString & text);

@@ -22,23 +22,23 @@
 #include <lib/delegate/LogViewerDelegate.h>
 #include <lib/preferences/SettingsNames.h>
 
-#include <quentier/utility/StandardPaths.h>
-#include <quentier/utility/MessageBox.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/MessageBox.h>
+#include <quentier/utility/StandardPaths.h>
 
+#include <QApplication>
 #include <QCheckBox>
-#include <QHBoxLayout>
+#include <QClipboard>
+#include <QCloseEvent>
+#include <QColor>
 #include <QDir>
 #include <QFileDialog>
-#include <QColor>
-#include <QTextStream>
-#include <QClipboard>
-#include <QApplication>
+#include <QHBoxLayout>
 #include <QMenu>
-#include <QCloseEvent>
+#include <QTextStream>
 
-#include <set>
 #include <cmath>
+#include <set>
 
 #define QUENTIER_NUM_LOG_LEVELS (5)
 #define FETCHING_MORE_TIMER_PERIOD (200)
@@ -49,18 +49,12 @@ namespace quentier {
 LogViewerWidget::LogViewerWidget(QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::LogViewerWidget),
-    m_logFilesFolderWatcher(),
-    m_pLogViewerModel(new LogViewerModel(this)),
-    m_delayedSectionResizeTimer(),
-    m_logLevelEnabledCheckboxPtrs(),
-    m_pLogEntriesContextMenu(nullptr),
-    m_minLogLevelBeforeTracing(LogLevel::Info),
-    m_filterByContentBeforeTracing(),
-    m_filterByLogLevelBeforeTracing(),
-    m_startLogFilePosBeforeTracing(-1)
+    m_pLogViewerModel(new LogViewerModel(this))
 {
     m_pUi->setupUi(this);
+
     setAttribute(Qt::WA_DeleteOnClose);
+
     m_pUi->resetPushButton->setEnabled(false);
     m_pUi->tracePushButton->setCheckable(true);
 
@@ -89,42 +83,70 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
 
     m_pUi->logEntriesTableView->setModel(m_pLogViewerModel);
 
-    LogViewerDelegate * pLogViewerDelegate =
-        new LogViewerDelegate(m_pUi->logEntriesTableView);
+    auto * pLogViewerDelegate = new LogViewerDelegate(
+        m_pUi->logEntriesTableView);
+
     m_pUi->logEntriesTableView->setItemDelegate(pLogViewerDelegate);
 
-    QObject::connect(m_pUi->saveToFilePushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(LogViewerWidget,onSaveLogToFileButtonPressed));
-    QObject::connect(m_pUi->clearPushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(LogViewerWidget,onClearButtonPressed));
-    QObject::connect(m_pUi->resetPushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(LogViewerWidget,onResetButtonPressed));
-    QObject::connect(m_pUi->tracePushButton, QNSIGNAL(QPushButton,toggled,bool),
-                     this, QNSLOT(LogViewerWidget,onTraceButtonToggled,bool));
-    QObject::connect(m_pUi->logFileWipePushButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(LogViewerWidget,onWipeLogPushButtonPressed));
-    QObject::connect(m_pUi->filterByContentLineEdit,
-                     QNSIGNAL(QLineEdit,editingFinished),
-                     this,
-                     QNSLOT(LogViewerWidget,onFilterByContentEditingFinished));
-    QObject::connect(m_pLogViewerModel,
-                     QNSIGNAL(LogViewerModel,notifyError,ErrorString),
-                     this,
-                     QNSLOT(LogViewerWidget,onModelError,ErrorString));
-    QObject::connect(m_pLogViewerModel,
-                     QNSIGNAL(LogViewerModel,rowsInserted,QModelIndex,int,int),
-                     this,
-                     QNSLOT(LogViewerWidget,onModelRowsInserted,
-                            QModelIndex,int,int));
-    QObject::connect(m_pLogViewerModel,
-                     QNSIGNAL(LogViewerModel,notifyEndOfLogFileReached),
-                     this,
-                     QNSLOT(LogViewerWidget,onModelEndOfLogFileReached));
-    QObject::connect(m_pUi->logEntriesTableView,
-                     QNSIGNAL(QTableView,customContextMenuRequested,QPoint),
-                     this,
-                     QNSLOT(LogViewerWidget,onLogEntriesViewContextMenuRequested,
-                            QPoint));
+    QObject::connect(
+        m_pUi->saveToFilePushButton,
+        &QPushButton::clicked,
+        this,
+        &LogViewerWidget::onSaveLogToFileButtonPressed);
+
+    QObject::connect(
+        m_pUi->clearPushButton,
+        &QPushButton::clicked,
+        this,
+        &LogViewerWidget::onClearButtonPressed);
+
+    QObject::connect(
+        m_pUi->resetPushButton,
+        &QPushButton::clicked,
+        this,
+        &LogViewerWidget::onResetButtonPressed);
+
+    QObject::connect(
+        m_pUi->tracePushButton,
+        &QPushButton::toggled,
+        this,
+        &LogViewerWidget::onTraceButtonToggled);
+
+    QObject::connect(
+        m_pUi->logFileWipePushButton,
+        &QPushButton::clicked,
+        this,
+        &LogViewerWidget::onWipeLogPushButtonPressed);
+
+    QObject::connect(
+        m_pUi->filterByContentLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &LogViewerWidget::onFilterByContentEditingFinished);
+
+    QObject::connect(
+        m_pLogViewerModel,
+        &LogViewerModel::notifyError,
+        this,
+        &LogViewerWidget::onModelError);
+
+    QObject::connect(
+        m_pLogViewerModel,
+        &LogViewerModel::rowsInserted,
+        this,
+        &LogViewerWidget::onModelRowsInserted);
+
+    QObject::connect(
+        m_pLogViewerModel,
+        &LogViewerModel::notifyEndOfLogFileReached,
+        this,
+        &LogViewerWidget::onModelEndOfLogFileReached);
+
+    QObject::connect(
+        m_pUi->logEntriesTableView,
+        &QTableView::customContextMenuRequested,
+        this,
+        &LogViewerWidget::onLogEntriesViewContextMenuRequested);
 }
 
 LogViewerWidget::~LogViewerWidget()
@@ -136,21 +158,37 @@ void LogViewerWidget::setupLogLevels()
 {
     m_pUi->logLevelComboBox->addItem(
         LogViewerModel::logLevelToString(LogLevel::Trace));
+
     m_pUi->logLevelComboBox->addItem(
         LogViewerModel::logLevelToString(LogLevel::Debug));
+
     m_pUi->logLevelComboBox->addItem(
         LogViewerModel::logLevelToString(LogLevel::Info));
+
     m_pUi->logLevelComboBox->addItem(
         LogViewerModel::logLevelToString(LogLevel::Warning));
+
     m_pUi->logLevelComboBox->addItem(
         LogViewerModel::logLevelToString(LogLevel::Error));
 
     m_pUi->logLevelComboBox->setCurrentIndex(
         static_cast<int>(QuentierMinLogLevel()));
 
-    QObject::connect(m_pUi->logLevelComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(onCurrentLogLevelChanged(int)),
-                     Qt::UniqueConnection);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->logLevelComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &LogViewerWidget::onCurrentLogLevelChanged,
+        Qt::UniqueConnection);
+#else
+    QObject::connect(
+        m_pUi->logLevelComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onCurrentLogLevelChanged(int)),
+        Qt::UniqueConnection);
+#endif
 }
 
 void LogViewerWidget::setupLogFiles()
@@ -181,16 +219,26 @@ void LogViewerWidget::setupLogFiles()
         return;
     }
 
-    QObject::disconnect(m_pUi->logFileComboBox,
-                        SIGNAL(currentIndexChanged(QString)),
-                        this, SLOT(onCurrentLogFileChanged(QString)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::disconnect(
+        m_pUi->logFileComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &LogViewerWidget::onCurrentLogFileChanged);
+#else
+    QObject::disconnect(
+        m_pUi->logFileComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onCurrentLogFileChanged(int)));
+#endif
 
     m_pUi->logFileComboBox->clear();
 
     int currentLogFileIndex = -1;
     for(int i = 0, size = entries.size(); i < size; ++i)
     {
-        const QFileInfo & entry = entries.at(i);
+        const auto & entry = entries.at(i);
         QString fileName = entry.fileName();
 
         if (fileName == currentLogFileName) {
@@ -206,14 +254,25 @@ void LogViewerWidget::setupLogFiles()
 
     m_pUi->logFileComboBox->setCurrentIndex(currentLogFileIndex);
 
-    QObject::connect(m_pUi->logFileComboBox,
-                     SIGNAL(currentIndexChanged(QString)),
-                     this, SLOT(onCurrentLogFileChanged(QString)),
-                     Qt::UniqueConnection);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->logFileComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &LogViewerWidget::onCurrentLogFileChanged,
+        Qt::UniqueConnection);
+#else
+    QObject::connect(
+        m_pUi->logFileComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onCurrentLogFileChanged(int)),
+        Qt::UniqueConnection);
+#endif
 
     QString logFileName = entries.at(currentLogFileIndex).fileName();
     if (logFileName == originalLogFileName) {
-        // The current log file didn't change, no need to set it to the model etc.
+        // The current log file didn't change, no need to set it to the model
         return;
     }
 
@@ -230,14 +289,18 @@ void LogViewerWidget::setupLogFiles()
 void LogViewerWidget::startWatchingForLogFilesFolderChanges()
 {
     m_logFilesFolderWatcher.addPath(QuentierLogFilesDirPath());
-    QObject::connect(&m_logFilesFolderWatcher,
-                     QNSIGNAL(FileSystemWatcher,directoryRemoved,QString),
-                     this,
-                     QNSLOT(LogViewerWidget,onLogFileDirRemoved,QString));
-    QObject::connect(&m_logFilesFolderWatcher,
-                     QNSIGNAL(FileSystemWatcher,directoryChanged,QString),
-                     this,
-                     QNSLOT(LogViewerWidget,onLogFileDirChanged,QString));
+
+    QObject::connect(
+        &m_logFilesFolderWatcher,
+        &FileSystemWatcher::directoryRemoved,
+        this,
+        &LogViewerWidget::onLogFileDirRemoved);
+
+    QObject::connect(
+        &m_logFilesFolderWatcher,
+        &FileSystemWatcher::directoryChanged,
+        this,
+        &LogViewerWidget::onLogFileDirChanged);
 }
 
 void LogViewerWidget::setupFilterByLogLevelWidget()
@@ -245,12 +308,10 @@ void LogViewerWidget::setupFilterByLogLevelWidget()
     m_pUi->filterByLogLevelTableWidget->setRowCount(QUENTIER_NUM_LOG_LEVELS);
     m_pUi->filterByLogLevelTableWidget->setColumnCount(2);
 
-    const QVector<LogLevel> & disabledLogLevels =
-        m_pLogViewerModel->disabledLogLevels();
-
+    const auto & disabledLogLevels = m_pLogViewerModel->disabledLogLevels();
     for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i)
     {
-        QTableWidgetItem * pItem = new QTableWidgetItem(
+        auto * pItem = new QTableWidgetItem(
             LogViewerModel::logLevelToString(static_cast<LogLevel>(i)));
 
         pItem->setData(
@@ -258,34 +319,42 @@ void LogViewerWidget::setupFilterByLogLevelWidget()
             m_pLogViewerModel->backgroundColorForLogLevel(
                 static_cast<LogLevel>(i)));
 
-        m_pUi->filterByLogLevelTableWidget->setItem(static_cast<int>(i), 0, pItem);
+        m_pUi->filterByLogLevelTableWidget->setItem(
+            static_cast<int>(i),
+            0,
+            pItem);
 
-        QWidget * pWidget = new QWidget;
-        QCheckBox * pCheckbox = new QCheckBox;
+        auto * pWidget = new QWidget;
+
+        auto * pCheckbox = new QCheckBox;
         pCheckbox->setObjectName(QString::number(i));
         pCheckbox->setChecked(
             !disabledLogLevels.contains(static_cast<LogLevel>(i)));
-        QHBoxLayout * pLayout = new QHBoxLayout(pWidget);
+
+        auto * pLayout = new QHBoxLayout(pWidget);
         pLayout->addWidget(pCheckbox);
         pLayout->setAlignment(Qt::AlignCenter);
         pLayout->setContentsMargins(0, 0, 0, 0);
+
         pWidget->setLayout(pLayout);
+
         m_pUi->filterByLogLevelTableWidget->setCellWidget(
             static_cast<int>(i), 1, pWidget);
 
         m_logLevelEnabledCheckboxPtrs[i] = pCheckbox;
 
-        QObject::connect(pCheckbox,
-                         QNSIGNAL(QCheckBox,stateChanged,int),
-                         this,
-                         QNSLOT(LogViewerWidget,
-                                onFilterByLogLevelCheckboxToggled,int));
+        QObject::connect(
+            pCheckbox,
+            &QCheckBox::stateChanged,
+            this,
+            &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
     }
 }
 
 void LogViewerWidget::onCurrentLogLevelChanged(int index)
 {
-    QNDEBUG("LogViewerWidget::onCurrentLogLevelChanged: " << index);
+    QNDEBUG("widget:log_viewer", "LogViewerWidget::onCurrentLogLevelChanged: "
+        << index);
 
     if (Q_UNLIKELY(m_pLogViewerModel->isSavingModelEntriesToFileInProgress())) {
         return;
@@ -320,13 +389,15 @@ void LogViewerWidget::onFilterByContentEditingFinished()
 
 void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
 {
-    QNDEBUG("LogViewerWidget::onFilterByLogLevelCheckboxToggled: state = "
+    QNDEBUG(
+        "widget:log_viewer",
+        "LogViewerWidget::onFilterByLogLevelCheckboxToggled: state = "
             << state);
 
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
-    QCheckBox * pCheckbox = qobject_cast<QCheckBox*>(sender());
+    auto * pCheckbox = qobject_cast<QCheckBox*>(sender());
     if (Q_UNLIKELY(!pCheckbox)) {
         return;
     }
@@ -337,12 +408,17 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
         return;
     }
 
-    if (Q_UNLIKELY((checkboxRow < 0) || (checkboxRow >= QUENTIER_NUM_LOG_LEVELS))) {
+    if (Q_UNLIKELY((checkboxRow < 0) ||
+                   (checkboxRow >= QUENTIER_NUM_LOG_LEVELS)))
+    {
         return;
     }
 
-    QVector<LogLevel> disabledLogLevels = m_pLogViewerModel->disabledLogLevels();
-    int rowIndex = disabledLogLevels.indexOf(static_cast<LogLevel>(checkboxRow));
+    auto disabledLogLevels = m_pLogViewerModel->disabledLogLevels();
+
+    int rowIndex = disabledLogLevels.indexOf(
+        static_cast<LogLevel>(checkboxRow));
+
     bool currentRowWasDisabled = (rowIndex >= 0);
     if (currentRowWasDisabled && (state == Qt::Checked)) {
         disabledLogLevels.remove(rowIndex);
@@ -360,8 +436,11 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
     scheduleLogEntriesViewColumnsResize();
 }
 
-void LogViewerWidget::onCurrentLogFileChanged(const QString & currentLogFile)
+void LogViewerWidget::onCurrentLogFileChanged(int currentLogFileIndex)
 {
+    QString currentLogFile = m_pUi->logFileComboBox->itemText(
+        currentLogFileIndex);
+
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
@@ -371,6 +450,7 @@ void LogViewerWidget::onCurrentLogFileChanged(const QString & currentLogFile)
 
     LogViewerModel::FilteringOptions filteringOptions;
     collectModelFilteringOptions(filteringOptions);
+
     m_pLogViewerModel->setLogFileName(currentLogFile);
 
     if (m_pLogViewerModel->currentLogFileSize() != 0) {
@@ -398,7 +478,10 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
     m_pUi->statusBarLineEdit->hide();
 
     QString absoluteFilePath = QFileDialog::getSaveFileName(
-        this, tr("Save as") + QStringLiteral("..."), documentsPath());
+        this,
+        tr("Save as") + QStringLiteral("..."),
+        documentsPath());
+
     QFileInfo fileInfo(absoluteFilePath);
     if (fileInfo.exists())
     {
@@ -407,7 +490,10 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
             ErrorString errorDescription(
                 QT_TR_NOOP("Can't save the log to file: the selected entity "
                            "is not a file"));
-            m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+
+            m_pUi->statusBarLineEdit->setText(
+                errorDescription.localizedString());
+
             m_pUi->statusBarLineEdit->show();
             Q_UNUSED(errorDescription)
             return;
@@ -421,7 +507,10 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
             ErrorString errorDescription(
                 QT_TR_NOOP("Failed to create the folder to contain the file "
                            "with saved logs"));
-            m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
+
+            m_pUi->statusBarLineEdit->setText(
+                errorDescription.localizedString());
+
             m_pUi->statusBarLineEdit->show();
             Q_UNUSED(errorDescription)
             return;
@@ -448,25 +537,26 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
     m_pUi->logFileComboBox->setEnabled(false);
     m_pUi->logLevelComboBox->setEnabled(false);
 
-    QObject::connect(m_pUi->saveToFileCancelButton,
-                     QNSIGNAL(QPushButton,clicked),
-                     this,
-                     QNSLOT(LogViewerWidget,
-                            onCancelSavingTheLogToFileButtonPressed));
+    QObject::connect(
+        m_pUi->saveToFileCancelButton,
+        &QPushButton::clicked,
+        this,
+        &LogViewerWidget::onCancelSavingTheLogToFileButtonPressed);
+
     m_pUi->saveToFileCancelButton->show();
 
-    QObject::connect(m_pLogViewerModel,
-                     QNSIGNAL(LogViewerModel,saveModelEntriesToFileFinished,
-                              ErrorString),
-                     this,
-                     QNSLOT(LogViewerWidget,onSaveModelEntriesToFileFinished,
-                            ErrorString));
-    QObject::connect(m_pLogViewerModel,
-                     QNSIGNAL(LogViewerModel,saveModelEntriesToFileProgress,
-                              double),
-                     this,
-                     QNSLOT(LogViewerWidget,onSaveModelEntriesToFileProgress,
-                            double));
+    QObject::connect(
+        m_pLogViewerModel,
+        &LogViewerModel::saveModelEntriesToFileFinished,
+        this,
+        &LogViewerWidget::onSaveModelEntriesToFileFinished);
+
+    QObject::connect(
+        m_pLogViewerModel,
+        &LogViewerModel::saveModelEntriesToFileProgress,
+        this,
+        &LogViewerWidget::onSaveModelEntriesToFileProgress);
+
     m_pLogViewerModel->saveModelEntriesToFile(fileInfo.absoluteFilePath());
 }
 
@@ -479,11 +569,12 @@ void LogViewerWidget::onCancelSavingTheLogToFileButtonPressed()
 
     m_pUi->saveToFileLabel->setText(QString());
 
-    QObject::disconnect(m_pUi->saveToFileCancelButton,
-                        QNSIGNAL(QPushButton,clicked),
-                        this,
-                        QNSLOT(LogViewerWidget,
-                               onCancelSavingTheLogToFileButtonPressed));
+    QObject::disconnect(
+        m_pUi->saveToFileCancelButton,
+        &QPushButton::clicked,
+        this,
+        &LogViewerWidget::onCancelSavingTheLogToFileButtonPressed);
+
     m_pUi->saveToFileCancelButton->hide();
 
     m_pUi->saveToFileProgressBar->setValue(0);
@@ -545,8 +636,8 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         // Backup the settings used before tracing
         m_minLogLevelBeforeTracing = QuentierMinLogLevel();
         m_filterByContentBeforeTracing = m_pUi->filterByContentLineEdit->text();
-        QVector<LogLevel> disabledLogLevels =
-            m_pLogViewerModel->disabledLogLevels();
+
+        auto disabledLogLevels = m_pLogViewerModel->disabledLogLevels();
         for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i) {
             m_filterByLogLevelBeforeTracing[i] =
                 !disabledLogLevels.contains(static_cast<LogLevel>(i));
@@ -555,42 +646,71 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         // Enable tracing
         QuentierSetMinLogLevel(LogLevel::Trace);
 
-        QObject::disconnect(m_pUi->logLevelComboBox,
-                            SIGNAL(currentIndexChanged(int)),
-                            this, SLOT(onCurrentLogLevelChanged(int)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+        QObject::disconnect(
+            m_pUi->logLevelComboBox,
+            qOverload<int>(&QComboBox::currentIndexChanged),
+            this,
+            &LogViewerWidget::onCurrentLogLevelChanged);
+#else
+        QObject::disconnect(
+            m_pUi->logLevelComboBox,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(onCurrentLogLevelChanged(int)));
+#endif
+
         m_pUi->logLevelComboBox->setCurrentIndex(0);
-        QObject::connect(m_pUi->logLevelComboBox,
-                         SIGNAL(currentIndexChanged(int)),
-                         this, SLOT(onCurrentLogLevelChanged(int)),
-                         Qt::UniqueConnection);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+        QObject::connect(
+            m_pUi->logLevelComboBox,
+            qOverload<int>(&QComboBox::currentIndexChanged),
+            this,
+            &LogViewerWidget::onCurrentLogLevelChanged,
+            Qt::UniqueConnection);
+#else
+        QObject::connect(
+            m_pUi->logLevelComboBox,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(onCurrentLogLevelChanged(int)),
+            Qt::UniqueConnection);
+#endif
 
         m_pUi->logLevelComboBox->setEnabled(false);
-
         m_pUi->filterByContentLineEdit->setText(QString());
 
         for(size_t i = 0; i < QUENTIER_NUM_LOG_LEVELS; ++i)
         {
-            QCheckBox * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
-            QObject::disconnect(pCheckbox,
-                                QNSIGNAL(QCheckBox,stateChanged,int),
-                                this,
-                                QNSLOT(LogViewerWidget,
-                                       onFilterByLogLevelCheckboxToggled,int));
+            auto * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
+
+            QObject::disconnect(
+                pCheckbox,
+                &QCheckBox::stateChanged,
+                this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+
             pCheckbox->setChecked(true);
-            QObject::connect(pCheckbox,
-                             QNSIGNAL(QCheckBox,stateChanged,int),
-                             this,
-                             QNSLOT(LogViewerWidget,
-                                    onFilterByLogLevelCheckboxToggled,int));
+
+            QObject::connect(
+                pCheckbox,
+                &QCheckBox::stateChanged,
+                this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
         }
 
         m_pUi->filterByLogLevelTableWidget->setEnabled(false);
         m_pUi->logFileWipePushButton->setEnabled(false);
 
         LogViewerModel::FilteringOptions filteringOptions;
-        filteringOptions.m_startLogFilePos = m_pLogViewerModel->currentLogFileSize();
-        m_pLogViewerModel->setLogFileName(m_pLogViewerModel->logFileName(),
-                                          filteringOptions);
+
+        filteringOptions.m_startLogFilePos =
+            m_pLogViewerModel->currentLogFileSize();
+
+        m_pLogViewerModel->setLogFileName(
+            m_pLogViewerModel->logFileName(),
+            filteringOptions);
     }
     else
     {
@@ -599,18 +719,40 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         // Restore the previously backed up settings
         QuentierSetMinLogLevel(m_minLogLevelBeforeTracing);
 
-        QObject::disconnect(m_pUi->logLevelComboBox,
-                            SIGNAL(currentIndexChanged(int)),
-                            this, SLOT(onCurrentLogLevelChanged(int)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+        QObject::disconnect(
+            m_pUi->logLevelComboBox,
+            qOverload<int>(&QComboBox::currentIndexChanged),
+            this,
+            &LogViewerWidget::onCurrentLogLevelChanged);
+#else
+        QObject::disconnect(
+            m_pUi->logLevelComboBox,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(onCurrentLogLevelChanged(int)));
+#endif
+
         m_pUi->logLevelComboBox->setCurrentIndex(
             static_cast<int>(m_minLogLevelBeforeTracing));
-        QObject::connect(m_pUi->logLevelComboBox,
-                         SIGNAL(currentIndexChanged(int)),
-                         this, SLOT(onCurrentLogLevelChanged(int)),
-                         Qt::UniqueConnection);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+        QObject::connect(
+            m_pUi->logLevelComboBox,
+            qOverload<int>(&QComboBox::currentIndexChanged),
+            this,
+            &LogViewerWidget::onCurrentLogLevelChanged,
+            Qt::UniqueConnection);
+#else
+        QObject::connect(
+            m_pUi->logLevelComboBox,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(onCurrentLogLevelChanged(int)),
+            Qt::UniqueConnection);
+#endif
 
         m_pUi->logLevelComboBox->setEnabled(true);
-
         m_minLogLevelBeforeTracing = LogLevel::Info;
 
         LogViewerModel::FilteringOptions filteringOptions;
@@ -624,7 +766,9 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
         }
         m_startLogFilePosBeforeTracing = -1;
 
-        filteringOptions.m_logEntryContentFilter = m_filterByContentBeforeTracing;
+        filteringOptions.m_logEntryContentFilter =
+            m_filterByContentBeforeTracing;
+
         m_pUi->filterByContentLineEdit->setText(m_filterByContentBeforeTracing);
         m_filterByContentBeforeTracing.clear();
 
@@ -636,21 +780,22 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
                     << static_cast<LogLevel>(i);
             }
 
-            QCheckBox * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
-            QObject::disconnect(pCheckbox,
-                                QNSIGNAL(QCheckBox,stateChanged,int),
-                                this,
-                                QNSLOT(LogViewerWidget,
-                                       onFilterByLogLevelCheckboxToggled,int));
+            auto * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
+
+            QObject::disconnect(
+                pCheckbox,
+                &QCheckBox::stateChanged,
+                this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
 
             m_logLevelEnabledCheckboxPtrs[i]->setChecked(
                 m_filterByLogLevelBeforeTracing[i]);
 
-            QObject::connect(pCheckbox,
-                             QNSIGNAL(QCheckBox,stateChanged,int),
-                             this,
-                             QNSLOT(LogViewerWidget,
-                                    onFilterByLogLevelCheckboxToggled,int));
+            QObject::connect(
+                pCheckbox,
+                &QCheckBox::stateChanged,
+                this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
         }
 
         m_pLogViewerModel->setLogFileName(
@@ -686,28 +831,29 @@ void LogViewerWidget::onModelEndOfLogFileReached()
     m_pUi->logFilePendingLoadLabel->setText(QString());
 }
 
-void LogViewerWidget::onSaveModelEntriesToFileFinished(ErrorString errorDescription)
+void LogViewerWidget::onSaveModelEntriesToFileFinished(
+    ErrorString errorDescription)
 {
-    QObject::disconnect(m_pLogViewerModel,
-                        QNSIGNAL(LogViewerModel,
-                                 saveModelEntriesToFileFinished,ErrorString),
-                        this,
-                        QNSLOT(LogViewerWidget,
-                               onSaveModelEntriesToFileFinished,ErrorString));
-    QObject::disconnect(m_pLogViewerModel,
-                        QNSIGNAL(LogViewerModel,
-                                 saveModelEntriesToFileProgress,double),
-                        this,
-                        QNSLOT(LogViewerWidget,
-                               onSaveModelEntriesToFileProgress,double));
+    QObject::disconnect(
+        m_pLogViewerModel,
+        &LogViewerModel::saveModelEntriesToFileFinished,
+        this,
+        &LogViewerWidget::onSaveModelEntriesToFileFinished);
+
+    QObject::disconnect(
+        m_pLogViewerModel,
+        &LogViewerModel::saveModelEntriesToFileProgress,
+        this,
+        &LogViewerWidget::onSaveModelEntriesToFileProgress);
 
     m_pUi->saveToFileLabel->setText(QString());
 
-    QObject::disconnect(m_pUi->saveToFileCancelButton,
-                        QNSIGNAL(QPushButton,clicked),
-                        this,
-                        QNSLOT(LogViewerWidget,
-                               onCancelSavingTheLogToFileButtonPressed));
+    QObject::disconnect(
+        m_pUi->saveToFileCancelButton,
+        &QPushButton::clicked,
+        this,
+        &LogViewerWidget::onCancelSavingTheLogToFileButtonPressed);
+
     m_pUi->saveToFileCancelButton->hide();
 
     m_pUi->saveToFileProgressBar->setValue(0);
@@ -743,7 +889,7 @@ void LogViewerWidget::onSaveModelEntriesToFileProgress(double progressPercent)
 
 void LogViewerWidget::onLogEntriesViewContextMenuRequested(const QPoint & pos)
 {
-    QModelIndex index = m_pUi->logEntriesTableView->indexAt(pos);
+    auto index = m_pUi->logEntriesTableView->indexAt(pos);
     if (!index.isValid()) {
         return;
     }
@@ -751,25 +897,34 @@ void LogViewerWidget::onLogEntriesViewContextMenuRequested(const QPoint & pos)
     delete m_pLogEntriesContextMenu;
     m_pLogEntriesContextMenu = new QMenu(this);
 
-    QAction * pCopyAction = new QAction(tr("Copy"), m_pLogEntriesContextMenu);
+    auto * pCopyAction = new QAction(tr("Copy"), m_pLogEntriesContextMenu);
     pCopyAction->setEnabled(true);
-    QObject::connect(pCopyAction,
-                     QNSIGNAL(QAction,triggered),
-                     this,
-                     QNSLOT(LogViewerWidget,
-                            onLogEntriesViewCopySelectedItemsAction));
+
+    QObject::connect(
+        pCopyAction,
+        &QAction::triggered,
+        this,
+        &LogViewerWidget::onLogEntriesViewCopySelectedItemsAction);
+
     m_pLogEntriesContextMenu->addAction(pCopyAction);
 
-    QAction * pDeselectAction =
-        new QAction(tr("Clear selection"), m_pLogEntriesContextMenu);
+    auto * pDeselectAction = new QAction(
+        tr("Clear selection"),
+        m_pLogEntriesContextMenu);
 
     pDeselectAction->setEnabled(true);
-    QObject::connect(pDeselectAction, QNSIGNAL(QAction,triggered),
-                     this, QNSLOT(LogViewerWidget,onLogEntriesViewDeselectAction));
-    m_pLogEntriesContextMenu->addAction(pDeselectAction);
 
+    QObject::connect(
+        pDeselectAction,
+        &QAction::triggered,
+        this,
+        &LogViewerWidget::onLogEntriesViewDeselectAction);
+
+    m_pLogEntriesContextMenu->addAction(pDeselectAction);
     m_pLogEntriesContextMenu->show();
-    m_pLogEntriesContextMenu->exec(m_pUi->logEntriesTableView->mapToGlobal(pos));
+
+    m_pLogEntriesContextMenu->exec(
+        m_pUi->logEntriesTableView->mapToGlobal(pos));
 }
 
 void LogViewerWidget::onLogEntriesViewCopySelectedItemsAction()
@@ -777,19 +932,16 @@ void LogViewerWidget::onLogEntriesViewCopySelectedItemsAction()
     QString result;
     QTextStream strm(&result);
 
-    QItemSelectionModel * pSelectionModel =
-        m_pUi->logEntriesTableView->selectionModel();
+    auto * pSelectionModel = m_pUi->logEntriesTableView->selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
         return;
     }
 
-    QModelIndexList selectedIndexes = pSelectionModel->selectedIndexes();
+    auto selectedIndexes = pSelectionModel->selectedIndexes();
     std::set<int> processedRows;
 
-    for(auto it = selectedIndexes.constBegin(),
-        end = selectedIndexes.constEnd(); it != end; ++it)
+    for(const auto & modelIndex: qAsConst(selectedIndexes))
     {
-        const QModelIndex & modelIndex = *it;
         if (Q_UNLIKELY(!modelIndex.isValid())) {
             continue;
         }
@@ -842,6 +994,7 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
             tr("Current log file doesn't seem to exist or be a writable file") +
             QStringLiteral(": ") +
             QDir::toNativeSeparators(currentLogFileInfo.absoluteFilePath())))
+
         return;
     }
 
@@ -851,6 +1004,7 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
         tr("The log file's contents would be removed without "
            "the possibility to restore them. Are you sure you want "
            "to wipe out the contents of the log file?"));
+
     if (confirm != QMessageBox::Ok) {
         return;
     }
@@ -887,10 +1041,11 @@ void LogViewerWidget::scheduleLogEntriesViewColumnsResize()
 
 void LogViewerWidget::resizeLogEntriesViewColumns()
 {
-    QHeaderView * pHorizontalHeader = m_pUi->logEntriesTableView->horizontalHeader();
+    auto * pHorizontalHeader = m_pUi->logEntriesTableView->horizontalHeader();
     pHorizontalHeader->resizeSections(QHeaderView::ResizeToContents);
 
-    if (pHorizontalHeader->sectionSize(LogViewerModel::Columns::SourceFileName) >
+    if (pHorizontalHeader->sectionSize(
+            LogViewerModel::Columns::SourceFileName) >
         MAX_SOURCE_FILE_NAME_COLUMN_WIDTH)
     {
         pHorizontalHeader->resizeSection(
@@ -904,13 +1059,14 @@ void LogViewerWidget::resizeLogEntriesViewColumns()
 
 void LogViewerWidget::copyStringToClipboard(const QString & text)
 {
-    QClipboard * pClipboard = QApplication::clipboard();
+    auto * pClipboard = QApplication::clipboard();
     if (Q_UNLIKELY(!pClipboard))
     {
         ErrorString errorDescription(
             QT_TR_NOOP("Can't copy data to clipboard: got null pointer to "
                        "clipboard from app"));
-        QNWARNING(errorDescription);
+
+        QNWARNING("widget:log_viewer", errorDescription);
         m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
         m_pUi->statusBarLineEdit->show();
         return;
@@ -929,12 +1085,11 @@ void LogViewerWidget::collectModelFilteringOptions(
     LogViewerModel::FilteringOptions & options) const
 {
     options.clear();
-
     options.m_logEntryContentFilter = m_pUi->filterByContentLineEdit->text();
 
     for(int i = 0; i < 6; ++i)
     {
-        QCheckBox * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
+        auto * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
         if (Q_UNLIKELY(!pCheckbox)) {
             continue;
         }

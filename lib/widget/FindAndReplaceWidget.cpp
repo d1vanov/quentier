@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -185,44 +185,78 @@ QSize FindAndReplaceWidget::minimumSizeHint() const
 
 void FindAndReplaceWidget::createConnections()
 {
-    QObject::connect(m_pUI->closeButton, QNSIGNAL(QPushButton,released),
-                     this, QNSLOT(FindAndReplaceWidget,onCloseButtonPressed));
-    QObject::connect(m_pUI->findLineEdit,
-                     QNSIGNAL(QLineEdit,textEdited,const QString&),
-                     this,
-                     QNSIGNAL(FindAndReplaceWidget,textToFindEdited,
-                              const QString&));
-    QObject::connect(m_pUI->findLineEdit, QNSIGNAL(QLineEdit,returnPressed),
-                     this, QNSLOT(FindAndReplaceWidget,onFindTextEntered));
-    QObject::connect(m_pUI->findNextButton, QNSIGNAL(QPushButton,released),
-                     this, QNSLOT(FindAndReplaceWidget,onNextButtonPressed));
-    QObject::connect(m_pUI->findPreviousButton, QNSIGNAL(QPushButton,released),
-                     this, QNSLOT(FindAndReplaceWidget,onPreviousButtonPressed));
-    QObject::connect(m_pUI->matchCaseCheckBox,
-                     QNSIGNAL(QCheckBox,stateChanged,int),
-                     this,
-                     QNSLOT(FindAndReplaceWidget,onMatchCaseCheckboxToggled,int));
-    QObject::connect(m_pUI->replaceLineEdit, QNSIGNAL(QLineEdit,returnPressed),
-                     this, QNSLOT(FindAndReplaceWidget,onReplaceTextEntered));
-    QObject::connect(m_pUI->replaceButton, QNSIGNAL(QPushButton,released),
-                     this, QNSLOT(FindAndReplaceWidget,onReplaceButtonPressed));
-    QObject::connect(m_pUI->replaceAllButton, QNSIGNAL(QPushButton,released),
-                     this, QNSLOT(FindAndReplaceWidget,onReplaceAllButtonPressed));
+    QObject::connect(
+        m_pUI->closeButton,
+        &QPushButton::released,
+        this,
+        &FindAndReplaceWidget::onCloseButtonPressed);
+
+    QObject::connect(
+        m_pUI->findLineEdit,
+        &QLineEdit::textEdited,
+        this,
+        &FindAndReplaceWidget::textToFindEdited);
+
+    QObject::connect(
+        m_pUI->findLineEdit,
+        &QLineEdit::returnPressed,
+        this,
+        &FindAndReplaceWidget::onFindTextEntered);
+
+    QObject::connect(
+        m_pUI->findNextButton,
+        &QPushButton::released,
+        this,
+        &FindAndReplaceWidget::onNextButtonPressed);
+
+    QObject::connect(
+        m_pUI->findPreviousButton,
+        &QPushButton::released,
+        this,
+        &FindAndReplaceWidget::onPreviousButtonPressed);
+
+    QObject::connect(
+        m_pUI->matchCaseCheckBox,
+        &QCheckBox::stateChanged,
+        this,
+        &FindAndReplaceWidget::onMatchCaseCheckboxToggled);
+
+    QObject::connect(
+        m_pUI->replaceLineEdit,
+        &QLineEdit::returnPressed,
+        this,
+        &FindAndReplaceWidget::onReplaceTextEntered);
+
+    QObject::connect(
+        m_pUI->replaceButton,
+        &QPushButton::released,
+        this,
+        &FindAndReplaceWidget::onReplaceButtonPressed);
+
+    QObject::connect(
+        m_pUI->replaceAllButton,
+        &QPushButton::released,
+        this,
+        &FindAndReplaceWidget::onReplaceAllButtonPressed);
 }
 
 QSize FindAndReplaceWidget::sizeHintImpl(const bool minimal) const
 {
-    QSize sizeHint = (minimal ? QWidget::minimumSizeHint() : QWidget::sizeHint());
+    QSize sizeHint =
+        (minimal ? QWidget::minimumSizeHint() : QWidget::sizeHint());
 
     if (!m_pUI->replaceLineEdit->isEnabled())
     {
-        QSize findSizeHint = (minimal
-                              ? m_pUI->findLineEdit->minimumSizeHint()
-                              : m_pUI->findLineEdit->sizeHint());
-        QLayout * pLayout = m_pUI->gridLayout->layout();
-        QMargins margins = pLayout->contentsMargins();
+        QSize findSizeHint =
+            (minimal
+             ? m_pUI->findLineEdit->minimumSizeHint()
+             : m_pUI->findLineEdit->sizeHint());
 
-        sizeHint.setHeight(findSizeHint.height() + margins.top() + margins.bottom());
+        auto * pLayout = m_pUI->gridLayout->layout();
+        auto margins = pLayout->contentsMargins();
+
+        sizeHint.setHeight(
+            findSizeHint.height() + margins.top() + margins.bottom());
     }
 
     return sizeHint;

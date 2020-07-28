@@ -38,6 +38,8 @@ class FilterByTagWidget: public AbstractFilterByModelItemWidget
 public:
     explicit FilterByTagWidget(QWidget * parent = nullptr);
 
+    virtual ~FilterByTagWidget() override;
+
     void setLocalStorageManager(
         LocalStorageManagerAsync & localStorageManagerAsync);
 

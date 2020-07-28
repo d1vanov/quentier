@@ -29,6 +29,8 @@ FilterByTagWidget::FilterByTagWidget(QWidget * parent) :
     AbstractFilterByModelItemWidget(QStringLiteral("Tag"), parent)
 {}
 
+FilterByTagWidget::~FilterByTagWidget() = default;
+
 void FilterByTagWidget::setLocalStorageManager(
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
@@ -65,11 +67,11 @@ const TagModel * FilterByTagWidget::tagModel() const
 
 void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
-    QNDEBUG("FilterByTagWidget::onUpdateTagCompleted: request id = "
-        << requestId << ", tag = " << tag);
+    QNDEBUG("widget:tag_filter", "FilterByTagWidget::onUpdateTagCompleted: "
+        << "request id = " << requestId << ", tag = " << tag);
 
     if (Q_UNLIKELY(!tag.hasName())) {
-        QNWARNING("Found tag without a name: " << tag);
+        QNWARNING("widget:tag_filter", "Found tag without a name: " << tag);
         onItemRemovedFromLocalStorage(tag.localUid());
         return;
     }
@@ -80,8 +82,8 @@ void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
 void FilterByTagWidget::onExpungeTagCompleted(
     Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    QNDEBUG("FilterByTagWidget::onExpungeTagCompleted: request id = "
-        << requestId << ", tag = " << tag
+    QNDEBUG("widget:tag_filter", "FilterByTagWidget::onExpungeTagCompleted: "
+        << "request id = " << requestId << ", tag = " << tag
         << "\nExpunged child tag local uids: "
         << expungedChildTagLocalUids.join(QStringLiteral(", ")));
 
@@ -97,9 +99,10 @@ void FilterByTagWidget::onExpungeTagCompleted(
 void FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted(
     QUuid requestId)
 {
-    QNDEBUG("FilterByTagWidget::"
-        << "onExpungeNotelessTagsFromLinkedNotebooksCompleted: request id = "
-        << requestId);
+    QNDEBUG(
+        "widget:tag_filter",
+        "FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted: "
+            << "request id = " << requestId);
 
     update();
 }

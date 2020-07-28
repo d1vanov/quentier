@@ -19,8 +19,6 @@
 #include "ListItemWidget.h"
 #include "ui_ListItemWidget.h"
 
-#include <quentier/logging/QuentierLogger.h>
-
 namespace quentier {
 
 ListItemWidget::ListItemWidget(

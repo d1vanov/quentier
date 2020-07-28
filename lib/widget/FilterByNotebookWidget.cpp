@@ -29,6 +29,8 @@ FilterByNotebookWidget::FilterByNotebookWidget(QWidget * parent) :
     AbstractFilterByModelItemWidget(QStringLiteral("Notebook"), parent)
 {}
 
+FilterByNotebookWidget::~FilterByNotebookWidget() = default;
+
 void FilterByNotebookWidget::setLocalStorageManager(
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
@@ -60,11 +62,14 @@ const NotebookModel * FilterByNotebookWidget::notebookModel() const
 void FilterByNotebookWidget::onUpdateNotebookCompleted(
     Notebook notebook, QUuid requestId)
 {
-    QNDEBUG("FilterByNotebookWidget::onUpdateNotebookCompleted: request id = "
-        << requestId << ", notebook = " << notebook);
+    QNDEBUG(
+        "widget:notebook_filter",
+        "FilterByNotebookWidget::onUpdateNotebookCompleted: request id = "
+            << requestId << ", notebook = " << notebook);
 
     if (Q_UNLIKELY(!notebook.hasName())) {
-        QNWARNING("Found notebook without a name: " << notebook);
+        QNWARNING("widget:notebook_filter", "Found notebook without a name: "
+            << notebook);
         onItemRemovedFromLocalStorage(notebook.localUid());
         return;
     }
@@ -75,8 +80,10 @@ void FilterByNotebookWidget::onUpdateNotebookCompleted(
 void FilterByNotebookWidget::onExpungeNotebookCompleted(
     Notebook notebook, QUuid requestId)
 {
-    QNDEBUG("FilterByNotebookWidget::onExpungeNotebookCompleted: request id = "
-        << requestId << ", notebook = " << notebook);
+    QNDEBUG(
+        "widget:notebook_filter",
+        "FilterByNotebookWidget::onExpungeNotebookCompleted: request id = "
+            << requestId << ", notebook = " << notebook);
 
     onItemRemovedFromLocalStorage(notebook.localUid());
 }

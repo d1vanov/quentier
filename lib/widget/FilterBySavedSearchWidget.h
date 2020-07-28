@@ -38,6 +38,8 @@ class FilterBySavedSearchWidget: public QComboBox
 public:
     explicit FilterBySavedSearchWidget(QWidget * parent = nullptr);
 
+    virtual ~FilterBySavedSearchWidget() override;
+
     void switchAccount(
         const Account & account, SavedSearchModel * pSavedSearchModel);
 
