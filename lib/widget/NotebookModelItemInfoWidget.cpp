@@ -108,7 +108,9 @@ void NotebookModelItemInfoWidget::setNonNotebookModel()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("Non-notebook model is used on the view"));
+    m_pUi->statusBarLabel->setText(
+        tr("Non-notebook model is used on the view"));
+
     m_pUi->statusBarLabel->show();
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -55,8 +55,8 @@ private:
     QPointer<NoteModel> m_pNoteModel;
     QLabel * m_pLabel;
 
-    qint32  m_totalNoteCountPerAccount;
-    qint32  m_filteredNotesCount;
+    qint32  m_totalNoteCountPerAccount = 0;
+    qint32  m_filteredNotesCount = 0;
 };
 
 } // namespace quentier

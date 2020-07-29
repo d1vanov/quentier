@@ -89,12 +89,15 @@ NewListItemLineEdit::NewListItemLineEdit(
         Qt::QueuedConnection);
 #endif
 
-    QNTRACE("Created NewListItemLineEdit: " << this);
+    QNTRACE("widget:new_list_item_line_edit", "Created NewListItemLineEdit: "
+        << this);
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
 {
-    QNTRACE("Destroying NewListItemLineEdit: " << this);
+    QNTRACE("widget:new_list_item_line_edit", "Destroying NewListItemLineEdit: "
+        << this);
+
     delete m_pUi;
 }
 
@@ -171,7 +174,9 @@ void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
     }
 
     int key = pEvent->key();
-    QNTRACE("NewListItemLineEdit::keyPressEvent: key = " << key);
+    QNTRACE(
+        "widget:new_list_item_line_edit",
+        "NewListItemLineEdit::keyPressEvent: key = " << key);
 
     if (key == Qt::Key_Tab) {
         QKeyEvent keyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier);
@@ -184,13 +189,16 @@ void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
 
 void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
 {
-    QNTRACE("NewListItemLineEdit::focusInEvent: " << this << ", event type = "
+    QNTRACE(
+        "widget:new_list_item_line_edit",
+        "NewListItemLineEdit::focusInEvent: " << this << ", event type = "
             << pEvent->type() << ", reason = " << pEvent->reason());
 
     QLineEdit::focusInEvent(pEvent);
 
     if (pEvent->reason() == Qt::ActiveWindowFocusReason) {
-        QNTRACE("Received focus from the window system");
+        QNTRACE("widget:new_list_item_line_edit", "Received focus from "
+            << "the window system");
         Q_EMIT receivedFocusFromWindowSystem();
     }
 }
@@ -198,7 +206,9 @@ void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
 void NewListItemLineEdit::onModelRowsInserted(
     const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG("NewListItemLineEdit::onModelRowsInserted");
+    QNDEBUG(
+        "widget:new_list_item_line_edit",
+        "NewListItemLineEdit::onModelRowsInserted");
 
     Q_UNUSED(parent)
     Q_UNUSED(start)
@@ -210,7 +220,9 @@ void NewListItemLineEdit::onModelRowsInserted(
 void NewListItemLineEdit::onModelRowsRemoved(
     const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG("NewListItemLineEdit::onModelRowsRemoved");
+    QNDEBUG(
+        "widget:new_list_item_line_edit",
+        "NewListItemLineEdit::onModelRowsRemoved");
 
     Q_UNUSED(parent)
     Q_UNUSED(start)
@@ -223,7 +235,9 @@ void NewListItemLineEdit::onModelDataChanged(
     const QModelIndex & topLeft, const QModelIndex & bottomRight,
     const QVector<int> & roles)
 {
-    QNDEBUG("NewListItemLineEdit::onModelDataChanged");
+    QNDEBUG(
+        "widget:new_list_item_line_edit",
+        "NewListItemLineEdit::onModelDataChanged");
 
     Q_UNUSED(topLeft)
     Q_UNUSED(bottomRight)
@@ -234,7 +248,9 @@ void NewListItemLineEdit::onModelDataChanged(
 
 void NewListItemLineEdit::setupCompleter()
 {
-    QNDEBUG("NewListItemLineEdit::setupCompleter");
+    QNDEBUG(
+        "widget:new_list_item_line_edit",
+        "NewListItemLineEdit::setupCompleter");
 
     m_pCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     m_pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
@@ -242,14 +258,18 @@ void NewListItemLineEdit::setupCompleter()
     auto itemNames = itemNamesForCompleter();
     m_pItemNamesModel->setStringList(itemNames);
 
-    QNTRACE("The item names to set to the completer: "
-        << itemNames.join(QStringLiteral(", ")));
+    QNTRACE(
+        "widget:new_list_item_line_edit",
+        "The item names to set to the completer: "
+            << itemNames.join(QStringLiteral(", ")));
 
     m_pCompleter->setModel(m_pItemNamesModel);
     setCompleter(m_pCompleter);
 
 #ifdef LIB_QUENTIER_USE_QT_WEB_ENGINE
-    QNDEBUG("Working around Qt bug https://bugreports.qt.io/browse/QTBUG-56652");
+    QNDEBUG("widget:new_list_item_line_edit", "Working around Qt bug "
+        << "https://bugreports.qt.io/browse/QTBUG-56652");
+
     m_pCompleter->setCompletionMode(QCompleter::InlineCompletion);
 #endif
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,15 +29,14 @@ namespace quentier {
 NoteCountLabelController::NoteCountLabelController(
         QLabel & label, QObject * parent) :
     QObject(parent),
-    m_pNoteModel(),
-    m_pLabel(&label),
-    m_totalNoteCountPerAccount(0),
-    m_filteredNotesCount(0)
+    m_pLabel(&label)
 {}
 
 void NoteCountLabelController::setNoteModel(NoteModel & noteModel)
 {
-    QNDEBUG("NoteCountLabelController::setNoteModel");
+    QNDEBUG(
+        "widget:note_count_label",
+        "NoteCountLabelController::setNoteModel");
 
     if (!m_pNoteModel.isNull() && m_pNoteModel.data() == &noteModel) {
         return;
@@ -51,7 +50,9 @@ void NoteCountLabelController::setNoteModel(NoteModel & noteModel)
 
 void NoteCountLabelController::onNoteCountPerAccountUpdated(qint32 noteCount)
 {
-    QNDEBUG("NoteCountLabelController::onNoteCountPerAccountUpdated: "
+    QNDEBUG(
+        "widget:note_count_label",
+        "NoteCountLabelController::onNoteCountPerAccountUpdated: "
             << noteCount);
 
     m_totalNoteCountPerAccount = noteCount;
@@ -60,7 +61,9 @@ void NoteCountLabelController::onNoteCountPerAccountUpdated(qint32 noteCount)
 
 void NoteCountLabelController::onFilteredNotesCountUpdated(qint32 noteCount)
 {
-    QNDEBUG("NoteCountLabelController::onFilteredNotesCountUpdated: "
+    QNDEBUG(
+        "widget:note_count_label",
+        "NoteCountLabelController::onFilteredNotesCountUpdated: "
             << noteCount);
 
     m_filteredNotesCount = noteCount;
@@ -69,14 +72,16 @@ void NoteCountLabelController::onFilteredNotesCountUpdated(qint32 noteCount)
 
 void NoteCountLabelController::setNoteCountsFromNoteModel()
 {
-    QNDEBUG("NoteCountLabelController::setNoteCountsFromNoteModel");
+    QNDEBUG(
+        "widget:note_count_label",
+        "NoteCountLabelController::setNoteCountsFromNoteModel");
 
     if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         m_totalNoteCountPerAccount = 0;
         m_filteredNotesCount = 0;
     }
     else {
-        NoteModel * pNoteModel = m_pNoteModel.data();
+        auto * pNoteModel = m_pNoteModel.data();
         m_totalNoteCountPerAccount = pNoteModel->totalAccountNotesCount();
         m_filteredNotesCount = pNoteModel->totalFilteredNotesCount();
     }
@@ -86,7 +91,9 @@ void NoteCountLabelController::setNoteCountsFromNoteModel()
 
 void NoteCountLabelController::setNoteCountsToLabel()
 {
-    QNDEBUG("NoteCountLabelController::setNoteCountsToLabel: "
+    QNDEBUG(
+        "widget:note_count_label",
+        "NoteCountLabelController::setNoteCountsToLabel: "
             << "total note count per account = " << m_totalNoteCountPerAccount
             << ", filtered note count per account = " << m_filteredNotesCount);
 
@@ -100,50 +107,56 @@ void NoteCountLabelController::setNoteCountsToLabel()
 
 void NoteCountLabelController::disconnectFromNoteModel()
 {
-    QNDEBUG("NoteCountLabelController::disconnectFromNoteModel");
+    QNDEBUG(
+        "widget:note_count_label",
+        "NoteCountLabelController::disconnectFromNoteModel");
 
     if (Q_UNLIKELY(m_pNoteModel.isNull())) {
-        QNDEBUG("Note model is null, nothing to do");
+        QNDEBUG("widget:note_count_label", "Note model is null, nothing to do");
         return;
     }
 
-    NoteModel * pNoteModel = m_pNoteModel.data();
+    auto * pNoteModel = m_pNoteModel.data();
 
-    QObject::disconnect(pNoteModel,
-                        QNSIGNAL(NoteModel,noteCountPerAccountUpdated,qint32),
-                        this,
-                        QNSLOT(NoteCountLabelController,
-                               onNoteCountPerAccountUpdated,qint32));
-    QObject::disconnect(pNoteModel,
-                        QNSIGNAL(NoteModel,filteredNotesCountUpdated,qint32),
-                        this,
-                        QNSLOT(NoteCountLabelController,
-                               onFilteredNotesCountUpdated,qint32));
+    QObject::disconnect(
+        pNoteModel,
+        &NoteModel::noteCountPerAccountUpdated,
+        this,
+        &NoteCountLabelController::onNoteCountPerAccountUpdated);
+
+    QObject::disconnect(
+        pNoteModel,
+        &NoteModel::filteredNotesCountUpdated,
+        this,
+        &NoteCountLabelController::onFilteredNotesCountUpdated);
 }
 
 void NoteCountLabelController::connectToNoteModel()
 {
-    QNDEBUG("NoteCountLabelController::connectToNoteModel");
+    QNDEBUG(
+        "widget:note_count_label",
+        "NoteCountLabelController::connectToNoteModel");
 
     if (Q_UNLIKELY(m_pNoteModel.isNull())) {
-        QNDEBUG("Note model is null, nothing to do");
+        QNDEBUG("widget:note_count_label", "Note model is null, nothing to do");
         return;
     }
 
-    NoteModel * pNoteModel = m_pNoteModel.data();
+    auto * pNoteModel = m_pNoteModel.data();
 
-    QObject::connect(pNoteModel,
-                     QNSIGNAL(NoteModel,noteCountPerAccountUpdated,qint32),
-                     this,
-                     QNSLOT(NoteCountLabelController,
-                            onNoteCountPerAccountUpdated,qint32),
-                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-    QObject::connect(pNoteModel,
-                     QNSIGNAL(NoteModel,filteredNotesCountUpdated,qint32),
-                     this,
-                     QNSLOT(NoteCountLabelController,
-                            onFilteredNotesCountUpdated,qint32),
-                     Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+    QObject::connect(
+        pNoteModel,
+        &NoteModel::noteCountPerAccountUpdated,
+        this,
+        &NoteCountLabelController::onNoteCountPerAccountUpdated,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+
+    QObject::connect(
+        pNoteModel,
+        &NoteModel::filteredNotesCountUpdated,
+        this,
+        &NoteCountLabelController::onFilteredNotesCountUpdated,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 }
 
 } // namespace quentier

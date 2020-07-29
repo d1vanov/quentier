@@ -19,34 +19,35 @@
 #ifndef QUENTIER_LIB_WIDGET_NOTE_EDITOR_WIDGET_H
 #define QUENTIER_LIB_WIDGET_NOTE_EDITOR_WIDGET_H
 
-#include <lib/model/NoteCache.h>
 #include <lib/model/NotebookCache.h>
+#include <lib/model/NoteCache.h>
 #include <lib/model/TagCache.h>
 
-#include <quentier/utility/StringUtils.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/utility/StringUtils.h>
 
-#include <QWidget>
-#include <QUuid>
-#include <QScopedPointer>
-#include <QStringList>
 #include <QPointer>
-#include <QUndoStack>
 #include <QPrinter>
+#include <QStringList>
+#include <QUndoStack>
+#include <QUuid>
+#include <QWidget>
+
+#include <memory>
 
 namespace Ui {
 class NoteEditorWidget;
 }
 
-QT_FORWARD_DECLARE_CLASS(QTimer)
-QT_FORWARD_DECLARE_CLASS(QThread)
 QT_FORWARD_DECLARE_CLASS(QStringListModel)
+QT_FORWARD_DECLARE_CLASS(QThread)
+QT_FORWARD_DECLARE_CLASS(QTimer)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
+QT_FORWARD_DECLARE_CLASS(TagModel)
 
 /**
  * @brief The NoteEditorWidget class contains the actual note editor +
@@ -65,7 +66,7 @@ public:
         TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
         QWidget * parent = nullptr);
 
-    virtual ~NoteEditorWidget();
+    virtual ~NoteEditorWidget() override;
 
     /**
      * @brief noteLocalUid - getter for the local uid of the editor's note
@@ -75,40 +76,43 @@ public:
     QString noteLocalUid() const;
 
     /**
-     * @return                  True if the note was created right before opening
-     *                          it in the note editor, false otherwise
+     * @return                  True if the note was created right before
+     *                          opening it in the note editor, false otherwise
      */
     bool isNewNote() const;
 
     /**
      * @brief setNoteLocalUid - setter for the local uid of the editor's note
-     * @param noteLocalUid      The local uid of the note to be set to the editor;
-     *                          the editor finds the note (either within the note
-     *                          cache or within the local storage database) and
-     *                          loads it; setting the empty string removes
-     *                          the note from the editor if it was set there
-     *                          before
+     * @param noteLocalUid      The local uid of the note to be set to
+     *                          the editor; the editor finds the note (either
+     *                          within the note cache or within the local
+     *                          storage database) and loads it; setting
+     *                          the empty string removes the note from
+     *                          the editor if it was set there before
      * @param isNewNote         True if the note has been created right before
      *                          opening it in the note editor, false otherwise.
-     *                          If the note was new and if the note editor widget
-     *                          is closed before the note is edited in any way -
-     *                          title or text or whatever else - it would
-     *                          automatically expunge the empty new note from
-     *                          the local storage. Once the note is saved
+     *                          If the note was new and if the note editor
+     *                          widget is closed before the note is edited in
+     *                          any way - title or text or whatever else - it
+     *                          would automatically expunge the empty new note
+     *                          from the local storage. Once the note is saved
      *                          to the local storage at least once after being
      *                          loaded into the editor, it is no longer
-     *                          considered new and won't be expunged automatically.
+     *                          considered new and won't be expunged
+     *                          automatically.
      */
-    void setNoteLocalUid(const QString & noteLocalUid, const bool isNewNote = false);
+    void setNoteLocalUid(
+        const QString & noteLocalUid, const bool isNewNote = false);
 
     /**
      * @return                  True if the widget currently has the full note &
      *                          notebook object with all the required stuff:
      *                          note's resources, note's tags, notebook's
-     *                          restrictions (if any) etc; returns false otherwise,
-     *                          if no note local uid was set or if it was set but
-     *                          the query for the full note and/or notebook object
-     *                          from the local storage is in progress now
+     *                          restrictions (if any) etc; returns false
+     *                          otherwise, if no note local uid was set or if it
+     *                          was set but the query for the full note and/or
+     *                          notebook object from the local storage is in
+     *                          progress now
      */
     bool isResolved() const;
 
@@ -157,7 +161,8 @@ public:
     /**
      * @brief isNoteSourceShown
      * @return                  True if the note source widget showing the note
-     *                          editor's HTML is currently shown, false otherwise
+     *                          editor's HTML is currently shown, false
+     *                          otherwise
      */
     bool isNoteSourceShown() const;
 
@@ -175,8 +180,8 @@ public:
 
     /**
      * @brief isSpellCheckEnabled
-     * @return                  True if the spell checking is enabled for the note
-     *                          editor, false otherwise
+     * @return                  True if the spell checking is enabled for
+     *                          the note editor, false otherwise
      */
     bool isSpellCheckEnabled() const;
 
@@ -204,16 +209,18 @@ public:
     };
 
     /**
-     * @brief checkAndSaveModifiedNote - if the note editor has some note set and
-     * it also contains some modifications to the content of the note which are
-     * not saved yet, this method attempts to save these synchronously
+     * @brief checkAndSaveModifiedNote - if the note editor has some note set
+     * and it also contains some modifications to the content of the note which
+     * are not saved yet, this method attempts to save these synchronously
      *
-     * @param errorDescription      Contains the textual description of the error
-     *                              if the method wasn't able to save the note
+     * @param errorDescription      Contains the textual description of
+     *                              the error if the method wasn't able to save
+     *                              the note
      * @return                      The result of the attempt to save the note
      *                              synchronously
      */
-    NoteSaveStatus::type checkAndSaveModifiedNote(ErrorString & errorDescription);
+    NoteSaveStatus::type checkAndSaveModifiedNote(
+        ErrorString & errorDescription);
 
     /**
      * @brief isSeparateWindow
@@ -223,8 +230,8 @@ public:
     bool isSeparateWindow() const;
 
     /**
-     * @brief makeSeparateWindow - sets Qt::Window attribute on NoteEditorWidget +
-     * unhides print and export to pdf buttons on the toolbar
+     * @brief makeSeparateWindow - sets Qt::Window attribute on NoteEditorWidget
+     * + unhides print and export to pdf buttons on the toolbar
      *
      * @return                      True if the widget did not have Qt::Window
      *                              attribute before the call, false otherwise
@@ -248,7 +255,8 @@ public:
     /**
      * @brief printNote - attempts to print the note within the editor (if any)
      * @param errorDescription      The textual description of the error if
-     *                              the note from the editor could not be printed
+     *                              the note from the editor could not be
+     *                              printed
      * @return                      True if the note was printed successfully,
      *                              false otherwise
      */
@@ -260,7 +268,8 @@ public:
      *
      * @param errorDescription      The textual description of the error if
      *                              the note could not be exported to pdf
-     * @return true if the note was exported to pdf successfully, false otherwise
+     * @return true if the note was exported to pdf successfully, false
+     * otherwise
      */
     bool exportNoteToPdf(ErrorString & errorDescription);
 
@@ -296,8 +305,8 @@ Q_SIGNALS:
     void resolved();
 
     /**
-     * The signal is emitted after the note has been fully loaded into the editor
-     * and is ready for the actual editing
+     * The signal is emitted after the note has been fully loaded into
+     * the editor and is ready for the actual editing
      */
     void noteLoaded();
 
@@ -310,11 +319,14 @@ Q_SIGNALS:
     /**
      * The in-app note link was clicked within the editor
      */
-    void inAppNoteLinkClicked(QString userId, QString shardId, QString noteGuid);
+    void inAppNoteLinkClicked(
+        QString userId, QString shardId, QString noteGuid);
 
 // private signals
-    void findNote(Note note, LocalStorageManager::GetNoteOptions options,
-                  QUuid requestId);
+    void findNote(
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
+
     void findNotebook(Notebook notebook, QUuid requestId);
 
     void noteSavedInLocalStorage();
@@ -366,6 +378,7 @@ public Q_SLOTS:
     void onEditorInsertToDoCheckBoxAction();
 
     void onEditorInsertTableDialogAction();
+
     void onEditorInsertTable(
         int rows, int columns, double width, bool relativeWidth);
 
@@ -398,11 +411,12 @@ private Q_SLOTS:
     void onNewTagLineEditReceivedFocusFromWindowSystem();
 
     void onFontComboBoxFontChanged(const QFont & font);
-    void onLimitedFontsComboBoxCurrentIndexChanged(QString fontFamily);
+    void onLimitedFontsComboBoxCurrentIndexChanged(int fontFamilyIndex);
 
     void onFontSizesComboBoxCurrentIndexChanged(int index);
 
     void onNoteSavedToLocalStorage(QString noteLocalUid);
+
     void onFailedToSaveNoteToLocalStorage(
         ErrorString errorDescription, QString noteLocalUid);
 
@@ -441,14 +455,14 @@ private Q_SLOTS:
     void onNoteTitleEdited(const QString & noteTitle);
 
     /**
-     * @brief onNoteEditorModified is connected to the note editor's noteModified
-     * signal
+     * @brief onNoteEditorModified is connected to the note editor's
+     * noteModified signal
      */
     void onNoteEditorModified();
 
     /**
-     * This slot is called when the editing of the note title should be considered
-     * finished
+     * This slot is called when the editing of the note title should be
+     * considered finished
      */
     void onNoteTitleUpdated();
 
@@ -516,7 +530,7 @@ private:
     void setupSpecialIcons();
 
     void setupFontsComboBox();
-    void setupLimitedFontsComboBox(const QString & startupFont = QString());
+    void setupLimitedFontsComboBox(const QString & startupFont = {});
     void setupFontSizesComboBox();
     void setupFontSizesForFont(const QFont & font);
     bool useLimitedSetOfFonts() const;
@@ -539,22 +553,22 @@ private:
     NotebookCache &             m_notebookCache;
     TagCache &                  m_tagCache;
 
-    QStringListModel *          m_pLimitedFontsListModel;
+    QStringListModel *          m_pLimitedFontsListModel = nullptr;
 
     // This data piece separate from m_pCurrentNote is needed in order to handle
     // the cases when the note is being loaded from the local storage while
     // someone asks which note local uid the widget handles
     QString                     m_noteLocalUid;
 
-    QScopedPointer<Note>        m_pCurrentNote;
-    QScopedPointer<Notebook>    m_pCurrentNotebook;
+    std::unique_ptr<Note>       m_pCurrentNote;
+    std::unique_ptr<Notebook>   m_pCurrentNotebook;
 
     QString                     m_lastNoteTitleOrPreviewText;
 
     Account                     m_currentAccount;
     QPointer<QUndoStack>        m_pUndoStack;
 
-    QTimer *                    m_pConvertToNoteDeadlineTimer;
+    QTimer *                    m_pConvertToNoteDeadlineTimer = nullptr;
 
     QUuid                       m_findCurrentNotebookRequestId;
 
@@ -570,25 +584,25 @@ private:
 
     QHash<QUuid, NoteLinkInfo>  m_noteLinkInfoByFindNoteRequestIds;
 
-    int                         m_lastFontSizeComboBoxIndex;
+    int                         m_lastFontSizeComboBoxIndex = -1;
     QString                     m_lastFontComboBoxFontFamily;
 
     QString                     m_lastNoteEditorHtml;
 
     StringUtils                 m_stringUtils;
 
-    int                         m_lastSuggestedFontSize;
-    int                         m_lastActualFontSize;
+    int                         m_lastSuggestedFontSize = -1;
+    int                         m_lastActualFontSize = -1;
 
-    bool                        m_pendingEditorSpellChecker;
-    bool                        m_currentNoteWasExpunged;
+    bool                        m_pendingEditorSpellChecker = false;
+    bool                        m_currentNoteWasExpunged = false;
 
-    bool                        m_noteHasBeenModified;
+    bool                        m_noteHasBeenModified = false;
 
-    bool                        m_noteTitleIsEdited;
-    bool                        m_noteTitleHasBeenEdited;
+    bool                        m_noteTitleIsEdited = false;
+    bool                        m_noteTitleHasBeenEdited = false;
 
-    bool                        m_isNewNote;
+    bool                        m_isNewNote = false;
 };
 
 } // namespace quentier
