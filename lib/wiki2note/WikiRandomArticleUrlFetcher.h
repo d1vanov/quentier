@@ -21,8 +21,8 @@
 
 #include <lib/network/NetworkReplyFetcher.h>
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QUrl>
@@ -41,16 +41,27 @@ public:
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
 
-    virtual ~WikiRandomArticleUrlFetcher();
+    virtual ~WikiRandomArticleUrlFetcher() override;
 
-    bool isStarted() const { return m_started; }
-    bool isFinished() const { return m_finished; }
+    bool isStarted() const
+    {
+        return m_started;
+    }
 
-    const QUrl & url() const { return m_url; }
+    bool isFinished() const
+    {
+        return m_finished;
+    }
+
+    const QUrl & url() const
+    {
+        return m_url;
+    }
 
 Q_SIGNALS:
-    void finished(bool status, QUrl randomArticleUrl,
-                  ErrorString errorDescription);
+    void finished(
+        bool status, QUrl randomArticleUrl, ErrorString errorDescription);
+
     void progress(double percentage);
 
 // private signals
@@ -74,10 +85,10 @@ private:
 private:
     const qint64            m_networkReplyFetcherTimeout;
 
-    NetworkReplyFetcher *   m_pNetworkReplyFetcher;
+    NetworkReplyFetcher *   m_pNetworkReplyFetcher = nullptr;
 
-    bool        m_started;
-    bool        m_finished;
+    bool        m_started = false;
+    bool        m_finished = false;
 
     QUrl        m_url;
 };

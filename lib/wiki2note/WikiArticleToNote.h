@@ -21,12 +21,12 @@
 
 #include <lib/network/NetworkReplyFetcher.h>
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Resource.h>
+#include <quentier/utility/Macros.h>
 
-#include <QObject>
 #include <QHash>
+#include <QObject>
 #include <QUrl>
 
 namespace quentier {
@@ -45,12 +45,27 @@ public:
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
 
-    bool isStarted() const { return m_started; }
-    bool isFinished() const { return m_finished; }
+    virtual ~WikiArticleToNote() override;
 
-    const Note & note() const { return m_note; }
+    bool isStarted() const
+    {
+        return m_started;
+    }
 
-    double currentProgress() const { return m_progress; }
+    bool isFinished() const
+    {
+        return m_finished;
+    }
+
+    const Note & note() const
+    {
+        return m_note;
+    }
+
+    double currentProgress() const
+    {
+        return m_progress;
+    }
 
 Q_SIGNALS:
     void finished(bool status, ErrorString errorDescription, Note note);
@@ -85,8 +100,8 @@ private:
 
     Note    m_note;
 
-    bool    m_started;
-    bool    m_finished;
+    bool    m_started = false;
+    bool    m_finished = false;
 
     QHash<NetworkReplyFetcher*, double> m_imageDataFetchersWithProgress;
 
@@ -96,7 +111,7 @@ private:
     // Cleaned up wiki article's HTML
     QString m_html;
 
-    double  m_progress;
+    double  m_progress = 0.0;
 };
 
 } // namespace quentier

@@ -30,11 +30,7 @@ WikiRandomArticleUrlFetcher::WikiRandomArticleUrlFetcher(
         const qint64 timeoutMsec,
         QObject * parent) :
     QObject(parent),
-    m_networkReplyFetcherTimeout(timeoutMsec),
-    m_pNetworkReplyFetcher(nullptr),
-    m_started(false),
-    m_finished(false),
-    m_url()
+    m_networkReplyFetcherTimeout(timeoutMsec)
 {}
 
 WikiRandomArticleUrlFetcher::~WikiRandomArticleUrlFetcher()
@@ -47,37 +43,42 @@ WikiRandomArticleUrlFetcher::~WikiRandomArticleUrlFetcher()
 
 void WikiRandomArticleUrlFetcher::start()
 {
-    QNDEBUG("WikiRandomArticleUrlFetcher::start");
+    QNDEBUG("wiki2note", "WikiRandomArticleUrlFetcher::start");
 
     if (Q_UNLIKELY(m_started)) {
-        QNWARNING("WikiRandomArticleUrlFetcher is already started");
+        QNWARNING("wiki2note", "WikiRandomArticleUrlFetcher is already started");
         return;
     }
 
-    QUrl query(QStringLiteral("https://en.wikipedia.org/w/api.php"
-                              "?action=query"
-                              "&format=xml"
-                              "&list=random"
-                              "&rnlimit=1"
-                              "&rnnamespace=0"));
+    QUrl query(QStringLiteral(
+        "https://en.wikipedia.org/w/api.php"
+        "?action=query"
+        "&format=xml"
+        "&list=random"
+        "&rnlimit=1"
+        "&rnnamespace=0"));
 
     m_pNetworkReplyFetcher = new NetworkReplyFetcher(
-        query, m_networkReplyFetcherTimeout);
+        query,
+        m_networkReplyFetcherTimeout);
 
-    QObject::connect(this, QNSIGNAL(WikiRandomArticleUrlFetcher,startFetching),
-                     m_pNetworkReplyFetcher, QNSLOT(NetworkReplyFetcher,start));
+    QObject::connect(
+        this,
+        &WikiRandomArticleUrlFetcher::startFetching,
+        m_pNetworkReplyFetcher,
+        &NetworkReplyFetcher::start);
 
-    QObject::connect(m_pNetworkReplyFetcher,
-                     QNSIGNAL(NetworkReplyFetcher,finished,
-                              bool,QByteArray,ErrorString),
-                     this,
-                     QNSLOT(WikiRandomArticleUrlFetcher,onDownloadFinished,
-                            bool,QByteArray,ErrorString));
-    QObject::connect(m_pNetworkReplyFetcher,
-                     QNSIGNAL(NetworkReplyFetcher,downloadProgress,qint64,qint64),
-                     this,
-                     QNSLOT(WikiRandomArticleUrlFetcher,onDownloadProgress,
-                            qint64,qint64));
+    QObject::connect(
+        m_pNetworkReplyFetcher,
+        &NetworkReplyFetcher::finished,
+        this,
+        &WikiRandomArticleUrlFetcher::onDownloadFinished);
+
+    QObject::connect(
+        m_pNetworkReplyFetcher,
+        &NetworkReplyFetcher::downloadProgress,
+        this,
+        &WikiRandomArticleUrlFetcher::onDownloadProgress);
 
     m_pNetworkReplyFetcher->start();
     m_started = true;
@@ -86,8 +87,9 @@ void WikiRandomArticleUrlFetcher::start()
 void WikiRandomArticleUrlFetcher::onDownloadProgress(
     qint64 bytesFetched, qint64 bytesTotal)
 {
-    QNDEBUG("WikiRandomArticleUrlFetcher::onDownloadProgress: fetched "
-            << bytesFetched << " bytes, total " << bytesTotal << " bytes");
+    QNDEBUG("wiki2note", "WikiRandomArticleUrlFetcher::onDownloadProgress: "
+        << "fetched " << bytesFetched << " bytes, total " << bytesTotal
+        << " bytes");
 
     double percentage = 0;
     if (bytesTotal != 0) {
@@ -101,12 +103,12 @@ void WikiRandomArticleUrlFetcher::onDownloadProgress(
 void WikiRandomArticleUrlFetcher::onDownloadFinished(
     bool status, QByteArray fetchedData, ErrorString errorDescription)
 {
-    QNDEBUG("WikiRandomArticleUrlFetcher::onDownloadFinished: status = "
-            << (status ? "true" : "false") << ", error description = "
-            << errorDescription);
+    QNDEBUG("wiki2note", "WikiRandomArticleUrlFetcher::onDownloadFinished: "
+        << "status = " << (status ? "true" : "false")
+        << ", error description = " << errorDescription);
 
     if (!status) {
-        QNWARNING("Download failed: " << errorDescription);
+        QNWARNING("wiki2note", "Download failed: " << errorDescription);
         finishWithError(errorDescription);
         return;
     }
@@ -119,21 +121,24 @@ void WikiRandomArticleUrlFetcher::onDownloadFinished(
         return;
     }
 
-    m_url = QUrl(QStringLiteral("https://en.wikipedia.org/w/api.php"
-                                "?action=parse"
-                                "&format=xml"
-                                "&section=0"
-                                "&prop=text"
-                                "&pageid=") + QString::number(pageId));
+    m_url = QUrl(QStringLiteral(
+        "https://en.wikipedia.org/w/api.php"
+        "?action=parse"
+        "&format=xml"
+        "&section=0"
+        "&prop=text"
+        "&pageid=") + QString::number(pageId));
+
     if (!m_url.isValid()) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to compose valid URL from "
-                                            "data fetched from Wiki"));
-        QNWARNING(errorDescription << ", page id = " << pageId);
+        errorDescription.setBase(
+            QT_TR_NOOP("Failed to compose valid URL from data fetched from "
+                       "Wiki"));
+        QNWARNING("wiki2note", errorDescription << ", page id = " << pageId);
         finishWithError(errorDescription);
         return;
     }
 
-    QNDEBUG("Successfully composed random article URL: " << m_url);
+    QNDEBUG("wiki2note", "Successfully composed random article URL: " << m_url);
 
     m_started = false;
     m_finished = true;
@@ -155,7 +160,7 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
         if (reader.isStartElement() &&
             (reader.name().toString() == QStringLiteral("page")))
         {
-            const QXmlStreamAttributes attributes = reader.attributes();
+            const auto attributes = reader.attributes();
             QString id = attributes.value(QStringLiteral("id")).toString();
 
             bool conversionResult = false;
@@ -165,7 +170,7 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
                 errorDescription.setBase(
                     QT_TR_NOOP("Failed to fetch random Wiki article URL: could "
                                "not convert id property to int"));
-                QNWARNING(errorDescription << ": " << id);
+                QNWARNING("wiki2note", errorDescription << ": " << id);
                 return -1;
             }
 
@@ -179,7 +184,7 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
         errorDescription.setBase(
             QT_TR_NOOP("Failed to fetch random Wiki article URL: could not "
                        "find page id"));
-        QNWARNING(errorDescription);
+        QNWARNING("wiki2note", errorDescription);
         return -1;
     }
 
@@ -189,7 +194,8 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
 void WikiRandomArticleUrlFetcher::finishWithError(
     const ErrorString & errorDescription)
 {
-    QNDEBUG("WikiRandomArticleUrlFetcher::finishWithError: " << errorDescription);
+    QNDEBUG("wiki2note", "WikiRandomArticleUrlFetcher::finishWithError: "
+        << errorDescription);
 
     m_started = false;
     m_finished = false;
