@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,8 +19,8 @@
 #include "Utility.h"
 
 #include <QDir>
-#include <QFileInfoList>
 #include <QFile>
+#include <QFileInfoList>
 
 QString nativePathToUnixPath(const QString & path)
 {

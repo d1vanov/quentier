@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,21 +21,23 @@
 
 #include <quentier/utility/Macros.h>
 
+#include <QByteArray>
 #include <QObject>
 #include <QRunnable>
 #include <QString>
-#include <QByteArray>
 
-class SymbolsUnpacker: public QObject,
-                       public QRunnable
+class SymbolsUnpacker: public QObject, public QRunnable
 {
     Q_OBJECT
 public:
-    explicit SymbolsUnpacker(const QString & compressedSymbolsFilePath,
-                             const QString & unpackedSymbolsRootPath,
-                             QObject * parent = nullptr);
+    explicit SymbolsUnpacker(
+        const QString & compressedSymbolsFilePath,
+        const QString & unpackedSymbolsRootPath,
+        QObject * parent = nullptr);
 
-    virtual void run();
+    virtual ~SymbolsUnpacker() override;
+
+    virtual void run() override;
 
 Q_SIGNALS:
     void finished(bool status, QString errorDescription);

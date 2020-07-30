@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,38 +18,30 @@
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
-#include "Utility.h"
+
 #include "SymbolsUnpacker.h"
+#include "Utility.h"
 
 #include <lib/utility/HumanReadableVersionInfo.h>
+
 #include <VersionInfo.h>
 
-#include <quentier/utility/VersionInfo.h>
 #include <quentier/utility/Utility.h>
+#include <quentier/utility/VersionInfo.h>
 
-#include <QDir>
 #include <QDesktopServices>
+#include <QDir>
+#include <QStandardPaths>
 #include <QThreadPool>
 
-#include <QStandardPaths>
-
-#define QNSIGNAL(className, methodName, ...) &className::methodName
-#define QNSLOT(className, methodName, ...) &className::methodName
-
-MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
-                       const QString & libquentierSymbolsFileLocation,
-                       const QString & stackwalkBinaryLocation,
-                       const QString & minidumpLocation,
-                       QWidget * parent) :
+MainWindow::MainWindow(
+        const QString & quentierSymbolsFileLocation,
+        const QString & libquentierSymbolsFileLocation,
+        const QString & stackwalkBinaryLocation,
+        const QString & minidumpLocation,
+        QWidget * parent) :
     QMainWindow(parent),
-    m_pUi(new Ui::MainWindow),
-    m_numPendingSymbolsUnpackers(0),
-    m_minidumpLocation(),
-    m_stackwalkBinary(),
-    m_unpackedSymbolsRootPath(),
-    m_symbolsUnpackingErrors(),
-    m_output(),
-    m_error()
+    m_pUi(new Ui::MainWindow)
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Quentier crashed"));
@@ -78,6 +70,7 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
 
     m_unpackedSymbolsRootPath =
         tmpDirPath + QStringLiteral("/Quentier_debugging_symbols/symbols");
+
     bool res = quentier::removeDir(m_unpackedSymbolsRootPath);
     if (Q_UNLIKELY(!res)) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
@@ -106,20 +99,28 @@ MainWindow::MainWindow(const QString & quentierSymbolsFileLocation,
     output += QStringLiteral("...");
     m_pUi->stackTracePlainTextEdit->setPlainText(output);
 
-    SymbolsUnpacker * pQuentierSymbolsUnpacker =
-        new SymbolsUnpacker(quentierSymbolsFileLocation, m_unpackedSymbolsRootPath);
-    QObject::connect(pQuentierSymbolsUnpacker,
-                     QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
-                     this,
-                     QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
+    auto * pQuentierSymbolsUnpacker = new SymbolsUnpacker(
+        quentierSymbolsFileLocation,
+        m_unpackedSymbolsRootPath);
+
+    QObject::connect(
+        pQuentierSymbolsUnpacker,
+        &SymbolsUnpacker::finished,
+        this,
+        &MainWindow::onSymbolsUnpackerFinished);
+
     ++m_numPendingSymbolsUnpackers;
 
-    SymbolsUnpacker * pLibquentierSymbolsUnpacker =
-        new SymbolsUnpacker(libquentierSymbolsFileLocation, m_unpackedSymbolsRootPath);
-    QObject::connect(pLibquentierSymbolsUnpacker,
-                     QNSIGNAL(SymbolsUnpacker,finished,bool,QString),
-                     this,
-                     QNSLOT(MainWindow,onSymbolsUnpackerFinished,bool,QString));
+    auto * pLibquentierSymbolsUnpacker = new SymbolsUnpacker(
+        libquentierSymbolsFileLocation,
+        m_unpackedSymbolsRootPath);
+
+    QObject::connect(
+        pLibquentierSymbolsUnpacker,
+        &SymbolsUnpacker::finished,
+        this,
+        &MainWindow::onSymbolsUnpackerFinished);
+
     ++m_numPendingSymbolsUnpackers;
 
     QThreadPool::globalInstance()->start(pQuentierSymbolsUnpacker);
@@ -133,7 +134,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::onMinidumpStackwalkReadyReadStandardOutput()
 {
-    QProcess * pStackwalkProcess = qobject_cast<QProcess*>(sender());
+    auto * pStackwalkProcess = qobject_cast<QProcess*>(sender());
     if (Q_UNLIKELY(!pStackwalkProcess)) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: can't cast the invoker of minidump stackwalk stdout "
@@ -156,7 +157,7 @@ void MainWindow::onMinidumpStackwalkReadyReadStandardOutput()
 
 void MainWindow::onMinidumpStackwalkReadyReadStandardError()
 {
-    QProcess * pStackwalkProcess = qobject_cast<QProcess*>(sender());
+    auto * pStackwalkProcess = qobject_cast<QProcess*>(sender());
     if (Q_UNLIKELY(!pStackwalkProcess)) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: can't cast the invoker of minidump stackwalk stderr "
@@ -182,10 +183,10 @@ void MainWindow::onMinidumpStackwalkProcessFinished(
     output += QStringLiteral("Version info:\n\n");
     output += versionInfos();
     output += QStringLiteral("\n\n");
+
     output += tr("Stacktrace extraction finished, exit code") +
-              QStringLiteral(": ") +
-              QString::number(exitCode) +
-              QStringLiteral("\n");
+        QStringLiteral(": ") + QString::number(exitCode) + QStringLiteral("\n");
+
     output += m_output;
     output += QStringLiteral("\n\n");
     output += m_error;
@@ -193,7 +194,8 @@ void MainWindow::onMinidumpStackwalkProcessFinished(
     m_pUi->stackTracePlainTextEdit->setPlainText(output);
 }
 
-void MainWindow::onSymbolsUnpackerFinished(bool status, QString errorDescription)
+void MainWindow::onSymbolsUnpackerFinished(
+    bool status, QString errorDescription)
 {
     if (m_numPendingSymbolsUnpackers != 0) {
         --m_numPendingSymbolsUnpackers;
@@ -202,8 +204,9 @@ void MainWindow::onSymbolsUnpackerFinished(bool status, QString errorDescription
     if (!status)
     {
         if (m_symbolsUnpackingErrors.isEmpty()) {
-            m_symbolsUnpackingErrors = tr("Errors detected during symbols unpacking") +
-                                       QStringLiteral(":\n\n");
+            m_symbolsUnpackingErrors =
+                tr("Errors detected during symbols unpacking") +
+                QStringLiteral(":\n\n");
         }
 
         m_symbolsUnpackingErrors += errorDescription;
@@ -214,33 +217,52 @@ void MainWindow::onSymbolsUnpackerFinished(bool status, QString errorDescription
         return;
     }
 
-    QProcess * pStackwalkProcess = new QProcess(this);
-    QObject::connect(pStackwalkProcess,
-                     QNSIGNAL(QProcess,readyReadStandardOutput),
-                     this,
-                     QNSLOT(MainWindow,onMinidumpStackwalkReadyReadStandardOutput));
-    QObject::connect(pStackwalkProcess,
-                     QNSIGNAL(QProcess,readyReadStandardError),
-                     this,
-                     QNSLOT(MainWindow,onMinidumpStackwalkReadyReadStandardError));
-    QObject::connect(pStackwalkProcess,
-                     SIGNAL(finished(int,QProcess::ExitStatus)),
-                     this,
-                     SLOT(onMinidumpStackwalkProcessFinished(int,QProcess::ExitStatus)));
+    auto * pStackwalkProcess = new QProcess(this);
+
+    QObject::connect(
+        pStackwalkProcess,
+        &QProcess::readyReadStandardOutput,
+        this,
+        &MainWindow::onMinidumpStackwalkReadyReadStandardOutput);
+
+    QObject::connect(
+        pStackwalkProcess,
+        &QProcess::readyReadStandardError,
+        this,
+        &MainWindow::onMinidumpStackwalkReadyReadStandardError);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        pStackwalkProcess,
+        qOverload<int,QProcess::ExitStatus>(&QProcess::finished),
+        this,
+        &MainWindow::onMinidumpStackwalkProcessFinished);
+#else
+    QObject::connect(
+        pStackwalkProcess,
+        SIGNAL(finished(int,QProcess::ExitStatus)),
+        this,
+        SLOT(onMinidumpStackwalkProcessFinished(int,QProcess::ExitStatus)));
+#endif
 
     QStringList stackwalkArgs;
     stackwalkArgs.reserve(2);
     stackwalkArgs << QDir::fromNativeSeparators(m_minidumpLocation);
     stackwalkArgs << m_unpackedSymbolsRootPath;
 
-    pStackwalkProcess->start(m_stackwalkBinary, stackwalkArgs, QIODevice::ReadOnly);
+    pStackwalkProcess->start(
+        m_stackwalkBinary,
+        stackwalkArgs,
+        QIODevice::ReadOnly);
 }
 
 QString MainWindow::readData(QProcess & process, const bool fromStdout)
 {
-    QByteArray output = (fromStdout
-                         ? process.readAllStandardOutput()
-                         : process.readAllStandardError());
+    QByteArray output =
+        (fromStdout
+         ? process.readAllStandardOutput()
+         : process.readAllStandardError());
+
     return QString::fromUtf8(output);
 }
 

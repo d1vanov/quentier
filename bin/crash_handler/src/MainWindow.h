@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,8 +22,8 @@
 #include <quentier/utility/Macros.h>
 
 #include <QMainWindow>
-#include <QString>
 #include <QProcess>
+#include <QString>
 
 namespace Ui {
 class MainWindow;
@@ -33,18 +33,21 @@ class MainWindow: public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(const QString & quentierSymbolsFileLocation,
-                        const QString & libquentierSymbolsFileLocation,
-                        const QString & stackwalkBinaryLocation,
-                        const QString & minidumpLocation,
-                        QWidget * parent = nullptr);
-    ~MainWindow();
+    explicit MainWindow(
+        const QString & quentierSymbolsFileLocation,
+        const QString & libquentierSymbolsFileLocation,
+        const QString & stackwalkBinaryLocation,
+        const QString & minidumpLocation,
+        QWidget * parent = nullptr);
+
+    virtual ~MainWindow() override;
 
 private Q_SLOTS:
     void onMinidumpStackwalkReadyReadStandardOutput();
     void onMinidumpStackwalkReadyReadStandardError();
-    void onMinidumpStackwalkProcessFinished(int exitCode,
-                                            QProcess::ExitStatus ExitStatus);
+
+    void onMinidumpStackwalkProcessFinished(
+        int exitCode, QProcess::ExitStatus ExitStatus);
 
     void onSymbolsUnpackerFinished(bool status, QString errorDescription);
 
@@ -54,7 +57,9 @@ private:
 
 private:
     Ui::MainWindow *    m_pUi;
-    int                 m_numPendingSymbolsUnpackers;
+
+    int                 m_numPendingSymbolsUnpackers = 0;
+
     QString             m_minidumpLocation;
     QString             m_stackwalkBinary;
     QString             m_unpackedSymbolsRootPath;
