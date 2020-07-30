@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,6 +30,8 @@ class TabWidget: public QTabWidget
     Q_OBJECT
 public:
     explicit TabWidget(QWidget * parent = nullptr);
+
+    virtual ~TabWidget() override;
 
     QTabBar * tabBar() const;
 };

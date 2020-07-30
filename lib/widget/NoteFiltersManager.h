@@ -51,6 +51,8 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
+    virtual ~NoteFiltersManager() override;
+
     QStringList notebookLocalUidsInFilter() const;
     QStringList tagLocalUidsInFilter() const;
     const QString & savedSearchLocalUidInFilter() const;

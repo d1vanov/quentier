@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,7 +41,7 @@ public:
         const QModelIndex & index,
         QWidget * parent = nullptr);
 
-    virtual ~SavedSearchModelItemInfoWidget();
+    virtual ~SavedSearchModelItemInfoWidget() override;
 
 private:
     void setCheckboxesReadOnly();

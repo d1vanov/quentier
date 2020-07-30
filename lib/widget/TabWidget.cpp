@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,6 +23,8 @@ namespace quentier {
 TabWidget::TabWidget(QWidget * parent) :
     QTabWidget(parent)
 {}
+
+TabWidget::~TabWidget() = default;
 
 QTabBar * TabWidget::tabBar() const
 {

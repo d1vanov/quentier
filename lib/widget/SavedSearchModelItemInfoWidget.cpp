@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,22 +36,26 @@ SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(
     setWindowTitle(tr("Saved search info"));
     setCheckboxesReadOnly();
 
-    QObject::connect(m_pUi->okButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(SavedSearchModelItemInfoWidget,close));
+    QObject::connect(
+        m_pUi->okButton,
+        &QPushButton::clicked,
+        this,
+        &SavedSearchModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
         setInvalidIndex();
         return;
     }
 
-    const SavedSearchModel * pSavedSearchModel =
-        qobject_cast<const SavedSearchModel*>(index.model());
+    const auto * pSavedSearchModel = qobject_cast<const SavedSearchModel*>(
+        index.model());
+
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         setNonSavedSearchModel();
         return;
     }
 
-    const SavedSearchModelItem * pItem = pSavedSearchModel->itemForIndex(index);
+    const auto * pItem = pSavedSearchModel->itemForIndex(index);
     if (Q_UNLIKELY(!pItem)) {
         setNoModelItem();
         return;
@@ -86,6 +90,7 @@ void SavedSearchModelItemInfoWidget::setNonSavedSearchModel()
 
     m_pUi->statusBarLabel->setText(
         tr("Non-saved search model is used on the view"));
+
     m_pUi->statusBarLabel->show();
 }
 
@@ -103,6 +108,7 @@ void SavedSearchModelItemInfoWidget::setNoModelItem()
 
     m_pUi->statusBarLabel->setText(
         tr("No saved search model item was found for index"));
+
     m_pUi->statusBarLabel->show();
 }
 
@@ -115,7 +121,10 @@ void SavedSearchModelItemInfoWidget::setSavedSearchItem(
     m_pUi->savedSearchQueryPlainTextEdit->setPlainText(item.m_query);
     m_pUi->savedSearchLocalUidLineEdit->setText(item.m_localUid);
     m_pUi->savedSearchGuidLineEdit->setText(item.m_guid);
-    m_pUi->savedSearchSynchronizableCheckBox->setChecked(item.m_isSynchronizable);
+
+    m_pUi->savedSearchSynchronizableCheckBox->setChecked(
+        item.m_isSynchronizable);
+
     m_pUi->savedSearchDirtyCheckBox->setChecked(item.m_isDirty);
     m_pUi->savedSearchFavoritedCheckBox->setChecked(item.m_isFavorited);
 

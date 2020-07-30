@@ -36,15 +36,18 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(
     setWindowTitle(tr("Tag info"));
     setCheckboxesReadOnly();
 
-    QObject::connect(m_pUi->okButton, QNSIGNAL(QPushButton,clicked),
-                     this, QNSLOT(TagModelItemInfoWidget,close));
+    QObject::connect(
+        m_pUi->okButton,
+        &QPushButton::clicked,
+        this,
+        &TagModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
         setInvalidIndex();
         return;
     }
 
-    const TagModel * pTagModel = qobject_cast<const TagModel*>(index.model());
+    const auto * pTagModel = qobject_cast<const TagModel*>(index.model());
     if (Q_UNLIKELY(!pTagModel)) {
         setNonTagModel();
         return;
@@ -115,6 +118,7 @@ void TagModelItemInfoWidget::setNonTagItem()
 
     m_pUi->statusBarLabel->setText(
         tr("The tag model item doesn't correspond to the actual tag"));
+
     m_pUi->statusBarLabel->show();
 }
 
@@ -135,7 +139,9 @@ void TagModelItemInfoWidget::setTagItem(
         m_pUi->parentTagLineEdit->setText(pParentTagItem->name());
     }
 
-    m_pUi->childrenLineEdit->setText(QString::number(modelItem.childrenCount()));
+    m_pUi->childrenLineEdit->setText(
+        QString::number(modelItem.childrenCount()));
+
     m_pUi->numNotesLineEdit->setText(QString::number(item.noteCount()));
 
     m_pUi->synchronizableCheckBox->setChecked(item.isSynchronizable());

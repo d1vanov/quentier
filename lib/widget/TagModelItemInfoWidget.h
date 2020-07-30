@@ -42,7 +42,7 @@ public:
         const QModelIndex & index,
         QWidget * parent = nullptr);
 
-    virtual ~TagModelItemInfoWidget();
+    virtual ~TagModelItemInfoWidget() override;
 
 private:
     void setCheckboxesReadOnly();

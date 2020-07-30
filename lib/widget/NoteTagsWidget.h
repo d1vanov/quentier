@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,10 +23,10 @@
 #include <quentier/utility/StringUtils.h>
 #include <quentier/utility/SuppressWarnings.h>
 
-#include <QWidget>
-#include <QPointer>
 #include <QHash>
+#include <QPointer>
 #include <QSet>
+#include <QWidget>
 
 SAVE_WARNINGS
 GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
@@ -55,19 +55,30 @@ class NoteTagsWidget: public QWidget
 public:
     explicit NoteTagsWidget(QWidget * parent = nullptr);
 
+    virtual ~NoteTagsWidget() override;
+
     void setLocalStorageManagerThreadWorker(
         LocalStorageManagerAsync & localStorageManagerAsync);
 
     void setTagModel(TagModel * pTagModel);
 
-    const Note & currentNote() const { return m_currentNote; }
-    void setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook);
+    const Note & currentNote() const
+    {
+        return m_currentNote;
+    }
+
+    void setCurrentNoteAndNotebook(
+        const Note & note, const Notebook & notebook);
 
     const QString & currentNotebookLocalUid() const
-    { return m_currentNotebookLocalUid; }
+    {
+        return m_currentNotebookLocalUid;
+    }
 
     const QString & currentLinkedNotebookGuid() const
-    { return m_currentLinkedNotebookGuid; }
+    {
+        return m_currentLinkedNotebookGuid;
+    }
 
     /**
      * @brief clear method clears out the tags displayed by the widget and
@@ -138,20 +149,15 @@ private:
 
     QStringList             m_lastDisplayedTagLocalUids;
 
-    typedef  boost::bimap<QString, QString>  TagLocalUidToNameBimap;
+    using TagLocalUidToNameBimap = boost::bimap<QString, QString>;
     TagLocalUidToNameBimap  m_currentNoteTagLocalUidToNameBimap;
 
     QPointer<TagModel>      m_pTagModel;
 
     struct Restrictions
     {
-        Restrictions() :
-            m_canUpdateNote(false),
-            m_canUpdateTags(false)
-        {}
-
-        bool    m_canUpdateNote;
-        bool    m_canUpdateTags;
+        bool    m_canUpdateNote = false;
+        bool    m_canUpdateTags = false;
     };
 
     Restrictions            m_tagRestrictions;

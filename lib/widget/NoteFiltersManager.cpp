@@ -120,6 +120,8 @@ NoteFiltersManager::NoteFiltersManager(
     Q_EMIT ready();
 }
 
+NoteFiltersManager::~NoteFiltersManager() = default;
+
 QStringList NoteFiltersManager::notebookLocalUidsInFilter() const
 {
     if (m_pNoteModel.isNull()) {

@@ -33,6 +33,8 @@ class PanelWidget: public QFrame
     Q_OBJECT
 public:
     explicit PanelWidget(QWidget * parent = nullptr);
+
+    virtual ~PanelWidget() override;
 };
 
 } // namespace quentier
