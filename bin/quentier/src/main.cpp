@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,19 +20,19 @@
 #include "ParseCommandLine.h"
 #include "SetupStartupSettings.h"
 
-#include <lib/tray/SystemTrayIconManager.h>
 #include <lib/exception/LocalStorageVersionTooHighException.h>
 #include <lib/initialization/Initialize.h>
 #include <lib/initialization/LoadDependencies.h>
+#include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ExitCodes.h>
 #include <lib/utility/RestartApp.h>
 
-#include <quentier/utility/QuentierApplication.h>
-#include <quentier/utility/MessageBox.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/exception/DatabaseLockedException.h>
 #include <quentier/exception/DatabaseOpeningException.h>
 #include <quentier/exception/IQuentierException.h>
+#include <quentier/utility/MessageBox.h>
+#include <quentier/utility/QuentierApplication.h>
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 #include <QSessionManager>
@@ -112,14 +112,19 @@ int main(int argc, char * argv[])
         pMainWindow.reset(new MainWindow);
 
         bool shouldStartMinimizedToSystemTray = false;
+
         auto startMinimizedToTrayIt = parseCmdResult.m_cmdOptions.find(
             QStringLiteral("startMinimizedToTray"));
-        if (startMinimizedToTrayIt != parseCmdResult.m_cmdOptions.end()) {
+
+        if (startMinimizedToTrayIt != parseCmdResult.m_cmdOptions.end())
+        {
             shouldStartMinimizedToSystemTray = true;
         }
-        else {
-            const SystemTrayIconManager & systemTrayIconManager =
+        else
+        {
+            const auto & systemTrayIconManager =
                 pMainWindow->systemTrayIconManager();
+
             shouldStartMinimizedToSystemTray =
                 systemTrayIconManager.shouldStartMinimizedToSystemTray();
         }
@@ -141,85 +146,95 @@ int main(int argc, char * argv[])
             pMainWindow->show();
         }
         else {
-            QNDEBUG("Not showing the main window on startup "
-                    "because the start minimized to system tray "
-                    "was requested");
+            QNDEBUG("quentier:main", "Not showing the main window on startup "
+                "because the start minimized to system tray "
+                "was requested");
         }
     }
-    catch(const quentier::DatabaseLockedException & dbLockedException)
+    catch(const quentier::DatabaseLockedException & e)
     {
         criticalMessageBox(
-            nullptr, QObject::tr("Quentier cannot start"),
+            nullptr,
+            QObject::tr("Quentier cannot start"),
             QObject::tr("Database is locked"),
             QObject::tr("Quentier cannot start because its database is locked. "
                         "It should only happen if another instance is already "
                         "running and using the same account. Please either use "
-                        "the already running instance or quit it before opening "
-                        "the new one. If there is no already running instance, "
-                        "please report the problem to the developers "
+                        "the already running instance or quit it before "
+                        "opening the new one. If there is no already running "
+                        "instance, please report the problem to the developers "
                         "of Quentier and try restarting your computer. Sorry "
                         "for the inconvenience."
                         "\n\n"
-                        "Exception message: ") +
-            dbLockedException.localizedErrorMessage());
+                        "Exception message: ") + e.localizedErrorMessage());
+
         qWarning() << "Caught DatabaseLockedException: "
-                   << dbLockedException.nonLocalizedErrorMessage();
+            << e.nonLocalizedErrorMessage();
+
         return 1;
     }
-    catch(const quentier::DatabaseOpeningException & dbOpeningException)
+    catch(const quentier::DatabaseOpeningException & e)
     {
         criticalMessageBox(
-            nullptr, QObject::tr("Quentier cannot start"),
+            nullptr,
+            QObject::tr("Quentier cannot start"),
             QObject::tr("Failed to open the local storage database"),
             QObject::tr("Quentier cannot start because it could not open "
                         "the database. On Windows it might happen if another "
-                        "instance is already running and using the same account. "
-                        "Otherwise it might indicate the corruption of account "
-                        "database file.\n\nException message: ") +
-            dbOpeningException.localizedErrorMessage());
+                        "instance is already running and using the same "
+                        "account. Otherwise it might indicate the corruption "
+                        "of account database file.\n\nException message: ") +
+            e.localizedErrorMessage());
+
         qWarning() << "Caught DatabaseOpeningException: "
-                   << dbOpeningException.nonLocalizedErrorMessage();
+            << e.nonLocalizedErrorMessage();
+
         return 1;
     }
-    catch(const quentier::LocalStorageVersionTooHighException & versionTooHighException)
+    catch(const quentier::LocalStorageVersionTooHighException & e)
     {
         criticalMessageBox(
-            nullptr, QObject::tr("Quentier cannot start"),
+            nullptr,
+            QObject::tr("Quentier cannot start"),
             QObject::tr("Local storage is too new for used libquentier version "
                         "to handle"),
-            QObject::tr("The version of local storage persistence for the account "
-                        "you are trying to open is higher than the version supported "
-                        "by the currently used build of libquentier. It means that "
-                        "this account's data has already been opened using a more "
-                        "recent version of libquentier which has changed the data "
-                        "layout somehow. The current version of libquentier cannot "
-                        "work with this version of data as it doesn't know what "
-                        "exactly has changed in the data layout and how to work "
-                        "with it. Please upgrade your versions of libquentier "
-                        "and Quentier and try again."));
+            QObject::tr("The version of local storage persistence for "
+                        "the account you are trying to open is higher than "
+                        "the version supported by the currently used build of "
+                        "libquentier. It means that this account's data has "
+                        "already been opened using a more recent version of "
+                        "libquentier which has changed the data layout "
+                        "somehow. The current version of libquentier cannot "
+                        "work with this version of data as it doesn't know "
+                        "what exactly has changed in the data layout and how "
+                        "to work with it. Please upgrade your versions of "
+                        "libquentier and Quentier and try again."));
+
         qWarning() << "Caught LocalStorageVersionTooHighException: "
-                   << versionTooHighException.nonLocalizedErrorMessage();
+            << e.nonLocalizedErrorMessage();
+
         return 1;
     }
-    catch(const quentier::IQuentierException & exception)
+    catch(const quentier::IQuentierException & e)
     {
         internalErrorMessageBox(
             nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
-            exception.localizedErrorMessage());
+            e.localizedErrorMessage());
 
         qWarning() << "Caught IQuentierException: "
-                   << exception.nonLocalizedErrorMessage();
+            << e.nonLocalizedErrorMessage();
+
         return 1;
     }
-    catch(const std::exception & exception)
+    catch(const std::exception & e)
     {
         internalErrorMessageBox(
             nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
-            QString::fromUtf8(exception.what()));
+            QString::fromUtf8(e.what()));
 
-        qWarning() << "Caught IQuentierException: " << exception.what();
+        qWarning() << "Caught IQuentierException: " << e.what();
         return 1;
     }
 

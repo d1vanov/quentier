@@ -54,7 +54,6 @@
 #include <QNetworkProxy>
 #include <QStandardItemModel>
 #include <QStringList>
-#include <QScopedPointer>
 #include <QTextListFormat>
 #include <QVector>
 
@@ -91,7 +90,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     explicit MainWindow(QWidget * pParentWidget = nullptr);
-    virtual ~MainWindow();
+
+    virtual ~MainWindow() override;
 
     void show();
 
@@ -506,68 +506,69 @@ private:
 
 private:
     Ui::MainWindow *        m_pUI;
-    QWidget *               m_currentStatusBarChildWidget;
+    QWidget *               m_currentStatusBarChildWidget = nullptr;
     QString                 m_lastNoteEditorHtml;
 
     QString                 m_nativeIconThemeName;
     QActionGroup *          m_pAvailableAccountsActionGroup;
-    QMenu *                 m_pAvailableAccountsSubMenu;
+    QMenu *                 m_pAvailableAccountsSubMenu = nullptr;
 
     AccountManager *            m_pAccountManager;
     QScopedPointer<Account>     m_pAccount;
 
-    SystemTrayIconManager *     m_pSystemTrayIconManager;
+    SystemTrayIconManager *     m_pSystemTrayIconManager = nullptr;
 
-    QThread *                   m_pLocalStorageManagerThread;
-    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
+    QThread *                   m_pLocalStorageManagerThread = nullptr;
+    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync = nullptr;
 
     QUuid                       m_lastLocalStorageSwitchUserRequest;
 
-    QThread *                   m_pSynchronizationManagerThread;
-    AuthenticationManager *     m_pAuthenticationManager;
-    SynchronizationManager *    m_pSynchronizationManager;
+    QThread *                   m_pSynchronizationManagerThread = nullptr;
+    AuthenticationManager *     m_pAuthenticationManager = nullptr;
+    SynchronizationManager *    m_pSynchronizationManager = nullptr;
+
     QString                     m_synchronizationManagerHost;
     QNetworkProxy               m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest;
-    bool                        m_pendingNewEvernoteAccountAuthentication;
-    bool                        m_pendingCurrentEvernoteAccountAuthentication;
-    bool                        m_authenticatedCurrentEvernoteAccount;
-    bool                        m_pendingSwitchToNewEvernoteAccount;
+    bool                        m_pendingNewEvernoteAccountAuthentication = false;
+    bool                        m_pendingCurrentEvernoteAccountAuthentication = false;
+    bool                        m_authenticatedCurrentEvernoteAccount = false;
+    bool                        m_pendingSwitchToNewEvernoteAccount = false;
 
-    bool                        m_syncInProgress;
-    bool                        m_syncApiRateLimitExceeded;
+    bool                        m_syncInProgress = false;
+    bool                        m_syncApiRateLimitExceeded = false;
 
     QMovie                      m_animatedSyncButtonIcon;
-    int                         m_runSyncPeriodicallyTimerId;
+    int                         m_runSyncPeriodicallyTimerId = 0;
 
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;
     SavedSearchCache        m_savedSearchCache;
     NoteCache               m_noteCache;
 
-    NotebookModel *         m_pNotebookModel;
-    TagModel *              m_pTagModel;
-    SavedSearchModel *      m_pSavedSearchModel;
-    NoteModel *             m_pNoteModel;
+    NotebookModel *         m_pNotebookModel = nullptr;
+    TagModel *              m_pTagModel = nullptr;
+    SavedSearchModel *      m_pSavedSearchModel = nullptr;
+    NoteModel *             m_pNoteModel = nullptr;
 
-    NoteCountLabelController *  m_pNoteCountLabelController;
+    NoteCountLabelController *  m_pNoteCountLabelController = nullptr;
 
     ColumnChangeRerouter *  m_pNotebookModelColumnChangeRerouter;
     ColumnChangeRerouter *  m_pTagModelColumnChangeRerouter;
     ColumnChangeRerouter *  m_pNoteModelColumnChangeRerouter;
     ColumnChangeRerouter *  m_pFavoritesModelColumnChangeRerouter;
 
-    NoteModel *             m_pDeletedNotesModel;
-    FavoritesModel *        m_pFavoritesModel;
+    NoteModel *             m_pDeletedNotesModel = nullptr;
+    FavoritesModel *        m_pFavoritesModel = nullptr;
 
     QStandardItemModel      m_blankModel;
 
-    NoteFiltersManager *    m_pNoteFiltersManager;
+    NoteFiltersManager *    m_pNoteFiltersManager = nullptr;
 
-    int                     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId;
+    int                     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId = 0;
     QString                 m_defaultAccountFirstNoteLocalUid;
 
-    NoteEditorTabsAndWindowsCoordinator *   m_pNoteEditorTabsAndWindowsCoordinator;
-    EditNoteDialogsManager *                m_pEditNoteDialogsManager;
+    NoteEditorTabsAndWindowsCoordinator *   m_pNoteEditorTabsAndWindowsCoordinator = nullptr;
+    EditNoteDialogsManager *                m_pEditNoteDialogsManager = nullptr;
 
     QColor              m_overridePanelFontColor;
     QColor              m_overridePanelBackgroundColor;
@@ -582,21 +583,21 @@ private:
 
 #ifdef WITH_UPDATE_MANAGER
     std::shared_ptr<UpdateManager::IIdleStateInfoProvider>  m_pUpdateManagerIdleInfoProvider;
-    UpdateManager *         m_pUpdateManager;
+    UpdateManager *         m_pUpdateManager = nullptr;
 #endif
 
-    bool                    m_pendingGreeterDialog;
-    bool                    m_pendingFirstShutdownDialog;
+    bool                    m_pendingGreeterDialog = false;
+    bool                    m_pendingFirstShutdownDialog = false;
 
-    bool                    m_filtersViewExpanded;
-    bool                    m_onceSetupNoteSortingModeComboBox;
+    bool                    m_filtersViewExpanded = false;
+    bool                    m_onceSetupNoteSortingModeComboBox = false;
 
-    bool                    m_geometryRestored;
-    bool                    m_stateRestored;
-    bool                    m_shown;
+    bool                    m_geometryRestored = false;
+    bool                    m_stateRestored = false;
+    bool                    m_shown = false;
 
-    int                     m_geometryAndStatePersistingDelayTimerId;
-    int                     m_splitterSizesRestorationDelayTimerId;
+    int                     m_geometryAndStatePersistingDelayTimerId = 0;
+    int                     m_splitterSizesRestorationDelayTimerId = 0;
 };
 
 #endif // QUENTIER_MAINWINDOW_H
