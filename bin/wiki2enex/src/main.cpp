@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
 
     QStringList args = app.arguments();
     if (args.size() != 2) {
-        qWarning() << "Usage: " << app.applicationName() << " wiki-article-url\n";
+        qWarning() << "Usage: " << app.applicationName()
+            << " wiki-article-url\n";
         return 1;
     }
 
@@ -68,17 +69,25 @@ int main(int argc, char *argv[])
         timer.setSingleShot(true);
 
         WikiArticleFetcher fetcher(enmlConverter, url);
-
         EventLoopWithExitStatus loop;
-        QObject::connect(&timer, QNSIGNAL(QTimer,timeout),
-                         &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
-        QObject::connect(&fetcher,
-                         QNSIGNAL(WikiArticleFetcher,finished),
-                         &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-        QObject::connect(&fetcher,
-                         QNSIGNAL(WikiArticleFetcher,failure,ErrorString),
-                         &loop, QNSLOT(EventLoopWithExitStatus,
-                                       exitAsFailureWithErrorString,ErrorString));
+
+        QObject::connect(
+            &timer,
+            &QTimer::timeout,
+            &loop,
+            &EventLoopWithExitStatus::exitAsTimeout);
+
+        QObject::connect(
+            &fetcher,
+            &WikiArticleFetcher::finished,
+            &loop,
+            &EventLoopWithExitStatus::exitAsSuccess);
+
+        QObject::connect(
+            &fetcher,
+            &WikiArticleFetcher::failure,
+            &loop,
+            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(100);
@@ -105,9 +114,14 @@ int main(int argc, char *argv[])
 
     QString enex;
     errorDescription.clear();
-    bool res = enmlConverter.exportNotesToEnex(notes, QHash<QString,QString>(),
-                                               ENMLConverter::EnexExportTags::No,
-                                               enex, errorDescription);
+
+    bool res = enmlConverter.exportNotesToEnex(
+        notes,
+        QHash<QString,QString>(),
+        ENMLConverter::EnexExportTags::No,
+        enex,
+        errorDescription);
+
     if (!res) {
         qWarning() << "Failed to convert the fetched note to ENEX: "
             << errorDescription.nonLocalizedString() << "\n";

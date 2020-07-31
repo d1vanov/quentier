@@ -36,12 +36,25 @@ public:
 
     virtual ~WikiArticleFetcher();
 
-    bool isStarted() const { return m_started; }
-    bool isFinished() const { return m_finished; }
+    bool isStarted() const
+    {
+        return m_started;
+    }
 
-    const QUrl & url() const { return m_url; }
+    bool isFinished() const
+    {
+        return m_finished;
+    }
 
-    const Note & note() const { return m_note; }
+    const QUrl & url() const
+    {
+        return m_url;
+    }
+
+    const Note & note() const
+    {
+        return m_note;
+    }
 
 Q_SIGNALS:
     void finished();
@@ -80,25 +93,26 @@ private:
     ENMLConverter &         m_enmlConverter;
     QUrl        m_url;
 
-    bool        m_started;
-    bool        m_finished;
+    bool        m_started = false;
+    bool        m_finished = false;
 
     Note        m_note;
 
     // Raw url given in the constructor needs to be converted to the API url
     // using page id. This network reply fetcher queries wiki for page id
     // in order to compose the proper API url
-    NetworkReplyFetcher *   m_pApiUrlFetcher;
+    NetworkReplyFetcher *   m_pApiUrlFetcher = nullptr;
 
-    // Language code extracted from the startup URL, i.e. en for English wikipedia
+    // Language code extracted from the startup URL, i.e. en for English
+    // wikipedia
     QString     m_languageCode;
 
     // Article title extracted from the startup URL
     QString     m_articleTitle;
 
-    NetworkReplyFetcher *   m_pArticleContentsFetcher;
+    NetworkReplyFetcher *   m_pArticleContentsFetcher = nullptr;
 
-    WikiArticleToNote *     m_pWikiArticleToNote;
+    WikiArticleToNote *     m_pWikiArticleToNote = nullptr;
 };
 
 } // namespace quentier
