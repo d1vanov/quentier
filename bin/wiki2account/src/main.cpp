@@ -21,9 +21,9 @@
 #include "PrepareLocalStorageManager.h"
 #include "PrepareNotebooks.h"
 #include "PrepareTags.h"
-#include "ProcessStartupAccount.h"
-#include "ProcessNoteOptions.h"
 #include "ProcessNotebookOptions.h"
+#include "ProcessNoteOptions.h"
+#include "ProcessStartupAccount.h"
 #include "ProcessTagOptions.h"
 
 #include <lib/account/AccountManager.h>
@@ -63,7 +63,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto storageDirIt = parseCmdResult.m_cmdOptions.find(QStringLiteral("storageDir"));
+    auto storageDirIt = parseCmdResult.m_cmdOptions.find(
+        QStringLiteral("storageDir"));
+
     if (storageDirIt == parseCmdResult.m_cmdOptions.end()) {
         // Set storageDir to the location of Quentier app's persistence
         app.setApplicationName(QStringLiteral("quentier"));
@@ -89,16 +91,24 @@ int main(int argc, char *argv[])
 
     QString targetNotebookName;
     quint32 numNewNotebooks = 0;
-    bool res = processNotebookOptions(parseCmdResult.m_cmdOptions,
-                                      targetNotebookName, numNewNotebooks);
+
+    bool res = processNotebookOptions(
+        parseCmdResult.m_cmdOptions,
+        targetNotebookName,
+        numNewNotebooks);
+
     if (!res) {
         return 1;
     }
 
     quint32 minTagsPerNote = 0;
     quint32 maxTagsPerNote = 0;
-    res = processTagOptions(parseCmdResult.m_cmdOptions, minTagsPerNote,
-                            maxTagsPerNote);
+
+    res = processTagOptions(
+        parseCmdResult.m_cmdOptions,
+        minTagsPerNote,
+        maxTagsPerNote);
+
     if (!res) {
         return 1;
     }
@@ -109,16 +119,26 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QThread * pLocalStorageManagerThread = new QThread;
+    auto * pLocalStorageManagerThread = new QThread;
+
     pLocalStorageManagerThread->setObjectName(
         QStringLiteral("LocalStorageManagerThread"));
-    QObject::connect(pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
-                     pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+
+    QObject::connect(
+        pLocalStorageManagerThread,
+        &QThread::finished,
+        pLocalStorageManagerThread,
+        &QThread::deleteLater);
+
     pLocalStorageManagerThread->start();
 
     ErrorString errorDescription;
-    LocalStorageManagerAsync * pLocalStorageManager = prepareLocalStorageManager(
-        account, *pLocalStorageManagerThread, errorDescription);
+
+    auto * pLocalStorageManager = prepareLocalStorageManager(
+        account,
+        *pLocalStorageManagerThread,
+        errorDescription);
+
     if (!pLocalStorageManager) {
         pLocalStorageManagerThread->quit();
         return 1;
@@ -127,10 +147,13 @@ int main(int argc, char *argv[])
     std::cout << "Preparing notebooks..." << std::endl;
 
     errorDescription.clear();
-    QList<Notebook> notebooks = prepareNotebooks(targetNotebookName,
-                                                 numNewNotebooks,
-                                                 *pLocalStorageManager,
-                                                 errorDescription);
+
+    auto notebooks = prepareNotebooks(
+        targetNotebookName,
+        numNewNotebooks,
+        *pLocalStorageManager,
+        errorDescription);
+
     if (notebooks.isEmpty()) {
         pLocalStorageManagerThread->quit();
         return 1;
@@ -140,9 +163,13 @@ int main(int argc, char *argv[])
     std::cout << "Preparing tags..." << std::endl;
 
     errorDescription.clear();
-    QList<Tag> tags = prepareTags(minTagsPerNote, maxTagsPerNote,
-                                  *pLocalStorageManager,
-                                  errorDescription);
+
+    auto tags = prepareTags(
+        minTagsPerNote,
+        maxTagsPerNote,
+        *pLocalStorageManager,
+        errorDescription);
+
     if (tags.isEmpty() && !errorDescription.isEmpty()) {
         pLocalStorageManagerThread->quit();
         return 1;
@@ -151,8 +178,13 @@ int main(int argc, char *argv[])
     std::cout << "Done." << std::endl;
     std::cout << "Fetching notes..." << std::endl;
 
-    res = FetchNotes(notebooks, tags, minTagsPerNote,
-                     numNotes, *pLocalStorageManager);
+    res = fetchNotes(
+        notebooks,
+        tags,
+        minTagsPerNote,
+        numNotes,
+        *pLocalStorageManager);
+
     if (!res) {
         pLocalStorageManagerThread->quit();
         return 1;

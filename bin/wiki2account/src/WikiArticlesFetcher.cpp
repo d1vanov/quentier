@@ -36,11 +36,7 @@ WikiArticlesFetcher::WikiArticlesFetcher(
     m_notebooks(notebooks),
     m_tags(tags),
     m_minTagsPerNote(minTagsPerNote),
-    m_numNotes(numNotes),
-    m_notebookIndex(0),
-    m_currentProgress(0.0),
-    m_wikiRandomArticleFetchersWithProgress(),
-    m_addNoteRequestIds()
+    m_numNotes(numNotes)
 {
     createConnections(localStorageManager);
 }
@@ -52,30 +48,31 @@ WikiArticlesFetcher::~WikiArticlesFetcher()
 
 void WikiArticlesFetcher::start()
 {
-    QNDEBUG("WikiArticlesFetcher::start");
+    QNDEBUG("wiki2account", "WikiArticlesFetcher::start");
 
     const qint64 timeoutMsec = -1;
     for(quint32 i = 0; i < m_numNotes; ++i)
     {
-        WikiRandomArticleFetcher * pFetcher =
-            new WikiRandomArticleFetcher(timeoutMsec);
-
+        auto * pFetcher = new WikiRandomArticleFetcher(timeoutMsec);
         m_wikiRandomArticleFetchersWithProgress[pFetcher] = 0.0;
 
-        QObject::connect(pFetcher,
-                         QNSIGNAL(WikiRandomArticleFetcher,finished),
-                         this,
-                         QNSLOT(WikiArticlesFetcher,onWikiArticleFetched));
-        QObject::connect(pFetcher,
-                         QNSIGNAL(WikiRandomArticleFetcher,failure,ErrorString),
-                         this,
-                         QNSLOT(WikiArticlesFetcher,onWikiArticleFetchingFailed,
-                                ErrorString));
-        QObject::connect(pFetcher,
-                         QNSIGNAL(WikiRandomArticleFetcher,progress,double),
-                         this,
-                         QNSLOT(WikiArticlesFetcher,
-                                onWikiArticleFetchingProgress,double));
+        QObject::connect(
+            pFetcher,
+            &WikiRandomArticleFetcher::finished,
+            this,
+            &WikiArticlesFetcher::onWikiArticleFetched);
+
+        QObject::connect(
+            pFetcher,
+            &WikiRandomArticleFetcher::failure,
+            this,
+            &WikiArticlesFetcher::onWikiArticleFetchingFailed);
+
+        QObject::connect(
+            pFetcher,
+            &WikiRandomArticleFetcher::progress,
+            this,
+            &WikiArticlesFetcher::onWikiArticleFetchingProgress);
 
         pFetcher->start();
     }
@@ -83,22 +80,20 @@ void WikiArticlesFetcher::start()
 
 void WikiArticlesFetcher::onWikiArticleFetched()
 {
-    QNDEBUG("WikiArticlesFetcher::onWikiArticleFetched");
+    QNDEBUG("wiki2account", "WikiArticlesFetcher::onWikiArticleFetched");
 
-    WikiRandomArticleFetcher * pFetcher =
-        qobject_cast<WikiRandomArticleFetcher*>(sender());
-
+    auto * pFetcher = qobject_cast<WikiRandomArticleFetcher*>(sender());
     auto it = m_wikiRandomArticleFetchersWithProgress.find(pFetcher);
     if (it == m_wikiRandomArticleFetchersWithProgress.end()) {
-        QNWARNING("Received wiki article fetched signal from "
-                  "unrecognized WikiRandomArticleFetcher");
+        QNWARNING("wiki2account", "Received wiki article fetched signal from "
+            << "unrecognized WikiRandomArticleFetcher");
         return;
     }
 
-    Note note = pFetcher->note();
+    auto note = pFetcher->note();
 
     int notebookIndex = nextNotebookIndex();
-    Notebook & notebook = m_notebooks[notebookIndex];
+    auto & notebook = m_notebooks[notebookIndex];
     note.setNotebookLocalUid(notebook.localUid());
 
     addTagsToNote(note);
@@ -114,7 +109,9 @@ void WikiArticlesFetcher::onWikiArticleFetched()
 void WikiArticlesFetcher::onWikiArticleFetchingFailed(
     ErrorString errorDescription)
 {
-    QNWARNING("WikiArticlesFetcher::onWikiArticleFetchingFailed: "
+    QNWARNING(
+        "wiki2account",
+        "WikiArticlesFetcher::onWikiArticleFetchingFailed: "
               << errorDescription);
 
     clear();
@@ -123,16 +120,16 @@ void WikiArticlesFetcher::onWikiArticleFetchingFailed(
 
 void WikiArticlesFetcher::onWikiArticleFetchingProgress(double percentage)
 {
-    QNDEBUG("WikiArticlesFetcher::onWikiArticleFetchingProgress: "
+    QNDEBUG(
+        "wiki2account",
+        "WikiArticlesFetcher::onWikiArticleFetchingProgress: "
             << percentage);
 
-    WikiRandomArticleFetcher * pFetcher =
-        qobject_cast<WikiRandomArticleFetcher*>(sender());
-
+    auto * pFetcher = qobject_cast<WikiRandomArticleFetcher*>(sender());
     auto it = m_wikiRandomArticleFetchersWithProgress.find(pFetcher);
     if (it == m_wikiRandomArticleFetchersWithProgress.end()) {
-        QNWARNING("Received wiki article fetching progress signal "
-                  "from unrecognized WikiRandomArticleFetcher");
+        QNWARNING("wiki2account", "Received wiki article fetching progress "
+            << "signal from unrecognized WikiRandomArticleFetcher");
         return;
     }
 
@@ -147,9 +144,10 @@ void WikiArticlesFetcher::onAddNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QNDEBUG("WikiArticlesFetcher::onAddNoteComplete: request id = "
-            << requestId);
-    QNTRACE(note);
+    QNDEBUG("wiki2account", "WikiArticlesFetcher::onAddNoteComplete: "
+        << "request id = " << requestId);
+
+    QNTRACE("wiki2account", note);
 
     m_addNoteRequestIds.erase(it);
     updateProgress();
@@ -169,9 +167,9 @@ void WikiArticlesFetcher::onAddNoteFailed(
         return;
     }
 
-    QNWARNING("WikiArticlesFetcher::onAddNoteFailed: request id = "
-              << requestId << ", error description: "
-              << errorDescription << ", note: " << note);
+    QNWARNING("wiki2account", "WikiArticlesFetcher::onAddNoteFailed: "
+        << "request id = " << requestId << ", error description: "
+        << errorDescription << ", note: " << note);
 
     m_addNoteRequestIds.erase(it);
 
@@ -182,21 +180,23 @@ void WikiArticlesFetcher::onAddNoteFailed(
 void WikiArticlesFetcher::createConnections(
     LocalStorageManagerAsync & localStorageManager)
 {
-    QObject::connect(this,
-                     QNSIGNAL(WikiArticlesFetcher,addNote,Note,QUuid),
-                     &localStorageManager,
-                     QNSLOT(LocalStorageManagerAsync,onAddNoteRequest,Note,QUuid));
+    QObject::connect(
+        this,
+        &WikiArticlesFetcher::addNote,
+        &localStorageManager,
+        &LocalStorageManagerAsync::onAddNoteRequest);
 
-    QObject::connect(&localStorageManager,
-                     QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
-                     this,
-                     QNSLOT(WikiArticlesFetcher,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManager,
-                     QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,
-                              Note,ErrorString,QUuid),
-                     this,
-                     QNSLOT(WikiArticlesFetcher,onAddNoteFailed,
-                            Note,ErrorString,QUuid));
+    QObject::connect(
+        &localStorageManager,
+        &LocalStorageManagerAsync::addNoteComplete,
+        this,
+        &WikiArticlesFetcher::onAddNoteComplete);
+
+    QObject::connect(
+        &localStorageManager,
+        &LocalStorageManagerAsync::addNoteFailed,
+        this,
+        &WikiArticlesFetcher::onAddNoteFailed);
 }
 
 void WikiArticlesFetcher::clear()
@@ -204,7 +204,7 @@ void WikiArticlesFetcher::clear()
     for(auto it = m_wikiRandomArticleFetchersWithProgress.begin(),
         end = m_wikiRandomArticleFetchersWithProgress.end(); it != end; ++it)
     {
-        WikiRandomArticleFetcher * pFetcher = it.key();
+        auto * pFetcher = it.key();
         pFetcher->disconnect(this);
         pFetcher->deleteLater();
     }
@@ -216,10 +216,10 @@ void WikiArticlesFetcher::clear()
 
 void WikiArticlesFetcher::addTagsToNote(Note & note)
 {
-    QNDEBUG("WikiArticlesFetcher::addTagsToNote");
+    QNDEBUG("wiki2account", "WikiArticlesFetcher::addTagsToNote");
 
     if (m_tags.isEmpty()) {
-        QNDEBUG("No tags to assign to note");
+        QNDEBUG("wiki2account", "No tags to assign to note");
         return;
     }
 
@@ -237,7 +237,7 @@ void WikiArticlesFetcher::addTagsToNote(Note & note)
             std::floor(static_cast<double>(range) *
                        static_cast<double>(randomValue) / (RAND_MAX + 1.0)));
 
-    QNTRACE("Adding " << numTags << " tags to note");
+    QNTRACE("wiki2account", "Adding " << numTags << " tags to note");
     for(int i = 0; i < numTags; ++i) {
         note.addTagLocalUid(m_tags[i].localUid());
     }
@@ -255,7 +255,7 @@ int WikiArticlesFetcher::nextNotebookIndex()
 
 void WikiArticlesFetcher::updateProgress()
 {
-    QNDEBUG("WikiArticlesFetcher::updateProgress");
+    QNDEBUG("wiki2account", "WikiArticlesFetcher::updateProgress");
 
     double percentage = 0.0;
 
@@ -263,7 +263,8 @@ void WikiArticlesFetcher::updateProgress()
     // takes 80% of the total progress - the remaining 20% is for adding the
     // note to the local storage
     for(auto it = m_wikiRandomArticleFetchersWithProgress.constBegin(),
-        end = m_wikiRandomArticleFetchersWithProgress.constEnd(); it != end; ++it)
+        end = m_wikiRandomArticleFetchersWithProgress.constEnd();
+        it != end; ++it)
     {
         percentage += 0.8 * it.value();
     }
@@ -274,7 +275,10 @@ void WikiArticlesFetcher::updateProgress()
     // Totally finished notes are those already fetched (with fetcher deleted)
     // and added to the local storage
     quint32 numFetchedNotes = m_numNotes;
-    numFetchedNotes -= quint32(std::max(m_wikiRandomArticleFetchersWithProgress.size(), 0));
+
+    numFetchedNotes -= quint32(
+        std::max(m_wikiRandomArticleFetchersWithProgress.size(), 0));
+
     numFetchedNotes -= quint32(std::max(m_addNoteRequestIds.size(), 0));
 
     percentage += std::max(numFetchedNotes, quint32(0));
@@ -285,7 +289,7 @@ void WikiArticlesFetcher::updateProgress()
     // Just in case ensure the progress doesn't exceed 1.0
     percentage = std::min(percentage, 1.0);
 
-    QNTRACE("Progress: " << percentage);
+    QNTRACE("wiki2account", "Progress: " << percentage);
     Q_EMIT progress(percentage);
 }
 

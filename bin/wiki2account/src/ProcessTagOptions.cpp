@@ -35,7 +35,8 @@ bool processTagOptions(
         bool conversionResult = false;
         quint32 value = minTagsPerNoteIt.value().toUInt(&conversionResult);
         if (!conversionResult) {
-            qWarning() << "Failed to convert min tags per note to unsigned integer";
+            qWarning() << "Failed to convert min tags per note to unsigned "
+                "integer";
             return false;
         }
 
@@ -46,6 +47,7 @@ bool processTagOptions(
         QTextStream stdoutStrm(stdout);
         stdoutStrm << "Enter the minimal number of random new tags to be "
             << "assigned to notes downloaded from wiki\n> ";
+
         stdoutStrm.flush();
 
         QTextStream stdinStrm(stdin);
@@ -72,7 +74,8 @@ bool processTagOptions(
         bool conversionResult = false;
         quint32 value = maxTagsPerNoteIt.value().toUInt(&conversionResult);
         if (!conversionResult) {
-            qWarning() << "Failed to convert min tags per note to unsigned integer";
+            qWarning() << "Failed to convert min tags per note to unsigned "
+                "integer";
             return false;
         }
 
@@ -81,8 +84,10 @@ bool processTagOptions(
     else
     {
         QTextStream stdoutStrm(stdout);
+
         stdoutStrm << "Enter the maximal number of random new tags to be "
             << "assigned to notes downloaded from wiki\n> ";
+
         stdoutStrm.flush();
 
         QTextStream stdinStrm(stdin);
@@ -110,7 +115,8 @@ bool processTagOptions(
     }
 
     if (maxTagsPerNote < minTagsPerNote) {
-        qWarning() << "Max tags per note should not be less than min tags per note";
+        qWarning() << "Max tags per note should not be less than min tags per "
+            "note";
         return false;
     }
 

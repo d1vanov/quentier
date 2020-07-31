@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,16 +18,15 @@
 
 #include "WikiArticlesFetchingTracker.h"
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 namespace quentier {
 
 WikiArticlesFetchingTracker::WikiArticlesFetchingTracker(QObject * parent) :
     QObject(parent),
     m_stdout(stdout),
-    m_stderr(stderr),
-    m_lastReportedProgress(0)
+    m_stderr(stderr)
 {}
 
 WikiArticlesFetchingTracker::~WikiArticlesFetchingTracker()
@@ -51,7 +50,10 @@ void WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate(
     double percentage)
 {
     percentage *= 100.0;
-    quint32 roundedPercentage = static_cast<quint32>(std::max(std::floor(percentage), 0.0));
+
+    quint32 roundedPercentage = static_cast<quint32>(
+        std::max(std::floor(percentage), 0.0));
+
     if (roundedPercentage > m_lastReportedProgress) {
         m_stdout << "Downloading notes: " << roundedPercentage << "%\n";
         m_lastReportedProgress = roundedPercentage;

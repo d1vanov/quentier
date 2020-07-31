@@ -27,52 +27,67 @@
 
 namespace quentier {
 
-bool FetchNotes(
+bool fetchNotes(
     const QList<Notebook> & notebooks, const QList<Tag> & tags,
     const quint32 minTagsPerNote, const quint32 numNotes,
     LocalStorageManagerAsync & localStorageManager)
 {
-    WikiArticlesFetcher * pFetcher = new WikiArticlesFetcher(
-        notebooks, tags, minTagsPerNote,
-        numNotes, localStorageManager);
+    auto * pFetcher = new WikiArticlesFetcher(
+        notebooks,
+        tags,
+        minTagsPerNote,
+        numNotes,
+        localStorageManager);
 
-    QThread * pWikiArticlerFetcherThread = new QThread;
+    auto * pWikiArticlerFetcherThread = new QThread;
+
     pWikiArticlerFetcherThread->setObjectName(
         QStringLiteral("WikiArticlesFetcherThread"));
-    QObject::connect(pWikiArticlerFetcherThread, QNSIGNAL(QThread,finished),
-                     pWikiArticlerFetcherThread, QNSLOT(QThread,deleteLater));
+
+    QObject::connect(
+        pWikiArticlerFetcherThread,
+        &QThread::finished,
+        pWikiArticlerFetcherThread,
+        &QThread::deleteLater);
+
     pWikiArticlerFetcherThread->start();
     pFetcher->moveToThread(pWikiArticlerFetcherThread);
 
     WikiArticlesFetchingTracker tracker;
-    QObject::connect(pFetcher,
-                     QNSIGNAL(WikiArticlesFetcher,finished),
-                     &tracker,
-                     QNSLOT(WikiArticlesFetchingTracker,
-                            onWikiArticlesFetchingFinished));
-    QObject::connect(pFetcher,
-                     QNSIGNAL(WikiArticlesFetcher,failure,ErrorString),
-                     &tracker,
-                     QNSLOT(WikiArticlesFetchingTracker,
-                            onWikiArticlesFetchingFailed,ErrorString));
-    QObject::connect(pFetcher,
-                     QNSIGNAL(WikiArticlesFetcher,progress,double),
-                     &tracker,
-                     QNSLOT(WikiArticlesFetchingTracker,
-                            onWikiArticlesFetchingProgressUpdate,double));
+
+    QObject::connect(
+        pFetcher,
+        &WikiArticlesFetcher::finished,
+        &tracker,
+        &WikiArticlesFetchingTracker::onWikiArticlesFetchingFinished);
+
+    QObject::connect(
+        pFetcher,
+        &WikiArticlesFetcher::failure,
+        &tracker,
+        &WikiArticlesFetchingTracker::onWikiArticlesFetchingFailed);
+
+    QObject::connect(
+        pFetcher,
+        &WikiArticlesFetcher::progress,
+        &tracker,
+        &WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate);
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
         EventLoopWithExitStatus loop;
-        QObject::connect(&tracker,
-                         QNSIGNAL(WikiArticlesFetchingTracker,finished),
-                         &loop,
-                         QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-        QObject::connect(&tracker,
-                         QNSIGNAL(WikiArticlesFetchingTracker,failure,ErrorString),
-                         &loop,
-                         QNSLOT(EventLoopWithExitStatus,
-                                exitAsFailureWithErrorString,ErrorString));
+
+        QObject::connect(
+            &tracker,
+            &WikiArticlesFetchingTracker::finished,
+            &loop,
+            &EventLoopWithExitStatus::exitAsSuccess);
+
+        QObject::connect(
+            &tracker,
+            &WikiArticlesFetchingTracker::failure,
+            &loop,
+            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);

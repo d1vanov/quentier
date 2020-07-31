@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,8 +30,7 @@ NotebookController::NotebookController(
         QObject * parent) :
     QObject(parent),
     m_targetNotebookName(targetNotebookName),
-    m_numNewNotebooks(numNotebooks),
-    m_lastNewNotebookIndex(1)
+    m_numNewNotebooks(numNotebooks)
 {
     createConnections(localStorageManagerAsync);
 }
@@ -41,17 +40,20 @@ NotebookController::~NotebookController()
 
 void NotebookController::start()
 {
-    QNDEBUG("NotebookController::start");
+    QNDEBUG("wiki2account", "NotebookController::start");
 
     if (!m_targetNotebookName.isEmpty())
     {
         Notebook notebook;
         notebook.setLocalUid(QString());
         notebook.setName(m_targetNotebookName);
+
         m_findNotebookRequestId = QUuid::createUuid();
-        QNDEBUG("Emitting request to find notebook by name: "
-                << m_targetNotebookName << ", request id = "
-                << m_findNotebookRequestId);
+
+        QNDEBUG("wiki2account", "Emitting request to find notebook by name: "
+            << m_targetNotebookName << ", request id = "
+            << m_findNotebookRequestId);
+
         Q_EMIT findNotebook(notebook, m_findNotebookRequestId);
         return;
     }
@@ -59,18 +61,27 @@ void NotebookController::start()
     if (m_numNewNotebooks > 0)
     {
         m_listNotebooksRequestId = QUuid::createUuid();
-        QNDEBUG("Emitting request to list notebooks: request id = "
-                << m_listNotebooksRequestId);
-        Q_EMIT listNotebooks(LocalStorageManager::ListObjectsOption::ListAll, 0,
-                             0, LocalStorageManager::ListNotebooksOrder::NoOrder,
-                             LocalStorageManager::OrderDirection::Ascending,
-                             QString(), m_listNotebooksRequestId);
+
+        QNDEBUG("wiki2account", "Emitting request to list notebooks: "
+            << "request id = " << m_listNotebooksRequestId);
+
+        Q_EMIT listNotebooks(
+            LocalStorageManager::ListObjectsOption::ListAll,
+            0,
+            0,
+            LocalStorageManager::ListNotebooksOrder::NoOrder,
+            LocalStorageManager::OrderDirection::Ascending,
+            QString(),
+            m_listNotebooksRequestId);
+
         return;
     }
 
-    ErrorString errorDescription(QT_TR_NOOP("Neither target notebook name nor "
-                                            "number of new notebooks is set"));
-    QNWARNING(errorDescription);
+    ErrorString errorDescription(
+        QT_TR_NOOP("Neither target notebook name nor number of new notebooks "
+                   "is set"));
+
+    QNWARNING("wiki2account", errorDescription);
     Q_EMIT failure(errorDescription);
 }
 
@@ -86,24 +97,24 @@ void NotebookController::onListNotebooksComplete(
         return;
     }
 
-    QNDEBUG("NotebookController::onListNotebooksComplete: flag = "
-            << flag << ", limit = " << limit << ", offset = " << offset
-            << ", order = " << order << ", order direction = " << orderDirection
-            << ", linked notebook guid = " << linkedNotebookGuid
-            << ", num listed notebooks = " << foundNotebooks.size()
-            << ", request id = " << requestId);
+    QNDEBUG("wiki2account", "NotebookController::onListNotebooksComplete: "
+        << "flag = " << flag << ", limit = " << limit << ", offset = " << offset
+        << ", order = " << order << ", order direction = " << orderDirection
+        << ", linked notebook guid = " << linkedNotebookGuid
+        << ", num listed notebooks = " << foundNotebooks.size()
+        << ", request id = " << requestId);
 
     m_listNotebooksRequestId = QUuid();
 
     m_notebookLocalUidsByNames.reserve(foundNotebooks.size());
-    for(auto it = foundNotebooks.constBegin(),
-        end = foundNotebooks.constEnd(); it != end; ++it)
+
+    for(const auto & notebook: qAsConst(foundNotebooks))
     {
-        if (Q_UNLIKELY(!it->hasName())) {
+        if (Q_UNLIKELY(!notebook.hasName())) {
             continue;
         }
 
-        m_notebookLocalUidsByNames[it->name()] = it->localUid();
+        m_notebookLocalUidsByNames[notebook.name()] = notebook.localUid();
     }
 
     createNextNewNotebook();
@@ -121,30 +132,32 @@ void NotebookController::onListNotebooksFailed(
         return;
     }
 
-    QNWARNING("NotebookController::onListNotebooksFailed: flag = "
-              << flag << ", limit = " << limit << ", offset = " << offset
-              << ", order = " << order << ", order direction = " << orderDirection
-              << ", linked notebook guid = " << linkedNotebookGuid
-              << ", error description = " << errorDescription
-              << ", request id = " << requestId);
+    QNWARNING("wiki2account", "NotebookController::onListNotebooksFailed: "
+        << "flag = " << flag << ", limit = " << limit << ", offset = " << offset
+        << ", order = " << order << ", order direction = " << orderDirection
+        << ", linked notebook guid = " << linkedNotebookGuid
+        << ", error description = " << errorDescription
+        << ", request id = " << requestId);
 
     clear();
     Q_EMIT failure(errorDescription);
 }
 
-void NotebookController::onAddNotebookComplete(Notebook notebook, QUuid requestId)
+void NotebookController::onAddNotebookComplete(
+    Notebook notebook, QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
         return;
     }
 
-    QNDEBUG("NotebookController::onAddNotebookComplete: "
-            << notebook << "\nRequest id = " << requestId);
+    QNDEBUG("wiki2account", "NotebookController::onAddNotebookComplete: "
+        << notebook << "\nRequest id = " << requestId);
 
     m_addNotebookRequestId = QUuid();
 
     if (Q_UNLIKELY(!notebook.hasName())) {
-        ErrorString errorDescription(QT_TR_NOOP("Created notebook has no name"));
+        ErrorString errorDescription(
+            QT_TR_NOOP("Created notebook has no name"));
         clear();
         Q_EMIT failure(errorDescription);
         return;
@@ -152,14 +165,15 @@ void NotebookController::onAddNotebookComplete(Notebook notebook, QUuid requestI
 
     if (!m_targetNotebookName.isEmpty()) {
         m_targetNotebook = notebook;
-        QNDEBUG("Created target notebook, finishing");
+        QNDEBUG("wiki2account", "Created target notebook, finishing");
         Q_EMIT finished();
         return;
     }
 
     m_newNotebooks.push_back(notebook);
     if (m_newNotebooks.size() == static_cast<int>(m_numNewNotebooks)) {
-        QNDEBUG("Created the last needed new notebook, finishing");
+        QNDEBUG("wiki2account", "Created the last needed new notebook, "
+            << "finishing");
         Q_EMIT finished();
         return;
     }
@@ -175,9 +189,9 @@ void NotebookController::onAddNotebookFailed(
         return;
     }
 
-    QNWARNING("NotebookController::onAddNotebookFailed: "
-              << errorDescription << ", request id = "
-              << requestId << ", notebook: " << notebook);
+    QNWARNING("wiki2account", "NotebookController::onAddNotebookFailed: "
+        << errorDescription << ", request id = " << requestId << ", notebook: "
+        << notebook);
 
     clear();
     Q_EMIT failure(errorDescription);
@@ -190,8 +204,8 @@ void NotebookController::onFindNotebookComplete(
         return;
     }
 
-    QNDEBUG("NotebookController::onFindNotebookComplete: "
-            << foundNotebook << ", request id = " << requestId);
+    QNDEBUG("wiki2account", "NotebookController::onFindNotebookComplete: "
+        << foundNotebook << ", request id = " << requestId);
 
     m_findNotebookRequestId = QUuid();
 
@@ -206,100 +220,83 @@ void NotebookController::onFindNotebookFailed(
         return;
     }
 
-    QNDEBUG("NotebookController::onFindNotebookFailed: "
-            << errorDescription << ", request id = " << requestId
-            << ", notebook: " << notebook);
+    QNDEBUG("wiki2account", "NotebookController::onFindNotebookFailed: "
+        << errorDescription << ", request id = " << requestId << ", notebook: "
+        << notebook);
 
     m_findNotebookRequestId = QUuid();
 
     notebook = Notebook();
     notebook.setName(m_targetNotebookName);
     m_addNotebookRequestId = QUuid::createUuid();
-    QNDEBUG("Emitting request to add notebook: "
-            << notebook << "\nRequest id: "
-            << m_addNotebookRequestId);
+
+    QNDEBUG("wiki2account", "Emitting request to add notebook: " << notebook
+        << "\nRequest id: " << m_addNotebookRequestId);
+
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
 
 void NotebookController::createConnections(
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    QObject::connect(this,
-                     QNSIGNAL(NotebookController,listNotebooks,
-                              LocalStorageManager::ListObjectsOptions,size_t,
-                              size_t,LocalStorageManager::ListNotebooksOrder,
-                              LocalStorageManager::OrderDirection,
-                              QString,QUuid),
-                     &localStorageManagerAsync,
-                     QNSLOT(LocalStorageManagerAsync,onListNotebooksRequest,
-                            LocalStorageManager::ListObjectsOptions,size_t,
-                            size_t,LocalStorageManager::ListNotebooksOrder,
-                            LocalStorageManager::OrderDirection,
-                            QString,QUuid));
-    QObject::connect(this,
-                     QNSIGNAL(NotebookController,addNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync,
-                     QNSLOT(LocalStorageManagerAsync,onAddNotebookRequest,
-                            Notebook,QUuid));
-    QObject::connect(this,
-                     QNSIGNAL(NotebookController,findNotebook,Notebook,QUuid),
-                     &localStorageManagerAsync,
-                     QNSLOT(LocalStorageManagerAsync,onFindNotebookRequest,
-                            Notebook,QUuid));
+    QObject::connect(
+        this,
+        &NotebookController::listNotebooks,
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::onListNotebooksRequest);
 
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,listNotebooksComplete,
-                              LocalStorageManager::ListObjectsOptions,size_t,
-                              size_t,LocalStorageManager::ListNotebooksOrder,
-                              LocalStorageManager::OrderDirection,
-                              QString,QList<Notebook>,QUuid),
-                     this,
-                     QNSLOT(NotebookController,onListNotebooksComplete,
-                            LocalStorageManager::ListObjectsOptions,size_t,
-                            size_t,LocalStorageManager::ListNotebooksOrder,
-                            LocalStorageManager::OrderDirection,
-                            QString,QList<Notebook>,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,listNotebooksFailed,
-                              LocalStorageManager::ListObjectsOptions,size_t,
-                              size_t,LocalStorageManager::ListNotebooksOrder,
-                              LocalStorageManager::OrderDirection,
-                              QString,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NotebookController,onListNotebooksFailed,
-                            LocalStorageManager::ListObjectsOptions,size_t,
-                            size_t,LocalStorageManager::ListNotebooksOrder,
-                            LocalStorageManager::OrderDirection,
-                            QString,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addNotebookComplete,
-                              Notebook,QUuid),
-                     this,
-                     QNSLOT(NotebookController,onAddNotebookComplete,
-                            Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addNotebookFailed,
-                              Notebook,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NotebookController,onAddNotebookFailed,
-                            Notebook,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,findNotebookComplete,
-                              Notebook,QUuid),
-                     this,
-                     QNSLOT(NotebookController,onFindNotebookComplete,
-                            Notebook,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,findNotebookFailed,
-                              Notebook,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NotebookController,onFindNotebookFailed,
-                            Notebook,ErrorString,QUuid));
+    QObject::connect(
+        this,
+        &NotebookController::addNotebook,
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::onAddNotebookRequest);
+
+    QObject::connect(
+        this,
+        &NotebookController::findNotebook,
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::onFindNotebookRequest);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::listNotebooksComplete,
+        this,
+        &NotebookController::onListNotebooksComplete);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::listNotebooksFailed,
+        this,
+        &NotebookController::onListNotebooksFailed);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::addNotebookComplete,
+        this,
+        &NotebookController::onAddNotebookComplete);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::addNotebookFailed,
+        this,
+        &NotebookController::onAddNotebookFailed);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::findNotebookComplete,
+        this,
+        &NotebookController::onFindNotebookComplete);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::findNotebookFailed,
+        this,
+        &NotebookController::onFindNotebookFailed);
 }
 
 void NotebookController::clear()
 {
-    QNDEBUG("NotebookController::clear");
+    QNDEBUG("wiki2account", "NotebookController::clear");
 
     m_notebookLocalUidsByNames.clear();
 
@@ -315,8 +312,8 @@ void NotebookController::clear()
 
 void NotebookController::createNextNewNotebook()
 {
-    QNDEBUG("NotebookController::createNextNewNotebook: index = "
-            << m_lastNewNotebookIndex);
+    QNDEBUG("wiki2account", "NotebookController::createNextNewNotebook: "
+        << "index = " << m_lastNewNotebookIndex);
 
     QString baseName = QStringLiteral("wiki notes notebook");
     QString name;
@@ -340,8 +337,10 @@ void NotebookController::createNextNewNotebook()
     Notebook notebook;
     notebook.setName(name);
     m_addNotebookRequestId = QUuid::createUuid();
-    QNDEBUG("Emitting request to add notebook: "
-            << notebook << "\nRequest id: " << m_addNotebookRequestId);
+
+    QNDEBUG("wiki2account", "Emitting request to add notebook: "
+        << notebook << "\nRequest id: " << m_addNotebookRequestId);
+
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
 

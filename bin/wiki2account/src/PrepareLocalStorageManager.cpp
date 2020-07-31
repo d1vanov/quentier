@@ -28,8 +28,10 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
     const Account & account, QThread & localStorageThread,
     ErrorString & errorDescription)
 {
-    LocalStorageManagerAsync * pLocalStorageManager =
-        new LocalStorageManagerAsync(account, LocalStorageManager::StartupOptions(0));
+    auto * pLocalStorageManager = new LocalStorageManagerAsync(
+        account,
+        LocalStorageManager::StartupOptions(0));
+
     pLocalStorageManager->init();
 
     auto & localStorageManager = *pLocalStorageManager->localStorageManager();
@@ -37,12 +39,13 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
         return nullptr;
     }
 
-    QVector<std::shared_ptr<ILocalStoragePatch> > localStoragePatches =
+    auto localStoragePatches =
         localStorageManager.requiredLocalStoragePatches();
+
     if (!localStoragePatches.isEmpty()) {
-        errorDescription.setBase(QT_TR_NOOP("Local storage requires upgrade. "
-                                            "Please start Quentier before running "
-                                            "wiki2account"));
+        errorDescription.setBase(
+            QT_TR_NOOP("Local storage requires upgrade. "
+                       "Please start Quentier before running wiki2account"));
         return nullptr;
     }
 

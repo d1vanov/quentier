@@ -19,8 +19,8 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHER_H
 #define QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHER_H
 
-#include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
+#include <quentier/types/Notebook.h>
 #include <quentier/types/Tag.h>
 
 #include <QHash>
@@ -43,7 +43,7 @@ public:
         LocalStorageManagerAsync & localStorageManager,
         QObject * parent = nullptr);
 
-    virtual ~WikiArticlesFetcher();
+    virtual ~WikiArticlesFetcher() override;
 
 Q_SIGNALS:
     void finished();
@@ -81,9 +81,9 @@ private:
     quint32             m_minTagsPerNote;
     quint32             m_numNotes;
 
-    int     m_notebookIndex;
+    int     m_notebookIndex = 0;
 
-    double  m_currentProgress;
+    double  m_currentProgress = 0.0;
 
     QHash<WikiRandomArticleFetcher*, double>    m_wikiRandomArticleFetchersWithProgress;
     QSet<QUuid>     m_addNoteRequestIds;

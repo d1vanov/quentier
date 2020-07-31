@@ -59,10 +59,13 @@ bool processNotebookOptions(
     if (hasNumNewNotebooks)
     {
         bool conversionResult = false;
-        quint32 numNotebooks = targetNotebookNameIt.value().toUInt(&conversionResult);
+
+        quint32 numNotebooks = targetNotebookNameIt.value().toUInt(
+            &conversionResult);
+
         if (!conversionResult) {
-            qWarning() << "Failed to convert the number of notebooks to positive "
-                "integer";
+            qWarning() << "Failed to convert the number of notebooks to "
+                "positive integer";
             return false;
         }
 
@@ -72,8 +75,8 @@ bool processNotebookOptions(
 
     QTextStream stdoutStrm(stdout);
 
-    stdoutStrm << "Should notes downloaded from wiki be put into any particular "
-        << "notebook or into several new notebooks?\n"
+    stdoutStrm << "Should notes downloaded from wiki be put into any "
+        << "particular notebook or into several new notebooks?\n"
         << "1. Into new notebooks\n"
         << "2. Into a particular notebook\n"
         << "Enter the number corresponding to your choice\n"
@@ -110,6 +113,7 @@ bool processNotebookOptions(
     {
         stdoutStrm << "How many new notebooks should notes downloaded from "
             << "wiki go into?\n> ";
+
         stdoutStrm.flush();
 
         qint32 number = -1;

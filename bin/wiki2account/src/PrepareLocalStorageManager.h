@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,9 +25,9 @@ QT_FORWARD_DECLARE_CLASS(QThread)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(ErrorString)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
 LocalStorageManagerAsync * prepareLocalStorageManager(
     const Account & account, QThread & localStorageThread,

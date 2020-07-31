@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,9 +38,12 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~TagController();
+    virtual ~TagController() override;
 
-    const QList<Tag> & tags() const { return m_tags; }
+    const QList<Tag> & tags() const
+    {
+        return m_tags;
+    }
 
 Q_SIGNALS:
     void finished();
@@ -78,7 +81,7 @@ private:
     QUuid       m_findTagRequestId;
     QUuid       m_addTagRequestId;
 
-    quint32     m_nextNewTagNameSuffix;
+    quint32     m_nextNewTagNameSuffix = 1;
 };
 
 } // namespace quentier

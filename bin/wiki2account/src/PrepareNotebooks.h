@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,8 +23,8 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(ErrorString)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
 QList<Notebook> prepareNotebooks(
     const QString & targetNotebookName,

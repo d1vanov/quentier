@@ -29,14 +29,7 @@ WikiRandomArticleFetcher::WikiRandomArticleFetcher(
         QObject * parent) :
     QObject(parent),
     m_enmlConverter(),
-    m_networkReplyFetcherTimeout(timeoutMsec),
-    m_started(false),
-    m_finished(false),
-    m_pWikiArticleUrlFetcher(nullptr),
-    m_url(),
-    m_pWikiArticleContentsFetcher(nullptr),
-    m_pWikiArticleToNote(nullptr),
-    m_note()
+    m_networkReplyFetcherTimeout(timeoutMsec)
 {}
 
 WikiRandomArticleFetcher::~WikiRandomArticleFetcher()
@@ -46,35 +39,39 @@ WikiRandomArticleFetcher::~WikiRandomArticleFetcher()
 
 void WikiRandomArticleFetcher::start()
 {
-    QNDEBUG("WikiRandomArticleFetcher::start");
+    QNDEBUG("wiki2account", "WikiRandomArticleFetcher::start");
 
     if (Q_UNLIKELY(m_started)) {
-        QNWARNING("WikiRandomArticleFetcher is already started");
+        QNWARNING("wiki2account", "WikiRandomArticleFetcher is already "
+            << "started");
         return;
     }
 
     m_pWikiArticleUrlFetcher = new WikiRandomArticleUrlFetcher(
         m_networkReplyFetcherTimeout);
 
-    QObject::connect(m_pWikiArticleUrlFetcher,
-                     QNSIGNAL(WikiRandomArticleUrlFetcher,progress,double),
-                     this,
-                     QNSLOT(WikiRandomArticleFetcher,
-                            onRandomArticleUrlFetchProgress,double));
-    QObject::connect(m_pWikiArticleUrlFetcher,
-                     QNSIGNAL(WikiRandomArticleUrlFetcher,finished,
-                              bool,QUrl,ErrorString),
-                     this,
-                     QNSLOT(WikiRandomArticleFetcher,
-                            onRandomArticleUrlFetchFinished,bool,QUrl,ErrorString));
+    QObject::connect(
+        m_pWikiArticleUrlFetcher,
+        &WikiRandomArticleUrlFetcher::progress,
+        this,
+        &WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress);
+
+    QObject::connect(
+        m_pWikiArticleUrlFetcher,
+        &WikiRandomArticleUrlFetcher::finished,
+        this,
+        &WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished);
 
     m_pWikiArticleUrlFetcher->start();
     m_started = true;
 }
 
-void WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress(double percentage)
+void WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress(
+    double percentage)
 {
-    QNDEBUG("WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress: "
+    QNDEBUG(
+        "wiki2account",
+        "WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress: "
             << percentage);
 
     // Downloading the article's URL is considered only 10% of total progress
@@ -84,7 +81,9 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress(double percentage
 void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     bool status, QUrl randomArticleUrl, ErrorString errorDescription)
 {
-    QNDEBUG("WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished: "
+    QNDEBUG(
+        "wiki2account",
+        "WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished: "
             << (status ? "success" : "failure") << ", url = "
             << randomArticleUrl << ", error description = "
             << errorDescription);
@@ -98,29 +97,32 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     if (!status)
     {
         clear();
-        QNWARNING("Failed to fetch random wiki article's URL: "
-                  << errorDescription);
+        QNWARNING("wiki2account", "Failed to fetch random wiki article's URL: "
+            << errorDescription);
         Q_EMIT failure(errorDescription);
         return;
     }
 
     m_url = randomArticleUrl;
-    QNDEBUG("Starting to fetch wiki article content: " << m_url);
+
+    QNDEBUG("wiki2account", "Starting to fetch wiki article content: "
+        << m_url);
 
     m_pWikiArticleContentsFetcher = new NetworkReplyFetcher(
-        m_url, m_networkReplyFetcherTimeout);
+        m_url,
+        m_networkReplyFetcherTimeout);
 
-    QObject::connect(m_pWikiArticleContentsFetcher,
-                     QNSIGNAL(NetworkReplyFetcher,finished,
-                              bool,QByteArray,ErrorString),
-                     this,
-                     QNSLOT(WikiRandomArticleFetcher,onWikiArticleDownloadFinished,
-                            bool,QByteArray,ErrorString));
-    QObject::connect(m_pWikiArticleContentsFetcher,
-                     QNSIGNAL(NetworkReplyFetcher,downloadProgress,qint64,qint64),
-                     this,
-                     QNSLOT(WikiRandomArticleFetcher,onWikiArticleDownloadProgress,
-                            qint64,qint64));
+    QObject::connect(
+        m_pWikiArticleContentsFetcher,
+        &NetworkReplyFetcher::finished,
+        this,
+        &WikiRandomArticleFetcher::onWikiArticleDownloadFinished);
+
+    QObject::connect(
+        m_pWikiArticleContentsFetcher,
+        &NetworkReplyFetcher::downloadProgress,
+        this,
+        &WikiRandomArticleFetcher::onWikiArticleDownloadProgress);
 
     m_pWikiArticleContentsFetcher->start();
 }
@@ -128,7 +130,9 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
 void WikiRandomArticleFetcher::onWikiArticleDownloadProgress(
     qint64 bytesFetched, qint64 bytesTotal)
 {
-    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleDownloadProgress: "
+    QNDEBUG(
+        "wiki2account",
+        "WikiRandomArticleFetcher::onWikiArticleDownloadProgress: "
             << bytesFetched << " bytes fetched out of " << bytesTotal);
 
     if (bytesTotal < 0) {
@@ -138,14 +142,18 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadProgress(
 
     // Downloading the article's contents is considered 60% of total progress
     // 10% of progress was reserved for fetching random article's URL
-    Q_EMIT progress(0.1 + 0.6 * (static_cast<double>(bytesFetched) /
-                                 std::max(bytesTotal, qint64(1))));
+    Q_EMIT progress(
+        0.1 +
+        0.6 *
+        (static_cast<double>(bytesFetched) / std::max(bytesTotal, qint64(1))));
 }
 
 void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
     bool status, QByteArray fetchedData, ErrorString errorDescription)
 {
-    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleDownloadFinished: "
+    QNDEBUG(
+        "wiki2account",
+        "WikiRandomArticleFetcher::onWikiArticleDownloadFinished: "
             << (status ? "success" : "failure")
             << ", error description = " << errorDescription);
 
@@ -158,32 +166,36 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
     if (!status)
     {
         clear();
-        QNWARNING("Failed to fetch random wiki article's contents: "
-                  << errorDescription << "; url = " << m_url);
+        QNWARNING("wiki2account", "Failed to fetch random wiki article's "
+            << "contents: " << errorDescription << "; url = " << m_url);
         Q_EMIT failure(errorDescription);
         return;
     }
 
     m_pWikiArticleToNote = new WikiArticleToNote(
-        m_enmlConverter, m_networkReplyFetcherTimeout);
+        m_enmlConverter,
+        m_networkReplyFetcherTimeout);
 
-    QObject::connect(m_pWikiArticleToNote,
-                     QNSIGNAL(WikiArticleToNote,progress,double),
-                     this,
-                     QNSLOT(WikiRandomArticleFetcher,
-                            onWikiArticleToNoteProgress,double));
-    QObject::connect(m_pWikiArticleToNote,
-                     QNSIGNAL(WikiArticleToNote,finished,bool,ErrorString,Note),
-                     this,
-                     QNSLOT(WikiRandomArticleFetcher,onWikiArticleToNoteFinished,
-                            bool,ErrorString,Note));
+    QObject::connect(
+        m_pWikiArticleToNote,
+        &WikiArticleToNote::progress,
+        this,
+        &WikiRandomArticleFetcher::onWikiArticleToNoteProgress);
+
+    QObject::connect(
+        m_pWikiArticleToNote,
+        &WikiArticleToNote::finished,
+        this,
+        &WikiRandomArticleFetcher::onWikiArticleToNoteFinished);
 
     m_pWikiArticleToNote->start(fetchedData);
 }
 
 void WikiRandomArticleFetcher::onWikiArticleToNoteProgress(double percentage)
 {
-    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleToNoteProgress: "
+    QNDEBUG(
+        "wiki2account",
+        "WikiRandomArticleFetcher::onWikiArticleToNoteProgress: "
             << percentage);
 
     // Converting the article to note takes the remaining 30% of total progress
@@ -195,7 +207,9 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteProgress(double percentage)
 void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
     bool status, ErrorString errorDescription, Note note)
 {
-    QNDEBUG("WikiRandomArticleFetcher::onWikiArticleToNoteFinished: "
+    QNDEBUG(
+        "wiki2account",
+        "WikiRandomArticleFetcher::onWikiArticleToNoteFinished: "
             << (status ? "success" : "failure")
             << ", error description = " << errorDescription);
 
@@ -208,13 +222,13 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
     if (!status)
     {
         clear();
-        QNWARNING("Failed to convert wiki article's contents to note: "
-                  << errorDescription);
+        QNWARNING("wiki2account", "Failed to convert wiki article's contents "
+            << "to note: " << errorDescription);
         Q_EMIT failure(errorDescription);
         return;
     }
 
-    QNTRACE(note);
+    QNTRACE("wiki2account", note);
     m_note = note;
 
     m_started = false;
@@ -224,7 +238,7 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
 
 void WikiRandomArticleFetcher::clear()
 {
-    QNDEBUG("WikiRandomArticleFetcher::clear");
+    QNDEBUG("wiki2account", "WikiRandomArticleFetcher::clear");
 
     m_url = QUrl();
     m_note = Note();

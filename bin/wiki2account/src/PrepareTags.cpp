@@ -35,8 +35,11 @@ QList<Tag> prepareTags(
     ErrorString & errorDescription)
 {
     QList<Tag> result;
-    TagController controller(minTagsPerNote, maxTagsPerNote,
-                             localStorageManagerAsync);
+
+    TagController controller(
+        minTagsPerNote,
+        maxTagsPerNote,
+        localStorageManagerAsync);
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
@@ -45,15 +48,24 @@ QList<Tag> prepareTags(
         timer.setSingleShot(true);
 
         EventLoopWithExitStatus loop;
-        QObject::connect(&timer, QNSIGNAL(QTimer,timeout),
-                         &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
-        QObject::connect(&controller, QNSIGNAL(TagController,finished),
-                         &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-        QObject::connect(&controller,
-                         QNSIGNAL(TagController,failure,ErrorString),
-                         &loop,
-                         QNSLOT(EventLoopWithExitStatus,
-                                exitAsFailureWithErrorString,ErrorString));
+
+        QObject::connect(
+            &timer,
+            &QTimer::timeout,
+            &loop,
+            &EventLoopWithExitStatus::exitAsTimeout);
+
+        QObject::connect(
+            &controller,
+            &TagController::finished,
+            &loop,
+            &EventLoopWithExitStatus::exitAsSuccess);
+
+        QObject::connect(
+            &controller,
+            &TagController::failure,
+            &loop,
+            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -74,7 +86,8 @@ QList<Tag> prepareTags(
     }
 
     if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to prepare tags in due time"));
+        errorDescription.setBase(
+            QT_TR_NOOP("Failed to prepare tags in due time"));
     }
 
     return result;

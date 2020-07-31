@@ -68,21 +68,23 @@ Account processStartupAccount(
 
     AccountManager accountManager;
     if (options.contains(QStringLiteral("new-account"))) {
-        return createNewLocalAccount(QStringLiteral("Wiki notes"), accountManager);
+        return createNewLocalAccount(
+            QStringLiteral("Wiki notes"),
+            accountManager);
     }
 
-    QVector<Account> availableAccounts = accountManager.availableAccounts();
-
+    auto availableAccounts = accountManager.availableAccounts();
     QString availableAccountsInfo;
-    QTextStream strm(&availableAccountsInfo,
-                     QIODevice::ReadWrite | QIODevice::Text);
+
+    QTextStream strm(
+        &availableAccountsInfo,
+        QIODevice::ReadWrite | QIODevice::Text);
 
     strm << "Available accounts:\n";
     size_t counter = 1;
-    for(auto it = availableAccounts.constBegin(),
-        end = availableAccounts.constEnd(); it != end; ++it)
+
+    for(const auto & availableAccount: qAsConst(availableAccounts))
     {
-        const Account & availableAccount = *it;
         bool isEvernoteAccount =
             (availableAccount.type() == Account::Type::Evernote);
 
@@ -91,6 +93,7 @@ Account processStartupAccount(
             << " (" << availableAccount.displayName() << "), "
             << (isEvernoteAccount ? "Evernote" : "local")
             << ", ";
+
         if (isEvernoteAccount) {
             strm << availableAccount.evernoteHost();
         }
@@ -114,14 +117,15 @@ Account processStartupAccount(
         QString line = stdinStrm.readLine().trimmed();
         if (line == QStringLiteral("new")) {
             return createNewLocalAccount(
-                QStringLiteral("Wiki notes"), accountManager);
+                QStringLiteral("Wiki notes"),
+                accountManager);
         }
 
         bool conversionResult = false;
         accountNum = line.toInt(&conversionResult);
         if (!conversionResult) {
             stdoutStrm << "Failed to parse account number, please try again\n"
-                       << "> ";
+                << "> ";
             continue;
         }
 

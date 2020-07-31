@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,11 +30,7 @@ TagController::TagController(
         QObject * parent) :
     QObject(parent),
     m_minTagsPerNote(minTagsPerNote),
-    m_maxTagsPerNote(maxTagsPerNote),
-    m_tags(),
-    m_findTagRequestId(),
-    m_addTagRequestId(),
-    m_nextNewTagNameSuffix(1)
+    m_maxTagsPerNote(maxTagsPerNote)
 {
     createConnections(localStorageManagerAsync);
 }
@@ -44,20 +40,23 @@ TagController::~TagController()
 
 void TagController::start()
 {
-    QNDEBUG("TagController::start");
+    QNDEBUG("wiki2account", "TagController::start");
 
     if (m_minTagsPerNote == 0 && m_maxTagsPerNote == 0) {
-        QNDEBUG("No tags are required, finishing early");
+        QNDEBUG("wiki2account", "No tags are required, finishing early");
         Q_EMIT finished();
         return;
     }
 
-    if (m_minTagsPerNote > m_maxTagsPerNote) {
-        ErrorString errorDescription(QT_TR_NOOP("Min tags per note is greater "
-                                                "than max tags per note"));
-        QNWARNING(errorDescription << ", min tags per note = "
-                  << m_minTagsPerNote << ", max tags per note = "
-                  << m_maxTagsPerNote);
+    if (m_minTagsPerNote > m_maxTagsPerNote)
+    {
+        ErrorString errorDescription(
+            QT_TR_NOOP("Min tags per note is greater than max tags per note"));
+
+        QNWARNING("wiki2account", errorDescription << ", min tags per note = "
+            << m_minTagsPerNote << ", max tags per note = "
+            << m_maxTagsPerNote);
+
         Q_EMIT failure(errorDescription);
         return;
     }
@@ -71,14 +70,14 @@ void TagController::onAddTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    QNDEBUG("TagController::onAddTagComplete: request id = "
-            << requestId << ", tag: " << tag);
+    QNDEBUG("wiki2account", "TagController::onAddTagComplete: request id = "
+        << requestId << ", tag: " << tag);
 
     m_addTagRequestId = QUuid();
 
     m_tags << tag;
     if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
-        QNDEBUG("Added the last required tag");
+        QNDEBUG("wiki2account", "Added the last required tag");
         Q_EMIT finished();
         return;
     }
@@ -94,9 +93,9 @@ void TagController::onAddTagFailed(
         return;
     }
 
-    QNWARNING("TagController::onAddTagFailed: request id = "
-              << requestId << ", error description = "
-              << errorDescription << ", tag: " << tag);
+    QNWARNING("wiki2account", "TagController::onAddTagFailed: request id = "
+        << requestId << ", error description = "
+        << errorDescription << ", tag: " << tag);
 
     m_addTagRequestId = QUuid();
 
@@ -110,14 +109,14 @@ void TagController::onFindTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    QNDEBUG("TagController::onFindTagComplete: request id = "
-            << requestId << ", tag: " << tag);
+    QNDEBUG("wiki2account", "TagController::onFindTagComplete: request id = "
+        << requestId << ", tag: " << tag);
 
     m_findTagRequestId = QUuid();
 
     m_tags << tag;
     if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
-        QNDEBUG("Found the last required tag");
+        QNDEBUG("wiki2account", "Found the last required tag");
         Q_EMIT finished();
         return;
     }
@@ -133,9 +132,9 @@ void TagController::onFindTagFailed(
         return;
     }
 
-    QNDEBUG("TagController::onFindTagFailed: request id = "
-            << requestId << ", error description = "
-            << errorDescription << ", tag: " << tag);
+    QNDEBUG("wiki2account", "TagController::onFindTagFailed: request id = "
+        << requestId << ", error description = "
+        << errorDescription << ", tag: " << tag);
 
     m_findTagRequestId = QUuid();
     createNextNewTag();
@@ -144,38 +143,46 @@ void TagController::onFindTagFailed(
 void TagController::createConnections(
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
-    QObject::connect(this,
-                     QNSIGNAL(TagController,addTag,Tag,QUuid),
-                     &localStorageManagerAsync,
-                     QNSLOT(LocalStorageManagerAsync,onAddTagRequest,Tag,QUuid));
-    QObject::connect(this,
-                     QNSIGNAL(TagController,findTag,Tag,QUuid),
-                     &localStorageManagerAsync,
-                     QNSLOT(LocalStorageManagerAsync,onFindTagRequest,Tag,QUuid));
+    QObject::connect(
+        this,
+        &TagController::addTag,
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::onAddTagRequest);
 
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addTagComplete,Tag,QUuid),
-                     this,
-                     QNSLOT(TagController,onAddTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addTagFailed,
-                              Tag,ErrorString,QUuid),
-                     this,
-                     QNSLOT(TagController,onAddTagFailed,Tag,ErrorString,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,findTagComplete,Tag,QUuid),
-                     this,
-                     QNSLOT(TagController,onFindTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,findTagFailed,
-                              Tag,ErrorString,QUuid),
-                     this,
-                     QNSLOT(TagController,onFindTagFailed,Tag,ErrorString,QUuid));
+    QObject::connect(
+        this,
+        &TagController::findTag,
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::onFindTagRequest);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::addTagComplete,
+        this,
+        &TagController::onAddTagComplete);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::addTagFailed,
+        this,
+        &TagController::onAddTagFailed);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::findTagComplete,
+        this,
+        &TagController::onFindTagComplete);
+
+    QObject::connect(
+        &localStorageManagerAsync,
+        &LocalStorageManagerAsync::findTagFailed,
+        this,
+        &TagController::onFindTagFailed);
 }
 
 void TagController::clear()
 {
-    QNDEBUG("TagController::clear");
+    QNDEBUG("wiki2account", "TagController::clear");
 
     m_tags.clear();
     m_findTagRequestId = QUuid();
@@ -185,7 +192,7 @@ void TagController::clear()
 
 void TagController::findNextTag()
 {
-    QNDEBUG("TagController::findNextTag");
+    QNDEBUG("wiki2account", "TagController::findNextTag");
 
     QString tagName = nextNewTagName();
 
@@ -194,14 +201,16 @@ void TagController::findNextTag()
     tag.setName(tagName);
 
     m_findTagRequestId = QUuid::createUuid();
-    QNDEBUG("Emitting the request to find tag with name "
-            << tagName << ", request id = " << m_findTagRequestId);
+
+    QNDEBUG("wiki2account", "Emitting the request to find tag with name "
+        << tagName << ", request id = " << m_findTagRequestId);
+
     Q_EMIT findTag(tag, m_findTagRequestId);
 }
 
 void TagController::createNextNewTag()
 {
-    QNDEBUG("TagController::createNextNewTag");
+    QNDEBUG("wiki2account", "TagController::createNextNewTag");
 
     QString tagName = nextNewTagName();
 
@@ -209,8 +218,10 @@ void TagController::createNextNewTag()
     tag.setName(tagName);
 
     m_addTagRequestId = QUuid::createUuid();
-    QNDEBUG("Emitting the request to add new tag: "
-            << tag << "\nRequest id = " << m_addTagRequestId);
+
+    QNDEBUG("wiki2account", "Emitting the request to add new tag: "
+        << tag << "\nRequest id = " << m_addTagRequestId);
+
     Q_EMIT addTag(tag, m_addTagRequestId);
 }
 

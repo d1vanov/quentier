@@ -46,7 +46,7 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~NotebookController();
+    virtual ~NotebookController() override;
 
     const Notebook & targetNotebook() const { return m_targetNotebook; }
     const QList<Notebook> & newNotebooks() const { return m_newNotebooks; }
@@ -113,7 +113,7 @@ private:
 
     Notebook            m_targetNotebook;
     QList<Notebook>     m_newNotebooks;
-    qint32      m_lastNewNotebookIndex;
+    qint32      m_lastNewNotebookIndex = 1;
 };
 
 } // namespace quentier

@@ -34,14 +34,27 @@ public:
         const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
         QObject * parent = nullptr);
 
-    virtual ~WikiRandomArticleFetcher();
+    virtual ~WikiRandomArticleFetcher() override;
 
-    bool isStarted() const { return m_started; }
-    bool isFinished() const { return m_finished; }
+    bool isStarted() const
+    {
+        return m_started;
+    }
 
-    const QUrl & url() const { return m_url; }
+    bool isFinished() const
+    {
+        return m_finished;
+    }
 
-    const Note & note() const { return m_note; }
+    const QUrl & url() const
+    {
+        return m_url;
+    }
+
+    const Note & note() const
+    {
+        return m_note;
+    }
 
 Q_SIGNALS:
     void finished();
@@ -74,14 +87,14 @@ private:
     ENMLConverter   m_enmlConverter;
     const qint64    m_networkReplyFetcherTimeout;
 
-    bool    m_started;
-    bool    m_finished;
+    bool    m_started = false;
+    bool    m_finished = false;
 
-    WikiRandomArticleUrlFetcher *   m_pWikiArticleUrlFetcher;
+    WikiRandomArticleUrlFetcher *   m_pWikiArticleUrlFetcher = nullptr;
     QUrl    m_url;
 
-    NetworkReplyFetcher *   m_pWikiArticleContentsFetcher;
-    WikiArticleToNote *     m_pWikiArticleToNote;
+    NetworkReplyFetcher *   m_pWikiArticleContentsFetcher = nullptr;
+    WikiArticleToNote *     m_pWikiArticleToNote = nullptr;
 
     Note    m_note;
 };

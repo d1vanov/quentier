@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,7 +32,8 @@ class WikiArticlesFetchingTracker: public QObject
     Q_OBJECT
 public:
     explicit WikiArticlesFetchingTracker(QObject * parent = nullptr);
-    ~WikiArticlesFetchingTracker();
+
+    virtual ~WikiArticlesFetchingTracker() override;
 
 Q_SIGNALS:
     void finished();
@@ -46,7 +47,7 @@ public Q_SLOTS:
 private:
     QTextStream m_stdout;
     QTextStream m_stderr;
-    quint32 m_lastReportedProgress;
+    quint32 m_lastReportedProgress = 0;
 };
 
 } // namespace quentier

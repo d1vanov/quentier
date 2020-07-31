@@ -23,8 +23,6 @@
 
 #include <quentier/types/Account.h>
 
-#include <QScopedPointer>
-
 namespace quentier {
 
 Account processStartupAccount(

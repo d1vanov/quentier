@@ -17,6 +17,7 @@
  */
 
 #include "PrepareNotebooks.h"
+
 #include "NotebookController.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
@@ -36,8 +37,11 @@ QList<Notebook> prepareNotebooks(
     ErrorString & errorDescription)
 {
     QList<Notebook> result;
-    NotebookController controller(targetNotebookName, numNewNotebooks,
-                                  localStorageManagerAsync);
+
+    NotebookController controller(
+        targetNotebookName,
+        numNewNotebooks,
+        localStorageManagerAsync);
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
@@ -46,15 +50,24 @@ QList<Notebook> prepareNotebooks(
         timer.setSingleShot(true);
 
         EventLoopWithExitStatus loop;
-        QObject::connect(&timer, QNSIGNAL(QTimer,timeout),
-                         &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
-        QObject::connect(&controller, QNSIGNAL(NotebookController,finished),
-                         &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-        QObject::connect(&controller,
-                         QNSIGNAL(NotebookController,failure,ErrorString),
-                         &loop,
-                         QNSLOT(EventLoopWithExitStatus,
-                                exitAsFailureWithErrorString,ErrorString));
+
+        QObject::connect(
+            &timer,
+            &QTimer::timeout,
+            &loop,
+            &EventLoopWithExitStatus::exitAsTimeout);
+
+        QObject::connect(
+            &controller,
+            &NotebookController::finished,
+            &loop,
+            &EventLoopWithExitStatus::exitAsSuccess);
+
+        QObject::connect(
+            &controller,
+            &NotebookController::failure,
+            &loop,
+            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -79,7 +92,8 @@ QList<Notebook> prepareNotebooks(
     }
 
     if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        errorDescription.setBase(QT_TR_NOOP("Failed to prepare notebooks in due time"));
+        errorDescription.setBase(
+            QT_TR_NOOP("Failed to prepare notebooks in due time"));
     }
 
     return result;
