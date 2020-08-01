@@ -21,7 +21,7 @@
 
 namespace quentier {
 
-void SetupStartupSettings();
+void setupStartupSettings();
 
 } // namespace quentier
 

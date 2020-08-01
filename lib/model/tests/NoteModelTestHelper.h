@@ -34,12 +34,14 @@ public:
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = nullptr);
 
+    virtual ~NoteModelTestHelper() override;
+
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
     void success();
 
 public Q_SLOTS:
-    void launchTest();
+    void test();
 
 private Q_SLOTS:
     void onAddNoteComplete(Note note, QUuid requestId);
@@ -196,13 +198,15 @@ private:
 
 private:
     LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
-    NoteModel *     m_model;
+
+    NoteModel *     m_model = nullptr;
     Notebook        m_firstNotebook;
     QString         m_noteToExpungeLocalUid;
-    bool            m_expectingNewNoteFromLocalStorage;
-    bool            m_expectingNoteUpdateFromLocalStorage;
-    bool            m_expectingNoteDeletionFromLocalStorage;
-    bool            m_expectingNoteExpungeFromLocalStorage;
+
+    bool            m_expectingNewNoteFromLocalStorage = false;
+    bool            m_expectingNoteUpdateFromLocalStorage = false;
+    bool            m_expectingNoteDeletionFromLocalStorage = false;
+    bool            m_expectingNoteExpungeFromLocalStorage = false;
 };
 
 } // namespace quentier

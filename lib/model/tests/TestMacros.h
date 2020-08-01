@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,11 +35,11 @@
     catch(const IQuentierException & exception) {                              \
         SysInfo sysInfo;                                                       \
         QString error = QStringLiteral("Caught Quentier exception: ") +        \
-                        exception.nonLocalizedErrorMessage() +                 \
-                        QStringLiteral(", what: ") +                           \
-                        QString::fromUtf8(exception.what()) +                  \
-                        QStringLiteral("; stack trace: ") +                    \
-                        sysInfo.stackTrace();                                  \
+            exception.nonLocalizedErrorMessage() +                             \
+            QStringLiteral(", what: ") +                                       \
+            QString::fromUtf8(exception.what()) +                              \
+            QStringLiteral("; stack trace: ") +                                \
+            sysInfo.stackTrace();                                              \
         errorDescription = ErrorString(error);                                 \
     }                                                                          \
     catch(const std::exception & exception) {                                  \
@@ -52,7 +52,7 @@
     catch(...) {                                                               \
         SysInfo sysInfo;                                                       \
         QString error = QStringLiteral("Caught some unknown exception; ") +    \
-                        QStringLiteral("stack trace: ") + sysInfo.stackTrace();\
+            QStringLiteral("stack trace: ") + sysInfo.stackTrace();            \
         errorDescription = ErrorString(error);                                 \
     }                                                                          \
 // CATCH_EXCEPTION

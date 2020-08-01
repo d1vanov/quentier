@@ -34,6 +34,8 @@ public:
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = nullptr);
 
+    virtual ~TagModelTestHelper() override;
+
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
     void success();

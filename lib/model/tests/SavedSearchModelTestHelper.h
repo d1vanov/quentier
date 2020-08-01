@@ -33,6 +33,8 @@ public:
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = nullptr);
 
+    virtual ~SavedSearchModelTestHelper() override;
+
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
     void success();

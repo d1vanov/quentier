@@ -69,9 +69,11 @@ TagModelTestHelper::TagModelTestHelper(
         &TagModelTestHelper::onExpungeTagFailed);
 }
 
+TagModelTestHelper::~TagModelTestHelper() = default;
+
 void TagModelTestHelper::test()
 {
-    QNDEBUG("TagModelTestHelper::test");
+    QNDEBUG("tests:model_test:tag", "TagModelTestHelper::test");
 
     ErrorString errorDescription;
 
@@ -181,18 +183,22 @@ void TagModelTestHelper::test()
         TagCache cache(20);
         Account account(QStringLiteral("Default user"), Account::Type::Local);
 
-        TagModel * model = new TagModel(account, *m_pLocalStorageManagerAsync,
-                                        cache, this);
+        auto * model = new TagModel(
+            account,
+            *m_pLocalStorageManagerAsync,
+            cache,
+            this);
+
         ModelTest t1(model);
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalUid(second.localUid());
         if (!secondIndex.isValid()) {
             FAIL("Can't get valid tag item model index for local uid");
         }
 
-        QModelIndex secondParentIndex = model->parent(secondIndex);
+        auto secondParentIndex = model->parent(secondIndex);
 
         secondIndex = model->index(
             secondIndex.row(),
@@ -206,18 +212,18 @@ void TagModelTestHelper::test()
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
             FAIL("Was able to change the dirty flag in tag model "
-                 "manually which is not intended");
+                << "manually which is not intended");
         }
 
-        QVariant data = model->data(secondIndex, Qt::EditRole);
+        auto data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the state of dirty flag");
+                << "expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
             FAIL("The dirty state appears to have changed after setData in "
-                 "tag model even though the method returned false");
+                << "tag model even though the method returned false");
         }
 
         // Should only be able to make the non-synchronizable (local) item
@@ -230,31 +236,32 @@ void TagModelTestHelper::test()
 
         if (!secondIndex.isValid()) {
             FAIL("Can't get valid tag item model index for "
-                 "synchronizable column");
+                << "synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
             FAIL("Was able to change the synchronizable flag "
-                 "from false to true for tag model item with local account");
+                << "from false to true for tag model item with local account");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the state of synchronizable flag");
+                << "expected to get the state of synchronizable flag");
         }
 
         if (data.toBool()) {
             FAIL("Even though setData returned false on attempt "
-                 "to make the tag item synchronizable with "
-                 "the local account, the actual data within "
-                 "the model appears to have changed");
+                << "to make the tag item synchronizable with "
+                << "the local account, the actual data within "
+                << "the model appears to have changed");
         }
 
         // 2) Trying the non-local account
         account = Account(
-            QStringLiteral("Evernote user"), Account::Type::Evernote,
+            QStringLiteral("Evernote user"),
+            Account::Type::Evernote,
             qevercloud::UserID(1));
 
         model->setAccount(account);
@@ -262,20 +269,20 @@ void TagModelTestHelper::test()
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
             FAIL("Wasn't able to change the synchronizable flag "
-                 "from false to true for tag model item "
-                 "even with the account of Evernote type");
+                << "from false to true for tag model item "
+                << "even with the account of Evernote type");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the state of synchronizable flag");
+                << "expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
             FAIL("The synchronizable state appears to have not "
-                 "changed after setData in tag model "
-                 "even though the method returned true");
+                << "changed after setData in tag model "
+                << "even though the method returned true");
         }
 
         // Verify the dirty flag has changed as a result of making the item
@@ -292,13 +299,13 @@ void TagModelTestHelper::test()
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the state of dirty flag");
+                << "expected to get the state of dirty flag");
         }
 
         if (!data.toBool()) {
             FAIL("The dirty state hasn't changed after making "
-                 "the tag model item synchronizable while it was "
-                 "expected to have changed");
+                << "the tag model item synchronizable while it was "
+                << "expected to have changed");
         }
 
         // Should not be able to make the synchronizable (non-local) item
@@ -310,25 +317,25 @@ void TagModelTestHelper::test()
 
         if (!secondIndex.isValid()) {
             FAIL("Can't get valid tag item model index for "
-                 "synchronizable column");
+                << "synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
         if (res) {
             FAIL("Was able to change the synchronizable flag in "
-                 "tag model from true to false which is not intended");
+                << "tag model from true to false which is not intended");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the state of synchronizable flag");
+                << "expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
             FAIL("The synchronizable state appears to have changed "
-                 "after setData in tag model even though the method "
-                 "returned false");
+                << "after setData in tag model even though the method "
+                << "returned false");
         }
 
         // Should be able to change name
@@ -352,13 +359,13 @@ void TagModelTestHelper::test()
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the dirty flag of model item");
+                << "expected to get the dirty flag of model item");
         }
 
         if (data.toBool()) {
             FAIL("The tag model item is still dirty even though "
-                 "this flag for this item was updated in the local "
-                 "storage to false");
+                << "this flag for this item was updated in the local "
+                << "storage to false");
         }
 
         secondIndex = model->index(
@@ -379,13 +386,13 @@ void TagModelTestHelper::test()
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the name of the tag item");
+                << "expected to get the name of the tag item");
         }
 
         if (data.toString() != newName) {
             FAIL("The name of the tag item returned by the model "
-                 << "does not match the name just set to this item: received "
-                 << data.toString() << ", expected " << newName);
+                << "does not match the name just set to this item: received "
+                << data.toString() << ", expected " << newName);
         }
 
         // Ensure the dirty flag has changed to true
@@ -401,52 +408,54 @@ void TagModelTestHelper::test()
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the dirty flag of model item");
+                << "expected to get the dirty flag of model item");
         }
 
         if (!data.toBool()) {
             FAIL("The dirty flag appears to not have changed as "
-                 "a result of changing the name of the tag model item");
+                << "a result of changing the name of the tag model item");
         }
 
-        // Should not be able to remove the row with a synchronizable (non-local) tag
+        // Should not be able to remove the row with a synchronizable
+        // (non-local) tag
         res = model->removeRow(secondIndex.row(), secondParentIndex);
         if (res) {
             FAIL("Was able to remove the row with a synchronizable "
-                 "tag which is not intended");
+                << "tag which is not intended");
         }
 
-        QModelIndex secondIndexAfterFailedRemoval =
-            model->indexForLocalUid(second.localUid());
+        auto secondIndexAfterFailedRemoval = model->indexForLocalUid(
+            second.localUid());
+
         if (!secondIndexAfterFailedRemoval.isValid()) {
             FAIL("Can't get valid tag item model index after "
-                 "the failed row removal attempt");
+                << "the failed row removal attempt");
         }
 
         if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
             FAIL("Tag model returned item index with a different "
-                 "row after the failed row removal attempt");
+                << "row after the failed row removal attempt");
         }
 
         // Should be able to remove the row with a (local) tag having empty guid
-        QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
+        auto firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
             FAIL("Can't get valid tag item model index for local uid");
         }
 
-        QModelIndex firstParentIndex = model->parent(firstIndex);
+        auto firstParentIndex = model->parent(firstIndex);
         res = model->removeRow(firstIndex.row(), firstParentIndex);
         if (!res) {
             FAIL("Can't remove the row with a tag item with empty "
                  "guid from the model");
         }
 
-        QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(
+        auto firstIndexAfterRemoval = model->indexForLocalUid(
             first.localUid());
 
         if (firstIndexAfterRemoval.isValid()) {
             FAIL("Was able to get valid model index for "
-                 "the removed tag item by local uid which is not intended");
+                << "the removed tag item by local uid which is not intended");
         }
 
         // Should be able to promote the items
@@ -456,7 +465,7 @@ void TagModelTestHelper::test()
         twelveth.setDirty(false);
         m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
 
-        QModelIndex twelvethIndex = model->indexForLocalUid(
+        auto twelvethIndex = model->indexForLocalUid(
             twelveth.localUid());
 
         if (!twelvethIndex.isValid()) {
@@ -469,20 +478,19 @@ void TagModelTestHelper::test()
             twelvethIndex.parent());
 
         if (!twelvethIndex.isValid()) {
-            FAIL("Can't get valid tag item model index for "
-                 "dirty column");
+            FAIL("Can't get valid tag item model index for dirty column");
         }
 
         data = model->data(twelvethIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the tag model while "
-                 "expected to get the state of dirty flag");
+                << "expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
             FAIL("The tag model item is still dirty even though "
-                 "this flag for this item was updated in the local "
-                 "storage to false");
+                << "this flag for this item was updated in the local "
+                << "storage to false");
         }
 
         twelvethIndex = model->index(
@@ -500,7 +508,7 @@ void TagModelTestHelper::test()
         const auto * pNewTwelvethItem = model->itemForIndex(twelvethIndex);
         if (pTwelvethItem != pNewTwelvethItem) {
             FAIL("The tag model returns different pointers to "
-                 "items before and after the item promotion");
+                << "items before and after the item promotion");
         }
 
         const auto * pNewTwelvethTagItem = pNewTwelvethItem->cast<TagItem>();
@@ -510,16 +518,16 @@ void TagModelTestHelper::test()
 
         if (!pNewTwelvethTagItem->isDirty()) {
             FAIL("The dirty flag hasn't been automatically set "
-                 "to true after promoting the item");
+                << "to true after promoting the item");
         }
 
         int rowInTenth = pTenthItem->rowForChild(pTwelvethItem);
         if (rowInTenth >= 0) {
             FAIL("Tag model item can still be found within "
-                 "the original parent's children after the promotion");
+                << "the original parent's children after the promotion");
         }
 
-        QModelIndex eighthIndex = model->indexForLocalUid(eighth.localUid());
+        auto eighthIndex = model->indexForLocalUid(eighth.localUid());
         const auto * pEighthItem = model->itemForIndex(eighthIndex);
         if (!pEighthItem) {
             FAIL("Can't get the tag model item pointer from the model index");
@@ -528,7 +536,7 @@ void TagModelTestHelper::test()
         int rowInEighth = pEighthItem->rowForChild(pTwelvethItem);
         if (rowInEighth < 0) {
             FAIL("Can't find tag model item within its original "
-                 "grand parent's children after the promotion");
+                << "grand parent's children after the promotion");
         }
 
         // We'll be updating the twelveth tag in local storage manually further,
@@ -573,10 +581,10 @@ void TagModelTestHelper::test()
 
         if (pSecondEighthChildTag->isDirty()) {
             FAIL("The dirty flag should have been cleared from "
-                 "tag model item but it hasn't been");
+                << "tag model item but it hasn't been");
         }
 
-        QModelIndex secondEighthChildIndex = model->indexForItem(
+        auto secondEighthChildIndex = model->indexForItem(
             pSecondEighthChild);
 
         secondEighthChildIndex = model->demote(secondEighthChildIndex);
@@ -586,7 +594,7 @@ void TagModelTestHelper::test()
 
         if (formerSecondEighthChildRowInEighth >= 0) {
             FAIL("Tag model item can still be found within "
-                 "the original parent's children after the demotion");
+                << "the original parent's children after the demotion");
         }
 
         int formerSecondEighthChildRowInNewParent =
@@ -594,12 +602,12 @@ void TagModelTestHelper::test()
 
         if (formerSecondEighthChildRowInNewParent < 0) {
             FAIL("Can't find tag model item within the children "
-                 "of its expected new parent after the demotion");
+                << "of its expected new parent after the demotion");
         }
 
         if (!pSecondEighthChildTag->isDirty()) {
             FAIL("The tag model item hasn't been automatically "
-                 "marked as dirty after demoting it");
+                << "marked as dirty after demoting it");
         }
 
         // We might update the just demoted tag in the local storage further,
@@ -616,7 +624,7 @@ void TagModelTestHelper::test()
 
         // Remove the only remaining child tag from the eighth tag item using
         // TagModel::removeFromParent method
-        QModelIndex firstEighthChildIndex = model->indexForItem(
+        auto firstEighthChildIndex = model->indexForItem(
             pFirstEighthChild);
 
         if (!firstEighthChildIndex.isValid()) {
@@ -641,11 +649,12 @@ void TagModelTestHelper::test()
 
         if (pFirstEighthChildTag->isDirty()) {
             FAIL("The dirty flag should have been cleared from "
-                 "the tag item but it hasn't been");
+                << "the tag item but it hasn't been");
         }
 
-        QModelIndex formerFirstEighthChildIndex =
-            model->removeFromParent(firstEighthChildIndex);
+        auto formerFirstEighthChildIndex = model->removeFromParent(
+            firstEighthChildIndex);
+
         if (!formerFirstEighthChildIndex.isValid()) {
             FAIL("Failed to remove the tag item from parent");
         }
@@ -656,42 +665,40 @@ void TagModelTestHelper::test()
             pFirstEighthChild);
 
         if (formerFirstEighthChildRowInEighth >= 0) {
-            FAIL("Tag model item can still be found within "
-                 "the original parent's children after its "
-                 "removal from there");
+            FAIL("Tag model item can still be found within the original "
+                << "parent's children after its removal from there");
         }
 
         // Verity the dirty flag has been set automatically to the tag item
         // removed from its parent
         if (!pFirstEighthChildTag->isDirty()) {
             FAIL("Tag model item which was removed from its "
-                 "parent was not marked as the dirty one");
+                << "parent was not marked as the dirty one");
         }
 
         // Check the sorting for tag items: by default should sort by name in
         // ascending order
-        QModelIndex fifthIndex = model->indexForLocalUid(fifth.localUid());
+        auto fifthIndex = model->indexForLocalUid(fifth.localUid());
         if (!fifthIndex.isValid()) {
             FAIL("Can't get valid tag model item index for local uid");
         }
 
         const auto * pFifthItem = model->itemForIndex(fifthIndex);
         if (!pFifthItem) {
-            FAIL("Can't get the tag model item pointer from "
-                 "the model index");
+            FAIL("Can't get the tag model item pointer from the model index");
         }
 
         const auto * pAllTagsRootItem = pFifthItem->parent();
         if (!pAllTagsRootItem) {
             FAIL("Can't get all tags root item in the tag model: "
-                 "getting null pointer instead");
+                << "getting null pointer instead");
         }
 
         ErrorString errorDescription;
         res = checkSorting(*model, pAllTagsRootItem, errorDescription);
         if (!res) {
             FAIL("Sorting check failed for the tag model for "
-                 << "ascending order: " << errorDescription);
+                << "ascending order: " << errorDescription);
         }
 
         // Set the account to local again to test accounting for tag name
@@ -710,14 +717,14 @@ void TagModelTestHelper::test()
 
         if (thirteenthTagIndex.isValid()) {
             FAIL("Was able to create tag with the same name as "
-                 "the already existing one");
+                << "the already existing one");
         }
 
         // The error description should say something about the inability to
         // create the tag
         if (errorDescription.isEmpty()) {
             FAIL("The error description about the inability to "
-                 "create a tag due to the name collision is empty");
+                << "create a tag due to the name collision is empty");
         }
 
         // Should be able to create the tag with a new name
@@ -732,7 +739,7 @@ void TagModelTestHelper::test()
 
         if (!thirteenthTagIndex.isValid()) {
             FAIL("Wasn't able to create a tag with the name not "
-                 "present within the tag model");
+                << "present within the tag model");
         }
 
         // Should no longer be able to create the tag with the same name as
@@ -745,14 +752,14 @@ void TagModelTestHelper::test()
 
         if (fourteenthTagIndex.isValid()) {
             FAIL("Was able to create a tag with the same name "
-                 "as the just created tag");
+                << "as the just created tag");
         }
 
         // The error description should say something about the inability
         // to create the tag
         if (errorDescription.isEmpty()) {
             FAIL("The error description about the inability "
-                 "to create a tag due to the name collision is empty");
+                << "to create a tag due to the name collision is empty");
         }
 
         // Should be able to remove the just added tag
@@ -762,7 +769,7 @@ void TagModelTestHelper::test()
 
         if (!res) {
             FAIL("Wasn't able to remove the tag just added "
-                 "to the tag model");
+                << "to the tag model");
         }
 
         // Should again be able to create the tag with the same name
@@ -776,7 +783,7 @@ void TagModelTestHelper::test()
 
         if (!thirteenthTagIndex.isValid()) {
             FAIL("Wasn't able to create a tag with the same "
-                 "name as the just removed one");
+                << "name as the just removed one");
         }
 
         // Change the sort order and check the sorting again
@@ -794,18 +801,18 @@ void TagModelTestHelper::test()
         // tags should not be present within the model as well as the parent one
         m_pLocalStorageManagerAsync->onExpungeTagRequest(tenth, QUuid());
 
-        QModelIndex tenthIndex = model->indexForLocalUid(tenth.localUid());
+        auto tenthIndex = model->indexForLocalUid(tenth.localUid());
         if (tenthIndex.isValid()) {
             FAIL("The tag model returns valid index for "
-                 "the local uid corresponding to the tag expunged "
-                 "from the local storage");
+                << "the local uid corresponding to the tag expunged "
+                << "from the local storage");
         }
 
-        QModelIndex eleventhIndex = model->indexForLocalUid(eleventh.localUid());
+        auto eleventhIndex = model->indexForLocalUid(eleventh.localUid());
         if (eleventhIndex.isValid()) {
             FAIL("The tag model returns valid index for the local "
-                 "uid corresponding to the tag being the child "
-                 "of a tag being expunged");
+                << "uid corresponding to the tag being the child "
+                << "of a tag being expunged");
         }
 
         // Should be able to change the parent of the tag externally and have
@@ -838,7 +845,7 @@ void TagModelTestHelper::test()
 
         if (pNewThirteenthTagItem->parentLocalUid() != second.localUid()) {
             FAIL("The parent local uid of the externally updated "
-                 "tag was not picked up from the updated tag");
+                << "tag was not picked up from the updated tag");
         }
 
         const auto * pSecondTagItem = model->itemForLocalUid(second.localUid());
@@ -848,7 +855,7 @@ void TagModelTestHelper::test()
 
         if (pSecondTagItem->rowForChild(pNewThirteenthModelItem) < 0) {
             FAIL("The new parent item doesn't contain the child "
-                 "item which was externally updated");
+                << "item which was externally updated");
         }
 
         Q_EMIT success();
@@ -862,8 +869,8 @@ void TagModelTestHelper::test()
 void TagModelTestHelper::onAddTagFailed(
     Tag tag, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("TagModelTestHelper::onAddTagFailed: tag = " << tag
-        << "\nError description = " << errorDescription
+    QNDEBUG("tests:model_test:tag", "TagModelTestHelper::onAddTagFailed: tag = "
+        << tag << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
@@ -872,8 +879,8 @@ void TagModelTestHelper::onAddTagFailed(
 void TagModelTestHelper::onUpdateTagFailed(
     Tag tag, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("TagModelTestHelper::onUpdateTagFailed: tag = "
-        << tag << "\nError description = " << errorDescription
+    QNDEBUG("tests:model_test:tag", "TagModelTestHelper::onUpdateTagFailed: "
+        << "tag = " << tag << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
@@ -882,8 +889,8 @@ void TagModelTestHelper::onUpdateTagFailed(
 void TagModelTestHelper::onFindTagFailed(
     Tag tag, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("TagModelTestHelper::onFindTagFailed: tag = " << tag
-        << "\nError description = " << errorDescription
+    QNDEBUG("tests:model_test:tag", "TagModelTestHelper::onFindTagFailed: "
+        << "tag = " << tag << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
@@ -897,8 +904,8 @@ void TagModelTestHelper::onListTagsFailed(
     QString linkedNotebookGuid,
     ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("TagModelTestHelper::onListTagsFailed: flag = "
-        << flag << ", limit = " << limit << ", offset = " << offset
+    QNDEBUG("tests:model_test:tag", "TagModelTestHelper::onListTagsFailed: "
+        << "flag = " << flag << ", limit = " << limit << ", offset = " << offset
         << ", order = " << order << ", direction = " << orderDirection
         << ", linked notebook guid: is null = "
         << (linkedNotebookGuid.isNull()
@@ -918,8 +925,8 @@ void TagModelTestHelper::onListTagsFailed(
 void TagModelTestHelper::onExpungeTagFailed(
     Tag tag, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("TagModelTestHelper::onExpungeTagFailed: tag = "
-        << tag << "\nError description = " << errorDescription
+    QNDEBUG("tests:model_test:tag", "TagModelTestHelper::onExpungeTagFailed: "
+        << "tag = " << tag << "\nError description = " << errorDescription
         << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);

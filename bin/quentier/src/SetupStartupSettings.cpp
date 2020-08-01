@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,7 @@
 
 namespace quentier {
 
-void SetupStartupSettings()
+void setupStartupSettings()
 {
     AccountManager accountManager;
     Account account = accountManager.lastUsedAccount();
@@ -39,9 +39,11 @@ void SetupStartupSettings()
     {
         ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
         appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-        disableNativeMenuBar =
-            appSettings.value(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
-                              QVariant::fromValue(defaultDisableNativeMenuBar())).toBool();
+
+        disableNativeMenuBar = appSettings.value(
+            DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+            QVariant::fromValue(defaultDisableNativeMenuBar())).toBool();
+
         appSettings.endGroup();
     }
     else
@@ -49,7 +51,9 @@ void SetupStartupSettings()
         disableNativeMenuBar = defaultDisableNativeMenuBar();
     }
 
-    QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar, disableNativeMenuBar);
+    QCoreApplication::setAttribute(
+        Qt::AA_DontUseNativeMenuBar,
+        disableNativeMenuBar);
 }
 
 } // namespace quentier

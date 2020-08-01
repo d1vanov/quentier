@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,8 @@ class ModelTester: public QObject
     Q_OBJECT
 public:
     ModelTester(QObject * parent = nullptr);
-    virtual ~ModelTester();
+
+    virtual ~ModelTester() override;
 
 private Q_SLOTS:
     void testSavedSearchModel();
@@ -39,7 +40,7 @@ private Q_SLOTS:
     void testTagModelItemSerialization();
 
 private:
-    quentier::LocalStorageManagerAsync *    m_pLocalStorageManagerAsync;
+    quentier::LocalStorageManagerAsync * m_pLocalStorageManagerAsync = nullptr;
 };
 
 #endif // QUENTIER_LIB_MODEL_TESTS_MODEL_TESTER_H

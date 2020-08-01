@@ -215,9 +215,14 @@ void EnexImportDialog::onBrowsePushButtonClicked()
     checkConditionsAndEnableDisableOkButton();
 }
 
-void EnexImportDialog::onNotebookNameEdited(int notebookNameIndex)
+void EnexImportDialog::onNotebookIndexChanged(int notebookNameIndex)
 {
-    QString name = m_pUi->notebookNameComboBox->itemText(notebookNameIndex);
+    onNotebookNameEdited(
+        m_pUi->notebookNameComboBox->itemText(notebookNameIndex));
+}
+
+void EnexImportDialog::onNotebookNameEdited(const QString & name)
+{
     QNDEBUG("enex", "EnexImportDialog::onNotebookNameEdited: " << name);
     checkConditionsAndEnableDisableOkButton();
 }
@@ -355,13 +360,13 @@ void EnexImportDialog::createConnections()
         m_pUi->notebookNameComboBox,
         qOverload<int>(&QComboBox::currentIndexChanged),
         this,
-        &EnexImportDialog::onNotebookNameEdited);
+        &EnexImportDialog::onNotebookIndexChanged);
 #else
     QObject::connect(
         m_pUi->notebookNameComboBox,
         SIGNAL(currentIndexChanged(int)),
         this,
-        SLOT(onNotebookNameEdited(int)));
+        SLOT(onNotebookIndexChanged(int)));
 #endif
 
     if (!m_pNotebookModel.isNull())

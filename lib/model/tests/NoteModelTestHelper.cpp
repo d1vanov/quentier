@@ -17,110 +17,96 @@
  */
 
 #include "NoteModelTestHelper.h"
+
 #include "modeltest.h"
 #include "TestMacros.h"
 
 #include <lib/model/NoteModel.h>
 
+#include <quentier/exception/IQuentierException.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/SysInfo.h>
-#include <quentier/exception/IQuentierException.h>
 
 namespace quentier {
 
 NoteModelTestHelper::NoteModelTestHelper(
-        LocalStorageManagerAsync * pLocalStorageManagerAsync, QObject * parent) :
+        LocalStorageManagerAsync * pLocalStorageManagerAsync,
+        QObject * parent) :
     QObject(parent),
-    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync),
-    m_model(nullptr),
-    m_firstNotebook(),
-    m_noteToExpungeLocalUid(),
-    m_expectingNewNoteFromLocalStorage(false),
-    m_expectingNoteUpdateFromLocalStorage(false),
-    m_expectingNoteDeletionFromLocalStorage(false),
-    m_expectingNoteExpungeFromLocalStorage(false)
+    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
 {
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addNoteComplete,Note,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onAddNoteComplete,Note,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addNoteFailed,
-                              Note,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onAddNoteFailed,
-                            Note,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,updateNoteComplete,
-                              Note,LocalStorageManager::UpdateNoteOptions,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onUpdateNoteComplete,
-                            Note,LocalStorageManager::UpdateNoteOptions,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,updateNoteFailed,
-                              Note,LocalStorageManager::UpdateNoteOptions,
-                              ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onUpdateNoteFailed,
-                            Note,LocalStorageManager::UpdateNoteOptions,
-                            ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,findNoteFailed,
-                              Note,LocalStorageManager::GetNoteOptions,
-                              ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onFindNoteFailed,
-                            Note,LocalStorageManager::GetNoteOptions,
-                            ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,listNotesFailed,
-                              LocalStorageManager::ListObjectsOptions,
-                              LocalStorageManager::GetNoteOptions,size_t,size_t,
-                              LocalStorageManager::ListNotesOrder,
-                              LocalStorageManager::OrderDirection,
-                              QString,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onListNotesFailed,
-                            LocalStorageManager::ListObjectsOptions,
-                            LocalStorageManager::GetNoteOptions,size_t,size_t,
-                            LocalStorageManager::ListNotesOrder,
-                            LocalStorageManager::OrderDirection,
-                            QString,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,expungeNoteComplete,
-                              Note,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onExpungeNoteComplete,
-                            Note,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,expungeNoteFailed,
-                              Note,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onExpungeNoteFailed,
-                            Note,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addNotebookFailed,
-                              Notebook,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onAddNotebookFailed,
-                            Notebook,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,updateNotebookFailed,
-                              Notebook,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onUpdateNotebookFailed,
-                            Notebook,ErrorString,QUuid));
-    QObject::connect(pLocalStorageManagerAsync,
-                     QNSIGNAL(LocalStorageManagerAsync,addTagFailed,
-                              Tag,ErrorString,QUuid),
-                     this,
-                     QNSLOT(NoteModelTestHelper,onAddTagFailed,
-                            Tag,ErrorString,QUuid));
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::addNoteComplete,
+        this,
+        &NoteModelTestHelper::onAddNoteComplete);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::addNoteFailed,
+        this,
+        &NoteModelTestHelper::onAddNoteFailed);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::updateNoteComplete,
+        this,
+        &NoteModelTestHelper::onUpdateNoteComplete);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::updateNoteFailed,
+        this,
+        &NoteModelTestHelper::onUpdateNoteFailed);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::findNoteFailed,
+        this,
+        &NoteModelTestHelper::onFindNoteFailed);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::listNotesFailed,
+        this,
+        &NoteModelTestHelper::onListNotesFailed);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::expungeNoteComplete,
+        this,
+        &NoteModelTestHelper::onExpungeNoteComplete);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::expungeNoteFailed,
+        this,
+        &NoteModelTestHelper::onExpungeNoteFailed);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::addNotebookFailed,
+        this,
+        &NoteModelTestHelper::onAddNotebookFailed);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::updateNotebookFailed,
+        this,
+        &NoteModelTestHelper::onUpdateNotebookFailed);
+
+    QObject::connect(
+        pLocalStorageManagerAsync,
+        &LocalStorageManagerAsync::addTagFailed,
+        this,
+        &NoteModelTestHelper::onAddTagFailed);
 }
 
-void NoteModelTestHelper::launchTest()
+NoteModelTestHelper::~NoteModelTestHelper() = default;
+
+void NoteModelTestHelper::test()
 {
-    QNDEBUG("NoteModelTestHelper::launchTest");
+    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::test");
 
     ErrorString errorDescription;
 
@@ -142,9 +128,17 @@ void NoteModelTestHelper::launchTest()
         thirdNotebook.setLocal(false);
         thirdNotebook.setDirty(false);
 
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(firstNotebook, QUuid());
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(secondNotebook, QUuid());
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(thirdNotebook, QUuid());
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(
+            firstNotebook,
+            QUuid());
+
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(
+            secondNotebook,
+            QUuid());
+
+        m_pLocalStorageManagerAsync->onAddNotebookRequest(
+            thirdNotebook,
+            QUuid());
 
         Tag firstTag;
         firstTag.setName(QStringLiteral("First tag"));
@@ -177,21 +171,26 @@ void NoteModelTestHelper::launchTest()
 
         Note firstNote;
         firstNote.setTitle(QStringLiteral("First note"));
+
         firstNote.setContent(
             QStringLiteral("<en-note><h1>First note</h1></en-note>"));
+
         firstNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
         firstNote.setModificationTimestamp(firstNote.creationTimestamp());
         firstNote.setNotebookLocalUid(firstNotebook.localUid());
         firstNote.setLocal(true);
-        firstNote.setTagLocalUids(QStringList()
-                                  << firstTag.localUid()
-                                  << secondTag.localUid());
+
+        firstNote.setTagLocalUids(
+            QStringList() << firstTag.localUid() << secondTag.localUid());
+
         firstNote.setDirty(false);
 
         Note secondNote;
         secondNote.setTitle(QStringLiteral("Second note"));
+
         secondNote.setContent(
             QStringLiteral("<en-note><h1>Second note</h1></en-note>"));
+
         secondNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
         secondNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
         secondNote.setNotebookLocalUid(firstNotebook.localUid());
@@ -202,8 +201,10 @@ void NoteModelTestHelper::launchTest()
         Note thirdNote;
         thirdNote.setGuid(UidGenerator::Generate());
         thirdNote.setTitle(QStringLiteral("Third note"));
+
         thirdNote.setContent(
             QStringLiteral("<en-note><h1>Third note</h1></en-note>"));
+
         thirdNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
         thirdNote.setModificationTimestamp(thirdNote.creationTimestamp());
         thirdNote.setNotebookLocalUid(secondNotebook.localUid());
@@ -215,26 +216,30 @@ void NoteModelTestHelper::launchTest()
         Note fourthNote;
         fourthNote.setGuid(UidGenerator::Generate());
         fourthNote.setTitle(QStringLiteral("Fourth note"));
+
         fourthNote.setContent(
             QStringLiteral("<en-note><h1>Fourth note</h1></en-note>"));
+
         fourthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
         fourthNote.setModificationTimestamp(fourthNote.creationTimestamp());
         fourthNote.setNotebookLocalUid(secondNotebook.localUid());
         fourthNote.setNotebookGuid(secondNotebook.guid());
         fourthNote.setLocal(false);
         fourthNote.setDirty(true);
-        fourthNote.setTagLocalUids(QStringList()
-                                   << thirdTag.localUid()
-                                   << fourthTag.localUid());
-        fourthNote.setTagGuids(QStringList()
-                               << thirdTag.guid()
-                               << fourthTag.guid());
+
+        fourthNote.setTagLocalUids(
+            QStringList() << thirdTag.localUid() << fourthTag.localUid());
+
+        fourthNote.setTagGuids(
+            QStringList() << thirdTag.guid() << fourthTag.guid());
 
         Note fifthNote;
         fifthNote.setGuid(UidGenerator::Generate());
         fifthNote.setTitle(QStringLiteral("Fifth note"));
+
         fifthNote.setContent(
             QStringLiteral("<en-note><h1>Fifth note</h1></en-note>"));
+
         fifthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
         fifthNote.setModificationTimestamp(fifthNote.creationTimestamp());
         fifthNote.setNotebookLocalUid(secondNotebook.localUid());
@@ -246,8 +251,10 @@ void NoteModelTestHelper::launchTest()
         Note sixthNote;
         sixthNote.setGuid(UidGenerator::Generate());
         sixthNote.setTitle(QStringLiteral("Sixth note"));
+
         sixthNote.setContent(
             QStringLiteral("<en-note><h1>Sixth note</h1></en-note>"));
+
         sixthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
         sixthNote.setModificationTimestamp(sixthNote.creationTimestamp());
         sixthNote.setNotebookLocalUid(thirdNotebook.localUid());
@@ -268,22 +275,26 @@ void NoteModelTestHelper::launchTest()
         NotebookCache notebookCache(3);
         Account account(QStringLiteral("Default name"), Account::Type::Local);
 
-        NoteModel * model = new NoteModel(account, *m_pLocalStorageManagerAsync,
-                                          noteCache, notebookCache, this,
-                                          NoteModel::IncludedNotes::All);
+        auto * model = new NoteModel(
+            account,
+            *m_pLocalStorageManagerAsync,
+            noteCache,
+            notebookCache,
+            this,
+            NoteModel::IncludedNotes::All);
+
         model->start();
 
         ModelTest t1(model);
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        QModelIndex firstIndex = model->indexForLocalUid(firstNote.localUid());
+        auto firstIndex = model->indexForLocalUid(firstNote.localUid());
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for local uid");
         }
 
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty,
-                                  QModelIndex());
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty);
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for dirty column");
         }
@@ -291,24 +302,26 @@ void NoteModelTestHelper::launchTest()
         bool res = model->setData(firstIndex, QVariant(true), Qt::EditRole);
         if (res) {
             FAIL("Was able to change the dirty flag in the note "
-                 "model manually which is not intended");
+                << "model manually which is not intended");
         }
 
-        QVariant data = model->data(firstIndex, Qt::EditRole);
+        auto data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the note model while "
-                 "expected to get the state of dirty flag");
+                << "expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
             FAIL("The dirty state appears to have changed after setData in "
-                 "note model even though the method returned false");
+                << "note model even though the method returned false");
         }
 
         // Should be able to make the non-synchronizable (local) item synchronizable
         // (non-local)
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Synchronizable,
-                                  QModelIndex());
+        firstIndex = model->index(
+            firstIndex.row(),
+            NoteModel::Columns::Synchronizable);
+
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model index for synchronizable column");
         }
@@ -316,19 +329,19 @@ void NoteModelTestHelper::launchTest()
         res = model->setData(firstIndex, QVariant(true), Qt::EditRole);
         if (!res) {
             FAIL("Can't change the synchronizable flag from false "
-                 "to true for note model item");
+                << "to true for note model item");
         }
 
         data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the note model while "
-                 "expected to get the state of synchronizable flag");
+                << "expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
             FAIL("The synchronizable flag appears to have not "
-                 "changed after setData in note model even though "
-                 "the method returned true");
+                << "changed after setData in note model even though "
+                << "the method returned true");
         }
 
         // Verify the dirty flag has changed as a result of making the item
@@ -339,11 +352,10 @@ void NoteModelTestHelper::launchTest()
         firstIndex = model->indexForLocalUid(firstNote.localUid());
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for "
-                 "local uid after making the note synchronizable");
+                << "local uid after making the note synchronizable");
         }
 
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty,
-                                  QModelIndex());
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty);
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for dirty column");
         }
@@ -351,45 +363,46 @@ void NoteModelTestHelper::launchTest()
         data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the note model while "
-                 "expected to get the state of dirty flag");
+                << "expected to get the state of dirty flag");
         }
 
         if (!data.toBool()) {
             FAIL("The dirty state hasn't changed after making "
-                 "the note model item synchronizable while it was "
-                 "expected to have changed");
+                << "the note model item synchronizable while it was "
+                << "expected to have changed");
         }
 
         // Should not be able to make the synchronizable (non-local) item
         // non-synchronizable (local)
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Synchronizable,
-                                  QModelIndex());
+        firstIndex = model->index(
+            firstIndex.row(),
+            NoteModel::Columns::Synchronizable);
+
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for "
-                 "synchronizable column");
+                << "synchronizable column");
         }
 
         res = model->setData(firstIndex, QVariant(false), Qt::EditRole);
         if (res) {
             FAIL("Was able to change the synchronizable flag in "
-                 "note model from true to false which is not intended");
+                << "note model from true to false which is not intended");
         }
 
         data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the note model while "
-                 "expected to get the state of synchronizable flag");
+                << "expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
             FAIL("The synchronizable state appears to have changed "
-                 "after setData in note model even though the method "
-                 "returned false");
+                << "after setData in note model even though the method "
+                << "returned false");
         }
 
         // Should be able to change the title
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Title,
-                                  QModelIndex());
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Title);
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for title column");
         }
@@ -403,32 +416,32 @@ void NoteModelTestHelper::launchTest()
         data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the note model while "
-                 "expected to get the note item's title");
+                << "expected to get the note item's title");
         }
 
         if (data.toString() != newTitle) {
             FAIL("The title of the note item returned by the model "
-                 << "does not match the title just set to this item: "
-                 << "received " << data.toString()
-                 << ", expected " << newTitle);
+                << "does not match the title just set to this item: "
+                << "received " << data.toString()
+                << ", expected " << newTitle);
         }
 
         // Should be able to mark the note as deleted
 
-        // Get the item's index for local uid again as its row might have changed
-        // due to the automatic update of modification time
+        // Get the item's index for local uid again as its row might have
+        // changed due to the automatic update of modification time
         firstIndex = model->indexForLocalUid(firstNote.localUid());
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for "
-                 "local uid after changing the note's title");
+                << "local uid after changing the note's title");
         }
 
-        firstIndex = model->index(firstIndex.row(),
-                                  NoteModel::Columns::DeletionTimestamp,
-                                  QModelIndex());
+        firstIndex = model->index(
+            firstIndex.row(),
+            NoteModel::Columns::DeletionTimestamp);
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for "
-                 "deletion timestamp column");
+                << "deletion timestamp column");
         }
 
         qint64 deletionTimestamp = QDateTime::currentMSecsSinceEpoch();
@@ -440,29 +453,29 @@ void NoteModelTestHelper::launchTest()
         data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the note model while "
-                 "expected to get the note item's deletion timestamp");
+                << "expected to get the note item's deletion timestamp");
         }
 
         bool conversionResult = false;
         qint64 itemDeletionTimestamp = data.toLongLong(&conversionResult);
         if (!conversionResult) {
             FAIL("Can't convert the note model item's deletion "
-                 "timestamp data to the actual timestamp");
+                << "timestamp data to the actual timestamp");
         }
 
         if (deletionTimestamp != itemDeletionTimestamp) {
             FAIL("The note model item's deletion timestamp doesn't "
-                 "match the timestamp originally set");
+                << "match the timestamp originally set");
         }
 
         // Should be able to remove the deletion timestamp from the note
 
-        // Get the item's index for local uid again as its row might have changed
-        // due to the automatic update of modification time
+        // Get the item's index for local uid again as its row might have
+        // changed due to the automatic update of modification time
         firstIndex = model->indexForLocalUid(firstNote.localUid());
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for "
-                 "local uid after marking the note as deleted one");
+                << "local uid after marking the note as deleted one");
         }
 
         deletionTimestamp = 0;
@@ -474,24 +487,24 @@ void NoteModelTestHelper::launchTest()
         data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the note model while "
-                 "expected to get the note item's deletion timestamp");
+                << "expected to get the note item's deletion timestamp");
         }
 
         conversionResult = false;
         itemDeletionTimestamp = data.toLongLong(&conversionResult);
         if (!conversionResult) {
             FAIL("Can't convert the note model item's deletion "
-                 "timestamp data to the actual timestamp");
+                << "timestamp data to the actual timestamp");
         }
 
         if (deletionTimestamp != itemDeletionTimestamp) {
             FAIL("The note model item's deletion timestamp doesn't "
-                 "match the expected value of 0");
+                << "match the expected value of 0");
         }
 
         // Should not be able to remove the row corresponding to a note with
         // non-empty guid
-        QModelIndex thirdIndex = model->indexForLocalUid(thirdNote.localUid());
+        auto thirdIndex = model->indexForLocalUid(thirdNote.localUid());
         if (!thirdIndex.isValid()) {
             FAIL("Can't get the valid note model item index for local uid");
         }
@@ -499,33 +512,35 @@ void NoteModelTestHelper::launchTest()
         res = model->removeRow(thirdIndex.row(), QModelIndex());
         if (res) {
             FAIL("Was able to remove the row corresponding to "
-                 "a note with non-empty guid which is not intended");
+                << "a note with non-empty guid which is not intended");
         }
 
-        QModelIndex thirdIndexAfterFailedRemoval =
-            model->indexForLocalUid(thirdNote.localUid());
+        auto thirdIndexAfterFailedRemoval = model->indexForLocalUid(
+            thirdNote.localUid());
+
         if (!thirdIndexAfterFailedRemoval.isValid()) {
             FAIL("Can't get the valid note model item index after "
-                 "the failed row removal attempt");
+                << "the failed row removal attempt");
         }
 
         if (thirdIndexAfterFailedRemoval.row() != thirdIndex.row()) {
             FAIL("Note model returned item index with a different "
-                 "row after the failed row removal attempt");
+                << "row after the failed row removal attempt");
         }
 
         // Check sorting
         QVector<NoteModel::Columns::type> columns;
         columns.reserve(model->columnCount(QModelIndex()));
+
         columns << NoteModel::Columns::CreationTimestamp
-                << NoteModel::Columns::ModificationTimestamp
-                << NoteModel::Columns::DeletionTimestamp
-                << NoteModel::Columns::Title
-                << NoteModel::Columns::PreviewText
-                << NoteModel::Columns::NotebookName
-                << NoteModel::Columns::Size
-                << NoteModel::Columns::Synchronizable
-                << NoteModel::Columns::Dirty;
+            << NoteModel::Columns::ModificationTimestamp
+            << NoteModel::Columns::DeletionTimestamp
+            << NoteModel::Columns::Title
+            << NoteModel::Columns::PreviewText
+            << NoteModel::Columns::NotebookName
+            << NoteModel::Columns::Size
+            << NoteModel::Columns::Synchronizable
+            << NoteModel::Columns::Dirty;
 
         int numColumns = columns.size();
         for(int i = 0; i < numColumns; ++i)
@@ -547,11 +562,14 @@ void NoteModelTestHelper::launchTest()
         // acknowledgement from the local storage about that
         m_expectingNewNoteFromLocalStorage = true;
         ErrorString errorDescription;
-        QModelIndex newItemIndex = model->createNoteItem(
-            firstNotebook.localUid(), errorDescription);
+
+        auto newItemIndex = model->createNoteItem(
+            firstNotebook.localUid(),
+            errorDescription);
+
         if (!newItemIndex.isValid()) {
             FAIL("Failed to create new note model item: "
-                 << errorDescription.nonLocalizedString());
+                << errorDescription.nonLocalizedString());
         }
 
         model->stop(IStartable::StopMode::Forced);
@@ -568,7 +586,8 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QNDEBUG("NoteModelTestHelper::onAddNoteComplete: note = " << note);
+    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::onAddNoteComplete: "
+        << "note = " << note);
 
     Q_UNUSED(requestId)
     m_expectingNewNoteFromLocalStorage = false;
@@ -577,8 +596,8 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
 
     try
     {
-        const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
-        if (Q_UNLIKELY(!item)) {
+        const auto * pItem = m_model->itemForLocalUid(note.localUid());
+        if (Q_UNLIKELY(!pItem)) {
             FAIL("Can't find just added note's item in the note "
                  "model by local uid");
         }
@@ -586,17 +605,16 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
         // Should be able to update the note model item and get the asynchronous
         // acknowledgement from the local storage about that
         m_expectingNoteUpdateFromLocalStorage = true;
-        QModelIndex itemIndex = m_model->indexForLocalUid(note.localUid());
+        auto itemIndex = m_model->indexForLocalUid(note.localUid());
         if (!itemIndex.isValid()) {
             FAIL("Can't find the valid model index for the note "
-                 "item just added to the model");
+                << "item just added to the model");
         }
 
-        itemIndex = m_model->index(
-            itemIndex.row(), NoteModel::Columns::Title, QModelIndex());
+        itemIndex = m_model->index(itemIndex.row(), NoteModel::Columns::Title);
         if (!itemIndex.isValid()) {
             FAIL("Can't find the valid model index for the note "
-                 "item's title column");
+                << "item's title column");
         }
 
         QString title = QStringLiteral("Modified title");
@@ -615,9 +633,9 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
 void NoteModelTestHelper::onAddNoteFailed(
     Note note, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onAddNoteFailed: note = "
-            << note << "\nError description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::onAddNoteFailed: "
+        << "note = " << note << "\nError description = " << errorDescription
+        << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -630,7 +648,9 @@ void NoteModelTestHelper::onUpdateNoteComplete(
 
     if (m_expectingNoteUpdateFromLocalStorage)
     {
-        QNDEBUG("NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
+        QNDEBUG(
+            "tests:model_test:note",
+            "NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
 
         m_expectingNoteUpdateFromLocalStorage = false;
 
@@ -638,40 +658,47 @@ void NoteModelTestHelper::onUpdateNoteComplete(
 
         try
         {
-            const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
-            if (Q_UNLIKELY(!item)) {
+            const auto * pItem = m_model->itemForLocalUid(note.localUid());
+            if (Q_UNLIKELY(!pItem)) {
                 FAIL("Can't find the updated note's item in the note "
-                     "model by local uid");
+                    << "model by local uid");
             }
 
-            QModelIndex itemIndex = m_model->indexForLocalUid(note.localUid());
+            auto itemIndex = m_model->indexForLocalUid(note.localUid());
             if (!itemIndex.isValid()) {
                 FAIL("Can't find the valid model index for the note "
-                     "item just updated");
+                    << "item just updated");
             }
 
-            QString title = item->title();
+            QString title = pItem->title();
             if (title != QStringLiteral("Modified title")) {
                 FAIL("It appears the note model item's title hasn't "
-                     "really changed as it was expected");
+                    << "really changed as it was expected");
             }
 
             itemIndex = m_model->index(
-                itemIndex.row(), NoteModel::Columns::DeletionTimestamp,
-                QModelIndex());
+                itemIndex.row(),
+                NoteModel::Columns::DeletionTimestamp);
+
             if (!itemIndex.isValid()) {
                 FAIL("Can't find the valid model index for "
-                     "the note item's deletion timestamp column");
+                    << "the note item's deletion timestamp column");
             }
 
-            // Should be able to set the deletion timestamp to the note model item
-            // and receive the asynchronous acknowledge from the local storage
+            // Should be able to set the deletion timestamp to the note model
+            // item and receive the asynchronous acknowledge from the local
+            // storage
             m_expectingNoteDeletionFromLocalStorage = true;
             qint64 deletionTimestamp = QDateTime::currentMSecsSinceEpoch();
-            bool res = m_model->setData(itemIndex, deletionTimestamp, Qt::EditRole);
+
+            bool res = m_model->setData(
+                itemIndex,
+                deletionTimestamp,
+                Qt::EditRole);
+
             if (!res) {
-                FAIL("Can't set the deletion timestamp onto "
-                     "the note model item");
+                FAIL("Can't set the deletion timestamp onto the note model "
+                    << "item");
             }
 
             return;
@@ -682,7 +709,9 @@ void NoteModelTestHelper::onUpdateNoteComplete(
     }
     else if (m_expectingNoteDeletionFromLocalStorage)
     {
-        QNDEBUG("NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
+        QNDEBUG(
+            "tests:model_test:note",
+            "NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
 
         Q_UNUSED(requestId)
         m_expectingNoteDeletionFromLocalStorage = false;
@@ -691,30 +720,31 @@ void NoteModelTestHelper::onUpdateNoteComplete(
 
         try
         {
-            const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
-            if (Q_UNLIKELY(!item)) {
+            const auto * pItem = m_model->itemForLocalUid(note.localUid());
+            if (Q_UNLIKELY(!pItem)) {
                 FAIL("Can't find the deleted note's item in "
-                     "the note model by local uid");
+                    << "the note model by local uid");
             }
 
-            if (item->deletionTimestamp() == 0) {
+            if (pItem->deletionTimestamp() == 0) {
                 FAIL("The note model item's deletion timestamp is "
-                     "unexpectedly zero");
+                    << "unexpectedly zero");
             }
 
-            // Should be able to remove the row with a non-synchronizable (local)
-            // note and get the asynchronous acknowledgement from the local storage
-            QModelIndex itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
+            // Should be able to remove the row with a non-synchronizable
+            // (local) note and get the asynchronous acknowledgement from
+            // the local storage
+            auto itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
             if (!itemIndex.isValid()) {
                 FAIL("Can't get the valid note model item index "
-                     "for local uid");
+                    << "for local uid");
             }
 
             m_expectingNoteExpungeFromLocalStorage = true;
             bool res = m_model->removeRow(itemIndex.row(), QModelIndex());
             if (!res) {
                 FAIL("Can't remove the row with a non-synchronizable "
-                     "note item from the model");
+                    << "note item from the model");
             }
 
             return;
@@ -729,9 +759,9 @@ void NoteModelTestHelper::onUpdateNoteFailed(
     Note note, LocalStorageManager::UpdateNoteOptions options,
     ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onUpdateNoteFailed: note = "
-            << note << "\nError description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::onUpdateNoteFailed: "
+        << "note = " << note << "\nError description = " << errorDescription
+        << ", request id = " << requestId);
 
     Q_UNUSED(options)
     notifyFailureWithStackTrace(errorDescription);
@@ -741,17 +771,17 @@ void NoteModelTestHelper::onFindNoteFailed(
     Note note, LocalStorageManager::GetNoteOptions options,
     ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onFindNoteFailed: note = "
-            << note << "\nWith resource metadata = "
-            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-            << ", with resource binary data = "
-            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-            << ", error description = " << errorDescription
-            << ", request id = " << requestId);
+    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::onFindNoteFailed: "
+        << "note = " << note << "\nWith resource metadata = "
+        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+            ? "true"
+            : "false")
+        << ", with resource binary data = "
+        << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+            ? "true"
+            : "false")
+        << ", error description = " << errorDescription
+        << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -764,22 +794,22 @@ void NoteModelTestHelper::onListNotesFailed(
     LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onListNotesFailed: flag = "
-            << flag << ", with resource metadata = "
-            << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-            << ", with resource binary data = "
-            << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-            << ", limit = " << limit
-            << ", offset = " << offset
-            << ", order = " << order
-            << ", direction = " << orderDirection
-            << ", linked notebook guid = " << linkedNotebookGuid
-            << ", error description = " << errorDescription
-            << ", request id = " << requestId);
+    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::onListNotesFailed: "
+        << "flag = " << flag << ", with resource metadata = "
+        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
+            ? "true"
+            : "false")
+        << ", with resource binary data = "
+        << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+            ? "true"
+            : "false")
+        << ", limit = " << limit
+        << ", offset = " << offset
+        << ", order = " << order
+        << ", direction = " << orderDirection
+        << ", linked notebook guid = " << linkedNotebookGuid
+        << ", error description = " << errorDescription
+        << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -790,7 +820,9 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QNDEBUG("NoteModelTestHelper::onExpungeNoteComplete: note = " << note);
+    QNDEBUG(
+        "tests:model_test:note",
+        "NoteModelTestHelper::onExpungeNoteComplete: note = " << note);
 
     Q_UNUSED(requestId)
     m_expectingNoteExpungeFromLocalStorage = false;
@@ -799,17 +831,17 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
 
     try
     {
-        QModelIndex itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
+        auto itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
         if (itemIndex.isValid()) {
             FAIL("Was able to get the valid model index for the removed note "
-                 "item by local uid which is not intended");
+                << "item by local uid which is not intended");
         }
 
-        const NoteModelItem * item = m_model->itemForLocalUid(m_noteToExpungeLocalUid);
+        const auto * item = m_model->itemForLocalUid(m_noteToExpungeLocalUid);
         if (item) {
-            FAIL("Was able to get the non-null pointer to the note "
-                 "model item while the corresponding note was "
-                 "expunged from local storage");
+            FAIL("Was able to get the non-null pointer to the note model item "
+                << "while the corresponding note was expunged from the local "
+                << "storage");
         }
 
         Q_EMIT success();
@@ -823,9 +855,11 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
 void NoteModelTestHelper::onExpungeNoteFailed(
     Note note, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onExpungeNoteFailed: note = "
-            << note << "\nError description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG(
+        "tests:model_test:note",
+        "NoteModelTestHelper::onExpungeNoteFailed: note = "
+            << note << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -833,9 +867,11 @@ void NoteModelTestHelper::onExpungeNoteFailed(
 void NoteModelTestHelper::onAddNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onAddNotebookFailed: notebook = "
-            << notebook << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
+    QNDEBUG(
+        "tests:model_test:note",
+        "NoteModelTestHelper::onAddNotebookFailed: notebook = " << notebook
+            << "\nError description = " << errorDescription << ", request id = "
+            << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -843,7 +879,9 @@ void NoteModelTestHelper::onAddNotebookFailed(
 void NoteModelTestHelper::onUpdateNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onUpdateNotebookFailed: notebook = "
+    QNDEBUG(
+        "tests:model_test:note",
+        "NoteModelTestHelper::onUpdateNotebookFailed: notebook = "
             << notebook << "\nError description = " << errorDescription
             << ", request id = " << requestId);
 
@@ -853,9 +891,9 @@ void NoteModelTestHelper::onUpdateNotebookFailed(
 void NoteModelTestHelper::onAddTagFailed(
     Tag tag, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NoteModelTestHelper::onAddTagFailed: tag = " << tag
-            << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
+    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::onAddTagFailed: "
+        << "tag = " << tag << "\nError description = " << errorDescription
+        << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -868,12 +906,12 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
     items.reserve(numRows);
     for(int i = 0; i < numRows; ++i)
     {
-        const NoteModelItem * item = model.itemAtRow(i);
-        if (Q_UNLIKELY(!item)) {
+        const auto * pItem = model.itemAtRow(i);
+        if (Q_UNLIKELY(!pItem)) {
             FAIL("Unexpected null pointer to the note model item");
         }
 
-        items << *item;
+        items << *pItem;
     }
 
     bool ascending = (model.sortOrder() == Qt::AscendingOrder);
@@ -881,31 +919,55 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
     {
     case NoteModel::Columns::CreationTimestamp:
         {
-            if (ascending) {
-                std::sort(items.begin(), items.end(), LessByCreationTimestamp());
+            if (ascending)
+            {
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    LessByCreationTimestamp());
             }
-            else {
-                std::sort(items.begin(), items.end(), GreaterByCreationTimestamp());
+            else
+            {
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    GreaterByCreationTimestamp());
             }
             break;
         }
     case NoteModel::Columns::ModificationTimestamp:
         {
-            if (ascending) {
-                std::sort(items.begin(), items.end(), LessByModificationTimestamp());
+            if (ascending)
+            {
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    LessByModificationTimestamp());
             }
-            else {
-                std::sort(items.begin(), items.end(), GreaterByModificationTimestamp());
+            else
+            {
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    GreaterByModificationTimestamp());
             }
             break;
         }
     case NoteModel::Columns::DeletionTimestamp:
         {
-            if (ascending) {
-                std::sort(items.begin(), items.end(), LessByDeletionTimestamp());
+            if (ascending)
+            {
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    LessByDeletionTimestamp());
             }
-            else {
-                std::sort(items.begin(), items.end(), GreaterByDeletionTimestamp());
+            else
+            {
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    GreaterByDeletionTimestamp());
             }
             break;
         }
@@ -951,11 +1013,16 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
     case NoteModel::Columns::Synchronizable:
         {
-            if (ascending) {
+            if (ascending)
+            {
                 std::sort(items.begin(), items.end(), LessBySynchronizable());
             }
-            else {
-                std::sort(items.begin(), items.end(), GreaterBySynchronizable());
+            else
+            {
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    GreaterBySynchronizable());
             }
             break;
         }
@@ -965,12 +1032,12 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
 
     for(int i = 0; i < numRows; ++i)
     {
-        const NoteModelItem * item = model.itemAtRow(i);
-        if (Q_UNLIKELY(!item)) {
+        const auto * pItem = model.itemAtRow(i);
+        if (Q_UNLIKELY(!pItem)) {
             FAIL("Unexpected null pointer to the note model item");
         }
 
-        if (item->localUid() != items[i].localUid()) {
+        if (pItem->localUid() != items[i].localUid()) {
             FAIL("Found mismatched note model items when checking the sorting");
         }
     }
@@ -980,8 +1047,10 @@ void NoteModelTestHelper::notifyFailureWithStackTrace(
     ErrorString errorDescription)
 {
     SysInfo sysInfo;
+
     errorDescription.details() += QStringLiteral("\nStack trace: ") +
-                                  sysInfo.stackTrace();
+        sysInfo.stackTrace();
+
     Q_EMIT failure(errorDescription);
 }
 

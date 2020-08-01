@@ -433,7 +433,7 @@ void ShortcutSettingsWidget::resetToDefault()
         1,
         defaultShortcut.toString(QKeySequence::NativeText));
 
-    for(auto * pCurrentShortcutItem: m_shortcutItems)
+    for(auto * pCurrentShortcutItem: qAsConst(m_shortcutItems))
     {
         if (Q_UNLIKELY(!pCurrentShortcutItem)) {
             QNWARNING("preferences", "Skipping null pointer to ShortcutItem");
@@ -456,7 +456,7 @@ void ShortcutSettingsWidget::resetAll()
 {
     QNDEBUG("preferences", "ShortcutSettingsWidget::resetAll");
 
-    for(auto * pCurrentShortcutItem: m_shortcutItems)
+    for(auto * pCurrentShortcutItem: qAsConst(m_shortcutItems))
     {
         if (Q_UNLIKELY(!pCurrentShortcutItem)) {
             QNWARNING("preferences", "Skipping null pointer to ShortcutItem");
@@ -515,7 +515,7 @@ void ShortcutSettingsWidget::resetAll()
         }
     }
 
-    for(auto * pCurrentShortcutItem: m_shortcutItems)
+    for(auto * pCurrentShortcutItem: qAsConst(m_shortcutItems))
     {
         if (Q_UNLIKELY(!pCurrentShortcutItem)) {
             QNWARNING("preferences", "Skipping null pointer to ShortcutItem");
@@ -635,7 +635,7 @@ bool ShortcutSettingsWidget::markCollisions(ShortcutItem & item)
     bool hasCollision = false;
     if (!item.m_keySequence.isEmpty())
     {
-        for(auto * pCurrentItem: m_shortcutItems)
+        for(auto * pCurrentItem: qAsConst(m_shortcutItems))
         {
             if (Q_UNLIKELY(!pCurrentItem)) {
                 QNWARNING("preferences", "Skipping null pointer to "

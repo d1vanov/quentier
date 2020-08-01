@@ -54,7 +54,8 @@ public:
 
 private Q_SLOTS:
     void onBrowsePushButtonClicked();
-    void onNotebookNameEdited(int notebookNameIndex);
+    void onNotebookIndexChanged(int notebookNameIndex);
+    void onNotebookNameEdited(const QString & name);
     void onEnexFilePathEdited(const QString & path);
 
     // Slots to track the updates of notebook model

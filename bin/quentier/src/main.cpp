@@ -104,7 +104,7 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    SetupStartupSettings();
+    setupStartupSettings();
 
     std::unique_ptr<MainWindow> pMainWindow;
     try

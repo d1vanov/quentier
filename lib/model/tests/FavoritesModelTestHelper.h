@@ -34,12 +34,14 @@ public:
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = nullptr);
 
+    virtual ~FavoritesModelTestHelper() override;
+
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
     void success();
 
 public Q_SLOTS:
-    void launchTest();
+    void test();
 
 private Q_SLOTS:
     void onUpdateNoteComplete(
@@ -159,7 +161,7 @@ private:
 
 private:
     LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
-    FavoritesModel *            m_model;
+    FavoritesModel *            m_model = nullptr;
 
     Notebook        m_firstNotebook;
     Notebook        m_secondNotebook;
@@ -182,15 +184,15 @@ private:
     SavedSearch     m_thirdSavedSearch;
     SavedSearch     m_fourthSavedSearch;
 
-    bool            m_expectingNoteUpdateFromLocalStorage;
-    bool            m_expectingNotebookUpdateFromLocalStorage;
-    bool            m_expectingTagUpdateFromLocalStorage;
-    bool            m_expectingSavedSearchUpdateFromLocalStorage;
+    bool            m_expectingNoteUpdateFromLocalStorage = false;
+    bool            m_expectingNotebookUpdateFromLocalStorage = false;
+    bool            m_expectingTagUpdateFromLocalStorage = false;
+    bool            m_expectingSavedSearchUpdateFromLocalStorage = false;
 
-    bool            m_expectingNoteUnfavoriteFromLocalStorage;
-    bool            m_expectingNotebookUnfavoriteFromLocalStorage;
-    bool            m_expectingTagUnfavoriteFromLocalStorage;
-    bool            m_expectingSavedSearchUnfavoriteFromLocalStorage;
+    bool            m_expectingNoteUnfavoriteFromLocalStorage = false;
+    bool            m_expectingNotebookUnfavoriteFromLocalStorage = false;
+    bool            m_expectingTagUnfavoriteFromLocalStorage = false;
+    bool            m_expectingSavedSearchUnfavoriteFromLocalStorage = false;
 };
 
 } // namespace quentier

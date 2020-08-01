@@ -340,7 +340,8 @@ private Q_SLOTS:
     void onQuitAction();
 
     void onShortcutChanged(
-        int key, QKeySequence shortcut, const Account & account, QString context);
+        int key, QKeySequence shortcut, const Account & account,
+        QString context);
 
     void onNonStandardShortcutChanged(
         QString nonStandardKey, QKeySequence shortcut,
@@ -422,8 +423,8 @@ private:
     void startListeningForShortcutChanges();
     void stopListeningForShortcutChanges();
 
-    void setupConsumerKeyAndSecret(QString & consumerKey,
-                                   QString & consumerSecret);
+    void setupConsumerKeyAndSecret(
+        QString & consumerKey, QString & consumerSecret);
 
     void connectActionsToSlots();
     void connectViewButtonsToSlots();

@@ -17,6 +17,7 @@
  */
 
 #include "NotebookModelTestHelper.h"
+
 #include "modeltest.h"
 #include "TestMacros.h"
 
@@ -66,9 +67,11 @@ NotebookModelTestHelper::NotebookModelTestHelper(
         &NotebookModelTestHelper::onExpungeNotebookFailed);
 }
 
+NotebookModelTestHelper::~NotebookModelTestHelper() = default;
+
 void NotebookModelTestHelper::test()
 {
-    QNDEBUG("NotebookModelTestHelper::test");
+    QNDEBUG("tests:model_test:notebook", "NotebookModelTestHelper::test");
 
     ErrorString errorDescription;
 
@@ -188,13 +191,13 @@ void NotebookModelTestHelper::test()
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalUid(second.localUid());
         if (!secondIndex.isValid()) {
             FAIL("Can't get valid notebook model item index for local uid "
                 << second.localUid());
         }
 
-        QModelIndex secondParentIndex = model->parent(secondIndex);
+        auto secondParentIndex = model->parent(secondIndex);
 
         secondIndex = model->index(
             secondIndex.row(),
@@ -202,25 +205,25 @@ void NotebookModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL("Can't get valid notebook model item index for dirty column, local uid = "
-                << second.localUid());
+            FAIL("Can't get valid notebook model item index for dirty column, "
+                << "local uid = " << second.localUid());
         }
 
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
             FAIL("Was able to change dirty flag in the notebook "
-                 "model manually which is not intended");
+                << "model manually which is not intended");
         }
 
-        QVariant data = model->data(secondIndex, Qt::EditRole);
+        auto data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the state of dirty flag");
+                << "while expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
             FAIL("The dirty state appears to have changed after setData in "
-                 "notebook model even though the method returned false");
+                << "notebook model even though the method returned false");
         }
 
         // Should only be able to make the non-synchronizable (local) item
@@ -233,26 +236,25 @@ void NotebookModelTestHelper::test()
 
         if (!secondIndex.isValid()) {
             FAIL("Can't get valid notebook model item index for synchronizable "
-                 "column");
+                << "column");
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
             FAIL("Was able to change synchronizable flag from false to "
-                 "true for notebook model item with local account");
+                << "true for notebook model item with local account");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the state of synchronizable flag");
+                << "while expected to get the state of synchronizable flag");
         }
 
         if (data.toBool()) {
-            FAIL("Even though setData returned false on attempt "
-                 "to make the notebook item synchronizable "
-                 "with local account, the actual data within "
-                 "the model appears to have changed");
+            FAIL("Even though setData returned false on attempt to make "
+                << "the notebook item synchronizable with local account, "
+                << "the actual data within the model appears to have changed");
         }
 
         // 2) Trying the non-local account
@@ -266,20 +268,20 @@ void NotebookModelTestHelper::test()
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
             FAIL("Wasn't able to change synchronizable flag from false to true "
-                 "for notebook model item even with the account of Evernote "
-                 "type");
+                << "for notebook model item even with the account of Evernote "
+                << "type");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the state of synchronizable flag");
+                << "while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
             FAIL("The synchronizable state appears to have not changed after "
-                 "setData in notebook model even though the method returned "
-                 "true");
+                << "setData in notebook model even though the method returned "
+                << "true");
         }
 
         // Verify the dirty flag has changed as a result of making the item
@@ -296,13 +298,13 @@ void NotebookModelTestHelper::test()
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the state of dirty flag");
+                << "while expected to get the state of dirty flag");
         }
 
         if (!data.toBool()) {
             FAIL("The dirty state hasn't changed after making the notebook "
-                 "model item synchronizable while it was expected to have "
-                 "changed");
+                << "model item synchronizable while it was expected to have "
+                << "changed");
         }
 
         // Should not be able to make the synchronizable (non-local) item
@@ -314,25 +316,25 @@ void NotebookModelTestHelper::test()
 
         if (!secondIndex.isValid()) {
             FAIL("Can't get valid notebook item model index "
-                 "for synchronizable column");
+                << "for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
         if (res) {
             FAIL("Was able to change synchronizable flag in the notebook model "
-                 "from true to false which is not intended");
+                << "from true to false which is not intended");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the state of synchronizable flag");
+                << "while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
             FAIL("The synchronizable state appears to have changed "
-                 "after setData in notebook model even though "
-                 "the method returned false");
+                << "after setData in notebook model even though "
+                << "the method returned false");
         }
 
         // Should be able to change name
@@ -351,19 +353,19 @@ void NotebookModelTestHelper::test()
 
         if (!secondIndex.isValid()) {
             FAIL("Can't get valid notebook item model index "
-                 "for dirty column");
+                << "for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the dirty flag of model item");
+                << "while expected to get the dirty flag of model item");
         }
 
         if (data.toBool()) {
             FAIL("The notebook model item is still dirty even "
-                 "though this flag for this item "
-                 "was updated in the local storage to false");
+                << "though this flag for this item "
+                << "was updated in the local storage to false");
         }
 
         secondIndex = model->index(
@@ -384,7 +386,7 @@ void NotebookModelTestHelper::test()
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the name of the tag item");
+                << "while expected to get the name of the tag item");
         }
 
         if (data.toString() != newName) {
@@ -407,17 +409,17 @@ void NotebookModelTestHelper::test()
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL("Null data was returned by the notebook model "
-                 "while expected to get the dirty flag of model item");
+                << "while expected to get the dirty flag of model item");
         }
 
         if (!data.toBool()) {
             FAIL("The dirty flag appears to have not changed as a result of "
-                 "changing the name of the notebook model item");
+                << "changing the name of the notebook model item");
         }
 
         // Should not be able to remove the row with a synchronizable
         // (non-local) notebook
-        QModelIndex thirdIndex = model->indexForLocalUid(third.localUid());
+        auto thirdIndex = model->indexForLocalUid(third.localUid());
         if (!thirdIndex.isValid()) {
             FAIL("Can't get valid notebook model item index for dirty column");
         }
@@ -427,7 +429,7 @@ void NotebookModelTestHelper::test()
         res = model->removeRow(thirdIndex.row(), thirdParentIndex);
         if (res) {
             FAIL("Was able to remove the row corresponding to the notebook "
-                 "with non-empty guid which is not intended");
+                << "with non-empty guid which is not intended");
         }
 
         auto thirdIndexAfterFailedRemoval = model->indexForLocalUid(
@@ -435,12 +437,12 @@ void NotebookModelTestHelper::test()
 
         if (!thirdIndexAfterFailedRemoval.isValid()) {
             FAIL("Can't get the valid notebook model item index "
-                 "after the failed row removal attempt");
+                << "after the failed row removal attempt");
         }
 
         if (thirdIndexAfterFailedRemoval.row() != thirdIndex.row()) {
             FAIL("Notebook model returned item index with "
-                 "a different row after the failed row removal attempt");
+                << "a different row after the failed row removal attempt");
         }
 
         // Should be able to remove row with a non-synchronizable (local)
@@ -454,13 +456,13 @@ void NotebookModelTestHelper::test()
         res = model->removeRow(firstIndex.row(), firstParentIndex);
         if (!res) {
             FAIL("Can't remove row with a non-synchronizable notebook item "
-                 "from the model");
+                << "from the model");
         }
 
         auto firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
         if (firstIndexAfterRemoval.isValid()) {
             FAIL("Was able to get valid model index for the removed notebook "
-                 "item by local uid which is not intended");
+                << "item by local uid which is not intended");
         }
 
         // Should be able to move the non-stacked item to the existing stack
@@ -472,60 +474,61 @@ void NotebookModelTestHelper::test()
         auto sixthIndexMoved = model->moveToStack(sixthIndex, fifth.stack());
         if (!sixthIndexMoved.isValid()) {
             FAIL("Can't get valid notebook model item index from the method "
-                 "intended to move the item to the stack");
+                << "intended to move the item to the stack");
         }
 
         const auto * pSixthItem = model->itemForIndex(sixthIndexMoved);
         if (!pSixthItem) {
             FAIL("Can't get notebook model item moved to the stack from its "
-                 "model index");
+                << "model index");
         }
 
         if (pSixthItem->type() != INotebookModelItem::Type::Notebook) {
             FAIL("Notebook model item has wrong type after being "
-                 << "moved to the stack: " << *pSixthItem);
+                << "moved to the stack: " << *pSixthItem);
         }
 
         const auto * pSixthNotebookItem = pSixthItem->cast<NotebookItem>();
         if (!pSixthNotebookItem) {
             FAIL("Failed to cast notebook model item to notebook item "
-                 "even though it's of notebook type");
+                << "even though it's of notebook type");
         }
 
         if (pSixthNotebookItem->stack() != fifth.stack()) {
             FAIL("Notebook item's stack is not equal to the one "
-                 << "expected as the notebook model item was moved "
-                 << "to this stack: " << fifth.stack() << "; notebook item: "
-                 << *pSixthNotebookItem);
+                << "expected as the notebook model item was moved "
+                << "to this stack: " << fifth.stack() << "; notebook item: "
+                << *pSixthNotebookItem);
         }
 
         const auto * pSixthParentItem = pSixthItem->parent();
         if (!pSixthParentItem) {
             FAIL("The notebook model item has null parent after "
-                 "it has been moved to the existing stack");
+                << "it has been moved to the existing stack");
         }
 
         if (pSixthParentItem->type() != INotebookModelItem::Type::Stack) {
             FAIL("The notebook model item has parent of non-stack "
-                 "type after it has been moved to the existing stack");
+                << "type after it has been moved to the existing stack");
         }
 
-        const auto * pSixthParentStackItem = pSixthParentItem->cast<StackItem>();
+        const auto * pSixthParentStackItem =
+            pSixthParentItem->cast<StackItem>();
+
         if (!pSixthParentStackItem) {
-            FAIL("Can't cast notebook model item of stack type "
-                 "to stack item");
+            FAIL("Can't cast notebook model item of stack type to stack item");
         }
 
         if (pSixthParentStackItem->name() != fifth.stack()) {
             FAIL("The notebook model item has stack parent which "
-                 "name doesn't correspond to the expected one "
-                 "after that item has been moved to the existing stack");
+                << "name doesn't correspond to the expected one "
+                << "after that item has been moved to the existing stack");
         }
 
         // Ensure the item moved to another stack was marked as dirty
         if (!pSixthNotebookItem->isDirty()) {
             FAIL("The dirty flag hasn't been automatically set "
-                 "to true after moving the notebook to another stack");
+                << "to true after moving the notebook to another stack");
         }
 
         // Should be able to move the non-stacked item to the new stack
@@ -534,7 +537,7 @@ void NotebookModelTestHelper::test()
         auto seventhIndex = model->indexForLocalUid(seventh.localUid());
         if (!seventhIndex.isValid()) {
             FAIL("Can't get the valid notebook model item index "
-                 "from the method intended to move the item to the stack");
+                << "from the method intended to move the item to the stack");
         }
 
         auto seventhIndexMoved = model->moveToStack(seventhIndex, newStack);
@@ -545,55 +548,56 @@ void NotebookModelTestHelper::test()
         const auto * pSeventhItem = model->itemForIndex(seventhIndexMoved);
         if (!pSeventhItem) {
             FAIL("Can't get notebook model item moved to the stack from its "
-                 "model index");
+                << "model index");
         }
 
         if (pSeventhItem->type() != INotebookModelItem::Type::Notebook) {
             FAIL("Notebook model item has wrong type after being "
-                 << "moved to the stack: " << *pSeventhItem);
+                << "moved to the stack: " << *pSeventhItem);
         }
 
         const auto * pSeventhNotebookItem = pSeventhItem->cast<NotebookItem>();
         if (!pSeventhNotebookItem) {
             FAIL("Can't cast notebook model item to notebook item "
-                 "even though it's of notebook type");
+                << "even though it's of notebook type");
         }
 
         if (pSeventhNotebookItem->stack() != newStack) {
             FAIL("Notebook item's stack is not equal to the one "
-                 << "expected as the notebook model item was moved "
-                 << "to the new stack: " << newStack << "; notebook item: "
-                 << *pSeventhNotebookItem);
+                << "expected as the notebook model item was moved "
+                << "to the new stack: " << newStack << "; notebook item: "
+                << *pSeventhNotebookItem);
         }
 
         const auto * pSeventhParentItem = pSeventhItem->parent();
         if (!pSeventhParentItem) {
             FAIL("The notebook model item has null parent after "
-                 "it has been moved to the new stack");
+                << "it has been moved to the new stack");
         }
 
         if (pSeventhParentItem->type() != INotebookModelItem::Type::Stack) {
             FAIL("The notebook model item has parent of non-stack "
-                 "type after it has been moved to the existing stack");
+                << "type after it has been moved to the existing stack");
         }
 
         const auto * pSeventhParentStackItem =
             pSeventhParentItem->cast<StackItem>();
+
         if (!pSeventhParentStackItem) {
             FAIL("The notebook model item has parent of stack type "
-                 "but can't cast the parent item to StackItem after "
-                 "the model item has been moved to the existing stack");
+                << "but can't cast the parent item to StackItem after "
+                << "the model item has been moved to the existing stack");
         }
 
         if (pSeventhParentStackItem->name() != newStack) {
             FAIL("The notebook model item has stack parent which "
-                 "name doesn't correspond to the expected one "
-                 "after that item has been moved to the existing stack");
+                << "name doesn't correspond to the expected one "
+                << "after that item has been moved to the existing stack");
         }
 
         if (!pSeventhNotebookItem->isDirty()) {
             FAIL("The dirty flag hasn't been automatically set to "
-                 "true after moving the non-stacked notebook to a stack");
+                << "true after moving the non-stacked notebook to a stack");
         }
 
         // Should be able to move items from one stack to the other one
@@ -605,7 +609,7 @@ void NotebookModelTestHelper::test()
         const auto * pFourthItem = model->itemForIndex(fourthIndex);
         if (!pFourthItem) {
             FAIL("Can't get notebook model item for its index "
-                 "in turn retrieved from the local uid");
+                << "in turn retrieved from the local uid");
         }
 
         const auto * pFourthParentItem = pFourthItem->parent();
@@ -615,20 +619,21 @@ void NotebookModelTestHelper::test()
 
         if (pFourthParentItem->type() != INotebookModelItem::Type::Stack) {
             FAIL("Detected notebook model item which unexpectedly "
-                 "doesn't have a parent of stack type");
+                << "doesn't have a parent of stack type");
         }
 
         const auto * pFourthParentStackItem =
             pFourthParentItem->cast<StackItem>();
+
         if (!pFourthParentStackItem) {
             FAIL("Can't cast notebook model item to stack item even though it "
-                 "is of stack type");
+                << "is of stack type");
         }
 
         auto newFourthItemIndex = model->moveToStack(fourthIndex, newStack);
         if (!newFourthItemIndex.isValid()) {
             FAIL("Can't get valid notebook model item index after the attempt "
-                 "to move the item to another stack");
+                << "to move the item to another stack");
         }
 
         fourth.setStack(newStack);
@@ -638,24 +643,24 @@ void NotebookModelTestHelper::test()
 
         if (!pFourthItemFromNewIndex) {
             FAIL("Can't get notebook model item after moving it to another "
-                 "stack");
+                << "stack");
         }
 
         if (pFourthItem != pFourthItemFromNewIndex) {
             FAIL("The memory address of the notebook model item "
-                 "appears to have changed as a result of moving "
-                 "the item into another stack");
+                << "appears to have changed as a result of moving "
+                << "the item into another stack");
         }
 
         const auto * pFourthItemNewParent = pFourthItemFromNewIndex->parent();
         if (!pFourthItemNewParent) {
             FAIL("Notebook model item's parent has become null as "
-                 "a result of moving the item to another stack");
+                << "a result of moving the item to another stack");
         }
 
         if (pFourthItemNewParent->type() != INotebookModelItem::Type::Stack) {
             FAIL("Notebook model item's parent has non-stack type "
-                 "after moving the item to another stack");
+                << "after moving the item to another stack");
         }
 
         const auto * pFourthItemNewStackItem =
@@ -663,38 +668,38 @@ void NotebookModelTestHelper::test()
 
         if (!pFourthItemNewStackItem) {
             FAIL("Notebook model item's parent is of stack type "
-                 "but can't cast it to stack item after moving the original "
-                 "item to another stack");
+                << "but can't cast it to stack item after moving the original "
+                << "item to another stack");
         }
 
         if (pFourthItemNewStackItem->name() != newStack) {
             FAIL("Notebook model item's parent stack item has "
-                 "unexpected name after the attempt to move "
-                 "the item to another stack");
+                << "unexpected name after the attempt to move "
+                << "the item to another stack");
         }
 
         int row = pFourthParentItem->rowForChild(pFourthItem);
         if (row >= 0) {
             FAIL("Notebook model item has been moved to another "
-                 "stack but it can still be found within the old "
-                 "parent item's children");
+                << "stack but it can still be found within the old "
+                << "parent item's children");
         }
 
         row = pFourthItemNewParent->rowForChild(pFourthItemFromNewIndex);
         if (row < 0) {
             FAIL("Notebook model item has been moved to another "
-                 "stack but its row within its new parent cannot be found");
+                << "stack but its row within its new parent cannot be found");
         }
 
         const auto * pFourthNotebookItem = pFourthItem->cast<NotebookItem>();
         if (!pFourthNotebookItem) {
             FAIL("Can't cast notebook model item to notebook item after "
-                 "moving the item to another stack");
+                << "moving the item to another stack");
         }
 
         if (!pFourthNotebookItem->isDirty()) {
             FAIL("The notebook item wasn't automatically marked as "
-                 "dirty after moving it to another stack");
+                << "dirty after moving it to another stack");
         }
 
         // Should be able to remove the notebook item from the stack
@@ -706,7 +711,7 @@ void NotebookModelTestHelper::test()
 
         if (pFourthNotebookItem->isDirty()) {
             FAIL("The notebook item is still marked as dirty after "
-                 "the flag has been cleared externally");
+                << "the flag has been cleared externally");
         }
 
         auto fourthIndexRemovedFromStack = model->removeFromStack(
@@ -714,7 +719,7 @@ void NotebookModelTestHelper::test()
 
         if (!fourthIndexRemovedFromStack.isValid()) {
             FAIL("Can't get valid notebook model item index after the attempt "
-                 "to remove the item from the stack");
+                << "to remove the item from the stack");
         }
 
         const auto * pFourthItemRemovedFromStack = model->itemForIndex(
@@ -722,13 +727,13 @@ void NotebookModelTestHelper::test()
 
         if (!pFourthItemRemovedFromStack) {
             FAIL("Can't get the notebook model item from the index after "
-                 "the item's removal from the stack");
+                << "the item's removal from the stack");
         }
 
         if (pFourthItemRemovedFromStack != pFourthItemFromNewIndex) {
-            FAIL("The memory address of the notebook model item "
-                 "appears to have changed as a result of removing "
-                 "the item from the stack");
+            FAIL("The memory address of the notebook model item appears to "
+                << "have changed as a result of removing the item from "
+                << "the stack");
         }
 
         const auto * pFourthItemNoStackParent =
@@ -736,19 +741,19 @@ void NotebookModelTestHelper::test()
 
         if (!pFourthItemNoStackParent) {
             FAIL("Notebook model item has null parent after being "
-                 "removed from the stack");
+                << "removed from the stack");
         }
 
         if (pFourthItemNoStackParent == pFourthItemNewParent) {
             FAIL("The notebook model item's parent hasn't changed "
-                 "as a result of removing the item from the stack");
+                << "as a result of removing the item from the stack");
         }
 
         if (pFourthItemRemovedFromStack->type() !=
             INotebookModelItem::Type::Notebook)
         {
             FAIL("The notebook model item's type has unexpectedly "
-                 "changed after the item's removal from the stack");
+                << "changed after the item's removal from the stack");
         }
 
         const auto * pFourthItemRemovedFromStackNotebookItem =
@@ -756,17 +761,17 @@ void NotebookModelTestHelper::test()
 
         if (!pFourthItemRemovedFromStackNotebookItem) {
             FAIL("Can't cast the notebook model item to notebook item "
-                 "after the item's removal from the stack");
+                << "after the item's removal from the stack");
         }
 
         if (!pFourthItemRemovedFromStackNotebookItem->stack().isEmpty()) {
             FAIL("The notebook item's stack is still not empty "
-                 "after the model item has been removed from the stack");
+                << "after the model item has been removed from the stack");
         }
 
         if (!pFourthItemRemovedFromStackNotebookItem->isDirty()) {
             FAIL("The notebook item was not automatically marked "
-                 "as dirty after removing the item from its stack");
+                << "as dirty after removing the item from its stack");
         }
 
         // Should be able to remove the last item from the stack and thus cause
@@ -774,35 +779,35 @@ void NotebookModelTestHelper::test()
         seventhIndexMoved = model->indexForLocalUid(seventh.localUid());
         if (!seventhIndexMoved.isValid()) {
             FAIL("The model index of the notebook item is unexpectedly "
-                 "invalid");
+                << "invalid");
         }
 
         seventhIndexMoved = model->removeFromStack(seventhIndexMoved);
         if (!seventhIndexMoved.isValid()) {
             FAIL("The model returned invalid model index after "
-                 "the attempt to remove the last item from the stack");
+                << "the attempt to remove the last item from the stack");
         }
 
         pSeventhItem = model->itemForIndex(seventhIndexMoved);
         if (!pSeventhItem) {
             FAIL("Can't get notebook model item after its "
-                 "removal from the stack from model index");
+                << "removal from the stack from model index");
         }
 
         if (pSeventhItem->type() != INotebookModelItem::Type::Notebook) {
             FAIL("Notebook model item has wrong type after being "
-                 << "removed from its stack: " << *pSeventhItem);
+                << "removed from its stack: " << *pSeventhItem);
         }
 
         pSeventhNotebookItem = pSeventhItem->cast<NotebookItem>();
         if (!pSeventhNotebookItem) {
             FAIL("Can't cast notebook model item to notebook item even though "
-                 "it's of notebook type");
+                << "it's of notebook type");
         }
 
         if (!pSeventhNotebookItem->stack().isEmpty()) {
             FAIL("The notebook item has non-empty stack after "
-                 "the item's removal from the stack");
+                << "the item's removal from the stack");
         }
 
         // Ensure the stack item ceased to exist after the last notebook item
@@ -810,9 +815,9 @@ void NotebookModelTestHelper::test()
         auto emptyStackItemIndex = model->indexForNotebookStack(newStack, {});
         if (emptyStackItemIndex.isValid()) {
             FAIL("Notebook model returned valid model index for "
-                 "stack which should have been removed from "
-                 "the model after the removal of the last notebook "
-                 "contained in this stack");
+                << "stack which should have been removed from "
+                << "the model after the removal of the last notebook "
+                << "contained in this stack");
         }
 
         // Should be able to change the stack of the notebook externally and
@@ -826,14 +831,14 @@ void NotebookModelTestHelper::test()
 
         if (!restoredStackItemIndex.isValid()) {
             FAIL("Notebook model returned invalid model index for "
-                 "stack which should have been created after "
-                 "the external update of a notebook with this stack value");
+                << "stack which should have been created after "
+                << "the external update of a notebook with this stack value");
         }
 
         newFourthItemIndex = model->indexForLocalUid(fourth.localUid());
         if (!newFourthItemIndex.isValid()) {
             FAIL("Can't get valid notebook model item index "
-                 "for notebook local uid");
+                << "for notebook local uid");
         }
 
         pFourthItem = model->itemForIndex(newFourthItemIndex);
@@ -844,18 +849,18 @@ void NotebookModelTestHelper::test()
         pFourthItemNewParent = pFourthItem->parent();
         if (!pFourthItemNewParent) {
             FAIL("Notebook model item has no parent after "
-                 "the external update of a notebook with another stack");
+                << "the external update of a notebook with another stack");
         }
 
         if (pFourthItemNewParent->type() != INotebookModelItem::Type::Stack) {
             FAIL("Notebook model item has parent of non-stack type even though "
-                 "it should have stack parent");
+                << "it should have stack parent");
         }
 
         pFourthItemNewStackItem = pFourthItemNewParent->cast<StackItem>();
         if (!pFourthItemNewStackItem) {
             FAIL("Can't cast notebook model item has to stack item even "
-                 "though it is of stack type");
+                << "though it is of stack type");
         }
 
         if (pFourthItemNewStackItem->name() != newStack) {
@@ -877,14 +882,14 @@ void NotebookModelTestHelper::test()
 
         if (eleventhNotebookIndex.isValid()) {
             FAIL("Was able to create a notebook with the same name "
-                 "as the already existing one");
+                << "as the already existing one");
         }
 
         // The error description should say something about the inability to
         // create the notebook
         if (errorDescription.isEmpty()) {
             FAIL("The error description about the inability to "
-                 "create a notebook due to the name collision is empty");
+                << "create a notebook due to the name collision is empty");
         }
 
         // Should be able to create the notebook with a new name
@@ -898,7 +903,7 @@ void NotebookModelTestHelper::test()
 
         if (!eleventhNotebookIndex.isValid()) {
             FAIL("Wasn't able to create a notebook with the name "
-                 "not present within the notebook model");
+                << "not present within the notebook model");
         }
 
         // Should no longer be able to create the notebook with the same name
@@ -910,14 +915,14 @@ void NotebookModelTestHelper::test()
 
         if (twelvethNotebookIndex.isValid()) {
             FAIL("Was able to create a notebook with the same "
-                 "name as just created one");
+                << "name as just created one");
         }
 
         // The error description should say something about the inability
         // to create the notebook
         if (errorDescription.isEmpty()) {
             FAIL("The error description about the inability to "
-                 "create a notebook due to the name collision is empty");
+                << "create a notebook due to the name collision is empty");
         }
 
         // Should be able to remove the just added local (non-synchronizable)
@@ -928,7 +933,7 @@ void NotebookModelTestHelper::test()
 
         if (!res) {
             FAIL("Wasn't able to remove the non-synchronizable "
-                 "notebook just added to the notebook model");
+                << "notebook just added to the notebook model");
         }
 
         // Should again be able to create the notebook with the same name
@@ -941,7 +946,7 @@ void NotebookModelTestHelper::test()
 
         if (!eleventhNotebookIndex.isValid()) {
             FAIL("Wasn't able to create a notebook with "
-                 "the same name as the just removed one");
+                << "the same name as the just removed one");
         }
 
         // Check the sorting for notebook and stack items: by default should
@@ -949,7 +954,7 @@ void NotebookModelTestHelper::test()
         res = checkSorting(*model, pFourthItemNoStackParent);
         if (!res) {
             FAIL("Sorting check failed for the notebook model "
-                 "for ascending order");
+                << "for ascending order");
         }
 
         // Change the sort order and check the sorting again
@@ -960,7 +965,7 @@ void NotebookModelTestHelper::test()
         res = checkSorting(*model, pFourthItemNoStackParent);
         if (!res) {
             FAIL("Sorting check failed for the notebook model "
-                 "for descending order");
+                << "for descending order");
         }
 
         Q_EMIT success();
@@ -974,10 +979,11 @@ void NotebookModelTestHelper::test()
 void NotebookModelTestHelper::onAddNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NotebookModelTestHelper::onAddNotebookFailed: "
-        << "notebook = " << notebook
-        << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
+    QNDEBUG(
+        "tests:model_test:notebook",
+        "NotebookModelTestHelper::onAddNotebookFailed: notebook = "
+            << notebook << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -985,10 +991,11 @@ void NotebookModelTestHelper::onAddNotebookFailed(
 void NotebookModelTestHelper::onUpdateNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NotebookModelTestHelper::onUpdateNotebookFailed: "
-        << "notebook = " << notebook
-        << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
+    QNDEBUG(
+        "tests:model_test:notebook",
+        "NotebookModelTestHelper::onUpdateNotebookFailed: notebook = "
+            << notebook << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -996,10 +1003,11 @@ void NotebookModelTestHelper::onUpdateNotebookFailed(
 void NotebookModelTestHelper::onFindNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NotebookModelTestHelper::onFindNotebookFailed: "
-        << "notebook = " << notebook
-        << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
+    QNDEBUG(
+        "tests:model_test:notebook",
+        "NotebookModelTestHelper::onFindNotebookFailed: notebook = " << notebook
+            << "\nError description = " << errorDescription << ", request id = "
+            << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -1010,14 +1018,16 @@ void NotebookModelTestHelper::onListNotebooksFailed(
     LocalStorageManager::OrderDirection orderDirection,
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NotebookModelTestHelper::onListNotebooksFailed: flag = "
-        << flag << ", limit = " << limit << ", offset = " << offset
-        << ", order = " << order << ", direction = " << orderDirection
-        << ", linked notebook guid = " << (linkedNotebookGuid.isNull()
-            ? QStringLiteral("<null>")
-            : linkedNotebookGuid)
-        << ", error description = " << errorDescription
-        << ", request id = " << requestId);
+    QNDEBUG(
+        "tests:model_test:notebook",
+        "NotebookModelTestHelper::onListNotebooksFailed: flag = "
+            << flag << ", limit = " << limit << ", offset = " << offset
+            << ", order = " << order << ", direction = " << orderDirection
+            << ", linked notebook guid = " << (linkedNotebookGuid.isNull()
+                ? QStringLiteral("<null>")
+                : linkedNotebookGuid)
+            << ", error description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -1025,10 +1035,11 @@ void NotebookModelTestHelper::onListNotebooksFailed(
 void NotebookModelTestHelper::onExpungeNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
-    QNDEBUG("NotebookModelTestHelper::onExpungeNotebookFailed: "
-        << "notebook = " << notebook
-        << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
+    QNDEBUG(
+        "tests:model_test:notebook",
+        "NotebookModelTestHelper::onExpungeNotebookFailed: notebook = "
+            << notebook << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
 
     notifyFailureWithStackTrace(errorDescription);
 }
@@ -1037,8 +1048,8 @@ bool NotebookModelTestHelper::checkSorting(
     const NotebookModel & model, const INotebookModelItem * pRootItem) const
 {
     if (!pRootItem) {
-        QNWARNING("Found null pointer to notebook model item "
-            << "when checking the sorting");
+        QNWARNING("tests:model_test:notebook", "Found null pointer to notebook "
+            << "model item when checking the sorting");
         return false;
     }
 
@@ -1053,7 +1064,10 @@ bool NotebookModelTestHelper::checkSorting(
         std::sort(sortedChildren.begin(), sortedChildren.end(), LessByName());
     }
     else {
-        std::sort(sortedChildren.begin(), sortedChildren.end(), GreaterByName());
+        std::sort(
+            sortedChildren.begin(),
+            sortedChildren.end(),
+            GreaterByName());
     }
 
     bool res = (children == sortedChildren);
