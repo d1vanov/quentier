@@ -210,15 +210,18 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pTagModelColumnChangeRerouter(
         new ColumnChangeRerouter(
             static_cast<int>(TagModel::Column::NoteCount),
-            static_cast<int>(TagModel::Column::Name), this)),
+            static_cast<int>(TagModel::Column::Name),
+            this)),
     m_pNoteModelColumnChangeRerouter(
         new ColumnChangeRerouter(
             NoteModel::Columns::PreviewText,
-            NoteModel::Columns::Title, this)),
+            NoteModel::Columns::Title,
+            this)),
     m_pFavoritesModelColumnChangeRerouter(
         new ColumnChangeRerouter(
-            FavoritesModel::Columns::NumNotesTargeted,
-            FavoritesModel::Columns::DisplayName, this)),
+            static_cast<int>(FavoritesModel::Column::NoteCount),
+            static_cast<int>(FavoritesModel::Column::DisplayName),
+            this)),
     m_shortcutManager(this)
 {
     QNTRACE("quentier:main_window", "MainWindow constructor");
@@ -3008,10 +3011,16 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
             break;
         }
     default:
-        Q_UNUSED(internalErrorMessageBox(
-            this,
-            tr("Incorrect favorited item type") + QStringLiteral(": ") +
-            QString::number(pItem->type())))
+        {
+            QString type;
+            QDebug dbg(&type);
+            dbg << pItem->type();
+
+            Q_UNUSED(internalErrorMessageBox(
+                this,
+                tr("Incorrect favorited item type") + QStringLiteral(": ") +
+                type))
+        }
         break;
     }
 }
@@ -5703,11 +5712,11 @@ void MainWindow::setupViews()
     // This column's values would be displayed along with the favorite item's
     // name
     pFavoritesTableView->setColumnHidden(
-        FavoritesModel::Columns::NumNotesTargeted,
+        static_cast<int>(FavoritesModel::Column::NoteCount),
         true);
 
     pFavoritesTableView->setColumnWidth(
-        FavoritesModel::Columns::Type,
+        static_cast<int>(FavoritesModel::Column::Type),
         pFavoriteItemDelegate->sideSize());
 
     QObject::connect(

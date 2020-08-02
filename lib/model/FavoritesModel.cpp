@@ -20,6 +20,8 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
+#include <QDebug>
+
 #include <algorithm>
 #include <utility>
 
@@ -82,7 +84,7 @@ QModelIndex FavoritesModel::indexForLocalUid(const QString & localUid) const
     }
 
     int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
-    return createIndex(row, Columns::DisplayName);
+    return createIndex(row, static_cast<int>(Column::DisplayName));
 }
 
 const FavoritesModelItem * FavoritesModel::itemForLocalUid(
@@ -168,13 +170,13 @@ QVariant FavoritesModel::data(const QModelIndex & index, int role) const
         return {};
     }
 
-    Columns::type column;
-    switch(index.column())
+    Column column;
+    switch(static_cast<Column>(index.column()))
     {
-    case Columns::Type:
-    case Columns::DisplayName:
-    case Columns::NumNotesTargeted:
-        column = static_cast<Columns::type>(index.column());
+    case Column::Type:
+    case Column::DisplayName:
+    case Column::NoteCount:
+        column = static_cast<Column>(index.column());
         break;
     default:
         return {};
@@ -205,20 +207,20 @@ QVariant FavoritesModel::headerData(
         return QVariant(section + 1);
     }
 
-    switch(section)
+    switch(static_cast<Column>(section))
     {
-    case Columns::Type:
+    case Column::Type:
         // TRANSLATOR: the type of the favorites model item - note, notebook,
         // TRANSLATOR: tag or saved search
         return QVariant(tr("Type"));
-    case Columns::DisplayName:
+    case Column::DisplayName:
         // TRANSLATOR: the displayed name of the favorites model item - the name
         // TRANSLATOR: of a notebook or tag or saved search of the note's title
         return QVariant(tr("Name"));
-    case Columns::NumNotesTargeted:
+    case Column::NoteCount:
         // TRANSLATOR: the number of items targeted by the favorites model item,
-        // TRANSLATOR: in particular, the number of notes targeted by the notebook
-        // TRANSLATOR: or tag
+        // TRANSLATOR: in particular, the number of notes targeted by
+        // the notebook TRANSLATOR: or tag
         return QVariant(tr("N items"));
     default:
         return {};
@@ -316,9 +318,9 @@ bool FavoritesModel::setData(
         break;
     }
 
-    switch(index.column())
+    switch(static_cast<Column>(index.column()))
     {
-    case Columns::DisplayName:
+    case Column::DisplayName:
         {
             QString newDisplayName = value.toString().trimmed();
             bool changed = (item.displayName() != newDisplayName);
@@ -613,7 +615,7 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
 
     FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
 
-    if (column == m_sortedColumn)
+    if (column == static_cast<int>(m_sortedColumn))
     {
         if (order == m_sortOrder) {
             QNDEBUG("model:favorites", "Neither sorted column nor sort order "
@@ -633,7 +635,7 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
         return;
     }
 
-    m_sortedColumn = static_cast<Columns::type>(column);
+    m_sortedColumn = static_cast<Column>(column);
     m_sortOrder = order;
 
     Q_EMIT layoutAboutToBeChanged();
@@ -1682,9 +1684,9 @@ void FavoritesModel::onGetNoteCountPerNotebookComplete(
     }
 
     FavoritesModelItem item = *itemIt;
-    item.setNumNotesTargeted(noteCount);
+    item.setNoteCount(noteCount);
     Q_UNUSED(localUidIndex.replace(itemIt, item))
-    updateItemColumnInView(item, Columns::NumNotesTargeted);
+    updateItemColumnInView(item, Column::NoteCount);
 }
 
 void FavoritesModel::onGetNoteCountPerNotebookFailed(
@@ -1740,9 +1742,9 @@ void FavoritesModel::onGetNoteCountPerTagComplete(
     }
 
     FavoritesModelItem item = *itemIt;
-    item.setNumNotesTargeted(noteCount);
+    item.setNoteCount(noteCount);
     Q_UNUSED(localUidIndex.replace(itemIt, item))
-    updateItemColumnInView(item, Columns::NumNotesTargeted);
+    updateItemColumnInView(item, Column::NoteCount);
 }
 
 void FavoritesModel::onGetNoteCountPerTagFailed(
@@ -2331,21 +2333,21 @@ void FavoritesModel::checkAndAdjustNoteCountPerNotebook(
     }
 
     FavoritesModelItem item = *notebookItemIt;
-    int numNotesTargeted = item.numNotesTargeted();
+    int noteCount = item.noteCount();
 
     if (increment) {
-        ++numNotesTargeted;
-        QNDEBUG("model:favorites", "Incremented to " << numNotesTargeted);
+        ++noteCount;
+        QNDEBUG("model:favorites", "Incremented to " << noteCount);
     }
     else {
-        --numNotesTargeted;
-        QNDEBUG("model:favorites", "Decremented to " << numNotesTargeted);
+        --noteCount;
+        QNDEBUG("model:favorites", "Decremented to " << noteCount);
     }
 
-    item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+    item.setNoteCount(std::max(noteCount, 0));
     Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
 
-    updateItemColumnInView(item, Columns::NumNotesTargeted);
+    updateItemColumnInView(item, Column::NoteCount);
 }
 
 void FavoritesModel::requestNoteCountForTag(
@@ -2445,25 +2447,25 @@ void FavoritesModel::checkAndAdjustNoteCountPerTag(
     }
 
     FavoritesModelItem item = *tagItemIt;
-    int numNotesTargeted = item.numNotesTargeted();
+    int noteCount = item.noteCount();
 
     if (increment) {
-        ++numNotesTargeted;
-        QNDEBUG("model:favorites", "Incremented to " << numNotesTargeted);
+        ++noteCount;
+        QNDEBUG("model:favorites", "Incremented to " << noteCount);
     }
     else {
-        --numNotesTargeted;
-        QNDEBUG("model:favorites", "Decremented to " << numNotesTargeted);
+        --noteCount;
+        QNDEBUG("model:favorites", "Decremented to " << noteCount);
     }
 
-    item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+    item.setNoteCount(std::max(noteCount, 0));
     Q_UNUSED(localUidIndex.replace(tagItemIt, item))
 
-    updateItemColumnInView(item, Columns::NumNotesTargeted);
+    updateItemColumnInView(item, Column::NoteCount);
 }
 
 QVariant FavoritesModel::dataImpl(
-    const int row, const Columns::type column) const
+    const int row, const Column column) const
 {
     if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
         return {};
@@ -2474,19 +2476,19 @@ QVariant FavoritesModel::dataImpl(
 
     switch(column)
     {
-    case Columns::Type:
-        return item.type();
-    case Columns::DisplayName:
+    case Column::Type:
+        return static_cast<qint64>(item.type());
+    case Column::DisplayName:
         return item.displayName();
-    case Columns::NumNotesTargeted:
-        return item.numNotesTargeted();
+    case Column::NoteCount:
+        return item.noteCount();
     default:
         return {};
     }
 }
 
 QVariant FavoritesModel::dataAccessibleText(
-    const int row, const Columns::type column) const
+    const int row, const Column column) const
 {
     if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
         return QVariant();
@@ -2519,14 +2521,14 @@ QVariant FavoritesModel::dataAccessibleText(
 
     switch(column)
     {
-    case Columns::Type:
+    case Column::Type:
         return accessibleText;
-    case Columns::DisplayName:
+    case Column::DisplayName:
         accessibleText += colon + space + item.displayName();
         break;
-    case Columns::NumNotesTargeted:
+    case Column::NoteCount:
         accessibleText += colon + space + tr("number of targeted notes is") +
-            space + QString::number(item.numNotesTargeted());
+            space + QString::number(item.noteCount());
         break;
     default:
         return {};
@@ -2616,7 +2618,7 @@ void FavoritesModel::removeItemByLocalUid(const QString & localUid)
 void FavoritesModel::updateItemRowWithRespectToSorting(
     const FavoritesModelItem & item)
 {
-    if (m_sortedColumn != Columns::DisplayName) {
+    if (m_sortedColumn != Column::DisplayName) {
         // Sorting by other columns is not yet implemented
         return;
     }
@@ -3161,7 +3163,7 @@ void FavoritesModel::onNoteAddedOrUpdated(
     FavoritesModelItem item;
     item.setType(FavoritesModelItem::Type::Note);
     item.setLocalUid(note.localUid());
-    item.setNumNotesTargeted(0);
+    item.setNoteCount(0);
 
     if (note.hasTitle())
     {
@@ -3219,7 +3221,7 @@ void FavoritesModel::onNoteAddedOrUpdated(
 
     int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
 
-    auto modelIndex = createIndex(row, Columns::DisplayName);
+    auto modelIndex = createIndex(row, static_cast<int>(Column::DisplayName));
     Q_EMIT aboutToUpdateItem(modelIndex);
 
     Q_UNUSED(localUidIndex.replace(itemIt, item))
@@ -3322,7 +3324,7 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
     FavoritesModelItem item;
     item.setType(FavoritesModelItem::Type::Notebook);
     item.setLocalUid(notebook.localUid());
-    item.setNumNotesTargeted(-1);   // That means, not known yet
+    item.setNoteCount(-1);   // That means, not known yet
     item.setDisplayName(notebook.name());
 
     auto & rowIndex = m_data.get<ByIndex>();
@@ -3354,7 +3356,7 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
     QNDEBUG("model:favorites", "Updating the already favorited notebook item");
 
     const auto & originalItem = *itemIt;
-    item.setNumNotesTargeted(originalItem.numNotesTargeted());
+    item.setNoteCount(originalItem.noteCount());
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end()))
@@ -3373,7 +3375,7 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
     int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
 
-    auto modelIndex = createIndex(row, Columns::DisplayName);
+    auto modelIndex = createIndex(row, static_cast<int>(Column::DisplayName));
     Q_EMIT aboutToUpdateItem(modelIndex);
 
     Q_UNUSED(localUidIndex.replace(itemIt, item))
@@ -3426,7 +3428,7 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
     FavoritesModelItem item;
     item.setType(FavoritesModelItem::Type::Tag);
     item.setLocalUid(tag.localUid());
-    item.setNumNotesTargeted(-1);   // That means, not known yet
+    item.setNoteCount(-1);   // That means, not known yet
     item.setDisplayName(tag.name());
 
     auto & rowIndex = m_data.get<ByIndex>();
@@ -3458,7 +3460,7 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
     QNDEBUG("model:favorites", "Updating the already favorited tag item");
 
     const auto & originalItem = *itemIt;
-    item.setNumNotesTargeted(originalItem.numNotesTargeted());
+    item.setNoteCount(originalItem.noteCount());
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end()))
@@ -3477,7 +3479,7 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 
     int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
 
-    auto modelIndex = createIndex(row, Columns::DisplayName);
+    auto modelIndex = createIndex(row, static_cast<int>(Column::DisplayName));
     Q_EMIT aboutToUpdateItem(modelIndex);
 
     Q_UNUSED(localUidIndex.replace(itemIt, item))
@@ -3531,7 +3533,7 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     FavoritesModelItem item;
     item.setType(FavoritesModelItem::Type::SavedSearch);
     item.setLocalUid(search.localUid());
-    item.setNumNotesTargeted(-1);
+    item.setNoteCount(-1);
     item.setDisplayName(search.name());
 
     auto & rowIndex = m_data.get<ByIndex>();
@@ -3575,7 +3577,7 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
 
-    auto modelIndex = createIndex(row, Columns::DisplayName);
+    auto modelIndex = createIndex(row, static_cast<int>(Column::DisplayName));
     Q_EMIT aboutToUpdateItem(modelIndex);
 
     Q_UNUSED(localUidIndex.replace(itemIt, item))
@@ -3590,7 +3592,7 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
 void FavoritesModel::updateItemColumnInView(
     const FavoritesModelItem & item,
-    const Columns::type column)
+    const Column column)
 {
     QNDEBUG("model:favorites", "FavoritesModel::updateItemColumnInView: item = "
         << item << "\nColumn = " << column);
@@ -3612,7 +3614,7 @@ void FavoritesModel::updateItemColumnInView(
             int row = static_cast<int>(
                 std::distance(rowIndex.begin(), itemIndexIt));
 
-            auto modelIndex = createIndex(row, column);
+            auto modelIndex = createIndex(row, static_cast<int>(column));
 
             QNTRACE("model:favorites", "Emitting dataChanged signal for row "
                 << row << " and column " << column);
@@ -3658,7 +3660,7 @@ bool FavoritesModel::Comparator::operator()(
 
     switch(m_sortedColumn)
     {
-    case Columns::DisplayName:
+    case Column::DisplayName:
         {
             int compareResult = lhs.displayName().localeAwareCompare(
                 rhs.displayName());
@@ -3667,16 +3669,16 @@ bool FavoritesModel::Comparator::operator()(
             greater = compareResult > 0;
             break;
         }
-    case Columns::Type:
+    case Column::Type:
         {
             less = lhs.type() < rhs.type();
             greater = lhs.type() > rhs.type();
             break;
         }
-    case Columns::NumNotesTargeted:
+    case Column::NoteCount:
         {
-            less = lhs.numNotesTargeted() < rhs.numNotesTargeted();
-            greater = lhs.numNotesTargeted() > rhs.numNotesTargeted();
+            less = lhs.noteCount() < rhs.noteCount();
+            greater = lhs.noteCount() > rhs.noteCount();
             break;
         }
     default:
@@ -3689,6 +3691,29 @@ bool FavoritesModel::Comparator::operator()(
     else {
         return greater;
     }
+}
+
+QDebug & operator<<(QDebug & dbg, const FavoritesModel::Column column)
+{
+    using Column = FavoritesModel::Column;
+
+    switch(column)
+    {
+    case Column::Type:
+        dbg << "Type";
+        break;
+    case Column::DisplayName:
+        dbg << "DisplayName";
+        break;
+    case Column::NoteCount:
+        dbg << "Note count";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(column) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

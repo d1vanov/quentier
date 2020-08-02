@@ -419,7 +419,7 @@ void FavoritesModelTestHelper::test()
         // Shouldn't be able to change the type of the item manyally
         secondNotebookIndex = model->index(
             secondNotebookIndex.row(),
-            FavoritesModel::Columns::Type);
+            static_cast<int>(FavoritesModel::Column::Type));
 
         if (!secondNotebookIndex.isValid()) {
             FAIL("Can't get the valid favorites model index for type column");
@@ -427,7 +427,7 @@ void FavoritesModelTestHelper::test()
 
         bool res = model->setData(
             secondNotebookIndex,
-            QVariant(FavoritesModelItem::Type::Note),
+            QVariant(static_cast<int>(FavoritesModelItem::Type::Note)),
             Qt::EditRole);
 
         if (res) {
@@ -447,7 +447,7 @@ void FavoritesModelTestHelper::test()
             FAIL("Can't convert the favorites model item's type to int");
         }
 
-        if (static_cast<FavoritesModelItem::Type::type>(type) !=
+        if (static_cast<FavoritesModelItem::Type>(type) !=
             FavoritesModelItem::Type::Notebook)
         {
             FAIL("The favorites model item's type should be notebook "
@@ -458,7 +458,7 @@ void FavoritesModelTestHelper::test()
         // Should not be able to change the number of affected notes manually
         secondNotebookIndex = model->index(
             secondNotebookIndex.row(),
-            FavoritesModel::Columns::NumNotesTargeted);
+            static_cast<int>(FavoritesModel::Column::NoteCount));
 
         if (!secondNotebookIndex.isValid()) {
             FAIL("Can't get the valid favorites model index for "
@@ -493,7 +493,7 @@ void FavoritesModelTestHelper::test()
         // Should be able to change the display name of the item
         secondNotebookIndex = model->index(
             secondNotebookIndex.row(),
-            FavoritesModel::Columns::DisplayName);
+            static_cast<int>(FavoritesModel::Column::DisplayName));
 
         if (!secondNotebookIndex.isValid()) {
             FAIL("Can't get the valid favorites model index for "
@@ -817,22 +817,22 @@ void FavoritesModelTestHelper::test()
         }
 
         // Check sorting
-        QVector<FavoritesModel::Columns::type> columns;
+        QVector<FavoritesModel::Column> columns;
         columns.reserve(model->columnCount());
 
-        columns << FavoritesModel::Columns::Type
-                << FavoritesModel::Columns::DisplayName
-                << FavoritesModel::Columns::NumNotesTargeted;
+        columns << FavoritesModel::Column::Type
+                << FavoritesModel::Column::DisplayName
+                << FavoritesModel::Column::NoteCount;
 
         int numColumns = columns.size();
         for(int i = 0; i < numColumns; ++i)
         {
             // Test the ascending case
-            model->sort(columns[i], Qt::AscendingOrder);
+            model->sort(static_cast<int>(columns[i]), Qt::AscendingOrder);
             checkSorting(*model);
 
             // Test the descending case
-            model->sort(columns[i], Qt::DescendingOrder);
+            model->sort(static_cast<int>(columns[i]), Qt::DescendingOrder);
             checkSorting(*model);
         }
 
@@ -853,7 +853,7 @@ void FavoritesModelTestHelper::test()
 
         secondNotebookIndex = model->index(
             secondNotebookIndex.row(),
-            FavoritesModel::Columns::DisplayName);
+            static_cast<int>(FavoritesModel::Column::DisplayName));
 
         if (!secondNotebookIndex.isValid()) {
             FAIL("Can't get the valid model index for the favorites "
@@ -879,7 +879,7 @@ void FavoritesModelTestHelper::test()
 
         firstSavedSearchIndex = model->index(
             firstSavedSearchIndex.row(),
-            FavoritesModel::Columns::DisplayName);
+            static_cast<int>(FavoritesModel::Column::DisplayName));
 
         if (!firstSavedSearchIndex.isValid()) {
             FAIL("Can't get the valid model index for the favorites "
@@ -903,7 +903,7 @@ void FavoritesModelTestHelper::test()
 
         fourthTagIndex = model->index(
             fourthTagIndex.row(),
-            FavoritesModel::Columns::DisplayName);
+            static_cast<int>(FavoritesModel::Column::DisplayName));
 
         if (!fourthTagIndex.isValid()) {
             FAIL("Can't get the valid model index for the favorites "
@@ -927,7 +927,7 @@ void FavoritesModelTestHelper::test()
 
         firstNoteIndex = model->index(
             firstNoteIndex.row(),
-            FavoritesModel::Columns::DisplayName);
+            static_cast<int>(FavoritesModel::Column::DisplayName));
 
         if (!firstNoteIndex.isValid()) {
             FAIL("Can't get the valid model index for the favorites "
@@ -1382,9 +1382,9 @@ void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
     }
 
     bool ascending = (model.sortOrder() == Qt::AscendingOrder);
-    switch(model.sortingColumn())
+    switch(static_cast<FavoritesModel::Column>(model.sortingColumn()))
     {
-    case FavoritesModel::Columns::Type:
+    case FavoritesModel::Column::Type:
         {
             if (ascending) {
                 std::sort(items.begin(), items.end(), LessByType());
@@ -1394,7 +1394,7 @@ void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
             }
             break;
         }
-    case FavoritesModel::Columns::DisplayName:
+    case FavoritesModel::Column::DisplayName:
         {
             if (ascending) {
                 std::sort(items.begin(), items.end(), LessByDisplayName());
@@ -1404,16 +1404,16 @@ void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
             }
             break;
         }
-    case FavoritesModel::Columns::NumNotesTargeted:
+    case FavoritesModel::Column::NoteCount:
         {
             if (ascending) {
-                std::sort(items.begin(), items.end(), LessByNumNotesTargeted());
+                std::sort(items.begin(), items.end(), LessByNoteCount());
             }
             else {
                 std::sort(
                     items.begin(),
                     items.end(),
-                    GreaterByNumNotesTargeted());
+                    GreaterByNoteCount());
             }
             break;
         }
@@ -1468,16 +1468,16 @@ bool FavoritesModelTestHelper::GreaterByDisplayName::operator()(
     return lhs.displayName().localeAwareCompare(rhs.displayName()) > 0;
 }
 
-bool FavoritesModelTestHelper::LessByNumNotesTargeted::operator()(
+bool FavoritesModelTestHelper::LessByNoteCount::operator()(
     const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
 {
-    return lhs.numNotesTargeted() < rhs.numNotesTargeted();
+    return lhs.noteCount() < rhs.noteCount();
 }
 
-bool FavoritesModelTestHelper::GreaterByNumNotesTargeted::operator()(
+bool FavoritesModelTestHelper::GreaterByNoteCount::operator()(
     const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
 {
-    return lhs.numNotesTargeted() > rhs.numNotesTargeted();
+    return lhs.noteCount() > rhs.noteCount();
 }
 
 } // namespace quentier

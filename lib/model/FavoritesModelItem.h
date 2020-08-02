@@ -21,36 +21,37 @@
 
 #include <quentier/utility/Printable.h>
 
+QT_FORWARD_DECLARE_CLASS(QDebug)
+
 namespace quentier {
 
 class FavoritesModelItem: public Printable
 {
 public:
-    struct Type
+    enum class Type
     {
-        enum type
-        {
-            Notebook = 0,
-            Tag,
-            Note,
-            SavedSearch,
-            Unknown
-        };
+        Notebook = 0,
+        Tag,
+        Note,
+        SavedSearch,
+        Unknown
     };
+
+    friend QDebug & operator<<(QDebug & dbg, const Type type);
 
 public:
     explicit FavoritesModelItem(
-        const Type::type type = Type::Unknown,
-        const QString & localUid = QString(),
-        const QString & displayName = QString(),
-        int numNotesTargeted = 0);
+        const Type type = Type::Unknown,
+        QString localUid = {},
+        QString displayName = {},
+        const int noteCount = 0);
 
-    Type::type type() const
+    Type type() const
     {
         return m_type;
     }
 
-    void setType(const Type::type type)
+    void setType(const Type type)
     {
         m_type = type;
     }
@@ -75,23 +76,23 @@ public:
         m_displayName = displayName;
     }
 
-    int numNotesTargeted() const
+    int noteCount() const
     {
-        return m_numNotesTargeted;
+        return m_noteCount;
     }
 
-    void setNumNotesTargeted(const int numNotesTargeted)
+    void setNoteCount(const int noteCount)
     {
-        m_numNotesTargeted = numNotesTargeted;
+        m_noteCount = noteCount;
     }
 
     virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
-    Type::type      m_type;
+    Type            m_type;
     QString         m_localUid;
     QString         m_displayName;
-    int             m_numNotesTargeted;
+    int             m_noteCount;
 };
 
 } // namespace quentier

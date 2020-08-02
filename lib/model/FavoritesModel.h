@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,8 +22,8 @@
 #include "FavoritesModelItem.h"
 #include "NoteCache.h"
 #include "NotebookCache.h"
-#include "TagCache.h"
 #include "SavedSearchCache.h"
+#include "TagCache.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
@@ -35,9 +35,9 @@
 #include <quentier/utility/SuppressWarnings.h>
 
 #include <QAbstractItemModel>
-#include <QUuid>
-#include <QSet>
 #include <QHash>
+#include <QSet>
+#include <QUuid>
 
 SAVE_WARNINGS
 GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
@@ -50,6 +50,8 @@ GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
 #include <boost/bimap.hpp>
 
 RESTORE_WARNINGS
+
+QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
@@ -73,19 +75,18 @@ public:
 
     void updateAccount(const Account & account);
 
-    struct Columns
+    enum class Column
     {
-        enum type
-        {
-            Type = 0,
-            DisplayName,
-            NumNotesTargeted
-        };
+        Type = 0,
+        DisplayName,
+        NoteCount
     };
+
+    friend QDebug & operator<<(QDebug & dbg, const Column column);
 
     int sortingColumn() const
     {
-        return m_sortedColumn;
+        return static_cast<int>(m_sortedColumn);
     }
 
     Qt::SortOrder sortOrder() const
@@ -106,7 +107,10 @@ public:
      *              searches stored in the local storage by the moment; false
      *              otherwise
      */
-    bool allItemsListed() const { return m_allItemsListed; }
+    bool allItemsListed() const
+    {
+        return m_allItemsListed;
+    }
 
 public:
     // QAbstractItemModel interface
@@ -420,10 +424,10 @@ private:
     void checkAndAdjustNoteCountPerTag(
         const QString & tagLocalUid, const bool increment);
 
-    QVariant dataImpl(const int row, const Columns::type column) const;
+    QVariant dataImpl(const int row, const Column column) const;
 
     QVariant dataAccessibleText(
-        const int row, const Columns::type column) const;
+        const int row, const Column column) const;
 
     void removeItemByLocalUid(const QString & localUid);
     void updateItemRowWithRespectToSorting(const FavoritesModelItem & item);
@@ -448,7 +452,7 @@ private:
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
     void updateItemColumnInView(
-        const FavoritesModelItem & item, const Columns::type column);
+        const FavoritesModelItem & item, const Column column);
 
     void checkAllItemsListed();
 
@@ -484,7 +488,7 @@ private:
     {
     public:
         Comparator(
-                const Columns::type column,
+                const Column column,
                 const Qt::SortOrder sortOrder) :
             m_sortedColumn(column),
             m_sortOrder(sortOrder)
@@ -495,7 +499,7 @@ private:
             const FavoritesModelItem & rhs) const;
 
     private:
-        Columns::type   m_sortedColumn;
+        Column          m_sortedColumn;
         Qt::SortOrder   m_sortOrder;
     };
 
@@ -555,7 +559,7 @@ private:
 
     QHash<QString, NotebookRestrictionsData>    m_notebookRestrictionsData;
 
-    Columns::type           m_sortedColumn = Columns::DisplayName;
+    Column                  m_sortedColumn = Column::DisplayName;
     Qt::SortOrder           m_sortOrder = Qt::AscendingOrder;
 
     bool                    m_allItemsListed = false;

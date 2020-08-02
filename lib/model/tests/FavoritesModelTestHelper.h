@@ -145,14 +145,14 @@ private:
             const FavoritesModelItem & rhs) const;
     };
 
-    struct LessByNumNotesTargeted
+    struct LessByNoteCount
     {
         bool operator()(
             const FavoritesModelItem & lhs,
             const FavoritesModelItem & rhs) const;
     };
 
-    struct GreaterByNumNotesTargeted
+    struct GreaterByNoteCount
     {
         bool operator()(
             const FavoritesModelItem & lhs,

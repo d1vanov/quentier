@@ -62,7 +62,8 @@ QWidget * FavoriteItemDelegate::createEditor(
     // Only allow to edit the favorited item's display name but no other
     // favorites model columns
     if (index.isValid() &&
-        (index.column() == FavoritesModel::Columns::DisplayName))
+        (index.column() ==
+         static_cast<int>(FavoritesModel::Column::DisplayName)))
     {
         return AbstractStyledItemDelegate::createEditor(parent, option, index);
     }
@@ -85,7 +86,7 @@ void FavoriteItemDelegate::paint(
     painter->setRenderHints(QPainter::Antialiasing);
 
     int column = index.column();
-    if (column == FavoritesModel::Columns::Type)
+    if (column == static_cast<int>(FavoritesModel::Column::Type))
     {
         QVariant type = pModel->data(index);
         bool conversionResult = false;
@@ -96,7 +97,7 @@ void FavoriteItemDelegate::paint(
                 painter->fillRect(option.rect, option.palette.highlight());
             }
 
-            switch(typeInt)
+            switch(static_cast<FavoritesModelItem::Type>(typeInt))
             {
             case FavoritesModelItem::Type::Notebook:
                 m_notebookIcon.paint(painter, option.rect);
@@ -116,7 +117,7 @@ void FavoriteItemDelegate::paint(
             }
         }
     }
-    else if (column == FavoritesModel::Columns::DisplayName)
+    else if (column == static_cast<int>(FavoritesModel::Column::DisplayName))
     {
         drawFavoriteItemName(painter, index, option);
     }
@@ -128,7 +129,8 @@ void FavoriteItemDelegate::setEditorData(
     QWidget * pEditor, const QModelIndex & index) const
 {
     if (index.isValid() &&
-        (index.column() == FavoritesModel::Columns::DisplayName))
+        (index.column() ==
+         static_cast<int>(FavoritesModel::Column::DisplayName)))
     {
         AbstractStyledItemDelegate::setEditorData(pEditor, index);
     }
@@ -139,7 +141,8 @@ void FavoriteItemDelegate::setModelData(
     const QModelIndex & index) const
 {
     if (index.isValid() &&
-        (index.column() == FavoritesModel::Columns::DisplayName))
+        (index.column() ==
+         static_cast<int>(FavoritesModel::Column::DisplayName)))
     {
         AbstractStyledItemDelegate::setModelData(pEditor, pModel, index);
     }
@@ -149,7 +152,7 @@ QSize FavoriteItemDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     int column = index.column();
-    if (column == FavoritesModel::Columns::Type) {
+    if (column == static_cast<int>(FavoritesModel::Column::Type)) {
         QSize size = m_iconSize;
         // Some margin so that the icon is not tightly near the text
         size.setWidth(size.width() + 15);
@@ -165,7 +168,8 @@ void FavoriteItemDelegate::updateEditorGeometry(
     const QModelIndex & index) const
 {
     if (index.isValid() &&
-        (index.column() == FavoritesModel::Columns::DisplayName))
+        (index.column() ==
+         static_cast<int>(FavoritesModel::Column::DisplayName)))
     {
         AbstractStyledItemDelegate::updateEditorGeometry(editor, option, index);
     }
@@ -188,30 +192,30 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
 
     QModelIndex itemTypeIndex = pModel->index(
         index.row(),
-        FavoritesModel::Columns::Type,
+        static_cast<int>(FavoritesModel::Column::Type),
         index.parent());
 
     QVariant itemType = pModel->data(itemTypeIndex);
     bool conversionResult = false;
 
-    auto itemTypeInt = static_cast<FavoritesModelItem::Type::type>(
+    auto itemTypeInt = static_cast<FavoritesModelItem::Type>(
         itemType.toInt(&conversionResult));
 
     if (conversionResult &&
         ((itemTypeInt == FavoritesModelItem::Type::Notebook) ||
          (itemTypeInt == FavoritesModelItem::Type::Tag)))
     {
-        QModelIndex numNotesIndex = pModel->index(
+        QModelIndex noteCountIndex = pModel->index(
             index.row(),
-            FavoritesModel::Columns::NumNotesTargeted,
+            static_cast<int>(FavoritesModel::Column::NoteCount),
             index.parent());
 
-        QVariant numNotes = pModel->data(numNotesIndex);
+        QVariant noteCount = pModel->data(noteCountIndex);
         conversionResult = false;
-        int numNotesInt = numNotes.toInt(&conversionResult);
-        if (conversionResult && (numNotesInt > 0)) {
+        int noteCountInt = noteCount.toInt(&conversionResult);
+        if (conversionResult && (noteCountInt > 0)) {
             nameSuffix = QStringLiteral(" (");
-            nameSuffix += QString::number(numNotesInt);
+            nameSuffix += QString::number(noteCountInt);
             nameSuffix += QStringLiteral(")");
         }
     }
@@ -253,17 +257,17 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     QString nameSuffix;
 
-    QModelIndex numNotesPerItemIndex = pModel->index(
+    QModelIndex noteCountIndex = pModel->index(
         index.row(),
-        FavoritesModel::Columns::NumNotesTargeted,
+        static_cast<int>(FavoritesModel::Column::NoteCount),
         index.parent());
 
-    QVariant numNotesPerItem = pModel->data(numNotesPerItemIndex);
+    QVariant noteCount = pModel->data(noteCountIndex);
     bool conversionResult = false;
-    int numNotesPerItemInt = numNotesPerItem.toInt(&conversionResult);
-    if (conversionResult && (numNotesPerItemInt > 0)) {
+    int noteCountInt = noteCount.toInt(&conversionResult);
+    if (conversionResult && (noteCountInt > 0)) {
         nameSuffix = QStringLiteral(" (");
-        nameSuffix += QString::number(numNotesPerItemInt);
+        nameSuffix += QString::number(noteCountInt);
         nameSuffix += QStringLiteral(")");
     }
 

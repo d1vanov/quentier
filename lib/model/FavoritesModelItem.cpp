@@ -18,48 +18,62 @@
 
 #include "FavoritesModelItem.h"
 
+#include <QDebug>
+
 namespace quentier {
 
 FavoritesModelItem::FavoritesModelItem(
-        const Type::type type,
-        const QString & localUid,
-        const QString & displayName,
-        int numNotesTargeted) :
+        const Type type, QString localUid, QString displayName,
+        const int noteCount) :
     m_type(type),
-    m_localUid(localUid),
-    m_displayName(displayName),
-    m_numNotesTargeted(numNotesTargeted)
+    m_localUid(std::move(localUid)),
+    m_displayName(std::move(displayName)),
+    m_noteCount(noteCount)
 {}
 
 QTextStream & FavoritesModelItem::print(QTextStream & strm) const
 {
     strm << "Favorites model item: type = ";
 
-    switch(m_type)
+    QString type;
+    QDebug dbg(&type);
+    dbg << m_type;
+
+    strm << type << "; local uid = " << m_localUid
+        << ", display name = " << m_displayName
+        << ", note count = " << m_noteCount
+        << ";";
+
+    return strm;
+}
+
+QDebug & operator<<(QDebug & dbg, const FavoritesModelItem::Type type)
+{
+    using Type = FavoritesModelItem::Type;
+
+    switch(type)
     {
     case Type::Notebook:
-        strm << "Notebook";
+        dbg << "Notebook";
         break;
     case Type::Tag:
-        strm << "Tag";
+        dbg << "Tag";
         break;
     case Type::Note:
-        strm << "Note";
+        dbg << "Note";
         break;
     case Type::SavedSearch:
-        strm << "Saved search";
+        dbg << "Saved search";
+        break;
+    case Type::Unknown:
+        dbg << "Unknown";
         break;
     default:
-        strm << "Unknown (" << static_cast<qint64>(m_type) << ")";
+        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
         break;
     }
 
-    strm << "; local uid = " << m_localUid
-         << ", display name = " << m_displayName
-         << ", num notes targeted = " << m_numNotesTargeted
-         << ";";
-
-    return strm;
+    return dbg;
 }
 
 } // namespace quentier

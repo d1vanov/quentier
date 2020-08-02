@@ -203,7 +203,7 @@ QModelIndex FavoriteItemView::currentlySelectedItemIndex() const
     return singleRow(
         indexes,
         *pFavoritesModel,
-        FavoritesModel::Columns::DisplayName);
+        static_cast<int>(FavoritesModel::Column::DisplayName));
 }
 
 void FavoriteItemView::deleteSelectedItems()
@@ -603,7 +603,7 @@ void FavoriteItemView::selectionChangedImpl(
     auto sourceIndex = singleRow(
         selectedIndexes,
         *pFavoritesModel,
-        FavoritesModel::Columns::DisplayName);
+        static_cast<int>(FavoritesModel::Column::DisplayName));
 
     if (!sourceIndex.isValid()) {
         QNDEBUG("view:favorites", "Not exactly one row is selected");
