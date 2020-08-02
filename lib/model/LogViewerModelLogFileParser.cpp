@@ -20,9 +20,9 @@
 
 #include <lib/preferences/SettingsNames.h>
 
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/Utility.h>
-#include <quentier/utility/ApplicationSettings.h>
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -41,8 +41,9 @@
         dbg << message;                                                        \
         QString relativeSourceFileName = QStringLiteral(__FILE__);             \
         int prefixIndex =                                                      \
-            relativeSourceFileName.indexOf(QStringLiteral("libquentier"),      \
-                                           Qt::CaseInsensitive);               \
+            relativeSourceFileName.indexOf(                                    \
+                QStringLiteral("libquentier"),                                 \
+                Qt::CaseInsensitive);                                          \
         if (prefixIndex >= 0)                                                  \
         {                                                                      \
             relativeSourceFileName.remove(0, prefixIndex);                     \
@@ -50,11 +51,13 @@
         else                                                                   \
         {                                                                      \
             QString appName = QCoreApplication::applicationName().toLower();   \
-            prefixIndex =                                                      \
-                relativeSourceFileName.indexOf(appName, Qt::CaseInsensitive);  \
+            prefixIndex = relativeSourceFileName.indexOf(                      \
+                appName,                                                       \
+                Qt::CaseInsensitive);                                          \
             if (prefixIndex >= 0) {                                            \
                 relativeSourceFileName.remove(                                 \
-                    0, prefixIndex + appName.size() + 1);                      \
+                    0,                                                         \
+                    prefixIndex + appName.size() + 1);                         \
             }                                                                  \
         }                                                                      \
         DateTimePrint::Options options(                                        \
@@ -87,7 +90,8 @@ namespace quentier {
     "\\s+"                                                                     \
     REGEX_QNLOG_SOURCE_LINENUMBER                                              \
     "\\s+"                                                                     \
-    "\\[(\\w+)\\]:\\s\\[[a-zA-Z0-9:]+\\]:\\s(.+$)"                             \
+    "\\[(\\w+)\\]"                                                             \
+    "(?:\\s+\\[((?:\\w+|:|-|_)+)\\])?:\\s+(.+$)"                               \
 // REGEX_QNLOG_LINE
 
 LogViewerModel::LogFileParser::LogFileParser() :
@@ -242,7 +246,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     QStringList capturedTexts = m_logParsingRegex.capturedTexts();
 
-    if (capturedTexts.size() != 7)
+    if (capturedTexts.size() != 8)
     {
         errorDescription.setBase(
             QT_TR_NOOP("Error parsing the log file's contents: "
@@ -316,15 +320,17 @@ LogViewerModel::LogFileParser::parseLogFileLine(
         return ParseLineStatus::FilteredEntry;
     }
 
+    // TODO: process logging component - capturedTexts[6]
+
     if ( !filterContentRegExp.isEmpty() && filterContentRegExp.isValid() &&
-         (filterContentRegExp.indexIn(capturedTexts[6]) < 0) &&
+         (filterContentRegExp.indexIn(capturedTexts[7]) < 0) &&
          (filterContentRegExp.indexIn(capturedTexts[1]) < 0) &&
          (filterContentRegExp.indexIn(entry.m_sourceFileName) < 0) )
     {
         return ParseLineStatus::FilteredEntry;
     }
 
-    appendLogEntryLine(entry, capturedTexts[6]);
+    appendLogEntryLine(entry, capturedTexts[7]);
     dataEntries.push_back(entry);
 
     return ParseLineStatus::CreatedNewEntry;
