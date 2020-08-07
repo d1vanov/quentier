@@ -37,6 +37,7 @@
 #include <QMenu>
 #include <QTextStream>
 
+#include <array>
 #include <cmath>
 #include <set>
 
@@ -1044,13 +1045,20 @@ void LogViewerWidget::resizeLogEntriesViewColumns()
     auto * pHorizontalHeader = m_pUi->logEntriesTableView->horizontalHeader();
     pHorizontalHeader->resizeSections(QHeaderView::ResizeToContents);
 
-    if (pHorizontalHeader->sectionSize(
-            LogViewerModel::Columns::SourceFileName) >
-        MAX_SOURCE_FILE_NAME_COLUMN_WIDTH)
+    std::array<LogViewerModel::Column, 2> columns{
+        LogViewerModel::Column::SourceFileName,
+        LogViewerModel::Column::Component
+    };
+
+    for(const auto column: columns)
     {
-        pHorizontalHeader->resizeSection(
-            LogViewerModel::Columns::SourceFileName,
-            MAX_SOURCE_FILE_NAME_COLUMN_WIDTH);
+        if (pHorizontalHeader->sectionSize(static_cast<int>(column)) >
+            MAX_SOURCE_FILE_NAME_COLUMN_WIDTH)
+        {
+            pHorizontalHeader->resizeSection(
+                static_cast<int>(column),
+                MAX_SOURCE_FILE_NAME_COLUMN_WIDTH);
+        }
     }
 
     m_pUi->logEntriesTableView->verticalHeader()->resizeSections(

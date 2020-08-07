@@ -85,27 +85,29 @@ QSize LogViewerDelegate::sizeHint(
     }                                                                          \
 // STRING_SIZE_HINT
 
-    switch(index.column())
+    switch(static_cast<LogViewerModel::Column>(index.column()))
     {
-    case LogViewerModel::Columns::Timestamp:
+    case LogViewerModel::Column::Timestamp:
         STRING_SIZE_HINT(m_sampleDateTimeString)
-    case LogViewerModel::Columns::SourceFileLineNumber:
+    case LogViewerModel::Column::SourceFileLineNumber:
         STRING_SIZE_HINT(m_sampleSourceFileLineNumberString)
-    case LogViewerModel::Columns::LogLevel:
+    case LogViewerModel::Column::LogLevel:
         STRING_SIZE_HINT(m_widestLogLevelName)
+    default:
+        break;
     }
 
 #undef STRING_SIZE_HINT
 
     // If we haven't returned yet, either the index is invalid or we are dealing
-    // with either log entry column or source file name column
+    // with either log entry column or source file name column or component
+    // column
 
     if (Q_UNLIKELY(!index.isValid())) {
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    const LogViewerModel * pModel =
-        qobject_cast<const LogViewerModel*>(index.model());
+    const auto * pModel = qobject_cast<const LogViewerModel*>(index.model());
     if (Q_UNLIKELY(!pModel)) {
         return QStyledItemDelegate::sizeHint(option, index);
     }
@@ -116,14 +118,19 @@ QSize LogViewerDelegate::sizeHint(
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    if (index.column() == LogViewerModel::Columns::SourceFileName)
+    auto column = static_cast<LogViewerModel::Column>(index.column());
+    if ( (column == LogViewerModel::Column::SourceFileName) ||
+         (column == LogViewerModel::Column::Component) )
     {
+        const auto & field = (column == LogViewerModel::Column::Component
+            ? pDataEntry->m_component
+            : pDataEntry->m_sourceFileName);
+
         int numSubRows = 1;
 
         int originalWidth = static_cast<int>(
             std::floor(
-                fontMetricsWidth(fontMetrics, pDataEntry->m_sourceFileName) *
-                    (1.0 + m_margin) + 0.5));
+                fontMetricsWidth(fontMetrics, field) * (1.0 + m_margin) + 0.5));
 
         int width = originalWidth;
         while(width > MAX_SOURCE_FILE_NAME_COLUMN_WIDTH) {
@@ -268,10 +275,10 @@ bool LogViewerDelegate::paintImpl(
 
     QRect adjustedRect = option.rect.adjusted(2, 2, -2, -2);
 
-    int column = index.column();
+    auto column = static_cast<LogViewerModel::Column>(index.column());
     switch(column)
     {
-    case LogViewerModel::Columns::Timestamp:
+    case LogViewerModel::Column::Timestamp:
         {
             const QDateTime & timestamp = pDataEntry->m_timestamp;
             QDate date = timestamp.date();
@@ -285,30 +292,33 @@ bool LogViewerDelegate::paintImpl(
             pPainter->drawText(adjustedRect, printedTimestamp, textOption);
         }
         break;
-    case LogViewerModel::Columns::SourceFileName:
+    case LogViewerModel::Column::SourceFileName:
+    case LogViewerModel::Column::Component:
         {
             QTextOption textOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignTop));
             textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
 
             pPainter->drawText(
                 adjustedRect,
-                pDataEntry->m_sourceFileName,
+                (column == LogViewerModel::Column::Component
+                 ? pDataEntry->m_component
+                 : pDataEntry->m_sourceFileName),
                 textOption);
         }
         break;
-    case LogViewerModel::Columns::SourceFileLineNumber:
+    case LogViewerModel::Column::SourceFileLineNumber:
         pPainter->drawText(
             adjustedRect,
             QString::number(pDataEntry->m_sourceFileLineNumber),
             textOption);
         break;
-    case LogViewerModel::Columns::LogLevel:
+    case LogViewerModel::Column::LogLevel:
         pPainter->drawText(
             adjustedRect,
             LogViewerModel::logLevelToString(pDataEntry->m_logLevel),
             textOption);
         break;
-    case LogViewerModel::Columns::LogEntry:
+    case LogViewerModel::Column::LogEntry:
         {
             QFontMetrics fontMetrics(option.font);
             paintLogEntry(*pPainter, adjustedRect, *pDataEntry, fontMetrics);

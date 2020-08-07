@@ -320,7 +320,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
         return ParseLineStatus::FilteredEntry;
     }
 
-    // TODO: process logging component - capturedTexts[6]
+    entry.m_component = capturedTexts[6];
 
     if ( !filterContentRegExp.isEmpty() && filterContentRegExp.isValid() &&
          (filterContentRegExp.indexIn(capturedTexts[7]) < 0) &&

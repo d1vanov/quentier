@@ -56,17 +56,17 @@ class LogViewerModel: public QAbstractTableModel
     Q_OBJECT
 public:
     LogViewerModel(QObject * parent = nullptr);
-    ~LogViewerModel();
 
-    struct Columns
+    virtual ~LogViewerModel() override;
+
+    enum class Column
     {
-        enum type {
-            Timestamp = 0,
-            SourceFileName,
-            SourceFileLineNumber,
-            LogLevel,
-            LogEntry
-        };
+        Timestamp = 0,
+        SourceFileName,
+        SourceFileLineNumber,
+        Component,
+        LogLevel,
+        LogEntry
     };
 
     bool isActive() const;
@@ -125,6 +125,7 @@ public:
         QDateTime       m_timestamp;
         QString         m_sourceFileName;
         qint64          m_sourceFileLineNumber = -1;
+        QString         m_component;
         LogLevel        m_logLevel = LogLevel::Info;
         QString         m_logEntry;
     };

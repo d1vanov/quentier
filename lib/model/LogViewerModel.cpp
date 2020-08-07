@@ -39,7 +39,7 @@
 
 #include <algorithm>
 
-#define LOG_VIEWER_MODEL_COLUMN_COUNT (5)
+#define LOG_VIEWER_MODEL_COLUMN_COUNT (6)
 #define LOG_VIEWER_MODEL_NUM_ITEMS_PER_CACHE_BUCKET (1000)
 #define LOG_VIEWER_MODEL_LOG_FILE_POLLING_TIMER_MSEC (500)
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
@@ -728,17 +728,19 @@ QVariant LogViewerModel::data(const QModelIndex & index, int role) const
     const auto * pDataEntry = dataEntry(rowIndex);
     if (pDataEntry)
     {
-        switch(columnIndex)
+        switch(static_cast<Column>(columnIndex))
         {
-        case Columns::Timestamp:
+        case Column::Timestamp:
             return pDataEntry->m_timestamp;
-        case Columns::SourceFileName:
+        case Column::SourceFileName:
             return pDataEntry->m_sourceFileName;
-        case Columns::SourceFileLineNumber:
+        case Column::SourceFileLineNumber:
             return pDataEntry->m_sourceFileLineNumber;
-        case Columns::LogLevel:
+        case Column::Component:
+            return pDataEntry->m_component;
+        case Column::LogLevel:
             return static_cast<qint64>(pDataEntry->m_logLevel);
-        case Columns::LogEntry:
+        case Column::LogEntry:
             return pDataEntry->m_logEntry;
         default:
             return {};
@@ -773,21 +775,24 @@ QVariant LogViewerModel::headerData(
         return QVariant(section + 1);
     }
 
-    switch(section)
+    switch(static_cast<Column>(section))
     {
-    case Columns::Timestamp:
+    case Column::Timestamp:
         // TRANSLATOR: log entry's datetime
         return QVariant(tr("Datetime"));
-    case Columns::SourceFileName:
+    case Column::SourceFileName:
         // TRANSLATOR: log source file name
         return QVariant(tr("Source file"));
-    case Columns::SourceFileLineNumber:
+    case Column::SourceFileLineNumber:
         // TRANSLATOR: line number within the source file
         return QVariant(tr("Line number"));
-    case Columns::LogLevel:
+    case Column::Component:
+        // TRANSLATOR: logging component
+        return QVariant(tr("Component"));
+    case Column::LogLevel:
         // TRANSLATOR: the log level i.e. Trace, Debug, Info etc.
         return QVariant(tr("Log level"));
-    case Columns::LogEntry:
+    case Column::LogEntry:
         // TRANSLATOR: the actual recorded log message
         return QVariant(tr("Message"));
     default:
@@ -1131,12 +1136,12 @@ void LogViewerModel::onLogFileDataEntriesRead(
 
             auto startIndex = index(
                 startModelRow,
-                Columns::Timestamp,
+                static_cast<int>(Column::Timestamp),
                 {});
 
             QModelIndex endIndex = index(
                 endModelRow,
-                Columns::LogEntry,
+                static_cast<int>(Column::LogEntry),
                 {});
 
             Q_EMIT dataChanged(startIndex, endIndex);
@@ -1580,12 +1585,14 @@ QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
         << printableDateTimeFromTimestamp(m_timestamp.toMSecsSinceEpoch())
         << ", source file name = " << m_sourceFileName
         << ", line number = " << m_sourceFileLineNumber
-        << ", log level = " << static_cast<qint64>(m_logLevel) // TODO: more proper print
+        << ", component = " << m_component
+        << ", log level = " << m_logLevel
         << ", log entry: " << m_logEntry;
     return strm;
 }
 
-QTextStream & LogViewerModel::LogFileChunkMetadata::print(QTextStream & strm) const
+QTextStream & LogViewerModel::LogFileChunkMetadata::print(
+    QTextStream & strm) const
 {
     strm << "Log file chunk: number = " << m_number
         << ", start model row = " << m_startModelRow
