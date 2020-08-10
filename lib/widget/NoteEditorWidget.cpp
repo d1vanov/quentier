@@ -3358,7 +3358,7 @@ void NoteEditorWidget::setupSpecialIcons()
             fallbackIconExtension = QStringLiteral("svg");
         }
 
-        QNINFO("widget:note_editor", "Fallback icon theme for enex icon = "
+        QNDEBUG("widget:note_editor", "Fallback icon theme for enex icon = "
             << fallbackIconThemeForEnexIcon);
 
         // NOTE: it is necessary for the icon to have a name in order to ensure

@@ -52,11 +52,15 @@ private:
     void setupLogFiles();
     void startWatchingForLogFilesFolderChanges();
     void setupFilterByLogLevelWidget();
+    void setupFilterByComponent();
 
 private Q_SLOTS:
     void onCurrentLogLevelChanged(int index);
     void onFilterByContentEditingFinished();
     void onFilterByLogLevelCheckboxToggled(int state);
+
+    void onFilterByComponentPresetChanged(int index);
+    void onFilterByComponentEditingFinished();
 
     void onCurrentLogFileChanged(int currentLogFileIndex);
 
@@ -97,6 +101,9 @@ private:
         LogViewerModel::FilteringOptions & options) const;
 
     void enableUiElementsAfterSavingLogToFile();
+
+    void saveFilterByComponentState();
+    void restoreFilterByComponentState();
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) override;

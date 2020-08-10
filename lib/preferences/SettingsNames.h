@@ -273,6 +273,12 @@
 #define LOGGING_SETTINGS_GROUP QStringLiteral("LoggingSettings")
 #define CURRENT_MIN_LOG_LEVEL QStringLiteral("MinLogLevel")
 
+#define CURRENT_FILTER_BY_COMPONENT_PRESET                                     \
+    QStringLiteral("FilterByComponentPreset")                                  \
+// CURRENT_FILTER_BY_COMPONENT_PRESET
+
+#define CURRENT_FILTER_BY_COMPONENT QStringLiteral("FilterByComponentRegex")
+
 #define ENABLE_LOG_VIEWER_INTERNAL_LOGS                                        \
     QStringLiteral("EnableLogViewerInternalLogs")                              \
 // ENABLE_LOG_VIEWER_INTERNAL_LOGS

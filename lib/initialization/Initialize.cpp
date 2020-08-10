@@ -25,6 +25,7 @@
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/utility/HumanReadableVersionInfo.h>
+#include <lib/utility/Log.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -154,6 +155,9 @@ bool initialize(
     QUENTIER_INITIALIZE_LOGGING();
     QuentierSetMinLogLevel(pLogLevel ? *pLogLevel : LogLevel::Info);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
+
+    auto logFilterByComponent = restoreLogFilterByComponent();
+    QuentierSetLogComponentFilter(QRegularExpression(logFilterByComponent));
 
 #ifdef BUILDING_WITH_BREAKPAD
     if (libquentierUsesQtWebEngine()) {

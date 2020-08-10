@@ -35,6 +35,8 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QMenu>
+#include <QRegularExpressionValidator>
+#include <QStringListModel>
 #include <QTextStream>
 
 #include <array>
@@ -75,11 +77,10 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
         m_logLevelEnabledCheckboxPtrs[i] = nullptr;
     }
 
-    m_pUi->filterByContentLineEdit->setClearButtonEnabled(true);
-
     setupLogLevels();
     setupLogFiles();
     setupFilterByLogLevelWidget();
+    setupFilterByComponent();
     startWatchingForLogFilesFolderChanges();
 
     m_pUi->logEntriesTableView->setModel(m_pLogViewerModel);
@@ -352,6 +353,51 @@ void LogViewerWidget::setupFilterByLogLevelWidget()
     }
 }
 
+void LogViewerWidget::setupFilterByComponent()
+{
+    QNDEBUG("widget:log_viewer", "LogViewerWidget::setupFilterByComponent");
+
+    QStringList presets;
+    presets.reserve(5);
+    presets << QStringLiteral("custom");
+    presets << QStringLiteral("note_editor");
+    presets << QStringLiteral("side_panels");
+    presets << QStringLiteral("ui");
+    presets << QStringLiteral("synchronization");
+
+    auto * pPresetsModel = new QStringListModel(
+        presets,
+        m_pUi->filterByComponentPresetsComboBox);
+
+    m_pUi->filterByComponentPresetsComboBox->setModel(pPresetsModel);
+
+    m_pUi->filterByComponentRegexLineEdit->setValidator(
+        new QRegularExpressionValidator(
+            m_pUi->filterByComponentRegexLineEdit));
+
+    restoreFilterByComponentState();
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        m_pUi->filterByComponentPresetsComboBox,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        &LogViewerWidget::onFilterByComponentPresetChanged);
+#else
+    QObject::connect(
+        m_pUi->filterByComponentPresetsComboBox,
+        SIGNAL(currentIndexChanged(int)),
+        this,
+        SLOT(onFilterByComponentPresetChanged(int)));
+#endif
+
+    QObject::connect(
+        m_pUi->filterByComponentRegexLineEdit,
+        &QLineEdit::editingFinished,
+        this,
+        &LogViewerWidget::onFilterByComponentEditingFinished);
+}
+
 void LogViewerWidget::onCurrentLogLevelChanged(int index)
 {
     QNDEBUG("widget:log_viewer", "LogViewerWidget::onCurrentLogLevelChanged: "
@@ -435,6 +481,55 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
 
     showLogFileIsLoadingLabel();
     scheduleLogEntriesViewColumnsResize();
+}
+
+void LogViewerWidget::onFilterByComponentPresetChanged(int index)
+{
+    QNDEBUG(
+        "widget:log_viewer",
+        "LogViewerWidget::onFilterByComponentPresetChanged: index = "
+            << index << ", text: "
+            << m_pUi->filterByComponentPresetsComboBox->itemText(index));
+
+    switch(index)
+    {
+    case 1:
+        // "note_editor"
+        m_pUi->filterByComponentRegexLineEdit->setText(
+            QStringLiteral("^(enml|note_editor|widget:note_editor.*)(:.*)?$"));
+        break;
+    case 2:
+        // "side panels"
+        m_pUi->filterByComponentRegexLineEdit->setText(
+            QStringLiteral("^(model|view|delegate)(:.*)?$"));
+        break;
+    case 3:
+        // "ui"
+        m_pUi->filterByComponentRegexLineEdit->setText(
+            QStringLiteral("^(model|view|delegate|widget|note_editor)(:.*)?$"));
+        break;
+    case 4:
+        // synchronization
+        m_pUi->filterByComponentRegexLineEdit->setText(
+            QStringLiteral("^(local_storage|synchronization)(:.*)?$"));
+        break;
+    default:
+        // "custom" or unknown
+        m_pUi->filterByComponentRegexLineEdit->clear();
+        break;
+    }
+
+    m_pUi->filterByComponentRegexLineEdit->setReadOnly(index != 0);
+
+    onFilterByComponentEditingFinished();
+}
+
+void LogViewerWidget::onFilterByComponentEditingFinished()
+{
+    saveFilterByComponentState();
+
+    QRegularExpression regex(m_pUi->filterByComponentRegexLineEdit->text());
+    QuentierSetLogComponentFilter(regex);
 }
 
 void LogViewerWidget::onCurrentLogFileChanged(int currentLogFileIndex)
@@ -1126,6 +1221,51 @@ void LogViewerWidget::enableUiElementsAfterSavingLogToFile()
 
     m_pUi->logFileComboBox->setEnabled(true);
     m_pUi->logLevelComboBox->setEnabled(true);
+}
+
+void LogViewerWidget::saveFilterByComponentState()
+{
+    QNDEBUG("widget:log_viewer", "LogViewerWidget::saveFilterByComponentState");
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+
+    appSettings.setValue(
+        CURRENT_FILTER_BY_COMPONENT_PRESET,
+        m_pUi->filterByComponentPresetsComboBox->currentIndex());
+
+    appSettings.setValue(
+        CURRENT_FILTER_BY_COMPONENT,
+        m_pUi->filterByComponentRegexLineEdit->text());
+
+    appSettings.endGroup();
+}
+
+void LogViewerWidget::restoreFilterByComponentState()
+{
+    QNDEBUG(
+        "widget:log_viewer",
+        "LogViewerWidget::restoreFilterByComponentState");
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+
+    auto presetIndex = appSettings.value(
+        CURRENT_FILTER_BY_COMPONENT_PRESET);
+
+    auto filter = appSettings.value(CURRENT_FILTER_BY_COMPONENT).toString();
+
+    appSettings.endGroup();
+
+    bool conversionResult = false;
+    int presetIndexInt = presetIndex.toInt(&conversionResult);
+    if (!conversionResult) {
+        presetIndexInt = 0;
+    }
+
+    m_pUi->filterByComponentPresetsComboBox->setCurrentIndex(presetIndexInt);
+
+    m_pUi->filterByComponentRegexLineEdit->setText(filter);
 }
 
 void LogViewerWidget::timerEvent(QTimerEvent * pEvent)
