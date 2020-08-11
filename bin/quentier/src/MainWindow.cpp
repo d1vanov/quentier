@@ -1833,7 +1833,7 @@ void MainWindow::scheduleSyncButtonAnimationStop()
         &m_animatedSyncButtonIcon,
         &QMovie::finished,
         this,
-        QNSLOT(MainWindow,onSyncIconAnimationFinished),
+        &MainWindow::onSyncIconAnimationFinished,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(

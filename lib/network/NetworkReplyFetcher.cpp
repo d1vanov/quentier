@@ -72,10 +72,16 @@ void NetworkReplyFetcher::start()
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
 
-    if (m_timeoutMsec > 0) {
+    if (m_timeoutMsec > 0)
+    {
         m_pTimeoutTimer = new QTimer(this);
-        QObject::connect(m_pTimeoutTimer, QNSIGNAL(QTimer,timeout),
-                         this, QNSLOT(NetworkReplyFetcher,checkForTimeout));
+
+        QObject::connect(
+            m_pTimeoutTimer,
+            &QTimer::timeout,
+            this,
+            &NetworkReplyFetcher::checkForTimeout);
+
         m_pTimeoutTimer->start(NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL);
     }
 
