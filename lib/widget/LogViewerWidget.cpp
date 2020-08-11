@@ -510,8 +510,8 @@ void LogViewerWidget::onFilterByComponentPresetChanged(int index)
         break;
     case 4:
         // synchronization
-        m_pUi->filterByComponentRegexLineEdit->setText(
-            QStringLiteral("^(local_storage|synchronization)(:.*)?$"));
+        m_pUi->filterByComponentRegexLineEdit->setText(QStringLiteral(
+            "^(local_storage|synchronization|types|utility)(:.*)?$"));
         break;
     default:
         // "custom" or unknown
