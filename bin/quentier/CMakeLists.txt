@@ -166,7 +166,9 @@ if(NSIS_FOUND)
   set(PRODUCT_EDITION "Qt ${Qt5Core_VERSION}")
 
   if(MSVC)
-    if(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]1(.+)")
+    if(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]2(.+)")
+      set(VC_VERSION "2019")
+    elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]1(.+)")
       set(VC_VERSION "2017")
     elseif(${CMAKE_CXX_COMPILER_VERSION} MATCHES "^19[.]0(.+)")
       set(VC_VERSION "2015")
@@ -180,14 +182,11 @@ if(NSIS_FOUND)
     # No need to check for older versions since Quentier isn't buildable with them anyway
 
     set(PRODUCT_EDITION "${PRODUCT_EDITION} MSVC${VC_VERSION}")
-    set(QUENTIER_LAUNCHABLE_FILE "quentier.exe")
   else()
-    set(MINGW_VERSION "${GCC_VERSION}")
-    string(REGEX REPLACE "\n$" "" MINGW_VERSION "${MINGW_VERSION}")
-    set(PRODUCT_EDITION "${PRODUCT_EDITION} MinGW ${MINGW_VERSION}")
-    set(QUENTIER_LAUNCHABLE_FILE "quentier.bat")
+    set(PRODUCT_EDITION "${PRODUCT_EDITION} ${CMAKE_CXX_COMPILER_ID}")
   endif()
 
+  set(QUENTIER_LAUNCHABLE_FILE "quentier.exe")
   set(PRODUCT_EDITION "${PRODUCT_EDITION} ${QUENTIER_TARGET_PLATFORM}")
 
   if(NOT LIBQUENTIER_USE_QT_WEB_ENGINE AND MSVC)
