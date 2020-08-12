@@ -139,7 +139,7 @@ bool setStartQuentierAtLoginOption(
                 QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous "
                                   "autostart configuration"));
 
-            QNWARNING(errorDescription);
+            QNWARNING("utility", errorDescription);
             return false;
         }
     }
@@ -170,7 +170,7 @@ bool setStartQuentierAtLoginOption(
                                   "app's autostart config"));
 
             errorDescription.details() = autoStartShortcutFileDir.absolutePath();
-            QNWARNING(errorDescription);
+            QNWARNING("utility", errorDescription);
             return false;
         }
     }
@@ -207,7 +207,7 @@ bool setStartQuentierAtLoginOption(
             QT_TRANSLATE_NOOP("StartAtLogin", "can't create shortcut to app "
                               "in startup folder"));
 
-        QNWARNING(errorDescription);
+        QNWARNING("utility", errorDescription);
         return false;
     }
 
