@@ -1029,7 +1029,7 @@ void SavedSearchModel::onListSavedSearchesComplete(
         onSavedSearchAddedOrUpdated(foundSearch);
     }
 
-    m_listSavedSearchesRequestId = {};
+    m_listSavedSearchesRequestId = QUuid();
     if (!foundSearches.isEmpty())
     {
         QNTRACE("model:saved_search", "The number of found saved searches is "
@@ -1064,7 +1064,7 @@ void SavedSearchModel::onListSavedSearchesFailed(
             << ", error: " << errorDescription << ", request id = "
             << requestId);
 
-    m_listSavedSearchesRequestId = {};
+    m_listSavedSearchesRequestId = QUuid();
     Q_EMIT notifyError(errorDescription);
 }
 

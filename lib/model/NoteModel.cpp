@@ -1191,7 +1191,7 @@ void NoteModel::onListNotesFailed(
         << ", error description = " << errorDescription << ", request id = "
         << requestId);
 
-    m_listNotesRequestId = {};
+    m_listNotesRequestId = QUuid();
     Q_EMIT notifyError(errorDescription);
 }
 
@@ -1263,7 +1263,7 @@ void NoteModel::onListNotesPerNotebooksAndTagsFailed(
         << ", error description = " << errorDescription << ", request id = "
         << requestId);
 
-    m_listNotesRequestId = {};
+    m_listNotesRequestId = QUuid();
     Q_EMIT notifyError(errorDescription);
 }
 
@@ -1326,7 +1326,7 @@ void NoteModel::onListNotesByLocalUidsFailed(
         << ", error description = " << errorDescription << ", request id = "
         << requestId);
 
-    m_listNotesRequestId = {};
+    m_listNotesRequestId = QUuid();
     Q_EMIT notifyError(errorDescription);
 }
 
@@ -1341,7 +1341,7 @@ void NoteModel::onGetNoteCountComplete(
         NMDEBUG("NoteModel::onGetNoteCountComplete: received total "
             << "note count per account: " << noteCount);
 
-        m_getFullNoteCountPerAccountRequestId = {};
+        m_getFullNoteCountPerAccountRequestId = QUuid();
 
         m_totalAccountNotesCount = noteCount;
         Q_EMIT noteCountPerAccountUpdated(m_totalAccountNotesCount);
@@ -1354,7 +1354,7 @@ void NoteModel::onGetNoteCountComplete(
         NMDEBUG("NoteModel::onGetNoteCountComplete: received "
             << "filtered notes count: " << noteCount);
 
-        m_getNoteCountRequestId = {};
+        m_getNoteCountRequestId = QUuid();
 
         m_totalFilteredNotesCount = noteCount;
         Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
@@ -1374,7 +1374,7 @@ void NoteModel::onGetNoteCountFailed(
         NMWARNING("NoteModel::onGetNoteCountFailed: failed to get "
             << "total note count per account: " << errorDescription);
 
-        m_getFullNoteCountPerAccountRequestId = {};
+        m_getFullNoteCountPerAccountRequestId = QUuid();
 
         m_totalAccountNotesCount = 0;
         Q_EMIT noteCountPerAccountUpdated(m_totalAccountNotesCount);
@@ -1388,7 +1388,7 @@ void NoteModel::onGetNoteCountFailed(
         NMWARNING("NoteModel::onGetNoteCountFailed: failed to get "
             << "filtered notes count: " << errorDescription);
 
-        m_getNoteCountRequestId = {};
+        m_getNoteCountRequestId = QUuid();
 
         m_totalFilteredNotesCount = 0;
         Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
@@ -1414,7 +1414,7 @@ void NoteModel::onGetNoteCountPerNotebooksAndTagsComplete(
         << ", tag local uids: "
         << tagLocalUids.join(QStringLiteral(", ")));
 
-    m_getNoteCountRequestId = {};
+    m_getNoteCountRequestId = QUuid();
 
     m_totalFilteredNotesCount = noteCount;
     Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
@@ -1438,7 +1438,7 @@ void NoteModel::onGetNoteCountPerNotebooksAndTagsFailed(
         << ", tag local uids: "
         << tagLocalUids.join(QStringLiteral(", ")));
 
-    m_getNoteCountRequestId = {};
+    m_getNoteCountRequestId = QUuid();
 
     m_totalFilteredNotesCount = 0;
     Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
@@ -2207,7 +2207,7 @@ void NoteModel::onListNotesCompleteImpl(const QList<Note> foundNotes)
     }
 
     m_listNotesOffset += static_cast<size_t>(foundNotes.size());
-    m_listNotesRequestId = {};
+    m_listNotesRequestId = QUuid();
 
     if (!foundNotes.isEmpty() && (m_data.size() < NOTE_MIN_CACHE_SIZE)) {
         NMTRACE("The number of found notes is greater than zero, "
