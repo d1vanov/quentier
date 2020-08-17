@@ -223,7 +223,7 @@ QLinearGradient PanelStyleController::lighterGradient(
 {
     QLinearGradient result(gradient.start(), gradient.finalStop());
     auto stops = gradient.stops();
-    for(const auto & stop: stops) {
+    for(const auto & stop: qAsConst(stops)) {
         result.setColorAt(stop.first, stop.second.lighter(150));
     }
     return result;
@@ -235,7 +235,7 @@ QLinearGradient PanelStyleController::darkerGradient(
     QLinearGradient result(gradient.start(), gradient.finalStop());
     auto stops = gradient.stops();
 
-    for(const auto & stop: stops) {
+    for(const auto & stop: qAsConst(stops)) {
         result.setColorAt(stop.first, stop.second.darker(200));
     }
 

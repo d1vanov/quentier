@@ -1135,7 +1135,7 @@ void MainWindow::addMenuActionsToMainWindow()
     {
         auto * menu = menus[i];
         auto actions = menu->actions();
-        for(auto * action: actions) {
+        for(auto * action: qAsConst(actions)) {
             addAction(action);
         }
     }
@@ -2118,7 +2118,7 @@ void MainWindow::setupGenericPanelStyleControllers()
         static_cast<size_t>(std::max(panels.size(), 0)));
 
     QString extraStyleSheet;
-    for(auto * pPanel: panels)
+    for(auto * pPanel: qAsConst(panels))
     {
         if (pPanel->objectName().startsWith(QStringLiteral("upperBar"))) {
             QTextStream strm(&extraStyleSheet);
@@ -2145,7 +2145,7 @@ void MainWindow::setupSidePanelStyleControllers()
     m_sidePanelStyleControllers.reserve(
         static_cast<size_t>(std::max(panels.size(), 0)));
 
-    for(auto * pPanel: panels) {
+    for(auto * pPanel: qAsConst(panels)) {
         m_sidePanelStyleControllers.emplace_back(
             std::make_unique<SidePanelStyleController>(pPanel));
     }

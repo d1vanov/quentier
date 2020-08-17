@@ -615,11 +615,13 @@ QString NoteItemDelegate::timestampToString(
     QDate todayDate = today.date();
     QDate yesterdayDate = todayDate.addDays(-1);
 
+    double timePassedDouble = static_cast<double>(timePassed);
+
     QString text;
-    if (timePassed > MSEC_PER_WEEK)
+    if (timePassedDouble > MSEC_PER_WEEK)
     {
         int pastWeeks =
-            static_cast<int>(std::floor(timePassed / MSEC_PER_WEEK + 0.5));
+            static_cast<int>(std::floor(timePassedDouble / MSEC_PER_WEEK + 0.5));
 
         if (pastWeeks == 1) {
             text = tr("last week");
@@ -638,10 +640,10 @@ QString NoteItemDelegate::timestampToString(
         text = tr("today at") + QStringLiteral(" ") +
             time.toString(Qt::DefaultLocaleShortDate);
     }
-    else if (timePassed > MSEC_PER_DAY)
+    else if (timePassedDouble > MSEC_PER_DAY)
     {
         int pastDays = static_cast<int>(
-            std::floor(timePassed / MSEC_PER_DAY + 0.5));
+            std::floor(timePassedDouble / MSEC_PER_DAY + 0.5));
 
         if (pastDays < 6) {
             text = tr("%n days ago", nullptr, pastDays);

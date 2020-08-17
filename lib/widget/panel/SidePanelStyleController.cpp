@@ -18,6 +18,8 @@
 
 #include "SidePanelStyleController.h"
 
+#include <quentier/utility/Macros.h>
+
 #include <QFrame>
 #include <QLabel>
 #include <QPushButton>
@@ -52,7 +54,7 @@ void SidePanelStyleController::findChildWidgets()
 
     auto labels = m_pPanel->findChildren<QLabel*>();
     Q_ASSERT(labels.size() == 2);
-    for(const auto pLabel: labels) {
+    for(const auto pLabel: qAsConst(labels)) {
         if (pLabel->objectName().endsWith(QStringLiteral("LeftPaddingLabel"))) {
             continue;
         }

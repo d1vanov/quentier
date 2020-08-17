@@ -999,7 +999,7 @@ void SystemTrayIconManager::evaluateShowHideMenuActions()
     QString showText = tr("Show");
     QString hideText = tr("Hide");
 
-    for(auto * pAction: actions)
+    for(auto * pAction: qAsConst(actions))
     {
         if (Q_UNLIKELY(!pAction)) {
             continue;
