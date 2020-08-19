@@ -13,15 +13,13 @@ so things might occasionally break on Windows platform.
 ## Dependencies
 
 Quentier itself depends on just a few Qt modules:
- * For Qt4: QtCore, QtGui
- * For Qt5: Qt5Core, Qt5Gui, Qt5Widgets, Qt5LinguistTools
+ * Qt5Core, Qt5Gui, Qt5Widgets, Qt5LinguistTools
 
 However, Quentier also depends on several libraries some of which have their own requirements for Qt modules.
 Here are the libraries Quentier depends on:
  * [libquentier](http://github.com/d1vanov/libquentier)
  * [QEverCloud](https://github.com/d1vanov/QEverCloud)
  * Boost program options (>= 1.38)
- * For Qt4 buidls only: [qt4-mimetypes](https://github.com/d1vanov/qt4-mimetypes)
  * Optional although recommended dependency: [Google breakpad](https://chromium.googlesource.com/breakpad/breakpad)
 
 Although it is theoretically possible to use different Qt versions to build Quentier and its dependencies, it is highly
@@ -48,29 +46,11 @@ On Windows the `cmake` step is usually more convenient to do using GUI version o
 it is convenient to call `cmake --build .` command; if target specification is required, it can be done like this:
 `cmake --build . --target install`.
 
-The Qt version being searched/used by default is Qt5. If you want to build against Qt4, use `BUILD_WITH_QT4` `CMake` option:
-```
-cmake -DBUILD_WITH_QT4=YES <...>
-```
+The Qt version required is Qt5 no older than 5.5.1.
 
 If you installed Quentier's or libquentier's dependencies into non-standard locations, the `cmake` step
 from the above list might fail to find some library. You can give `CMake` some hints where to find the dependencies:
 
-For Qt4:
-```
-cmake -Dqt4-mimetypes_DIR=<...path to qt4-mimetypes installation folder...>/lib/cmake/qt4-mimetypes \
-      -DLIBXML2_INCLUDE_DIR=<...path to libxml2 include directory...> \
-      -DLIBXML2_LIBRARIES=<...path to libxml2 library...> \
-      -DOPENSSL_ROOT_DIR=<...path to the OpenSSL installation prefix...> \
-      -DBOOST_ROOT=<...path to boost installation prefix...> \
-      -DQtKeychain_DIR=<...path to QtKeychain cmake dir within the installation prefix...> \
-      -DQEverCloud-qt4_DIR=<...path to Qt4 QEverCloud installation...>/lib/cmake/QEverCloud-qt4 \
-      -DTIDY_HTML5_INCLUDE_PATH=<...path to tidy-html5 include directory...> \
-      -DTIDY_HTML5_LIB=<...path to tidy-html5 library...> \
-      -DLibquentier-qt4_DIR=<...path to Qt4 libquentier installation...>/lib/cmake/Libquentier-qt4 \
-      -DBREAKPAD_ROOT=<...path to Google breakpad installation prefix...> \
-      -DCMAKE_INSTALL_PREFIX=<...where to install the built app...> ../
-```
 For Qt5:
 ```
 cmake -DLIBXML2_INCLUDE_DIR=<...path to libxml2 include directory...> \
