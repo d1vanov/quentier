@@ -26,7 +26,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ITagModelItem)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class TagModelTestHelper: public QObject
+class TagModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
@@ -53,9 +53,8 @@ private Q_SLOTS:
         Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onListTagsFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListTagsOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -83,7 +82,7 @@ private:
     };
 
 private:
-    LocalStorageManagerAsync *   m_pLocalStorageManagerAsync;
+    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
 };
 
 } // namespace quentier

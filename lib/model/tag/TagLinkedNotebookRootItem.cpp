@@ -21,7 +21,7 @@
 namespace quentier {
 
 TagLinkedNotebookRootItem::TagLinkedNotebookRootItem(
-        QString username, QString linkedNotebookGuid) :
+    QString username, QString linkedNotebookGuid) :
     m_username(std::move(username)),
     m_linkedNotebookGuid(std::move(linkedNotebookGuid))
 {}
@@ -29,11 +29,10 @@ TagLinkedNotebookRootItem::TagLinkedNotebookRootItem(
 QTextStream & TagLinkedNotebookRootItem::print(QTextStream & strm) const
 {
     strm << "Linked notebook root item: m_username = " << m_username
-        << ", linked notebook guid = " << m_linkedNotebookGuid
-        << ", child count: " << m_children.size()
-        << ", parent: " << m_pParent
-        << ", parent type: "
-        << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+         << ", linked notebook guid = " << m_linkedNotebookGuid
+         << ", child count: " << m_children.size() << ", parent: " << m_pParent
+         << ", parent type: "
+         << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
     return strm;
 }
 

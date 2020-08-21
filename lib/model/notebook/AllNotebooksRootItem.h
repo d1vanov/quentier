@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class AllNotebooksRootItem: public INotebookModelItem
+class AllNotebooksRootItem : public INotebookModelItem
 {
 public:
     virtual Type type() const override
@@ -34,10 +34,9 @@ public:
     virtual QTextStream & print(QTextStream & strm) const override
     {
         strm << "AllNotebooksRootItem"
-            << ", child count: " << m_children.size()
-            << ", parent: " << m_pParent
-            << ", parent type: "
-            << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+             << ", child count: " << m_children.size()
+             << ", parent: " << m_pParent << ", parent type: "
+             << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
         return strm;
     }
 

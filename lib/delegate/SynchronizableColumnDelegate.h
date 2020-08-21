@@ -24,7 +24,7 @@
 #include <QIcon>
 #include <QStyledItemDelegate>
 
-class SynchronizableColumnDelegate: public QStyledItemDelegate
+class SynchronizableColumnDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -61,8 +61,8 @@ private:
         const QModelIndex & index) const override;
 
 private:
-    QIcon   m_icon;
-    QSize   m_iconSize;
+    QIcon m_icon;
+    QSize m_iconSize;
 };
 
 #endif // QUENTIER_LIB_DELEGATE_SYNCHRONIZABLE_COLUMN_DELEGATE_H

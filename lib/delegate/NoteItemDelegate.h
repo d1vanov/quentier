@@ -26,7 +26,7 @@
 
 namespace quentier {
 
-class NoteItemDelegate: public QStyledItemDelegate
+class NoteItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -78,9 +78,9 @@ public Q_SLOTS:
         bool showThumbnailsForAllNotes,
         const QSet<QString> & hideThumbnailsLocalUids);
 
-
 Q_SIGNALS:
-    void notifyError(ErrorString error) const;  // clazy:exclude=const-signal-or-slot
+    void notifyError(             // clazy:exclude=const-signal-or-slot
+        ErrorString error) const; // clazy:exclude=const-signal-or-slot
 
 private:
     QString timestampToString(
@@ -90,18 +90,18 @@ private:
     /**
      * Current value of "shown thumbnails for all notes".
      */
-    bool                    m_showThumbnailsForAllNotes;
+    bool m_showThumbnailsForAllNotes;
     /**
      * Set with local uids of notes where thumbnail was manually hidden.
      */
-    QSet<QString>           m_hideThumbnailsLocalUids;
+    QSet<QString> m_hideThumbnailsLocalUids;
 
-    int                     m_minWidth;
-    int                     m_minHeight;
-    int                     m_leftMargin;
-    int                     m_rightMargin;
-    int                     m_topMargin;
-    int                     m_bottomMargin;
+    int m_minWidth;
+    int m_minHeight;
+    int m_leftMargin;
+    int m_rightMargin;
+    int m_topMargin;
+    int m_bottomMargin;
 };
 
 } // namespace quentier

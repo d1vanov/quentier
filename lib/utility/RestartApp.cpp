@@ -57,15 +57,14 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 
     if (Q_UNLIKELY(!restartScriptFile.open())) {
         Cerr << "Failed to open temporary file to write restart script: "
-            << restartScriptFile.errorString() << "\n";
+             << restartScriptFile.errorString() << "\n";
         return;
     }
 
     QFileInfo restartScriptFileInfo(restartScriptFile);
     QTextStream restartScriptStrm(&restartScriptFile);
 
-    if (delaySeconds > 0)
-    {
+    if (delaySeconds > 0) {
 #ifdef Q_OS_WIN
         // NOTE: hack implementing sleep via ping to nonexistent address
         restartScriptStrm << "ping 192.0.2.2 -n 1 -w ";
@@ -85,11 +84,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     // Write instructions to the script to start app within the new installation
 #if defined(Q_OS_MAC)
     int appSuffixIndex = appFilePath.lastIndexOf(QStringLiteral(".app"));
-    if (Q_UNLIKELY(appSuffixIndex < 0))
-    {
-        appFilePath.replace(
-            QStringLiteral(" "),
-            QStringLiteral("\\ "));
+    if (Q_UNLIKELY(appSuffixIndex < 0)) {
+        appFilePath.replace(QStringLiteral(" "), QStringLiteral("\\ "));
 
         restartScriptStrm << appFilePath;
         if (argc > 1) {
@@ -97,17 +93,15 @@ void restartApp(int argc, char * argv[], int delaySeconds)
             restartScriptStrm << app.arguments().join(QStringLiteral(" "));
         }
     }
-    else
-    {
+    else {
         QString currentAppInstallationBundlePath =
             appFilePath.left(appSuffixIndex) + QStringLiteral(".app");
 
         currentAppInstallationBundlePath.replace(
-            QStringLiteral(" "),
-            QStringLiteral("\\ "));
+            QStringLiteral(" "), QStringLiteral("\\ "));
 
         restartScriptStrm << "open " << currentAppInstallationBundlePath
-            << "\n";
+                          << "\n";
     }
 #elif defined(Q_OS_WIN)
     appFilePath.prepend(QStringLiteral("\""));
@@ -126,25 +120,22 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         QStringLiteral("APPIMAGE"));
 
     Cerr << "AppImage file path from process envitonment: " << appImageFilePath
-        << "\n";
+         << "\n";
 
-    if (!appImageFilePath.isEmpty())
-    {
+    if (!appImageFilePath.isEmpty()) {
         // Check if it's AppImageLauncher's path, if so then use the map file
         // to get the actual AppImage path
         QRegExp rx(QStringLiteral("/run/user/*/appimagelauncherfs/*.AppImage"));
         rx.setPatternSyntax(QRegExp::Wildcard);
 
-        if (rx.exactMatch(appImageFilePath))
-        {
+        if (rx.exactMatch(appImageFilePath)) {
             Cerr << "AppImageLauncher is installed\n";
             auto arguments = QCoreApplication::arguments();
-            if(!arguments.isEmpty()) {
+            if (!arguments.isEmpty()) {
                 appImageFilePath = QFileInfo(arguments.at(0)).absolutePath() +
-                    QStringLiteral("/") +
-                    QFileInfo(arguments.at(0)).fileName();
+                    QStringLiteral("/") + QFileInfo(arguments.at(0)).fileName();
                 Cerr << "AppImage file path from program arguments: "
-                    << appImageFilePath << "\n";
+                     << appImageFilePath << "\n";
             }
             else {
                 appImageFilePath = QString();
@@ -159,9 +150,7 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 
     Cerr << "Quentier app file path to be restarted: " << appFilePath << "\n";
 
-    appFilePath.replace(
-        QStringLiteral(" "),
-        QStringLiteral("\\ "));
+    appFilePath.replace(QStringLiteral(" "), QStringLiteral("\\ "));
 
     restartScriptStrm << appFilePath;
     if (argc > 1) {
@@ -176,13 +165,11 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     // 4) Make the script file executable
     int chmodRes = QProcess::execute(
         QStringLiteral("chmod"),
-        QStringList()
-            << QStringLiteral("755")
-            << restartScriptFileInfo.absoluteFilePath());
+        QStringList() << QStringLiteral("755")
+                      << restartScriptFileInfo.absoluteFilePath());
     if (Q_UNLIKELY(chmodRes != 0)) {
         Cerr << "Failed to mark the temporary script file executable: "
-            << restartScriptFileInfo.absoluteFilePath()
-            << "\n";
+             << restartScriptFileInfo.absoluteFilePath() << "\n";
         return;
     }
 #endif

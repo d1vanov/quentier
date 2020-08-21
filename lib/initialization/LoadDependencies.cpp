@@ -42,11 +42,10 @@ void loadDependencies()
     // Need to load the SQL drivers manually, for some reason Qt doesn't wish
     // to load them on its own
     QDirIterator sqlDriversIter(QStringLiteral("sqldrivers"));
-    while(sqlDriversIter.hasNext())
-    {
+    while (sqlDriversIter.hasNext()) {
         QString fileName = sqlDriversIter.next();
-        if ( (fileName == QStringLiteral("sqldrivers/.")) ||
-             (fileName == QStringLiteral("sqldrivers/..")) )
+        if ((fileName == QStringLiteral("sqldrivers/.")) ||
+            (fileName == QStringLiteral("sqldrivers/..")))
         {
             continue;
         }

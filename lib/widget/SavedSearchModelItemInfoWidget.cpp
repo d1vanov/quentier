@@ -26,8 +26,7 @@
 namespace quentier {
 
 SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(
-        const QModelIndex & index,
-        QWidget * parent) :
+    const QModelIndex & index, QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::SavedSearchModelItemInfoWidget)
 {
@@ -37,9 +36,7 @@ SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(
     setCheckboxesReadOnly();
 
     QObject::connect(
-        m_pUi->okButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->okButton, &QPushButton::clicked, this,
         &SavedSearchModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
@@ -47,8 +44,8 @@ SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(
         return;
     }
 
-    const auto * pSavedSearchModel = qobject_cast<const SavedSearchModel*>(
-        index.model());
+    const auto * pSavedSearchModel =
+        qobject_cast<const SavedSearchModel *>(index.model());
 
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         setNonSavedSearchModel();
@@ -74,8 +71,7 @@ void SavedSearchModelItemInfoWidget::setCheckboxesReadOnly()
 #define SET_CHECKBOX_READ_ONLY(name)                                           \
     m_pUi->savedSearch##name##CheckBox->setAttribute(                          \
         Qt::WA_TransparentForMouseEvents, true);                               \
-    m_pUi->savedSearch##name##CheckBox->setFocusPolicy(Qt::NoFocus)            \
-// SET_CHECKBOX_READ_ONLY
+    m_pUi->savedSearch##name##CheckBox->setFocusPolicy(Qt::NoFocus)
 
     SET_CHECKBOX_READ_ONLY(Synchronizable);
     SET_CHECKBOX_READ_ONLY(Dirty);

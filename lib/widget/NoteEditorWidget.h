@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_WIDGET_NOTE_EDITOR_WIDGET_H
 #define QUENTIER_LIB_WIDGET_NOTE_EDITOR_WIDGET_H
 
-#include <lib/model/NotebookCache.h>
 #include <lib/model/NoteCache.h>
+#include <lib/model/NotebookCache.h>
 #include <lib/model/TagCache.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
@@ -54,7 +54,7 @@ QT_FORWARD_DECLARE_CLASS(TagModel)
  * note title + toolbar with formatting actions + debug html source view +
  * note tags widget
  */
-class NoteEditorWidget: public QWidget
+class NoteEditorWidget : public QWidget
 {
     Q_OBJECT
 public:
@@ -192,7 +192,8 @@ public:
      */
     struct NoteSaveStatus
     {
-        enum type {
+        enum type
+        {
             /**
              * Successfully saved the note's contents
              */
@@ -322,7 +323,7 @@ Q_SIGNALS:
     void inAppNoteLinkClicked(
         QString userId, QString shardId, QString noteGuid);
 
-// private signals
+    // private signals
     void findNote(
         Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
@@ -548,61 +549,61 @@ private:
     void removeSurrondingApostrophes(QString & str) const;
 
 private:
-    Ui::NoteEditorWidget *      m_pUi;
-    NoteCache &                 m_noteCache;
-    NotebookCache &             m_notebookCache;
-    TagCache &                  m_tagCache;
+    Ui::NoteEditorWidget * m_pUi;
+    NoteCache & m_noteCache;
+    NotebookCache & m_notebookCache;
+    TagCache & m_tagCache;
 
-    QStringListModel *          m_pLimitedFontsListModel = nullptr;
+    QStringListModel * m_pLimitedFontsListModel = nullptr;
 
     // This data piece separate from m_pCurrentNote is needed in order to handle
     // the cases when the note is being loaded from the local storage while
     // someone asks which note local uid the widget handles
-    QString                     m_noteLocalUid;
+    QString m_noteLocalUid;
 
-    std::unique_ptr<Note>       m_pCurrentNote;
-    std::unique_ptr<Notebook>   m_pCurrentNotebook;
+    std::unique_ptr<Note> m_pCurrentNote;
+    std::unique_ptr<Notebook> m_pCurrentNotebook;
 
-    QString                     m_lastNoteTitleOrPreviewText;
+    QString m_lastNoteTitleOrPreviewText;
 
-    Account                     m_currentAccount;
-    QPointer<QUndoStack>        m_pUndoStack;
+    Account m_currentAccount;
+    QPointer<QUndoStack> m_pUndoStack;
 
-    QTimer *                    m_pConvertToNoteDeadlineTimer = nullptr;
+    QTimer * m_pConvertToNoteDeadlineTimer = nullptr;
 
-    QUuid                       m_findCurrentNotebookRequestId;
+    QUuid m_findCurrentNotebookRequestId;
 
-    class NoteLinkInfo: public Printable
+    class NoteLinkInfo : public Printable
     {
     public:
-        QString     m_userId;
-        QString     m_shardId;
-        QString     m_noteGuid;
+        QString m_userId;
+        QString m_shardId;
+        QString m_noteGuid;
 
         virtual QTextStream & print(QTextStream & strm) const override;
     };
 
-    QHash<QUuid, NoteLinkInfo>  m_noteLinkInfoByFindNoteRequestIds;
+    QHash<QUuid, NoteLinkInfo> m_noteLinkInfoByFindNoteRequestIds;
 
-    int                         m_lastFontSizeComboBoxIndex = -1;
-    QString                     m_lastFontComboBoxFontFamily;
+    int m_lastFontSizeComboBoxIndex = -1;
+    QString m_lastFontComboBoxFontFamily;
 
-    QString                     m_lastNoteEditorHtml;
+    QString m_lastNoteEditorHtml;
 
-    StringUtils                 m_stringUtils;
+    StringUtils m_stringUtils;
 
-    int                         m_lastSuggestedFontSize = -1;
-    int                         m_lastActualFontSize = -1;
+    int m_lastSuggestedFontSize = -1;
+    int m_lastActualFontSize = -1;
 
-    bool                        m_pendingEditorSpellChecker = false;
-    bool                        m_currentNoteWasExpunged = false;
+    bool m_pendingEditorSpellChecker = false;
+    bool m_currentNoteWasExpunged = false;
 
-    bool                        m_noteHasBeenModified = false;
+    bool m_noteHasBeenModified = false;
 
-    bool                        m_noteTitleIsEdited = false;
-    bool                        m_noteTitleHasBeenEdited = false;
+    bool m_noteTitleIsEdited = false;
+    bool m_noteTitleHasBeenEdited = false;
 
-    bool                        m_isNewNote = false;
+    bool m_isNewNote = false;
 };
 
 } // namespace quentier

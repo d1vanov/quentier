@@ -39,7 +39,7 @@ QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
  * widget's layout and requires its subclasses to implement communication
  * with local storage
  */
-class AbstractFilterByModelItemWidget: public QWidget
+class AbstractFilterByModelItemWidget : public QWidget
 {
     Q_OBJECT
 public:
@@ -163,11 +163,11 @@ private:
     NewListItemLineEdit * findNewItemWidget();
 
 private:
-    QString                     m_name;
-    FlowLayout *                m_pLayout = nullptr;
-    Account                     m_account;
-    QPointer<ItemModel>         m_pItemModel;
-    bool                        m_isReady = false;
+    QString m_name;
+    FlowLayout * m_pLayout = nullptr;
+    Account m_account;
+    QPointer<ItemModel> m_pItemModel;
+    bool m_isReady = false;
 };
 
 } // namespace quentier

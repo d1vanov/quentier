@@ -28,7 +28,7 @@
 
 namespace quentier {
 
-class AsyncFileWriter: public QObject, public QRunnable
+class AsyncFileWriter : public QObject, public QRunnable
 {
     Q_OBJECT
 public:
@@ -47,8 +47,8 @@ private:
     virtual void run() override;
 
 private:
-    QString     m_filePath;
-    QByteArray  m_dataToWrite;
+    QString m_filePath;
+    QByteArray m_dataToWrite;
 };
 
 } // namespace quentier

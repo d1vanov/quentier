@@ -31,17 +31,14 @@
 namespace quentier {
 
 QList<Notebook> prepareNotebooks(
-    const QString & targetNotebookName,
-    const quint32 numNewNotebooks,
+    const QString & targetNotebookName, const quint32 numNewNotebooks,
     LocalStorageManagerAsync & localStorageManagerAsync,
     ErrorString & errorDescription)
 {
     QList<Notebook> result;
 
     NotebookController controller(
-        targetNotebookName,
-        numNewNotebooks,
-        localStorageManagerAsync);
+        targetNotebookName, numNewNotebooks, localStorageManagerAsync);
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
@@ -52,21 +49,15 @@ QList<Notebook> prepareNotebooks(
         EventLoopWithExitStatus loop;
 
         QObject::connect(
-            &timer,
-            &QTimer::timeout,
-            &loop,
+            &timer, &QTimer::timeout, &loop,
             &EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
-            &controller,
-            &NotebookController::finished,
-            &loop,
+            &controller, &NotebookController::finished, &loop,
             &EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
-            &controller,
-            &NotebookController::failure,
-            &loop,
+            &controller, &NotebookController::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
@@ -81,8 +72,7 @@ QList<Notebook> prepareNotebooks(
         errorDescription = loop.errorDescription();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success)
-    {
+    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
         errorDescription.clear();
         result = controller.newNotebooks();
         if (result.isEmpty()) {

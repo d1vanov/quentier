@@ -28,25 +28,21 @@
 
 namespace quentier {
 
-AccountModel::AccountModel(QObject * parent) :
-    QAbstractTableModel(parent)
-{}
+AccountModel::AccountModel(QObject * parent) : QAbstractTableModel(parent) {}
 
-AccountModel::~AccountModel()
-{}
+AccountModel::~AccountModel() {}
 
 void AccountModel::setAccounts(const QVector<Account> & accounts)
 {
     QNDEBUG("account", "AccountModel::setAccounts");
 
-    if (QuentierIsLogLevelActive(LogLevel::Trace))
-    {
+    if (QuentierIsLogLevelActive(LogLevel::Trace)) {
         QString str;
         QTextStream strm(&str);
 
         strm << "\n";
-        for(auto it = accounts.constBegin(),
-            end = accounts.constEnd(); it != end; ++it)
+        for (auto it = accounts.constBegin(), end = accounts.constEnd();
+             it != end; ++it)
         {
             strm << *it << "\n";
         }
@@ -73,8 +69,8 @@ bool AccountModel::addAccount(const Account & account)
     bool foundExistingAccount = false;
     Account::Type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
-    for(auto it = m_accounts.constBegin(),
-        end = m_accounts.constEnd(); it != end; ++it)
+    for (auto it = m_accounts.constBegin(), end = m_accounts.constEnd();
+         it != end; ++it)
     {
         const Account & availableAccount = *it;
 
@@ -114,8 +110,8 @@ bool AccountModel::removeAccount(const Account & account)
     Account::Type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
     int index = 0;
-    for(auto it = m_accounts.constBegin(),
-        end = m_accounts.constEnd(); it != end; ++it, ++index)
+    for (auto it = m_accounts.constBegin(), end = m_accounts.constEnd();
+         it != end; ++it, ++index)
     {
         const Account & availableAccount = *it;
 
@@ -151,8 +147,8 @@ Qt::ItemFlags AccountModel::flags(const QModelIndex & index) const
     int row = index.row();
     int column = index.column();
 
-    if ((row < 0) || (row >= m_accounts.size()) ||
-        (column < 0) || (column >= NUM_ACCOUNTS_MODEL_COLUMNS))
+    if ((row < 0) || (row >= m_accounts.size()) || (column < 0) ||
+        (column >= NUM_ACCOUNTS_MODEL_COLUMNS))
     {
         return indexFlags;
     }
@@ -196,8 +192,7 @@ QVariant AccountModel::headerData(
         return QVariant(section + 1);
     }
 
-    switch(section)
-    {
+    switch (section) {
     case Columns::Type:
         return tr("Type");
     case Columns::EvernoteHost:
@@ -233,51 +228,45 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
 
     const Account & account = m_accounts.at(row);
 
-    switch(column)
-    {
+    switch (column) {
     case Columns::Type:
-        {
-            if (account.type() == Account::Type::Local) {
-                return QStringLiteral("Local");
-            }
-            else {
-                return QStringLiteral("Evernote");
-            }
+    {
+        if (account.type() == Account::Type::Local) {
+            return QStringLiteral("Local");
         }
+        else {
+            return QStringLiteral("Evernote");
+        }
+    }
     case Columns::EvernoteHost:
-        {
-            if (account.type() == Account::Type::Evernote) {
-                return account.evernoteHost();
-            }
-            else {
-                return QString();
-            }
+    {
+        if (account.type() == Account::Type::Evernote) {
+            return account.evernoteHost();
         }
+        else {
+            return QString();
+        }
+    }
     case Columns::Username:
         return account.name();
     case Columns::DisplayName:
         return account.displayName();
     case Columns::Server:
-        {
-            if (account.type() == Account::Type::Local) {
-                return QString();
-            }
-
-            if (account.evernoteHost() ==
-                QStringLiteral("sandbox.evernote.com"))
-            {
-                return QStringLiteral("Evernote sandbox");
-            }
-            else if (account.evernoteHost() ==
-                     QStringLiteral("app.yinxiang.com"))
-            {
-                return QStringLiteral("Yinxiang Biji");
-            }
-            else
-            {
-                return QStringLiteral("Evernote");
-            }
+    {
+        if (account.type() == Account::Type::Local) {
+            return QString();
         }
+
+        if (account.evernoteHost() == QStringLiteral("sandbox.evernote.com")) {
+            return QStringLiteral("Evernote sandbox");
+        }
+        else if (account.evernoteHost() == QStringLiteral("app.yinxiang.com")) {
+            return QStringLiteral("Yinxiang Biji");
+        }
+        else {
+            return QStringLiteral("Evernote");
+        }
+    }
     default:
         return QVariant();
     }
@@ -302,8 +291,7 @@ bool AccountModel::setData(
         return false;
     }
 
-    switch(column)
-    {
+    switch (column) {
     case Columns::Type:
         return false;
     case Columns::EvernoteHost:
@@ -311,70 +299,68 @@ bool AccountModel::setData(
     case Columns::Username:
         return false;
     case Columns::DisplayName:
-        {
-            QString displayName = value.toString().trimmed();
-            m_stringUtils.removeNewlines(displayName);
+    {
+        QString displayName = value.toString().trimmed();
+        m_stringUtils.removeNewlines(displayName);
 
-            const auto & account = m_accounts.at(row);
+        const auto & account = m_accounts.at(row);
 
-            if (account.type() == Account::Type::Evernote)
-            {
-                int displayNameSize = displayName.size();
+        if (account.type() == Account::Type::Evernote) {
+            int displayNameSize = displayName.size();
 
-                if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN)
-                {
-                    ErrorString error(
-                        QT_TR_NOOP("Account name length is below "
-                                   "the acceptable level"));
+            if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
+                ErrorString error(
+                    QT_TR_NOOP("Account name length is below "
+                               "the acceptable level"));
 
-                    error.details() = QString::number(
-                        qevercloud::EDAM_USER_NAME_LEN_MIN);
+                error.details() =
+                    QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
 
-                    Q_EMIT badAccountDisplayName(error, row);
-                    return false;
-                }
-
-                if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX)
-                {
-                    ErrorString error(
-                        QT_TR_NOOP("Account name length is above "
-                                   "the acceptable level"));
-
-                    error.details() = QString::number(
-                        qevercloud::EDAM_USER_NAME_LEN_MAX);
-
-                    Q_EMIT badAccountDisplayName(error, row);
-                    return false;
-                }
-
-                QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
-                int matchIndex = regex.indexIn(displayName);
-                if (matchIndex < 0)
-                {
-                    ErrorString error(
-                        QT_TR_NOOP("Account name doesn't match the Evernote's "
-                                   "regular expression for user names; consider "
-                                   "simplifying the entered name"));
-
-                    error.details() = QString::number(
-                        qevercloud::EDAM_USER_NAME_LEN_MAX);
-
-                    Q_EMIT badAccountDisplayName(error, row);
-                    return false;
-                }
+                Q_EMIT badAccountDisplayName(error, row);
+                return false;
             }
 
-            if (account.displayName() == displayName) {
-                QNDEBUG("account", "The account display name has not really "
+            if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) {
+                ErrorString error(
+                    QT_TR_NOOP("Account name length is above "
+                               "the acceptable level"));
+
+                error.details() =
+                    QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+
+                Q_EMIT badAccountDisplayName(error, row);
+                return false;
+            }
+
+            QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
+            int matchIndex = regex.indexIn(displayName);
+            if (matchIndex < 0) {
+                ErrorString error(
+                    QT_TR_NOOP("Account name doesn't match the Evernote's "
+                               "regular expression for user names; consider "
+                               "simplifying the entered name"));
+
+                error.details() =
+                    QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+
+                Q_EMIT badAccountDisplayName(error, row);
+                return false;
+            }
+        }
+
+        if (account.displayName() == displayName) {
+            QNDEBUG(
+                "account",
+                "The account display name has not really "
                     << "changed");
-                return true;
-            }
-
-            m_accounts[row].setDisplayName(displayName);
-
-            Q_EMIT accountDisplayNameChanged(account);
             return true;
         }
+
+        m_accounts[row].setDisplayName(displayName);
+
+        Q_EMIT accountDisplayNameChanged(account);
+        return true;
+    }
     case Columns::Server:
         return false;
     default:

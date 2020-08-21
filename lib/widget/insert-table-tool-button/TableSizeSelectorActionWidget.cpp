@@ -25,13 +25,10 @@
 namespace quentier {
 
 TableSizeSelectorActionWidget::TableSizeSelectorActionWidget(QWidget * parent) :
-    QWidgetAction(parent),
-    m_selector(new TableSizeSelector(parent))
+    QWidgetAction(parent), m_selector(new TableSizeSelector(parent))
 {
     QObject::connect(
-        m_selector,
-        &TableSizeSelector::tableSizeSelected,
-        this,
+        m_selector, &TableSizeSelector::tableSizeSelected, this,
         &TableSizeSelectorActionWidget::tableSizeSelected);
 
     auto * layout = new QHBoxLayout(parent);

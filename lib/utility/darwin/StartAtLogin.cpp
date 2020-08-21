@@ -33,8 +33,7 @@
 
 #define QUENTIER_LAUNCH_PLIST_FILE_PATH                                        \
     QDir::homePath() +                                                         \
-    QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")        \
-// QUENTIER_LAUNCH_PLIST_FILE_PATH
+    QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")
 
 namespace quentier {
 

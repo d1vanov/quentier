@@ -35,12 +35,11 @@ Account createNewLocalAccount(
     int suffix = 2;
     Account account;
 
-    while(true)
-    {
+    while (true) {
         account = accountManager.createNewLocalAccount(accountName);
         if (account.isEmpty()) {
             accountName = name + QStringLiteral(" (") +
-                          QString::number(suffix) + QStringLiteral(")");
+                QString::number(suffix) + QStringLiteral(")");
             ++suffix;
             continue;
         }
@@ -53,9 +52,7 @@ Account createNewLocalAccount(
 
 } // namespace
 
-
-Account processStartupAccount(
-    const CommandLineParser::Options & options)
+Account processStartupAccount(const CommandLineParser::Options & options)
 {
     std::unique_ptr<Account> pAccount;
     if (!processAccountCommandLineOption(options, pAccount)) {
@@ -69,30 +66,25 @@ Account processStartupAccount(
     AccountManager accountManager;
     if (options.contains(QStringLiteral("new-account"))) {
         return createNewLocalAccount(
-            QStringLiteral("Wiki notes"),
-            accountManager);
+            QStringLiteral("Wiki notes"), accountManager);
     }
 
     auto availableAccounts = accountManager.availableAccounts();
     QString availableAccountsInfo;
 
     QTextStream strm(
-        &availableAccountsInfo,
-        QIODevice::ReadWrite | QIODevice::Text);
+        &availableAccountsInfo, QIODevice::ReadWrite | QIODevice::Text);
 
     strm << "Available accounts:\n";
     size_t counter = 1;
 
-    for(const auto & availableAccount: qAsConst(availableAccounts))
-    {
+    for (const auto & availableAccount: qAsConst(availableAccounts)) {
         bool isEvernoteAccount =
             (availableAccount.type() == Account::Type::Evernote);
 
-        strm << " " << counter++ << ") "
-            << availableAccount.name()
-            << " (" << availableAccount.displayName() << "), "
-            << (isEvernoteAccount ? "Evernote" : "local")
-            << ", ";
+        strm << " " << counter++ << ") " << availableAccount.name() << " ("
+             << availableAccount.displayName() << "), "
+             << (isEvernoteAccount ? "Evernote" : "local") << ", ";
 
         if (isEvernoteAccount) {
             strm << availableAccount.evernoteHost();
@@ -112,20 +104,18 @@ Account processStartupAccount(
 
     QTextStream stdinStrm(stdin);
     int accountNum = -1;
-    while(true)
-    {
+    while (true) {
         QString line = stdinStrm.readLine().trimmed();
         if (line == QStringLiteral("new")) {
             return createNewLocalAccount(
-                QStringLiteral("Wiki notes"),
-                accountManager);
+                QStringLiteral("Wiki notes"), accountManager);
         }
 
         bool conversionResult = false;
         accountNum = line.toInt(&conversionResult);
         if (!conversionResult) {
             stdoutStrm << "Failed to parse account number, please try again\n"
-                << "> ";
+                       << "> ";
             continue;
         }
 

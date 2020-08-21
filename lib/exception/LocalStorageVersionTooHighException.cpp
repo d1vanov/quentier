@@ -21,7 +21,7 @@
 namespace quentier {
 
 LocalStorageVersionTooHighException::LocalStorageVersionTooHighException(
-        const ErrorString & message) :
+    const ErrorString & message) :
     IQuentierException(message)
 {}
 

@@ -32,7 +32,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class FilterByTagWidget: public AbstractFilterByModelItemWidget
+class FilterByTagWidget : public AbstractFilterByModelItemWidget
 {
     Q_OBJECT
 public:
@@ -54,7 +54,7 @@ private Q_SLOTS:
     void onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId);
 
 private:
-    QPointer<LocalStorageManagerAsync>   m_pLocalStorageManager;
+    QPointer<LocalStorageManagerAsync> m_pLocalStorageManager;
 };
 
 } // namespace quentier

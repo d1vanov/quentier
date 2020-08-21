@@ -40,9 +40,9 @@ private Q_SLOTS:
     void onTableSizeConstraintsChosen(double width, bool relative);
 
 private:
-    double      m_currentWidth = 0.0;
-    bool        m_currentWidthIsRelative = false;
-    QMenu *     m_menu;
+    double m_currentWidth = 0.0;
+    bool m_currentWidthIsRelative = false;
+    QMenu * m_menu;
 };
 
 } // namespace quentier

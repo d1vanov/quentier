@@ -45,16 +45,14 @@ QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
 
-class PreferencesDialog: public QDialog
+class PreferencesDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit PreferencesDialog(
-        AccountManager & accountManager,
-        ShortcutManager & shortcutManager,
+        AccountManager & accountManager, ShortcutManager & shortcutManager,
         SystemTrayIconManager & systemTrayIconManager,
-        ActionsInfo & actionsInfo,
-        QWidget * parent = nullptr);
+        ActionsInfo & actionsInfo, QWidget * parent = nullptr);
 
     virtual ~PreferencesDialog() override;
 
@@ -211,19 +209,19 @@ private:
         const QColor & color, const QString & settingKey);
 
 private:
-    Ui::PreferencesDialog *         m_pUi;
-    AccountManager &                m_accountManager;
-    SystemTrayIconManager &         m_systemTrayIconManager;
-    QStringListModel *              m_pTrayActionsModel;
-    QStringListModel *              m_pNetworkProxyTypesModel;
-    QStringListModel *              m_pStartAtLoginOptionsModel;
+    Ui::PreferencesDialog * m_pUi;
+    AccountManager & m_accountManager;
+    SystemTrayIconManager & m_systemTrayIconManager;
+    QStringListModel * m_pTrayActionsModel;
+    QStringListModel * m_pNetworkProxyTypesModel;
+    QStringListModel * m_pStartAtLoginOptionsModel;
 
-    QPointer<QColorDialog>          m_pNoteEditorFontColorDialog;
-    QPointer<QColorDialog>          m_pNoteEditorBackgroundColorDialog;
-    QPointer<QColorDialog>          m_pNoteEditorHighlightColorDialog;
-    QPointer<QColorDialog>          m_pNoteEditorHighlightedTextColorDialog;
+    QPointer<QColorDialog> m_pNoteEditorFontColorDialog;
+    QPointer<QColorDialog> m_pNoteEditorBackgroundColorDialog;
+    QPointer<QColorDialog> m_pNoteEditorHighlightColorDialog;
+    QPointer<QColorDialog> m_pNoteEditorHighlightedTextColorDialog;
 
-    int     m_clearAndHideStatusBarTimerId = 0;
+    int m_clearAndHideStatusBarTimerId = 0;
 };
 
 } // namespace quentier

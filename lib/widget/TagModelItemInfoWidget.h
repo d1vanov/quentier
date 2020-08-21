@@ -34,13 +34,12 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ITagModelItem)
 QT_FORWARD_DECLARE_CLASS(TagItem)
 
-class TagModelItemInfoWidget: public QWidget
+class TagModelItemInfoWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit TagModelItemInfoWidget(
-        const QModelIndex & index,
-        QWidget * parent = nullptr);
+        const QModelIndex & index, QWidget * parent = nullptr);
 
     virtual ~TagModelItemInfoWidget() override;
 

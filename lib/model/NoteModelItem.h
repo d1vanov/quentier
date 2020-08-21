@@ -21,12 +21,12 @@
 
 #include <quentier/utility/Printable.h>
 
-#include <QStringList>
 #include <QByteArray>
+#include <QStringList>
 
 namespace quentier {
 
-class NoteModelItem: public Printable
+class NoteModelItem : public Printable
 {
 public:
     NoteModelItem() = default;
@@ -310,33 +310,33 @@ public:
     virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
-    QString     m_localUid;
-    QString     m_guid;
-    QString     m_notebookLocalUid;
-    QString     m_notebookGuid;
-    QString     m_title;
-    QString     m_previewText;
-    QByteArray  m_thumbnailData;
-    QString     m_notebookName;
+    QString m_localUid;
+    QString m_guid;
+    QString m_notebookLocalUid;
+    QString m_notebookGuid;
+    QString m_title;
+    QString m_previewText;
+    QByteArray m_thumbnailData;
+    QString m_notebookName;
     QStringList m_tagLocalUids;
     QStringList m_tagGuids;
     QStringList m_tagNameList;
 
-    qint64      m_creationTimestamp = -1;
-    qint64      m_modificationTimestamp = -1;
-    qint64      m_deletionTimestamp = -1;
-    quint64     m_sizeInBytes = 0;
+    qint64 m_creationTimestamp = -1;
+    qint64 m_modificationTimestamp = -1;
+    qint64 m_deletionTimestamp = -1;
+    quint64 m_sizeInBytes = 0;
 
-    bool        m_isSynchronizable = false;
-    bool        m_isDirty = true;
-    bool        m_isFavorited = false;
-    bool        m_isActive = true;
-    bool        m_hasResources = false;
-    bool        m_canUpdateTitle = true;
-    bool        m_canUpdateContent = true;
-    bool        m_canEmail = true;
-    bool        m_canShare = true;
-    bool        m_canSharePublicly = true;
+    bool m_isSynchronizable = false;
+    bool m_isDirty = true;
+    bool m_isFavorited = false;
+    bool m_isActive = true;
+    bool m_hasResources = false;
+    bool m_canUpdateTitle = true;
+    bool m_canUpdateContent = true;
+    bool m_canEmail = true;
+    bool m_canShare = true;
+    bool m_canSharePublicly = true;
 };
 
 } // namespace quentier

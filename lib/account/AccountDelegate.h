@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-class AccountDelegate: public QStyledItemDelegate
+class AccountDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -36,8 +36,7 @@ public:
         const QModelIndex & index) const override;
 
     virtual void setEditorData(
-        QWidget * pEditor,
-        const QModelIndex & index) const override;
+        QWidget * pEditor, const QModelIndex & index) const override;
 
     virtual QSize sizeHint(
         const QStyleOptionViewItem & option,

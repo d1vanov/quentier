@@ -30,7 +30,7 @@ namespace quentier {
  * is a custom delegate for the model column providing a boolean indicating
  * whether the model item belongs to the linked notebook
  */
-class FromLinkedNotebookColumnDelegate: public AbstractStyledItemDelegate
+class FromLinkedNotebookColumnDelegate : public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -67,8 +67,8 @@ private:
         const QModelIndex & index) const override;
 
 private:
-    QIcon   m_icon;
-    QSize   m_iconSize;
+    QIcon m_icon;
+    QSize m_iconSize;
 };
 
 } // namespace quentier

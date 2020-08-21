@@ -38,19 +38,18 @@ void FilterByTagWidget::setLocalStorageManager(
 
     QObject::connect(
         m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::updateTagComplete,
-        this,
+        &LocalStorageManagerAsync::updateTagComplete, this,
         &FilterByTagWidget::onUpdateTagCompleted);
 
     QObject::connect(
         m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::expungeTagComplete,
-        this,
+        &LocalStorageManagerAsync::expungeTagComplete, this,
         &FilterByTagWidget::onExpungeTagCompleted);
 
     QObject::connect(
         m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::expungeNotelessTagsFromLinkedNotebooksComplete,
+        &LocalStorageManagerAsync::
+            expungeNotelessTagsFromLinkedNotebooksComplete,
         this,
         &FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted);
 }
@@ -62,13 +61,15 @@ const TagModel * FilterByTagWidget::tagModel() const
         return nullptr;
     }
 
-    return qobject_cast<const TagModel*>(pItemModel);
+    return qobject_cast<const TagModel *>(pItemModel);
 }
 
 void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
-    QNDEBUG("widget:tag_filter", "FilterByTagWidget::onUpdateTagCompleted: "
-        << "request id = " << requestId << ", tag = " << tag);
+    QNDEBUG(
+        "widget:tag_filter",
+        "FilterByTagWidget::onUpdateTagCompleted: "
+            << "request id = " << requestId << ", tag = " << tag);
 
     if (Q_UNLIKELY(!tag.hasName())) {
         QNWARNING("widget:tag_filter", "Found tag without a name: " << tag);
@@ -82,16 +83,18 @@ void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
 void FilterByTagWidget::onExpungeTagCompleted(
     Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
 {
-    QNDEBUG("widget:tag_filter", "FilterByTagWidget::onExpungeTagCompleted: "
-        << "request id = " << requestId << ", tag = " << tag
-        << "\nExpunged child tag local uids: "
-        << expungedChildTagLocalUids.join(QStringLiteral(", ")));
+    QNDEBUG(
+        "widget:tag_filter",
+        "FilterByTagWidget::onExpungeTagCompleted: "
+            << "request id = " << requestId << ", tag = " << tag
+            << "\nExpunged child tag local uids: "
+            << expungedChildTagLocalUids.join(QStringLiteral(", ")));
 
     QStringList expungedTagLocalUids;
     expungedTagLocalUids << tag.localUid();
     expungedTagLocalUids << expungedChildTagLocalUids;
 
-    for(const auto & expungedTagLocalUid: qAsConst(expungedTagLocalUids)) {
+    for (const auto & expungedTagLocalUid: qAsConst(expungedTagLocalUids)) {
         onItemRemovedFromLocalStorage(expungedTagLocalUid);
     }
 }

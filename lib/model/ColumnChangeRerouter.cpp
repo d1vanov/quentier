@@ -23,20 +23,15 @@
 #include <algorithm>
 
 ColumnChangeRerouter::ColumnChangeRerouter(
-        const int columnFrom,
-        const int columnTo,
-        QObject * parent) :
+    const int columnFrom, const int columnTo, QObject * parent) :
     QObject(parent),
-    m_columnFrom(columnFrom),
-    m_columnTo(columnTo)
+    m_columnFrom(columnFrom), m_columnTo(columnTo)
 {}
 
 void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
 {
     QObject::connect(
-        model,
-        &QAbstractItemModel::dataChanged,
-        this,
+        model, &QAbstractItemModel::dataChanged, this,
         &ColumnChangeRerouter::onModelDataChanged);
 }
 
@@ -44,16 +39,16 @@ void ColumnChangeRerouter::onModelDataChanged(
     const QModelIndex & topLeft, const QModelIndex & bottomRight,
     const QVector<int> & roles)
 {
-    QNTRACE("model", "ColumnChangeRerouter::onModelDataChanged: top left: "
-        << "is valid = " << (topLeft.isValid() ? "true" : "false")
-        << ", row = " << topLeft.row()
-        << ", column = " << topLeft.column()
-        << "; bottom right: is valid = "
-        << (bottomRight.isValid() ? "true" : "false")
-        << ", row = " << bottomRight.row()
-        << ", column = " << bottomRight.column()
-        << ", column from = " << m_columnFrom
-        << ", column to = " << m_columnTo);
+    QNTRACE(
+        "model",
+        "ColumnChangeRerouter::onModelDataChanged: top left: "
+            << "is valid = " << (topLeft.isValid() ? "true" : "false")
+            << ", row = " << topLeft.row() << ", column = " << topLeft.column()
+            << "; bottom right: is valid = "
+            << (bottomRight.isValid() ? "true" : "false") << ", row = "
+            << bottomRight.row() << ", column = " << bottomRight.column()
+            << ", column from = " << m_columnFrom
+            << ", column to = " << m_columnTo);
 
     if (!topLeft.isValid() || !bottomRight.isValid()) {
         return;
@@ -82,18 +77,13 @@ void ColumnChangeRerouter::onModelDataChanged(
         return;
     }
 
-    auto newTopLeft = model->index(
-        topLeft.row(),
-        m_columnTo,
-        topLeft.parent());
+    auto newTopLeft = model->index(topLeft.row(), m_columnTo, topLeft.parent());
 
-    auto newBottomRight = model->index(
-        bottomRight.row(),
-        m_columnTo,
-        bottomRight.parent());
+    auto newBottomRight =
+        model->index(bottomRight.row(), m_columnTo, bottomRight.parent());
 
-    QNDEBUG("model", "Emitting the dataChanged signal for column "
-        << m_columnTo);
+    QNDEBUG(
+        "model", "Emitting the dataChanged signal for column " << m_columnTo);
 
     Q_EMIT dataChanged(newTopLeft, newBottomRight, roles);
 }

@@ -44,11 +44,11 @@ private:
     virtual QSize sizeHint() const;
 
 private:
-    int         m_currentRow = -1;
-    int         m_currentColumn = -1;
-    double      m_rowHeight = 0.0;
-    double      m_columnWidth = 0.0;
-    QRectF      m_rect;
+    int m_currentRow = -1;
+    int m_currentColumn = -1;
+    double m_rowHeight = 0.0;
+    double m_columnWidth = 0.0;
+    QRectF m_rect;
 };
 
 } // namespace quentier

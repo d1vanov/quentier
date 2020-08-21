@@ -18,11 +18,11 @@
 
 #include "StartAtLogin.h"
 
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/SettingsNames.h>
 
-#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
 
 namespace quentier {
 
@@ -33,19 +33,18 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
     ApplicationSettings appSettings;
     appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
 
-    bool shouldStartAutomaticallyAtLogin = appSettings.value(
-        SHOULD_START_AUTOMATICALLY_AT_LOGIN).toBool();
+    bool shouldStartAutomaticallyAtLogin =
+        appSettings.value(SHOULD_START_AUTOMATICALLY_AT_LOGIN).toBool();
 
-    auto startAutomaticallyAtLoginOptionData = appSettings.value(
-        START_AUTOMATICALLY_AT_LOGIN_OPTION);
+    auto startAutomaticallyAtLoginOptionData =
+        appSettings.value(START_AUTOMATICALLY_AT_LOGIN_OPTION);
 
     appSettings.endGroup();
 
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG("utility", "Starting automatically at login is switched off");
         return std::make_pair(
-            false,
-            StartQuentierAtLoginOption::MinimizedToTray);
+            false, StartQuentierAtLoginOption::MinimizedToTray);
     }
 
     StartQuentierAtLoginOption::type option =
@@ -56,10 +55,8 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
     int startAutomaticallyAtLoginOptionInt =
         startAutomaticallyAtLoginOptionData.toInt(&conversionResult);
 
-    if (conversionResult)
-    {
-        switch(startAutomaticallyAtLoginOptionInt)
-        {
+    if (conversionResult) {
+        switch (startAutomaticallyAtLoginOptionInt) {
         case StartQuentierAtLoginOption::MinimizedToTray:
             option = StartQuentierAtLoginOption::MinimizedToTray;
             break;
@@ -70,26 +67,30 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
             option = StartQuentierAtLoginOption::Normal;
             break;
         default:
-            {
-                QNWARNING("utility", "Detected invalid start Quentier "
+        {
+            QNWARNING(
+                "utility",
+                "Detected invalid start Quentier "
                     << "automatically at login option value: "
                     << startAutomaticallyAtLoginOptionInt
                     << ", fallback to the default option of "
                     << DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION);
-                break;
-            }
+            break;
+        }
         }
     }
-    else
-    {
-        QNWARNING("utility", "Failed to convert start Quentier automatically "
-            << "at login option from app settings to int! "
-            << "Fallback to the default option of "
-            << DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION);
+    else {
+        QNWARNING(
+            "utility",
+            "Failed to convert start Quentier automatically "
+                << "at login option from app settings to int! "
+                << "Fallback to the default option of "
+                << DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION);
     }
 
-    QNDEBUG("utility", "Should start Quentier automatically at login, option = "
-        << option);
+    QNDEBUG(
+        "utility",
+        "Should start Quentier automatically at login, option = " << option);
 
     return std::make_pair(true, option);
 }

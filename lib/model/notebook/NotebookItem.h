@@ -25,15 +25,12 @@
 
 namespace quentier {
 
-class NotebookItem: public INotebookModelItem
+class NotebookItem : public INotebookModelItem
 {
 public:
     NotebookItem(
-        QString localUid = {},
-        QString guid = {},
-        QString linkedNotebookGuid = {},
-        QString name = {},
-        QString stack = {});
+        QString localUid = {}, QString guid = {},
+        QString linkedNotebookGuid = {}, QString name = {}, QString stack = {});
 
     virtual ~NotebookItem() override = default;
 
@@ -146,14 +143,14 @@ public:
     virtual QDataStream & deserializeItemData(QDataStream & in) override;
 
 private:
-    QString     m_localUid;
-    QString     m_guid;
-    QString     m_linkedNotebookGuid;
+    QString m_localUid;
+    QString m_guid;
+    QString m_linkedNotebookGuid;
 
-    QString     m_name;
-    QString     m_stack;
+    QString m_name;
+    QString m_stack;
 
-    int         m_noteCount = 0;
+    int m_noteCount = 0;
 
     // Using a bitset to save some space as compared to more straigforward
     // alternative of using booleans
@@ -175,7 +172,7 @@ private:
         };
     };
 
-    std::bitset<Flags::Size>    m_flags;
+    std::bitset<Flags::Size> m_flags;
 };
 
 } // namespace quentier

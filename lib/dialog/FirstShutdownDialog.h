@@ -29,7 +29,7 @@ class FirstShutdownDialog;
 
 namespace quentier {
 
-class FirstShutdownDialog: public QDialog
+class FirstShutdownDialog : public QDialog
 {
     Q_OBJECT
 public:
@@ -41,7 +41,7 @@ private Q_SLOTS:
     void onClosePushButtonPressed();
 
 private:
-    Ui::FirstShutdownDialog *   m_pUi;
+    Ui::FirstShutdownDialog * m_pUi;
 };
 
 } // namespace quentier

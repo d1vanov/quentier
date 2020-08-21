@@ -23,12 +23,10 @@
 
 namespace quentier {
 
-class StackItem: public INotebookModelItem
+class StackItem : public INotebookModelItem
 {
 public:
-    StackItem(QString name = {}) :
-        m_name(std::move(name))
-    {}
+    StackItem(QString name = {}) : m_name(std::move(name)) {}
 
     virtual ~StackItem() override = default;
 
@@ -63,7 +61,7 @@ public:
     }
 
 private:
-    QString     m_name;
+    QString m_name;
 };
 
 } // namespace quentier

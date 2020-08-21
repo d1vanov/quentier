@@ -35,12 +35,9 @@
 namespace quentier {
 
 NewListItemLineEdit::NewListItemLineEdit(
-        ItemModel * pItemModel,
-        QVector<ItemInfo> reservedItems,
-        QWidget * parent) :
+    ItemModel * pItemModel, QVector<ItemInfo> reservedItems, QWidget * parent) :
     QLineEdit(parent),
-    m_pUi(new Ui::NewListItemLineEdit),
-    m_pItemModel(pItemModel),
+    m_pUi(new Ui::NewListItemLineEdit), m_pItemModel(pItemModel),
     m_reservedItems(std::move(reservedItems)),
     m_pItemNamesModel(new QStringListModel(this)),
     m_pCompleter(new QCompleter(this))
@@ -50,21 +47,15 @@ NewListItemLineEdit::NewListItemLineEdit(
     setupCompleter();
 
     QObject::connect(
-        m_pItemModel.data(),
-        &ItemModel::rowsInserted,
-        this,
+        m_pItemModel.data(), &ItemModel::rowsInserted, this,
         &NewListItemLineEdit::onModelRowsInserted);
 
     QObject::connect(
-        m_pItemModel.data(),
-        &ItemModel::rowsRemoved,
-        this,
+        m_pItemModel.data(), &ItemModel::rowsRemoved, this,
         &NewListItemLineEdit::onModelRowsRemoved);
 
     QObject::connect(
-        m_pItemModel.data(),
-        &ItemModel::dataChanged,
-        this,
+        m_pItemModel.data(), &ItemModel::dataChanged, this,
         &NewListItemLineEdit::onModelDataChanged);
 
     // NOTE: working around what seems to be a Qt bug: when one selects some
@@ -75,28 +66,24 @@ NewListItemLineEdit::NewListItemLineEdit(
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
-        m_pCompleter,
-        qOverload<const QString&>(&QCompleter::activated),
-        this,
-        &NewListItemLineEdit::clear,
-        Qt::QueuedConnection);
+        m_pCompleter, qOverload<const QString &>(&QCompleter::activated), this,
+        &NewListItemLineEdit::clear, Qt::QueuedConnection);
 #else
     QObject::connect(
-        m_pCompleter,
-        SIGNAL(activated(const QString&)),
-        this,
-        SLOT(clear()),
+        m_pCompleter, SIGNAL(activated(const QString &)), this, SLOT(clear()),
         Qt::QueuedConnection);
 #endif
 
-    QNTRACE("widget:new_list_item_line_edit", "Created NewListItemLineEdit: "
-        << this);
+    QNTRACE(
+        "widget:new_list_item_line_edit",
+        "Created NewListItemLineEdit: " << this);
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
 {
-    QNTRACE("widget:new_list_item_line_edit", "Destroying NewListItemLineEdit: "
-        << this);
+    QNTRACE(
+        "widget:new_list_item_line_edit",
+        "Destroying NewListItemLineEdit: " << this);
 
     delete m_pUi;
 }
@@ -112,7 +99,8 @@ void NewListItemLineEdit::setTargetLinkedNotebookGuid(
     m_targetLinkedNotebookGuid = std::move(linkedNotebookGuid);
 }
 
-QVector<NewListItemLineEdit::ItemInfo> NewListItemLineEdit::reservedItems() const
+QVector<NewListItemLineEdit::ItemInfo> NewListItemLineEdit::reservedItems()
+    const
 {
     return m_reservedItems;
 }
@@ -124,8 +112,7 @@ void NewListItemLineEdit::setReservedItems(QVector<ItemInfo> items)
 
 void NewListItemLineEdit::addReservedItem(ItemInfo item)
 {
-    for(const auto & reservedItem: qAsConst(m_reservedItems))
-    {
+    for (const auto & reservedItem: qAsConst(m_reservedItems)) {
         if ((reservedItem.m_name == item.m_name) &&
             (reservedItem.m_linkedNotebookGuid == item.m_linkedNotebookGuid) &&
             (reservedItem.m_linkedNotebookUsername ==
@@ -141,8 +128,8 @@ void NewListItemLineEdit::addReservedItem(ItemInfo item)
 
 void NewListItemLineEdit::removeReservedItem(ItemInfo item)
 {
-    for(auto it = m_reservedItems.begin(), end = m_reservedItems.end();
-        it != end; ++it)
+    for (auto it = m_reservedItems.begin(), end = m_reservedItems.end();
+         it != end; ++it)
     {
         const auto & reservedItem = *it;
 
@@ -191,14 +178,17 @@ void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
 {
     QNTRACE(
         "widget:new_list_item_line_edit",
-        "NewListItemLineEdit::focusInEvent: " << this << ", event type = "
-            << pEvent->type() << ", reason = " << pEvent->reason());
+        "NewListItemLineEdit::focusInEvent: "
+            << this << ", event type = " << pEvent->type()
+            << ", reason = " << pEvent->reason());
 
     QLineEdit::focusInEvent(pEvent);
 
     if (pEvent->reason() == Qt::ActiveWindowFocusReason) {
-        QNTRACE("widget:new_list_item_line_edit", "Received focus from "
-            << "the window system");
+        QNTRACE(
+            "widget:new_list_item_line_edit",
+            "Received focus from "
+                << "the window system");
         Q_EMIT receivedFocusFromWindowSystem();
     }
 }
@@ -267,8 +257,10 @@ void NewListItemLineEdit::setupCompleter()
     setCompleter(m_pCompleter);
 
 #ifdef LIB_QUENTIER_USE_QT_WEB_ENGINE
-    QNDEBUG("widget:new_list_item_line_edit", "Working around Qt bug "
-        << "https://bugreports.qt.io/browse/QTBUG-56652");
+    QNDEBUG(
+        "widget:new_list_item_line_edit",
+        "Working around Qt bug "
+            << "https://bugreports.qt.io/browse/QTBUG-56652");
 
     m_pCompleter->setCompletionMode(QCompleter::InlineCompletion);
 #endif
@@ -282,32 +274,29 @@ QStringList NewListItemLineEdit::itemNamesForCompleter() const
 
     QStringList itemNames;
 
-    if (!m_targetLinkedNotebookGuid.isNull())
-    {
+    if (!m_targetLinkedNotebookGuid.isNull()) {
         itemNames = m_pItemModel->itemNames(m_targetLinkedNotebookGuid);
 
-        if (!m_targetLinkedNotebookGuid.isEmpty())
-        {
-            QString linkedNotebookUsername = m_pItemModel->linkedNotebookUsername(
-                m_targetLinkedNotebookGuid);
+        if (!m_targetLinkedNotebookGuid.isEmpty()) {
+            QString linkedNotebookUsername =
+                m_pItemModel->linkedNotebookUsername(
+                    m_targetLinkedNotebookGuid);
 
-            for(auto & itemName: itemNames) {
+            for (auto & itemName: itemNames) {
                 itemName += QStringLiteral(" \\ @");
                 itemName += linkedNotebookUsername;
             }
         }
     }
-    else
-    {
+    else {
         // First list item names corresponding to user's own account
         itemNames = m_pItemModel->itemNames(QLatin1String(""));
 
         // Now add items corresponding to linked notebooks
         auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();
-        for(const auto & info: qAsConst(linkedNotebooksInfo))
-        {
+        for (const auto & info: qAsConst(linkedNotebooksInfo)) {
             auto linkedNotebookItemNames = m_pItemModel->itemNames(info.m_guid);
-            for(auto & itemName: linkedNotebookItemNames) {
+            for (auto & itemName: linkedNotebookItemNames) {
                 itemName += QStringLiteral(" \\ @");
                 itemName += info.m_username;
             }

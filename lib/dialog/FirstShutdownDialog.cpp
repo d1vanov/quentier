@@ -22,22 +22,17 @@
 namespace quentier {
 
 FirstShutdownDialog::FirstShutdownDialog(QWidget * parent) :
-    QDialog(parent),
-    m_pUi(new Ui::FirstShutdownDialog)
+    QDialog(parent), m_pUi(new Ui::FirstShutdownDialog)
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Keep the app running or quit?"));
 
     QObject::connect(
-        m_pUi->closeToTrayPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->closeToTrayPushButton, &QPushButton::clicked, this,
         &FirstShutdownDialog::onCloseToTrayPushButtonPressed);
 
     QObject::connect(
-        m_pUi->closePushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->closePushButton, &QPushButton::clicked, this,
         &FirstShutdownDialog::onClosePushButtonPressed);
 }
 

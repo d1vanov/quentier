@@ -26,7 +26,7 @@ QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
-class ColorPickerToolButton: public QToolButton
+class ColorPickerToolButton : public QToolButton
 {
     Q_OBJECT
 public:

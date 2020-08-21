@@ -32,54 +32,44 @@
 #define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
 #define LVMPDEBUG(message)                                                     \
-    if (m_internalLogEnabled)                                                  \
-    {                                                                          \
+    if (m_internalLogEnabled) {                                                \
         QString msg;                                                           \
         QDebug dbg(&msg);                                                      \
         dbg.nospace();                                                         \
         dbg.noquote();                                                         \
         dbg << message;                                                        \
         QString relativeSourceFileName = QStringLiteral(__FILE__);             \
-        int prefixIndex =                                                      \
-            relativeSourceFileName.indexOf(                                    \
-                QStringLiteral("libquentier"),                                 \
-                Qt::CaseInsensitive);                                          \
-        if (prefixIndex >= 0)                                                  \
-        {                                                                      \
+        int prefixIndex = relativeSourceFileName.indexOf(                      \
+            QStringLiteral("libquentier"), Qt::CaseInsensitive);               \
+        if (prefixIndex >= 0) {                                                \
             relativeSourceFileName.remove(0, prefixIndex);                     \
         }                                                                      \
-        else                                                                   \
-        {                                                                      \
+        else {                                                                 \
             QString appName = QCoreApplication::applicationName().toLower();   \
-            prefixIndex = relativeSourceFileName.indexOf(                      \
-                appName,                                                       \
-                Qt::CaseInsensitive);                                          \
+            prefixIndex =                                                      \
+                relativeSourceFileName.indexOf(appName, Qt::CaseInsensitive);  \
             if (prefixIndex >= 0) {                                            \
                 relativeSourceFileName.remove(                                 \
-                    0,                                                         \
-                    prefixIndex + appName.size() + 1);                         \
+                    0, prefixIndex + appName.size() + 1);                      \
             }                                                                  \
         }                                                                      \
         DateTimePrint::Options options(                                        \
             DateTimePrint::IncludeMilliseconds |                               \
             DateTimePrint::IncludeTimezone);                                   \
         QString fullMsg = printableDateTimeFromTimestamp(                      \
-            QDateTime::currentMSecsSinceEpoch(), options) +                    \
-            QStringLiteral(" ") +                                              \
-            relativeSourceFileName +                                           \
+                              QDateTime::currentMSecsSinceEpoch(), options) +  \
+            QStringLiteral(" ") + relativeSourceFileName +                     \
             QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER) +                  \
-            QString::number(__LINE__) +                                        \
-            QStringLiteral(": ") + msg + QStringLiteral("\n");                 \
+            QString::number(__LINE__) + QStringLiteral(": ") + msg +           \
+            QStringLiteral("\n");                                              \
         m_internalLogFile.write(fullMsg.toUtf8());                             \
         m_internalLogFile.flush();                                             \
-    }                                                                          \
-// LVMPDEBUG
+    }
 
 namespace quentier {
 
 #define REGEX_QNLOG_DATE                                                       \
-    "^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{1,17})(?:\\s+(\\w+))?" \
-// REGEX_QNLOG_DATE
+    "^(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}.\\d{1,17})(?:\\s+(\\w+))?"
 
 // note: QNLOG_FILE_LINENUMBER_DELIMITER is here incorporated into regex
 #define REGEX_QNLOG_SOURCE_LINENUMBER "([a-zA-Z0-9\\\\\\/_.]+):(\\d+)"
@@ -87,17 +77,14 @@ namespace quentier {
 // full logline regex
 #define REGEX_QNLOG_LINE                                                       \
     REGEX_QNLOG_DATE                                                           \
-    "\\s+"                                                                     \
-    REGEX_QNLOG_SOURCE_LINENUMBER                                              \
+    "\\s+" REGEX_QNLOG_SOURCE_LINENUMBER                                       \
     "\\s+"                                                                     \
     "\\[(\\w+)\\]"                                                             \
-    "(?:\\s+\\[((?:\\w+|:|-|_)+)\\])?:\\s+(.+$)"                               \
-// REGEX_QNLOG_LINE
+    "(?:\\s+\\[((?:\\w+|:|-|_)+)\\])?:\\s+(.+$)"
 
 LogViewerModel::LogFileParser::LogFileParser() :
     m_logParsingRegex(
-        QStringLiteral(REGEX_QNLOG_LINE),
-        Qt::CaseInsensitive, QRegExp::RegExp),
+        QStringLiteral(REGEX_QNLOG_LINE), Qt::CaseInsensitive, QRegExp::RegExp),
     m_internalLogFile(
         applicationPersistentStoragePath() +
         QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt")),
@@ -106,8 +93,8 @@ LogViewerModel::LogFileParser::LogFileParser() :
     ApplicationSettings appSettings;
     appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
 
-    QVariant enableLogViewerInternalLogsValue = appSettings.value(
-        ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+    QVariant enableLogViewerInternalLogsValue =
+        appSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
 
     appSettings.endGroup();
 
@@ -128,8 +115,8 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
 {
     LVMPDEBUG(
         "LogViewerModel::LogFileParser::parseDataEntriesFromLogFile: "
-            << "from pos = " << fromPos << ", max data entries = "
-            << maxDataEntries);
+        << "from pos = " << fromPos
+        << ", max data entries = " << maxDataEntries);
 
     if (!logFile.isOpen() && !logFile.open(QIODevice::ReadOnly)) {
         QFileInfo targetFileInfo(logFile);
@@ -141,8 +128,7 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
 
     QTextStream strm(&logFile);
 
-    if (!strm.seek(fromPos))
-    {
+    if (!strm.seek(fromPos)) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to read the data from log "
                        "file: failed to seek at position"));
@@ -158,18 +144,13 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
     dataEntries.reserve(maxDataEntries);
     ParseLineStatus previousParseLineStatus = ParseLineStatus::FilteredEntry;
     bool insideEntry = false;
-    while(!strm.atEnd())
-    {
+    while (!strm.atEnd()) {
         line = strm.readLine();
         LVMPDEBUG("Processing line " << line);
 
         auto parseLineStatus = parseLogFileLine(
-            line,
-            previousParseLineStatus,
-            disabledLogLevels,
-            filterContentRegExp,
-            dataEntries,
-            errorDescription);
+            line, previousParseLineStatus, disabledLogLevels,
+            filterContentRegExp, dataEntries, errorDescription);
 
         if (parseLineStatus == ParseLineStatus::Error) {
             LVMPDEBUG("Returning error: " << errorDescription);
@@ -178,8 +159,7 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
 
         previousParseLineStatus = parseLineStatus;
 
-        if (parseLineStatus == ParseLineStatus::FilteredEntry)
-        {
+        if (parseLineStatus == ParseLineStatus::FilteredEntry) {
             if (insideEntry && (numFoundMatches > 0)) {
                 --numFoundMatches;
                 insideEntry = false;
@@ -187,21 +167,21 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
 
             continue;
         }
-        else if (parseLineStatus == ParseLineStatus::AppendedToLastEntry)
-        {
+        else if (parseLineStatus == ParseLineStatus::AppendedToLastEntry) {
             LVMPDEBUG("No new entry created, continuing");
             continue;
         }
-        else if (parseLineStatus == ParseLineStatus::CreatedNewEntry)
-        {
+        else if (parseLineStatus == ParseLineStatus::CreatedNewEntry) {
             insideEntry = true;
             ++numFoundMatches;
-            LVMPDEBUG("New entry was created, " << numFoundMatches
-                      << " entries found now");
+            LVMPDEBUG(
+                "New entry was created, " << numFoundMatches
+                                          << " entries found now");
 
             if (numFoundMatches >= maxDataEntries) {
-                LVMPDEBUG("Exceeded the allowed number of entries "
-                          "to parse, returning");
+                LVMPDEBUG(
+                    "Exceeded the allowed number of entries "
+                    "to parse, returning");
                 break;
             }
         }
@@ -214,22 +194,18 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
 
 LogViewerModel::LogFileParser::ParseLineStatus
 LogViewerModel::LogFileParser::parseLogFileLine(
-    const QString & line,
-    const ParseLineStatus previousParseLineStatus,
+    const QString & line, const ParseLineStatus previousParseLineStatus,
     const QVector<LogLevel> & disabledLogLevels,
     const QRegExp & filterContentRegExp,
-    QVector<LogViewerModel::Data> & dataEntries,
-    ErrorString & errorDescription)
+    QVector<LogViewerModel::Data> & dataEntries, ErrorString & errorDescription)
 {
     int currentIndex = m_logParsingRegex.indexIn(line);
-    if (currentIndex < 0)
-    {
+    if (currentIndex < 0) {
         if (previousParseLineStatus == ParseLineStatus::FilteredEntry) {
             return ParseLineStatus::FilteredEntry;
         }
 
-        if (!dataEntries.isEmpty())
-        {
+        if (!dataEntries.isEmpty()) {
             LogViewerModel::Data & lastEntry = dataEntries.back();
             appendLogEntryLine(lastEntry, line);
 
@@ -246,8 +222,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     QStringList capturedTexts = m_logParsingRegex.capturedTexts();
 
-    if (capturedTexts.size() != 8)
-    {
+    if (capturedTexts.size() != 8) {
         errorDescription.setBase(
             QT_TR_NOOP("Error parsing the log file's contents: "
                        "unexpected number of captures by regex"));
@@ -258,11 +233,10 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     bool convertedSourceLineNumberToInt = false;
 
-    int sourceFileLineNumber = capturedTexts[4].toInt(
-        &convertedSourceLineNumberToInt);
+    int sourceFileLineNumber =
+        capturedTexts[4].toInt(&convertedSourceLineNumberToInt);
 
-    if (!convertedSourceLineNumberToInt)
-    {
+    if (!convertedSourceLineNumberToInt) {
         errorDescription.setBase(
             QT_TR_NOOP("Error parsing the log file's contents: failed to "
                        "convert the source line number to int"));
@@ -273,8 +247,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     Data entry;
     entry.m_timestamp = QDateTime::fromString(
-        capturedTexts[1],
-        QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz"));
+        capturedTexts[1], QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz"));
 
     // Trying to add timezone info
     QTimeZone timezone(capturedTexts[2].toLocal8Bit());
@@ -286,28 +259,22 @@ LogViewerModel::LogFileParser::parseLogFileLine(
     entry.m_sourceFileLineNumber = sourceFileLineNumber;
 
     const QString & logLevel = capturedTexts[5];
-    if (logLevel == QStringLiteral("Trace"))
-    {
+    if (logLevel == QStringLiteral("Trace")) {
         entry.m_logLevel = LogLevel::Trace;
     }
-    else if (logLevel == QStringLiteral("Debug"))
-    {
+    else if (logLevel == QStringLiteral("Debug")) {
         entry.m_logLevel = LogLevel::Debug;
     }
-    else if (logLevel == QStringLiteral("Info"))
-    {
+    else if (logLevel == QStringLiteral("Info")) {
         entry.m_logLevel = LogLevel::Info;
     }
-    else if (logLevel == QStringLiteral("Warn"))
-    {
+    else if (logLevel == QStringLiteral("Warn")) {
         entry.m_logLevel = LogLevel::Warning;
     }
-    else if (logLevel == QStringLiteral("Error"))
-    {
+    else if (logLevel == QStringLiteral("Error")) {
         entry.m_logLevel = LogLevel::Error;
     }
-    else
-    {
+    else {
         errorDescription.setBase(
             QT_TR_NOOP("Error parsing the log file's contents: failed to parse "
                        "the log level"));
@@ -322,10 +289,10 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     entry.m_component = capturedTexts[6];
 
-    if ( !filterContentRegExp.isEmpty() && filterContentRegExp.isValid() &&
-         (filterContentRegExp.indexIn(capturedTexts[7]) < 0) &&
-         (filterContentRegExp.indexIn(capturedTexts[1]) < 0) &&
-         (filterContentRegExp.indexIn(entry.m_sourceFileName) < 0) )
+    if (!filterContentRegExp.isEmpty() && filterContentRegExp.isValid() &&
+        (filterContentRegExp.indexIn(capturedTexts[7]) < 0) &&
+        (filterContentRegExp.indexIn(capturedTexts[1]) < 0) &&
+        (filterContentRegExp.indexIn(entry.m_sourceFileName) < 0))
     {
         return ParseLineStatus::FilteredEntry;
     }

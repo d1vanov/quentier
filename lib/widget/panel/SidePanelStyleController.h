@@ -31,7 +31,7 @@ namespace quentier {
  * child widgets which as a whole represent one of side panels used in the UI
  * of Quentier app
  */
-class SidePanelStyleController final: public PanelStyleController
+class SidePanelStyleController final : public PanelStyleController
 {
 public:
     /**
@@ -51,8 +51,8 @@ private:
     virtual QString generateStyleSheet() const override;
 
 private:
-    QLabel *        m_pTitleLabel = nullptr;
-    QPushButton *   m_pStaticIconHolder = nullptr;
+    QLabel * m_pTitleLabel = nullptr;
+    QPushButton * m_pStaticIconHolder = nullptr;
 };
 
 } // namespace quentier

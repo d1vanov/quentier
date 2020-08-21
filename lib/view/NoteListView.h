@@ -37,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(NoteModel)
  * @brief The NoteListView is a simple subclass of QListView which adds some
  * bits of functionality specific to note list on top of it
  */
-class NoteListView: public QListView
+class NoteListView : public QListView
 {
     Q_OBJECT
 public:
@@ -197,23 +197,23 @@ private:
     QStringList actionDataStringList();
 
 protected:
-    QMenu *             m_pNoteItemContextMenu = nullptr;
-    NotebookItemView *  m_pNotebookItemView = nullptr;
-    bool                m_shouldSelectFirstNoteOnNextNoteAddition = false;
+    QMenu * m_pNoteItemContextMenu = nullptr;
+    NotebookItemView * m_pNotebookItemView = nullptr;
+    bool m_shouldSelectFirstNoteOnNextNoteAddition = false;
 
-    Account             m_currentAccount;
+    Account m_currentAccount;
 
-    QString             m_lastCurrentNoteLocalUid;
+    QString m_lastCurrentNoteLocalUid;
 
     /**
      * Current value of "show thumbnails for all notes".
      */
-    bool                m_showThumbnailsForAllNotes = true;
+    bool m_showThumbnailsForAllNotes = true;
 
     /**
      * Set with local uids of notes where thumbnail was manually hidden.
      */
-    QSet<QString>       m_hideThumbnailsLocalUids;
+    QSet<QString> m_hideThumbnailsLocalUids;
 };
 
 } // namespace quentier

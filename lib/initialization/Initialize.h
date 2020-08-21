@@ -30,8 +30,8 @@ QT_FORWARD_DECLARE_CLASS(Account)
 
 struct ParseCommandLineResult
 {
-    CommandLineParser::Options  m_cmdOptions;
-    ErrorString                 m_errorDescription;
+    CommandLineParser::Options m_cmdOptions;
+    ErrorString m_errorDescription;
 };
 
 /**
@@ -39,11 +39,11 @@ struct ParseCommandLineResult
  * supposedly supported by many if not all binaries within quentier project
  */
 void composeCommonAvailableCommandLineOptions(
-    QHash<QString,CommandLineParser::OptionData> & availableCmdOptions);
+    QHash<QString, CommandLineParser::OptionData> & availableCmdOptions);
 
 void parseCommandLine(
     int argc, char * argv[],
-    const QHash<QString,CommandLineParser::OptionData> & availableCmdOptions,
+    const QHash<QString, CommandLineParser::OptionData> & availableCmdOptions,
     ParseCommandLineResult & result);
 
 /**

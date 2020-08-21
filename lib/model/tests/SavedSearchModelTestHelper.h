@@ -25,7 +25,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class SavedSearchModelTestHelper: public QObject
+class SavedSearchModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
@@ -53,15 +53,13 @@ private Q_SLOTS:
         SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
     void onListSavedSearchesFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListSavedSearchesOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
     void onExpungeSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription,
-        QUuid requestId);
+        SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
 private:
     bool checkSorting(const SavedSearchModel & model) const;
@@ -78,7 +76,7 @@ private:
     };
 
 private:
-    LocalStorageManagerAsync *   m_pLocalStorageManagerAsync;
+    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
 };
 
 } // namespace quentier

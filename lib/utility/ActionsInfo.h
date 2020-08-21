@@ -32,37 +32,37 @@ namespace quentier {
 
 struct ActionKeyWithContext
 {
-    int     m_key = -1;
+    int m_key = -1;
     QString m_context;
 };
 
 struct ActionNonStandardKeyWithContext
 {
-    QString     m_nonStandardActionKey;
-    QString     m_context;
+    QString m_nonStandardActionKey;
+    QString m_context;
 };
 
 class ActionsInfo
 {
 public:
-    class ActionInfo: public Printable
+    class ActionInfo : public Printable
     {
     public:
         virtual QTextStream & print(QTextStream & strm) const override;
 
         bool isEmpty() const;
 
-        QString         m_name;
-        QString         m_localizedName;
-        QString         m_context;
-        QString         m_category;
-        int             m_shortcutKey = -1;
-        QString         m_nonStandardShortcutKey;
-        QKeySequence    m_shortcut;
+        QString m_name;
+        QString m_localizedName;
+        QString m_context;
+        QString m_category;
+        int m_shortcutKey = -1;
+        QString m_nonStandardShortcutKey;
+        QKeySequence m_shortcut;
     };
 
 public:
-    ActionsInfo(const QList<QMenu*> & menus);
+    ActionsInfo(const QList<QMenu *> & menus);
 
     const ActionInfo findActionInfo(
         const QString & actionName, const QString & context) const;
@@ -86,9 +86,9 @@ public:
         void increment();
 
     private:
-        const ActionsInfo &     m_actionsInfo;
-        int                     m_menuIndex;
-        int                     m_actionIndex;
+        const ActionsInfo & m_actionsInfo;
+        int m_menuIndex;
+        int m_actionIndex;
     };
 
     friend class Iterator;
@@ -104,7 +104,7 @@ private:
     Q_DISABLE_COPY(ActionsInfo)
 
 private:
-    QList<QMenu*>   m_menus;
+    QList<QMenu *> m_menus;
 };
 
 } // namespace quentier

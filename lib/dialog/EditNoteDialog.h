@@ -37,14 +37,13 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EditNoteDialog: public QDialog
+class EditNoteDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit EditNoteDialog(
         const Note & note, NotebookModel * pNotebookModel,
-        QWidget * parent = nullptr,
-        const bool readOnlyMode = false);
+        QWidget * parent = nullptr, const bool readOnlyMode = false);
 
     virtual ~EditNoteDialog() override;
 
@@ -94,22 +93,22 @@ private:
     void fillDialogContent();
 
 private:
-    Ui::EditNoteDialog *    m_pUi;
-    Note                    m_note;
+    Ui::EditNoteDialog * m_pUi;
+    Note m_note;
     QPointer<NotebookModel> m_pNotebookModel;
-    QStringListModel *      m_pNotebookNamesModel;
+    QStringListModel * m_pNotebookNamesModel;
 
-    StringUtils             m_stringUtils;
+    StringUtils m_stringUtils;
 
-    bool    m_creationDateTimeEdited = false;
-    bool    m_modificationDateTimeEdited = false;
-    bool    m_deletionDateTimeEdited = false;
-    bool    m_subjectDateTimeEdited = false;
-    bool    m_latitudeEdited = false;
-    bool    m_longitudeEdited = false;
-    bool    m_altitudeEdited = false;
+    bool m_creationDateTimeEdited = false;
+    bool m_modificationDateTimeEdited = false;
+    bool m_deletionDateTimeEdited = false;
+    bool m_subjectDateTimeEdited = false;
+    bool m_latitudeEdited = false;
+    bool m_longitudeEdited = false;
+    bool m_altitudeEdited = false;
 
-    bool    m_readOnlyMode;
+    bool m_readOnlyMode;
 };
 
 } // namespace quentier

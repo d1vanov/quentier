@@ -32,7 +32,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class FilterBySavedSearchWidget: public QComboBox
+class FilterBySavedSearchWidget : public QComboBox
 {
     Q_OBJECT
 public:
@@ -73,16 +73,16 @@ private:
     void connectoToSavedSearchModel();
 
 private:
-    Account                     m_account;
-    QPointer<SavedSearchModel>  m_pSavedSearchModel;
-    QStringListModel            m_availableSavedSearchesModel;
+    Account m_account;
+    QPointer<SavedSearchModel> m_pSavedSearchModel;
+    QStringListModel m_availableSavedSearchesModel;
 
-    QString                     m_currentSavedSearchName;
-    QString                     m_currentSavedSearchLocalUid;
+    QString m_currentSavedSearchName;
+    QString m_currentSavedSearchLocalUid;
 
-    bool                        m_settingCurrentIndex = false;
+    bool m_settingCurrentIndex = false;
 
-    bool                        m_isReady = false;
+    bool m_isReady = false;
 };
 
 } // namespace quentier

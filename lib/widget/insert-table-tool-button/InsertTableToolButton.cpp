@@ -29,14 +29,13 @@
 namespace quentier {
 
 InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
-    QToolButton(parent),
-    m_menu(new QMenu(this))
+    QToolButton(parent), m_menu(new QMenu(this))
 {
     auto * sizeSelectorAction = new TableSizeSelectorActionWidget(this);
     m_menu->addAction(sizeSelectorAction);
 
-    auto * constraintsSelectorAction = new TableSizeConstraintsActionWidget(
-        this);
+    auto * constraintsSelectorAction =
+        new TableSizeConstraintsActionWidget(this);
 
     m_menu->addAction(constraintsSelectorAction);
 
@@ -45,23 +44,18 @@ InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
     auto * showTableSettingsDialogAction = new QAction(this);
 
     QObject::connect(
-        showTableSettingsDialogAction,
-        &QAction::triggered,
-        this,
+        showTableSettingsDialogAction, &QAction::triggered, this,
         &InsertTableToolButton::onTableSettingsDialogAction);
 
     setDefaultAction(showTableSettingsDialogAction);
 
     QObject::connect(
-        sizeSelectorAction,
-        &TableSizeSelectorActionWidget::tableSizeSelected,
-        this,
-        &InsertTableToolButton::onTableSizeChosen);
+        sizeSelectorAction, &TableSizeSelectorActionWidget::tableSizeSelected,
+        this, &InsertTableToolButton::onTableSizeChosen);
 
     QObject::connect(
         constraintsSelectorAction,
-        &TableSizeConstraintsActionWidget::chosenTableWidthConstraints,
-        this,
+        &TableSizeConstraintsActionWidget::chosenTableWidthConstraints, this,
         &InsertTableToolButton::onTableSizeConstraintsChosen);
 
     m_currentWidth = constraintsSelectorAction->width();
@@ -70,11 +64,9 @@ InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
 
 void InsertTableToolButton::onTableSettingsDialogAction()
 {
-    auto pTableSettingsDialog = std::make_unique<TableSettingsDialog>(
-        this);
+    auto pTableSettingsDialog = std::make_unique<TableSettingsDialog>(this);
 
-    if (pTableSettingsDialog->exec() == QDialog::Accepted)
-    {
+    if (pTableSettingsDialog->exec() == QDialog::Accepted) {
         int numRows = pTableSettingsDialog->numRows();
         int numColumns = pTableSettingsDialog->numColumns();
         double tableWidth = pTableSettingsDialog->tableWidth();
@@ -88,10 +80,7 @@ void InsertTableToolButton::onTableSettingsDialogAction()
 void InsertTableToolButton::onTableSizeChosen(int rows, int columns)
 {
     Q_EMIT createdTable(
-        rows,
-        columns,
-        m_currentWidth,
-        m_currentWidthIsRelative);
+        rows, columns, m_currentWidth, m_currentWidthIsRelative);
 }
 
 void InsertTableToolButton::onTableSizeConstraintsChosen(

@@ -27,7 +27,7 @@ namespace quentier {
 
 void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
 {
-    QHash<QString,CommandLineParser::OptionData> availableCmdOptions;
+    QHash<QString, CommandLineParser::OptionData> availableCmdOptions;
     composeCommonAvailableCommandLineOptions(availableCmdOptions);
 
     auto & overrideSystemTrayAvailabilityData =
@@ -36,8 +36,7 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
     overrideSystemTrayAvailabilityData.m_type =
         CommandLineParser::ArgumentType::Bool;
 
-    overrideSystemTrayAvailabilityData.m_name =
-        QStringLiteral("on/off");
+    overrideSystemTrayAvailabilityData.m_name = QStringLiteral("on/off");
 
     overrideSystemTrayAvailabilityData.m_description =
         QCoreApplication::translate(
@@ -48,8 +47,7 @@ void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
         availableCmdOptions[QStringLiteral("startMinimizedToTray")];
 
     startMinimizedToTrayData.m_description = QCoreApplication::translate(
-        "CommandLineParser",
-        "start Quentier minimized to system tray");
+        "CommandLineParser", "start Quentier minimized to system tray");
 
     auto & startMinimizedData =
         availableCmdOptions[QStringLiteral("startMinimized")];

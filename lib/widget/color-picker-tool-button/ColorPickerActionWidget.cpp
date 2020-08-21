@@ -23,29 +23,23 @@
 namespace quentier {
 
 ColorPickerActionWidget::ColorPickerActionWidget(QWidget * parent) :
-    QWidgetAction(parent),
-    m_colorDialog(new QColorDialog(parent))
+    QWidgetAction(parent), m_colorDialog(new QColorDialog(parent))
 {
     m_colorDialog->setWindowFlags(Qt::Widget);
 
     m_colorDialog->setOptions(
-        QColorDialog::DontUseNativeDialog |
-        QColorDialog::ShowAlphaChannel);
+        QColorDialog::DontUseNativeDialog | QColorDialog::ShowAlphaChannel);
 
     QColor currentColor = m_colorDialog->currentColor();
     currentColor.setAlpha(255);
     m_colorDialog->setCurrentColor(currentColor);
 
     QObject::connect(
-        m_colorDialog,
-        &QColorDialog::colorSelected,
-        this,
+        m_colorDialog, &QColorDialog::colorSelected, this,
         &ColorPickerActionWidget::colorSelected);
 
     QObject::connect(
-        m_colorDialog,
-        &QColorDialog::rejected,
-        this,
+        m_colorDialog, &QColorDialog::rejected, this,
         &ColorPickerActionWidget::rejected);
 
     setDefaultWidget(m_colorDialog);

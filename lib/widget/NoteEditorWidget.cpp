@@ -38,11 +38,11 @@
 #include <quentier/note_editor/INoteEditorBackend.h>
 #include <quentier/note_editor/NoteEditor.h>
 
+using quentier::ColorPickerToolButton;
 using quentier::FindAndReplaceWidget;
+using quentier::InsertTableToolButton;
 using quentier::NoteEditor;
 using quentier::NoteTagsWidget;
-using quentier::ColorPickerToolButton;
-using quentier::InsertTableToolButton;
 
 #include "ui_NoteEditorWidget.h"
 
@@ -72,19 +72,15 @@ using quentier::InsertTableToolButton;
 namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(
-        const Account & account,
-        LocalStorageManagerAsync & localStorageManagerAsync,
-        SpellChecker & spellChecker, QThread * pBackgroundJobsThread,
-        NoteCache & noteCache, NotebookCache & notebookCache,
-        TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
-        QWidget * parent) :
+    const Account & account,
+    LocalStorageManagerAsync & localStorageManagerAsync,
+    SpellChecker & spellChecker, QThread * pBackgroundJobsThread,
+    NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
+    TagModel & tagModel, QUndoStack * pUndoStack, QWidget * parent) :
     QWidget(parent),
-    m_pUi(new Ui::NoteEditorWidget),
-    m_noteCache(noteCache),
-    m_notebookCache(notebookCache),
-    m_tagCache(tagCache),
-    m_currentAccount(account),
-    m_pUndoStack(pUndoStack)
+    m_pUi(new Ui::NoteEditorWidget), m_noteCache(noteCache),
+    m_notebookCache(notebookCache), m_tagCache(tagCache),
+    m_currentAccount(account), m_pUndoStack(pUndoStack)
 {
     m_pUi->setupUi(this);
     setAcceptDrops(true);
@@ -99,9 +95,7 @@ NoteEditorWidget::NoteEditorWidget(
     m_pUi->exportNoteToPdfPushButton->setHidden(true);
 
     m_pUi->noteEditor->initialize(
-        localStorageManagerAsync,
-        spellChecker,
-        m_currentAccount,
+        localStorageManagerAsync, spellChecker, m_currentAccount,
         pBackgroundJobsThread);
 
     m_pUi->saveNotePushButton->setEnabled(false);
@@ -113,8 +107,8 @@ NoteEditorWidget::NoteEditorWidget(
 
     m_pUi->noteEditor->backend()->widget()->installEventFilter(this);
 
-    auto * highlighter = new BasicXMLSyntaxHighlighter(
-        m_pUi->noteSourceView->document());
+    auto * highlighter =
+        new BasicXMLSyntaxHighlighter(m_pUi->noteSourceView->document());
 
     Q_UNUSED(highlighter);
 
@@ -127,8 +121,7 @@ NoteEditorWidget::NoteEditorWidget(
     QWidget::setAttribute(Qt::WA_DeleteOnClose, /* on = */ true);
 }
 
-NoteEditorWidget::~NoteEditorWidget()
-{}
+NoteEditorWidget::~NoteEditorWidget() {}
 
 QString NoteEditorWidget::noteLocalUid() const
 {
@@ -143,13 +136,17 @@ bool NoteEditorWidget::isNewNote() const
 void NoteEditorWidget::setNoteLocalUid(
     const QString & noteLocalUid, const bool isNewNote)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::setNoteLocalUid: "
-        << noteLocalUid << ", is new note = "
-        << (isNewNote ? "true" : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::setNoteLocalUid: "
+            << noteLocalUid
+            << ", is new note = " << (isNewNote ? "true" : "false"));
 
     if (m_noteLocalUid == noteLocalUid) {
-        QNDEBUG("widget:note_editor", "Note local uid is already set to "
-            << "the editor, nothing to do");
+        QNDEBUG(
+            "widget:note_editor",
+            "Note local uid is already set to "
+                << "the editor, nothing to do");
         return;
     }
 
@@ -164,16 +161,12 @@ void NoteEditorWidget::setNoteLocalUid(
     m_isNewNote = isNewNote;
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteAndNotebookFoundInLocalStorage,
-        this,
-        &NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage,
+        m_pUi->noteEditor, &NoteEditor::noteAndNotebookFoundInLocalStorage,
+        this, &NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteNotFound,
-        this,
+        m_pUi->noteEditor, &NoteEditor::noteNotFound, this,
         &NoteEditorWidget::onNoteNotFoundInLocalStorage,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
@@ -261,9 +254,12 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
     }
 
     if (m_pCurrentNote->hasDeletionTimestamp()) {
-        QNDEBUG("widget:note_editor", "The note is deleted which means it just "
-            << "got deleted and the editor is closing => there is no need to "
-            << "save whatever is left in the editor for this note");
+        QNDEBUG(
+            "widget:note_editor",
+            "The note is deleted which means it just "
+                << "got deleted and the editor is closing => there is no need "
+                   "to "
+                << "save whatever is left in the editor for this note");
         return NoteSaveStatus::Ok;
     }
 
@@ -276,19 +272,18 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
 
     bool noteTitleUpdated = false;
 
-    if (m_noteTitleIsEdited)
-    {
+    if (m_noteTitleIsEdited) {
         QString noteTitle = m_pUi->noteNameLineEdit->text().trimmed();
         m_stringUtils.removeNewlines(noteTitle);
 
-        if (noteTitle.isEmpty() && m_pCurrentNote->hasTitle())
-        {
+        if (noteTitle.isEmpty() && m_pCurrentNote->hasTitle()) {
             m_pCurrentNote->setTitle(QString());
             noteTitleUpdated = true;
         }
-        else if (!noteTitle.isEmpty() &&
-                 (!m_pCurrentNote->hasTitle() ||
-                  (m_pCurrentNote->title() != noteTitle)))
+        else if (
+            !noteTitle.isEmpty() &&
+            (!m_pCurrentNote->hasTitle() ||
+             (m_pCurrentNote->title() != noteTitle)))
         {
             ErrorString error;
             if (checkNoteTitle(noteTitle, error)) {
@@ -296,8 +291,9 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
                 noteTitleUpdated = true;
             }
             else {
-                QNDEBUG("widget:note_editor", "Couldn't save the note title: "
-                    << error);
+                QNDEBUG(
+                    "widget:note_editor",
+                    "Couldn't save the note title: " << error);
             }
         }
     }
@@ -309,36 +305,35 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
         attributes.noteTitleQuality.clear();
     }
 
-    if (noteContentModified || noteTitleUpdated)
-    {
+    if (noteContentModified || noteTitleUpdated) {
         ApplicationSettings appSettings;
         appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
-        QVariant editorConvertToNoteTimeoutData = appSettings.value(
-            CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY);
+        QVariant editorConvertToNoteTimeoutData =
+            appSettings.value(CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY);
 
         appSettings.endGroup();
 
         bool conversionResult = false;
 
-        int editorConvertToNoteTimeout = editorConvertToNoteTimeoutData.toInt(
-            &conversionResult);
+        int editorConvertToNoteTimeout =
+            editorConvertToNoteTimeoutData.toInt(&conversionResult);
 
-        if (Q_UNLIKELY(!conversionResult))
-        {
-            QNDEBUG("widget:note_editor", "Can't read the timeout for note "
-                << "editor to note conversion from the application settings, "
-                << "fallback to the default value of "
-                << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
-                << " milliseconds");
+        if (Q_UNLIKELY(!conversionResult)) {
+            QNDEBUG(
+                "widget:note_editor",
+                "Can't read the timeout for note "
+                    << "editor to note conversion from the application "
+                       "settings, "
+                    << "fallback to the default value of "
+                    << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
+                    << " milliseconds");
 
             editorConvertToNoteTimeout = DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT;
         }
-        else
-        {
-            editorConvertToNoteTimeout = std::max(
-                editorConvertToNoteTimeout,
-                100);
+        else {
+            editorConvertToNoteTimeout =
+                std::max(editorConvertToNoteTimeout, 100);
         }
 
         if (m_pConvertToNoteDeadlineTimer) {
@@ -351,27 +346,19 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
         EventLoopWithExitStatus eventLoop;
 
         QObject::connect(
-            m_pConvertToNoteDeadlineTimer,
-            &QTimer::timeout,
-            &eventLoop,
+            m_pConvertToNoteDeadlineTimer, &QTimer::timeout, &eventLoop,
             &EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
-            this,
-            &NoteEditorWidget::noteSavedInLocalStorage,
-            &eventLoop,
+            this, &NoteEditorWidget::noteSavedInLocalStorage, &eventLoop,
             &EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
-            this,
-            &NoteEditorWidget::noteSaveInLocalStorageFailed,
-            &eventLoop,
+            this, &NoteEditorWidget::noteSaveInLocalStorageFailed, &eventLoop,
             &EventLoopWithExitStatus::exitAsFailure);
 
         QObject::connect(
-            this,
-            &NoteEditorWidget::conversionToNoteFailed,
-            &eventLoop,
+            this, &NoteEditorWidget::conversionToNoteFailed, &eventLoop,
             &EventLoopWithExitStatus::exitAsFailure);
 
         m_pConvertToNoteDeadlineTimer->start(editorConvertToNoteTimeout);
@@ -381,15 +368,13 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
         Q_UNUSED(eventLoop.exec(QEventLoop::ExcludeUserInputEvents))
         auto status = eventLoop.exitStatus();
 
-        if (status == EventLoopWithExitStatus::ExitStatus::Failure)
-        {
+        if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
             errorDescription.setBase(
                 QT_TR_NOOP("Failed to convert the editor contents to note"));
             QNWARNING("widget:note_editor", errorDescription);
             return NoteSaveStatus::Failed;
         }
-        else if (status == EventLoopWithExitStatus::ExitStatus::Timeout)
-        {
+        else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
             errorDescription.setBase(
                 QT_TR_NOOP("The conversion of note editor contents to note "
                            "failed to finish in time"));
@@ -490,8 +475,8 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
-    QString lastExportNoteToPdfPath = appSettings.value(
-        LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY).toString();
+    QString lastExportNoteToPdfPath =
+        appSettings.value(LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY).toString();
 
     appSettings.endGroup();
 
@@ -500,9 +485,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
     }
 
     auto pFileDialog = std::make_unique<QFileDialog>(
-        this,
-        tr("Please select the output pdf file"),
-        lastExportNoteToPdfPath);
+        this, tr("Please select the output pdf file"), lastExportNoteToPdfPath);
 
     pFileDialog->setWindowModality(Qt::WindowModal);
     pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
@@ -523,8 +506,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         pFileDialog->selectFile(suggestedFileName);
     }
 
-    if (pFileDialog->exec() == QDialog::Accepted)
-    {
+    if (pFileDialog->exec() == QDialog::Accepted) {
         QStringList selectedFiles = pFileDialog->selectedFiles();
         int numSelectedFiles = selectedFiles.size();
 
@@ -534,26 +516,24 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
             return false;
         }
 
-        if (numSelectedFiles > 1)
-        {
+        if (numSelectedFiles > 1) {
             errorDescription.setBase(
                 QT_TR_NOOP("More than one file were selected as output pdf "
                            "files"));
-            errorDescription.details() = selectedFiles.join(QStringLiteral(", "));
+            errorDescription.details() =
+                selectedFiles.join(QStringLiteral(", "));
             return false;
         }
 
         QFileInfo selectedFileInfo(selectedFiles[0]);
-        if (selectedFileInfo.exists())
-        {
+        if (selectedFileInfo.exists()) {
             if (Q_UNLIKELY(!selectedFileInfo.isFile())) {
                 errorDescription.setBase(
                     QT_TR_NOOP("No file to save the pdf into was selected"));
                 return false;
             }
 
-            if (Q_UNLIKELY(!selectedFileInfo.isWritable()))
-            {
+            if (Q_UNLIKELY(!selectedFileInfo.isWritable())) {
                 errorDescription.setBase(
                     QT_TR_NOOP("The selected file already exists and it is not "
                                "writable"));
@@ -562,8 +542,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
             }
 
             int confirmOverwrite = questionMessageBox(
-                this,
-                tr("Overwrite existing file"),
+                this, tr("Overwrite existing file"),
                 tr("Confirm the choice to overwrite the existing file"),
                 tr("The selected pdf file already exists. Are you sure you "
                    "want to overwrite this file?"));
@@ -575,8 +554,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         }
 
         lastExportNoteToPdfPath = selectedFileInfo.absolutePath();
-        if (!lastExportNoteToPdfPath.isEmpty())
-        {
+        if (!lastExportNoteToPdfPath.isEmpty()) {
             appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
             appSettings.setValue(
@@ -587,12 +565,13 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         }
 
         return m_pUi->noteEditor->exportToPdf(
-            selectedFiles[0],
-            errorDescription);
+            selectedFiles[0], errorDescription);
     }
 
-    QNTRACE("widget:note_editor", "Exporting the note to pdf has been "
-        << "cancelled");
+    QNTRACE(
+        "widget:note_editor",
+        "Exporting the note to pdf has been "
+            << "cancelled");
 
     return false;
 }
@@ -604,8 +583,9 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
-    QString lastExportNoteToEnexPath = appSettings.value(
-        LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY).toString();
+    QString lastExportNoteToEnexPath =
+        appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY)
+            .toString();
 
     appSettings.endGroup();
 
@@ -614,21 +594,17 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
     }
 
     auto pExportEnexDialog = std::make_unique<EnexExportDialog>(
-        m_currentAccount,
-        this,
-        titleOrPreview());
+        m_currentAccount, this, titleOrPreview());
 
     pExportEnexDialog->setWindowModality(Qt::WindowModal);
 
-    if (pExportEnexDialog->exec() == QDialog::Accepted)
-    {
+    if (pExportEnexDialog->exec() == QDialog::Accepted) {
         QNDEBUG("widget:note_editor", "Confirmed ENEX export");
 
         QString enexFilePath = pExportEnexDialog->exportEnexFilePath();
 
         QFileInfo enexFileInfo(enexFilePath);
-        if (enexFileInfo.exists())
-        {
+        if (enexFileInfo.exists()) {
             if (!enexFileInfo.isWritable()) {
                 errorDescription.setBase(
                     QT_TR_NOOP("Can't export note to ENEX: the selected file "
@@ -637,29 +613,29 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
                 return false;
             }
 
-            QNDEBUG("widget:note_editor", "The file selected for ENEX export "
-                << "already exists");
+            QNDEBUG(
+                "widget:note_editor",
+                "The file selected for ENEX export "
+                    << "already exists");
 
             int res = questionMessageBox(
-                this,
-                tr("Enex file already exists"),
+                this, tr("Enex file already exists"),
                 tr("The file selected for ENEX export already exists"),
                 tr("Do you wish to overwrite the existing file?"));
 
             if (res != QMessageBox::Ok) {
-                QNDEBUG("widget:note_editor", "Cancelled overwriting "
-                    << "the existing ENEX file");
+                QNDEBUG(
+                    "widget:note_editor",
+                    "Cancelled overwriting "
+                        << "the existing ENEX file");
                 return true;
             }
         }
-        else
-        {
+        else {
             auto enexFileDir = enexFileInfo.absoluteDir();
-            if (!enexFileDir.exists())
-            {
+            if (!enexFileDir.exists()) {
                 bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
-                if (!res)
-                {
+                if (!res) {
                     errorDescription.setBase(
                         QT_TR_NOOP("Can't export note to ENEX: failed to "
                                    "create folder for the selected file"));
@@ -671,19 +647,18 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
 
         QStringList tagNames =
             (pExportEnexDialog->exportTags()
-             ? m_pUi->tagNameLabelsContainer->tagNames()
-             : QStringList());
+                 ? m_pUi->tagNameLabelsContainer->tagNames()
+                 : QStringList());
 
         QString enex;
 
-        bool res = m_pUi->noteEditor->exportToEnex(
-            tagNames,
-            enex,
-            errorDescription);
+        bool res =
+            m_pUi->noteEditor->exportToEnex(tagNames, enex, errorDescription);
 
         if (!res) {
-            QNDEBUG("widget:note_editor", "ENEX export failed: "
-                << errorDescription);
+            QNDEBUG(
+                "widget:note_editor",
+                "ENEX export failed: " << errorDescription);
             return false;
         }
 
@@ -701,15 +676,13 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         qint64 bytes = enexFile.write(rawEnexData);
         enexFile.close();
 
-        if (Q_UNLIKELY(bytes != rawEnexData.size()))
-        {
+        if (Q_UNLIKELY(bytes != rawEnexData.size())) {
             errorDescription.setBase(
                 QT_TR_NOOP("Writing the ENEX to a file was not completed "
                            "successfully"));
 
-            errorDescription.details() =
-                QStringLiteral("Bytes written = ") + QString::number(bytes) +
-                QStringLiteral(" while expected ") +
+            errorDescription.details() = QStringLiteral("Bytes written = ") +
+                QString::number(bytes) + QStringLiteral(" while expected ") +
                 QString::number(rawEnexData.size());
 
             QNWARNING("widget:note_editor", errorDescription);
@@ -720,16 +693,20 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
         return true;
     }
 
-    QNTRACE("widget:note_editor", "Exporting the note to ENEX has been "
-        << "cancelled");
+    QNTRACE(
+        "widget:note_editor",
+        "Exporting the note to ENEX has been "
+            << "cancelled");
 
     return false;
 }
 
 void NoteEditorWidget::refreshSpecialIcons()
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::refreshSpecialIcons, "
-        << "note local uid = " << m_noteLocalUid);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::refreshSpecialIcons, "
+            << "note local uid = " << m_noteLocalUid);
 
     setupSpecialIcons();
 }
@@ -739,15 +716,19 @@ void NoteEditorWidget::dragEnterEvent(QDragEnterEvent * pEvent)
     QNTRACE("widget:note_editor", "NoteEditorWidget::dragEnterEvent");
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING("widget:note_editor", "Detected null pointer to "
-            << "QDragEnterEvent in NoteEditorWidget's dragEnterEvent");
+        QNWARNING(
+            "widget:note_editor",
+            "Detected null pointer to "
+                << "QDragEnterEvent in NoteEditorWidget's dragEnterEvent");
         return;
     }
 
     const auto * pMimeData = pEvent->mimeData();
     if (Q_UNLIKELY(!pMimeData)) {
-        QNWARNING("widget:note_editor", "Null pointer to mime data from drag "
-            << "enter event was detected");
+        QNWARNING(
+            "widget:note_editor",
+            "Null pointer to mime data from drag "
+                << "enter event was detected");
         return;
     }
 
@@ -764,15 +745,19 @@ void NoteEditorWidget::dragMoveEvent(QDragMoveEvent * pEvent)
     QNTRACE("widget:note_editor", "NoteEditorWidget::dragMoveEvent");
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING("widget:note_editor", "Detected null pointer to "
-            << "QDropMoveEvent in NoteEditorWidget's dragMoveEvent");
+        QNWARNING(
+            "widget:note_editor",
+            "Detected null pointer to "
+                << "QDropMoveEvent in NoteEditorWidget's dragMoveEvent");
         return;
     }
 
     const auto * pMimeData = pEvent->mimeData();
     if (Q_UNLIKELY(!pMimeData)) {
-        QNWARNING("widget:note_editor", "Null pointer to mime data from drag "
-            << "move event was detected");
+        QNWARNING(
+            "widget:note_editor",
+            "Null pointer to mime data from drag "
+                << "move event was detected");
         return;
     }
 
@@ -789,15 +774,19 @@ void NoteEditorWidget::dropEvent(QDropEvent * pEvent)
     QNTRACE("widget:note_editor", "NoteEditorWidget::dropEvent");
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING("widget:note_editor", "Detected null pointer to QDropEvent "
-            << "in NoteEditorWidget's dropEvent");
+        QNWARNING(
+            "widget:note_editor",
+            "Detected null pointer to QDropEvent "
+                << "in NoteEditorWidget's dropEvent");
         return;
     }
 
     const auto * pMimeData = pEvent->mimeData();
     if (Q_UNLIKELY(!pMimeData)) {
-        QNWARNING("widget:note_editor", "Null pointer to mime data from drop "
-            << "event was detected");
+        QNWARNING(
+            "widget:note_editor",
+            "Null pointer to mime data from drop "
+                << "event was detected");
         return;
     }
 
@@ -812,8 +801,10 @@ void NoteEditorWidget::dropEvent(QDropEvent * pEvent)
     in >> type;
 
     if (type != static_cast<qint32>(ITagModelItem::Type::Tag)) {
-        QNDEBUG("widget:note_editor", "Can only drop tag model items of tag "
-            << "type onto NoteEditorWidget");
+        QNDEBUG(
+            "widget:note_editor",
+            "Can only drop tag model items of tag "
+                << "type onto NoteEditorWidget");
         return;
     }
 
@@ -821,21 +812,28 @@ void NoteEditorWidget::dropEvent(QDropEvent * pEvent)
     in >> item;
 
     if (Q_UNLIKELY(!m_pCurrentNote)) {
-        QNDEBUG("widget:note_editor", "Can't drop tag onto NoteEditorWidget: "
-            << "no note is set to the editor");
+        QNDEBUG(
+            "widget:note_editor",
+            "Can't drop tag onto NoteEditorWidget: "
+                << "no note is set to the editor");
         return;
     }
 
     if (m_pCurrentNote->tagLocalUids().contains(item.localUid())) {
-        QNDEBUG("widget:note_editor", "Note set to the note editor ("
-            << m_pCurrentNote->localUid() << ")is already marked with tag with "
-            << "local uid " << item.localUid());
+        QNDEBUG(
+            "widget:note_editor",
+            "Note set to the note editor ("
+                << m_pCurrentNote->localUid()
+                << ")is already marked with tag with "
+                << "local uid " << item.localUid());
         return;
     }
 
-    QNDEBUG("widget:note_editor", "Adding tag with local uid "
-        << item.localUid() << " to note with local uid "
-        << m_pCurrentNote->localUid());
+    QNDEBUG(
+        "widget:note_editor",
+        "Adding tag with local uid " << item.localUid()
+                                     << " to note with local uid "
+                                     << m_pCurrentNote->localUid());
 
     m_pCurrentNote->addTagLocalUid(item.localUid());
 
@@ -859,16 +857,20 @@ void NoteEditorWidget::dropEvent(QDropEvent * pEvent)
 void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING("widget:note_editor", "Detected null pointer to QCloseEvent "
-            << "in NoteEditorWidget's closeEvent");
+        QNWARNING(
+            "widget:note_editor",
+            "Detected null pointer to QCloseEvent "
+                << "in NoteEditorWidget's closeEvent");
         return;
     }
 
     ErrorString errorDescription;
     auto status = checkAndSaveModifiedNote(errorDescription);
 
-    QNDEBUG("widget:note_editor", "Check and save modified note, status: "
-        << status << ", error description: " << errorDescription);
+    QNDEBUG(
+        "widget:note_editor",
+        "Check and save modified note, status: "
+            << status << ", error description: " << errorDescription);
 
     pEvent->accept();
 }
@@ -876,20 +878,24 @@ void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
 bool NoteEditorWidget::eventFilter(QObject * pWatched, QEvent * pEvent)
 {
     if (Q_UNLIKELY(!pWatched)) {
-        QNWARNING("widget:note_editor", "NoteEditorWidget: caught event for "
-            << "null watched object in the eventFilter method");
+        QNWARNING(
+            "widget:note_editor",
+            "NoteEditorWidget: caught event for "
+                << "null watched object in the eventFilter method");
         return true;
     }
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING("widget:note_editor", "NoteEditorWidget: caught null event "
-            << "in the eventFilter method for object " << pWatched->objectName()
-            << " of class " << pWatched->metaObject()->className());
+        QNWARNING(
+            "widget:note_editor",
+            "NoteEditorWidget: caught null event "
+                << "in the eventFilter method for object "
+                << pWatched->objectName() << " of class "
+                << pWatched->metaObject()->className());
         return true;
     }
 
-    if (pWatched == m_pUi->noteNameLineEdit)
-    {
+    if (pWatched == m_pUi->noteNameLineEdit) {
         QEvent::Type eventType = pEvent->type();
         if (eventType == QEvent::FocusIn) {
             QNDEBUG("widget:note_editor", "Note title editor gained focus");
@@ -898,8 +904,7 @@ bool NoteEditorWidget::eventFilter(QObject * pWatched, QEvent * pEvent)
             QNDEBUG("widget:note_editor", "Note title editor lost focus");
         }
     }
-    else if (pWatched == m_pUi->noteEditor)
-    {
+    else if (pWatched == m_pUi->noteEditor) {
         auto eventType = pEvent->type();
         if (eventType == QEvent::FocusIn) {
             QNDEBUG("widget:note_editor", "Note editor gained focus");
@@ -908,67 +913,78 @@ bool NoteEditorWidget::eventFilter(QObject * pWatched, QEvent * pEvent)
             QNDEBUG("widget:note_editor", "Note editor lost focus");
         }
     }
-    else if (pWatched == m_pUi->noteEditor->backend()->widget())
-    {
+    else if (pWatched == m_pUi->noteEditor->backend()->widget()) {
         auto eventType = pEvent->type();
-        if (eventType == QEvent::DragEnter)
-        {
-            QNTRACE("widget:note_editor", "Detected drag enter event for note "
-                << "editor");
+        if (eventType == QEvent::DragEnter) {
+            QNTRACE(
+                "widget:note_editor",
+                "Detected drag enter event for note "
+                    << "editor");
 
-            auto * pDragEnterEvent = dynamic_cast<QDragEnterEvent*>(pEvent);
+            auto * pDragEnterEvent = dynamic_cast<QDragEnterEvent *>(pEvent);
             if (pDragEnterEvent && pDragEnterEvent->mimeData() &&
                 pDragEnterEvent->mimeData()->hasFormat(TAG_MODEL_MIME_TYPE))
             {
-                QNDEBUG("widget:note_editor", "Stealing drag enter event with "
-                    << "tag data from note editor");
+                QNDEBUG(
+                    "widget:note_editor",
+                    "Stealing drag enter event with "
+                        << "tag data from note editor");
                 dragEnterEvent(pDragEnterEvent);
                 return true;
             }
-            else
-            {
-                QNTRACE("widget:note_editor", "Detected no tag data in "
-                    << "the event");
+            else {
+                QNTRACE(
+                    "widget:note_editor",
+                    "Detected no tag data in "
+                        << "the event");
             }
         }
-        else if (eventType == QEvent::DragMove)
-        {
-            QNTRACE("widget:note_editor", "Detected drag move event for note "
-                << "editor");
+        else if (eventType == QEvent::DragMove) {
+            QNTRACE(
+                "widget:note_editor",
+                "Detected drag move event for note "
+                    << "editor");
 
-            auto * pDragMoveEvent = dynamic_cast<QDragMoveEvent*>(pEvent);
+            auto * pDragMoveEvent = dynamic_cast<QDragMoveEvent *>(pEvent);
             if (pDragMoveEvent && pDragMoveEvent->mimeData() &&
                 pDragMoveEvent->mimeData()->hasFormat(TAG_MODEL_MIME_TYPE))
             {
-                QNDEBUG("widget:note_editor", "Stealing drag move event with "
-                    << "tag data from note editor");
+                QNDEBUG(
+                    "widget:note_editor",
+                    "Stealing drag move event with "
+                        << "tag data from note editor");
                 dragMoveEvent(pDragMoveEvent);
                 return true;
             }
-            else
-            {
-                QNTRACE("widget:note_editor", "Detected no tag data in "
-                    << "the event");
+            else {
+                QNTRACE(
+                    "widget:note_editor",
+                    "Detected no tag data in "
+                        << "the event");
             }
         }
-        else if (eventType == QEvent::Drop)
-        {
-            QNTRACE("widget:note_editor", "Detected drop event for note "
-                << "editor");
+        else if (eventType == QEvent::Drop) {
+            QNTRACE(
+                "widget:note_editor",
+                "Detected drop event for note "
+                    << "editor");
 
-            auto * pDropEvent = dynamic_cast<QDropEvent*>(pEvent);
+            auto * pDropEvent = dynamic_cast<QDropEvent *>(pEvent);
             if (pDropEvent && pDropEvent->mimeData() &&
                 pDropEvent->mimeData()->hasFormat(TAG_MODEL_MIME_TYPE))
             {
-                QNDEBUG("widget:note_editor", "Stealing drop event with tag "
-                    << "data from note editor");
+                QNDEBUG(
+                    "widget:note_editor",
+                    "Stealing drop event with tag "
+                        << "data from note editor");
                 dropEvent(pDropEvent);
                 return true;
             }
-            else
-            {
-                QNTRACE("widget:note_editor", "Detected no tag data in "
-                    << "the event");
+            else {
+                QNTRACE(
+                    "widget:note_editor",
+                    "Detected no tag data in "
+                        << "the event");
             }
         }
     }
@@ -1142,14 +1158,14 @@ void NoteEditorWidget::onEditorInsertTable(
     }
     else {
         m_pUi->noteEditor->insertFixedWidthTable(
-            rows,
-            columns,
-            static_cast<int>(width));
+            rows, columns, static_cast<int>(width));
     }
 
-    QNTRACE("widget:note_editor", "Inserted table: rows = " << rows
-        << ", columns = " << columns << ", width = " << width
-        << ", relative width = " << (relativeWidth ? "true" : "false"));
+    QNTRACE(
+        "widget:note_editor",
+        "Inserted table: rows = "
+            << rows << ", columns = " << columns << ", width = " << width
+            << ", relative width = " << (relativeWidth ? "true" : "false"));
 }
 
 void NoteEditorWidget::onUndoAction()
@@ -1198,28 +1214,28 @@ void NoteEditorWidget::onSaveNoteAction()
 
 void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onSetUseLimitedFonts: "
-        << (useLimitedFonts ? "true" : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onSetUseLimitedFonts: "
+            << (useLimitedFonts ? "true" : "false"));
 
     bool currentlyUsingLimitedFonts = !(m_pUi->limitedFontComboBox->isHidden());
 
     if (currentlyUsingLimitedFonts == useLimitedFonts) {
-        QNDEBUG("widget:note_editor", "The setting has not changed, nothing "
-            << "to do");
+        QNDEBUG(
+            "widget:note_editor",
+            "The setting has not changed, nothing "
+                << "to do");
         return;
     }
 
     QString currentFontFamily =
-        (useLimitedFonts
-         ? m_pUi->limitedFontComboBox->currentText()
-         : m_pUi->fontComboBox->currentFont().family());
+        (useLimitedFonts ? m_pUi->limitedFontComboBox->currentText()
+                         : m_pUi->fontComboBox->currentFont().family());
 
-    if (useLimitedFonts)
-    {
+    if (useLimitedFonts) {
         QObject::disconnect(
-            m_pUi->fontComboBox,
-            &QFontComboBox::currentFontChanged,
-            this,
+            m_pUi->fontComboBox, &QFontComboBox::currentFontChanged, this,
             &NoteEditorWidget::onFontComboBoxFontChanged);
 
         m_pUi->fontComboBox->setHidden(true);
@@ -1229,19 +1245,15 @@ void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
         m_pUi->limitedFontComboBox->setHidden(false);
         m_pUi->limitedFontComboBox->setDisabled(false);
     }
-    else
-    {
+    else {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
         QObject::disconnect(
             m_pUi->limitedFontComboBox,
-            qOverload<int>(&QComboBox::currentIndexChanged),
-            this,
+            qOverload<int>(&QComboBox::currentIndexChanged), this,
             &NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged);
 #else
         QObject::disconnect(
-            m_pUi->limitedFontComboBox,
-            SIGNAL(currentIndexChanged(int)),
-            this,
+            m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(int)), this,
             SLOT(onLimitedFontsComboBoxCurrentIndexChanged(int)));
 #endif
 
@@ -1256,9 +1268,7 @@ void NoteEditorWidget::onSetUseLimitedFonts(bool useLimitedFonts)
         m_pUi->fontComboBox->setDisabled(false);
 
         QObject::connect(
-            m_pUi->fontComboBox,
-            &QFontComboBox::currentFontChanged,
-            this,
+            m_pUi->fontComboBox, &QFontComboBox::currentFontChanged, this,
             &NoteEditorWidget::onFontComboBoxFontChanged);
     }
 }
@@ -1332,8 +1342,10 @@ void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
 
     auto * pFocusWidget = qApp->focusWidget();
     if (pFocusWidget) {
-        QNTRACE("widget:note_editor", "Clearing the focus from the widget "
-            << "having it currently: " << pFocusWidget);
+        QNTRACE(
+            "widget:note_editor",
+            "Clearing the focus from the widget "
+                << "having it currently: " << pFocusWidget);
         pFocusWidget->clearFocus();
     }
 
@@ -1355,8 +1367,10 @@ void NoteEditorWidget::onFontComboBoxFontChanged(const QFont & font)
     m_lastFontComboBoxFontFamily = font.family();
 
     if (!m_pCurrentNote) {
-        QNTRACE("widget:note_editor", "No note is set to the editor, nothing "
-            << "to do");
+        QNTRACE(
+            "widget:note_editor",
+            "No note is set to the editor, nothing "
+                << "to do");
         return;
     }
 
@@ -1374,8 +1388,10 @@ void NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged(
             << fontFamily);
 
     if (fontFamily.trimmed().isEmpty()) {
-        QNTRACE("widget:note_editor", "Font family is empty, ignoring this "
-            << "update");
+        QNTRACE(
+            "widget:note_editor",
+            "Font family is empty, ignoring this "
+                << "update");
         return;
     }
 
@@ -1389,8 +1405,10 @@ void NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged(
     m_lastFontComboBoxFontFamily = fontFamily;
 
     if (!m_pCurrentNote) {
-        QNTRACE("widget:note_editor", "No note is set to the editor, nothing "
-            << "to do");
+        QNTRACE(
+            "widget:note_editor",
+            "No note is set to the editor, nothing "
+                << "to do");
         return;
     }
 
@@ -1414,22 +1432,25 @@ void NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged(int index)
     m_lastFontSizeComboBoxIndex = index;
 
     if (!m_pCurrentNote) {
-        QNTRACE("widget:note_editor", "No note is set to the editor, nothing "
-            << "to do");
+        QNTRACE(
+            "widget:note_editor",
+            "No note is set to the editor, nothing "
+                << "to do");
         return;
     }
 
     if (m_lastFontSizeComboBoxIndex < 0) {
-        QNTRACE("widget:note_editor", "Font size combo box index is negative, "
-            << "won't do anything");
+        QNTRACE(
+            "widget:note_editor",
+            "Font size combo box index is negative, "
+                << "won't do anything");
         return;
     }
 
     bool conversionResult = false;
     QVariant data = m_pUi->fontSizeComboBox->itemData(index);
     int fontSize = data.toInt(&conversionResult);
-    if (Q_UNLIKELY(!conversionResult))
-    {
+    if (Q_UNLIKELY(!conversionResult)) {
         ErrorString error(
             QT_TR_NOOP("Can't process the change of font size combo box index: "
                        "can't convert combo box item data to int"));
@@ -1443,9 +1464,8 @@ void NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged(int index)
 
 void NoteEditorWidget::onNoteSavedToLocalStorage(QString noteLocalUid)
 {
-    if (Q_UNLIKELY(!m_pCurrentNote ||
-                   (m_pCurrentNote->localUid() != noteLocalUid)))
-    {
+    if (Q_UNLIKELY(
+            !m_pCurrentNote || (m_pCurrentNote->localUid() != noteLocalUid))) {
         return;
     }
 
@@ -1460,9 +1480,8 @@ void NoteEditorWidget::onNoteSavedToLocalStorage(QString noteLocalUid)
 void NoteEditorWidget::onFailedToSaveNoteToLocalStorage(
     ErrorString errorDescription, QString noteLocalUid)
 {
-    if (Q_UNLIKELY(!m_pCurrentNote ||
-                   (m_pCurrentNote->localUid() != noteLocalUid)))
-    {
+    if (Q_UNLIKELY(
+            !m_pCurrentNote || (m_pCurrentNote->localUid() != noteLocalUid))) {
         return;
     }
 
@@ -1489,32 +1508,40 @@ void NoteEditorWidget::onFailedToSaveNoteToLocalStorage(
 void NoteEditorWidget::onUpdateNoteComplete(
     Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
-    if (Q_UNLIKELY(!m_pCurrentNote ||
-                   (m_pCurrentNote->localUid() != note.localUid())))
+    if (Q_UNLIKELY(
+            !m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())))
     {
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onUpdateNoteComplete: "
-        << "note local uid = " << note.localUid() << ", request id = "
-        << requestId << ", update resource metadata = "
-        << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata)
-            ? "true"
-            : "false")
-        << ", update resource binary data = "
-        << ((options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData)
-            ? "true"
-            : "false")
-        << ", update tags = "
-        << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags)
-            ? "true"
-            : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onUpdateNoteComplete: "
+            << "note local uid = " << note.localUid()
+            << ", request id = " << requestId << ", update resource metadata = "
+            << ((options &
+                 LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata)
+                    ? "true"
+                    : "false")
+            << ", update resource binary data = "
+            << ((options &
+                 LocalStorageManager::UpdateNoteOption::
+                     UpdateResourceBinaryData)
+                    ? "true"
+                    : "false")
+            << ", update tags = "
+            << ((options & LocalStorageManager::UpdateNoteOption::UpdateTags)
+                    ? "true"
+                    : "false"));
 
     bool updateResources =
-        (options & LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) &&
-        (options & LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
+        (options &
+         LocalStorageManager::UpdateNoteOption::UpdateResourceMetadata) &&
+        (options &
+         LocalStorageManager::UpdateNoteOption::UpdateResourceBinaryData);
 
-    bool updateTags = (options & LocalStorageManager::UpdateNoteOption::UpdateTags);
+    bool updateTags =
+        (options & LocalStorageManager::UpdateNoteOption::UpdateTags);
 
     QList<Resource> backupResources;
     if (!updateResources) {
@@ -1554,20 +1581,25 @@ void NoteEditorWidget::onUpdateNoteComplete(
     }
 
     if (note.hasDeletionTimestamp()) {
-        QNINFO("widget:note_editor", "The note loaded into the editor was "
-            << "deleted: " << *m_pCurrentNote);
+        QNINFO(
+            "widget:note_editor",
+            "The note loaded into the editor was "
+                << "deleted: " << *m_pCurrentNote);
         Q_EMIT invalidated();
         return;
     }
 
-    if (Q_UNLIKELY(!m_pCurrentNotebook))
-    {
-        QNDEBUG("widget:note_editor", "Current notebook is null - a bit "
-            << "unexpected at this point");
+    if (Q_UNLIKELY(!m_pCurrentNotebook)) {
+        QNDEBUG(
+            "widget:note_editor",
+            "Current notebook is null - a bit "
+                << "unexpected at this point");
 
         if (!m_findCurrentNotebookRequestId.isNull()) {
-            QNDEBUG("widget:note_editor", "The request to find the current "
-                << "notebook is still active, waiting for it to finish");
+            QNDEBUG(
+                "widget:note_editor",
+                "The request to find the current "
+                    << "notebook is still active, waiting for it to finish");
             return;
         }
 
@@ -1579,17 +1611,17 @@ void NoteEditorWidget::onUpdateNoteComplete(
             pCachedNotebook = m_notebookCache.get(notebookLocalUid);
         }
 
-        if (pCachedNotebook)
-        {
+        if (pCachedNotebook) {
             m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
         }
-        else
-        {
-            if (Q_UNLIKELY(!m_pCurrentNote->hasNotebookLocalUid() &&
-                           !m_pCurrentNote->hasNotebookGuid()))
+        else {
+            if (Q_UNLIKELY(
+                    !m_pCurrentNote->hasNotebookLocalUid() &&
+                    !m_pCurrentNote->hasNotebookGuid()))
             {
-                ErrorString error(QT_TR_NOOP("Note has neither notebook local "
-                                             "uid nor notebook guid"));
+                ErrorString error(
+                    QT_TR_NOOP("Note has neither notebook local "
+                               "uid nor notebook guid"));
                 if (note.hasTitle()) {
                     error.details() = note.title();
                 }
@@ -1597,8 +1629,9 @@ void NoteEditorWidget::onUpdateNoteComplete(
                     error.details() = m_pCurrentNote->localUid();
                 }
 
-                QNWARNING("widget:note_editor", error << ", note: "
-                    << *m_pCurrentNote);
+                QNWARNING(
+                    "widget:note_editor",
+                    error << ", note: " << *m_pCurrentNote);
 
                 Q_EMIT notifyError(error);
                 clear();
@@ -1615,9 +1648,11 @@ void NoteEditorWidget::onUpdateNoteComplete(
                 dummy.setGuid(m_pCurrentNote->notebookGuid());
             }
 
-            QNTRACE("widget:note_editor", "Emitting the request to find "
-                << "the current notebook: " << dummy << "\nRequest id = "
-                << m_findCurrentNotebookRequestId);
+            QNTRACE(
+                "widget:note_editor",
+                "Emitting the request to find "
+                    << "the current notebook: " << dummy
+                    << "\nRequest id = " << m_findCurrentNotebookRequestId);
 
             Q_EMIT findNotebook(dummy, m_findCurrentNotebookRequestId);
             return;
@@ -1635,15 +1670,19 @@ void NoteEditorWidget::onFindNoteComplete(
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onFindNoteComplete: "
-        << "request id = " << requestId << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-            ? "true"
-            : "false")
-        << ", with resource binary data = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-            ? "true"
-            : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onFindNoteComplete: "
+            << "request id = " << requestId << ", with resource metadata = "
+            << ((options &
+                 LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                    ? "true"
+                    : "false")
+            << ", with resource binary data = "
+            << ((options &
+                 LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                    ? "true"
+                    : "false"));
 
     QNTRACE("widget:note_editor", "Note: " << note);
 
@@ -1658,16 +1697,16 @@ void NoteEditorWidget::onFindNoteComplete(
         titleOrPreview.truncate(140);
     }
 
-    QNTRACE("widget:note_editor", "Emitting the request to insert the in-app "
-        << "note link: user id = " << noteLinkInfo.m_userId
-        << ", shard id = " << noteLinkInfo.m_shardId
-        << ", note guid = " << noteLinkInfo.m_noteGuid
-        << ", title or preview = " << titleOrPreview);
+    QNTRACE(
+        "widget:note_editor",
+        "Emitting the request to insert the in-app "
+            << "note link: user id = " << noteLinkInfo.m_userId
+            << ", shard id = " << noteLinkInfo.m_shardId
+            << ", note guid = " << noteLinkInfo.m_noteGuid
+            << ", title or preview = " << titleOrPreview);
 
     Q_EMIT insertInAppNoteLink(
-        noteLinkInfo.m_userId,
-        noteLinkInfo.m_shardId,
-        noteLinkInfo.m_noteGuid,
+        noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid,
         titleOrPreview);
 
     Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(it))
@@ -1682,31 +1721,35 @@ void NoteEditorWidget::onFindNoteFailed(
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onFindNoteFailed: "
-        << "request id = " << requestId << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-            ? "true"
-            : "false")
-        << ", with resource binary data = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-            ? "true"
-            : "false")
-        << ", error description: " << errorDescription);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onFindNoteFailed: "
+            << "request id = " << requestId << ", with resource metadata = "
+            << ((options &
+                 LocalStorageManager::GetNoteOption::WithResourceMetadata)
+                    ? "true"
+                    : "false")
+            << ", with resource binary data = "
+            << ((options &
+                 LocalStorageManager::GetNoteOption::WithResourceBinaryData)
+                    ? "true"
+                    : "false")
+            << ", error description: " << errorDescription);
 
     QNTRACE("widget:note_editor", "Note: " << note);
 
     const auto & noteLinkInfo = it.value();
 
-    QNTRACE("widget:note_editor", "Emitting the request to insert the in-app "
-        << "note link without the link text as the note was not found: "
-        << "user id = " << noteLinkInfo.m_userId
-        << ", shard id = " << noteLinkInfo.m_shardId
-        << ", note guid = " << noteLinkInfo.m_noteGuid);
+    QNTRACE(
+        "widget:note_editor",
+        "Emitting the request to insert the in-app "
+            << "note link without the link text as the note was not found: "
+            << "user id = " << noteLinkInfo.m_userId
+            << ", shard id = " << noteLinkInfo.m_shardId
+            << ", note guid = " << noteLinkInfo.m_noteGuid);
 
     Q_EMIT insertInAppNoteLink(
-        noteLinkInfo.m_userId,
-        noteLinkInfo.m_shardId,
-        noteLinkInfo.m_noteGuid,
+        noteLinkInfo.m_userId, noteLinkInfo.m_shardId, noteLinkInfo.m_noteGuid,
         QString());
 
     Q_UNUSED(m_noteLinkInfoByFindNoteRequestIds.erase(it))
@@ -1718,17 +1761,21 @@ void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onExpungeNoteComplete: "
-        << "note local uid = " << note.localUid() << ", request id = "
-        << requestId);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onExpungeNoteComplete: "
+            << "note local uid = " << note.localUid()
+            << ", request id = " << requestId);
 
     m_currentNoteWasExpunged = true;
 
     // TODO: ideally should allow the choice to either re-save the note or to
     // drop it
 
-    QNINFO("widget:note_editor", "The note loaded into the editor was expunged "
-        << "from the local storage: " << *m_pCurrentNote);
+    QNINFO(
+        "widget:note_editor",
+        "The note loaded into the editor was expunged "
+            << "from the local storage: " << *m_pCurrentNote);
 
     Q_EMIT invalidated();
 }
@@ -1745,19 +1792,22 @@ void NoteEditorWidget::onAddResourceComplete(Resource resource, QUuid requestId)
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onAddResourceComplete: "
-        << "request id = " << requestId << ", resource: " << resource);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onAddResourceComplete: "
+            << "request id = " << requestId << ", resource: " << resource);
 
-    if (m_pCurrentNote->hasResources())
-    {
+    if (m_pCurrentNote->hasResources()) {
         auto resources = m_pCurrentNote->resources();
-        for(auto it = resources.constBegin(),
-            end = resources.constEnd(); it != end; ++it)
+        for (auto it = resources.constBegin(), end = resources.constEnd();
+             it != end; ++it)
         {
             const auto & currentResource = *it;
             if (currentResource.localUid() == resource.localUid()) {
-                QNDEBUG("widget:note_editor", "Found the added resource "
-                    << "already belonging to the note");
+                QNDEBUG(
+                    "widget:note_editor",
+                    "Found the added resource "
+                        << "already belonging to the note");
                 return;
             }
         }
@@ -1781,8 +1831,10 @@ void NoteEditorWidget::onUpdateResourceComplete(
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onUpdateResourceComplete: "
-        << "request id = " << requestId << ", resource: " << resource);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onUpdateResourceComplete: "
+            << "request id = " << requestId << ", resource: " << resource);
 
     // TODO: ideally should allow the choice to either leave the current version
     // of the note or to reload it
@@ -1823,8 +1875,10 @@ void NoteEditorWidget::onUpdateNotebookComplete(
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onUpdateNotebookComplete: "
-        << "notebook = " << notebook << "\nRequest id = " << requestId);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onUpdateNotebookComplete: "
+            << "notebook = " << notebook << "\nRequest id = " << requestId);
 
     setNoteAndNotebook(*m_pCurrentNote, notebook);
 }
@@ -1843,9 +1897,11 @@ void NoteEditorWidget::onExpungeNotebookComplete(
         "NoteEditorWidget::onExpungeNotebookComplete: notebook = "
             << notebook << "\nRequest id = " << requestId);
 
-    QNINFO("widget:note_editor", "The notebook containing the note loaded into "
-        << "the editor was expunged from the local storage: "
-        << *m_pCurrentNotebook);
+    QNINFO(
+        "widget:note_editor",
+        "The notebook containing the note loaded into "
+            << "the editor was expunged from the local storage: "
+            << *m_pCurrentNotebook);
 
     clear();
     Q_EMIT invalidated();
@@ -1858,14 +1914,18 @@ void NoteEditorWidget::onFindNotebookComplete(
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onFindNotebookComplete: "
-        << "request id = " << requestId << ", notebook: " << notebook);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onFindNotebookComplete: "
+            << "request id = " << requestId << ", notebook: " << notebook);
 
     m_findCurrentNotebookRequestId = QUuid();
 
     if (Q_UNLIKELY(!m_pCurrentNote)) {
-        QNDEBUG("widget:note_editor", "Can't process the update of "
-            << "the notebook: no current note is set");
+        QNDEBUG(
+            "widget:note_editor",
+            "Can't process the update of "
+                << "the notebook: no current note is set");
         clear();
         return;
     }
@@ -1873,8 +1933,9 @@ void NoteEditorWidget::onFindNotebookComplete(
     m_pCurrentNotebook.reset(new Notebook(notebook));
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 
-    QNTRACE("widget:note_editor", "Emitting resolved signal, note local uid = "
-        << m_noteLocalUid);
+    QNTRACE(
+        "widget:note_editor",
+        "Emitting resolved signal, note local uid = " << m_noteLocalUid);
 
     Q_EMIT resolved();
 }
@@ -1886,9 +1947,11 @@ void NoteEditorWidget::onFindNotebookFailed(
         return;
     }
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onFindNotebookFailed: "
-        << "request id = " << requestId << ", notebook: " << notebook
-        << "\nError description = " << errorDescription);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onFindNotebookFailed: "
+            << "request id = " << requestId << ", notebook: " << notebook
+            << "\nError description = " << errorDescription);
 
     m_findCurrentNotebookRequestId = QUuid();
     clear();
@@ -1900,8 +1963,9 @@ void NoteEditorWidget::onFindNotebookFailed(
 
 void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
 {
-    QNTRACE("widget:note_editor", "NoteEditorWidget::onNoteTitleEdited: "
-        << noteTitle);
+    QNTRACE(
+        "widget:note_editor",
+        "NoteEditorWidget::onNoteTitleEdited: " << noteTitle);
 
     m_noteTitleIsEdited = true;
     m_noteTitleHasBeenEdited = true;
@@ -1928,8 +1992,9 @@ void NoteEditorWidget::onNoteTitleUpdated()
     QString noteTitle = m_pUi->noteNameLineEdit->text().trimmed();
     m_stringUtils.removeNewlines(noteTitle);
 
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onNoteTitleUpdated: "
-        << noteTitle);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onNoteTitleUpdated: " << noteTitle);
 
     m_noteTitleIsEdited = false;
     m_noteTitleHasBeenEdited = true;
@@ -1938,20 +2003,26 @@ void NoteEditorWidget::onNoteTitleUpdated()
         // That shouldn't really happen in normal circumstances but it could
         // in theory be some old event which has reached this object after
         // the note has already been cleaned up
-        QNDEBUG("widget:note_editor", "No current note in the note editor "
-            << "widget! Ignoring the note title update");
+        QNDEBUG(
+            "widget:note_editor",
+            "No current note in the note editor "
+                << "widget! Ignoring the note title update");
         return;
     }
 
     if (!m_pCurrentNote->hasTitle() && noteTitle.isEmpty()) {
-        QNDEBUG("widget:note_editor", "Note's title is still empty, nothing to "
-            << "do");
+        QNDEBUG(
+            "widget:note_editor",
+            "Note's title is still empty, nothing to "
+                << "do");
         return;
     }
 
     if (m_pCurrentNote->hasTitle() && (m_pCurrentNote->title() == noteTitle)) {
-        QNDEBUG("widget:note_editor", "Note's title hasn't changed, nothing "
-            << "to do");
+        QNDEBUG(
+            "widget:note_editor",
+            "Note's title hasn't changed, nothing "
+                << "to do");
         return;
     }
 
@@ -1975,8 +2046,10 @@ void NoteEditorWidget::onNoteTitleUpdated()
 
 void NoteEditorWidget::onEditorNoteUpdate(Note note)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onEditorNoteUpdate: "
-        << "note local uid = " << note.localUid());
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onEditorNoteUpdate: "
+            << "note local uid = " << note.localUid());
 
     QNTRACE("widget:note_editor", "Note: " << note);
 
@@ -1984,15 +2057,15 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
         // That shouldn't really happen in normal circumstances but it could
         // in theory be some old event which has reached this object after
         // the note has already been cleaned up
-        QNDEBUG("widget:note_editor", "No current note in the note editor "
-            << "widget! Ignoring the update from the note editor");
+        QNDEBUG(
+            "widget:note_editor",
+            "No current note in the note editor "
+                << "widget! Ignoring the update from the note editor");
         return;
     }
 
     QString noteTitle =
-        (m_pCurrentNote->hasTitle()
-         ? m_pCurrentNote->title()
-         : QString());
+        (m_pCurrentNote->hasTitle() ? m_pCurrentNote->title() : QString());
 
     *m_pCurrentNote = note;
     m_pCurrentNote->setTitle(noteTitle);
@@ -2002,8 +2075,9 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
 
 void NoteEditorWidget::onEditorNoteUpdateFailed(ErrorString error)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onEditorNoteUpdateFailed: "
-        << error);
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onEditorNoteUpdateFailed: " << error);
 
     Q_EMIT notifyError(error);
     Q_EMIT conversionToNoteFailed();
@@ -2014,8 +2088,8 @@ void NoteEditorWidget::onEditorInAppLinkPasteRequested(
 {
     QNDEBUG(
         "widget:note_editor",
-        "NoteEditorWidget::onEditorInAppLinkPasteRequested: url = " << url
-            << ", user id = " << userId << ", shard id = " << shardId
+        "NoteEditorWidget::onEditorInAppLinkPasteRequested: url = "
+            << url << ", user id = " << userId << ", shard id = " << shardId
             << ", note guid = " << noteGuid);
 
     NoteLinkInfo noteLinkInfo;
@@ -2029,9 +2103,11 @@ void NoteEditorWidget::onEditorInAppLinkPasteRequested(
     dummyNote.unsetLocalUid();
     dummyNote.setGuid(noteGuid);
 
-    QNTRACE("widget:note_editor", "Emitting the request to find note by guid "
-        << "for the purpose of in-app note link insertion: request id = "
-        << requestId << ", note guid = " << noteGuid);
+    QNTRACE(
+        "widget:note_editor",
+        "Emitting the request to find note by guid "
+            << "for the purpose of in-app note link insertion: request id = "
+            << requestId << ", note guid = " << noteGuid);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     LocalStorageManager::GetNoteOptions options;
@@ -2202,10 +2278,8 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
     QFont currentFont(fontFamily);
 
     bool useLimitedFonts = !(m_pUi->limitedFontComboBox->isHidden());
-    if (useLimitedFonts)
-    {
-        if (Q_UNLIKELY(!m_pLimitedFontsListModel))
-        {
+    if (useLimitedFonts) {
+        if (Q_UNLIKELY(!m_pLimitedFontsListModel)) {
             ErrorString errorDescription(
                 QT_TR_NOOP("Can't process the change of font: internal error, "
                            "no limited fonts list model is set up"));
@@ -2217,23 +2291,27 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
 
         QStringList fontNames = m_pLimitedFontsListModel->stringList();
         int index = fontNames.indexOf(fontFamily);
-        if (index < 0)
-        {
-            QNDEBUG("widget:note_editor", "Could not find font name "
-                << fontFamily << " within available font names: "
-                << fontNames.join(QStringLiteral(", "))
-                << ", will try to match the font family \"approximately\"");
+        if (index < 0) {
+            QNDEBUG(
+                "widget:note_editor",
+                "Could not find font name "
+                    << fontFamily << " within available font names: "
+                    << fontNames.join(QStringLiteral(", "))
+                    << ", will try to match the font family \"approximately\"");
 
-            for(auto it = fontNames.constBegin(),
-                end = fontNames.constEnd(); it != end; ++it)
+            for (auto it = fontNames.constBegin(), end = fontNames.constEnd();
+                 it != end; ++it)
             {
                 const QString & currentFontFamily = *it;
-                if (fontFamily.contains(currentFontFamily, Qt::CaseInsensitive) ||
+                if (fontFamily.contains(
+                        currentFontFamily, Qt::CaseInsensitive) ||
                     currentFontFamily.contains(fontFamily, Qt::CaseInsensitive))
                 {
-                    QNDEBUG("widget:note_editor", "Note editor's font family "
-                        << fontFamily << " appears to correspond to "
-                        << currentFontFamily);
+                    QNDEBUG(
+                        "widget:note_editor",
+                        "Note editor's font family "
+                            << fontFamily << " appears to correspond to "
+                            << currentFontFamily);
 
                     index = static_cast<int>(
                         std::distance(fontNames.constBegin(), it));
@@ -2243,37 +2321,38 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
             }
         }
 
-        if (index < 0)
-        {
-            QNDEBUG("widget:note_editor", "Could not find neither exact nor "
-                << "approximate match for the font name " << fontFamily
-                << " within available font names: "
-                << fontNames.join(QStringLiteral(", "))
-                << ", will add the missing font name to the list");
+        if (index < 0) {
+            QNDEBUG(
+                "widget:note_editor",
+                "Could not find neither exact nor "
+                    << "approximate match for the font name " << fontFamily
+                    << " within available font names: "
+                    << fontNames.join(QStringLiteral(", "))
+                    << ", will add the missing font name to the list");
 
             fontNames << fontFamily;
             fontNames.sort(Qt::CaseInsensitive);
 
             auto it = std::lower_bound(
-                fontNames.constBegin(),
-                fontNames.constEnd(),
-                fontFamily);
+                fontNames.constBegin(), fontNames.constEnd(), fontFamily);
 
             if ((it != fontNames.constEnd()) && (*it == fontFamily)) {
-                index = static_cast<int>(
-                    std::distance(fontNames.constBegin(), it));
+                index =
+                    static_cast<int>(std::distance(fontNames.constBegin(), it));
             }
             else {
                 index = fontNames.indexOf(fontFamily);
             }
 
-            if (Q_UNLIKELY(index < 0))
-            {
-                QNWARNING("widget:note_editor", "Something is weird: can't "
-                    << "find the just added font " << fontFamily
-                    << " within the list of available fonts where it should "
-                    << "have been just added: "
-                    << fontNames.join(QStringLiteral(", ")));
+            if (Q_UNLIKELY(index < 0)) {
+                QNWARNING(
+                    "widget:note_editor",
+                    "Something is weird: can't "
+                        << "find the just added font " << fontFamily
+                        << " within the list of available fonts where it "
+                           "should "
+                        << "have been just added: "
+                        << fontNames.join(QStringLiteral(", ")));
 
                 index = 0;
             }
@@ -2284,55 +2363,48 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
         QObject::disconnect(
             m_pUi->limitedFontComboBox,
-            qOverload<int>(&QComboBox::currentIndexChanged),
-            this,
+            qOverload<int>(&QComboBox::currentIndexChanged), this,
             &NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged);
 #else
         QObject::disconnect(
-            m_pUi->limitedFontComboBox,
-            SIGNAL(currentIndexChanged(int)),
-            this,
+            m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(int)), this,
             SLOT(onLimitedFontsComboBoxCurrentIndexChanged(int)));
 #endif
 
         m_pUi->limitedFontComboBox->setCurrentIndex(index);
 
-        QNTRACE("widget:note_editor", "Set limited font combo box index to "
-            << index << " corresponding to font family " << fontFamily);
+        QNTRACE(
+            "widget:note_editor",
+            "Set limited font combo box index to "
+                << index << " corresponding to font family " << fontFamily);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
         QObject::connect(
             m_pUi->limitedFontComboBox,
-            qOverload<int>(&QComboBox::currentIndexChanged),
-            this,
+            qOverload<int>(&QComboBox::currentIndexChanged), this,
             &NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged);
 #else
         QObject::connect(
-            m_pUi->limitedFontComboBox,
-            SIGNAL(currentIndexChanged(int)),
-            this,
+            m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(int)), this,
             SLOT(onLimitedFontsComboBoxCurrentIndexChanged(int)));
 #endif
     }
-    else
-    {
+    else {
         QObject::disconnect(
-            m_pUi->fontComboBox,
-            &QFontComboBox::currentFontChanged,
-            this,
+            m_pUi->fontComboBox, &QFontComboBox::currentFontChanged, this,
             &NoteEditorWidget::onFontComboBoxFontChanged);
 
         m_pUi->fontComboBox->setCurrentFont(currentFont);
 
-        QNTRACE("widget:note_editor", "Font family from combo box: "
-            << m_pUi->fontComboBox->currentFont().family()
-            << ", font family set by QFont's constructor from it: "
-            << currentFont.family());
+        QNTRACE(
+            "widget:note_editor",
+            "Font family from combo box: "
+                << m_pUi->fontComboBox->currentFont().family()
+                << ", font family set by QFont's constructor from it: "
+                << currentFont.family());
 
         QObject::connect(
-            m_pUi->fontComboBox,
-            &QFontComboBox::currentFontChanged,
-            this,
+            m_pUi->fontComboBox, &QFontComboBox::currentFontChanged, this,
             &NoteEditorWidget::onFontComboBoxFontChanged);
     }
 
@@ -2346,51 +2418,56 @@ void NoteEditorWidget::onEditorTextFontSizeChanged(int fontSize)
         "NoteEditorWidget::onEditorTextFontSizeChanged: " << fontSize);
 
     if (m_lastSuggestedFontSize == fontSize) {
-        QNTRACE("widget:note_editor", "This font size has already been "
-            << "suggested previously");
+        QNTRACE(
+            "widget:note_editor",
+            "This font size has already been "
+                << "suggested previously");
         return;
     }
 
     m_lastSuggestedFontSize = fontSize;
 
-    int fontSizeIndex = m_pUi->fontSizeComboBox->findData(
-        QVariant(fontSize),
-        Qt::UserRole);
+    int fontSizeIndex =
+        m_pUi->fontSizeComboBox->findData(QVariant(fontSize), Qt::UserRole);
 
-    if (fontSizeIndex >= 0)
-    {
+    if (fontSizeIndex >= 0) {
         m_lastFontSizeComboBoxIndex = fontSizeIndex;
         m_lastActualFontSize = fontSize;
 
-        if (m_pUi->fontSizeComboBox->currentIndex() != fontSizeIndex)
-        {
+        if (m_pUi->fontSizeComboBox->currentIndex() != fontSizeIndex) {
             m_pUi->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
 
-            QNTRACE("widget:note_editor", "fontSizeComboBox: set current index "
-                << "to " << fontSizeIndex << ", found font size = "
-                << QVariant(fontSize));
+            QNTRACE(
+                "widget:note_editor",
+                "fontSizeComboBox: set current index "
+                    << "to " << fontSizeIndex
+                    << ", found font size = " << QVariant(fontSize));
         }
 
         return;
     }
 
-    QNDEBUG("widget:note_editor", "Can't find font size " << fontSize
-        << " within those listed in font size combobox, will try to choose "
-        << "the closest one instead");
+    QNDEBUG(
+        "widget:note_editor",
+        "Can't find font size "
+            << fontSize
+            << " within those listed in font size combobox, will try to choose "
+            << "the closest one instead");
 
     const int numFontSizes = m_pUi->fontSizeComboBox->count();
     int currentSmallestDiscrepancy = 1e5;
     int currentClosestIndex = -1;
     int currentClosestFontSize = -1;
 
-    for(int i = 0; i < numFontSizes; ++i)
-    {
+    for (int i = 0; i < numFontSizes; ++i) {
         auto value = m_pUi->fontSizeComboBox->itemData(i, Qt::UserRole);
         bool conversionResult = false;
         int valueInt = value.toInt(&conversionResult);
         if (!conversionResult) {
-            QNWARNING("widget:note_editor", "Can't convert value from font "
-                << "size combo box to int: " << value);
+            QNWARNING(
+                "widget:note_editor",
+                "Can't convert value from font "
+                    << "size combo box to int: " << value);
             continue;
         }
 
@@ -2399,25 +2476,32 @@ void NoteEditorWidget::onEditorTextFontSizeChanged(int fontSize)
             currentSmallestDiscrepancy = discrepancy;
             currentClosestIndex = i;
             currentClosestFontSize = valueInt;
-            QNTRACE("widget:note_editor", "Updated current closest index to "
-                << i << ": font size = " << valueInt);
+            QNTRACE(
+                "widget:note_editor",
+                "Updated current closest index to "
+                    << i << ": font size = " << valueInt);
         }
     }
 
     if (currentClosestIndex < 0) {
-        QNDEBUG("widget:note_editor", "Couldn't find closest font size to "
-            << fontSize);
+        QNDEBUG(
+            "widget:note_editor",
+            "Couldn't find closest font size to " << fontSize);
         return;
     }
 
-    QNTRACE("widget:note_editor", "Found closest current font size: "
-        << currentClosestFontSize << ", index = " << currentClosestIndex);
+    QNTRACE(
+        "widget:note_editor",
+        "Found closest current font size: "
+            << currentClosestFontSize << ", index = " << currentClosestIndex);
 
-    if ( (m_lastFontSizeComboBoxIndex == currentClosestIndex) &&
-         (m_lastActualFontSize == currentClosestFontSize) )
+    if ((m_lastFontSizeComboBoxIndex == currentClosestIndex) &&
+        (m_lastActualFontSize == currentClosestFontSize))
     {
-        QNTRACE("widget:note_editor", "Neither the font size nor its index "
-            << "within the font combo box have changed");
+        QNTRACE(
+            "widget:note_editor",
+            "Neither the font size nor its index "
+                << "within the font combo box have changed");
         return;
     }
 
@@ -2443,8 +2527,10 @@ void NoteEditorWidget::onEditorTextInsertTableDialogRequested()
         return;
     }
 
-    QNTRACE("widget:note_editor", "Returned from TableSettingsDialog::exec: "
-        << "accepted");
+    QNTRACE(
+        "widget:note_editor",
+        "Returned from TableSettingsDialog::exec: "
+            << "accepted");
 
     int numRows = pTableSettingsDialog->numRows();
     int numColumns = pTableSettingsDialog->numColumns();
@@ -2453,15 +2539,11 @@ void NoteEditorWidget::onEditorTextInsertTableDialogRequested()
 
     if (relativeWidth) {
         m_pUi->noteEditor->insertRelativeWidthTable(
-            numRows,
-            numColumns,
-            tableWidth);
+            numRows, numColumns, tableWidth);
     }
     else {
         m_pUi->noteEditor->insertFixedWidthTable(
-            numRows,
-            numColumns,
-            static_cast<int>(tableWidth));
+            numRows, numColumns, static_cast<int>(tableWidth));
     }
 
     m_pUi->noteEditor->setFocus();
@@ -2470,21 +2552,18 @@ void NoteEditorWidget::onEditorTextInsertTableDialogRequested()
 void NoteEditorWidget::onEditorSpellCheckerNotReady()
 {
     QNDEBUG(
-        "widget:note_editor",
-        "NoteEditorWidget::onEditorSpellCheckerNotReady");
+        "widget:note_editor", "NoteEditorWidget::onEditorSpellCheckerNotReady");
 
     m_pendingEditorSpellChecker = true;
 
-    Q_EMIT notifyError(
-        ErrorString(
-            QT_TR_NOOP("Spell checker is loading dictionaries, please wait")));
+    Q_EMIT notifyError(ErrorString(
+        QT_TR_NOOP("Spell checker is loading dictionaries, please wait")));
 }
 
 void NoteEditorWidget::onEditorSpellCheckerReady()
 {
     QNDEBUG(
-        "widget:note_editor",
-        "NoteEditorWidget::onEditorSpellCheckerReady");
+        "widget:note_editor", "NoteEditorWidget::onEditorSpellCheckerReady");
 
     if (!m_pendingEditorSpellChecker) {
         return;
@@ -2518,8 +2597,7 @@ void NoteEditorWidget::onFindInsideNoteAction()
 {
     QNDEBUG("widget:note_editor", "NoteEditorWidget::onFindInsideNoteAction");
 
-    if (m_pUi->findAndReplaceWidget->isHidden())
-    {
+    if (m_pUi->findAndReplaceWidget->isHidden()) {
         QString textToFind = m_pUi->noteEditor->selectedText();
         if (textToFind.isEmpty()) {
             textToFind = m_pUi->findAndReplaceWidget->textToFind();
@@ -2543,8 +2621,7 @@ void NoteEditorWidget::onFindPreviousInsideNoteAction()
         "widget:note_editor",
         "NoteEditorWidget::onFindPreviousInsideNoteAction");
 
-    if (m_pUi->findAndReplaceWidget->isHidden())
-    {
+    if (m_pUi->findAndReplaceWidget->isHidden()) {
         QString textToFind = m_pUi->noteEditor->selectedText();
         if (textToFind.isEmpty()) {
             textToFind = m_pUi->findAndReplaceWidget->textToFind();
@@ -2565,15 +2642,16 @@ void NoteEditorWidget::onFindPreviousInsideNoteAction()
 void NoteEditorWidget::onReplaceInsideNoteAction()
 {
     QNDEBUG(
-        "widget:note_editor",
-        "NoteEditorWidget::onReplaceInsideNoteAction");
+        "widget:note_editor", "NoteEditorWidget::onReplaceInsideNoteAction");
 
     if (m_pUi->findAndReplaceWidget->isHidden() ||
         !m_pUi->findAndReplaceWidget->replaceEnabled())
     {
-        QNTRACE("widget:note_editor", "At least the replacement part of find "
-            << "and replace widget is hidden, will only show it and do "
-            << "nothing else");
+        QNTRACE(
+            "widget:note_editor",
+            "At least the replacement part of find "
+                << "and replace widget is hidden, will only show it and do "
+                << "nothing else");
 
         QString textToFind = m_pUi->noteEditor->selectedText();
         if (textToFind.isEmpty()) {
@@ -2602,25 +2680,22 @@ void NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage(
         "widget:note_editor",
         "NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage");
 
-    QNTRACE("widget:note_editor", "Note: " << note << "\nNotebook: "
-        << notebook);
+    QNTRACE(
+        "widget:note_editor", "Note: " << note << "\nNotebook: " << notebook);
 
     QObject::disconnect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteAndNotebookFoundInLocalStorage,
-        this,
-        &NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage);
+        m_pUi->noteEditor, &NoteEditor::noteAndNotebookFoundInLocalStorage,
+        this, &NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage);
 
     QObject::disconnect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteNotFound,
-        this,
+        m_pUi->noteEditor, &NoteEditor::noteNotFound, this,
         &NoteEditorWidget::onNoteNotFoundInLocalStorage);
 
     setNoteAndNotebook(note, notebook);
 
-    QNTRACE("widget:note_editor", "Emitting resolved signal, note local uid = "
-        << m_noteLocalUid);
+    QNTRACE(
+        "widget:note_editor",
+        "Emitting resolved signal, note local uid = " << m_noteLocalUid);
 
     Q_EMIT resolved();
 }
@@ -2645,8 +2720,7 @@ void NoteEditorWidget::onNoteNotFoundInLocalStorage(QString noteLocalUid)
 void NoteEditorWidget::onFindAndReplaceWidgetClosed()
 {
     QNDEBUG(
-        "widget:note_editor",
-        "NoteEditorWidget::onFindAndReplaceWidgetClosed");
+        "widget:note_editor", "NoteEditorWidget::onFindAndReplaceWidgetClosed");
 
     onFindNextInsideNote(QString(), false);
 }
@@ -2663,18 +2737,21 @@ void NoteEditorWidget::onTextToFindInsideNoteEdited(const QString & textToFind)
 
 #define CHECK_FIND_AND_REPLACE_WIDGET_STATE()                                  \
     if (Q_UNLIKELY(m_pUi->findAndReplaceWidget->isHidden())) {                 \
-        QNTRACE("widget:note_editor", "Find and replace widget is not shown, " \
-            << "nothing to do");                                               \
+        QNTRACE(                                                               \
+            "widget:note_editor",                                              \
+            "Find and replace widget is not shown, "                           \
+                << "nothing to do");                                           \
         return;                                                                \
-    }                                                                          \
-// CHECK_FIND_AND_REPLACE_WIDGET_STATE
+    }
 
 void NoteEditorWidget::onFindNextInsideNote(
     const QString & textToFind, const bool matchCase)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onFindNextInsideNote: "
-        << "text to find = " << textToFind << ", match case = "
-        << (matchCase ? "true" : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onFindNextInsideNote: "
+            << "text to find = " << textToFind
+            << ", match case = " << (matchCase ? "true" : "false"));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUi->noteEditor->findNext(textToFind, matchCase);
@@ -2683,9 +2760,11 @@ void NoteEditorWidget::onFindNextInsideNote(
 void NoteEditorWidget::onFindPreviousInsideNote(
     const QString & textToFind, const bool matchCase)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onFindPreviousInsideNote: "
-        << "text to find = " << textToFind << ", match case = "
-        << (matchCase ? "true" : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onFindPreviousInsideNote: "
+            << "text to find = " << textToFind
+            << ", match case = " << (matchCase ? "true" : "false"));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUi->noteEditor->findPrevious(textToFind, matchCase);
@@ -2709,10 +2788,12 @@ void NoteEditorWidget::onReplaceInsideNote(
     const QString & textToReplace, const QString & replacementText,
     const bool matchCase)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onReplaceInsideNote: "
-        << "text to replace = " << textToReplace << ", replacement text = "
-        << replacementText << ", match case = "
-        << (matchCase ? "true" : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onReplaceInsideNote: "
+            << "text to replace = " << textToReplace
+            << ", replacement text = " << replacementText
+            << ", match case = " << (matchCase ? "true" : "false"));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUi->findAndReplaceWidget->setReplaceEnabled(true);
@@ -2724,10 +2805,12 @@ void NoteEditorWidget::onReplaceAllInsideNote(
     const QString & textToReplace, const QString & replacementText,
     const bool matchCase)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::onReplaceAllInsideNote: "
-        << "text to replace = " << textToReplace << ", replacement text = "
-        << replacementText << ", match case = "
-        << (matchCase ? "true" : "false"));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::onReplaceAllInsideNote: "
+            << "text to replace = " << textToReplace
+            << ", replacement text = " << replacementText
+            << ", match case = " << (matchCase ? "true" : "false"));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUi->findAndReplaceWidget->setReplaceEnabled(true);
@@ -2785,8 +2868,7 @@ void NoteEditorWidget::onExportNoteToEnexButtonPressed()
 
     ErrorString errorDescription;
     bool res = exportNoteToEnex(errorDescription);
-    if (!res)
-    {
+    if (!res) {
         if (errorDescription.isEmpty()) {
             return;
         }
@@ -2802,525 +2884,373 @@ void NoteEditorWidget::createConnections(
 
     // Local signals to localStorageManagerAsync's slots
     QObject::connect(
-        this,
-        &NoteEditorWidget::findNote,
-        &localStorageManagerAsync,
+        this, &NoteEditorWidget::findNote, &localStorageManagerAsync,
         &LocalStorageManagerAsync::onFindNoteRequest);
 
     QObject::connect(
-        this,
-        &NoteEditorWidget::findNotebook,
-        &localStorageManagerAsync,
+        this, &NoteEditorWidget::findNotebook, &localStorageManagerAsync,
         &LocalStorageManagerAsync::onFindNotebookRequest);
 
     // Local signals to note editor's slots
     QObject::connect(
-        this,
-        &NoteEditorWidget::insertInAppNoteLink,
-        m_pUi->noteEditor,
+        this, &NoteEditorWidget::insertInAppNoteLink, m_pUi->noteEditor,
         &NoteEditor::insertInAppNoteLink);
 
     // localStorageManagerAsync's signals to local slots
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNoteComplete,
-        this,
+        &LocalStorageManagerAsync::updateNoteComplete, this,
         &NoteEditorWidget::onUpdateNoteComplete);
 
     QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNoteComplete,
-        this,
-        &NoteEditorWidget::onFindNoteComplete);
+        &localStorageManagerAsync, &LocalStorageManagerAsync::findNoteComplete,
+        this, &NoteEditorWidget::onFindNoteComplete);
+
+    QObject::connect(
+        &localStorageManagerAsync, &LocalStorageManagerAsync::findNoteFailed,
+        this, &NoteEditorWidget::onFindNoteFailed);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNoteFailed,
-        this,
-        &NoteEditorWidget::onFindNoteFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeNoteComplete,
-        this,
+        &LocalStorageManagerAsync::expungeNoteComplete, this,
         &NoteEditorWidget::onExpungeNoteComplete);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addResourceComplete,
-        this,
+        &LocalStorageManagerAsync::addResourceComplete, this,
         &NoteEditorWidget::onAddResourceComplete);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateResourceComplete,
-        this,
+        &LocalStorageManagerAsync::updateResourceComplete, this,
         &NoteEditorWidget::onUpdateResourceComplete);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeResourceComplete,
-        this,
+        &LocalStorageManagerAsync::expungeResourceComplete, this,
         &NoteEditorWidget::onExpungeResourceComplete);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNotebookComplete,
-        this,
+        &LocalStorageManagerAsync::updateNotebookComplete, this,
         &NoteEditorWidget::onUpdateNotebookComplete);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNotebookComplete,
-        this,
+        &LocalStorageManagerAsync::findNotebookComplete, this,
         &NoteEditorWidget::onFindNotebookComplete);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNotebookFailed,
-        this,
+        &LocalStorageManagerAsync::findNotebookFailed, this,
         &NoteEditorWidget::onFindNotebookFailed);
 
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeNotebookComplete,
-        this,
+        &LocalStorageManagerAsync::expungeNotebookComplete, this,
         &NoteEditorWidget::onExpungeNotebookComplete);
 
     // Connect to font sizes combobox signals
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_pUi->fontSizeComboBox,
-        qOverload<int>(&QComboBox::currentIndexChanged),
-        this,
+        qOverload<int>(&QComboBox::currentIndexChanged), this,
         &NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged,
         Qt::UniqueConnection);
 #else
     QObject::connect(
-        m_pUi->fontSizeComboBox,
-        SIGNAL(currentIndexChanged(int)),
-        this,
+        m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this,
         SLOT(onFontSizesComboBoxCurrentIndexChanged(int)),
         Qt::UniqueConnection);
 #endif
 
     // Connect to note tags widget's signals
     QObject::connect(
-        m_pUi->tagNameLabelsContainer,
-        &NoteTagsWidget::noteTagsListChanged,
-        this,
-        &NoteEditorWidget::onNoteTagsListChanged);
+        m_pUi->tagNameLabelsContainer, &NoteTagsWidget::noteTagsListChanged,
+        this, &NoteEditorWidget::onNoteTagsListChanged);
 
     QObject::connect(
         m_pUi->tagNameLabelsContainer,
-        &NoteTagsWidget::newTagLineEditReceivedFocusFromWindowSystem,
-        this,
+        &NoteTagsWidget::newTagLineEditReceivedFocusFromWindowSystem, this,
         &NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem);
 
     // Connect to note title updates
     QObject::connect(
-        m_pUi->noteNameLineEdit,
-        &QLineEdit::textEdited,
-        this,
+        m_pUi->noteNameLineEdit, &QLineEdit::textEdited, this,
         &NoteEditorWidget::onNoteTitleEdited);
 
     QObject::connect(
-        m_pUi->noteNameLineEdit,
-        &QLineEdit::editingFinished,
-        this,
+        m_pUi->noteNameLineEdit, &QLineEdit::editingFinished, this,
         &NoteEditorWidget::onNoteTitleUpdated);
 
     // Connect note editor's signals to local signals and slots
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::inAppNoteLinkClicked,
-        this,
+        m_pUi->noteEditor, &NoteEditor::inAppNoteLinkClicked, this,
         &NoteEditorWidget::inAppNoteLinkClicked);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::inAppNoteLinkPasteRequested,
-        this,
+        m_pUi->noteEditor, &NoteEditor::inAppNoteLinkPasteRequested, this,
         &NoteEditorWidget::onEditorInAppLinkPasteRequested);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::convertedToNote,
-        this,
+        m_pUi->noteEditor, &NoteEditor::convertedToNote, this,
         &NoteEditorWidget::onEditorNoteUpdate);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::cantConvertToNote,
-        this,
+        m_pUi->noteEditor, &NoteEditor::cantConvertToNote, this,
         &NoteEditorWidget::onEditorNoteUpdateFailed);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteSavedToLocalStorage,
-        this,
+        m_pUi->noteEditor, &NoteEditor::noteSavedToLocalStorage, this,
         &NoteEditorWidget::onNoteSavedToLocalStorage);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteEditorHtmlUpdated,
-        this,
+        m_pUi->noteEditor, &NoteEditor::noteEditorHtmlUpdated, this,
         &NoteEditorWidget::onEditorHtmlUpdate);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteLoaded,
-        this,
+        m_pUi->noteEditor, &NoteEditor::noteLoaded, this,
         &NoteEditorWidget::noteLoaded);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteModified,
-        this,
+        m_pUi->noteEditor, &NoteEditor::noteModified, this,
         &NoteEditorWidget::onNoteEditorModified);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textBoldState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textBoldState, this,
         &NoteEditorWidget::onEditorTextBoldStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textItalicState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textItalicState, this,
         &NoteEditorWidget::onEditorTextItalicStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textUnderlineState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textUnderlineState, this,
         &NoteEditorWidget::onEditorTextUnderlineStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textUnderlineState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textUnderlineState, this,
         &NoteEditorWidget::onEditorTextUnderlineStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textStrikethroughState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textStrikethroughState, this,
         &NoteEditorWidget::onEditorTextStrikethroughStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textAlignLeftState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textAlignLeftState, this,
         &NoteEditorWidget::onEditorTextAlignLeftStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textAlignCenterState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textAlignCenterState, this,
         &NoteEditorWidget::onEditorTextAlignCenterStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textAlignRightState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textAlignRightState, this,
         &NoteEditorWidget::onEditorTextAlignRightStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textAlignFullState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textAlignFullState, this,
         &NoteEditorWidget::onEditorTextAlignFullStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textInsideOrderedListState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textInsideOrderedListState, this,
         &NoteEditorWidget::onEditorTextInsideOrderedListStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textInsideUnorderedListState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textInsideUnorderedListState, this,
         &NoteEditorWidget::onEditorTextInsideUnorderedListStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textInsideTableState,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textInsideTableState, this,
         &NoteEditorWidget::onEditorTextInsideTableStateChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textFontFamilyChanged,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textFontFamilyChanged, this,
         &NoteEditorWidget::onEditorTextFontFamilyChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::textFontSizeChanged,
-        this,
+        m_pUi->noteEditor, &NoteEditor::textFontSizeChanged, this,
         &NoteEditorWidget::onEditorTextFontSizeChanged);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::insertTableDialogRequested,
-        this,
+        m_pUi->noteEditor, &NoteEditor::insertTableDialogRequested, this,
         &NoteEditorWidget::onEditorTextInsertTableDialogRequested);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::spellCheckerNotReady,
-        this,
+        m_pUi->noteEditor, &NoteEditor::spellCheckerNotReady, this,
         &NoteEditorWidget::onEditorSpellCheckerNotReady);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::spellCheckerReady,
-        this,
+        m_pUi->noteEditor, &NoteEditor::spellCheckerReady, this,
         &NoteEditorWidget::onEditorSpellCheckerReady);
 
     QObject::connect(
-        m_pUi->noteEditor,
-        &NoteEditor::notifyError,
-        this,
+        m_pUi->noteEditor, &NoteEditor::notifyError, this,
         &NoteEditorWidget::notifyError);
 
     // Connect find and replace widget actions to local slots
     QObject::connect(
-        m_pUi->findAndReplaceWidget,
-        &FindAndReplaceWidget::closed,
-        this,
+        m_pUi->findAndReplaceWidget, &FindAndReplaceWidget::closed, this,
         &NoteEditorWidget::onFindAndReplaceWidgetClosed);
 
     QObject::connect(
-        m_pUi->findAndReplaceWidget,
-        &FindAndReplaceWidget::textToFindEdited,
-        this,
-        &NoteEditorWidget::onTextToFindInsideNoteEdited);
+        m_pUi->findAndReplaceWidget, &FindAndReplaceWidget::textToFindEdited,
+        this, &NoteEditorWidget::onTextToFindInsideNoteEdited);
 
     QObject::connect(
-        m_pUi->findAndReplaceWidget,
-        &FindAndReplaceWidget::findNext,
-        this,
+        m_pUi->findAndReplaceWidget, &FindAndReplaceWidget::findNext, this,
         &NoteEditorWidget::onFindNextInsideNote);
 
     QObject::connect(
-        m_pUi->findAndReplaceWidget,
-        &FindAndReplaceWidget::findPrevious,
-        this,
+        m_pUi->findAndReplaceWidget, &FindAndReplaceWidget::findPrevious, this,
         &NoteEditorWidget::onFindPreviousInsideNote);
 
     QObject::connect(
         m_pUi->findAndReplaceWidget,
-        &FindAndReplaceWidget::searchCaseSensitivityChanged,
-        this,
+        &FindAndReplaceWidget::searchCaseSensitivityChanged, this,
         &NoteEditorWidget::onFindInsideNoteCaseSensitivityChanged);
 
     QObject::connect(
-        m_pUi->findAndReplaceWidget,
-        &FindAndReplaceWidget::replace,
-        this,
+        m_pUi->findAndReplaceWidget, &FindAndReplaceWidget::replace, this,
         &NoteEditorWidget::onReplaceInsideNote);
 
     QObject::connect(
-        m_pUi->findAndReplaceWidget,
-        &FindAndReplaceWidget::replaceAll,
-        this,
+        m_pUi->findAndReplaceWidget, &FindAndReplaceWidget::replaceAll, this,
         &NoteEditorWidget::onReplaceAllInsideNote);
 
     // Connect toolbar buttons actions to local slots
     QObject::connect(
-        m_pUi->fontBoldPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->fontBoldPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextBoldToggled);
 
     QObject::connect(
-        m_pUi->fontItalicPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->fontItalicPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextItalicToggled);
 
     QObject::connect(
-        m_pUi->fontUnderlinePushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->fontUnderlinePushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextUnderlineToggled);
 
     QObject::connect(
-        m_pUi->fontStrikethroughPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->fontStrikethroughPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextStrikethroughToggled);
 
     QObject::connect(
-        m_pUi->formatJustifyLeftPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatJustifyLeftPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextAlignLeftAction);
 
     QObject::connect(
-        m_pUi->formatJustifyCenterPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatJustifyCenterPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextAlignCenterAction);
 
     QObject::connect(
-        m_pUi->formatJustifyRightPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatJustifyRightPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextAlignRightAction);
 
     QObject::connect(
-        m_pUi->formatJustifyFullPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatJustifyFullPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextAlignFullAction);
 
     QObject::connect(
-        m_pUi->insertHorizontalLinePushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->insertHorizontalLinePushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextAddHorizontalLineAction);
 
     QObject::connect(
-        m_pUi->formatIndentMorePushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatIndentMorePushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextIncreaseIndentationAction);
 
     QObject::connect(
-        m_pUi->formatIndentLessPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatIndentLessPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextDecreaseIndentationAction);
 
     QObject::connect(
-        m_pUi->formatListUnorderedPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatListUnorderedPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextInsertUnorderedListAction);
 
     QObject::connect(
-        m_pUi->formatListOrderedPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatListOrderedPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextInsertOrderedListAction);
 
     QObject::connect(
-        m_pUi->formatAsSourceCodePushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->formatAsSourceCodePushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorTextFormatAsSourceCodeAction);
 
     QObject::connect(
-        m_pUi->chooseTextColorToolButton,
-        &ColorPickerToolButton::colorSelected,
-        this,
-        &NoteEditorWidget::onEditorChooseTextColor);
+        m_pUi->chooseTextColorToolButton, &ColorPickerToolButton::colorSelected,
+        this, &NoteEditorWidget::onEditorChooseTextColor);
 
     QObject::connect(
         m_pUi->chooseBackgroundColorToolButton,
-        &ColorPickerToolButton::colorSelected,
-        this,
+        &ColorPickerToolButton::colorSelected, this,
         &NoteEditorWidget::onEditorChooseBackgroundColor);
 
     QObject::connect(
-        m_pUi->spellCheckBox,
-        &QCheckBox::stateChanged,
-        this,
+        m_pUi->spellCheckBox, &QCheckBox::stateChanged, this,
         &NoteEditorWidget::onEditorSpellCheckStateChanged);
 
     QObject::connect(
-        m_pUi->insertToDoCheckboxPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->insertToDoCheckboxPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onEditorInsertToDoCheckBoxAction);
 
     QObject::connect(
-        m_pUi->insertTableToolButton,
-        &InsertTableToolButton::createdTable,
-        this,
-        &NoteEditorWidget::onEditorInsertTable);
+        m_pUi->insertTableToolButton, &InsertTableToolButton::createdTable,
+        this, &NoteEditorWidget::onEditorInsertTable);
 
     QObject::connect(
-        m_pUi->printNotePushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->printNotePushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onPrintNoteButtonPressed);
 
     QObject::connect(
-        m_pUi->exportNoteToPdfPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->exportNoteToPdfPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onExportNoteToPdfButtonPressed);
 
     QObject::connect(
-        m_pUi->exportNoteToEnexPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->exportNoteToEnexPushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onExportNoteToEnexButtonPressed);
 
     // Connect toolbar button actions to editor slots
     QObject::connect(
-        m_pUi->copyPushButton,
-        &QPushButton::clicked,
-        m_pUi->noteEditor,
+        m_pUi->copyPushButton, &QPushButton::clicked, m_pUi->noteEditor,
         &NoteEditor::copy);
 
     QObject::connect(
-        m_pUi->cutPushButton,
-        &QPushButton::clicked,
-        m_pUi->noteEditor,
+        m_pUi->cutPushButton, &QPushButton::clicked, m_pUi->noteEditor,
         &NoteEditor::cut);
 
     QObject::connect(
-        m_pUi->pastePushButton,
-        &QPushButton::clicked,
-        m_pUi->noteEditor,
+        m_pUi->pastePushButton, &QPushButton::clicked, m_pUi->noteEditor,
         &NoteEditor::paste);
 
     QObject::connect(
-        m_pUi->undoPushButton,
-        &QPushButton::clicked,
-        m_pUi->noteEditor,
+        m_pUi->undoPushButton, &QPushButton::clicked, m_pUi->noteEditor,
         &NoteEditor::undo);
 
     QObject::connect(
-        m_pUi->redoPushButton,
-        &QPushButton::clicked,
-        m_pUi->noteEditor,
+        m_pUi->redoPushButton, &QPushButton::clicked, m_pUi->noteEditor,
         &NoteEditor::redo);
 
     QObject::connect(
-        m_pUi->saveNotePushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->saveNotePushButton, &QPushButton::clicked, this,
         &NoteEditorWidget::onSaveNoteAction);
 }
 
 void NoteEditorWidget::clear()
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::clear: note "
-        << (m_pCurrentNote
-            ? m_pCurrentNote->localUid()
-            : QStringLiteral("<null>")));
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::clear: note "
+            << (m_pCurrentNote ? m_pCurrentNote->localUid()
+                               : QStringLiteral("<null>")));
 
     m_pCurrentNote.reset(nullptr);
     m_pCurrentNotebook.reset(nullptr);
 
     QObject::disconnect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteAndNotebookFoundInLocalStorage,
-        this,
-        &NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage);
+        m_pUi->noteEditor, &NoteEditor::noteAndNotebookFoundInLocalStorage,
+        this, &NoteEditorWidget::onFoundNoteAndNotebookInLocalStorage);
 
     QObject::disconnect(
-        m_pUi->noteEditor,
-        &NoteEditor::noteNotFound,
-        this,
+        m_pUi->noteEditor, &NoteEditor::noteNotFound, this,
         &NoteEditorWidget::onNoteNotFoundInLocalStorage);
 
     m_pUi->noteEditor->clear();
@@ -3343,8 +3273,7 @@ void NoteEditorWidget::setupSpecialIcons()
     QNDEBUG("widget:note_editor", "NoteEditorWidget::setupSpecialIcons");
 
     const QString enexIconName = QStringLiteral("application-enex");
-    if (!QIcon::hasThemeIcon(enexIconName))
-    {
+    if (!QIcon::hasThemeIcon(enexIconName)) {
         QString fallbackIconThemeForEnexIcon = QStringLiteral("oxygen");
         const QString iconThemeName = QIcon::themeName();
         if (iconThemeName.contains(QStringLiteral("breeze")) ||
@@ -3358,8 +3287,10 @@ void NoteEditorWidget::setupSpecialIcons()
             fallbackIconExtension = QStringLiteral("svg");
         }
 
-        QNDEBUG("widget:note_editor", "Fallback icon theme for enex icon = "
-            << fallbackIconThemeForEnexIcon);
+        QNDEBUG(
+            "widget:note_editor",
+            "Fallback icon theme for enex icon = "
+                << fallbackIconThemeForEnexIcon);
 
         // NOTE: it is necessary for the icon to have a name in order to ensure
         // the logic of icon switching works properly
@@ -3367,32 +3298,25 @@ void NoteEditorWidget::setupSpecialIcons()
 
         fallbackIcon.addFile(
             QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
-            QStringLiteral("/16x16/mimetypes/application-enex.") +
-            fallbackIconExtension,
-            QSize(16, 16),
-            QIcon::Normal,
-            QIcon::Off);
+                QStringLiteral("/16x16/mimetypes/application-enex.") +
+                fallbackIconExtension,
+            QSize(16, 16), QIcon::Normal, QIcon::Off);
 
         fallbackIcon.addFile(
             QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
-            QStringLiteral("/22x22/mimetypes/application-enex.") +
-            fallbackIconExtension,
-            QSize(22, 22),
-            QIcon::Normal,
-            QIcon::Off);
+                QStringLiteral("/22x22/mimetypes/application-enex.") +
+                fallbackIconExtension,
+            QSize(22, 22), QIcon::Normal, QIcon::Off);
 
         fallbackIcon.addFile(
             QStringLiteral(":/icons/") + fallbackIconThemeForEnexIcon +
-            QStringLiteral("/32x32/mimetypes/application-enex.") +
-            fallbackIconExtension,
-            QSize(32, 32),
-            QIcon::Normal,
-            QIcon::Off);
+                QStringLiteral("/32x32/mimetypes/application-enex.") +
+                fallbackIconExtension,
+            QSize(32, 32), QIcon::Normal, QIcon::Off);
 
         m_pUi->exportNoteToEnexPushButton->setIcon(fallbackIcon);
     }
-    else
-    {
+    else {
         QIcon themeIcon = QIcon::fromTheme(enexIconName);
         m_pUi->exportNoteToEnexPushButton->setIcon(themeIcon);
     }
@@ -3408,24 +3332,28 @@ void NoteEditorWidget::onNoteEditorColorsUpdate()
     }
 
     if (!m_pCurrentNote || !m_pCurrentNotebook) {
-        QNTRACE("widget:note_editor", "Current note or notebook was not found "
-            << "yet");
+        QNTRACE(
+            "widget:note_editor",
+            "Current note or notebook was not found "
+                << "yet");
         return;
     }
 
-    if (isModified())
-    {
+    if (isModified()) {
         ErrorString errorDescription;
         auto status = checkAndSaveModifiedNote(errorDescription);
         if (status == NoteSaveStatus::Failed) {
-            QNWARNING("widget:note_editor", "Failed to save modified note: "
-                << errorDescription);
+            QNWARNING(
+                "widget:note_editor",
+                "Failed to save modified note: " << errorDescription);
             return;
         }
 
         if (status == NoteSaveStatus::Timeout) {
-            QNWARNING("widget:note_editor", "Failed to save modified note in "
-                << "due time");
+            QNWARNING(
+                "widget:note_editor",
+                "Failed to save modified note in "
+                    << "due time");
             return;
         }
     }
@@ -3437,21 +3365,17 @@ void NoteEditorWidget::setupFontsComboBox()
 
     bool useLimitedFonts = useLimitedSetOfFonts();
 
-    if (useLimitedFonts)
-    {
+    if (useLimitedFonts) {
         m_pUi->fontComboBox->setHidden(true);
         m_pUi->fontComboBox->setDisabled(true);
         setupLimitedFontsComboBox();
     }
-    else
-    {
+    else {
         m_pUi->limitedFontComboBox->setHidden(true);
         m_pUi->limitedFontComboBox->setDisabled(true);
 
         QObject::connect(
-            m_pUi->fontComboBox,
-            &QFontComboBox::currentFontChanged,
-            this,
+            m_pUi->fontComboBox, &QFontComboBox::currentFontChanged, this,
             &NoteEditorWidget::onFontComboBoxFontChanged);
     }
 
@@ -3491,7 +3415,7 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
 
     m_pUi->limitedFontComboBox->setCurrentIndex(currentIndex);
 
-    auto * pDelegate = qobject_cast<LimitedFontsDelegate*>(
+    auto * pDelegate = qobject_cast<LimitedFontsDelegate *>(
         m_pUi->limitedFontComboBox->itemDelegate());
 
     if (!pDelegate) {
@@ -3502,14 +3426,11 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_pUi->limitedFontComboBox,
-        qOverload<int>(&QComboBox::currentIndexChanged),
-        this,
+        qOverload<int>(&QComboBox::currentIndexChanged), this,
         &NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged);
 #else
     QObject::connect(
-        m_pUi->limitedFontComboBox,
-        SIGNAL(currentIndexChanged(int)),
-        this,
+        m_pUi->limitedFontComboBox, SIGNAL(currentIndexChanged(int)), this,
         SLOT(onLimitedFontsComboBoxCurrentIndexChanged(int)));
 #endif
 }
@@ -3533,17 +3454,20 @@ void NoteEditorWidget::setupFontSizesComboBox()
 
 void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 {
-    QNDEBUG("widget:note_editor", "NoteEditorWidget::setupFontSizesForFont: "
-        << "family = " << font.family() << ", style name = "
-        << font.styleName());
+    QNDEBUG(
+        "widget:note_editor",
+        "NoteEditorWidget::setupFontSizesForFont: "
+            << "family = " << font.family()
+            << ", style name = " << font.styleName());
 
     QFontDatabase fontDatabase;
     auto fontSizes = fontDatabase.pointSizes(font.family(), font.styleName());
-    if (fontSizes.isEmpty())
-    {
-        QNTRACE("widget:note_editor", "Couldn't find point sizes for font "
-            << "family " << font.family() << ", will use standard sizes "
-            << "instead");
+    if (fontSizes.isEmpty()) {
+        QNTRACE(
+            "widget:note_editor",
+            "Couldn't find point sizes for font "
+                << "family " << font.family() << ", will use standard sizes "
+                << "instead");
 
         fontSizes = fontDatabase.standardSizes();
     }
@@ -3554,13 +3478,11 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     QList<int> currentFontSizes;
     int currentCount = m_pUi->fontSizeComboBox->count();
     currentFontSizes.reserve(currentCount);
-    for(int i = 0; i < currentCount; ++i)
-    {
+    for (int i = 0; i < currentCount; ++i) {
         bool conversionResult = false;
         QVariant data = m_pUi->fontSizeComboBox->itemData(i);
         int fontSize = data.toInt(&conversionResult);
-        if (conversionResult)
-        {
+        if (conversionResult) {
             currentFontSizes << fontSize;
             if (i == currentFontSizeIndex) {
                 currentFontSize = fontSize;
@@ -3569,22 +3491,21 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     }
 
     if (currentFontSizes == fontSizes) {
-        QNDEBUG("widget:note_editor", "No need to update the items within font "
-            << "sizes combo box: none of them have changed");
+        QNDEBUG(
+            "widget:note_editor",
+            "No need to update the items within font "
+                << "sizes combo box: none of them have changed");
         return;
     }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::disconnect(
         m_pUi->fontSizeComboBox,
-        qOverload<int>(&QComboBox::currentIndexChanged),
-        this,
+        qOverload<int>(&QComboBox::currentIndexChanged), this,
         &NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged);
 #else
     QObject::disconnect(
-        m_pUi->fontSizeComboBox,
-        SIGNAL(currentIndexChanged(int)),
-        this,
+        m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this,
         SLOT(onFontSizesComboBoxCurrentIndexChanged(int)));
 #endif
 
@@ -3592,84 +3513,85 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     m_pUi->fontSizeComboBox->clear();
     int numFontSizes = fontSizes.size();
 
-    QNTRACE("widget:note_editor", "Found " << numFontSizes << " font sizes for "
-        << "font family " << font.family());
+    QNTRACE(
+        "widget:note_editor",
+        "Found " << numFontSizes << " font sizes for "
+                 << "font family " << font.family());
 
-    for(int i = 0; i < numFontSizes; ++i)
-    {
+    for (int i = 0; i < numFontSizes; ++i) {
         m_pUi->fontSizeComboBox->addItem(
-            QString::number(fontSizes[i]),
-            QVariant(fontSizes[i]));
+            QString::number(fontSizes[i]), QVariant(fontSizes[i]));
 
-        QNTRACE("widget:note_editor", "Added item " << fontSizes[i]
-            << "pt for index " << i);
+        QNTRACE(
+            "widget:note_editor",
+            "Added item " << fontSizes[i] << "pt for index " << i);
     }
 
     m_lastFontSizeComboBoxIndex = -1;
 
     bool setFontSizeIndex = false;
-    if (currentFontSize > 0)
-    {
+    if (currentFontSize > 0) {
         int fontSizeIndex = fontSizes.indexOf(currentFontSize);
         if (fontSizeIndex >= 0) {
             m_pUi->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
-            QNTRACE("widget:note_editor", "Setting the current font size to "
-                << "its previous value: " << currentFontSize);
+            QNTRACE(
+                "widget:note_editor",
+                "Setting the current font size to "
+                    << "its previous value: " << currentFontSize);
             setFontSizeIndex = true;
         }
     }
 
-    if (!setFontSizeIndex && (currentFontSize != 12))
-    {
+    if (!setFontSizeIndex && (currentFontSize != 12)) {
         // Try to look for font size 12 as the sanest default font size
         int fontSizeIndex = fontSizes.indexOf(12);
         if (fontSizeIndex >= 0) {
             m_pUi->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
-            QNTRACE("widget:note_editor", "Setting the current font size to "
-                << "the default value of 12");
+            QNTRACE(
+                "widget:note_editor",
+                "Setting the current font size to "
+                    << "the default value of 12");
             setFontSizeIndex = true;
         }
     }
 
-    if (!setFontSizeIndex)
-    {
+    if (!setFontSizeIndex) {
         // Try to find any font size between 10 and 20, should be good enough
-        for(int i = 0; i < numFontSizes; ++i)
-        {
+        for (int i = 0; i < numFontSizes; ++i) {
             int fontSize = fontSizes[i];
             if ((fontSize >= 10) && (fontSize <= 20)) {
                 m_pUi->fontSizeComboBox->setCurrentIndex(i);
-                QNTRACE("widget:note_editor", "Setting the current font size "
-                    << "to the default value of " << fontSize);
+                QNTRACE(
+                    "widget:note_editor",
+                    "Setting the current font size "
+                        << "to the default value of " << fontSize);
                 setFontSizeIndex = true;
                 break;
             }
         }
     }
 
-    if (!setFontSizeIndex && !fontSizes.isEmpty())
-    {
+    if (!setFontSizeIndex && !fontSizes.isEmpty()) {
         // All attempts to pick some sane font size have failed,
         // will just take the median (or only) font size
         int index = numFontSizes / 2;
         m_pUi->fontSizeComboBox->setCurrentIndex(index);
-        QNTRACE("widget:note_editor", "Setting the current font size to "
-            << "the median value of " << fontSizes.at(index));
+        QNTRACE(
+            "widget:note_editor",
+            "Setting the current font size to "
+                << "the median value of " << fontSizes.at(index));
         setFontSizeIndex = true;
     }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_pUi->fontSizeComboBox,
-        qOverload<int>(&QComboBox::currentIndexChanged),
-        this,
+        qOverload<int>(&QComboBox::currentIndexChanged), this,
         &NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged,
         Qt::UniqueConnection);
 #else
     QObject::connect(
-        m_pUi->fontSizeComboBox,
-        SIGNAL(currentIndexChanged(int)),
-        this,
+        m_pUi->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this,
         SLOT(onFontSizesComboBoxCurrentIndexChanged(int)),
         Qt::UniqueConnection);
 #endif
@@ -3683,8 +3605,10 @@ bool NoteEditorWidget::useLimitedSetOfFonts() const
     bool useLimitedFonts = false;
     if (appSettings.contains(USE_LIMITED_SET_OF_FONTS)) {
         useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
-        QNDEBUG("widget:note_editor", "Use limited fonts preference: "
-            << (useLimitedFonts ? "true" : "false"));
+        QNDEBUG(
+            "widget:note_editor",
+            "Use limited fonts preference: "
+                << (useLimitedFonts ? "true" : "false"));
     }
     else {
         useLimitedFonts = (m_currentAccount.type() == Account::Type::Evernote);
@@ -3697,21 +3621,22 @@ bool NoteEditorWidget::useLimitedSetOfFonts() const
 void NoteEditorWidget::setupNoteEditorDefaultFont()
 {
     QNDEBUG(
-        "widget:note_editor",
-        "NoteEditorWidget::setupNoteEditorDefaultFont");
+        "widget:note_editor", "NoteEditorWidget::setupNoteEditorDefaultFont");
 
     bool useLimitedFonts = !(m_pUi->limitedFontComboBox->isHidden());
 
     int pointSize = -1;
     int fontSizeIndex = m_pUi->fontSizeComboBox->currentIndex();
-    if (fontSizeIndex >= 0)
-    {
+    if (fontSizeIndex >= 0) {
         bool conversionResult = false;
-        QVariant fontSizeData = m_pUi->fontSizeComboBox->itemData(fontSizeIndex);
+        QVariant fontSizeData =
+            m_pUi->fontSizeComboBox->itemData(fontSizeIndex);
         pointSize = fontSizeData.toInt(&conversionResult);
         if (!conversionResult) {
-            QNWARNING("widget:note_editor", "Failed to convert current font "
-                << "size to int: " << fontSizeData);
+            QNWARNING(
+                "widget:note_editor",
+                "Failed to convert current font "
+                    << "size to int: " << fontSizeData);
             pointSize = -1;
         }
     }
@@ -3738,32 +3663,32 @@ void NoteEditorWidget::setupNoteEditorColors()
     ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
-    QString fontColorName = appSettings.value(
-        NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY).toString();
+    QString fontColorName =
+        appSettings.value(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY).toString();
 
     QColor fontColor(fontColorName);
     if (fontColor.isValid()) {
         pal.setColor(QPalette::WindowText, fontColor);
     }
 
-    QString backgroundColorName = appSettings.value(
-        NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+    QString backgroundColorName =
+        appSettings.value(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY).toString();
 
     QColor backgroundColor(backgroundColorName);
     if (backgroundColor.isValid()) {
         pal.setColor(QPalette::Base, backgroundColor);
     }
 
-    QString highlightColorName = appSettings.value(
-        NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY).toString();
+    QString highlightColorName =
+        appSettings.value(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY).toString();
 
     QColor highlightColor(highlightColorName);
     if (highlightColor.isValid()) {
         pal.setColor(QPalette::Highlight, highlightColor);
     }
 
-    QString highlightedTextColorName = appSettings.value(
-        NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY).toString();
+    QString highlightedTextColorName =
+        appSettings.value(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY).toString();
 
     QColor highlightedTextColor(highlightedTextColorName);
     if (highlightedTextColor.isValid()) {
@@ -3784,11 +3709,10 @@ void NoteEditorWidget::setNoteAndNotebook(
     const Note & note, const Notebook & notebook)
 {
     QNDEBUG(
-        "widget:note_editor",
-        "NoteEditorWidget::setCurrentNoteAndNotebook");
+        "widget:note_editor", "NoteEditorWidget::setCurrentNoteAndNotebook");
 
-    QNTRACE("widget:note_editor", "Note: " << note << "\nNotebook: "
-        << notebook);
+    QNTRACE(
+        "widget:note_editor", "Note: " << note << "\nNotebook: " << notebook);
 
     if (!m_pCurrentNote) {
         m_pCurrentNote.reset(new Note(note));
@@ -3807,8 +3731,7 @@ void NoteEditorWidget::setNoteAndNotebook(
     m_pUi->noteNameLineEdit->show();
     m_pUi->tagNameLabelsContainer->show();
 
-    if (!m_noteTitleIsEdited && note.hasTitle())
-    {
+    if (!m_noteTitleIsEdited && note.hasTitle()) {
         QString title = note.title();
         m_pUi->noteNameLineEdit->setText(title);
         if (m_lastNoteTitleOrPreviewText != title) {
@@ -3816,8 +3739,7 @@ void NoteEditorWidget::setNoteAndNotebook(
             Q_EMIT titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
         }
     }
-    else if (!m_noteTitleIsEdited)
-    {
+    else if (!m_noteTitleIsEdited) {
         m_pUi->noteNameLineEdit->clear();
 
         QString previewText;
@@ -3855,8 +3777,9 @@ QString NoteEditorWidget::blankPageHtml() const
     QColor backgroundColor = palette().color(QPalette::Window).darker(115);
     html += backgroundColor.name();
 
-    html += QStringLiteral(";"
-                           "color: ");
+    html += QStringLiteral(
+        ";"
+        "color: ");
     QColor foregroundColor = palette().color(QPalette::WindowText);
     html += foregroundColor.name();
 
@@ -3919,8 +3842,7 @@ bool NoteEditorWidget::checkNoteTitle(
 void NoteEditorWidget::removeSurrondingApostrophes(QString & str) const
 {
     if (str.startsWith(QStringLiteral("\'")) &&
-        str.endsWith(QStringLiteral("\'")) &&
-        (str.size() > 1))
+        str.endsWith(QStringLiteral("\'")) && (str.size() > 1))
     {
         str = str.mid(1, str.size() - 2);
         QNTRACE("widget:note_editor", "Removed apostrophes: " << str);
@@ -3929,9 +3851,8 @@ void NoteEditorWidget::removeSurrondingApostrophes(QString & str) const
 
 QTextStream & NoteEditorWidget::NoteLinkInfo::print(QTextStream & strm) const
 {
-    strm << "User id = " << m_userId
-        << ", shard id = " << m_shardId
-        << ", note guid = " << m_noteGuid;
+    strm << "User id = " << m_userId << ", shard id = " << m_shardId
+         << ", note guid = " << m_noteGuid;
     return strm;
 }
 

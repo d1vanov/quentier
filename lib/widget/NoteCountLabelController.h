@@ -30,7 +30,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 
-class NoteCountLabelController: public QObject
+class NoteCountLabelController : public QObject
 {
     Q_OBJECT
 public:
@@ -55,8 +55,8 @@ private:
     QPointer<NoteModel> m_pNoteModel;
     QLabel * m_pLabel;
 
-    qint32  m_totalNoteCountPerAccount = 0;
-    qint32  m_filteredNotesCount = 0;
+    qint32 m_totalNoteCountPerAccount = 0;
+    qint32 m_filteredNotesCount = 0;
 };
 
 } // namespace quentier

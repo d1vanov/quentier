@@ -19,13 +19,13 @@
 #ifndef QUENTIER_LIB_DIALOG_LOCAL_STORAGE_UPGRADE_DIALOG_H
 #define QUENTIER_LIB_DIALOG_LOCAL_STORAGE_UPGRADE_DIALOG_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
+#include <quentier/utility/Macros.h>
 
 #include <QDialog>
-#include <QVector>
-#include <QSharedPointer>
 #include <QFlags>
+#include <QSharedPointer>
+#include <QVector>
 
 #include <memory>
 
@@ -57,21 +57,23 @@ public:
     Q_DECLARE_FLAGS(Options, Option::type)
 
     explicit LocalStorageUpgradeDialog(
-        const Account & currentAccount,
-        AccountModel & accountModel,
-        const QVector<std::shared_ptr<ILocalStoragePatch> > & patches,
+        const Account & currentAccount, AccountModel & accountModel,
+        const QVector<std::shared_ptr<ILocalStoragePatch>> & patches,
         const Options options, QWidget * parent = nullptr);
 
     virtual ~LocalStorageUpgradeDialog() override;
 
-    bool isUpgradeDone() const { return m_upgradeDone; }
+    bool isUpgradeDone() const
+    {
+        return m_upgradeDone;
+    }
 
 Q_SIGNALS:
     void shouldSwitchToAccount(Account account);
     void shouldCreateNewAccount();
     void shouldQuitApp();
 
-// private signals:
+    // private signals:
     void backupLocalStorageProgress(int progress);
     void restoreLocalStorageFromBackupProgress(int progress);
 
@@ -84,8 +86,7 @@ private Q_SLOTS:
     void onApplyPatchProgressUpdate(double progress);
 
     void onAccountViewSelectionChanged(
-        const QItemSelection & selected,
-        const QItemSelection & deselected);
+        const QItemSelection & selected, const QItemSelection & deselected);
 
     void onBackupLocalStorageProgressUpdate(double progress);
     void onRestoreLocalStorageFromBackupProgressUpdate(double progress);
@@ -109,14 +110,14 @@ private:
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;
 
-    QVector<std::shared_ptr<ILocalStoragePatch>>    m_patches;
+    QVector<std::shared_ptr<ILocalStoragePatch>> m_patches;
 
-    AccountFilterModel *    m_pAccountFilterModel;
+    AccountFilterModel * m_pAccountFilterModel;
 
-    Options     m_options;
+    Options m_options;
 
-    int         m_currentPatchIndex = 0;
-    bool        m_upgradeDone = false;
+    int m_currentPatchIndex = 0;
+    bool m_upgradeDone = false;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(LocalStorageUpgradeDialog::Options)

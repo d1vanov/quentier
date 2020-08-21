@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class InvisibleRootItem: public INotebookModelItem
+class InvisibleRootItem : public INotebookModelItem
 {
 public:
     virtual Type type() const override

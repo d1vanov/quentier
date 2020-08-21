@@ -51,11 +51,10 @@ INotebookModelItem * INotebookModelItem::childAtRow(const int row) const
 
 int INotebookModelItem::rowForChild(const INotebookModelItem * pChild) const
 {
-    return m_children.indexOf(const_cast<INotebookModelItem*>(pChild));
+    return m_children.indexOf(const_cast<INotebookModelItem *>(pChild));
 }
 
-void INotebookModelItem::insertChild(
-    const int row, INotebookModelItem * pItem)
+void INotebookModelItem::insertChild(const int row, INotebookModelItem * pItem)
 {
     if (Q_UNLIKELY(!pItem)) {
         return;
@@ -77,8 +76,8 @@ void INotebookModelItem::addChild(INotebookModelItem * pItem)
 
 bool INotebookModelItem::swapChildren(const int srcRow, const int dstRow)
 {
-    if ((srcRow < 0) || (srcRow >= m_children.size()) ||
-        (dstRow < 0) || (dstRow >= m_children.size()))
+    if ((srcRow < 0) || (srcRow >= m_children.size()) || (dstRow < 0) ||
+        (dstRow >= m_children.size()))
     {
         return false;
     }
@@ -112,8 +111,7 @@ QDebug & operator<<(QDebug & dbg, const INotebookModelItem::Type type)
 {
     using Type = INotebookModelItem::Type;
 
-    switch(type)
-    {
+    switch (type) {
     case Type::AllNotebooksRoot:
         dbg << "All notebooks root";
         break;
@@ -148,8 +146,9 @@ QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item)
     qint32 numChildren = item.m_children.size();
     out << numChildren;
 
-    for(qint32 i = 0; i < numChildren; ++i) {
-        qulonglong childItemPtr = reinterpret_cast<qulonglong>(item.m_children[i]);
+    for (qint32 i = 0; i < numChildren; ++i) {
+        qulonglong childItemPtr =
+            reinterpret_cast<qulonglong>(item.m_children[i]);
         out << childItemPtr;
     }
 
@@ -165,18 +164,17 @@ QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
 
     qulonglong parent;
     in >> parent;
-    item.m_pParent = reinterpret_cast<INotebookModelItem*>(parent);
+    item.m_pParent = reinterpret_cast<INotebookModelItem *>(parent);
 
     qint32 numChildren = 0;
     in >> numChildren;
 
     item.m_children.clear();
     item.m_children.reserve(numChildren);
-    for(qint32 i = 0; i < numChildren; ++i) {
+    for (qint32 i = 0; i < numChildren; ++i) {
         qulonglong childItemPtr = 0;
         in >> childItemPtr;
-        item.m_children
-            << reinterpret_cast<INotebookModelItem*>(childItemPtr);
+        item.m_children << reinterpret_cast<INotebookModelItem *>(childItemPtr);
     }
 
     return item.deserializeItemData(in);
@@ -185,24 +183,24 @@ QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
 ////////////////////////////////////////////////////////////////////////////////
 
 #define DEFINE_CAST_IMPLEMENTATION(ItemType, ItemEnum)                         \
-template <>                                                                    \
-ItemType * INotebookModelItem::cast()                                          \
-{                                                                              \
-    if (type() == INotebookModelItem::Type::ItemEnum) {                        \
-        return dynamic_cast<ItemType*>(this);                                  \
+    template <>                                                                \
+    ItemType * INotebookModelItem::cast()                                      \
+    {                                                                          \
+        if (type() == INotebookModelItem::Type::ItemEnum) {                    \
+            return dynamic_cast<ItemType *>(this);                             \
+        }                                                                      \
+        return nullptr;                                                        \
     }                                                                          \
-    return nullptr;                                                            \
-}                                                                              \
                                                                                \
-template <>                                                                    \
-const ItemType * INotebookModelItem::cast() const                              \
-{                                                                              \
-    if (type() == INotebookModelItem::Type::ItemEnum) {                        \
-        return dynamic_cast<const ItemType*>(this);                            \
+    template <>                                                                \
+    const ItemType * INotebookModelItem::cast() const                          \
+    {                                                                          \
+        if (type() == INotebookModelItem::Type::ItemEnum) {                    \
+            return dynamic_cast<const ItemType *>(this);                       \
+        }                                                                      \
+        return nullptr;                                                        \
     }                                                                          \
-    return nullptr;                                                            \
-}                                                                              \
-// DEFINE_CAST_IMPLEMENTATION
+    // DEFINE_CAST_IMPLEMENTATION
 
 DEFINE_CAST_IMPLEMENTATION(AllNotebooksRootItem, AllNotebooksRoot)
 DEFINE_CAST_IMPLEMENTATION(InvisibleRootItem, InvisibleRoot)

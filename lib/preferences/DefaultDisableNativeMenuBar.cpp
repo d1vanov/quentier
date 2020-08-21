@@ -31,12 +31,14 @@ bool defaultDisableNativeMenuBar()
         return true;
     }
 
-#if !defined(Q_OS_WIN) && !defined(Q_OS_WIN32) && !defined(Q_OS_MACOS) && !defined(Q_OS_MAC)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_WIN32) && !defined(Q_OS_MACOS) &&      \
+    !defined(Q_OS_MAC)
     // It appears there's a bug somewhere between Qt and Unity which causes
     // the native menu bar to not work properly, see
     // https://bugreports.qt.io/browse/QTCREATORBUG-17519
     const char * currentDesktopEnvVar = "XDG_CURRENT_DESKTOP";
-    QString currentDesktop = QString::fromUtf8(qgetenv(currentDesktopEnvVar)).toLower();
+    QString currentDesktop =
+        QString::fromUtf8(qgetenv(currentDesktopEnvVar)).toLower();
     if (currentDesktop.contains(QStringLiteral("unity"))) {
         return true;
     }

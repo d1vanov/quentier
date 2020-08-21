@@ -45,7 +45,7 @@
 namespace quentier {
 
 void composeCommonAvailableCommandLineOptions(
-    QHash<QString,CommandLineParser::OptionData> & availableCmdOptions)
+    QHash<QString, CommandLineParser::OptionData> & availableCmdOptions)
 {
     using OptionData = CommandLineParser::OptionData;
     using ArgumentType = CommandLineParser::ArgumentType;
@@ -56,8 +56,8 @@ void composeCommonAvailableCommandLineOptions(
     storageDirData.m_name =
         QCoreApplication::translate("CommandLineParser", "storage dir");
 
-    storageDirData.m_description = QStringLiteral(
-        "set directory with the app's persistence");
+    storageDirData.m_description =
+        QStringLiteral("set directory with the app's persistence");
 
     storageDirData.m_type = ArgumentType::String;
 
@@ -78,8 +78,8 @@ void composeCommonAvailableCommandLineOptions(
 }
 
 void parseCommandLine(
-    int argc, char *argv[],
-    const QHash<QString,CommandLineParser::OptionData> & availableCmdOptions,
+    int argc, char * argv[],
+    const QHash<QString, CommandLineParser::OptionData> & availableCmdOptions,
     ParseCommandLineResult & result)
 {
     quentier::CommandLineParser cmdParser(argc, argv, availableCmdOptions);
@@ -123,24 +123,19 @@ std::unique_ptr<LogLevel> processLogLevelCommandLineOption(
 
 void initializeAppVersion(QuentierApplication & app)
 {
-    QString appVersion =
-        QStringLiteral("\n") +
-        quentierVersion() + QStringLiteral(", build info: ") +
-        quentierBuildInfo() + QStringLiteral("\nBuilt with Qt ") +
-        QStringLiteral(QT_VERSION_STR) + QStringLiteral(", uses Qt ") +
-        QString::fromUtf8(qVersion()) +
+    QString appVersion = QStringLiteral("\n") + quentierVersion() +
+        QStringLiteral(", build info: ") + quentierBuildInfo() +
+        QStringLiteral("\nBuilt with Qt ") + QStringLiteral(QT_VERSION_STR) +
+        QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()) +
         QStringLiteral("\nBuilt with libquentier: ") +
-        libquentierBuildTimeInfo() +
-        QStringLiteral("\nUses libquentier: ") +
-        libquentierRuntimeInfo() +
-        QStringLiteral("\n");
+        libquentierBuildTimeInfo() + QStringLiteral("\nUses libquentier: ") +
+        libquentierRuntimeInfo() + QStringLiteral("\n");
 
     app.setApplicationVersion(appVersion);
 }
 
 bool initialize(
-    QuentierApplication & app,
-    const CommandLineParser::Options & cmdOptions)
+    QuentierApplication & app, const CommandLineParser::Options & cmdOptions)
 {
     // NOTE: need to check for "storageDir" command line option first, before
     // doing any other part of initialization routine because this option
@@ -171,21 +166,18 @@ bool initialize(
     setupApplicationIcon(app);
     setupTranslations(app);
 
-    if (!pLogLevel)
-    {
+    if (!pLogLevel) {
         // Log level was not specified on the command line, restore the last
         // active min log level
         ApplicationSettings appSettings;
         appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-        if (appSettings.contains(CURRENT_MIN_LOG_LEVEL))
-        {
+        if (appSettings.contains(CURRENT_MIN_LOG_LEVEL)) {
             bool conversionResult = false;
 
-            int minLogLevel = appSettings.value(
-                CURRENT_MIN_LOG_LEVEL).toInt(&conversionResult);
+            int minLogLevel = appSettings.value(CURRENT_MIN_LOG_LEVEL)
+                                  .toInt(&conversionResult);
 
-            if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6))
-            {
+            if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6)) {
                 quentier::QuentierSetMinLogLevel(
                     static_cast<quentier::LogLevel>(minLogLevel));
             }
@@ -212,15 +204,13 @@ bool processStorageDirCommandLineOption(
 
     QString storageDir = storageDirIt.value().toString();
     QFileInfo storageDirInfo(storageDir);
-    if (!storageDirInfo.exists())
-    {
+    if (!storageDirInfo.exists()) {
         QDir dir(storageDir);
-        if (!dir.mkpath(storageDir))
-        {
+        if (!dir.mkpath(storageDir)) {
             criticalMessageBox(
                 nullptr,
-                QCoreApplication::applicationName() +
-                QStringLiteral(" ") + QObject::tr("cannot start"),
+                QCoreApplication::applicationName() + QStringLiteral(" ") +
+                    QObject::tr("cannot start"),
                 QObject::tr("Cannot create directory for persistent "
                             "storage pointed to by \"storageDir\" "
                             "command line option"),
@@ -229,24 +219,22 @@ bool processStorageDirCommandLineOption(
             return false;
         }
     }
-    else if (Q_UNLIKELY(!storageDirInfo.isDir()))
-    {
+    else if (Q_UNLIKELY(!storageDirInfo.isDir())) {
         criticalMessageBox(
             nullptr,
-            QCoreApplication::applicationName() +
-            QStringLiteral(" ") + QObject::tr("cannot start"),
+            QCoreApplication::applicationName() + QStringLiteral(" ") +
+                QObject::tr("cannot start"),
             QObject::tr("\"storageDir\" command line option "
                         "doesn't point to a directory"),
             QDir::toNativeSeparators(storageDir));
 
         return false;
     }
-    else if (Q_UNLIKELY(!storageDirInfo.isReadable()))
-    {
+    else if (Q_UNLIKELY(!storageDirInfo.isReadable())) {
         criticalMessageBox(
             nullptr,
-            QCoreApplication::applicationName() +
-            QStringLiteral(" ") + QObject::tr("cannot start"),
+            QCoreApplication::applicationName() + QStringLiteral(" ") +
+                QObject::tr("cannot start"),
             QObject::tr("The directory for persistent storage "
                         "pointed to by \"storageDir\" command "
                         "line option is not readable"),
@@ -254,12 +242,11 @@ bool processStorageDirCommandLineOption(
 
         return false;
     }
-    else if (Q_UNLIKELY(!storageDirInfo.isWritable()))
-    {
+    else if (Q_UNLIKELY(!storageDirInfo.isWritable())) {
         criticalMessageBox(
             nullptr,
-            QCoreApplication::applicationName() +
-            QStringLiteral(" ") + QObject::tr("cannot start"),
+            QCoreApplication::applicationName() + QStringLiteral(" ") +
+                QObject::tr("cannot start"),
             QObject::tr("The directory for persistent storage "
                         "pointed to by \"storageDir\" command "
                         "line option is not writable"),
@@ -290,19 +277,14 @@ bool processAccountCommandLineOption(
     ErrorString errorDescription;
 
     bool res = parseStartupAccount(
-        accountStr,
-        isLocal,
-        userId,
-        evernoteHost,
-        accountName,
+        accountStr, isLocal, userId, evernoteHost, accountName,
         errorDescription);
 
-    if (!res)
-    {
+    if (!res) {
         criticalMessageBox(
             nullptr,
-            QCoreApplication::applicationName() +
-            QStringLiteral(" ") + QObject::tr("cannot start"),
+            QCoreApplication::applicationName() + QStringLiteral(" ") +
+                QObject::tr("cannot start"),
             QObject::tr("Unable to parse the startup account"),
             errorDescription.localizedString());
 
@@ -314,8 +296,8 @@ bool processAccountCommandLineOption(
     AccountManager accountManager;
     const auto & availableAccounts = accountManager.availableAccounts();
 
-    for(int i = 0, numAvailableAccounts = availableAccounts.size();
-        i < numAvailableAccounts; ++i)
+    for (int i = 0, numAvailableAccounts = availableAccounts.size();
+         i < numAvailableAccounts; ++i)
     {
         const Account & availableAccount = availableAccounts.at(i);
         if (isLocal != (availableAccount.type() == Account::Type::Local)) {
@@ -339,12 +321,11 @@ bool processAccountCommandLineOption(
         break;
     }
 
-    if (!foundAccount)
-    {
+    if (!foundAccount) {
         criticalMessageBox(
             nullptr,
-            QCoreApplication::applicationName() +
-            QStringLiteral(" ") + QObject::tr("cannot start"),
+            QCoreApplication::applicationName() + QStringLiteral(" ") +
+                QObject::tr("cannot start"),
             QObject::tr("Wrong startup account"),
             QObject::tr("The startup account specified on "
                         "the command line does not correspond "
@@ -361,8 +342,7 @@ bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::Options & options)
 {
     auto it = options.find(QStringLiteral("overrideSystemTrayAvailability"));
-    if (it != options.constEnd())
-    {
+    if (it != options.constEnd()) {
         bool value = it.value().toBool();
 
         qputenv(

@@ -26,7 +26,7 @@
 
 namespace quentier {
 
-class WikiRandomArticleFetcher: public QObject
+class WikiRandomArticleFetcher : public QObject
 {
     Q_OBJECT
 public:
@@ -84,19 +84,19 @@ private:
     void clear();
 
 private:
-    ENMLConverter   m_enmlConverter;
-    const qint64    m_networkReplyFetcherTimeout;
+    ENMLConverter m_enmlConverter;
+    const qint64 m_networkReplyFetcherTimeout;
 
-    bool    m_started = false;
-    bool    m_finished = false;
+    bool m_started = false;
+    bool m_finished = false;
 
-    WikiRandomArticleUrlFetcher *   m_pWikiArticleUrlFetcher = nullptr;
-    QUrl    m_url;
+    WikiRandomArticleUrlFetcher * m_pWikiArticleUrlFetcher = nullptr;
+    QUrl m_url;
 
-    NetworkReplyFetcher *   m_pWikiArticleContentsFetcher = nullptr;
-    WikiArticleToNote *     m_pWikiArticleToNote = nullptr;
+    NetworkReplyFetcher * m_pWikiArticleContentsFetcher = nullptr;
+    WikiArticleToNote * m_pWikiArticleToNote = nullptr;
 
-    Note    m_note;
+    Note m_note;
 };
 
 } // namespace quentier

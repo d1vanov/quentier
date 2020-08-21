@@ -50,12 +50,12 @@ private:
     bool checkRelativeWidth() const;
 
 private:
-    Ui::TableSettingsDialog *ui;
+    Ui::TableSettingsDialog * ui;
 
-    int     m_numRows = 0;
-    int     m_numColumns = 0;
-    double  m_tableWidth = 0.0;
-    bool    m_relativeWidth = false;
+    int m_numRows = 0;
+    int m_numColumns = 0;
+    double m_tableWidth = 0.0;
+    bool m_relativeWidth = false;
 };
 
 } // namespace quentier

@@ -74,12 +74,11 @@ bool LimitedFontsDelegate::doPaint(
 
     painter->setPen(
         option.state & QStyle::State_Selected
-        ? option.palette.highlightedText().color()
-        : option.palette.windowText().color());
+            ? option.palette.highlightedText().color()
+            : option.palette.windowText().color());
 
     painter->drawText(
-        option.rect,
-        fontFamily,
+        option.rect, fontFamily,
         QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     return true;

@@ -23,7 +23,7 @@
 
 #include <QObject>
 
-class ModelTester: public QObject
+class ModelTester : public QObject
 {
     Q_OBJECT
 public:

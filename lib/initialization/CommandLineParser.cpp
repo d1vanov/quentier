@@ -31,7 +31,7 @@ namespace quentier {
 
 CommandLineParser::CommandLineParser(
     int argc, char * argv[],
-    const QHash<QString,OptionData> & availableCmdOptions)
+    const QHash<QString, OptionData> & availableCmdOptions)
 {
     if (argc < 2) {
         return;
@@ -40,14 +40,14 @@ CommandLineParser::CommandLineParser(
     QCommandLineParser parser;
 
     parser.setApplicationDescription(QCoreApplication::translate(
-        "CommandLineParser",
-        "Cross-platform desktop Evernote client"));
+        "CommandLineParser", "Cross-platform desktop Evernote client"));
 
     parser.addHelpOption();
     parser.addVersionOption();
 
-    for(auto it = availableCmdOptions.constBegin(),
-        end = availableCmdOptions.constEnd(); it != end; ++it)
+    for (auto it = availableCmdOptions.constBegin(),
+              end = availableCmdOptions.constEnd();
+         it != end; ++it)
     {
         const QString & option = it.key();
         const OptionData & data = it.value();
@@ -61,8 +61,7 @@ CommandLineParser::CommandLineParser(
 
         QCommandLineOption opt(optionParts);
 
-        if (data.m_type != ArgumentType::None)
-        {
+        if (data.m_type != ArgumentType::None) {
             if (!data.m_name.isEmpty()) {
                 opt.setValueName(data.m_name);
             }
@@ -86,15 +85,14 @@ CommandLineParser::CommandLineParser(
 
     QStringList arguments;
     arguments.reserve(argc);
-    for(int i = 0; i < argc; ++i) {
+    for (int i = 0; i < argc; ++i) {
         arguments << QString::fromLocal8Bit(argv[i]);
     }
 
     parser.process(arguments);
 
     auto optionNames = parser.optionNames();
-    for(const auto & optionName: qAsConst(optionNames))
-    {
+    for (const auto & optionName: qAsConst(optionNames)) {
         auto it = availableCmdOptions.find(optionName);
         if (Q_UNLIKELY(it == availableCmdOptions.end())) {
             continue;
@@ -103,23 +101,21 @@ CommandLineParser::CommandLineParser(
         const auto & optionData = it.value();
         QString value = parser.value(optionName);
 
-        switch(optionData.m_type)
-        {
+        switch (optionData.m_type) {
         case ArgumentType::String:
             m_options[optionName] = value;
             break;
         case ArgumentType::Bool:
         {
             value = value.toLower();
-            if ( (value == QStringLiteral("yes")) ||
-                 (value == QStringLiteral("true")) ||
-                 (value == QStringLiteral("on")) ||
-                 (value == QStringLiteral("1")) )
+            if ((value == QStringLiteral("yes")) ||
+                (value == QStringLiteral("true")) ||
+                (value == QStringLiteral("on")) ||
+                (value == QStringLiteral("1")))
             {
                 m_options[optionName] = true;
             }
-            else
-            {
+            else {
                 m_options[optionName] = false;
             }
             break;
@@ -128,8 +124,7 @@ CommandLineParser::CommandLineParser(
         {
             bool conversionResult = false;
             int valueInt = value.toInt(&conversionResult);
-            if (!conversionResult)
-            {
+            if (!conversionResult) {
                 m_errorDescription.setBase(QCoreApplication::translate(
                     "CommandLineParser",
                     "Failed to convert option value to int"));
@@ -137,8 +132,7 @@ CommandLineParser::CommandLineParser(
                 m_errorDescription.details() += QStringLiteral("=");
                 m_errorDescription.details() += value;
             }
-            else
-            {
+            else {
                 m_options[optionName] = valueInt;
             }
             break;
@@ -147,8 +141,7 @@ CommandLineParser::CommandLineParser(
         {
             bool conversionResult = false;
             double valueDouble = value.toDouble(&conversionResult);
-            if (!conversionResult)
-            {
+            if (!conversionResult) {
                 m_errorDescription.setBase(QCoreApplication::translate(
                     "CommandLineParser",
                     "Failed to convert option value to double"));
@@ -156,8 +149,7 @@ CommandLineParser::CommandLineParser(
                 m_errorDescription.details() += QStringLiteral("=");
                 m_errorDescription.details() += value;
             }
-            else
-            {
+            else {
                 m_options[optionName] = valueDouble;
             }
             break;
@@ -194,8 +186,7 @@ QDebug & operator<<(QDebug & dbg, const CommandLineParser::ArgumentType type)
 {
     using ArgumentType = CommandLineParser::ArgumentType;
 
-    switch(type)
-    {
+    switch (type) {
     case ArgumentType::None:
         dbg << "None";
         break;

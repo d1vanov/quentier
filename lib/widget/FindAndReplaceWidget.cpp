@@ -22,7 +22,7 @@
 namespace quentier {
 
 FindAndReplaceWidget::FindAndReplaceWidget(
-        QWidget * parent, const bool withReplace) :
+    QWidget * parent, const bool withReplace) :
     QWidget(parent),
     m_pUI(new Ui::FindAndReplaceWidget)
 {
@@ -78,8 +78,7 @@ bool FindAndReplaceWidget::replaceEnabled() const
 
 void FindAndReplaceWidget::setReplaceEnabled(const bool enabled)
 {
-    if (enabled)
-    {
+    if (enabled) {
         m_pUI->replaceLineEdit->setDisabled(false);
         m_pUI->replaceButton->setDisabled(false);
         m_pUI->replaceAllButton->setDisabled(false);
@@ -90,8 +89,7 @@ void FindAndReplaceWidget::setReplaceEnabled(const bool enabled)
         m_pUI->replaceAllButton->show();
         m_pUI->replaceLabel->show();
     }
-    else
-    {
+    else {
         m_pUI->replaceLineEdit->hide();
         m_pUI->replaceButton->hide();
         m_pUI->replaceAllButton->hide();
@@ -186,57 +184,39 @@ QSize FindAndReplaceWidget::minimumSizeHint() const
 void FindAndReplaceWidget::createConnections()
 {
     QObject::connect(
-        m_pUI->closeButton,
-        &QPushButton::released,
-        this,
+        m_pUI->closeButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onCloseButtonPressed);
 
     QObject::connect(
-        m_pUI->findLineEdit,
-        &QLineEdit::textEdited,
-        this,
+        m_pUI->findLineEdit, &QLineEdit::textEdited, this,
         &FindAndReplaceWidget::textToFindEdited);
 
     QObject::connect(
-        m_pUI->findLineEdit,
-        &QLineEdit::returnPressed,
-        this,
+        m_pUI->findLineEdit, &QLineEdit::returnPressed, this,
         &FindAndReplaceWidget::onFindTextEntered);
 
     QObject::connect(
-        m_pUI->findNextButton,
-        &QPushButton::released,
-        this,
+        m_pUI->findNextButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onNextButtonPressed);
 
     QObject::connect(
-        m_pUI->findPreviousButton,
-        &QPushButton::released,
-        this,
+        m_pUI->findPreviousButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onPreviousButtonPressed);
 
     QObject::connect(
-        m_pUI->matchCaseCheckBox,
-        &QCheckBox::stateChanged,
-        this,
+        m_pUI->matchCaseCheckBox, &QCheckBox::stateChanged, this,
         &FindAndReplaceWidget::onMatchCaseCheckboxToggled);
 
     QObject::connect(
-        m_pUI->replaceLineEdit,
-        &QLineEdit::returnPressed,
-        this,
+        m_pUI->replaceLineEdit, &QLineEdit::returnPressed, this,
         &FindAndReplaceWidget::onReplaceTextEntered);
 
     QObject::connect(
-        m_pUI->replaceButton,
-        &QPushButton::released,
-        this,
+        m_pUI->replaceButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onReplaceButtonPressed);
 
     QObject::connect(
-        m_pUI->replaceAllButton,
-        &QPushButton::released,
-        this,
+        m_pUI->replaceAllButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onReplaceAllButtonPressed);
 }
 
@@ -245,12 +225,10 @@ QSize FindAndReplaceWidget::sizeHintImpl(const bool minimal) const
     QSize sizeHint =
         (minimal ? QWidget::minimumSizeHint() : QWidget::sizeHint());
 
-    if (!m_pUI->replaceLineEdit->isEnabled())
-    {
+    if (!m_pUI->replaceLineEdit->isEnabled()) {
         QSize findSizeHint =
-            (minimal
-             ? m_pUI->findLineEdit->minimumSizeHint()
-             : m_pUI->findLineEdit->sizeHint());
+            (minimal ? m_pUI->findLineEdit->minimumSizeHint()
+                     : m_pUI->findLineEdit->sizeHint());
 
         auto * pLayout = m_pUI->gridLayout->layout();
         auto margins = pLayout->contentsMargins();

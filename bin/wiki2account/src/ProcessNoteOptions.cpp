@@ -29,8 +29,7 @@ bool processNoteOptions(
     const CommandLineParser::Options & options, quint32 & numNotes)
 {
     auto numNotesIt = options.find(QStringLiteral("num-notes"));
-    if (numNotesIt != options.end())
-    {
+    if (numNotesIt != options.end()) {
         bool conversionResult = false;
         quint32 num = numNotesIt.value().toUInt(&conversionResult);
         if (!conversionResult) {
@@ -47,15 +46,14 @@ bool processNoteOptions(
     stdoutStrm.flush();
 
     QTextStream stdinStrm(stdin);
-    while(true)
-    {
+    while (true) {
         QString line = stdinStrm.readLine();
 
         bool conversionResult = false;
         quint32 num = line.toUInt(&conversionResult);
         if (!conversionResult) {
             stdoutStrm << "Failed to parse the number of notes to download, "
-                "please try again\n> ";
+                          "please try again\n> ";
             stdoutStrm.flush();
             continue;
         }

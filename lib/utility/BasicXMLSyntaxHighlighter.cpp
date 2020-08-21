@@ -34,8 +34,7 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
     // Special treatment for xml element regex as we use captured text to
     // emulate lookbehind
     int xmlElementIndex = m_xmlElementRegex.indexIn(text);
-    while(xmlElementIndex >= 0)
-    {
+    while (xmlElementIndex >= 0) {
         int matchedPos = m_xmlElementRegex.pos(1);
         int matchedLength = m_xmlElementRegex.cap(1).length();
         setFormat(matchedPos, matchedLength, m_xmlElementFormat);
@@ -46,8 +45,8 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 
     // Highlight xml keywords *after* xml elements to fix any occasional /
     // captured into the enclosing element
-    for(auto it = m_xmlKeywordRegexes.begin(),
-        end = m_xmlKeywordRegexes.end(); it != end; ++it)
+    for (auto it = m_xmlKeywordRegexes.begin(), end = m_xmlKeywordRegexes.end();
+         it != end; ++it)
     {
         const QRegExp & regex = *it;
         highlightByRegex(m_xmlKeywordFormat, regex, text);
@@ -59,13 +58,11 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 }
 
 void BasicXMLSyntaxHighlighter::highlightByRegex(
-    const QTextCharFormat & format, const QRegExp & regex,
-    const QString & text)
+    const QTextCharFormat & format, const QRegExp & regex, const QString & text)
 {
     int index = regex.indexIn(text);
 
-    while(index >= 0)
-    {
+    while (index >= 0) {
         int matchedLength = regex.matchedLength();
         setFormat(index, matchedLength, format);
 

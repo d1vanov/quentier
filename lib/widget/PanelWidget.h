@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PANELWIDGET_H
-#define PANELWIDGET_H
+#ifndef QUENTIER_LIB_WIDGET_PANEL_WIDGET_H
+#define QUENTIER_LIB_WIDGET_PANEL_WIDGET_H
 
 #include <QFrame>
 
@@ -28,7 +28,7 @@ namespace quentier {
  * functional extension of its base class. The whole purpose to have a subclass
  * is for using it in Qt stylesheets.
  */
-class PanelWidget: public QFrame
+class PanelWidget : public QFrame
 {
     Q_OBJECT
 public:
@@ -39,4 +39,4 @@ public:
 
 } // namespace quentier
 
-#endif // PANELWIDGET_H
+#endif // QUENTIER_LIB_WIDGET_PANEL_WIDGET_H

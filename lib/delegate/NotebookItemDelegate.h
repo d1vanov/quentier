@@ -28,7 +28,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
 
-class NotebookItemDelegate: public AbstractStyledItemDelegate
+class NotebookItemDelegate : public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -85,8 +85,8 @@ private:
         const int columnNameWidth) const;
 
 private:
-    QIcon   m_userIcon;
-    QSize   m_userIconSize;
+    QIcon m_userIcon;
+    QSize m_userIconSize;
 };
 
 } // namespace quentier

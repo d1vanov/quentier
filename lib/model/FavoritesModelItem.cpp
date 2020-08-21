@@ -23,11 +23,10 @@
 namespace quentier {
 
 FavoritesModelItem::FavoritesModelItem(
-        const Type type, QString localUid, QString displayName,
-        const int noteCount) :
+    const Type type, QString localUid, QString displayName,
+    const int noteCount) :
     m_type(type),
-    m_localUid(std::move(localUid)),
-    m_displayName(std::move(displayName)),
+    m_localUid(std::move(localUid)), m_displayName(std::move(displayName)),
     m_noteCount(noteCount)
 {}
 
@@ -40,9 +39,8 @@ QTextStream & FavoritesModelItem::print(QTextStream & strm) const
     dbg << m_type;
 
     strm << type << "; local uid = " << m_localUid
-        << ", display name = " << m_displayName
-        << ", note count = " << m_noteCount
-        << ";";
+         << ", display name = " << m_displayName
+         << ", note count = " << m_noteCount << ";";
 
     return strm;
 }
@@ -51,8 +49,7 @@ QDebug & operator<<(QDebug & dbg, const FavoritesModelItem::Type type)
 {
     using Type = FavoritesModelItem::Type;
 
-    switch(type)
-    {
+    switch (type) {
     case Type::Notebook:
         dbg << "Notebook";
         break;

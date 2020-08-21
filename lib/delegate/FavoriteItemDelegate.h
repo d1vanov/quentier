@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-class FavoriteItemDelegate: public AbstractStyledItemDelegate
+class FavoriteItemDelegate : public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -70,12 +70,12 @@ private:
         const QStyleOptionViewItem & option) const;
 
 private:
-    QIcon   m_notebookIcon;
-    QIcon   m_tagIcon;
-    QIcon   m_noteIcon;
-    QIcon   m_savedSearchIcon;
-    QIcon   m_unknownTypeIcon;
-    QSize   m_iconSize;
+    QIcon m_notebookIcon;
+    QIcon m_tagIcon;
+    QIcon m_noteIcon;
+    QIcon m_savedSearchIcon;
+    QIcon m_unknownTypeIcon;
+    QSize m_iconSize;
 };
 
 } // namespace quentier

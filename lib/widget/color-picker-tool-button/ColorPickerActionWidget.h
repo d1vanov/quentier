@@ -25,7 +25,7 @@ QT_FORWARD_DECLARE_CLASS(QColorDialog)
 
 namespace quentier {
 
-class ColorPickerActionWidget: public QWidgetAction
+class ColorPickerActionWidget : public QWidgetAction
 {
     Q_OBJECT
 public:

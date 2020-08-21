@@ -24,13 +24,12 @@
 #include <QPainter>
 #include <QToolTip>
 
-#define MAX_ROWS (10)
+#define MAX_ROWS    (10)
 #define MAX_COLUMNS (20)
 
 namespace quentier {
 
-TableSizeSelector::TableSizeSelector(QWidget * parent) :
-    QFrame(parent)
+TableSizeSelector::TableSizeSelector(QWidget * parent) : QFrame(parent)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
@@ -59,8 +58,7 @@ void TableSizeSelector::paintEvent(QPaintEvent * event)
     painter.fillRect(m_rect, palette().brush(QPalette::Base));
 
     // Fill current selection area (if any)
-    if ((m_currentRow >= 0) && (m_currentColumn >= 0))
-    {
+    if ((m_currentRow >= 0) && (m_currentColumn >= 0)) {
         QRectF selectionRect;
         selectionRect.setHeight(m_currentRow * m_rowHeight);
         selectionRect.setWidth(m_currentColumn * m_columnWidth);
@@ -72,15 +70,14 @@ void TableSizeSelector::paintEvent(QPaintEvent * event)
     painter.setPen(pen);
 
     // Drawing rows grid
-    for(int i = 0; i <= MAX_ROWS; ++i) {
+    for (int i = 0; i <= MAX_ROWS; ++i) {
         double verticalPos = i * m_rowHeight;
         painter.drawLine(
-            QPointF(0.0, verticalPos),
-            QPointF(m_rect.width(), verticalPos));
+            QPointF(0.0, verticalPos), QPointF(m_rect.width(), verticalPos));
     }
 
     // Drawing columns grid
-    for(int i = 0; i <= MAX_COLUMNS; ++i) {
+    for (int i = 0; i <= MAX_COLUMNS; ++i) {
         double horizontalPos = i * m_columnWidth;
         painter.drawLine(
             QPointF(horizontalPos, 0.0),
@@ -103,8 +100,8 @@ void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
 
     QToolTip::showText(
         event->globalPos(),
-        QString::number(m_currentRow) +
-        QStringLiteral("x") + QString::number(m_currentColumn));
+        QString::number(m_currentRow) + QStringLiteral("x") +
+            QString::number(m_currentColumn));
 
     repaint();
 }
@@ -118,7 +115,7 @@ void TableSizeSelector::mouseReleaseEvent(QMouseEvent * event)
     QFrame::mouseReleaseEvent(event);
 }
 
-void TableSizeSelector::enterEvent(QEvent *event)
+void TableSizeSelector::enterEvent(QEvent * event)
 {
     QFrame::enterEvent(event);
     repaint();

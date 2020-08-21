@@ -27,12 +27,10 @@
 namespace quentier {
 
 LogViewerModel::FileReaderAsync::FileReaderAsync(
-        const QString & targetFilePath,
-        const QVector<LogLevel> & disabledLogLevels,
-        const QString & logEntryContentFilter, QObject * parent) :
+    const QString & targetFilePath, const QVector<LogLevel> & disabledLogLevels,
+    const QString & logEntryContentFilter, QObject * parent) :
     QObject(parent),
-    m_targetFile(targetFilePath),
-    m_disabledLogLevels(disabledLogLevels),
+    m_targetFile(targetFilePath), m_disabledLogLevels(disabledLogLevels),
     m_filterRegExp(logEntryContentFilter, Qt::CaseSensitive, QRegExp::Wildcard)
 {}
 
@@ -50,29 +48,15 @@ void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(
     qint64 endPos = -1;
     ErrorString errorDescription;
     bool res = m_parser.parseDataEntriesFromLogFile(
-        fromPos,
-        maxDataEntries,
-        m_disabledLogLevels,
-        m_filterRegExp,
-        m_targetFile,
-        dataEntries,
-        endPos,
-        errorDescription);
-    if (res)
-    {
+        fromPos, maxDataEntries, m_disabledLogLevels, m_filterRegExp,
+        m_targetFile, dataEntries, endPos, errorDescription);
+    if (res) {
         Q_EMIT readLogFileDataEntries(
-            fromPos,
-            endPos,
-            dataEntries,
-            ErrorString());
+            fromPos, endPos, dataEntries, ErrorString());
     }
-    else
-    {
+    else {
         Q_EMIT readLogFileDataEntries(
-            fromPos,
-            -1,
-            QVector<LogViewerModel::Data>(),
-            errorDescription);
+            fromPos, -1, QVector<LogViewerModel::Data>(), errorDescription);
     }
 }
 

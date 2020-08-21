@@ -37,9 +37,7 @@ QList<Tag> prepareTags(
     QList<Tag> result;
 
     TagController controller(
-        minTagsPerNote,
-        maxTagsPerNote,
-        localStorageManagerAsync);
+        minTagsPerNote, maxTagsPerNote, localStorageManagerAsync);
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
@@ -50,21 +48,15 @@ QList<Tag> prepareTags(
         EventLoopWithExitStatus loop;
 
         QObject::connect(
-            &timer,
-            &QTimer::timeout,
-            &loop,
+            &timer, &QTimer::timeout, &loop,
             &EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
-            &controller,
-            &TagController::finished,
-            &loop,
+            &controller, &TagController::finished, &loop,
             &EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
-            &controller,
-            &TagController::failure,
-            &loop,
+            &controller, &TagController::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;

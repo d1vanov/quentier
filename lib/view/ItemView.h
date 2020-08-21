@@ -30,7 +30,7 @@ namespace quentier {
  * (can be used with tree or table models) which works around different quirks
  * of the default implementations like column sizing
  */
-class ItemView: public QTreeView
+class ItemView : public QTreeView
 {
     Q_OBJECT
 public:

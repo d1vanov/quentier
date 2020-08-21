@@ -36,11 +36,11 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountModel)
 
-class AccountManager: public QObject
+class AccountManager : public QObject
 {
     Q_OBJECT
 public:
-    class AccountInitializationException: public IQuentierException
+    class AccountInitializationException : public IQuentierException
     {
     public:
         explicit AccountInitializationException(const ErrorString & message);
@@ -133,7 +133,7 @@ Q_SIGNALS:
 
     void revokeAuthenticationRequested(qevercloud::UserID userId);
 
-// private signals
+    // private signals
     void authenticationRevoked(
         bool success, ErrorString errorDescription, qevercloud::UserID userId);
 
@@ -159,9 +159,8 @@ private:
     bool createAccountInfo(const Account & account);
 
     bool writeAccountInfo(
-        const QString & name, const QString & displayName,
-        const bool isLocal, const qevercloud::UserID id,
-        const QString & evernoteAccountType,
+        const QString & name, const QString & displayName, const bool isLocal,
+        const qevercloud::UserID id, const QString & evernoteAccountType,
         const QString & evernoteHost, const QString & shardId,
         ErrorString & errorDescription);
 
@@ -187,7 +186,7 @@ private:
     void updateLastUsedAccount(const Account & account);
 
 private:
-    std::unique_ptr<AccountModel>   m_pAccountModel;
+    std::unique_ptr<AccountModel> m_pAccountModel;
 };
 
 } // namespace quentier

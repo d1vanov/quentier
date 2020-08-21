@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_MODEL_NOTE_MODEL_H
 #define QUENTIER_LIB_MODEL_NOTE_MODEL_H
 
-#include "NoteModelItem.h"
 #include "NoteCache.h"
+#include "NoteModelItem.h"
 #include "NotebookCache.h"
 
 #include <lib/utility/IStartable.h>
@@ -32,14 +32,14 @@
 #include <QAbstractItemModel>
 
 SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index/hashed_index.hpp>
 #include <boost/bimap.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 RESTORE_WARNINGS
 
@@ -47,7 +47,7 @@ RESTORE_WARNINGS
 
 namespace quentier {
 
-class NoteModel: public QAbstractItemModel, public IStartable
+class NoteModel : public QAbstractItemModel, public IStartable
 {
     Q_OBJECT
 public:
@@ -104,7 +104,8 @@ public:
         bool isEmpty() const;
 
         const QStringList & filteredNotebookLocalUids() const;
-        void setFilteredNotebookLocalUids(const QStringList & notebookLocalUids);
+        void setFilteredNotebookLocalUids(
+            const QStringList & notebookLocalUids);
         void clearFilteredNotebookLocalUids();
 
         const QStringList & filteredTagLocalUids() const;
@@ -120,11 +121,10 @@ public:
         Q_DISABLE_COPY(NoteFilters);
 
     private:
-        QStringList             m_filteredNotebookLocalUids;
-        QStringList             m_filteredTagLocalUids;
-        QSet<QString>           m_filteredNoteLocalUids;
+        QStringList m_filteredNotebookLocalUids;
+        QStringList m_filteredTagLocalUids;
+        QSet<QString> m_filteredNoteLocalUids;
     };
-
 
     explicit NoteModel(
         const Account & account,
@@ -133,7 +133,7 @@ public:
         QObject * parent = nullptr,
         const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted,
         const NoteSortingMode::type noteSortingMode =
-        NoteSortingMode::ModifiedAscending,
+            NoteSortingMode::ModifiedAscending,
         NoteFilters * pFilters = nullptr);
 
     virtual ~NoteModel() override;
@@ -298,12 +298,10 @@ public:
 
 public:
     // QAbstractItemModel interface
-    virtual Qt::ItemFlags flags(
-        const QModelIndex & modelIndex) const override;
+    virtual Qt::ItemFlags flags(const QModelIndex & modelIndex) const override;
 
     virtual QVariant data(
-        const QModelIndex & index,
-        int role = Qt::DisplayRole) const override;
+        const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
     virtual QVariant headerData(
         int section, Qt::Orientation orientation,
@@ -382,7 +380,7 @@ Q_SIGNALS:
      */
     void minimalNotesBatchLoaded();
 
-// private signals
+    // private signals
     void addNote(Note note, QUuid requestId);
 
     void updateNote(
@@ -395,38 +393,30 @@ Q_SIGNALS:
 
     void listNotes(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
     void listNotesPerNotebooksAndTags(
         QStringList notebookLocalUids, QStringList tagLocalUids,
         LocalStorageManager::GetNoteOptions options,
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QUuid requestId);
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
 
     void listNotesByLocalUids(
-        QStringList noteLocalUids,
-        LocalStorageManager::GetNoteOptions options,
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QUuid requestId);
+        QStringList noteLocalUids, LocalStorageManager::GetNoteOptions options,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
 
     void getNoteCount(
         LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void getNoteCountPerNotebooksAndTags(
-        QStringList notebookLocalUids,
-        QStringList tagLocalUids,
-        LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
+        QStringList notebookLocalUids, QStringList tagLocalUids,
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void expungeNote(Note note, QUuid requestId);
 
@@ -458,57 +448,46 @@ private Q_SLOTS:
 
     void onListNotesComplete(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QList<Note> foundNotes,
-        QUuid requestId);
+        QString linkedNotebookGuid, QList<Note> foundNotes, QUuid requestId);
 
     void onListNotesFailed(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
 
     void onListNotesPerNotebooksAndTagsComplete(
-        QStringList notebookLocalUids,
-        QStringList tagLocalUids,
+        QStringList notebookLocalUids, QStringList tagLocalUids,
         LocalStorageManager::GetNoteOptions options,
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QList<Note> foundNotes, QUuid requestId);
 
     void onListNotesPerNotebooksAndTagsFailed(
-        QStringList notebookLocalUids,
-        QStringList tagLocalUids,
+        QStringList notebookLocalUids, QStringList tagLocalUids,
         LocalStorageManager::GetNoteOptions options,
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
     void onListNotesByLocalUidsComplete(
-        QStringList noteLocalUids,
-        LocalStorageManager::GetNoteOptions options,
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        QStringList noteLocalUids, LocalStorageManager::GetNoteOptions options,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QList<Note> foundNotes, QUuid requestId);
 
     void onListNotesByLocalUidsFailed(
-        QStringList noteLocalUids,
-        LocalStorageManager::GetNoteOptions options,
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        QStringList noteLocalUids, LocalStorageManager::GetNoteOptions options,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
@@ -518,18 +497,15 @@ private Q_SLOTS:
 
     void onGetNoteCountFailed(
         ErrorString errorDescription,
-        LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void onGetNoteCountPerNotebooksAndTagsComplete(
         int noteCount, QStringList notebookLocalUids, QStringList tagLocalUids,
-        LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void onGetNoteCountPerNotebooksAndTagsFailed(
-        ErrorString errorDescription,
-        QStringList notebookLocalUids, QStringList tagLocalUids,
-        LocalStorageManager::NoteCountOptions options,
+        ErrorString errorDescription, QStringList notebookLocalUids,
+        QStringList tagLocalUids, LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
 
     void onExpungeNoteComplete(Note note, QUuid requestId);
@@ -623,28 +599,26 @@ private:
     void setSortingOrder(const Qt::SortOrder order);
 
 private:
-    struct ByIndex{};
-    struct ByLocalUid{};
-    struct ByNotebookLocalUid{};
+    struct ByIndex
+    {};
+    struct ByLocalUid
+    {};
+    struct ByNotebookLocalUid
+    {};
 
     using NoteData = boost::multi_index_container<
         NoteModelItem,
         boost::multi_index::indexed_by<
-            boost::multi_index::random_access<
-                boost::multi_index::tag<ByIndex>
-            >,
+            boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
             boost::multi_index::hashed_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
-                    NoteModelItem,const QString&,&NoteModelItem::localUid>
-            >,
+                    NoteModelItem, const QString &, &NoteModelItem::localUid>>,
             boost::multi_index::hashed_non_unique<
                 boost::multi_index::tag<ByNotebookLocalUid>,
                 boost::multi_index::const_mem_fun<
-                    NoteModelItem,const QString&,&NoteModelItem::notebookLocalUid>
-            >
-        >
-    >;
+                    NoteModelItem, const QString &,
+                    &NoteModelItem::notebookLocalUid>>>>;
 
     using NoteDataByIndex = NoteData::index<ByIndex>::type;
     using NoteDataByLocalUid = NoteData::index<ByLocalUid>::type;
@@ -655,8 +629,8 @@ private:
     class NoteComparator
     {
     public:
-        NoteComparator(const Columns::type column,
-                       const Qt::SortOrder sortOrder) :
+        NoteComparator(
+            const Columns::type column, const Qt::SortOrder sortOrder) :
             m_sortedColumn(column),
             m_sortOrder(sortOrder)
         {}
@@ -665,16 +639,16 @@ private:
             const NoteModelItem & lhs, const NoteModelItem & rhs) const;
 
     private:
-        Columns::type   m_sortedColumn;
-        Qt::SortOrder   m_sortOrder;
+        Columns::type m_sortedColumn;
+        Qt::SortOrder m_sortOrder;
     };
 
     struct NotebookData
     {
         QString m_name;
         QString m_guid;
-        bool    m_canCreateNotes = false;
-        bool    m_canUpdateNotes = false;
+        bool m_canCreateNotes = false;
+        bool m_canUpdateNotes = false;
     };
 
     struct TagData
@@ -705,60 +679,64 @@ private:
     void updateTagData(const Tag & tag);
 
 private:
-    Account                     m_account;
-    const IncludedNotes::type   m_includedNotes;
-    NoteSortingMode::type       m_noteSortingMode;
+    Account m_account;
+    const IncludedNotes::type m_includedNotes;
+    NoteSortingMode::type m_noteSortingMode;
 
-    LocalStorageManagerAsync &  m_localStorageManagerAsync;
-    bool                        m_connectedToLocalStorage = false;
+    LocalStorageManagerAsync & m_localStorageManagerAsync;
+    bool m_connectedToLocalStorage = false;
 
-    bool                        m_isStarted = false;
+    bool m_isStarted = false;
 
-    NoteData                    m_data;
-    qint32                      m_totalFilteredNotesCount = 0;
+    NoteData m_data;
+    qint32 m_totalFilteredNotesCount = 0;
 
-    NoteCache &                 m_cache;
-    NotebookCache &             m_notebookCache;
+    NoteCache & m_cache;
+    NotebookCache & m_notebookCache;
 
-    std::unique_ptr<NoteFilters>    m_pFilters;
-    std::unique_ptr<NoteFilters>    m_pUpdatedNoteFilters;
+    std::unique_ptr<NoteFilters> m_pFilters;
+    std::unique_ptr<NoteFilters> m_pUpdatedNoteFilters;
 
     // Upper bound for the amount of notes stored within the note model.
     // Can be increased through calls to fetchMore()
-    size_t                      m_maxNoteCount;
+    size_t m_maxNoteCount;
 
-    size_t                      m_listNotesOffset = 0;
-    QUuid                       m_listNotesRequestId;
-    QUuid                       m_getNoteCountRequestId;
+    size_t m_listNotesOffset = 0;
+    QUuid m_listNotesRequestId;
+    QUuid m_getNoteCountRequestId;
 
-    qint32                      m_totalAccountNotesCount = 0;
-    QUuid                       m_getFullNoteCountPerAccountRequestId;
+    qint32 m_totalAccountNotesCount = 0;
+    QUuid m_getFullNoteCountPerAccountRequestId;
 
-    QHash<QString, NotebookData>    m_notebookDataByNotebookLocalUid;
-    LocalUidToRequestIdBimap        m_findNotebookRequestForNotebookLocalUid;
+    QHash<QString, NotebookData> m_notebookDataByNotebookLocalUid;
+    LocalUidToRequestIdBimap m_findNotebookRequestForNotebookLocalUid;
 
-    QSet<QUuid>                 m_localUidsOfNewNotesBeingAddedToLocalStorage;
+    QSet<QUuid> m_localUidsOfNewNotesBeingAddedToLocalStorage;
 
-    QSet<QUuid>                 m_addNoteRequestIds;
-    QSet<QUuid>                 m_updateNoteRequestIds;
-    QSet<QUuid>                 m_expungeNoteRequestIds;
+    QSet<QUuid> m_addNoteRequestIds;
+    QSet<QUuid> m_updateNoteRequestIds;
+    QSet<QUuid> m_expungeNoteRequestIds;
 
-    QSet<QUuid>                 m_findNoteToRestoreFailedUpdateRequestIds;
-    QSet<QUuid>                 m_findNoteToPerformUpdateRequestIds;
+    QSet<QUuid> m_findNoteToRestoreFailedUpdateRequestIds;
+    QSet<QUuid> m_findNoteToPerformUpdateRequestIds;
 
     // The key is notebook local uid
-    QMultiHash<QString, NoteModelItem>  m_noteItemsPendingNotebookDataUpdate;
+    QMultiHash<QString, NoteModelItem> m_noteItemsPendingNotebookDataUpdate;
 
-    LocalUidToRequestIdBimap    m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap;
+    LocalUidToRequestIdBimap
+        m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap;
 
-    QHash<QString, TagData>     m_tagDataByTagLocalUid;
+    QHash<QString, TagData> m_tagDataByTagLocalUid;
 
-    LocalUidToRequestIdBimap        m_findTagRequestForTagLocalUid;
-    QMultiHash<QString, QString>    m_tagLocalUidToNoteLocalUid;
+    LocalUidToRequestIdBimap m_findTagRequestForTagLocalUid;
+    QMultiHash<QString, QString> m_tagLocalUidToNoteLocalUid;
 };
 
 } // namespace quentier
 
-inline std::size_t hash_value(QString x) { return qHash(x); }
+inline std::size_t hash_value(QString x)
+{
+    return qHash(x);
+}
 
 #endif // QUENTIER_LIB_MODEL_NOTE_MODEL_H

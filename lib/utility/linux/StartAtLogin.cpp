@@ -29,8 +29,7 @@
 #include <QFileInfo>
 
 #define QUENTIER_AUTOSTART_DESKTOP_FILE_PATH                                   \
-    QDir::homePath() + QStringLiteral("/.config/autostart/Quentier.desktop")   \
-// QUENTIER_AUTOSTART_DESKTOP_FILE_PATH
+    QDir::homePath() + QStringLiteral("/.config/autostart/Quentier.desktop")
 
 namespace quentier {
 
@@ -38,19 +37,20 @@ bool setStartQuentierAtLoginOption(
     const bool shouldStartAtLogin, ErrorString & errorDescription,
     const StartQuentierAtLoginOption::type option)
 {
-    QNDEBUG("utility", "setStartQuentierAtLoginOption (Linux): should start at "
-        << "login = " << (shouldStartAtLogin ? "true" : "false")
-        << ", option = " << option);
+    QNDEBUG(
+        "utility",
+        "setStartQuentierAtLoginOption (Linux): should start at "
+            << "login = " << (shouldStartAtLogin ? "true" : "false")
+            << ", option = " << option);
 
     QFileInfo autoStartDesktopFileInfo(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH);
-    if (autoStartDesktopFileInfo.exists())
-    {
+    if (autoStartDesktopFileInfo.exists()) {
         // First need to remove any existing autostart configuration
-        if (!QFile::remove(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH))
-        {
-            errorDescription.setBase(
-                QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous "
-                                  "autostart configuration"));
+        if (!QFile::remove(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH)) {
+            errorDescription.setBase(QT_TRANSLATE_NOOP(
+                "StartAtLogin",
+                "failed to remove previous "
+                "autostart configuration"));
 
             QNWARNING("utility", errorDescription);
             return false;
@@ -58,8 +58,7 @@ bool setStartQuentierAtLoginOption(
     }
 
     // If the app shouldn't start at login, that should be all
-    if (!shouldStartAtLogin)
-    {
+    if (!shouldStartAtLogin) {
         ApplicationSettings appSettings;
 
         appSettings.beginGroup(
@@ -71,16 +70,15 @@ bool setStartQuentierAtLoginOption(
     }
 
     QDir autoStartDesktopFileDir = autoStartDesktopFileInfo.absoluteDir();
-    if (Q_UNLIKELY(!autoStartDesktopFileDir.exists()))
-    {
+    if (Q_UNLIKELY(!autoStartDesktopFileDir.exists())) {
         bool res = autoStartDesktopFileDir.mkpath(
             autoStartDesktopFileDir.absolutePath());
 
-        if (Q_UNLIKELY(!res))
-        {
-            errorDescription.setBase(
-                QT_TRANSLATE_NOOP("StartAtLogin", "can't create directory "
-                                  "for app's autostart config"));
+        if (Q_UNLIKELY(!res)) {
+            errorDescription.setBase(QT_TRANSLATE_NOOP(
+                "StartAtLogin",
+                "can't create directory "
+                "for app's autostart config"));
 
             errorDescription.details() = autoStartDesktopFileDir.absolutePath();
             QNWARNING("utility", errorDescription);
@@ -103,18 +101,18 @@ bool setStartQuentierAtLoginOption(
         desktopFileContents += QStringLiteral("--startMinimized");
     }
 
-    desktopFileContents +=
-        QStringLiteral(" %u\nName=Quentier\nIcon=quentier\nTerminal=false\n"
-                       "GenericName=Note taking app\nComment=Note taking app "
-                       "integrated with Evernote\nCategories=Qt;Network;Office;"
-                       "TextTools;\nKeywords=Quentier;note;Evernote;\n");
+    desktopFileContents += QStringLiteral(
+        " %u\nName=Quentier\nIcon=quentier\nTerminal=false\n"
+        "GenericName=Note taking app\nComment=Note taking app "
+        "integrated with Evernote\nCategories=Qt;Network;Office;"
+        "TextTools;\nKeywords=Quentier;note;Evernote;\n");
 
     QFile autoStartDesktopFile(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH);
-    if (!autoStartDesktopFile.open(QIODevice::WriteOnly))
-    {
-        errorDescription.setBase(
-            QT_TRANSLATE_NOOP("StartAtLogin", "failed to open the autostart "
-                              "desktop file for writing"));
+    if (!autoStartDesktopFile.open(QIODevice::WriteOnly)) {
+        errorDescription.setBase(QT_TRANSLATE_NOOP(
+            "StartAtLogin",
+            "failed to open the autostart "
+            "desktop file for writing"));
 
         QNWARNING("utility", errorDescription);
         return false;
@@ -122,11 +120,11 @@ bool setStartQuentierAtLoginOption(
 
     Q_UNUSED(autoStartDesktopFile.write(desktopFileContents.toUtf8()))
 
-    if (!autoStartDesktopFile.flush())
-    {
-        errorDescription.setBase(
-            QT_TRANSLATE_NOOP("StartAtLogin", "failed to flush data into "
-                              "the autostart desktop file"));
+    if (!autoStartDesktopFile.flush()) {
+        errorDescription.setBase(QT_TRANSLATE_NOOP(
+            "StartAtLogin",
+            "failed to flush data into "
+            "the autostart desktop file"));
 
         QNWARNING("utility", errorDescription);
         return false;

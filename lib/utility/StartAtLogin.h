@@ -65,7 +65,7 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin();
 bool setStartQuentierAtLoginOption(
     const bool shouldStartAtLogin, ErrorString & errorDescription,
     const StartQuentierAtLoginOption::type option =
-    StartQuentierAtLoginOption::MinimizedToTray);
+        StartQuentierAtLoginOption::MinimizedToTray);
 
 } // namespace quentier
 

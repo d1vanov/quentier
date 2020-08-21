@@ -28,8 +28,8 @@
 namespace quentier {
 
 bool processNotebookOptions(
-    const CommandLineParser::Options & options,
-    QString & targetNotebookName, quint32 & numNewNotebooks)
+    const CommandLineParser::Options & options, QString & targetNotebookName,
+    quint32 & numNewNotebooks)
 {
     auto targetNotebookNameIt = options.find(QStringLiteral("notebook"));
     auto numNewNotebooksIt = options.find(QStringLiteral("num-notebooks"));
@@ -38,34 +38,32 @@ bool processNotebookOptions(
     bool hasNumNewNotebooks = (numNewNotebooksIt != options.end());
     if (hasTargetNotebookName && hasNumNewNotebooks) {
         qWarning() << "Either notebook or num-notebooks options should be "
-            "supplied but not both of them";
+                      "supplied but not both of them";
         return false;
     }
 
-    if (hasTargetNotebookName)
-    {
+    if (hasTargetNotebookName) {
         targetNotebookName = targetNotebookNameIt.value().toString().trimmed();
 
         ErrorString errorDescription;
         if (!Notebook::validateName(targetNotebookName, &errorDescription)) {
             qWarning() << "Invalid notebook name: "
-                << errorDescription.nonLocalizedString();
+                       << errorDescription.nonLocalizedString();
             return false;
         }
 
         return true;
     }
 
-    if (hasNumNewNotebooks)
-    {
+    if (hasNumNewNotebooks) {
         bool conversionResult = false;
 
-        quint32 numNotebooks = targetNotebookNameIt.value().toUInt(
-            &conversionResult);
+        quint32 numNotebooks =
+            targetNotebookNameIt.value().toUInt(&conversionResult);
 
         if (!conversionResult) {
             qWarning() << "Failed to convert the number of notebooks to "
-                "positive integer";
+                          "positive integer";
             return false;
         }
 
@@ -76,17 +74,16 @@ bool processNotebookOptions(
     QTextStream stdoutStrm(stdout);
 
     stdoutStrm << "Should notes downloaded from wiki be put into any "
-        << "particular notebook or into several new notebooks?\n"
-        << "1. Into new notebooks\n"
-        << "2. Into a particular notebook\n"
-        << "Enter the number corresponding to your choice\n"
-        << "> ";
+               << "particular notebook or into several new notebooks?\n"
+               << "1. Into new notebooks\n"
+               << "2. Into a particular notebook\n"
+               << "Enter the number corresponding to your choice\n"
+               << "> ";
     stdoutStrm.flush();
 
     QTextStream stdinStrm(stdin);
     qint32 choice = -1;
-    while(true)
-    {
+    while (true) {
         QString line = stdinStrm.readLine();
 
         bool conversionResult = false;
@@ -94,7 +91,7 @@ bool processNotebookOptions(
         if (!conversionResult) {
             choice = -1;
             stdoutStrm << "Failed to parse the number, please try again\n"
-                << "> ";
+                       << "> ";
             stdoutStrm.flush();
             continue;
         }
@@ -109,23 +106,21 @@ bool processNotebookOptions(
         break;
     }
 
-    if (choice == 1)
-    {
+    if (choice == 1) {
         stdoutStrm << "How many new notebooks should notes downloaded from "
-            << "wiki go into?\n> ";
+                   << "wiki go into?\n> ";
 
         stdoutStrm.flush();
 
         qint32 number = -1;
-        while(true)
-        {
+        while (true) {
             QString line = stdinStrm.readLine();
 
             bool conversionResult = false;
             number = line.toInt(&conversionResult);
             if (!conversionResult) {
                 stdoutStrm << "Failed to parse the number, please try again\n"
-                    << "> ";
+                           << "> ";
                 stdoutStrm.flush();
                 continue;
             }
@@ -149,8 +144,7 @@ bool processNotebookOptions(
     stdoutStrm.flush();
 
     QString line;
-    while(true)
-    {
+    while (true) {
         line = stdinStrm.readLine().trimmed();
         if (line.isEmpty()) {
             stdoutStrm << "Please enter non-empty notebook name\n> ";
@@ -161,8 +155,8 @@ bool processNotebookOptions(
         ErrorString errorDescription;
         if (!Notebook::validateName(line, &errorDescription)) {
             stdoutStrm << "Entered notebook name is invalid: "
-                << errorDescription.nonLocalizedString()
-                << ", please try again\n> ";
+                       << errorDescription.nonLocalizedString()
+                       << ", please try again\n> ";
             stdoutStrm.flush();
             continue;
         }

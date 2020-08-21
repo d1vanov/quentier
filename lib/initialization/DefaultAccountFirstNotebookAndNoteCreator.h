@@ -38,14 +38,13 @@ QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
  * a couple of asynchronous events related to setting up the default notebook
  * and note for the newly created default account
  */
-class DefaultAccountFirstNotebookAndNoteCreator: public QObject
+class DefaultAccountFirstNotebookAndNoteCreator : public QObject
 {
     Q_OBJECT
 public:
     explicit DefaultAccountFirstNotebookAndNoteCreator(
         LocalStorageManagerAsync & localStorageManagerAsync,
-        NoteFiltersManager & noteFiltersManager,
-        QObject * parent = nullptr);
+        NoteFiltersManager & noteFiltersManager, QObject * parent = nullptr);
 
 Q_SIGNALS:
     void finished(QString createdNoteLocalUid);
@@ -77,8 +76,8 @@ private:
     void emitAddNoteRequest(const Notebook & notebook);
 
 private:
-    QUuid   m_addNotebookRequestId;
-    QUuid   m_addNoteRequestId;
+    QUuid m_addNotebookRequestId;
+    QUuid m_addNoteRequestId;
 
     QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 };

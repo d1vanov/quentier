@@ -28,10 +28,9 @@
 namespace quentier {
 
 FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(
-        QObject * parent) :
+    QObject * parent) :
     AbstractStyledItemDelegate(parent),
-    m_icon(),
-    m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    m_icon(), m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
 {
     m_icon.addFile(QStringLiteral(":/user/user.png"), m_iconSize);
 }
@@ -73,8 +72,7 @@ void FromLinkedNotebookColumnDelegate::paint(
     bool fromLinkedNotebook = false;
 
     const QAbstractItemModel * model = index.model();
-    if (model)
-    {
+    if (model) {
         QVariant data = model->data(index);
 
         // The data here might be a string - linked notebook guid - or just

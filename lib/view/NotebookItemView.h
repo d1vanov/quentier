@@ -35,7 +35,7 @@ QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(StackItem)
 
-class NotebookItemView: public ItemView
+class NotebookItemView : public ItemView
 {
     Q_OBJECT
 public:
@@ -131,8 +131,7 @@ private:
     void saveSelectedNotebook(
         const Account & account, const QString & notebookLocalUid);
 
-    void restoreSelectedNotebook(
-        const NotebookModel & model);
+    void restoreSelectedNotebook(const NotebookModel & model);
 
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
@@ -161,43 +160,43 @@ private:
     struct NotebookCommonData
     {
         NotebookModel * m_pModel = nullptr;
-        QModelIndex     m_index;
-        QAction *       m_pAction = nullptr;
+        QModelIndex m_index;
+        QAction * m_pAction = nullptr;
     };
 
     bool fetchCurrentNotebookCommonData(
         NotebookCommonData & data, ErrorString & errorDescription) const;
 
-    struct NotebookItemData: public NotebookCommonData
+    struct NotebookItemData : public NotebookCommonData
     {
-        QString     m_localUid;
+        QString m_localUid;
     };
 
     bool fetchCurrentNotebookItemData(
         NotebookItemData & itemData, ErrorString & errorDescription) const;
 
-    struct NotebookStackData: public NotebookCommonData
+    struct NotebookStackData : public NotebookCommonData
     {
-        QString     m_stack;
-        QString     m_id;
+        QString m_stack;
+        QString m_id;
     };
 
     bool fetchCurrentNotebookStackData(
         NotebookStackData & stackData, ErrorString & errorDescription) const;
 
 private:
-    QMenu *     m_pNotebookItemContextMenu = nullptr;
-    QMenu *     m_pNotebookStackItemContextMenu = nullptr;
+    QMenu * m_pNotebookItemContextMenu = nullptr;
+    QMenu * m_pNotebookStackItemContextMenu = nullptr;
 
-    QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
+    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 
-    QPointer<const NoteModel>   m_pNoteModel;
+    QPointer<const NoteModel> m_pNoteModel;
 
-    QString     m_notebookLocalUidPendingNoteFiltersManagerReadiness;
+    QString m_notebookLocalUidPendingNoteFiltersManagerReadiness;
 
-    bool        m_trackingNotebookModelItemsState = false;
-    bool        m_trackingSelection = false;
-    bool        m_modelReady = false;
+    bool m_trackingNotebookModelItemsState = false;
+    bool m_trackingSelection = false;
+    bool m_modelReady = false;
 };
 
 } // namespace quentier

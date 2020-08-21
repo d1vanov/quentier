@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class DirtyColumnDelegate: public AbstractStyledItemDelegate
+class DirtyColumnDelegate : public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:

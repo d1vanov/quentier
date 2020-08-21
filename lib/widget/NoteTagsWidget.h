@@ -29,7 +29,7 @@
 #include <QWidget>
 
 SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
 
 #include <boost/bimap.hpp>
 
@@ -49,7 +49,7 @@ QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
  * each tag of the given note + a it listens to the updates of notes from
  * the local storage in order to track any updates of the given note
  */
-class NoteTagsWidget: public QWidget
+class NoteTagsWidget : public QWidget
 {
     Q_OBJECT
 public:
@@ -143,28 +143,28 @@ private:
     NewListItemLineEdit * findNewItemWidget();
 
 private:
-    Note                    m_currentNote;
-    QString                 m_currentNotebookLocalUid;
-    QString                 m_currentLinkedNotebookGuid;
+    Note m_currentNote;
+    QString m_currentNotebookLocalUid;
+    QString m_currentLinkedNotebookGuid;
 
-    QStringList             m_lastDisplayedTagLocalUids;
+    QStringList m_lastDisplayedTagLocalUids;
 
     using TagLocalUidToNameBimap = boost::bimap<QString, QString>;
-    TagLocalUidToNameBimap  m_currentNoteTagLocalUidToNameBimap;
+    TagLocalUidToNameBimap m_currentNoteTagLocalUidToNameBimap;
 
-    QPointer<TagModel>      m_pTagModel;
+    QPointer<TagModel> m_pTagModel;
 
     struct Restrictions
     {
-        bool    m_canUpdateNote = false;
-        bool    m_canUpdateTags = false;
+        bool m_canUpdateNote = false;
+        bool m_canUpdateTags = false;
     };
 
-    Restrictions            m_tagRestrictions;
+    Restrictions m_tagRestrictions;
 
-    StringUtils             m_stringUtils;
+    StringUtils m_stringUtils;
 
-    FlowLayout *            m_pLayout;
+    FlowLayout * m_pLayout;
 };
 
 } // namespace quentier

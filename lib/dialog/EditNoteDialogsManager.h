@@ -33,7 +33,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EditNoteDialogsManager: public QObject
+class EditNoteDialogsManager : public QObject
 {
     Q_OBJECT
 public:
@@ -51,7 +51,8 @@ Q_SIGNALS:
 
     // private signals:
     void findNote(
-        Note note, LocalStorageManager::GetNoteOptions options, QUuid requestId);
+        Note note, LocalStorageManager::GetNoteOptions options,
+        QUuid requestId);
 
     void updateNote(
         Note note, LocalStorageManager::UpdateNoteOptions options,
@@ -90,16 +91,16 @@ private:
     Q_DISABLE_COPY(EditNoteDialogsManager)
 
 private:
-    LocalStorageManagerAsync &          m_localStorageManagerAsync;
-    NoteCache &                         m_noteCache;
+    LocalStorageManagerAsync & m_localStorageManagerAsync;
+    NoteCache & m_noteCache;
 
     // NOTE: the bool value in this hash is a "read only" flag for the dialog
     // which should be raised on the found note
-    QHash<QUuid, bool>                  m_findNoteRequestIds;
+    QHash<QUuid, bool> m_findNoteRequestIds;
 
-    QSet<QUuid>                         m_updateNoteRequestIds;
+    QSet<QUuid> m_updateNoteRequestIds;
 
-    QPointer<NotebookModel>             m_pNotebookModel;
+    QPointer<NotebookModel> m_pNotebookModel;
 };
 
 } // namespace quentier

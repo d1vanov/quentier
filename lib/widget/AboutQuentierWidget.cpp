@@ -26,8 +26,7 @@
 namespace quentier {
 
 AboutQuentierWidget::AboutQuentierWidget(QWidget * parent) :
-    QWidget(parent, Qt::Window),
-    m_pUi(new Ui::AboutQuentierWidget)
+    QWidget(parent, Qt::Window), m_pUi(new Ui::AboutQuentierWidget)
 {
     m_pUi->setupUi(this);
 

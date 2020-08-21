@@ -47,7 +47,7 @@ ITagModelItem * ITagModelItem::childAtRow(const int row) const
 
 int ITagModelItem::rowForChild(const ITagModelItem * pChild) const
 {
-    return m_children.indexOf(const_cast<ITagModelItem*>(pChild));
+    return m_children.indexOf(const_cast<ITagModelItem *>(pChild));
 }
 
 void ITagModelItem::insertChild(const int row, ITagModelItem * pItem)
@@ -72,8 +72,8 @@ void ITagModelItem::addChild(ITagModelItem * pItem)
 
 bool ITagModelItem::swapChildren(const int sourceRow, const int destRow)
 {
-    if ((sourceRow < 0) || (sourceRow >= m_children.size()) ||
-        (destRow < 0) || (destRow >= m_children.size()))
+    if ((sourceRow < 0) || (sourceRow >= m_children.size()) || (destRow < 0) ||
+        (destRow >= m_children.size()))
     {
         return false;
     }
@@ -107,8 +107,7 @@ QDebug & operator<<(QDebug & dbg, const ITagModelItem::Type type)
 {
     using Type = ITagModelItem::Type;
 
-    switch(type)
-    {
+    switch (type) {
     case Type::AllTagsRoot:
         dbg << "All tags root";
         break;
@@ -140,7 +139,7 @@ QDataStream & operator<<(QDataStream & out, const ITagModelItem & item)
     qint32 numChildren = item.children().size();
     out << numChildren;
 
-    for(qint32 i = 0; i < numChildren; ++i) {
+    for (qint32 i = 0; i < numChildren; ++i) {
         qulonglong childItemPtr =
             reinterpret_cast<qulonglong>(item.childAtRow(i));
         out << childItemPtr;
@@ -158,17 +157,17 @@ QDataStream & operator>>(QDataStream & in, ITagModelItem & item)
 
     qulonglong parentItemPtr = 0;
     in >> parentItemPtr;
-    item.m_pParent = reinterpret_cast<ITagModelItem*>(parentItemPtr);
+    item.m_pParent = reinterpret_cast<ITagModelItem *>(parentItemPtr);
 
     qint32 numChildren = 0;
     in >> numChildren;
 
     item.m_children.clear();
     item.m_children.reserve(numChildren);
-    for(qint32 i = 0; i < numChildren; ++i) {
+    for (qint32 i = 0; i < numChildren; ++i) {
         qulonglong childItemPtr = 0;
         in >> childItemPtr;
-        item.m_children << reinterpret_cast<ITagModelItem*>(childItemPtr);
+        item.m_children << reinterpret_cast<ITagModelItem *>(childItemPtr);
     }
 
     return item.deserializeItemData(in);
@@ -177,24 +176,23 @@ QDataStream & operator>>(QDataStream & in, ITagModelItem & item)
 ////////////////////////////////////////////////////////////////////////////////
 
 #define DEFINE_CAST_IMPLEMENTATION(ItemType, ItemEnum)                         \
-template <>                                                                    \
-ItemType * ITagModelItem::cast()                                               \
-{                                                                              \
-    if (type() == ITagModelItem::Type::ItemEnum) {                             \
-        return dynamic_cast<ItemType*>(this);                                  \
+    template <>                                                                \
+    ItemType * ITagModelItem::cast()                                           \
+    {                                                                          \
+        if (type() == ITagModelItem::Type::ItemEnum) {                         \
+            return dynamic_cast<ItemType *>(this);                             \
+        }                                                                      \
+        return nullptr;                                                        \
     }                                                                          \
-    return nullptr;                                                            \
-}                                                                              \
                                                                                \
-template <>                                                                    \
-const ItemType * ITagModelItem::cast() const                                   \
-{                                                                              \
-    if (type() == ITagModelItem::Type::ItemEnum) {                             \
-        return dynamic_cast<const ItemType*>(this);                            \
-    }                                                                          \
-    return nullptr;                                                            \
-}                                                                              \
-// DEFINE_CAST_IMPLEMENTATION
+    template <>                                                                \
+    const ItemType * ITagModelItem::cast() const                               \
+    {                                                                          \
+        if (type() == ITagModelItem::Type::ItemEnum) {                         \
+            return dynamic_cast<const ItemType *>(this);                       \
+        }                                                                      \
+        return nullptr;                                                        \
+    }
 
 DEFINE_CAST_IMPLEMENTATION(AllTagsRootItem, AllTagsRoot)
 DEFINE_CAST_IMPLEMENTATION(InvisibleRootItem, InvisibleRoot)

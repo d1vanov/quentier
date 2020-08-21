@@ -22,8 +22,7 @@
 namespace quentier {
 
 ListItemWidget::ListItemWidget(
-        const QString & itemName, const QString & itemLocalUid,
-        QWidget * parent) :
+    const QString & itemName, const QString & itemLocalUid, QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::ListItemWidget)
 {
@@ -37,16 +36,14 @@ ListItemWidget::ListItemWidget(
     m_pUi->linkedNotebookUsernameLabel->hide();
 
     QObject::connect(
-        m_pUi->deleteItemButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->deleteItemButton, &QPushButton::clicked, this,
         &ListItemWidget::onRemoveItemButtonPressed);
 }
 
 ListItemWidget::ListItemWidget(
-        const QString & itemName, const QString & itemLocalUid,
-        const QString & linkedNotebookGuid,
-        const QString & linkedNotebookUsername, QWidget * parent) :
+    const QString & itemName, const QString & itemLocalUid,
+    const QString & linkedNotebookGuid, const QString & linkedNotebookUsername,
+    QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::ListItemWidget)
 {
@@ -67,9 +64,7 @@ ListItemWidget::ListItemWidget(
     adjustSize();
 
     QObject::connect(
-        m_pUi->deleteItemButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->deleteItemButton, &QPushButton::clicked, this,
         &ListItemWidget::onRemoveItemButtonPressed);
 }
 
@@ -145,9 +140,7 @@ void ListItemWidget::setItemRemovable(bool removable)
 void ListItemWidget::onRemoveItemButtonPressed()
 {
     Q_EMIT itemRemovedFromList(
-        m_itemLocalUid,
-        m_pUi->itemNameLabel->text(),
-        m_linkedNotebookGuid,
+        m_itemLocalUid, m_pUi->itemNameLabel->text(), m_linkedNotebookGuid,
         m_pUi->linkedNotebookUsernameLabel->text());
 }
 

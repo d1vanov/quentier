@@ -20,9 +20,7 @@
 
 namespace quentier {
 
-PanelWidget::PanelWidget(QWidget * parent) :
-    QFrame(parent)
-{}
+PanelWidget::PanelWidget(QWidget * parent) : QFrame(parent) {}
 
 PanelWidget::~PanelWidget() = default;
 

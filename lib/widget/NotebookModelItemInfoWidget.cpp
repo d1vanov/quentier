@@ -28,19 +28,17 @@
 namespace quentier {
 
 NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
-        const QModelIndex & index, QWidget * parent) :
+    const QModelIndex & index, QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::NotebookModelItemInfoWidget)
 {
     m_pUi->setupUi(this);
 
-    setWindowTitle(tr("Notebook info"));    // Assume it's notebook for now
+    setWindowTitle(tr("Notebook info")); // Assume it's notebook for now
     setCheckboxesReadOnly();
 
     QObject::connect(
-        m_pUi->okButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->okButton, &QPushButton::clicked, this,
         &NotebookModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
@@ -48,8 +46,8 @@ NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
         return;
     }
 
-    const auto * pNotebookModel = qobject_cast<const NotebookModel*>(
-        index.model());
+    const auto * pNotebookModel =
+        qobject_cast<const NotebookModel *>(index.model());
 
     if (Q_UNLIKELY(!pNotebookModel)) {
         setNonNotebookModel();
@@ -86,10 +84,8 @@ void NotebookModelItemInfoWidget::setCheckboxesReadOnly()
 {
 #define SET_CHECKBOX_READ_ONLY(name)                                           \
     m_pUi->notebook##name##CheckBox->setAttribute(                             \
-        Qt::WA_TransparentForMouseEvents,                                      \
-        true);                                                                 \
-    m_pUi->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)               \
-// SET_CHECKBOX_READ_ONLY
+        Qt::WA_TransparentForMouseEvents, true);                               \
+    m_pUi->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)
 
     SET_CHECKBOX_READ_ONLY(Synchronizable);
     SET_CHECKBOX_READ_ONLY(Dirty);

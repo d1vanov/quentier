@@ -132,8 +132,7 @@ void setupBreakpad(const QApplication & app)
     path = QDir::toNativeSeparators(path);                                     \
     path.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"));          \
     path.prepend(QString::fromUtf8("\""));                                     \
-    path.append(QString::fromUtf8("\""));                                      \
-// CONVERT_PATH
+    path.append(QString::fromUtf8("\""))
 
     QString minidumpsStorageFolderPath =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);

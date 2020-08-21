@@ -28,8 +28,8 @@
 
 #include <cmath>
 
-#define TEXT_HEIGHT_MARGIN (4)
-#define TEXT_WIDTH_MARGIN (8)
+#define TEXT_HEIGHT_MARGIN   (4)
+#define TEXT_WIDTH_MARGIN    (8)
 #define FIRST_COLUMN_PADDING (10)
 
 namespace quentier {
@@ -77,8 +77,7 @@ void DeletedNoteItemDelegate::setEditorData(
 }
 
 void DeletedNoteItemDelegate::setModelData(
-    QWidget * editor,
-    QAbstractItemModel * model,
+    QWidget * editor, QAbstractItemModel * model,
     const QModelIndex & index) const
 {
     Q_UNUSED(editor)
@@ -87,8 +86,7 @@ void DeletedNoteItemDelegate::setModelData(
 }
 
 QSize DeletedNoteItemDelegate::sizeHint(
-    const QStyleOptionViewItem & option,
-    const QModelIndex & index) const
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     QSize size = doSizeHint(option, index);
     if (size.isValid()) {
@@ -118,23 +116,29 @@ void DeletedNoteItemDelegate::doPaint(
 
     const auto * pModel = index.model();
     if (Q_UNLIKELY(!pModel)) {
-        QNDEBUG("delegate", "DeletedNoteItemDelegate::doPaint: can't paint, "
-            << "no model");
+        QNDEBUG(
+            "delegate",
+            "DeletedNoteItemDelegate::doPaint: can't paint, "
+                << "no model");
         return;
     }
 
-    const auto * pNoteModel = qobject_cast<const NoteModel*>(pModel);
+    const auto * pNoteModel = qobject_cast<const NoteModel *>(pModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG("delegate", "DeletedNoteItemDelegate::doPaint: can't paint, "
-            << "can't cast the model to NoteModel");
+        QNDEBUG(
+            "delegate",
+            "DeletedNoteItemDelegate::doPaint: can't paint, "
+                << "can't cast the model to NoteModel");
         return;
     }
 
     const auto * pNoteItem = pNoteModel->itemForIndex(index);
     if (Q_UNLIKELY(!pNoteItem)) {
-        QNDEBUG("delegate", "DeletedNoteItemDelegate::doPaint: can't paint, "
-            << "no note item for index: row = " << index.row()
-            << ", column = " << index.column());
+        QNDEBUG(
+            "delegate",
+            "DeletedNoteItemDelegate::doPaint: can't paint, "
+                << "no note item for index: row = " << index.row()
+                << ", column = " << index.column());
         return;
     }
 
@@ -159,29 +163,26 @@ void DeletedNoteItemDelegate::drawDeletedNoteTitleOrPreviewText(
 
     text = text.simplified();
 
-    if (text.isEmpty())
-    {
+    if (text.isEmpty()) {
         painter->setPen(
             (option.state & QStyle::State_Selected)
-            ? option.palette.color(QPalette::Active, QPalette::WindowText)
-            : option.palette.color(QPalette::Active, QPalette::Highlight));
+                ? option.palette.color(QPalette::Active, QPalette::WindowText)
+                : option.palette.color(QPalette::Active, QPalette::Highlight));
 
         text = QStringLiteral("(") + tr("Note without title or content") +
-               QStringLiteral(")");
+            QStringLiteral(")");
     }
-    else
-    {
+    else {
         painter->setPen(
             option.state & QStyle::State_Selected
-            ? option.palette.highlightedText().color()
-            : option.palette.windowText().color());
+                ? option.palette.highlightedText().color()
+                : option.palette.windowText().color());
     }
 
     adjustDisplayedText(text, option);
 
     painter->drawText(
-        option.rect,
-        text,
+        option.rect, text,
         QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
@@ -192,24 +193,22 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
     qint64 deletionTimestamp = item.deletionTimestamp();
 
     QString text;
-    if (deletionTimestamp == static_cast<qint64>(0))
-    {
+    if (deletionTimestamp == static_cast<qint64>(0)) {
         painter->setPen(
             (option.state & QStyle::State_Selected)
-            ? option.palette.color(QPalette::Active, QPalette::WindowText)
-            : option.palette.color(QPalette::Active, QPalette::Highlight));
+                ? option.palette.color(QPalette::Active, QPalette::WindowText)
+                : option.palette.color(QPalette::Active, QPalette::Highlight));
 
         text = m_deletionDateTimeReplacementText;
     }
-    else
-    {
+    else {
         painter->setPen(
             option.state & QStyle::State_Selected
-            ? option.palette.highlightedText().color()
-            : option.palette.windowText().color());
+                ? option.palette.highlightedText().color()
+                : option.palette.windowText().color());
 
-        text = QDateTime::fromMSecsSinceEpoch(
-            deletionTimestamp).toString(Qt::DefaultLocaleShortDate);
+        text = QDateTime::fromMSecsSinceEpoch(deletionTimestamp)
+                   .toString(Qt::DefaultLocaleShortDate);
 
         text.prepend(QStringLiteral(" "));
 
@@ -220,14 +219,12 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
     rect.translate(FIRST_COLUMN_PADDING, 0);
 
     painter->drawText(
-        rect,
-        text,
+        rect, text,
         QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
 QSize DeletedNoteItemDelegate::doSizeHint(
-    const QStyleOptionViewItem & option,
-    const QModelIndex & index) const
+    const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (!index.isValid()) {
         return {};
@@ -235,23 +232,29 @@ QSize DeletedNoteItemDelegate::doSizeHint(
 
     const auto * pModel = index.model();
     if (Q_UNLIKELY(!pModel)) {
-        QNDEBUG("delegate", "DeletedNoteItemDelegate::doSizeHint: "
-            << "can't compute size hint, no model");
+        QNDEBUG(
+            "delegate",
+            "DeletedNoteItemDelegate::doSizeHint: "
+                << "can't compute size hint, no model");
         return {};
     }
 
-    const auto * pNoteModel = qobject_cast<const NoteModel*>(pModel);
+    const auto * pNoteModel = qobject_cast<const NoteModel *>(pModel);
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNDEBUG("delegate", "DeletedNoteItemDelegate::doSizeHint: can't "
-            << "compute size hint, can't cast the model to NoteModel");
+        QNDEBUG(
+            "delegate",
+            "DeletedNoteItemDelegate::doSizeHint: can't "
+                << "compute size hint, can't cast the model to NoteModel");
         return {};
     }
 
     const auto * pNoteItem = pNoteModel->itemForIndex(index);
     if (Q_UNLIKELY(!pNoteItem)) {
-        QNDEBUG("delegate", "DeletedNoteItemDelegate::doSizeHint: can't "
-            << "compute size hint, no note item for index: row = "
-            << index.row() << ", column = " << index.column());
+        QNDEBUG(
+            "delegate",
+            "DeletedNoteItemDelegate::doSizeHint: can't "
+                << "compute size hint, no note item for index: row = "
+                << index.row() << ", column = " << index.column());
         return {};
     }
 
@@ -260,8 +263,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
     QFontMetrics fontMetrics(option.font);
     int height = fontMetrics.height() + TEXT_HEIGHT_MARGIN;
 
-    if (column == NoteModel::Columns::Title)
-    {
+    if (column == NoteModel::Columns::Title) {
         QString text = pNoteItem->title();
         if (text.isEmpty()) {
             text = pNoteItem->previewText();
@@ -272,8 +274,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
         int width = fontMetricsWidth(fontMetrics, text) + TEXT_WIDTH_MARGIN;
         return QSize(width, height);
     }
-    else if (column == NoteModel::Columns::DeletionTimestamp)
-    {
+    else if (column == NoteModel::Columns::DeletionTimestamp) {
         QString text;
 
         qint64 deletionTimestamp = pNoteItem->deletionTimestamp();
@@ -282,7 +283,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
         }
         else {
             text = QDateTime::fromMSecsSinceEpoch(deletionTimestamp)
-                   .toString(Qt::DefaultLocaleShortDate);
+                       .toString(Qt::DefaultLocaleShortDate);
         }
 
         text.prepend(QStringLiteral(" "));

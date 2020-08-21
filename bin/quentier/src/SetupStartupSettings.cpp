@@ -35,25 +35,25 @@ void setupStartupSettings()
 
     // Process disable native menu bar preference
     bool disableNativeMenuBar = false;
-    if (!account.isEmpty())
-    {
+    if (!account.isEmpty()) {
         ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
         appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
 
-        disableNativeMenuBar = appSettings.value(
-            DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
-            QVariant::fromValue(defaultDisableNativeMenuBar())).toBool();
+        disableNativeMenuBar =
+            appSettings
+                .value(
+                    DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+                    QVariant::fromValue(defaultDisableNativeMenuBar()))
+                .toBool();
 
         appSettings.endGroup();
     }
-    else
-    {
+    else {
         disableNativeMenuBar = defaultDisableNativeMenuBar();
     }
 
     QCoreApplication::setAttribute(
-        Qt::AA_DontUseNativeMenuBar,
-        disableNativeMenuBar);
+        Qt::AA_DontUseNativeMenuBar, disableNativeMenuBar);
 }
 
 } // namespace quentier

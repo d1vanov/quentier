@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class TagItemDelegate: public AbstractStyledItemDelegate
+class TagItemDelegate : public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -66,8 +66,8 @@ private:
         const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
 private:
-    QIcon   m_userIcon;
-    QSize   m_userIconSize;
+    QIcon m_userIcon;
+    QSize m_userIconSize;
 };
 
 } // namespace quentier

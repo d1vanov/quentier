@@ -31,7 +31,7 @@
 
 using namespace quentier;
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
     qsrand(static_cast<quint32>(QTime::currentTime().msec()));
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     QStringList args = app.arguments();
     if (args.size() != 2) {
         qWarning() << "Usage: " << app.applicationName()
-            << " wiki-article-url\n";
+                   << " wiki-article-url\n";
         return 1;
     }
 
@@ -72,21 +72,15 @@ int main(int argc, char *argv[])
         EventLoopWithExitStatus loop;
 
         QObject::connect(
-            &timer,
-            &QTimer::timeout,
-            &loop,
+            &timer, &QTimer::timeout, &loop,
             &EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
-            &fetcher,
-            &WikiArticleFetcher::finished,
-            &loop,
+            &fetcher, &WikiArticleFetcher::finished, &loop,
             &EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
-            &fetcher,
-            &WikiArticleFetcher::failure,
-            &loop,
+            &fetcher, &WikiArticleFetcher::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
@@ -108,7 +102,7 @@ int main(int argc, char *argv[])
 
     if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
         qWarning() << "Failed to fetch wiki article: "
-            << errorDescription.nonLocalizedString() << "\n";
+                   << errorDescription.nonLocalizedString() << "\n";
         return 1;
     }
 
@@ -116,15 +110,12 @@ int main(int argc, char *argv[])
     errorDescription.clear();
 
     bool res = enmlConverter.exportNotesToEnex(
-        notes,
-        QHash<QString,QString>(),
-        ENMLConverter::EnexExportTags::No,
-        enex,
-        errorDescription);
+        notes, QHash<QString, QString>(), ENMLConverter::EnexExportTags::No,
+        enex, errorDescription);
 
     if (!res) {
         qWarning() << "Failed to convert the fetched note to ENEX: "
-            << errorDescription.nonLocalizedString() << "\n";
+                   << errorDescription.nonLocalizedString() << "\n";
         return 1;
     }
 

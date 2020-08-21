@@ -22,8 +22,8 @@
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/Macros.h>
 
-#include <QObject>
 #include <QNetworkReply>
+#include <QObject>
 #include <QPointer>
 #include <QSslError>
 #include <QUrl>
@@ -35,7 +35,7 @@ QT_FORWARD_DECLARE_CLASS(QTimer)
 
 namespace quentier {
 
-class NetworkReplyFetcher: public QObject
+class NetworkReplyFetcher : public QObject
 {
     Q_OBJECT
 public:
@@ -117,22 +117,22 @@ private:
 
 private:
     QNetworkAccessManager * m_pNetworkAccessManager;
-    QUrl                    m_url;
-    QByteArray              m_fetchedData;
+    QUrl m_url;
+    QByteArray m_fetchedData;
 
-    bool        m_started = false;
-    bool        m_finished = false;
+    bool m_started = false;
+    bool m_finished = false;
 
-    qint64      m_timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC;
-    qint64      m_lastNetworkTime = 0;
-    QTimer *    m_pTimeoutTimer = nullptr;
-    bool        m_timedOut = false;
+    qint64 m_timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC;
+    qint64 m_lastNetworkTime = 0;
+    QTimer * m_pTimeoutTimer = nullptr;
+    bool m_timedOut = false;
 
-    qint64      m_bytesFetched = 0;
-    qint64      m_bytesTotal = 0;
+    qint64 m_bytesFetched = 0;
+    qint64 m_bytesTotal = 0;
 
-    bool        m_status = false;
-    int         m_httpStatusCode = 0;
+    bool m_status = false;
+    int m_httpStatusCode = 0;
 };
 
 } // namespace quentier

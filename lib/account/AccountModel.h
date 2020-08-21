@@ -41,7 +41,7 @@ namespace quentier {
  * names of accounts it works on. The signal is emitted for anyone interested
  * in the change of account display name.
  */
-class AccountModel: public QAbstractTableModel
+class AccountModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
@@ -60,7 +60,10 @@ public:
         };
     };
 
-    const QVector<Account> & accounts() const { return m_accounts; }
+    const QVector<Account> & accounts() const
+    {
+        return m_accounts;
+    }
     void setAccounts(const QVector<Account> & accounts);
 
     bool addAccount(const Account & account);
@@ -102,8 +105,8 @@ private:
     Q_DISABLE_COPY(AccountModel)
 
 private:
-    QVector<Account>            m_accounts;
-    StringUtils                 m_stringUtils;
+    QVector<Account> m_accounts;
+    StringUtils m_stringUtils;
 };
 
 } // namespace quentier

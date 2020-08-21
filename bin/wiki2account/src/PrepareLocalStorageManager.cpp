@@ -29,8 +29,7 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
     ErrorString & errorDescription)
 {
     auto * pLocalStorageManager = new LocalStorageManagerAsync(
-        account,
-        LocalStorageManager::StartupOptions(0));
+        account, LocalStorageManager::StartupOptions(0));
 
     pLocalStorageManager->init();
 

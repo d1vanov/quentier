@@ -35,15 +35,11 @@ bool moveObjectToThread(
     EventLoopWithExitStatus loop;
 
     QObject::connect(
-        pThreadMover,
-        &ThreadMover::finished,
-        &loop,
+        pThreadMover, &ThreadMover::finished, &loop,
         &EventLoopWithExitStatus::exitAsSuccess);
 
     QObject::connect(
-        pThreadMover,
-        &ThreadMover::notifyError,
-        &loop,
+        pThreadMover, &ThreadMover::notifyError, &loop,
         &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
     QTimer slotInvokingTimer;

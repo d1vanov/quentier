@@ -25,13 +25,10 @@
 namespace quentier {
 
 AsyncFileWriter::AsyncFileWriter(
-        const QString & filePath,
-        const QByteArray & dataToWrite,
-        QObject * parent) :
+    const QString & filePath, const QByteArray & dataToWrite,
+    QObject * parent) :
     QObject(parent),
-    QRunnable(),
-    m_filePath(filePath),
-    m_dataToWrite(dataToWrite)
+    QRunnable(), m_filePath(filePath), m_dataToWrite(dataToWrite)
 {}
 
 void AsyncFileWriter::run()
@@ -49,8 +46,10 @@ void AsyncFileWriter::run()
     qint64 dataSize = static_cast<qint64>(m_dataToWrite.size());
     qint64 bytesWritten = file.write(m_dataToWrite);
     if (bytesWritten != dataSize) {
-        QNDEBUG("utility", "Couldn't write the entire file: expected "
-            << dataSize << ", got only " << bytesWritten);
+        QNDEBUG(
+            "utility",
+            "Couldn't write the entire file: expected "
+                << dataSize << ", got only " << bytesWritten);
         Q_EMIT fileWriteIncomplete(bytesWritten, dataSize);
     }
     else {

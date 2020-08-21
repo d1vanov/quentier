@@ -37,15 +37,13 @@ QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class NoteFiltersManager: public QObject
+class NoteFiltersManager : public QObject
 {
     Q_OBJECT
 public:
     explicit NoteFiltersManager(
-        const Account & account,
-        FilterByTagWidget & filterByTagWidget,
-        FilterByNotebookWidget & filterByNotebookWidget,
-        NoteModel & noteModel,
+        const Account & account, FilterByTagWidget & filterByTagWidget,
+        FilterByNotebookWidget & filterByNotebookWidget, NoteModel & noteModel,
         FilterBySavedSearchWidget & filterBySavedSearchWidget,
         QLineEdit & searchLineEdit,
         LocalStorageManagerAsync & localStorageManagerAsync,
@@ -113,7 +111,7 @@ private Q_SLOTS:
         const QString & linkedNotebookUsername);
 
     void onRemovedNotebookFromFilter(
-        const QString & notebookLocalUid,  const QString & notebookName,
+        const QString & notebookLocalUid, const QString & notebookName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
@@ -192,26 +190,26 @@ private:
     bool tagFilterWasCleared() const;
 
 private:
-    Account                         m_account;
-    FilterByTagWidget &             m_filterByTagWidget;
-    FilterByNotebookWidget &        m_filterByNotebookWidget;
-    QPointer<NoteModel>             m_pNoteModel;
-    FilterBySavedSearchWidget &     m_filterBySavedSearchWidget;
-    QLineEdit &                     m_searchLineEdit;
-    LocalStorageManagerAsync &      m_localStorageManagerAsync;
+    Account m_account;
+    FilterByTagWidget & m_filterByTagWidget;
+    FilterByNotebookWidget & m_filterByNotebookWidget;
+    QPointer<NoteModel> m_pNoteModel;
+    FilterBySavedSearchWidget & m_filterBySavedSearchWidget;
+    QLineEdit & m_searchLineEdit;
+    LocalStorageManagerAsync & m_localStorageManagerAsync;
 
-    QString         m_filteredSavedSearchLocalUid;
+    QString m_filteredSavedSearchLocalUid;
 
-    QString         m_lastSearchString;
+    QString m_lastSearchString;
 
-    QUuid           m_findNoteLocalUidsForSearchStringRequestId;
-    QUuid           m_findNoteLocalUidsForSavedSearchQueryRequestId;
+    QUuid m_findNoteLocalUidsForSearchStringRequestId;
+    QUuid m_findNoteLocalUidsForSavedSearchQueryRequestId;
 
-    bool            m_autoFilterNotebookWhenReady = false;
+    bool m_autoFilterNotebookWhenReady = false;
 
-    bool            m_noteSearchQueryValidated = false;
+    bool m_noteSearchQueryValidated = false;
 
-    bool            m_isReady = false;
+    bool m_isReady = false;
 };
 
 } // namespace quentier

@@ -36,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(ENMLConverter)
 /**
  * The WikiArticleToNote converts the contents of a wiki article to a note
  */
-class WikiArticleToNote: public QObject
+class WikiArticleToNote : public QObject
 {
     Q_OBJECT
 public:
@@ -95,23 +95,23 @@ private:
     bool preprocessHtmlForConversionToEnml();
 
 private:
-    ENMLConverter &         m_enmlConverter;
-    const qint64            m_networkReplyFetcherTimeout;
+    ENMLConverter & m_enmlConverter;
+    const qint64 m_networkReplyFetcherTimeout;
 
-    Note    m_note;
+    Note m_note;
 
-    bool    m_started = false;
-    bool    m_finished = false;
+    bool m_started = false;
+    bool m_finished = false;
 
-    QHash<NetworkReplyFetcher*, double> m_imageDataFetchersWithProgress;
+    QHash<NetworkReplyFetcher *, double> m_imageDataFetchersWithProgress;
 
     // Resources created from imgs downloaded by fetchers by imgs' urls
-    QHash<QUrl, Resource>   m_imageResourcesByUrl;
+    QHash<QUrl, Resource> m_imageResourcesByUrl;
 
     // Cleaned up wiki article's HTML
     QString m_html;
 
-    double  m_progress = 0.0;
+    double m_progress = 0.0;
 };
 
 } // namespace quentier

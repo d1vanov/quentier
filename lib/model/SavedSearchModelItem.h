@@ -23,17 +23,13 @@
 
 namespace quentier {
 
-class SavedSearchModelItem: public Printable
+class SavedSearchModelItem : public Printable
 {
 public:
     explicit SavedSearchModelItem(
-        QString localUid = {},
-        QString guid = {},
-        QString name = {},
-        QString query = {},
-        const bool isSynchronizable = false,
-        const bool isDirty = false,
-        const bool isFavorited = false);
+        QString localUid = {}, QString guid = {}, QString name = {},
+        QString query = {}, const bool isSynchronizable = false,
+        const bool isDirty = false, const bool isFavorited = false);
 
     virtual QTextStream & print(QTextStream & strm) const override;
 
@@ -42,13 +38,13 @@ public:
         return m_name.toUpper();
     }
 
-    QString     m_localUid;
-    QString     m_guid;
-    QString     m_name;
-    QString     m_query;
-    bool        m_isSynchronizable;
-    bool        m_isDirty;
-    bool        m_isFavorited;
+    QString m_localUid;
+    QString m_guid;
+    QString m_name;
+    QString m_query;
+    bool m_isSynchronizable;
+    bool m_isDirty;
+    bool m_isFavorited;
 };
 
 } // namespace quentier

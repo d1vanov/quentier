@@ -77,9 +77,9 @@ private:
     QNetworkProxy networkProxy(ErrorString & errorDescription) const;
 
 private:
-    Ui::AddAccountDialog *      m_pUi;
-    QVector<quentier::Account>  m_availableAccounts;
-    bool                        m_onceSuggestedFullName = false;
+    Ui::AddAccountDialog * m_pUi;
+    QVector<quentier::Account> m_availableAccounts;
+    bool m_onceSuggestedFullName = false;
 };
 
 } // namespace quentier

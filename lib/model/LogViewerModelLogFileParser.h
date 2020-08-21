@@ -33,9 +33,9 @@ public:
     bool parseDataEntriesFromLogFile(
         const qint64 fromPos, const int maxDataEntries,
         const QVector<LogLevel> & disabledLogLevels,
-        const QRegExp & filterContentRegExp,
-        QFile & logFile, QVector<LogViewerModel::Data> & dataEntries,
-        qint64 & endPos, ErrorString & errorDescription);
+        const QRegExp & filterContentRegExp, QFile & logFile,
+        QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
+        ErrorString & errorDescription);
 
 private:
     enum class ParseLineStatus
@@ -47,8 +47,7 @@ private:
     };
 
     ParseLineStatus parseLogFileLine(
-        const QString & line,
-        const ParseLineStatus previousParseLineStatus,
+        const QString & line, const ParseLineStatus previousParseLineStatus,
         const QVector<LogLevel> & disabledLogLevels,
         const QRegExp & filterContentRegExp,
         QVector<LogViewerModel::Data> & dataEntries,
@@ -60,10 +59,10 @@ private:
     void setInternalLogEnabled(const bool enabled);
 
 private:
-    QRegExp     m_logParsingRegex;
+    QRegExp m_logParsingRegex;
 
-    QFile       m_internalLogFile;
-    bool        m_internalLogEnabled;
+    QFile m_internalLogFile;
+    bool m_internalLogEnabled;
 };
 
 } // namespace quentier

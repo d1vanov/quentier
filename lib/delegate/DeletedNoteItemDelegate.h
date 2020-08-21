@@ -25,7 +25,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NoteModelItem)
 
-class DeletedNoteItemDelegate: public AbstractStyledItemDelegate
+class DeletedNoteItemDelegate : public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -84,7 +84,7 @@ private:
         const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
 private:
-    QString     m_deletionDateTimeReplacementText;
+    QString m_deletionDateTimeReplacementText;
 };
 
 } // namespace quentier

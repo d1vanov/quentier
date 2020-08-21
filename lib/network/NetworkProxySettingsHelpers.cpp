@@ -33,9 +33,8 @@
 namespace quentier {
 
 void parseNetworkProxySettings(
-    const Account & currentAccount,
-    QNetworkProxy::ProxyType & type, QString & host,
-    int & port, QString & user, QString & password)
+    const Account & currentAccount, QNetworkProxy::ProxyType & type,
+    QString & host, int & port, QString & user, QString & password)
 {
     // Initialize with "empty" values
     type = QNetworkProxy::DefaultProxy;
@@ -45,17 +44,19 @@ void parseNetworkProxySettings(
     password.resize(0);
 
     std::unique_ptr<ApplicationSettings> pSyncSettings;
-    if (currentAccount.isEmpty())
-    {
-        QNDEBUG("network", "parseNetworkProxySettings: using application-wise "
-            << "settings");
+    if (currentAccount.isEmpty()) {
+        QNDEBUG(
+            "network",
+            "parseNetworkProxySettings: using application-wise "
+                << "settings");
 
         pSyncSettings.reset(new ApplicationSettings);
     }
-    else
-    {
-        QNDEBUG("network", "parseNetworkProxySettings: using account-specific "
-            << "settings");
+    else {
+        QNDEBUG(
+            "network",
+            "parseNetworkProxySettings: using account-specific "
+                << "settings");
 
         pSyncSettings.reset(
             new ApplicationSettings(currentAccount, QUENTIER_SYNC_SETTINGS));
@@ -65,18 +66,15 @@ void parseNetworkProxySettings(
 
     // 1) Parse network proxy type
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_TYPE))
-    {
+    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_TYPE)) {
         auto data = pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_TYPE);
         bool convertedToInt = false;
         int proxyType = data.toInt(&convertedToInt);
-        if (convertedToInt)
-        {
+        if (convertedToInt) {
             // NOTE: it is unsafe to just cast int to QNetworkProxy::ProxyType,
             // it can be out of range; hence, checking for each available proxy
             // type manually
-            switch(proxyType)
-            {
+            switch (proxyType) {
             case QNetworkProxy::NoProxy:
                 type = QNetworkProxy::NoProxy;
                 break;
@@ -96,41 +94,46 @@ void parseNetworkProxySettings(
                 type = QNetworkProxy::FtpCachingProxy;
                 break;
             default:
-                {
-                    QNWARNING("network", "Unrecognized network proxy type: "
+            {
+                QNWARNING(
+                    "network",
+                    "Unrecognized network proxy type: "
                         << proxyType << ", fallback to the default proxy type");
-                    type = QNetworkProxy::DefaultProxy;
-                    break;
-                }
+                type = QNetworkProxy::DefaultProxy;
+                break;
+            }
             }
         }
-        else
-        {
-            QNWARNING("network", "Failed to convert the network proxy type to "
-                << "int: " << data << ", fallback to the default proxy type");
+        else {
+            QNWARNING(
+                "network",
+                "Failed to convert the network proxy type to "
+                    << "int: " << data
+                    << ", fallback to the default proxy type");
             type = QNetworkProxy::DefaultProxy;
         }
     }
-    else
-    {
-        QNDEBUG("network", "No network proxy type was found within "
-            << "the settings");
+    else {
+        QNDEBUG(
+            "network",
+            "No network proxy type was found within "
+                << "the settings");
     }
 
     // 2) Parse network proxy host
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_HOST))
-    {
-        QString data = pSyncSettings->value(
-            SYNCHRONIZATION_NETWORK_PROXY_HOST).toString();
+    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_HOST)) {
+        QString data =
+            pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_HOST).toString();
 
-        if (!data.isEmpty())
-        {
+        if (!data.isEmpty()) {
             QUrl url(data);
             if (Q_UNLIKELY(!url.isValid())) {
-                QNWARNING("network", "Network proxy host read from app "
-                    << "settings does not appear to be the valid URL: "
-                    << data);
+                QNWARNING(
+                    "network",
+                    "Network proxy host read from app "
+                        << "settings does not appear to be the valid URL: "
+                        << data);
             }
             else {
                 host = data;
@@ -144,8 +147,7 @@ void parseNetworkProxySettings(
 
     // 3) Parse network proxy port
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_PORT))
-    {
+    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_PORT)) {
         auto data = pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_PORT);
         bool convertedToInt = false;
         int proxyPort = data.toInt(&convertedToInt);
@@ -153,53 +155,64 @@ void parseNetworkProxySettings(
             port = proxyPort;
         }
         else {
-            QNWARNING("network", "Failed to convert the network proxy port to "
-                << "int: " << data);
+            QNWARNING(
+                "network",
+                "Failed to convert the network proxy port to "
+                    << "int: " << data);
         }
     }
-    else
-    {
-        QNDEBUG("network", "No network proxy port was found within "
-            << "the settings");
+    else {
+        QNDEBUG(
+            "network",
+            "No network proxy port was found within "
+                << "the settings");
     }
 
     // 4) Parse network proxy username
 
     if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_USER)) {
-        user = pSyncSettings->value(
-            SYNCHRONIZATION_NETWORK_PROXY_USER).toString();
+        user =
+            pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_USER).toString();
     }
     else {
-        QNDEBUG("network", "No network proxy username was found within "
-            << "the settings");
+        QNDEBUG(
+            "network",
+            "No network proxy username was found within "
+                << "the settings");
     }
 
     // 5) Parse network proxy password
 
     if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_PASSWORD)) {
-        password = pSyncSettings->value(
-            SYNCHRONIZATION_NETWORK_PROXY_PASSWORD).toString();
+        password = pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_PASSWORD)
+                       .toString();
     }
     else {
-        QNDEBUG("network", "No network proxy password was found within "
-            << "the settings");
+        QNDEBUG(
+            "network",
+            "No network proxy password was found within "
+                << "the settings");
     }
 
     pSyncSettings->endGroup();
 
-    QNDEBUG("network", "Result: network proxy type = " << type << ", host = "
-        << host << ", port = " << port << ", username = " << user
-        << ", password: " << (password.isEmpty() ? "<empty>" : "not empty"));
+    QNDEBUG(
+        "network",
+        "Result: network proxy type = "
+            << type << ", host = " << host << ", port = " << port
+            << ", username = " << user << ", password: "
+            << (password.isEmpty() ? "<empty>" : "not empty"));
 }
 
 void persistNetworkProxySettingsForAccount(
     const Account & account, const QNetworkProxy & proxy)
 {
-    QNDEBUG("network", "persistNetworkProxySettingsForAccount: account = "
-        << account.name() << "\nProxy type = "
-        << proxy.type() << ", proxy host = "
-        << proxy.hostName() << ", proxy port = "
-        << proxy.port() << ", proxy user = " << proxy.user());
+    QNDEBUG(
+        "network",
+        "persistNetworkProxySettingsForAccount: account = "
+            << account.name() << "\nProxy type = " << proxy.type()
+            << ", proxy host = " << proxy.hostName() << ", proxy port = "
+            << proxy.port() << ", proxy user = " << proxy.user());
 
     std::unique_ptr<ApplicationSettings> pSyncSettings;
     if (account.isEmpty()) {
@@ -218,23 +231,22 @@ void persistNetworkProxySettingsForAccount(
     pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_TYPE, proxy.type());
 
     pSyncSettings->setValue(
-        SYNCHRONIZATION_NETWORK_PROXY_HOST,
-        proxy.hostName());
+        SYNCHRONIZATION_NETWORK_PROXY_HOST, proxy.hostName());
 
     pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_PORT, proxy.port());
     pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_USER, proxy.user());
 
     pSyncSettings->setValue(
-        SYNCHRONIZATION_NETWORK_PROXY_PASSWORD,
-        proxy.password());
+        SYNCHRONIZATION_NETWORK_PROXY_PASSWORD, proxy.password());
 
     pSyncSettings->endGroup();
 }
 
 void restoreNetworkProxySettingsForAccount(const Account & account)
 {
-    QNDEBUG("network", "restoreNetworkProxySettingsForAccount: account = "
-        << account.name());
+    QNDEBUG(
+        "network",
+        "restoreNetworkProxySettingsForAccount: account = " << account.name());
 
     QNetworkProxy::ProxyType type = QNetworkProxy::NoProxy;
     QString host;
@@ -250,8 +262,10 @@ void restoreNetworkProxySettingsForAccount(const Account & account)
     proxy.setUser(user);
     proxy.setPassword(password);
 
-    QNTRACE("network", "Setting the application proxy extracted from app "
-        << "settings");
+    QNTRACE(
+        "network",
+        "Setting the application proxy extracted from app "
+            << "settings");
 
     QNetworkProxy::setApplicationProxy(proxy);
 }
