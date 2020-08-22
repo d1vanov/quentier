@@ -97,9 +97,9 @@ install:
           git checkout master &&
           mkdir build &&
           cd build &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 .. &&
-          make &&
-          make install &&
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 .. &&
+          ninja &&
+          ninja install &&
           export APPIMAGE_UPDATER_BRIDGE_DIR=$(pwd)/installdir/lib/cmake/AppImageUpdaterBridge &&
           cd ../..
         fi
@@ -153,15 +153,15 @@ install:
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
         fi
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
+        cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
       fi
-      make &&
-      sudo make install &&
+      ninja &&
+      sudo ninja install &&
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib/x86_64-linux-gnu &&
       cd ../..
     - |
@@ -173,9 +173,9 @@ install:
         git checkout 5.6.0 &&
         mkdir build-tidy &&
         cd build-tidy &&
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
-        make &&
-        make install &&
+        cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir .. &&
+        ninja &&
+        ninja install &&
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         cd ../..
       fi
@@ -193,16 +193,16 @@ install:
         if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         fi
       else
         cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
       fi
-      make &&
-      make check &&
-      make install &&
+      ninja &&
+      ninja check &&
+      ninja install &&
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
       cd ../..
     - |
@@ -219,14 +219,14 @@ install:
         if [ "${QT_BASE}" = "5123" ]; then
           source /opt/qt512/bin/qt512-env.sh &&
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/qt512/lib &&
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_DIR=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
                 -DTIDY_HTML5_LIBRARIES=$(pwd)/../../tidy-html5/build-tidy/installdir/lib/libtidy.so \
                 -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH=/opt/qt512 ..
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_INCLUDE_DIR=$(pwd)/../../tidy-html5/build-tidy/installdir/include \
@@ -236,7 +236,7 @@ install:
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib &&
         echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
+        cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
               -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 \
               -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
               -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/cmake/Qt5Keychain \
@@ -245,21 +245,11 @@ install:
               -DTIDY_HTML5_LIBRARIES=/usr/local/lib/libtidy.dylib \
               -DCMAKE_VERBOSE_MAKEFILE=ON ..
       fi
-      make &&
-      make check &&
-      if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
-        echo "Building clang-format target" &&
-        make clang-format &&
-        dirty=$(git ls-files --modified) &&
-        if [ ! -z $dirty ]; then
-          echo "Detected source code files not formatted with clang-format: " &&
-          echo $dirty &&
-          travis_terminate 1
-        fi
-      fi
-      make lupdate &&
-      make lrelease &&
-      make install
+      ninja &&
+      ninja check &&
+      ninja lupdate &&
+      ninja lrelease &&
+      ninja install
     - |
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/installdir/lib
@@ -286,7 +276,7 @@ script:
       if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         if [ "${QT_BASE}" = "5123" ]; then
           if [ "${COMPILER}" = "g++-5.4" ]; then
-            cmake -DCMAKE_INSTALL_PREFIX=/usr \
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=/usr \
                   -DCMAKE_INSTALL_TRANSLATIONSDIR=$(pwd)/appdir/usr \
                   -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                   -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
@@ -301,7 +291,7 @@ script:
                   -DAppImageUpdaterBridge_DIR=$APPIMAGE_UPDATER_BRIDGE_DIR \
                   ..
           else
-            cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                   -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                   -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                   -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
@@ -311,7 +301,7 @@ script:
                   -DCMAKE_PREFIX_PATH=/opt/qt512 ..
           fi
         else
-          cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
                 -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
                 -DQt5Keychain_DIR=$(pwd)/../../qtkeychain/build/installdir/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
                 -DQEverCloud-qt5_DIR=$(pwd)/../../QEverCloud/build/installdir/lib/cmake/QEverCloud-qt5 \
@@ -321,7 +311,7 @@ script:
                 -DUSE_QT5_WEBKIT=1 ..
         fi
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
+        cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
               -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 \
               -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
               -DLibquentier-qt5_DIR=$(pwd)/../../libquentier/build/installdir/lib/cmake/Libquentier-qt5 \
@@ -335,10 +325,20 @@ script:
               -DDEFAULT_UPDATE_PROVIDER="GITHUB" \
               ..
       fi
-    - make
-    - make check
-    - make lupdate
-    - make lrelease
+    - ninja
+    - ninja check
+      if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
+        echo "Building clang-format target" &&
+        ninja clang-format &&
+        dirty=$(git ls-files --modified) &&
+        if [ ! -z $dirty ]; then
+          echo "Detected source code files not formatted with clang-format: " &&
+          echo $dirty &&
+          travis_terminate 1
+        fi
+      fi
+    - ninja lupdate
+    - ninja lrelease
     - |
       if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ]; then
         unset QTDIR &&
@@ -348,7 +348,7 @@ script:
         else
           export VERSION=$(git rev-parse --short HEAD)
         fi
-        make DESTDIR=appdir install &&
+        ninja DESTDIR=appdir install &&
         linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so" &&
         mkdir -p appdir/usr/share/libquentier/translations &&
         cp -r ../../libquentier/build/installdir/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/ &&
@@ -359,7 +359,7 @@ script:
         fi
         find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
       else
-        make install
+        ninja install
       fi
 
 after_success:
