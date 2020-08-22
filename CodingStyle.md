@@ -1,10 +1,23 @@
-This document outlines some coding style rules used in Quentier project.
+Quentier project uses clang-format tool for automatic formatting of source code. It is mandatory to run clang-format before contributing code fixes to Quentier. The version of clang-format tool must be at least 10. It is recommended to use prebuilt clang-format binaries from [here](https://github.com/muttleyxd/clang-format-static-binaries/releases).
 
-## Use common sense
+The simplest way to run clang-format over the entire Quentier's codebase is to trigger `clang-format` build target. For this ensure that you have `clang-format` binary in your `PATH` (e.g. `export PATH=<path-to-folder-with-clang-format-tool>:$PATH` for Linux/macOS or `set PATH="<path-to-folder-with-clang-format-tool>";%PATH%` for Windows) and then run `cmake --build . --target clang-format` in your build directory. See [building/installation guide](INSTALL.md) for more details about the build process.
 
-This is the absolute number one rule which *might* override any of the below mentioned rules should the need for this arise. Follow the rules mentioned below *unless* they don’t seem to play nicely with some specific piece of code. You’d need common sense to identify such a piece of code.
+Alternatively you can run `clang-format` tool manually over the files you want to format:
+```
+clang-format -style=file -i <path-to-source-file-to-format>
+```
+The downside of this approach is that you need to run `clang-format` over every changed source file separately.
 
-Also note that some of these rules are not applied to some existing places of Quentier codebase for various legacy reasons. Some of them are easily fixable, others are not.
+Clang-format can be integrated with various editors and IDEs. See [clang-format docs](https://clang.llvm.org/docs/ClangFormat.html) for reference. For vim it is recommended to use [this plugin](https://github.com/rhysd/vim-clang-format). Here are the options for it in `~/.vimrc` which are compatible with `Quentier` project:
+```
+let g:clang_format#command='<path-to-clang-format-binary>'
+let g:clang_format#enable_fallback_style=0
+let g:clang_format#auto_format=1
+let g:clang_format#auto_format_on_insert_leave=0
+let g:clang_format#detect_style_file=1
+```
+
+Style used by Quentier project is formalized in [.clang-format](.clang-format) file within the repo. You can examine the formatting options in it and see their description in [this doc](https://clang.llvm.org/docs/ClangFormatStyleOptions.html). Some of these rules are outlined below for reference.
 
 ## Indentation
 
@@ -41,14 +54,26 @@ In order to avoid that, please **always** use curly braces to clearly define the
         b = c;
     }
 
-Another point about curly braces usage is where to put the opening curly brace: at the end of the first line of the conditional operator or loop operator or at the beginning of the next line. The best approach seems to be using both options as appropriate: for small enough operator bodies it seems better to leave the opening curly brace at the end of the operator' first line. However, if the operator body involves many lines, say, more than 6 or 7, it looks better with the opening curly brace put at the beginning of the next line.
+In Quentier project opening curly brace for operators is put at the end of the first line of the conditional operator or loop operator unless the operator body consists of multiple lines. In the latter case the opening curly brace is put at the beginning of the next line. In clang-format configuration it corresponds to option `BraceWrappingAfterControlStatementStyle` having the value of `MultiLine`. See [this ticket](https://reviews.llvm.org/D68296) for reference.
 
-One exception from this rule is the one for class declarations: please always put the opening curvy brace for the class content on the next line after the class declaration:
+In class declarations the opening curly brace should always be placed on the next line after the declaration:
 
     class MyClass
     {
         // < class contents >
     };
+
+In function/method implementations the opening curly brace should also always be placed on the next line after the function/method definition:
+
+    void MyClass::myMethod()
+    {
+        // < method implementation contents >
+    }
+
+    void myFunction()
+    {
+        // < function implementation contents >
+    }
 
 Finally, please let the closing curly brace fully occupy its line of code, don’t append anything to it. For example, do this:
 
@@ -66,6 +91,101 @@ but not this:
     } else {
         b = a;
     }
+
+## Line length
+
+Lay out the source code in such a way that any single line of code is no longer than 80 columns. It is a rather hard boundary and it's not always possible to satisfy this requirement. Clang-format tool would try its best to satisfy this requirement though. The point is to have the majority of code written in a compact enough way.
+
+## Separate multi-line statements with blank lines
+
+Multi-line statements generally read better when they are separated from other statements with blank lines. Example:
+
+    bool res = myFunctionCall(
+        myFirstParam, mySecondParam, myThirdParam, myFourthParam,
+        myFifthParam);
+
+    if (res) {
+        // do something
+    }
+
+Note the blank line between the function call and the `if` operator. It's easier to grasp the boundary between the two when there is a blank line between them.
+
+Exceptions from this rule can be made in certain cases, for example, for logging macros:
+
+    QNDEBUG("Some long logging message which continues on the next line: "
+        << someValueToLog);
+    return true;
+
+Clang-format does not intervene with blank lines placement (other than ensuring no consequent blank lines) so it is up to the developer where to put blank lines. Use them to separate conceptually different code fragments as well as to improve the readability of code fragments.
+
+## Grouping and sorting of includes
+
+`#include` statements should be split into groups separated by blank lines. Includes within each group should be sorted alphabetically. The order of include groups should be roughly the following:
+
+ * For `.cpp` files: the primary header inclusion (i.e for `MyClass.cpp` `#include "MyClass.h"` should go first)
+ * Local includes (i.e those using `""` instead of `<>`)
+ * Global includes from Quentier's libraries (i.e. those like `<lib/widget/NoteEditorWidget.h>` and such)
+ * Global includes from libquentier's public headers (i.e. those like `<quentier/utility/Printable.h>` or `<quentier/types/Note.h>` and such)
+ * Global includes from Qt's headers (i.e. those like `<QApplication>`, `<QWidget>` and such)
+ * Global includes from other 3rd party libraries i.e. boost
+ * Global includes from the standard library (i.e. `<iostream>`, `<algorithm>` and such)
+
+Example:
+
+    #include "MyClass.h"
+
+    #include "AnotherClass.h"
+    #include "SomeOtherClass.h"
+    #include "YetAnotherClass.h"
+
+    #include <lib/widget/AboutQuentierWidget.h>
+    #include <lib/widget/NoteEditorWidget.h>
+
+    #include <quentier/types/Account.h>
+    #include <quentier/types/Notebook.h>
+    #include <quentier/types/SavedSearch.h>
+    #include <quentier/types/User.h>
+
+    #include <QApplication>
+    #include <QTextEdit>
+    #include <QWidget>
+
+    #include <boost/bimap.hpp>
+    #include <boost/multi_index.hpp>
+
+    #include <algorithm>
+    #include <iostream>
+    #include <utility>
+
+## Function/method/constructor/operator parameters
+
+When *declaring* functions, methods, class constructors or operators their parameters should be laid out in either of two ways:
+
+ * If the whole line with declaration and parameters (and keywords like `const`, `override`, `noexcept` and others) fits into 80 columns, let it be the single line. Example:
+```
+    void myFunction(const QString & paramOne, const QString & param2);
+```
+ * If the whole line with declaration and parameters (and keywords like `const`, `override`, `noexcept` and others) does not fit into 80 columns, the parameters list should start on the next line after the declaration and be indented with extra 4 spaces; the parameters should be laid out in such a way that each line fits into 80 columns. Example:
+```
+    void myOtherFunction(
+        const QString & paramOne, const QString & paramTwo,
+        const int paramThree, const bool paramFour);
+```
+Same rules apply for functions, methods, class constructors and operators *definitions* i.e. implementations:
+```
+    void myFunction(const QString & paramOne, const QString & param2)
+    {
+        // < function implementation contents >
+    }
+
+    void myOtherFunction(
+        const QString & paramOne, const QString & paramTwo,
+        const int paramThree, const bool paramFour)
+    {
+        // < function implementation contents >
+    }
+```
+Similar rules apply when calling functions, methods or class constructors, only in those cases the rule applies to variable names, literals etc.
 
 ## Line endings
 
@@ -153,10 +273,16 @@ Try to stick with the following layout of class contents:
 - Use `Q_SIGNALS` macro instead of `signals`, `Q_SLOTS` instead of `slots` and `Q_EMIT` instead of `emit`. The reason is that there are 3rdparty libraries which use `signals`, `slots` and `emit` keywords in their own code and interfaces and the name clashing can create problems should Quentier start to use such libraries some day.
 - Pass signal/slot parameters by value, not by const reference, unless you are certain that the objects interacting via the particular signals/slots would live in the same thread. The power and convenience of Qt’s signals/slots comes from their flexibility to the thread affinity of the connected objects but unless you pass parameters by value in signals/slots, it would be your job to provide the proper thread safety guarantees. There’s no reason to do this yourself when Qt can do it for you.
 
-## C++11/14/17 features and Qt4 support
+## C++ standard used
 
-Quentier does not use any C++11/14/17 features directly but only through macros such as `Q_DECL_OVERRIDE`, `Q_STATIC_ASSERT_X`, `QStringLiteral` and the like. These macros expand to proper C++ features if the compiler supports it or to nothing otherwise.
+Quentier uses C++14 standard so usage of any features from that standard version is allowed. However, from practical perspective Quentier's code should be written in such a way that major supported compilers would have no problems building this code. At the time of this writing the oldest supported compilers are g++ 5.4.1 on Linux (the default compiler of Ubuntu Xenial, oldest still supported LTS release of Ubuntu) and Visual Studio 2017 on Windows.
 
-Although most of these macros exist only in Qt5 but not in Qt4, libquentier defines them in its `quentier/utility/Macros.h` header for Qt4 as well so these are available in all Quentier files including that header.
+## Qt versions supported
 
-Building with Qt4 is still supported by Quentier. Yes, Qt4 may be dead and unsupported by the upstream. However, there are still LTS Linux distributions around which use and ship Qt4 and Quentier strives to be compatible with them.
+Libquentier supports building with Qt no older than 5.5.1. Be careful with features relevant only for the most recent versions of Qt which can break backward compatibility with older versions of the framework. Either don't use such bleeding edge features or use ifdefs to isolate the code using them. Example:
+
+    #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    // use feature first appeared in Qt 5.7
+    #else
+    // use some replacement for older versions of Qt
+    #endif
