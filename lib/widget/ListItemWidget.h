@@ -36,20 +36,18 @@ namespace quentier {
  * It is a very simple widget combining the item name label and the button
  * intended to signal the desire to remove the item from the list
  */
-class ListItemWidget: public QWidget
+class ListItemWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit ListItemWidget(
-        const QString & itemName,
-        const QString & itemLocalUid,
+        const QString & itemName, const QString & itemLocalUid,
         QWidget * parent = nullptr);
 
-    explicit ListItemWidget(const QString & itemName,
-        const QString & itemLocalUid,
+    explicit ListItemWidget(
+        const QString & itemName, const QString & itemLocalUid,
         const QString & linkedNotebookGuid,
-        const QString & linkedNotebookUsername,
-        QWidget *parent = nullptr);
+        const QString & linkedNotebookUsername, QWidget * parent = nullptr);
 
     virtual ~ListItemWidget() override;
 
@@ -82,8 +80,8 @@ private Q_SLOTS:
 private:
     Ui::ListItemWidget * m_pUi;
 
-    QString     m_itemLocalUid;
-    QString     m_linkedNotebookGuid;
+    QString m_itemLocalUid;
+    QString m_linkedNotebookGuid;
 };
 
 } // namespace quentier

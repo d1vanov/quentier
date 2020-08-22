@@ -38,8 +38,7 @@ class SystemTrayIconManager : public QObject
     Q_OBJECT
 public:
     explicit SystemTrayIconManager(
-        AccountManager & accountManager,
-        QObject * parent = nullptr);
+        AccountManager & accountManager, QObject * parent = nullptr);
 
     /**
      * @brief isSystemTrayAvailable
@@ -136,13 +135,13 @@ private:
     bool getPreferenceCloseToSystemTray() const;
 
 private:
-    AccountManager &            m_accountManager;
-    QSystemTrayIcon *           m_pSystemTrayIcon = nullptr;
-    QMenu *                     m_pTrayIconContextMenu = nullptr;
-    QMenu *                     m_pAccountsTrayIconSubMenu = nullptr;
-    QMenu *                     m_pTrayIconKindSubMenu = nullptr;
-    QActionGroup *              m_pAvailableAccountsActionGroup = nullptr;
-    QActionGroup *              m_pTrayIconKindsActionGroup = nullptr;
+    AccountManager & m_accountManager;
+    QSystemTrayIcon * m_pSystemTrayIcon = nullptr;
+    QMenu * m_pTrayIconContextMenu = nullptr;
+    QMenu * m_pAccountsTrayIconSubMenu = nullptr;
+    QMenu * m_pTrayIconKindSubMenu = nullptr;
+    QActionGroup * m_pAvailableAccountsActionGroup = nullptr;
+    QActionGroup * m_pTrayIconKindsActionGroup = nullptr;
 };
 
 } // namespace quentier

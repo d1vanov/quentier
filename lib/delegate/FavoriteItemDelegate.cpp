@@ -67,8 +67,7 @@ QWidget * FavoriteItemDelegate::createEditor(
     {
         return AbstractStyledItemDelegate::createEditor(parent, option, index);
     }
-    else
-    {
+    else {
         return nullptr;
     }
 }
@@ -86,19 +85,16 @@ void FavoriteItemDelegate::paint(
     painter->setRenderHints(QPainter::Antialiasing);
 
     int column = index.column();
-    if (column == static_cast<int>(FavoritesModel::Column::Type))
-    {
+    if (column == static_cast<int>(FavoritesModel::Column::Type)) {
         QVariant type = pModel->data(index);
         bool conversionResult = false;
         int typeInt = type.toInt(&conversionResult);
-        if (conversionResult)
-        {
+        if (conversionResult) {
             if (option.state & QStyle::State_Selected) {
                 painter->fillRect(option.rect, option.palette.highlight());
             }
 
-            switch(static_cast<FavoritesModelItem::Type>(typeInt))
-            {
+            switch (static_cast<FavoritesModelItem::Type>(typeInt)) {
             case FavoritesModelItem::Type::Notebook:
                 m_notebookIcon.paint(painter, option.rect);
                 break;
@@ -117,8 +113,7 @@ void FavoriteItemDelegate::paint(
             }
         }
     }
-    else if (column == static_cast<int>(FavoritesModel::Column::DisplayName))
-    {
+    else if (column == static_cast<int>(FavoritesModel::Column::DisplayName)) {
         drawFavoriteItemName(painter, index, option);
     }
 
@@ -191,8 +186,7 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
     QString nameSuffix;
 
     QModelIndex itemTypeIndex = pModel->index(
-        index.row(),
-        static_cast<int>(FavoritesModel::Column::Type),
+        index.row(), static_cast<int>(FavoritesModel::Column::Type),
         index.parent());
 
     QVariant itemType = pModel->data(itemTypeIndex);
@@ -206,8 +200,7 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
          (itemTypeInt == FavoritesModelItem::Type::Tag)))
     {
         QModelIndex noteCountIndex = pModel->index(
-            index.row(),
-            static_cast<int>(FavoritesModel::Column::NoteCount),
+            index.row(), static_cast<int>(FavoritesModel::Column::NoteCount),
             index.parent());
 
         QVariant noteCount = pModel->data(noteCountIndex);
@@ -250,16 +243,17 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     QString name = pModel->data(index).toString().simplified();
     if (name.isEmpty()) {
-        QNDEBUG("delegate", "FavoriteItemDelegate::drawFavoriteItemName: "
-            << "item name is empty");
+        QNDEBUG(
+            "delegate",
+            "FavoriteItemDelegate::drawFavoriteItemName: "
+                << "item name is empty");
         return;
     }
 
     QString nameSuffix;
 
     QModelIndex noteCountIndex = pModel->index(
-        index.row(),
-        static_cast<int>(FavoritesModel::Column::NoteCount),
+        index.row(), static_cast<int>(FavoritesModel::Column::NoteCount),
         index.parent());
 
     QVariant noteCount = pModel->data(noteCountIndex);
@@ -275,8 +269,8 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     painter->setPen(
         option.state & QStyle::State_Selected
-        ? option.palette.highlightedText().color()
-        : option.palette.windowText().color());
+            ? option.palette.highlightedText().color()
+            : option.palette.windowText().color());
 
     painter->drawText(
         option.rect, name,
@@ -291,12 +285,11 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     painter->setPen(
         option.state & QStyle::State_Selected
-        ? option.palette.color(QPalette::Active, QPalette::WindowText)
-        : option.palette.color(QPalette::Active, QPalette::Highlight));
+            ? option.palette.color(QPalette::Active, QPalette::WindowText)
+            : option.palette.color(QPalette::Active, QPalette::Highlight));
 
     painter->drawText(
-        option.rect.translated(nameWidth, 0),
-        nameSuffix,
+        option.rect.translated(nameWidth, 0), nameSuffix,
         QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 

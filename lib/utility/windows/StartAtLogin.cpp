@@ -40,8 +40,7 @@
     (QStringLiteral("C:/Users/") +                                             \
      QString::fromLocal8Bit(qgetenv("USERNAME")) +                             \
      QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/"  \
-                    "Startup/quentier.lnk"))                                   \
-// QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH
+                    "Startup/quentier.lnk"))
 
 namespace quentier {
 

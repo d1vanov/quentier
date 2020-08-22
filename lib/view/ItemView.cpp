@@ -22,18 +22,18 @@
 
 namespace quentier {
 
-ItemView::ItemView(QWidget * parent) :
-    QTreeView(parent)
-{}
+ItemView::ItemView(QWidget * parent) : QTreeView(parent) {}
 
 void ItemView::dataChanged(
     const QModelIndex & topLeft, const QModelIndex & bottomRight,
     const QVector<int> & roles)
 {
-    QNTRACE("view:item_view", "ItemView::dataChanged: top left: row = "
-        << topLeft.row() << ", column = " << topLeft.column()
-        << ", bottom right: row = " << bottomRight.row()
-        << ", column = " << bottomRight.column());
+    QNTRACE(
+        "view:item_view",
+        "ItemView::dataChanged: top left: row = "
+            << topLeft.row() << ", column = " << topLeft.column()
+            << ", bottom right: row = " << bottomRight.row()
+            << ", column = " << bottomRight.column());
 
     QTreeView::dataChanged(topLeft, bottomRight, roles);
 
@@ -52,7 +52,7 @@ void ItemView::dataChanged(
 
     int minColumn = topLeft.column();
     int maxColumn = bottomRight.column();
-    for(int i = minColumn; i <= maxColumn; ++i) {
+    for (int i = minColumn; i <= maxColumn; ++i) {
         resizeColumnToContents(i);
     }
 }
@@ -64,8 +64,7 @@ QModelIndex ItemView::singleRow(
     int row = -1;
     QModelIndex sourceIndex;
 
-    for(const auto & index: qAsConst(indexes))
-    {
+    for (const auto & index: qAsConst(indexes)) {
         if (Q_UNLIKELY(!index.isValid())) {
             continue;
         }

@@ -31,7 +31,7 @@ QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class TagItemView: public ItemView
+class TagItemView : public ItemView
 {
     Q_OBJECT
 public:
@@ -100,7 +100,8 @@ private:
 
     void saveTagItemsState();
     void restoreTagItemsState(const TagModel & model);
-    void setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model);
+    void setTagsExpanded(
+        const QStringList & tagLocalUids, const TagModel & model);
 
     void setLinkedNotebooksExpanded(
         const QStringList & linkedNotebookGuids, const TagModel & model);
@@ -120,8 +121,7 @@ private:
     void prepareForTagModelChange();
     void postProcessTagModelChange();
 
-    void setSelectedTagToNoteFiltersManager(
-        const QString & tagLocalUid);
+    void setSelectedTagToNoteFiltersManager(const QString & tagLocalUid);
 
     void clearTagsFromNoteFiltersManager();
 
@@ -131,14 +131,14 @@ private:
     bool shouldFilterBySelectedTag(const Account & account) const;
 
 private:
-    QMenu *     m_pTagItemContextMenu = nullptr;
-    bool        m_trackingTagItemsState = false;
-    bool        m_trackingSelection = false;
-    bool        m_modelReady = false;
+    QMenu * m_pTagItemContextMenu = nullptr;
+    bool m_trackingTagItemsState = false;
+    bool m_trackingSelection = false;
+    bool m_modelReady = false;
 
-    QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
+    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 
-    QString     m_tagLocalUidPendingNoteFiltersManagerReadiness;
+    QString m_tagLocalUidPendingNoteFiltersManagerReadiness;
 };
 
 } // namespace quentier

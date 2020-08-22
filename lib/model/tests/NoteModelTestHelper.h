@@ -26,7 +26,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(NoteModelItem)
 
-class NoteModelTestHelper: public QObject
+class NoteModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
@@ -63,9 +63,8 @@ private Q_SLOTS:
 
     void onListNotesFailed(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -197,16 +196,16 @@ private:
     };
 
 private:
-    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
+    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
 
-    NoteModel *     m_model = nullptr;
-    Notebook        m_firstNotebook;
-    QString         m_noteToExpungeLocalUid;
+    NoteModel * m_model = nullptr;
+    Notebook m_firstNotebook;
+    QString m_noteToExpungeLocalUid;
 
-    bool            m_expectingNewNoteFromLocalStorage = false;
-    bool            m_expectingNoteUpdateFromLocalStorage = false;
-    bool            m_expectingNoteDeletionFromLocalStorage = false;
-    bool            m_expectingNoteExpungeFromLocalStorage = false;
+    bool m_expectingNewNoteFromLocalStorage = false;
+    bool m_expectingNoteUpdateFromLocalStorage = false;
+    bool m_expectingNoteDeletionFromLocalStorage = false;
+    bool m_expectingNoteExpungeFromLocalStorage = false;
 };
 
 } // namespace quentier

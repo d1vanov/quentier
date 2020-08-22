@@ -28,10 +28,8 @@ namespace quentier {
 QString quentierVersion()
 {
     return QStringLiteral("Quentier ") +
-        QStringLiteral(QUENTIER_MAJOR_VERSION) +
-        QStringLiteral(".") +
-        QStringLiteral(QUENTIER_MINOR_VERSION) +
-        QStringLiteral(".") +
+        QStringLiteral(QUENTIER_MAJOR_VERSION) + QStringLiteral(".") +
+        QStringLiteral(QUENTIER_MINOR_VERSION) + QStringLiteral(".") +
         QStringLiteral(QUENTIER_PATCH_VERSION);
 }
 
@@ -44,9 +42,9 @@ QString libquentierBuildTimeInfo()
 {
     QString info = QStringLiteral(QUENTIER_LIBQUENTIER_BINARY_NAME) +
         QStringLiteral("; version ") +
-        QString::number(LIB_QUENTIER_VERSION_MAJOR) +
-        QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_MINOR) +
-        QStringLiteral(".") + QString::number(LIB_QUENTIER_VERSION_PATCH) +
+        QString::number(LIB_QUENTIER_VERSION_MAJOR) + QStringLiteral(".") +
+        QString::number(LIB_QUENTIER_VERSION_MINOR) + QStringLiteral(".") +
+        QString::number(LIB_QUENTIER_VERSION_PATCH) +
         QStringLiteral(", build info: ") +
         QStringLiteral(LIB_QUENTIER_BUILD_INFO) +
         QStringLiteral(", built with Qt ") +
@@ -67,8 +65,7 @@ QString libquentierRuntimeInfo()
         QString::number(quentier::libquentierVersionMinor()) +
         QStringLiteral(".") +
         QString::number(quentier::libquentierVersionPatch()) +
-        QStringLiteral(", build info: ") +
-        quentier::libquentierBuildInfo() +
+        QStringLiteral(", build info: ") + quentier::libquentierBuildInfo() +
         QStringLiteral(", built with Qt ") +
         quentier::libquentierBuiltWithQtVersion();
 

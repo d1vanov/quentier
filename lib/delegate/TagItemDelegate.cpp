@@ -49,7 +49,7 @@ QWidget * TagItemDelegate::createEditor(
     QWidget * parent, const QStyleOptionViewItem & option,
     const QModelIndex & index) const
 {
-    const auto * pTagModel = qobject_cast<const TagModel*>(index.model());
+    const auto * pTagModel = qobject_cast<const TagModel *>(index.model());
     if (!pTagModel) {
         return nullptr;
     }
@@ -144,22 +144,28 @@ void TagItemDelegate::drawTagName(
 {
     const auto * pModel = index.model();
     if (Q_UNLIKELY(!pModel)) {
-        QNDEBUG("delegate", "TagItemDelegate::drawTagName: can't draw, "
-            << "no model");
+        QNDEBUG(
+            "delegate",
+            "TagItemDelegate::drawTagName: can't draw, "
+                << "no model");
         return;
     }
 
-    const auto * pTagModel = qobject_cast<const TagModel*>(pModel);
+    const auto * pTagModel = qobject_cast<const TagModel *>(pModel);
     if (Q_UNLIKELY(!pTagModel)) {
-        QNDEBUG("delegate", "TagItemDelegate::drawTagName: non-tag model is "
-            << "set");
+        QNDEBUG(
+            "delegate",
+            "TagItemDelegate::drawTagName: non-tag model is "
+                << "set");
         return;
     }
 
     const auto * pModelItem = pTagModel->itemForIndex(index);
     if (Q_UNLIKELY(!pModelItem)) {
-        QNDEBUG("delegate", "TagItemDelegate::drawTagName: no model item for "
-            << "given index");
+        QNDEBUG(
+            "delegate",
+            "TagItemDelegate::drawTagName: no model item for "
+                << "given index");
         return;
     }
 
@@ -169,8 +175,7 @@ void TagItemDelegate::drawTagName(
     const auto * pLinkedNotebookItem =
         pModelItem->cast<TagLinkedNotebookRootItem>();
 
-    if (pLinkedNotebookItem)
-    {
+    if (pLinkedNotebookItem) {
         QRect iconRect = adjustedOption.rect;
         iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
         m_userIcon.paint(painter, iconRect);
@@ -194,24 +199,23 @@ void TagItemDelegate::drawTagName(
     }
 
     if (name.isEmpty()) {
-        QNDEBUG("delegate", "TagItemDelegate::drawTagName: tag model item name "
-            << "is empty");
+        QNDEBUG(
+            "delegate",
+            "TagItemDelegate::drawTagName: tag model item name "
+                << "is empty");
         return;
     }
 
     if (adjustedOption.state & QStyle::State_Selected) {
         painter->fillRect(
-            adjustedOption.rect,
-            adjustedOption.palette.highlight());
+            adjustedOption.rect, adjustedOption.palette.highlight());
     }
 
     QString nameSuffix;
 
-    if (pTagItem)
-    {
+    if (pTagItem) {
         auto noteCountIndex = pModel->index(
-            index.row(),
-            static_cast<int>(TagModel::Column::NoteCount),
+            index.row(), static_cast<int>(TagModel::Column::NoteCount),
             index.parent());
 
         QVariant noteCount = pModel->data(noteCountIndex);
@@ -228,8 +232,8 @@ void TagItemDelegate::drawTagName(
 
     painter->setPen(
         adjustedOption.state & QStyle::State_Selected
-        ? adjustedOption.palette.highlightedText().color()
-        : adjustedOption.palette.windowText().color());
+            ? adjustedOption.palette.highlightedText().color()
+            : adjustedOption.palette.windowText().color());
 
     painter->drawText(
         adjustedOption.rect, name,
@@ -244,12 +248,13 @@ void TagItemDelegate::drawTagName(
 
     painter->setPen(
         adjustedOption.state & QStyle::State_Selected
-        ? adjustedOption.palette.color(QPalette::Active, QPalette::WindowText)
-        : adjustedOption.palette.color(QPalette::Active, QPalette::Highlight));
+            ? adjustedOption.palette.color(
+                  QPalette::Active, QPalette::WindowText)
+            : adjustedOption.palette.color(
+                  QPalette::Active, QPalette::Highlight));
 
     painter->drawText(
-        adjustedOption.rect.translated(nameWidth, 0),
-        nameSuffix,
+        adjustedOption.rect.translated(nameWidth, 0), nameSuffix,
         QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
@@ -269,8 +274,7 @@ QSize TagItemDelegate::tagNameSizeHint(
     QString nameSuffix;
 
     auto noteCountIndex = pModel->index(
-        index.row(),
-        static_cast<int>(TagModel::Column::NoteCount),
+        index.row(), static_cast<int>(TagModel::Column::NoteCount),
         index.parent());
 
     QVariant noteCount = pModel->data(noteCountIndex);

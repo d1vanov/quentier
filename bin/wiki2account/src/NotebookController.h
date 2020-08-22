@@ -36,20 +36,25 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
  * within the account. If number of new notebooks was specified, this class
  * creates these notebooks and returns them - with names and local uids
  */
-class NotebookController: public QObject
+class NotebookController : public QObject
 {
     Q_OBJECT
 public:
     explicit NotebookController(
-        const QString & targetNotebookName,
-        const quint32 numNotebooks,
+        const QString & targetNotebookName, const quint32 numNotebooks,
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
     virtual ~NotebookController() override;
 
-    const Notebook & targetNotebook() const { return m_targetNotebook; }
-    const QList<Notebook> & newNotebooks() const { return m_newNotebooks; }
+    const Notebook & targetNotebook() const
+    {
+        return m_targetNotebook;
+    }
+    const QList<Notebook> & newNotebooks() const
+    {
+        return m_newNotebooks;
+    }
 
 Q_SIGNALS:
     void finished();
@@ -57,9 +62,8 @@ Q_SIGNALS:
 
     // private signals
     void listNotebooks(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
@@ -71,17 +75,15 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onListNotebooksComplete(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
         QUuid requestId);
 
     void onListNotebooksFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -102,18 +104,18 @@ private:
     void createNextNewNotebook();
 
 private:
-    QString     m_targetNotebookName;
-    quint32     m_numNewNotebooks;
+    QString m_targetNotebookName;
+    quint32 m_numNewNotebooks;
 
-    QHash<QString, QString>     m_notebookLocalUidsByNames;
+    QHash<QString, QString> m_notebookLocalUidsByNames;
 
-    QUuid       m_findNotebookRequestId;
-    QUuid       m_addNotebookRequestId;
-    QUuid       m_listNotebooksRequestId;
+    QUuid m_findNotebookRequestId;
+    QUuid m_addNotebookRequestId;
+    QUuid m_listNotebooksRequestId;
 
-    Notebook            m_targetNotebook;
-    QList<Notebook>     m_newNotebooks;
-    qint32      m_lastNewNotebookIndex = 1;
+    Notebook m_targetNotebook;
+    QList<Notebook> m_newNotebooks;
+    qint32 m_lastNewNotebookIndex = 1;
 };
 
 } // namespace quentier

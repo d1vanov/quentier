@@ -26,13 +26,12 @@
 
 namespace quentier {
 
-DefaultAccountFirstNotebookAndNoteCreator::DefaultAccountFirstNotebookAndNoteCreator(
+DefaultAccountFirstNotebookAndNoteCreator::
+    DefaultAccountFirstNotebookAndNoteCreator(
         LocalStorageManagerAsync & localStorageManagerAsync,
-        NoteFiltersManager & noteFiltersManager,
-        QObject * parent) :
+        NoteFiltersManager & noteFiltersManager, QObject * parent) :
     QObject(parent),
-    m_addNotebookRequestId(),
-    m_addNoteRequestId(),
+    m_addNotebookRequestId(), m_addNoteRequestId(),
     m_pNoteFiltersManager(&noteFiltersManager)
 {
     connectToLocalStorage(localStorageManagerAsync);
@@ -41,8 +40,7 @@ DefaultAccountFirstNotebookAndNoteCreator::DefaultAccountFirstNotebookAndNoteCre
 void DefaultAccountFirstNotebookAndNoteCreator::start()
 {
     QNDEBUG(
-        "initialization",
-        "DefaultAccountFirstNotebookAndNoteCreator::start");
+        "initialization", "DefaultAccountFirstNotebookAndNoteCreator::start");
 
     if (Q_UNLIKELY(!m_addNotebookRequestId.isNull())) {
         QNDEBUG("initialization", "Add notebook request has already been sent");
@@ -64,9 +62,11 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
         return;
     }
 
-    QNDEBUG("initialization", "DefaultAccountFirstNotebookAndNoteCreator::"
-        << "onAddNotebookComplete: notebook = " << notebook << "\nRequest id = "
-        << requestId);
+    QNDEBUG(
+        "initialization",
+        "DefaultAccountFirstNotebookAndNoteCreator::"
+            << "onAddNotebookComplete: notebook = " << notebook
+            << "\nRequest id = " << requestId);
 
     m_addNotebookRequestId = QUuid();
 
@@ -136,41 +136,31 @@ void DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage(
 
     // Connect local signals to LocalStorageManagerAsync slots
     QObject::connect(
-        this,
-        &DefaultAccountFirstNotebookAndNoteCreator::addNotebook,
+        this, &DefaultAccountFirstNotebookAndNoteCreator::addNotebook,
         &localStorageManagerAsync,
         &LocalStorageManagerAsync::onAddNotebookRequest);
 
     QObject::connect(
-        this,
-        &DefaultAccountFirstNotebookAndNoteCreator::addNote,
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onAddNoteRequest);
+        this, &DefaultAccountFirstNotebookAndNoteCreator::addNote,
+        &localStorageManagerAsync, &LocalStorageManagerAsync::onAddNoteRequest);
 
     // Connect LocalStorageManagerAsync signals to local slots
     QObject::connect(
         &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addNotebookComplete,
-        this,
+        &LocalStorageManagerAsync::addNotebookComplete, this,
         &DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete);
 
     QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addNotebookFailed,
-        this,
-        &DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed);
+        &localStorageManagerAsync, &LocalStorageManagerAsync::addNotebookFailed,
+        this, &DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed);
 
     QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addNoteComplete,
-        this,
-        &DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete);
+        &localStorageManagerAsync, &LocalStorageManagerAsync::addNoteComplete,
+        this, &DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete);
 
     QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addNoteFailed,
-        this,
-        &DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed);
+        &localStorageManagerAsync, &LocalStorageManagerAsync::addNoteFailed,
+        this, &DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed);
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
@@ -196,9 +186,11 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
 
     m_addNotebookRequestId = QUuid::createUuid();
 
-    QNTRACE("initialization", "Emitting the request to add first notebook to "
-        << "the default account: " << notebook
-        << "\nRequest id = " << m_addNotebookRequestId);
+    QNTRACE(
+        "initialization",
+        "Emitting the request to add first notebook to "
+            << "the default account: " << notebook
+            << "\nRequest id = " << m_addNotebookRequestId);
 
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
@@ -237,9 +229,11 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest(
 
     m_addNoteRequestId = QUuid::createUuid();
 
-    QNTRACE("initialization", "Emitting the request to add first note to "
-        << "the default account: " << note << "\nRequest id = "
-        << m_addNoteRequestId);
+    QNTRACE(
+        "initialization",
+        "Emitting the request to add first note to "
+            << "the default account: " << note
+            << "\nRequest id = " << m_addNoteRequestId);
 
     Q_EMIT addNote(note, m_addNoteRequestId);
 }

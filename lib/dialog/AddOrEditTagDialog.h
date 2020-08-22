@@ -35,7 +35,7 @@ QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-class AddOrEditTagDialog: public QDialog
+class AddOrEditTagDialog : public QDialog
 {
     Q_OBJECT
 public:
@@ -55,15 +55,15 @@ private:
     bool setupEditedTagItem(QStringList & tagNames, int & currentIndex);
 
 private:
-    Ui::AddOrEditTagDialog *    m_pUi;
-    QPointer<TagModel>          m_pTagModel;
-    QStringListModel *          m_pTagNamesModel = nullptr;
-    QString                     m_editedTagLocalUid;
+    Ui::AddOrEditTagDialog * m_pUi;
+    QPointer<TagModel> m_pTagModel;
+    QStringListModel * m_pTagNamesModel = nullptr;
+    QString m_editedTagLocalUid;
 
     // The name specified at any given moment in the line editor
-    QString                     m_currentTagName;
+    QString m_currentTagName;
 
-    StringUtils                 m_stringUtils;
+    StringUtils m_stringUtils;
 };
 
 } // namespace quentier

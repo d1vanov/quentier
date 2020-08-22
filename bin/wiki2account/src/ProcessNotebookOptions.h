@@ -40,8 +40,8 @@ namespace quentier {
  *                                  otherwise
  */
 bool processNotebookOptions(
-    const CommandLineParser::Options & options,
-    QString & targetNotebookName, quint32 & numNewNotebooks);
+    const CommandLineParser::Options & options, QString & targetNotebookName,
+    quint32 & numNewNotebooks);
 
 } // namespace quentier
 

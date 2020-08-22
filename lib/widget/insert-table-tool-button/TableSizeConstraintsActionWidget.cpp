@@ -20,14 +20,14 @@
 
 #include <quentier/utility/Macros.h>
 
-#include <QHBoxLayout>
-#include <QDoubleSpinBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QHBoxLayout>
 
 namespace quentier {
 
 TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
-        QWidget * parent) :
+    QWidget * parent) :
     QWidgetAction(parent)
 {
     auto * layoutContainer = new QWidget(parent);
@@ -52,30 +52,21 @@ TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
-        widthSpinBox,
-        qOverload<double>(&QDoubleSpinBox::valueChanged),
-        this,
+        widthSpinBox, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
         &TableSizeConstraintsActionWidget::onWidthChange);
 
     QObject::connect(
-        widthTypeComboBox,
-        qOverload<int>(&QComboBox::currentIndexChanged),
-        this,
-        &TableSizeConstraintsActionWidget::onWidthTypeChange);
+        widthTypeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
+        this, &TableSizeConstraintsActionWidget::onWidthTypeChange);
 #else
     QObject::connect(
-        widthSpinBox,
-        SIGNAL(valueChanged(double)),
-        this,
+        widthSpinBox, SIGNAL(valueChanged(double)), this,
         SLOT(onWidthChange(double)));
 
     QObject::connect(
-        widthTypeComboBox,
-        SIGNAL(currentIndexChanged(int)),
-        this,
+        widthTypeComboBox, SIGNAL(currentIndexChanged(int)), this,
         SLOT(onWidthTypeChange(int)));
 #endif
-
 }
 
 double TableSizeConstraintsActionWidget::width() const
@@ -93,13 +84,12 @@ void TableSizeConstraintsActionWidget::onWidthChange(double width)
     m_currentWidth = width;
 
     Q_EMIT chosenTableWidthConstraints(
-        m_currentWidth,
-        m_currentWidthTypeIsRelative);
+        m_currentWidth, m_currentWidthTypeIsRelative);
 }
 
 void TableSizeConstraintsActionWidget::onWidthTypeChange(int widthTypeIndex)
 {
-    auto * pComboBox = qobject_cast<QComboBox*>(sender());
+    auto * pComboBox = qobject_cast<QComboBox *>(sender());
     Q_ASSERT(pComboBox);
 
     QString widthType = pComboBox->itemText(widthTypeIndex);
@@ -112,8 +102,7 @@ void TableSizeConstraintsActionWidget::onWidthTypeChange(int widthTypeIndex)
     }
 
     Q_EMIT chosenTableWidthConstraints(
-        m_currentWidth,
-        m_currentWidthTypeIsRelative);
+        m_currentWidth, m_currentWidthTypeIsRelative);
 }
 
 } // namespace quentier

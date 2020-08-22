@@ -19,14 +19,14 @@
 #ifndef QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_PRIVATE_H
 #define QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_PRIVATE_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
 
 #include <QObject>
 
 namespace quentier {
 
-class ThreadMover: public QObject
+class ThreadMover : public QObject
 {
     Q_OBJECT
 public:
@@ -41,8 +41,8 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
 private:
-    QObject &   m_object;
-    QThread &   m_targetThread;
+    QObject & m_object;
+    QThread & m_targetThread;
 };
 
 } // namespace quentier

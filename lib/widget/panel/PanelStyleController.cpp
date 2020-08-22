@@ -26,7 +26,7 @@
 namespace quentier {
 
 PanelStyleController::PanelStyleController(
-        QFrame * pPanel, QString extraStyleSheet) :
+    QFrame * pPanel, QString extraStyleSheet) :
     m_pPanel(pPanel),
     m_extraStyleSheet(std::move(extraStyleSheet))
 {
@@ -91,8 +91,8 @@ void PanelStyleController::setOverrideBackgroundGradient(
         *m_pOverrideBackgroundGradient = std::move(gradient);
     }
     else {
-        m_pOverrideBackgroundGradient = std::make_unique<QLinearGradient>(
-            std::move(gradient));
+        m_pOverrideBackgroundGradient =
+            std::make_unique<QLinearGradient>(std::move(gradient));
     }
 
     m_overrideBackgroundColor = QColor();
@@ -144,8 +144,8 @@ void PanelStyleController::setOverrideColors(
         *m_pOverrideBackgroundGradient = std::move(backgroundGradient);
     }
     else {
-        m_pOverrideBackgroundGradient = std::make_unique<QLinearGradient>(
-            std::move(backgroundGradient));
+        m_pOverrideBackgroundGradient =
+            std::make_unique<QLinearGradient>(std::move(backgroundGradient));
     }
 
     m_overrideBackgroundColor = QColor();
@@ -155,8 +155,7 @@ void PanelStyleController::setOverrideColors(
 void PanelStyleController::resetOverrides()
 {
     if (!m_overrideFontColor.isValid() &&
-        !m_overrideBackgroundColor.isValid() &&
-        !m_pOverrideBackgroundGradient)
+        !m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient)
     {
         // Nothing to do
         return;
@@ -197,14 +196,13 @@ QString PanelStyleController::gradientToString(
     QTextStream strm(&result);
 
     strm << "qlineargradient(x1: " << start.x() << ", y1: " << start.y()
-        << ", x2: " << finalStop.x() << ", y2: " << finalStop.y() << ",\n";
+         << ", x2: " << finalStop.x() << ", y2: " << finalStop.y() << ",\n";
 
-    for(int i = 0, size = stops.size(); i < size; ++i)
-    {
+    for (int i = 0, size = stops.size(); i < size; ++i) {
         const auto & stop = stops[i];
 
         strm << "stop: " << stop.first << " "
-            << stop.second.name(QColor::HexRgb);
+             << stop.second.name(QColor::HexRgb);
 
         if (i != (size - 1)) {
             strm << ",";
@@ -223,7 +221,7 @@ QLinearGradient PanelStyleController::lighterGradient(
 {
     QLinearGradient result(gradient.start(), gradient.finalStop());
     auto stops = gradient.stops();
-    for(const auto & stop: qAsConst(stops)) {
+    for (const auto & stop: qAsConst(stops)) {
         result.setColorAt(stop.first, stop.second.lighter(150));
     }
     return result;
@@ -235,7 +233,7 @@ QLinearGradient PanelStyleController::darkerGradient(
     QLinearGradient result(gradient.start(), gradient.finalStop());
     auto stops = gradient.stops();
 
-    for(const auto & stop: qAsConst(stops)) {
+    for (const auto & stop: qAsConst(stops)) {
         result.setColorAt(stop.first, stop.second.darker(200));
     }
 
@@ -244,8 +242,7 @@ QLinearGradient PanelStyleController::darkerGradient(
 
 QString PanelStyleController::generateStyleSheet() const
 {
-    if (!m_overrideBackgroundColor.isValid() &&
-        !m_pOverrideBackgroundGradient)
+    if (!m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient)
     {
         return m_defaultStyleSheet;
     }
@@ -254,7 +251,7 @@ QString PanelStyleController::generateStyleSheet() const
     QTextStream strm(&result);
 
     strm << "#" << m_pPanel->objectName() << " {\n"
-        << "border: none;\n";
+         << "border: none;\n";
 
     auto backgroundColorStr = backgroundColorToString();
     if (!backgroundColorStr.isEmpty()) {
@@ -265,12 +262,12 @@ QString PanelStyleController::generateStyleSheet() const
 
     if (m_overrideFontColor.isValid()) {
         strm << "QLabel {\n"
-            << "color: " << m_overrideFontColor.name() << ";\n"
-            << "}\n";
+             << "color: " << m_overrideFontColor.name() << ";\n"
+             << "}\n";
     }
 
     strm << "QLabel {\n"
-        << "border: none;\n";
+         << "border: none;\n";
 
     if (m_overrideFontColor.isValid()) {
         strm << "color: " << m_overrideFontColor.name() << ";\n";
@@ -287,9 +284,11 @@ void PanelStyleController::updateStyleSheet()
 {
     auto styleSheetStr = generateStyleSheet();
 
-    QNDEBUG("widget:panel", "PanelStyleController::updateStyleSheet: setting "
-        << "stylesheet for panel " << m_pPanel->objectName() << ":"
-        << styleSheetStr);
+    QNDEBUG(
+        "widget:panel",
+        "PanelStyleController::updateStyleSheet: setting "
+            << "stylesheet for panel " << m_pPanel->objectName() << ":"
+            << styleSheetStr);
 
     m_pPanel->setStyleSheet(std::move(styleSheetStr));
 }

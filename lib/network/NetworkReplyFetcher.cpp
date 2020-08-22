@@ -27,25 +27,23 @@
 #include <QTimer>
 
 #define RFLOG_IMPL(message, macro)                                             \
-    macro("network", "<" << m_url << ">: " << message)                         \
-// RFLOG_IMPL
+    macro("network", "<" << m_url << ">: " << message) // RFLOG_IMPL
 
-#define RFTRACE(message) RFLOG_IMPL(message, QNTRACE)
-#define RFDEBUG(message) RFLOG_IMPL(message, QNDEBUG)
-#define RFINFO(message) RFLOG_IMPL(message, QNINFO)
-#define RFWARNING(message) RFLOG_IMPL(message, QNWARNING)
+#define RFTRACE(message)    RFLOG_IMPL(message, QNTRACE)
+#define RFDEBUG(message)    RFLOG_IMPL(message, QNDEBUG)
+#define RFINFO(message)     RFLOG_IMPL(message, QNINFO)
+#define RFWARNING(message)  RFLOG_IMPL(message, QNWARNING)
 #define RFCRITICAL(message) RFLOG_IMPL(message, QNCRITICAL)
-#define RFFATAL(message) RFLOG_IMPL(message, QNFATAL)
+#define RFFATAL(message)    RFLOG_IMPL(message, QNFATAL)
 
 #define NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL (1000)
 
 namespace quentier {
 
 NetworkReplyFetcher::NetworkReplyFetcher(
-        const QUrl & url, const qint64 timeoutMsec, QObject* parent) :
+    const QUrl & url, const qint64 timeoutMsec, QObject * parent) :
     QObject(parent),
-    m_pNetworkAccessManager(new QNetworkAccessManager(this)),
-    m_url(url),
+    m_pNetworkAccessManager(new QNetworkAccessManager(this)), m_url(url),
     m_timeoutMsec(timeoutMsec)
 {}
 
@@ -72,14 +70,11 @@ void NetworkReplyFetcher::start()
 
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
 
-    if (m_timeoutMsec > 0)
-    {
+    if (m_timeoutMsec > 0) {
         m_pTimeoutTimer = new QTimer(this);
 
         QObject::connect(
-            m_pTimeoutTimer,
-            &QTimer::timeout,
-            this,
+            m_pTimeoutTimer, &QTimer::timeout, this,
             &NetworkReplyFetcher::checkForTimeout);
 
         m_pTimeoutTimer->start(NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL);
@@ -89,23 +84,17 @@ void NetworkReplyFetcher::start()
     request.setUrl(m_url);
 
     QObject::connect(
-        m_pNetworkAccessManager,
-        &QNetworkAccessManager::finished,
-        this,
+        m_pNetworkAccessManager, &QNetworkAccessManager::finished, this,
         &NetworkReplyFetcher::onReplyFinished);
 
     QObject::connect(
-        m_pNetworkAccessManager,
-        &QNetworkAccessManager::sslErrors,
-        this,
+        m_pNetworkAccessManager, &QNetworkAccessManager::sslErrors, this,
         &NetworkReplyFetcher::onReplySslErrors);
 
     auto * pReply = m_pNetworkAccessManager->get(request);
 
     QObject::connect(
-        pReply,
-        &QNetworkReply::downloadProgress,
-        this,
+        pReply, &QNetworkReply::downloadProgress, this,
         &NetworkReplyFetcher::onDownloadProgress);
 }
 
@@ -126,8 +115,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
         m_pTimeoutTimer = nullptr;
     }
 
-    if (pReply->error())
-    {
+    if (pReply->error()) {
         ErrorString errorDescription(QT_TR_NOOP("network error"));
         errorDescription.details() += QStringLiteral("(");
         errorDescription.details() += QString::number(pReply->error());
@@ -144,8 +132,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
 
     bool conversionResult = false;
     m_httpStatusCode = statusCodeAttribute.toInt(&conversionResult);
-    if (Q_UNLIKELY(!conversionResult))
-    {
+    if (Q_UNLIKELY(!conversionResult)) {
         ErrorString errorDescription(
             QT_TR_NOOP("Failed to convert HTTP status code to int"));
 
@@ -181,7 +168,7 @@ void NetworkReplyFetcher::onReplySslErrors(
 
     ErrorString errorDescription(QT_TR_NOOP("SSL errors"));
 
-    for(const auto & error: qAsConst(errors)) {
+    for (const auto & error: qAsConst(errors)) {
         errorDescription.details() += QStringLiteral("(");
         errorDescription.details() += error.error();
         errorDescription.details() += QStringLiteral(") ");
@@ -196,7 +183,8 @@ void NetworkReplyFetcher::onReplySslErrors(
 void NetworkReplyFetcher::onDownloadProgress(
     qint64 bytesFetched, qint64 bytesTotal)
 {
-    RFDEBUG("NetworkReplyFetcher::onDownloadProgress: fetched "
+    RFDEBUG(
+        "NetworkReplyFetcher::onDownloadProgress: fetched "
         << bytesFetched << " bytes, total " << bytesTotal << " bytes");
 
     if (m_finished) {
@@ -212,8 +200,7 @@ void NetworkReplyFetcher::checkForTimeout()
 {
     RFDEBUG("NetworkReplyFetcher::checkForTimeout");
 
-    if (m_finished || !m_started)
-    {
+    if (m_finished || !m_started) {
         if (m_pTimeoutTimer) {
             m_pTimeoutTimer->stop();
             m_pTimeoutTimer->deleteLater();
@@ -248,9 +235,7 @@ void NetworkReplyFetcher::recycleNetworkReply(QNetworkReply * pReply)
     // QNetworkAccessManager::setAutoDeleteReplies(true) is called
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     QMetaObject::invokeMethod(
-        pReply,
-        [pReply] { pReply->deleteLater(); },
-        Qt::QueuedConnection);
+        pReply, [pReply] { pReply->deleteLater(); }, Qt::QueuedConnection);
 #else
     pReply->deleteLater();
 #endif

@@ -27,21 +27,19 @@
 
 namespace quentier {
 
-ActionsInfo::ActionsInfo(const QList<QMenu*> & menus) :
-    m_menus(menus)
-{}
+ActionsInfo::ActionsInfo(const QList<QMenu *> & menus) : m_menus(menus) {}
 
-const ActionsInfo::ActionInfo
-ActionsInfo::findActionInfo(
+const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
     const QString & actionName, const QString & context) const
 {
-    QNDEBUG("utility", "ActionsInfo::findActionInfo: action name = "
-        << actionName << ", context = " << context);
+    QNDEBUG(
+        "utility",
+        "ActionsInfo::findActionInfo: action name = "
+            << actionName << ", context = " << context);
 
     // First look for menu whose name matches the "context"
     const QMenu * pTargetMenu = nullptr;
-    for(const auto * pMenu: qAsConst(m_menus))
-    {
+    for (const auto * pMenu: qAsConst(m_menus)) {
         if (Q_UNLIKELY(!pMenu)) {
             continue;
         }
@@ -58,8 +56,7 @@ ActionsInfo::findActionInfo(
 
     // Now look for action with matching text
     const auto actions = pTargetMenu->actions();
-    for(auto * pAction: qAsConst(actions))
-    {
+    for (auto * pAction: qAsConst(actions)) {
         if (Q_UNLIKELY(!pAction)) {
             continue;
         }
@@ -93,14 +90,12 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
 
     auto actionData = pAction->data();
 
-    if (actionData.canConvert<ActionKeyWithContext>())
-    {
+    if (actionData.canConvert<ActionKeyWithContext>()) {
         auto keyWithContext = actionData.value<ActionKeyWithContext>();
         info.m_shortcutKey = keyWithContext.m_key;
         info.m_context = keyWithContext.m_context;
     }
-    else if (actionData.canConvert<ActionNonStandardKeyWithContext>())
-    {
+    else if (actionData.canConvert<ActionNonStandardKeyWithContext>()) {
         ActionNonStandardKeyWithContext nonStandardKeyWithContext =
             actionData.value<ActionNonStandardKeyWithContext>();
 
@@ -115,11 +110,10 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
 }
 
 ActionsInfo::Iterator::Iterator(
-        const int menuIndex, const int actionIndex,
-        const ActionsInfo & actionsInfo) :
+    const int menuIndex, const int actionIndex,
+    const ActionsInfo & actionsInfo) :
     m_actionsInfo(actionsInfo),
-    m_menuIndex(menuIndex),
-    m_actionIndex(actionIndex)
+    m_menuIndex(menuIndex), m_actionIndex(actionIndex)
 {}
 
 const ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
@@ -143,9 +137,10 @@ const ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
 
 bool ActionsInfo::Iterator::operator==(const Iterator & other) const
 {
-    return ( (&m_actionsInfo == &other.m_actionsInfo) &&
+    return (
+        (&m_actionsInfo == &other.m_actionsInfo) &&
         (m_menuIndex == other.m_menuIndex) &&
-        (m_actionIndex == other.m_actionIndex) );
+        (m_actionIndex == other.m_actionIndex));
 }
 
 bool ActionsInfo::Iterator::operator!=(const Iterator & other) const
@@ -203,13 +198,10 @@ ActionsInfo::Iterator ActionsInfo::end() const
 QTextStream & ActionsInfo::ActionInfo::print(QTextStream & strm) const
 {
     strm << "ActionInfo: name = " << m_name
-        << ", localized name = " << m_localizedName
-        << ", context = " << m_context
-        << ", shortcut key = " << m_shortcutKey
-        << ", non-standard shortcut key = "
-        << m_nonStandardShortcutKey
-        << ", shortcut = "
-        << m_shortcut.toString(QKeySequence::PortableText);
+         << ", localized name = " << m_localizedName
+         << ", context = " << m_context << ", shortcut key = " << m_shortcutKey
+         << ", non-standard shortcut key = " << m_nonStandardShortcutKey
+         << ", shortcut = " << m_shortcut.toString(QKeySequence::PortableText);
 
     return strm;
 }

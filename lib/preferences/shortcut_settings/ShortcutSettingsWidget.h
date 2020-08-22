@@ -46,22 +46,22 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 
-class ShortcutItem: public Printable
+class ShortcutItem : public Printable
 {
 public:
     virtual QTextStream & print(QTextStream & strm) const override;
 
-    int                 m_actionKey = -1;
-    QString             m_nonStandardActionKey;
-    QString             m_actionName;
-    QString             m_context;
-    QString             m_category;
-    bool                m_isModified = false;
-    QKeySequence        m_keySequence;
-    QTreeWidgetItem *   m_pTreeWidgetItem = nullptr;
+    int m_actionKey = -1;
+    QString m_nonStandardActionKey;
+    QString m_actionName;
+    QString m_context;
+    QString m_category;
+    bool m_isModified = false;
+    QKeySequence m_keySequence;
+    QTreeWidgetItem * m_pTreeWidgetItem = nullptr;
 };
 
-class ShortcutSettingsWidget: public QWidget
+class ShortcutSettingsWidget : public QWidget
 {
     Q_OBJECT
 public:
@@ -70,8 +70,7 @@ public:
     virtual ~ShortcutSettingsWidget() override;
 
     void initialize(
-        const Account & currentAccount,
-        const ActionsInfo & actionsInfo,
+        const Account & currentAccount, const ActionsInfo & actionsInfo,
         ShortcutManager * pShortcutManager);
 
 private Q_SLOTS:
@@ -86,7 +85,6 @@ private Q_SLOTS:
     void onCurrentItemKeySequenceEdited();
 
 private:
-
     bool markCollisions(ShortcutItem & item);
     void setModified(QTreeWidgetItem & item, bool modified);
 
@@ -102,10 +100,10 @@ private:
     ShortcutItem * shortcutItemFromTreeItem(QTreeWidgetItem * pItem) const;
 
 private:
-    Ui::ShortcutSettingsWidget *    m_pUi;
-    QPointer<ShortcutManager>       m_pShortcutManager;
-    Account                         m_currentAccount;
-    QList<ShortcutItem*>            m_shortcutItems;
+    Ui::ShortcutSettingsWidget * m_pUi;
+    QPointer<ShortcutManager> m_pShortcutManager;
+    Account m_currentAccount;
+    QList<ShortcutItem *> m_shortcutItems;
 };
 
 } // namespace quentier

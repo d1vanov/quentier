@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <cmath>
 
-#define CIRCLE_RADIUS (2)
+#define CIRCLE_RADIUS  (2)
 #define ICON_SIDE_SIZE (16)
 
 namespace quentier {
@@ -131,8 +131,7 @@ QSize NotebookItemDelegate::sizeHint(
         int width = std::max(colNameWidth, side);
         return QSize(width, side);
     }
-    else if (column == static_cast<int>(NotebookModel::Column::Name))
-    {
+    else if (column == static_cast<int>(NotebookModel::Column::Name)) {
         return notebookNameSizeHint(option, index, colNameWidth);
     }
 
@@ -153,8 +152,8 @@ void NotebookItemDelegate::updateEditorGeometry(
 const INotebookModelItem * NotebookItemDelegate::notebookModelItem(
     const QModelIndex & index) const
 {
-    const auto * pNotebookModel = qobject_cast<const NotebookModel*>(
-        index.model());
+    const auto * pNotebookModel =
+        qobject_cast<const NotebookModel *>(index.model());
 
     if (Q_UNLIKELY(!pNotebookModel)) {
         return nullptr;
@@ -178,16 +177,14 @@ void NotebookItemDelegate::paintItem(
         return;
     }
 
-    if (column == static_cast<int>(NotebookModel::Column::Default))
-    {
+    if (column == static_cast<int>(NotebookModel::Column::Default)) {
         bool isDefault = index.model()->data(index).toBool();
         if (isDefault) {
             painter->setBrush(QBrush(Qt::green));
             drawEllipse(painter, option, index);
         }
     }
-    else if (column == static_cast<int>(NotebookModel::Column::Published))
-    {
+    else if (column == static_cast<int>(NotebookModel::Column::Published)) {
         bool published = index.model()->data(index).toBool();
         if (published) {
             painter->setBrush(QBrush(Qt::blue));
@@ -208,14 +205,12 @@ void NotebookItemDelegate::drawEllipse(
 
     center.setX(std::min(
         center.x(),
-        (option.rect.left() + std::max(colNameWidth, side)/2 + 1)));
+        (option.rect.left() + std::max(colNameWidth, side) / 2 + 1)));
 
     painter->setPen(QColor());
 
-    painter->drawEllipse(QRectF(
-        center.x() - radius,
-        center.y() - radius,
-        diameter, diameter));
+    painter->drawEllipse(
+        QRectF(center.x() - radius, center.y() - radius, diameter, diameter));
 }
 
 void NotebookItemDelegate::drawNotebookName(
@@ -232,8 +227,7 @@ void NotebookItemDelegate::drawNotebookName(
     const auto * pLinkedNotebookItem =
         pModelItem->cast<LinkedNotebookRootItem>();
 
-    if (pLinkedNotebookItem)
-    {
+    if (pLinkedNotebookItem) {
         QRect iconRect = adjustedOption.rect;
         iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
         m_userIcon.paint(painter, iconRect);
@@ -249,16 +243,14 @@ void NotebookItemDelegate::drawNotebookName(
         name = pNotebookItem->name();
     }
 
-    if (name.isEmpty())
-    {
+    if (name.isEmpty()) {
         const auto * pStackItem = pModelItem->cast<StackItem>();
         if (pStackItem) {
             name = pStackItem->name();
         }
     }
 
-    if (name.isEmpty())
-    {
+    if (name.isEmpty()) {
         const auto * pLinkedNotebookItem =
             pModelItem->cast<LinkedNotebookRootItem>();
 
@@ -272,14 +264,15 @@ void NotebookItemDelegate::drawNotebookName(
     }
 
     if (name.isEmpty()) {
-        QNDEBUG("delegate", "NotebookItemDelegate::drawNotebookName: "
-            << "notebook name is empty");
+        QNDEBUG(
+            "delegate",
+            "NotebookItemDelegate::drawNotebookName: "
+                << "notebook name is empty");
         return;
     }
 
     QString nameSuffix;
-    if (pNotebookItem)
-    {
+    if (pNotebookItem) {
         int noteCount = pNotebookItem->noteCount();
         if (noteCount > 0) {
             nameSuffix = QStringLiteral(" (");
@@ -291,8 +284,8 @@ void NotebookItemDelegate::drawNotebookName(
 
     painter->setPen(
         adjustedOption.state & QStyle::State_Selected
-        ? adjustedOption.palette.highlightedText().color()
-        : adjustedOption.palette.windowText().color());
+            ? adjustedOption.palette.highlightedText().color()
+            : adjustedOption.palette.windowText().color());
 
     painter->drawText(
         QRectF(adjustedOption.rect), name,
@@ -307,12 +300,13 @@ void NotebookItemDelegate::drawNotebookName(
 
     painter->setPen(
         adjustedOption.state & QStyle::State_Selected
-        ? adjustedOption.palette.color(QPalette::Active, QPalette::WindowText)
-        : adjustedOption.palette.color(QPalette::Active, QPalette::Highlight));
+            ? adjustedOption.palette.color(
+                  QPalette::Active, QPalette::WindowText)
+            : adjustedOption.palette.color(
+                  QPalette::Active, QPalette::Highlight));
 
     painter->drawText(
-        QRectF(adjustedOption.rect.translated(nameWidth, 0)),
-        nameSuffix,
+        QRectF(adjustedOption.rect.translated(nameWidth, 0)), nameSuffix,
         QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
@@ -320,8 +314,10 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index,
     const int columnNameWidth) const
 {
-    QNTRACE("delegate", "NotebookItemDelegate::notebookNameSizeHint: "
-        << "column name width = " << columnNameWidth);
+    QNTRACE(
+        "delegate",
+        "NotebookItemDelegate::notebookNameSizeHint: "
+            << "column name width = " << columnNameWidth);
 
     const auto * model = index.model();
     if (Q_UNLIKELY(!model)) {
@@ -331,14 +327,15 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
 
     QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
-        QNDEBUG("delegate", "Notebook name is empty, fallback to the default "
-            << "size hint");
+        QNDEBUG(
+            "delegate",
+            "Notebook name is empty, fallback to the default "
+                << "size hint");
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QModelIndex noteCountIndex = model->index(
-        index.row(),
-        static_cast<int>(NotebookModel::Column::NoteCount),
+        index.row(), static_cast<int>(NotebookModel::Column::NoteCount),
         index.parent());
 
     QVariant noteCount = model->data(noteCountIndex);
@@ -346,15 +343,17 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
     int noteCountInt = noteCount.toInt(&conversionResult);
 
     QString nameSuffix;
-    if (!conversionResult)
-    {
-        QNTRACE("delegate", "Failed to convert the number of notes per "
-            << "notebook to int: " << noteCount);
+    if (!conversionResult) {
+        QNTRACE(
+            "delegate",
+            "Failed to convert the number of notes per "
+                << "notebook to int: " << noteCount);
     }
-    else if (noteCountInt > 0)
-    {
-        QNTRACE("delegate", "Appending num notes per notebook to the notebook "
-            << "name: " << noteCountInt);
+    else if (noteCountInt > 0) {
+        QNTRACE(
+            "delegate",
+            "Appending num notes per notebook to the notebook "
+                << "name: " << noteCountInt);
 
         nameSuffix = QStringLiteral(" (");
         nameSuffix += QString::number(noteCountInt);
@@ -379,8 +378,9 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
         static_cast<int>(std::floor(fontHeight * (1.0 + margin) + 0.5)),
         option.rect.height());
 
-    QNTRACE("delegate", "Computed size: width = " << width << ", height = "
-        << height);
+    QNTRACE(
+        "delegate",
+        "Computed size: width = " << width << ", height = " << height);
 
     return QSize(width, height);
 }

@@ -24,8 +24,7 @@
 
 namespace quentier {
 
-AccountDelegate::AccountDelegate(QObject * parent) :
-    QStyledItemDelegate(parent)
+AccountDelegate::AccountDelegate(QObject * parent) : QStyledItemDelegate(parent)
 {}
 
 QWidget * AccountDelegate::createEditor(
@@ -33,8 +32,7 @@ QWidget * AccountDelegate::createEditor(
     const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName))
-    {
+        (index.column() != AccountModel::Columns::DisplayName)) {
         return nullptr;
     }
 
@@ -45,12 +43,11 @@ void AccountDelegate::setEditorData(
     QWidget * pEditor, const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName))
-    {
+        (index.column() != AccountModel::Columns::DisplayName)) {
         return;
     }
 
-    QLineEdit * pLineEdit = qobject_cast<QLineEdit*>(pEditor);
+    QLineEdit * pLineEdit = qobject_cast<QLineEdit *>(pEditor);
     if (pLineEdit) {
         QString displayName = index.data().toString();
         pLineEdit->setText(displayName);

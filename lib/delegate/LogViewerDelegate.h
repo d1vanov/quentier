@@ -29,7 +29,7 @@
 
 namespace quentier {
 
-class LogViewerDelegate: public QStyledItemDelegate
+class LogViewerDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -60,13 +60,13 @@ private:
         const QFontMetrics & fontMetrics) const;
 
 private:
-    double      m_margin;
-    QString     m_widestLogLevelName;
-    QString     m_sampleDateTimeString;
-    QString     m_sampleSourceFileLineNumberString;
+    double m_margin;
+    QString m_widestLogLevelName;
+    QString m_sampleDateTimeString;
+    QString m_sampleSourceFileLineNumberString;
 
-    QChar       m_newlineChar;
-    QChar       m_whitespaceChar;
+    QChar m_newlineChar;
+    QChar m_whitespaceChar;
 };
 
 } // namespace quentier

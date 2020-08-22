@@ -37,13 +37,12 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
-class AddOrEditSavedSearchDialog: public QDialog
+class AddOrEditSavedSearchDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit AddOrEditSavedSearchDialog(
-        SavedSearchModel * pSavedSearchModel,
-        QWidget * parent = nullptr,
+        SavedSearchModel * pSavedSearchModel, QWidget * parent = nullptr,
         const QString & editedSavedSearchLocalUid = {});
 
     virtual ~AddOrEditSavedSearchDialog() override;
@@ -60,11 +59,11 @@ private:
     void setupEditedSavedSearchItem();
 
 private:
-    Ui::AddOrEditSavedSearchDialog *    m_pUi;
-    QPointer<SavedSearchModel>          m_pSavedSearchModel;
-    std::unique_ptr<NoteSearchQuery>    m_pSearchQuery;
-    QString                             m_editedSavedSearchLocalUid;
-    StringUtils                         m_stringUtils;
+    Ui::AddOrEditSavedSearchDialog * m_pUi;
+    QPointer<SavedSearchModel> m_pSavedSearchModel;
+    std::unique_ptr<NoteSearchQuery> m_pSearchQuery;
+    QString m_editedSavedSearchLocalUid;
+    StringUtils m_stringUtils;
 };
 
 } // namespace quentier

@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class LocalStorageVersionTooHighException: public IQuentierException
+class LocalStorageVersionTooHighException : public IQuentierException
 {
 public:
     explicit LocalStorageVersionTooHighException(const ErrorString & message);

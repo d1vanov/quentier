@@ -22,12 +22,9 @@
 
 namespace quentier {
 
-ItemModel::ItemModel(QObject * parent) :
-    QAbstractItemModel(parent)
-{}
+ItemModel::ItemModel(QObject * parent) : QAbstractItemModel(parent) {}
 
-ItemModel::~ItemModel()
-{}
+ItemModel::~ItemModel() {}
 
 QDebug & operator<<(QDebug & dbg, const ItemModel::LinkedNotebookInfo & info)
 {

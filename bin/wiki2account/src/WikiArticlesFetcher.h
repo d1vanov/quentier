@@ -33,14 +33,13 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(WikiRandomArticleFetcher)
 
-class WikiArticlesFetcher: public QObject
+class WikiArticlesFetcher : public QObject
 {
     Q_OBJECT
 public:
     explicit WikiArticlesFetcher(
-        QList<Notebook> notebooks, QList<Tag> tags,
-        quint32 minTagsPerNote, quint32 numNotes,
-        LocalStorageManagerAsync & localStorageManager,
+        QList<Notebook> notebooks, QList<Tag> tags, quint32 minTagsPerNote,
+        quint32 numNotes, LocalStorageManagerAsync & localStorageManager,
         QObject * parent = nullptr);
 
     virtual ~WikiArticlesFetcher() override;
@@ -76,17 +75,18 @@ private:
     void updateProgress();
 
 private:
-    QList<Notebook>     m_notebooks;
-    QList<Tag>          m_tags;
-    quint32             m_minTagsPerNote;
-    quint32             m_numNotes;
+    QList<Notebook> m_notebooks;
+    QList<Tag> m_tags;
+    quint32 m_minTagsPerNote;
+    quint32 m_numNotes;
 
-    int     m_notebookIndex = 0;
+    int m_notebookIndex = 0;
 
-    double  m_currentProgress = 0.0;
+    double m_currentProgress = 0.0;
 
-    QHash<WikiRandomArticleFetcher*, double>    m_wikiRandomArticleFetchersWithProgress;
-    QSet<QUuid>     m_addNoteRequestIds;
+    QHash<WikiRandomArticleFetcher *, double>
+        m_wikiRandomArticleFetchersWithProgress;
+    QSet<QUuid> m_addNoteRequestIds;
 };
 
 } // namespace quentier

@@ -27,8 +27,7 @@ QT_FORWARD_DECLARE_CLASS(ErrorString)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
 QList<Notebook> prepareNotebooks(
-    const QString & targetNotebookName,
-    const quint32 numNewNotebooks,
+    const QString & targetNotebookName, const quint32 numNewNotebooks,
     LocalStorageManagerAsync & localStorageManagerAsync,
     ErrorString & errorDescription);
 

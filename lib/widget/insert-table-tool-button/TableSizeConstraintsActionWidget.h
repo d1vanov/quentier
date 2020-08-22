@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class TableSizeConstraintsActionWidget: public QWidgetAction
+class TableSizeConstraintsActionWidget : public QWidgetAction
 {
     Q_OBJECT
 public:
@@ -40,8 +40,8 @@ private Q_SLOTS:
     void onWidthTypeChange(int widthTypeIndex);
 
 private:
-    double  m_currentWidth = 400.0;
-    bool    m_currentWidthTypeIsRelative = false;
+    double m_currentWidth = 400.0;
+    bool m_currentWidthTypeIsRelative = false;
 };
 
 } // namespace quentier

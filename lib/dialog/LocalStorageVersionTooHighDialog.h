@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_DIALOG_LOCAL_STORAGE_VERSION_TOO_HIGH_DIALOG_H
 #define QUENTIER_LIB_DIALOG_LOCAL_STORAGE_VERSION_TOO_HIGH_DIALOG_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/Account.h>
+#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 
@@ -37,15 +37,13 @@ QT_FORWARD_DECLARE_CLASS(AccountModel)
 QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
 
-class LocalStorageVersionTooHighDialog: public QDialog
+class LocalStorageVersionTooHighDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit LocalStorageVersionTooHighDialog(
-        const Account & currentAccount,
-        AccountModel & accountModel,
-        LocalStorageManager & localStorageManager,
-        QWidget * parent = nullptr);
+        const Account & currentAccount, AccountModel & accountModel,
+        LocalStorageManager & localStorageManager, QWidget * parent = nullptr);
 
     virtual ~LocalStorageVersionTooHighDialog() override;
 
@@ -60,8 +58,7 @@ private Q_SLOTS:
     void onQuitAppButtonPressed();
 
     void onAccountViewSelectionChanged(
-        const QItemSelection & selected,
-        const QItemSelection & deselected);
+        const QItemSelection & selected, const QItemSelection & deselected);
 
 private:
     virtual void reject() override;
@@ -76,8 +73,8 @@ private:
     void setErrorToStatusBar(const ErrorString & error);
 
 private:
-    Ui::LocalStorageVersionTooHighDialog *  m_pUi;
-    AccountFilterModel *                    m_pAccountFilterModel;
+    Ui::LocalStorageVersionTooHighDialog * m_pUi;
+    AccountFilterModel * m_pAccountFilterModel;
 };
 
 } // namespace quentier

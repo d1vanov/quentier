@@ -35,7 +35,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
 
-class ManageAccountsDialog: public QDialog
+class ManageAccountsDialog : public QDialog
 {
     Q_OBJECT
 public:
@@ -69,8 +69,8 @@ private:
     void setStatusBarText(const QString & text);
 
 private:
-    Ui::ManageAccountsDialog *  m_pUi;
-    AccountManager &            m_accountManager;
+    Ui::ManageAccountsDialog * m_pUi;
+    AccountManager & m_accountManager;
 };
 
 } // namespace quentier

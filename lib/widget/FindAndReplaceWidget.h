@@ -21,8 +21,8 @@
 
 #include <quentier/utility/Macros.h>
 
-#include <QWidget>
 #include <QString>
+#include <QWidget>
 
 namespace Ui {
 class FindAndReplaceWidget;
@@ -30,13 +30,12 @@ class FindAndReplaceWidget;
 
 namespace quentier {
 
-class FindAndReplaceWidget: public QWidget
+class FindAndReplaceWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit FindAndReplaceWidget(
-        QWidget * parent = nullptr,
-        const bool withReplace = false);
+        QWidget * parent = nullptr, const bool withReplace = false);
 
     virtual ~FindAndReplaceWidget() override;
 
@@ -90,7 +89,7 @@ private:
     QSize sizeHintImpl(const bool minimal) const;
 
 private:
-    Ui::FindAndReplaceWidget *  m_pUI;
+    Ui::FindAndReplaceWidget * m_pUI;
 };
 
 } // namespace quentier

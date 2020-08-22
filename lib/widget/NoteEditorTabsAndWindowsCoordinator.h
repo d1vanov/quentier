@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_WIDGET_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
 #define QUENTIER_LIB_WIDGET_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
 
-#include <lib/model/NotebookCache.h>
 #include <lib/model/NoteCache.h>
+#include <lib/model/NotebookCache.h>
 #include <lib/model/TagCache.h>
 
 #include <quentier/local_storage/LocalStorageManager.h>
@@ -37,7 +37,7 @@
 #include <QUuid>
 
 SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
 
 #include <boost/bimap.hpp>
 #include <boost/circular_buffer.hpp>
@@ -58,7 +58,7 @@ QT_FORWARD_DECLARE_CLASS(SpellChecker)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(TabWidget)
 
-class NoteEditorTabsAndWindowsCoordinator: public QObject
+class NoteEditorTabsAndWindowsCoordinator : public QObject
 {
     Q_OBJECT
 public:
@@ -66,8 +66,8 @@ public:
         const Account & account,
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteCache & noteCache, NotebookCache & notebookCache,
-        TagCache & tagCache, TagModel & tagModel,
-        TabWidget * tabWidget, QObject * parent = nullptr);
+        TagCache & tagCache, TagModel & tagModel, TabWidget * tabWidget,
+        QObject * parent = nullptr);
 
     virtual ~NoteEditorTabsAndWindowsCoordinator() override;
 
@@ -105,8 +105,7 @@ public:
         const bool isNewNote = false);
 
     void createNewNote(
-        const QString & notebookLocalUid,
-        const QString & notebookGuid,
+        const QString & notebookLocalUid, const QString & notebookGuid,
         const NoteEditorMode::type noteEditorMode);
 
     void setUseLimitedFonts(const bool flag);
@@ -220,46 +219,47 @@ private:
     void checkPendingRequestsAndDisconnectFromLocalStorage();
 
 private:
-    Account                             m_currentAccount;
-    LocalStorageManagerAsync &          m_localStorageManagerAsync;
-    NoteCache &                         m_noteCache;
-    NotebookCache &                     m_notebookCache;
-    TagCache &                          m_tagCache;
-    QPointer<TagModel>                  m_pTagModel;
+    Account m_currentAccount;
+    LocalStorageManagerAsync & m_localStorageManagerAsync;
+    NoteCache & m_noteCache;
+    NotebookCache & m_notebookCache;
+    TagCache & m_tagCache;
+    QPointer<TagModel> m_pTagModel;
 
-    TabWidget *                         m_pTabWidget;
-    NoteEditorWidget *                  m_pBlankNoteEditor = nullptr;
+    TabWidget * m_pTabWidget;
+    NoteEditorWidget * m_pBlankNoteEditor = nullptr;
 
-    QThread *                           m_pIOThread = nullptr;
-    FileIOProcessorAsync *              m_pFileIOProcessorAsync = nullptr;
-    SpellChecker *                      m_pSpellChecker = nullptr;
+    QThread * m_pIOThread = nullptr;
+    FileIOProcessorAsync * m_pFileIOProcessorAsync = nullptr;
+    SpellChecker * m_pSpellChecker = nullptr;
 
-    bool                                m_connectedToLocalStorage = false;
+    bool m_connectedToLocalStorage = false;
 
-    int                                 m_maxNumNotesInTabs = -1;
+    int m_maxNumNotesInTabs = -1;
 
-    boost::circular_buffer<QString>     m_localUidsOfNotesInTabbedEditors;
-    QString                             m_lastCurrentTabNoteLocalUid;
+    boost::circular_buffer<QString> m_localUidsOfNotesInTabbedEditors;
+    QString m_lastCurrentTabNoteLocalUid;
 
     using NoteEditorWindowsByNoteLocalUid =
         QMap<QString, QPointer<NoteEditorWidget>>;
 
-    NoteEditorWindowsByNoteLocalUid     m_noteEditorWindowsByNoteLocalUid;
+    NoteEditorWindowsByNoteLocalUid m_noteEditorWindowsByNoteLocalUid;
 
     using NoteLocalUidToTimerIdBimap = boost::bimap<QString, int>;
 
-    NoteLocalUidToTimerIdBimap          m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap;
+    NoteLocalUidToTimerIdBimap
+        m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap;
 
-    QHash<QUuid, NoteEditorMode::type>  m_noteEditorModeByCreateNoteRequestIds;
-    QSet<QUuid>                         m_expungeNoteRequestIds;
-    QSet<QUuid>                         m_inAppNoteLinkFindNoteRequestIds;
+    QHash<QUuid, NoteEditorMode::type> m_noteEditorModeByCreateNoteRequestIds;
+    QSet<QUuid> m_expungeNoteRequestIds;
+    QSet<QUuid> m_inAppNoteLinkFindNoteRequestIds;
 
-    QMenu *                             m_pTabBarContextMenu = nullptr;
+    QMenu * m_pTabBarContextMenu = nullptr;
 
-    QString                             m_localUidOfNoteToBeExpunged;
-    QTimer *                            m_pExpungeNoteDeadlineTimer = nullptr;
+    QString m_localUidOfNoteToBeExpunged;
+    QTimer * m_pExpungeNoteDeadlineTimer = nullptr;
 
-    bool                                m_trackingCurrentTab = true;
+    bool m_trackingCurrentTab = true;
 };
 
 } // namespace quentier

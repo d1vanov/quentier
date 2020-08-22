@@ -25,11 +25,9 @@
 namespace quentier {
 
 WikiRandomArticleFetcher::WikiRandomArticleFetcher(
-        const qint64 timeoutMsec,
-        QObject * parent) :
+    const qint64 timeoutMsec, QObject * parent) :
     QObject(parent),
-    m_enmlConverter(),
-    m_networkReplyFetcherTimeout(timeoutMsec)
+    m_enmlConverter(), m_networkReplyFetcherTimeout(timeoutMsec)
 {}
 
 WikiRandomArticleFetcher::~WikiRandomArticleFetcher()
@@ -42,24 +40,22 @@ void WikiRandomArticleFetcher::start()
     QNDEBUG("wiki2account", "WikiRandomArticleFetcher::start");
 
     if (Q_UNLIKELY(m_started)) {
-        QNWARNING("wiki2account", "WikiRandomArticleFetcher is already "
-            << "started");
+        QNWARNING(
+            "wiki2account",
+            "WikiRandomArticleFetcher is already "
+                << "started");
         return;
     }
 
-    m_pWikiArticleUrlFetcher = new WikiRandomArticleUrlFetcher(
-        m_networkReplyFetcherTimeout);
+    m_pWikiArticleUrlFetcher =
+        new WikiRandomArticleUrlFetcher(m_networkReplyFetcherTimeout);
 
     QObject::connect(
-        m_pWikiArticleUrlFetcher,
-        &WikiRandomArticleUrlFetcher::progress,
-        this,
+        m_pWikiArticleUrlFetcher, &WikiRandomArticleUrlFetcher::progress, this,
         &WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress);
 
     QObject::connect(
-        m_pWikiArticleUrlFetcher,
-        &WikiRandomArticleUrlFetcher::finished,
-        this,
+        m_pWikiArticleUrlFetcher, &WikiRandomArticleUrlFetcher::finished, this,
         &WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished);
 
     m_pWikiArticleUrlFetcher->start();
@@ -84,9 +80,9 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
     QNDEBUG(
         "wiki2account",
         "WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished: "
-            << (status ? "success" : "failure") << ", url = "
-            << randomArticleUrl << ", error description = "
-            << errorDescription);
+            << (status ? "success" : "failure")
+            << ", url = " << randomArticleUrl
+            << ", error description = " << errorDescription);
 
     if (m_pWikiArticleUrlFetcher) {
         m_pWikiArticleUrlFetcher->disconnect(this);
@@ -94,35 +90,30 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
         m_pWikiArticleUrlFetcher = nullptr;
     }
 
-    if (!status)
-    {
+    if (!status) {
         clear();
-        QNWARNING("wiki2account", "Failed to fetch random wiki article's URL: "
-            << errorDescription);
+        QNWARNING(
+            "wiki2account",
+            "Failed to fetch random wiki article's URL: " << errorDescription);
         Q_EMIT failure(errorDescription);
         return;
     }
 
     m_url = randomArticleUrl;
 
-    QNDEBUG("wiki2account", "Starting to fetch wiki article content: "
-        << m_url);
+    QNDEBUG(
+        "wiki2account", "Starting to fetch wiki article content: " << m_url);
 
-    m_pWikiArticleContentsFetcher = new NetworkReplyFetcher(
-        m_url,
-        m_networkReplyFetcherTimeout);
+    m_pWikiArticleContentsFetcher =
+        new NetworkReplyFetcher(m_url, m_networkReplyFetcherTimeout);
 
     QObject::connect(
-        m_pWikiArticleContentsFetcher,
-        &NetworkReplyFetcher::finished,
-        this,
+        m_pWikiArticleContentsFetcher, &NetworkReplyFetcher::finished, this,
         &WikiRandomArticleFetcher::onWikiArticleDownloadFinished);
 
     QObject::connect(
-        m_pWikiArticleContentsFetcher,
-        &NetworkReplyFetcher::downloadProgress,
-        this,
-        &WikiRandomArticleFetcher::onWikiArticleDownloadProgress);
+        m_pWikiArticleContentsFetcher, &NetworkReplyFetcher::downloadProgress,
+        this, &WikiRandomArticleFetcher::onWikiArticleDownloadProgress);
 
     m_pWikiArticleContentsFetcher->start();
 }
@@ -145,7 +136,8 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadProgress(
     Q_EMIT progress(
         0.1 +
         0.6 *
-        (static_cast<double>(bytesFetched) / std::max(bytesTotal, qint64(1))));
+            (static_cast<double>(bytesFetched) /
+             static_cast<double>(std::max(bytesTotal, qint64(1)))));
 }
 
 void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
@@ -163,29 +155,25 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
         m_pWikiArticleContentsFetcher = nullptr;
     }
 
-    if (!status)
-    {
+    if (!status) {
         clear();
-        QNWARNING("wiki2account", "Failed to fetch random wiki article's "
-            << "contents: " << errorDescription << "; url = " << m_url);
+        QNWARNING(
+            "wiki2account",
+            "Failed to fetch random wiki article's "
+                << "contents: " << errorDescription << "; url = " << m_url);
         Q_EMIT failure(errorDescription);
         return;
     }
 
-    m_pWikiArticleToNote = new WikiArticleToNote(
-        m_enmlConverter,
-        m_networkReplyFetcherTimeout);
+    m_pWikiArticleToNote =
+        new WikiArticleToNote(m_enmlConverter, m_networkReplyFetcherTimeout);
 
     QObject::connect(
-        m_pWikiArticleToNote,
-        &WikiArticleToNote::progress,
-        this,
+        m_pWikiArticleToNote, &WikiArticleToNote::progress, this,
         &WikiRandomArticleFetcher::onWikiArticleToNoteProgress);
 
     QObject::connect(
-        m_pWikiArticleToNote,
-        &WikiArticleToNote::finished,
-        this,
+        m_pWikiArticleToNote, &WikiArticleToNote::finished, this,
         &WikiRandomArticleFetcher::onWikiArticleToNoteFinished);
 
     m_pWikiArticleToNote->start(fetchedData);
@@ -219,11 +207,12 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
         m_pWikiArticleToNote = nullptr;
     }
 
-    if (!status)
-    {
+    if (!status) {
         clear();
-        QNWARNING("wiki2account", "Failed to convert wiki article's contents "
-            << "to note: " << errorDescription);
+        QNWARNING(
+            "wiki2account",
+            "Failed to convert wiki article's contents "
+                << "to note: " << errorDescription);
         Q_EMIT failure(errorDescription);
         return;
     }

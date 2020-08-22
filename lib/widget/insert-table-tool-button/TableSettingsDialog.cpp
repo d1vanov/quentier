@@ -24,8 +24,7 @@
 namespace quentier {
 
 TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
-    QDialog(parent),
-    ui(new Ui::TableSettingsDialog)
+    QDialog(parent), ui(new Ui::TableSettingsDialog)
 {
     ui->setupUi(this);
 
@@ -38,15 +37,11 @@ TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
     pTableWidthModeComboBox->setCurrentIndex(1);
 
     QObject::connect(
-        ui->buttonBox,
-        &QDialogButtonBox::accepted,
-        this,
+        ui->buttonBox, &QDialogButtonBox::accepted, this,
         &TableSettingsDialog::onOkButtonPressed);
 
     QObject::connect(
-        ui->buttonBox,
-        &QDialogButtonBox::rejected,
-        this,
+        ui->buttonBox, &QDialogButtonBox::rejected, this,
         &TableSettingsDialog::onCancelButtonPressed);
 }
 
@@ -83,8 +78,7 @@ void TableSettingsDialog::onOkButtonPressed()
 
     QString error;
     bool res = verifySettings(error);
-    if (!res)
-    {
+    if (!res) {
         QNTRACE("widget:insert-table-tool-button", "Error: " << error);
 
         ui->warningLine->setText(
@@ -105,10 +99,12 @@ void TableSettingsDialog::onOkButtonPressed()
     m_tableWidth = ui->tableWidthDoubleSpinBox->value();
     m_relativeWidth = checkRelativeWidth();
 
-    QNTRACE("widget:insert-table-tool-button", "Accepted: num rows = "
-        << m_numRows << ", num columns = " << m_numColumns << ", table width = "
-        << m_tableWidth << ", " << (m_relativeWidth ? "relative" : "absolute")
-        << " width");
+    QNTRACE(
+        "widget:insert-table-tool-button",
+        "Accepted: num rows = "
+            << m_numRows << ", num columns = " << m_numColumns
+            << ", table width = " << m_tableWidth << ", "
+            << (m_relativeWidth ? "relative" : "absolute") << " width");
 
     accept();
 }
@@ -140,15 +136,13 @@ bool TableSettingsDialog::verifySettings(QString & error) const
     int intTableWidth = static_cast<int>(tableWidth);
 
     bool tableRelativeWidth = checkRelativeWidth();
-    if (tableRelativeWidth)
-    {
+    if (tableRelativeWidth) {
         if ((intTableWidth < 1) || (intTableWidth > 100)) {
             error = tr("Relative table width should be between 1 and 100");
             return false;
         }
     }
-    else
-    {
+    else {
         if ((intTableWidth < 1) || (intTableWidth > 999999999)) {
             error = tr("Bad table width in pixels number");
             return false;

@@ -88,11 +88,10 @@ private:
     struct GradientLine
     {
         GradientLine(double value, QString colorName) :
-            m_value(value),
-            m_color(std::move(colorName))
+            m_value(value), m_color(std::move(colorName))
         {}
 
-        double  m_value = 0.0;
+        double m_value = 0.0;
         QColor m_color;
     };
 
@@ -118,15 +117,11 @@ private:
     bool useBackgroundGradient();
 
     QColor colorFromSettingsImpl(
-        const QString & settingName,
-        Qt::GlobalColor defaultColor);
+        const QString & settingName, Qt::GlobalColor defaultColor);
 
     bool onColorEnteredImpl(
-        QColor color,
-        QColor prevColor,
-        const QString & settingName,
-        QLineEdit & colorLineEdit,
-        QFrame & colorDemoFrame);
+        QColor color, QColor prevColor, const QString & settingName,
+        QLineEdit & colorLineEdit, QFrame & colorDemoFrame);
 
     void onUseBackgroundGradientOptionChanged(bool enabled);
 
@@ -141,16 +136,16 @@ private:
     void setBackgroundColorToDemoFrame(const QColor & color, QFrame & frame);
 
 private:
-    Ui::PanelColorsHandlerWidget *  m_pUi;
-    Account     m_currentAccount;
+    Ui::PanelColorsHandlerWidget * m_pUi;
+    Account m_currentAccount;
 
-    QPointer<QColorDialog>      m_pFontColorDialog;
-    QPointer<QColorDialog>      m_pBackgroundColorDialog;
-    QPointer<QColorDialog>      m_pBackgroundGradientBaseColorDialog;
+    QPointer<QColorDialog> m_pFontColorDialog;
+    QPointer<QColorDialog> m_pBackgroundColorDialog;
+    QPointer<QColorDialog> m_pBackgroundGradientBaseColorDialog;
 
-    std::vector<QPointer<QColorDialog>>     m_backgroundGradientColorDialogs;
+    std::vector<QPointer<QColorDialog>> m_backgroundGradientColorDialogs;
 
-    std::vector<GradientLine>   m_backgroundGradientLines;
+    std::vector<GradientLine> m_backgroundGradientLines;
 };
 
 } // namespace quentier

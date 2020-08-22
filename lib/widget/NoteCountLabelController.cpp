@@ -27,7 +27,7 @@
 namespace quentier {
 
 NoteCountLabelController::NoteCountLabelController(
-        QLabel & label, QObject * parent) :
+    QLabel & label, QObject * parent) :
     QObject(parent),
     m_pLabel(&label)
 {}
@@ -35,8 +35,7 @@ NoteCountLabelController::NoteCountLabelController(
 void NoteCountLabelController::setNoteModel(NoteModel & noteModel)
 {
     QNDEBUG(
-        "widget:note_count_label",
-        "NoteCountLabelController::setNoteModel");
+        "widget:note_count_label", "NoteCountLabelController::setNoteModel");
 
     if (!m_pNoteModel.isNull() && m_pNoteModel.data() == &noteModel) {
         return;
@@ -63,8 +62,7 @@ void NoteCountLabelController::onFilteredNotesCountUpdated(qint32 noteCount)
 {
     QNDEBUG(
         "widget:note_count_label",
-        "NoteCountLabelController::onFilteredNotesCountUpdated: "
-            << noteCount);
+        "NoteCountLabelController::onFilteredNotesCountUpdated: " << noteCount);
 
     m_filteredNotesCount = noteCount;
     setNoteCountsToLabel();
@@ -119,15 +117,11 @@ void NoteCountLabelController::disconnectFromNoteModel()
     auto * pNoteModel = m_pNoteModel.data();
 
     QObject::disconnect(
-        pNoteModel,
-        &NoteModel::noteCountPerAccountUpdated,
-        this,
+        pNoteModel, &NoteModel::noteCountPerAccountUpdated, this,
         &NoteCountLabelController::onNoteCountPerAccountUpdated);
 
     QObject::disconnect(
-        pNoteModel,
-        &NoteModel::filteredNotesCountUpdated,
-        this,
+        pNoteModel, &NoteModel::filteredNotesCountUpdated, this,
         &NoteCountLabelController::onFilteredNotesCountUpdated);
 }
 
@@ -145,16 +139,12 @@ void NoteCountLabelController::connectToNoteModel()
     auto * pNoteModel = m_pNoteModel.data();
 
     QObject::connect(
-        pNoteModel,
-        &NoteModel::noteCountPerAccountUpdated,
-        this,
+        pNoteModel, &NoteModel::noteCountPerAccountUpdated, this,
         &NoteCountLabelController::onNoteCountPerAccountUpdated,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
     QObject::connect(
-        pNoteModel,
-        &NoteModel::filteredNotesCountUpdated,
-        this,
+        pNoteModel, &NoteModel::filteredNotesCountUpdated, this,
         &NoteCountLabelController::onFilteredNotesCountUpdated,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 }

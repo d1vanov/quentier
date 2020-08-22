@@ -35,13 +35,12 @@ QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-class AddOrEditNotebookDialog: public QDialog
+class AddOrEditNotebookDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit AddOrEditNotebookDialog(
-        NotebookModel * pNotebookModel,
-        QWidget * parent = nullptr,
+        NotebookModel * pNotebookModel, QWidget * parent = nullptr,
         const QString & editedNotebookLocalUid = {});
 
     virtual ~AddOrEditNotebookDialog() override;
@@ -59,11 +58,11 @@ private:
     void createConnections();
 
 private:
-    Ui::AddOrEditNotebookDialog *   m_pUi;
-    QPointer<NotebookModel>         m_pNotebookModel;
-    QStringListModel *              m_pNotebookStacksModel = nullptr;
-    QString                         m_editedNotebookLocalUid;
-    StringUtils                     m_stringUtils;
+    Ui::AddOrEditNotebookDialog * m_pUi;
+    QPointer<NotebookModel> m_pNotebookModel;
+    QStringListModel * m_pNotebookStacksModel = nullptr;
+    QString m_editedNotebookLocalUid;
+    StringUtils m_stringUtils;
 };
 
 } // namespace quentier

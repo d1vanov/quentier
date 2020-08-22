@@ -28,8 +28,7 @@
 namespace quentier {
 
 ColorPickerToolButton::ColorPickerToolButton(QWidget * parent) :
-    QToolButton(parent),
-    m_menu(new QMenu(this))
+    QToolButton(parent), m_menu(new QMenu(this))
 {
     auto * colorPickerActionWidget = new ColorPickerActionWidget(this);
     m_menu->addAction(colorPickerActionWidget);
@@ -40,45 +39,31 @@ ColorPickerToolButton::ColorPickerToolButton(QWidget * parent) :
     setDefaultAction(colorDialogAction);
 
     QObject::connect(
-        colorDialogAction,
-        &QAction::triggered,
-        this,
+        colorDialogAction, &QAction::triggered, this,
         &ColorPickerToolButton::onColorDialogAction);
 
     QObject::connect(
-        colorPickerActionWidget,
-        &ColorPickerActionWidget::colorSelected,
-        this,
+        colorPickerActionWidget, &ColorPickerActionWidget::colorSelected, this,
         &ColorPickerToolButton::colorSelected);
 
     QObject::connect(
-        colorPickerActionWidget,
-        &ColorPickerActionWidget::rejected,
-        this,
+        colorPickerActionWidget, &ColorPickerActionWidget::rejected, this,
         &ColorPickerToolButton::rejected);
 
     QObject::connect(
-        colorPickerActionWidget,
-        &ColorPickerActionWidget::colorSelected,
-        m_menu,
+        colorPickerActionWidget, &ColorPickerActionWidget::colorSelected,
+        m_menu, &QMenu::hide);
+
+    QObject::connect(
+        colorPickerActionWidget, &ColorPickerActionWidget::rejected, m_menu,
         &QMenu::hide);
 
     QObject::connect(
-        colorPickerActionWidget,
-        &ColorPickerActionWidget::rejected,
-        m_menu,
-        &QMenu::hide);
-
-    QObject::connect(
-        m_menu,
-        &QMenu::aboutToShow,
-        colorPickerActionWidget,
+        m_menu, &QMenu::aboutToShow, colorPickerActionWidget,
         &ColorPickerActionWidget::aboutToShow);
 
     QObject::connect(
-        m_menu,
-        &QMenu::aboutToHide,
-        colorPickerActionWidget,
+        m_menu, &QMenu::aboutToHide, colorPickerActionWidget,
         &ColorPickerActionWidget::aboutToHide);
 }
 
@@ -87,8 +72,7 @@ void ColorPickerToolButton::onColorDialogAction()
     auto pColorDialog = std::make_unique<QColorDialog>(this);
 
     pColorDialog->setOptions(
-        QColorDialog::DontUseNativeDialog |
-        QColorDialog::ShowAlphaChannel);
+        QColorDialog::DontUseNativeDialog | QColorDialog::ShowAlphaChannel);
 
     auto currentColor = pColorDialog->currentColor();
     currentColor.setAlpha(255);

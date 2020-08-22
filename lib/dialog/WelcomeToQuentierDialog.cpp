@@ -24,8 +24,7 @@
 namespace quentier {
 
 WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
-    QDialog(parent),
-    m_pUi(new Ui::WelcomeToQuentierDialog)
+    QDialog(parent), m_pUi(new Ui::WelcomeToQuentierDialog)
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Welcome to Quentier"));
@@ -40,15 +39,11 @@ WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
         new QStringListModel(evernoteServers));
 
     QObject::connect(
-        m_pUi->continueWithLocalAccountPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->continueWithLocalAccountPushButton, &QPushButton::clicked, this,
         &WelcomeToQuentierDialog::onContinueWithLocalAccountPushButtonPressed);
 
     QObject::connect(
-        m_pUi->loginToEvernoteAccountPushButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->loginToEvernoteAccountPushButton, &QPushButton::clicked, this,
         &WelcomeToQuentierDialog::onLogInToEvernoteAccountPushButtonPressed);
 }
 
@@ -59,8 +54,7 @@ WelcomeToQuentierDialog::~WelcomeToQuentierDialog()
 
 QString WelcomeToQuentierDialog::evernoteServer() const
 {
-    switch(m_pUi->evernoteServerComboBox->currentIndex())
-    {
+    switch (m_pUi->evernoteServerComboBox->currentIndex()) {
     case 1:
         return QStringLiteral("app.yinxiang.com");
     case 2:

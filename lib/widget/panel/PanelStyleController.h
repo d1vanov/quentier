@@ -36,8 +36,7 @@ class PanelStyleController
 {
 public:
     explicit PanelStyleController(
-        QFrame * pPanel,
-        QString extraStyleSheet = {});
+        QFrame * pPanel, QString extraStyleSheet = {});
 
     virtual ~PanelStyleController() = default;
 
@@ -54,7 +53,8 @@ public:
     void resetOverrideBackgroundGradient();
 
     void setOverrideColors(QColor fontColor, QColor backgroundColor);
-    void setOverrideColors(QColor fontColor, QLinearGradient backgroundGradient);
+    void setOverrideColors(
+        QColor fontColor, QLinearGradient backgroundGradient);
 
     virtual void resetOverrides();
 
@@ -70,13 +70,13 @@ protected:
     void updateStyleSheet();
 
 protected:
-    QFrame *    m_pPanel = nullptr;
-    QString     m_defaultStyleSheet;
-    QString     m_extraStyleSheet;
+    QFrame * m_pPanel = nullptr;
+    QString m_defaultStyleSheet;
+    QString m_extraStyleSheet;
 
-    QColor      m_overrideFontColor;
-    QColor      m_overrideBackgroundColor;
-    std::unique_ptr<QLinearGradient>    m_pOverrideBackgroundGradient;
+    QColor m_overrideFontColor;
+    QColor m_overrideBackgroundColor;
+    std::unique_ptr<QLinearGradient> m_pOverrideBackgroundGradient;
 };
 
 } // namespace quentier

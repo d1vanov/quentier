@@ -40,21 +40,20 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(ItemModel)
 
-class NewListItemLineEdit: public QLineEdit
+class NewListItemLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
     struct ItemInfo
     {
-        QString     m_name;
-        QString     m_linkedNotebookGuid;
-        QString     m_linkedNotebookUsername;
+        QString m_name;
+        QString m_linkedNotebookGuid;
+        QString m_linkedNotebookUsername;
     };
 
 public:
     explicit NewListItemLineEdit(
-        ItemModel * pItemModel,
-        QVector<ItemInfo> reservedItems,
+        ItemModel * pItemModel, QVector<ItemInfo> reservedItems,
         QWidget * parent = nullptr);
 
     virtual ~NewListItemLineEdit();
@@ -92,12 +91,12 @@ private:
     QStringList itemNamesForCompleter() const;
 
 private:
-    Ui::NewListItemLineEdit *   m_pUi;
-    QPointer<ItemModel>         m_pItemModel;
-    QVector<ItemInfo>           m_reservedItems;
-    QStringListModel *          m_pItemNamesModel;
-    QCompleter *                m_pCompleter;
-    QString                     m_targetLinkedNotebookGuid;
+    Ui::NewListItemLineEdit * m_pUi;
+    QPointer<ItemModel> m_pItemModel;
+    QVector<ItemInfo> m_reservedItems;
+    QStringListModel * m_pItemNamesModel;
+    QCompleter * m_pCompleter;
+    QString m_targetLinkedNotebookGuid;
 };
 
 } // namespace quentier

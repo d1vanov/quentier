@@ -27,7 +27,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class SavedSearchItemView: public ItemView
+class SavedSearchItemView : public ItemView
 {
     Q_OBJECT
 public:
@@ -92,9 +92,9 @@ private:
     void postProcessSavedSearchModelChange();
 
 private:
-    QMenu *     m_pSavedSearchItemContextMenu = nullptr;
-    bool        m_trackingSelection = false;
-    bool        m_modelReady = false;
+    QMenu * m_pSavedSearchItemContextMenu = nullptr;
+    bool m_trackingSelection = false;
+    bool m_modelReady = false;
 };
 
 } // namespace quentier

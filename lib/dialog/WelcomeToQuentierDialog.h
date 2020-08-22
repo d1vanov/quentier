@@ -29,7 +29,7 @@ class WelcomeToQuentierDialog;
 
 namespace quentier {
 
-class WelcomeToQuentierDialog: public QDialog
+class WelcomeToQuentierDialog : public QDialog
 {
     Q_OBJECT
 public:
@@ -43,7 +43,7 @@ private Q_SLOTS:
     void onLogInToEvernoteAccountPushButtonPressed();
 
 private:
-    Ui::WelcomeToQuentierDialog *   m_pUi;
+    Ui::WelcomeToQuentierDialog * m_pUi;
 };
 
 } // namespace quentier

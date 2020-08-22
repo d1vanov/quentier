@@ -26,7 +26,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class ITagModelItem: public Printable
+class ITagModelItem : public Printable
 {
 public:
     enum class Type
@@ -60,7 +60,7 @@ public:
         return !m_children.isEmpty();
     }
 
-    QList<ITagModelItem*> children() const
+    QList<ITagModelItem *> children() const
     {
         return m_children;
     }
@@ -97,8 +97,8 @@ public:
     const T * cast() const;
 
 protected:
-    ITagModelItem *         m_pParent = nullptr;
-    QList<ITagModelItem*>   m_children;
+    ITagModelItem * m_pParent = nullptr;
+    QList<ITagModelItem *> m_children;
 };
 
 } // namespace quentier

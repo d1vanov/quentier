@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class BasicXMLSyntaxHighlighter: public QSyntaxHighlighter
+class BasicXMLSyntaxHighlighter : public QSyntaxHighlighter
 {
     Q_OBJECT
 public:
@@ -41,17 +41,17 @@ private:
     void setFormats();
 
 private:
-    QTextCharFormat     m_xmlKeywordFormat;
-    QTextCharFormat     m_xmlElementFormat;
-    QTextCharFormat     m_xmlAttributeFormat;
-    QTextCharFormat     m_xmlValueFormat;
-    QTextCharFormat     m_xmlCommentFormat;
+    QTextCharFormat m_xmlKeywordFormat;
+    QTextCharFormat m_xmlElementFormat;
+    QTextCharFormat m_xmlAttributeFormat;
+    QTextCharFormat m_xmlValueFormat;
+    QTextCharFormat m_xmlCommentFormat;
 
-    QList<QRegExp>      m_xmlKeywordRegexes;
-    QRegExp             m_xmlElementRegex;
-    QRegExp             m_xmlAttributeRegex;
-    QRegExp             m_xmlValueRegex;
-    QRegExp             m_xmlCommentRegex;
+    QList<QRegExp> m_xmlKeywordRegexes;
+    QRegExp m_xmlElementRegex;
+    QRegExp m_xmlAttributeRegex;
+    QRegExp m_xmlValueRegex;
+    QRegExp m_xmlCommentRegex;
 };
 
 } // namespace quentier

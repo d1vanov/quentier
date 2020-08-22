@@ -33,7 +33,7 @@
 
 namespace quentier {
 
-class ShortcutButton: public QPushButton
+class ShortcutButton : public QPushButton
 {
     Q_OBJECT
 public:
@@ -54,11 +54,11 @@ private Q_SLOTS:
     void handleToggleChange(bool toggleChange);
 
 private:
-    QString     m_uncheckedText;
-    QString     m_checkedText;
+    QString m_uncheckedText;
+    QString m_checkedText;
     mutable int m_preferredWidth = -1;
-    int         m_key[4] = {0, 0, 0, 0};
-    int         m_keyNum = -1;
+    int m_key[4] = {0, 0, 0, 0};
+    int m_keyNum = -1;
 };
 
 } // namespace quentier

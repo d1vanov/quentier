@@ -31,7 +31,7 @@
 #include <QUuid>
 
 SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
 
 #include <boost/bimap.hpp>
 
@@ -43,7 +43,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EnexImporter: public QObject
+class EnexImporter : public QObject
 {
     Q_OBJECT
 public:
@@ -62,7 +62,7 @@ Q_SIGNALS:
     void enexImportedSuccessfully(QString enexFilePath);
     void enexImportFailed(ErrorString errorDescription);
 
-// private signals:
+    // private signals:
     void addTag(Tag tag, QUuid requestId);
     void addNotebook(Notebook notebook, QUuid requestId);
     void addNote(Note note, QUuid requestId);
@@ -100,27 +100,27 @@ private:
     void addNotebookToLocalStorage(const QString & notebookName);
 
 private:
-    LocalStorageManagerAsync &  m_localStorageManagerAsync;
-    TagModel &      m_tagModel;
+    LocalStorageManagerAsync & m_localStorageManagerAsync;
+    TagModel & m_tagModel;
     NotebookModel & m_notebookModel;
-    QString         m_enexFilePath;
-    QString         m_notebookName;
-    QString         m_notebookLocalUid;
+    QString m_enexFilePath;
+    QString m_notebookName;
+    QString m_notebookLocalUid;
 
     QHash<QString, QStringList> m_tagNamesByImportedNoteLocalUid;
 
     using AddTagRequestIdByTagNameBimap = boost::bimap<QString, QUuid>;
-    AddTagRequestIdByTagNameBimap   m_addTagRequestIdByTagNameBimap;
+    AddTagRequestIdByTagNameBimap m_addTagRequestIdByTagNameBimap;
 
-    QSet<QString>   m_expungedTagLocalUids;
+    QSet<QString> m_expungedTagLocalUids;
 
-    QUuid           m_addNotebookRequestId;
+    QUuid m_addNotebookRequestId;
 
-    QVector<Note>   m_notesPendingTagAddition;
-    QSet<QUuid>     m_addNoteRequestIds;
+    QVector<Note> m_notesPendingTagAddition;
+    QSet<QUuid> m_addNoteRequestIds;
 
-    bool            m_pendingNotebookModelToStart = false;
-    bool            m_connectedToLocalStorage = false;
+    bool m_pendingNotebookModelToStart = false;
+    bool m_connectedToLocalStorage = false;
 };
 
 } // namespace quentier

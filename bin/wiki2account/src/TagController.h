@@ -28,13 +28,12 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
-class TagController: public QObject
+class TagController : public QObject
 {
     Q_OBJECT
 public:
     explicit TagController(
-        const quint32 minTagsPerNote,
-        const quint32 maxTagsPerNote,
+        const quint32 minTagsPerNote, const quint32 maxTagsPerNote,
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
@@ -61,7 +60,8 @@ private Q_SLOTS:
     void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onFindTagComplete(Tag tag, QUuid requestId);
-    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+    void onFindTagFailed(
+        Tag tag, ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
@@ -73,15 +73,15 @@ private:
     QString nextNewTagName();
 
 private:
-    quint32     m_minTagsPerNote;
-    quint32     m_maxTagsPerNote;
+    quint32 m_minTagsPerNote;
+    quint32 m_maxTagsPerNote;
 
-    QList<Tag>  m_tags;
+    QList<Tag> m_tags;
 
-    QUuid       m_findTagRequestId;
-    QUuid       m_addTagRequestId;
+    QUuid m_findTagRequestId;
+    QUuid m_addTagRequestId;
 
-    quint32     m_nextNewTagNameSuffix = 1;
+    quint32 m_nextNewTagNameSuffix = 1;
 };
 
 } // namespace quentier

@@ -84,18 +84,14 @@ void DirtyColumnDelegate::paint(
     int diameter = 2 * radius;
     QPoint center = option.rect.center();
 
-    center.setX(
-        std::min(
-            center.x(),
-            (option.rect.left() + std::max(colNameWidth, side)/2 + 1)));
+    center.setX(std::min(
+        center.x(),
+        (option.rect.left() + std::max(colNameWidth, side) / 2 + 1)));
 
     painter->setPen(QColor());
 
     painter->drawEllipse(
-        QRectF(
-            center.x() - radius,
-            center.y() - radius,
-            diameter, diameter));
+        QRectF(center.x() - radius, center.y() - radius, diameter, diameter));
 
     painter->restore();
 }

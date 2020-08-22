@@ -25,7 +25,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class FavoritesModelItem: public Printable
+class FavoritesModelItem : public Printable
 {
 public:
     enum class Type
@@ -41,10 +41,8 @@ public:
 
 public:
     explicit FavoritesModelItem(
-        const Type type = Type::Unknown,
-        QString localUid = {},
-        QString displayName = {},
-        const int noteCount = 0);
+        const Type type = Type::Unknown, QString localUid = {},
+        QString displayName = {}, const int noteCount = 0);
 
     Type type() const
     {
@@ -89,10 +87,10 @@ public:
     virtual QTextStream & print(QTextStream & strm) const override;
 
 private:
-    Type            m_type;
-    QString         m_localUid;
-    QString         m_displayName;
-    int             m_noteCount;
+    Type m_type;
+    QString m_localUid;
+    QString m_displayName;
+    int m_noteCount;
 };
 
 } // namespace quentier

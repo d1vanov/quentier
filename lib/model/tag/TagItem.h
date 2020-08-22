@@ -23,16 +23,13 @@
 
 namespace quentier {
 
-class TagItem: public ITagModelItem
+class TagItem : public ITagModelItem
 {
 public:
     explicit TagItem(
-        QString localUid = {},
-        QString guid = {},
-        QString linkedNotebookGuid = {},
-        QString name = {},
-        QString parentLocalUid = {},
-        QString parentGuid = {});
+        QString localUid = {}, QString guid = {},
+        QString linkedNotebookGuid = {}, QString name = {},
+        QString parentLocalUid = {}, QString parentGuid = {});
 
     virtual ~TagItem() override = default;
 
@@ -154,17 +151,17 @@ public:
     virtual QDataStream & deserializeItemData(QDataStream & in) override;
 
 private:
-    QString     m_localUid;
-    QString     m_guid;
-    QString     m_linkedNotebookGuid;
-    QString     m_name;
-    QString     m_parentLocalUid;
-    QString     m_parentGuid;
+    QString m_localUid;
+    QString m_guid;
+    QString m_linkedNotebookGuid;
+    QString m_name;
+    QString m_parentLocalUid;
+    QString m_parentGuid;
 
-    bool        m_isSynchronizable = false;
-    bool        m_isDirty = false;
-    bool        m_isFavorited = false;
-    int         m_noteCount = 0;
+    bool m_isSynchronizable = false;
+    bool m_isDirty = false;
+    bool m_isFavorited = false;
+    int m_noteCount = 0;
 };
 
 } // namespace quentier

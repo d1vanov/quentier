@@ -33,7 +33,7 @@ QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
 
 namespace quentier {
 
-class WikiRandomArticleUrlFetcher: public QObject
+class WikiRandomArticleUrlFetcher : public QObject
 {
     Q_OBJECT
 public:
@@ -64,7 +64,7 @@ Q_SIGNALS:
 
     void progress(double percentage);
 
-// private signals
+    // private signals
     void startFetching();
 
 public Q_SLOTS:
@@ -83,14 +83,14 @@ private:
     void finishWithError(const ErrorString & errorDescription);
 
 private:
-    const qint64            m_networkReplyFetcherTimeout;
+    const qint64 m_networkReplyFetcherTimeout;
 
-    NetworkReplyFetcher *   m_pNetworkReplyFetcher = nullptr;
+    NetworkReplyFetcher * m_pNetworkReplyFetcher = nullptr;
 
-    bool        m_started = false;
-    bool        m_finished = false;
+    bool m_started = false;
+    bool m_finished = false;
 
-    QUrl        m_url;
+    QUrl m_url;
 };
 
 } // namespace quentier

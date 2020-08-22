@@ -24,13 +24,10 @@
 namespace quentier {
 
 WikiArticlesFetchingTracker::WikiArticlesFetchingTracker(QObject * parent) :
-    QObject(parent),
-    m_stdout(stdout),
-    m_stderr(stderr)
+    QObject(parent), m_stdout(stdout), m_stderr(stderr)
 {}
 
-WikiArticlesFetchingTracker::~WikiArticlesFetchingTracker()
-{}
+WikiArticlesFetchingTracker::~WikiArticlesFetchingTracker() {}
 
 void WikiArticlesFetchingTracker::onWikiArticlesFetchingFinished()
 {
@@ -42,7 +39,7 @@ void WikiArticlesFetchingTracker::onWikiArticlesFetchingFailed(
     ErrorString errorDescription)
 {
     m_stderr << "Failed to download notes: "
-        << errorDescription.nonLocalizedString() << "\n";
+             << errorDescription.nonLocalizedString() << "\n";
     Q_EMIT failure(errorDescription);
 }
 
@@ -51,8 +48,8 @@ void WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate(
 {
     percentage *= 100.0;
 
-    quint32 roundedPercentage = static_cast<quint32>(
-        std::max(std::floor(percentage), 0.0));
+    quint32 roundedPercentage =
+        static_cast<quint32>(std::max(std::floor(percentage), 0.0));
 
     if (roundedPercentage > m_lastReportedProgress) {
         m_stdout << "Downloading notes: " << roundedPercentage << "%\n";

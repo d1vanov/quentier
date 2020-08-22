@@ -37,7 +37,7 @@ Q_SIGNALS:
     void tableSizeSelected(int rows, int columns);
 
 private:
-    TableSizeSelector *     m_selector;
+    TableSizeSelector * m_selector;
 };
 
 } // namespace quentier

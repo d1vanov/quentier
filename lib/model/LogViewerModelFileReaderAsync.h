@@ -36,8 +36,7 @@ public:
     explicit FileReaderAsync(
         const QString & targetFilePath,
         const QVector<LogLevel> & disabledLogLevels,
-        const QString & logEntryContentFilter,
-        QObject * parent = nullptr);
+        const QString & logEntryContentFilter, QObject * parent = nullptr);
 
     virtual ~FileReaderAsync() override;
 
@@ -54,10 +53,10 @@ private:
     Q_DISABLE_COPY(FileReaderAsync)
 
 private:
-    QFile                           m_targetFile;
-    QVector<LogLevel>               m_disabledLogLevels;
-    QRegExp                         m_filterRegExp;
-    LogViewerModel::LogFileParser   m_parser;
+    QFile m_targetFile;
+    QVector<LogLevel> m_disabledLogLevels;
+    QRegExp m_filterRegExp;
+    LogViewerModel::LogFileParser m_parser;
 };
 
 } // namespace quentier

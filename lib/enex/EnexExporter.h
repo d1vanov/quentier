@@ -37,14 +37,14 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(NoteEditorTabsAndWindowsCoordinator)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class EnexExporter: public QObject
+class EnexExporter : public QObject
 {
     Q_OBJECT
 public:
     explicit EnexExporter(
         LocalStorageManagerAsync & localStorageManagerAsync,
-        NoteEditorTabsAndWindowsCoordinator & coordinator,
-        TagModel & tagModel, QObject * parent = nullptr);
+        NoteEditorTabsAndWindowsCoordinator & coordinator, TagModel & tagModel,
+        QObject * parent = nullptr);
 
     const QString & targetEnexFilePath() const
     {
@@ -79,7 +79,7 @@ Q_SIGNALS:
     void notesExportedToEnex(QString enex);
     void failedToExportNotesToEnex(ErrorString errorDescription);
 
-// private signals:
+    // private signals:
     void findNote(
         Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
@@ -103,15 +103,15 @@ private:
     void disconnectFromLocalStorage();
 
 private:
-    LocalStorageManagerAsync &              m_localStorageManagerAsync;
-    NoteEditorTabsAndWindowsCoordinator &   m_noteEditorTabsAndWindowsCoordinator;
-    QPointer<TagModel>                      m_pTagModel;
-    QString                                 m_targetEnexFilePath;
-    QStringList                             m_noteLocalUids;
-    QSet<QUuid>                             m_findNoteRequestIds;
-    QHash<QString, Note>                    m_notesByLocalUid;
-    bool                                    m_includeTags = false;
-    bool                                    m_connectedToLocalStorage = false;
+    LocalStorageManagerAsync & m_localStorageManagerAsync;
+    NoteEditorTabsAndWindowsCoordinator & m_noteEditorTabsAndWindowsCoordinator;
+    QPointer<TagModel> m_pTagModel;
+    QString m_targetEnexFilePath;
+    QStringList m_noteLocalUids;
+    QSet<QUuid> m_findNoteRequestIds;
+    QHash<QString, Note> m_notesByLocalUid;
+    bool m_includeTags = false;
+    bool m_connectedToLocalStorage = false;
 };
 
 } // namespace quentier

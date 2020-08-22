@@ -26,7 +26,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(FavoritesModel)
 QT_FORWARD_DECLARE_CLASS(FavoritesModelItem)
 
-class FavoritesModelTestHelper: public QObject
+class FavoritesModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
@@ -58,9 +58,8 @@ private Q_SLOTS:
 
     void onListNotesFailed(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -74,9 +73,8 @@ private Q_SLOTS:
         Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onListNotebooksFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -90,12 +88,11 @@ private Q_SLOTS:
         Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onListTagsFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListTagsOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid,
-        ErrorString errorDescription, QUuid requestId);
+        QString linkedNotebookGuid, ErrorString errorDescription,
+        QUuid requestId);
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
 
@@ -106,9 +103,8 @@ private Q_SLOTS:
         SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
     void onListSavedSearchesFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListSavedSearchesOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
@@ -160,39 +156,39 @@ private:
     };
 
 private:
-    LocalStorageManagerAsync *  m_pLocalStorageManagerAsync;
-    FavoritesModel *            m_model = nullptr;
+    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
+    FavoritesModel * m_model = nullptr;
 
-    Notebook        m_firstNotebook;
-    Notebook        m_secondNotebook;
-    Notebook        m_thirdNotebook;
+    Notebook m_firstNotebook;
+    Notebook m_secondNotebook;
+    Notebook m_thirdNotebook;
 
-    Note            m_firstNote;
-    Note            m_secondNote;
-    Note            m_thirdNote;
-    Note            m_fourthNote;
-    Note            m_fifthNote;
-    Note            m_sixthNote;
+    Note m_firstNote;
+    Note m_secondNote;
+    Note m_thirdNote;
+    Note m_fourthNote;
+    Note m_fifthNote;
+    Note m_sixthNote;
 
-    Tag             m_firstTag;
-    Tag             m_secondTag;
-    Tag             m_thirdTag;
-    Tag             m_fourthTag;
+    Tag m_firstTag;
+    Tag m_secondTag;
+    Tag m_thirdTag;
+    Tag m_fourthTag;
 
-    SavedSearch     m_firstSavedSearch;
-    SavedSearch     m_secondSavedSearch;
-    SavedSearch     m_thirdSavedSearch;
-    SavedSearch     m_fourthSavedSearch;
+    SavedSearch m_firstSavedSearch;
+    SavedSearch m_secondSavedSearch;
+    SavedSearch m_thirdSavedSearch;
+    SavedSearch m_fourthSavedSearch;
 
-    bool            m_expectingNoteUpdateFromLocalStorage = false;
-    bool            m_expectingNotebookUpdateFromLocalStorage = false;
-    bool            m_expectingTagUpdateFromLocalStorage = false;
-    bool            m_expectingSavedSearchUpdateFromLocalStorage = false;
+    bool m_expectingNoteUpdateFromLocalStorage = false;
+    bool m_expectingNotebookUpdateFromLocalStorage = false;
+    bool m_expectingTagUpdateFromLocalStorage = false;
+    bool m_expectingSavedSearchUpdateFromLocalStorage = false;
 
-    bool            m_expectingNoteUnfavoriteFromLocalStorage = false;
-    bool            m_expectingNotebookUnfavoriteFromLocalStorage = false;
-    bool            m_expectingTagUnfavoriteFromLocalStorage = false;
-    bool            m_expectingSavedSearchUnfavoriteFromLocalStorage = false;
+    bool m_expectingNoteUnfavoriteFromLocalStorage = false;
+    bool m_expectingNotebookUnfavoriteFromLocalStorage = false;
+    bool m_expectingTagUnfavoriteFromLocalStorage = false;
+    bool m_expectingSavedSearchUnfavoriteFromLocalStorage = false;
 };
 
 } // namespace quentier

@@ -26,7 +26,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class NotebookModelTestHelper: public QObject
+class NotebookModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
@@ -54,9 +54,8 @@ private Q_SLOTS:
         Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onListNotebooksFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -86,7 +85,7 @@ private:
     };
 
 private:
-    LocalStorageManagerAsync *   m_pLocalStorageManagerAsync;
+    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
 };
 
 } // namespace quentier

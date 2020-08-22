@@ -33,11 +33,7 @@ bool fetchNotes(
     LocalStorageManagerAsync & localStorageManager)
 {
     auto * pFetcher = new WikiArticlesFetcher(
-        notebooks,
-        tags,
-        minTagsPerNote,
-        numNotes,
-        localStorageManager);
+        notebooks, tags, minTagsPerNote, numNotes, localStorageManager);
 
     auto * pWikiArticlerFetcherThread = new QThread;
 
@@ -45,10 +41,8 @@ bool fetchNotes(
         QStringLiteral("WikiArticlesFetcherThread"));
 
     QObject::connect(
-        pWikiArticlerFetcherThread,
-        &QThread::finished,
-        pWikiArticlerFetcherThread,
-        &QThread::deleteLater);
+        pWikiArticlerFetcherThread, &QThread::finished,
+        pWikiArticlerFetcherThread, &QThread::deleteLater);
 
     pWikiArticlerFetcherThread->start();
     pFetcher->moveToThread(pWikiArticlerFetcherThread);
@@ -56,21 +50,15 @@ bool fetchNotes(
     WikiArticlesFetchingTracker tracker;
 
     QObject::connect(
-        pFetcher,
-        &WikiArticlesFetcher::finished,
-        &tracker,
+        pFetcher, &WikiArticlesFetcher::finished, &tracker,
         &WikiArticlesFetchingTracker::onWikiArticlesFetchingFinished);
 
     QObject::connect(
-        pFetcher,
-        &WikiArticlesFetcher::failure,
-        &tracker,
+        pFetcher, &WikiArticlesFetcher::failure, &tracker,
         &WikiArticlesFetchingTracker::onWikiArticlesFetchingFailed);
 
     QObject::connect(
-        pFetcher,
-        &WikiArticlesFetcher::progress,
-        &tracker,
+        pFetcher, &WikiArticlesFetcher::progress, &tracker,
         &WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate);
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
@@ -78,15 +66,11 @@ bool fetchNotes(
         EventLoopWithExitStatus loop;
 
         QObject::connect(
-            &tracker,
-            &WikiArticlesFetchingTracker::finished,
-            &loop,
+            &tracker, &WikiArticlesFetchingTracker::finished, &loop,
             &EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
-            &tracker,
-            &WikiArticlesFetchingTracker::failure,
-            &loop,
+            &tracker, &WikiArticlesFetchingTracker::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;

@@ -23,10 +23,9 @@ namespace quentier {
 QTextStream & StackItem::print(QTextStream & strm) const
 {
     strm << "Notebook stack: " << m_name
-        << ", child count: " << m_children.size()
-        << ", parent: " << m_pParent
-        << ", parent type: "
-        << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+         << ", child count: " << m_children.size() << ", parent: " << m_pParent
+         << ", parent type: "
+         << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
     return strm;
 }
 

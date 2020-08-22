@@ -53,9 +53,9 @@ private:
     void setStatusBarText(const QString & text);
 
 private:
-    Ui::DeleteAccountDialog *   m_pUi;
-    Account         m_account;
-    AccountModel &  m_model;
+    Ui::DeleteAccountDialog * m_pUi;
+    Account m_account;
+    AccountModel & m_model;
 };
 
 } // namespace quentier

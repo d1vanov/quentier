@@ -33,13 +33,12 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchModelItem)
 
-class SavedSearchModelItemInfoWidget: public QWidget
+class SavedSearchModelItemInfoWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit SavedSearchModelItemInfoWidget(
-        const QModelIndex & index,
-        QWidget * parent = nullptr);
+        const QModelIndex & index, QWidget * parent = nullptr);
 
     virtual ~SavedSearchModelItemInfoWidget() override;
 

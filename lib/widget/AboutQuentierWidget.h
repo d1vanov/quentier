@@ -38,10 +38,9 @@ public:
     virtual ~AboutQuentierWidget() override;
 
 private:
-    Ui::AboutQuentierWidget *   m_pUi;
+    Ui::AboutQuentierWidget * m_pUi;
 };
 
 } // namespace quentier
-
 
 #endif // QUENTIER_LIB_WIDGET_ABOUT_QUENTIER_WIDGET_H

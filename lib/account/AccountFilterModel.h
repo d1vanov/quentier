@@ -27,7 +27,7 @@
 
 namespace quentier {
 
-class AccountFilterModel: public QSortFilterProxyModel
+class AccountFilterModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
@@ -44,7 +44,7 @@ protected:
         int sourceRow, const QModelIndex & sourceParent) const override;
 
 private:
-    QVector<Account>    m_filteredAccounts;
+    QVector<Account> m_filteredAccounts;
 };
 
 } // namespace quentier

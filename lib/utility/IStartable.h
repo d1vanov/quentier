@@ -39,7 +39,10 @@ public:
 
     virtual bool isStarted() const = 0;
 
-    inline bool isStopped() const { return !isStarted(); }
+    inline bool isStopped() const
+    {
+        return !isStarted();
+    }
 
     virtual ~IStartable() {}
 };

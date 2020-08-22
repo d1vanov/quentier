@@ -37,11 +37,9 @@ bool AccountFilterModel::setFilteredAccounts(
 {
     QNDEBUG("account", "AccountFilterModel::setFilteredAccounts");
 
-    if (filteredAccounts.size() == m_filteredAccounts.size())
-    {
+    if (filteredAccounts.size() == m_filteredAccounts.size()) {
         bool changed = false;
-        for(const auto & account: qAsConst(filteredAccounts))
-        {
+        for (const auto & account: qAsConst(filteredAccounts)) {
             if (!m_filteredAccounts.contains(account)) {
                 changed = true;
                 break;
@@ -49,8 +47,10 @@ bool AccountFilterModel::setFilteredAccounts(
         }
 
         if (!changed) {
-            QNDEBUG("account", "Filtered accounts haven't changed, nothing to "
-                << "do");
+            QNDEBUG(
+                "account",
+                "Filtered accounts haven't changed, nothing to "
+                    << "do");
             return false;
         }
     }
@@ -65,8 +65,10 @@ bool AccountFilterModel::addFilteredAccount(const Account & account)
     QNDEBUG("account", "AccountFilterModel::addFilteredAccount: " << account);
 
     if (m_filteredAccounts.contains(account)) {
-        QNDEBUG("account", "The account is already present within the list "
-            << "of filtered accounts");
+        QNDEBUG(
+            "account",
+            "The account is already present within the list "
+                << "of filtered accounts");
         return false;
     }
 
@@ -77,13 +79,15 @@ bool AccountFilterModel::addFilteredAccount(const Account & account)
 
 bool AccountFilterModel::removeFilteredAccount(const Account & account)
 {
-    QNDEBUG("account", "AccountFilterModel::removeFilteredAccount: "
-        << account);
+    QNDEBUG(
+        "account", "AccountFilterModel::removeFilteredAccount: " << account);
 
     int index = m_filteredAccounts.indexOf(account);
     if (index < 0) {
-        QNDEBUG("account", "Coulnd't find the account to remove within "
-            << "the list of filtered accounts");
+        QNDEBUG(
+            "account",
+            "Coulnd't find the account to remove within "
+                << "the list of filtered accounts");
         return false;
     }
 
@@ -97,8 +101,8 @@ bool AccountFilterModel::filterAcceptsRow(
 {
     Q_UNUSED(sourceParent)
 
-    const auto * pAccountModel = qobject_cast<const AccountModel*>(
-        sourceModel());
+    const auto * pAccountModel =
+        qobject_cast<const AccountModel *>(sourceModel());
 
     if (!pAccountModel) {
         return false;

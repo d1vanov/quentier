@@ -23,8 +23,8 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/FileSystemWatcher.h>
+#include <quentier/utility/Macros.h>
 
 #include <QBasicTimer>
 #include <QModelIndex>
@@ -110,22 +110,22 @@ private:
     virtual void closeEvent(QCloseEvent * pEvent) override;
 
 private:
-    Ui::LogViewerWidget *   m_pUi;
-    FileSystemWatcher       m_logFilesFolderWatcher;
+    Ui::LogViewerWidget * m_pUi;
+    FileSystemWatcher m_logFilesFolderWatcher;
 
-    LogViewerModel *        m_pLogViewerModel;
+    LogViewerModel * m_pLogViewerModel;
 
-    QBasicTimer             m_delayedSectionResizeTimer;
-    QBasicTimer             m_logViewerModelLoadingTimer;
+    QBasicTimer m_delayedSectionResizeTimer;
+    QBasicTimer m_logViewerModelLoadingTimer;
 
-    QCheckBox *             m_logLevelEnabledCheckboxPtrs[6];
-    QMenu *                 m_pLogEntriesContextMenu = nullptr;
+    QCheckBox * m_logLevelEnabledCheckboxPtrs[6];
+    QMenu * m_pLogEntriesContextMenu = nullptr;
 
     // Backups for tracing mode
-    LogLevel                m_minLogLevelBeforeTracing = LogLevel::Info;
-    QString                 m_filterByContentBeforeTracing;
-    bool                    m_filterByLogLevelBeforeTracing[6];
-    qint64                  m_startLogFilePosBeforeTracing = -1;
+    LogLevel m_minLogLevelBeforeTracing = LogLevel::Info;
+    QString m_filterByContentBeforeTracing;
+    bool m_filterByLogLevelBeforeTracing[6];
+    qint64 m_startLogFilePosBeforeTracing = -1;
 };
 
 } // namespace quentier

@@ -46,15 +46,15 @@ void SidePanelStyleController::setTitle(const QString & title)
 
 void SidePanelStyleController::findChildWidgets()
 {
-    auto staticIconHolders = m_pPanel->findChildren<QPushButton*>(
+    auto staticIconHolders = m_pPanel->findChildren<QPushButton *>(
         QRegularExpression(QStringLiteral("(.*)PanelIconPseudoPushButton")));
     Q_ASSERT(staticIconHolders.size() == 1);
     m_pStaticIconHolder = staticIconHolders[0];
     Q_ASSERT(m_pStaticIconHolder);
 
-    auto labels = m_pPanel->findChildren<QLabel*>();
+    auto labels = m_pPanel->findChildren<QLabel *>();
     Q_ASSERT(labels.size() == 2);
-    for(const auto pLabel: qAsConst(labels)) {
+    for (const auto pLabel: qAsConst(labels)) {
         if (pLabel->objectName().endsWith(QStringLiteral("LeftPaddingLabel"))) {
             continue;
         }
@@ -69,8 +69,7 @@ void SidePanelStyleController::findChildWidgets()
 QString SidePanelStyleController::generateStyleSheet() const
 {
     if (!m_overrideFontColor.isValid() &&
-        !m_overrideBackgroundColor.isValid() &&
-        !m_pOverrideBackgroundGradient)
+        !m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient)
     {
         return m_defaultStyleSheet;
     }
@@ -80,29 +79,30 @@ QString SidePanelStyleController::generateStyleSheet() const
     strm << "\n";
 
     strm << "\n"
-        << "QPushButton {\n"
-        << "border: none;\n"
-        << "padding: 0px;\n"
-        << "}\n"
-        << "\n"
-        << "QPushButton:focus {\n"
-        << "outline: none;\n"
-        << "}\n\n";
+         << "QPushButton {\n"
+         << "border: none;\n"
+         << "padding: 0px;\n"
+         << "}\n"
+         << "\n"
+         << "QPushButton:focus {\n"
+         << "outline: none;\n"
+         << "}\n\n";
 
-    if (!m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient) {
+    if (!m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient)
+    {
         return styleSheetStr;
     }
 
     strm << "QPushButton:hover:!pressed {\n";
     strm << "background-color: ";
     if (m_overrideBackgroundColor.isValid()) {
-        strm << m_overrideBackgroundColor.lighter(150).name()
-            << ";\n";
+        strm << m_overrideBackgroundColor.lighter(150).name() << ";\n";
     }
     else {
         Q_ASSERT(m_pOverrideBackgroundGradient);
-        strm << gradientToString(lighterGradient(*m_pOverrideBackgroundGradient))
-            << ";\n";
+        strm << gradientToString(
+                    lighterGradient(*m_pOverrideBackgroundGradient))
+             << ";\n";
     }
     strm << "}\n";
 
@@ -111,13 +111,12 @@ QString SidePanelStyleController::generateStyleSheet() const
     strm << "QPushButton:pressed {\n";
     strm << "background-color: ";
     if (m_overrideBackgroundColor.isValid()) {
-        strm << m_overrideBackgroundColor.darker(200).name()
-            << ";\n";
+        strm << m_overrideBackgroundColor.darker(200).name() << ";\n";
     }
     else {
         Q_ASSERT(m_pOverrideBackgroundGradient);
         strm << gradientToString(darkerGradient(*m_pOverrideBackgroundGradient))
-            << ";\n";
+             << ";\n";
     }
     strm << "}\n";
 
@@ -126,14 +125,14 @@ QString SidePanelStyleController::generateStyleSheet() const
     auto backgroundColorStr = backgroundColorToString();
 
     strm << "QPushButton#" << m_pStaticIconHolder->objectName() << ":hover{\n"
-        << "background-color: " << backgroundColorStr << ";\n"
-        << "}\n";
+         << "background-color: " << backgroundColorStr << ";\n"
+         << "}\n";
 
     strm << "\n";
 
     strm << "QPushButton#" << m_pStaticIconHolder->objectName() << ":pressed{\n"
-        << "background-color: " << backgroundColorStr << ";\n"
-        << "}\n";
+         << "background-color: " << backgroundColorStr << ";\n"
+         << "}\n";
 
     return styleSheetStr;
 }

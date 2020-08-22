@@ -27,8 +27,8 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
-#include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
+#include <quentier/types/Notebook.h>
 #include <quentier/types/SavedSearch.h>
 #include <quentier/types/Tag.h>
 #include <quentier/utility/LRUCache.hpp>
@@ -40,14 +40,14 @@
 #include <QUuid>
 
 SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated-declarations)
+GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index/ordered_index.hpp>
 #include <boost/bimap.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 RESTORE_WARNINGS
 
@@ -55,7 +55,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class FavoritesModel: public QAbstractItemModel
+class FavoritesModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
@@ -117,8 +117,7 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
 
     virtual QVariant data(
-        const QModelIndex & index,
-        int role = Qt::DisplayRole) const override;
+        const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
     virtual QVariant headerData(
         int section, Qt::Orientation orientation,
@@ -137,8 +136,8 @@ public:
     virtual QModelIndex parent(const QModelIndex & index) const override;
 
     virtual bool setHeaderData(
-        int section, Qt::Orientation orientation,
-        const QVariant & value, int role = Qt::EditRole) override;
+        int section, Qt::Orientation orientation, const QVariant & value,
+        int role = Qt::EditRole) override;
 
     virtual bool setData(
         const QModelIndex & index, const QVariant & value,
@@ -170,7 +169,7 @@ Q_SIGNALS:
     void aboutToRemoveItems();
     void removedItems();
 
-// private signals
+    // private signals
     void updateNote(
         Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
@@ -181,9 +180,8 @@ Q_SIGNALS:
 
     void listNotes(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
@@ -191,9 +189,8 @@ Q_SIGNALS:
     void findNotebook(Notebook notebook, QUuid requestId);
 
     void listNotebooks(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
@@ -201,9 +198,8 @@ Q_SIGNALS:
     void findTag(Tag tag, QUuid requestId);
 
     void listTags(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListTagsOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
@@ -211,11 +207,9 @@ Q_SIGNALS:
     void findSavedSearch(SavedSearch search, QUuid requestId);
 
     void listSavedSearches(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListSavedSearchesOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QUuid requestId);
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
+        LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
 
     void noteCountPerNotebook(
         Notebook notebook, LocalStorageManager::NoteCountOptions options,
@@ -232,8 +226,7 @@ private Q_SLOTS:
     void onAddNoteComplete(Note note, QUuid requestId);
 
     void onUpdateNoteComplete(
-        Note note,
-        LocalStorageManager::UpdateNoteOptions options,
+        Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
     void onNoteMovedToAnotherNotebook(
@@ -258,17 +251,15 @@ private Q_SLOTS:
 
     void onListNotesComplete(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QList<Note> foundNotes, QUuid requestId);
 
     void onListNotesFailed(
         LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotesOrder order,
+        LocalStorageManager::GetNoteOptions options, size_t limit,
+        size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -288,17 +279,15 @@ private Q_SLOTS:
         Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onListNotebooksComplete(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
         QUuid requestId);
 
     void onListNotebooksFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListNotebooksOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -318,17 +307,14 @@ private Q_SLOTS:
         Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onListTagsComplete(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListTagsOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QList<Tag> foundTags,
-        QUuid requestId);
+        QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId);
 
     void onListTagsFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        size_t limit, size_t offset,
-        LocalStorageManager::ListTagsOrder order,
+        LocalStorageManager::ListObjectsOptions flag, size_t limit,
+        size_t offset, LocalStorageManager::ListTagsOrder order,
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
@@ -365,22 +351,19 @@ private Q_SLOTS:
     // For note counts:
     void onGetNoteCountPerNotebookComplete(
         int noteCount, Notebook notebook,
-        LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void onGetNoteCountPerNotebookFailed(
         ErrorString errorDescription, Notebook notebook,
         LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void onGetNoteCountPerTagComplete(
-        int noteCount, Tag tag,
-        LocalStorageManager::NoteCountOptions options,
+        int noteCount, Tag tag, LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
 
     void onGetNoteCountPerTagFailed(
         ErrorString errorDescription, Tag tag,
-        LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
@@ -391,7 +374,8 @@ private:
 
     struct NoteCountRequestOption
     {
-        enum type {
+        enum type
+        {
             Force = 0,
             IfNotAlreadyRunning
         };
@@ -426,8 +410,7 @@ private:
 
     QVariant dataImpl(const int row, const Column column) const;
 
-    QVariant dataAccessibleText(
-        const int row, const Column column) const;
+    QVariant dataAccessibleText(const int row, const Column column) const;
 
     void removeItemByLocalUid(const QString & localUid);
     void updateItemRowWithRespectToSorting(const FavoritesModelItem & item);
@@ -457,41 +440,36 @@ private:
     void checkAllItemsListed();
 
 private:
-    struct ByLocalUid{};
-    struct ByIndex{};
+    struct ByLocalUid
+    {};
+    struct ByIndex
+    {};
 
     using FavoritesData = boost::multi_index_container<
         FavoritesModelItem,
         boost::multi_index::indexed_by<
-            boost::multi_index::random_access<
-                boost::multi_index::tag<ByIndex>
-            >,
+            boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
-                    FavoritesModelItem,const QString&,&FavoritesModelItem::localUid>
-            >
-        >
-    >;
+                    FavoritesModelItem, const QString &,
+                    &FavoritesModelItem::localUid>>>>;
 
     using FavoritesDataByLocalUid = FavoritesData::index<ByLocalUid>::type;
     using FavoritesDataByIndex = FavoritesData::index<ByIndex>::type;
 
     struct NotebookRestrictionsData
     {
-        bool    m_canUpdateNotes = false;
-        bool    m_canUpdateNotebook = false;
-        bool    m_canUpdateTags = false;
+        bool m_canUpdateNotes = false;
+        bool m_canUpdateNotebook = false;
+        bool m_canUpdateTags = false;
     };
 
     class Comparator
     {
     public:
-        Comparator(
-                const Column column,
-                const Qt::SortOrder sortOrder) :
-            m_sortedColumn(column),
-            m_sortOrder(sortOrder)
+        Comparator(const Column column, const Qt::SortOrder sortOrder) :
+            m_sortedColumn(column), m_sortOrder(sortOrder)
         {}
 
         bool operator()(
@@ -499,70 +477,70 @@ private:
             const FavoritesModelItem & rhs) const;
 
     private:
-        Column          m_sortedColumn;
-        Qt::SortOrder   m_sortOrder;
+        Column m_sortedColumn;
+        Qt::SortOrder m_sortOrder;
     };
 
     using LocalUidToRequestIdBimap = boost::bimap<QString, QUuid>;
 
 private:
-    Account                 m_account;
-    FavoritesData           m_data;
-    NoteCache &             m_noteCache;
-    NotebookCache &         m_notebookCache;
-    TagCache &              m_tagCache;
-    SavedSearchCache &      m_savedSearchCache;
+    Account m_account;
+    FavoritesData m_data;
+    NoteCache & m_noteCache;
+    NotebookCache & m_notebookCache;
+    TagCache & m_tagCache;
+    SavedSearchCache & m_savedSearchCache;
 
-    QSet<QString>           m_lowerCaseNotebookNames;
-    QSet<QString>           m_lowerCaseTagNames;
-    QSet<QString>           m_lowerCaseSavedSearchNames;
+    QSet<QString> m_lowerCaseNotebookNames;
+    QSet<QString> m_lowerCaseTagNames;
+    QSet<QString> m_lowerCaseSavedSearchNames;
 
-    size_t                  m_listNotesOffset = 0;
-    QUuid                   m_listNotesRequestId;
+    size_t m_listNotesOffset = 0;
+    QUuid m_listNotesRequestId;
 
-    size_t                  m_listNotebooksOffset = 0;
-    QUuid                   m_listNotebooksRequestId;
+    size_t m_listNotebooksOffset = 0;
+    QUuid m_listNotebooksRequestId;
 
-    size_t                  m_listTagsOffset = 0;
-    QUuid                   m_listTagsRequestId;
+    size_t m_listTagsOffset = 0;
+    QUuid m_listTagsRequestId;
 
-    size_t                  m_listSavedSearchesOffset = 0;
-    QUuid                   m_listSavedSearchesRequestId;
+    size_t m_listSavedSearchesOffset = 0;
+    QUuid m_listSavedSearchesRequestId;
 
-    QSet<QUuid>             m_updateNoteRequestIds;
-    QSet<QUuid>             m_findNoteToRestoreFailedUpdateRequestIds;
-    QSet<QUuid>             m_findNoteToPerformUpdateRequestIds;
-    QSet<QUuid>             m_findNoteToUnfavoriteRequestIds;
+    QSet<QUuid> m_updateNoteRequestIds;
+    QSet<QUuid> m_findNoteToRestoreFailedUpdateRequestIds;
+    QSet<QUuid> m_findNoteToPerformUpdateRequestIds;
+    QSet<QUuid> m_findNoteToUnfavoriteRequestIds;
 
-    QSet<QUuid>             m_updateNotebookRequestIds;
-    QSet<QUuid>             m_findNotebookToRestoreFailedUpdateRequestIds;
-    QSet<QUuid>             m_findNotebookToPerformUpdateRequestIds;
-    QSet<QUuid>             m_findNotebookToUnfavoriteRequestIds;
+    QSet<QUuid> m_updateNotebookRequestIds;
+    QSet<QUuid> m_findNotebookToRestoreFailedUpdateRequestIds;
+    QSet<QUuid> m_findNotebookToPerformUpdateRequestIds;
+    QSet<QUuid> m_findNotebookToUnfavoriteRequestIds;
 
-    QSet<QUuid>             m_updateTagRequestIds;
-    QSet<QUuid>             m_findTagToRestoreFailedUpdateRequestIds;
-    QSet<QUuid>             m_findTagToPerformUpdateRequestIds;
-    QSet<QUuid>             m_findTagToUnfavoriteRequestIds;
+    QSet<QUuid> m_updateTagRequestIds;
+    QSet<QUuid> m_findTagToRestoreFailedUpdateRequestIds;
+    QSet<QUuid> m_findTagToPerformUpdateRequestIds;
+    QSet<QUuid> m_findTagToUnfavoriteRequestIds;
 
-    QSet<QUuid>             m_updateSavedSearchRequestIds;
-    QSet<QUuid>             m_findSavedSearchToRestoreFailedUpdateRequestIds;
-    QSet<QUuid>             m_findSavedSearchToPerformUpdateRequestIds;
-    QSet<QUuid>             m_findSavedSearchToUnfavoriteRequestIds;
+    QSet<QUuid> m_updateSavedSearchRequestIds;
+    QSet<QUuid> m_findSavedSearchToRestoreFailedUpdateRequestIds;
+    QSet<QUuid> m_findSavedSearchToPerformUpdateRequestIds;
+    QSet<QUuid> m_findSavedSearchToUnfavoriteRequestIds;
 
     QHash<QString, QString> m_tagLocalUidToLinkedNotebookGuid;
     QHash<QString, QString> m_notebookLocalUidToGuid;
 
     QHash<QString, QString> m_notebookLocalUidByNoteLocalUid;
 
-    LocalUidToRequestIdBimap        m_notebookLocalUidToNoteCountRequestIdBimap;
-    LocalUidToRequestIdBimap        m_tagLocalUidToNoteCountRequestIdBimap;
+    LocalUidToRequestIdBimap m_notebookLocalUidToNoteCountRequestIdBimap;
+    LocalUidToRequestIdBimap m_tagLocalUidToNoteCountRequestIdBimap;
 
-    QHash<QString, NotebookRestrictionsData>    m_notebookRestrictionsData;
+    QHash<QString, NotebookRestrictionsData> m_notebookRestrictionsData;
 
-    Column                  m_sortedColumn = Column::DisplayName;
-    Qt::SortOrder           m_sortOrder = Qt::AscendingOrder;
+    Column m_sortedColumn = Column::DisplayName;
+    Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
 
-    bool                    m_allItemsListed = false;
+    bool m_allItemsListed = false;
 };
 
 } // namespace quentier

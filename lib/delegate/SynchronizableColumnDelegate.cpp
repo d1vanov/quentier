@@ -18,19 +18,17 @@
 
 #include "SynchronizableColumnDelegate.h"
 
-#include <QPainter>
 #include <QCheckBox>
+#include <QPainter>
 
-#define SIDE_SIZE (8)
+#define SIDE_SIZE                        (8)
 #define NON_SYNCHRONIZABLE_CIRCLE_RADIUS (2)
 
 SynchronizableColumnDelegate::SynchronizableColumnDelegate(QObject * parent) :
-    QStyledItemDelegate(parent),
-    m_iconSize(SIDE_SIZE, SIDE_SIZE)
+    QStyledItemDelegate(parent), m_iconSize(SIDE_SIZE, SIDE_SIZE)
 {
     m_icon.addFile(
-        QStringLiteral(":/sync_icons/stat_notify_sync.png"),
-        m_iconSize);
+        QStringLiteral(":/sync_icons/stat_notify_sync.png"), m_iconSize);
 }
 
 int SynchronizableColumnDelegate::sideSize() const
@@ -92,23 +90,18 @@ void SynchronizableColumnDelegate::paint(
         synchronizable = model->data(index).toBool();
     }
 
-    if (synchronizable)
-    {
+    if (synchronizable) {
         m_icon.paint(painter, option.rect);
     }
-    else
-    {
+    else {
         painter->setBrush(QBrush(Qt::magenta));
         int side = std::min(option.rect.width(), option.rect.height());
         int radius = std::min(side, NON_SYNCHRONIZABLE_CIRCLE_RADIUS);
         int diameter = 2 * radius;
         QPoint center = option.rect.center();
 
-        painter->drawEllipse(
-            QRectF(
-                center.x() - radius,
-                center.y() - radius,
-                diameter, diameter));
+        painter->drawEllipse(QRectF(
+            center.x() - radius, center.y() - radius, diameter, diameter));
     }
 
     painter->restore();
@@ -117,7 +110,7 @@ void SynchronizableColumnDelegate::paint(
 void SynchronizableColumnDelegate::setEditorData(
     QWidget * editor, const QModelIndex & index) const
 {
-    auto * checkbox = qobject_cast<QCheckBox*>(editor);
+    auto * checkbox = qobject_cast<QCheckBox *>(editor);
     if (Q_UNLIKELY(!checkbox)) {
         return;
     }
@@ -143,7 +136,7 @@ void SynchronizableColumnDelegate::setModelData(
         return;
     }
 
-    auto * checkbox = qobject_cast<QCheckBox*>(editor);
+    auto * checkbox = qobject_cast<QCheckBox *>(editor);
     if (Q_UNLIKELY(!checkbox)) {
         return;
     }
@@ -172,4 +165,3 @@ void SynchronizableColumnDelegate::updateEditorGeometry(
     Q_UNUSED(option)
     Q_UNUSED(index)
 }
-

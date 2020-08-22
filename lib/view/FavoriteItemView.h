@@ -27,7 +27,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(FavoritesModel)
 
-class FavoriteItemView: public ItemView
+class FavoriteItemView : public ItemView
 {
     Q_OBJECT
 public:
@@ -81,9 +81,9 @@ private:
     void postProcessFavoritedModelChange();
 
 private:
-    QMenu *     m_pFavoriteItemContextMenu = nullptr;
-    bool        m_trackingSelection = false;
-    bool        m_modelReady = false;
+    QMenu * m_pFavoriteItemContextMenu = nullptr;
+    bool m_trackingSelection = false;
+    bool m_modelReady = false;
 };
 
 } // namespace quentier

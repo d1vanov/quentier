@@ -26,7 +26,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class INotebookModelItem: public Printable
+class INotebookModelItem : public Printable
 {
 public:
     enum class Type
@@ -61,7 +61,7 @@ public:
         return !m_children.isEmpty();
     }
 
-    QList<INotebookModelItem*> children() const
+    QList<INotebookModelItem *> children() const
     {
         return m_children;
     }
@@ -80,8 +80,10 @@ public:
     virtual QDataStream & serializeItemData(QDataStream & out) const = 0;
     virtual QDataStream & deserializeItemData(QDataStream & in) = 0;
 
-    friend QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item);
-    friend QDataStream & operator>>(QDataStream & in, INotebookModelItem & item);
+    friend QDataStream & operator<<(
+        QDataStream & out, const INotebookModelItem & item);
+    friend QDataStream & operator>>(
+        QDataStream & in, INotebookModelItem & item);
 
     template <typename T>
     T * cast();
@@ -90,8 +92,8 @@ public:
     const T * cast() const;
 
 protected:
-    INotebookModelItem *        m_pParent = nullptr;
-    QList<INotebookModelItem*>  m_children;
+    INotebookModelItem * m_pParent = nullptr;
+    QList<INotebookModelItem *> m_children;
 };
 
 } // namespace quentier

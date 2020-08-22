@@ -26,8 +26,7 @@
 namespace quentier {
 
 TagModelItemInfoWidget::TagModelItemInfoWidget(
-        const QModelIndex & index,
-        QWidget * parent) :
+    const QModelIndex & index, QWidget * parent) :
     QWidget(parent, Qt::Window),
     m_pUi(new Ui::TagModelItemInfoWidget)
 {
@@ -37,9 +36,7 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(
     setCheckboxesReadOnly();
 
     QObject::connect(
-        m_pUi->okButton,
-        &QPushButton::clicked,
-        this,
+        m_pUi->okButton, &QPushButton::clicked, this,
         &TagModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
@@ -47,7 +44,7 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(
         return;
     }
 
-    const auto * pTagModel = qobject_cast<const TagModel*>(index.model());
+    const auto * pTagModel = qobject_cast<const TagModel *>(index.model());
     if (Q_UNLIKELY(!pTagModel)) {
         setNonTagModel();
         return;
@@ -78,8 +75,7 @@ void TagModelItemInfoWidget::setCheckboxesReadOnly()
 #define SET_CHECKBOX_READ_ONLY(name)                                           \
     m_pUi->name##CheckBox->setAttribute(                                       \
         Qt::WA_TransparentForMouseEvents, true);                               \
-    m_pUi->name##CheckBox->setFocusPolicy(Qt::NoFocus)                         \
-// SET_CHECKBOX_READ_ONLY
+    m_pUi->name##CheckBox->setFocusPolicy(Qt::NoFocus)
 
     SET_CHECKBOX_READ_ONLY(synchronizable);
     SET_CHECKBOX_READ_ONLY(dirty);

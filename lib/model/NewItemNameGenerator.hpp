@@ -34,8 +34,7 @@ QString newItemName(
             QStringLiteral(")");
     }
 
-    while(true)
-    {
+    while (true) {
         auto it = nameIndex.find(baseName.toUpper());
         if (it == nameIndex.end()) {
             return baseName;

@@ -19,8 +19,8 @@
 #ifndef QUENTIER_LIB_INITIALIZATION_COMMAND_LINE_PARSER_H
 #define QUENTIER_LIB_INITIALIZATION_COMMAND_LINE_PARSER_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Macros.h>
 
 #include <QHash>
 #include <QString>
@@ -67,8 +67,8 @@ private:
     Q_DISABLE_COPY(CommandLineParser)
 
 private:
-    ErrorString     m_errorDescription;
-    Options         m_options;
+    ErrorString m_errorDescription;
+    Options m_options;
 };
 
 } // namespace quentier

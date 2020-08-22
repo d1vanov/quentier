@@ -21,8 +21,8 @@
 #include "PrepareLocalStorageManager.h"
 #include "PrepareNotebooks.h"
 #include "PrepareTags.h"
-#include "ProcessNotebookOptions.h"
 #include "ProcessNoteOptions.h"
+#include "ProcessNotebookOptions.h"
 #include "ProcessStartupAccount.h"
 #include "ProcessTagOptions.h"
 
@@ -43,7 +43,7 @@
 
 using namespace quentier;
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
     std::srand((unsigned)std::time(NULL));
     qsrand(static_cast<quint32>(QTime::currentTime().msec()));
@@ -52,19 +52,20 @@ int main(int argc, char *argv[])
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2account"));
 
-    QHash<QString,CommandLineParser::OptionData> availableCmdOptions;
+    QHash<QString, CommandLineParser::OptionData> availableCmdOptions;
     prepareAvailableCommandLineOptions(availableCmdOptions);
 
     ParseCommandLineResult parseCmdResult;
     parseCommandLine(argc, argv, availableCmdOptions, parseCmdResult);
     if (!parseCmdResult.m_errorDescription.isEmpty()) {
         std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
-            .toLocal8Bit().constData();
+                         .toLocal8Bit()
+                         .constData();
         return 1;
     }
 
-    auto storageDirIt = parseCmdResult.m_cmdOptions.find(
-        QStringLiteral("storageDir"));
+    auto storageDirIt =
+        parseCmdResult.m_cmdOptions.find(QStringLiteral("storageDir"));
 
     if (storageDirIt == parseCmdResult.m_cmdOptions.end()) {
         // Set storageDir to the location of Quentier app's persistence
@@ -93,9 +94,7 @@ int main(int argc, char *argv[])
     quint32 numNewNotebooks = 0;
 
     bool res = processNotebookOptions(
-        parseCmdResult.m_cmdOptions,
-        targetNotebookName,
-        numNewNotebooks);
+        parseCmdResult.m_cmdOptions, targetNotebookName, numNewNotebooks);
 
     if (!res) {
         return 1;
@@ -105,9 +104,7 @@ int main(int argc, char *argv[])
     quint32 maxTagsPerNote = 0;
 
     res = processTagOptions(
-        parseCmdResult.m_cmdOptions,
-        minTagsPerNote,
-        maxTagsPerNote);
+        parseCmdResult.m_cmdOptions, minTagsPerNote, maxTagsPerNote);
 
     if (!res) {
         return 1;
@@ -125,19 +122,15 @@ int main(int argc, char *argv[])
         QStringLiteral("LocalStorageManagerThread"));
 
     QObject::connect(
-        pLocalStorageManagerThread,
-        &QThread::finished,
-        pLocalStorageManagerThread,
-        &QThread::deleteLater);
+        pLocalStorageManagerThread, &QThread::finished,
+        pLocalStorageManagerThread, &QThread::deleteLater);
 
     pLocalStorageManagerThread->start();
 
     ErrorString errorDescription;
 
     auto * pLocalStorageManager = prepareLocalStorageManager(
-        account,
-        *pLocalStorageManagerThread,
-        errorDescription);
+        account, *pLocalStorageManagerThread, errorDescription);
 
     if (!pLocalStorageManager) {
         pLocalStorageManagerThread->quit();
@@ -149,9 +142,7 @@ int main(int argc, char *argv[])
     errorDescription.clear();
 
     auto notebooks = prepareNotebooks(
-        targetNotebookName,
-        numNewNotebooks,
-        *pLocalStorageManager,
+        targetNotebookName, numNewNotebooks, *pLocalStorageManager,
         errorDescription);
 
     if (notebooks.isEmpty()) {
@@ -165,9 +156,7 @@ int main(int argc, char *argv[])
     errorDescription.clear();
 
     auto tags = prepareTags(
-        minTagsPerNote,
-        maxTagsPerNote,
-        *pLocalStorageManager,
+        minTagsPerNote, maxTagsPerNote, *pLocalStorageManager,
         errorDescription);
 
     if (tags.isEmpty() && !errorDescription.isEmpty()) {
@@ -179,11 +168,7 @@ int main(int argc, char *argv[])
     std::cout << "Fetching notes..." << std::endl;
 
     res = fetchNotes(
-        notebooks,
-        tags,
-        minTagsPerNote,
-        numNotes,
-        *pLocalStorageManager);
+        notebooks, tags, minTagsPerNote, numNotes, *pLocalStorageManager);
 
     if (!res) {
         pLocalStorageManagerThread->quit();

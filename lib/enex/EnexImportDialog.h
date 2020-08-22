@@ -37,14 +37,13 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ErrorString)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EnexImportDialog: public QDialog
+class EnexImportDialog : public QDialog
 {
     Q_OBJECT
 
 public:
     explicit EnexImportDialog(
-        const Account & account,
-        NotebookModel & notebookModel,
+        const Account & account, NotebookModel & notebookModel,
         QWidget * parent = nullptr);
 
     virtual ~EnexImportDialog();
@@ -79,10 +78,10 @@ private:
     void checkConditionsAndEnableDisableOkButton();
 
 private:
-    Ui::EnexImportDialog *  m_pUi;
-    Account                 m_currentAccount;
+    Ui::EnexImportDialog * m_pUi;
+    Account m_currentAccount;
     QPointer<NotebookModel> m_pNotebookModel;
-    QStringListModel *      m_pNotebookNamesModel;
+    QStringListModel * m_pNotebookNamesModel;
 };
 
 } // namespace quentier

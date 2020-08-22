@@ -28,7 +28,7 @@
  * and emits its own dataChanged signal with the same row and parent item but
  * with different column
  */
-class ColumnChangeRerouter: public QObject
+class ColumnChangeRerouter : public QObject
 {
     Q_OBJECT
 public:
@@ -48,8 +48,8 @@ private Q_SLOTS:
         const QVector<int> & roles = QVector<int>());
 
 private:
-    int     m_columnFrom;
-    int     m_columnTo;
+    int m_columnFrom;
+    int m_columnTo;
 };
 
 #endif // QUENTIER_LIB_MODEL_COLUMN_CHANGE_REROUTER_H

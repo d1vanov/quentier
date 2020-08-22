@@ -25,9 +25,9 @@
 namespace quentier {
 
 bool parseStartupAccount(
-    const QString & accountStr, bool & isLocal,
-    qevercloud::UserID & userId, QString & evernoteHost,
-    QString & accountName, ErrorString & errorDescription)
+    const QString & accountStr, bool & isLocal, qevercloud::UserID & userId,
+    QString & evernoteHost, QString & accountName,
+    ErrorString & errorDescription)
 {
     QString str = accountStr;
 
@@ -36,49 +36,42 @@ bool parseStartupAccount(
     evernoteHost.resize(0);
     accountName.resize(0);
 
-    if (str.startsWith(QStringLiteral("local_")))
-    {
+    if (str.startsWith(QStringLiteral("local_"))) {
         isLocal = true;
         str.remove(0, 6);
     }
-    else if (str.startsWith(QStringLiteral("evernote_")))
-    {
+    else if (str.startsWith(QStringLiteral("evernote_"))) {
         isLocal = false;
         evernoteHost = QStringLiteral("www.evernote.com");
         str.remove(0, 9);
     }
-    else if (str.startsWith(QStringLiteral("evernotesandbox_")))
-    {
+    else if (str.startsWith(QStringLiteral("evernotesandbox_"))) {
         isLocal = false;
         evernoteHost = QStringLiteral("sandbox.evernote.com");
         str.remove(0, 16);
     }
-    else if (str.startsWith(QStringLiteral("yinxiangbiji_")))
-    {
+    else if (str.startsWith(QStringLiteral("yinxiangbiji_"))) {
         isLocal = false;
         evernoteHost = QStringLiteral("app.yinxiang.com");
         str.remove(0, 13);
     }
-    else
-    {
-        errorDescription.setBase(
-            QT_TRANSLATE_NOOP("ParseStartupAccount",
-                              "Wrong account specification on the command "
-                              "line: can't deduce the type of the account"));
+    else {
+        errorDescription.setBase(QT_TRANSLATE_NOOP(
+            "ParseStartupAccount",
+            "Wrong account specification on the command "
+            "line: can't deduce the type of the account"));
         errorDescription.details() = accountStr;
         qWarning() << errorDescription.localizedString();
         return false;
     }
 
-    if (!isLocal)
-    {
+    if (!isLocal) {
         int nextUnderlineIndex = str.indexOf(QStringLiteral("_"));
-        if (Q_UNLIKELY(nextUnderlineIndex < 0))
-        {
-            errorDescription.setBase(
-                QT_TRANSLATE_NOOP("ParseStartupAccount",
-                                  "Wrong account specification on the command "
-                                  "line: can't parse user id"));
+        if (Q_UNLIKELY(nextUnderlineIndex < 0)) {
+            errorDescription.setBase(QT_TRANSLATE_NOOP(
+                "ParseStartupAccount",
+                "Wrong account specification on the command "
+                "line: can't parse user id"));
             errorDescription.details() = accountStr;
             qWarning() << errorDescription.localizedString();
             return false;
@@ -86,26 +79,25 @@ bool parseStartupAccount(
 
         QStringRef userIdStr = str.midRef(0, nextUnderlineIndex);
         bool conversionResult = false;
-        userId = static_cast<qevercloud::UserID>(userIdStr.toInt(&conversionResult));
-        if (Q_UNLIKELY(!conversionResult))
-        {
-            errorDescription.setBase(
-                QT_TRANSLATE_NOOP("ParseStartupAccount",
-                                  "Wrong account specification on the command "
-                                  "line: can't parse user id, failed to "
-                                  "convert from string to integer"));
+        userId =
+            static_cast<qevercloud::UserID>(userIdStr.toInt(&conversionResult));
+        if (Q_UNLIKELY(!conversionResult)) {
+            errorDescription.setBase(QT_TRANSLATE_NOOP(
+                "ParseStartupAccount",
+                "Wrong account specification on the command "
+                "line: can't parse user id, failed to "
+                "convert from string to integer"));
             errorDescription.details() = accountStr;
             qWarning() << errorDescription.localizedString()
                        << ", user id str = " << userIdStr.toString();
             return false;
         }
 
-        if (Q_UNLIKELY(userId < 0))
-        {
-            errorDescription.setBase(
-                QT_TRANSLATE_NOOP("ParseStartupAccount",
-                                  "Wrong account specification on the command "
-                                  "line: parsed user id is negative"));
+        if (Q_UNLIKELY(userId < 0)) {
+            errorDescription.setBase(QT_TRANSLATE_NOOP(
+                "ParseStartupAccount",
+                "Wrong account specification on the command "
+                "line: parsed user id is negative"));
             errorDescription.details() = accountStr;
             qWarning() << errorDescription.localizedString()
                        << ", user id = " << userId;
@@ -116,22 +108,20 @@ bool parseStartupAccount(
     }
 
     accountName = str;
-    if (Q_UNLIKELY(accountName.isEmpty()))
-    {
-        errorDescription.setBase(
-            QT_TRANSLATE_NOOP("ParseStartupAccount",
-                              "Wrong account specification on the command "
-                              "line: account name is empty"));
+    if (Q_UNLIKELY(accountName.isEmpty())) {
+        errorDescription.setBase(QT_TRANSLATE_NOOP(
+            "ParseStartupAccount",
+            "Wrong account specification on the command "
+            "line: account name is empty"));
         errorDescription.details() = accountStr;
         qWarning() << errorDescription.localizedString();
         return false;
     }
 
     qDebug() << "Parsed startup account: is local = "
-        << (isLocal ? "true" : "false")
-        << ", user id = " << userId
-        << ", evernote host = " << evernoteHost
-        << ", account name = " << accountName;
+             << (isLocal ? "true" : "false") << ", user id = " << userId
+             << ", evernote host = " << evernoteHost
+             << ", account name = " << accountName;
 
     return true;
 }

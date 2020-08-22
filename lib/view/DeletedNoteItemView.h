@@ -30,7 +30,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 
-class DeletedNoteItemView: public ItemView
+class DeletedNoteItemView : public ItemView
 {
     Q_OBJECT
 public:
@@ -59,7 +59,7 @@ private:
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    QMenu *     m_pDeletedNoteItemContextMenu = nullptr;
+    QMenu * m_pDeletedNoteItemContextMenu = nullptr;
 };
 
 } // namespace quentier

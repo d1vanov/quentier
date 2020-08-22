@@ -35,8 +35,7 @@ class EnexExportDialog : public QDialog
     Q_OBJECT
 public:
     explicit EnexExportDialog(
-        const Account & account,
-        QWidget * parent = nullptr,
+        const Account & account, QWidget * parent = nullptr,
         const QString & suggestedFileName = {});
 
     virtual ~EnexExportDialog() override;
@@ -63,8 +62,8 @@ private:
     void clearAndHideStatus();
 
 private:
-    Ui::EnexExportDialog *  m_pUi;
-    Account                 m_currentAccount;
+    Ui::EnexExportDialog * m_pUi;
+    Account m_currentAccount;
 };
 
 } // namespace quentier

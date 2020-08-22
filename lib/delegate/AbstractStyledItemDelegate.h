@@ -42,7 +42,7 @@ inline int fontMetricsWidth(const QFontMetrics & metrics, const QString & text)
  * @brief The AbstractStyledItemDelegate adds some bits of functionality useful
  * for almost all delegates used in Quentier app
  */
-class AbstractStyledItemDelegate: public QStyledItemDelegate
+class AbstractStyledItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 protected:
@@ -67,8 +67,7 @@ protected:
      *                          width could not be determined
      */
     int columnNameWidth(
-        const QStyleOptionViewItem & option,
-        const QModelIndex & index,
+        const QStyleOptionViewItem & option, const QModelIndex & index,
         const Qt::Orientation orientation = Qt::Horizontal) const;
 
     /**
@@ -84,8 +83,7 @@ protected:
      *                          the text exceeds the width of the option's rect
      */
     void adjustDisplayedText(
-        QString & displayedText,
-        const QStyleOptionViewItem & option,
+        QString & displayedText, const QStyleOptionViewItem & option,
         const QString & nameSuffix = {}) const;
 };
 

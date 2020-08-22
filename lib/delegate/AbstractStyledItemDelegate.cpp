@@ -31,8 +31,7 @@ AbstractStyledItemDelegate::AbstractStyledItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
 
-AbstractStyledItemDelegate::~AbstractStyledItemDelegate()
-{}
+AbstractStyledItemDelegate::~AbstractStyledItemDelegate() {}
 
 int AbstractStyledItemDelegate::columnNameWidth(
     const QStyleOptionViewItem & option, const QModelIndex & index,
@@ -40,32 +39,38 @@ int AbstractStyledItemDelegate::columnNameWidth(
 {
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
-        QNTRACE("delegate", "Can't determine the column name width: the model "
-            << "is null");
+        QNTRACE(
+            "delegate",
+            "Can't determine the column name width: the model "
+                << "is null");
         return -1;
     }
 
     if (Q_UNLIKELY(!index.isValid())) {
-        QNTRACE("delegate", "Can't determine the column name width for invalid "
-            << "model index");
+        QNTRACE(
+            "delegate",
+            "Can't determine the column name width for invalid "
+                << "model index");
         return -1;
     }
 
     int column = index.column();
     if (Q_UNLIKELY(model->columnCount(index.parent()) <= column)) {
-        QNTRACE("delegate", "Can't determine the column name width: index's "
-            << "column number is beyond the range of model's columns");
+        QNTRACE(
+            "delegate",
+            "Can't determine the column name width: index's "
+                << "column number is beyond the range of model's columns");
         return -1;
     }
 
-    QString columnName = model->headerData(
-        column,
-        orientation,
-        Qt::DisplayRole).toString();
+    QString columnName =
+        model->headerData(column, orientation, Qt::DisplayRole).toString();
 
     if (Q_UNLIKELY(columnName.isEmpty())) {
-        QNTRACE("delegate", "Can't determine the column name width: model "
-            << "returned empty header data");
+        QNTRACE(
+            "delegate",
+            "Can't determine the column name width: model "
+                << "returned empty header data");
         return -1;
     }
 
@@ -86,9 +91,8 @@ void AbstractStyledItemDelegate::adjustDisplayedText(
 
     int displayedTextWidth = fontMetricsWidth(fontMetrics, displayedText);
 
-    int nameSuffixWidth = (nameSuffix.isEmpty()
-        ? 0
-        : fontMetricsWidth(fontMetrics, nameSuffix));
+    int nameSuffixWidth =
+        (nameSuffix.isEmpty() ? 0 : fontMetricsWidth(fontMetrics, nameSuffix));
 
     int optionRectWidth = option.rect.width();
 
@@ -104,9 +108,7 @@ void AbstractStyledItemDelegate::adjustDisplayedText(
     int idealDisplayedTextWidth = optionRectWidth - nameSuffixWidth;
 
     displayedText = fontMetrics.elidedText(
-        displayedText,
-        Qt::ElideRight,
-        idealDisplayedTextWidth);
+        displayedText, Qt::ElideRight, idealDisplayedTextWidth);
 }
 
 } // namespace quentier

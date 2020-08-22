@@ -20,9 +20,7 @@
 
 namespace quentier {
 
-TabWidget::TabWidget(QWidget * parent) :
-    QTabWidget(parent)
-{}
+TabWidget::TabWidget(QWidget * parent) : QTabWidget(parent) {}
 
 TabWidget::~TabWidget() = default;
 

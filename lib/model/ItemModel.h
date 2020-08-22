@@ -36,7 +36,7 @@ namespace quentier {
  * It contains some pure virtual methods required for the models managing
  * the items of all the mentioned types.
  */
-class ItemModel: public QAbstractItemModel
+class ItemModel : public QAbstractItemModel
 {
     Q_OBJECT
 protected:
@@ -71,10 +71,10 @@ public:
 
     struct ItemInfo
     {
-        QString     m_name;
-        QString     m_localUid;
-        QString     m_linkedNotebookGuid;
-        QString     m_linkedNotebookUsername;
+        QString m_name;
+        QString m_localUid;
+        QString m_linkedNotebookGuid;
+        QString m_linkedNotebookUsername;
     };
 
     friend QDebug & operator<<(QDebug & dbg, const ItemInfo & itemInfo);
@@ -111,12 +111,11 @@ public:
         LinkedNotebookInfo() = default;
 
         LinkedNotebookInfo(QString guid, QString username) :
-            m_guid(std::move(guid)),
-            m_username(std::move(username))
+            m_guid(std::move(guid)), m_username(std::move(username))
         {}
 
-        QString     m_guid;
-        QString     m_username;
+        QString m_guid;
+        QString m_username;
     };
 
     friend QDebug & operator<<(QDebug & dbg, const LinkedNotebookInfo & info);
@@ -137,7 +136,6 @@ public:
      */
     virtual QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const = 0;
-
 
     /**
      * @brief nameColumn

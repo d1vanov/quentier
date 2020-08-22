@@ -20,9 +20,7 @@
 
 namespace quentier {
 
-ColorCodeValidator::ColorCodeValidator(QObject * parent) :
-    QValidator(parent)
-{}
+ColorCodeValidator::ColorCodeValidator(QObject * parent) : QValidator(parent) {}
 
 void ColorCodeValidator::fixup(QString & input) const
 {
@@ -36,8 +34,7 @@ void ColorCodeValidator::fixup(QString & input) const
         input.prepend(sharp);
     }
 
-    for(int i = 1; i < input.size(); ++i)
-    {
+    for (int i = 1; i < input.size(); ++i) {
         if (!isHexDigit(input[i].toUpper())) {
             input.remove(i, 1);
         }
@@ -59,8 +56,7 @@ QValidator::State ColorCodeValidator::validate(QString & input, int & pos) const
     }
 
     int size = input.size();
-    for(int i = 1; i < size; ++i)
-    {
+    for (int i = 1; i < size; ++i) {
         if (!isHexDigit(input[i].toUpper())) {
             return QValidator::Invalid;
         }
@@ -100,12 +96,9 @@ bool ColorCodeValidator::isHexDigit(const QChar & chr) const
         return true;
     }
 
-    return (chr == QChar::fromLatin1('A')) ||
-        (chr == QChar::fromLatin1('B')) ||
-        (chr == QChar::fromLatin1('C')) ||
-        (chr == QChar::fromLatin1('D')) ||
-        (chr == QChar::fromLatin1('E')) ||
-        (chr == QChar::fromLatin1('F'));
+    return (chr == QChar::fromLatin1('A')) || (chr == QChar::fromLatin1('B')) ||
+        (chr == QChar::fromLatin1('C')) || (chr == QChar::fromLatin1('D')) ||
+        (chr == QChar::fromLatin1('E')) || (chr == QChar::fromLatin1('F'));
 }
 
 } // namespace quentier

@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class LinkedNotebookRootItem: public INotebookModelItem
+class LinkedNotebookRootItem : public INotebookModelItem
 {
 public:
     LinkedNotebookRootItem(
@@ -74,8 +74,8 @@ public:
     }
 
 private:
-    QString     m_username;
-    QString     m_linkedNotebookGuid;
+    QString m_username;
+    QString m_linkedNotebookGuid;
 };
 
 } // namespace quentier

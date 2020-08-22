@@ -25,13 +25,12 @@
 
 namespace quentier {
 
-class WikiArticleFetcher: public QObject
+class WikiArticleFetcher : public QObject
 {
     Q_OBJECT
 public:
     explicit WikiArticleFetcher(
-        ENMLConverter & enmlConverter,
-        const QUrl & url,
+        ENMLConverter & enmlConverter, const QUrl & url,
         QObject * parent = nullptr);
 
     virtual ~WikiArticleFetcher();
@@ -90,29 +89,29 @@ private:
     void clear();
 
 private:
-    ENMLConverter &         m_enmlConverter;
-    QUrl        m_url;
+    ENMLConverter & m_enmlConverter;
+    QUrl m_url;
 
-    bool        m_started = false;
-    bool        m_finished = false;
+    bool m_started = false;
+    bool m_finished = false;
 
-    Note        m_note;
+    Note m_note;
 
     // Raw url given in the constructor needs to be converted to the API url
     // using page id. This network reply fetcher queries wiki for page id
     // in order to compose the proper API url
-    NetworkReplyFetcher *   m_pApiUrlFetcher = nullptr;
+    NetworkReplyFetcher * m_pApiUrlFetcher = nullptr;
 
     // Language code extracted from the startup URL, i.e. en for English
     // wikipedia
-    QString     m_languageCode;
+    QString m_languageCode;
 
     // Article title extracted from the startup URL
-    QString     m_articleTitle;
+    QString m_articleTitle;
 
-    NetworkReplyFetcher *   m_pArticleContentsFetcher = nullptr;
+    NetworkReplyFetcher * m_pArticleContentsFetcher = nullptr;
 
-    WikiArticleToNote *     m_pWikiArticleToNote = nullptr;
+    WikiArticleToNote * m_pWikiArticleToNote = nullptr;
 };
 
 } // namespace quentier
