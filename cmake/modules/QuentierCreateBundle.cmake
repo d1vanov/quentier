@@ -137,10 +137,6 @@ function(CreateQuentierBundle)
 
   if(WIN32)
     set(WINDEPLOYQT_OPTIONS "--no-compiler-runtime")
-    if(MINGW AND ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-      # Without this windeployqt thinks the binary is the debug one and deploys a ton of debug Qt libraries of huge weight
-      set(WINDEPLOYQT_OPTIONS "${WINDEPLOYQT_OPTIONS} --release")
-    endif()
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
             execute_process(COMMAND ${DEPLOYQT_TOOL} ${WINDEPLOYQT_OPTIONS} ${APPS})
@@ -159,21 +155,10 @@ function(CreateQuentierBundle)
     # fixup other dependencies not taken care of by windeployqt/macdeployqt
     install(CODE "
             include(CMakeParseArguments)
-            include(${CMAKE_SOURCE_DIR}/cmake/modules/BundleUtilities.cmake)
+            include(BundleUtilities)
             include(InstallRequiredSystemLibraries)
             fixup_bundle(${APPS}   \"\"   \"${DIRS}\" IGNORE_ITEM \"quentier_minidump_stackwalk.exe;\")
             " COMPONENT Runtime)
-
-    # MinGW dlls require some special treatment
-    if(MINGW)
-      get_filename_component(MINGW_PATH ${CMAKE_CXX_COMPILER} PATH)
-      install(CODE "
-              message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libgcc_s_dw2-1.dll\")
-              file(COPY \"${MINGW_PATH}/libgcc_s_dw2-1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-              message(STATUS \"Copying MinGW dll: ${MINGW_PATH}/libstdc++-6.dll\")
-              file(COPY \"${MINGW_PATH}/libstdc++-6.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-              " COMPONENT Runtime)
-    endif()
 
     # Install OpenSSL dlls which are required by Qt and which are loaded dynamically i.e. Qt doesn't link
     # against them so they won't be deployed via conventional measures
@@ -267,13 +252,6 @@ function(CreateQuentierBundle)
                 message(STATUS \"Removing automatically deployed VC runtime: \${runtimeBaseName}\")
                 file(REMOVE \${runtime})
               endforeach()
-              " COMPONENT Runtime)
-    elseif(MINGW)
-      # MinGW built binary for some reason searches for dlls first on PATH and only then at its folder
-      # Working around this: installing custom bat file for launching of quentier.exe with empty PATH
-      install(CODE "
-              file(COPY \"${CMAKE_SOURCE_DIR}/bin/quentier/src/installer/windows/quentier.bat\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
-              file(COPY \"${CMAKE_SOURCE_DIR}/bin/quentier/src/installer/windows/quentier_launcher.vbs\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
               " COMPONENT Runtime)
     endif()
 
