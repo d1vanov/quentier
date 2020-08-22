@@ -19,7 +19,7 @@ matrix:
           env: QT_BASE=551 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
 
         - os: linux
-          env: QT_BASE=5123 COMPILER=g++-5.4 CMAKE_BUILD_TYPE=RelWithDebInfo
+          env: QT_BASE=5123 COMPILER=g++-5.4 CMAKE_BUILD_TYPE=RelWithDebInfo CLANG_FORMAT_CHECK=1
 
         - os: linux
           env: QT_BASE=5123 COMPILER=clang++ CMAKE_BUILD_TYPE=Debug
@@ -102,6 +102,12 @@ install:
           make install &&
           export APPIMAGE_UPDATER_BRIDGE_DIR=$(pwd)/installdir/lib/cmake/AppImageUpdaterBridge &&
           cd ../..
+        fi
+        if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
+          mkdir -p /tmp/clang-format &&
+          curl -Ls "https://github.com/muttleyxd/clang-format-static-binaries/releases/download/master-5b56bb49/clang-format-10_linux-amd64" -o "/tmp/clang-format/clang-format" &&
+          chmod +x /tmp/clang-format/clang-format &&
+          export PATH=/tmp/clang-format:$PATH
         fi
       else
         brew update &&
@@ -241,6 +247,16 @@ install:
       fi
       make &&
       make check &&
+      if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
+        echo "Building clang-format target" &&
+        make clang-format &&
+        dirty=$(git ls-files --modified) &&
+        if [ ! -z $dirty ]; then
+          echo "Detected source code files not formatted with clang-format: " &&
+          echo $dirty &&
+          travis_terminate 1
+        fi
+      fi
       make lupdate &&
       make lrelease &&
       make install
