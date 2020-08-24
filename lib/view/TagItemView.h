@@ -106,8 +106,11 @@ private:
     void setLinkedNotebooksExpanded(
         const QStringList & linkedNotebookGuids, const TagModel & model);
 
-    void saveSelectedTag(const Account & account, const QString & tagLocalUid);
-    void restoreSelectedTag(const TagModel & model);
+    void saveSelectedTags(
+        const Account & account, const QStringList & tagLocalUids);
+
+    void restoreSelectedTags(
+        const TagModel & model);
 
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
@@ -121,8 +124,7 @@ private:
     void prepareForTagModelChange();
     void postProcessTagModelChange();
 
-    void setSelectedTagToNoteFiltersManager(const QString & tagLocalUid);
-
+    void setSelectedTagsToNoteFiltersManager(const QStringList & tagLocalUids);
     void clearTagsFromNoteFiltersManager();
 
     void disconnectFromNoteFiltersManagerFilterChanged();
@@ -139,6 +141,7 @@ private:
     QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 
     QString m_tagLocalUidPendingNoteFiltersManagerReadiness;
+    QStringList m_tagLocalUidsPendingNoteFiltersManagerReadiness;
 };
 
 } // namespace quentier

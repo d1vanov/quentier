@@ -188,14 +188,15 @@ void NoteFiltersManager::removeNotebooksFromFilter()
     evaluate();
 }
 
-void NoteFiltersManager::setTagToFilter(const QString & tagLocalUid)
+void NoteFiltersManager::setTagsToFilter(const QStringList & tagLocalUids)
 {
     QNDEBUG(
         "widget:note_filters",
-        "NoteFiltersManager::setTagToFilter: " << tagLocalUid);
+        "NoteFiltersManager::setTagsToFilter: "
+            << tagLocalUids.join(QStringLiteral(", ")));
 
     clearFilterByTagWidgetItems();
-    setTagToFilterImpl(tagLocalUid);
+    setTagsToFilterImpl(tagLocalUids);
     evaluate();
 }
 
@@ -1363,9 +1364,9 @@ void NoteFiltersManager::setNotebookToFilterImpl(
         Qt::UniqueConnection);
 }
 
-void NoteFiltersManager::setTagToFilterImpl(const QString & tagLocalUid)
+void NoteFiltersManager::setTagsToFilterImpl(const QStringList & tagLocalUids)
 {
-    if (tagLocalUid.isEmpty()) {
+    if (tagLocalUids.isEmpty()) {
         return;
     }
 
@@ -1373,18 +1374,24 @@ void NoteFiltersManager::setTagToFilterImpl(const QString & tagLocalUid)
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG(
             "widget:note_filters",
-            "Tag model in the filter by tag widget "
-                << "is null");
+            "Tag model in the filter by tag widget is null");
         return;
     }
 
-    auto itemInfo = pTagModel->itemInfoForLocalUid(tagLocalUid);
-    if (itemInfo.m_localUid.isEmpty()) {
-        QNWARNING(
-            "widget:note_filters",
-            "Failed to find tag name for tag "
-                << "local uid: " << tagLocalUid);
-        return;
+    QVector<ItemModel::ItemInfo> itemInfos;
+    itemInfos.reserve(tagLocalUids.size());
+
+    for(const auto & tagLocalUid: qAsConst(tagLocalUids))
+    {
+        auto itemInfo = pTagModel->itemInfoForLocalUid(tagLocalUid);
+        if (Q_UNLIKELY(itemInfo.m_localUid.isEmpty())) {
+            QNWARNING(
+                "widget:note_filters",
+                "Failed to find info for tag local uid: " << tagLocalUid);
+            continue;
+        }
+
+        itemInfos << itemInfo;
     }
 
     QObject::disconnect(
@@ -1392,9 +1399,12 @@ void NoteFiltersManager::setTagToFilterImpl(const QString & tagLocalUid)
         &NoteFiltersManager::onAddedTagToFilter);
 
     persistFilterByTagClearedState(false);
-    m_filterByTagWidget.addItemToFilter(
-        tagLocalUid, itemInfo.m_name, itemInfo.m_linkedNotebookGuid,
-        itemInfo.m_linkedNotebookUsername);
+
+    for(const auto & itemInfo: qAsConst(itemInfos)) {
+        m_filterByTagWidget.addItemToFilter(
+            itemInfo.m_localUid, itemInfo.m_name, itemInfo.m_linkedNotebookGuid,
+            itemInfo.m_linkedNotebookUsername);
+    }
 
     QObject::connect(
         &m_filterByTagWidget, &FilterByTagWidget::addedItemToFilter, this,
