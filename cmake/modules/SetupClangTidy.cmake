@@ -20,6 +20,11 @@ if(CLANG_TIDY_BINARY)
     endif()
 
     foreach(SOURCE IN LISTS QUENTIER_ALL_HEADERS QUENTIER_ALL_SOURCES)
+      # workaround for third party sources which trigger some noise
+      if("${SOURCE}" MATCHES "FlowLayout.(cpp|h)$")
+        continue()
+      endif()
+
       string(APPEND CLANG_TIDY_SCRIPT "echo \"Running clang-tidy on file ${SOURCE}...\"")
       string(APPEND CLANG_TIDY_SCRIPT "${NEWLINE}")
 
