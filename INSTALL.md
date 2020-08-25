@@ -50,8 +50,6 @@ The Qt version required is Qt5 no older than 5.5.1.
 
 If you installed Quentier's or libquentier's dependencies into non-standard locations, the `cmake` step
 from the above list might fail to find some library. You can give `CMake` some hints where to find the dependencies:
-
-For Qt5:
 ```
 cmake -DLIBXML2_INCLUDE_DIR=<...path to libxml2 include directory...> \
       -DLIBXML2_LIBRARIES=<...path to libxml2 library...> \
