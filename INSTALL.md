@@ -74,6 +74,16 @@ provides more explicit output than the former one. So the available options to r
  * `cmake --build . target test`
  * `cmake --build . target check`
 
+### Clang-tidy usage
+
+[Clang-tidy](https://clang.llvm.org/extra/clang-tidy) is a clang based "linter" tool for C++ code. Usage of clang-tidy is supported in Quentier project provided that `clang-tidy` binary can be found in your `PATH` environment variable:
+ * There is a configuration file [.clang-tidy](.clang-tidy) for running clang-tidy over Quentier's codebase
+ * There is a build target `clang-tidy` which allows one to run `clang-tidy` over the entire Quentier's codebase at once. It might be rather slow though.
+ * `CMake` of versions >= 3.7.2 have [built-in support](https://cmake.org/cmake/help/latest/prop_tgt/LANG_CLANG_TIDY.html) for running clang-tidy along with the compiler when compiling code. In order to set up this way of `clang-tidy` usage pass the following options to `CMake`:
+```
+cmake -DCMAKE_C_CLANG_TIDY=<path to clang-tidy> -DCMAKE_CXX_CLANG_TIDY=<path to clang-tidy> <...>
+```
+
 ### Translation
 
 Note that files required for Quentier's translation are not built by default along with the app itself. In order to build
