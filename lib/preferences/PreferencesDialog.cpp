@@ -1606,7 +1606,6 @@ void PreferencesDialog::setupNetworkProxySettingsState()
             "Detected unsupported proxy type: "
                 << proxyType << ", falling back to no proxy");
 
-        proxyType = QNetworkProxy::DefaultProxy;
         m_pUi->networkProxyTypeComboBox->setCurrentIndex(0);
     }
 
