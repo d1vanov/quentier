@@ -1,0 +1,4 @@
+---
+Checks:              '-*,clang-analyzer-*,-clang-analyzer-cplusplus*,-boost-*,-performance*,-readability*,-bugprone-*'
+WarningsAsErrors:    false
+FormatStyle:         file

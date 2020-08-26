@@ -291,6 +291,7 @@ get_property(QUENTIER_ALL_HEADERS GLOBAL PROPERTY QUENTIER_ALL_HEADERS)
 get_property(QUENTIER_ALL_SOURCES GLOBAL PROPERTY QUENTIER_ALL_SOURCES)
 
 include(SetupClangFormat)
+include(SetupClangTidy)
 
 set(QUENTIER_TR_FILES
     translations/quentier_ru_RU.ts)

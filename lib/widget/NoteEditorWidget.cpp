@@ -3580,7 +3580,6 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
             "widget:note_editor",
             "Setting the current font size to "
                 << "the median value of " << fontSizes.at(index));
-        setFontSizeIndex = true;
     }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)

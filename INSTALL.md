@@ -2,13 +2,13 @@
 
 ## Compatibility
 
-Quentier works on Linux, OS X / macOS and Windows. It can be built with virtually any version of Qt framework,
-starting from Qt 4.8.6 and up to the latest and greatest Qt 5.x. The major part of Quentier is written in C++98 style
-with a few features of C++11 standard which are supported by older compilers. As a result, Quentier can be built
-by as old compilers as gcc-4.5, Visual C++ 2010.
+Quentier works on Linux, OS X / macOS and Windows. It can be built Qt framework starting from 5.5.1,
+and up to the latest and greatest Qt 5.x. The major part of Quentier is written in C++14 standard.
+Quentier should be easy to build on any recent enough Linux distro. The oldest supported distro
+is considered to be the oldest LTS Ubuntu version.
 
-Even though Quentier is cross-platform, most development and testing currently occurs on Linux and OS X / macOS
-so things might occasionally break on Windows platform.
+Even though Quentier is cross-platform, most development and testing currently occurs on Linux
+so things might occasionally break on Windows and macOS platforms.
 
 ## Dependencies
 
@@ -50,8 +50,6 @@ The Qt version required is Qt5 no older than 5.5.1.
 
 If you installed Quentier's or libquentier's dependencies into non-standard locations, the `cmake` step
 from the above list might fail to find some library. You can give `CMake` some hints where to find the dependencies:
-
-For Qt5:
 ```
 cmake -DLIBXML2_INCLUDE_DIR=<...path to libxml2 include directory...> \
       -DLIBXML2_LIBRARIES=<...path to libxml2 library...> \
@@ -75,6 +73,16 @@ provides more explicit output than the former one. So the available options to r
  * `make check`
  * `cmake --build . target test`
  * `cmake --build . target check`
+
+### Clang-tidy usage
+
+[Clang-tidy](https://clang.llvm.org/extra/clang-tidy) is a clang based "linter" tool for C++ code. Usage of clang-tidy is supported in Quentier project provided that `clang-tidy` binary can be found in your `PATH` environment variable:
+ * There is a configuration file [.clang-tidy](.clang-tidy) for running clang-tidy over Quentier's codebase
+ * There is a build target `clang-tidy` which allows one to run `clang-tidy` over the entire Quentier's codebase at once. It might be rather slow though.
+ * `CMake` of versions >= 3.7.2 have [built-in support](https://cmake.org/cmake/help/latest/prop_tgt/LANG_CLANG_TIDY.html) for running clang-tidy along with the compiler when compiling code. In order to set up this way of `clang-tidy` usage pass the following options to `CMake`:
+```
+cmake -DCMAKE_C_CLANG_TIDY=<path to clang-tidy> -DCMAKE_CXX_CLANG_TIDY=<path to clang-tidy> <...>
+```
 
 ### Translation
 

@@ -4311,7 +4311,13 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(
             "quentier:main_window",
             "Detected unexpectedly missing "
                 << "SynchronizationManager, trying to workaround");
+
         setupSynchronizationManager();
+
+        if (Q_UNLIKELY(!m_pSynchronizationManager)) {
+            // Wasn't able to set up the synchronization manager
+            return;
+        }
     }
 
     setupSynchronizationManagerThread();
