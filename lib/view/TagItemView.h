@@ -140,7 +140,7 @@ private:
 
     QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 
-    QString m_tagLocalUidPendingNoteFiltersManagerReadiness;
+    bool m_restoreSelectedTagsWhenNoteFiltersManagerReady = false;
     QStringList m_tagLocalUidsPendingNoteFiltersManagerReadiness;
 };
 

@@ -771,14 +771,23 @@ void TagItemView::onNoteFiltersManagerReady()
         m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
         &TagItemView::onNoteFiltersManagerReady);
 
-    QStringList tagLocalUids = m_tagLocalUidsPendingNoteFiltersManagerReadiness;
-    m_tagLocalUidsPendingNoteFiltersManagerReadiness.clear();
-
     auto * pTagModel = qobject_cast<TagModel *>(model());
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG("view:tag", "Non-tag model is used");
         return;
     }
+
+    if (m_restoreSelectedTagsWhenNoteFiltersManagerReady) {
+        m_restoreSelectedTagsWhenNoteFiltersManagerReady = false;
+
+        if (m_tagLocalUidsPendingNoteFiltersManagerReadiness.isEmpty()) {
+            restoreSelectedTags(*pTagModel);
+            return;
+        }
+    }
+
+    QStringList tagLocalUids = m_tagLocalUidsPendingNoteFiltersManagerReadiness;
+    m_tagLocalUidsPendingNoteFiltersManagerReadiness.clear();
 
     saveSelectedTags(pTagModel->account(), tagLocalUids);
 
@@ -1244,6 +1253,7 @@ void TagItemView::saveSelectedTags(
     for (const auto & tagLocalUid: qAsConst(tagLocalUids)) {
         appSettings.setArrayIndex(i);
         appSettings.setValue(LAST_SELECTED_TAG_KEY, tagLocalUid);
+        ++i;
     }
 
     appSettings.endArray();
@@ -1270,7 +1280,19 @@ void TagItemView::restoreSelectedTags(const TagModel & model)
             return;
         }
 
-        auto selectedTagLocalUids =
+        if (Q_UNLIKELY(!m_pNoteFiltersManager->isReady())) {
+            QNDEBUG("view:tag", "Note filters manager is not ready yet");
+
+            m_restoreSelectedTagsWhenNoteFiltersManagerReady = true;
+
+            QObject::connect(
+                m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
+                &TagItemView::onNoteFiltersManagerReady, Qt::UniqueConnection);
+
+            return;
+        }
+
+        selectedTagLocalUids =
             m_pNoteFiltersManager->tagLocalUidsInFilter();
     }
     else {
@@ -1300,15 +1322,15 @@ void TagItemView::restoreSelectedTags(const TagModel & model)
         appSettings.endGroup();
     }
 
-    QNTRACE(
-        "view:tag",
-        "Selecting tag local uids: "
-            << selectedTagLocalUids.join(QStringLiteral(", ")));
-
     if (selectedTagLocalUids.isEmpty()) {
         QNDEBUG("view:tag", "Found no last selected tag local uids");
         return;
     }
+
+    QNTRACE(
+        "view:tag",
+        "Selecting tag local uids: "
+            << selectedTagLocalUids.join(QStringLiteral(", ")));
 
     QModelIndexList selectedTagIndexes;
     selectedTagIndexes.reserve(selectedTagLocalUids.size());
@@ -1578,7 +1600,7 @@ void TagItemView::clearTagsFromNoteFiltersManager()
             "Note filters manager is not ready yet, will "
                 << "postpone clearing tags from it");
 
-        m_tagLocalUidPendingNoteFiltersManagerReadiness.clear();
+        m_tagLocalUidsPendingNoteFiltersManagerReadiness.clear();
 
         QObject::connect(
             m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,

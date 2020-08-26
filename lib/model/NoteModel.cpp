@@ -241,7 +241,7 @@ const QStringList & NoteModel::filteredTagLocalUids() const
 void NoteModel::setFilteredTagLocalUids(const QStringList & tagLocalUids)
 {
     NMDEBUG(
-        "NoteModel::filteredTagLocalUids: "
+        "NoteModel::setFilteredTagLocalUids: "
         << tagLocalUids.join(QStringLiteral(", ")));
 
     if (m_pUpdatedNoteFilters) {

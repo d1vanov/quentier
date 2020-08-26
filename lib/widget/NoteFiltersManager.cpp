@@ -257,8 +257,7 @@ void NoteFiltersManager::onTagsFilterUpdated()
     if (!m_isReady) {
         QNDEBUG(
             "widget:note_filters",
-            "Not yet ready to process filter "
-                << "updates");
+            "Not yet ready to process filter updates");
         return;
     }
 
@@ -326,8 +325,7 @@ void NoteFiltersManager::onNotebooksFilterUpdated()
     if (!m_isReady) {
         QNDEBUG(
             "widget:note_filters",
-            "Not yet ready to process filter "
-                << "updates");
+            "Not yet ready to process filter updates");
         return;
     }
 
@@ -368,8 +366,7 @@ void NoteFiltersManager::onSavedSearchFilterChanged(
     if (!m_isReady) {
         QNDEBUG(
             "widget:note_filters",
-            "Not yet ready to process filter "
-                << "updates");
+            "Not yet ready to process filter updates");
         return;
     }
 
