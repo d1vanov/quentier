@@ -109,8 +109,7 @@ private:
     void saveSelectedTags(
         const Account & account, const QStringList & tagLocalUids);
 
-    void restoreSelectedTags(
-        const TagModel & model);
+    void restoreSelectedTags(const TagModel & model);
 
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
@@ -130,7 +129,7 @@ private:
     void disconnectFromNoteFiltersManagerFilterChanged();
     void connectToNoteFiltersManagerFilterChanged();
 
-    bool shouldFilterBySelectedTag(const Account & account) const;
+    bool shouldFilterBySelectedTags(const Account & account) const;
 
 private:
     QMenu * m_pTagItemContextMenu = nullptr;

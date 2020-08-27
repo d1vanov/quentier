@@ -720,6 +720,13 @@ void TagItemView::onNoteFilterChanged()
         return;
     }
 
+    if (!shouldFilterBySelectedTags(pTagModel->account())) {
+        QNDEBUG(
+            "view:tag",
+            "Filtering by selected tags is disabled, won't do anything");
+        return;
+    }
+
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
         QNDEBUG("view:tag", "Note filters manager is null");
         return;
@@ -739,23 +746,60 @@ void TagItemView::onNoteFilterChanged()
 
     const auto & tagLocalUids = m_pNoteFiltersManager->tagLocalUidsInFilter();
 
-    if (tagLocalUids.size() != 1) {
-        QNDEBUG(
-            "view:tag",
-            "Not exactly one tag local uid is within "
-                << "the filter: " << tagLocalUids.join(QStringLiteral(", ")));
+    if (tagLocalUids.isEmpty()) {
+        QNDEBUG("view:tag", "No tags in note filter");
         selectAllTagsRootItem(*pTagModel);
         return;
     }
 
-    auto tagIndex = pTagModel->indexForLocalUid(tagLocalUids[0]);
-    if (Q_UNLIKELY(!tagIndex.isValid())) {
-        QNWARNING("view:tag", "The filtered tag local uid's index is invalid");
-        selectAllTagsRootItem(*pTagModel);
+    auto * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        QNWARNING("view:tag", "No selection model, can't update selection");
         return;
     }
 
-    setCurrentIndex(tagIndex);
+    // Check whether current selection matches tag local uids
+    bool selectionIsActual = true;
+    auto indexes = pSelectionModel->selectedIndexes();
+    if (indexes.size() != tagLocalUids.size()) {
+        selectionIsActual = false;
+    }
+    else {
+        for (const auto & index: qAsConst(indexes)) {
+            const auto * pModelItem = pTagModel->itemForIndex(index);
+            if (!pModelItem) {
+                selectionIsActual = false;
+                break;
+            }
+
+            const auto * pItem = pModelItem->cast<TagItem>();
+            if (!pItem) {
+                selectionIsActual = false;
+                break;
+            }
+
+            if (!tagLocalUids.contains(pItem->localUid())) {
+                selectionIsActual = false;
+                break;
+            }
+        }
+    }
+
+    if (selectionIsActual) {
+        QNDEBUG("view:tag", "Selected tags match those in note filter");
+        return;
+    }
+
+    QItemSelection selection;
+    for (const auto & tagLocalUid: qAsConst(tagLocalUids)) {
+        auto index = pTagModel->indexForLocalUid(tagLocalUid);
+        selection.select(index, index);
+    }
+
+    pSelectionModel->select(
+        selection,
+        QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows |
+            QItemSelectionModel::Current);
 }
 
 void TagItemView::onNoteFiltersManagerReady()
@@ -791,7 +835,7 @@ void TagItemView::onNoteFiltersManagerReady()
 
     saveSelectedTags(pTagModel->account(), tagLocalUids);
 
-    if (shouldFilterBySelectedTag(pTagModel->account())) {
+    if (shouldFilterBySelectedTags(pTagModel->account())) {
         if (!tagLocalUids.isEmpty()) {
             setSelectedTagsToNoteFiltersManager(tagLocalUids);
         }
@@ -1274,7 +1318,7 @@ void TagItemView::restoreSelectedTags(const TagModel & model)
 
     QStringList selectedTagLocalUids;
 
-    if (shouldFilterBySelectedTag(model.account())) {
+    if (shouldFilterBySelectedTags(model.account())) {
         if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
             QNDEBUG("view:tag", "Note filters manager is null");
             return;
@@ -1292,11 +1336,10 @@ void TagItemView::restoreSelectedTags(const TagModel & model)
             return;
         }
 
-        selectedTagLocalUids =
-            m_pNoteFiltersManager->tagLocalUidsInFilter();
+        selectedTagLocalUids = m_pNoteFiltersManager->tagLocalUidsInFilter();
     }
     else {
-        QNDEBUG("view:tag", "Filtering by selected tag is switched off");
+        QNDEBUG("view:tag", "Filtering by selected tags is switched off");
 
         ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
         appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
@@ -1391,6 +1434,10 @@ void TagItemView::selectionChangedImpl(
         return;
     }
 
+    // FIXME: it should not be possible to have selected tags and all tags root
+    // item simultaneously - need to figure out what to filter out from the
+    // selection using "selected" and "deselected"
+
     QStringList tagLocalUids;
 
     for (const auto & selectedIndex: qAsConst(indexes)) {
@@ -1430,7 +1477,7 @@ void TagItemView::selectionChangedImpl(
 
     saveSelectedTags(pTagModel->account(), tagLocalUids);
 
-    if (shouldFilterBySelectedTag(pTagModel->account())) {
+    if (shouldFilterBySelectedTags(pTagModel->account())) {
         setSelectedTagsToNoteFiltersManager(tagLocalUids);
     }
     else {
@@ -1442,7 +1489,7 @@ void TagItemView::handleNoSelectedTag(const Account & account)
 {
     saveSelectedTags(account, QStringList());
 
-    if (shouldFilterBySelectedTag(account)) {
+    if (shouldFilterBySelectedTags(account)) {
         clearTagsFromNoteFiltersManager();
     }
 }
@@ -1565,7 +1612,7 @@ void TagItemView::setSelectedTagsToNoteFiltersManager(
         QNDEBUG(
             "view:tag",
             "Filter by search string is active, won't set "
-                << "the seleted tag to filter");
+                << "the seleted tags to filter");
         return;
     }
 
@@ -1576,7 +1623,7 @@ void TagItemView::setSelectedTagsToNoteFiltersManager(
         QNDEBUG(
             "view:tag",
             "Filter by saved search is active, won't set "
-                << "the selected tag to filter");
+                << "the selected tags to filter");
         return;
     }
 
@@ -1628,7 +1675,7 @@ void TagItemView::connectToNoteFiltersManagerFilterChanged()
         &TagItemView::onNoteFilterChanged, Qt::UniqueConnection);
 }
 
-bool TagItemView::shouldFilterBySelectedTag(const Account & account) const
+bool TagItemView::shouldFilterBySelectedTags(const Account & account) const
 {
     ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
 
