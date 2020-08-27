@@ -58,7 +58,7 @@ public:
 
     void clear();
 
-    void setNotebookToFilter(const QString & notebookLocalUid);
+    void setNotebooksToFilter(const QStringList & notebookLocalUids);
     void removeNotebooksFromFilter();
 
     void setTagsToFilter(const QStringList & tagLocalUids);
@@ -177,6 +177,7 @@ private:
     void checkFiltersReadiness();
 
     void setNotebookToFilterImpl(const QString & notebookLocalUid);
+    void setNotebooksToFilterImpl(const QStringList & notebookLocalUids);
     void setTagsToFilterImpl(const QStringList & tagLocalUids);
 
     void checkAndRefreshNotesSearchQuery();

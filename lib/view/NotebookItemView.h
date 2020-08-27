@@ -128,10 +128,10 @@ private:
         const QStringList & expandedLinkedNotebookGuids,
         const NotebookModel & model);
 
-    void saveSelectedNotebook(
-        const Account & account, const QString & notebookLocalUid);
+    void saveSelectedNotebooks(
+        const Account & account, const QStringList & notebookLocalUids);
 
-    void restoreSelectedNotebook(const NotebookModel & model);
+    void restoreSelectedNotebooks(const NotebookModel & model);
 
     void selectionChangedImpl(
         const QItemSelection & selected, const QItemSelection & deselected);
@@ -145,15 +145,15 @@ private:
     void prepareForNotebookModelChange();
     void postProcessNotebookModelChange();
 
-    void setSelectedNotebookToNoteFiltersManager(
-        const QString & notebookLocalUid);
+    void setSelectedNotebooksToNoteFiltersManager(
+        const QStringList & notebookLocalUids);
 
     void clearNotebooksFromNoteFiltersManager();
 
     void disconnectFromNoteFiltersManagerFilterChanged();
     void connectToNoteFiltersManagerFilterChanged();
 
-    bool shouldFilterBySelectedNotebook(const Account & account) const;
+    bool shouldFilterBySelectedNotebooks(const Account & account) const;
 
     // Helper structs and methods to access common data pieces in slots
 
@@ -192,7 +192,8 @@ private:
 
     QPointer<const NoteModel> m_pNoteModel;
 
-    QString m_notebookLocalUidPendingNoteFiltersManagerReadiness;
+    bool m_restoreSelectedNotebooksWhenNoteFiltersManagerReady = false;
+    QStringList m_notebookLocalUidsPendingNoteFiltersManagerReadiness;
 
     bool m_trackingNotebookModelItemsState = false;
     bool m_trackingSelection = false;

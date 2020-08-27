@@ -167,14 +167,16 @@ void NoteFiltersManager::clear()
     evaluate();
 }
 
-void NoteFiltersManager::setNotebookToFilter(const QString & notebookLocalUid)
+void NoteFiltersManager::setNotebooksToFilter(
+    const QStringList & notebookLocalUids)
 {
     QNDEBUG(
         "widget:note_filters",
-        "NoteFiltersManager::setNotebookToFilter: " << notebookLocalUid);
+        "NoteFiltersManager::setNotebooksToFilter: "
+            << notebookLocalUids.join(QStringLiteral(", ")));
 
     clearFilterByNotebookWidgetItems();
-    setNotebookToFilterImpl(notebookLocalUid);
+    setNotebooksToFilterImpl(notebookLocalUids);
     evaluate();
 }
 
@@ -256,8 +258,7 @@ void NoteFiltersManager::onTagsFilterUpdated()
 
     if (!m_isReady) {
         QNDEBUG(
-            "widget:note_filters",
-            "Not yet ready to process filter updates");
+            "widget:note_filters", "Not yet ready to process filter updates");
         return;
     }
 
@@ -324,8 +325,7 @@ void NoteFiltersManager::onNotebooksFilterUpdated()
 
     if (!m_isReady) {
         QNDEBUG(
-            "widget:note_filters",
-            "Not yet ready to process filter updates");
+            "widget:note_filters", "Not yet ready to process filter updates");
         return;
     }
 
@@ -365,8 +365,7 @@ void NoteFiltersManager::onSavedSearchFilterChanged(
 
     if (!m_isReady) {
         QNDEBUG(
-            "widget:note_filters",
-            "Not yet ready to process filter updates");
+            "widget:note_filters", "Not yet ready to process filter updates");
         return;
     }
 
@@ -1320,10 +1319,10 @@ void NoteFiltersManager::checkFiltersReadiness()
     Q_EMIT ready();
 }
 
-void NoteFiltersManager::setNotebookToFilterImpl(
-    const QString & notebookLocalUid)
+void NoteFiltersManager::setNotebooksToFilterImpl(
+    const QStringList & notebookLocalUids)
 {
-    if (notebookLocalUid.isEmpty()) {
+    if (notebookLocalUids.isEmpty()) {
         return;
     }
 
@@ -1331,18 +1330,24 @@ void NoteFiltersManager::setNotebookToFilterImpl(
     if (Q_UNLIKELY(!pNotebookModel)) {
         QNDEBUG(
             "widget:note_filters",
-            "Notebook model in the filter by "
-                << "notebook widget is null");
+            "Notebook model in the filter by notebook widget is null");
         return;
     }
 
-    auto itemInfo = pNotebookModel->itemInfoForLocalUid(notebookLocalUid);
-    if (itemInfo.m_localUid.isEmpty()) {
-        QNWARNING(
-            "widget:note_filters",
-            "Failed to find notebook name for "
-                << "notebook local uid " << notebookLocalUid);
-        return;
+    QVector<ItemModel::ItemInfo> itemInfos;
+    itemInfos.reserve(notebookLocalUids.size());
+
+    for (const auto & notebookLocalUid: qAsConst(notebookLocalUids)) {
+        auto itemInfo = pNotebookModel->itemInfoForLocalUid(notebookLocalUid);
+        if (itemInfo.m_localUid.isEmpty()) {
+            QNWARNING(
+                "widget:note_filters",
+                "Failed to find notebook name for notebook local uid "
+                    << notebookLocalUid);
+            continue;
+        }
+
+        itemInfos << itemInfo;
     }
 
     QObject::disconnect(
@@ -1351,9 +1356,11 @@ void NoteFiltersManager::setNotebookToFilterImpl(
 
     persistFilterByNotebookClearedState(false);
 
-    m_filterByNotebookWidget.addItemToFilter(
-        notebookLocalUid, itemInfo.m_name, itemInfo.m_linkedNotebookGuid,
-        itemInfo.m_linkedNotebookUsername);
+    for (const auto & itemInfo: qAsConst(itemInfos)) {
+        m_filterByNotebookWidget.addItemToFilter(
+            itemInfo.m_localUid, itemInfo.m_name, itemInfo.m_linkedNotebookGuid,
+            itemInfo.m_linkedNotebookUsername);
+    }
 
     QObject::connect(
         &m_filterByNotebookWidget, &FilterByNotebookWidget::addedItemToFilter,
@@ -1378,8 +1385,7 @@ void NoteFiltersManager::setTagsToFilterImpl(const QStringList & tagLocalUids)
     QVector<ItemModel::ItemInfo> itemInfos;
     itemInfos.reserve(tagLocalUids.size());
 
-    for(const auto & tagLocalUid: qAsConst(tagLocalUids))
-    {
+    for (const auto & tagLocalUid: qAsConst(tagLocalUids)) {
         auto itemInfo = pTagModel->itemInfoForLocalUid(tagLocalUid);
         if (Q_UNLIKELY(itemInfo.m_localUid.isEmpty())) {
             QNWARNING(
@@ -1397,7 +1403,7 @@ void NoteFiltersManager::setTagsToFilterImpl(const QStringList & tagLocalUids)
 
     persistFilterByTagClearedState(false);
 
-    for(const auto & itemInfo: qAsConst(itemInfos)) {
+    for (const auto & itemInfo: qAsConst(itemInfos)) {
         m_filterByTagWidget.addItemToFilter(
             itemInfo.m_localUid, itemInfo.m_name, itemInfo.m_linkedNotebookGuid,
             itemInfo.m_linkedNotebookUsername);
