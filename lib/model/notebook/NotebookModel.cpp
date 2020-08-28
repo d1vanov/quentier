@@ -899,6 +899,15 @@ QString NotebookModel::linkedNotebookUsername(
     return {};
 }
 
+QModelIndex NotebookModel::allItemsRootItemIndex() const
+{
+    if (Q_UNLIKELY(!m_pAllNotebooksRootItem)) {
+        return {};
+    }
+
+    return indexForItem(m_pAllNotebooksRootItem);
+}
+
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);

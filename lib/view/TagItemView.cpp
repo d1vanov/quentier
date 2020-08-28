@@ -18,6 +18,8 @@
 
 #include "TagItemView.h"
 
+#include "ItemSelectionModel.h"
+
 #include <lib/dialog/AddOrEditTagDialog.h>
 #include <lib/model/tag/TagModel.h>
 #include <lib/preferences/SettingsNames.h>
@@ -132,6 +134,14 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
         pTagModel, &TagModel::removedTags, this, &TagItemView::onRemovedTags);
 
     ItemView::setModel(pModel);
+
+    auto * pOldSelectionModel = selectionModel();
+    setSelectionModel(new ItemSelectionModel(pTagModel, this));
+    if (pOldSelectionModel) {
+        pOldSelectionModel->disconnect(this);
+        QObject::disconnect(pOldSelectionModel);
+        pOldSelectionModel->deleteLater();
+    }
 
     if (pTagModel->allTagsListed()) {
         QNDEBUG("view:tag", "All tags are already listed within the model");

@@ -226,6 +226,15 @@ bool TagModel::allItemsListed() const
     return m_allTagsListed && m_allLinkedNotebooksListed;
 }
 
+QModelIndex TagModel::allItemsRootItemIndex() const
+{
+    if (Q_UNLIKELY(!m_pAllTagsRootItem)) {
+        return {};
+    }
+
+    return indexForItem(m_pAllTagsRootItem);
+}
+
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);

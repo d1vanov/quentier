@@ -18,6 +18,8 @@
 
 #include "NotebookItemView.h"
 
+#include "ItemSelectionModel.h"
+
 #include <lib/dialog/AddOrEditNotebookDialog.h>
 #include <lib/model/NoteModel.h>
 #include <lib/model/notebook/NotebookModel.h>
@@ -138,8 +140,7 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
     if (Q_UNLIKELY(!pNotebookModel)) {
         QNDEBUG(
             "view:notebook",
-            "Non-notebook model has been set to "
-                << "the notebook view");
+            "Non-notebook model has been set to the notebook view");
         ItemView::setModel(pModel);
         return;
     }
@@ -181,6 +182,14 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
         &NotebookItemView::onRemovedNotebooks);
 
     ItemView::setModel(pModel);
+
+    auto * pOldSelectionModel = selectionModel();
+    setSelectionModel(new ItemSelectionModel(pNotebookModel, this));
+    if (pOldSelectionModel) {
+        pOldSelectionModel->disconnect(this);
+        QObject::disconnect(pOldSelectionModel);
+        pOldSelectionModel->deleteLater();
+    }
 
     if (pNotebookModel->allNotebooksListed()) {
         QNDEBUG(

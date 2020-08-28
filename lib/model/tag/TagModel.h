@@ -286,6 +286,8 @@ public:
 
     virtual bool allItemsListed() const override;
 
+    virtual QModelIndex allItemsRootItemIndex() const override;
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const override;

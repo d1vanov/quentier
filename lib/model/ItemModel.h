@@ -165,6 +165,20 @@ public:
      */
     virtual bool allItemsListed() const = 0;
 
+    /**
+     * @brief allItemsRootItemIndex
+     * @return                      The index of root item which conceptionally
+     *                              corresponds to an item representing all real
+     *                              model's items. Should return invalid model
+     *                              index if the concept is not applicable
+     *                              to the model which is the default
+     *                              implementation
+     */
+    virtual QModelIndex allItemsRootItemIndex() const
+    {
+        return {};
+    }
+
 Q_SIGNALS:
     /**
      * @brief allItemsListed - this signal should be emitted when the model has
