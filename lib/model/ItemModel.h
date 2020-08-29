@@ -19,6 +19,7 @@
 #ifndef QUENTIER_LIB_MODEL_ITEM_MODEL_H
 #define QUENTIER_LIB_MODEL_ITEM_MODEL_H
 
+#include <quentier/types/Account.h>
 #include <quentier/utility/Macros.h>
 
 #include <QAbstractItemModel>
@@ -40,10 +41,20 @@ class ItemModel : public QAbstractItemModel
 {
     Q_OBJECT
 protected:
-    explicit ItemModel(QObject * parent = nullptr);
+    explicit ItemModel(const Account & account, QObject * parent = nullptr);
 
 public:
     virtual ~ItemModel();
+
+    const Account & account() const
+    {
+        return m_account;
+    }
+
+    void setAccount(const Account & account)
+    {
+        m_account = account;
+    }
 
     /**
      * @brief localUidForItemName - finds local uid for item name
@@ -58,6 +69,15 @@ public:
      */
     virtual QString localUidForItemName(
         const QString & itemName, const QString & linkedNotebookGuid) const = 0;
+
+    /**
+     * @brief indexForLocalUid
+     * @param localUid              The local uid of the item which index is
+     *                              required
+     * @return                      The model index of the item corresponding
+     *                              to the passed in local uid or invalid index
+     */
+    virtual QModelIndex indexForLocalUid(const QString & localUid) const = 0;
 
     /**
      * @brief itemNameForLocalUid   Finds item name for local uid
@@ -179,12 +199,43 @@ public:
         return {};
     }
 
+    /**
+     * @brief localUidForItemIndex
+     * @return                      Local uid of the item corresponding to the
+     *                              passed in index, if the index represents
+     *                              an item having a local uid; empty string
+     *                              otherwise
+     */
+    virtual QString localUidForItemIndex(const QModelIndex & index) const = 0;
+
+    /**
+     * @brief linkedNotebookGuidForItemIndex
+     * @return                      Linked notebook guid of the linked notebook
+     *                              item corresponding to the passed in index;
+     *                              empty string if the passed in index does not
+     *                              correspond to a linked notebook item
+     */
+    virtual QString linkedNotebookGuidForItemIndex(
+        const QModelIndex & index) const = 0;
+
+    /**
+     * @brief persistentIndexes method is simply a public accessor for
+     * QAbstractItemModel's protected persistentIndexList method
+     */
+    QModelIndexList persistentIndexes() const
+    {
+        return persistentIndexList();
+    }
+
 Q_SIGNALS:
     /**
      * @brief allItemsListed - this signal should be emitted when the model has
      * received all items from the local storage
      */
     void notifyAllItemsListed();
+
+protected:
+    Account     m_account;
 };
 
 } // namespace quentier

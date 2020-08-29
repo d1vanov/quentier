@@ -58,13 +58,6 @@ public:
 
     virtual ~SavedSearchModel();
 
-    const Account & account() const
-    {
-        return m_account;
-    }
-
-    void updateAccount(const Account & account);
-
     struct Columns
     {
         enum type
@@ -78,7 +71,6 @@ public:
 
     const SavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const SavedSearchModelItem * item) const;
-    QModelIndex indexForLocalUid(const QString & localUid) const;
     QModelIndex indexForSavedSearchName(const QString & savedSearchName) const;
 
     /**
@@ -150,6 +142,9 @@ public:
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;
 
+    virtual QModelIndex indexForLocalUid(
+        const QString & localUid) const override;
+
     virtual QString itemNameForLocalUid(
         const QString & localUid) const override;
 
@@ -182,6 +177,16 @@ public:
     virtual bool allItemsListed() const override
     {
         return m_allSavedSearchesListed;
+    }
+
+    virtual QString localUidForItemIndex(
+        const QModelIndex & index) const override;
+
+    virtual QString linkedNotebookGuidForItemIndex(
+        const QModelIndex & index) const override
+    {
+        Q_UNUSED(index)
+        return {};
     }
 
 public:
@@ -358,7 +363,6 @@ private:
         const SavedSearchDataByLocalUid::const_iterator it) const;
 
 private:
-    Account m_account;
     SavedSearchData m_data;
     size_t m_listSavedSearchesOffset = 0;
     QUuid m_listSavedSearchesRequestId;

@@ -94,8 +94,6 @@ public:
     INotebookModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const INotebookModelItem * pItem) const;
 
-    QModelIndex indexForLocalUid(const QString & localUid) const;
-
     QModelIndex indexForNotebookName(
         const QString & notebookName,
         const QString & linkedNotebookGuid = {}) const;
@@ -172,12 +170,6 @@ public:
      */
     QStringList notebookNames(
         const Filters filters, const QString & linkedNotebookGuid = {}) const;
-
-    /**
-     * @return                      The list of indexes stored as persistent
-     *                              indexes in the model
-     */
-    QModelIndexList persistentIndexes() const;
 
     /**
      * @return                      The index of the default notebook item if
@@ -305,6 +297,9 @@ public:
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;
 
+    virtual QModelIndex indexForLocalUid(
+        const QString & localUid) const override;
+
     virtual QString itemNameForLocalUid(
         const QString & localUid) const override;
 
@@ -340,6 +335,12 @@ public:
     }
 
     virtual QModelIndex allItemsRootItemIndex() const override;
+
+    virtual QString localUidForItemIndex(
+        const QModelIndex & index) const override;
+
+    virtual QString linkedNotebookGuidForItemIndex(
+        const QModelIndex & index) const override;
 
 public:
     // QAbstractItemModel interface

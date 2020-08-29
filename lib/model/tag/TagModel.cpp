@@ -54,8 +54,8 @@ TagModel::TagModel(
     const Account & account,
     LocalStorageManagerAsync & localStorageManagerAsync, TagCache & cache,
     QObject * parent) :
-    ItemModel(parent),
-    m_account(account), m_cache(cache)
+    ItemModel(account, parent),
+    m_cache(cache)
 {
     createConnections(localStorageManagerAsync);
 
@@ -67,12 +67,6 @@ TagModel::~TagModel()
 {
     delete m_pAllTagsRootItem;
     delete m_pInvisibleRootItem;
-}
-
-void TagModel::setAccount(const Account & account)
-{
-    QNTRACE("model:tag", "TagModel::setAccount: " << account);
-    m_account = account;
 }
 
 bool TagModel::allTagsListed() const
@@ -155,6 +149,18 @@ QString TagModel::localUidForItemName(
     return pTagItem->localUid();
 }
 
+QModelIndex TagModel::indexForLocalUid(const QString & localUid) const
+{
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (it == localUidIndex.end()) {
+        return {};
+    }
+
+    const auto & item = *it;
+    return indexForItem(&item);
+}
+
 QString TagModel::itemNameForLocalUid(const QString & localUid) const
 {
     QNTRACE("model:tag", "TagModel::itemNameForLocalUid: " << localUid);
@@ -233,6 +239,38 @@ QModelIndex TagModel::allItemsRootItemIndex() const
     }
 
     return indexForItem(m_pAllTagsRootItem);
+}
+
+QString TagModel::localUidForItemIndex(
+    const QModelIndex & index) const
+{
+    auto * pModelItem = itemForIndex(index);
+    if (!pModelItem) {
+        return {};
+    }
+
+    auto * pTagItem = pModelItem->cast<TagItem>();
+    if (pTagItem) {
+        return pTagItem->localUid();
+    }
+
+    return {};
+}
+
+QString TagModel::linkedNotebookGuidForItemIndex(
+    const QModelIndex & index) const
+{
+    auto * pModelItem = itemForIndex(index);
+    if (!pModelItem) {
+        return {};
+    }
+
+    auto * pLinkedNotebookItem = pModelItem->cast<TagLinkedNotebookRootItem>();
+    if (pLinkedNotebookItem) {
+        return pLinkedNotebookItem->linkedNotebookGuid();
+    }
+
+    return {};
 }
 
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
@@ -3082,18 +3120,6 @@ QModelIndex TagModel::indexForItem(const ITagModelItem * pItem) const
     return createIndex(row, static_cast<int>(Column::Name), itemId);
 }
 
-QModelIndex TagModel::indexForLocalUid(const QString & localUid) const
-{
-    const auto & localUidIndex = m_data.get<ByLocalUid>();
-    auto it = localUidIndex.find(localUid);
-    if (it == localUidIndex.end()) {
-        return {};
-    }
-
-    const auto & item = *it;
-    return indexForItem(&item);
-}
-
 QModelIndex TagModel::indexForTagName(
     const QString & tagName, const QString & linkedNotebookGuid) const
 {
@@ -3464,11 +3490,6 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
 
     Q_EMIT notifyTagParentChanged(newIndex);
     return newIndex;
-}
-
-QModelIndexList TagModel::persistentIndexes() const
-{
-    return persistentIndexList();
 }
 
 QModelIndex TagModel::moveToParent(

@@ -41,24 +41,19 @@ inline QString includedNotesStr(
 }
 
 #define NMTRACE(message)                                                       \
-    QNTRACE("model:note", includedNotesStr(m_includedNotes) << message)        \
-    // NMTRACE
+    QNTRACE("model:note", includedNotesStr(m_includedNotes) << message)
 
 #define NMDEBUG(message)                                                       \
-    QNDEBUG("model:note", includedNotesStr(m_includedNotes) << message)        \
-    // NMDEBUG
+    QNDEBUG("model:note", includedNotesStr(m_includedNotes) << message)
 
 #define NMINFO(message)                                                        \
-    QNINFO("model:note", includedNotesStr(m_includedNotes) << message)         \
-    // NMINFO
+    QNINFO("model:note", includedNotesStr(m_includedNotes) << message)
 
 #define NMWARNING(message)                                                     \
-    QNWARNING("model:note", includedNotesStr(m_includedNotes) << message)      \
-    // NMWARNING
+    QNWARNING("model:note", includedNotesStr(m_includedNotes) << message)
 
 #define NMERROR(message)                                                       \
-    QNERROR("model:note", includedNotesStr(m_includedNotes) << message)        \
-// NMERROR
+    QNERROR("model:note", includedNotesStr(m_includedNotes) << message)
 
 // Limit for the queries to the local storage
 #define NOTE_LIST_QUERY_LIMIT (10)
