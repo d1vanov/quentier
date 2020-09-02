@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_MULTI_SELECTION_ITEM_VIEW_H
-#define QUENTIER_LIB_VIEW_MULTI_SELECTION_ITEM_VIEW_H
+#ifndef QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
+#define QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
 
 #include "ItemView.h"
 
@@ -30,19 +30,19 @@ QT_FORWARD_DECLARE_CLASS(ItemModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 /**
- * @brief The MultiSelectionItemView class is an abstract base class for tree
- * views supporting selection of multiple items simultaneously. Subclasses of
- * MultiSelectionItemView are intended to be used along with ItemModel
- * subclasses.
+ * @brief The AbstractMultiSelectionItemView class is an abstract base class for
+ * tree views supporting selection of multiple items simultaneously. Subclasses
+ * of AbstractMultiSelectionItemView are intended to be used along with
+ * ItemModel subclasses.
  */
-class MultiSelectionItemView : public ItemView
+class AbstractMultiSelectionItemView : public ItemView
 {
     Q_OBJECT
 public:
-    explicit MultiSelectionItemView(
+    explicit AbstractMultiSelectionItemView(
         const QString & modelTypeName, QWidget * parent = nullptr);
 
-    virtual ~MultiSelectionItemView() override;
+    virtual ~AbstractMultiSelectionItemView() override;
 
     void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
@@ -69,13 +69,13 @@ private:
     void selectAllItemsRootItem(const ItemModel & model);
 
 private:
-    const QString   m_modelTypeName;
+    const QString m_modelTypeName;
 
-    QPointer<NoteFiltersManager>    m_pNoteFiltersManager;
+    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 
-    bool            m_trackingItemsState = false;
+    bool m_trackingItemsState = false;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_VIEW_MULTI_SELECTION_ITEM_VIEW_H
+#endif // QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H

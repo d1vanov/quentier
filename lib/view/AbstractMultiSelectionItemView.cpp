@@ -16,7 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MultiSelectionItemView.h"
+#include "AbstractMultiSelectionItemView.h"
 
 #include <lib/model/ItemModel.h>
 #include <lib/widget/NoteFiltersManager.h>
@@ -36,7 +36,7 @@ namespace quentier {
 #define MSWARNING(message) MSLOG_BASE(Warning, message)
 #define MSERROR(message) MSLOG_BASE(Error, message)
 
-MultiSelectionItemView::MultiSelectionItemView(
+AbstractMultiSelectionItemView::AbstractMultiSelectionItemView(
     const QString & modelTypeName, QWidget * parent) :
     ItemView(parent),
     m_modelTypeName(modelTypeName)
@@ -45,17 +45,17 @@ MultiSelectionItemView::MultiSelectionItemView(
     setSelectionBehavior(QAbstractItemView::SelectItems);
 
     QObject::connect(
-        this, &MultiSelectionItemView::expanded, this,
-        &MultiSelectionItemView::onItemCollapsedOrExpanded);
+        this, &AbstractMultiSelectionItemView::expanded, this,
+        &AbstractMultiSelectionItemView::onItemCollapsedOrExpanded);
 
     QObject::connect(
-        this, &MultiSelectionItemView::collapsed, this,
-        &MultiSelectionItemView::onItemCollapsedOrExpanded);
+        this, &AbstractMultiSelectionItemView::collapsed, this,
+        &AbstractMultiSelectionItemView::onItemCollapsedOrExpanded);
 }
 
-MultiSelectionItemView::~MultiSelectionItemView() = default;
+AbstractMultiSelectionItemView::~AbstractMultiSelectionItemView() = default;
 
-void MultiSelectionItemView::setNoteFiltersManager(
+void AbstractMultiSelectionItemView::setNoteFiltersManager(
     NoteFiltersManager & noteFiltersManager)
 {
     if (!m_pNoteFiltersManager.isNull()) {
@@ -71,11 +71,11 @@ void MultiSelectionItemView::setNoteFiltersManager(
     connectToNoteFiltersManagerFilterChanged();
 }
 
-void MultiSelectionItemView::onItemCollapsedOrExpanded(
+void AbstractMultiSelectionItemView::onItemCollapsedOrExpanded(
     const QModelIndex & index)
 {
     MSTRACE(
-        "MultiSelectionItemView::onItemCollapsedOrExpanded: "
+        "AbstractMultiSelectionItemView::onItemCollapsedOrExpanded: "
             << "index: valid = " << (index.isValid() ? "true" : "false")
             << ", row = " << index.row() << ", column = " << index.column()
             << ", parent: valid = "
@@ -91,9 +91,9 @@ void MultiSelectionItemView::onItemCollapsedOrExpanded(
     saveItemsState();
 }
 
-void MultiSelectionItemView::onNoteFilterChanged()
+void AbstractMultiSelectionItemView::onNoteFilterChanged()
 {
-    MSDEBUG("MultiSelectionItemView::onNoteFilterChanged");
+    MSDEBUG("AbstractMultiSelectionItemView::onNoteFilterChanged");
 
     auto * pItemModel = qobject_cast<ItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
@@ -176,18 +176,18 @@ void MultiSelectionItemView::onNoteFilterChanged()
             QItemSelectionModel::Current);
 }
 
-void MultiSelectionItemView::disconnectFromNoteFiltersManagerFilterChanged()
+void AbstractMultiSelectionItemView::disconnectFromNoteFiltersManagerFilterChanged()
 {
     QObject::disconnect(
         m_pNoteFiltersManager.data(), &NoteFiltersManager::filterChanged, this,
-        &MultiSelectionItemView::onNoteFilterChanged);
+        &AbstractMultiSelectionItemView::onNoteFilterChanged);
 }
 
-void MultiSelectionItemView::connectToNoteFiltersManagerFilterChanged()
+void AbstractMultiSelectionItemView::connectToNoteFiltersManagerFilterChanged()
 {
     QObject::connect(
         m_pNoteFiltersManager.data(), &NoteFiltersManager::filterChanged, this,
-        &MultiSelectionItemView::onNoteFilterChanged, Qt::UniqueConnection);
+        &AbstractMultiSelectionItemView::onNoteFilterChanged, Qt::UniqueConnection);
 }
 
 } // namespace quentier
