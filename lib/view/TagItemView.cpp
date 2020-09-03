@@ -94,6 +94,7 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
         pPreviousModel->disconnect(this);
     }
 
+    m_tagLocalUidsPendingNoteFiltersManagerReadiness.clear();
     m_modelReady = false;
     m_trackingSelection = false;
     m_trackingTagItemsState = false;

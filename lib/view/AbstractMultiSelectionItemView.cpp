@@ -17,11 +17,13 @@
  */
 
 #include "AbstractMultiSelectionItemView.h"
+#include "ItemSelectionModel.h"
 
 #include <lib/model/ItemModel.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/MessageBox.h>
 
 namespace quentier {
 
@@ -35,6 +37,13 @@ namespace quentier {
 #define MSINFO(message) MSLOG_BASE(Info, message)
 #define MSWARNING(message) MSLOG_BASE(Warning, message)
 #define MSERROR(message) MSLOG_BASE(Error, message)
+
+#define REPORT_ERROR(error)                                                    \
+    {                                                                          \
+        ErrorString errorDescription(error);                                   \
+        MSWARNING(errorDescription);                                           \
+        Q_EMIT notifyError(errorDescription);                                  \
+    }
 
 AbstractMultiSelectionItemView::AbstractMultiSelectionItemView(
     const QString & modelTypeName, QWidget * parent) :
@@ -69,6 +78,141 @@ void AbstractMultiSelectionItemView::setNoteFiltersManager(
 
     m_pNoteFiltersManager = &noteFiltersManager;
     connectToNoteFiltersManagerFilterChanged();
+}
+
+void AbstractMultiSelectionItemView::setModel(QAbstractItemModel * pModel)
+{
+    MSDEBUG("AbstractMultiSelectionItemView::setModel");
+
+    auto * pPreviousModel = qobject_cast<ItemModel*>(model());
+    if (pPreviousModel) {
+        pPreviousModel->disconnect(this);
+    }
+
+    m_itemLocalUidsPendingNoteFiltersManagerReadiness.clear();
+    m_modelReady = false;
+    m_trackingSelection = false;
+    m_trackingItemsState = false;
+
+    auto * pItemModel = qobject_cast<ItemModel*>(pModel);
+    if (Q_UNLIKELY(!pItemModel)) {
+        MSDEBUG("Non-item model has been set to the item view");
+        ItemView::setModel(pModel);
+        return;
+    }
+
+    connectToModel(*pItemModel);
+
+    ItemView::setModel(pModel);
+
+    auto * pOldSelectionModel = selectionModel();
+    setSelectionModel(new ItemSelectionModel(pItemModel, this));
+    if (pOldSelectionModel) {
+        pOldSelectionModel->disconnect(this);
+        QObject::disconnect(pOldSelectionModel);
+        pOldSelectionModel->deleteLater();
+    }
+
+    if (pItemModel->allItemsListed()) {
+        MSDEBUG("All items are already listed within the model");
+        restoreItemsState(*pItemModel);
+        restoreSelectedItems(*pItemModel);
+        m_modelReady = true;
+        m_trackingSelection = true;
+        m_trackingItemsState = true;
+        return;
+    }
+
+    QObject::connect(
+        pItemModel, &ItemModel::notifyAllItemsListed, this,
+        &AbstractMultiSelectionItemView::onAllItemsListed);
+}
+
+QModelIndex AbstractMultiSelectionItemView::currentlySelectedItemIndex() const
+{
+    MSDEBUG("AbstractMultiSelectionItemView::currentlySelectedItemIndex");
+
+    auto * pItemModel = qobject_cast<ItemModel*>(model());
+    if (Q_UNLIKELY(!pItemModel)) {
+        MSDEBUG("Non-item model is used");
+        return {};
+    }
+
+    auto * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        MSDEBUG("No selection model in the view");
+        return {};
+    }
+
+    auto indexes = selectedIndexes();
+    if (indexes.isEmpty()) {
+        MSDEBUG("The selection contains no model indexes");
+        return {};
+    }
+
+    return singleRow(indexes, *pItemModel, 0);
+}
+
+void AbstractMultiSelectionItemView::deleteSelectedItem()
+{
+    MSDEBUG("AbstractMultiSelectionItemView::deleteSelectedItem");
+
+    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    if (Q_UNLIKELY(!pItemModel)) {
+        MSDEBUG("Non-item model is used");
+        return;
+    }
+
+    auto indexes = selectedIndexes();
+    if (indexes.isEmpty()) {
+        MSDEBUG("No items are selected, nothing to deete");
+
+        Q_UNUSED(informationMessageBox(
+            this, tr("Cannot delete current item"),
+            tr("No item is selected currently"),
+            tr("Please select the item you want to delete")))
+
+        return;
+    }
+
+    auto index = singleRow(indexes, *pItemModel, 0);
+
+    if (!index.isValid()) {
+        MSDEBUG("Not exactly one item within the selection");
+
+        Q_UNUSED(informationMessageBox(
+            this, tr("Cannot delete current item"),
+            tr("More than one item is currently selected"),
+            tr("Please select only the item you want to delete")))
+
+        return;
+    }
+
+    deleteItem(index, *pItemModel);
+}
+
+void AbstractMultiSelectionItemView::onAllItemsListed()
+{
+    MSDEBUG("AbstractMultiSelectionItemView::onAllItemsListed");
+
+    auto * pItemModel = qobject_cast<ItemModel*>(model());
+    if (Q_UNLIKELY(!pItemModel)) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Can't cast the model set to the item view "
+                       "to the item model"))
+        return;
+    }
+
+    QObject::disconnect(
+        pItemModel, &ItemModel::notifyAllItemsListed, this,
+        &AbstractMultiSelectionItemView::onAllItemsListed);
+
+    restoreItemsState(*pItemModel);
+    restoreSelectedItems(*pItemModel);
+
+    m_modelReady = true;
+    m_trackingSelection = true;
+    m_trackingItemsState = true;
 }
 
 void AbstractMultiSelectionItemView::onItemCollapsedOrExpanded(
@@ -123,7 +267,7 @@ void AbstractMultiSelectionItemView::onNoteFilterChanged()
         return;
     }
 
-    const auto & localUids = localUidsFromNoteFiltersManager(
+    const auto & localUids = localUidsInNoteFiltersManager(
         *m_pNoteFiltersManager);
 
     if (localUids.isEmpty()) {
@@ -176,6 +320,59 @@ void AbstractMultiSelectionItemView::onNoteFilterChanged()
             QItemSelectionModel::Current);
 }
 
+void AbstractMultiSelectionItemView::onNoteFiltersManagerReady()
+{
+    MSDEBUG("AbstractMultiSelectionItemView::onNoteFiltersManagerReady");
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        MSDEBUG("Note filters manager is null");
+        return;
+    }
+
+    QObject::disconnect(
+        m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
+        &AbstractMultiSelectionItemView::onNoteFiltersManagerReady);
+
+    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    if (Q_UNLIKELY(!pItemModel)) {
+        MSDEBUG("Non-item model is used");
+        return;
+    }
+
+    if (m_restoreSelectedItemsWhenNoteFiltersManagerReady) {
+        m_restoreSelectedItemsWhenNoteFiltersManagerReady = false;
+
+        if (m_itemLocalUidsPendingNoteFiltersManagerReadiness.isEmpty()) {
+            restoreSelectedItems(*pItemModel);
+            return;
+        }
+    }
+
+    QStringList itemLocalUids = m_itemLocalUidsPendingNoteFiltersManagerReadiness;
+    m_itemLocalUidsPendingNoteFiltersManagerReadiness.clear();
+
+    const auto & account = pItemModel->account();
+    saveSelectedItems(account, itemLocalUids);
+
+    if (shouldFilterBySelectedItems(account)) {
+        if (!itemLocalUids.isEmpty()) {
+            setItemsToNoteFiltersManager(itemLocalUids);
+        }
+        else {
+            clearItemsFromNoteFiltersManager();
+        }
+    }
+}
+
+void AbstractMultiSelectionItemView::selectionChanged(
+    const QItemSelection & selected, const QItemSelection & deselected)
+{
+    MSDEBUG("AbstractMultiSelectionItemView::selectionChanged");
+
+    selectionChangedImpl(selected, deselected);
+    ItemView::selectionChanged(selected, deselected);
+}
+
 void AbstractMultiSelectionItemView::disconnectFromNoteFiltersManagerFilterChanged()
 {
     QObject::disconnect(
@@ -187,7 +384,189 @@ void AbstractMultiSelectionItemView::connectToNoteFiltersManagerFilterChanged()
 {
     QObject::connect(
         m_pNoteFiltersManager.data(), &NoteFiltersManager::filterChanged, this,
-        &AbstractMultiSelectionItemView::onNoteFilterChanged, Qt::UniqueConnection);
+        &AbstractMultiSelectionItemView::onNoteFilterChanged,
+        Qt::UniqueConnection);
+}
+
+void AbstractMultiSelectionItemView::selectAllItemsRootItem(
+    const ItemModel & model)
+{
+    MSDEBUG("AbstractMultiSelectionItemView::selectAllItemsRootItem");
+
+    auto * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Can't select all items root item: "
+                       "no selection model in the view"))
+        return;
+    }
+
+    m_trackingSelection = false;
+
+    pSelectionModel->select(
+        model.index(0, 0),
+        QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows |
+            QItemSelectionModel::Current);
+
+    m_trackingSelection = true;
+
+    handleNoSelectedItems(model.account());
+}
+
+void AbstractMultiSelectionItemView::handleNoSelectedItems(
+    const Account & account)
+{
+    saveSelectedItems(account, QStringList());
+
+    if (shouldFilterBySelectedItems(account)) {
+        clearItemsFromNoteFiltersManager();
+    }
+}
+
+void AbstractMultiSelectionItemView::setItemsToNoteFiltersManager(
+    const QStringList & itemLocalUids)
+{
+    MSDEBUG("AbstractMultiSelectionItemView::setItemsToNoteFiltersManager: "
+        << itemLocalUids.join(QStringLiteral(", ")));
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        MSDEBUG("Note filters manager is null");
+        return;
+    }
+
+    if (!m_pNoteFiltersManager->isReady()) {
+        MSDEBUG(
+            "Note filters manager is not ready yet, will "
+                << "postpone setting item local uids to it: "
+                << itemLocalUids.join(QStringLiteral(", ")));
+
+        QObject::connect(
+            m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
+            &AbstractMultiSelectionItemView::onNoteFiltersManagerReady,
+            Qt::UniqueConnection);
+
+        m_itemLocalUidsPendingNoteFiltersManagerReadiness = itemLocalUids;
+        return;
+    }
+
+    if (m_pNoteFiltersManager->isFilterBySearchStringActive()) {
+        MSDEBUG(
+            "Filter by search string is active, won't set "
+                << "the seleted items to filter");
+        return;
+    }
+
+    const QString & savedSearchLocalUidInFilter =
+        m_pNoteFiltersManager->savedSearchLocalUidInFilter();
+
+    if (!savedSearchLocalUidInFilter.isEmpty()) {
+        MSDEBUG(
+            "Filter by saved search is active, won't set "
+                << "the selected items to filter");
+        return;
+    }
+
+    disconnectFromNoteFiltersManagerFilterChanged();
+
+    setItemLocalUidsToNoteFiltersManager(
+        itemLocalUids, *m_pNoteFiltersManager);
+
+    connectToNoteFiltersManagerFilterChanged();
+}
+
+void AbstractMultiSelectionItemView::clearItemsFromNoteFiltersManager()
+{
+    MSDEBUG("AbstractMultiSelectionItemView::clearItemsFromNoteFiltersManager");
+
+    if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+        MSDEBUG("Note filters manager is null");
+        return;
+    }
+
+    if (!m_pNoteFiltersManager->isReady()) {
+        MSDEBUG(
+            "Note filters manager is not ready yet, will "
+                << "postpone clearing items from it");
+
+        m_itemLocalUidsPendingNoteFiltersManagerReadiness.clear();
+
+        QObject::connect(
+            m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
+            &AbstractMultiSelectionItemView::onNoteFiltersManagerReady,
+            Qt::UniqueConnection);
+
+        return;
+    }
+
+    disconnectFromNoteFiltersManagerFilterChanged();
+    removeItemLocalUidsFromNoteFiltersManager(*m_pNoteFiltersManager);
+    connectToNoteFiltersManagerFilterChanged();
+}
+
+void AbstractMultiSelectionItemView::selectionChangedImpl(
+    const QItemSelection & selected, const QItemSelection & deselected)
+{
+    MSTRACE("AbstractMultiSelectionItemView::selectionChangedImpl");
+
+    if (!m_trackingSelection) {
+        MSTRACE("Not tracking selection at this time, skipping");
+        return;
+    }
+
+    Q_UNUSED(selected)
+    Q_UNUSED(deselected)
+
+    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    if (Q_UNLIKELY(!pItemModel)) {
+        MSDEBUG("Non-item model is used");
+        return;
+    }
+
+    const auto & account = pItemModel->account();
+
+    auto indexes = selectedIndexes();
+    if (indexes.isEmpty()) {
+        MSDEBUG("The new selection is empty");
+        handleNoSelectedItems(account);
+        return;
+    }
+
+    // FIXME: it should not be possible to have selected items and all items
+    // root item simultaneously - need to figure out what to filter out from the
+    // selection using "selected" and "deselected"
+
+    QStringList itemLocalUids;
+
+    for (const auto & selectedIndex: qAsConst(indexes)) {
+        if (!selectedIndex.isValid()) {
+            continue;
+        }
+
+        // A way to ensure only one index per row
+        if (selectedIndex.column() != 0) {
+            continue;
+        }
+
+        QString localUid = pItemModel->localUidForItemIndex(selectedIndex);
+        if (!localUid.isEmpty()) {
+            itemLocalUids << localUid;
+        }
+    }
+
+    if (Q_UNLIKELY(itemLocalUids.isEmpty())) {
+        MSDEBUG("Found no items within the selected indexes");
+        handleNoSelectedItems(account);
+        return;
+    }
+
+    saveSelectedItems(account, itemLocalUids);
+
+    if (shouldFilterBySelectedItems(account)) {
+        setItemsToNoteFiltersManager(itemLocalUids);
+    }
+    else {
+        MSDEBUG("Filtering by selected items is switched off");
+    }
 }
 
 } // namespace quentier

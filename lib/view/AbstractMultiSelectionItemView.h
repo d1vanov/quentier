@@ -21,6 +21,8 @@
 
 #include "ItemView.h"
 
+#include <quentier/types/ErrorString.h>
+
 #include <QPointer>
 
 namespace quentier {
@@ -46,6 +48,20 @@ public:
 
     void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
+    virtual void setModel(QAbstractItemModel * pModel) override;
+
+    /**
+     * @return      Valid model index if the selection exists and contains
+     *              exactly one row and invalid model index otherwise
+     */
+    QModelIndex currentlySelectedItemIndex() const;
+
+Q_SIGNALS:
+    void notifyError(ErrorString errorDescription);
+
+public Q_SLOTS:
+    void deleteSelectedItem();
+
 protected:
     /**
      * @brief saveItemsState method should persist expanded/collapsed states
@@ -53,27 +69,100 @@ protected:
      */
     virtual void saveItemsState() = 0;
 
+    /**
+     * @brief restoreItemsState method should restore previously persisted
+     * expanded/collapsed states of model items
+     */
+    virtual void restoreItemsState(const ItemModel & itemModel) = 0;
+
+    /**
+     * @brief saveSelectedItems method should persist the local uids of selected
+     * items so that they can be restored later when needed
+     */
+    virtual void saveSelectedItems(
+        const Account & account, const QStringList & itemLocalUids) = 0;
+
+    /**
+     * @brief restoreSelectedItems method should restore the selection of items
+     * using previously persisted selected items local uids
+     */
+    virtual void restoreSelectedItems(const ItemModel & itemModel) = 0;
+
+    /**
+     * @brief shouldFilterBySelectedItems method tells whether filtering by
+     * selected items should be enabled for this view
+     */
     virtual bool shouldFilterBySelectedItems(const Account & account) const = 0;
 
-    virtual const QStringList & localUidsFromNoteFiltersManager(
+    /**
+     * @brief localUidsInNoteFiltersManager method provides local uids of items
+     * which are used to filter notes via the passed in NoteFiltersManager
+     */
+    virtual const QStringList & localUidsInNoteFiltersManager(
         const NoteFiltersManager & noteFiltersManager) const = 0;
 
+    /**
+     * @brief setItemLocalUidsToNoteFiltersManager method is used to set local
+     * uids of view's items to the passed in NoteFiltersManager
+     */
+    virtual void setItemLocalUidsToNoteFiltersManager(
+        const QStringList & itemLocalUids,
+        NoteFiltersManager & noteFiltersManager) = 0;
+
+    /**
+     * @brief removeItemLocalUidsFromNoteFiltersManager method is used to remove
+     * local uids of view's items from the passed in NoteFiltersManager
+     */
+    virtual void removeItemLocalUidsFromNoteFiltersManager(
+        NoteFiltersManager & noteFiltersManager) = 0;
+
+    /**
+     * @brief connectToModel method should connect model specific signals to
+     * view specific views
+     */
+    virtual void connectToModel(ItemModel & itemModel) = 0;
+
+    /**
+     * @brief deleteItem method should attempt to delete the item pointed to
+     * by the passed in index from the model
+     */
+    virtual void deleteItem(
+        const QModelIndex & itemIndex, ItemModel & model) = 0;
+
 private Q_SLOTS:
+    void onAllItemsListed();
     void onItemCollapsedOrExpanded(const QModelIndex & index);
     void onNoteFilterChanged();
+    void onNoteFiltersManagerReady();
+
+    virtual void selectionChanged(
+        const QItemSelection & selected,
+        const QItemSelection & deselected) override;
 
 private:
     void disconnectFromNoteFiltersManagerFilterChanged();
     void connectToNoteFiltersManagerFilterChanged();
 
     void selectAllItemsRootItem(const ItemModel & model);
+    void handleNoSelectedItems(const Account & account);
+
+    void setItemsToNoteFiltersManager(const QStringList & itemLocalUids);
+    void clearItemsFromNoteFiltersManager();
+
+    void selectionChangedImpl(
+        const QItemSelection & selected, const QItemSelection & deselected);
 
 private:
     const QString m_modelTypeName;
 
     QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 
+    QStringList m_itemLocalUidsPendingNoteFiltersManagerReadiness;
+    bool m_restoreSelectedItemsWhenNoteFiltersManagerReady = false;
+
     bool m_trackingItemsState = false;
+    bool m_trackingSelection = false;
+    bool m_modelReady = false;
 };
 
 } // namespace quentier
