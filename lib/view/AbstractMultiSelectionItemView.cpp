@@ -20,9 +20,11 @@
 #include "ItemSelectionModel.h"
 
 #include <lib/model/ItemModel.h>
+#include <lib/preferences/SettingsNames.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
 
 namespace quentier {
@@ -386,6 +388,140 @@ void AbstractMultiSelectionItemView::connectToNoteFiltersManagerFilterChanged()
         m_pNoteFiltersManager.data(), &NoteFiltersManager::filterChanged, this,
         &AbstractMultiSelectionItemView::onNoteFilterChanged,
         Qt::UniqueConnection);
+}
+
+void AbstractMultiSelectionItemView::saveSelectedItems(
+    const Account & account, const QStringList & itemLocalUids)
+{
+    MSDEBUG(
+        "AbstractMultiSelectionItemView::saveSelectedItems: "
+            << itemLocalUids.join(QStringLiteral(", ")));
+
+    const QString & groupKey = selectedItemsGroupKey();
+    const QString & arrayKey = selectedItemsArrayKey();
+    const QString & itemKey = selectedItemsKey();
+
+    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(groupKey);
+
+    appSettings.beginWriteArray(arrayKey, itemLocalUids.size());
+
+    int i = 0;
+    for (const auto & itemLocalUid: qAsConst(itemLocalUids)) {
+        appSettings.setArrayIndex(i);
+        appSettings.setValue(itemKey, itemLocalUid);
+        ++i;
+    }
+
+    appSettings.endArray();
+    appSettings.endGroup();
+}
+
+void AbstractMultiSelectionItemView::restoreSelectedItems(
+    const ItemModel & model)
+{
+    MSDEBUG("AbstractMultiSelectionItemView::restoreSelectedItems");
+
+    auto * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Can't restore last selected items: "
+                       "no selection model in the view"))
+        return;
+    }
+
+    QStringList selectedItemLocalUids;
+
+    if (shouldFilterBySelectedItems(model.account())) {
+        if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
+            MSDEBUG("Note filters manager is null");
+            return;
+        }
+
+        if (Q_UNLIKELY(!m_pNoteFiltersManager->isReady())) {
+            MSDEBUG("Note filters manager is not ready yet");
+
+            m_restoreSelectedItemsWhenNoteFiltersManagerReady = true;
+
+            QObject::connect(
+                m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
+                &AbstractMultiSelectionItemView::onNoteFiltersManagerReady,
+                Qt::UniqueConnection);
+
+            return;
+        }
+
+        selectedItemLocalUids = m_pNoteFiltersManager->tagLocalUidsInFilter();
+    }
+    else {
+        MSDEBUG("Filtering by selected items is switched off");
+
+        const QString & groupKey = selectedItemsGroupKey();
+        const QString & arrayKey = selectedItemsArrayKey();
+        const QString & itemKey = selectedItemsKey();
+
+        ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(groupKey);
+
+        int size = appSettings.beginReadArray(arrayKey);
+        selectedItemLocalUids.reserve(size);
+
+        for (int i = 0; i < size; ++i) {
+            appSettings.setArrayIndex(i);
+
+            selectedItemLocalUids
+                << appSettings.value(itemKey).toString();
+        }
+
+        appSettings.endArray();
+
+        if (selectedItemLocalUids.isEmpty()) {
+            // Backward compatibility
+            selectedItemLocalUids
+                << appSettings.value(itemKey).toString();
+        }
+
+        appSettings.endGroup();
+    }
+
+    if (selectedItemLocalUids.isEmpty()) {
+        MSDEBUG("Found no last selected item local uids");
+        return;
+    }
+
+    MSTRACE(
+        "Selecting item local uids: "
+            << selectedItemLocalUids.join(QStringLiteral(", ")));
+
+    QModelIndexList selectedItemIndexes;
+    selectedItemIndexes.reserve(selectedItemLocalUids.size());
+
+    for (const auto & selectedItemLocalUid: qAsConst(selectedItemLocalUids)) {
+        auto selectedItemIndex = model.indexForLocalUid(selectedItemLocalUid);
+        if (Q_UNLIKELY(!selectedItemIndex.isValid())) {
+            MSDEBUG(
+                "Item model returned invalid index for item local uid: "
+                    << selectedItemLocalUid);
+            continue;
+        }
+
+        selectedItemIndexes << selectedItemIndex;
+    }
+
+    if (Q_UNLIKELY(selectedItemIndexes.isEmpty())) {
+        MSDEBUG("Found no valid model indexes of last selected items");
+        return;
+    }
+
+    QItemSelection selection;
+    for (const auto & selectedItemIndex: qAsConst(selectedItemIndexes)) {
+        selection.select(selectedItemIndex, selectedItemIndex);
+    }
+
+    pSelectionModel->select(
+        selection,
+        QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows |
+            QItemSelectionModel::Current);
 }
 
 void AbstractMultiSelectionItemView::selectAllItemsRootItem(

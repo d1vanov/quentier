@@ -76,17 +76,20 @@ protected:
     virtual void restoreItemsState(const ItemModel & itemModel) = 0;
 
     /**
-     * @brief saveSelectedItems method should persist the local uids of selected
-     * items so that they can be restored later when needed
+     * View's group key for ApplicationSettings entry to save/load selected
+     * items
      */
-    virtual void saveSelectedItems(
-        const Account & account, const QStringList & itemLocalUids) = 0;
+    virtual const QString & selectedItemsGroupKey() const = 0;
 
     /**
-     * @brief restoreSelectedItems method should restore the selection of items
-     * using previously persisted selected items local uids
+     * Array key for ApplicationSettings entry to save/load selected items
      */
-    virtual void restoreSelectedItems(const ItemModel & itemModel) = 0;
+    virtual const QString & selectedItemsArrayKey() const = 0;
+
+    /**
+     * Item key for ApplicationSettings entry to save/load selected items
+     */
+    virtual const QString & selectedItemsKey() const = 0;
 
     /**
      * @brief shouldFilterBySelectedItems method tells whether filtering by
@@ -142,6 +145,11 @@ private Q_SLOTS:
 private:
     void disconnectFromNoteFiltersManagerFilterChanged();
     void connectToNoteFiltersManagerFilterChanged();
+
+    void saveSelectedItems(
+        const Account & account, const QStringList & itemLocalUids);
+
+    void restoreSelectedItems(const ItemModel & model);
 
     void selectAllItemsRootItem(const ItemModel & model);
     void handleNoSelectedItems(const Account & account);
