@@ -269,7 +269,7 @@ void AbstractMultiSelectionItemView::onNoteFilterChanged()
         return;
     }
 
-    const auto & localUids = localUidsInNoteFiltersManager(
+    const auto localUids = localUidsInNoteFiltersManager(
         *m_pNoteFiltersManager);
 
     if (localUids.isEmpty()) {
@@ -375,6 +375,42 @@ void AbstractMultiSelectionItemView::selectionChanged(
     ItemView::selectionChanged(selected, deselected);
 }
 
+void AbstractMultiSelectionItemView::prepareForModelChange()
+{
+    MSDEBUG("AbstractMultiSelectionItemView::prepareForModelChange");
+
+    if (!m_modelReady) {
+        MSDEBUG("The model is not ready yet");
+        return;
+    }
+
+    saveItemsState();
+    m_trackingSelection = false;
+    m_trackingItemsState = false;
+}
+
+void AbstractMultiSelectionItemView::postProcessModelChange()
+{
+    MSDEBUG("AbstractMultiSelectionItemView::postProcessModelChange");
+
+    if (!m_modelReady) {
+        MSDEBUG("The model is not ready yet");
+        return;
+    }
+
+    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    if (Q_UNLIKELY(!pItemModel)) {
+        MSDEBUG("Non-item model is used");
+        return;
+    }
+
+    restoreItemsState(*pItemModel);
+    m_trackingItemsState = true;
+
+    restoreSelectedItems(*pItemModel);
+    m_trackingSelection = true;
+}
+
 void AbstractMultiSelectionItemView::disconnectFromNoteFiltersManagerFilterChanged()
 {
     QObject::disconnect(
@@ -397,9 +433,9 @@ void AbstractMultiSelectionItemView::saveSelectedItems(
         "AbstractMultiSelectionItemView::saveSelectedItems: "
             << itemLocalUids.join(QStringLiteral(", ")));
 
-    const QString & groupKey = selectedItemsGroupKey();
-    const QString & arrayKey = selectedItemsArrayKey();
-    const QString & itemKey = selectedItemsKey();
+    const QString groupKey = selectedItemsGroupKey();
+    const QString arrayKey = selectedItemsArrayKey();
+    const QString itemKey = selectedItemsKey();
 
     ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(groupKey);
@@ -456,9 +492,9 @@ void AbstractMultiSelectionItemView::restoreSelectedItems(
     else {
         MSDEBUG("Filtering by selected items is switched off");
 
-        const QString & groupKey = selectedItemsGroupKey();
-        const QString & arrayKey = selectedItemsArrayKey();
-        const QString & itemKey = selectedItemsKey();
+        const QString groupKey = selectedItemsGroupKey();
+        const QString arrayKey = selectedItemsArrayKey();
+        const QString itemKey = selectedItemsKey();
 
         ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
         appSettings.beginGroup(groupKey);

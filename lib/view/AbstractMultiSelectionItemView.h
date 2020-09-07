@@ -79,17 +79,17 @@ protected:
      * View's group key for ApplicationSettings entry to save/load selected
      * items
      */
-    virtual const QString & selectedItemsGroupKey() const = 0;
+    virtual QString selectedItemsGroupKey() const = 0;
 
     /**
      * Array key for ApplicationSettings entry to save/load selected items
      */
-    virtual const QString & selectedItemsArrayKey() const = 0;
+    virtual QString selectedItemsArrayKey() const = 0;
 
     /**
      * Item key for ApplicationSettings entry to save/load selected items
      */
-    virtual const QString & selectedItemsKey() const = 0;
+    virtual QString selectedItemsKey() const = 0;
 
     /**
      * @brief shouldFilterBySelectedItems method tells whether filtering by
@@ -101,7 +101,7 @@ protected:
      * @brief localUidsInNoteFiltersManager method provides local uids of items
      * which are used to filter notes via the passed in NoteFiltersManager
      */
-    virtual const QStringList & localUidsInNoteFiltersManager(
+    virtual QStringList localUidsInNoteFiltersManager(
         const NoteFiltersManager & noteFiltersManager) const = 0;
 
     /**
@@ -142,16 +142,21 @@ private Q_SLOTS:
         const QItemSelection & selected,
         const QItemSelection & deselected) override;
 
-private:
-    void disconnectFromNoteFiltersManagerFilterChanged();
-    void connectToNoteFiltersManagerFilterChanged();
-
+protected:
     void saveSelectedItems(
         const Account & account, const QStringList & itemLocalUids);
 
     void restoreSelectedItems(const ItemModel & model);
 
     void selectAllItemsRootItem(const ItemModel & model);
+
+    void prepareForModelChange();
+    void postProcessModelChange();
+
+private:
+    void disconnectFromNoteFiltersManagerFilterChanged();
+    void connectToNoteFiltersManagerFilterChanged();
+
     void handleNoSelectedItems(const Account & account);
 
     void setItemsToNoteFiltersManager(const QStringList & itemLocalUids);
