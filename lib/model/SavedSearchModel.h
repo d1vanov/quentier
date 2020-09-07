@@ -34,16 +34,11 @@
 #include <QSet>
 #include <QUuid>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
-
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index_container.hpp>
-
-RESTORE_WARNINGS
 
 namespace quentier {
 

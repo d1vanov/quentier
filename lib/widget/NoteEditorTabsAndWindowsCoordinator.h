@@ -36,13 +36,8 @@
 #include <QTabWidget>
 #include <QUuid>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
-
 #include <boost/bimap.hpp>
 #include <boost/circular_buffer.hpp>
-
-RESTORE_WARNINGS
 
 QT_FORWARD_DECLARE_CLASS(QMenu)
 QT_FORWARD_DECLARE_CLASS(QThread)

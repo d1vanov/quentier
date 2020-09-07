@@ -39,15 +39,10 @@
 #include <QStringList>
 #include <QUuid>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
-
 #include <boost/bimap.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
-
-RESTORE_WARNINGS
 
 #define TAG_MODEL_MIME_TYPE                                                    \
     QStringLiteral(                                                            \
