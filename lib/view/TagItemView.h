@@ -111,14 +111,6 @@ private:
 
 private:
     QMenu * m_pTagItemContextMenu = nullptr;
-    bool m_trackingTagItemsState = false;
-    bool m_trackingSelection = false;
-    bool m_modelReady = false;
-
-    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
-
-    bool m_restoreSelectedTagsWhenNoteFiltersManagerReady = false;
-    QStringList m_tagLocalUidsPendingNoteFiltersManagerReadiness;
 };
 
 } // namespace quentier

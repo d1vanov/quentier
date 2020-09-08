@@ -153,6 +153,12 @@ protected:
     void prepareForModelChange();
     void postProcessModelChange();
 
+    bool trackItemsStateEnabled() const;
+    void setTrackItemsStateEnabled(const bool enabled);
+
+    bool trackSelectionEnabled() const;
+    void setTrackSelectionEnabled(const bool enabled);
+
 private:
     void disconnectFromNoteFiltersManagerFilterChanged();
     void connectToNoteFiltersManagerFilterChanged();

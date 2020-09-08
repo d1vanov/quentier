@@ -155,8 +155,8 @@ void TagItemView::restoreItemsState(const ItemModel & model)
 
     appSettings.endGroup();
 
-    bool wasTrackingTagItemsState = m_trackingTagItemsState;
-    m_trackingTagItemsState = false;
+    bool wasTrackingTagItemsState = trackItemsStateEnabled();
+    setTrackItemsStateEnabled(false);
 
     setTagsExpanded(expandedTagItemsLocalUids, *pTagModel);
     setLinkedNotebooksExpanded(expandedLinkedNotebookItemsGuids, *pTagModel);
@@ -169,7 +169,7 @@ void TagItemView::restoreItemsState(const ItemModel & model)
     auto allTagsRootItemIndex = model.index(0, 0);
     setExpanded(allTagsRootItemIndex, allTagsRootItemExpanded);
 
-    m_trackingTagItemsState = wasTrackingTagItemsState;
+    setTrackItemsStateEnabled(wasTrackingTagItemsState);
 }
 
 QString TagItemView::selectedItemsGroupKey() const
@@ -486,12 +486,12 @@ void TagItemView::onPromoteTagAction()
 
     saveItemsState();
 
-    bool wasTrackingSelection = m_trackingSelection;
-    m_trackingSelection = false;
+    bool wasTrackingSelection = trackSelectionEnabled();
+    setTrackSelectionEnabled(false);
 
     auto promotedItemIndex = pTagModel->promote(itemIndex);
 
-    m_trackingSelection = wasTrackingSelection;
+    setTrackSelectionEnabled(wasTrackingSelection);
 
     if (promotedItemIndex.isValid()) {
         QNDEBUG("view:tag", "Successfully promoted the tag");
@@ -541,12 +541,12 @@ void TagItemView::onDemoteTagAction()
 
     saveItemsState();
 
-    bool wasTrackingSelection = m_trackingSelection;
-    m_trackingSelection = false;
+    bool wasTrackingSelection = trackSelectionEnabled();
+    setTrackSelectionEnabled(false);
 
     auto demotedItemIndex = pTagModel->demote(itemIndex);
 
-    m_trackingSelection = wasTrackingSelection;
+    setTrackSelectionEnabled(wasTrackingSelection);
 
     if (demotedItemIndex.isValid()) {
         QNDEBUG("view:tag", "Successfully demoted the tag");
@@ -597,12 +597,12 @@ void TagItemView::onRemoveFromParentTagAction()
 
     saveItemsState();
 
-    bool wasTrackingSelection = m_trackingSelection;
-    m_trackingSelection = false;
+    bool wasTrackingSelection = trackSelectionEnabled();
+    setTrackSelectionEnabled(false);
 
     auto removedFromParentItemIndex = pTagModel->removeFromParent(itemIndex);
 
-    m_trackingSelection = wasTrackingSelection;
+    setTrackSelectionEnabled(wasTrackingSelection);
 
     if (removedFromParentItemIndex.isValid()) {
         QNDEBUG("view:tag", "Successfully removed the tag from parent");
@@ -657,11 +657,12 @@ void TagItemView::onMoveTagToParentAction()
 
     const QString & parentTagName = itemLocalUidAndParentName.at(1);
 
-    bool wasTrackingSelection = m_trackingSelection;
-    m_trackingSelection = false;
+    bool wasTrackingSelection = trackSelectionEnabled();
+    setTrackSelectionEnabled(false);
 
     auto movedTagItemIndex = pTagModel->moveToParent(itemIndex, parentTagName);
-    m_trackingSelection = wasTrackingSelection;
+
+    setTrackSelectionEnabled(wasTrackingSelection);
 
     if (!movedTagItemIndex.isValid()) {
         REPORT_ERROR(QT_TR_NOOP("Can't move tag to parent"))
@@ -736,12 +737,12 @@ void TagItemView::onTagParentChanged(const QModelIndex & tagIndex)
     if (Q_LIKELY(pItem && pItem->parent())) {
         auto parentIndex = pTagModel->indexForItem(pItem->parent());
 
-        bool wasTrackingTagItemsState = m_trackingTagItemsState;
-        m_trackingTagItemsState = false;
+        bool wasTrackingTagItemsState = trackItemsStateEnabled();
+        setTrackItemsStateEnabled(false);
 
         setExpanded(parentIndex, true);
 
-        m_trackingTagItemsState = wasTrackingTagItemsState;
+        setTrackItemsStateEnabled(wasTrackingTagItemsState);
     }
 
     restoreItemsState(*pTagModel);

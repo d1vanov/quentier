@@ -411,6 +411,28 @@ void AbstractMultiSelectionItemView::postProcessModelChange()
     m_trackingSelection = true;
 }
 
+bool AbstractMultiSelectionItemView::trackItemsStateEnabled() const
+{
+    return m_trackingItemsState;
+}
+
+void AbstractMultiSelectionItemView::setTrackItemsStateEnabled(
+    const bool enabled)
+{
+    m_trackingItemsState = enabled;
+}
+
+bool AbstractMultiSelectionItemView::trackSelectionEnabled() const
+{
+    return m_trackingSelection;
+}
+
+void AbstractMultiSelectionItemView::setTrackSelectionEnabled(
+    const bool enabled)
+{
+    m_trackingSelection = enabled;
+}
+
 void AbstractMultiSelectionItemView::disconnectFromNoteFiltersManagerFilterChanged()
 {
     QObject::disconnect(
