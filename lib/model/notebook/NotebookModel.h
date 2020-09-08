@@ -805,8 +805,6 @@ private:
         Qt::ItemFlags flags) const;
 
 private:
-    Account m_account;
-
     NotebookData m_data;
 
     INotebookModelItem * m_pInvisibleRootItem = nullptr;
