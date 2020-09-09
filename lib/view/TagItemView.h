@@ -21,10 +21,6 @@
 
 #include "AbstractMultiSelectionItemView.h"
 
-#include <quentier/types/ErrorString.h>
-
-#include <QPointer>
-
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(Account)
