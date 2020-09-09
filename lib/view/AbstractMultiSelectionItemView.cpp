@@ -264,7 +264,7 @@ void AbstractMultiSelectionItemView::onNoteFilterChanged()
     }
 
     if (!m_pNoteFiltersManager->savedSearchLocalUidInFilter().isEmpty()) {
-        QNDEBUG("view:tag", "Filter by saved search is active");
+        MSDEBUG("Filter by saved search is active");
         selectAllItemsRootItem(*pItemModel);
         return;
     }
@@ -280,11 +280,11 @@ void AbstractMultiSelectionItemView::onNoteFilterChanged()
 
     auto * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        QNWARNING("view:tag", "No selection model, can't update selection");
+        MSWARNING("No selection model, can't update selection");
         return;
     }
 
-    // Check whether current selection matches tag local uids
+    // Check whether current selection matches item local uids
     bool selectionIsActual = true;
     auto indexes = pSelectionModel->selectedIndexes();
     if (indexes.size() != localUids.size()) {
@@ -509,7 +509,7 @@ void AbstractMultiSelectionItemView::restoreSelectedItems(
             return;
         }
 
-        selectedItemLocalUids = m_pNoteFiltersManager->tagLocalUidsInFilter();
+        selectedItemLocalUids = localUidsInNoteFiltersManager(*m_pNoteFiltersManager);
     }
     else {
         MSDEBUG("Filtering by selected items is switched off");
