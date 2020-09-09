@@ -212,8 +212,7 @@ QStringList TagItemView::localUidsInNoteFiltersManager(
 }
 
 void TagItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids,
-    NoteFiltersManager & noteFiltersManager)
+    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
 {
     noteFiltersManager.setTagsToFilter(itemLocalUids);
 }

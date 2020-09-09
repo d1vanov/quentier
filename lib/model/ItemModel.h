@@ -235,7 +235,7 @@ Q_SIGNALS:
     void notifyAllItemsListed();
 
 protected:
-    Account     m_account;
+    Account m_account;
 };
 
 } // namespace quentier

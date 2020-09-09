@@ -41,8 +41,10 @@ bool ItemSelectionModel::selectImpl(
     const QItemSelection & selection,
     QItemSelectionModel::SelectionFlags command)
 {
-    QNDEBUG("view:item_selection_model", "ItemSelectionModel::selectImpl: "
-        << "command = " << command);
+    QNDEBUG(
+        "view:item_selection_model",
+        "ItemSelectionModel::selectImpl: "
+            << "command = " << command);
 
     auto * pItemModel = qobject_cast<ItemModel *>(model());
     if (!pItemModel) {

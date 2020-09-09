@@ -903,8 +903,7 @@ QModelIndex NotebookModel::allItemsRootItemIndex() const
     return indexForItem(m_pAllNotebooksRootItem);
 }
 
-QString NotebookModel::localUidForItemIndex(
-    const QModelIndex & index) const
+QString NotebookModel::localUidForItemIndex(const QModelIndex & index) const
 {
     auto * pModelItem = itemForIndex(index);
     if (!pModelItem) {

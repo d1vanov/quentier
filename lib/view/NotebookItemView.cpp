@@ -216,8 +216,7 @@ void NotebookItemView::restoreItemsState(const ItemModel & model)
 {
     QNDEBUG("view:notebook", "NotebookItemView::restoreItemsState");
 
-    const auto * pNotebookModel =
-        qobject_cast<const NotebookModel *>(&model);
+    const auto * pNotebookModel = qobject_cast<const NotebookModel *>(&model);
     if (Q_UNLIKELY(!pNotebookModel)) {
         QNWARNING("view:notebook", "Non-notebook model is used");
         return;
@@ -273,7 +272,8 @@ void NotebookItemView::restoreItemsState(const ItemModel & model)
         setStacksExpanded(it.value(), *pNotebookModel, it.key());
     }
 
-    setLinkedNotebooksExpanded(expandedLinkedNotebookItemsGuids, *pNotebookModel);
+    setLinkedNotebooksExpanded(
+        expandedLinkedNotebookItemsGuids, *pNotebookModel);
 
     bool allNotebooksRootItemExpanded = true;
     if (allNotebooksRootItemExpandedPreference.isValid()) {
@@ -328,8 +328,7 @@ QStringList NotebookItemView::localUidsInNoteFiltersManager(
 }
 
 void NotebookItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids,
-    NoteFiltersManager & noteFiltersManager)
+    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
 {
     noteFiltersManager.setNotebooksToFilter(itemLocalUids);
 }
@@ -703,8 +702,7 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
     }
 
     QNDEBUG(
-        "view:notebook",
-        "Successfully removed notebook items from the stack");
+        "view:notebook", "Successfully removed notebook items from the stack");
 }
 
 void NotebookItemView::onFavoriteAction()
@@ -837,8 +835,7 @@ void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     auto * pNotebookModel = qobject_cast<NotebookModel *>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
         QNDEBUG(
-            "view:notebook",
-            "Non-notebook model is used, not doing anything");
+            "view:notebook", "Non-notebook model is used, not doing anything");
         return;
     }
 

@@ -23,8 +23,7 @@
 namespace quentier {
 
 ItemModel::ItemModel(const Account & account, QObject * parent) :
-    QAbstractItemModel(parent),
-    m_account(account)
+    QAbstractItemModel(parent), m_account(account)
 {}
 
 ItemModel::~ItemModel() {}

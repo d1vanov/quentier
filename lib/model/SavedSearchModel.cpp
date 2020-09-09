@@ -357,8 +357,8 @@ QString SavedSearchModel::localUidForItemIndex(const QModelIndex & index) const
     int row = index.row();
     int column = index.column();
 
-    if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
-        (column < 0) || (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) || (column < 0) ||
+        (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
     {
         return {};
     }

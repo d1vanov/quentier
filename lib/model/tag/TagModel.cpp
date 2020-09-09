@@ -241,8 +241,7 @@ QModelIndex TagModel::allItemsRootItemIndex() const
     return indexForItem(m_pAllTagsRootItem);
 }
 
-QString TagModel::localUidForItemIndex(
-    const QModelIndex & index) const
+QString TagModel::localUidForItemIndex(const QModelIndex & index) const
 {
     auto * pModelItem = itemForIndex(index);
     if (!pModelItem) {
