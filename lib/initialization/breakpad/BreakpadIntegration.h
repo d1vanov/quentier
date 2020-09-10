@@ -30,8 +30,7 @@ void setupBreakpad(const QApplication & app);
 void detachBreakpad();
 
 void findCompressedSymbolsFiles(
-    const QApplication & app,
-    QString & quentierCompressedSymbolsFilePath,
+    const QApplication & app, QString & quentierCompressedSymbolsFilePath,
     QString & libquentierCompressedSymbolsFilePath);
 
 } // namespace quentier

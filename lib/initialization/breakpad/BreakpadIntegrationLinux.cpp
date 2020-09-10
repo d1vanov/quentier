@@ -22,9 +22,9 @@
 
 SAVE_WARNINGS
 
-CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
-CLANG_SUPPRESS_WARNING(-Wsign-conversion)
-CLANG_SUPPRESS_WARNING(-Wimplicit-int-conversion)
+CLANG_SUPPRESS_WARNING(-Wshorten - 64 - to - 32)
+CLANG_SUPPRESS_WARNING(-Wsign - conversion)
+CLANG_SUPPRESS_WARNING(-Wimplicit - int - conversion)
 GCC_SUPPRESS_WARNING(-Wconversion)
 MSVC_SUPPRESS_WARNING(4365)
 MSVC_SUPPRESS_WARNING(4244)
@@ -34,8 +34,8 @@ MSVC_SUPPRESS_WARNING(4305)
 
 RESTORE_WARNINGS
 
-#include <QGlobalStatic>
 #include <QFileInfo>
+#include <QGlobalStatic>
 #include <QProcess>
 #include <QStringList>
 
@@ -49,15 +49,15 @@ Q_GLOBAL_STATIC(QString, libquentierSymbolsFilePath)
 Q_GLOBAL_STATIC(QString, quentierMinidumpStackwalkFilePath)
 
 static bool dumpCallback(
-    const google_breakpad::MinidumpDescriptor & descriptor,
-    void * context, bool succeeded)
+    const google_breakpad::MinidumpDescriptor & descriptor, void * context,
+    bool succeeded)
 {
     Q_UNUSED(context)
 
     pid_t p = fork();
-    if (p == 0)
-    {
-        QString minidumpFileLocation = QString::fromLocal8Bit(descriptor.path());
+    if (p == 0) {
+        QString minidumpFileLocation =
+            QString::fromLocal8Bit(descriptor.path());
 
         QStringList crashHandlerArgs;
 
@@ -69,22 +69,18 @@ static bool dumpCallback(
         auto * pProcessHandle = new QProcess();
 
         QObject::connect(
-            pProcessHandle,
-            SIGNAL(finished(int,QProcess::ExitStatus)),
-            pProcessHandle,
-            SLOT(deleteLater()));
+            pProcessHandle, SIGNAL(finished(int, QProcess::ExitStatus)),
+            pProcessHandle, SLOT(deleteLater()));
 
         QString * pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
 
         Q_UNUSED(pProcessHandle->start(
-            *pQuentierCrashHandlerFilePath,
-            crashHandlerArgs))
+            *pQuentierCrashHandlerFilePath, crashHandlerArgs))
 
         pProcessHandle->waitForFinished(-1);
         return true;
     }
-    else
-    {
+    else {
         printf("Dump path: %s\n", descriptor.path());
         return succeeded;
     }
@@ -98,28 +94,19 @@ void setupBreakpad(const QApplication & app)
     QString appFilePath = app.applicationFilePath();
     QFileInfo appFileInfo(appFilePath);
 
-    *quentierCrashHandlerFilePath =
-        appFileInfo.absolutePath() +
+    *quentierCrashHandlerFilePath = appFileInfo.absolutePath() +
         QString::fromUtf8("/quentier_crash_handler");
 
-    *quentierMinidumpStackwalkFilePath =
-        appFileInfo.absolutePath() +
+    *quentierMinidumpStackwalkFilePath = appFileInfo.absolutePath() +
         QString::fromUtf8("/quentier_minidump_stackwalk");
 
     findCompressedSymbolsFiles(
-        app,
-        *quentierSymbolsFilePath,
-        *libquentierSymbolsFilePath);
+        app, *quentierSymbolsFilePath, *libquentierSymbolsFilePath);
 
     pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
 
     pBreakpadHandler = new google_breakpad::ExceptionHandler(
-        *pBreakpadDescriptor,
-        nullptr,
-        dumpCallback,
-        nullptr,
-        true,
-        -1);
+        *pBreakpadDescriptor, nullptr, dumpCallback, nullptr, true, -1);
 }
 
 void detachBreakpad()

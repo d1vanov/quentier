@@ -35,51 +35,43 @@ int main(int argc, char * argv[])
         args.pop_front();
     }
 
-    if (args.size() < 4)  {
+    if (args.size() < 4) {
         qWarning() << "Usage: quentier_crash_handler <compressed "
-            << "quentier symbols file location> "
-            << "<compressed libquentier symbols file location> "
-            << "<stackwalker tool location> "
-            << "<minidump file location>";
+                   << "quentier symbols file location> "
+                   << "<compressed libquentier symbols file location> "
+                   << "<stackwalker tool location> "
+                   << "<minidump file location>";
         return 1;
     }
 
     QIcon icon;
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_512.png"),
-        QSize(512, 512));
+        QStringLiteral(":/app_icons/quentier_icon_512.png"), QSize(512, 512));
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_256.png"),
-        QSize(256, 256));
+        QStringLiteral(":/app_icons/quentier_icon_256.png"), QSize(256, 256));
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_128.png"),
-        QSize(128, 128));
+        QStringLiteral(":/app_icons/quentier_icon_128.png"), QSize(128, 128));
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_64.png"),
-        QSize(64, 64));
+        QStringLiteral(":/app_icons/quentier_icon_64.png"), QSize(64, 64));
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_48.png"),
-        QSize(48, 48));
+        QStringLiteral(":/app_icons/quentier_icon_48.png"), QSize(48, 48));
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_32.png"),
-        QSize(32, 32));
+        QStringLiteral(":/app_icons/quentier_icon_32.png"), QSize(32, 32));
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_16.png"),
-        QSize(16, 16));
+        QStringLiteral(":/app_icons/quentier_icon_16.png"), QSize(16, 16));
 
     app.setWindowIcon(icon);
 
     MainWindow window(args.at(0), args.at(1), args.at(2), args.at(3));
     auto * pDesktopWidget = QApplication::desktop();
-    if (pDesktopWidget)
-    {
+    if (pDesktopWidget) {
         int screenWidth = pDesktopWidget->width();
         int screenHeight = pDesktopWidget->height();
 

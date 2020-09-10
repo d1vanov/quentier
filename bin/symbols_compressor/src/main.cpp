@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
 
     if (args.size() < 2) {
         qWarning() << "Usage: " << argv[0] << " <symbols file location>, args: "
-            << QString::number(args.size());
+                   << QString::number(args.size());
         return 1;
     }
 

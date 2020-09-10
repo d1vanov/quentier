@@ -29,7 +29,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow: public QMainWindow
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
@@ -37,8 +37,7 @@ public:
         const QString & quentierSymbolsFileLocation,
         const QString & libquentierSymbolsFileLocation,
         const QString & stackwalkBinaryLocation,
-        const QString & minidumpLocation,
-        QWidget * parent = nullptr);
+        const QString & minidumpLocation, QWidget * parent = nullptr);
 
     virtual ~MainWindow() override;
 
@@ -56,16 +55,16 @@ private:
     QString versionInfos() const;
 
 private:
-    Ui::MainWindow *    m_pUi;
+    Ui::MainWindow * m_pUi;
 
-    int                 m_numPendingSymbolsUnpackers = 0;
+    int m_numPendingSymbolsUnpackers = 0;
 
-    QString             m_minidumpLocation;
-    QString             m_stackwalkBinary;
-    QString             m_unpackedSymbolsRootPath;
-    QString             m_symbolsUnpackingErrors;
-    QString             m_output;
-    QString             m_error;
+    QString m_minidumpLocation;
+    QString m_stackwalkBinary;
+    QString m_unpackedSymbolsRootPath;
+    QString m_symbolsUnpackingErrors;
+    QString m_output;
+    QString m_error;
 };
 
 #endif // QUENTIER_CRASH_HANDLER_MAINWINDOW_H

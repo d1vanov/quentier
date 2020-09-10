@@ -26,14 +26,13 @@
 #include <QRunnable>
 #include <QString>
 
-class SymbolsUnpacker: public QObject, public QRunnable
+class SymbolsUnpacker : public QObject, public QRunnable
 {
     Q_OBJECT
 public:
     explicit SymbolsUnpacker(
         const QString & compressedSymbolsFilePath,
-        const QString & unpackedSymbolsRootPath,
-        QObject * parent = nullptr);
+        const QString & unpackedSymbolsRootPath, QObject * parent = nullptr);
 
     virtual ~SymbolsUnpacker() override;
 
@@ -43,8 +42,8 @@ Q_SIGNALS:
     void finished(bool status, QString errorDescription);
 
 private:
-    QString     m_compressedSymbolsFilePath;
-    QString     m_unpackedSymbolsRootPath;
+    QString m_compressedSymbolsFilePath;
+    QString m_unpackedSymbolsRootPath;
 };
 
 #endif // QUENTIER_CRASH_HANDLER_SYMBOLS_UNPACKER_H
