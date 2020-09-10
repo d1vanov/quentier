@@ -71,7 +71,8 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
     m_addNotebookRequestId = QUuid();
 
     if (!m_pNoteFiltersManager.isNull()) {
-        m_pNoteFiltersManager->setNotebookToFilter(notebook.localUid());
+        m_pNoteFiltersManager->setNotebooksToFilter(
+            QStringList() << notebook.localUid());
     }
 
     emitAddNoteRequest(notebook);

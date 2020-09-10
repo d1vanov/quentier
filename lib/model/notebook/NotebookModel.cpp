@@ -45,8 +45,8 @@ NotebookModel::NotebookModel(
     const Account & account,
     LocalStorageManagerAsync & localStorageManagerAsync, NotebookCache & cache,
     QObject * parent) :
-    ItemModel(parent),
-    m_account(account), m_cache(cache)
+    ItemModel(account, parent),
+    m_cache(cache)
 {
     createConnections(localStorageManagerAsync);
 
@@ -128,21 +128,6 @@ QModelIndex NotebookModel::indexForItem(const INotebookModelItem * pItem) const
     }
 
     return createIndex(row, static_cast<int>(Column::Name), id);
-}
-
-QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
-{
-    const auto & localUidIndex = m_data.get<ByLocalUid>();
-    auto it = localUidIndex.find(localUid);
-    if (it == localUidIndex.end()) {
-        QNTRACE(
-            "model:notebook",
-            "Found no notebook model item for local uid " << localUid);
-        return {};
-    }
-
-    const auto & item = *it;
-    return indexForItem(&item);
 }
 
 QModelIndex NotebookModel::indexForNotebookName(
@@ -334,11 +319,6 @@ QStringList NotebookModel::notebookNames(
     }
 
     return result;
-}
-
-QModelIndexList NotebookModel::persistentIndexes() const
-{
-    return persistentIndexList();
 }
 
 QModelIndex NotebookModel::defaultNotebookIndex() const
@@ -800,6 +780,21 @@ QString NotebookModel::localUidForItemName(
     return pNotebookItem->localUid();
 }
 
+QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
+{
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (it == localUidIndex.end()) {
+        QNTRACE(
+            "model:notebook",
+            "Found no notebook model item for local uid " << localUid);
+        return {};
+    }
+
+    const auto & item = *it;
+    return indexForItem(&item);
+}
+
 QString NotebookModel::itemNameForLocalUid(const QString & localUid) const
 {
     QNTRACE(
@@ -894,6 +889,46 @@ QString NotebookModel::linkedNotebookUsername(
     if (it != m_linkedNotebookItems.end()) {
         const auto & item = it.value();
         return item.username();
+    }
+
+    return {};
+}
+
+QModelIndex NotebookModel::allItemsRootItemIndex() const
+{
+    if (Q_UNLIKELY(!m_pAllNotebooksRootItem)) {
+        return {};
+    }
+
+    return indexForItem(m_pAllNotebooksRootItem);
+}
+
+QString NotebookModel::localUidForItemIndex(const QModelIndex & index) const
+{
+    auto * pModelItem = itemForIndex(index);
+    if (!pModelItem) {
+        return {};
+    }
+
+    auto * pNotebookItem = pModelItem->cast<NotebookItem>();
+    if (pNotebookItem) {
+        return pNotebookItem->localUid();
+    }
+
+    return {};
+}
+
+QString NotebookModel::linkedNotebookGuidForItemIndex(
+    const QModelIndex & index) const
+{
+    auto * pModelItem = itemForIndex(index);
+    if (!pModelItem) {
+        return {};
+    }
+
+    auto * pLinkedNotebookItem = pModelItem->cast<LinkedNotebookRootItem>();
+    if (pLinkedNotebookItem) {
+        return pLinkedNotebookItem->linkedNotebookGuid();
     }
 
     return {};

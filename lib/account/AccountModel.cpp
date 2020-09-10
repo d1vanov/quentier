@@ -48,7 +48,9 @@ void AccountModel::setAccounts(const QVector<Account> & accounts)
         }
 
         strm.flush();
-        QNTRACE("account", str);
+        if (!str.isEmpty()) {
+            QNTRACE("account", str);
+        }
     }
 
     if (m_accounts == accounts) {

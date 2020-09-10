@@ -19,6 +19,8 @@
 #include "ListItemWidget.h"
 #include "ui_ListItemWidget.h"
 
+#include <quentier/logging/QuentierLogger.h>
+
 namespace quentier {
 
 ListItemWidget::ListItemWidget(
@@ -36,8 +38,13 @@ ListItemWidget::ListItemWidget(
     m_pUi->linkedNotebookUsernameLabel->hide();
 
     QObject::connect(
-        m_pUi->deleteItemButton, &QPushButton::clicked, this,
+        m_pUi->deleteItemButton, &QPushButton::pressed, this,
         &ListItemWidget::onRemoveItemButtonPressed);
+
+    QNDEBUG(
+        "widget:list_item_widget",
+        "Created new ListItemWidget: local "
+            << "uid = " << m_itemLocalUid << ", name = " << itemName);
 }
 
 ListItemWidget::ListItemWidget(
@@ -64,12 +71,26 @@ ListItemWidget::ListItemWidget(
     adjustSize();
 
     QObject::connect(
-        m_pUi->deleteItemButton, &QPushButton::clicked, this,
+        m_pUi->deleteItemButton, &QPushButton::pressed, this,
         &ListItemWidget::onRemoveItemButtonPressed);
+
+    QNDEBUG(
+        "widget:list_item_widget",
+        "Created new ListItemWidget: local "
+            << "uid = " << m_itemLocalUid << ", name = " << itemName
+            << ", linked notebook guid = " << m_linkedNotebookGuid
+            << ", linked noteobok username = " << linkedNotebookUsername);
 }
 
 ListItemWidget::~ListItemWidget()
 {
+    QNDEBUG(
+        "widget:list_item_widget",
+        "Destroying ListItemWidget: "
+            << "local uid " << m_itemLocalUid
+            << ", item name: " << m_pUi->itemNameLabel->text()
+            << ", linked notebook guid = " << m_linkedNotebookGuid);
+
     delete m_pUi;
 }
 
@@ -139,6 +160,13 @@ void ListItemWidget::setItemRemovable(bool removable)
 
 void ListItemWidget::onRemoveItemButtonPressed()
 {
+    QNDEBUG(
+        "widget:list_item_widget",
+        "Remove button pressed on item with "
+            << "local uid " << m_itemLocalUid
+            << ", item name: " << m_pUi->itemNameLabel->text()
+            << ", linked notebook guid = " << m_linkedNotebookGuid);
+
     Q_EMIT itemRemovedFromList(
         m_itemLocalUid, m_pUi->itemNameLabel->text(), m_linkedNotebookGuid,
         m_pUi->linkedNotebookUsernameLabel->text());

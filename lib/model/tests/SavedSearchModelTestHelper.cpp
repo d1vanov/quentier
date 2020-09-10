@@ -190,7 +190,7 @@ void SavedSearchModelTestHelper::test()
             QStringLiteral("Evernote user"), Account::Type::Evernote,
             qevercloud::UserID(1));
 
-        model->updateAccount(account);
+        model->setAccount(account);
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
@@ -387,7 +387,7 @@ void SavedSearchModelTestHelper::test()
         // Set the account to local again to test accounting for saved search
         // name reservation in create/remove/create cycles
         account = Account(QStringLiteral("Local user"), Account::Type::Local);
-        model->updateAccount(account);
+        model->setAccount(account);
 
         // Should not be able to create the saved search with existing name
         ErrorString errorDescription;

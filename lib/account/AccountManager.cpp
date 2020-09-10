@@ -33,12 +33,7 @@
 #include <QDebug>
 #include <QXmlStreamWriter>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
-
 #include <boost/scope_exit.hpp>
-
-RESTORE_WARNINGS
 
 #include <memory>
 

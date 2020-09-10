@@ -30,12 +30,7 @@
 #include <QObject>
 #include <QUuid>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
-
 #include <boost/bimap.hpp>
-
-RESTORE_WARNINGS
 
 namespace quentier {
 

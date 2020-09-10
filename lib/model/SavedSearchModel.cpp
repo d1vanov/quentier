@@ -44,22 +44,14 @@ SavedSearchModel::SavedSearchModel(
     const Account & account,
     LocalStorageManagerAsync & localStorageManagerAsync,
     SavedSearchCache & cache, QObject * parent) :
-    ItemModel(parent),
-    m_account(account), m_cache(cache)
+    ItemModel(account, parent),
+    m_cache(cache)
 {
     createConnections(localStorageManagerAsync);
     requestSavedSearchesList();
 }
 
 SavedSearchModel::~SavedSearchModel() = default;
-
-void SavedSearchModel::updateAccount(const Account & account)
-{
-    QNDEBUG(
-        "model:saved_search", "SavedSearchModel::updateAccount: " << account);
-
-    m_account = account;
-}
 
 const SavedSearchModelItem * SavedSearchModel::itemForIndex(
     const QModelIndex & modelIndex) const
@@ -95,13 +87,6 @@ QModelIndex SavedSearchModel::indexForItem(
     }
 
     return indexForLocalUid(pItem->m_localUid);
-}
-
-QModelIndex SavedSearchModel::indexForLocalUid(const QString & localUid) const
-{
-    const auto & localUidIndex = m_data.get<ByLocalUid>();
-    auto it = localUidIndex.find(localUid);
-    return indexForLocalUidIndexIterator(it);
 }
 
 QModelIndex SavedSearchModel::indexForSavedSearchName(
@@ -300,6 +285,13 @@ QString SavedSearchModel::localUidForItemName(
     return pItem->m_localUid;
 }
 
+QModelIndex SavedSearchModel::indexForLocalUid(const QString & localUid) const
+{
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    return indexForLocalUidIndexIterator(it);
+}
+
 QString SavedSearchModel::itemNameForLocalUid(const QString & localUid) const
 {
     QNDEBUG(
@@ -354,6 +346,25 @@ QString SavedSearchModel::linkedNotebookUsername(
 {
     Q_UNUSED(linkedNotebookGuid)
     return {};
+}
+
+QString SavedSearchModel::localUidForItemIndex(const QModelIndex & index) const
+{
+    if (!index.isValid()) {
+        return {};
+    }
+
+    int row = index.row();
+    int column = index.column();
+
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) || (column < 0) ||
+        (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
+    {
+        return {};
+    }
+
+    const auto & item = m_data.get<ByIndex>()[static_cast<size_t>(row)];
+    return item.m_localUid;
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
@@ -1357,8 +1368,7 @@ QVariant SavedSearchModel::dataImpl(
         return {};
     }
 
-    const SavedSearchModelItem & item =
-        m_data.get<ByIndex>()[static_cast<size_t>(row)];
+    const auto & item = m_data.get<ByIndex>()[static_cast<size_t>(row)];
     switch (column) {
     case Columns::Name:
         return QVariant(item.m_name);

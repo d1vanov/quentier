@@ -19,11 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_TAG_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_TAG_ITEM_VIEW_H
 
-#include "ItemView.h"
-
-#include <quentier/types/ErrorString.h>
-
-#include <QPointer>
+#include "AbstractMultiSelectionItemView.h"
 
 namespace quentier {
 
@@ -31,33 +27,44 @@ QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class TagItemView : public ItemView
+class TagItemView : public AbstractMultiSelectionItemView
 {
     Q_OBJECT
 public:
     explicit TagItemView(QWidget * parent = nullptr);
 
-    void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
-
-    virtual void setModel(QAbstractItemModel * pModel) override;
-
-    /**
-     * @return      Valid model index if the selection exists and contains
-     *              exactly one row and invalid model index otherwise
-     */
-    QModelIndex currentlySelectedItemIndex() const;
-
 Q_SIGNALS:
-    void notifyError(ErrorString error);
     void newTagCreationRequested();
     void tagInfoRequested();
 
-public Q_SLOTS:
-    void deleteSelectedItem();
+private:
+    // AbstractMultiSelectionItemView interface
+    virtual void saveItemsState() override;
+    virtual void restoreItemsState(const ItemModel & itemModel) override;
+
+    virtual QString selectedItemsGroupKey() const override;
+    virtual QString selectedItemsArrayKey() const override;
+    virtual QString selectedItemsKey() const override;
+
+    virtual bool shouldFilterBySelectedItems(
+        const Account & account) const override;
+
+    virtual QStringList localUidsInNoteFiltersManager(
+        const NoteFiltersManager & noteFiltersManager) const override;
+
+    virtual void setItemLocalUidsToNoteFiltersManager(
+        const QStringList & itemLocalUids,
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void removeItemLocalUidsFromNoteFiltersManager(
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void connectToModel(ItemModel & itemModel) override;
+
+    virtual void deleteItem(
+        const QModelIndex & itemIndex, ItemModel & model) override;
 
 private Q_SLOTS:
-    void onAllTagsListed();
-
     void onAboutToAddTag();
     void onAddedTag(const QModelIndex & index);
 
@@ -82,63 +89,24 @@ private Q_SLOTS:
     void onFavoriteAction();
     void onUnfavoriteAction();
 
-    void onTagItemCollapsedOrExpanded(const QModelIndex & index);
     void onTagParentChanged(const QModelIndex & index);
-
-    void onNoteFilterChanged();
-
-    void onNoteFiltersManagerReady();
-
-    virtual void selectionChanged(
-        const QItemSelection & selected,
-        const QItemSelection & deselected) override;
 
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    void deleteItem(const QModelIndex & itemIndex, TagModel & model);
-
-    void saveTagItemsState();
-    void restoreTagItemsState(const TagModel & model);
     void setTagsExpanded(
         const QStringList & tagLocalUids, const TagModel & model);
 
     void setLinkedNotebooksExpanded(
         const QStringList & linkedNotebookGuids, const TagModel & model);
 
-    void saveSelectedTag(const Account & account, const QString & tagLocalUid);
-    void restoreSelectedTag(const TagModel & model);
-
-    void selectionChangedImpl(
-        const QItemSelection & selected, const QItemSelection & deselected);
-
-    void handleNoSelectedTag(const Account & account);
-
-    void selectAllTagsRootItem(const TagModel & model);
-
     void setFavoritedFlag(const QAction & action, const bool favorited);
 
-    void prepareForTagModelChange();
-    void postProcessTagModelChange();
-
-    void setSelectedTagToNoteFiltersManager(const QString & tagLocalUid);
-
+    void setSelectedTagsToNoteFiltersManager(const QStringList & tagLocalUids);
     void clearTagsFromNoteFiltersManager();
-
-    void disconnectFromNoteFiltersManagerFilterChanged();
-    void connectToNoteFiltersManagerFilterChanged();
-
-    bool shouldFilterBySelectedTag(const Account & account) const;
 
 private:
     QMenu * m_pTagItemContextMenu = nullptr;
-    bool m_trackingTagItemsState = false;
-    bool m_trackingSelection = false;
-    bool m_modelReady = false;
-
-    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
-
-    QString m_tagLocalUidPendingNoteFiltersManagerReadiness;
 };
 
 } // namespace quentier

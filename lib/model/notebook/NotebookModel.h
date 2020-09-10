@@ -37,15 +37,10 @@
 #include <QSet>
 #include <QUuid>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
-
 #include <boost/bimap.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
-
-RESTORE_WARNINGS
 
 #include <utility>
 
@@ -93,8 +88,6 @@ public:
 
     INotebookModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const INotebookModelItem * pItem) const;
-
-    QModelIndex indexForLocalUid(const QString & localUid) const;
 
     QModelIndex indexForNotebookName(
         const QString & notebookName,
@@ -172,12 +165,6 @@ public:
      */
     QStringList notebookNames(
         const Filters filters, const QString & linkedNotebookGuid = {}) const;
-
-    /**
-     * @return                      The list of indexes stored as persistent
-     *                              indexes in the model
-     */
-    QModelIndexList persistentIndexes() const;
 
     /**
      * @return                      The index of the default notebook item if
@@ -305,6 +292,9 @@ public:
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;
 
+    virtual QModelIndex indexForLocalUid(
+        const QString & localUid) const override;
+
     virtual QString itemNameForLocalUid(
         const QString & localUid) const override;
 
@@ -338,6 +328,14 @@ public:
     {
         return allNotebooksListed();
     }
+
+    virtual QModelIndex allItemsRootItemIndex() const override;
+
+    virtual QString localUidForItemIndex(
+        const QModelIndex & index) const override;
+
+    virtual QString linkedNotebookGuidForItemIndex(
+        const QModelIndex & index) const override;
 
 public:
     // QAbstractItemModel interface
@@ -807,8 +805,6 @@ private:
         Qt::ItemFlags flags) const;
 
 private:
-    Account m_account;
-
     NotebookData m_data;
 
     INotebookModelItem * m_pInvisibleRootItem = nullptr;

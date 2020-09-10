@@ -39,15 +39,10 @@
 #include <QStringList>
 #include <QUuid>
 
-SAVE_WARNINGS
-GCC_SUPPRESS_WARNING(-Wdeprecated - declarations)
-
 #include <boost/bimap.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
-
-RESTORE_WARNINGS
 
 #define TAG_MODEL_MIME_TYPE                                                    \
     QStringLiteral(                                                            \
@@ -66,14 +61,7 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync, TagCache & cache,
         QObject * parent = nullptr);
 
-    virtual ~TagModel();
-
-    const Account & account() const
-    {
-        return m_account;
-    }
-
-    void setAccount(const Account & account);
+    virtual ~TagModel() override;
 
     enum class Column
     {
@@ -90,7 +78,6 @@ public:
     ITagModelItem * itemForLocalUid(const QString & localUid) const;
 
     QModelIndex indexForItem(const ITagModelItem * item) const;
-    QModelIndex indexForLocalUid(const QString & localUid) const;
 
     QModelIndex indexForTagName(
         const QString & tagName, const QString & linkedNotebookGuid = {}) const;
@@ -123,11 +110,6 @@ public:
      *                      index if tag item could not be demoted
      */
     QModelIndex demote(const QModelIndex & index);
-
-    /**
-     * @return the list of indexes stored as persistent indexes in the model
-     */
-    QModelIndexList persistentIndexes() const;
 
     /**
      * @brief moveToParent moves the tag item pointed to by the index under
@@ -255,6 +237,9 @@ public:
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;
 
+    virtual QModelIndex indexForLocalUid(
+        const QString & localUid) const override;
+
     virtual QString itemNameForLocalUid(
         const QString & localUid) const override;
 
@@ -285,6 +270,14 @@ public:
     }
 
     virtual bool allItemsListed() const override;
+
+    virtual QModelIndex allItemsRootItemIndex() const override;
+
+    virtual QString localUidForItemIndex(
+        const QModelIndex & index) const override;
+
+    virtual QString linkedNotebookGuidForItemIndex(
+        const QModelIndex & index) const override;
 
 public:
     // QAbstractItemModel interface
@@ -645,8 +638,6 @@ private:
     void checkAndCreateModelRootItems();
 
 private:
-    Account m_account;
-
     TagData m_data;
 
     ITagModelItem * m_pInvisibleRootItem = nullptr;

@@ -19,11 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_NOTEBOOK_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_NOTEBOOK_ITEM_VIEW_H
 
-#include "ItemView.h"
-
-#include <quentier/types/ErrorString.h>
-
-#include <QPointer>
+#include "AbstractMultiSelectionItemView.h"
 
 namespace quentier {
 
@@ -35,35 +31,46 @@ QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(StackItem)
 
-class NotebookItemView : public ItemView
+class NotebookItemView : public AbstractMultiSelectionItemView
 {
     Q_OBJECT
 public:
     explicit NotebookItemView(QWidget * parent = nullptr);
 
-    void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
-
-    virtual void setModel(QAbstractItemModel * pModel) override;
-
     void setNoteModel(const NoteModel * pNoteModel);
 
-    /**
-     * @return          Valid model index if the selection exists and contains
-     *                  exactly one row and invalid model index otherwise
-     */
-    QModelIndex currentlySelectedItemIndex() const;
-
 Q_SIGNALS:
-    void notifyError(ErrorString error);
     void newNotebookCreationRequested();
     void notebookInfoRequested();
 
-public Q_SLOTS:
-    void deleteSelectedItem();
+private:
+    // AbstractMultiSelectionItemView interface
+    virtual void saveItemsState() override;
+    virtual void restoreItemsState(const ItemModel & itemModel) override;
+
+    virtual QString selectedItemsGroupKey() const override;
+    virtual QString selectedItemsArrayKey() const override;
+    virtual QString selectedItemsKey() const override;
+
+    virtual bool shouldFilterBySelectedItems(
+        const Account & account) const override;
+
+    virtual QStringList localUidsInNoteFiltersManager(
+        const NoteFiltersManager & noteFiltersManager) const override;
+
+    virtual void setItemLocalUidsToNoteFiltersManager(
+        const QStringList & itemLocalUids,
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void removeItemLocalUidsFromNoteFiltersManager(
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void connectToModel(ItemModel & itemModel) override;
+
+    virtual void deleteItem(
+        const QModelIndex & itemIndex, ItemModel & model) override;
 
 private Q_SLOTS:
-    void onAllNotebooksListed();
-
     void onAboutToAddNotebook();
     void onAddedNotebook(const QModelIndex & index);
 
@@ -89,36 +96,21 @@ private Q_SLOTS:
     void onFavoriteAction();
     void onUnfavoriteAction();
 
-    void onNotebookModelItemCollapsedOrExpanded(const QModelIndex & index);
-
     void onNotebookStackRenamed(
         const QString & previousStackName, const QString & newStackName,
         const QString & linkedNotebookGuid);
 
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
-    void onNoteFilterChanged();
-
-    void onNoteFiltersManagerReady();
-
-    virtual void selectionChanged(
-        const QItemSelection & selected,
-        const QItemSelection & deselected) override;
-
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    void deleteItem(const QModelIndex & itemIndex, NotebookModel & model);
-
     void showNotebookItemContextMenu(
         const NotebookItem & item, const QPoint & point, NotebookModel & model);
 
     void showNotebookStackItemContextMenu(
         const StackItem & item, const INotebookModelItem & modelItem,
         const QPoint & point, NotebookModel & model);
-
-    void saveNotebookModelItemsState();
-    void restoreNotebookModelItemsState(const NotebookModel & model);
 
     void setStacksExpanded(
         const QStringList & expandedStackNames, const NotebookModel & model,
@@ -128,32 +120,7 @@ private:
         const QStringList & expandedLinkedNotebookGuids,
         const NotebookModel & model);
 
-    void saveSelectedNotebook(
-        const Account & account, const QString & notebookLocalUid);
-
-    void restoreSelectedNotebook(const NotebookModel & model);
-
-    void selectionChangedImpl(
-        const QItemSelection & selected, const QItemSelection & deselected);
-
-    void handleNoSelectedNotebook(const Account & account);
-
-    void selectAllNotebooksRootItem(const NotebookModel & notebookModel);
-
     void setFavoritedFlag(const QAction & action, const bool favorited);
-
-    void prepareForNotebookModelChange();
-    void postProcessNotebookModelChange();
-
-    void setSelectedNotebookToNoteFiltersManager(
-        const QString & notebookLocalUid);
-
-    void clearNotebooksFromNoteFiltersManager();
-
-    void disconnectFromNoteFiltersManagerFilterChanged();
-    void connectToNoteFiltersManagerFilterChanged();
-
-    bool shouldFilterBySelectedNotebook(const Account & account) const;
 
     // Helper structs and methods to access common data pieces in slots
 
@@ -188,15 +155,7 @@ private:
     QMenu * m_pNotebookItemContextMenu = nullptr;
     QMenu * m_pNotebookStackItemContextMenu = nullptr;
 
-    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
-
     QPointer<const NoteModel> m_pNoteModel;
-
-    QString m_notebookLocalUidPendingNoteFiltersManagerReadiness;
-
-    bool m_trackingNotebookModelItemsState = false;
-    bool m_trackingSelection = false;
-    bool m_modelReady = false;
 };
 
 } // namespace quentier

@@ -89,7 +89,7 @@ bool processNotebookOptions(
         bool conversionResult = false;
         choice = line.toInt(&conversionResult);
         if (!conversionResult) {
-            choice = -1;    // NOLINT
+            choice = -1; // NOLINT
             stdoutStrm << "Failed to parse the number, please try again\n"
                        << "> ";
             stdoutStrm.flush();
@@ -97,7 +97,7 @@ bool processNotebookOptions(
         }
 
         if ((choice != 1) && (choice != 2)) {
-            choice = -1;    // NOLINT
+            choice = -1; // NOLINT
             stdoutStrm << "Please enter either 1 or 2\n> ";
             stdoutStrm.flush();
             continue;
