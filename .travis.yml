@@ -332,7 +332,7 @@ script:
         ninja clang-format &&
         dirty=$(git ls-files --modified) &&
         if [ ! -z $dirty ]; then
-          echo "Detected source code files not formatted with clang-format: " &&
+          echo "Detected source code files not formatted with clang-format " &&
           echo $dirty &&
           travis_terminate 1
         fi
