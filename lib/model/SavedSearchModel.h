@@ -325,9 +325,9 @@ private:
             boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
-                boost::multi_index::member<
-                    SavedSearchModelItem, QString,
-                    &SavedSearchModelItem::m_localUid>>,
+                boost::multi_index::const_mem_fun<
+                    SavedSearchModelItem, const QString&,
+                    &SavedSearchModelItem::localUid>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<

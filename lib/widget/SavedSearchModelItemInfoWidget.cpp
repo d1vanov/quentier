@@ -113,16 +113,16 @@ void SavedSearchModelItemInfoWidget::setSavedSearchItem(
 {
     m_pUi->statusBarLabel->hide();
 
-    m_pUi->savedSearchNameLineEdit->setText(item.m_name);
-    m_pUi->savedSearchQueryPlainTextEdit->setPlainText(item.m_query);
-    m_pUi->savedSearchLocalUidLineEdit->setText(item.m_localUid);
-    m_pUi->savedSearchGuidLineEdit->setText(item.m_guid);
+    m_pUi->savedSearchNameLineEdit->setText(item.name());
+    m_pUi->savedSearchQueryPlainTextEdit->setPlainText(item.query());
+    m_pUi->savedSearchLocalUidLineEdit->setText(item.localUid());
+    m_pUi->savedSearchGuidLineEdit->setText(item.guid());
 
     m_pUi->savedSearchSynchronizableCheckBox->setChecked(
-        item.m_isSynchronizable);
+        item.isSynchronizable());
 
-    m_pUi->savedSearchDirtyCheckBox->setChecked(item.m_isDirty);
-    m_pUi->savedSearchFavoritedCheckBox->setChecked(item.m_isFavorited);
+    m_pUi->savedSearchDirtyCheckBox->setChecked(item.isDirty());
+    m_pUi->savedSearchFavoritedCheckBox->setChecked(item.isFavorited());
 
     setMinimumWidth(475);
 }

@@ -1091,7 +1091,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         return false;
     }
 
-    if (Q_UNLIKELY(pItem->m_query.isEmpty())) {
+    if (Q_UNLIKELY(pItem->query().isEmpty())) {
         ErrorString error(
             QT_TR_NOOP("Can't set the filter by saved search: "
                        "saved search's query is empty"));
@@ -1106,7 +1106,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
     NoteSearchQuery query;
     ErrorString errorDescription;
-    bool res = query.setQueryString(pItem->m_query, errorDescription);
+    bool res = query.setQueryString(pItem->query(), errorDescription);
     if (Q_UNLIKELY(!res)) {
         ErrorString error(
             QT_TR_NOOP("Internal error: can't set the filter by saved search: "
@@ -1124,7 +1124,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         return false;
     }
 
-    m_filteredSavedSearchLocalUid = pItem->m_localUid;
+    m_filteredSavedSearchLocalUid = pItem->localUid();
     m_findNoteLocalUidsForSavedSearchQueryRequestId = QUuid::createUuid();
 
     QNTRACE(

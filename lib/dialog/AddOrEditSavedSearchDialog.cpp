@@ -125,7 +125,7 @@ void AddOrEditSavedSearchDialog::accept()
         auto queryIndex = m_pSavedSearchModel->index(
             index.row(), SavedSearchModel::Columns::Query, index.parent());
 
-        if (pItem->m_query != savedSearchQuery) {
+        if (pItem->query() != savedSearchQuery) {
             bool res =
                 m_pSavedSearchModel->setData(queryIndex, savedSearchQuery);
             if (Q_UNLIKELY(!res)) {
@@ -277,8 +277,8 @@ void AddOrEditSavedSearchDialog::setupEditedSavedSearchItem()
         return;
     }
 
-    m_pUi->savedSearchNameLineEdit->setText(pItem->m_name);
-    m_pUi->searchQueryPlainTextEdit->setPlainText(pItem->m_query);
+    m_pUi->savedSearchNameLineEdit->setText(pItem->name());
+    m_pUi->searchQueryPlainTextEdit->setPlainText(pItem->query());
 }
 
 } // namespace quentier

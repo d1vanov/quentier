@@ -522,7 +522,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     ADD_CONTEXT_MENU_ACTION(
         tr("Create new saved search") + QStringLiteral("..."),
         m_pSavedSearchItemContextMenu, onCreateNewSavedSearchAction,
-        pItem->m_localUid, true);
+        pItem->localUid(), true);
 
     m_pSavedSearchItemContextMenu->addSeparator();
 
@@ -531,27 +531,27 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Rename"), m_pSavedSearchItemContextMenu, onRenameSavedSearchAction,
-        pItem->m_localUid, canUpdate);
+        pItem->localUid(), canUpdate);
 
-    if (pItem->m_guid.isEmpty()) {
+    if (pItem->guid().isEmpty()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Delete"), m_pSavedSearchItemContextMenu,
-            onDeleteSavedSearchAction, pItem->m_localUid, true);
+            onDeleteSavedSearchAction, pItem->localUid(), true);
     }
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Edit") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onEditSavedSearchAction, pItem->m_localUid, canUpdate);
+        onEditSavedSearchAction, pItem->localUid(), canUpdate);
 
-    if (!pItem->m_isFavorited) {
+    if (!pItem->isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Favorite"), m_pSavedSearchItemContextMenu, onFavoriteAction,
-            pItem->m_localUid, canUpdate);
+            pItem->localUid(), canUpdate);
     }
     else {
         ADD_CONTEXT_MENU_ACTION(
             tr("Unfavorite"), m_pSavedSearchItemContextMenu, onUnfavoriteAction,
-            pItem->m_localUid, canUpdate);
+            pItem->localUid(), canUpdate);
     }
 
     m_pSavedSearchItemContextMenu->addSeparator();
@@ -562,7 +562,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Info") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onShowSavedSearchInfoAction, pItem->m_localUid, true);
+        onShowSavedSearchInfoAction, pItem->localUid(), true);
 
     m_pSavedSearchItemContextMenu->show();
     m_pSavedSearchItemContextMenu->exec(pEvent->globalPos());
@@ -714,14 +714,14 @@ void SavedSearchItemView::selectionChangedImpl(
     appSettings.beginGroup(QStringLiteral("SavedSearchItemView"));
 
     appSettings.setValue(
-        LAST_SELECTED_SAVED_SEARCH_KEY, pSavedSearchItem->m_localUid);
+        LAST_SELECTED_SAVED_SEARCH_KEY, pSavedSearchItem->localUid());
 
     appSettings.endGroup();
 
     QNDEBUG(
         "view:saved_search",
         "Persisted the currently selected saved "
-            << "search local uid: " << pSavedSearchItem->m_localUid);
+            << "search local uid: " << pSavedSearchItem->localUid());
 }
 
 void SavedSearchItemView::setFavoritedFlag(
