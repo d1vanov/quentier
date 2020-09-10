@@ -328,7 +328,8 @@ script:
       fi
     - ninja
     - ninja check
-    - if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
+    - |
+      if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
         echo "Building clang-format target" &&
         ninja clang-format &&
         dirty=$(git ls-files --modified) &&
