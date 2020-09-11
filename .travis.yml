@@ -199,7 +199,7 @@ install:
           cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         fi
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
+        cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
       fi
       ninja &&
       ninja check &&
@@ -328,7 +328,8 @@ script:
       fi
     - ninja
     - ninja check
-    - if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
+    - |
+      if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
         echo "Building clang-format target" &&
         ninja clang-format &&
         dirty=$(git ls-files --modified) &&
@@ -349,7 +350,7 @@ script:
         else
           export VERSION=$(git rev-parse --short HEAD)
         fi
-        ninja DESTDIR=appdir install &&
+        DESTDIR=appdir ninja install &&
         linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so" &&
         mkdir -p appdir/usr/share/libquentier/translations &&
         cp -r ../../libquentier/build/installdir/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/ &&
