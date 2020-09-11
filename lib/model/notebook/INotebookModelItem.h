@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_ITEM_H
+#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
+#define QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
 
 #include <quentier/utility/Printable.h>
 
@@ -98,4 +98,4 @@ protected:
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_ITEM_H
+#endif // QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H

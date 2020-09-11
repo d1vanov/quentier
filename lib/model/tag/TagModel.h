@@ -544,10 +544,13 @@ private:
 private:
     struct ByLocalUid
     {};
+
     struct ByParentLocalUid
     {};
+
     struct ByNameUpper
     {};
+
     struct ByLinkedNotebookGuid
     {};
 

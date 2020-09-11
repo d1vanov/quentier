@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H
+#ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H
+#define QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H
 
 #include <quentier/utility/Printable.h>
 
@@ -26,41 +26,40 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class ITagModelItem : public Printable
+class ISavedSearchModelItem : public Printable
 {
 public:
     enum class Type
     {
-        AllTagsRoot,
+        AllSavedSearchesRoot,
         InvisibleRoot,
-        LinkedNotebook,
-        Tag
+        SavedSearch
     };
 
     friend QDebug & operator<<(QDebug & dbg, const Type type);
 
 public:
-    virtual ~ITagModelItem() = default;
+    virtual ~ISavedSearchModelItem() = default;
 
     virtual Type type() const = 0;
 
-    ITagModelItem * parent() const
+    ISavedSearchModelItem * parent() const
     {
         return m_pParent;
     }
 
-    void setParent(ITagModelItem * pParent);
+    void setParent(ISavedSearchModelItem * pParent);
 
-    ITagModelItem * childAtRow(const int row) const;
+    ISavedSearchModelItem * childAtRow(const int row) const;
 
-    int rowForChild(const ITagModelItem * pChild) const;
+    int rowForChild(const ISavedSearchModelItem * pChild) const;
 
     bool hasChildren() const
     {
         return !m_children.isEmpty();
     }
 
-    QList<ITagModelItem *> children() const
+    QList<ISavedSearchModelItem *> children() const
     {
         return m_children;
     }
@@ -70,8 +69,8 @@ public:
         return m_children.size();
     }
 
-    void insertChild(const int row, ITagModelItem * pItem);
-    void addChild(ITagModelItem * pItem);
+    void insertChild(const int row, ISavedSearchModelItem * pItem);
+    void addChild(ISavedSearchModelItem * pItem);
     bool swapChildren(const int srcRow, const int dstRow);
 
     ITagModelItem * takeChild(const int row);
@@ -97,10 +96,10 @@ public:
     const T * cast() const;
 
 protected:
-    ITagModelItem * m_pParent = nullptr;
-    QList<ITagModelItem *> m_children;
+    ISavedSearchModelItem * m_pParent = nullptr;
+    QList<ISavedSearchModelItem *> m_children;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H
+#endif // QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H

@@ -610,10 +610,13 @@ private:
 private:
     struct ByLocalUid
     {};
+
     struct ByNameUpper
     {};
+
     struct ByStack
     {};
+
     struct ByLinkedNotebookGuid
     {};
 
