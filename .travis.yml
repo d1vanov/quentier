@@ -199,7 +199,7 @@ install:
           cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DUSE_QT5_WEBKIT=1 ..
         fi
       else
-        cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
+        cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
       fi
       ninja &&
       ninja check &&
