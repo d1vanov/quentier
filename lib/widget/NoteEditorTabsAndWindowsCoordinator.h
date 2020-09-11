@@ -20,8 +20,8 @@
 #define QUENTIER_LIB_WIDGET_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
 
 #include <lib/model/NoteCache.h>
-#include <lib/model/TagCache.h>
 #include <lib/model/notebook/NotebookCache.h>
+#include <lib/model/tag/TagCache.h>
 
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Account.h>

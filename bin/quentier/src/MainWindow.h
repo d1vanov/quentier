@@ -25,9 +25,9 @@
 #include <lib/model/NoteModel.h>
 #include <lib/model/SavedSearchCache.h>
 #include <lib/model/SavedSearchModel.h>
-#include <lib/model/TagCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/tag/TagCache.h>
 #include <lib/model/tag/TagModel.h>
 
 #ifdef WITH_UPDATE_MANAGER

@@ -20,7 +20,7 @@
 #define QUENTIER_LIB_MODEL_TAG_MODEL_H
 
 #include "../ItemModel.h"
-#include "../TagCache.h"
+#include "TagCache.h"
 
 #include "ITagModelItem.h"
 #include "TagItem.h"
