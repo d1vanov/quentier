@@ -12,7 +12,6 @@ set(HEADERS
     SavedSearchModelItem.h
     SavedSearchCache.h
     TagCache.h
-    NotebookCache.h
     NoteModelItem.h
     NoteModel.h
     NoteCache.h
@@ -25,6 +24,7 @@ set(HEADERS
     notebook/INotebookModelItem.h
     notebook/InvisibleRootItem.h
     notebook/LinkedNotebookRootItem.h
+    notebook/NotebookCache.h
     notebook/NotebookItem.h
     notebook/NotebookModel.h
     notebook/StackItem.h

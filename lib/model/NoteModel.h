@@ -21,7 +21,7 @@
 
 #include "NoteCache.h"
 #include "NoteModelItem.h"
-#include "NotebookCache.h"
+#include "notebook/NotebookCache.h"
 
 #include <lib/utility/IStartable.h>
 

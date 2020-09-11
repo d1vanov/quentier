@@ -20,8 +20,8 @@
 #define QUENTIER_LIB_WIDGET_NOTE_EDITOR_WIDGET_H
 
 #include <lib/model/NoteCache.h>
-#include <lib/model/NotebookCache.h>
 #include <lib/model/TagCache.h>
+#include <lib/model/notebook/NotebookCache.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/StringUtils.h>

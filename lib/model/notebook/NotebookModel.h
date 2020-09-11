@@ -20,7 +20,7 @@
 #define QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_H
 
 #include "../ItemModel.h"
-#include "../NotebookCache.h"
+#include "NotebookCache.h"
 
 #include "INotebookModelItem.h"
 #include "LinkedNotebookRootItem.h"

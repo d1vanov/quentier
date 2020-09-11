@@ -21,9 +21,9 @@
 
 #include "FavoritesModelItem.h"
 #include "NoteCache.h"
-#include "NotebookCache.h"
 #include "SavedSearchCache.h"
 #include "TagCache.h"
+#include "notebook/NotebookCache.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
