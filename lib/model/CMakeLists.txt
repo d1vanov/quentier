@@ -6,6 +6,7 @@ project(quentier_model)
 
 set(HEADERS
     ColumnChangeRerouter.h
+    IModelItem.h
     ItemModel.h
     NewItemNameGenerator.hpp
     SavedSearchModel.h

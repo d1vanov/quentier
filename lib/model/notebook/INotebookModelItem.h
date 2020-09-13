@@ -19,14 +19,11 @@
 #ifndef QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
 #define QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
 
-#include <quentier/utility/Printable.h>
-
-QT_FORWARD_DECLARE_CLASS(QDataStream)
-QT_FORWARD_DECLARE_CLASS(QDebug)
+#include "../IModelItem.h"
 
 namespace quentier {
 
-class INotebookModelItem : public Printable
+class INotebookModelItem : public IModelItem<INotebookModelItem>
 {
 public:
     enum class Type
@@ -45,55 +42,17 @@ public:
 
     virtual Type type() const = 0;
 
-    INotebookModelItem * parent() const
-    {
-        return m_pParent;
-    }
-
-    void setParent(INotebookModelItem * pParent);
-
-    INotebookModelItem * childAtRow(const int row) const;
-
-    int rowForChild(const INotebookModelItem * pChild) const;
-
-    bool hasChildren() const
-    {
-        return !m_children.isEmpty();
-    }
-
-    QList<INotebookModelItem *> children() const
-    {
-        return m_children;
-    }
-
-    int childrenCount() const
-    {
-        return m_children.size();
-    }
-
-    void insertChild(const int row, INotebookModelItem * pItem);
-    void addChild(INotebookModelItem * pItem);
-    bool swapChildren(const int srcRow, const int dstRow);
-
-    INotebookModelItem * takeChild(const int row);
-
-    virtual QDataStream & serializeItemData(QDataStream & out) const = 0;
-    virtual QDataStream & deserializeItemData(QDataStream & in) = 0;
-
-    friend QDataStream & operator<<(
-        QDataStream & out, const INotebookModelItem & item);
-    friend QDataStream & operator>>(
-        QDataStream & in, INotebookModelItem & item);
-
     template <typename T>
     T * cast();
 
     template <typename T>
     const T * cast() const;
 
-protected:
-    INotebookModelItem * m_pParent = nullptr;
-    QList<INotebookModelItem *> m_children;
+    friend QDataStream & operator<<(
+        QDataStream & out, const INotebookModelItem & item);
+
+    friend QDataStream & operator>>(
+        QDataStream & in, INotebookModelItem & item);
 };
 
 } // namespace quentier
