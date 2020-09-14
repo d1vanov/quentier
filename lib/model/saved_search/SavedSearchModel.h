@@ -20,15 +20,15 @@
 #define QUENTIER_LIB_MODEL_SAVED_SEARCH_MODEL_H
 
 #include "../ItemModel.h"
-
 #include "SavedSearchCache.h"
-#include "SavedSearchModelItem.h"
+
+#include "ISavedSearchModelItem.h"
+#include "SavedSearchItem.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/SavedSearch.h>
 #include <quentier/utility/LRUCache.hpp>
-#include <quentier/utility/SuppressWarnings.h>
 
 #include <QAbstractItemModel>
 #include <QSet>
@@ -42,7 +42,7 @@
 
 namespace quentier {
 
-class SavedSearchModel : public ItemModel
+class SavedSearchModel final: public ItemModel
 {
     Q_OBJECT
 public:
@@ -51,7 +51,7 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         SavedSearchCache & cache, QObject * parent = nullptr);
 
-    virtual ~SavedSearchModel();
+    virtual ~SavedSearchModel() override;
 
     enum class Column
     {
@@ -63,8 +63,8 @@ public:
 
     friend QDebug & operator<<(QDebug & dbg, const Column column);
 
-    const SavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
-    QModelIndex indexForItem(const SavedSearchModelItem * item) const;
+    ISavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const ISavedSearchModelItem * pItem) const;
     QModelIndex indexForSavedSearchName(const QString & savedSearchName) const;
 
     /**
@@ -300,12 +300,12 @@ private:
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
-    int rowForNewItem(const SavedSearchModelItem & newItem) const;
+    int rowForNewItem(const ISavedSearchModelItem & newItem) const;
 
     void updateRandomAccessIndexWithRespectToSorting(
-        const SavedSearchModelItem & item);
+        const ISavedSearchModelItem & item);
 
-    void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
+    void updateSavedSearchInLocalStorage(const ISavedSearchModelItem & item);
 
     void setSavedSearchFavorited(
         const QModelIndex & index, const bool favorited);
@@ -321,19 +321,19 @@ private:
     {};
 
     using SavedSearchData = boost::multi_index_container<
-        SavedSearchModelItem,
+        SavedSearchItem,
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
-                    SavedSearchModelItem, const QString&,
-                    &SavedSearchModelItem::localUid>>,
+                    SavedSearchItem, const QString&,
+                    &SavedSearchItem::localUid>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<
-                    SavedSearchModelItem, QString,
-                    &SavedSearchModelItem::nameUpper>>>>;
+                    SavedSearchItem, QString,
+                    &SavedSearchItem::nameUpper>>>>;
 
     using SavedSearchDataByLocalUid = SavedSearchData::index<ByLocalUid>::type;
     using SavedSearchDataByIndex = SavedSearchData::index<ByIndex>::type;
@@ -341,18 +341,20 @@ private:
     using SavedSearchDataByNameUpper =
         SavedSearchData::index<ByNameUpper>::type;
 
+    using IndexId = quintptr;
+
     struct LessByName
     {
         bool operator()(
-            const SavedSearchModelItem & lhs,
-            const SavedSearchModelItem & rhs) const;
+            const SavedSearchItem & lhs,
+            const SavedSearchItem & rhs) const;
     };
 
     struct GreaterByName
     {
         bool operator()(
-            const SavedSearchModelItem & lhs,
-            const SavedSearchModelItem & rhs) const;
+            const SavedSearchItem & lhs,
+            const SavedSearchItem & rhs) const;
     };
 
     QModelIndex indexForLocalUidIndexIterator(
@@ -360,6 +362,12 @@ private:
 
 private:
     SavedSearchData m_data;
+
+    ISavedSearchModelItem * m_pInvisibleRootItem = nullptr;
+
+    ISavedSearchModelItem * m_pAllSavedSearchesRootItem = nullptr;
+    IndexId m_allSavedSearchesRootItemIndexId = 1;
+
     size_t m_listSavedSearchesOffset = 0;
     QUuid m_listSavedSearchesRequestId;
     QSet<QUuid> m_savedSearchItemsNotYetInLocalStorageUids;

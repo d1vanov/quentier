@@ -77,7 +77,7 @@ public:
     ITagModelItem * itemForIndex(const QModelIndex & index) const;
     ITagModelItem * itemForLocalUid(const QString & localUid) const;
 
-    QModelIndex indexForItem(const ITagModelItem * item) const;
+    QModelIndex indexForItem(const ITagModelItem * pItem) const;
 
     QModelIndex indexForTagName(
         const QString & tagName, const QString & linkedNotebookGuid = {}) const;

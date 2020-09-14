@@ -53,7 +53,7 @@ SavedSearchModel::SavedSearchModel(
 
 SavedSearchModel::~SavedSearchModel() = default;
 
-const SavedSearchModelItem * SavedSearchModel::itemForIndex(
+ISavedSearchModelItem * SavedSearchModel::itemForIndex(
     const QModelIndex & modelIndex) const
 {
     QNTRACE(
@@ -62,7 +62,11 @@ const SavedSearchModelItem * SavedSearchModel::itemForIndex(
 
     if (!modelIndex.isValid()) {
         QNTRACE("model:saved_search", "Index is invalid");
-        return nullptr;
+        return m_pInvisibleRootItem;
+    }
+
+    if (!modelIndex.parent().isValid()) {
+        return m_pAllSavedSearchesRootItem;
     }
 
     int row = modelIndex.row();
@@ -76,17 +80,32 @@ const SavedSearchModelItem * SavedSearchModel::itemForIndex(
         return nullptr;
     }
 
-    return &(index[static_cast<size_t>(row)]);
+    return const_cast<SavedSearchItem*>(&(index[static_cast<size_t>(row)]));
 }
 
 QModelIndex SavedSearchModel::indexForItem(
-    const SavedSearchModelItem * pItem) const
+    const ISavedSearchModelItem * pItem) const
 {
     if (!pItem) {
         return {};
     }
 
-    return indexForLocalUid(pItem->localUid());
+    if (pItem == m_pInvisibleRootItem) {
+        return {};
+    }
+
+    if (pItem == m_pAllSavedSearchesRootItem) {
+        return createIndex(0, 0);
+    }
+
+    auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
+        QNWARNING("model:saved_search", "Failed to cast item to saved search "
+            << "one: " << *pItem);
+        return {};
+    }
+
+    return indexForLocalUid(pSavedSearchItem->localUid());
 }
 
 QModelIndex SavedSearchModel::indexForSavedSearchName(
@@ -214,7 +233,7 @@ QModelIndex SavedSearchModel::createSavedSearch(
         return {};
     }
 
-    SavedSearchModelItem item;
+    SavedSearchItem item;
     item.setLocalUid(UidGenerator::Generate());
     Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.localUid()))
 
@@ -282,7 +301,14 @@ QString SavedSearchModel::localUidForItemName(
         return {};
     }
 
-    return pItem->localUid();
+    const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
+        QNWARNING("model:saved_search", "Failed to case item found by name to "
+            << "SavedSearchItem; name = " << itemName);
+        return {};
+    }
+
+    return pSavedSearchItem->localUid();
 }
 
 QModelIndex SavedSearchModel::indexForLocalUid(const QString & localUid) const
@@ -354,6 +380,11 @@ QString SavedSearchModel::localUidForItemIndex(const QModelIndex & index) const
         return {};
     }
 
+    if (!index.parent().isValid()) {
+        // All saved searches root item
+        return {};
+    }
+
     int row = index.row();
     int column = index.column();
 
@@ -377,6 +408,10 @@ Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
 
+    if (!index.parent().isValid()) {
+        return indexFlags;
+    }
+
     if (index.column() == static_cast<int>(Column::Dirty)) {
         return indexFlags;
     }
@@ -397,6 +432,14 @@ Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
 {
     if (!index.isValid()) {
+        return {};
+    }
+
+    if (!index.parent().isValid()) {
+        if (index.column() == static_cast<int>(Column::Name)) {
+            return tr("All saved searches");
+        }
+
         return {};
     }
 
@@ -462,7 +505,12 @@ QVariant SavedSearchModel::headerData(
 int SavedSearchModel::rowCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
-        return 0;
+        if (!parent.parent().isValid()) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
 
     return static_cast<int>(m_data.size());
@@ -471,6 +519,13 @@ int SavedSearchModel::rowCount(const QModelIndex & parent) const
 int SavedSearchModel::columnCount(const QModelIndex & parent) const
 {
     if (parent.isValid()) {
+        if (!parent.parent().isValid()) {
+            return NUM_SAVED_SEARCH_MODEL_COLUMNS;
+        }
+        else {
+            return 0;
+        }
+
         return 0;
     }
 

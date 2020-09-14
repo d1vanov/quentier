@@ -129,8 +129,15 @@ public:
         std::sort(m_children.begin(), m_children.end(), comparator);
     }
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const = 0;
-    virtual QDataStream & deserializeItemData(QDataStream & in) = 0;
+    virtual QDataStream & serializeItemData(QDataStream & out) const
+    {
+        return out;
+    }
+
+    virtual QDataStream & deserializeItemData(QDataStream & in)
+    {
+        return in;
+    }
 
 protected:
     TSubclass * m_pParent = nullptr;
