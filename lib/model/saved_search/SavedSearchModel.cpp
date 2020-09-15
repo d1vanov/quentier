@@ -535,23 +535,41 @@ int SavedSearchModel::columnCount(const QModelIndex & parent) const
 QModelIndex SavedSearchModel::index(
     int row, int column, const QModelIndex & parent) const
 {
-    if (parent.isValid()) {
-        return {};
+    if (!parent.isValid()) {
+        // Parent is invisible root item
+        if (row != 0) {
+            return {};
+        }
+
+        return createIndex(row, column, m_allSavedSearchesRootItemIndexId);
     }
 
-    if ((row < 0) || (row >= static_cast<int>(m_data.size())) || (column < 0) ||
-        (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
-    {
-        return {};
+    const auto grandparent = parent.parent();
+    if (!grandparent.isValid()) {
+        // Leaf item
+        if ((row < 0) || (row >= static_cast<int>(m_data.size())) || (column < 0) ||
+            (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
+        {
+            return {};
+        }
+
+        return createIndex(row, column);
     }
 
-    return createIndex(row, column);
+    return {};
 }
 
 QModelIndex SavedSearchModel::parent(const QModelIndex & index) const
 {
-    Q_UNUSED(index)
-    return QModelIndex();
+    if (!index.isValid()) {
+        return {};
+    }
+
+    if (index.internalId() == m_allSavedSearchesRootItemIndexId) {
+        return {};
+    }
+
+    return createIndex(0, 0, m_allSavedSearchesRootItemIndexId);
 }
 
 bool SavedSearchModel::setHeaderData(
@@ -579,6 +597,10 @@ bool SavedSearchModel::setData(
         return false;
     }
 
+    if (modelIndex.internalId() == m_allSavedSearchesRootItemIndexId) {
+        return false;
+    }
+
     if (role != Qt::EditRole) {
         return false;
     }
@@ -598,7 +620,7 @@ bool SavedSearchModel::setData(
     SavedSearchDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
 
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
-    SavedSearchModelItem item = index[static_cast<size_t>(rowIndex)];
+    SavedSearchItem item = index[static_cast<size_t>(rowIndex)];
 
     switch (static_cast<Column>(columnIndex)) {
     case Column::Name:
@@ -728,7 +750,7 @@ bool SavedSearchModel::insertRows(
 
     beginInsertRows(QModelIndex(), row, row + count - 1);
     for (int i = 0; i < count; ++i) {
-        SavedSearchModelItem item;
+        SavedSearchItem item;
         item.setLocalUid(UidGenerator::Generate());
 
         Q_UNUSED(
