@@ -300,12 +300,12 @@ private:
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
-    int rowForNewItem(const ISavedSearchModelItem & newItem) const;
+    int rowForNewItem(const SavedSearchItem & newItem) const;
 
     void updateRandomAccessIndexWithRespectToSorting(
-        const ISavedSearchModelItem & item);
+        const SavedSearchItem & item);
 
-    void updateSavedSearchInLocalStorage(const ISavedSearchModelItem & item);
+    void updateSavedSearchInLocalStorage(const SavedSearchItem & item);
 
     void setSavedSearchFavorited(
         const QModelIndex & index, const bool favorited);

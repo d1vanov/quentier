@@ -80,7 +80,7 @@ ISavedSearchModelItem * SavedSearchModel::itemForIndex(
         return nullptr;
     }
 
-    return const_cast<SavedSearchItem*>(&(index[static_cast<size_t>(row)]));
+    return const_cast<SavedSearchItem *>(&(index[static_cast<size_t>(row)]));
 }
 
 QModelIndex SavedSearchModel::indexForItem(
@@ -100,8 +100,10 @@ QModelIndex SavedSearchModel::indexForItem(
 
     auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
     if (Q_UNLIKELY(!pSavedSearchItem)) {
-        QNWARNING("model:saved_search", "Failed to cast item to saved search "
-            << "one: " << *pItem);
+        QNWARNING(
+            "model:saved_search",
+            "Failed to cast item to saved search "
+                << "one: " << *pItem);
         return {};
     }
 
@@ -246,7 +248,7 @@ QModelIndex SavedSearchModel::createSavedSearch(
 
     int row = static_cast<int>(localUidIndex.size());
 
-    beginInsertRows(QModelIndex(), row, row);
+    beginInsertRows(indexForItem(m_pAllSavedSearchesRootItem), row, row);
     Q_UNUSED(localUidIndex.insert(item))
     endInsertRows();
 
@@ -303,8 +305,10 @@ QString SavedSearchModel::localUidForItemName(
 
     const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
     if (Q_UNLIKELY(!pSavedSearchItem)) {
-        QNWARNING("model:saved_search", "Failed to case item found by name to "
-            << "SavedSearchItem; name = " << itemName);
+        QNWARNING(
+            "model:saved_search",
+            "Failed to case item found by name to "
+                << "SavedSearchItem; name = " << itemName);
         return {};
     }
 
@@ -417,8 +421,7 @@ Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
     }
 
     if (index.column() == static_cast<int>(Column::Synchronizable)) {
-        QVariant synchronizable =
-            dataImpl(index.row(), Column::Synchronizable);
+        QVariant synchronizable = dataImpl(index.row(), Column::Synchronizable);
 
         if (!synchronizable.isNull() && synchronizable.toBool()) {
             return indexFlags;
@@ -547,8 +550,8 @@ QModelIndex SavedSearchModel::index(
     const auto grandparent = parent.parent();
     if (!grandparent.isValid()) {
         // Leaf item
-        if ((row < 0) || (row >= static_cast<int>(m_data.size())) || (column < 0) ||
-            (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
+        if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
+            (column < 0) || (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
         {
             return {};
         }
@@ -699,7 +702,8 @@ bool SavedSearchModel::setData(
             return false;
         }
 
-        item.setDirty(item.isDirty() | (value.toBool() != item.isSynchronizable()));
+        item.setDirty(
+            item.isDirty() | (value.toBool() != item.isSynchronizable()));
         item.setSynchronizable(value.toBool());
         break;
     }
@@ -728,7 +732,22 @@ bool SavedSearchModel::insertRows(
         "model:saved_search",
         "SavedSearchModel::insertRows: row = " << row << ", count = " << count);
 
-    Q_UNUSED(parent)
+    if (!parent.isValid()) {
+        QNDEBUG(
+            "model:saved_search",
+            "Skipping the attempt to insert row "
+                << "under the invisible root item");
+        return false;
+    }
+
+    const auto grandparent = parent.parent();
+    if (grandparent.isValid()) {
+        QNDEBUG(
+            "model:saved_search",
+            "Skipping the attempt to insert row "
+                << "under the leaf saved search item");
+        return false;
+    }
 
     auto & index = m_data.get<ByIndex>();
     int numExistingSavedSearches = static_cast<int>(index.size());
@@ -748,7 +767,7 @@ bool SavedSearchModel::insertRows(
     std::vector<SavedSearchDataByIndex::iterator> addedItems;
     addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
 
-    beginInsertRows(QModelIndex(), row, row + count - 1);
+    beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
         SavedSearchItem item;
         item.setLocalUid(UidGenerator::Generate());
@@ -780,11 +799,20 @@ bool SavedSearchModel::insertRows(
 bool SavedSearchModel::removeRows(
     int row, int count, const QModelIndex & parent)
 {
-    if (Q_UNLIKELY(parent.isValid())) {
+    if (Q_UNLIKELY(!parent.isValid())) {
         QNDEBUG(
             "model:saved_search",
-            "Ignoring the attempt to remove rows "
-                << "from saved search model for valid parent model index");
+            "Skipping the attempt to remove rows "
+                << "directly from under the invisible root item");
+        return false;
+    }
+
+    const auto grandparent = parent.parent();
+    if (grandparent.isValid()) {
+        QNDEBUG(
+            "model:saved_search",
+            "Skipping the attempt to remove rows "
+                << "from under the leaf saved search item");
         return false;
     }
 
@@ -821,7 +849,7 @@ bool SavedSearchModel::removeRows(
 
     Q_EMIT aboutToRemoveSavedSearches();
 
-    beginRemoveRows(QModelIndex(), row, row + count - 1);
+    beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
         auto it = index.begin() + row + i;
 
@@ -877,25 +905,30 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
     QStringList localUidsToUpdate;
 
     for (const auto & index: qAsConst(persistentIndices)) {
-        if (!index.isValid() || (index.column() != static_cast<int>(Column::Name))) {
+        if (!index.isValid() ||
+            (index.column() != static_cast<int>(Column::Name))) {
             localUidsToUpdate << QString();
             continue;
         }
 
-        const auto * item = reinterpret_cast<const SavedSearchModelItem *>(
-            index.internalPointer());
-
-        if (!item) {
+        const auto * pItem = itemForIndex(index);
+        if (!pItem) {
             localUidsToUpdate << QString();
             continue;
         }
 
-        localUidsToUpdate << item->localUid();
+        const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+        if (Q_UNLIKELY(!pItem)) {
+            localUidsToUpdate << QString();
+            continue;
+        }
+
+        localUidsToUpdate << pSavedSearchItem->localUid();
     }
 
     auto & index = m_data.get<ByIndex>();
 
-    std::vector<boost::reference_wrapper<const SavedSearchModelItem>> items(
+    std::vector<boost::reference_wrapper<const SavedSearchItem>> items(
         index.begin(), index.end());
 
     if (m_sortOrder == Qt::AscendingOrder) {
@@ -981,7 +1014,10 @@ void SavedSearchModel::onAddSavedSearchFailed(
     }
 
     int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
-    beginRemoveRows(QModelIndex(), rowIndex, rowIndex);
+
+    beginRemoveRows(
+        indexForItem(m_pAllSavedSearchesRootItem), rowIndex, rowIndex);
+
     Q_UNUSED(m_data.erase(indexIt))
     endRemoveRows();
 }
@@ -1211,7 +1247,10 @@ void SavedSearchModel::onExpungeSavedSearchComplete(
     Q_EMIT aboutToRemoveSavedSearches();
 
     int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
-    beginRemoveRows(QModelIndex(), rowIndex, rowIndex);
+
+    beginRemoveRows(
+        indexForItem(m_pAllSavedSearchesRootItem), rowIndex, rowIndex);
+
     Q_UNUSED(m_data.erase(indexIt))
     endRemoveRows();
 
@@ -1350,7 +1389,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     m_cache.put(search.localUid(), search);
 
-    SavedSearchModelItem item(search.localUid());
+    SavedSearchItem item(search.localUid());
 
     if (search.hasGuid()) {
         item.setGuid(search.guid());
@@ -1374,7 +1413,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         Q_EMIT aboutToAddSavedSearch();
 
         int row = rowForNewItem(item);
-        beginInsertRows(QModelIndex(), row, row);
+        beginInsertRows(indexForItem(m_pAllSavedSearchesRootItem), row, row);
         auto insertionResult = localUidIndex.insert(item);
         itemIt = insertionResult.first;
         endInsertRows();
@@ -1431,8 +1470,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     Q_EMIT updatedSavedSearch(savedSearchIndexAfter);
 }
 
-QVariant SavedSearchModel::dataImpl(
-    const int row, const Column column) const
+QVariant SavedSearchModel::dataImpl(const int row, const Column column) const
 {
     QNTRACE(
         "model:saved_search",
@@ -1507,7 +1545,7 @@ QString SavedSearchModel::nameForNewSavedSearch() const
         nameIndex, m_lastNewSavedSearchNameCounter, baseName);
 }
 
-int SavedSearchModel::rowForNewItem(const SavedSearchModelItem & newItem) const
+int SavedSearchModel::rowForNewItem(const SavedSearchItem & newItem) const
 {
     if (m_sortedColumn != Column::Name) {
         // Sorting by other columns is not yet implemented
@@ -1535,7 +1573,7 @@ int SavedSearchModel::rowForNewItem(const SavedSearchModelItem & newItem) const
 }
 
 void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(
-    const SavedSearchModelItem & item)
+    const SavedSearchItem & item)
 {
     if (m_sortedColumn != Column::Name) {
         // Sorting by other columns is not yet implemented
@@ -1584,8 +1622,10 @@ void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(
         return;
     }
 
+    const auto parentIndex = indexForItem(m_pAllSavedSearchesRootItem);
+
     bool res =
-        beginMoveRows(QModelIndex(), oldRow, oldRow, QModelIndex(), newRow);
+        beginMoveRows(parentIndex, oldRow, oldRow, parentIndex, newRow);
 
     if (!res) {
         QNWARNING(
@@ -1600,7 +1640,7 @@ void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(
 }
 
 void SavedSearchModel::updateSavedSearchInLocalStorage(
-    const SavedSearchModelItem & item)
+    const SavedSearchItem & item)
 {
     QNDEBUG(
         "model:saved_search",
@@ -1628,9 +1668,8 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
             QNDEBUG(
                 "model:saved_search",
-                "Emitted the request to find "
-                    << "the saved search: local uid = " << item.localUid()
-                    << ", request id = " << requestId);
+                "Emitted the request to find the saved search: local uid = "
+                    << item.localUid() << ", request id = " << requestId);
             return;
         }
 
@@ -1653,9 +1692,8 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
         QNTRACE(
             "model:saved_search",
-            "Emitted the request to add the saved "
-                << "search to the local storage: id = " << requestId
-                << ", saved search: " << savedSearch);
+            "Emitted the request to add the saved search to the local storage: "
+                << "id = " << requestId << ", saved search: " << savedSearch);
 
         Q_UNUSED(
             m_savedSearchItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
@@ -1671,9 +1709,9 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
         QNTRACE(
             "model:saved_search",
-            "Emitted the request to update the saved "
-                << "search in the local storage: id = " << requestId
-                << ", saved search: " << savedSearch);
+            "Emitted the request to update the saved search in the local "
+                << "storage: id = " << requestId << ", saved search: "
+                << savedSearch);
     }
 }
 
@@ -1695,14 +1733,22 @@ void SavedSearchModel::setSavedSearchFavorited(
         return;
     }
 
-    if (favorited == pItem->isFavorited()) {
+    const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Can't set favorited flag to the saved search: "
+                       "non-saved search item is targeted"));
+        return;
+    }
+
+    if (favorited == pSavedSearchItem->isFavorited()) {
         QNDEBUG("model:saved_search", "Favorited flag's value hasn't changed");
         return;
     }
 
     auto & localUidIndex = m_data.get<ByLocalUid>();
 
-    auto it = localUidIndex.find(pItem->localUid());
+    auto it = localUidIndex.find(pSavedSearchItem->localUid());
     if (Q_UNLIKELY(it == localUidIndex.end())) {
         REPORT_ERROR(
             QT_TR_NOOP("Can't set favorited flag for the saved search: "
@@ -1711,7 +1757,7 @@ void SavedSearchModel::setSavedSearchFavorited(
         return;
     }
 
-    SavedSearchModelItem itemCopy(*pItem);
+    SavedSearchItem itemCopy(*pSavedSearchItem);
     itemCopy.setFavorited(favorited);
 
     localUidIndex.replace(it, itemCopy);
@@ -1742,13 +1788,13 @@ QModelIndex SavedSearchModel::indexForLocalUidIndexIterator(
 }
 
 bool SavedSearchModel::LessByName::operator()(
-    const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const
+    const SavedSearchItem & lhs, const SavedSearchItem & rhs) const
 {
     return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) <= 0);
 }
 
 bool SavedSearchModel::GreaterByName::operator()(
-    const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const
+    const SavedSearchItem & lhs, const SavedSearchItem & rhs) const
 {
     return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) > 0);
 }
