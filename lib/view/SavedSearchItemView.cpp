@@ -19,7 +19,7 @@
 #include "SavedSearchItemView.h"
 
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
-#include <lib/model/SavedSearchModel.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -167,7 +167,8 @@ QModelIndex SavedSearchItemView::currentlySelectedItemIndex() const
     }
 
     return singleRow(
-        indexes, *pSavedSearchModel, SavedSearchModel::Columns::Name);
+        indexes, *pSavedSearchModel,
+        static_cast<int>(SavedSearchModel::Column::Name));
 }
 
 void SavedSearchItemView::deleteSelectedItem()
@@ -195,8 +196,9 @@ void SavedSearchItemView::deleteSelectedItem()
         return;
     }
 
-    auto index =
-        singleRow(indexes, *pSavedSearchModel, SavedSearchModel::Columns::Name);
+    auto index = singleRow(
+        indexes, *pSavedSearchModel,
+        static_cast<int>(SavedSearchModel::Column::Name));
 
     if (!index.isValid()) {
         QNDEBUG(
@@ -476,9 +478,8 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     if (Q_UNLIKELY(!pEvent)) {
         QNWARNING(
             "view:saved_search",
-            "Detected Qt error: saved search item "
-                << "view received context menu event with null pointer to "
-                << "the context menu event");
+            "Detected Qt error: saved search item view received context menu "
+            "event with null pointer to the context menu event");
         return;
     }
 
@@ -492,8 +493,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view:saved_search",
-            "Clicked item index is not valid, not "
-                << "doing anything");
+            "Clicked item index is not valid, not doing anything");
         return;
     }
 
@@ -503,6 +503,14 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
             QT_TR_NOOP("Can't show the context menu for the saved search "
                        "model item: no item corresponding to the clicked "
                        "item's index"))
+        return;
+    }
+
+    const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
+        QNDEBUG(
+            "view:saved_search",
+            "Ignoring the context menu event for non-saved search item");
         return;
     }
 
@@ -522,7 +530,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     ADD_CONTEXT_MENU_ACTION(
         tr("Create new saved search") + QStringLiteral("..."),
         m_pSavedSearchItemContextMenu, onCreateNewSavedSearchAction,
-        pItem->localUid(), true);
+        pSavedSearchItem->localUid(), true);
 
     m_pSavedSearchItemContextMenu->addSeparator();
 
@@ -531,27 +539,27 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Rename"), m_pSavedSearchItemContextMenu, onRenameSavedSearchAction,
-        pItem->localUid(), canUpdate);
+        pSavedSearchItem->localUid(), canUpdate);
 
-    if (pItem->guid().isEmpty()) {
+    if (pSavedSearchItem->guid().isEmpty()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Delete"), m_pSavedSearchItemContextMenu,
-            onDeleteSavedSearchAction, pItem->localUid(), true);
+            onDeleteSavedSearchAction, pSavedSearchItem->localUid(), true);
     }
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Edit") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onEditSavedSearchAction, pItem->localUid(), canUpdate);
+        onEditSavedSearchAction, pSavedSearchItem->localUid(), canUpdate);
 
-    if (!pItem->isFavorited()) {
+    if (!pSavedSearchItem->isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Favorite"), m_pSavedSearchItemContextMenu, onFavoriteAction,
-            pItem->localUid(), canUpdate);
+            pSavedSearchItem->localUid(), canUpdate);
     }
     else {
         ADD_CONTEXT_MENU_ACTION(
             tr("Unfavorite"), m_pSavedSearchItemContextMenu, onUnfavoriteAction,
-            pItem->localUid(), canUpdate);
+            pSavedSearchItem->localUid(), canUpdate);
     }
 
     m_pSavedSearchItemContextMenu->addSeparator();
@@ -562,7 +570,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Info") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onShowSavedSearchInfoAction, pItem->localUid(), true);
+        onShowSavedSearchInfoAction, pSavedSearchItem->localUid(), true);
 
     m_pSavedSearchItemContextMenu->show();
     m_pSavedSearchItemContextMenu->exec(pEvent->globalPos());
@@ -687,20 +695,25 @@ void SavedSearchItemView::selectionChangedImpl(
     // Need to figure out how many rows the new selection covers; if exactly 1,
     // persist this selection so that it can be resurrected on the next startup
     auto sourceIndex = singleRow(
-        selectedIndexes, *pSavedSearchModel, SavedSearchModel::Columns::Name);
+        selectedIndexes, *pSavedSearchModel,
+        static_cast<int>(SavedSearchModel::Column::Name));
 
     if (!sourceIndex.isValid()) {
         QNDEBUG("view:saved_search", "Not exactly one row is selected");
         return;
     }
 
-    const auto * pSavedSearchItem =
-        pSavedSearchModel->itemForIndex(sourceIndex);
-
-    if (Q_UNLIKELY(!pSavedSearchItem)) {
+    const auto * pItem = pSavedSearchModel->itemForIndex(sourceIndex);
+    if (Q_UNLIKELY(!pItem)) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the saved search "
                        "model item corresponding to the selected index"))
+        return;
+    }
+
+    const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
+        QNDEBUG("view:saved_search", "Non saved search item is selected");
         return;
     }
 

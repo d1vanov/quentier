@@ -18,7 +18,7 @@
 
 #include "FilterBySavedSearchWidget.h"
 
-#include <lib/model/SavedSearchModel.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>

@@ -23,10 +23,10 @@
 #include <lib/model/FavoritesModel.h>
 #include <lib/model/NoteCache.h>
 #include <lib/model/NoteModel.h>
-#include <lib/model/SavedSearchCache.h>
-#include <lib/model/SavedSearchModel.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/saved_search/SavedSearchCache.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagCache.h>
 #include <lib/model/tag/TagModel.h>
 

@@ -1799,4 +1799,31 @@ bool SavedSearchModel::GreaterByName::operator()(
     return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) > 0);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+QDebug & operator<<(QDebug & dbg, const SavedSearchModel::Column column)
+{
+    using Column = SavedSearchModel::Column;
+
+    switch (column) {
+    case Column::Name:
+        dbg << "name";
+        break;
+    case Column::Query:
+        dbg << "query";
+        break;
+    case Column::Synchronizable:
+        dbg << "synchronizable";
+        break;
+    case Column::Dirty:
+        dbg << "dirty";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(column) << ")";
+        break;
+    }
+
+    return dbg;
+}
+
 } // namespace quentier

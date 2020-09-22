@@ -1607,7 +1607,7 @@ void MainWindow::showHideViewColumnsForAccountType(
     auto * savedSearchesTableView = m_pUI->savedSearchesTableView;
 
     savedSearchesTableView->setColumnHidden(
-        SavedSearchModel::Columns::Dirty, isLocal);
+        static_cast<int>(SavedSearchModel::Column::Dirty), isLocal);
 
     auto * deletedNotesTableView = m_pUI->deletedNotesTableView;
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::Dirty, isLocal);
@@ -5502,14 +5502,14 @@ void MainWindow::setupViews()
     auto * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
 
     pSavedSearchesTableView->setColumnHidden(
-        SavedSearchModel::Columns::Query, true);
+        static_cast<int>(SavedSearchModel::Column::Query), true);
 
     pSavedSearchesTableView->setColumnHidden(
-        SavedSearchModel::Columns::Synchronizable, true);
+        static_cast<int>(SavedSearchModel::Column::Synchronizable), true);
 
     auto * pPreviousSavedSearchDirtyColumnDelegate =
         pSavedSearchesTableView->itemDelegateForColumn(
-            SavedSearchModel::Columns::Dirty);
+            static_cast<int>(SavedSearchModel::Column::Dirty));
 
     auto * pSavedSearchDirtyColumnDelegate =
         qobject_cast<DirtyColumnDelegate *>(
@@ -5520,7 +5520,8 @@ void MainWindow::setupViews()
             new DirtyColumnDelegate(pSavedSearchesTableView);
 
         pSavedSearchesTableView->setItemDelegateForColumn(
-            SavedSearchModel::Columns::Dirty, pSavedSearchDirtyColumnDelegate);
+            static_cast<int>(SavedSearchModel::Column::Dirty),
+            pSavedSearchDirtyColumnDelegate);
 
         if (pPreviousSavedSearchDirtyColumnDelegate) {
             pPreviousSavedSearchDirtyColumnDelegate->deleteLater();
@@ -5529,7 +5530,7 @@ void MainWindow::setupViews()
     }
 
     pSavedSearchesTableView->setColumnWidth(
-        SavedSearchModel::Columns::Dirty,
+        static_cast<int>(SavedSearchModel::Column::Dirty),
         pSavedSearchDirtyColumnDelegate->sideSize());
 
     pSavedSearchesTableView->header()->setSectionResizeMode(

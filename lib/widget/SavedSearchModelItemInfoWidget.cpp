@@ -19,7 +19,7 @@
 #include "SavedSearchModelItemInfoWidget.h"
 #include "ui_SavedSearchModelItemInfoWidget.h"
 
-#include <lib/model/SavedSearchModel.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 
 #include <QKeyEvent>
 
@@ -58,7 +58,13 @@ SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(
         return;
     }
 
-    setSavedSearchItem(*pItem);
+    const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
+        setNoModelItem();
+        return;
+    }
+
+    setSavedSearchItem(*pSavedSearchItem);
 }
 
 SavedSearchModelItemInfoWidget::~SavedSearchModelItemInfoWidget()
@@ -109,7 +115,7 @@ void SavedSearchModelItemInfoWidget::setNoModelItem()
 }
 
 void SavedSearchModelItemInfoWidget::setSavedSearchItem(
-    const SavedSearchModelItem & item)
+    const SavedSearchItem & item)
 {
     m_pUi->statusBarLabel->hide();
 

@@ -103,7 +103,7 @@ public:
 #if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
         m_children.swapItemsAt(srcRow, dstRow);
 #else
-        m_children.swap(sourceRow, destRow);
+        m_children.swap(srcRow, dstRow);
 #endif
 
         return true;

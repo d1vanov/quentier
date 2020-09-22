@@ -19,6 +19,7 @@
 #include "AddOrEditSavedSearchDialog.h"
 #include "ui_AddOrEditSavedSearchDialog.h"
 
+#include <lib/model/saved_search/SavedSearchModel.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 
@@ -122,10 +123,19 @@ void AddOrEditSavedSearchDialog::accept()
             return;
         }
 
-        auto queryIndex = m_pSavedSearchModel->index(
-            index.row(), SavedSearchModel::Columns::Query, index.parent());
+        const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
+        if (Q_UNLIKELY(!pSavedSearchItem)) {
+            REPORT_ERROR(
+                QT_TR_NOOP("Can't edit saved search: can't cast model item to "
+                           "saved search one"));
+            return;
+        }
 
-        if (pItem->query() != savedSearchQuery) {
+        auto queryIndex = m_pSavedSearchModel->index(
+            index.row(), static_cast<int>(SavedSearchModel::Column::Query),
+            index.parent());
+
+        if (pSavedSearchItem->query() != savedSearchQuery) {
             bool res =
                 m_pSavedSearchModel->setData(queryIndex, savedSearchQuery);
             if (Q_UNLIKELY(!res)) {
@@ -137,9 +147,10 @@ void AddOrEditSavedSearchDialog::accept()
 
         // If needed, update the saved search name
         auto nameIndex = m_pSavedSearchModel->index(
-            index.row(), SavedSearchModel::Columns::Name, index.parent());
+            index.row(), static_cast<int>(SavedSearchModel::Column::Name),
+            index.parent());
 
-        if (pItem->nameUpper() != savedSearchName.toUpper()) {
+        if (pSavedSearchItem->nameUpper() != savedSearchName.toUpper()) {
             bool res = m_pSavedSearchModel->setData(nameIndex, savedSearchName);
             if (Q_UNLIKELY(!res)) {
                 // Probably the new name collides with some existing
@@ -270,15 +281,18 @@ void AddOrEditSavedSearchDialog::setupEditedSavedSearchItem()
     const auto * pItem =
         m_pSavedSearchModel->itemForIndex(editedSavedSearchIndex);
 
-    if (Q_UNLIKELY(!pItem)) {
+    const SavedSearchItem * pSavedSearchItem =
+        (pItem ? pItem->cast<SavedSearchItem>() : nullptr);
+
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
         m_pUi->statusBar->setText(
             tr("Can't find the edited saved search within the model"));
         m_pUi->statusBar->setHidden(false);
         return;
     }
 
-    m_pUi->savedSearchNameLineEdit->setText(pItem->name());
-    m_pUi->searchQueryPlainTextEdit->setPlainText(pItem->query());
+    m_pUi->savedSearchNameLineEdit->setText(pSavedSearchItem->name());
+    m_pUi->searchQueryPlainTextEdit->setPlainText(pSavedSearchItem->query());
 }
 
 } // namespace quentier

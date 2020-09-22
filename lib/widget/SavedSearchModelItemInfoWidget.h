@@ -31,7 +31,7 @@ QT_FORWARD_DECLARE_CLASS(QModelIndex)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchModelItem)
+QT_FORWARD_DECLARE_CLASS(SavedSearchItem)
 
 class SavedSearchModelItemInfoWidget : public QWidget
 {
@@ -48,7 +48,7 @@ private:
     void setNonSavedSearchModel();
     void setInvalidIndex();
     void setNoModelItem();
-    void setSavedSearchItem(const SavedSearchModelItem & item);
+    void setSavedSearchItem(const SavedSearchItem & item);
 
     void hideAll();
 

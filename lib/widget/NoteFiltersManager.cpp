@@ -23,8 +23,8 @@
 #include "FilterByTagWidget.h"
 
 #include <lib/model/NoteModel.h>
-#include <lib/model/SavedSearchModel.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagModel.h>
 #include <lib/preferences/SettingsNames.h>
 
@@ -1079,7 +1079,8 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     }
 
     const auto * pItem = pSavedSearchModel->itemForIndex(itemIndex);
-    if (Q_UNLIKELY(!pItem)) {
+    const SavedSearchItem * pSavedSearchItem = (pItem ? pItem->cast<SavedSearchItem>() : nullptr);
+    if (Q_UNLIKELY(!pSavedSearchItem)) {
         ErrorString error(
             QT_TR_NOOP("Internal error: can't set the filter by saved search, "
                        "the saved search model returned null item for "
@@ -1091,7 +1092,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         return false;
     }
 
-    if (Q_UNLIKELY(pItem->query().isEmpty())) {
+    if (Q_UNLIKELY(pSavedSearchItem->query().isEmpty())) {
         ErrorString error(
             QT_TR_NOOP("Can't set the filter by saved search: "
                        "saved search's query is empty"));
@@ -1106,7 +1107,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
     NoteSearchQuery query;
     ErrorString errorDescription;
-    bool res = query.setQueryString(pItem->query(), errorDescription);
+    bool res = query.setQueryString(pSavedSearchItem->query(), errorDescription);
     if (Q_UNLIKELY(!res)) {
         ErrorString error(
             QT_TR_NOOP("Internal error: can't set the filter by saved search: "
@@ -1124,7 +1125,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         return false;
     }
 
-    m_filteredSavedSearchLocalUid = pItem->localUid();
+    m_filteredSavedSearchLocalUid = pSavedSearchItem->localUid();
     m_findNoteLocalUidsForSavedSearchQueryRequestId = QUuid::createUuid();
 
     QNTRACE(

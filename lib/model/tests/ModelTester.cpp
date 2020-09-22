@@ -24,7 +24,7 @@
 #include "SavedSearchModelTestHelper.h"
 #include "TagModelTestHelper.h"
 
-#include <lib/model/SavedSearchModel.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagModel.h>
 
 #include <quentier/exception/IQuentierException.h>

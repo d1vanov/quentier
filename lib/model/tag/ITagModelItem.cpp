@@ -36,7 +36,7 @@ QDebug & operator<<(QDebug & dbg, const ITagModelItem::Type type)
         dbg << "All tags root";
         break;
     case Type::InvisibleRoot:
-        dbg << "InvisibleRoot";
+        dbg << "Invisible root";
         break;
     case Type::LinkedNotebook:
         dbg << "Linked notebook";
