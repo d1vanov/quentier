@@ -42,7 +42,7 @@
 
 namespace quentier {
 
-class SavedSearchModel final: public ItemModel
+class SavedSearchModel final : public ItemModel
 {
     Q_OBJECT
 public:
@@ -293,8 +293,7 @@ private:
 
     QVariant dataImpl(const int row, const Column column) const;
 
-    QVariant dataAccessibleText(
-        const int row, const Column column) const;
+    QVariant dataAccessibleText(const int row, const Column column) const;
 
     QString nameForNewSavedSearch() const;
 
@@ -309,6 +308,8 @@ private:
 
     void setSavedSearchFavorited(
         const QModelIndex & index, const bool favorited);
+
+    void checkAndCreateModelRootItems();
 
 private:
     struct ByLocalUid
@@ -327,13 +328,12 @@ private:
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
-                    SavedSearchItem, const QString&,
+                    SavedSearchItem, const QString &,
                     &SavedSearchItem::localUid>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<
-                    SavedSearchItem, QString,
-                    &SavedSearchItem::nameUpper>>>>;
+                    SavedSearchItem, QString, &SavedSearchItem::nameUpper>>>>;
 
     using SavedSearchDataByLocalUid = SavedSearchData::index<ByLocalUid>::type;
     using SavedSearchDataByIndex = SavedSearchData::index<ByIndex>::type;
@@ -346,15 +346,13 @@ private:
     struct LessByName
     {
         bool operator()(
-            const SavedSearchItem & lhs,
-            const SavedSearchItem & rhs) const;
+            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
     };
 
     struct GreaterByName
     {
         bool operator()(
-            const SavedSearchItem & lhs,
-            const SavedSearchItem & rhs) const;
+            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
     };
 
     QModelIndex indexForLocalUidIndexIterator(
