@@ -193,7 +193,7 @@ bool TagItemView::shouldFilterBySelectedItems(const Account & account) const
 
     appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
 
-    auto filterBySelectedTag =
+    const auto filterBySelectedTag =
         appSettings.value(FILTER_BY_SELECTED_TAG_SETTINGS_KEY);
 
     appSettings.endGroup();

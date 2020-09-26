@@ -309,7 +309,7 @@ bool NotebookItemView::shouldFilterBySelectedItems(
 
     appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
 
-    auto filterBySelectedNotebook =
+    const auto filterBySelectedNotebook =
         appSettings.value(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
 
     appSettings.endGroup();
