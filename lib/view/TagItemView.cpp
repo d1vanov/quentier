@@ -64,7 +64,7 @@ void TagItemView::saveItemsState()
 {
     QNDEBUG("view:tag", "TagItemView::saveItemsState");
 
-    auto * pTagModel = qobject_cast<TagModel *>(model());
+    const auto * pTagModel = qobject_cast<const TagModel *>(model());
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG("view:tag", "Non-tag model is used");
         return;
@@ -113,7 +113,7 @@ void TagItemView::saveItemsState()
     }
 
     ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("TagItemView"));
+    appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
 
     appSettings.setValue(
         LAST_EXPANDED_TAG_ITEMS_KEY, expandedTagItemsLocalUids);
@@ -141,7 +141,7 @@ void TagItemView::restoreItemsState(const ItemModel & model)
     }
 
     ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("TagItemView"));
+    appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
 
     QStringList expandedTagItemsLocalUids =
         appSettings.value(LAST_EXPANDED_TAG_ITEMS_KEY).toStringList();

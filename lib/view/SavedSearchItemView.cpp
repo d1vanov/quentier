@@ -21,6 +21,7 @@
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -31,8 +32,16 @@
 
 #include <memory>
 
+#define SAVED_SEARCH_ITEM_VIEW_GROUP_KEY QStringLiteral("SavedSearchItemView")
+
 #define LAST_SELECTED_SAVED_SEARCH_KEY                                         \
     QStringLiteral("LastSelectedSavedSearchLocalUid")
+
+#define LAST_SELECTED_SAVED_SEARCHES_KEY                                       \
+    QStringLiteral("LastSelectedSavedSearchLocalUids")
+
+#define ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY                              \
+    QStringLiteral("AllSavedSearchesRootItemExpanded")
 
 #define REPORT_ERROR(error)                                                    \
     {                                                                          \
@@ -51,31 +60,77 @@ SavedSearchItemView::SavedSearchItemView(QWidget * parent) :
 
 void SavedSearchItemView::saveItemsState()
 {
-    // TODO: implement
+    QNDEBUG("view:saved_search", "SavedSearchItemView::saveItemsState");
+
+    const auto * pSavedSearchModel = qobject_cast<const SavedSearchModel *>(
+        model());
+
+    if (Q_UNLIKELY(!pSavedSearchModel)) {
+        QNDEBUG("view:saved_search", "Non-saved search model is used");
+        return;
+    }
+
+    ApplicationSettings appSettings(
+        pSavedSearchModel->account(), QUENTIER_UI_SETTINGS);
+
+    appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
+
+    auto allSavedSearchesRootItemIndex = pSavedSearchModel->index(0, 0);
+
+    appSettings.setValue(
+        ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY,
+        isExpanded(allSavedSearchesRootItemIndex));
+
+    appSettings.endGroup();
 }
 
 void SavedSearchItemView::restoreItemsState(const ItemModel & model)
 {
-    Q_UNUSED(model)
-    // TODO: implement
+    QNDEBUG("view:saved_search", "SavedSearchItemView::restoreItemsState");
+
+    const auto * pSavedSearchModel = qobject_cast<const SavedSearchModel *>(
+        &model);
+
+    if (Q_UNLIKELY(!pSavedSearchModel)) {
+        QNDEBUG("view:saved_search", "Non-saved search model is used");
+        return;
+    }
+
+    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
+
+    auto allSavedSearchesRootItemExpandedPreference =
+        appSettings.value(ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY);
+
+    appSettings.endGroup();
+
+    bool wasTrackingTagItemsState = trackItemsStateEnabled();
+    setTrackItemsStateEnabled(false);
+
+    bool allSavedSearchesRootItemExpanded = true;
+    if (allSavedSearchesRootItemExpandedPreference.isValid()) {
+        allSavedSearchesRootItemExpanded = allSavedSearchesRootItemExpandedPreference.toBool();
+    }
+
+    auto allTagsRootItemIndex = model.index(0, 0);
+    setExpanded(allTagsRootItemIndex, allSavedSearchesRootItemExpanded);
+
+    setTrackItemsStateEnabled(wasTrackingTagItemsState);
 }
 
 QString SavedSearchItemView::selectedItemsGroupKey() const
 {
-    // TODO: implement
-    return {};
+    return SAVED_SEARCH_ITEM_VIEW_GROUP_KEY;
 }
 
 QString SavedSearchItemView::selectedItemsArrayKey() const
 {
-    // TODO: implement
-    return {};
+    return LAST_SELECTED_SAVED_SEARCHES_KEY;
 }
 
 QString SavedSearchItemView::selectedItemsKey() const
 {
-    // TODO: implement
-    return {};
+    return LAST_SELECTED_SAVED_SEARCH_KEY;
 }
 
 bool SavedSearchItemView::shouldFilterBySelectedItems(
@@ -100,25 +155,32 @@ bool SavedSearchItemView::shouldFilterBySelectedItems(
 QStringList SavedSearchItemView::localUidsInNoteFiltersManager(
     const NoteFiltersManager & noteFiltersManager) const
 {
-    Q_UNUSED(noteFiltersManager)
-    // TODO: implement
-    return {};
+    const auto & savedSearchLocalUid =
+        noteFiltersManager.savedSearchLocalUidInFilter();
+
+    if (savedSearchLocalUid.isEmpty()) {
+        return {};
+    }
+
+    return QStringList() << savedSearchLocalUid;
 }
 
 void SavedSearchItemView::setItemLocalUidsToNoteFiltersManager(
     const QStringList & itemLocalUids,
     NoteFiltersManager & noteFiltersManager)
 {
-    Q_UNUSED(itemLocalUids)
-    Q_UNUSED(noteFiltersManager)
-    // TODO: implement
+    if (Q_UNLIKELY(itemLocalUids.isEmpty())) {
+        noteFiltersManager.removeSavedSearchFromFilter();
+        return;
+    }
+
+    noteFiltersManager.setSavedSearchLocalUidToFilter(itemLocalUids[0]);
 }
 
 void SavedSearchItemView::removeItemLocalUidsFromNoteFiltersManager(
     NoteFiltersManager & noteFiltersManager)
 {
-    Q_UNUSED(noteFiltersManager)
-    // TODO: implement
+    noteFiltersManager.removeSavedSearchFromFilter();
 }
 
 void SavedSearchItemView::connectToModel(ItemModel & model)

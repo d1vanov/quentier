@@ -64,6 +64,9 @@ public:
     void setTagsToFilter(const QStringList & tagLocalUids);
     void removeTagsFromFilter();
 
+    void setSavedSearchLocalUidToFilter(const QString & savedSearchLocalUid);
+    void removeSavedSearchFromFilter();
+
     /**
      * @return              True if all filters have already been properly
      *                      initialized, false otherwise
@@ -179,6 +182,7 @@ private:
     void setNotebookToFilterImpl(const QString & notebookLocalUid);
     void setNotebooksToFilterImpl(const QStringList & notebookLocalUids);
     void setTagsToFilterImpl(const QStringList & tagLocalUids);
+    void setSavedSearchToFilterImpl(const QString & savedSearchLocalUid);
 
     void checkAndRefreshNotesSearchQuery();
 
@@ -189,6 +193,9 @@ private:
 
     void persistFilterByTagClearedState(const bool state);
     bool tagFilterWasCleared() const;
+
+    void persistFilterBySavedSearchClearedState(const bool state);
+    bool savedSearchFilterWasCleared() const;
 
 private:
     Account m_account;

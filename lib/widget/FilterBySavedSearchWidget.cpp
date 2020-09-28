@@ -151,6 +151,34 @@ QString FilterBySavedSearchWidget::filteredSavedSearchLocalUid() const
     return savedSearchLocalUid;
 }
 
+void FilterBySavedSearchWidget::setCurrentSavedSearchLocalUid(
+    const QString & savedSearchLocalUid)
+{
+    QNDEBUG(
+        "widget:saved_search_filter",
+        "FilterBySavedSearchWidget::setCurrentSavedSearchLocalUid: "
+            << savedSearchLocalUid);
+
+    if (m_currentSavedSearchLocalUid == savedSearchLocalUid) {
+        QNDEBUG(
+            "widget:saved_search_filter",
+            "Current saved search local uid hasn't changed");
+        return;
+    }
+
+    m_currentSavedSearchLocalUid = savedSearchLocalUid;
+    persistSelectedSavedSearch();
+
+    if (!isReady()) {
+        QNDEBUG(
+            "widget:saved_search_filter",
+            "Filter by saved search is not ready");
+        return;
+    }
+
+    updateSavedSearchesInComboBox();
+}
+
 void FilterBySavedSearchWidget::onAllSavedSearchesListed()
 {
     QNDEBUG(

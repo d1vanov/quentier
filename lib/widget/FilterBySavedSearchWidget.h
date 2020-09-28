@@ -49,6 +49,8 @@ public:
 
     QString filteredSavedSearchLocalUid() const;
 
+    void setCurrentSavedSearchLocalUid(const QString & savedSearchLocalUid);
+
 Q_SIGNALS:
     void ready();
     void currentSavedSearchNameChanged(const QString & savedSearchName);
