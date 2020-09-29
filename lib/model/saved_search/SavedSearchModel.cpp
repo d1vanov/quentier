@@ -446,7 +446,12 @@ QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
 
     if (!index.parent().isValid()) {
         if (index.column() == static_cast<int>(Column::Name)) {
-            return tr("All saved searches");
+            switch (role) {
+            case Qt::DisplayRole:
+            case Qt::EditRole:
+            case Qt::ToolTipRole:
+                return tr("All saved searches");
+            }
         }
 
         return {};
@@ -515,11 +520,7 @@ int SavedSearchModel::rowCount(const QModelIndex & parent) const
 {
     if (!parent.isValid()) {
         // Parent is invisible root item
-        if (parent.column() != static_cast<int>(Column::Name)) {
-            return 0;
-        }
-
-        return 1;
+        return (m_pAllSavedSearchesRootItem ? 1 : 0);
     }
 
     const auto grandparent = parent.parent();
@@ -936,7 +937,7 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
         }
 
         const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
-        if (Q_UNLIKELY(!pItem)) {
+        if (Q_UNLIKELY(!pSavedSearchItem)) {
             localUidsToUpdate << QString();
             continue;
         }
