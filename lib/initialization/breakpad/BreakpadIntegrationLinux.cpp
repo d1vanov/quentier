@@ -22,13 +22,15 @@
 
 SAVE_WARNINGS
 
-CLANG_SUPPRESS_WARNING(-Wshorten - 64 - to - 32)
-CLANG_SUPPRESS_WARNING(-Wsign - conversion)
-CLANG_SUPPRESS_WARNING(-Wimplicit - int - conversion)
+// clang-format off
+CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
+CLANG_SUPPRESS_WARNING(-Wsign-conversion)
+CLANG_SUPPRESS_WARNING(-Wimplicit-int-conversion)
 GCC_SUPPRESS_WARNING(-Wconversion)
 MSVC_SUPPRESS_WARNING(4365)
 MSVC_SUPPRESS_WARNING(4244)
 MSVC_SUPPRESS_WARNING(4305)
+// clang-format on
 
 #include <client/linux/handler/exception_handler.h>
 
