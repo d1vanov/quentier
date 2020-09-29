@@ -1604,9 +1604,9 @@ void MainWindow::showHideViewColumnsForAccountType(
     tagsTreeView->setColumnHidden(
         static_cast<int>(TagModel::Column::Dirty), isLocal);
 
-    auto * savedSearchesTableView = m_pUI->savedSearchesTableView;
+    auto * savedSearchesItemView = m_pUI->savedSearchesItemView;
 
-    savedSearchesTableView->setColumnHidden(
+    savedSearchesItemView->setColumnHidden(
         static_cast<int>(SavedSearchModel::Column::Dirty), isLocal);
 
     auto * deletedNotesTableView = m_pUI->deletedNotesTableView;
@@ -2524,7 +2524,7 @@ void MainWindow::onRemoveSavedSearchButtonPressed()
     QNDEBUG(
         "quentier:main_window", "MainWindow::onRemoveSavedSearchButtonPressed");
 
-    m_pUI->savedSearchesTableView->deleteSelectedItem();
+    m_pUI->savedSearchesItemView->deleteSelectedItem();
 }
 
 void MainWindow::onSavedSearchInfoButtonPressed()
@@ -2532,7 +2532,7 @@ void MainWindow::onSavedSearchInfoButtonPressed()
     QNDEBUG(
         "quentier:main_window", "MainWindow::onSavedSearchInfoButtonPressed");
 
-    auto index = m_pUI->savedSearchesTableView->currentlySelectedItemIndex();
+    auto index = m_pUI->savedSearchesItemView->currentlySelectedItemIndex();
 
     auto * pSavedSearchModelItemInfoWidget =
         new SavedSearchModelItemInfoWidget(index, this);
@@ -5188,7 +5188,7 @@ void MainWindow::setupModels()
     m_pUI->favoritesTableView->setModel(m_pFavoritesModel);
     m_pUI->notebooksTreeView->setModel(m_pNotebookModel);
     m_pUI->tagsTreeView->setModel(m_pTagModel);
-    m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
+    m_pUI->savedSearchesItemView->setModel(m_pSavedSearchModel);
     m_pUI->deletedNotesTableView->setModel(m_pDeletedNotesModel);
     m_pUI->noteListView->setModel(m_pNoteModel);
 
@@ -5499,16 +5499,17 @@ void MainWindow::setupViews()
         pTagsTreeView, &TagItemView::notifyError, this,
         &MainWindow::onModelViewError, Qt::UniqueConnection);
 
-    auto * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
+    auto * pSavedSearchesItemView = m_pUI->savedSearchesItemView;
+    pSavedSearchesItemView->setNoteFiltersManager(*m_pNoteFiltersManager);
 
-    pSavedSearchesTableView->setColumnHidden(
+    pSavedSearchesItemView->setColumnHidden(
         static_cast<int>(SavedSearchModel::Column::Query), true);
 
-    pSavedSearchesTableView->setColumnHidden(
+    pSavedSearchesItemView->setColumnHidden(
         static_cast<int>(SavedSearchModel::Column::Synchronizable), true);
 
     auto * pPreviousSavedSearchDirtyColumnDelegate =
-        pSavedSearchesTableView->itemDelegateForColumn(
+        pSavedSearchesItemView->itemDelegateForColumn(
             static_cast<int>(SavedSearchModel::Column::Dirty));
 
     auto * pSavedSearchDirtyColumnDelegate =
@@ -5517,9 +5518,9 @@ void MainWindow::setupViews()
 
     if (!pSavedSearchDirtyColumnDelegate) {
         pSavedSearchDirtyColumnDelegate =
-            new DirtyColumnDelegate(pSavedSearchesTableView);
+            new DirtyColumnDelegate(pSavedSearchesItemView);
 
-        pSavedSearchesTableView->setItemDelegateForColumn(
+        pSavedSearchesItemView->setItemDelegateForColumn(
             static_cast<int>(SavedSearchModel::Column::Dirty),
             pSavedSearchDirtyColumnDelegate);
 
@@ -5529,25 +5530,25 @@ void MainWindow::setupViews()
         }
     }
 
-    pSavedSearchesTableView->setColumnWidth(
+    pSavedSearchesItemView->setColumnWidth(
         static_cast<int>(SavedSearchModel::Column::Dirty),
         pSavedSearchDirtyColumnDelegate->sideSize());
 
-    pSavedSearchesTableView->header()->setSectionResizeMode(
+    pSavedSearchesItemView->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
 
     QObject::connect(
-        pSavedSearchesTableView, &SavedSearchItemView::savedSearchInfoRequested,
+        pSavedSearchesItemView, &SavedSearchItemView::savedSearchInfoRequested,
         this, &MainWindow::onSavedSearchInfoButtonPressed,
         Qt::UniqueConnection);
 
     QObject::connect(
-        pSavedSearchesTableView,
+        pSavedSearchesItemView,
         &SavedSearchItemView::newSavedSearchCreationRequested, this,
         &MainWindow::onNewSavedSearchCreationRequested, Qt::UniqueConnection);
 
     QObject::connect(
-        pSavedSearchesTableView, &SavedSearchItemView::notifyError, this,
+        pSavedSearchesItemView, &SavedSearchItemView::notifyError, this,
         &MainWindow::onModelViewError, Qt::UniqueConnection);
 
     auto * pNoteListView = m_pUI->noteListView;
@@ -5856,7 +5857,7 @@ void MainWindow::clearViews()
     m_pUI->favoritesTableView->setModel(&m_blankModel);
     m_pUI->notebooksTreeView->setModel(&m_blankModel);
     m_pUI->tagsTreeView->setModel(&m_blankModel);
-    m_pUI->savedSearchesTableView->setModel(&m_blankModel);
+    m_pUI->savedSearchesItemView->setModel(&m_blankModel);
 
     m_pUI->noteListView->setModel(&m_blankModel);
     // NOTE: without this the note list view doesn't seem to re-render

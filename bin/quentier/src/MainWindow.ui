@@ -1361,7 +1361,7 @@ border: none;
                <set>Qt::AlignCenter</set>
               </property>
               <property name="buddy">
-               <cstring>savedSearchesTableView</cstring>
+               <cstring>savedSearchesItemView</cstring>
               </property>
              </widget>
             </item>
@@ -1468,7 +1468,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="SavedSearchItemView" name="savedSearchesTableView">
+          <widget class="SavedSearchItemView" name="savedSearchesItemView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1476,7 +1476,7 @@ border: none;
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">#savedSearchesTableView {
+            <string notr="true">#savedSearchesItemView {
 border: none;
 border-top: 1px solid black;
 border-bottom: 1px solid black;
