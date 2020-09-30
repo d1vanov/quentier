@@ -262,12 +262,6 @@ void AbstractMultiSelectionItemView::onNoteFilterChanged()
         return;
     }
 
-    if (!m_pNoteFiltersManager->savedSearchLocalUidInFilter().isEmpty()) {
-        MSDEBUG("Filter by saved search is active");
-        selectAllItemsRootItem(*pItemModel);
-        return;
-    }
-
     const auto localUids =
         localUidsInNoteFiltersManager(*m_pNoteFiltersManager);
 
@@ -651,20 +645,8 @@ void AbstractMultiSelectionItemView::setItemsToNoteFiltersManager(
         return;
     }
 
-    const QString & savedSearchLocalUidInFilter =
-        m_pNoteFiltersManager->savedSearchLocalUidInFilter();
-
-    if (!savedSearchLocalUidInFilter.isEmpty()) {
-        MSDEBUG(
-            "Filter by saved search is active, won't set "
-            << "the selected items to filter");
-        return;
-    }
-
     disconnectFromNoteFiltersManagerFilterChanged();
-
     setItemLocalUidsToNoteFiltersManager(itemLocalUids, *m_pNoteFiltersManager);
-
     connectToNoteFiltersManagerFilterChanged();
 }
 
