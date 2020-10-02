@@ -74,6 +74,9 @@ private:
     void updateSavedSearchesInComboBox();
     void connectoToSavedSearchModel();
 
+    void connectToCurrentIndexChangedSignal();
+    void disconnectFromCurrentIndexChangedSignal();
+
 private:
     Account m_account;
     QPointer<SavedSearchModel> m_pSavedSearchModel;
@@ -81,8 +84,6 @@ private:
 
     QString m_currentSavedSearchName;
     QString m_currentSavedSearchLocalUid;
-
-    bool m_settingCurrentIndex = false;
 
     bool m_isReady = false;
 };

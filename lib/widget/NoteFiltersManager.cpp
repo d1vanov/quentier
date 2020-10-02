@@ -220,9 +220,7 @@ void NoteFiltersManager::setSavedSearchLocalUidToFilter(
         "NoteFiltersManager::setSavedSearchLocalUidToFilter: "
             << savedSearchLocalUid);
 
-    clearFilterBySavedSearchWidget();
     setSavedSearchToFilterImpl(savedSearchLocalUid);
-    evaluate();
 }
 
 void NoteFiltersManager::removeSavedSearchFromFilter()
@@ -233,7 +231,6 @@ void NoteFiltersManager::removeSavedSearchFromFilter()
 
     persistFilterBySavedSearchClearedState(true);
     setSavedSearchToFilterImpl(QString());
-    evaluate();
 }
 
 bool NoteFiltersManager::isReady() const
@@ -1290,16 +1287,7 @@ void NoteFiltersManager::clearSearchString()
 {
     QNDEBUG("widget:note_filters", "NoteFiltersManager::clearSearchString");
 
-    QObject::disconnect(
-        &m_searchLineEdit, &QLineEdit::editingFinished, this,
-        &NoteFiltersManager::onSearchStringChanged);
-
-    m_searchLineEdit.setText(QString());
-
-    QObject::connect(
-        &m_searchLineEdit, &QLineEdit::editingFinished, this,
-        &NoteFiltersManager::onSearchStringChanged, Qt::UniqueConnection);
-
+    setSearchStringText(QString());
     persistSearchString();
 }
 
@@ -1453,18 +1441,21 @@ void NoteFiltersManager::setSavedSearchToFilterImpl(
         return;
     }
 
-    QObject::disconnect(
-        &m_filterBySavedSearchWidget,
-        &FilterBySavedSearchWidget::currentSavedSearchNameChanged,
-        this, &NoteFiltersManager::onSavedSearchFilterChanged);
-
-    persistFilterBySavedSearchClearedState(false);
+    persistFilterBySavedSearchClearedState(savedSearchLocalUid.isEmpty());
     m_filterBySavedSearchWidget.setCurrentSavedSearchLocalUid(savedSearchLocalUid);
+}
+
+void NoteFiltersManager::setSearchStringText(const QString & text)
+{
+    QObject::disconnect(
+        &m_searchLineEdit, &QLineEdit::editingFinished, this,
+        &NoteFiltersManager::onSearchStringChanged);
+
+    m_searchLineEdit.setText(text);
 
     QObject::connect(
-        &m_filterBySavedSearchWidget,
-        &FilterBySavedSearchWidget::currentSavedSearchNameChanged,
-        this, &NoteFiltersManager::onSavedSearchFilterChanged);
+        &m_searchLineEdit, &QLineEdit::editingFinished, this,
+        &NoteFiltersManager::onSearchStringChanged, Qt::UniqueConnection);
 }
 
 void NoteFiltersManager::checkAndRefreshNotesSearchQuery()
@@ -1477,7 +1468,7 @@ void NoteFiltersManager::checkAndRefreshNotesSearchQuery()
     // search
     if (!m_filterByTagWidget.isEnabled() &&
         !m_filterByNotebookWidget.isEnabled() &&
-    (!m_searchLineEdit.text().isEmpty() ||
+        (!m_searchLineEdit.text().isEmpty() ||
          m_filterBySavedSearchWidget.isEnabled()))
     {
         evaluate();

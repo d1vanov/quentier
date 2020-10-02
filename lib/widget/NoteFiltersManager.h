@@ -184,6 +184,7 @@ private:
     void setTagsToFilterImpl(const QStringList & tagLocalUids);
     void setSavedSearchToFilterImpl(const QString & savedSearchLocalUid);
 
+    void setSearchStringText(const QString & text);
     void checkAndRefreshNotesSearchQuery();
 
     bool setAutomaticFilterByNotebook();
