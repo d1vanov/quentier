@@ -10,6 +10,7 @@ set(HEADERS
     FindAndReplaceWidget.h
     FilterByNotebookWidget.h
     FilterBySavedSearchWidget.h
+    FilterBySearchStringWidget.h
     FilterByTagWidget.h
     FlowLayout.h
     ListItemWidget.h
@@ -41,6 +42,7 @@ set(SOURCES
     FindAndReplaceWidget.cpp
     FilterByNotebookWidget.cpp
     FilterBySavedSearchWidget.cpp
+    FilterBySearchStringWidget.cpp
     FilterByTagWidget.cpp
     FlowLayout.cpp
     ListItemWidget.cpp
@@ -69,6 +71,7 @@ set(SOURCES
 set(FORMS
     AboutQuentierWidget.ui
     FindAndReplaceWidget.ui
+    FilterBySearchStringWidget.ui
     ListItemWidget.ui
     LogViewerWidget.ui
     NewListItemLineEdit.ui
