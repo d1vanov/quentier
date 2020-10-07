@@ -45,7 +45,7 @@ public:
 
     const QString & originalSearchQuery() const
     {
-        return m_originalSearchQuery;
+        return m_searchQuery;
     }
 
     const QString & savedSearchQuery() const
@@ -68,15 +68,22 @@ public:
     void clearSavedSearch();
 
 Q_SIGNALS:
-    // TODO: add actual signals notifying about search query updates
+    void searchQueryChanged(QString query);
+    void savedSearchQueryChanged(QString savedSearchLocalUid, QString query);
+
+private Q_SLOTS:
+    void onLineEditTextEdited(const QString & text);
+    void onLineEditEditingFinished();
 
 private:
+    void createConnections();
     void updateDisplayedSearchQuery();
+    void notifyQueryChanged();
 
 private:
     Ui::FilterBySearchStringWidget * m_pUi;
 
-    QString     m_originalSearchQuery;
+    QString     m_searchQuery;
 
     QString     m_savedSearchQuery;
     QString     m_savedSearchLocalUid;

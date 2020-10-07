@@ -465,9 +465,8 @@ void NoteFiltersManager::onSearchStringChanged()
     if (m_lastSearchString.isEmpty() && m_searchLineEdit.text().isEmpty()) {
         QNDEBUG(
             "widget:note_filters",
-            "Skipping the evaluation as the search "
-                << "string is empty => evaluation should have already "
-                   "occurred");
+            "Skipping the evaluation as the search string is empty => "
+                << "evaluation should have already occurred");
         return;
     }
 
