@@ -21,6 +21,8 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
+namespace quentier {
+
 FilterBySearchStringWidget::FilterBySearchStringWidget(QWidget * parent) :
     QWidget(parent), m_pUi(new Ui::FilterBySearchStringWidget)
 {
@@ -168,3 +170,5 @@ void FilterBySearchStringWidget::notifyQueryChanged()
             m_savedSearchLocalUid, m_savedSearchQuery);
     }
 }
+
+} // namespace quentier

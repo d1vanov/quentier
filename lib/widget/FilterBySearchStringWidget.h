@@ -26,6 +26,8 @@ namespace Ui {
 class FilterBySearchStringWidget;
 }
 
+namespace quentier {
+
 /**
  * @brief The FilterBySearchStringWidget class is a widget controlling
  * the line edit containing the search string. That search string can either
@@ -89,5 +91,7 @@ private:
     QString     m_savedSearchQuery;
     QString     m_savedSearchLocalUid;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_LIB_WIDGET_FILTER_BY_SEARCH_STRING_WIDGET_H
