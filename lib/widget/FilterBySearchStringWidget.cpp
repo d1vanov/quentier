@@ -39,6 +39,25 @@ QString FilterBySearchStringWidget::displayedSearchQuery() const
     return m_pUi->lineEdit->text();
 }
 
+void FilterBySearchStringWidget::setSearchQuery(const QString & searchQuery)
+{
+    QNDEBUG(
+        "widget:filter_search_string",
+        "FilterBySearchStringWidget::setSearchQuery: " << searchQuery);
+
+    if (!m_savedSearchLocalUid.isEmpty()) {
+        m_searchQuery = searchQuery;
+        return;
+    }
+
+    if (m_searchQuery == searchQuery) {
+        return;
+    }
+
+    m_searchQuery = searchQuery;
+    m_pUi->lineEdit->setText(m_searchQuery);
+}
+
 void FilterBySearchStringWidget::setSavedSearch(
     const QString & localUid, const QString & searchQuery)
 {

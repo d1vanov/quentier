@@ -43,28 +43,45 @@ public:
     explicit FilterBySearchStringWidget(QWidget * parent = nullptr);
     virtual ~FilterBySearchStringWidget() override;
 
+    /**
+     * @return search query displayed by the widget at the moment: either the
+     *         one entered manually by user or the one from the saved search
+     */
     QString displayedSearchQuery() const;
 
-    const QString & originalSearchQuery() const
+    /**
+     * @return search query corresponding to the manual search string entered
+     *         by user
+     */
+    const QString & searchQuery() const
     {
         return m_searchQuery;
     }
 
+    /**
+     * @return search query from the saved search set to the widget (if any)
+     */
     const QString & savedSearchQuery() const
     {
         return m_savedSearchQuery;
     }
 
+    /**
+     * @return local uid of the saved search which query the widget displays
+     *         at the moment; empty if the widget doesn't display saved search
+     *         query at the moment
+     */
     const QString & savedSearchLocalUid() const
     {
         return m_savedSearchLocalUid;
     }
 
-    bool isSavedSearchQuery() const
+    bool displaysSavedSearchQuery() const
     {
         return !m_savedSearchLocalUid.isEmpty();
     }
 
+    void setSearchQuery(const QString & searchQuery);
     void setSavedSearch(const QString & localUid, const QString & searchQuery);
 
     void clearSavedSearch();
