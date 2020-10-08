@@ -74,6 +74,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onLineEditTextEdited(const QString & text);
     void onLineEditEditingFinished();
+    void onSaveButtonPressed();
 
 private:
     void createConnections();

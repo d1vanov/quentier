@@ -106,6 +106,15 @@ void FilterBySearchStringWidget::onLineEditEditingFinished()
     notifyQueryChanged();
 }
 
+void FilterBySearchStringWidget::onSaveButtonPressed()
+{
+    QNDEBUG(
+        "widget:filter_search_string",
+        "FilterBySearchStringWidget::onSaveButtonPressed");
+
+    notifyQueryChanged();
+}
+
 void FilterBySearchStringWidget::createConnections()
 {
     QObject::connect(
@@ -115,6 +124,10 @@ void FilterBySearchStringWidget::createConnections()
     QObject::connect(
         m_pUi->lineEdit, &QLineEdit::textEdited, this,
         &FilterBySearchStringWidget::onLineEditTextEdited);
+
+    QObject::connect(
+        m_pUi->pushButton, &QPushButton::clicked,
+        this, &FilterBySearchStringWidget::onSaveButtonPressed);
 }
 
 void FilterBySearchStringWidget::updateDisplayedSearchQuery()
