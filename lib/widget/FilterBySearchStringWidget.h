@@ -88,6 +88,7 @@ public:
 
 Q_SIGNALS:
     void searchQueryChanged(QString query);
+    void searchSavingRequested(QString query);
     void savedSearchQueryChanged(QString savedSearchLocalUid, QString query);
 
 private Q_SLOTS:

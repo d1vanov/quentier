@@ -133,7 +133,14 @@ void FilterBySearchStringWidget::onSaveButtonPressed()
         "widget:filter_search_string",
         "FilterBySearchStringWidget::onSaveButtonPressed");
 
-    notifyQueryChanged();
+    if (!m_savedSearchLocalUid.isEmpty()) {
+        Q_EMIT savedSearchQueryChanged(
+            m_savedSearchLocalUid,
+            m_savedSearchQuery);
+        return;
+    }
+
+    Q_EMIT searchSavingRequested(m_searchQuery);
 }
 
 void FilterBySearchStringWidget::createConnections()
