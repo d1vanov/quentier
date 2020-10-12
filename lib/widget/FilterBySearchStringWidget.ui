@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>547</width>
-    <height>44</height>
+    <height>49</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,12 +22,33 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="lineEdit"/>
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Minimum</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>4</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="lineEdit">
+     <property name="clearButtonEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="pushButton">
      <property name="icon">
-      <iconset theme="document-save"/>
+      <iconset theme="document-save">
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <property name="flat">
       <bool>true</bool>

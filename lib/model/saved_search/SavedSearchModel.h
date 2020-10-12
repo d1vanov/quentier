@@ -68,6 +68,13 @@ public:
     QModelIndex indexForSavedSearchName(const QString & savedSearchName) const;
 
     /**
+     * @brief queryForLocalUid
+     * @return query corresponding to the saved search with the passed in local
+     *         uid or empty string if unable to find that saved search
+     */
+    QString queryForLocalUid(const QString & localUid) const;
+
+    /**
      * @brief savedSearchNames
      * @return the sorted (in case insensitive manner) list of saved search
      * names existing within the saved search model

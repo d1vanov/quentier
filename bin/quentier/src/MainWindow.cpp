@@ -81,6 +81,9 @@ using quentier::FilterByTagWidget;
 #include <lib/widget/FilterBySavedSearchWidget.h>
 using quentier::FilterBySavedSearchWidget;
 
+#include <lib/widget/FilterBySearchStringWidget.h>
+using quentier::FilterBySearchStringWidget;
+
 #include <lib/widget/LogViewerWidget.h>
 using quentier::LogViewerWidget;
 
@@ -257,7 +260,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     restorePanelColors();
 
     m_pAvailableAccountsActionGroup->setExclusive(true);
-    m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
 
     setWindowTitleForAccount(*m_pAccount);
 
@@ -285,7 +287,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     connectActionsToSlots();
     connectViewButtonsToSlots();
-    connectNoteSearchActionsToSlots();
     connectToolbarButtonsToSlots();
     connectSystemTrayIconManagerSignalsToSlots();
 
@@ -695,16 +696,6 @@ void MainWindow::connectViewButtonsToSlots()
     QObject::connect(
         m_pUI->filtersViewTogglePushButton, &QPushButton::clicked, this,
         &MainWindow::onFiltersViewTogglePushButtonPressed);
-}
-
-void MainWindow::connectNoteSearchActionsToSlots()
-{
-    QNDEBUG(
-        "quentier:main_window", "MainWindow::connectNoteSearchActionsToSlots");
-
-    QObject::connect(
-        m_pUI->saveSearchPushButton, &QPushButton::clicked, this,
-        &MainWindow::onSaveNoteSearchQueryButtonPressed);
 }
 
 void MainWindow::connectToolbarButtonsToSlots()
@@ -3447,24 +3438,6 @@ void MainWindow::onPanelBackgroundLinearGradientChanged(
     }
 }
 
-void MainWindow::onSaveNoteSearchQueryButtonPressed()
-{
-    QString searchString = m_pUI->searchQueryLineEdit->text();
-
-    QNDEBUG(
-        "quentier:main_window",
-        "MainWindow::onSaveNoteSearchQueryButtonPressed, search string = "
-            << searchString);
-
-    auto pAddSavedSearchDialog =
-        std::make_unique<AddOrEditSavedSearchDialog>(m_pSavedSearchModel, this);
-
-    pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
-    centerDialog(*pAddSavedSearchDialog);
-    pAddSavedSearchDialog->setQuery(searchString);
-    Q_UNUSED(pAddSavedSearchDialog->exec())
-}
-
 void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
 {
     QNDEBUG(
@@ -5925,11 +5898,15 @@ void MainWindow::setupNoteFilters()
         m_pNoteFiltersManager->deleteLater();
     }
 
-    m_pNoteFiltersManager = new NoteFiltersManager(
-        *m_pAccount, *m_pUI->filterByTagsWidget,
-        *m_pUI->filterByNotebooksWidget, *m_pNoteModel,
-        *m_pUI->filterBySavedSearchComboBox, *m_pUI->searchQueryLineEdit,
-        *m_pLocalStorageManagerAsync, this);
+    m_pNoteFiltersManager =
+      new NoteFiltersManager(*m_pAccount,
+                             *m_pUI->filterByTagsWidget,
+                             *m_pUI->filterByNotebooksWidget,
+                             *m_pNoteModel,
+                             *m_pUI->filterBySavedSearchComboBox,
+                             *m_pUI->filterBySearchStringWidget,
+                             *m_pLocalStorageManagerAsync,
+                             this);
 
     m_pNoteModel->start();
 

@@ -129,6 +129,17 @@ QModelIndex SavedSearchModel::indexForSavedSearchName(
     return indexForItem(&item);
 }
 
+QString SavedSearchModel::queryForLocalUid(const QString & localUid) const
+{
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (it == localUidIndex.end()) {
+        return {};
+    }
+
+    return it->query();
+}
+
 QStringList SavedSearchModel::savedSearchNames() const
 {
     const auto & nameIndex = m_data.get<ByNameUpper>();

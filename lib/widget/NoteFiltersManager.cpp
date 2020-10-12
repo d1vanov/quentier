@@ -20,6 +20,7 @@
 
 #include "FilterByNotebookWidget.h"
 #include "FilterBySavedSearchWidget.h"
+#include "FilterBySearchStringWidget.h"
 #include "FilterByTagWidget.h"
 
 #include <lib/model/NoteModel.h>
@@ -40,41 +41,26 @@ namespace quentier {
 // DEPRECATED: NOTE_FILTERS_GROUP_KEY should be used instead
 #define NOTE_SEARCH_STRING_GROUP_KEY QStringLiteral("NoteSearchStringFilter")
 
-#define NOTE_FILTERS_GROUP_KEY  QStringLiteral("NoteFilters")
-#define NOTE_SEARCH_STRING_KEY  QStringLiteral("SearchString")
-#define NOTEBOOK_FILTER_CLEARED QStringLiteral("NotebookFilterCleared")
-#define TAG_FILTER_CLEARED      QStringLiteral("TagFilterCleared")
+#define NOTE_FILTERS_GROUP_KEY      QStringLiteral("NoteFilters")
+#define NOTE_SEARCH_STRING_KEY      QStringLiteral("SearchString")
+#define NOTEBOOK_FILTER_CLEARED     QStringLiteral("NotebookFilterCleared")
+#define TAG_FILTER_CLEARED          QStringLiteral("TagFilterCleared")
 #define SAVED_SEARCH_FILTER_CLEARED QStringLiteral("SavedSearchFilterCleared")
 
 NoteFiltersManager::NoteFiltersManager(
     const Account & account, FilterByTagWidget & filterByTagWidget,
     FilterByNotebookWidget & filterByNotebookWidget, NoteModel & noteModel,
     FilterBySavedSearchWidget & filterBySavedSearchWidget,
-    QLineEdit & searchLineEdit,
+    FilterBySearchStringWidget & FilterBySearchStringWidget,
     LocalStorageManagerAsync & localStorageManagerAsync, QObject * parent) :
     QObject(parent),
     m_account(account), m_filterByTagWidget(filterByTagWidget),
     m_filterByNotebookWidget(filterByNotebookWidget), m_pNoteModel(&noteModel),
     m_filterBySavedSearchWidget(filterBySavedSearchWidget),
-    m_searchLineEdit(searchLineEdit),
+    m_filterBySearchStringWidget(FilterBySearchStringWidget),
     m_localStorageManagerAsync(localStorageManagerAsync)
 {
     createConnections();
-
-    restoreSearchString();
-    if (setFilterBySearchString()) {
-        // As search string overrides all other filters, we are good to go
-        Q_EMIT filterChanged();
-
-        QNDEBUG(
-            "widget:note_filters",
-            "Was able to set the filter by search "
-                << "string, considering NoteFiltersManager ready");
-
-        m_isReady = true;
-        Q_EMIT ready();
-        return;
-    }
 
     QString savedSearchLocalUid =
         m_filterBySavedSearchWidget.filteredSavedSearchLocalUid();
@@ -92,7 +78,21 @@ NoteFiltersManager::NoteFiltersManager(
         return;
     }
 
-    // If we got here, there are no filters by search string and saved search
+    restoreSearchString();
+    if (setFilterBySearchString()) {
+        Q_EMIT filterChanged();
+
+        QNDEBUG(
+            "widget:note_filters",
+            "Was able to set the filter by search string, considering "
+                << "NoteFiltersManager ready");
+
+        m_isReady = true;
+        Q_EMIT ready();
+        return;
+    }
+
+    // If we got here, there are no filters by saved search or search string.
     // We can set filters by notebooks and tags without waiting for them to be
     // complete since local uids of notebooks and tags within the filter are
     // known even before the filter widgets become ready
@@ -107,8 +107,7 @@ NoteFiltersManager::NoteFiltersManager(
         if (!setAutomaticFilterByNotebook()) {
             QNDEBUG(
                 "widget:note_filters",
-                "Will wait for notebook model's "
-                    << "readiness");
+                "Will wait for notebook model's readiness");
             m_autoFilterNotebookWhenReady = true;
             return;
         }
@@ -124,8 +123,16 @@ NoteFiltersManager::~NoteFiltersManager() = default;
 
 QStringList NoteFiltersManager::notebookLocalUidsInFilter() const
 {
-    if (m_pNoteModel.isNull()) {
-        return QStringList();
+    if (!savedSearchLocalUidInFilter().isEmpty()) {
+        return {};
+    }
+
+    if (isFilterBySearchStringActive()) {
+        return {};
+    }
+
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
+        return {};
     }
 
     return m_pNoteModel->filteredNotebookLocalUids();
@@ -133,16 +140,16 @@ QStringList NoteFiltersManager::notebookLocalUidsInFilter() const
 
 QStringList NoteFiltersManager::tagLocalUidsInFilter() const
 {
-    if (isFilterBySearchStringActive()) {
-        return QStringList();
-    }
-
     if (!savedSearchLocalUidInFilter().isEmpty()) {
-        return QStringList();
+        return {};
     }
 
-    if (m_pNoteModel.isNull()) {
-        return QStringList();
+    if (isFilterBySearchStringActive()) {
+        return {};
+    }
+
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
+        return {};
     }
 
     return m_pNoteModel->filteredTagLocalUids();
@@ -244,8 +251,8 @@ void NoteFiltersManager::onAddedTagToFilter(
 {
     QNDEBUG(
         "widget:note_filters",
-        "NoteFiltersManager::onAddedTagToFilter: "
-            << "local uid = " << tagLocalUid << ", name = " << tagName
+        "NoteFiltersManager::onAddedTagToFilter: local uid = "
+            << tagLocalUid << ", name = " << tagName
             << ", linked notebook guid = " << linkedNotebookGuid
             << ", linked notebook username = " << linkedNotebookUsername);
 
@@ -354,10 +361,9 @@ void NoteFiltersManager::onNotebooksFilterUpdated()
     if (!m_filterByNotebookWidget.isEnabled()) {
         QNDEBUG(
             "widget:note_filters",
-            "Filter by notebook widget is not "
-                << "enabled which means that filtering by notebooks is "
-                   "overridden "
-                << "by either search string or filter by saved search");
+            "Filter by notebook widget is not enabled which means filtering by "
+                << "notebooks is overridden by either saved search or search "
+                << "string");
         return;
     }
 
@@ -391,16 +397,7 @@ void NoteFiltersManager::onSavedSearchFilterChanged(
         return;
     }
 
-    if (!m_filterBySavedSearchWidget.isEnabled()) {
-        QNDEBUG(
-            "widget:note_filters",
-            "Filter by saved search widget is not "
-                << "enabled which means that filtering by saved search "
-                << "is overridden by search string");
-        return;
-    }
-
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         QNDEBUG("widget:note_filters", "Note model is null");
         return;
     }
@@ -413,6 +410,12 @@ void NoteFiltersManager::onSavedSearchFilterChanged(
 
     // If we got here, the saved search is either empty or invalid
     m_filteredSavedSearchLocalUid.clear();
+
+    res = setFilterBySearchString();
+    if (res) {
+        Q_EMIT filterChanged();
+        return;
+    }
 
     m_pNoteModel->beginUpdateFilter();
 
@@ -428,13 +431,10 @@ void NoteFiltersManager::onSavedSearchFilterReady()
         "widget:note_filters", "NoteFiltersManager::onSavedSearchFilterReady");
 
     if (!m_isReady && setFilterBySavedSearch()) {
-        // If we were not ready, there was no valid search string; if we managed
-        // to set the filter by saved search, we are good to go because filter
-        // by saved search overrides filters by notebooks and tags anyway
         QNDEBUG(
             "widget:note_filters",
-            "Was able to set the filter by saved "
-                << "search, considering NoteFiltersManager ready");
+            "Was able to set the filter by saved search, considering "
+                << "NoteFiltersManager ready");
 
         m_isReady = true;
         Q_EMIT ready();
@@ -444,6 +444,8 @@ void NoteFiltersManager::onSavedSearchFilterReady()
     checkFiltersReadiness();
 }
 
+// FIXME: remove this when no longer needed
+/*
 void NoteFiltersManager::onSearchStringEdited(const QString & text)
 {
     QNDEBUG(
@@ -473,11 +475,32 @@ void NoteFiltersManager::onSearchStringChanged()
     persistSearchString();
     evaluate();
 }
+*/
+
+void NoteFiltersManager::onSearchQueryChanged(QString query)
+{
+    QNDEBUG(
+        "widget:note_filters",
+        "NoteFiltersManager::onSearchQueryChanged: " << query);
+
+    // TODO: implement: should check the query and update the note search
+}
+
+void NoteFiltersManager::onSavedSearchQueryChanged(
+    QString savedSearchLocalUid, QString query)
+{
+    QNDEBUG(
+        "widget:note_filters",
+        "NoteFiltersManager::onSavedSearchQueryChanged: saved search local uid "
+            << "= " << savedSearchLocalUid << ", query: " << query);
+
+    // TODO: implement: should check the query and add new saved search
+}
 
 void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted(
     QStringList noteLocalUids, NoteSearchQuery noteSearchQuery, QUuid requestId)
 {
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         return;
     }
 
@@ -501,19 +524,6 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted(
         "widget:note_filters",
         "Note local uids: " << noteLocalUids.join(QStringLiteral(", ")));
 
-    if (Q_UNLIKELY(
-            !isRequestForSearchString &&
-            !m_filterBySavedSearchWidget.isEnabled()))
-    {
-        QNDEBUG(
-            "widget:note_filters",
-            "Ignoring the update with note local "
-                << "uids for saved search because the filter by saved search "
-                << "widget is disabled which means filtering by saved "
-                << "search is overridden by filtering via search string");
-        return;
-    }
-
     m_pNoteModel->setFilteredNoteLocalUids(noteLocalUids);
 }
 
@@ -521,7 +531,7 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(
     NoteSearchQuery noteSearchQuery, ErrorString errorDescription,
     QUuid requestId)
 {
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         return;
     }
 
@@ -541,36 +551,31 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(
             << "request id = " << requestId << ", note search query = "
             << noteSearchQuery << "\nError description: " << errorDescription);
 
+    ErrorString error;
+
     if (isRequestForSearchString) {
-        ErrorString error(
-            QT_TR_NOOP("Can't set the search string to note filter"));
-
-        error.appendBase(errorDescription.base());
-        error.appendBase(errorDescription.additionalBases());
-        error.details() = errorDescription.details();
-        QNDEBUG("widget:note_filters", error);
-        Q_EMIT notifyError(error);
-
-        m_filterBySavedSearchWidget.setEnabled(true);
-
-        bool res = setFilterBySavedSearch();
-        if (res) {
-            Q_EMIT filterChanged();
-            return;
-        }
+        error.setBase(QT_TR_NOOP("Can't set the search string to note filter"));
     }
     else // isRequestForSavedSearch
     {
+        error.setBase(QT_TR_NOOP("Can't set the saved search to note filter"));
+    }
+
+    error.appendBase(errorDescription.base());
+    error.appendBase(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
+    QNDEBUG("widget:note_filters", error);
+    Q_EMIT notifyError(error);
+
+    if (isRequestForSavedSearch) {
         m_filteredSavedSearchLocalUid.clear();
+        m_filterBySavedSearchWidget.setCurrentSavedSearchLocalUid({});
+        m_filterBySearchStringWidget.clearSavedSearch();
 
-        ErrorString error(
-            QT_TR_NOOP("Can't set the saved search to note filter"));
-
-        error.appendBase(errorDescription.base());
-        error.appendBase(errorDescription.additionalBases());
-        error.details() = errorDescription.details();
-        QNDEBUG("widget:note_filters", error);
-        Q_EMIT notifyError(error);
+        if (setFilterBySearchString()) {
+            Q_EMIT filterChanged();
+            return;
+        }
     }
 
     m_pNoteModel->beginUpdateFilter();
@@ -585,7 +590,7 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(
 
 void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
 {
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         return;
     }
 
@@ -602,7 +607,9 @@ void NoteFiltersManager::onAddNoteComplete(Note note, QUuid requestId)
 void NoteFiltersManager::onUpdateNoteComplete(
     Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
-    if (m_pNoteModel.isNull()) {
+    Q_UNUSED(options);
+
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         return;
     }
 
@@ -612,8 +619,6 @@ void NoteFiltersManager::onUpdateNoteComplete(
             << "request id = " << requestId);
 
     QNTRACE("widget:note_filters", note);
-
-    Q_UNUSED(options);
 
     checkAndRefreshNotesSearchQuery();
 }
@@ -634,7 +639,7 @@ void NoteFiltersManager::onExpungeNotebookComplete(
         return;
     }
 
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         QNDEBUG("widget:note_filters", "Note model is null");
         return;
     }
@@ -651,10 +656,9 @@ void NoteFiltersManager::onExpungeNotebookComplete(
 
     QNDEBUG(
         "widget:note_filters",
-        "The expunged notebook was used within "
-            << "the filter");
-    notebookLocalUids.removeAt(index);
+        "The expunged notebook was used within the filter");
 
+    notebookLocalUids.removeAt(index);
     m_pNoteModel->setFilteredNotebookLocalUids(notebookLocalUids);
 }
 
@@ -671,17 +675,20 @@ void NoteFiltersManager::onExpungeTagComplete(
     if (!m_filterByTagWidget.isEnabled()) {
         QNDEBUG(
             "widget:note_filters",
-            "The filter by tags is overridden by "
-                << "either search string or filter by saved search");
+            "The filter by tags is overridden by either search string or "
+                << "filter by saved search");
         return;
     }
 
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         QNDEBUG("widget:note_filters", "Note model is null");
         return;
     }
 
     QStringList expungedTagLocalUids;
+    expungedTagLocalUids.reserve(
+        std::max(0, expungedChildTagLocalUids.size() + 1));
+
     expungedTagLocalUids << tag.localUid();
     expungedTagLocalUids << expungedChildTagLocalUids;
 
@@ -699,12 +706,20 @@ void NoteFiltersManager::onExpungeTagComplete(
     if (!filteredTagsChanged) {
         QNDEBUG(
             "widget:note_filters",
-            "None of expunged tags seem to appear "
-                << "within the list of filtered tags");
+            "None of expunged tags seem to appear within the list of filtered "
+                << "tags");
         return;
     }
 
     m_pNoteModel->setFilteredTagLocalUids(tagLocalUids);
+}
+
+void NoteFiltersManager::onAddSavedSearchComplete(
+    SavedSearch search, QUuid requestId)
+{
+    Q_UNUSED(search)
+    Q_UNUSED(requestId)
+    // TODO: implement: check if we have sent this request and process it
 }
 
 void NoteFiltersManager::onUpdateSavedSearchComplete(
@@ -715,45 +730,28 @@ void NoteFiltersManager::onUpdateSavedSearchComplete(
         "NoteFiltersManager::onUpdateSavedSearchComplete: search = "
             << search << "\nRequest id = " << requestId);
 
-    QString currentSavedSearchName = m_filterBySavedSearchWidget.currentText();
-    if (currentSavedSearchName.isEmpty()) {
-        QNDEBUG(
-            "widget:note_filters",
-            "No saved search name is set to "
-                << "the filter");
+    // TODO: check if we sent this request
+
+    if (m_filteredSavedSearchLocalUid != search.localUid()) {
         return;
     }
 
-    if (m_filteredSavedSearchLocalUid == search.localUid()) {
-        QNDEBUG(
-            "widget:note_filters",
-            "The saved search within the filter was "
-                << "updated");
+    QNDEBUG(
+        "widget:note_filters",
+        "The saved search within the filter was updated");
 
-        QString searchString = m_searchLineEdit.text();
-        if (!searchString.isEmpty() && !m_filterBySavedSearchWidget.isEnabled())
-        {
-            QNDEBUG(
-                "widget:note_filters",
-                "The search string filter overrides "
-                    << "the filter by saved search");
-            return;
-        }
-
-        if (Q_UNLIKELY(!search.hasName() || !search.hasQuery())) {
-            QNDEBUG(
-                "widget:note_filters",
-                "The updated search lacks either "
-                    << "name or query, will remove it from the filter");
-            m_filteredSavedSearchLocalUid.clear();
-            // That would disable the filter by saved search's query i.e. by
-            // note local uids
-            onSavedSearchFilterChanged(QString());
-            return;
-        }
-
+    if (search.hasName() && search.hasQuery()) {
         onSavedSearchFilterChanged(search.name());
+        return;
     }
+
+    QNDEBUG(
+        "widget:note_filters",
+        "The updated saved search lacks either name or query, removing it from "
+            << "the filter");
+
+    m_filteredSavedSearchLocalUid.clear();
+    onSavedSearchFilterChanged(QString());
 }
 
 void NoteFiltersManager::onExpungeSavedSearchComplete(
@@ -764,38 +762,15 @@ void NoteFiltersManager::onExpungeSavedSearchComplete(
         "NoteFiltersManager::onExpungeSavedSearchComplete: search = "
             << search << "\nRequest id = " << requestId);
 
-    QString currentSavedSearchName = m_filterBySavedSearchWidget.currentText();
-    if (currentSavedSearchName.isEmpty()) {
-        QNDEBUG(
-            "widget:note_filters",
-            "No saved search name is set to "
-                << "the filter");
+    if (m_filteredSavedSearchLocalUid != search.localUid()) {
         return;
     }
 
-    if (m_filteredSavedSearchLocalUid == search.localUid()) {
-        QNDEBUG(
-            "widget:note_filters",
-            "The saved search within the filter was "
-                << "expunged");
+    QNDEBUG(
+        "widget:note_filters",
+        "The saved search within the filter was expunged");
 
-        QString searchString = m_searchLineEdit.text();
-        if (!searchString.isEmpty() && !m_filterBySavedSearchWidget.isEnabled())
-        {
-            QNDEBUG(
-                "widget:note_filters",
-                "The search string filter overrides "
-                    << "the filter by saved search");
-            m_filteredSavedSearchLocalUid.clear();
-        }
-        else {
-            // That would disable the filter by saved search's query i.e. by
-            // note local uids
-            onSavedSearchFilterChanged(QString());
-        }
-
-        return;
-    }
+    onSavedSearchFilterChanged({});
 }
 
 void NoteFiltersManager::createConnections()
@@ -855,12 +830,14 @@ void NoteFiltersManager::createConnections()
         &NoteFiltersManager::onSavedSearchFilterReady, Qt::UniqueConnection);
 
     QObject::connect(
-        &m_searchLineEdit, &QLineEdit::textEdited, this,
-        &NoteFiltersManager::onSearchStringEdited, Qt::UniqueConnection);
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::searchQueryChanged, this,
+        &NoteFiltersManager::onSearchQueryChanged);
 
     QObject::connect(
-        &m_searchLineEdit, &QLineEdit::editingFinished, this,
-        &NoteFiltersManager::onSearchStringChanged, Qt::UniqueConnection);
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchQueryChanged, this,
+        &NoteFiltersManager::onSavedSearchQueryChanged);
 
     QObject::connect(
         this, &NoteFiltersManager::findNoteLocalUidsForNoteSearchQuery,
@@ -915,35 +892,33 @@ void NoteFiltersManager::evaluate()
 {
     QNDEBUG("widget:note_filters", "NoteFiltersManager::evaluate");
 
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
+        QNDEBUG("widget:note_filters", "Note model is null");
         return;
     }
 
     // NOTE: the rules for note filter evaluation are the following:
-    // 1) If the search string is not empty *and* is indeed a valid search
-    //    string, if overrides the filters by notebooks, tags and saved search.
-    //    So all three filter widgets are disabled if the search string is not
-    //    empty and is valid.
-    // 2) If the search string is empty or invalid and there's some selected
-    //    saved search, filtering by saved search overrides the filters by
-    //    notebooks and tags, so the filter widgets for notebooks and tags get
-    //    disabled.
-    // 3) If the search string is empty or invalid and the filter by saved
-    //    search doesn't contain any selected saved search, the filters by
-    //    notebooks and tags are effective and the corresponidng widgets are
-    //    enabled. The filtering by notebooks and tags is cumulative i.e. only
-    //    those notes would be accepted which both belong to one of
-    //    the specified notebooks and have one of the specified tags. In other
-    //    words, it's like search string containing notebook and tags but not
-    //    containing "any" statement.
+    // 1) If some saved search is selected, filtering by saved search overrides
+    //    the filters by notebooks and tags as well as the filter by manually
+    //    entered search query.
+    // 2) If no saved search is selected and the search query is not empty *and*
+    //    it is indeed a valid search query string, if overrides filters by
+    //    notebook and tags.
+    // 3) If no saved search is selected and the search query is empty or
+    //    invalid, the filters by notebooks and tags are considered.
+    //    Filtering by notebooks and tags is cumulative i.e. only those notes
+    //    would be accepted which both belong to one of the specified notebooks
+    //    and have at least one of the specified tags. In other words, it's
+    //    like a search query string containing a notebook and some tags but
+    //    not containing "any" statement.
 
-    bool res = setFilterBySearchString();
+    bool res = setFilterBySavedSearch();
     if (res) {
         Q_EMIT filterChanged();
         return;
     }
 
-    res = setFilterBySavedSearch();
+    res = setFilterBySearchString();
     if (res) {
         Q_EMIT filterChanged();
         return;
@@ -965,7 +940,10 @@ void NoteFiltersManager::persistSearchString()
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
-    appSettings.setValue(NOTE_SEARCH_STRING_KEY, m_searchLineEdit.text());
+
+    appSettings.setValue(
+        NOTE_SEARCH_STRING_KEY, m_filterBySearchStringWidget.searchQuery());
+
     appSettings.endGroup();
 
     // Remove old group where this preference used to reside
@@ -989,62 +967,17 @@ void NoteFiltersManager::restoreSearchString()
         appSettings.endGroup();
     }
 
-    m_lastSearchString = lastSearchStringValue.toString();
-    m_searchLineEdit.setText(m_lastSearchString);
-
-    if (m_lastSearchString.isEmpty()) {
+    QString lastSearchString = lastSearchStringValue.toString();
+    m_filterBySearchStringWidget.setSearchQuery(lastSearchString);
+    if (lastSearchString.isEmpty()) {
         return;
     }
 
     ErrorString error;
-    auto query = createNoteSearchQuery(m_lastSearchString, error);
+    auto query = createNoteSearchQuery(lastSearchString, error);
     if (query.isEmpty()) {
-        QToolTip::showText(
-            m_searchLineEdit.mapToGlobal(QPoint(0, m_searchLineEdit.height())),
-            error.localizedString(), &m_searchLineEdit);
+        showSearchQueryErrorToolTip(error);
     }
-}
-
-bool NoteFiltersManager::setFilterBySearchString()
-{
-    QNDEBUG(
-        "widget:note_filters", "NoteFiltersManager::setFilterBySearchString");
-
-    QString searchString = m_searchLineEdit.text();
-    if (searchString.isEmpty()) {
-        QNDEBUG("widget:note_filters", "The search string is empty");
-        return false;
-    }
-
-    ErrorString error;
-    auto query = createNoteSearchQuery(searchString, error);
-    if (query.isEmpty()) {
-        QToolTip::showText(
-            m_searchLineEdit.mapToGlobal(QPoint(0, m_searchLineEdit.height())),
-            error.localizedString(), &m_searchLineEdit);
-        return false;
-    }
-
-    // Invalidate the active request to find note local uids per saved search's
-    // query (if there was any)
-    m_findNoteLocalUidsForSavedSearchQueryRequestId = QUuid();
-    m_findNoteLocalUidsForSearchStringRequestId = QUuid::createUuid();
-
-    QNTRACE(
-        "widget:note_filters",
-        "Emitting the request to find note local "
-            << "uids corresponding to the note search query: request id = "
-            << m_findNoteLocalUidsForSearchStringRequestId
-            << ", query: " << query << "\nSearch string: " << searchString);
-
-    Q_EMIT findNoteLocalUidsForNoteSearchQuery(
-        query, m_findNoteLocalUidsForSearchStringRequestId);
-
-    m_filterByTagWidget.setDisabled(true);
-    m_filterByNotebookWidget.setDisabled(true);
-    m_filterBySavedSearchWidget.setDisabled(true);
-
-    return true;
 }
 
 bool NoteFiltersManager::setFilterBySavedSearch()
@@ -1052,22 +985,17 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     QNDEBUG(
         "widget:note_filters", "NoteFiltersManager::setFilterBySavedSearch");
 
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         QNDEBUG("widget:note_filters", "Note model is null");
         return false;
     }
 
-    // If this method got called in the first place, it means the search string
-    // doesn't override the filter by saved search so should enable the filter
-    // by saved search widget
     m_filterBySavedSearchWidget.setEnabled(true);
 
     QString currentSavedSearchName = m_filterBySavedSearchWidget.currentText();
     if (currentSavedSearchName.isEmpty()) {
         QNDEBUG(
-            "widget:note_filters",
-            "No saved search name is set to "
-                << "the filter");
+            "widget:note_filters", "No saved search name is set to the filter");
         m_pNoteModel->clearFilteredNoteLocalUids();
         return false;
     }
@@ -1078,8 +1006,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         QNDEBUG(
             "widget:note_filters",
-            "Saved search model in the filter by "
-                << "saved search widget is null");
+            "Saved search model in the filter by saved search widget is null");
         m_pNoteModel->clearFilteredNoteLocalUids();
         return false;
     }
@@ -1091,7 +1018,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         ErrorString error(
             QT_TR_NOOP("Internal error: can't set the filter by saved search, "
                        "the saved search model returned invalid model index "
-                       "for the given saved search name"));
+                       "for saved search name"));
 
         QNWARNING("widget:note_filters", error);
         Q_EMIT notifyError(error);
@@ -1100,12 +1027,15 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     }
 
     const auto * pItem = pSavedSearchModel->itemForIndex(itemIndex);
-    const SavedSearchItem * pSavedSearchItem = (pItem ? pItem->cast<SavedSearchItem>() : nullptr);
+
+    const SavedSearchItem * pSavedSearchItem =
+        (pItem ? pItem->cast<SavedSearchItem>() : nullptr);
+
     if (Q_UNLIKELY(!pSavedSearchItem)) {
         ErrorString error(
             QT_TR_NOOP("Internal error: can't set the filter by saved search, "
-                       "the saved search model returned null item for "
-                       "the given valid model index"));
+                       "the saved search model returned null item for valid "
+                       "model index"));
 
         QNWARNING("widget:note_filters", error);
         Q_EMIT notifyError(error);
@@ -1119,7 +1049,8 @@ bool NoteFiltersManager::setFilterBySavedSearch()
                        "saved search's query is empty"));
 
         QNWARNING(
-            "widget:note_filters", error << ", saved search item: " << *pItem);
+            "widget:note_filters",
+            error << ", saved search item: " << *pSavedSearchItem);
 
         Q_EMIT notifyError(error);
         m_pNoteModel->clearFilteredNoteLocalUids();
@@ -1128,18 +1059,22 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
     NoteSearchQuery query;
     ErrorString errorDescription;
-    bool res = query.setQueryString(pSavedSearchItem->query(), errorDescription);
+
+    bool res =
+        query.setQueryString(pSavedSearchItem->query(), errorDescription);
+
     if (Q_UNLIKELY(!res)) {
         ErrorString error(
             QT_TR_NOOP("Internal error: can't set the filter by saved search: "
-                       "failed to parse the saved search query"));
+                       "failed to parse saved search query"));
 
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
         error.details() = errorDescription.details();
 
         QNWARNING(
-            "widget:note_filters", error << ", saved search item: " << *pItem);
+            "widget:note_filters",
+            error << ", saved search item: " << *pSavedSearchItem);
 
         Q_EMIT notifyError(error);
         m_pNoteModel->clearFilteredNoteLocalUids();
@@ -1147,6 +1082,11 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     }
 
     m_filteredSavedSearchLocalUid = pSavedSearchItem->localUid();
+
+    // Invalidate the active request to find note local uids per search query
+    // (if there was any)
+    m_findNoteLocalUidsForSearchStringRequestId = QUuid();
+
     m_findNoteLocalUidsForSavedSearchQueryRequestId = QUuid::createUuid();
 
     QNTRACE(
@@ -1165,11 +1105,55 @@ bool NoteFiltersManager::setFilterBySavedSearch()
     return true;
 }
 
+bool NoteFiltersManager::setFilterBySearchString()
+{
+    QNDEBUG(
+        "widget:note_filters", "NoteFiltersManager::setFilterBySearchString");
+
+    if (m_filterBySearchStringWidget.displaysSavedSearchQuery()) {
+        return false;
+    }
+
+    QString searchString = m_filterBySearchStringWidget.searchQuery();
+    if (searchString.isEmpty()) {
+        QNDEBUG("widget:note_filters", "The search string is empty");
+        return false;
+    }
+
+    ErrorString error;
+    auto query = createNoteSearchQuery(searchString, error);
+    if (query.isEmpty()) {
+        showSearchQueryErrorToolTip(error);
+        return false;
+    }
+
+    // Invalidate the active request to find note local uids per saved search's
+    // query (if there was any)
+    m_findNoteLocalUidsForSavedSearchQueryRequestId = QUuid();
+
+    m_findNoteLocalUidsForSearchStringRequestId = QUuid::createUuid();
+
+    QNTRACE(
+        "widget:note_filters",
+        "Emitting the request to find note local "
+            << "uids corresponding to the note search query: request id = "
+            << m_findNoteLocalUidsForSearchStringRequestId
+            << ", query: " << query << "\nSearch string: " << searchString);
+
+    Q_EMIT findNoteLocalUidsForNoteSearchQuery(
+        query, m_findNoteLocalUidsForSearchStringRequestId);
+
+    m_filterByTagWidget.setDisabled(true);
+    m_filterByNotebookWidget.setDisabled(true);
+
+    return true;
+}
+
 void NoteFiltersManager::setFilterByNotebooks()
 {
     QNDEBUG("widget:note_filters", "NoteFiltersManager::setFilterByNotebooks");
 
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         QNDEBUG("widget:note_filters", "Note model is null");
         return;
     }
@@ -1197,7 +1181,7 @@ void NoteFiltersManager::setFilterByTags()
 {
     QNDEBUG("widget:note_filters", "NoteFiltersManager::setFilterByTags");
 
-    if (m_pNoteModel.isNull()) {
+    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
         QNDEBUG("widget:note_filters", "Note model is null");
         return;
     }
@@ -1225,7 +1209,7 @@ void NoteFiltersManager::clearFilterWidgetsItems()
     clearFilterByTagWidgetItems();
     clearFilterByNotebookWidgetItems();
     clearFilterBySavedSearchWidget();
-    clearSearchString();
+    clearFilterBySearchStringWidget();
 }
 
 void NoteFiltersManager::clearFilterByTagWidgetItems()
@@ -1263,6 +1247,22 @@ void NoteFiltersManager::clearFilterByNotebookWidgetItems()
         Qt::UniqueConnection);
 }
 
+void NoteFiltersManager::clearFilterBySearchStringWidget()
+{
+    QNDEBUG(
+        "widget:note_filters",
+        "NoteFiltersManager::clearFilterBySearchStringWidget");
+
+    // TODO: disconnect from widget's signals
+
+    m_filterBySearchStringWidget.clearSavedSearch();
+    m_filterBySearchStringWidget.setSearchQuery({});
+
+    // TODO: reconnect to widget's signals
+
+    persistSearchString();
+}
+
 void NoteFiltersManager::clearFilterBySavedSearchWidget()
 {
     QNDEBUG(
@@ -1282,47 +1282,34 @@ void NoteFiltersManager::clearFilterBySavedSearchWidget()
         &NoteFiltersManager::onSavedSearchFilterChanged, Qt::UniqueConnection);
 }
 
-void NoteFiltersManager::clearSearchString()
-{
-    QNDEBUG("widget:note_filters", "NoteFiltersManager::clearSearchString");
-
-    setSearchStringText(QString());
-    persistSearchString();
-}
-
 void NoteFiltersManager::checkFiltersReadiness()
 {
     QNDEBUG("widget:note_filters", "NoteFiltersManager::checkFiltersReadiness");
 
     if (m_isReady) {
         QNDEBUG(
-            "widget:note_filters",
-            "Already marked the filter as ready "
-                << "once");
+            "widget:note_filters", "Already marked the filter as ready once");
         return;
     }
 
     if (!m_filterByTagWidget.isReady()) {
         QNDEBUG(
             "widget:note_filters",
-            "Still pending the readiness of filter "
-                << "by tags");
+            "Still pending the readiness of filter by tags");
         return;
     }
 
     if (!m_filterByNotebookWidget.isReady()) {
         QNDEBUG(
             "widget:note_filters",
-            "Still pending the readiness of filter "
-                << "by notebooks");
+            "Still pending the readiness of filter by notebooks");
         return;
     }
 
     if (!m_filterBySavedSearchWidget.isReady()) {
         QNDEBUG(
             "widget:note_filters",
-            "Still pending the readiness of filter "
-                << "by saved search");
+            "Still pending the readiness of filter by saved search");
         return;
     }
 
@@ -1441,20 +1428,18 @@ void NoteFiltersManager::setSavedSearchToFilterImpl(
     }
 
     persistFilterBySavedSearchClearedState(savedSearchLocalUid.isEmpty());
-    m_filterBySavedSearchWidget.setCurrentSavedSearchLocalUid(savedSearchLocalUid);
-}
 
-void NoteFiltersManager::setSearchStringText(const QString & text)
-{
-    QObject::disconnect(
-        &m_searchLineEdit, &QLineEdit::editingFinished, this,
-        &NoteFiltersManager::onSearchStringChanged);
+    m_filterBySavedSearchWidget.setCurrentSavedSearchLocalUid(
+        savedSearchLocalUid);
 
-    m_searchLineEdit.setText(text);
+    if (savedSearchLocalUid.isEmpty()) {
+        m_filterBySearchStringWidget.clearSavedSearch();
+        return;
+    }
 
-    QObject::connect(
-        &m_searchLineEdit, &QLineEdit::editingFinished, this,
-        &NoteFiltersManager::onSearchStringChanged, Qt::UniqueConnection);
+    m_filterBySearchStringWidget.setSavedSearch(
+        savedSearchLocalUid,
+        pSavedSearchModel->queryForLocalUid(savedSearchLocalUid));
 }
 
 void NoteFiltersManager::checkAndRefreshNotesSearchQuery()
@@ -1467,7 +1452,7 @@ void NoteFiltersManager::checkAndRefreshNotesSearchQuery()
     // search
     if (!m_filterByTagWidget.isEnabled() &&
         !m_filterByNotebookWidget.isEnabled() &&
-        (!m_searchLineEdit.text().isEmpty() ||
+        (!m_filterBySearchStringWidget.searchQuery().isEmpty() ||
          m_filterBySavedSearchWidget.isEnabled()))
     {
         evaluate();
@@ -1481,10 +1466,7 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
         "NoteFiltersManager::setAutomaticFilterByNotebook");
 
     if (notebookFilterWasCleared()) {
-        QNDEBUG(
-            "widget:note_filters",
-            "Notebook filter was cleared, won't set "
-                << "automatic filter by notebook");
+        QNDEBUG("widget:note_filters", "Notebook filter was cleared");
         return true;
     }
 
@@ -1492,16 +1474,14 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
     if (!pModel) {
         QNDEBUG(
             "widget:note_filters",
-            "Notebook model is not set to filter by "
-                << "notebook widget yet");
+            "Notebook model is not set to filter by notebook widget yet");
         return false;
     }
 
     if (!pModel->allNotebooksListed()) {
         QNDEBUG(
             "widget:note_filters",
-            "Not all notebooks are listed yet by "
-                << "the notebook model");
+            "Not all notebooks are listed yet by the notebook model");
         return false;
     }
 
@@ -1514,6 +1494,7 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
     if (pLastUsedNotebookModelItem) {
         const auto * pLastUsedNotebookItem =
             pLastUsedNotebookModelItem->cast<NotebookItem>();
+
         if (pLastUsedNotebookItem) {
             autoSelectedNotebookLocalUid = pLastUsedNotebookItem->localUid();
         }
@@ -1543,17 +1524,15 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
     if (autoSelectedNotebookLocalUid.isEmpty()) {
         QNDEBUG(
             "widget:note_filters",
-            "No default notebook local uid, trying "
-                << "just any notebook");
+            "No default notebook local uid, trying just any notebook");
 
         QStringList notebookNames = pModel->itemNames(QString());
         if (Q_UNLIKELY(notebookNames.isEmpty())) {
             QNDEBUG(
                 "widget:note_filters",
-                "No notebooks within the notebook "
-                    << "model");
+                "No notebooks within the notebook model");
             // NOTE: returning true because false is only for cases
-            // in which filter is waiting for something
+            // in which the filter is waiting for something
             return true;
         }
 
@@ -1566,10 +1545,9 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
     if (Q_UNLIKELY(autoSelectedNotebookLocalUid.isEmpty())) {
         QNDEBUG(
             "widget:note_filters",
-            "Failed to find any notebook for "
-                << "automatic selection");
+            "Failed to find any notebook for automatic selection");
         // NOTE: returning true because false is only for cases
-        // in which filter is waiting for something
+        // in which the filter is waiting for something
         return true;
     }
 
@@ -1577,10 +1555,11 @@ bool NoteFiltersManager::setAutomaticFilterByNotebook()
     if (Q_UNLIKELY(itemInfo.m_localUid.isEmpty())) {
         QNWARNING(
             "widget:note_filters",
-            "Failed fo find notebook item for "
-                << "auto selected local uid " << autoSelectedNotebookLocalUid);
+            "Failed fo find notebook item for auto selected local uid "
+                << autoSelectedNotebookLocalUid);
+
         // NOTE: returning true because false is only for cases
-        // in which filter is waiting for something
+        // in which the filter is waiting for something
         return true;
     }
 
@@ -1681,9 +1660,11 @@ void NoteFiltersManager::persistFilterBySavedSearchClearedState(
 bool NoteFiltersManager::savedSearchFilterWasCleared() const
 {
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
-
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
-    auto savedSearchFilterWasCleared = appSettings.value(SAVED_SEARCH_FILTER_CLEARED);
+
+    auto savedSearchFilterWasCleared =
+        appSettings.value(SAVED_SEARCH_FILTER_CLEARED);
+
     appSettings.endGroup();
 
     if (!savedSearchFilterWasCleared.isValid()) {
@@ -1712,6 +1693,21 @@ NoteSearchQuery NoteFiltersManager::createNoteSearchQuery(
     }
 
     return query;
+}
+
+void NoteFiltersManager::showSearchQueryErrorToolTip(
+    const ErrorString & errorDescription)
+{
+    if (Q_UNLIKELY(errorDescription.isEmpty())) {
+        return;
+    }
+
+    auto * pLineEdit = m_filterBySearchStringWidget.findChild<QLineEdit *>();
+    if (pLineEdit) {
+        QToolTip::showText(
+            pLineEdit->mapToGlobal(QPoint(0, pLineEdit->height())),
+            errorDescription.localizedString(), pLineEdit);
+    }
 }
 
 } // namespace quentier

@@ -298,9 +298,6 @@ private Q_SLOTS:
     void onPanelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
     void onPanelBackgroundLinearGradientChanged(QLinearGradient gradient);
 
-    // Note search-related slots
-    void onSaveNoteSearchQueryButtonPressed();
-
     // SystemTrayIconManager slots
     void onNewNoteRequestedFromSystemTrayIcon();
     void onQuitRequestedFromSystemTrayIcon();
@@ -428,7 +425,6 @@ private:
 
     void connectActionsToSlots();
     void connectViewButtonsToSlots();
-    void connectNoteSearchActionsToSlots();
     void connectToolbarButtonsToSlots();
     void connectSystemTrayIconManagerSignalsToSlots();
     void connectToPreferencesDialogSignals(PreferencesDialog & dialog);

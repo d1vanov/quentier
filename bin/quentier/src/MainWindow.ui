@@ -303,76 +303,12 @@ QSplitter::handle:vertical {
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="searchQueryLabel">
-         <property name="text">
-          <string>Search note:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacerBetweenSearchNoteLabelAndLineEdit">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Minimum</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>4</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="searchQueryLineEdit">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>22</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="frame">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="saveSearchPushButton">
+        <widget class="FilterBySearchStringWidget" name="filterBySearchStringWidget" native="true">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>32</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset theme="document-save">
-           <normaloff>.</normaloff>.</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>16</width>
-           <height>16</height>
-          </size>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -2188,7 +2124,7 @@ border: none;</string>
                      </size>
                     </property>
                     <property name="autoFillBackground">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                     <property name="styleSheet">
                      <string notr="true">margin: 0px;
@@ -2394,7 +2330,7 @@ padding-left: 2px;
                    </size>
                   </property>
                   <property name="autoFillBackground">
-                   <bool>true</bool>
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </widget>
@@ -2506,7 +2442,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>23</height>
+     <height>28</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -4051,6 +3987,12 @@ border-bottom: 1px solid black;
    <class>PanelWidget</class>
    <extends>QFrame</extends>
    <header>lib/widget/PanelWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FilterBySearchStringWidget</class>
+   <extends>QWidget</extends>
+   <header>lib/widget/FilterBySearchStringWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
