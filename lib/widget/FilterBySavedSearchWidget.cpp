@@ -107,6 +107,15 @@ void FilterBySavedSearchWidget::switchAccount(
     }
 }
 
+SavedSearchModel * FilterBySavedSearchWidget::savedSearchModel()
+{
+    if (m_pSavedSearchModel.isNull()) {
+        return nullptr;
+    }
+
+    return m_pSavedSearchModel.data();
+}
+
 const SavedSearchModel * FilterBySavedSearchWidget::savedSearchModel() const
 {
     if (m_pSavedSearchModel.isNull()) {

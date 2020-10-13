@@ -46,6 +46,7 @@ public:
 
     virtual ~AddOrEditSavedSearchDialog() override;
 
+    QString query() const;
     void setQuery(const QString & query);
 
 private Q_SLOTS:

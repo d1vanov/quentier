@@ -43,6 +43,7 @@ public:
     void switchAccount(
         const Account & account, SavedSearchModel * pSavedSearchModel);
 
+    SavedSearchModel * savedSearchModel();
     const SavedSearchModel * savedSearchModel() const;
 
     bool isReady() const;

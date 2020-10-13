@@ -23,6 +23,7 @@
 #include "FilterBySearchStringWidget.h"
 #include "FilterByTagWidget.h"
 
+#include <lib/dialog/AddOrEditSavedSearchDialog.h>
 #include <lib/model/NoteModel.h>
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
@@ -36,13 +37,15 @@
 #include <QLineEdit>
 #include <QToolTip>
 
+#include <memory>
+
 namespace quentier {
 
 // DEPRECATED: NOTE_FILTERS_GROUP_KEY should be used instead
 #define NOTE_SEARCH_STRING_GROUP_KEY QStringLiteral("NoteSearchStringFilter")
 
 #define NOTE_FILTERS_GROUP_KEY      QStringLiteral("NoteFilters")
-#define NOTE_SEARCH_STRING_KEY      QStringLiteral("SearchString")
+#define NOTE_SEARCH_QUERY_KEY       QStringLiteral("SearchString")
 #define NOTEBOOK_FILTER_CLEARED     QStringLiteral("NotebookFilterCleared")
 #define TAG_FILTER_CLEARED          QStringLiteral("TagFilterCleared")
 #define SAVED_SEARCH_FILTER_CLEARED QStringLiteral("SavedSearchFilterCleared")
@@ -78,7 +81,7 @@ NoteFiltersManager::NoteFiltersManager(
         return;
     }
 
-    restoreSearchString();
+    restoreSearchQuery();
     if (setFilterBySearchString()) {
         Q_EMIT filterChanged();
 
@@ -444,46 +447,14 @@ void NoteFiltersManager::onSavedSearchFilterReady()
     checkFiltersReadiness();
 }
 
-// FIXME: remove this when no longer needed
-/*
-void NoteFiltersManager::onSearchStringEdited(const QString & text)
-{
-    QNDEBUG(
-        "widget:note_filters",
-        "NoteFiltersManager::onSearchStringEdited: " << text);
-
-    bool wasEmpty = m_lastSearchString.isEmpty();
-    m_lastSearchString = text;
-    if (!wasEmpty && m_lastSearchString.isEmpty()) {
-        persistSearchString();
-        evaluate();
-    }
-}
-
-void NoteFiltersManager::onSearchStringChanged()
-{
-    QNDEBUG("widget:note_filters", "NoteFiltersManager::onSearchStringChanged");
-
-    if (m_lastSearchString.isEmpty() && m_searchLineEdit.text().isEmpty()) {
-        QNDEBUG(
-            "widget:note_filters",
-            "Skipping the evaluation as the search string is empty => "
-                << "evaluation should have already occurred");
-        return;
-    }
-
-    persistSearchString();
-    evaluate();
-}
-*/
-
 void NoteFiltersManager::onSearchQueryChanged(QString query)
 {
     QNDEBUG(
         "widget:note_filters",
         "NoteFiltersManager::onSearchQueryChanged: " << query);
 
-    // TODO: implement: should check the query and update the note search
+    persistSearchQuery(query);
+    evaluate();
 }
 
 void NoteFiltersManager::onSavedSearchQueryChanged(
@@ -494,7 +465,69 @@ void NoteFiltersManager::onSavedSearchQueryChanged(
         "NoteFiltersManager::onSavedSearchQueryChanged: saved search local uid "
             << "= " << savedSearchLocalUid << ", query: " << query);
 
-    // TODO: implement: should check the query and add new saved search
+    auto * pParentWidget = qobject_cast<QWidget *>(parent());
+
+    auto * pSavedSearchModel = m_filterBySavedSearchWidget.savedSearchModel();
+
+    if (Q_UNLIKELY(!pSavedSearchModel)) {
+        QNWARNING(
+            "widget:note_filters",
+            "Cannot update saved search: no saved search model");
+        return;
+    }
+
+    auto pUpdateSavedSearchDialog =
+        std::make_unique<AddOrEditSavedSearchDialog>(
+            pSavedSearchModel, pParentWidget, savedSearchLocalUid);
+
+    pUpdateSavedSearchDialog->setQuery(query);
+    Q_UNUSED(pUpdateSavedSearchDialog->exec())
+
+    // Whatever the outcome, need to update the query in the filter by search
+    // string widget: if the dialog was rejected, it would return back
+    // the original search query; if the dialog was accepted, the query
+    // might have been edited before accepting, so need to account for that
+    m_filterBySearchStringWidget.setSavedSearch(
+        savedSearchLocalUid,
+        pSavedSearchModel->queryForLocalUid(savedSearchLocalUid));
+}
+
+void NoteFiltersManager::onSearchSavingRequested(QString query)
+{
+    QNDEBUG(
+        "widget:note_filters",
+        "NoteFiltersManager::onSearchSavingRequested: " << query);
+
+    auto * pParentWidget = qobject_cast<QWidget *>(parent());
+
+    auto * pSavedSearchModel = m_filterBySavedSearchWidget.savedSearchModel();
+
+    if (Q_UNLIKELY(!pSavedSearchModel)) {
+        QNWARNING(
+            "widget:note_filters",
+            "Cannot create a new saved search: no saved search model");
+        return;
+    }
+
+    auto pCreateSavedSearchDialog =
+        std::make_unique<AddOrEditSavedSearchDialog>(
+            pSavedSearchModel, pParentWidget);
+
+    pCreateSavedSearchDialog->setQuery(query);
+    if (pCreateSavedSearchDialog->exec() != QDialog::Accepted) {
+        return;
+    }
+
+    // The query might have been edited before accepting, in this case need
+    // to update it in the widget and also re-evaluate the search
+    const QString queryFromDialog = pCreateSavedSearchDialog->query();
+    if (queryFromDialog == query) {
+        return;
+    }
+
+    m_filterBySearchStringWidget.setSearchQuery(queryFromDialog);
+    persistSearchQuery(queryFromDialog);
+    evaluate();
 }
 
 void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted(
@@ -714,14 +747,6 @@ void NoteFiltersManager::onExpungeTagComplete(
     m_pNoteModel->setFilteredTagLocalUids(tagLocalUids);
 }
 
-void NoteFiltersManager::onAddSavedSearchComplete(
-    SavedSearch search, QUuid requestId)
-{
-    Q_UNUSED(search)
-    Q_UNUSED(requestId)
-    // TODO: implement: check if we have sent this request and process it
-}
-
 void NoteFiltersManager::onUpdateSavedSearchComplete(
     SavedSearch search, QUuid requestId)
 {
@@ -729,8 +754,6 @@ void NoteFiltersManager::onUpdateSavedSearchComplete(
         "widget:note_filters",
         "NoteFiltersManager::onUpdateSavedSearchComplete: search = "
             << search << "\nRequest id = " << requestId);
-
-    // TODO: check if we sent this request
 
     if (m_filteredSavedSearchLocalUid != search.localUid()) {
         return;
@@ -836,6 +859,11 @@ void NoteFiltersManager::createConnections()
 
     QObject::connect(
         &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::searchSavingRequested, this,
+        &NoteFiltersManager::onSearchSavingRequested);
+
+    QObject::connect(
+        &m_filterBySearchStringWidget,
         &FilterBySearchStringWidget::savedSearchQueryChanged, this,
         &NoteFiltersManager::onSavedSearchQueryChanged);
 
@@ -934,36 +962,33 @@ void NoteFiltersManager::evaluate()
     Q_EMIT filterChanged();
 }
 
-void NoteFiltersManager::persistSearchString()
+void NoteFiltersManager::persistSearchQuery(const QString & query)
 {
-    QNDEBUG("widget:note_filters", "NoteFiltersManager::persistSearchString");
+    QNDEBUG("widget:note_filters", "NoteFiltersManager::persistSearchQuery");
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
-
-    appSettings.setValue(
-        NOTE_SEARCH_STRING_KEY, m_filterBySearchStringWidget.searchQuery());
-
+    appSettings.setValue(NOTE_SEARCH_QUERY_KEY, query);
     appSettings.endGroup();
 
     // Remove old group where this preference used to reside
     appSettings.remove(NOTE_SEARCH_STRING_GROUP_KEY);
 }
 
-void NoteFiltersManager::restoreSearchString()
+void NoteFiltersManager::restoreSearchQuery()
 {
-    QNDEBUG("widget:note_filters", "NoteFiltersManager::restoreSearchString");
+    QNDEBUG("widget:note_filters", "NoteFiltersManager::restoreSearchQuery");
 
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
 
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
-    auto lastSearchStringValue = appSettings.value(NOTE_SEARCH_STRING_KEY);
+    auto lastSearchStringValue = appSettings.value(NOTE_SEARCH_QUERY_KEY);
     appSettings.endGroup();
 
     // Backward compatibility: look for preference in old location as a fallback
     if (!lastSearchStringValue.isValid()) {
         appSettings.beginGroup(NOTE_SEARCH_STRING_GROUP_KEY);
-        lastSearchStringValue = appSettings.value(NOTE_SEARCH_STRING_KEY);
+        lastSearchStringValue = appSettings.value(NOTE_SEARCH_QUERY_KEY);
         appSettings.endGroup();
     }
 
@@ -1260,7 +1285,7 @@ void NoteFiltersManager::clearFilterBySearchStringWidget()
 
     // TODO: reconnect to widget's signals
 
-    persistSearchString();
+    persistSearchQuery({});
 }
 
 void NoteFiltersManager::clearFilterBySavedSearchWidget()

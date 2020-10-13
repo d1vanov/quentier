@@ -133,6 +133,7 @@ private Q_SLOTS:
     // Slots for filter by search string widget
     void onSearchQueryChanged(QString query);
     void onSavedSearchQueryChanged(QString savedSearchLocalUid, QString query);
+    void onSearchSavingRequested(QString query);
 
     // Slots for events from local storage
     void onFindNoteLocalUidsWithSearchQueryCompleted(
@@ -160,7 +161,6 @@ private Q_SLOTS:
     void onExpungeTagComplete(
         Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
 
-    void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
 
@@ -168,8 +168,8 @@ private:
     void createConnections();
     void evaluate();
 
-    void persistSearchString();
-    void restoreSearchString();
+    void persistSearchQuery(const QString & query);
+    void restoreSearchQuery();
 
     bool setFilterBySavedSearch();
     bool setFilterBySearchString();
