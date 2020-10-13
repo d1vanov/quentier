@@ -45,7 +45,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="saveSearchButton">
      <property name="icon">
       <iconset theme="document-save">
        <normaloff>.</normaloff>.</iconset>

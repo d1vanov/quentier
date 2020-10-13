@@ -27,6 +27,8 @@ FilterBySearchStringWidget::FilterBySearchStringWidget(QWidget * parent) :
     QWidget(parent), m_pUi(new Ui::FilterBySearchStringWidget)
 {
     m_pUi->setupUi(this);
+    m_pUi->saveSearchButton->setEnabled(false);
+    createConnections();
 }
 
 FilterBySearchStringWidget::~FilterBySearchStringWidget()
@@ -56,6 +58,7 @@ void FilterBySearchStringWidget::setSearchQuery(const QString & searchQuery)
 
     m_searchQuery = searchQuery;
     m_pUi->lineEdit->setText(m_searchQuery);
+    m_pUi->saveSearchButton->setEnabled(!m_searchQuery.isEmpty());
 }
 
 void FilterBySearchStringWidget::setSavedSearch(
@@ -104,26 +107,35 @@ void FilterBySearchStringWidget::onLineEditTextEdited(const QString & text)
 
     bool wasEmpty = searchQuery.isEmpty();
     searchQuery = text;
-    if (!wasEmpty && searchQuery.isEmpty()) {
+    bool isEmpty = searchQuery.isEmpty();
+
+    m_pUi->saveSearchButton->setEnabled(!isEmpty);
+
+    if (!wasEmpty && isEmpty) {
         notifyQueryChanged();
     }
 }
 
 void FilterBySearchStringWidget::onLineEditEditingFinished()
 {
+    const QString displayedQuery = m_pUi->lineEdit->text();
+
     QNDEBUG(
         "widget:filter_search_string",
         "FilterBySearchStringWidget::onLineEditEditingFinished: "
-            << m_pUi->lineEdit->text());
+            << displayedQuery);
 
-    QString & searchQuery =
+    const QString & searchQuery =
         (m_savedSearchLocalUid.isEmpty() ? m_searchQuery : m_savedSearchQuery);
 
-    if (searchQuery.isEmpty() && m_pUi->lineEdit->text().isEmpty()) {
+    const bool displayedQueryIsEmpty = displayedQuery.isEmpty();
+
+    if (searchQuery.isEmpty() && displayedQueryIsEmpty) {
         // This situation should have already been processed
         return;
     }
 
+    m_pUi->saveSearchButton->setEnabled(!displayedQueryIsEmpty);
     notifyQueryChanged();
 }
 
@@ -154,7 +166,7 @@ void FilterBySearchStringWidget::createConnections()
         &FilterBySearchStringWidget::onLineEditTextEdited);
 
     QObject::connect(
-        m_pUi->pushButton, &QPushButton::clicked,
+        m_pUi->saveSearchButton, &QPushButton::clicked,
         this, &FilterBySearchStringWidget::onSaveButtonPressed);
 }
 
@@ -172,14 +184,16 @@ void FilterBySearchStringWidget::updateDisplayedSearchQuery()
                 << "query to line edit: " << m_savedSearchQuery);
 
         m_pUi->lineEdit->setText(m_savedSearchQuery);
-        return;
+    }
+    else {
+        QNTRACE(
+            "widget:filter_search_string",
+            "Setting search string to line edit: " << m_searchQuery);
+
+        m_pUi->lineEdit->setText(m_searchQuery);
     }
 
-    QNTRACE(
-        "widget:filter_search_string",
-        "Setting search string to line edit: " << m_searchQuery);
-
-    m_pUi->lineEdit->setText(m_searchQuery);
+    m_pUi->saveSearchButton->setEnabled(!m_pUi->lineEdit->text().isEmpty());
 }
 
 void FilterBySearchStringWidget::notifyQueryChanged()
