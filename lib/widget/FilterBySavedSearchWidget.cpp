@@ -387,17 +387,28 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
     }
 
     auto savedSearchNames = m_pSavedSearchModel->savedSearchNames();
-    savedSearchNames.prepend(QString());
 
-    int index = 0;
+    int index = -1;
     auto it = std::lower_bound(
         savedSearchNames.constBegin(), savedSearchNames.constEnd(),
-        m_currentSavedSearchName);
+        m_currentSavedSearchName,
+        [] (const QString & lhs, const QString & rhs)
+        {
+            return lhs.toUpper() < rhs.toUpper();
+        });
 
     if ((it != savedSearchNames.constEnd()) &&
         (*it == m_currentSavedSearchName)) {
         index =
             static_cast<int>(std::distance(savedSearchNames.constBegin(), it));
+    }
+
+    savedSearchNames.prepend(QString());
+    if (index >= 0) {
+        ++index;
+    }
+    else {
+        index = 0;
     }
 
     disconnectFromCurrentIndexChangedSignal();
