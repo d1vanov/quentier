@@ -310,6 +310,18 @@ QSplitter::handle:vertical {
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>36</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>36</height>
+          </size>
+         </property>
         </widget>
        </item>
        <item>
@@ -3997,7 +4009,6 @@ border-bottom: 1px solid black;
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../../resource/icons/other/icons.qrc"/>
   <include location="../../../resource/icons/other/icons.qrc"/>
  </resources>
  <connections/>
