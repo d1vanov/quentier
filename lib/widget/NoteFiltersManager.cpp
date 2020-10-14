@@ -465,10 +465,7 @@ void NoteFiltersManager::onSavedSearchQueryChanged(
         "NoteFiltersManager::onSavedSearchQueryChanged: saved search local uid "
             << "= " << savedSearchLocalUid << ", query: " << query);
 
-    auto * pParentWidget = qobject_cast<QWidget *>(parent());
-
     auto * pSavedSearchModel = m_filterBySavedSearchWidget.savedSearchModel();
-
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         QNWARNING(
             "widget:note_filters",
@@ -476,9 +473,19 @@ void NoteFiltersManager::onSavedSearchQueryChanged(
         return;
     }
 
+    const QString existingQuery = pSavedSearchModel->queryForLocalUid(
+        savedSearchLocalUid);
+
+    if (existingQuery == query) {
+        QNDEBUG("widget:note_filters", "Saved search query did not change");
+        return;
+    }
+
     auto pUpdateSavedSearchDialog =
         std::make_unique<AddOrEditSavedSearchDialog>(
-            pSavedSearchModel, pParentWidget, savedSearchLocalUid);
+            pSavedSearchModel,
+            qobject_cast<QWidget *>(parent()),
+            savedSearchLocalUid);
 
     pUpdateSavedSearchDialog->setQuery(query);
     Q_UNUSED(pUpdateSavedSearchDialog->exec())
@@ -1022,6 +1029,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         QNDEBUG(
             "widget:note_filters", "No saved search name is set to the filter");
         m_pNoteModel->clearFilteredNoteLocalUids();
+        m_filterBySearchStringWidget.clearSavedSearch();
         return false;
     }
 
@@ -1033,6 +1041,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
             "widget:note_filters",
             "Saved search model in the filter by saved search widget is null");
         m_pNoteModel->clearFilteredNoteLocalUids();
+        m_filterBySearchStringWidget.clearSavedSearch();
         return false;
     }
 
@@ -1048,6 +1057,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         QNWARNING("widget:note_filters", error);
         Q_EMIT notifyError(error);
         m_pNoteModel->clearFilteredNoteLocalUids();
+        m_filterBySearchStringWidget.clearSavedSearch();
         return false;
     }
 
@@ -1065,6 +1075,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
         QNWARNING("widget:note_filters", error);
         Q_EMIT notifyError(error);
         m_pNoteModel->clearFilteredNoteLocalUids();
+        m_filterBySearchStringWidget.clearSavedSearch();
         return false;
     }
 
@@ -1079,8 +1090,12 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
         Q_EMIT notifyError(error);
         m_pNoteModel->clearFilteredNoteLocalUids();
+        m_filterBySearchStringWidget.clearSavedSearch();
         return false;
     }
+
+    m_filterBySearchStringWidget.setSavedSearch(
+        pSavedSearchItem->localUid(), pSavedSearchItem->query());
 
     NoteSearchQuery query;
     ErrorString errorDescription;
