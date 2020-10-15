@@ -83,7 +83,7 @@ public:
             return;
         }
 
-        pItem->m_pParent = static_cast<TSubclass* >(this);
+        pItem->m_pParent = static_cast<TSubclass *>(this);
         m_children.insert(row, pItem);
     }
 

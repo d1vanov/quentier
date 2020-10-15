@@ -391,9 +391,7 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
     int index = -1;
     auto it = std::lower_bound(
         savedSearchNames.constBegin(), savedSearchNames.constEnd(),
-        m_currentSavedSearchName,
-        [] (const QString & lhs, const QString & rhs)
-        {
+        m_currentSavedSearchName, [](const QString & lhs, const QString & rhs) {
             return lhs.toUpper() < rhs.toUpper();
         });
 

@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class SavedSearchItem final: public ISavedSearchModelItem
+class SavedSearchItem final : public ISavedSearchModelItem
 {
 public:
     explicit SavedSearchItem(

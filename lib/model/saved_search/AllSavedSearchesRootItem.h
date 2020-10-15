@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class AllSavedSearchesRootItem final: public ISavedSearchModelItem
+class AllSavedSearchesRootItem final : public ISavedSearchModelItem
 {
 public:
     virtual Type type() const override
@@ -34,10 +34,9 @@ public:
     virtual QTextStream & print(QTextStream & strm) const override
     {
         strm << "AllSavedSearchesRootItem"
-            << ", child count: " << m_children.size()
-            << ", parent: " << m_pParent
-            << ", parent type: "
-            << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+             << ", child count: " << m_children.size()
+             << ", parent: " << m_pParent << ", parent type: "
+             << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
         return strm;
     }
 };

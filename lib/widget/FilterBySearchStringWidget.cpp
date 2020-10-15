@@ -147,8 +147,7 @@ void FilterBySearchStringWidget::onSaveButtonPressed()
 
     if (!m_savedSearchLocalUid.isEmpty()) {
         Q_EMIT savedSearchQueryChanged(
-            m_savedSearchLocalUid,
-            m_savedSearchQuery);
+            m_savedSearchLocalUid, m_savedSearchQuery);
         return;
     }
 
@@ -166,8 +165,8 @@ void FilterBySearchStringWidget::createConnections()
         &FilterBySearchStringWidget::onLineEditTextEdited);
 
     QObject::connect(
-        m_pUi->saveSearchButton, &QPushButton::clicked,
-        this, &FilterBySearchStringWidget::onSaveButtonPressed);
+        m_pUi->saveSearchButton, &QPushButton::clicked, this,
+        &FilterBySearchStringWidget::onSaveButtonPressed);
 }
 
 void FilterBySearchStringWidget::updateDisplayedSearchQuery()

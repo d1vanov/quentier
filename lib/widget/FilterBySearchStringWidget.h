@@ -36,7 +36,7 @@ namespace quentier {
  * displayed search query (if any) with the query from the saved search. Then
  * the original query can be restored.
  */
-class FilterBySearchStringWidget final: public QWidget
+class FilterBySearchStringWidget final : public QWidget
 {
     Q_OBJECT
 public:
@@ -104,10 +104,10 @@ private:
 private:
     Ui::FilterBySearchStringWidget * m_pUi;
 
-    QString     m_searchQuery;
+    QString m_searchQuery;
 
-    QString     m_savedSearchQuery;
-    QString     m_savedSearchLocalUid;
+    QString m_savedSearchQuery;
+    QString m_savedSearchLocalUid;
 };
 
 } // namespace quentier

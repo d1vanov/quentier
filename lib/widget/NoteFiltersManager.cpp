@@ -475,8 +475,8 @@ void NoteFiltersManager::onSavedSearchQueryChanged(
         return;
     }
 
-    const QString existingQuery = pSavedSearchModel->queryForLocalUid(
-        savedSearchLocalUid);
+    const QString existingQuery =
+        pSavedSearchModel->queryForLocalUid(savedSearchLocalUid);
 
     if (existingQuery == query) {
         QNDEBUG("widget:note_filters", "Saved search query did not change");
@@ -485,8 +485,7 @@ void NoteFiltersManager::onSavedSearchQueryChanged(
 
     auto pUpdateSavedSearchDialog =
         std::make_unique<AddOrEditSavedSearchDialog>(
-            pSavedSearchModel,
-            qobject_cast<QWidget *>(parent()),
+            pSavedSearchModel, qobject_cast<QWidget *>(parent()),
             savedSearchLocalUid);
 
     pUpdateSavedSearchDialog->setQuery(query);

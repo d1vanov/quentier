@@ -62,8 +62,8 @@ void SavedSearchItemView::saveItemsState()
 {
     QNDEBUG("view:saved_search", "SavedSearchItemView::saveItemsState");
 
-    const auto * pSavedSearchModel = qobject_cast<const SavedSearchModel *>(
-        model());
+    const auto * pSavedSearchModel =
+        qobject_cast<const SavedSearchModel *>(model());
 
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         QNDEBUG("view:saved_search", "Non-saved search model is used");
@@ -88,8 +88,8 @@ void SavedSearchItemView::restoreItemsState(const ItemModel & model)
 {
     QNDEBUG("view:saved_search", "SavedSearchItemView::restoreItemsState");
 
-    const auto * pSavedSearchModel = qobject_cast<const SavedSearchModel *>(
-        &model);
+    const auto * pSavedSearchModel =
+        qobject_cast<const SavedSearchModel *>(&model);
 
     if (Q_UNLIKELY(!pSavedSearchModel)) {
         QNDEBUG("view:saved_search", "Non-saved search model is used");
@@ -109,7 +109,8 @@ void SavedSearchItemView::restoreItemsState(const ItemModel & model)
 
     bool allSavedSearchesRootItemExpanded = true;
     if (allSavedSearchesRootItemExpandedPreference.isValid()) {
-        allSavedSearchesRootItemExpanded = allSavedSearchesRootItemExpandedPreference.toBool();
+        allSavedSearchesRootItemExpanded =
+            allSavedSearchesRootItemExpandedPreference.toBool();
     }
 
     auto allTagsRootItemIndex = model.index(0, 0);
@@ -166,8 +167,7 @@ QStringList SavedSearchItemView::localUidsInNoteFiltersManager(
 }
 
 void SavedSearchItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids,
-    NoteFiltersManager & noteFiltersManager)
+    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
 {
     if (Q_UNLIKELY(itemLocalUids.isEmpty())) {
         noteFiltersManager.removeSavedSearchFromFilter();

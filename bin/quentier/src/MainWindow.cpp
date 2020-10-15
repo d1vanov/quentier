@@ -5898,15 +5898,11 @@ void MainWindow::setupNoteFilters()
         m_pNoteFiltersManager->deleteLater();
     }
 
-    m_pNoteFiltersManager =
-      new NoteFiltersManager(*m_pAccount,
-                             *m_pUI->filterByTagsWidget,
-                             *m_pUI->filterByNotebooksWidget,
-                             *m_pNoteModel,
-                             *m_pUI->filterBySavedSearchComboBox,
-                             *m_pUI->filterBySearchStringWidget,
-                             *m_pLocalStorageManagerAsync,
-                             this);
+    m_pNoteFiltersManager = new NoteFiltersManager(
+        *m_pAccount, *m_pUI->filterByTagsWidget,
+        *m_pUI->filterByNotebooksWidget, *m_pNoteModel,
+        *m_pUI->filterBySavedSearchComboBox, *m_pUI->filterBySearchStringWidget,
+        *m_pLocalStorageManagerAsync, this);
 
     m_pNoteModel->start();
 
