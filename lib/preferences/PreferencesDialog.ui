@@ -23,7 +23,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="appearanceTab">
       <attribute name="title">
@@ -331,6 +331,13 @@ padding: 0 3px;
            <widget class="QCheckBox" name="filterBySelectedTagCheckBox">
             <property name="text">
              <string>Filter by selected tag</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="filterBySelectedSavedSearchCheckBox">
+            <property name="text">
+             <string>Filter by selected saved search</string>
             </property>
            </widget>
           </item>
