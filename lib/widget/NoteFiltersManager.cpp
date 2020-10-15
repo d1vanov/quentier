@@ -426,6 +426,8 @@ void NoteFiltersManager::onSavedSearchFilterChanged(
     setFilterByNotebooks();
 
     m_pNoteModel->endUpdateFilter();
+
+    Q_EMIT filterChanged();
 }
 
 void NoteFiltersManager::onSavedSearchFilterReady()
