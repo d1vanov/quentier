@@ -545,18 +545,12 @@ int SavedSearchModel::rowCount(const QModelIndex & parent) const
 
 int SavedSearchModel::columnCount(const QModelIndex & parent) const
 {
-    if (!parent.isValid()) {
-        // Parent is invisible root item
-        return 1;
+    if (parent.isValid() && (parent.column() != static_cast<int>(Column::Name)))
+    {
+        return 0;
     }
 
-    const auto grandparent = parent.parent();
-    if (!grandparent.isValid()) {
-        // Number of columns for saved search items is requested
-        return NUM_SAVED_SEARCH_MODEL_COLUMNS;
-    }
-
-    return 1;
+    return NUM_SAVED_SEARCH_MODEL_COLUMNS;
 }
 
 QModelIndex SavedSearchModel::index(
