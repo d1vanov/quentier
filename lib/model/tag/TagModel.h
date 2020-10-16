@@ -20,7 +20,7 @@
 #define QUENTIER_LIB_MODEL_TAG_MODEL_H
 
 #include "../ItemModel.h"
-#include "../TagCache.h"
+#include "TagCache.h"
 
 #include "ITagModelItem.h"
 #include "TagItem.h"
@@ -77,7 +77,7 @@ public:
     ITagModelItem * itemForIndex(const QModelIndex & index) const;
     ITagModelItem * itemForLocalUid(const QString & localUid) const;
 
-    QModelIndex indexForItem(const ITagModelItem * item) const;
+    QModelIndex indexForItem(const ITagModelItem * pItem) const;
 
     QModelIndex indexForTagName(
         const QString & tagName, const QString & linkedNotebookGuid = {}) const;
@@ -544,10 +544,13 @@ private:
 private:
     struct ByLocalUid
     {};
+
     struct ByParentLocalUid
     {};
+
     struct ByNameUpper
     {};
+
     struct ByLinkedNotebookGuid
     {};
 

@@ -43,11 +43,14 @@ public:
     void switchAccount(
         const Account & account, SavedSearchModel * pSavedSearchModel);
 
+    SavedSearchModel * savedSearchModel();
     const SavedSearchModel * savedSearchModel() const;
 
     bool isReady() const;
 
     QString filteredSavedSearchLocalUid() const;
+
+    void setCurrentSavedSearchLocalUid(const QString & savedSearchLocalUid);
 
 Q_SIGNALS:
     void ready();
@@ -72,6 +75,9 @@ private:
     void updateSavedSearchesInComboBox();
     void connectoToSavedSearchModel();
 
+    void connectToCurrentIndexChangedSignal();
+    void disconnectFromCurrentIndexChangedSignal();
+
 private:
     Account m_account;
     QPointer<SavedSearchModel> m_pSavedSearchModel;
@@ -79,8 +85,6 @@ private:
 
     QString m_currentSavedSearchName;
     QString m_currentSavedSearchLocalUid;
-
-    bool m_settingCurrentIndex = false;
 
     bool m_isReady = false;
 };

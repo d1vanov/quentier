@@ -16,17 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_TAG_MODEL_ITEM_H
+#ifndef QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H
+#define QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H
 
-#include <quentier/utility/Printable.h>
-
-QT_FORWARD_DECLARE_CLASS(QDataStream)
-QT_FORWARD_DECLARE_CLASS(QDebug)
+#include "../IModelItem.h"
 
 namespace quentier {
 
-class ITagModelItem : public Printable
+class ITagModelItem : public IModelItem<ITagModelItem>
 {
 public:
     enum class Type
@@ -44,63 +41,18 @@ public:
 
     virtual Type type() const = 0;
 
-    ITagModelItem * parent() const
-    {
-        return m_pParent;
-    }
-
-    void setParent(ITagModelItem * pParent);
-
-    ITagModelItem * childAtRow(const int row) const;
-
-    int rowForChild(const ITagModelItem * pChild) const;
-
-    bool hasChildren() const
-    {
-        return !m_children.isEmpty();
-    }
-
-    QList<ITagModelItem *> children() const
-    {
-        return m_children;
-    }
-
-    int childrenCount() const
-    {
-        return m_children.size();
-    }
-
-    void insertChild(const int row, ITagModelItem * pItem);
-    void addChild(ITagModelItem * pItem);
-    bool swapChildren(const int srcRow, const int dstRow);
-
-    ITagModelItem * takeChild(const int row);
-
-    template <typename Comparator>
-    void sortChildren(Comparator comparator)
-    {
-        std::sort(m_children.begin(), m_children.end(), comparator);
-    }
-
-    virtual QDataStream & serializeItemData(QDataStream & out) const = 0;
-    virtual QDataStream & deserializeItemData(QDataStream & in) = 0;
-
-    friend QDataStream & operator<<(
-        QDataStream & out, const ITagModelItem & item);
-
-    friend QDataStream & operator>>(QDataStream & in, ITagModelItem & item);
-
     template <typename T>
     T * cast();
 
     template <typename T>
     const T * cast() const;
 
-protected:
-    ITagModelItem * m_pParent = nullptr;
-    QList<ITagModelItem *> m_children;
+    friend QDataStream & operator<<(
+        QDataStream & out, const ITagModelItem & item);
+
+    friend QDataStream & operator>>(QDataStream & in, ITagModelItem & item);
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_TAG_MODEL_ITEM_H
+#endif // QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H

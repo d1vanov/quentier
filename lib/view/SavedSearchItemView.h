@@ -19,39 +19,50 @@
 #ifndef QUENTIER_LIB_VIEW_SAVED_SEARCH_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_SAVED_SEARCH_ITEM_VIEW_H
 
-#include "ItemView.h"
-
-#include <quentier/types/ErrorString.h>
+#include "AbstractMultiSelectionItemView.h"
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class SavedSearchItemView : public ItemView
+class SavedSearchItemView : public AbstractMultiSelectionItemView
 {
     Q_OBJECT
 public:
     explicit SavedSearchItemView(QWidget * parent = nullptr);
 
-    virtual void setModel(QAbstractItemModel * pModel) override;
-
-    /**
-     * @return      Valid model index if the selection exists and contains
-     *              exactly one row and invalid model index otherwise
-     */
-    QModelIndex currentlySelectedItemIndex() const;
-
 Q_SIGNALS:
-    void notifyError(ErrorString error);
     void newSavedSearchCreationRequested();
     void savedSearchInfoRequested();
 
-public Q_SLOTS:
-    void deleteSelectedItem();
+private:
+    // AbstractMultiSelectionItemView interface
+    virtual void saveItemsState() override;
+    virtual void restoreItemsState(const ItemModel & model) override;
+
+    virtual QString selectedItemsGroupKey() const override;
+    virtual QString selectedItemsArrayKey() const override;
+    virtual QString selectedItemsKey() const override;
+
+    virtual bool shouldFilterBySelectedItems(
+        const Account & account) const override;
+
+    virtual QStringList localUidsInNoteFiltersManager(
+        const NoteFiltersManager & noteFiltersManager) const override;
+
+    virtual void setItemLocalUidsToNoteFiltersManager(
+        const QStringList & itemLocalUids,
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void removeItemLocalUidsFromNoteFiltersManager(
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void connectToModel(ItemModel & model) override;
+
+    virtual void deleteItem(
+        const QModelIndex & itemIndex, ItemModel & model) override;
 
 private Q_SLOTS:
-    void onAllSavedSearchesListed();
-
     void onAboutToAddSavedSearch();
     void onAddedSavedSearch(const QModelIndex & index);
 
@@ -72,29 +83,13 @@ private Q_SLOTS:
     void onFavoriteAction();
     void onUnfavoriteAction();
 
-    virtual void selectionChanged(
-        const QItemSelection & selected,
-        const QItemSelection & deselected) override;
-
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    void deleteItem(const QModelIndex & itemIndex, SavedSearchModel & model);
-
-    void restoreLastSavedSelection(const SavedSearchModel & model);
-
-    void selectionChangedImpl(
-        const QItemSelection & selected, const QItemSelection & deselected);
-
     void setFavoritedFlag(const QAction & action, const bool favorited);
-
-    void prepareForSavedSearchModelChange();
-    void postProcessSavedSearchModelChange();
 
 private:
     QMenu * m_pSavedSearchItemContextMenu = nullptr;
-    bool m_trackingSelection = false;
-    bool m_modelReady = false;
 };
 
 } // namespace quentier

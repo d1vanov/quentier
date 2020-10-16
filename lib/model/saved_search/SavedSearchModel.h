@@ -19,16 +19,16 @@
 #ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_MODEL_H
 #define QUENTIER_LIB_MODEL_SAVED_SEARCH_MODEL_H
 
-#include "ItemModel.h"
-
+#include "../ItemModel.h"
 #include "SavedSearchCache.h"
-#include "SavedSearchModelItem.h"
+
+#include "ISavedSearchModelItem.h"
+#include "SavedSearchItem.h"
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/SavedSearch.h>
 #include <quentier/utility/LRUCache.hpp>
-#include <quentier/utility/SuppressWarnings.h>
 
 #include <QAbstractItemModel>
 #include <QSet>
@@ -42,7 +42,7 @@
 
 namespace quentier {
 
-class SavedSearchModel : public ItemModel
+class SavedSearchModel final : public ItemModel
 {
     Q_OBJECT
 public:
@@ -51,22 +51,28 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         SavedSearchCache & cache, QObject * parent = nullptr);
 
-    virtual ~SavedSearchModel();
+    virtual ~SavedSearchModel() override;
 
-    struct Columns
+    enum class Column
     {
-        enum type
-        {
-            Name = 0,
-            Query,
-            Synchronizable,
-            Dirty
-        };
+        Name = 0,
+        Query,
+        Synchronizable,
+        Dirty
     };
 
-    const SavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
-    QModelIndex indexForItem(const SavedSearchModelItem * item) const;
+    friend QDebug & operator<<(QDebug & dbg, const Column column);
+
+    ISavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const ISavedSearchModelItem * pItem) const;
     QModelIndex indexForSavedSearchName(const QString & savedSearchName) const;
+
+    /**
+     * @brief queryForLocalUid
+     * @return query corresponding to the saved search with the passed in local
+     *         uid or empty string if unable to find that saved search
+     */
+    QString queryForLocalUid(const QString & localUid) const;
 
     /**
      * @brief savedSearchNames
@@ -156,12 +162,12 @@ public:
 
     virtual int nameColumn() const override
     {
-        return Columns::Name;
+        return static_cast<int>(Column::Name);
     }
 
     virtual int sortingColumn() const override
     {
-        return m_sortedColumn;
+        return static_cast<int>(m_sortedColumn);
     }
 
     virtual Qt::SortOrder sortOrder() const override
@@ -292,47 +298,49 @@ private:
 
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
-    QVariant dataImpl(const int row, const Columns::type column) const;
+    QVariant dataImpl(const int row, const Column column) const;
 
-    QVariant dataAccessibleText(
-        const int row, const Columns::type column) const;
+    QVariant dataAccessibleText(const int row, const Column column) const;
 
     QString nameForNewSavedSearch() const;
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
-    int rowForNewItem(const SavedSearchModelItem & newItem) const;
+    int rowForNewItem(const SavedSearchItem & newItem) const;
 
     void updateRandomAccessIndexWithRespectToSorting(
-        const SavedSearchModelItem & item);
+        const SavedSearchItem & item);
 
-    void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
+    void updateSavedSearchInLocalStorage(const SavedSearchItem & item);
 
     void setSavedSearchFavorited(
         const QModelIndex & index, const bool favorited);
 
+    void checkAndCreateModelRootItems();
+
 private:
     struct ByLocalUid
     {};
+
     struct ByIndex
     {};
+
     struct ByNameUpper
     {};
 
     using SavedSearchData = boost::multi_index_container<
-        SavedSearchModelItem,
+        SavedSearchItem,
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
-                boost::multi_index::member<
-                    SavedSearchModelItem, QString,
-                    &SavedSearchModelItem::m_localUid>>,
+                boost::multi_index::const_mem_fun<
+                    SavedSearchItem, const QString &,
+                    &SavedSearchItem::localUid>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<
-                    SavedSearchModelItem, QString,
-                    &SavedSearchModelItem::nameUpper>>>>;
+                    SavedSearchItem, QString, &SavedSearchItem::nameUpper>>>>;
 
     using SavedSearchDataByLocalUid = SavedSearchData::index<ByLocalUid>::type;
     using SavedSearchDataByIndex = SavedSearchData::index<ByIndex>::type;
@@ -340,18 +348,18 @@ private:
     using SavedSearchDataByNameUpper =
         SavedSearchData::index<ByNameUpper>::type;
 
+    using IndexId = quintptr;
+
     struct LessByName
     {
         bool operator()(
-            const SavedSearchModelItem & lhs,
-            const SavedSearchModelItem & rhs) const;
+            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
     };
 
     struct GreaterByName
     {
         bool operator()(
-            const SavedSearchModelItem & lhs,
-            const SavedSearchModelItem & rhs) const;
+            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
     };
 
     QModelIndex indexForLocalUidIndexIterator(
@@ -359,6 +367,12 @@ private:
 
 private:
     SavedSearchData m_data;
+
+    ISavedSearchModelItem * m_pInvisibleRootItem = nullptr;
+
+    ISavedSearchModelItem * m_pAllSavedSearchesRootItem = nullptr;
+    IndexId m_allSavedSearchesRootItemIndexId = 1;
+
     size_t m_listSavedSearchesOffset = 0;
     QUuid m_listSavedSearchesRequestId;
     QSet<QUuid> m_savedSearchItemsNotYetInLocalStorageUids;
@@ -372,7 +386,7 @@ private:
     QSet<QUuid> m_findSavedSearchToRestoreFailedUpdateRequestIds;
     QSet<QUuid> m_findSavedSearchToPerformUpdateRequestIds;
 
-    Columns::type m_sortedColumn = Columns::Name;
+    Column m_sortedColumn = Column::Name;
     Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
 
     mutable int m_lastNewSavedSearchNameCounter = 0;

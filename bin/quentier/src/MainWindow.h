@@ -23,11 +23,11 @@
 #include <lib/model/FavoritesModel.h>
 #include <lib/model/NoteCache.h>
 #include <lib/model/NoteModel.h>
-#include <lib/model/NotebookCache.h>
-#include <lib/model/SavedSearchCache.h>
-#include <lib/model/SavedSearchModel.h>
-#include <lib/model/TagCache.h>
+#include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/model/saved_search/SavedSearchCache.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
+#include <lib/model/tag/TagCache.h>
 #include <lib/model/tag/TagModel.h>
 
 #ifdef WITH_UPDATE_MANAGER
@@ -298,9 +298,6 @@ private Q_SLOTS:
     void onPanelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
     void onPanelBackgroundLinearGradientChanged(QLinearGradient gradient);
 
-    // Note search-related slots
-    void onSaveNoteSearchQueryButtonPressed();
-
     // SystemTrayIconManager slots
     void onNewNoteRequestedFromSystemTrayIcon();
     void onQuitRequestedFromSystemTrayIcon();
@@ -428,7 +425,6 @@ private:
 
     void connectActionsToSlots();
     void connectViewButtonsToSlots();
-    void connectNoteSearchActionsToSlots();
     void connectToolbarButtonsToSlots();
     void connectSystemTrayIconManagerSignalsToSlots();
     void connectToPreferencesDialogSignals(PreferencesDialog & dialog);

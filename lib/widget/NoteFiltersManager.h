@@ -33,6 +33,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
 QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
+QT_FORWARD_DECLARE_CLASS(FilterBySearchStringWidget)
 QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
@@ -45,7 +46,7 @@ public:
         const Account & account, FilterByTagWidget & filterByTagWidget,
         FilterByNotebookWidget & filterByNotebookWidget, NoteModel & noteModel,
         FilterBySavedSearchWidget & filterBySavedSearchWidget,
-        QLineEdit & searchLineEdit,
+        FilterBySearchStringWidget & FilterBySearchStringWidget,
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
@@ -63,6 +64,9 @@ public:
 
     void setTagsToFilter(const QStringList & tagLocalUids);
     void removeTagsFromFilter();
+
+    void setSavedSearchLocalUidToFilter(const QString & savedSearchLocalUid);
+    void removeSavedSearchFromFilter();
 
     /**
      * @return              True if all filters have already been properly
@@ -87,6 +91,9 @@ Q_SIGNALS:
     // private signals
     void findNoteLocalUidsForNoteSearchQuery(
         NoteSearchQuery noteSearchQuery, QUuid requestId);
+
+    void addSavedSearch(SavedSearch savedSearch, QUuid requestId);
+    void updateSavedSearch(SavedSearch savedSearch, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for FilterByTagWidget's signals
@@ -123,9 +130,10 @@ private Q_SLOTS:
     void onSavedSearchFilterChanged(const QString & savedSearchName);
     void onSavedSearchFilterReady();
 
-    // Slots for the search line edit
-    void onSearchStringEdited(const QString & text);
-    void onSearchStringChanged();
+    // Slots for filter by search string widget
+    void onSearchQueryChanged(QString query);
+    void onSavedSearchQueryChanged(QString savedSearchLocalUid, QString query);
+    void onSearchSavingRequested(QString query);
 
     // Slots for events from local storage
     void onFindNoteLocalUidsWithSearchQueryCompleted(
@@ -160,25 +168,26 @@ private:
     void createConnections();
     void evaluate();
 
-    void persistSearchString();
-    void restoreSearchString();
+    void persistSearchQuery(const QString & query);
+    void restoreSearchQuery();
 
-    bool setFilterBySearchString();
     bool setFilterBySavedSearch();
+    bool setFilterBySearchString();
     void setFilterByNotebooks();
     void setFilterByTags();
 
     void clearFilterWidgetsItems();
     void clearFilterByTagWidgetItems();
     void clearFilterByNotebookWidgetItems();
+    void clearFilterBySearchStringWidget();
     void clearFilterBySavedSearchWidget();
-    void clearSearchString();
 
     void checkFiltersReadiness();
 
     void setNotebookToFilterImpl(const QString & notebookLocalUid);
     void setNotebooksToFilterImpl(const QStringList & notebookLocalUids);
     void setTagsToFilterImpl(const QStringList & tagLocalUids);
+    void setSavedSearchToFilterImpl(const QString & savedSearchLocalUid);
 
     void checkAndRefreshNotesSearchQuery();
 
@@ -190,13 +199,18 @@ private:
     void persistFilterByTagClearedState(const bool state);
     bool tagFilterWasCleared() const;
 
+    void persistFilterBySavedSearchClearedState(const bool state);
+    bool savedSearchFilterWasCleared() const;
+
+    void showSearchQueryErrorToolTip(const ErrorString & errorDescription);
+
 private:
     Account m_account;
     FilterByTagWidget & m_filterByTagWidget;
     FilterByNotebookWidget & m_filterByNotebookWidget;
     QPointer<NoteModel> m_pNoteModel;
     FilterBySavedSearchWidget & m_filterBySavedSearchWidget;
-    QLineEdit & m_searchLineEdit;
+    FilterBySearchStringWidget & m_filterBySearchStringWidget;
     LocalStorageManagerAsync & m_localStorageManagerAsync;
 
     QString m_filteredSavedSearchLocalUid;

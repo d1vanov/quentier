@@ -18,7 +18,7 @@
 
 #include "FilterBySavedSearchWidget.h"
 
-#include <lib/model/SavedSearchModel.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -37,16 +37,7 @@ FilterBySavedSearchWidget::FilterBySavedSearchWidget(QWidget * parent) :
     QComboBox(parent)
 {
     setModel(&m_availableSavedSearchesModel);
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
-    QObject::connect(
-        this, qOverload<int>(&FilterBySavedSearchWidget::currentIndexChanged),
-        this, &FilterBySavedSearchWidget::onCurrentSavedSearchChanged);
-#else
-    QObject::connect(
-        this, SIGNAL(currentIndexChanged(int)), this,
-        SLOT(onCurrentSavedSearchChanged(int)));
-#endif
+    connectToCurrentIndexChangedSignal();
 }
 
 FilterBySavedSearchWidget::~FilterBySavedSearchWidget() = default;
@@ -116,6 +107,15 @@ void FilterBySavedSearchWidget::switchAccount(
     }
 }
 
+SavedSearchModel * FilterBySavedSearchWidget::savedSearchModel()
+{
+    if (m_pSavedSearchModel.isNull()) {
+        return nullptr;
+    }
+
+    return m_pSavedSearchModel.data();
+}
+
 const SavedSearchModel * FilterBySavedSearchWidget::savedSearchModel() const
 {
     if (m_pSavedSearchModel.isNull()) {
@@ -149,6 +149,34 @@ QString FilterBySavedSearchWidget::filteredSavedSearchLocalUid() const
     appSettings.endGroup();
 
     return savedSearchLocalUid;
+}
+
+void FilterBySavedSearchWidget::setCurrentSavedSearchLocalUid(
+    const QString & savedSearchLocalUid)
+{
+    QNDEBUG(
+        "widget:saved_search_filter",
+        "FilterBySavedSearchWidget::setCurrentSavedSearchLocalUid: "
+            << savedSearchLocalUid);
+
+    if (m_currentSavedSearchLocalUid == savedSearchLocalUid) {
+        QNDEBUG(
+            "widget:saved_search_filter",
+            "Current saved search local uid hasn't changed");
+        return;
+    }
+
+    m_currentSavedSearchLocalUid = savedSearchLocalUid;
+    persistSelectedSavedSearch();
+
+    if (!isReady()) {
+        QNDEBUG(
+            "widget:saved_search_filter",
+            "Filter by saved search is not ready");
+        return;
+    }
+
+    updateSavedSearchesInComboBox();
 }
 
 void FilterBySavedSearchWidget::onAllSavedSearchesListed()
@@ -231,8 +259,13 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
     ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
 
-    appSettings.setValue(
-        LAST_FILTERED_SAVED_SEARCH_KEY, m_currentSavedSearchLocalUid);
+    if (m_currentSavedSearchLocalUid.isEmpty()) {
+        appSettings.remove(LAST_FILTERED_SAVED_SEARCH_KEY);
+    }
+    else {
+        appSettings.setValue(
+            LAST_FILTERED_SAVED_SEARCH_KEY, m_currentSavedSearchLocalUid);
+    }
 
     appSettings.endGroup();
 
@@ -289,17 +322,9 @@ void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(int index)
     QNDEBUG(
         "widget:saved_search_filter",
         "FilterBySavedSearchWidget::onCurrentSavedSearchChanged: "
-            << savedSearchName);
+            << savedSearchName << ", index: " << index);
 
     Q_EMIT currentSavedSearchNameChanged(savedSearchName);
-
-    if (m_settingCurrentIndex) {
-        QNTRACE(
-            "widget:saved_search_filter",
-            "This time the current index was "
-                << "set programmatically, won't do anything");
-        return;
-    }
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
         QNDEBUG(
@@ -362,12 +387,13 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
     }
 
     auto savedSearchNames = m_pSavedSearchModel->savedSearchNames();
-    savedSearchNames.prepend(QString());
 
-    int index = 0;
+    int index = -1;
     auto it = std::lower_bound(
         savedSearchNames.constBegin(), savedSearchNames.constEnd(),
-        m_currentSavedSearchName);
+        m_currentSavedSearchName, [](const QString & lhs, const QString & rhs) {
+            return lhs.toUpper() < rhs.toUpper();
+        });
 
     if ((it != savedSearchNames.constEnd()) &&
         (*it == m_currentSavedSearchName)) {
@@ -375,10 +401,19 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
             static_cast<int>(std::distance(savedSearchNames.constBegin(), it));
     }
 
-    m_settingCurrentIndex = true;
+    savedSearchNames.prepend(QString());
+    if (index >= 0) {
+        ++index;
+    }
+    else {
+        index = 0;
+    }
+
+    disconnectFromCurrentIndexChangedSignal();
     m_availableSavedSearchesModel.setStringList(savedSearchNames);
+    connectToCurrentIndexChangedSignal();
+
     setCurrentIndex(index);
-    m_settingCurrentIndex = false;
 }
 
 void FilterBySavedSearchWidget::connectoToSavedSearchModel()
@@ -398,6 +433,32 @@ void FilterBySavedSearchWidget::connectoToSavedSearchModel()
     QObject::connect(
         m_pSavedSearchModel.data(), &SavedSearchModel::dataChanged, this,
         &FilterBySavedSearchWidget::onModelDataChanged);
+}
+
+void FilterBySavedSearchWidget::connectToCurrentIndexChangedSignal()
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::connect(
+        this, qOverload<int>(&FilterBySavedSearchWidget::currentIndexChanged),
+        this, &FilterBySavedSearchWidget::onCurrentSavedSearchChanged);
+#else
+    QObject::connect(
+        this, SIGNAL(currentIndexChanged(int)), this,
+        SLOT(onCurrentSavedSearchChanged(int)));
+#endif
+}
+
+void FilterBySavedSearchWidget::disconnectFromCurrentIndexChangedSignal()
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+    QObject::disconnect(
+        this, qOverload<int>(&FilterBySavedSearchWidget::currentIndexChanged),
+        this, &FilterBySavedSearchWidget::onCurrentSavedSearchChanged);
+#else
+    QObject::disconnect(
+        this, SIGNAL(currentIndexChanged(int)), this,
+        SLOT(onCurrentSavedSearchChanged(int)));
+#endif
 }
 
 } // namespace quentier

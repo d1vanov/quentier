@@ -22,7 +22,7 @@
 #include "modeltest.h"
 
 #include <lib/model/NoteCache.h>
-#include <lib/model/NotebookCache.h>
+#include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/tag/TagModel.h>
 
 #include <quentier/exception/IQuentierException.h>

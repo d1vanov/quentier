@@ -158,6 +158,9 @@
 #define FILTER_BY_SELECTED_TAG_SETTINGS_KEY                                    \
     QStringLiteral("FilterBySelectedTag")
 
+#define FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY                           \
+    QStringLiteral("FilterBySelectedSavedSearch")
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // Other UI related settings keys

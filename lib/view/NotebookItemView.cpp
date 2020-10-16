@@ -177,7 +177,7 @@ void NotebookItemView::saveItemsState()
     ApplicationSettings appSettings(
         pNotebookModel->account(), QUENTIER_UI_SETTINGS);
 
-    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
+    appSettings.beginGroup(NOTEBOOK_ITEM_VIEW_GROUP_KEY);
 
     for (const auto & it:
          qevercloud::toRange(qAsConst(expandedStackItemsByLinkedNotebookGuid)))
@@ -226,7 +226,7 @@ void NotebookItemView::restoreItemsState(const ItemModel & model)
         pNotebookModel->linkedNotebookOwnerNamesByGuid();
 
     ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
+    appSettings.beginGroup(NOTEBOOK_ITEM_VIEW_GROUP_KEY);
 
     auto expandedStacks =
         appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
@@ -309,7 +309,7 @@ bool NotebookItemView::shouldFilterBySelectedItems(
 
     appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
 
-    auto filterBySelectedNotebook =
+    const auto filterBySelectedNotebook =
         appSettings.value(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
 
     appSettings.endGroup();
@@ -758,7 +758,7 @@ void NotebookItemView::onNotebookStackRenamed(
     ApplicationSettings appSettings(
         pNotebookModel->account(), QUENTIER_UI_SETTINGS);
 
-    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
+    appSettings.beginGroup(NOTEBOOK_ITEM_VIEW_GROUP_KEY);
     QString key = LAST_EXPANDED_STACK_ITEMS_KEY;
     if (!linkedNotebookGuid.isEmpty()) {
         key += QStringLiteral("/") + linkedNotebookGuid;

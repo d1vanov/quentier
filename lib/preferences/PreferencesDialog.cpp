@@ -507,6 +507,22 @@ void PreferencesDialog::onFilterByTagCheckboxToggled(bool checked)
     Q_EMIT filterByTagOptionChanged(checked);
 }
 
+void PreferencesDialog::onFilterBySavedSearchCheckboxToggled(bool checked)
+{
+    QNDEBUG(
+        "preferences",
+        "PreferencesDialog::onFilterBySavedSearchCheckboxToggled: "
+            << (checked ? "checked" : "unchecked"));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY, checked);
+    appSettings.endGroup();
+
+    Q_EMIT filterBySavedSearchOptionChanged(checked);
+}
+
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
     QNDEBUG(
@@ -1408,7 +1424,7 @@ void PreferencesDialog::setupFilteringSettings()
 
     bool filterByNotebook = DEFAULT_FILTER_BY_SELECTED_NOTEBOOK;
 
-    auto filterByNotebookValue =
+    const auto filterByNotebookValue =
         appSettings.value(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
 
     if (filterByNotebookValue.isValid()) {
@@ -1417,17 +1433,27 @@ void PreferencesDialog::setupFilteringSettings()
 
     bool filterByTag = DEFAULT_FILTER_BY_SELECTED_TAG;
 
-    auto filterByTagValue =
+    const auto filterByTagValue =
         appSettings.value(FILTER_BY_SELECTED_TAG_SETTINGS_KEY);
 
     if (filterByTagValue.isValid()) {
         filterByTag = filterByTagValue.toBool();
     }
 
+    bool filterBySavedSearch = DEFAULT_FILTER_BY_SELECTED_SAVED_SEARCH;
+
+    const auto filterBySavedSearchValue =
+        appSettings.value(FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY);
+
+    if (filterBySavedSearchValue.isValid()) {
+        filterBySavedSearch = filterBySavedSearchValue.toBool();
+    }
+
     appSettings.endGroup();
 
     m_pUi->filterBySelectedNotebookCheckBox->setChecked(filterByNotebook);
     m_pUi->filterBySelectedTagCheckBox->setChecked(filterByTag);
+    m_pUi->filterBySelectedSavedSearchCheckBox->setChecked(filterBySavedSearch);
 }
 
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(
@@ -1817,6 +1843,10 @@ void PreferencesDialog::createConnections()
     QObject::connect(
         m_pUi->filterBySelectedTagCheckBox, &QCheckBox::toggled, this,
         &PreferencesDialog::onFilterByTagCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->filterBySelectedSavedSearchCheckBox, &QCheckBox::toggled, this,
+        &PreferencesDialog::onFilterBySavedSearchCheckboxToggled);
 
     QObject::connect(
         m_pUi->showNoteThumbnailsCheckBox, &QCheckBox::toggled, this,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,45 +16,46 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
+#ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H
+#define QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H
 
 #include "../IModelItem.h"
 
+QT_FORWARD_DECLARE_CLASS(QDataStream)
+QT_FORWARD_DECLARE_CLASS(QDebug)
+
 namespace quentier {
 
-class INotebookModelItem : public IModelItem<INotebookModelItem>
+class ISavedSearchModelItem : public IModelItem<ISavedSearchModelItem>
 {
 public:
     enum class Type
     {
-        AllNotebooksRoot,
+        AllSavedSearchesRoot,
         InvisibleRoot,
-        Notebook,
-        LinkedNotebook,
-        Stack
+        SavedSearch
     };
 
     friend QDebug & operator<<(QDebug & dbg, const Type type);
 
 public:
-    virtual ~INotebookModelItem() = default;
+    virtual ~ISavedSearchModelItem() = default;
 
     virtual Type type() const = 0;
+
+    friend QDataStream & operator<<(
+        QDataStream & out, const ISavedSearchModelItem & item);
+
+    friend QDataStream & operator>>(
+        QDataStream & in, ISavedSearchModelItem & item);
 
     template <typename T>
     T * cast();
 
     template <typename T>
     const T * cast() const;
-
-    friend QDataStream & operator<<(
-        QDataStream & out, const INotebookModelItem & item);
-
-    friend QDataStream & operator>>(
-        QDataStream & in, INotebookModelItem & item);
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
+#endif // QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H

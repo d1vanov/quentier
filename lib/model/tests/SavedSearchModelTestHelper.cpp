@@ -21,7 +21,7 @@
 #include "TestMacros.h"
 #include "modeltest.h"
 
-#include <lib/model/SavedSearchModel.h>
+#include <lib/model/saved_search/SavedSearchModel.h>
 
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -120,8 +120,10 @@ void SavedSearchModelTestHelper::test()
                 << "index for local uid");
         }
 
-        secondIndex =
-            model->index(secondIndex.row(), SavedSearchModel::Columns::Dirty);
+        secondIndex = model->index(
+            secondIndex.row(),
+            static_cast<int>(SavedSearchModel::Column::Dirty),
+            secondIndex.parent());
 
         if (!secondIndex.isValid()) {
             FAIL(
@@ -154,7 +156,9 @@ void SavedSearchModelTestHelper::test()
         // synchronizable (non-local) with non-local account
         // 1) Trying with local account
         secondIndex = model->index(
-            secondIndex.row(), SavedSearchModel::Columns::Synchronizable);
+            secondIndex.row(),
+            static_cast<int>(SavedSearchModel::Column::Synchronizable),
+            secondIndex.parent());
 
         if (!secondIndex.isValid()) {
             FAIL(
@@ -216,8 +220,10 @@ void SavedSearchModelTestHelper::test()
 
         // Verify the dirty flag has changed as a result of making the item
         // synchronizable
-        secondIndex =
-            model->index(secondIndex.row(), SavedSearchModel::Columns::Dirty);
+        secondIndex = model->index(
+            secondIndex.row(),
+            static_cast<int>(SavedSearchModel::Column::Dirty),
+            secondIndex.parent());
 
         if (!secondIndex.isValid()) {
             FAIL(
@@ -242,7 +248,9 @@ void SavedSearchModelTestHelper::test()
         // Should not be able to make the synchronizable (non-local) item
         // non-synchronizable (local)
         secondIndex = model->index(
-            secondIndex.row(), SavedSearchModel::Columns::Synchronizable);
+            secondIndex.row(),
+            static_cast<int>(SavedSearchModel::Column::Synchronizable),
+            secondIndex.parent());
 
         if (!secondIndex.isValid()) {
             FAIL(
@@ -273,8 +281,9 @@ void SavedSearchModelTestHelper::test()
         }
 
         // Should be able to change name and query columns
-        secondIndex =
-            model->index(secondIndex.row(), SavedSearchModel::Columns::Name);
+        secondIndex = model->index(
+            secondIndex.row(), static_cast<int>(SavedSearchModel::Column::Name),
+            secondIndex.parent());
 
         if (!secondIndex.isValid()) {
             FAIL(
@@ -303,8 +312,10 @@ void SavedSearchModelTestHelper::test()
                 << newName);
         }
 
-        secondIndex =
-            model->index(secondIndex.row(), SavedSearchModel::Columns::Query);
+        secondIndex = model->index(
+            secondIndex.row(),
+            static_cast<int>(SavedSearchModel::Column::Query),
+            secondIndex.parent());
 
         if (!secondIndex.isValid()) {
             FAIL(
@@ -338,7 +349,7 @@ void SavedSearchModelTestHelper::test()
 
         // Should not be able to remove the row with a saved search with
         // non-empty guid
-        res = model->removeRow(secondIndex.row(), QModelIndex());
+        res = model->removeRow(secondIndex.row(), secondIndex.parent());
         if (res) {
             FAIL(
                 "Was able to remove the row with a saved search "
@@ -369,7 +380,7 @@ void SavedSearchModelTestHelper::test()
                 << "uid");
         }
 
-        res = model->removeRow(firstIndex.row(), QModelIndex());
+        res = model->removeRow(firstIndex.row(), firstIndex.parent());
         if (!res) {
             FAIL(
                 "Can't remove the row with a saved search item with empty "
@@ -476,7 +487,9 @@ void SavedSearchModelTestHelper::test()
         }
 
         // Change the sort order and check the sorting again
-        model->sort(SavedSearchModel::Columns::Name, Qt::DescendingOrder);
+        model->sort(
+            static_cast<int>(SavedSearchModel::Column::Name),
+            Qt::DescendingOrder);
 
         res = checkSorting(*model);
         if (!res) {
@@ -566,7 +579,8 @@ bool SavedSearchModelTestHelper::checkSorting(
     QStringList names;
     names.reserve(numRows);
     for (int i = 0; i < numRows; ++i) {
-        auto index = model.index(i, SavedSearchModel::Columns::Name);
+        auto index =
+            model.index(i, static_cast<int>(SavedSearchModel::Column::Name));
         QString name = model.data(index, Qt::EditRole).toString();
         names << name;
     }
