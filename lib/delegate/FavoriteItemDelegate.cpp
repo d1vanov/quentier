@@ -18,8 +18,8 @@
 
 #include "FavoriteItemDelegate.h"
 
-#include <lib/model/FavoritesModel.h>
-#include <lib/model/FavoritesModelItem.h>
+#include <lib/model/favorites/FavoritesModel.h>
+#include <lib/model/favorites/FavoritesModelItem.h>
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/model/tag/TagModel.h>
 

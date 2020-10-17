@@ -18,7 +18,7 @@
 
 #include "FavoriteItemView.h"
 
-#include <lib/model/FavoritesModel.h>
+#include <lib/model/favorites/FavoritesModel.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>

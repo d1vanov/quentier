@@ -20,10 +20,11 @@
 #define QUENTIER_LIB_MODEL_FAVORITES_MODEL_H
 
 #include "FavoritesModelItem.h"
-#include "NoteCache.h"
-#include "notebook/NotebookCache.h"
-#include "saved_search/SavedSearchCache.h"
-#include "tag/TagCache.h"
+
+#include <lib/model/NoteCache.h>
+#include <lib/model/notebook/NotebookCache.h>
+#include <lib/model/saved_search/SavedSearchCache.h>
+#include <lib/model/tag/TagCache.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
@@ -50,7 +51,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class FavoritesModel : public QAbstractItemModel
+class FavoritesModel final: public QAbstractItemModel
 {
     Q_OBJECT
 public:

@@ -20,7 +20,7 @@
 #include "TestMacros.h"
 #include "modeltest.h"
 
-#include <lib/model/FavoritesModel.h>
+#include <lib/model/favorites/FavoritesModel.h>
 #include <lib/model/NoteModel.h>
 
 #include <quentier/exception/IQuentierException.h>

@@ -12,11 +12,11 @@ set(HEADERS
     NoteModelItem.h
     NoteModel.h
     NoteCache.h
-    FavoritesModel.h
-    FavoritesModelItem.h
     LogViewerModel.h
     LogViewerModelFileReaderAsync.h
     LogViewerModelLogFileParser.h
+    favorites/FavoritesModel.h
+    favorites/FavoritesModelItem.h
     notebook/AllNotebooksRootItem.h
     notebook/INotebookModelItem.h
     notebook/InvisibleRootItem.h
@@ -25,40 +25,40 @@ set(HEADERS
     notebook/NotebookItem.h
     notebook/NotebookModel.h
     notebook/StackItem.h
-    tag/ITagModelItem.h
-    tag/TagCache.h
-    tag/TagLinkedNotebookRootItem.h
-    tag/TagItem.h
-    tag/TagModel.h
     saved_search/AllSavedSearchesRootItem.h
     saved_search/InvisibleRootItem.h
     saved_search/ISavedSearchModelItem.h
     saved_search/SavedSearchCache.h
     saved_search/SavedSearchModel.h
-    saved_search/SavedSearchItem.h)
+    saved_search/SavedSearchItem.h
+    tag/ITagModelItem.h
+    tag/TagCache.h
+    tag/TagLinkedNotebookRootItem.h
+    tag/TagItem.h
+    tag/TagModel.h)
 
 set(SOURCES
     ColumnChangeRerouter.cpp
     ItemModel.cpp
     NoteModelItem.cpp
     NoteModel.cpp
-    FavoritesModel.cpp
-    FavoritesModelItem.cpp
     LogViewerModel.cpp
     LogViewerModelFileReaderAsync.cpp
     LogViewerModelLogFileParser.cpp
+    favorites/FavoritesModel.cpp
+    favorites/FavoritesModelItem.cpp
     notebook/INotebookModelItem.cpp
     notebook/LinkedNotebookRootItem.cpp
     notebook/NotebookItem.cpp
     notebook/NotebookModel.cpp
     notebook/StackItem.cpp
+    saved_search/ISavedSearchModelItem.cpp
+    saved_search/SavedSearchItem.cpp
+    saved_search/SavedSearchModel.cpp
     tag/ITagModelItem.cpp
     tag/TagLinkedNotebookRootItem.cpp
     tag/TagModel.cpp
-    tag/TagItem.cpp
-    saved_search/ISavedSearchModelItem.cpp
-    saved_search/SavedSearchItem.cpp
-    saved_search/SavedSearchModel.cpp)
+    tag/TagItem.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 

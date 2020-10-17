@@ -20,8 +20,6 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
-#include <QDebug>
-
 #include <algorithm>
 #include <utility>
 

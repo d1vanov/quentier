@@ -21,11 +21,9 @@
 
 #include <quentier/utility/Printable.h>
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
-
 namespace quentier {
 
-class FavoritesModelItem : public Printable
+class FavoritesModelItem final: public Printable
 {
 public:
     enum class Type
