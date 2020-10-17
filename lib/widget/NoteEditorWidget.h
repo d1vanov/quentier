@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_WIDGET_NOTE_EDITOR_WIDGET_H
 #define QUENTIER_LIB_WIDGET_NOTE_EDITOR_WIDGET_H
 
-#include <lib/model/NoteCache.h>
+#include <lib/model/note/NoteCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/tag/TagCache.h>
 

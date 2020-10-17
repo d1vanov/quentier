@@ -21,8 +21,8 @@
 
 #include "NoteCache.h"
 #include "NoteModelItem.h"
-#include "notebook/NotebookCache.h"
 
+#include <lib/model/notebook/NotebookCache.h>
 #include <lib/utility/IStartable.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>

@@ -21,7 +21,7 @@
 #include "TestMacros.h"
 #include "modeltest.h"
 
-#include <lib/model/NoteCache.h>
+#include <lib/model/note/NoteCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/tag/TagModel.h>
 

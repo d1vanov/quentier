@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOGS_MANAGER_H
 #define QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOGS_MANAGER_H
 
-#include <lib/model/NoteCache.h>
+#include <lib/model/note/NoteCache.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 

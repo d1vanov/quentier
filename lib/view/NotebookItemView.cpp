@@ -21,7 +21,7 @@
 #include "ItemSelectionModel.h"
 
 #include <lib/dialog/AddOrEditNotebookDialog.h>
-#include <lib/model/NoteModel.h>
+#include <lib/model/note/NoteModel.h>
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/widget/NoteFiltersManager.h>

@@ -18,7 +18,7 @@
 
 #include "DeletedNoteItemView.h"
 
-#include <lib/model/NoteModel.h>
+#include <lib/model/note/NoteModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/MessageBox.h>

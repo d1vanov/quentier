@@ -21,7 +21,7 @@
 
 #include "FavoritesModelItem.h"
 
-#include <lib/model/NoteCache.h>
+#include <lib/model/note/NoteCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/saved_search/SavedSearchCache.h>
 #include <lib/model/tag/TagCache.h>

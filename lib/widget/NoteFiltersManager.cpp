@@ -24,7 +24,7 @@
 #include "FilterByTagWidget.h"
 
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
-#include <lib/model/NoteModel.h>
+#include <lib/model/note/NoteModel.h>
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagModel.h>

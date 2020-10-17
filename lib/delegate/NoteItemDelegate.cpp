@@ -19,7 +19,7 @@
 #include "NoteItemDelegate.h"
 #include "AbstractStyledItemDelegate.h"
 
-#include <lib/model/NoteModel.h>
+#include <lib/model/note/NoteModel.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/view/NoteListView.h>
 

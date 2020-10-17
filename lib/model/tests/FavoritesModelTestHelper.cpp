@@ -21,7 +21,7 @@
 #include "modeltest.h"
 
 #include <lib/model/favorites/FavoritesModel.h>
-#include <lib/model/NoteModel.h>
+#include <lib/model/note/NoteModel.h>
 
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/logging/QuentierLogger.h>

@@ -20,7 +20,7 @@
 
 #include "NotebookItemView.h"
 
-#include <lib/model/NoteModel.h>
+#include <lib/model/note/NoteModel.h>
 #include <lib/model/notebook/NotebookItem.h>
 #include <lib/model/notebook/NotebookModel.h>
 

@@ -9,14 +9,14 @@ set(HEADERS
     IModelItem.h
     ItemModel.h
     NewItemNameGenerator.hpp
-    NoteModelItem.h
-    NoteModel.h
-    NoteCache.h
     favorites/FavoritesModel.h
     favorites/FavoritesModelItem.h
     log_viewer/LogViewerModel.h
     log_viewer/LogViewerModelFileReaderAsync.h
     log_viewer/LogViewerModelLogFileParser.h
+    note/NoteModelItem.h
+    note/NoteModel.h
+    note/NoteCache.h
     notebook/AllNotebooksRootItem.h
     notebook/INotebookModelItem.h
     notebook/InvisibleRootItem.h
@@ -40,13 +40,13 @@ set(HEADERS
 set(SOURCES
     ColumnChangeRerouter.cpp
     ItemModel.cpp
-    NoteModelItem.cpp
-    NoteModel.cpp
     favorites/FavoritesModel.cpp
     favorites/FavoritesModelItem.cpp
     log_viewer/LogViewerModel.cpp
     log_viewer/LogViewerModelFileReaderAsync.cpp
     log_viewer/LogViewerModelLogFileParser.cpp
+    note/NoteModelItem.cpp
+    note/NoteModel.cpp
     notebook/INotebookModelItem.cpp
     notebook/LinkedNotebookRootItem.cpp
     notebook/NotebookItem.cpp
