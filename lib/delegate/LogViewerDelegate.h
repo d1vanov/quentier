@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_DELEGATE_LOG_VIEWER_DELEGATE_H
 #define QUENTIER_LIB_DELEGATE_LOG_VIEWER_DELEGATE_H
 
-#include <lib/model/LogViewerModel.h>
+#include <lib/model/log_viewer/LogViewerModel.h>
 
 #include <quentier/utility/Macros.h>
 

@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_WIDGET_LOG_VIEWER_WIDGET_H
 #define QUENTIER_LIB_WIDGET_LOG_VIEWER_WIDGET_H
 
-#include <lib/model/LogViewerModel.h>
+#include <lib/model/log_viewer/LogViewerModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>

@@ -29,7 +29,7 @@
 
 namespace quentier {
 
-class LogViewerModel::FileReaderAsync : public QObject
+class LogViewerModel::FileReaderAsync final: public QObject
 {
     Q_OBJECT
 public:

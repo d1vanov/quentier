@@ -46,7 +46,7 @@
 
 namespace quentier {
 
-class LogViewerModel : public QAbstractTableModel
+class LogViewerModel final: public QAbstractTableModel
 {
     Q_OBJECT
 public:

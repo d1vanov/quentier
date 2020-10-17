@@ -12,11 +12,11 @@ set(HEADERS
     NoteModelItem.h
     NoteModel.h
     NoteCache.h
-    LogViewerModel.h
-    LogViewerModelFileReaderAsync.h
-    LogViewerModelLogFileParser.h
     favorites/FavoritesModel.h
     favorites/FavoritesModelItem.h
+    log_viewer/LogViewerModel.h
+    log_viewer/LogViewerModelFileReaderAsync.h
+    log_viewer/LogViewerModelLogFileParser.h
     notebook/AllNotebooksRootItem.h
     notebook/INotebookModelItem.h
     notebook/InvisibleRootItem.h
@@ -42,11 +42,11 @@ set(SOURCES
     ItemModel.cpp
     NoteModelItem.cpp
     NoteModel.cpp
-    LogViewerModel.cpp
-    LogViewerModelFileReaderAsync.cpp
-    LogViewerModelLogFileParser.cpp
     favorites/FavoritesModel.cpp
     favorites/FavoritesModelItem.cpp
+    log_viewer/LogViewerModel.cpp
+    log_viewer/LogViewerModelFileReaderAsync.cpp
+    log_viewer/LogViewerModelLogFileParser.cpp
     notebook/INotebookModelItem.cpp
     notebook/LinkedNotebookRootItem.cpp
     notebook/NotebookItem.cpp
