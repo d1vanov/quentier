@@ -41,7 +41,7 @@
 #include <lib/enex/EnexImporter.h>
 #include <lib/exception/LocalStorageVersionTooHighException.h>
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
-#include <lib/model/ColumnChangeRerouter.h>
+#include <lib/model/common/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
 #include <lib/preferences/DefaultSettings.h>

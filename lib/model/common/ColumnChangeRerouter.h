@@ -28,7 +28,7 @@
  * and emits its own dataChanged signal with the same row and parent item but
  * with different column
  */
-class ColumnChangeRerouter : public QObject
+class ColumnChangeRerouter final: public QObject
 {
     Q_OBJECT
 public:

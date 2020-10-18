@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
 #define QUENTIER_LIB_MODEL_NOTEBOOK_I_NOTEBOOK_MODEL_ITEM_H
 
-#include "../IModelItem.h"
+#include <lib/model/common/IModelItem.h>
 
 namespace quentier {
 

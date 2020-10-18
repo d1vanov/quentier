@@ -18,7 +18,7 @@
 
 #include "ItemSelectionModel.h"
 
-#include <lib/model/ItemModel.h>
+#include <lib/model/common/ItemModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 

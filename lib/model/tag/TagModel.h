@@ -19,12 +19,13 @@
 #ifndef QUENTIER_LIB_MODEL_TAG_MODEL_H
 #define QUENTIER_LIB_MODEL_TAG_MODEL_H
 
-#include "../ItemModel.h"
 #include "TagCache.h"
 
 #include "ITagModelItem.h"
 #include "TagItem.h"
 #include "TagLinkedNotebookRootItem.h"
+
+#include <lib/model/common/ItemModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>

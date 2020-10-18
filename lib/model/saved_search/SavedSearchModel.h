@@ -19,11 +19,12 @@
 #ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_MODEL_H
 #define QUENTIER_LIB_MODEL_SAVED_SEARCH_MODEL_H
 
-#include "../ItemModel.h"
 #include "SavedSearchCache.h"
 
 #include "ISavedSearchModelItem.h"
 #include "SavedSearchItem.h"
+
+#include <lib/model/common/ItemModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>

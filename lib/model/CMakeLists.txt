@@ -5,10 +5,10 @@ SET_POLICIES()
 project(quentier_model)
 
 set(HEADERS
-    ColumnChangeRerouter.h
-    IModelItem.h
-    ItemModel.h
-    NewItemNameGenerator.hpp
+    common/ColumnChangeRerouter.h
+    common/IModelItem.h
+    common/ItemModel.h
+    common/NewItemNameGenerator.hpp
     favorites/FavoritesModel.h
     favorites/FavoritesModelItem.h
     log_viewer/LogViewerModel.h
@@ -38,8 +38,8 @@ set(HEADERS
     tag/TagModel.h)
 
 set(SOURCES
-    ColumnChangeRerouter.cpp
-    ItemModel.cpp
+    common/ColumnChangeRerouter.cpp
+    common/ItemModel.cpp
     favorites/FavoritesModel.cpp
     favorites/FavoritesModelItem.cpp
     log_viewer/LogViewerModel.cpp

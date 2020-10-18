@@ -21,7 +21,7 @@
 #include "AllSavedSearchesRootItem.h"
 #include "InvisibleRootItem.h"
 
-#include "../NewItemNameGenerator.hpp"
+#include <lib/model/common/NewItemNameGenerator.hpp>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/UidGenerator.h>

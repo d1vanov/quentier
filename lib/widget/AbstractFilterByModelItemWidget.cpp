@@ -22,7 +22,7 @@
 #include "ListItemWidget.h"
 #include "NewListItemLineEdit.h"
 
-#include <lib/model/ItemModel.h>
+#include <lib/model/common/ItemModel.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>

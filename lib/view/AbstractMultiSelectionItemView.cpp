@@ -19,7 +19,7 @@
 #include "AbstractMultiSelectionItemView.h"
 #include "ItemSelectionModel.h"
 
-#include <lib/model/ItemModel.h>
+#include <lib/model/common/ItemModel.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/widget/NoteFiltersManager.h>
 

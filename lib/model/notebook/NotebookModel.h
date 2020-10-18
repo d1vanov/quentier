@@ -19,13 +19,14 @@
 #ifndef QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_H
 #define QUENTIER_LIB_MODEL_NOTEBOOK_MODEL_H
 
-#include "../ItemModel.h"
 #include "NotebookCache.h"
 
 #include "INotebookModelItem.h"
 #include "LinkedNotebookRootItem.h"
 #include "NotebookItem.h"
 #include "StackItem.h"
+
+#include <lib/model/common/ItemModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
