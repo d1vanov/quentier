@@ -38,8 +38,8 @@ FavoritesModel::FavoritesModel(
     LocalStorageManagerAsync & localStorageManagerAsync, NoteCache & noteCache,
     NotebookCache & notebookCache, TagCache & tagCache,
     SavedSearchCache & savedSearchCache, QObject * parent) :
-    QAbstractItemModel(parent),
-    m_account(account), m_noteCache(noteCache), m_notebookCache(notebookCache),
+    ItemModel(account, parent),
+    m_noteCache(noteCache), m_notebookCache(notebookCache),
     m_tagCache(tagCache), m_savedSearchCache(savedSearchCache)
 {
     createConnections(localStorageManagerAsync);
@@ -52,38 +52,6 @@ FavoritesModel::FavoritesModel(
 
 FavoritesModel::~FavoritesModel() {}
 
-void FavoritesModel::updateAccount(const Account & account)
-{
-    QNDEBUG("model:favorites", "FavoritesModel::updateAccount: " << account);
-    m_account = account;
-}
-
-QModelIndex FavoritesModel::indexForLocalUid(const QString & localUid) const
-{
-    const auto & localUidIndex = m_data.get<ByLocalUid>();
-    auto it = localUidIndex.find(localUid);
-    if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNDEBUG(
-            "model:favorites",
-            "Can't find favorites model item by "
-                << "local uid: " << localUid);
-        return {};
-    }
-
-    const auto & rowIndex = m_data.get<ByIndex>();
-    auto indexIt = m_data.project<ByIndex>(it);
-    if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        QNWARNING(
-            "model:favorites",
-            "Can't find indexed reference to "
-                << "the favorites model item: " << *it);
-        return {};
-    }
-
-    int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
-    return createIndex(row, static_cast<int>(Column::DisplayName));
-}
-
 const FavoritesModelItem * FavoritesModel::itemForLocalUid(
     const QString & localUid) const
 {
@@ -92,8 +60,7 @@ const FavoritesModelItem * FavoritesModel::itemForLocalUid(
     if (Q_UNLIKELY(it == localUidIndex.end())) {
         QNDEBUG(
             "model:favorites",
-            "Can't find favorites model item by "
-                << "local uid: " << localUid);
+            "Can't find favorites model item by local uid: " << localUid);
         return nullptr;
     }
 
@@ -107,12 +74,81 @@ const FavoritesModelItem * FavoritesModel::itemAtRow(const int row) const
     {
         QNDEBUG(
             "model:favorites",
-            "Detected attempt to get the favorites "
-                << "model item for non-existing row");
+            "Detected attempt to get the favorites model item for non-existing "
+                << "row");
         return nullptr;
     }
 
     return &(rowIndex[static_cast<size_t>(row)]);
+}
+
+QModelIndex FavoritesModel::indexForLocalUid(const QString & localUid) const
+{
+    const auto & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNDEBUG(
+            "model:favorites",
+            "Can't find favorites model item by local uid: " << localUid);
+        return {};
+    }
+
+    const auto & rowIndex = m_data.get<ByIndex>();
+    auto indexIt = m_data.project<ByIndex>(it);
+    if (Q_UNLIKELY(indexIt == rowIndex.end())) {
+        QNWARNING(
+            "model:favorites",
+            "Can't find indexed reference to the favorites model item: "
+                << *it);
+        return {};
+    }
+
+    int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
+    return createIndex(row, static_cast<int>(Column::DisplayName));
+}
+
+QString FavoritesModel::itemNameForLocalUid(const QString & localUid) const
+{
+    const auto * pItem = itemForLocalUid(localUid);
+    if (!pItem) {
+        return {};
+    }
+
+    return pItem->displayName();
+}
+
+ItemModel::ItemInfo FavoritesModel::itemInfoForLocalUid(
+    const QString & localUid) const
+{
+    const auto * pItem = itemForLocalUid(localUid);
+    if (!pItem) {
+        return {};
+    }
+
+    ItemInfo info;
+    info.m_localUid = pItem->localUid();
+    info.m_name = pItem->localUid();
+    return info;
+}
+
+QString FavoritesModel::localUidForItemIndex(const QModelIndex & index) const
+{
+    if (!index.isValid()) {
+        return {};
+    }
+
+    const int row = index.row();
+    const int column = index.column();
+
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
+        (column < 0) || (column >= NUM_FAVORITES_MODEL_COLUMNS))
+    {
+        return {};
+    }
+
+    const auto & rowIndex = m_data.get<ByIndex>();
+    const auto & item = rowIndex[static_cast<size_t>(index.row())];
+    return item.localUid();
 }
 
 Qt::ItemFlags FavoritesModel::flags(const QModelIndex & index) const

@@ -21,6 +21,7 @@
 
 #include "FavoritesModelItem.h"
 
+#include <lib/model/common/ItemModel.h>
 #include <lib/model/note/NoteCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/saved_search/SavedSearchCache.h>
@@ -42,7 +43,6 @@
 
 #include <boost/bimap.hpp>
 #include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index_container.hpp>
@@ -51,7 +51,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class FavoritesModel final: public QAbstractItemModel
+class FavoritesModel final: public ItemModel
 {
     Q_OBJECT
 public:
@@ -64,13 +64,6 @@ public:
 
     virtual ~FavoritesModel() override;
 
-    const Account & account() const
-    {
-        return m_account;
-    }
-
-    void updateAccount(const Account & account);
-
     enum class Column
     {
         Type = 0,
@@ -80,32 +73,85 @@ public:
 
     friend QDebug & operator<<(QDebug & dbg, const Column column);
 
-    int sortingColumn() const
-    {
-        return static_cast<int>(m_sortedColumn);
-    }
-
-    Qt::SortOrder sortOrder() const
-    {
-        return m_sortOrder;
-    }
-
-    QModelIndex indexForLocalUid(const QString & localUid) const;
-
     const FavoritesModelItem * itemForLocalUid(const QString & localUid) const;
 
     const FavoritesModelItem * itemAtRow(const int row) const;
 
-    /**
-     * @brief allItemsListed
-     * @return      True if the favorites model has received the information
-     *              about all favorited notes, notebooks, tags and saved
-     *              searches stored in the local storage by the moment; false
-     *              otherwise
-     */
-    bool allItemsListed() const
+public:
+    // ItemModel interface
+    virtual QString localUidForItemName(
+        const QString & itemName,
+        const QString & linkedNotebookGuid) const override
+    {
+        // NOTE: deliberately not implemented as this method won't be used by
+        // FavoritesModel's clients
+        Q_UNUSED(itemName)
+        Q_UNUSED(linkedNotebookGuid)
+        return {};
+    }
+
+    virtual QModelIndex indexForLocalUid(
+        const QString & localUid) const override;
+
+    virtual QString itemNameForLocalUid(
+        const QString & localUid) const override;
+
+    virtual ItemInfo itemInfoForLocalUid(
+        const QString & localUid) const override;
+
+    virtual QStringList itemNames(
+        const QString & linkedNotebookGuid) const override
+    {
+        // NOTE: deliberately not implemented as this method won't be used by
+        // FavoritesModel's client
+        Q_UNUSED(linkedNotebookGuid);
+        return {};
+    }
+
+    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override
+    {
+        // NOTE: deliberately not implemented as this method won't be used by
+        // FavoritesModel's client
+        return {};
+    }
+
+    virtual QString linkedNotebookUsername(
+        const QString & linkedNotebookGuid) const override
+    {
+        // NOTE: deliberately not implemented as this method won't be used by
+        // FavoritesModel's client
+        Q_UNUSED(linkedNotebookGuid);
+        return {};
+    }
+
+    virtual int nameColumn() const override
+    {
+        return static_cast<int>(Column::DisplayName);
+    }
+
+    virtual int sortingColumn() const override
+    {
+        return static_cast<int>(m_sortedColumn);
+    }
+
+    virtual Qt::SortOrder sortOrder() const override
+    {
+        return m_sortOrder;
+    }
+
+    virtual bool allItemsListed() const override
     {
         return m_allItemsListed;
+    }
+
+    virtual QString localUidForItemIndex(
+        const QModelIndex & index) const override;
+
+    virtual QString linkedNotebookGuidForItemIndex(
+        const QModelIndex & index) const override
+    {
+        Q_UNUSED(index)
+        return {};
     }
 
 public:
@@ -151,8 +197,6 @@ public:
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
-
-    void notifyAllItemsListed();
 
     // Informative signals for views, so that they can prepare to the changes
     // in the table of favorited items and do some recovery after that
@@ -438,7 +482,11 @@ private:
 private:
     struct ByLocalUid
     {};
+
     struct ByIndex
+    {};
+
+    struct ByDisplayName
     {};
 
     using FavoritesData = boost::multi_index_container<
@@ -449,7 +497,12 @@ private:
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
                     FavoritesModelItem, const QString &,
-                    &FavoritesModelItem::localUid>>>>;
+                    &FavoritesModelItem::localUid>>,
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<ByDisplayName>,
+                boost::multi_index::const_mem_fun<
+                    FavoritesModelItem, const QString &,
+                    &FavoritesModelItem::displayName>>>>;
 
     using FavoritesDataByLocalUid = FavoritesData::index<ByLocalUid>::type;
     using FavoritesDataByIndex = FavoritesData::index<ByIndex>::type;
@@ -480,7 +533,6 @@ private:
     using LocalUidToRequestIdBimap = boost::bimap<QString, QUuid>;
 
 private:
-    Account m_account;
     FavoritesData m_data;
     NoteCache & m_noteCache;
     NotebookCache & m_notebookCache;

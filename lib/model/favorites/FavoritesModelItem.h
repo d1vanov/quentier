@@ -57,9 +57,9 @@ public:
         return m_localUid;
     }
 
-    void setLocalUid(const QString & localUid)
+    void setLocalUid(QString localUid)
     {
-        m_localUid = localUid;
+        m_localUid = std::move(localUid);
     }
 
     const QString & displayName() const
@@ -67,9 +67,9 @@ public:
         return m_displayName;
     }
 
-    void setDisplayName(const QString & displayName)
+    void setDisplayName(QString displayName)
     {
-        m_displayName = displayName;
+        m_displayName = std::move(displayName);
     }
 
     int noteCount() const
