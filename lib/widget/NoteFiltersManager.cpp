@@ -243,6 +243,31 @@ void NoteFiltersManager::removeSavedSearchFromFilter()
     setSavedSearchToFilterImpl(QString());
 }
 
+void NoteFiltersManager::setItemsToFilter(
+    const QString & savedSearchLocalUid,
+    const QStringList & notebookLocalUids,
+    const QStringList & tagLocalUids)
+{
+    QNDEBUG(
+        "widget:note_filters",
+        "NoteFiltersManager::setItemsToFilter: saved search local uid = "
+            << savedSearchLocalUid
+            << ", notebook local uids: "
+            << notebookLocalUids.join(QStringLiteral(", "))
+            << ", tag local uids: "
+            << tagLocalUids.join(QStringLiteral(", ")));
+
+    setSavedSearchToFilterImpl(savedSearchLocalUid);
+
+    clearFilterByNotebookWidgetItems();
+    setNotebooksToFilterImpl(notebookLocalUids);
+
+    clearFilterByTagWidgetItems();
+    setTagsToFilterImpl(tagLocalUids);
+
+    evaluate();
+}
+
 bool NoteFiltersManager::isReady() const
 {
     return m_isReady;
