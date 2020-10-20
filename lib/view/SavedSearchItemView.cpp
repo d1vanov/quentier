@@ -224,7 +224,7 @@ void SavedSearchItemView::deleteItem(
     QString localUid = model.localUidForItemIndex(itemIndex);
     if (Q_UNLIKELY(localUid.isEmpty())) {
         REPORT_ERROR(
-            QT_TR_NOOP("Internal error: can't find the tag item "
+            QT_TR_NOOP("Internal error: can't find the saved search item "
                        "meant to be deleted"))
         return;
     }
