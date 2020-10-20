@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_FAVORITE_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_FAVORITE_ITEM_VIEW_H
 
-#include "ItemView.h"
+#include "AbstractMultiSelectionItemView.h"
 
 #include <quentier/types/ErrorString.h>
 
@@ -27,30 +27,49 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(FavoritesModel)
 
-class FavoriteItemView : public ItemView
+class FavoriteItemView : public AbstractMultiSelectionItemView
 {
     Q_OBJECT
 public:
     explicit FavoriteItemView(QWidget * parent = nullptr);
 
-    virtual void setModel(QAbstractItemModel * pModel) override;
-
-    /**
-     * @return          Valid model index if the selection exists and contains
-     *                  exactly one row and invalid model index otherwise
-     */
-    QModelIndex currentlySelectedItemIndex() const;
+    void unfavoriteSelectedItems();
 
 Q_SIGNALS:
-    void notifyError(ErrorString error);
     void favoritedItemInfoRequested();
 
-public Q_SLOTS:
-    void deleteSelectedItems();
+private:
+    // AbstractMultiSelectionItemView interface
+    virtual void saveItemsState() override {}
+
+    virtual void restoreItemsState(const ItemModel & model) override
+    {
+        Q_UNUSED(model)
+    }
+
+    virtual QString selectedItemsGroupKey() const override;
+    virtual QString selectedItemsArrayKey() const override;
+    virtual QString selectedItemsKey() const override;
+
+    virtual bool shouldFilterBySelectedItems(
+        const Account & account) const override;
+
+    virtual QStringList localUidsInNoteFiltersManager(
+        const NoteFiltersManager & noteFiltersManager) const override;
+
+    virtual void setItemLocalUidsToNoteFiltersManager(
+        const QStringList & itemLocalUids,
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void removeItemLocalUidsFromNoteFiltersManager(
+        NoteFiltersManager & noteFiltersManager) override;
+
+    virtual void connectToModel(ItemModel & model) override;
+
+    virtual void deleteItem(
+        const QModelIndex & itemIndex, ItemModel & model) override;
 
 private Q_SLOTS:
-    void onAllItemsListed();
-
     void onAboutToAddItem();
     void onAddedItem(const QModelIndex & index);
 
@@ -65,25 +84,10 @@ private Q_SLOTS:
     void onDeselectAction();
     void onShowFavoritedItemInfoAction();
 
-    virtual void selectionChanged(
-        const QItemSelection & selected,
-        const QItemSelection & deselected) override;
-
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    void restoreLastSavedSelection(const FavoritesModel & model);
-
-    void selectionChangedImpl(
-        const QItemSelection & selected, const QItemSelection & deselected);
-
-    void prepareForFavoritesModelChange();
-    void postProcessFavoritedModelChange();
-
-private:
     QMenu * m_pFavoriteItemContextMenu = nullptr;
-    bool m_trackingSelection = false;
-    bool m_modelReady = false;
 };
 
 } // namespace quentier

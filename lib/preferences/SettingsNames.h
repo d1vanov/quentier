@@ -161,6 +161,9 @@
 #define FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY                           \
     QStringLiteral("FilterBySelectedSavedSearch")
 
+#define FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY                         \
+    QStringLiteral("FilterBySelectedFavoritesItem")
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // Other UI related settings keys

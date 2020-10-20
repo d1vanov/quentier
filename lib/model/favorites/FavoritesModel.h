@@ -66,7 +66,7 @@ public:
 
     enum class Column
     {
-        Type = 0,
+        Type,
         DisplayName,
         NoteCount
     };

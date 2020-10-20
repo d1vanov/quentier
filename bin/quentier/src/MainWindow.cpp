@@ -2536,7 +2536,7 @@ void MainWindow::onUnfavoriteItemButtonPressed()
     QNDEBUG(
         "quentier:main_window", "MainWindow::onUnfavoriteItemButtonPressed");
 
-    m_pUI->favoritesTableView->deleteSelectedItems();
+    m_pUI->favoritesTableView->unfavoriteSelectedItems();
 }
 
 void MainWindow::onFavoritedItemInfoButtonPressed()
@@ -5280,6 +5280,8 @@ void MainWindow::setupViews()
     // to show or not to show
 
     auto * pFavoritesTableView = m_pUI->favoritesTableView;
+    pFavoritesTableView->setNoteFiltersManager(*m_pNoteFiltersManager);
+
     auto * pPreviousFavoriteItemDelegate = pFavoritesTableView->itemDelegate();
 
     auto * pFavoriteItemDelegate =
