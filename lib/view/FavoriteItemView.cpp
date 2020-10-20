@@ -50,7 +50,12 @@ namespace quentier {
 
 FavoriteItemView::FavoriteItemView(QWidget * parent) :
     AbstractMultiSelectionItemView(QStringLiteral("favorited item"), parent)
-{}
+{
+    // This prevents the ugly behaviour when a favorited item is selected: due
+    // to auto scroll the type column might get totally hidden if there's not
+    // enough horizontal room to display the whole name of the selected item
+    QAbstractItemView::setAutoScroll(false);
+}
 
 void FavoriteItemView::unfavoriteSelectedItems()
 {
