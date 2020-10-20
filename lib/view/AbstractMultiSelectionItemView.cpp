@@ -592,7 +592,7 @@ void AbstractMultiSelectionItemView::selectAllItemsRootItem(
     m_trackingSelection = false;
 
     pSelectionModel->select(
-        model.index(0, 0),
+        model.allItemsRootItemIndex(),
         QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows |
             QItemSelectionModel::Current);
 
@@ -719,7 +719,7 @@ void AbstractMultiSelectionItemView::selectionChangedImpl(
         }
 
         // A way to ensure only one index per row
-        if (selectedIndex.column() != 0) {
+        if (selectedIndex.column() != pItemModel->nameColumn()) {
             continue;
         }
 
