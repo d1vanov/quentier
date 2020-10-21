@@ -91,6 +91,7 @@ Q_SIGNALS:
     void filterByNotebookOptionChanged(bool enabled);
     void filterByTagOptionChanged(bool enabled);
     void filterBySavedSearchOptionChanged(bool enabled);
+    void filterByFavoritedItemsOptionChanged(bool enabled);
 
 private Q_SLOTS:
     // System tray tab
@@ -125,6 +126,7 @@ private Q_SLOTS:
     void onFilterByNotebookCheckboxToggled(bool checked);
     void onFilterByTagCheckboxToggled(bool checked);
     void onFilterBySavedSearchCheckboxToggled(bool checked);
+    void onFilterByFavoritedItemsCheckboxToggled(bool checked);
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>539</width>
-    <height>522</height>
+    <width>589</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -338,6 +338,13 @@ padding: 0 3px;
            <widget class="QCheckBox" name="filterBySelectedSavedSearchCheckBox">
             <property name="text">
              <string>Filter by selected saved search</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="filterBySelectedFavoritedItemsCheckBox">
+            <property name="text">
+             <string>Filter by selected favorited items</string>
             </property>
            </widget>
           </item>

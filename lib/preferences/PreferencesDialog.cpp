@@ -523,6 +523,22 @@ void PreferencesDialog::onFilterBySavedSearchCheckboxToggled(bool checked)
     Q_EMIT filterBySavedSearchOptionChanged(checked);
 }
 
+void PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled(bool checked)
+{
+    QNDEBUG(
+        "preferences",
+        "PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled: "
+            << (checked ? "checked" : "unchecked"));
+
+    Account currentAccount = m_accountManager.currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.setValue(FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY, checked);
+    appSettings.endGroup();
+
+    Q_EMIT filterByFavoritedItemsOptionChanged(checked);
+}
+
 void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 {
     QNDEBUG(
@@ -1449,11 +1465,21 @@ void PreferencesDialog::setupFilteringSettings()
         filterBySavedSearch = filterBySavedSearchValue.toBool();
     }
 
+    bool filterByFavoritedItems = DEFAULT_FILTER_BY_SELECTED_FAVORITED_ITEMS;
+
+    const auto filterByFavoritedItemsValue =
+        appSettings.value(FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY);
+
+    if (filterByFavoritedItemsValue.isValid()) {
+        filterByFavoritedItems = filterByFavoritedItemsValue.toBool();
+    }
+
     appSettings.endGroup();
 
     m_pUi->filterBySelectedNotebookCheckBox->setChecked(filterByNotebook);
     m_pUi->filterBySelectedTagCheckBox->setChecked(filterByTag);
     m_pUi->filterBySelectedSavedSearchCheckBox->setChecked(filterBySavedSearch);
+    m_pUi->filterBySelectedFavoritedItemsCheckBox->setChecked(filterByFavoritedItems);
 }
 
 void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(
@@ -1847,6 +1873,10 @@ void PreferencesDialog::createConnections()
     QObject::connect(
         m_pUi->filterBySelectedSavedSearchCheckBox, &QCheckBox::toggled, this,
         &PreferencesDialog::onFilterBySavedSearchCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->filterBySelectedFavoritedItemsCheckBox, &QCheckBox::toggled,
+        this, &PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled);
 
     QObject::connect(
         m_pUi->showNoteThumbnailsCheckBox, &QCheckBox::toggled, this,
