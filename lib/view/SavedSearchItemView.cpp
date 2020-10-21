@@ -53,7 +53,7 @@
 namespace quentier {
 
 SavedSearchItemView::SavedSearchItemView(QWidget * parent) :
-    AbstractMultiSelectionItemView(QStringLiteral("saved search"), parent)
+    AbstractNoteFilteringTreeView(QStringLiteral("saved search"), parent)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
 }

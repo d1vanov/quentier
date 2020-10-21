@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_TAG_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_TAG_ITEM_VIEW_H
 
-#include "AbstractMultiSelectionItemView.h"
+#include "AbstractNoteFilteringTreeView.h"
 
 namespace quentier {
 
@@ -27,7 +27,7 @@ QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class TagItemView : public AbstractMultiSelectionItemView
+class TagItemView : public AbstractNoteFilteringTreeView
 {
     Q_OBJECT
 public:
@@ -38,7 +38,7 @@ Q_SIGNALS:
     void tagInfoRequested();
 
 private:
-    // AbstractMultiSelectionItemView interface
+    // AbstractNoteFilteringTreeView interface
     virtual void saveItemsState() override;
     virtual void restoreItemsState(const ItemModel & itemModel) override;
 

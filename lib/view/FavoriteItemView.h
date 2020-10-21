@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_FAVORITE_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_FAVORITE_ITEM_VIEW_H
 
-#include "AbstractMultiSelectionItemView.h"
+#include "AbstractNoteFilteringTreeView.h"
 
 #include <quentier/types/ErrorString.h>
 
@@ -27,7 +27,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(FavoritesModel)
 
-class FavoriteItemView : public AbstractMultiSelectionItemView
+class FavoriteItemView : public AbstractNoteFilteringTreeView
 {
     Q_OBJECT
 public:
@@ -40,7 +40,7 @@ Q_SIGNALS:
     void favoritedNoteSelected(QString noteLocalUid);
 
 private:
-    // AbstractMultiSelectionItemView interface
+    // AbstractNoteFilteringTreeView interface
     virtual void saveItemsState() override {}
 
     virtual void restoreItemsState(const ItemModel & model) override

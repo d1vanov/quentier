@@ -91,7 +91,7 @@
 namespace quentier {
 
 NotebookItemView::NotebookItemView(QWidget * parent) :
-    AbstractMultiSelectionItemView(QStringLiteral("notebook"), parent)
+    AbstractNoteFilteringTreeView(QStringLiteral("notebook"), parent)
 {}
 
 void NotebookItemView::setNoteModel(const NoteModel * pNoteModel)

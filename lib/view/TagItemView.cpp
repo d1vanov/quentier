@@ -57,7 +57,7 @@
 namespace quentier {
 
 TagItemView::TagItemView(QWidget * parent) :
-    AbstractMultiSelectionItemView(QStringLiteral("tag"), parent)
+    AbstractNoteFilteringTreeView(QStringLiteral("tag"), parent)
 {}
 
 void TagItemView::saveItemsState()

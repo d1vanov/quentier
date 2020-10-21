@@ -49,7 +49,7 @@
 namespace quentier {
 
 FavoriteItemView::FavoriteItemView(QWidget * parent) :
-    AbstractMultiSelectionItemView(QStringLiteral("favorited item"), parent)
+    AbstractNoteFilteringTreeView(QStringLiteral("favorited item"), parent)
 {
     // This prevents the ugly behaviour when a favorited item is selected: due
     // to auto scroll the type column might get totally hidden if there's not
@@ -177,8 +177,7 @@ QStringList FavoriteItemView::localUidsInNoteFiltersManager(
         favoritedItemLocalUids << notebookLocalUid;
     }
 
-    const auto & tagLocalUids =
-        noteFiltersManager.tagLocalUidsInFilter();
+    const auto & tagLocalUids = noteFiltersManager.tagLocalUidsInFilter();
 
     for (const auto & tagLocalUid: qAsConst(tagLocalUids)) {
         const auto * pItem = pFavoritesModel->itemForLocalUid(tagLocalUid);
@@ -203,8 +202,7 @@ QStringList FavoriteItemView::localUidsInNoteFiltersManager(
 }
 
 void FavoriteItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids,
-    NoteFiltersManager & noteFiltersManager)
+    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
 {
     auto * pFavoritesModel = qobject_cast<FavoritesModel *>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
@@ -216,8 +214,7 @@ void FavoriteItemView::setItemLocalUidsToNoteFiltersManager(
     QStringList notebookLocalUids;
     QStringList tagLocalUids;
 
-    for (const auto & itemLocalUid: qAsConst(itemLocalUids))
-    {
+    for (const auto & itemLocalUid: qAsConst(itemLocalUids)) {
         const auto * pItem = pFavoritesModel->itemForLocalUid(itemLocalUid);
         if (Q_UNLIKELY(!pItem)) {
             QNDEBUG(
@@ -226,8 +223,7 @@ void FavoriteItemView::setItemLocalUidsToNoteFiltersManager(
             continue;
         }
 
-        switch (pItem->type())
-        {
+        switch (pItem->type()) {
         case FavoritesModelItem::Type::Notebook:
             notebookLocalUids << itemLocalUid;
             break;
@@ -243,9 +239,7 @@ void FavoriteItemView::setItemLocalUidsToNoteFiltersManager(
     }
 
     noteFiltersManager.setItemsToFilter(
-        savedSearchLocalUid,
-        notebookLocalUids,
-        tagLocalUids);
+        savedSearchLocalUid, notebookLocalUids, tagLocalUids);
 }
 
 void FavoriteItemView::removeItemLocalUidsFromNoteFiltersManager(

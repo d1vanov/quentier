@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
-#define QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
+#ifndef QUENTIER_LIB_VIEW_ABSTRACT_NOTE_FILTERING_TREE_VIEW_H
+#define QUENTIER_LIB_VIEW_ABSTRACT_NOTE_FILTERING_TREE_VIEW_H
 
 #include "TreeView.h"
 
@@ -32,20 +32,20 @@ QT_FORWARD_DECLARE_CLASS(ItemModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 /**
- * @brief The AbstractMultiSelectionItemView class is an abstract base class for
+ * @brief The AbstractNoteFilteringTreeView class is an abstract base class for
  * tree views supporting selection of either single or multiple items
  * simultaneously and allowing filtering of notes based on the selected items.
- * Subclasses of AbstractMultiSelectionItemView are intended to be used along
+ * Subclasses of AbstractNoteFilteringTreeView are intended to be used along
  * with ItemModel subclasses.
  */
-class AbstractMultiSelectionItemView : public TreeView
+class AbstractNoteFilteringTreeView : public TreeView
 {
     Q_OBJECT
 public:
-    explicit AbstractMultiSelectionItemView(
+    explicit AbstractNoteFilteringTreeView(
         const QString & modelTypeName, QWidget * parent = nullptr);
 
-    virtual ~AbstractMultiSelectionItemView() override;
+    virtual ~AbstractNoteFilteringTreeView() override;
 
     void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
@@ -199,4 +199,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
+#endif // QUENTIER_LIB_VIEW_ABSTRACT_NOTE_FILTERING_TREE_VIEW_H
