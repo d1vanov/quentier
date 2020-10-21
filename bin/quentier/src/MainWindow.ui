@@ -2139,10 +2139,12 @@ border: none;</string>
                      <bool>false</bool>
                     </property>
                     <property name="styleSheet">
-                     <string notr="true">margin: 0px;
+                     <string notr="true">QComboBox {
+margin: 0px;
 padding: 0px;
 padding-left: 2px;
-border: 1px solid black;</string>
+border: 1px solid black;
+}</string>
                     </property>
                    </widget>
                   </item>
@@ -2188,22 +2190,10 @@ border-bottom: 1px solid black;</string>
             <item>
              <widget class="PanelWidget" name="noteListWidgetGenericPanel">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>20</height>
-               </size>
               </property>
               <property name="styleSheet">
                <string notr="true">QWidget {
@@ -2253,7 +2243,7 @@ padding-left: 2px;
                <item>
                 <widget class="QSplitter" name="noteListWidgetPanelSplitter">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -2330,7 +2320,7 @@ padding-left: 2px;
                  </widget>
                  <widget class="QComboBox" name="noteSortingModeComboBox">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -2338,10 +2328,22 @@ padding-left: 2px;
                   <property name="minimumSize">
                    <size>
                     <width>180</width>
-                    <height>0</height>
+                    <height>24</height>
                    </size>
                   </property>
                   <property name="autoFillBackground">
+                   <bool>false</bool>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QComboBox { 
+margin: 0px;
+margin-left: 2px;
+padding: 0px;
+padding-left: 2px;
+border: 0px;
+}</string>
+                  </property>
+                  <property name="frame">
                    <bool>false</bool>
                   </property>
                  </widget>
