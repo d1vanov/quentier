@@ -315,6 +315,28 @@ void FavoriteItemView::deleteItem(
            "explaining why the item could not be unfavorited")))
 }
 
+void FavoriteItemView::processSelectedItem(
+    const QString & itemLocalUid, ItemModel & itemModel)
+{
+    const auto * pFavoritesModel =
+        qobject_cast<const FavoritesModel *>(&itemModel);
+
+    if (Q_UNLIKELY(!pFavoritesModel)) {
+        return;
+    }
+
+    const auto * pItem = pFavoritesModel->itemForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!pItem)) {
+        return;
+    }
+
+    if (pItem->type() != FavoritesModelItem::Type::Note) {
+        return;
+    }
+
+    Q_EMIT favoritedNoteSelected(itemLocalUid);
+}
+
 void FavoriteItemView::onAboutToAddItem()
 {
     QNDEBUG("view:favorites", "FavoriteItemView::onAboutToAddItem");

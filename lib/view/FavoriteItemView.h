@@ -37,6 +37,7 @@ public:
 
 Q_SIGNALS:
     void favoritedItemInfoRequested();
+    void favoritedNoteSelected(QString noteLocalUid);
 
 private:
     // AbstractMultiSelectionItemView interface
@@ -68,6 +69,9 @@ private:
 
     virtual void deleteItem(
         const QModelIndex & itemIndex, ItemModel & model) override;
+
+    virtual void processSelectedItem(
+        const QString & itemLocalUid, ItemModel & itemModel) override;
 
 private Q_SLOTS:
     void onAboutToAddItem();

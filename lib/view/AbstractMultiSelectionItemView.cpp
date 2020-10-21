@@ -724,9 +724,12 @@ void AbstractMultiSelectionItemView::selectionChangedImpl(
         }
 
         QString localUid = pItemModel->localUidForItemIndex(selectedIndex);
-        if (!localUid.isEmpty()) {
-            itemLocalUids << localUid;
+        if (localUid.isEmpty()) {
+            continue;
         }
+
+        itemLocalUids << localUid;
+        processSelectedItem(localUid, *pItemModel);
     }
 
     if (Q_UNLIKELY(itemLocalUids.isEmpty())) {

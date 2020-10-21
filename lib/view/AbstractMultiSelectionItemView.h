@@ -132,6 +132,18 @@ protected:
     virtual void deleteItem(
         const QModelIndex & itemIndex, ItemModel & model) = 0;
 
+    /**
+     * @brief processSelectedItem method is an optional method which
+     * the subclass can implement if it needs to do any kind of special
+     * processing on the selected items
+     */
+    virtual void processSelectedItem(
+        const QString & itemLocalUid, ItemModel & itemModel)
+    {
+        Q_UNUSED(itemLocalUid)
+        Q_UNUSED(itemModel)
+    }
+
 private Q_SLOTS:
     void onAllItemsListed();
     void onItemCollapsedOrExpanded(const QModelIndex & index);
