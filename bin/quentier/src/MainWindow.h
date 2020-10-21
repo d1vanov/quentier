@@ -260,6 +260,7 @@ private Q_SLOTS:
     void onNoteSortingModeChanged(int index);
     void onNewNoteCreationRequested();
     void onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid);
+    void onFavoritedNoteSelected(QString noteLocalUid);
 
     /**
      * Toggle thumbnail preference on all notes (when noteLocalUid is empty)

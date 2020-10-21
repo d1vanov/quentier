@@ -1127,8 +1127,7 @@ void MainWindow::createNewNote(
             "quentier:main_window",
             "No note editor tabs and windows "
                 << "coordinator, probably the button was pressed too quickly "
-                   "on "
-                << "startup, skipping");
+                << "on startup, skipping");
         return;
     }
 
@@ -2881,6 +2880,22 @@ void MainWindow::onCopyInAppLinkNoteRequested(
                 << "to the clipboard: " << urlString);
         pClipboard->setText(urlString);
     }
+}
+
+void MainWindow::onFavoritedNoteSelected(QString noteLocalUid)
+{
+    QNDEBUG(
+        "quentier:main_window",
+        "MainWindow::onFavoritedNoteSelected: " << noteLocalUid);
+
+    if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
+        QNDEBUG(
+            "quentier:main_window",
+            "No note editor tabs and windows coordinator, skipping");
+        return;
+    }
+
+    m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid);
 }
 
 void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
@@ -5322,6 +5337,10 @@ void MainWindow::setupViews()
         pFavoritesTableView, &FavoriteItemView::favoritedItemInfoRequested,
         this, &MainWindow::onFavoritedItemInfoButtonPressed,
         Qt::UniqueConnection);
+
+    QObject::connect(
+        pFavoritesTableView, &FavoriteItemView::favoritedNoteSelected,
+        this, &MainWindow::onFavoritedNoteSelected, Qt::UniqueConnection);
 
     auto * pNotebooksTreeView = m_pUI->notebooksTreeView;
     pNotebooksTreeView->setNoteFiltersManager(*m_pNoteFiltersManager);
