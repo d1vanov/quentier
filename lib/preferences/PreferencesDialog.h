@@ -169,17 +169,18 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) override;
 
 private:
-    void setupCurrentSettingsState(
+    void setupInitialPreferencesState(
         ActionsInfo & actionsInfo, ShortcutManager & shortcutManager);
 
-    void setupSystemTraySettings();
-    void setupStartAtLoginSettings();
-    void setupCheckForUpdatesSettings();
-    void setupFilteringSettings();
-    void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
-    void setupAppearanceSettingsState(const ActionsInfo & actionsInfo);
-    void setupNetworkProxySettingsState();
-    void setupNoteEditorSettingsState();
+    void setupSystemTrayPreferences();
+    void setupStartAtLoginPreferences();
+    void setupCheckForUpdatesPreferences();
+    void setupFilteringPreferences();
+    void setupRunSyncPeriodicallyComboBox(int currentNumMinutes);
+    void setupAppearancePreferences(const ActionsInfo & actionsInfo);
+    void setupNetworkProxyPreferences();
+    void setupNoteEditorPreferences();
+
     void createConnections();
     void installEventFilters();
 

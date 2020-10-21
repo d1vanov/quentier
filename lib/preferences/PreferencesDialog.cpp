@@ -76,7 +76,7 @@ PreferencesDialog::PreferencesDialog(
 
     setWindowTitle(tr("Preferences"));
 
-    setupCurrentSettingsState(actionsInfo, shortcutManager);
+    setupInitialPreferencesState(actionsInfo, shortcutManager);
     createConnections();
     installEventFilters();
     adjustSize();
@@ -359,7 +359,7 @@ void PreferencesDialog::onStartAtLoginOptionChanged(int option)
         static_cast<StartQuentierAtLoginOption::type>(option));
 
     if (Q_UNLIKELY(!res)) {
-        setupStartAtLoginSettings();
+        setupStartAtLoginPreferences();
 
         m_pUi->statusTextLabel->setText(
             tr("Failed to change start at login option") +
@@ -1066,27 +1066,27 @@ void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(
     globalAppSettings.endGroup();
 }
 
-void PreferencesDialog::setupCurrentSettingsState(
+void PreferencesDialog::setupInitialPreferencesState(
     ActionsInfo & actionsInfo, ShortcutManager & shortcutManager)
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupCurrentSettingsState");
+    QNDEBUG("preferences", "PreferencesDialog::setupInitialPreferencesState");
 
     Account currentAccount = m_accountManager.currentAccount();
 
     // 1) System tray tab
-    setupSystemTraySettings();
+    setupSystemTrayPreferences();
 
     // 2) Note editor tab
-    setupNoteEditorSettingsState();
+    setupNoteEditorPreferences();
 
     // 3) Appearance tab
-    setupAppearanceSettingsState(actionsInfo);
+    setupAppearancePreferences(actionsInfo);
     m_pUi->panelColorsHandlerWidget->initialize(currentAccount);
 
     // 4) Behaviour tab
-    setupStartAtLoginSettings();
-    setupCheckForUpdatesSettings();
-    setupFilteringSettings();
+    setupStartAtLoginPreferences();
+    setupCheckForUpdatesPreferences();
+    setupFilteringPreferences();
 
     // 5) Synchronization tab
     if (currentAccount.type() == Account::Type::Local) {
@@ -1141,8 +1141,8 @@ void PreferencesDialog::setupCurrentSettingsState(
 
         m_pUi->downloadInkNoteImagesCheckBox->setChecked(downloadInkNoteImages);
 
-        setupNetworkProxySettingsState();
-        setupRunSyncEachNumMinutesComboBox(runSyncEachNumMinutes);
+        setupNetworkProxyPreferences();
+        setupRunSyncPeriodicallyComboBox(runSyncEachNumMinutes);
 
         m_pUi->synchronizationTabStatusLabel->hide();
     }
@@ -1169,7 +1169,7 @@ void PreferencesDialog::setupCurrentSettingsState(
         enableLogViewerInternalLogs);
 }
 
-void PreferencesDialog::setupSystemTraySettings()
+void PreferencesDialog::setupSystemTrayPreferences()
 {
 #ifdef Q_WS_MAC
     // It makes little sense to minimize to tray on Mac
@@ -1303,9 +1303,9 @@ void PreferencesDialog::setupSystemTraySettings()
     }
 }
 
-void PreferencesDialog::setupStartAtLoginSettings()
+void PreferencesDialog::setupStartAtLoginPreferences()
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupStartAtLoginSettings");
+    QNDEBUG("preferences", "PreferencesDialog::setupStartAtLoginPreferences");
 
     auto startAtLoginOptions = isQuentierSetToStartAtLogin();
     m_pUi->startAtLoginCheckBox->setChecked(startAtLoginOptions.first);
@@ -1325,9 +1325,9 @@ void PreferencesDialog::setupStartAtLoginSettings()
     m_pUi->startAtLoginOptionComboBox->setEnabled(startAtLoginOptions.first);
 }
 
-void PreferencesDialog::setupCheckForUpdatesSettings()
+void PreferencesDialog::setupCheckForUpdatesPreferences()
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupCheckForUpdatesSettings");
+    QNDEBUG("preferences", "PreferencesDialog::setupCheckForUpdatesPreferences");
 
 #ifndef WITH_UPDATE_MANAGER
     m_pUi->checkForUpdatesCheckBox->setVisible(false);
@@ -1430,9 +1430,9 @@ void PreferencesDialog::setupCheckForUpdatesSettings()
 #endif // WITH_UPDATE_MANAGER
 }
 
-void PreferencesDialog::setupFilteringSettings()
+void PreferencesDialog::setupFilteringPreferences()
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupFilteringSettings");
+    QNDEBUG("preferences", "PreferencesDialog::setupFilteringPreferences");
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -1482,12 +1482,12 @@ void PreferencesDialog::setupFilteringSettings()
     m_pUi->filterBySelectedFavoritedItemsCheckBox->setChecked(filterByFavoritedItems);
 }
 
-void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(
+void PreferencesDialog::setupRunSyncPeriodicallyComboBox(
     int currentNumMinutes)
 {
     QNDEBUG(
         "preferences",
-        "PreferencesDialog::setupRunSyncEachNumMinutesComboBox: "
+        "PreferencesDialog::setupRunSyncPeriodicallyComboBox: "
             << currentNumMinutes);
 
     QStringList runSyncPeriodicallyOptions;
@@ -1547,10 +1547,10 @@ void PreferencesDialog::setupRunSyncEachNumMinutesComboBox(
 #endif
 }
 
-void PreferencesDialog::setupAppearanceSettingsState(
+void PreferencesDialog::setupAppearancePreferences(
     const ActionsInfo & actionsInfo)
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupAppearanceSettingsState");
+    QNDEBUG("preferences", "PreferencesDialog::setupAppearancePreferences");
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
@@ -1608,9 +1608,9 @@ void PreferencesDialog::setupAppearanceSettingsState(
 #endif
 }
 
-void PreferencesDialog::setupNetworkProxySettingsState()
+void PreferencesDialog::setupNetworkProxyPreferences()
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupNetworkProxySettingsState");
+    QNDEBUG("preferences", "PreferencesDialog::setupNetworkProxyPreferences");
 
     auto proxyType = QNetworkProxy::DefaultProxy;
     QString proxyHost;
@@ -1672,9 +1672,9 @@ void PreferencesDialog::setupNetworkProxySettingsState()
     m_pUi->networkProxyPasswordLineEdit->setText(proxyPassword);
 }
 
-void PreferencesDialog::setupNoteEditorSettingsState()
+void PreferencesDialog::setupNoteEditorPreferences()
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupNoteEditorSettingsState");
+    QNDEBUG("preferences", "PreferencesDialog::setupNoteEditorPreferences");
 
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
