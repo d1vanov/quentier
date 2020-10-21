@@ -533,7 +533,8 @@ void PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled(bool checked)
     Account currentAccount = m_accountManager.currentAccount();
     ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY, checked);
+    appSettings.setValue(
+        FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY, checked);
     appSettings.endGroup();
 
     Q_EMIT filterByFavoritedItemsOptionChanged(checked);
@@ -1327,7 +1328,8 @@ void PreferencesDialog::setupStartAtLoginPreferences()
 
 void PreferencesDialog::setupCheckForUpdatesPreferences()
 {
-    QNDEBUG("preferences", "PreferencesDialog::setupCheckForUpdatesPreferences");
+    QNDEBUG(
+        "preferences", "PreferencesDialog::setupCheckForUpdatesPreferences");
 
 #ifndef WITH_UPDATE_MANAGER
     m_pUi->checkForUpdatesCheckBox->setVisible(false);
@@ -1479,11 +1481,11 @@ void PreferencesDialog::setupFilteringPreferences()
     m_pUi->filterBySelectedNotebookCheckBox->setChecked(filterByNotebook);
     m_pUi->filterBySelectedTagCheckBox->setChecked(filterByTag);
     m_pUi->filterBySelectedSavedSearchCheckBox->setChecked(filterBySavedSearch);
-    m_pUi->filterBySelectedFavoritedItemsCheckBox->setChecked(filterByFavoritedItems);
+    m_pUi->filterBySelectedFavoritedItemsCheckBox->setChecked(
+        filterByFavoritedItems);
 }
 
-void PreferencesDialog::setupRunSyncPeriodicallyComboBox(
-    int currentNumMinutes)
+void PreferencesDialog::setupRunSyncPeriodicallyComboBox(int currentNumMinutes)
 {
     QNDEBUG(
         "preferences",

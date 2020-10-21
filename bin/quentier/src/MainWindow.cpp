@@ -5338,8 +5338,8 @@ void MainWindow::setupViews()
         Qt::UniqueConnection);
 
     QObject::connect(
-        pFavoritesTableView, &FavoriteItemView::favoritedNoteSelected,
-        this, &MainWindow::onFavoritedNoteSelected, Qt::UniqueConnection);
+        pFavoritesTableView, &FavoriteItemView::favoritedNoteSelected, this,
+        &MainWindow::onFavoritedNoteSelected, Qt::UniqueConnection);
 
     auto * pNotebooksTreeView = m_pUI->notebooksTreeView;
     pNotebooksTreeView->setNoteFiltersManager(*m_pNoteFiltersManager);
