@@ -43,7 +43,7 @@ private:
     // AbstractNoteFilteringTreeView interface
     virtual void saveItemsState() override {}
 
-    virtual void restoreItemsState(const ItemModel & model) override
+    virtual void restoreItemsState(const AbstractItemModel & model) override
     {
         Q_UNUSED(model)
     }
@@ -65,13 +65,13 @@ private:
     virtual void removeItemLocalUidsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(ItemModel & model) override;
+    virtual void connectToModel(AbstractItemModel & model) override;
 
     virtual void deleteItem(
-        const QModelIndex & itemIndex, ItemModel & model) override;
+        const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
     virtual void processSelectedItem(
-        const QString & itemLocalUid, ItemModel & itemModel) override;
+        const QString & itemLocalUid, AbstractItemModel & itemModel) override;
 
 private Q_SLOTS:
     void onAboutToAddItem();

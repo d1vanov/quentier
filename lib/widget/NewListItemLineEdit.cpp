@@ -35,7 +35,8 @@
 namespace quentier {
 
 NewListItemLineEdit::NewListItemLineEdit(
-    ItemModel * pItemModel, QVector<ItemInfo> reservedItems, QWidget * parent) :
+    AbstractItemModel * pItemModel, QVector<ItemInfo> reservedItems,
+    QWidget * parent) :
     QLineEdit(parent),
     m_pUi(new Ui::NewListItemLineEdit), m_pItemModel(pItemModel),
     m_reservedItems(std::move(reservedItems)),
@@ -47,15 +48,15 @@ NewListItemLineEdit::NewListItemLineEdit(
     setupCompleter();
 
     QObject::connect(
-        m_pItemModel.data(), &ItemModel::rowsInserted, this,
+        m_pItemModel.data(), &AbstractItemModel::rowsInserted, this,
         &NewListItemLineEdit::onModelRowsInserted);
 
     QObject::connect(
-        m_pItemModel.data(), &ItemModel::rowsRemoved, this,
+        m_pItemModel.data(), &AbstractItemModel::rowsRemoved, this,
         &NewListItemLineEdit::onModelRowsRemoved);
 
     QObject::connect(
-        m_pItemModel.data(), &ItemModel::dataChanged, this,
+        m_pItemModel.data(), &AbstractItemModel::dataChanged, this,
         &NewListItemLineEdit::onModelDataChanged);
 
     // NOTE: working around what seems to be a Qt bug: when one selects some

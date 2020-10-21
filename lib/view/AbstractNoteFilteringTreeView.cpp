@@ -19,7 +19,7 @@
 #include "AbstractNoteFilteringTreeView.h"
 #include "ItemSelectionModel.h"
 
-#include <lib/model/common/ItemModel.h>
+#include <lib/model/common/AbstractItemModel.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/widget/NoteFiltersManager.h>
 
@@ -86,7 +86,7 @@ void AbstractNoteFilteringTreeView::setModel(QAbstractItemModel * pModel)
 {
     MSDEBUG("AbstractNoteFilteringTreeView::setModel");
 
-    auto * pPreviousModel = qobject_cast<ItemModel *>(model());
+    auto * pPreviousModel = qobject_cast<AbstractItemModel *>(model());
     if (pPreviousModel) {
         pPreviousModel->disconnect(this);
     }
@@ -96,7 +96,7 @@ void AbstractNoteFilteringTreeView::setModel(QAbstractItemModel * pModel)
     m_trackingSelection = false;
     m_trackingItemsState = false;
 
-    auto * pItemModel = qobject_cast<ItemModel *>(pModel);
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(pModel);
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model has been set to the item view");
         TreeView::setModel(pModel);
@@ -126,7 +126,7 @@ void AbstractNoteFilteringTreeView::setModel(QAbstractItemModel * pModel)
     }
 
     QObject::connect(
-        pItemModel, &ItemModel::notifyAllItemsListed, this,
+        pItemModel, &AbstractItemModel::notifyAllItemsListed, this,
         &AbstractNoteFilteringTreeView::onAllItemsListed);
 }
 
@@ -134,7 +134,7 @@ QModelIndex AbstractNoteFilteringTreeView::currentlySelectedItemIndex() const
 {
     MSDEBUG("AbstractNoteFilteringTreeView::currentlySelectedItemIndex");
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model is used");
         return {};
@@ -159,7 +159,7 @@ void AbstractNoteFilteringTreeView::deleteSelectedItem()
 {
     MSDEBUG("AbstractNoteFilteringTreeView::deleteSelectedItem");
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model is used");
         return;
@@ -197,7 +197,7 @@ void AbstractNoteFilteringTreeView::onAllItemsListed()
 {
     MSDEBUG("AbstractNoteFilteringTreeView::onAllItemsListed");
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
         REPORT_ERROR(
             QT_TR_NOOP("Can't cast the model set to the item view "
@@ -206,7 +206,7 @@ void AbstractNoteFilteringTreeView::onAllItemsListed()
     }
 
     QObject::disconnect(
-        pItemModel, &ItemModel::notifyAllItemsListed, this,
+        pItemModel, &AbstractItemModel::notifyAllItemsListed, this,
         &AbstractNoteFilteringTreeView::onAllItemsListed);
 
     restoreItemsState(*pItemModel);
@@ -240,7 +240,7 @@ void AbstractNoteFilteringTreeView::onNoteFilterChanged()
 {
     MSDEBUG("AbstractNoteFilteringTreeView::onNoteFilterChanged");
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model is used");
         return;
@@ -328,7 +328,7 @@ void AbstractNoteFilteringTreeView::onNoteFiltersManagerReady()
         m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
         &AbstractNoteFilteringTreeView::onNoteFiltersManagerReady);
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model is used");
         return;
@@ -392,7 +392,7 @@ void AbstractNoteFilteringTreeView::postProcessModelChange()
         return;
     }
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model is used");
         return;
@@ -470,7 +470,7 @@ void AbstractNoteFilteringTreeView::saveSelectedItems(
 }
 
 void AbstractNoteFilteringTreeView::restoreSelectedItems(
-    const ItemModel & model)
+    const AbstractItemModel & model)
 {
     MSDEBUG("AbstractNoteFilteringTreeView::restoreSelectedItems");
 
@@ -576,7 +576,7 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
 }
 
 void AbstractNoteFilteringTreeView::selectAllItemsRootItem(
-    const ItemModel & model)
+    const AbstractItemModel & model)
 {
     MSDEBUG("AbstractNoteFilteringTreeView::selectAllItemsRootItem");
 
@@ -691,7 +691,7 @@ void AbstractNoteFilteringTreeView::selectionChangedImpl(
     Q_UNUSED(selected)
     Q_UNUSED(deselected)
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model is used");
         return;

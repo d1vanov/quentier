@@ -16,19 +16,22 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ItemModel.h"
+#include "AbstractItemModel.h"
 
 #include <QDebug>
 
 namespace quentier {
 
-ItemModel::ItemModel(const Account & account, QObject * parent) :
-    QAbstractItemModel(parent), m_account(account)
+AbstractItemModel::AbstractItemModel(
+    const Account & account, QObject * parent) :
+    QAbstractItemModel(parent),
+    m_account(account)
 {}
 
-ItemModel::~ItemModel() {}
+AbstractItemModel::~AbstractItemModel() {}
 
-QDebug & operator<<(QDebug & dbg, const ItemModel::LinkedNotebookInfo & info)
+QDebug & operator<<(
+    QDebug & dbg, const AbstractItemModel::LinkedNotebookInfo & info)
 {
     dbg << "Linked notebook guid = " << info.m_guid
         << ", username = " << info.m_username;
@@ -36,7 +39,7 @@ QDebug & operator<<(QDebug & dbg, const ItemModel::LinkedNotebookInfo & info)
     return dbg;
 }
 
-QDebug & operator<<(QDebug & dbg, const ItemModel::ItemInfo & itemInfo)
+QDebug & operator<<(QDebug & dbg, const AbstractItemModel::ItemInfo & itemInfo)
 {
     dbg << "Item info: local uid = " << itemInfo.m_localUid
         << ", name = " << itemInfo.m_name

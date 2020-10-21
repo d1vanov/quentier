@@ -250,7 +250,7 @@ void FavoriteItemView::removeItemLocalUidsFromNoteFiltersManager(
     Q_UNUSED(noteFiltersManager)
 }
 
-void FavoriteItemView::connectToModel(ItemModel & model)
+void FavoriteItemView::connectToModel(AbstractItemModel & model)
 {
     auto * pFavoritesModel = qobject_cast<FavoritesModel *>(&model);
     if (Q_UNLIKELY(!pFavoritesModel)) {
@@ -284,7 +284,7 @@ void FavoriteItemView::connectToModel(ItemModel & model)
 }
 
 void FavoriteItemView::deleteItem(
-    const QModelIndex & itemIndex, ItemModel & model)
+    const QModelIndex & itemIndex, AbstractItemModel & model)
 {
     QNDEBUG("view:favorites", "FavoriteItemView::deleteItem");
 
@@ -310,7 +310,7 @@ void FavoriteItemView::deleteItem(
 }
 
 void FavoriteItemView::processSelectedItem(
-    const QString & itemLocalUid, ItemModel & itemModel)
+    const QString & itemLocalUid, AbstractItemModel & itemModel)
 {
     const auto * pFavoritesModel =
         qobject_cast<const FavoritesModel *>(&itemModel);

@@ -38,7 +38,7 @@ QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ItemModel)
+QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
 
 class NewListItemLineEdit : public QLineEdit
 {
@@ -53,7 +53,7 @@ public:
 
 public:
     explicit NewListItemLineEdit(
-        ItemModel * pItemModel, QVector<ItemInfo> reservedItems,
+        AbstractItemModel * pItemModel, QVector<ItemInfo> reservedItems,
         QWidget * parent = nullptr);
 
     virtual ~NewListItemLineEdit();
@@ -92,7 +92,7 @@ private:
 
 private:
     Ui::NewListItemLineEdit * m_pUi;
-    QPointer<ItemModel> m_pItemModel;
+    QPointer<AbstractItemModel> m_pItemModel;
     QVector<ItemInfo> m_reservedItems;
     QStringListModel * m_pItemNamesModel;
     QCompleter * m_pCompleter;

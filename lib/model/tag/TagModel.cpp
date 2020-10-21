@@ -55,7 +55,7 @@ TagModel::TagModel(
     const Account & account,
     LocalStorageManagerAsync & localStorageManagerAsync, TagCache & cache,
     QObject * parent) :
-    ItemModel(account, parent),
+    AbstractItemModel(account, parent),
     m_cache(cache)
 {
     createConnections(localStorageManagerAsync);
@@ -176,7 +176,7 @@ QString TagModel::itemNameForLocalUid(const QString & localUid) const
     return it->name();
 }
 
-ItemModel::ItemInfo TagModel::itemInfoForLocalUid(
+AbstractItemModel::ItemInfo TagModel::itemInfoForLocalUid(
     const QString & localUid) const
 {
     QNTRACE("model:tag", "TagModel::itemInfoForLocalUid: " << localUid);
@@ -188,7 +188,7 @@ ItemModel::ItemInfo TagModel::itemInfoForLocalUid(
         return {};
     }
 
-    ItemModel::ItemInfo info;
+    AbstractItemModel::ItemInfo info;
     info.m_localUid = it->localUid();
     info.m_name = it->name();
     info.m_linkedNotebookGuid = it->linkedNotebookGuid();
@@ -204,7 +204,8 @@ QStringList TagModel::itemNames(const QString & linkedNotebookGuid) const
     return tagNames(linkedNotebookGuid);
 }
 
-QVector<ItemModel::LinkedNotebookInfo> TagModel::linkedNotebooksInfo() const
+QVector<AbstractItemModel::LinkedNotebookInfo> TagModel::linkedNotebooksInfo()
+    const
 {
     QVector<LinkedNotebookInfo> infos;
     infos.reserve(m_linkedNotebookItems.size());

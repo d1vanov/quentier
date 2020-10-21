@@ -47,7 +47,7 @@ SavedSearchModel::SavedSearchModel(
     const Account & account,
     LocalStorageManagerAsync & localStorageManagerAsync,
     SavedSearchCache & cache, QObject * parent) :
-    ItemModel(account, parent),
+    AbstractItemModel(account, parent),
     m_cache(cache)
 {
     createConnections(localStorageManagerAsync);
@@ -355,7 +355,7 @@ QString SavedSearchModel::itemNameForLocalUid(const QString & localUid) const
     return it->name();
 }
 
-ItemModel::ItemInfo SavedSearchModel::itemInfoForLocalUid(
+AbstractItemModel::ItemInfo SavedSearchModel::itemInfoForLocalUid(
     const QString & localUid) const
 {
     const auto & localUidIndex = m_data.get<ByLocalUid>();
@@ -365,7 +365,7 @@ ItemModel::ItemInfo SavedSearchModel::itemInfoForLocalUid(
         return {};
     }
 
-    ItemModel::ItemInfo info;
+    AbstractItemModel::ItemInfo info;
     info.m_localUid = it->localUid();
     info.m_name = it->name();
 
@@ -382,8 +382,8 @@ QStringList SavedSearchModel::itemNames(
     return savedSearchNames();
 }
 
-QVector<ItemModel::LinkedNotebookInfo> SavedSearchModel::linkedNotebooksInfo()
-    const
+QVector<AbstractItemModel::LinkedNotebookInfo>
+SavedSearchModel::linkedNotebooksInfo() const
 {
     return {};
 }

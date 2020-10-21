@@ -212,7 +212,7 @@ void NotebookItemView::saveItemsState()
     appSettings.endGroup();
 }
 
-void NotebookItemView::restoreItemsState(const ItemModel & model)
+void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
 {
     QNDEBUG("view:notebook", "NotebookItemView::restoreItemsState");
 
@@ -339,7 +339,7 @@ void NotebookItemView::removeItemLocalUidsFromNoteFiltersManager(
     noteFiltersManager.removeNotebooksFromFilter();
 }
 
-void NotebookItemView::connectToModel(ItemModel & model)
+void NotebookItemView::connectToModel(AbstractItemModel & model)
 {
     auto * pNotebookModel = qobject_cast<NotebookModel *>(&model);
     if (Q_UNLIKELY(!pNotebookModel)) {
@@ -381,7 +381,7 @@ void NotebookItemView::connectToModel(ItemModel & model)
 }
 
 void NotebookItemView::deleteItem(
-    const QModelIndex & itemIndex, ItemModel & model)
+    const QModelIndex & itemIndex, AbstractItemModel & model)
 {
     QNDEBUG("view:notebook", "NotebookItemView::deleteItem");
 

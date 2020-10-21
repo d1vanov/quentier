@@ -84,7 +84,7 @@ void SavedSearchItemView::saveItemsState()
     appSettings.endGroup();
 }
 
-void SavedSearchItemView::restoreItemsState(const ItemModel & model)
+void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
 {
     QNDEBUG("view:saved_search", "SavedSearchItemView::restoreItemsState");
 
@@ -183,7 +183,7 @@ void SavedSearchItemView::removeItemLocalUidsFromNoteFiltersManager(
     noteFiltersManager.removeSavedSearchFromFilter();
 }
 
-void SavedSearchItemView::connectToModel(ItemModel & model)
+void SavedSearchItemView::connectToModel(AbstractItemModel & model)
 {
     auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(&model);
     if (Q_UNLIKELY(!pSavedSearchModel)) {
@@ -217,7 +217,7 @@ void SavedSearchItemView::connectToModel(ItemModel & model)
 }
 
 void SavedSearchItemView::deleteItem(
-    const QModelIndex & itemIndex, ItemModel & model)
+    const QModelIndex & itemIndex, AbstractItemModel & model)
 {
     QNDEBUG("view:saved_search", "SavedSearchItemView::deleteItem");
 

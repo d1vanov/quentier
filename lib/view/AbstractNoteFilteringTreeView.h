@@ -28,7 +28,7 @@
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(ItemModel)
+QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 /**
@@ -36,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
  * tree views supporting selection of either single or multiple items
  * simultaneously and allowing filtering of notes based on the selected items.
  * Subclasses of AbstractNoteFilteringTreeView are intended to be used along
- * with ItemModel subclasses.
+ * with AbstractItemModel subclasses.
  */
 class AbstractNoteFilteringTreeView : public TreeView
 {
@@ -74,7 +74,7 @@ protected:
      * @brief restoreItemsState method should restore previously persisted
      * expanded/collapsed states of model items
      */
-    virtual void restoreItemsState(const ItemModel & itemModel) = 0;
+    virtual void restoreItemsState(const AbstractItemModel & itemModel) = 0;
 
     /**
      * View's group key for ApplicationSettings entry to save/load selected
@@ -124,14 +124,14 @@ protected:
      * @brief connectToModel method should connect model specific signals to
      * view specific views
      */
-    virtual void connectToModel(ItemModel & itemModel) = 0;
+    virtual void connectToModel(AbstractItemModel & itemModel) = 0;
 
     /**
      * @brief deleteItem method should attempt to delete the item pointed to
      * by the passed in index from the model
      */
     virtual void deleteItem(
-        const QModelIndex & itemIndex, ItemModel & model) = 0;
+        const QModelIndex & itemIndex, AbstractItemModel & model) = 0;
 
     /**
      * @brief processSelectedItem method is an optional method which
@@ -139,7 +139,7 @@ protected:
      * processing on the selected items
      */
     virtual void processSelectedItem(
-        const QString & itemLocalUid, ItemModel & itemModel)
+        const QString & itemLocalUid, AbstractItemModel & itemModel)
     {
         Q_UNUSED(itemLocalUid)
         Q_UNUSED(itemModel)
@@ -159,9 +159,9 @@ protected:
     void saveSelectedItems(
         const Account & account, const QStringList & itemLocalUids);
 
-    void restoreSelectedItems(const ItemModel & model);
+    void restoreSelectedItems(const AbstractItemModel & model);
 
-    void selectAllItemsRootItem(const ItemModel & model);
+    void selectAllItemsRootItem(const AbstractItemModel & model);
 
     void prepareForModelChange();
     void postProcessModelChange();

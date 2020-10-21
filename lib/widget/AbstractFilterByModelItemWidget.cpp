@@ -22,7 +22,7 @@
 #include "ListItemWidget.h"
 #include "NewListItemLineEdit.h"
 
-#include <lib/model/common/ItemModel.h>
+#include <lib/model/common/AbstractItemModel.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -51,14 +51,14 @@ AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(
 {}
 
 void AbstractFilterByModelItemWidget::switchAccount(
-    const Account & account, ItemModel * pItemModel)
+    const Account & account, AbstractItemModel * pItemModel)
 {
     AFDEBUG(
         "AbstractFilterByModelItemWidget::switchAccount: " << account.name());
 
     if (!m_pItemModel.isNull() && (m_pItemModel.data() != pItemModel)) {
         QObject::disconnect(
-            m_pItemModel.data(), &ItemModel::notifyAllItemsListed, this,
+            m_pItemModel.data(), &AbstractItemModel::notifyAllItemsListed, this,
             &AbstractFilterByModelItemWidget::onModelReady);
     }
 
@@ -67,7 +67,7 @@ void AbstractFilterByModelItemWidget::switchAccount(
 
     if (!m_pItemModel.isNull() && !m_isReady) {
         QObject::connect(
-            m_pItemModel.data(), &ItemModel::notifyAllItemsListed, this,
+            m_pItemModel.data(), &AbstractItemModel::notifyAllItemsListed, this,
             &AbstractFilterByModelItemWidget::onModelReady);
     }
 
@@ -94,7 +94,7 @@ void AbstractFilterByModelItemWidget::switchAccount(
     }
 }
 
-const ItemModel * AbstractFilterByModelItemWidget::model() const
+const AbstractItemModel * AbstractFilterByModelItemWidget::model() const
 {
     if (m_pItemModel.isNull()) {
         return nullptr;
@@ -288,7 +288,7 @@ void AbstractFilterByModelItemWidget::update()
     }
 
     QObject::connect(
-        m_pItemModel.data(), &ItemModel::notifyAllItemsListed, this,
+        m_pItemModel.data(), &AbstractItemModel::notifyAllItemsListed, this,
         &AbstractFilterByModelItemWidget::onModelReady);
 }
 
@@ -517,7 +517,7 @@ void AbstractFilterByModelItemWidget::onModelReady()
     AFDEBUG("AbstractFilterByModelItemWidget::onModelReady");
 
     QObject::disconnect(
-        m_pItemModel.data(), &ItemModel::notifyAllItemsListed, this,
+        m_pItemModel.data(), &AbstractItemModel::notifyAllItemsListed, this,
         &AbstractFilterByModelItemWidget::onModelReady);
 
     restoreFilteredItems();

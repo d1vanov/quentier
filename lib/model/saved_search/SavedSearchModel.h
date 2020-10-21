@@ -24,7 +24,7 @@
 #include "ISavedSearchModelItem.h"
 #include "SavedSearchItem.h"
 
-#include <lib/model/common/ItemModel.h>
+#include <lib/model/common/AbstractItemModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
@@ -43,7 +43,7 @@
 
 namespace quentier {
 
-class SavedSearchModel final : public ItemModel
+class SavedSearchModel final : public AbstractItemModel
 {
     Q_OBJECT
 public:
@@ -139,7 +139,7 @@ public:
     void unfavoriteSavedSearch(const QModelIndex & index);
 
 public:
-    // ItemModel interface
+    // AbstractItemModel interface
     virtual QString localUidForItemName(
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;

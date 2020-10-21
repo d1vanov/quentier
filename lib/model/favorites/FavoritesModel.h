@@ -21,7 +21,7 @@
 
 #include "FavoritesModelItem.h"
 
-#include <lib/model/common/ItemModel.h>
+#include <lib/model/common/AbstractItemModel.h>
 #include <lib/model/note/NoteCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/saved_search/SavedSearchCache.h>
@@ -51,7 +51,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class FavoritesModel final: public ItemModel
+class FavoritesModel final : public AbstractItemModel
 {
     Q_OBJECT
 public:
@@ -78,7 +78,7 @@ public:
     const FavoritesModelItem * itemAtRow(const int row) const;
 
 public:
-    // ItemModel interface
+    // AbstractItemModel interface
     virtual QString localUidForItemName(
         const QString & itemName,
         const QString & linkedNotebookGuid) const override

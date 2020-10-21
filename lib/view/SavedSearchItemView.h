@@ -38,7 +38,7 @@ Q_SIGNALS:
 private:
     // AbstractNoteFilteringTreeView interface
     virtual void saveItemsState() override;
-    virtual void restoreItemsState(const ItemModel & model) override;
+    virtual void restoreItemsState(const AbstractItemModel & model) override;
 
     virtual QString selectedItemsGroupKey() const override;
     virtual QString selectedItemsArrayKey() const override;
@@ -57,10 +57,10 @@ private:
     virtual void removeItemLocalUidsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(ItemModel & model) override;
+    virtual void connectToModel(AbstractItemModel & model) override;
 
     virtual void deleteItem(
-        const QModelIndex & itemIndex, ItemModel & model) override;
+        const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
 private Q_SLOTS:
     void onAboutToAddSavedSearch();

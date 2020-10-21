@@ -25,7 +25,7 @@
 #include "TagItem.h"
 #include "TagLinkedNotebookRootItem.h"
 
-#include <lib/model/common/ItemModel.h>
+#include <lib/model/common/AbstractItemModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
@@ -53,7 +53,7 @@
 
 namespace quentier {
 
-class TagModel : public ItemModel
+class TagModel : public AbstractItemModel
 {
     Q_OBJECT
 public:
@@ -233,7 +233,7 @@ public:
     bool tagHasSynchronizedChildTags(const QString & tagLocalUid) const;
 
 public:
-    // ItemModel interface
+    // AbstractItemModel interface
     virtual QString localUidForItemName(
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;
