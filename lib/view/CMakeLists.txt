@@ -7,7 +7,7 @@ project(quentier_view)
 set(HEADERS
     AbstractMultiSelectionItemView.h
     ItemSelectionModel.h
-    ItemView.h
+    TreeView.h
     DeletedNoteItemView.h
     FavoriteItemView.h
     NotebookItemView.h
@@ -18,7 +18,7 @@ set(HEADERS
 set(SOURCES
     AbstractMultiSelectionItemView.cpp
     ItemSelectionModel.cpp
-    ItemView.cpp
+    TreeView.cpp
     DeletedNoteItemView.cpp
     FavoriteItemView.cpp
     NotebookItemView.cpp

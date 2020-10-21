@@ -35,7 +35,7 @@
 
 namespace quentier {
 
-DeletedNoteItemView::DeletedNoteItemView(QWidget * parent) : ItemView(parent) {}
+DeletedNoteItemView::DeletedNoteItemView(QWidget * parent) : TreeView(parent) {}
 
 QModelIndex DeletedNoteItemView::currentlySelectedItemIndex() const
 {

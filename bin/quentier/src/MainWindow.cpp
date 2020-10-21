@@ -55,7 +55,6 @@
 #include <lib/utility/QObjectThreadMover.h>
 #include <lib/view/DeletedNoteItemView.h>
 #include <lib/view/FavoriteItemView.h>
-#include <lib/view/ItemView.h>
 #include <lib/view/NoteListView.h>
 #include <lib/view/NotebookItemView.h>
 #include <lib/view/SavedSearchItemView.h>

@@ -49,7 +49,7 @@ namespace quentier {
 
 AbstractMultiSelectionItemView::AbstractMultiSelectionItemView(
     const QString & modelTypeName, QWidget * parent) :
-    ItemView(parent),
+    TreeView(parent),
     m_modelTypeName(modelTypeName)
 {
     setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -99,13 +99,13 @@ void AbstractMultiSelectionItemView::setModel(QAbstractItemModel * pModel)
     auto * pItemModel = qobject_cast<ItemModel *>(pModel);
     if (Q_UNLIKELY(!pItemModel)) {
         MSDEBUG("Non-item model has been set to the item view");
-        ItemView::setModel(pModel);
+        TreeView::setModel(pModel);
         return;
     }
 
     connectToModel(*pItemModel);
 
-    ItemView::setModel(pModel);
+    TreeView::setModel(pModel);
 
     auto * pOldSelectionModel = selectionModel();
     setSelectionModel(new ItemSelectionModel(pItemModel, this));
@@ -366,7 +366,7 @@ void AbstractMultiSelectionItemView::selectionChanged(
     MSDEBUG("AbstractMultiSelectionItemView::selectionChanged");
 
     selectionChangedImpl(selected, deselected);
-    ItemView::selectionChanged(selected, deselected);
+    TreeView::selectionChanged(selected, deselected);
 }
 
 void AbstractMultiSelectionItemView::prepareForModelChange()

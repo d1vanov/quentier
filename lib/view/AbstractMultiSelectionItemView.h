@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
 
-#include "ItemView.h"
+#include "TreeView.h"
 
 #include <quentier/types/ErrorString.h>
 
@@ -33,11 +33,12 @@ QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 /**
  * @brief The AbstractMultiSelectionItemView class is an abstract base class for
- * tree views supporting selection of multiple items simultaneously. Subclasses
- * of AbstractMultiSelectionItemView are intended to be used along with
- * ItemModel subclasses.
+ * tree views supporting selection of either single or multiple items
+ * simultaneously and allowing filtering of notes based on the selected items.
+ * Subclasses of AbstractMultiSelectionItemView are intended to be used along
+ * with ItemModel subclasses.
  */
-class AbstractMultiSelectionItemView : public ItemView
+class AbstractMultiSelectionItemView : public TreeView
 {
     Q_OBJECT
 public:
