@@ -18,6 +18,8 @@
 
 #include "TreeView.h"
 
+#include <quentier/utility/Macros.h>
+
 namespace quentier {
 
 TreeView::TreeView(QWidget * parent) : QTreeView(parent) {}
