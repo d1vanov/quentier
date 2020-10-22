@@ -39,6 +39,12 @@
    </item>
    <item>
     <widget class="QLineEdit" name="lineEdit">
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="frame">
+      <bool>false</bool>
+     </property>
      <property name="clearButtonEnabled">
       <bool>true</bool>
      </property>

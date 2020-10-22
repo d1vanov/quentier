@@ -16,48 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ItemView.h"
+#include "TreeView.h"
 
-#include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Macros.h>
 
 namespace quentier {
 
-ItemView::ItemView(QWidget * parent) : QTreeView(parent) {}
+TreeView::TreeView(QWidget * parent) : QTreeView(parent) {}
 
-void ItemView::dataChanged(
-    const QModelIndex & topLeft, const QModelIndex & bottomRight,
-    const QVector<int> & roles)
-{
-    QNTRACE(
-        "view:item_view",
-        "ItemView::dataChanged: top left: row = "
-            << topLeft.row() << ", column = " << topLeft.column()
-            << ", bottom right: row = " << bottomRight.row()
-            << ", column = " << bottomRight.column());
-
-    QTreeView::dataChanged(topLeft, bottomRight, roles);
-
-    /**
-     * The default implementation of QTreeView doesn't resize the columns after
-     * the data change has been processed, regardless of the resize mode used.
-     * In the ideal world the affected columns should only be automatically
-     * resized if they don't have enough space to display the changed data but
-     * for now, as a shortcut, the affected columns are always resized to ensure
-     * their width is enough to display the changed data
-     */
-
-    if (Q_UNLIKELY(!topLeft.isValid() || !bottomRight.isValid())) {
-        return;
-    }
-
-    int minColumn = topLeft.column();
-    int maxColumn = bottomRight.column();
-    for (int i = minColumn; i <= maxColumn; ++i) {
-        resizeColumnToContents(i);
-    }
-}
-
-QModelIndex ItemView::singleRow(
+QModelIndex TreeView::singleRow(
     const QModelIndexList & indexes, const QAbstractItemModel & model,
     const int column) const
 {
@@ -86,6 +53,32 @@ QModelIndex ItemView::singleRow(
     }
 
     return model.index(sourceIndex.row(), column, sourceIndex.parent());
+}
+
+void TreeView::dataChanged(
+    const QModelIndex & topLeft, const QModelIndex & bottomRight,
+    const QVector<int> & roles)
+{
+    QTreeView::dataChanged(topLeft, bottomRight, roles);
+
+    /**
+     * The default implementation of QTreeView doesn't resize the columns after
+     * the data change has been processed, regardless of the resize mode used.
+     * In the ideal world the affected columns should only be automatically
+     * resized if they don't have enough space to display the changed data but
+     * for now, as a shortcut, the affected columns are always resized to ensure
+     * their width is enough to display the changed data
+     */
+
+    if (Q_UNLIKELY(!topLeft.isValid() || !bottomRight.isValid())) {
+        return;
+    }
+
+    int minColumn = topLeft.column();
+    int maxColumn = bottomRight.column();
+    for (int i = minColumn; i <= maxColumn; ++i) {
+        resizeColumnToContents(i);
+    }
 }
 
 } // namespace quentier

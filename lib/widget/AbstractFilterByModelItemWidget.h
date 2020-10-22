@@ -30,7 +30,7 @@ QT_FORWARD_DECLARE_CLASS(FlowLayout)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ItemModel)
+QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
 QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
 
 /**
@@ -51,9 +51,9 @@ public:
         return m_account;
     }
 
-    void switchAccount(const Account & account, ItemModel * pItemModel);
+    void switchAccount(const Account & account, AbstractItemModel * pItemModel);
 
-    const ItemModel * model() const;
+    const AbstractItemModel * model() const;
 
     QStringList itemsInFilter() const;
 
@@ -166,7 +166,7 @@ private:
     QString m_name;
     FlowLayout * m_pLayout = nullptr;
     Account m_account;
-    QPointer<ItemModel> m_pItemModel;
+    QPointer<AbstractItemModel> m_pItemModel;
     bool m_isReady = false;
 };
 

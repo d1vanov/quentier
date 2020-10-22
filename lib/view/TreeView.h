@@ -16,25 +16,31 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_ITEM_VIEW_H
-#define QUENTIER_LIB_VIEW_ITEM_VIEW_H
-
-#include <quentier/utility/Macros.h>
+#ifndef QUENTIER_LIB_VIEW_TREE_VIEW_H
+#define QUENTIER_LIB_VIEW_TREE_VIEW_H
 
 #include <QTreeView>
 
 namespace quentier {
 
 /**
- * @brief The ItemView class provides somewhat extended version of QTreeView
- * (can be used with tree or table models) which works around different quirks
- * of the default implementations like column sizing
+ * @brief The TreeView class provides somewhat extended version of
+ * QTreeView (can be used with tree or table models) which works around
+ * different quirks of the default implementations like column sizing
  */
-class ItemView : public QTreeView
+class TreeView : public QTreeView
 {
     Q_OBJECT
 public:
-    explicit ItemView(QWidget * parent = nullptr);
+    explicit TreeView(QWidget * parent = nullptr);
+
+    /**
+     * @return              The valid index if all indexes in the list point to
+     *                      the same row or invalid model index otherwise
+     */
+    QModelIndex singleRow(
+        const QModelIndexList & indexes, const QAbstractItemModel & model,
+        const int column) const;
 
 public Q_SLOTS:
     /**
@@ -50,17 +56,8 @@ public Q_SLOTS:
     virtual void dataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
         const QVector<int> & roles = {}) override;
-
-protected:
-    /**
-     * @return              The valid index if all indexes in the list point to
-     *                      the same row or invalid model index otherwise
-     */
-    QModelIndex singleRow(
-        const QModelIndexList & indexes, const QAbstractItemModel & model,
-        const int column) const;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_VIEW_ITEM_VIEW_H
+#endif // QUENTIER_LIB_VIEW_TREE_VIEW_H

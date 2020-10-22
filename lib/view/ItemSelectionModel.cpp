@@ -18,13 +18,14 @@
 
 #include "ItemSelectionModel.h"
 
-#include <lib/model/common/ItemModel.h>
+#include <lib/model/common/AbstractItemModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
 
 namespace quentier {
 
-ItemSelectionModel::ItemSelectionModel(ItemModel * pModel, QObject * parent) :
+ItemSelectionModel::ItemSelectionModel(
+    AbstractItemModel * pModel, QObject * parent) :
     QItemSelectionModel(pModel, parent)
 {}
 
@@ -46,10 +47,11 @@ bool ItemSelectionModel::selectImpl(
         "ItemSelectionModel::selectImpl: "
             << "command = " << command);
 
-    auto * pItemModel = qobject_cast<ItemModel *>(model());
+    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
     if (!pItemModel) {
         QNDEBUG(
-            "view:item_selection_model", "Not an ItemModel subclass is used");
+            "view:item_selection_model",
+            "Not an AbstractItemModel subclass is used");
         return false;
     }
 

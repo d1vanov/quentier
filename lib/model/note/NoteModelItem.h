@@ -26,7 +26,7 @@
 
 namespace quentier {
 
-class NoteModelItem final: public Printable
+class NoteModelItem final : public Printable
 {
 public:
     NoteModelItem() = default;

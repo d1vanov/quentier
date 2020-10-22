@@ -38,7 +38,7 @@ FavoritesModel::FavoritesModel(
     LocalStorageManagerAsync & localStorageManagerAsync, NoteCache & noteCache,
     NotebookCache & notebookCache, TagCache & tagCache,
     SavedSearchCache & savedSearchCache, QObject * parent) :
-    ItemModel(account, parent),
+    AbstractItemModel(account, parent),
     m_noteCache(noteCache), m_notebookCache(notebookCache),
     m_tagCache(tagCache), m_savedSearchCache(savedSearchCache)
 {
@@ -117,7 +117,7 @@ QString FavoritesModel::itemNameForLocalUid(const QString & localUid) const
     return pItem->displayName();
 }
 
-ItemModel::ItemInfo FavoritesModel::itemInfoForLocalUid(
+AbstractItemModel::ItemInfo FavoritesModel::itemInfoForLocalUid(
     const QString & localUid) const
 {
     const auto * pItem = itemForLocalUid(localUid);
@@ -140,8 +140,8 @@ QString FavoritesModel::localUidForItemIndex(const QModelIndex & index) const
     const int row = index.row();
     const int column = index.column();
 
-    if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
-        (column < 0) || (column >= NUM_FAVORITES_MODEL_COLUMNS))
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) || (column < 0) ||
+        (column >= NUM_FAVORITES_MODEL_COLUMNS))
     {
         return {};
     }

@@ -53,7 +53,7 @@
 namespace quentier {
 
 SavedSearchItemView::SavedSearchItemView(QWidget * parent) :
-    AbstractMultiSelectionItemView(QStringLiteral("saved search"), parent)
+    AbstractNoteFilteringTreeView(QStringLiteral("saved search"), parent)
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
 }
@@ -84,7 +84,7 @@ void SavedSearchItemView::saveItemsState()
     appSettings.endGroup();
 }
 
-void SavedSearchItemView::restoreItemsState(const ItemModel & model)
+void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
 {
     QNDEBUG("view:saved_search", "SavedSearchItemView::restoreItemsState");
 
@@ -183,7 +183,7 @@ void SavedSearchItemView::removeItemLocalUidsFromNoteFiltersManager(
     noteFiltersManager.removeSavedSearchFromFilter();
 }
 
-void SavedSearchItemView::connectToModel(ItemModel & model)
+void SavedSearchItemView::connectToModel(AbstractItemModel & model)
 {
     auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(&model);
     if (Q_UNLIKELY(!pSavedSearchModel)) {
@@ -217,14 +217,14 @@ void SavedSearchItemView::connectToModel(ItemModel & model)
 }
 
 void SavedSearchItemView::deleteItem(
-    const QModelIndex & itemIndex, ItemModel & model)
+    const QModelIndex & itemIndex, AbstractItemModel & model)
 {
     QNDEBUG("view:saved_search", "SavedSearchItemView::deleteItem");
 
     QString localUid = model.localUidForItemIndex(itemIndex);
     if (Q_UNLIKELY(localUid.isEmpty())) {
         REPORT_ERROR(
-            QT_TR_NOOP("Internal error: can't find the tag item "
+            QT_TR_NOOP("Internal error: can't find the saved search item "
                        "meant to be deleted"))
         return;
     }

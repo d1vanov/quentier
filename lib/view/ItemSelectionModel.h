@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ItemModel)
+QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
 
 /**
  * @brief The ItemSelectionModel class represents a small customization
@@ -35,7 +35,8 @@ class ItemSelectionModel : public QItemSelectionModel
 {
     Q_OBJECT
 public:
-    explicit ItemSelectionModel(ItemModel * pModel, QObject * parent = nullptr);
+    explicit ItemSelectionModel(
+        AbstractItemModel * pModel, QObject * parent = nullptr);
 
     virtual ~ItemSelectionModel() override = default;
 
@@ -46,8 +47,8 @@ public Q_SLOTS:
      * all model items is selected or actual model items but not both
      *
      * NOTE: the filtering occurs only if model() returns an instance of
-     * ItemModel, otherwise the call is forwarded to QItemSelectionModel's
-     * method.
+     * AbstractItemModel, otherwise the call is forwarded to
+     * QItemSelectionModel's method.
      */
     virtual void select(
         const QItemSelection & selection,

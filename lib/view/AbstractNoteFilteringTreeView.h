@@ -16,10 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
-#define QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
+#ifndef QUENTIER_LIB_VIEW_ABSTRACT_NOTE_FILTERING_TREE_VIEW_H
+#define QUENTIER_LIB_VIEW_ABSTRACT_NOTE_FILTERING_TREE_VIEW_H
 
-#include "ItemView.h"
+#include "TreeView.h"
 
 #include <quentier/types/ErrorString.h>
 
@@ -28,23 +28,24 @@
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(ItemModel)
+QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 /**
- * @brief The AbstractMultiSelectionItemView class is an abstract base class for
- * tree views supporting selection of multiple items simultaneously. Subclasses
- * of AbstractMultiSelectionItemView are intended to be used along with
- * ItemModel subclasses.
+ * @brief The AbstractNoteFilteringTreeView class is an abstract base class for
+ * tree views supporting selection of either single or multiple items
+ * simultaneously and allowing filtering of notes based on the selected items.
+ * Subclasses of AbstractNoteFilteringTreeView are intended to be used along
+ * with AbstractItemModel subclasses.
  */
-class AbstractMultiSelectionItemView : public ItemView
+class AbstractNoteFilteringTreeView : public TreeView
 {
     Q_OBJECT
 public:
-    explicit AbstractMultiSelectionItemView(
+    explicit AbstractNoteFilteringTreeView(
         const QString & modelTypeName, QWidget * parent = nullptr);
 
-    virtual ~AbstractMultiSelectionItemView() override;
+    virtual ~AbstractNoteFilteringTreeView() override;
 
     void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
@@ -73,7 +74,7 @@ protected:
      * @brief restoreItemsState method should restore previously persisted
      * expanded/collapsed states of model items
      */
-    virtual void restoreItemsState(const ItemModel & itemModel) = 0;
+    virtual void restoreItemsState(const AbstractItemModel & itemModel) = 0;
 
     /**
      * View's group key for ApplicationSettings entry to save/load selected
@@ -123,14 +124,26 @@ protected:
      * @brief connectToModel method should connect model specific signals to
      * view specific views
      */
-    virtual void connectToModel(ItemModel & itemModel) = 0;
+    virtual void connectToModel(AbstractItemModel & itemModel) = 0;
 
     /**
      * @brief deleteItem method should attempt to delete the item pointed to
      * by the passed in index from the model
      */
     virtual void deleteItem(
-        const QModelIndex & itemIndex, ItemModel & model) = 0;
+        const QModelIndex & itemIndex, AbstractItemModel & model) = 0;
+
+    /**
+     * @brief processSelectedItem method is an optional method which
+     * the subclass can implement if it needs to do any kind of special
+     * processing on the selected items
+     */
+    virtual void processSelectedItem(
+        const QString & itemLocalUid, AbstractItemModel & itemModel)
+    {
+        Q_UNUSED(itemLocalUid)
+        Q_UNUSED(itemModel)
+    }
 
 private Q_SLOTS:
     void onAllItemsListed();
@@ -146,9 +159,9 @@ protected:
     void saveSelectedItems(
         const Account & account, const QStringList & itemLocalUids);
 
-    void restoreSelectedItems(const ItemModel & model);
+    void restoreSelectedItems(const AbstractItemModel & model);
 
-    void selectAllItemsRootItem(const ItemModel & model);
+    void selectAllItemsRootItem(const AbstractItemModel & model);
 
     void prepareForModelChange();
     void postProcessModelChange();
@@ -186,4 +199,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_VIEW_ABSTRACT_MULTI_SELECTION_ITEM_VIEW_H
+#endif // QUENTIER_LIB_VIEW_ABSTRACT_NOTE_FILTERING_TREE_VIEW_H

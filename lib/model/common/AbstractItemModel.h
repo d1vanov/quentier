@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_ITEM_MODEL_H
-#define QUENTIER_LIB_MODEL_ITEM_MODEL_H
+#ifndef QUENTIER_LIB_MODEL_ABSTRACT_ITEM_MODEL_H
+#define QUENTIER_LIB_MODEL_ABSTRACT_ITEM_MODEL_H
 
 #include <quentier/types/Account.h>
 #include <quentier/utility/Macros.h>
@@ -31,20 +31,18 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 namespace quentier {
 
 /**
- * @brief The ItemModel class is the abstract base class for models representing
- * notebooks, tags, and saved searches.
- *
- * It contains some pure virtual methods required for the models managing
- * the items of all the mentioned types.
+ * @brief The AbstractItemModel class is the abstract base class for models
+ * representing items such as notebooks, tags, saved searches.
  */
-class ItemModel : public QAbstractItemModel
+class AbstractItemModel : public QAbstractItemModel
 {
     Q_OBJECT
 protected:
-    explicit ItemModel(const Account & account, QObject * parent = nullptr);
+    explicit AbstractItemModel(
+        const Account & account, QObject * parent = nullptr);
 
 public:
-    virtual ~ItemModel();
+    virtual ~AbstractItemModel();
 
     const Account & account() const
     {
@@ -57,7 +55,7 @@ public:
     }
 
     /**
-     * @brief localUidForItemName - finds local uid for item name
+     * @brief localUidForItemName   Finds local uid for item name
      * @param itemName              The name of the item for which the local
      *                              uid is required
      * @param linkedNotebookGuid    The guid of a linked notebook to which
@@ -240,4 +238,4 @@ protected:
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_ITEM_MODEL_H
+#endif // QUENTIER_LIB_MODEL_ABSTRACT_ITEM_MODEL_H

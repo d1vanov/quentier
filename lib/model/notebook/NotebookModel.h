@@ -26,7 +26,7 @@
 #include "NotebookItem.h"
 #include "StackItem.h"
 
-#include <lib/model/common/ItemModel.h>
+#include <lib/model/common/AbstractItemModel.h>
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
@@ -55,7 +55,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class NotebookModel : public ItemModel
+class NotebookModel : public AbstractItemModel
 {
     Q_OBJECT
 public:
@@ -288,7 +288,7 @@ public:
     void unfavoriteNotebook(const QModelIndex & index);
 
 public:
-    // ItemModel interface
+    // AbstractItemModel interface
     virtual QString localUidForItemName(
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;

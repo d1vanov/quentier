@@ -7,7 +7,7 @@ project(quentier_model)
 set(HEADERS
     common/ColumnChangeRerouter.h
     common/IModelItem.h
-    common/ItemModel.h
+    common/AbstractItemModel.h
     common/NewItemNameGenerator.hpp
     favorites/FavoritesModel.h
     favorites/FavoritesModelItem.h
@@ -39,7 +39,7 @@ set(HEADERS
 
 set(SOURCES
     common/ColumnChangeRerouter.cpp
-    common/ItemModel.cpp
+    common/AbstractItemModel.cpp
     favorites/FavoritesModel.cpp
     favorites/FavoritesModelItem.cpp
     log_viewer/LogViewerModel.cpp

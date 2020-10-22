@@ -19,13 +19,13 @@
 #ifndef QUENTIER_LIB_VIEW_SAVED_SEARCH_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_SAVED_SEARCH_ITEM_VIEW_H
 
-#include "AbstractMultiSelectionItemView.h"
+#include "AbstractNoteFilteringTreeView.h"
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class SavedSearchItemView : public AbstractMultiSelectionItemView
+class SavedSearchItemView : public AbstractNoteFilteringTreeView
 {
     Q_OBJECT
 public:
@@ -36,9 +36,9 @@ Q_SIGNALS:
     void savedSearchInfoRequested();
 
 private:
-    // AbstractMultiSelectionItemView interface
+    // AbstractNoteFilteringTreeView interface
     virtual void saveItemsState() override;
-    virtual void restoreItemsState(const ItemModel & model) override;
+    virtual void restoreItemsState(const AbstractItemModel & model) override;
 
     virtual QString selectedItemsGroupKey() const override;
     virtual QString selectedItemsArrayKey() const override;
@@ -57,10 +57,10 @@ private:
     virtual void removeItemLocalUidsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(ItemModel & model) override;
+    virtual void connectToModel(AbstractItemModel & model) override;
 
     virtual void deleteItem(
-        const QModelIndex & itemIndex, ItemModel & model) override;
+        const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
 private Q_SLOTS:
     void onAboutToAddSavedSearch();

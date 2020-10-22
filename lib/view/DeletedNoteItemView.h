@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_DELETED_NOTE_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_DELETED_NOTE_ITEM_VIEW_H
 
-#include "ItemView.h"
+#include "TreeView.h"
 
 #include <quentier/types/ErrorString.h>
 
@@ -30,7 +30,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 
-class DeletedNoteItemView : public ItemView
+class DeletedNoteItemView : public TreeView
 {
     Q_OBJECT
 public:

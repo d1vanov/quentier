@@ -45,7 +45,7 @@ NotebookModel::NotebookModel(
     const Account & account,
     LocalStorageManagerAsync & localStorageManagerAsync, NotebookCache & cache,
     QObject * parent) :
-    ItemModel(account, parent),
+    AbstractItemModel(account, parent),
     m_cache(cache)
 {
     createConnections(localStorageManagerAsync);
@@ -810,7 +810,7 @@ QString NotebookModel::itemNameForLocalUid(const QString & localUid) const
     return it->name();
 }
 
-ItemModel::ItemInfo NotebookModel::itemInfoForLocalUid(
+AbstractItemModel::ItemInfo NotebookModel::itemInfoForLocalUid(
     const QString & localUid) const
 {
     QNTRACE(
@@ -823,7 +823,7 @@ ItemModel::ItemInfo NotebookModel::itemInfoForLocalUid(
         return {};
     }
 
-    ItemModel::ItemInfo info;
+    AbstractItemModel::ItemInfo info;
     info.m_localUid = it->localUid();
     info.m_name = it->name();
     info.m_linkedNotebookGuid = it->linkedNotebookGuid();
@@ -869,8 +869,8 @@ QStringList NotebookModel::itemNames(const QString & linkedNotebookGuid) const
     return result;
 }
 
-QVector<ItemModel::LinkedNotebookInfo> NotebookModel::linkedNotebooksInfo()
-    const
+QVector<AbstractItemModel::LinkedNotebookInfo>
+NotebookModel::linkedNotebooksInfo() const
 {
     QVector<LinkedNotebookInfo> infos;
     infos.reserve(m_linkedNotebookItems.size());

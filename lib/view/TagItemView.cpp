@@ -57,7 +57,7 @@
 namespace quentier {
 
 TagItemView::TagItemView(QWidget * parent) :
-    AbstractMultiSelectionItemView(QStringLiteral("tag"), parent)
+    AbstractNoteFilteringTreeView(QStringLiteral("tag"), parent)
 {}
 
 void TagItemView::saveItemsState()
@@ -130,7 +130,7 @@ void TagItemView::saveItemsState()
     appSettings.endGroup();
 }
 
-void TagItemView::restoreItemsState(const ItemModel & model)
+void TagItemView::restoreItemsState(const AbstractItemModel & model)
 {
     QNDEBUG("view:tag", "TagItemView::restoreItemsState");
 
@@ -223,7 +223,7 @@ void TagItemView::removeItemLocalUidsFromNoteFiltersManager(
     noteFiltersManager.removeTagsFromFilter();
 }
 
-void TagItemView::connectToModel(ItemModel & model)
+void TagItemView::connectToModel(AbstractItemModel & model)
 {
     auto * pTagModel = qobject_cast<TagModel *>(&model);
     if (Q_UNLIKELY(!pTagModel)) {
@@ -257,7 +257,8 @@ void TagItemView::connectToModel(ItemModel & model)
         pTagModel, &TagModel::removedTags, this, &TagItemView::onRemovedTags);
 }
 
-void TagItemView::deleteItem(const QModelIndex & itemIndex, ItemModel & model)
+void TagItemView::deleteItem(
+    const QModelIndex & itemIndex, AbstractItemModel & model)
 {
     QNDEBUG("view:tag", "TagItemView::deleteItem");
 

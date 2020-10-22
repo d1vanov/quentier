@@ -91,6 +91,7 @@ Q_SIGNALS:
     void filterByNotebookOptionChanged(bool enabled);
     void filterByTagOptionChanged(bool enabled);
     void filterBySavedSearchOptionChanged(bool enabled);
+    void filterByFavoritedItemsOptionChanged(bool enabled);
 
 private Q_SLOTS:
     // System tray tab
@@ -125,6 +126,7 @@ private Q_SLOTS:
     void onFilterByNotebookCheckboxToggled(bool checked);
     void onFilterByTagCheckboxToggled(bool checked);
     void onFilterBySavedSearchCheckboxToggled(bool checked);
+    void onFilterByFavoritedItemsCheckboxToggled(bool checked);
 
     // Note editor tab
     void onNoteEditorUseLimitedFontsCheckboxToggled(bool checked);
@@ -167,17 +169,18 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) override;
 
 private:
-    void setupCurrentSettingsState(
+    void setupInitialPreferencesState(
         ActionsInfo & actionsInfo, ShortcutManager & shortcutManager);
 
-    void setupSystemTraySettings();
-    void setupStartAtLoginSettings();
-    void setupCheckForUpdatesSettings();
-    void setupFilteringSettings();
-    void setupRunSyncEachNumMinutesComboBox(int currentNumMinutes);
-    void setupAppearanceSettingsState(const ActionsInfo & actionsInfo);
-    void setupNetworkProxySettingsState();
-    void setupNoteEditorSettingsState();
+    void setupSystemTrayPreferences();
+    void setupStartAtLoginPreferences();
+    void setupCheckForUpdatesPreferences();
+    void setupFilteringPreferences();
+    void setupRunSyncPeriodicallyComboBox(int currentNumMinutes);
+    void setupAppearancePreferences(const ActionsInfo & actionsInfo);
+    void setupNetworkProxyPreferences();
+    void setupNoteEditorPreferences();
+
     void createConnections();
     void installEventFilters();
 

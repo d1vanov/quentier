@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class FavoritesModelItem final: public Printable
+class FavoritesModelItem final : public Printable
 {
 public:
     enum class Type

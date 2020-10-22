@@ -68,6 +68,11 @@ public:
     void setSavedSearchLocalUidToFilter(const QString & savedSearchLocalUid);
     void removeSavedSearchFromFilter();
 
+    void setItemsToFilter(
+        const QString & savedSearchLocalUid,
+        const QStringList & notebookLocalUids,
+        const QStringList & tagLocalUids);
+
     /**
      * @return              True if all filters have already been properly
      *                      initialized, false otherwise

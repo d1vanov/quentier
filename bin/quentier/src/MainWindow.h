@@ -20,9 +20,9 @@
 #define QUENTIER_MAINWINDOW_H
 
 #include <lib/account/AccountManager.h>
+#include <lib/model/favorites/FavoritesModel.h>
 #include <lib/model/note/NoteCache.h>
 #include <lib/model/note/NoteModel.h>
-#include <lib/model/favorites/FavoritesModel.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/model/saved_search/SavedSearchCache.h>
@@ -260,6 +260,7 @@ private Q_SLOTS:
     void onNoteSortingModeChanged(int index);
     void onNewNoteCreationRequested();
     void onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid);
+    void onFavoritedNoteSelected(QString noteLocalUid);
 
     /**
      * Toggle thumbnail preference on all notes (when noteLocalUid is empty)

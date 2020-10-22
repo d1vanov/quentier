@@ -5,9 +5,9 @@ SET_POLICIES()
 project(quentier_view)
 
 set(HEADERS
-    AbstractMultiSelectionItemView.h
+    AbstractNoteFilteringTreeView.h
     ItemSelectionModel.h
-    ItemView.h
+    TreeView.h
     DeletedNoteItemView.h
     FavoriteItemView.h
     NotebookItemView.h
@@ -16,9 +16,9 @@ set(HEADERS
     SavedSearchItemView.h)
 
 set(SOURCES
-    AbstractMultiSelectionItemView.cpp
+    AbstractNoteFilteringTreeView.cpp
     ItemSelectionModel.cpp
-    ItemView.cpp
+    TreeView.cpp
     DeletedNoteItemView.cpp
     FavoriteItemView.cpp
     NotebookItemView.cpp

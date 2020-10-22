@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_VIEW_NOTEBOOK_ITEM_VIEW_H
 #define QUENTIER_LIB_VIEW_NOTEBOOK_ITEM_VIEW_H
 
-#include "AbstractMultiSelectionItemView.h"
+#include "AbstractNoteFilteringTreeView.h"
 
 namespace quentier {
 
@@ -31,7 +31,7 @@ QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(StackItem)
 
-class NotebookItemView : public AbstractMultiSelectionItemView
+class NotebookItemView : public AbstractNoteFilteringTreeView
 {
     Q_OBJECT
 public:
@@ -44,9 +44,10 @@ Q_SIGNALS:
     void notebookInfoRequested();
 
 private:
-    // AbstractMultiSelectionItemView interface
+    // AbstractNoteFilteringTreeView interface
     virtual void saveItemsState() override;
-    virtual void restoreItemsState(const ItemModel & itemModel) override;
+    virtual void restoreItemsState(
+        const AbstractItemModel & itemModel) override;
 
     virtual QString selectedItemsGroupKey() const override;
     virtual QString selectedItemsArrayKey() const override;
@@ -65,10 +66,10 @@ private:
     virtual void removeItemLocalUidsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(ItemModel & itemModel) override;
+    virtual void connectToModel(AbstractItemModel & itemModel) override;
 
     virtual void deleteItem(
-        const QModelIndex & itemIndex, ItemModel & model) override;
+        const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
 private Q_SLOTS:
     void onAboutToAddNotebook();
