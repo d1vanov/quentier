@@ -21,6 +21,7 @@
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -71,7 +72,7 @@ void SavedSearchItemView::saveItemsState()
     }
 
     ApplicationSettings appSettings(
-        pSavedSearchModel->account(), QUENTIER_UI_SETTINGS);
+        pSavedSearchModel->account(), preferences::keys::files::userInterface);
 
     appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
 
@@ -96,7 +97,9 @@ void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
         return;
     }
 
-    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        model.account(), preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
 
     auto allSavedSearchesRootItemExpandedPreference =
@@ -137,7 +140,8 @@ QString SavedSearchItemView::selectedItemsKey() const
 bool SavedSearchItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
 

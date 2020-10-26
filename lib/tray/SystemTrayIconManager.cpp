@@ -21,6 +21,7 @@
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -132,8 +133,10 @@ void SystemTrayIconManager::setPreferenceCloseToSystemTray(bool value) const
     QNDEBUG(
         "preferences", "SystemTrayIconManager::setPreferenceCloseToSystemTray");
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
     appSettings.setValue(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY, value);
     appSettings.endGroup();
@@ -150,8 +153,10 @@ bool SystemTrayIconManager::getPreferenceCloseToSystemTray() const
     QNTRACE(
         "preferences", "SystemTrayIconManager::getPreferenceCloseToSystemTray");
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
     QVariant resultData = appSettings.value(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY);
     appSettings.endGroup();
@@ -214,8 +219,10 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
 
     bool result = DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
 
     QVariant resultData =
@@ -264,8 +271,10 @@ bool SystemTrayIconManager::shouldStartMinimizedToSystemTray() const
 
     bool result = DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY;
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
 
     QVariant resultData =
@@ -295,8 +304,10 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::singleClickTrayAction()
 {
     TrayAction action = DEFAULT_SINGLE_CLICK_TRAY_ACTION;
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
 
     QVariant actionData =
@@ -329,8 +340,10 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::middleClickTrayAction()
 {
     TrayAction action = DEFAULT_MIDDLE_CLICK_TRAY_ACTION;
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
 
     QVariant actionData =
@@ -362,8 +375,10 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::doubleClickTrayAction()
 {
     TrayAction action = DEFAULT_DOUBLE_CLICK_TRAY_ACTION;
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
 
     QVariant actionData =
@@ -443,8 +458,10 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
 
     TrayAction action = defaultAction;
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
     QVariant actionData = appSettings.value(settingKey);
     appSettings.endGroup();
@@ -651,8 +668,10 @@ void SystemTrayIconManager::onSwitchTrayIconContextMenuAction(bool checked)
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
     appSettings.setValue(SYSTEM_TRAY_ICON_KIND_KEY, pAction->data().toString());
     appSettings.endGroup();
@@ -714,8 +733,10 @@ void SystemTrayIconManager::setupSystemTrayIcon()
             &SystemTrayIconManager::onSystemTrayIconActivated);
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
 
     QString trayIconKind =
@@ -936,8 +957,10 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
 
     QString currentTrayIconKind = DEFAULT_TRAY_ICON_KIND;
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
 
     currentTrayIconKind =
@@ -1108,11 +1131,15 @@ void SystemTrayIconManager::persistTrayIconState()
 {
     QNDEBUG("tray", "SystemTrayIconManager::persistTrayIconState");
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+
     appSettings.setValue(
         SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY, QVariant(isShown()));
+
     appSettings.endGroup();
 }
 
@@ -1123,14 +1150,16 @@ void SystemTrayIconManager::restoreTrayIconState()
     if (!isSystemTrayAvailable()) {
         QNDEBUG(
             "tray",
-            "The system tray is not available, won't show "
-                << "the system tray icon");
+            "The system tray is not available, won't show the system tray "
+                << "icon");
         hide();
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
     appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
     QVariant data = appSettings.value(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY);
     appSettings.endGroup();

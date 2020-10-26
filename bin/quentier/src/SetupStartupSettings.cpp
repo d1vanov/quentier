@@ -21,6 +21,7 @@
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/utility/ApplicationSettings.h>
 
@@ -36,7 +37,10 @@ void setupStartupSettings()
     // Process disable native menu bar preference
     bool disableNativeMenuBar = false;
     if (!account.isEmpty()) {
-        ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+        ApplicationSettings appSettings(
+            account,
+            preferences::keys::files::userInterface);
+
         appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
 
         disableNativeMenuBar =

@@ -21,6 +21,7 @@
 
 #include <lib/model/common/AbstractItemModel.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -453,9 +454,10 @@ void AbstractNoteFilteringTreeView::saveSelectedItems(
     const QString arrayKey = selectedItemsArrayKey();
     const QString itemKey = selectedItemsKey();
 
-    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(groupKey);
+    ApplicationSettings appSettings(
+        account, preferences::keys::files::userInterface);
 
+    appSettings.beginGroup(groupKey);
     appSettings.beginWriteArray(arrayKey, itemLocalUids.size());
 
     int i = 0;
@@ -513,7 +515,9 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
         const QString arrayKey = selectedItemsArrayKey();
         const QString itemKey = selectedItemsKey();
 
-        ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+        ApplicationSettings appSettings(
+            model.account(), preferences::keys::files::userInterface);
+
         appSettings.beginGroup(groupKey);
 
         int size = appSettings.beginReadArray(arrayKey);

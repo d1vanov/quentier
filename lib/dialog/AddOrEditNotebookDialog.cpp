@@ -19,8 +19,8 @@
 #include "AddOrEditNotebookDialog.h"
 #include "ui_AddOrEditNotebookDialog.h"
 
-#include <lib/preferences/keys/Files.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -110,7 +110,8 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
     }
     else if (!stacks.isEmpty() && !m_pNotebookModel.isNull()) {
         ApplicationSettings appSettings(
-            m_pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+            m_pNotebookModel->account(),
+            preferences::keys::files::userInterface);
 
         appSettings.beginGroup(QStringLiteral("AddOrEditNotebookDialog"));
 
@@ -332,7 +333,7 @@ void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
     }
 
     ApplicationSettings appSettings(
-        m_pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+        m_pNotebookModel->account(), preferences::keys::files::userInterface);
 
     appSettings.beginGroup(QStringLiteral("AddOrEditNotebookDialog"));
     appSettings.setValue(LAST_SELECTED_STACK, stack);

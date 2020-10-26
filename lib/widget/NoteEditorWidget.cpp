@@ -31,6 +31,7 @@
 #include <lib/model/tag/TagModel.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 #include <lib/utility/BasicXMLSyntaxHighlighter.h>
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
@@ -472,7 +473,9 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         return false;
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
     QString lastExportNoteToPdfPath =
@@ -580,7 +583,9 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
 {
     QNDEBUG("widget:note_editor", "NoteEditorWidget::exportNoteToEnex");
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
     QString lastExportNoteToEnexPath =
@@ -3598,7 +3603,9 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 
 bool NoteEditorWidget::useLimitedSetOfFonts() const
 {
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
     bool useLimitedFonts = false;
@@ -3659,7 +3666,9 @@ void NoteEditorWidget::setupNoteEditorColors()
 
     QPalette pal;
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
 
     QString fontColorName =

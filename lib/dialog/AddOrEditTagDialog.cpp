@@ -21,6 +21,7 @@
 #include "ui_AddOrEditTagDialog.h"
 
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -67,7 +68,7 @@ AddOrEditTagDialog::AddOrEditTagDialog(
         m_pUi->parentTagNameComboBox->setCurrentIndex(parentTagNameIndex);
 
         ApplicationSettings appSettings(
-            m_pTagModel->account(), QUENTIER_UI_SETTINGS);
+            m_pTagModel->account(), preferences::keys::files::userInterface);
 
         appSettings.beginGroup(QStringLiteral("AddOrEditTagDialog"));
 
@@ -341,7 +342,7 @@ void AddOrEditTagDialog::onParentTagNameChanged(const QString & parentTagName)
     }
 
     ApplicationSettings appSettings(
-        m_pTagModel->account(), QUENTIER_UI_SETTINGS);
+        m_pTagModel->account(), preferences::keys::files::userInterface);
 
     appSettings.beginGroup(QStringLiteral("AddOrEditTagDialog"));
     appSettings.setValue(LAST_SELECTED_PARENT_TAG_NAME_KEY, parentTagName);

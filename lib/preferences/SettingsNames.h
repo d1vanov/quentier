@@ -21,11 +21,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// The names of different .ini files containing the settings
-#define QUENTIER_UI_SETTINGS        QStringLiteral("UserInterface")
-
-////////////////////////////////////////////////////////////////////////////////
-
 // Start automatically at login settings keys
 #define START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME                       \
     QStringLiteral("StartAutomaticallyAtLogin")

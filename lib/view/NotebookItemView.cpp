@@ -24,6 +24,7 @@
 #include <lib/model/note/NoteModel.h>
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -175,7 +176,7 @@ void NotebookItemView::saveItemsState()
     }
 
     ApplicationSettings appSettings(
-        pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+        pNotebookModel->account(), preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTEBOOK_ITEM_VIEW_GROUP_KEY);
 
@@ -225,7 +226,9 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
     const auto & linkedNotebookOwnerNamesByGuid =
         pNotebookModel->linkedNotebookOwnerNamesByGuid();
 
-    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        model.account(), preferences::keys::files::userInterface);
+
     appSettings.beginGroup(NOTEBOOK_ITEM_VIEW_GROUP_KEY);
 
     auto expandedStacks =
@@ -305,7 +308,8 @@ QString NotebookItemView::selectedItemsKey() const
 bool NotebookItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
 
@@ -756,7 +760,7 @@ void NotebookItemView::onNotebookStackRenamed(
     }
 
     ApplicationSettings appSettings(
-        pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+        pNotebookModel->account(), preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTEBOOK_ITEM_VIEW_GROUP_KEY);
     QString key = LAST_EXPANDED_STACK_ITEMS_KEY;

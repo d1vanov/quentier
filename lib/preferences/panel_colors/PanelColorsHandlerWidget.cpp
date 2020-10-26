@@ -22,6 +22,8 @@
 
 #include "../SettingsNames.h"
 
+#include <lib/preferences/keys/Files.h>
+
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -690,7 +692,9 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         return;
     }
 
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
 
     ApplicationSettings::GroupCloser groupCloser(settings);
@@ -1134,7 +1138,9 @@ QColor PanelColorsHandlerWidget::backgroundGradientBaseColor()
 
 bool PanelColorsHandlerWidget::useBackgroundGradient()
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
 
     bool useBackgroundGradient =
@@ -1149,7 +1155,9 @@ bool PanelColorsHandlerWidget::useBackgroundGradient()
 QColor PanelColorsHandlerWidget::colorFromSettingsImpl(
     const QString & settingName, Qt::GlobalColor defaultColor)
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
     QString colorName = settings.value(settingName).toString();
     settings.endGroup();
@@ -1231,7 +1239,9 @@ void PanelColorsHandlerWidget::saveUseBackgroundGradientSetting(
 void PanelColorsHandlerWidget::saveSettingImpl(
     const QVariant & value, const QString & settingName)
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
     settings.setValue(settingName, value);
     settings.endGroup();
@@ -1240,7 +1250,9 @@ void PanelColorsHandlerWidget::saveSettingImpl(
 
 void PanelColorsHandlerWidget::saveBackgroundGradientLinesToSettings()
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
     settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
 
     settings.beginWriteArray(

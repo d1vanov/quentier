@@ -24,6 +24,7 @@
 
 #include <lib/model/common/AbstractItemModel.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -170,7 +171,9 @@ QStringList AbstractFilterByModelItemWidget::localUidsOfItemsInFilter() const
             return result;
         }
 
-        ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+        ApplicationSettings appSettings(
+            m_account, preferences::keys::files::userInterface);
+
         appSettings.beginGroup(m_name + QStringLiteral("Filter"));
         result = appSettings.value(LAST_FILTERED_ITEMS_KEY).toStringList();
         appSettings.endGroup();
@@ -536,7 +539,9 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
         return;
     }
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));
 
     QStringList filteredItemsLocalUids;
@@ -580,7 +585,9 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
         return;
     }
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));
 
     QStringList itemLocalUids =

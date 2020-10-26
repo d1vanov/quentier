@@ -20,6 +20,7 @@
 
 #include <lib/model/favorites/FavoritesModel.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -136,7 +137,8 @@ QString FavoriteItemView::selectedItemsKey() const
 bool FavoriteItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
 
