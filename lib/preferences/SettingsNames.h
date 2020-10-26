@@ -23,8 +23,6 @@
 
 // The names of different .ini files containing the settings
 #define QUENTIER_UI_SETTINGS        QStringLiteral("UserInterface")
-#define QUENTIER_AUXILIARY_SETTINGS QStringLiteral("Auxiliary")
-#define QUENTIER_SYNC_SETTINGS      QStringLiteral("Synchronization")
 
 ////////////////////////////////////////////////////////////////////////////////
 

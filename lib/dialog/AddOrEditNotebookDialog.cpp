@@ -19,6 +19,7 @@
 #include "AddOrEditNotebookDialog.h"
 #include "ui_AddOrEditNotebookDialog.h"
 
+#include <lib/preferences/keys/Files.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>

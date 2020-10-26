@@ -20,6 +20,7 @@
 #include "ui_EnexImportDialog.h"
 
 #include <lib/model/notebook/NotebookModel.h>
+#include <lib/preferences/keys/Files.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -133,7 +134,7 @@ void EnexImportDialog::onBrowsePushButtonClicked()
     QNDEBUG("enex", "EnexImportDialog::onBrowsePushButtonClicked");
 
     ApplicationSettings appSettings(
-        m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+        m_currentAccount, preferences::keys::files::auxiliary);
 
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
 
@@ -304,7 +305,7 @@ void EnexImportDialog::accept()
     QString notebookName = m_pUi->notebookNameComboBox->currentText();
 
     ApplicationSettings appSettings(
-        m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+        m_currentAccount, preferences::keys::files::auxiliary);
 
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
 
@@ -377,7 +378,7 @@ void EnexImportDialog::fillDialogContents()
     QNDEBUG("enex", "EnexImportDialog::fillDialogContents");
 
     ApplicationSettings appSettings(
-        m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+        m_currentAccount, preferences::keys::files::auxiliary);
 
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
 

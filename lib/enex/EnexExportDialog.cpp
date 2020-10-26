@@ -19,6 +19,7 @@
 #include "EnexExportDialog.h"
 #include "ui_EnexExportDialog.h"
 
+#include <lib/preferences/keys/Files.h>
 #include <lib/preferences/SettingsNames.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -42,7 +43,8 @@ EnexExportDialog::EnexExportDialog(
     m_pUi->setupUi(this);
 
     ApplicationSettings appSettings(
-        m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+        m_currentAccount, preferences::keys::files::auxiliary);
+
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
 
     QString lastEnexExportPath =
@@ -152,7 +154,7 @@ void EnexExportDialog::onExportTagsOptionChanged(int state)
     bool checked = (state == Qt::Checked);
 
     ApplicationSettings appSettings(
-        m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+        m_currentAccount, preferences::keys::files::auxiliary);
 
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
 
@@ -274,7 +276,7 @@ void EnexExportDialog::persistExportFolderSetting()
             << path << ", converted path: " << convertedPath);
 
     ApplicationSettings appSettings(
-        m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+        m_currentAccount, preferences::keys::files::auxiliary);
 
     appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
 

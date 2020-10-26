@@ -21,6 +21,7 @@
 #include "DefaultDisableNativeMenuBar.h"
 #include "DefaultSettings.h"
 #include "SettingsNames.h"
+#include "keys/Files.h"
 
 #include "panel_colors/PanelColorsHandlerWidget.h"
 using quentier::PanelColorsHandlerWidget;
@@ -883,8 +884,10 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
         "PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::synchronization);
+
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
     appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS, checked);
     appSettings.endGroup();
@@ -899,8 +902,10 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
         "PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::synchronization);
+
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
     appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES, checked);
     appSettings.endGroup();
@@ -935,8 +940,10 @@ void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(int index)
         break;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings syncSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
+    ApplicationSettings syncSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::synchronization);
+
     syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
 
     syncSettings.setValue(
@@ -1097,7 +1104,7 @@ void PreferencesDialog::setupInitialPreferencesState(
     }
     else {
         ApplicationSettings syncSettings(
-            currentAccount, QUENTIER_SYNC_SETTINGS);
+            currentAccount, preferences::keys::files::synchronization);
 
         syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
 

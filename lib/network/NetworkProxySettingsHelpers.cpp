@@ -19,6 +19,7 @@
 #include "NetworkProxySettingsHelpers.h"
 
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Account.h>
@@ -58,8 +59,8 @@ void parseNetworkProxySettings(
             "parseNetworkProxySettings: using account-specific "
                 << "settings");
 
-        pSyncSettings.reset(
-            new ApplicationSettings(currentAccount, QUENTIER_SYNC_SETTINGS));
+        pSyncSettings.reset(new ApplicationSettings(
+            currentAccount, preferences::keys::files::synchronization));
     }
 
     pSyncSettings->beginGroup(SYNCHRONIZATION_NETWORK_PROXY_SETTINGS);
@@ -222,8 +223,8 @@ void persistNetworkProxySettingsForAccount(
     else {
         QNDEBUG("network", "Persisting account-specific settings");
 
-        pSyncSettings.reset(
-            new ApplicationSettings(account, QUENTIER_SYNC_SETTINGS));
+        pSyncSettings.reset(new ApplicationSettings(
+            account, preferences::keys::files::synchronization));
     }
 
     pSyncSettings->beginGroup(SYNCHRONIZATION_NETWORK_PROXY_SETTINGS);

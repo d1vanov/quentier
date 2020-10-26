@@ -48,6 +48,7 @@
 #include <lib/preferences/PreferencesDialog.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/UpdateSettings.h>
+#include <lib/preferences/keys/Files.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
@@ -6229,7 +6230,9 @@ void MainWindow::setSynchronizationOptions(const Account & account)
         return;
     }
 
-    ApplicationSettings appSettings(account, QUENTIER_SYNC_SETTINGS);
+    ApplicationSettings appSettings(
+        account, preferences::keys::files::synchronization);
+
     appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
 
     bool downloadNoteThumbnailsOption =
@@ -6300,7 +6303,9 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
         return;
     }
 
-    ApplicationSettings syncSettings(*m_pAccount, QUENTIER_SYNC_SETTINGS);
+    ApplicationSettings syncSettings(
+        *m_pAccount, preferences::keys::files::synchronization);
+
     syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
 
     int runSyncEachNumMinutes = -1;
