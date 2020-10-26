@@ -20,6 +20,7 @@
 
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/StartAtLogin.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -31,13 +32,13 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
     QNDEBUG("utility", "isQuentierSetToStartAtLogin");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::startAtLoginGroup);
 
     bool shouldStartAutomaticallyAtLogin =
-        appSettings.value(SHOULD_START_AUTOMATICALLY_AT_LOGIN).toBool();
+        appSettings.value(preferences::keys::shouldStartAtLogin).toBool();
 
     auto startAutomaticallyAtLoginOptionData =
-        appSettings.value(START_AUTOMATICALLY_AT_LOGIN_OPTION);
+        appSettings.value(preferences::keys::startAtLoginOption);
 
     appSettings.endGroup();
 

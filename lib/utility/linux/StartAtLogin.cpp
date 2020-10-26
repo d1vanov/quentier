@@ -19,6 +19,7 @@
 #include "../StartAtLogin.h"
 
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/StartAtLogin.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -60,11 +61,8 @@ bool setStartQuentierAtLoginOption(
     // If the app shouldn't start at login, that should be all
     if (!shouldStartAtLogin) {
         ApplicationSettings appSettings;
-
-        appSettings.beginGroup(
-            START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
-
-        appSettings.setValue(SHOULD_START_AUTOMATICALLY_AT_LOGIN, false);
+        appSettings.beginGroup(preferences::keys::startAtLoginGroup);
+        appSettings.setValue(preferences::keys::shouldStartAtLogin, false);
         appSettings.endGroup();
         return true;
     }
@@ -133,9 +131,9 @@ bool setStartQuentierAtLoginOption(
     autoStartDesktopFile.close();
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOULD_START_AUTOMATICALLY_AT_LOGIN, true);
-    appSettings.setValue(START_AUTOMATICALLY_AT_LOGIN_OPTION, option);
+    appSettings.beginGroup(preferences::keys::startAtLoginGroup);
+    appSettings.setValue(preferences::keys::shouldStartAtLogin, true);
+    appSettings.setValue(preferences::keys::startAtLoginOption, option);
     appSettings.endGroup();
 
     return true;

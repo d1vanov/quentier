@@ -21,18 +21,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Start automatically at login settings keys
-#define START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME                       \
-    QStringLiteral("StartAutomaticallyAtLogin")
-
-#define SHOULD_START_AUTOMATICALLY_AT_LOGIN                                    \
-    QStringLiteral("ShouldStartAutomaticallyAtLogin")
-
-#define START_AUTOMATICALLY_AT_LOGIN_OPTION                                    \
-    QStringLiteral("StartAutomaticallyAtLoginOption")
-
-////////////////////////////////////////////////////////////////////////////////
-
 // Check for updates related settings keys
 #define CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME QStringLiteral("CheckForUpdates")
 
