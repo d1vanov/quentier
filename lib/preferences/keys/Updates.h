@@ -52,11 +52,6 @@ constexpr const char * checkForUpdatesProvider = "CheckForUpdatesProvider";
 // unstable, etc.
 constexpr const char * checkForUpdatesChannel = "CheckForUpdatesChannel";
 
-// Name of technical preference (not really a preference but a value persisted
-// alongside preferences) containing the timestamp of the last check for updates
-constexpr const char * lastCheckForUpdatesTimestamp =
-    "LastCheckForUpdatesTimestamp";
-
 } // keys
 } // preferences
 } // namespace quentier

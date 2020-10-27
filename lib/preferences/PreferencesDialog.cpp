@@ -22,6 +22,9 @@
 #include "DefaultSettings.h"
 #include "SettingsNames.h"
 #include "keys/Files.h"
+#include "keys/NoteEditor.h"
+#include "keys/SystemTray.h"
+#include "keys/Updates.h"
 
 #include "panel_colors/PanelColorsHandlerWidget.h"
 using quentier::PanelColorsHandlerWidget;
@@ -107,8 +110,8 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::showSystemTrayIcon, checked);
     appSettings.endGroup();
 
     // Change the enabled/disabled status of all the tray actions but the one
@@ -149,8 +152,8 @@ void PreferencesDialog::onCloseToSystemTrayCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::closeToSystemTray, checked);
     appSettings.endGroup();
 }
 
@@ -173,8 +176,8 @@ void PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::minimizeToSystemTray, checked);
     appSettings.endGroup();
 }
 
@@ -198,8 +201,9 @@ void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(
+        preferences::keys::startMinimizedToSystemTray, checked);
     appSettings.endGroup();
 }
 
@@ -221,8 +225,8 @@ void PreferencesDialog::onSingleClickTrayActionChanged(int action)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SINGLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::singleClickTrayAction, action);
     appSettings.endGroup();
 }
 
@@ -244,8 +248,8 @@ void PreferencesDialog::onMiddleClickTrayActionChanged(int action)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(MIDDLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::middleClickTrayAction, action);
     appSettings.endGroup();
 }
 
@@ -267,8 +271,8 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::doubleClickTrayAction, action);
     appSettings.endGroup();
 }
 
@@ -399,8 +403,8 @@ void PreferencesDialog::onCheckForUpdatesCheckboxToggled(bool checked)
             << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdates, checked);
     appSettings.endGroup();
 
     Q_EMIT checkForUpdatesOptionChanged(checked);
@@ -414,8 +418,8 @@ void PreferencesDialog::onCheckForUpdatesOnStartupCheckboxToggled(bool checked)
             << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesOnStartup, checked);
     appSettings.endGroup();
 
     Q_EMIT checkForUpdatesOnStartupOptionChanged(checked);
@@ -430,8 +434,11 @@ void PreferencesDialog::onUseContinuousUpdateChannelCheckboxToggled(
             << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+
+    appSettings.setValue(
+        preferences::keys::useContinuousUpdateChannel, checked);
+
     appSettings.endGroup();
 
     Q_EMIT useContinuousUpdateChannelOptionChanged(checked);
@@ -448,8 +455,8 @@ void PreferencesDialog::onCheckForUpdatesIntervalChanged(int option)
             << option << ", msec = " << msec);
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY, msec);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesInterval, msec);
     appSettings.endGroup();
 
     Q_EMIT checkForUpdatesIntervalChanged(msec);
@@ -464,8 +471,8 @@ void PreferencesDialog::onUpdateChannelChanged(int index)
         (index == 0) ? QStringLiteral("master") : QStringLiteral("development");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_CHANNEL_KEY, channel);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesChannel, channel);
     appSettings.endGroup();
 
     Q_EMIT updateChannelChanged(channel);
@@ -480,8 +487,8 @@ void PreferencesDialog::onUpdateProviderChanged(int index)
         "PreferencesDialog::onUpdateProviderChanged: " << provider);
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY, index);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesProvider, index);
     appSettings.endGroup();
 
     bool usingGitHubProvider = (provider == UpdateProvider::GITHUB);
@@ -578,8 +585,9 @@ void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, checked);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    appSettings.setValue(
+        preferences::keys::noteEditorUseLimitedSetOfFonts, checked);
     appSettings.endGroup();
 
     Q_EMIT noteEditorUseLimitedFontsOptionChanged(checked);
@@ -597,7 +605,7 @@ void PreferencesDialog::onNoteEditorFontColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorFontColor,
         *m_pUi->noteEditorFontColorLineEdit,
         *m_pUi->noteEditorFontColorDemoFrame);
 
@@ -666,7 +674,7 @@ void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorBackgroundColor,
         *m_pUi->noteEditorBackgroundColorLineEdit,
         *m_pUi->noteEditorBackgroundColorDemoFrame);
 
@@ -737,7 +745,7 @@ void PreferencesDialog::onNoteEditorHighlightColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorHighlightColor,
         *m_pUi->noteEditorHighlightColorLineEdit,
         *m_pUi->noteEditorHighlightColorDemoFrame);
 
@@ -807,7 +815,7 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorHighlightedTextColor,
         *m_pUi->noteEditorHighlightedTextColorLineEdit,
         *m_pUi->noteEditorHighlightedTextColorDemoFrame);
 
@@ -876,11 +884,11 @@ void PreferencesDialog::onNoteEditorColorsReset()
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.remove(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
-    appSettings.remove(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
-    appSettings.remove(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
-    appSettings.remove(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    appSettings.remove(preferences::keys::noteEditorFontColor);
+    appSettings.remove(preferences::keys::noteEditorBackgroundColor);
+    appSettings.remove(preferences::keys::noteEditorHighlightColor);
+    appSettings.remove(preferences::keys::noteEditorHighlightedTextColor);
     appSettings.endGroup();
 
     QPalette pal = palette();
@@ -1245,12 +1253,12 @@ void PreferencesDialog::setupSystemTrayPreferences()
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
 
     bool shouldShowSystemTrayIcon = DEFAULT_SHOW_SYSTEM_TRAY_ICON;
 
     QVariant shouldShowSystemTrayIconData =
-        appSettings.value(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY);
+        appSettings.value(preferences::keys::showSystemTrayIcon);
 
     if (shouldShowSystemTrayIconData.isValid()) {
         shouldShowSystemTrayIcon = shouldShowSystemTrayIconData.toBool();
@@ -1259,7 +1267,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
     bool shouldCloseToTray = DEFAULT_CLOSE_TO_SYSTEM_TRAY;
 
     QVariant shouldCloseToTrayData =
-        appSettings.value(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+        appSettings.value(preferences::keys::closeToSystemTray);
 
     if (shouldCloseToTrayData.isValid()) {
         shouldCloseToTray = shouldCloseToTrayData.toBool();
@@ -1268,7 +1276,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
     bool shouldMinimizeToTray = DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
 
     QVariant shouldMinimizeToTrayData =
-        appSettings.value(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+        appSettings.value(preferences::keys::minimizeToSystemTray);
 
     if (shouldMinimizeToTrayData.isValid()) {
         shouldMinimizeToTray = shouldMinimizeToTrayData.toBool();
@@ -1277,7 +1285,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
     bool shouldStartMinimizedToTray = DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY;
 
     QVariant shouldStartMinimizedToTrayData =
-        appSettings.value(START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY);
+        appSettings.value(preferences::keys::startMinimizedToSystemTray);
 
     if (shouldStartMinimizedToTrayData.isValid()) {
         shouldStartMinimizedToTray = shouldStartMinimizedToTrayData.toBool();
@@ -1723,20 +1731,26 @@ void PreferencesDialog::setupNoteEditorPreferences()
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+
+    bool useLimitedFonts =
+        appSettings.value(preferences::keys::noteEditorUseLimitedSetOfFonts)
+            .toBool();
 
     QString fontColorCode =
-        appSettings.value(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorFontColor).toString();
 
     QString backgroundColorCode =
-        appSettings.value(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorBackgroundColor)
+            .toString();
 
     QString highlightColorCode =
-        appSettings.value(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorHighlightColor)
+            .toString();
 
     QString highlightedTextColorCode =
-        appSettings.value(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorHighlightedTextColor)
+            .toString();
 
     appSettings.endGroup();
 
@@ -2153,7 +2167,7 @@ void PreferencesDialog::checkAndSetNetworkProxy()
 }
 
 bool PreferencesDialog::onNoteEditorColorEnteredImpl(
-    const QColor & color, const QColor & prevColor, const QString & settingKey,
+    const QColor & color, const QColor & prevColor, const char * key,
     QLineEdit & colorLineEdit, QFrame & demoFrame)
 {
     if (!color.isValid()) {
@@ -2167,7 +2181,7 @@ bool PreferencesDialog::onNoteEditorColorEnteredImpl(
     }
 
     setNoteEditorColorToDemoFrameImpl(color, demoFrame);
-    saveNoteEditorColorImpl(color, settingKey);
+    saveNoteEditorColorImpl(color, key);
     return true;
 }
 
@@ -2208,7 +2222,7 @@ void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(
 
 QColor PreferencesDialog::noteEditorFontColor() const
 {
-    QColor color = noteEditorColorImpl(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
+    QColor color = noteEditorColorImpl(preferences::keys::noteEditorFontColor);
     if (color.isValid()) {
         return color;
     }
@@ -2219,7 +2233,7 @@ QColor PreferencesDialog::noteEditorFontColor() const
 QColor PreferencesDialog::noteEditorBackgroundColor() const
 {
     QColor color =
-        noteEditorColorImpl(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
+        noteEditorColorImpl(preferences::keys::noteEditorBackgroundColor);
 
     if (color.isValid()) {
         return color;
@@ -2231,7 +2245,7 @@ QColor PreferencesDialog::noteEditorBackgroundColor() const
 QColor PreferencesDialog::noteEditorHighlightColor() const
 {
     QColor color =
-        noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
+        noteEditorColorImpl(preferences::keys::noteEditorHighlightColor);
 
     if (color.isValid()) {
         return color;
@@ -2243,7 +2257,7 @@ QColor PreferencesDialog::noteEditorHighlightColor() const
 QColor PreferencesDialog::noteEditorHighlightedTextColor() const
 {
     QColor color =
-        noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+        noteEditorColorImpl(preferences::keys::noteEditorHighlightedTextColor);
 
     if (color.isValid()) {
         return color;
@@ -2252,14 +2266,14 @@ QColor PreferencesDialog::noteEditorHighlightedTextColor() const
     return palette().color(QPalette::HighlightedText);
 }
 
-QColor PreferencesDialog::noteEditorColorImpl(const QString & settingKey) const
+QColor PreferencesDialog::noteEditorColorImpl(const char * key) const
 {
     ApplicationSettings appSettings(
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    QColor color(appSettings.value(settingKey).toString());
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    QColor color(appSettings.value(key).toString());
     appSettings.endGroup();
 
     return color;
@@ -2271,7 +2285,7 @@ void PreferencesDialog::saveNoteEditorFontColor(const QColor & color)
         "preferences",
         "PreferencesDialog::saveNoteEditorFontColor: " << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
+    saveNoteEditorColorImpl(color, preferences::keys::noteEditorFontColor);
 }
 
 void PreferencesDialog::saveNoteEditorBackgroundColor(const QColor & color)
@@ -2280,7 +2294,8 @@ void PreferencesDialog::saveNoteEditorBackgroundColor(const QColor & color)
         "preferences",
         "PreferencesDialog::saveNoteEditorBackgroundColor: " << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
+    saveNoteEditorColorImpl(
+        color, preferences::keys::noteEditorBackgroundColor);
 }
 
 void PreferencesDialog::saveNoteEditorHighlightColor(const QColor & color)
@@ -2289,7 +2304,7 @@ void PreferencesDialog::saveNoteEditorHighlightColor(const QColor & color)
         "preferences",
         "PreferencesDialog::saveNoteEditorHighlightColor: " << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
+    saveNoteEditorColorImpl(color, preferences::keys::noteEditorHighlightColor);
 }
 
 void PreferencesDialog::saveNoteEditorHighlightedTextColor(const QColor & color)
@@ -2299,18 +2314,19 @@ void PreferencesDialog::saveNoteEditorHighlightedTextColor(const QColor & color)
         "PreferencesDialog::saveNoteEditorHighlightedTextColor: "
             << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+    saveNoteEditorColorImpl(
+        color, preferences::keys::noteEditorHighlightedTextColor);
 }
 
 void PreferencesDialog::saveNoteEditorColorImpl(
-    const QColor & color, const QString & settingKey)
+    const QColor & color, const char * key)
 {
     ApplicationSettings appSettings(
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.setValue(settingKey, color.name());
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    appSettings.setValue(key, color.name());
     appSettings.endGroup();
 }
 

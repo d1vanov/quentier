@@ -188,7 +188,7 @@ private:
 
     bool onNoteEditorColorEnteredImpl(
         const QColor & color, const QColor & prevColor,
-        const QString & settingKey, QLineEdit & colorLineEdit,
+        const char * key, QLineEdit & colorLineEdit,
         QFrame & demoFrame);
 
     void setNoteEditorFontColorToDemoFrame(const QColor & color);
@@ -203,15 +203,14 @@ private:
     QColor noteEditorBackgroundColor() const;
     QColor noteEditorHighlightColor() const;
     QColor noteEditorHighlightedTextColor() const;
-    QColor noteEditorColorImpl(const QString & settingKey) const;
+    QColor noteEditorColorImpl(const char * key) const;
 
     void saveNoteEditorFontColor(const QColor & color);
     void saveNoteEditorBackgroundColor(const QColor & color);
     void saveNoteEditorHighlightColor(const QColor & color);
     void saveNoteEditorHighlightedTextColor(const QColor & color);
 
-    void saveNoteEditorColorImpl(
-        const QColor & color, const QString & settingKey);
+    void saveNoteEditorColorImpl(const QColor & color, const char * key);
 
 private:
     Ui::PreferencesDialog * m_pUi;

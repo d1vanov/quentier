@@ -24,6 +24,7 @@
 
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/SystemTray.h>
 #include <lib/utility/HumanReadableVersionInfo.h>
 #include <lib/utility/Log.h>
 
@@ -346,7 +347,7 @@ bool processOverrideSystemTrayAvailabilityCommandLineOption(
         bool value = it.value().toBool();
 
         qputenv(
-            OVERRIDE_SYSTEM_TRAY_AVAILABILITY_ENV_VAR,
+            preferences::keys::overrideSystemTrayAvailabilityEnvVar,
             (value ? QByteArray("1") : QByteArray("0")));
     }
 

@@ -20,6 +20,7 @@
 
 #include "DefaultSettings.h"
 #include "SettingsNames.h"
+#include "keys/Updates.h"
 
 #include <lib/utility/VersionInfo.h>
 
@@ -40,26 +41,26 @@ void readPersistentUpdateSettings(
     UpdateProvider & updateProvider)
 {
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
 
     checkForUpdatesEnabled = appSettings.value(
-        CHECK_FOR_UPDATES_SETTINGS_KEY,
+        preferences::keys::checkForUpdates,
         DEFAULT_CHECK_FOR_UPDATES).toBool();
 
     shouldCheckForUpdatesOnStartup = appSettings.value(
-        CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY,
+        preferences::keys::checkForUpdatesOnStartup,
         DEFAULT_CHECK_FOR_UPDATES_ON_STARTUP).toBool();
 
     useContinuousUpdateChannel = appSettings.value(
-        USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY,
+        preferences::keys::useContinuousUpdateChannel,
         DEFAULT_USE_CONTINUOUS_UPDATE_CHANNEL).toBool();
 
     checkForUpdatesIntervalOption = appSettings.value(
-        CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY,
+        preferences::keys::checkForUpdatesInterval,
         DEFAULT_CHECK_FOR_UPDATES_INTERVAL_OPTION_INDEX).toInt();
 
     updateChannel = appSettings.value(
-        CHECK_FOR_UPDATES_CHANNEL_KEY,
+        preferences::keys::checkForUpdatesChannel,
         DEFAULT_UPDATE_CHANNEL).toString();
 
 #if !QUENTIER_PACKAGED_AS_APP_IMAGE
@@ -67,7 +68,7 @@ void readPersistentUpdateSettings(
     updateProvider = UpdateProvider::GITHUB;
 #else
     int updateProviderIndex = appSettings.value(
-        CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY,
+        preferences::keys::checkForUpdatesProvider,
         static_cast<int>(DEFAULT_UPDATE_PROVIDER)).toInt();
 
     if (updateProviderIndex >= 0 && updateProviderIndex <= 1) {

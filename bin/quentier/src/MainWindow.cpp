@@ -49,6 +49,7 @@
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/UpdateSettings.h>
 #include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/NoteEditor.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
@@ -3073,7 +3074,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QString lastExportNoteToEnexPath =
         appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY)

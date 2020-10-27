@@ -32,6 +32,7 @@
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/NoteEditor.h>
 #include <lib/utility/BasicXMLSyntaxHighlighter.h>
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
@@ -308,10 +309,10 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
 
     if (noteContentModified || noteTitleUpdated) {
         ApplicationSettings appSettings;
-        appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+        appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
-        QVariant editorConvertToNoteTimeoutData =
-            appSettings.value(CONVERT_TO_NOTE_TIMEOUT_SETTINGS_KEY);
+        QVariant editorConvertToNoteTimeoutData = appSettings.value(
+            preferences::keys::noteEditorConvertToNoteTimeout);
 
         appSettings.endGroup();
 
@@ -476,10 +477,11 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QString lastExportNoteToPdfPath =
-        appSettings.value(LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::lastExportNoteToPdfPath)
+            .toString();
 
     appSettings.endGroup();
 
@@ -558,10 +560,10 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
 
         lastExportNoteToPdfPath = selectedFileInfo.absolutePath();
         if (!lastExportNoteToPdfPath.isEmpty()) {
-            appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+            appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
             appSettings.setValue(
-                LAST_EXPORT_NOTE_TO_PDF_PATH_SETTINGS_KEY,
+                preferences::keys::lastExportNoteToPdfPath,
                 lastExportNoteToPdfPath);
 
             appSettings.endGroup();
@@ -586,7 +588,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QString lastExportNoteToEnexPath =
         appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY)
@@ -3606,11 +3608,15 @@ bool NoteEditorWidget::useLimitedSetOfFonts() const
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     bool useLimitedFonts = false;
-    if (appSettings.contains(USE_LIMITED_SET_OF_FONTS)) {
-        useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+    if (appSettings.contains(preferences::keys::noteEditorUseLimitedSetOfFonts))
+    {
+        useLimitedFonts =
+            appSettings.value(preferences::keys::noteEditorUseLimitedSetOfFonts)
+                .toBool();
+
         QNDEBUG(
             "widget:note_editor",
             "Use limited fonts preference: "
@@ -3669,10 +3675,10 @@ void NoteEditorWidget::setupNoteEditorColors()
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QString fontColorName =
-        appSettings.value(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorFontColor).toString();
 
     QColor fontColor(fontColorName);
     if (fontColor.isValid()) {
@@ -3680,7 +3686,8 @@ void NoteEditorWidget::setupNoteEditorColors()
     }
 
     QString backgroundColorName =
-        appSettings.value(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorBackgroundColor)
+            .toString();
 
     QColor backgroundColor(backgroundColorName);
     if (backgroundColor.isValid()) {
@@ -3688,7 +3695,8 @@ void NoteEditorWidget::setupNoteEditorColors()
     }
 
     QString highlightColorName =
-        appSettings.value(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorHighlightColor)
+            .toString();
 
     QColor highlightColor(highlightColorName);
     if (highlightColor.isValid()) {
@@ -3696,7 +3704,8 @@ void NoteEditorWidget::setupNoteEditorColors()
     }
 
     QString highlightedTextColorName =
-        appSettings.value(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorHighlightedTextColor)
+            .toString();
 
     QColor highlightedTextColor(highlightedTextColorName);
     if (highlightedTextColor.isValid()) {
