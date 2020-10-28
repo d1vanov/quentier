@@ -19,8 +19,9 @@
 #include "EnexExportDialog.h"
 #include "ui_EnexExportDialog.h"
 
-#include <lib/preferences/keys/Files.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Enex.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -45,16 +46,17 @@ EnexExportDialog::EnexExportDialog(
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::auxiliary);
 
-    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
     QString lastEnexExportPath =
-        appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY)
+        appSettings.value(preferences::keys::lastExportNotesToEnexPath)
             .toString();
 
     bool exportTags =
-        (appSettings.contains(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY)
+        (appSettings.contains(
+             preferences::keys::lastExportNotesToEnexExportTags)
              ? appSettings
-                   .value(LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY)
+                   .value(preferences::keys::lastExportNotesToEnexExportTags)
                    .toBool()
              : true);
 
@@ -156,10 +158,10 @@ void EnexExportDialog::onExportTagsOptionChanged(int state)
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::auxiliary);
 
-    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
     appSettings.setValue(
-        LAST_EXPORT_NOTE_TO_ENEX_EXPORT_TAGS_SETTINGS_KEY, checked);
+        preferences::keys::lastExportNotesToEnexExportTags, checked);
 
     appSettings.endGroup();
 
@@ -278,10 +280,10 @@ void EnexExportDialog::persistExportFolderSetting()
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::auxiliary);
 
-    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
     appSettings.setValue(
-        LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY, convertedPath);
+        preferences::keys::lastExportNotesToEnexPath, convertedPath);
 
     appSettings.endGroup();
 }

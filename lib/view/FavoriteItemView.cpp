@@ -21,6 +21,7 @@
 #include <lib/model/favorites/FavoritesModel.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/SidePanelsFiltering.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -140,10 +141,10 @@ bool FavoriteItemView::shouldFilterBySelectedItems(
     ApplicationSettings appSettings(
         account, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
-    const auto filterBySelectedFavoritedItem =
-        appSettings.value(FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY);
+    const auto filterBySelectedFavoritedItem = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedFavoritedItems);
 
     appSettings.endGroup();
 

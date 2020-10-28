@@ -21,6 +21,7 @@
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Appearance.h>
 #include <lib/preferences/keys/Files.h>
 
 #include <quentier/utility/ApplicationSettings.h>
@@ -38,15 +39,14 @@ void setupStartupSettings()
     bool disableNativeMenuBar = false;
     if (!account.isEmpty()) {
         ApplicationSettings appSettings(
-            account,
-            preferences::keys::files::userInterface);
+            account, preferences::keys::files::userInterface);
 
-        appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+        appSettings.beginGroup(preferences::keys::appearanceGroup);
 
         disableNativeMenuBar =
             appSettings
                 .value(
-                    DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+                    preferences::keys::disableNativeMenuBar,
                     QVariant::fromValue(defaultDisableNativeMenuBar()))
                 .toBool();
 

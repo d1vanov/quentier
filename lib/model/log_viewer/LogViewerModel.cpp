@@ -20,6 +20,7 @@
 #include "LogViewerModelFileReaderAsync.h"
 
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Logging.h>
 
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
@@ -100,10 +101,10 @@ LogViewerModel::LogViewerModel(QObject * parent) :
         "QVector<LogViewerModel::Data>");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    appSettings.beginGroup(preferences::keys::loggingGroup);
 
     QVariant enableLogViewerInternalLogsValue =
-        appSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+        appSettings.value(preferences::keys::enableLogViewerInternalLogs);
 
     appSettings.endGroup();
 

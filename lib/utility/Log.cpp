@@ -19,6 +19,7 @@
 #include "Log.h"
 
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Logging.h>
 
 #include <quentier/utility/ApplicationSettings.h>
 
@@ -27,8 +28,12 @@ namespace quentier {
 QString restoreLogFilterByComponent()
 {
     ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    QString filter = appSettings.value(CURRENT_FILTER_BY_COMPONENT).toString();
+    appSettings.beginGroup(preferences::keys::loggingGroup);
+
+    QString filter =
+        appSettings.value(preferences::keys::loggingFilterByComponentRegex)
+            .toString();
+
     appSettings.endGroup();
 
     return filter;
@@ -37,8 +42,11 @@ QString restoreLogFilterByComponent()
 void setLogFilterByComponent(const QString & filter)
 {
     ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    appSettings.setValue(CURRENT_FILTER_BY_COMPONENT, filter);
+    appSettings.beginGroup(preferences::keys::loggingGroup);
+
+    appSettings.setValue(
+        preferences::keys::loggingFilterByComponentRegex, filter);
+
     appSettings.endGroup();
 }
 

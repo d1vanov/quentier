@@ -20,8 +20,9 @@
 #include "ui_EnexImportDialog.h"
 
 #include <lib/model/notebook/NotebookModel.h>
-#include <lib/preferences/keys/Files.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Enex.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Notebook.h>
@@ -136,10 +137,10 @@ void EnexImportDialog::onBrowsePushButtonClicked()
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::auxiliary);
 
-    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
     QString lastEnexImportPath =
-        appSettings.value(LAST_IMPORT_ENEX_PATH_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::lastEnexImportPath).toString();
 
     appSettings.endGroup();
 
@@ -191,10 +192,10 @@ void EnexImportDialog::onBrowsePushButtonClicked()
     lastEnexImportPath = pEnexFileDialog->directory().absolutePath();
 
     if (!lastEnexImportPath.isEmpty()) {
-        appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+        appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
         appSettings.setValue(
-            LAST_IMPORT_ENEX_PATH_SETTINGS_KEY, lastEnexImportPath);
+            preferences::keys::lastEnexImportPath, lastEnexImportPath);
 
         appSettings.endGroup();
     }
@@ -307,10 +308,10 @@ void EnexImportDialog::accept()
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::auxiliary);
 
-    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
     appSettings.setValue(
-        LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY, notebookName);
+        preferences::keys::lastImportEnexNotebookName, notebookName);
 
     appSettings.endGroup();
 
@@ -380,10 +381,10 @@ void EnexImportDialog::fillDialogContents()
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::auxiliary);
 
-    appSettings.beginGroup(ENEX_EXPORT_IMPORT_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
     QString lastImportEnexNotebookName =
-        appSettings.value(LAST_IMPORT_ENEX_NOTEBOOK_NAME_SETTINGS_KEY)
+        appSettings.value(preferences::keys::lastImportEnexNotebookName)
             .toString();
 
     appSettings.endGroup();

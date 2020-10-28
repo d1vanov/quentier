@@ -31,6 +31,7 @@
 #include <lib/model/tag/TagModel.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Enex.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/NoteEditor.h>
 #include <lib/utility/BasicXMLSyntaxHighlighter.h>
@@ -591,7 +592,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QString lastExportNoteToEnexPath =
-        appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY)
+        appSettings.value(preferences::keys::lastExportNotesToEnexPath)
             .toString();
 
     appSettings.endGroup();

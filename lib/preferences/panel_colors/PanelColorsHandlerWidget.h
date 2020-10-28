@@ -117,10 +117,10 @@ private:
     bool useBackgroundGradient();
 
     QColor colorFromSettingsImpl(
-        const QString & settingName, Qt::GlobalColor defaultColor);
+        const char * key, Qt::GlobalColor defaultColor);
 
     bool onColorEnteredImpl(
-        QColor color, QColor prevColor, const QString & settingName,
+        QColor color, QColor prevColor, const char * key,
         QLineEdit & colorLineEdit, QFrame & colorDemoFrame);
 
     void onUseBackgroundGradientOptionChanged(bool enabled);
@@ -129,7 +129,7 @@ private:
     void saveBackgroundColor(const QColor & color);
     void saveBackgroundGradientBaseColor(const QColor & color);
     void saveUseBackgroundGradientSetting(bool useBackgroundGradient);
-    void saveSettingImpl(const QVariant & value, const QString & settingName);
+    void saveSettingImpl(const QVariant & value, const char * key);
 
     void saveBackgroundGradientLinesToSettings();
 

@@ -24,6 +24,7 @@
 
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Logging.h>
 #include <lib/preferences/keys/SystemTray.h>
 #include <lib/utility/HumanReadableVersionInfo.h>
 #include <lib/utility/Log.h>
@@ -171,11 +172,11 @@ bool initialize(
         // Log level was not specified on the command line, restore the last
         // active min log level
         ApplicationSettings appSettings;
-        appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-        if (appSettings.contains(CURRENT_MIN_LOG_LEVEL)) {
+        appSettings.beginGroup(preferences::keys::loggingGroup);
+        if (appSettings.contains(preferences::keys::minLogLevel)) {
             bool conversionResult = false;
 
-            int minLogLevel = appSettings.value(CURRENT_MIN_LOG_LEVEL)
+            int minLogLevel = appSettings.value(preferences::keys::minLogLevel)
                                   .toInt(&conversionResult);
 
             if (conversionResult && (0 <= minLogLevel) && (minLogLevel < 6)) {

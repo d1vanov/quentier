@@ -48,8 +48,11 @@
 #include <lib/preferences/PreferencesDialog.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/UpdateSettings.h>
+#include <lib/preferences/keys/Appearance.h>
+#include <lib/preferences/keys/Enex.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/NoteEditor.h>
+#include <lib/preferences/keys/PanelColors.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
@@ -1544,8 +1547,8 @@ void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(ICON_THEME_SETTINGS_KEY, iconThemeName);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
+    appSettings.setValue(preferences::keys::iconTheme, iconThemeName);
     appSettings.endGroup();
 }
 
@@ -1672,11 +1675,11 @@ void MainWindow::restorePanelColors()
     ApplicationSettings settings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    settings.beginGroup(preferences::keys::panelColorsGroup);
     ApplicationSettings::GroupCloser groupCloser(settings);
 
     QString fontColorName =
-        settings.value(PANEL_COLORS_FONT_COLOR_SETTINGS_KEY).toString();
+        settings.value(preferences::keys::panelFontColor).toString();
 
     QColor fontColor(fontColorName);
     if (!fontColor.isValid()) {
@@ -1684,7 +1687,7 @@ void MainWindow::restorePanelColors()
     }
 
     QString backgroundColorName =
-        settings.value(PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+        settings.value(preferences::keys::panelBackgroundColor).toString();
 
     QColor backgroundColor(backgroundColorName);
     if (!backgroundColor.isValid()) {
@@ -1694,40 +1697,36 @@ void MainWindow::restorePanelColors()
     QLinearGradient gradient(0, 0, 0, 1);
 
     int rowCount = settings.beginReadArray(
-        PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+        preferences::keys::panelBackgroundGradientLineCount);
 
     for (int i = 0; i < rowCount; ++i) {
         settings.setArrayIndex(i);
         bool conversionResult = false;
 
         double value =
-            settings
-                .value(PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY)
+            settings.value(preferences::keys::panelBackgroundGradientLineSize)
                 .toDouble(&conversionResult);
 
         if (Q_UNLIKELY(!conversionResult)) {
             QNWARNING(
                 "quentier:main_window",
-                "Failed to convert panel "
-                    << "background gradient row value to double");
+                "Failed to convert panel background gradient row value to "
+                    << "double");
 
             gradient = QLinearGradient(0, 0, 0, 1);
             break;
         }
 
         QString colorName =
-            settings
-                .value(
-                    PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY)
+            settings.value(preferences::keys::panelBackgroundGradientLineColor)
                 .toString();
 
         QColor color(colorName);
         if (!color.isValid()) {
             QNWARNING(
                 "quentier:main_window",
-                "Failed to convert panel "
-                    << "background gradient row color name to valid color: "
-                    << colorName);
+                "Failed to convert panel background gradient row color name to "
+                    << "valid color: " << colorName);
 
             gradient = QLinearGradient(0, 0, 0, 1);
             break;
@@ -1738,8 +1737,7 @@ void MainWindow::restorePanelColors()
     settings.endArray();
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     for (auto & pPanelStyleController: m_genericPanelStyleControllers) {
         if (useBackgroundGradient) {
@@ -3077,7 +3075,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QString lastExportNoteToEnexPath =
-        appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY)
+        appSettings.value(preferences::keys::lastExportNotesToEnexPath)
             .toString();
 
     appSettings.endGroup();
@@ -3390,11 +3388,10 @@ void MainWindow::onPanelBackgroundColorChanged(QColor color)
     ApplicationSettings settings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    settings.beginGroup(preferences::keys::panelColorsGroup);
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     settings.endGroup();
 
@@ -3441,11 +3438,10 @@ void MainWindow::onPanelBackgroundLinearGradientChanged(
     ApplicationSettings settings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    settings.beginGroup(preferences::keys::panelColorsGroup);
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     settings.endGroup();
 
@@ -4981,10 +4977,10 @@ void MainWindow::setupThemeIcons()
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QString lastUsedIconThemeName =
-        appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::iconTheme).toString();
 
     appSettings.endGroup();
 
@@ -5771,10 +5767,10 @@ bool MainWindow::getShowNoteThumbnailsPreference() const
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant showThumbnails = appSettings.value(
-        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
+        preferences::keys::showNoteThumbnails,
         QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
 
     appSettings.endGroup();
@@ -5787,10 +5783,10 @@ bool MainWindow::getDisableNativeMenuBarPreference() const
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant disableNativeMenuBar = appSettings.value(
-        DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+        preferences::keys::disableNativeMenuBar,
         QVariant::fromValue(defaultDisableNativeMenuBar()));
 
     appSettings.endGroup();
@@ -5803,10 +5799,10 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant hideThumbnailsFor = appSettings.value(
-        HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY, QLatin1String(""));
+        preferences::keys::notesWithHiddenThumbnails, QLatin1String(""));
 
     appSettings.endGroup();
 
@@ -5827,10 +5823,10 @@ void MainWindow::toggleShowNoteThumbnails() const
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     appSettings.setValue(
-        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(newValue));
+        preferences::keys::showNoteThumbnails, QVariant::fromValue(newValue));
 
     appSettings.endGroup();
 }
@@ -5843,8 +5839,9 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
     }
     else {
         // after max. count is reached we ignore further requests
+        // FIXME: need a better way than to silently ignore the action
         if (hideThumbnailsForSet.size() <=
-            HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY_MAX_COUNT)
+            preferences::keys::maxNotesWithHiddenThumbnails)
         {
             hideThumbnailsForSet.insert(noteLocalUid);
         }
@@ -5853,10 +5850,10 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     appSettings.setValue(
-        HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
+        preferences::keys::notesWithHiddenThumbnails,
         QStringList(hideThumbnailsForSet.values()));
 
     appSettings.endGroup();

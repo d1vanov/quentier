@@ -25,6 +25,7 @@
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/SidePanelsFiltering.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -311,10 +312,10 @@ bool NotebookItemView::shouldFilterBySelectedItems(
     ApplicationSettings appSettings(
         account, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
-    const auto filterBySelectedNotebook =
-        appSettings.value(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
+    const auto filterBySelectedNotebook = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedNotebook);
 
     appSettings.endGroup();
 

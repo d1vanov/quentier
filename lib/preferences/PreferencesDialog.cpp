@@ -21,8 +21,11 @@
 #include "DefaultDisableNativeMenuBar.h"
 #include "DefaultSettings.h"
 #include "SettingsNames.h"
+#include "keys/Appearance.h"
 #include "keys/Files.h"
+#include "keys/Logging.h"
 #include "keys/NoteEditor.h"
+#include "keys/SidePanelsFiltering.h"
 #include "keys/SystemTray.h"
 #include "keys/Updates.h"
 
@@ -287,8 +290,8 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
+    appSettings.setValue(preferences::keys::showNoteThumbnails, checked);
     appSettings.endGroup();
 
     Q_EMIT showNoteThumbnailsOptionChanged();
@@ -305,8 +308,8 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
+    appSettings.setValue(preferences::keys::disableNativeMenuBar, checked);
     appSettings.endGroup();
 
     m_pUi->disableNativeMenuBarRestartWarningLabel->setVisible(true);
@@ -510,8 +513,9 @@ void PreferencesDialog::onFilterByNotebookCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
+    appSettings.setValue(
+        preferences::keys::sidePanelsFilterBySelectedNotebook, checked);
     appSettings.endGroup();
 
     Q_EMIT filterByNotebookOptionChanged(checked);
@@ -528,8 +532,9 @@ void PreferencesDialog::onFilterByTagCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(FILTER_BY_SELECTED_TAG_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
+    appSettings.setValue(
+        preferences::keys::sidePanelsFilterBySelectedTag, checked);
     appSettings.endGroup();
 
     Q_EMIT filterByTagOptionChanged(checked);
@@ -546,8 +551,9 @@ void PreferencesDialog::onFilterBySavedSearchCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
+    appSettings.setValue(
+        preferences::keys::sidePanelsFilterBySelectedSavedSearch, checked);
     appSettings.endGroup();
 
     Q_EMIT filterBySavedSearchOptionChanged(checked);
@@ -564,10 +570,10 @@ void PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
     appSettings.setValue(
-        FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY, checked);
+        preferences::keys::sidePanelsFilterBySelectedFavoritedItems, checked);
 
     appSettings.endGroup();
 
@@ -1106,8 +1112,9 @@ void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(
             << "checked = " << (checked ? "true" : "false"));
 
     ApplicationSettings globalAppSettings;
-    globalAppSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    globalAppSettings.setValue(ENABLE_LOG_VIEWER_INTERNAL_LOGS, checked);
+    globalAppSettings.beginGroup(preferences::keys::loggingGroup);
+    globalAppSettings.setValue(
+        preferences::keys::enableLogViewerInternalLogs, checked);
     globalAppSettings.endGroup();
 }
 
@@ -1198,10 +1205,10 @@ void PreferencesDialog::setupInitialPreferencesState(
 
     // 7) Auxiliary tab
     ApplicationSettings globalAppSettings;
-    globalAppSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    globalAppSettings.beginGroup(preferences::keys::loggingGroup);
 
     QVariant enableLogViewerInternalLogsValue =
-        globalAppSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+        globalAppSettings.value(preferences::keys::enableLogViewerInternalLogs);
 
     globalAppSettings.endGroup();
 
@@ -1486,12 +1493,12 @@ void PreferencesDialog::setupFilteringPreferences()
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
     bool filterByNotebook = DEFAULT_FILTER_BY_SELECTED_NOTEBOOK;
 
-    const auto filterByNotebookValue =
-        appSettings.value(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
+    const auto filterByNotebookValue = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedNotebook);
 
     if (filterByNotebookValue.isValid()) {
         filterByNotebook = filterByNotebookValue.toBool();
@@ -1500,7 +1507,7 @@ void PreferencesDialog::setupFilteringPreferences()
     bool filterByTag = DEFAULT_FILTER_BY_SELECTED_TAG;
 
     const auto filterByTagValue =
-        appSettings.value(FILTER_BY_SELECTED_TAG_SETTINGS_KEY);
+        appSettings.value(preferences::keys::sidePanelsFilterBySelectedTag);
 
     if (filterByTagValue.isValid()) {
         filterByTag = filterByTagValue.toBool();
@@ -1508,8 +1515,8 @@ void PreferencesDialog::setupFilteringPreferences()
 
     bool filterBySavedSearch = DEFAULT_FILTER_BY_SELECTED_SAVED_SEARCH;
 
-    const auto filterBySavedSearchValue =
-        appSettings.value(FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY);
+    const auto filterBySavedSearchValue = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedSavedSearch);
 
     if (filterBySavedSearchValue.isValid()) {
         filterBySavedSearch = filterBySavedSearchValue.toBool();
@@ -1517,8 +1524,8 @@ void PreferencesDialog::setupFilteringPreferences()
 
     bool filterByFavoritedItems = DEFAULT_FILTER_BY_SELECTED_FAVORITED_ITEMS;
 
-    const auto filterByFavoritedItemsValue =
-        appSettings.value(FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY);
+    const auto filterByFavoritedItemsValue = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedFavoritedItems);
 
     if (filterByFavoritedItemsValue.isValid()) {
         filterByFavoritedItems = filterByFavoritedItemsValue.toBool();
@@ -1606,18 +1613,18 @@ void PreferencesDialog::setupAppearancePreferences(
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant showThumbnails = appSettings.value(
-        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
+        preferences::keys::showNoteThumbnails,
         QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
 
     QVariant disableNativeMenuBar = appSettings.value(
-        DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
+        preferences::keys::disableNativeMenuBar,
         QVariant::fromValue(defaultDisableNativeMenuBar()));
 
     QVariant iconTheme =
-        appSettings.value(ICON_THEME_SETTINGS_KEY, tr("Native"));
+        appSettings.value(preferences::keys::iconTheme, tr("Native"));
 
     appSettings.endGroup();
 
