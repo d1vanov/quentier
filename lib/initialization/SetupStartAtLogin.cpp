@@ -19,7 +19,6 @@
 #include "SetupStartAtLogin.h"
 
 #include <lib/preferences/DefaultSettings.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/StartAtLogin.h>
 #include <lib/utility/StartAtLogin.h>
 

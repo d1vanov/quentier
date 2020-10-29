@@ -7,7 +7,6 @@ project(quentier_preferences)
 set(HEADERS
     DefaultDisableNativeMenuBar.h
     DefaultSettings.h
-    SettingsNames.h
     PreferencesDialog.h
     panel_colors/PanelColorsHandlerWidget.h
     shortcut_settings/ShortcutButton.h

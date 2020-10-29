@@ -19,7 +19,6 @@
 #include "EnexExportDialog.h"
 #include "ui_EnexExportDialog.h"
 
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Enex.h>
 #include <lib/preferences/keys/Files.h>
 

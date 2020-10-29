@@ -22,7 +22,6 @@
 
 #include <lib/dialog/AddOrEditTagDialog.h>
 #include <lib/model/tag/TagModel.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/SidePanelsFiltering.h>
 #include <lib/widget/NoteFiltersManager.h>

@@ -20,12 +20,12 @@
 
 #include "DefaultDisableNativeMenuBar.h"
 #include "DefaultSettings.h"
-#include "SettingsNames.h"
 #include "keys/Appearance.h"
 #include "keys/Files.h"
 #include "keys/Logging.h"
 #include "keys/NoteEditor.h"
 #include "keys/SidePanelsFiltering.h"
+#include "keys/Synchronization.h"
 #include "keys/SystemTray.h"
 #include "keys/Updates.h"
 
@@ -931,8 +931,8 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::synchronization);
 
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS, checked);
+    appSettings.beginGroup(preferences::keys::synchronizationGroup);
+    appSettings.setValue(preferences::keys::downloadNoteThumbnails, checked);
     appSettings.endGroup();
 
     Q_EMIT synchronizationDownloadNoteThumbnailsOptionChanged(checked);
@@ -949,8 +949,8 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
         m_accountManager.currentAccount(),
         preferences::keys::files::synchronization);
 
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES, checked);
+    appSettings.beginGroup(preferences::keys::synchronizationGroup);
+    appSettings.setValue(preferences::keys::downloadInkNoteImages, checked);
     appSettings.endGroup();
 
     Q_EMIT synchronizationDownloadInkNoteImagesOptionChanged(checked);
@@ -987,10 +987,10 @@ void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(int index)
         m_accountManager.currentAccount(),
         preferences::keys::files::synchronization);
 
-    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
     syncSettings.setValue(
-        SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES, runSyncEachNumMinutes);
+        preferences::keys::runSyncPeriodMinutes, runSyncEachNumMinutes);
 
     syncSettings.endGroup();
 
@@ -1150,26 +1150,26 @@ void PreferencesDialog::setupInitialPreferencesState(
         ApplicationSettings syncSettings(
             currentAccount, preferences::keys::files::synchronization);
 
-        syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+        syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
         bool downloadNoteThumbnails = DEFAULT_DOWNLOAD_NOTE_THUMBNAILS;
-        if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)) {
+        if (syncSettings.contains(preferences::keys::downloadNoteThumbnails)) {
             downloadNoteThumbnails =
-                syncSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
+                syncSettings.value(preferences::keys::downloadNoteThumbnails)
                     .toBool();
         }
 
         bool downloadInkNoteImages = DEFAULT_DOWNLOAD_INK_NOTE_IMAGES;
-        if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)) {
+        if (syncSettings.contains(preferences::keys::downloadInkNoteImages)) {
             downloadInkNoteImages =
-                syncSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)
+                syncSettings.value(preferences::keys::downloadInkNoteImages)
                     .toBool();
         }
 
         int runSyncEachNumMinutes = -1;
-        if (syncSettings.contains(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES)) {
+        if (syncSettings.contains(preferences::keys::runSyncPeriodMinutes)) {
             QVariant data =
-                syncSettings.value(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES);
+                syncSettings.value(preferences::keys::runSyncPeriodMinutes);
 
             bool conversionResult = false;
             runSyncEachNumMinutes = data.toInt(&conversionResult);

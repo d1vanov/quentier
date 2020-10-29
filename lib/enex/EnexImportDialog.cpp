@@ -20,7 +20,6 @@
 #include "ui_EnexImportDialog.h"
 
 #include <lib/model/notebook/NotebookModel.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Enex.h>
 #include <lib/preferences/keys/Files.h>
 

@@ -19,7 +19,6 @@
 #include "UpdateSettings.h"
 
 #include "DefaultSettings.h"
-#include "SettingsNames.h"
 #include "keys/Updates.h"
 
 #include <lib/utility/VersionInfo.h>

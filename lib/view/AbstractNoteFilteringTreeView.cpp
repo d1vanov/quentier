@@ -20,7 +20,6 @@
 #include "ItemSelectionModel.h"
 
 #include <lib/model/common/AbstractItemModel.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/widget/NoteFiltersManager.h>
 

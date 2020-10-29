@@ -22,7 +22,7 @@
 #include "AddAccountDialog.h"
 #include "ManageAccountsDialog.h"
 
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Account.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -73,74 +73,84 @@ void AccountManager::setStartupAccount(const Account & account)
 {
     QNDEBUG("account", "AccountManager::setStartupAccount: " << account);
 
-    qputenv(ACCOUNT_NAME_ENV_VAR, account.name().toLocal8Bit());
+    qputenv(
+        preferences::keys::startupAccountNameEnvVar,
+        account.name().toLocal8Bit());
 
     qputenv(
-        ACCOUNT_TYPE_ENV_VAR,
+        preferences::keys::startupAccountTypeEnvVar,
         ((account.type() == Account::Type::Local) ? QByteArray("1")
                                                   : QByteArray("0")));
 
-    qputenv(ACCOUNT_ID_ENV_VAR, QByteArray::number(account.id()));
+    qputenv(
+        preferences::keys::startupAccountIdEnvVar,
+        QByteArray::number(account.id()));
 
     qputenv(
-        ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR,
+        preferences::keys::startupAccountEvernoteAccountTypeEnvVar,
         QByteArray::number(static_cast<qint64>(account.evernoteAccountType())));
 
     qputenv(
-        ACCOUNT_EVERNOTE_HOST_ENV_VAR, account.evernoteHost().toLocal8Bit());
+        preferences::keys::startupAccountEvernoteHostEnvVar,
+        account.evernoteHost().toLocal8Bit());
 }
 
 Account AccountManager::startupAccount()
 {
     QNDEBUG("account", "AccountManager::startupAccount");
 
-    if (qEnvironmentVariableIsEmpty(ACCOUNT_NAME_ENV_VAR)) {
+    if (qEnvironmentVariableIsEmpty(
+            preferences::keys::startupAccountNameEnvVar)) {
         QNDEBUG(
             "account",
-            "Account name environment variable is not set or is "
-                << "empty");
+            "Account name environment variable is not set or is empty");
         return Account();
     }
 
-    if (qEnvironmentVariableIsEmpty(ACCOUNT_TYPE_ENV_VAR)) {
+    if (qEnvironmentVariableIsEmpty(
+            preferences::keys::startupAccountTypeEnvVar)) {
         QNDEBUG(
             "account",
-            "Account type environment variable is not set or is "
-                << "empty");
+            "Account type environment variable is not set or is empty");
         return Account();
     }
 
-    QByteArray accountType = qgetenv(ACCOUNT_TYPE_ENV_VAR);
+    QByteArray accountType =
+        qgetenv(preferences::keys::startupAccountTypeEnvVar);
     bool isLocal = (accountType == QByteArray("1"));
 
     if (!isLocal) {
-        if (qEnvironmentVariableIsEmpty(ACCOUNT_ID_ENV_VAR)) {
+        if (qEnvironmentVariableIsEmpty(
+                preferences::keys::startupAccountIdEnvVar)) {
             QNDEBUG(
                 "account",
-                "Account id environment variable is not set or "
-                    << "is empty");
+                "Account id environment variable is not set or is empty");
             return Account();
         }
 
-        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR))
+        if (qEnvironmentVariableIsEmpty(
+                preferences::keys::startupAccountEvernoteAccountTypeEnvVar))
         {
             QNDEBUG(
                 "account",
-                "Evernote account type environment variable is "
-                    << "not set or is empty");
+                "Evernote account type environment variable is not set or is "
+                    << "empty");
             return Account();
         }
 
-        if (qEnvironmentVariableIsEmpty(ACCOUNT_EVERNOTE_HOST_ENV_VAR)) {
+        if (qEnvironmentVariableIsEmpty(
+                preferences::keys::startupAccountEvernoteHostEnvVar))
+        {
             QNDEBUG(
                 "account",
-                "Evernote host environment variable is not set "
-                    << "or is empty");
+                "Evernote host environment variable is not set or is empty");
             return Account();
         }
     }
 
-    QString accountName = QString::fromLocal8Bit(qgetenv(ACCOUNT_NAME_ENV_VAR));
+    QString accountName = QString::fromLocal8Bit(
+        qgetenv(preferences::keys::startupAccountNameEnvVar));
+
     qevercloud::UserID id = -1;
     QString evernoteHost;
     auto evernoteAccountType = Account::EvernoteAccountType::Free;
@@ -149,7 +159,7 @@ Account AccountManager::startupAccount()
         bool conversionResult = false;
 
         id = static_cast<qevercloud::UserID>(qEnvironmentVariableIntValue(
-            ACCOUNT_ID_ENV_VAR, &conversionResult));
+            preferences::keys::startupAccountIdEnvVar, &conversionResult));
 
         if (!conversionResult) {
             QNDEBUG("account", "Could not convert the account id to integer");
@@ -160,18 +170,18 @@ Account AccountManager::startupAccount()
 
         evernoteAccountType = static_cast<Account::EvernoteAccountType>(
             qEnvironmentVariableIntValue(
-                ACCOUNT_EVERNOTE_ACCOUNT_TYPE_ENV_VAR, &conversionResult));
+                preferences::keys::startupAccountEvernoteAccountTypeEnvVar,
+                &conversionResult));
 
         if (!conversionResult) {
             QNDEBUG(
                 "account",
-                "Could not convert the Evernote account type "
-                    << "to integer");
+                "Could not convert the Evernote account type to integer");
             return Account();
         }
 
-        evernoteHost =
-            QString::fromLocal8Bit(qgetenv(ACCOUNT_EVERNOTE_HOST_ENV_VAR));
+        evernoteHost = QString::fromLocal8Bit(
+            qgetenv(preferences::keys::startupAccountEvernoteHostEnvVar));
     }
 
     return findAccount(
@@ -962,7 +972,7 @@ Account AccountManager::lastUsedAccount()
 
     ApplicationSettings appSettings;
 
-    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+    appSettings.beginGroup(preferences::keys::accountGroup);
 
     BOOST_SCOPE_EXIT(&appSettings)
     {
@@ -970,7 +980,7 @@ Account AccountManager::lastUsedAccount()
     }
     BOOST_SCOPE_EXIT_END
 
-    QVariant name = appSettings.value(LAST_USED_ACCOUNT_NAME);
+    QVariant name = appSettings.value(preferences::keys::lastUsedAccountName);
     if (name.isNull()) {
         QNDEBUG("account", "Can't find last used account's name");
         return Account();
@@ -982,7 +992,7 @@ Account AccountManager::lastUsedAccount()
         return Account();
     }
 
-    QVariant type = appSettings.value(LAST_USED_ACCOUNT_TYPE);
+    QVariant type = appSettings.value(preferences::keys::lastUsedAccountType);
     if (type.isNull()) {
         QNDEBUG("account", "Can't find last used account's type");
         return Account();
@@ -996,7 +1006,8 @@ Account AccountManager::lastUsedAccount()
 
     QString evernoteHost;
     if (!isLocal) {
-        QVariant userId = appSettings.value(LAST_USED_ACCOUNT_ID);
+        QVariant userId =
+            appSettings.value(preferences::keys::lastUsedAccountId);
         if (userId.isNull()) {
             QNDEBUG("account", "Can't find last used account's id");
             return Account();
@@ -1013,7 +1024,7 @@ Account AccountManager::lastUsedAccount()
         }
 
         QVariant userEvernoteAccountHost =
-            appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_HOST);
+            appSettings.value(preferences::keys::lastUsedAccountEvernoteHost);
 
         if (userEvernoteAccountHost.isNull()) {
             QNDEBUG("account", "Can't find last used account's Evernote host");
@@ -1021,8 +1032,8 @@ Account AccountManager::lastUsedAccount()
         }
         evernoteHost = userEvernoteAccountHost.toString();
 
-        QVariant userEvernoteAccountType =
-            appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE);
+        QVariant userEvernoteAccountType = appSettings.value(
+            preferences::keys::lastUsedAccountEvernoteAccountType);
 
         if (userEvernoteAccountType.isNull()) {
             QNDEBUG(
@@ -1089,21 +1100,23 @@ void AccountManager::updateLastUsedAccount(const Account & account)
 
     ApplicationSettings appSettings;
 
-    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
-
-    appSettings.setValue(LAST_USED_ACCOUNT_NAME, account.name());
+    appSettings.beginGroup(preferences::keys::accountGroup);
 
     appSettings.setValue(
-        LAST_USED_ACCOUNT_TYPE, (account.type() == Account::Type::Local));
-
-    appSettings.setValue(LAST_USED_ACCOUNT_ID, account.id());
+        preferences::keys::lastUsedAccountName, account.name());
 
     appSettings.setValue(
-        LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE,
+        preferences::keys::lastUsedAccountType,
+        (account.type() == Account::Type::Local));
+
+    appSettings.setValue(preferences::keys::lastUsedAccountId, account.id());
+
+    appSettings.setValue(
+        preferences::keys::lastUsedAccountEvernoteAccountType,
         static_cast<qint64>(account.evernoteAccountType()));
 
     appSettings.setValue(
-        LAST_USED_ACCOUNT_EVERNOTE_HOST, account.evernoteHost());
+        preferences::keys::lastUsedAccountEvernoteHost, account.evernoteHost());
 
     appSettings.endGroup();
 }

@@ -20,7 +20,6 @@
 
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/DefaultSettings.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/SystemTray.h>
 

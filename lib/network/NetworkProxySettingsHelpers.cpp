@@ -18,8 +18,8 @@
 
 #include "NetworkProxySettingsHelpers.h"
 
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/Synchronization.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Account.h>
@@ -63,12 +63,13 @@ void parseNetworkProxySettings(
             currentAccount, preferences::keys::files::synchronization));
     }
 
-    pSyncSettings->beginGroup(SYNCHRONIZATION_NETWORK_PROXY_SETTINGS);
+    pSyncSettings->beginGroup(preferences::keys::syncNetworkProxyGroup);
 
     // 1) Parse network proxy type
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_TYPE)) {
-        auto data = pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_TYPE);
+    if (pSyncSettings->contains(preferences::keys::syncNetworkProxyType)) {
+        auto data =
+            pSyncSettings->value(preferences::keys::syncNetworkProxyType);
         bool convertedToInt = false;
         int proxyType = data.toInt(&convertedToInt);
         if (convertedToInt) {
@@ -123,9 +124,10 @@ void parseNetworkProxySettings(
 
     // 2) Parse network proxy host
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_HOST)) {
+    if (pSyncSettings->contains(preferences::keys::syncNetworkProxyHost)) {
         QString data =
-            pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_HOST).toString();
+            pSyncSettings->value(preferences::keys::syncNetworkProxyHost)
+                .toString();
 
         if (!data.isEmpty()) {
             QUrl url(data);
@@ -148,8 +150,9 @@ void parseNetworkProxySettings(
 
     // 3) Parse network proxy port
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_PORT)) {
-        auto data = pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_PORT);
+    if (pSyncSettings->contains(preferences::keys::syncNetworkProxyPort)) {
+        auto data =
+            pSyncSettings->value(preferences::keys::syncNetworkProxyPort);
         bool convertedToInt = false;
         int proxyPort = data.toInt(&convertedToInt);
         if (convertedToInt) {
@@ -171,9 +174,9 @@ void parseNetworkProxySettings(
 
     // 4) Parse network proxy username
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_USER)) {
-        user =
-            pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_USER).toString();
+    if (pSyncSettings->contains(preferences::keys::syncNetworkProxyUser)) {
+        user = pSyncSettings->value(preferences::keys::syncNetworkProxyUser)
+                   .toString();
     }
     else {
         QNDEBUG(
@@ -184,9 +187,10 @@ void parseNetworkProxySettings(
 
     // 5) Parse network proxy password
 
-    if (pSyncSettings->contains(SYNCHRONIZATION_NETWORK_PROXY_PASSWORD)) {
-        password = pSyncSettings->value(SYNCHRONIZATION_NETWORK_PROXY_PASSWORD)
-                       .toString();
+    if (pSyncSettings->contains(preferences::keys::syncNetworkProxyPassword)) {
+        password =
+            pSyncSettings->value(preferences::keys::syncNetworkProxyPassword)
+                .toString();
     }
     else {
         QNDEBUG(
@@ -227,18 +231,22 @@ void persistNetworkProxySettingsForAccount(
             account, preferences::keys::files::synchronization));
     }
 
-    pSyncSettings->beginGroup(SYNCHRONIZATION_NETWORK_PROXY_SETTINGS);
-
-    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_TYPE, proxy.type());
+    pSyncSettings->beginGroup(preferences::keys::syncNetworkProxyGroup);
 
     pSyncSettings->setValue(
-        SYNCHRONIZATION_NETWORK_PROXY_HOST, proxy.hostName());
-
-    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_PORT, proxy.port());
-    pSyncSettings->setValue(SYNCHRONIZATION_NETWORK_PROXY_USER, proxy.user());
+        preferences::keys::syncNetworkProxyType, proxy.type());
 
     pSyncSettings->setValue(
-        SYNCHRONIZATION_NETWORK_PROXY_PASSWORD, proxy.password());
+        preferences::keys::syncNetworkProxyHost, proxy.hostName());
+
+    pSyncSettings->setValue(
+        preferences::keys::syncNetworkProxyPort, proxy.port());
+
+    pSyncSettings->setValue(
+        preferences::keys::syncNetworkProxyUser, proxy.user());
+
+    pSyncSettings->setValue(
+        preferences::keys::syncNetworkProxyPassword, proxy.password());
 
     pSyncSettings->endGroup();
 }

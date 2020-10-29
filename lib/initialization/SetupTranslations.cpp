@@ -18,7 +18,6 @@
 
 #include "SetupTranslations.h"
 
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Translations.h>
 
 #include <quentier/logging/QuentierLogger.h>

@@ -20,8 +20,6 @@
 
 #include "ui_PanelColorsHandlerWidget.h"
 
-#include "../SettingsNames.h"
-
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/PanelColors.h>
 

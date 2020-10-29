@@ -21,7 +21,6 @@
 
 #include <lib/delegate/LogViewerDelegate.h>
 #include <lib/preferences/keys/Logging.h>
-#include <lib/preferences/SettingsNames.h>
 
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>

@@ -20,7 +20,6 @@
 
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/SidePanelsFiltering.h>
 #include <lib/widget/NoteFiltersManager.h>

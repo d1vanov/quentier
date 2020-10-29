@@ -18,7 +18,6 @@
 
 #include "Log.h"
 
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Logging.h>
 
 #include <quentier/utility/ApplicationSettings.h>

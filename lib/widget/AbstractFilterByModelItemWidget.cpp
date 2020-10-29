@@ -23,7 +23,6 @@
 #include "NewListItemLineEdit.h"
 
 #include <lib/model/common/AbstractItemModel.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>

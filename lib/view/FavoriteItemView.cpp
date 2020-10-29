@@ -19,7 +19,6 @@
 #include "FavoriteItemView.h"
 
 #include <lib/model/favorites/FavoritesModel.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/SidePanelsFiltering.h>
 #include <lib/widget/NoteFiltersManager.h>

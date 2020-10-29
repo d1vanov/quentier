@@ -23,7 +23,6 @@
 #include "SetupTranslations.h"
 
 #include <lib/account/AccountManager.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Logging.h>
 #include <lib/preferences/keys/SystemTray.h>
 #include <lib/utility/HumanReadableVersionInfo.h>

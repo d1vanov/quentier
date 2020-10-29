@@ -20,7 +20,6 @@
 
 #include <lib/account/AccountManager.h>
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Appearance.h>
 #include <lib/preferences/keys/Files.h>
 

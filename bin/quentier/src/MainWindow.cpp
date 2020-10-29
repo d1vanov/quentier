@@ -46,13 +46,14 @@
 #include <lib/preferences/DefaultDisableNativeMenuBar.h>
 #include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/UpdateSettings.h>
+#include <lib/preferences/keys/Account.h>
 #include <lib/preferences/keys/Appearance.h>
 #include <lib/preferences/keys/Enex.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/NoteEditor.h>
 #include <lib/preferences/keys/PanelColors.h>
+#include <lib/preferences/keys/Synchronization.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
@@ -6129,11 +6130,13 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
 bool MainWindow::onceDisplayedGreeterScreen() const
 {
     ApplicationSettings appSettings;
-    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+    appSettings.beginGroup(preferences::keys::accountGroup);
 
     bool result = false;
-    if (appSettings.contains(ONCE_DISPLAYED_GREETER_SCREEN)) {
-        result = appSettings.value(ONCE_DISPLAYED_GREETER_SCREEN).toBool();
+    if (appSettings.contains(preferences::keys::onceDisplayedWelcomeDialog)) {
+        result =
+            appSettings.value(preferences::keys::onceDisplayedWelcomeDialog)
+                .toBool();
     }
 
     appSettings.endGroup();
@@ -6146,8 +6149,8 @@ void MainWindow::setOnceDisplayedGreeterScreen()
         "quentier:main_window", "MainWindow::setOnceDisplayedGreeterScreen");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
-    appSettings.setValue(ONCE_DISPLAYED_GREETER_SCREEN, true);
+    appSettings.beginGroup(preferences::keys::accountGroup);
+    appSettings.setValue(preferences::keys::onceDisplayedWelcomeDialog, true);
     appSettings.endGroup();
 }
 
@@ -6278,17 +6281,17 @@ void MainWindow::setSynchronizationOptions(const Account & account)
     ApplicationSettings appSettings(
         account, preferences::keys::files::synchronization);
 
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::synchronizationGroup);
 
     bool downloadNoteThumbnailsOption =
-        (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
-             ? appSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
+        (appSettings.contains(preferences::keys::downloadNoteThumbnails)
+             ? appSettings.value(preferences::keys::downloadNoteThumbnails)
                    .toBool()
              : DEFAULT_DOWNLOAD_NOTE_THUMBNAILS);
 
     bool downloadInkNoteImagesOption =
-        (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)
-             ? appSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)
+        (appSettings.contains(preferences::keys::downloadInkNoteImages)
+             ? appSettings.value(preferences::keys::downloadInkNoteImages)
                    .toBool()
              : DEFAULT_DOWNLOAD_INK_NOTE_IMAGES);
 
@@ -6351,12 +6354,12 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
     ApplicationSettings syncSettings(
         *m_pAccount, preferences::keys::files::synchronization);
 
-    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
     int runSyncEachNumMinutes = -1;
-    if (syncSettings.contains(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES)) {
+    if (syncSettings.contains(preferences::keys::runSyncPeriodMinutes)) {
         auto data =
-            syncSettings.value(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES);
+            syncSettings.value(preferences::keys::runSyncPeriodMinutes);
 
         bool conversionResult = false;
         runSyncEachNumMinutes = data.toInt(&conversionResult);

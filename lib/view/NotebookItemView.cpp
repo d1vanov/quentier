@@ -23,7 +23,6 @@
 #include <lib/dialog/AddOrEditNotebookDialog.h>
 #include <lib/model/note/NoteModel.h>
 #include <lib/model/notebook/NotebookModel.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/SidePanelsFiltering.h>
 #include <lib/widget/NoteFiltersManager.h>

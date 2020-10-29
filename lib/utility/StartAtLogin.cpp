@@ -19,7 +19,6 @@
 #include "StartAtLogin.h"
 
 #include <lib/preferences/DefaultSettings.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/keys/StartAtLogin.h>
 
 #include <quentier/logging/QuentierLogger.h>
