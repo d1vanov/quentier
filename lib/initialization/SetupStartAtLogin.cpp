@@ -18,7 +18,7 @@
 
 #include "SetupStartAtLogin.h"
 
-#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/defaults/StartAtLogin.h>
 #include <lib/preferences/keys/StartAtLogin.h>
 #include <lib/utility/StartAtLogin.h>
 
@@ -48,9 +48,7 @@ void setupStartQuentierAtLogin()
         "Start automatically at login setting is not present, will set it to "
             << "the default value");
 
-    bool shouldStartAutomaticallyAtLogin =
-        DEFAULT_SHOULD_START_AUTOMATICALLY_AT_LOGIN_OPTION;
-
+    bool shouldStartAutomaticallyAtLogin = preferences::defaults::startAtLogin;
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG(
             "initialization",
@@ -61,7 +59,7 @@ void setupStartQuentierAtLogin()
 
     appSettings.endGroup();
 
-    auto option = DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
+    auto option = preferences::defaults::startAtLoginOption;
 
     ErrorString errorDescription;
 

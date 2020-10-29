@@ -19,7 +19,7 @@
 #include "SetupStartupSettings.h"
 
 #include <lib/account/AccountManager.h>
-#include <lib/preferences/DefaultDisableNativeMenuBar.h>
+#include <lib/preferences/defaults/NativeMenuBar.h>
 #include <lib/preferences/keys/Appearance.h>
 #include <lib/preferences/keys/Files.h>
 
@@ -46,13 +46,14 @@ void setupStartupSettings()
             appSettings
                 .value(
                     preferences::keys::disableNativeMenuBar,
-                    QVariant::fromValue(defaultDisableNativeMenuBar()))
+                    QVariant::fromValue(
+                        preferences::defaults::disableNativeMenuBar()))
                 .toBool();
 
         appSettings.endGroup();
     }
     else {
-        disableNativeMenuBar = defaultDisableNativeMenuBar();
+        disableNativeMenuBar = preferences::defaults::disableNativeMenuBar();
     }
 
     QCoreApplication::setAttribute(

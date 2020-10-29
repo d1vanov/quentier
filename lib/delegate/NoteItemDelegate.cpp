@@ -20,7 +20,7 @@
 #include "AbstractStyledItemDelegate.h"
 
 #include <lib/model/note/NoteModel.h>
-#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/defaults/Appearance.h>
 #include <lib/view/NoteListView.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -40,9 +40,9 @@ namespace quentier {
 
 NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
-    m_showThumbnailsForAllNotes(DEFAULT_SHOW_NOTE_THUMBNAILS), m_minWidth(220),
-    m_minHeight(120), m_leftMargin(6), m_rightMargin(6), m_topMargin(6),
-    m_bottomMargin(6)
+    m_showThumbnailsForAllNotes(preferences::defaults::showNoteThumbnails),
+    m_minWidth(220), m_minHeight(120), m_leftMargin(6), m_rightMargin(6),
+    m_topMargin(6), m_bottomMargin(6)
 {}
 
 QWidget * NoteItemDelegate::createEditor(

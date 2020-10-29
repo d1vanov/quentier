@@ -5,22 +5,41 @@ SET_POLICIES()
 project(quentier_preferences)
 
 set(HEADERS
-    DefaultDisableNativeMenuBar.h
-    DefaultSettings.h
     PreferencesDialog.h
+    defaults/Appearance.h
+    defaults/NativeMenuBar.h
+    defaults/NoteEditor.h
+    defaults/SidePanelsFiltering.h
+    defaults/StartAtLogin.h
+    defaults/Synchronization.h
+    defaults/SystemTray.h
+    keys/Account.h
+    keys/Appearance.h
+    keys/Enex.h
+    keys/Files.h
+    keys/Logging.h
+    keys/NoteEditor.h
+    keys/PanelColors.h
+    keys/SidePanelsFiltering.h
+    keys/StartAtLogin.h
+    keys/Synchronization.h
+    keys/SystemTray.h
+    keys/Translations.h
     panel_colors/PanelColorsHandlerWidget.h
     shortcut_settings/ShortcutButton.h
     shortcut_settings/ShortcutSettingsWidget.h)
 
 set(SOURCES
-    DefaultDisableNativeMenuBar.cpp
     PreferencesDialog.cpp
+    defaults/NativeMenuBar.cpp
     panel_colors/PanelColorsHandlerWidget.cpp
     shortcut_settings/ShortcutButton.cpp
     shortcut_settings/ShortcutSettingsWidget.cpp)
 
 if(INCLUDE_UPDATE_INFO)
   list(APPEND HEADERS UpdateSettings.h)
+  list(APPEND HEADERS defaults/Updates.h)
+  list(APPEND HEADERS keys/Updates.h)
   list(APPEND SOURCES UpdateSettings.cpp)
 endif()
 

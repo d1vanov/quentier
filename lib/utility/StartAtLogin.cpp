@@ -18,7 +18,7 @@
 
 #include "StartAtLogin.h"
 
-#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/defaults/StartAtLogin.h>
 #include <lib/preferences/keys/StartAtLogin.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -48,7 +48,7 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
     }
 
     StartQuentierAtLoginOption::type option =
-        DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
+        preferences::defaults::startAtLoginOption;
 
     bool conversionResult = false;
 
@@ -74,7 +74,7 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
                     << "automatically at login option value: "
                     << startAutomaticallyAtLoginOptionInt
                     << ", fallback to the default option of "
-                    << DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION);
+                    << preferences::defaults::startAtLoginOption);
             break;
         }
         }
@@ -85,7 +85,7 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
             "Failed to convert start Quentier automatically "
                 << "at login option from app settings to int! "
                 << "Fallback to the default option of "
-                << DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION);
+                << preferences::defaults::startAtLoginOption);
     }
 
     QNDEBUG(

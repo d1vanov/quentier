@@ -18,8 +18,11 @@
 
 #include "PreferencesDialog.h"
 
-#include "DefaultDisableNativeMenuBar.h"
-#include "DefaultSettings.h"
+#include "defaults/Appearance.h"
+#include "defaults/NativeMenuBar.h"
+#include "defaults/SidePanelsFiltering.h"
+#include "defaults/Synchronization.h"
+#include "defaults/SystemTray.h"
 #include "keys/Appearance.h"
 #include "keys/Files.h"
 #include "keys/Logging.h"
@@ -1152,14 +1155,18 @@ void PreferencesDialog::setupInitialPreferencesState(
 
         syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
-        bool downloadNoteThumbnails = DEFAULT_DOWNLOAD_NOTE_THUMBNAILS;
+        bool downloadNoteThumbnails =
+            preferences::defaults::downloadNoteThumbnails;
+
         if (syncSettings.contains(preferences::keys::downloadNoteThumbnails)) {
             downloadNoteThumbnails =
                 syncSettings.value(preferences::keys::downloadNoteThumbnails)
                     .toBool();
         }
 
-        bool downloadInkNoteImages = DEFAULT_DOWNLOAD_INK_NOTE_IMAGES;
+        bool downloadInkNoteImages =
+            preferences::defaults::downloadInkNoteImages;
+
         if (syncSettings.contains(preferences::keys::downloadInkNoteImages)) {
             downloadInkNoteImages =
                 syncSettings.value(preferences::keys::downloadInkNoteImages)
@@ -1183,7 +1190,7 @@ void PreferencesDialog::setupInitialPreferencesState(
         }
 
         if (runSyncEachNumMinutes < 0) {
-            runSyncEachNumMinutes = DEFAULT_RUN_SYNC_EACH_NUM_MINUTES;
+            runSyncEachNumMinutes = preferences::defaults::runSyncPeriodMinutes;
         }
 
         syncSettings.endGroup();
@@ -1262,7 +1269,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
 
-    bool shouldShowSystemTrayIcon = DEFAULT_SHOW_SYSTEM_TRAY_ICON;
+    bool shouldShowSystemTrayIcon = preferences::defaults::showSystemTrayIcon;
 
     QVariant shouldShowSystemTrayIconData =
         appSettings.value(preferences::keys::showSystemTrayIcon);
@@ -1271,7 +1278,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
         shouldShowSystemTrayIcon = shouldShowSystemTrayIconData.toBool();
     }
 
-    bool shouldCloseToTray = DEFAULT_CLOSE_TO_SYSTEM_TRAY;
+    bool shouldCloseToTray = preferences::defaults::closeToSystemTray;
 
     QVariant shouldCloseToTrayData =
         appSettings.value(preferences::keys::closeToSystemTray);
@@ -1280,7 +1287,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
         shouldCloseToTray = shouldCloseToTrayData.toBool();
     }
 
-    bool shouldMinimizeToTray = DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
+    bool shouldMinimizeToTray = preferences::defaults::minimizeToSystemTray;
 
     QVariant shouldMinimizeToTrayData =
         appSettings.value(preferences::keys::minimizeToSystemTray);
@@ -1289,7 +1296,8 @@ void PreferencesDialog::setupSystemTrayPreferences()
         shouldMinimizeToTray = shouldMinimizeToTrayData.toBool();
     }
 
-    bool shouldStartMinimizedToTray = DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY;
+    bool shouldStartMinimizedToTray =
+        preferences::defaults::startMinimizedToSystemTray;
 
     QVariant shouldStartMinimizedToTrayData =
         appSettings.value(preferences::keys::startMinimizedToSystemTray);
@@ -1495,7 +1503,7 @@ void PreferencesDialog::setupFilteringPreferences()
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
-    bool filterByNotebook = DEFAULT_FILTER_BY_SELECTED_NOTEBOOK;
+    bool filterByNotebook = preferences::defaults::filterBySelectedNotebooks;
 
     const auto filterByNotebookValue = appSettings.value(
         preferences::keys::sidePanelsFilterBySelectedNotebook);
@@ -1504,7 +1512,7 @@ void PreferencesDialog::setupFilteringPreferences()
         filterByNotebook = filterByNotebookValue.toBool();
     }
 
-    bool filterByTag = DEFAULT_FILTER_BY_SELECTED_TAG;
+    bool filterByTag = preferences::defaults::filterBySelectedTags;
 
     const auto filterByTagValue =
         appSettings.value(preferences::keys::sidePanelsFilterBySelectedTag);
@@ -1513,7 +1521,8 @@ void PreferencesDialog::setupFilteringPreferences()
         filterByTag = filterByTagValue.toBool();
     }
 
-    bool filterBySavedSearch = DEFAULT_FILTER_BY_SELECTED_SAVED_SEARCH;
+    bool filterBySavedSearch =
+        preferences::defaults::filterBySelectedSavedSearch;
 
     const auto filterBySavedSearchValue = appSettings.value(
         preferences::keys::sidePanelsFilterBySelectedSavedSearch);
@@ -1522,7 +1531,8 @@ void PreferencesDialog::setupFilteringPreferences()
         filterBySavedSearch = filterBySavedSearchValue.toBool();
     }
 
-    bool filterByFavoritedItems = DEFAULT_FILTER_BY_SELECTED_FAVORITED_ITEMS;
+    bool filterByFavoritedItems =
+        preferences::defaults::filterBySelectedFavoritedItems;
 
     const auto filterByFavoritedItemsValue = appSettings.value(
         preferences::keys::sidePanelsFilterBySelectedFavoritedItems);
@@ -1617,11 +1627,11 @@ void PreferencesDialog::setupAppearancePreferences(
 
     QVariant showThumbnails = appSettings.value(
         preferences::keys::showNoteThumbnails,
-        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+        QVariant::fromValue(preferences::defaults::showNoteThumbnails));
 
     QVariant disableNativeMenuBar = appSettings.value(
         preferences::keys::disableNativeMenuBar,
-        QVariant::fromValue(defaultDisableNativeMenuBar()));
+        QVariant::fromValue(preferences::defaults::disableNativeMenuBar()));
 
     QVariant iconTheme =
         appSettings.value(preferences::keys::iconTheme, tr("Native"));

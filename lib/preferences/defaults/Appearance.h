@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,18 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIG_PREFERENCES_DEFAULT_DISABLE_NATIVE_MENU_BAR_H
-#define QUENTIER_LIG_PREFERENCES_DEFAULT_DISABLE_NATIVE_MENU_BAR_H
+#ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_APPEARANCE_H
+#define QUENTIER_LIB_PREFERENCES_DEFAULTS_APPEARANCE_H
 
 namespace quentier {
+namespace preferences {
+namespace defaults {
 
-bool defaultDisableNativeMenuBar();
+// Will display note thumbnails by default
+constexpr bool showNoteThumbnails = true;
 
+} // namespace defaults
+} // namespace preferences
 } // namespace quentier
 
-#endif // QUENTIER_LIG_PREFERENCES_DEFAULT_DISABLE_NATIVE_MENU_BAR_H
+#endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_APPEARANCE_H

@@ -43,10 +43,11 @@
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/common/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
-#include <lib/preferences/DefaultDisableNativeMenuBar.h>
-#include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
 #include <lib/preferences/UpdateSettings.h>
+#include <lib/preferences/defaults/Appearance.h>
+#include <lib/preferences/defaults/NativeMenuBar.h>
+#include <lib/preferences/defaults/Synchronization.h>
 #include <lib/preferences/keys/Account.h>
 #include <lib/preferences/keys/Appearance.h>
 #include <lib/preferences/keys/Enex.h>
@@ -5772,7 +5773,7 @@ bool MainWindow::getShowNoteThumbnailsPreference() const
 
     QVariant showThumbnails = appSettings.value(
         preferences::keys::showNoteThumbnails,
-        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+        QVariant::fromValue(preferences::defaults::showNoteThumbnails));
 
     appSettings.endGroup();
 
@@ -5788,7 +5789,7 @@ bool MainWindow::getDisableNativeMenuBarPreference() const
 
     QVariant disableNativeMenuBar = appSettings.value(
         preferences::keys::disableNativeMenuBar,
-        QVariant::fromValue(defaultDisableNativeMenuBar()));
+        QVariant::fromValue(preferences::defaults::disableNativeMenuBar()));
 
     appSettings.endGroup();
 
@@ -6287,13 +6288,13 @@ void MainWindow::setSynchronizationOptions(const Account & account)
         (appSettings.contains(preferences::keys::downloadNoteThumbnails)
              ? appSettings.value(preferences::keys::downloadNoteThumbnails)
                    .toBool()
-             : DEFAULT_DOWNLOAD_NOTE_THUMBNAILS);
+             : preferences::defaults::downloadNoteThumbnails);
 
     bool downloadInkNoteImagesOption =
         (appSettings.contains(preferences::keys::downloadInkNoteImages)
              ? appSettings.value(preferences::keys::downloadInkNoteImages)
                    .toBool()
-             : DEFAULT_DOWNLOAD_INK_NOTE_IMAGES);
+             : preferences::defaults::downloadInkNoteImages);
 
     appSettings.endGroup();
 
@@ -6358,8 +6359,7 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
 
     int runSyncEachNumMinutes = -1;
     if (syncSettings.contains(preferences::keys::runSyncPeriodMinutes)) {
-        auto data =
-            syncSettings.value(preferences::keys::runSyncPeriodMinutes);
+        auto data = syncSettings.value(preferences::keys::runSyncPeriodMinutes);
 
         bool conversionResult = false;
         runSyncEachNumMinutes = data.toInt(&conversionResult);
@@ -6373,7 +6373,7 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
     }
 
     if (runSyncEachNumMinutes < 0) {
-        runSyncEachNumMinutes = DEFAULT_RUN_SYNC_EACH_NUM_MINUTES;
+        runSyncEachNumMinutes = preferences::defaults::runSyncPeriodMinutes;
     }
 
     syncSettings.endGroup();

@@ -19,7 +19,7 @@
 #include "SystemTrayIconManager.h"
 
 #include <lib/account/AccountManager.h>
-#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/defaults/SystemTray.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/SystemTray.h>
 
@@ -158,11 +158,13 @@ bool SystemTrayIconManager::getPreferenceCloseToSystemTray() const
         preferences::keys::files::userInterface);
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    QVariant resultData = appSettings.value(preferences::keys::closeToSystemTray);
+    QVariant resultData =
+        appSettings.value(preferences::keys::closeToSystemTray);
     appSettings.endGroup();
 
-    bool value = resultData.isValid() ? resultData.toBool()
-                                      : DEFAULT_CLOSE_TO_SYSTEM_TRAY;
+    bool value = resultData.isValid()
+        ? resultData.toBool()
+        : preferences::defaults::closeToSystemTray;
 
     QNTRACE(
         "tray",
@@ -217,7 +219,7 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
         return false;
     }
 
-    bool result = DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
+    bool result = preferences::defaults::minimizeToSystemTray;
 
     ApplicationSettings appSettings(
         m_accountManager.currentAccount(),
@@ -269,7 +271,7 @@ bool SystemTrayIconManager::shouldStartMinimizedToSystemTray() const
         return false;
     }
 
-    bool result = DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY;
+    bool result = preferences::defaults::startMinimizedToSystemTray;
 
     ApplicationSettings appSettings(
         m_accountManager.currentAccount(),
@@ -478,8 +480,7 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
             action = defaultAction;
         }
         else {
-            QNDEBUG(
-                "tray", "Action for setting " << key << ": " << action);
+            QNDEBUG("tray", "Action for setting " << key << ": " << action);
         }
     }
 
@@ -671,7 +672,8 @@ void SystemTrayIconManager::onSwitchTrayIconContextMenuAction(bool checked)
         preferences::keys::files::userInterface);
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    appSettings.setValue(preferences::keys::systemTrayIconKind, pAction->data().toString());
+    appSettings.setValue(
+        preferences::keys::systemTrayIconKind, pAction->data().toString());
     appSettings.endGroup();
 
     setupSystemTrayIcon();
@@ -747,7 +749,7 @@ void SystemTrayIconManager::setupSystemTrayIcon()
             "tray",
             "The tray icon kind is empty, will use the default "
                 << "tray icon");
-        trayIconKind = DEFAULT_TRAY_ICON_KIND;
+        trayIconKind = QString::fromUtf8(preferences::defaults::trayIconKind);
     }
     else if (trayIconKind == QStringLiteral("dark")) {
         QNDEBUG("tray", "Will use the simple dark tray icon");
@@ -763,7 +765,7 @@ void SystemTrayIconManager::setupSystemTrayIcon()
             "tray",
             "Unidentified tray icon kind ("
                 << trayIconKind << ", will fallback to the default");
-        trayIconKind = DEFAULT_TRAY_ICON_KIND;
+        trayIconKind = QString::fromUtf8(preferences::defaults::trayIconKind);
     }
 
     QString whichIcon;
@@ -953,7 +955,8 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
     m_pTrayIconKindsActionGroup = new QActionGroup(this);
     m_pTrayIconKindsActionGroup->setExclusive(true);
 
-    QString currentTrayIconKind = DEFAULT_TRAY_ICON_KIND;
+    QString currentTrayIconKind =
+        QString::fromUtf8(preferences::defaults::trayIconKind);
 
     ApplicationSettings appSettings(
         m_accountManager.currentAccount(),
@@ -976,7 +979,8 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
                 << "setting: " << currentTrayIconKind
                 << ", fallback to default");
 
-        currentTrayIconKind = DEFAULT_TRAY_ICON_KIND;
+        currentTrayIconKind =
+            QString::fromUtf8(preferences::defaults::trayIconKind);
     }
 
     QNDEBUG("tray", "Current tray icon kind = " << currentTrayIconKind);
@@ -1162,7 +1166,7 @@ void SystemTrayIconManager::restoreTrayIconState()
     QVariant data = appSettings.value(preferences::keys::showSystemTrayIcon);
     appSettings.endGroup();
 
-    bool shouldShow = DEFAULT_SHOW_SYSTEM_TRAY_ICON;
+    bool shouldShow = preferences::defaults::showSystemTrayIcon;
     if (data.isValid()) {
         shouldShow = data.toBool();
     }

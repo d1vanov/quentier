@@ -29,7 +29,7 @@
 #include <lib/delegate/LimitedFontsDelegate.h>
 #include <lib/enex/EnexExportDialog.h>
 #include <lib/model/tag/TagModel.h>
-#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/defaults/NoteEditor.h>
 #include <lib/preferences/keys/Enex.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/NoteEditor.h>
@@ -328,10 +328,11 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
                     << "editor to note conversion from the application "
                        "settings, "
                     << "fallback to the default value of "
-                    << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
+                    << preferences::defaults::convertToNoteTimeout
                     << " milliseconds");
 
-            editorConvertToNoteTimeout = DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT;
+            editorConvertToNoteTimeout =
+                preferences::defaults::convertToNoteTimeout;
         }
         else {
             editorConvertToNoteTimeout =

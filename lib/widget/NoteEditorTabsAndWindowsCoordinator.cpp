@@ -22,7 +22,7 @@
 #include "TabWidget.h"
 
 #include <lib/model/tag/TagModel.h>
-#include <lib/preferences/DefaultSettings.h>
+#include <lib/preferences/defaults/NoteEditor.h>
 #include <lib/preferences/keys/Files.h>
 #include <lib/preferences/keys/NoteEditor.h>
 
@@ -2562,7 +2562,7 @@ bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(
 
     appSettings.endGroup();
 
-    bool removeEmptyNotes = DEFAULT_REMOVE_EMPTY_UNEDITED_NOTES;
+    bool removeEmptyNotes = preferences::defaults::removeEmptyUneditedNotes;
     if (removeEmptyNotesData.isValid()) {
         removeEmptyNotes = removeEmptyNotesData.toBool();
         QNDEBUG(
@@ -2611,9 +2611,9 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
             "widget:note_editor_coord",
             "Can't read the timeout for note "
                 << "expunging from the local storage, fallback to the default "
-                << "value of " << DEFAULT_EXPUNGE_NOTE_TIMEOUT
+                << "value of " << preferences::defaults::expungeNoteTimeout
                 << " milliseconds");
-        expungeNoteTimeout = DEFAULT_EXPUNGE_NOTE_TIMEOUT;
+        expungeNoteTimeout = preferences::defaults::expungeNoteTimeout;
     }
     else {
         expungeNoteTimeout = std::max(expungeNoteTimeout, 100);

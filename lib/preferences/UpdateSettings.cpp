@@ -18,7 +18,7 @@
 
 #include "UpdateSettings.h"
 
-#include "DefaultSettings.h"
+#include "defaults/Updates.h"
 #include "keys/Updates.h"
 
 #include <lib/utility/VersionInfo.h>
@@ -32,49 +32,62 @@
 namespace quentier {
 
 void readPersistentUpdateSettings(
-    bool & checkForUpdatesEnabled,
-    bool & shouldCheckForUpdatesOnStartup,
-    bool & useContinuousUpdateChannel,
-    int & checkForUpdatesIntervalOption,
-    QString & updateChannel,
-    UpdateProvider & updateProvider)
+    bool & checkForUpdatesEnabled, bool & shouldCheckForUpdatesOnStartup,
+    bool & useContinuousUpdateChannel, int & checkForUpdatesIntervalOption,
+    QString & updateChannel, UpdateProvider & updateProvider)
 {
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
 
-    checkForUpdatesEnabled = appSettings.value(
-        preferences::keys::checkForUpdates,
-        DEFAULT_CHECK_FOR_UPDATES).toBool();
+    checkForUpdatesEnabled = appSettings
+                                 .value(
+                                     preferences::keys::checkForUpdates,
+                                     preferences::defaults::checkForUpdates)
+                                 .toBool();
 
-    shouldCheckForUpdatesOnStartup = appSettings.value(
-        preferences::keys::checkForUpdatesOnStartup,
-        DEFAULT_CHECK_FOR_UPDATES_ON_STARTUP).toBool();
+    shouldCheckForUpdatesOnStartup =
+        appSettings
+            .value(
+                preferences::keys::checkForUpdatesOnStartup,
+                preferences::defaults::checkForUpdatesOnStartup)
+            .toBool();
 
-    useContinuousUpdateChannel = appSettings.value(
-        preferences::keys::useContinuousUpdateChannel,
-        DEFAULT_USE_CONTINUOUS_UPDATE_CHANNEL).toBool();
+    useContinuousUpdateChannel =
+        appSettings
+            .value(
+                preferences::keys::useContinuousUpdateChannel,
+                preferences::defaults::useContinuousUpdateChannel)
+            .toBool();
 
-    checkForUpdatesIntervalOption = appSettings.value(
-        preferences::keys::checkForUpdatesInterval,
-        DEFAULT_CHECK_FOR_UPDATES_INTERVAL_OPTION_INDEX).toInt();
+    checkForUpdatesIntervalOption =
+        appSettings
+            .value(
+                preferences::keys::checkForUpdatesInterval,
+                preferences::defaults::checkForUpdatesIntervalOptionIndex)
+            .toInt();
 
-    updateChannel = appSettings.value(
-        preferences::keys::checkForUpdatesChannel,
-        DEFAULT_UPDATE_CHANNEL).toString();
+    updateChannel = appSettings
+                        .value(
+                            preferences::keys::checkForUpdatesChannel,
+                            preferences::defaults::updateChannel)
+                        .toString();
 
 #if !QUENTIER_PACKAGED_AS_APP_IMAGE
     // Only GitHub provider is available
     updateProvider = UpdateProvider::GITHUB;
 #else
-    int updateProviderIndex = appSettings.value(
-        preferences::keys::checkForUpdatesProvider,
-        static_cast<int>(DEFAULT_UPDATE_PROVIDER)).toInt();
+    int updateProviderIndex =
+        appSettings
+            .value(
+                preferences::keys::checkForUpdatesProvider,
+                static_cast<int>(preferences::defaults::updateProvider))
+            .toInt();
 
     if (updateProviderIndex >= 0 && updateProviderIndex <= 1) {
         updateProvider = static_cast<UpdateProvider>(updateProviderIndex);
     }
     else {
-        updateProvider = DEFAULT_UPDATE_PROVIDER;
+        updateProvider = preferences::defaults::updateProvider;
     }
 #endif
 
@@ -84,8 +97,7 @@ void readPersistentUpdateSettings(
 qint64 checkForUpdatesIntervalMsecFromOption(
     const CheckForUpdatesInterval option)
 {
-    switch(option)
-    {
+    switch (option) {
     case CheckForUpdatesInterval::FIFTEEN_MINUTES:
         return 15ll * 60 * 1000;
     case CheckForUpdatesInterval::HALF_AN_HOUR:
@@ -108,8 +120,7 @@ qint64 checkForUpdatesIntervalMsecFromOption(
 
 QString updateProviderName(const UpdateProvider updateProvider)
 {
-    switch(updateProvider)
-    {
+    switch (updateProvider) {
     case UpdateProvider::GITHUB:
         return QCoreApplication::translate("preferences", "GitHub releases");
     case UpdateProvider::APPIMAGE:
@@ -127,8 +138,7 @@ namespace {
 template <typename T>
 void printCheckForUpdatesInterval(T & t, const CheckForUpdatesInterval interval)
 {
-    switch(interval)
-    {
+    switch (interval) {
     case CheckForUpdatesInterval::FIFTEEN_MINUTES:
         t << "15 minutes";
         break;
@@ -162,8 +172,7 @@ void printCheckForUpdatesInterval(T & t, const CheckForUpdatesInterval interval)
 template <typename T>
 void printUpdateProvider(T & t, const UpdateProvider provider)
 {
-    switch(provider)
-    {
+    switch (provider) {
     case UpdateProvider::GITHUB:
         t << "GitHub";
         break;
