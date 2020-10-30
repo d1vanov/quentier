@@ -16,7 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NativeMenuBar.h"
+#include "Appearance.h"
 
 #include <QCoreApplication>
 #include <QtGlobal>

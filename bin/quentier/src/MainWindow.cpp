@@ -46,7 +46,6 @@
 #include <lib/preferences/PreferencesDialog.h>
 #include <lib/preferences/UpdateSettings.h>
 #include <lib/preferences/defaults/Appearance.h>
-#include <lib/preferences/defaults/NativeMenuBar.h>
 #include <lib/preferences/defaults/Synchronization.h>
 #include <lib/preferences/keys/Account.h>
 #include <lib/preferences/keys/Appearance.h>

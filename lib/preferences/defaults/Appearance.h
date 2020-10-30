@@ -26,6 +26,9 @@ namespace defaults {
 // Will display note thumbnails by default
 constexpr bool showNoteThumbnails = true;
 
+// Determine whether native menu bar should be disabled by default
+bool disableNativeMenuBar();
+
 } // namespace defaults
 } // namespace preferences
 } // namespace quentier

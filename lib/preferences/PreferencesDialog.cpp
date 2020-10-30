@@ -19,7 +19,6 @@
 #include "PreferencesDialog.h"
 
 #include "defaults/Appearance.h"
-#include "defaults/NativeMenuBar.h"
 #include "defaults/SidePanelsFiltering.h"
 #include "defaults/Synchronization.h"
 #include "defaults/SystemTray.h"

@@ -7,7 +7,6 @@ project(quentier_preferences)
 set(HEADERS
     PreferencesDialog.h
     defaults/Appearance.h
-    defaults/NativeMenuBar.h
     defaults/NoteEditor.h
     defaults/SidePanelsFiltering.h
     defaults/StartAtLogin.h
@@ -31,7 +30,7 @@ set(HEADERS
 
 set(SOURCES
     PreferencesDialog.cpp
-    defaults/NativeMenuBar.cpp
+    defaults/Appearance.cpp
     panel_colors/PanelColorsHandlerWidget.cpp
     shortcut_settings/ShortcutButton.cpp
     shortcut_settings/ShortcutSettingsWidget.cpp)

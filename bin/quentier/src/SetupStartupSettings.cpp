@@ -19,7 +19,7 @@
 #include "SetupStartupSettings.h"
 
 #include <lib/account/AccountManager.h>
-#include <lib/preferences/defaults/NativeMenuBar.h>
+#include <lib/preferences/defaults/Appearance.h>
 #include <lib/preferences/keys/Appearance.h>
 #include <lib/preferences/keys/Files.h>
 
