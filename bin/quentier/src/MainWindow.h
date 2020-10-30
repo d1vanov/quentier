@@ -484,14 +484,14 @@ private:
     bool getDisableNativeMenuBarPreference() const;
 
     /**
-     * Get a set with note local uids.
+     * Note local uids of notes which thumbnails shouldn't be displayed
      */
-    QSet<QString> getHideNoteThumbnailsFor() const;
+    QSet<QString> notesWithHiddenThumbnails() const;
 
     /**
-     * Toggle value of "hide current note thumbnail".
+     * Toggle value of "hide thumbnail" preference for note
      */
-    void toggleHideNoteThumbnailFor(QString noteLocalUid) const;
+    void toggleHideNoteThumbnail(const QString & noteLocalUid);
 
     /**
      * Toggle value of "show note thumbnails".

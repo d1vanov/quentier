@@ -2817,7 +2817,7 @@ void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
         toggleShowNoteThumbnails();
     }
     else {
-        toggleHideNoteThumbnailFor(noteLocalUid);
+        toggleHideNoteThumbnail(noteLocalUid);
     }
 
     onShowNoteThumbnailsPreferenceChanged();
@@ -3312,7 +3312,7 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
     bool showNoteThumbnails = getShowNoteThumbnailsPreference();
 
     Q_EMIT showNoteThumbnailsStateChanged(
-        showNoteThumbnails, getHideNoteThumbnailsFor());
+        showNoteThumbnails, notesWithHiddenThumbnails());
 
     auto * pNoteItemDelegate =
         qobject_cast<NoteItemDelegate *>(m_pUI->noteListView->itemDelegate());
@@ -5795,7 +5795,7 @@ bool MainWindow::getDisableNativeMenuBarPreference() const
     return disableNativeMenuBar.toBool();
 }
 
-QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
+QSet<QString> MainWindow::notesWithHiddenThumbnails() const
 {
     ApplicationSettings appSettings(
         *m_pAccount, preferences::keys::files::userInterface);
@@ -5832,19 +5832,26 @@ void MainWindow::toggleShowNoteThumbnails() const
     appSettings.endGroup();
 }
 
-void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
+void MainWindow::toggleHideNoteThumbnail(const QString & noteLocalUid)
 {
-    auto hideThumbnailsForSet = getHideNoteThumbnailsFor();
-    if (hideThumbnailsForSet.contains(noteLocalUid)) {
-        hideThumbnailsForSet.remove(noteLocalUid);
+    auto noteLocalUids = notesWithHiddenThumbnails();
+    auto it = noteLocalUids.find(noteLocalUid);
+    if (it != noteLocalUids.end()) {
+        noteLocalUids.erase(it);
     }
     else {
-        // after max. count is reached we ignore further requests
-        // FIXME: need a better way than to silently ignore the action
-        if (hideThumbnailsForSet.size() <=
-            preferences::keys::maxNotesWithHiddenThumbnails)
-        {
-            hideThumbnailsForSet.insert(noteLocalUid);
+        if (noteLocalUids.size() <=
+            preferences::keys::maxNotesWithHiddenThumbnails) {
+            noteLocalUids.insert(noteLocalUid);
+        }
+        else {
+            Q_UNUSED(informationMessageBox(
+                this, tr("Cannot disable thumbnail for note"),
+                tr("Too many notes with hidden thumbnails"),
+                tr("There are too many notes for which thumbnails are hidden "
+                   "already. Consider disabling note thumbnails globally if "
+                   "you don't want to see them.")))
+            return;
         }
     }
 
@@ -5855,7 +5862,7 @@ void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
 
     appSettings.setValue(
         preferences::keys::notesWithHiddenThumbnails,
-        QStringList(hideThumbnailsForSet.values()));
+        QStringList(noteLocalUids.values()));
 
     appSettings.endGroup();
 }
