@@ -146,7 +146,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
     Q_ASSERT(versionedReleaseRegex.isValid());
 
     QJsonArray releases = jsonDoc.array();
-    for(const auto release: releases)
+    for(const auto & release: qAsConst(releases))
     {
         if (Q_UNLIKELY(!release.isObject())) {
             QNWARNING("update", "Skipping json field which is not an object "
@@ -361,7 +361,7 @@ bool GitHubUpdateChecker::checkReleaseAssets(
     bool foundMatchingAsset = false;
 
     auto assetsArray = assetsValue.toArray();
-    for(const auto asset: assetsArray)
+    for(const auto & asset: qAsConst(assetsArray))
     {
         if (Q_UNLIKELY(!asset.isObject())) {
             QNWARNING("update", "Skipping release asset field which is not "
