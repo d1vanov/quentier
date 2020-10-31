@@ -66,11 +66,12 @@ void readPersistentUpdateSettings(
                 preferences::defaults::checkForUpdatesIntervalOptionIndex)
             .toInt();
 
-    updateChannel = appSettings
-                        .value(
-                            preferences::keys::checkForUpdatesChannel,
-                            preferences::defaults::updateChannel)
-                        .toString();
+    updateChannel =
+        appSettings
+            .value(
+                preferences::keys::checkForUpdatesChannel,
+                QString::fromUtf8(preferences::defaults::updateChannel))
+            .toString();
 
 #if !QUENTIER_PACKAGED_AS_APP_IMAGE
     // Only GitHub provider is available
