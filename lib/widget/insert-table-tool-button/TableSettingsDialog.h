@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_WIDGET_TABLE_SETTINGS_DIALOG_H
 #define QUENTIER_LIB_WIDGET_TABLE_SETTINGS_DIALOG_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QDialog>
 
 namespace Ui {
@@ -29,7 +27,7 @@ class TableSettingsDialog;
 
 namespace quentier {
 
-class TableSettingsDialog : public QDialog
+class TableSettingsDialog final: public QDialog
 {
     Q_OBJECT
 public:

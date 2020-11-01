@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_MODEL_ABSTRACT_ITEM_MODEL_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 
 #include <QAbstractItemModel>
 #include <QStringList>

@@ -21,7 +21,6 @@
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QListView>
 
@@ -37,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(NoteModel)
  * @brief The NoteListView is a simple subclass of QListView which adds some
  * bits of functionality specific to note list on top of it
  */
-class NoteListView : public QListView
+class NoteListView final: public QListView
 {
     Q_OBJECT
 public:

@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_DELEGATE_ABSTRACT_STYLED_ITEM_DELEGATE_H
 #define QUENTIER_LIB_DELEGATE_ABSTRACT_STYLED_ITEM_DELEGATE_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QStyledItemDelegate>
 
 namespace quentier {

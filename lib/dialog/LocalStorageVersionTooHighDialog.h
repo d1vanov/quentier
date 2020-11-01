@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_DIALOG_LOCAL_STORAGE_VERSION_TOO_HIGH_DIALOG_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 
@@ -37,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(AccountModel)
 QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
 
-class LocalStorageVersionTooHighDialog : public QDialog
+class LocalStorageVersionTooHighDialog final: public QDialog
 {
     Q_OBJECT
 public:

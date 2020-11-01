@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_WIDGET_LIST_ITEM_WIDGET_H
 #define QUENTIER_LIB_WIDGET_LIST_ITEM_WIDGET_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QWidget>
 
 namespace Ui {
@@ -36,7 +34,7 @@ namespace quentier {
  * It is a very simple widget combining the item name label and the button
  * intended to signal the desire to remove the item from the list
  */
-class ListItemWidget : public QWidget
+class ListItemWidget final: public QWidget
 {
     Q_OBJECT
 public:

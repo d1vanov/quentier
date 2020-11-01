@@ -24,6 +24,7 @@
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 
 #include <QFile>
 

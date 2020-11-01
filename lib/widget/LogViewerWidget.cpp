@@ -23,6 +23,7 @@
 #include <lib/preferences/keys/Logging.h>
 
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/Compat.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/StandardPaths.h>
 

@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QNetworkReply>
 #include <QObject>
@@ -35,7 +34,7 @@ QT_FORWARD_DECLARE_CLASS(QTimer)
 
 namespace quentier {
 
-class NetworkReplyFetcher : public QObject
+class NetworkReplyFetcher final: public QObject
 {
     Q_OBJECT
 public:

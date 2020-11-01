@@ -22,7 +22,6 @@
 #include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QPointer>
@@ -38,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
  * a couple of asynchronous events related to setting up the default notebook
  * and note for the newly created default account
  */
-class DefaultAccountFirstNotebookAndNoteCreator : public QObject
+class DefaultAccountFirstNotebookAndNoteCreator final: public QObject
 {
     Q_OBJECT
 public:

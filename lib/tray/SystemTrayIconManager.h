@@ -21,7 +21,6 @@
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QSystemTrayIcon>
@@ -33,7 +32,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
 
-class SystemTrayIconManager : public QObject
+class SystemTrayIconManager final: public QObject
 {
     Q_OBJECT
 public:

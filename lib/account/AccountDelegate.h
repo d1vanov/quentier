@@ -19,13 +19,11 @@
 #ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_DELEGATE_H
 #define QUENTIER_LIB_ACCOUNT_ACCOUNT_DELEGATE_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QStyledItemDelegate>
 
 namespace quentier {
 
-class AccountDelegate : public QStyledItemDelegate
+class AccountDelegate final: public QStyledItemDelegate
 {
     Q_OBJECT
 public:

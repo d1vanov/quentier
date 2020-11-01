@@ -21,6 +21,8 @@
 #include <lib/account/AccountManager.h>
 #include <lib/initialization/Initialize.h>
 
+#include <quentier/utility/Compat.h>
+
 #include <iostream>
 #include <memory>
 

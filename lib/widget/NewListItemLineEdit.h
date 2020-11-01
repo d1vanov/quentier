@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_WIDGET_NEW_LIST_ITEM_LINE_EDIT_H
 #define QUENTIER_LIB_WIDGET_NEW_LIST_ITEM_LINE_EDIT_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QHash>
 #include <QLineEdit>
 #include <QPointer>
@@ -40,7 +38,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
 
-class NewListItemLineEdit : public QLineEdit
+class NewListItemLineEdit final: public QLineEdit
 {
     Q_OBJECT
 public:

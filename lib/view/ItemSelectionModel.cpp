@@ -21,6 +21,7 @@
 #include <lib/model/common/AbstractItemModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 
 namespace quentier {
 

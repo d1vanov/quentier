@@ -22,6 +22,7 @@
 #include <lib/model/tag/TagModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 #include <quentier/utility/VersionInfo.h>
 
 #include <QAbstractItemView>

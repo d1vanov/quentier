@@ -21,7 +21,6 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
-#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QPointer>
@@ -38,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class NoteFiltersManager : public QObject
+class NoteFiltersManager final: public QObject
 {
     Q_OBJECT
 public:

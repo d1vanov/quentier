@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_DIALOG_LOCAL_STORAGE_UPGRADE_DIALOG_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 #include <QFlags>
@@ -42,7 +41,7 @@ QT_FORWARD_DECLARE_CLASS(AccountModel)
 QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
 QT_FORWARD_DECLARE_CLASS(ILocalStoragePatch)
 
-class LocalStorageUpgradeDialog : public QDialog
+class LocalStorageUpgradeDialog final: public QDialog
 {
     Q_OBJECT
 public:

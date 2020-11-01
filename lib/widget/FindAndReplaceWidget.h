@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_WIDGET_FIND_AND_REPLACE_WIDGET_H
 #define QUENTIER_LIB_WIDGET_FIND_AND_REPLACE_WIDGET_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QString>
 #include <QWidget>
 
@@ -30,7 +28,7 @@ class FindAndReplaceWidget;
 
 namespace quentier {
 
-class FindAndReplaceWidget : public QWidget
+class FindAndReplaceWidget final: public QWidget
 {
     Q_OBJECT
 public:

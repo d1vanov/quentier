@@ -18,8 +18,6 @@
 
 #include "ParseStartupAccount.h"
 
-#include <quentier/utility/Macros.h>
-
 #include <QDebug>
 
 namespace quentier {

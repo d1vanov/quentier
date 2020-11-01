@@ -18,8 +18,6 @@
 
 #include "TableSizeSelector.h"
 
-#include <quentier/utility/Macros.h>
-
 #include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>

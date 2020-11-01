@@ -24,7 +24,6 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Account.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Macros.h>
 
 #include <QUrl>
 

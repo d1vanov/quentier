@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_DIALOG_FIRST_SHUTDOWN_DIALOG_H
 #define QUENTIER_LIB_DIALOG_FIRST_SHUTDOWN_DIALOG_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QDialog>
 
 namespace Ui {
@@ -29,7 +27,7 @@ class FirstShutdownDialog;
 
 namespace quentier {
 
-class FirstShutdownDialog : public QDialog
+class FirstShutdownDialog final: public QDialog
 {
     Q_OBJECT
 public:

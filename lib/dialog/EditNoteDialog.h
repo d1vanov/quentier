@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOG_H
 
 #include <quentier/types/Note.h>
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 
 #include <QDialog>
@@ -37,7 +36,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EditNoteDialog : public QDialog
+class EditNoteDialog final: public QDialog
 {
     Q_OBJECT
 public:

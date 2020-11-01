@@ -18,8 +18,6 @@
 
 #include "RestartApp.h"
 
-#include <quentier/utility/Macros.h>
-
 #include <lib/utility/VersionInfo.h>
 
 #include <QCoreApplication>

@@ -20,13 +20,12 @@
 #define QUENTIER_LIB_DELEGATE_NOTE_ITEM_DELEGATE_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QStyledItemDelegate>
 
 namespace quentier {
 
-class NoteItemDelegate : public QStyledItemDelegate
+class NoteItemDelegate final: public QStyledItemDelegate
 {
     Q_OBJECT
 public:

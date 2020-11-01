@@ -20,6 +20,8 @@
 
 #include <lib/utility/HumanReadableVersionInfo.h>
 
+#include <quentier/utility/Compat.h>
+
 #include <QCommandLineParser>
 #include <QDebug>
 #include <QtGlobal>

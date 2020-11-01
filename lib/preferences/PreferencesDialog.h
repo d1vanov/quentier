@@ -23,8 +23,6 @@
 #include "UpdateSettings.h"
 #endif
 
-#include <quentier/utility/Macros.h>
-
 #include <QColor>
 #include <QDialog>
 #include <QPointer>
@@ -45,7 +43,7 @@ QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
 
-class PreferencesDialog : public QDialog
+class PreferencesDialog final: public QDialog
 {
     Q_OBJECT
 public:

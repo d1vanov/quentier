@@ -19,7 +19,6 @@
 #include "BreakpadIntegration.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Macros.h>
 
 #include <QFileInfoList>
 #include <QDir>

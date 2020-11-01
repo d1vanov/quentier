@@ -51,13 +51,11 @@
 #ifndef FLOWLAYOUT_H
 #define FLOWLAYOUT_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QLayout>
 #include <QRect>
 #include <QStyle>
 
-class FlowLayout : public QLayout
+class FlowLayout final: public QLayout
 {
     Q_OBJECT
 public:

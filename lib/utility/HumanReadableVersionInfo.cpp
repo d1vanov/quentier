@@ -20,7 +20,6 @@
 
 #include <VersionInfo.h>
 
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/VersionInfo.h>
 
 namespace quentier {

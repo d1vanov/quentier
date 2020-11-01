@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_WIDGET_SAVED_SEARCH_MODEL_ITEM_INFO_WIDGET_H
 #define QUENTIER_LIB_WIDGET_SAVED_SEARCH_MODEL_ITEM_INFO_WIDGET_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QWidget>
 
 namespace Ui {
@@ -33,7 +31,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchItem)
 
-class SavedSearchModelItemInfoWidget : public QWidget
+class SavedSearchModelItemInfoWidget final: public QWidget
 {
     Q_OBJECT
 public:

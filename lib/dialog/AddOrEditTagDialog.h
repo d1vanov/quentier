@@ -21,7 +21,6 @@
 
 #include <lib/model/tag/TagModel.h>
 
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 
 #include <QDialog>
@@ -35,7 +34,7 @@ QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-class AddOrEditTagDialog : public QDialog
+class AddOrEditTagDialog final: public QDialog
 {
     Q_OBJECT
 public:

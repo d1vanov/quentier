@@ -23,7 +23,6 @@
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/FileSystemWatcher.h>
 #include <quentier/utility/LRUCache.hpp>
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/Printable.h>
 #include <quentier/utility/SuppressWarnings.h>
 

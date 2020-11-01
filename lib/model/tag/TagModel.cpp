@@ -24,6 +24,7 @@
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 
 #include <QByteArray>
 #include <QDataStream>
