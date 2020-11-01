@@ -20,7 +20,7 @@
 #include "ui_LogViewerWidget.h"
 
 #include <lib/delegate/LogViewerDelegate.h>
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Logging.h>
 
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
@@ -366,8 +366,8 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
     QuentierSetMinLogLevel(static_cast<LogLevel>(index));
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    appSettings.setValue(CURRENT_MIN_LOG_LEVEL, index);
+    appSettings.beginGroup(preferences::keys::loggingGroup);
+    appSettings.setValue(preferences::keys::minLogLevel, index);
     appSettings.endGroup();
 }
 
@@ -1115,14 +1115,14 @@ void LogViewerWidget::saveFilterByComponentState()
     QNDEBUG("widget:log_viewer", "LogViewerWidget::saveFilterByComponentState");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    appSettings.beginGroup(preferences::keys::loggingGroup);
 
     appSettings.setValue(
-        CURRENT_FILTER_BY_COMPONENT_PRESET,
+        preferences::keys::loggingFilterByComponentPreset,
         m_pUi->filterByComponentPresetsComboBox->currentIndex());
 
     appSettings.setValue(
-        CURRENT_FILTER_BY_COMPONENT,
+        preferences::keys::loggingFilterByComponentRegex,
         m_pUi->filterByComponentRegexLineEdit->text());
 
     appSettings.endGroup();
@@ -1134,11 +1134,11 @@ void LogViewerWidget::restoreFilterByComponentState()
         "widget:log_viewer", "LogViewerWidget::restoreFilterByComponentState");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    appSettings.beginGroup(preferences::keys::loggingGroup);
 
-    auto presetIndex = appSettings.value(CURRENT_FILTER_BY_COMPONENT_PRESET);
+    auto presetIndex = appSettings.value(preferences::keys::loggingFilterByComponentPreset);
 
-    auto filter = appSettings.value(CURRENT_FILTER_BY_COMPONENT).toString();
+    auto filter = appSettings.value(preferences::keys::loggingFilterByComponentRegex).toString();
 
     appSettings.endGroup();
 

@@ -16,37 +16,23 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Log.h"
-
-#include <lib/preferences/keys/Logging.h>
-
-#include <quentier/utility/ApplicationSettings.h>
+#ifndef QUENTIER_LIB_PREFERENCES_KEYS_FILES_H
+#define QUENTIER_LIB_PREFERENCES_KEYS_FILES_H
 
 namespace quentier {
+namespace preferences {
+namespace keys {
+namespace files {
 
-QString restoreLogFilterByComponent()
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
+// Names of different .ini files containing the values of preferences
 
-    QString filter =
-        appSettings.value(preferences::keys::loggingFilterByComponentRegex)
-            .toString();
+constexpr const char * userInterface = "UserInterface";
+constexpr const char * auxiliary = "Auxiliary";
+constexpr const char * synchronization = "Synchronization";
 
-    appSettings.endGroup();
-
-    return filter;
-}
-
-void setLogFilterByComponent(const QString & filter)
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
-
-    appSettings.setValue(
-        preferences::keys::loggingFilterByComponentRegex, filter);
-
-    appSettings.endGroup();
-}
-
+} // files
+} // keys
+} // preferences
 } // namespace quentier
+
+#endif // QUENTIER_LIB_PREFERENCES_KEYS_FILES_H

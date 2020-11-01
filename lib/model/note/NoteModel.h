@@ -605,11 +605,11 @@ private:
         NoteModelItem,
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
-            boost::multi_index::hashed_unique<
+            boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<
                     NoteModelItem, const QString &, &NoteModelItem::localUid>>,
-            boost::multi_index::hashed_non_unique<
+            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByNotebookLocalUid>,
                 boost::multi_index::const_mem_fun<
                     NoteModelItem, const QString &,
@@ -728,10 +728,5 @@ private:
 };
 
 } // namespace quentier
-
-inline std::size_t hash_value(QString x)
-{
-    return qHash(x);
-}
 
 #endif // QUENTIER_LIB_MODEL_NOTE_MODEL_H

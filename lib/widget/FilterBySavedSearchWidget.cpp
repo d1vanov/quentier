@@ -19,7 +19,7 @@
 #include "FilterBySavedSearchWidget.h"
 
 #include <lib/model/saved_search/SavedSearchModel.h>
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -140,7 +140,9 @@ QString FilterBySavedSearchWidget::filteredSavedSearchLocalUid() const
         return {};
     }
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
 
     QString savedSearchLocalUid =
@@ -256,7 +258,9 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
         return;
     }
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
 
     if (m_currentSavedSearchLocalUid.isEmpty()) {
@@ -298,7 +302,9 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
         return;
     }
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
 
     m_currentSavedSearchLocalUid =

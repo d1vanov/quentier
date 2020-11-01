@@ -22,7 +22,8 @@
 
 #include <lib/dialog/AddOrEditTagDialog.h>
 #include <lib/model/tag/TagModel.h>
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/SidePanelsFiltering.h>
 #include <lib/widget/NoteFiltersManager.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -112,7 +113,9 @@ void TagItemView::saveItemsState()
         }
     }
 
-    ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        pTagModel->account(), preferences::keys::files::userInterface);
+
     appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
 
     appSettings.setValue(
@@ -140,7 +143,9 @@ void TagItemView::restoreItemsState(const AbstractItemModel & model)
         return;
     }
 
-    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        model.account(), preferences::keys::files::userInterface);
+
     appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
 
     QStringList expandedTagItemsLocalUids =
@@ -189,12 +194,13 @@ QString TagItemView::selectedItemsKey() const
 
 bool TagItemView::shouldFilterBySelectedItems(const Account & account) const
 {
-    ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        account, preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
     const auto filterBySelectedTag =
-        appSettings.value(FILTER_BY_SELECTED_TAG_SETTINGS_KEY);
+        appSettings.value(preferences::keys::sidePanelsFilterBySelectedTag);
 
     appSettings.endGroup();
 

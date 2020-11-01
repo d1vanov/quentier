@@ -18,9 +18,18 @@
 
 #include "PreferencesDialog.h"
 
-#include "DefaultDisableNativeMenuBar.h"
-#include "DefaultSettings.h"
-#include "SettingsNames.h"
+#include "defaults/Appearance.h"
+#include "defaults/SidePanelsFiltering.h"
+#include "defaults/Synchronization.h"
+#include "defaults/SystemTray.h"
+#include "keys/Appearance.h"
+#include "keys/Files.h"
+#include "keys/Logging.h"
+#include "keys/NoteEditor.h"
+#include "keys/SidePanelsFiltering.h"
+#include "keys/Synchronization.h"
+#include "keys/SystemTray.h"
+#include "keys/Updates.h"
 
 #include "panel_colors/PanelColorsHandlerWidget.h"
 using quentier::PanelColorsHandlerWidget;
@@ -102,10 +111,12 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::showSystemTrayIcon, checked);
     appSettings.endGroup();
 
     // Change the enabled/disabled status of all the tray actions but the one
@@ -142,10 +153,12 @@ void PreferencesDialog::onCloseToSystemTrayCheckboxToggled(bool checked)
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::closeToSystemTray, checked);
     appSettings.endGroup();
 }
 
@@ -164,10 +177,12 @@ void PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled(bool checked)
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::minimizeToSystemTray, checked);
     appSettings.endGroup();
 }
 
@@ -187,10 +202,13 @@ void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(
+        preferences::keys::startMinimizedToSystemTray, checked);
     appSettings.endGroup();
 }
 
@@ -208,10 +226,12 @@ void PreferencesDialog::onSingleClickTrayActionChanged(int action)
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SINGLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::singleClickTrayAction, action);
     appSettings.endGroup();
 }
 
@@ -229,10 +249,12 @@ void PreferencesDialog::onMiddleClickTrayActionChanged(int action)
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(MIDDLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::middleClickTrayAction, action);
     appSettings.endGroup();
 }
 
@@ -250,10 +272,12 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(int action)
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
-    appSettings.setValue(DOUBLE_CLICK_TRAY_ACTION_SETTINGS_KEY, action);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+    appSettings.setValue(preferences::keys::doubleClickTrayAction, action);
     appSettings.endGroup();
 }
 
@@ -265,10 +289,11 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(bool checked)
             << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings(
-        m_accountManager.currentAccount(), QUENTIER_UI_SETTINGS);
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
+    appSettings.setValue(preferences::keys::showNoteThumbnails, checked);
     appSettings.endGroup();
 
     Q_EMIT showNoteThumbnailsOptionChanged();
@@ -282,10 +307,11 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
             << "checked = " << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings(
-        m_accountManager.currentAccount(), QUENTIER_UI_SETTINGS);
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
+    appSettings.setValue(preferences::keys::disableNativeMenuBar, checked);
     appSettings.endGroup();
 
     m_pUi->disableNativeMenuBarRestartWarningLabel->setVisible(true);
@@ -382,8 +408,8 @@ void PreferencesDialog::onCheckForUpdatesCheckboxToggled(bool checked)
             << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdates, checked);
     appSettings.endGroup();
 
     Q_EMIT checkForUpdatesOptionChanged(checked);
@@ -397,8 +423,8 @@ void PreferencesDialog::onCheckForUpdatesOnStartupCheckboxToggled(bool checked)
             << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_ON_STARTUP_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesOnStartup, checked);
     appSettings.endGroup();
 
     Q_EMIT checkForUpdatesOnStartupOptionChanged(checked);
@@ -413,8 +439,11 @@ void PreferencesDialog::onUseContinuousUpdateChannelCheckboxToggled(
             << (checked ? "checked" : "unchecked"));
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(USE_CONTINUOUS_UPDATE_CHANNEL_SETTINGS_KEY, checked);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+
+    appSettings.setValue(
+        preferences::keys::useContinuousUpdateChannel, checked);
+
     appSettings.endGroup();
 
     Q_EMIT useContinuousUpdateChannelOptionChanged(checked);
@@ -431,8 +460,8 @@ void PreferencesDialog::onCheckForUpdatesIntervalChanged(int option)
             << option << ", msec = " << msec);
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_INTERVAL_SETTINGS_KEY, msec);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesInterval, msec);
     appSettings.endGroup();
 
     Q_EMIT checkForUpdatesIntervalChanged(msec);
@@ -447,8 +476,8 @@ void PreferencesDialog::onUpdateChannelChanged(int index)
         (index == 0) ? QStringLiteral("master") : QStringLiteral("development");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_CHANNEL_KEY, channel);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesChannel, channel);
     appSettings.endGroup();
 
     Q_EMIT updateChannelChanged(channel);
@@ -463,8 +492,8 @@ void PreferencesDialog::onUpdateProviderChanged(int index)
         "PreferencesDialog::onUpdateProviderChanged: " << provider);
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(CHECK_FOR_UPDATES_SETTINGS_GROUP_NAME);
-    appSettings.setValue(CHECK_FOR_UPDATES_PROVIDER_SETTINGS_KEY, index);
+    appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    appSettings.setValue(preferences::keys::checkForUpdatesProvider, index);
     appSettings.endGroup();
 
     bool usingGitHubProvider = (provider == UpdateProvider::GITHUB);
@@ -482,10 +511,13 @@ void PreferencesDialog::onFilterByNotebookCheckboxToggled(bool checked)
         "PreferencesDialog::onFilterByNotebookCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
+    appSettings.setValue(
+        preferences::keys::sidePanelsFilterBySelectedNotebook, checked);
     appSettings.endGroup();
 
     Q_EMIT filterByNotebookOptionChanged(checked);
@@ -498,10 +530,13 @@ void PreferencesDialog::onFilterByTagCheckboxToggled(bool checked)
         "PreferencesDialog::onFilterByTagCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(FILTER_BY_SELECTED_TAG_SETTINGS_KEY, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
+    appSettings.setValue(
+        preferences::keys::sidePanelsFilterBySelectedTag, checked);
     appSettings.endGroup();
 
     Q_EMIT filterByTagOptionChanged(checked);
@@ -514,10 +549,13 @@ void PreferencesDialog::onFilterBySavedSearchCheckboxToggled(bool checked)
         "PreferencesDialog::onFilterBySavedSearchCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
+    appSettings.setValue(
+        preferences::keys::sidePanelsFilterBySelectedSavedSearch, checked);
     appSettings.endGroup();
 
     Q_EMIT filterBySavedSearchOptionChanged(checked);
@@ -530,11 +568,15 @@ void PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled(bool checked)
         "PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
+
     appSettings.setValue(
-        FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY, checked);
+        preferences::keys::sidePanelsFilterBySelectedFavoritedItems, checked);
+
     appSettings.endGroup();
 
     Q_EMIT filterByFavoritedItemsOptionChanged(checked);
@@ -547,10 +589,13 @@ void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
         "PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.setValue(USE_LIMITED_SET_OF_FONTS, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    appSettings.setValue(
+        preferences::keys::noteEditorUseLimitedSetOfFonts, checked);
     appSettings.endGroup();
 
     Q_EMIT noteEditorUseLimitedFontsOptionChanged(checked);
@@ -568,7 +613,7 @@ void PreferencesDialog::onNoteEditorFontColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorFontColor,
         *m_pUi->noteEditorFontColorLineEdit,
         *m_pUi->noteEditorFontColorDemoFrame);
 
@@ -637,7 +682,7 @@ void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorBackgroundColor,
         *m_pUi->noteEditorBackgroundColorLineEdit,
         *m_pUi->noteEditorBackgroundColorDemoFrame);
 
@@ -708,7 +753,7 @@ void PreferencesDialog::onNoteEditorHighlightColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorHighlightColor,
         *m_pUi->noteEditorHighlightColorLineEdit,
         *m_pUi->noteEditorHighlightColorDemoFrame);
 
@@ -778,7 +823,7 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered()
     QColor color(colorCode);
 
     bool res = onNoteEditorColorEnteredImpl(
-        color, prevColor, NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY,
+        color, prevColor, preferences::keys::noteEditorHighlightedTextColor,
         *m_pUi->noteEditorHighlightedTextColorLineEdit,
         *m_pUi->noteEditorHighlightedTextColorDemoFrame);
 
@@ -843,14 +888,15 @@ void PreferencesDialog::onNoteEditorColorsReset()
 {
     QNDEBUG("preferences", "PreferencesDialog::onNoteEditorColorsReset");
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.remove(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
-    appSettings.remove(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
-    appSettings.remove(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
-    appSettings.remove(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    appSettings.remove(preferences::keys::noteEditorFontColor);
+    appSettings.remove(preferences::keys::noteEditorBackgroundColor);
+    appSettings.remove(preferences::keys::noteEditorHighlightColor);
+    appSettings.remove(preferences::keys::noteEditorHighlightedTextColor);
     appSettings.endGroup();
 
     QPalette pal = palette();
@@ -883,10 +929,12 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(bool checked)
         "PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::synchronization);
+
+    appSettings.beginGroup(preferences::keys::synchronizationGroup);
+    appSettings.setValue(preferences::keys::downloadNoteThumbnails, checked);
     appSettings.endGroup();
 
     Q_EMIT synchronizationDownloadNoteThumbnailsOptionChanged(checked);
@@ -899,10 +947,12 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(bool checked)
         "PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
-    appSettings.setValue(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES, checked);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::synchronization);
+
+    appSettings.beginGroup(preferences::keys::synchronizationGroup);
+    appSettings.setValue(preferences::keys::downloadInkNoteImages, checked);
     appSettings.endGroup();
 
     Q_EMIT synchronizationDownloadInkNoteImagesOptionChanged(checked);
@@ -935,12 +985,14 @@ void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(int index)
         break;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings syncSettings(currentAccount, QUENTIER_SYNC_SETTINGS);
-    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    ApplicationSettings syncSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::synchronization);
+
+    syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
     syncSettings.setValue(
-        SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES, runSyncEachNumMinutes);
+        preferences::keys::runSyncPeriodMinutes, runSyncEachNumMinutes);
 
     syncSettings.endGroup();
 
@@ -1062,8 +1114,9 @@ void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(
             << "checked = " << (checked ? "true" : "false"));
 
     ApplicationSettings globalAppSettings;
-    globalAppSettings.beginGroup(LOGGING_SETTINGS_GROUP);
-    globalAppSettings.setValue(ENABLE_LOG_VIEWER_INTERNAL_LOGS, checked);
+    globalAppSettings.beginGroup(preferences::keys::loggingGroup);
+    globalAppSettings.setValue(
+        preferences::keys::enableLogViewerInternalLogs, checked);
     globalAppSettings.endGroup();
 }
 
@@ -1097,28 +1150,32 @@ void PreferencesDialog::setupInitialPreferencesState(
     }
     else {
         ApplicationSettings syncSettings(
-            currentAccount, QUENTIER_SYNC_SETTINGS);
+            currentAccount, preferences::keys::files::synchronization);
 
-        syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+        syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
-        bool downloadNoteThumbnails = DEFAULT_DOWNLOAD_NOTE_THUMBNAILS;
-        if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)) {
+        bool downloadNoteThumbnails =
+            preferences::defaults::downloadNoteThumbnails;
+
+        if (syncSettings.contains(preferences::keys::downloadNoteThumbnails)) {
             downloadNoteThumbnails =
-                syncSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
+                syncSettings.value(preferences::keys::downloadNoteThumbnails)
                     .toBool();
         }
 
-        bool downloadInkNoteImages = DEFAULT_DOWNLOAD_INK_NOTE_IMAGES;
-        if (syncSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)) {
+        bool downloadInkNoteImages =
+            preferences::defaults::downloadInkNoteImages;
+
+        if (syncSettings.contains(preferences::keys::downloadInkNoteImages)) {
             downloadInkNoteImages =
-                syncSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)
+                syncSettings.value(preferences::keys::downloadInkNoteImages)
                     .toBool();
         }
 
         int runSyncEachNumMinutes = -1;
-        if (syncSettings.contains(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES)) {
+        if (syncSettings.contains(preferences::keys::runSyncPeriodMinutes)) {
             QVariant data =
-                syncSettings.value(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES);
+                syncSettings.value(preferences::keys::runSyncPeriodMinutes);
 
             bool conversionResult = false;
             runSyncEachNumMinutes = data.toInt(&conversionResult);
@@ -1132,7 +1189,7 @@ void PreferencesDialog::setupInitialPreferencesState(
         }
 
         if (runSyncEachNumMinutes < 0) {
-            runSyncEachNumMinutes = DEFAULT_RUN_SYNC_EACH_NUM_MINUTES;
+            runSyncEachNumMinutes = preferences::defaults::runSyncPeriodMinutes;
         }
 
         syncSettings.endGroup();
@@ -1154,10 +1211,10 @@ void PreferencesDialog::setupInitialPreferencesState(
 
     // 7) Auxiliary tab
     ApplicationSettings globalAppSettings;
-    globalAppSettings.beginGroup(LOGGING_SETTINGS_GROUP);
+    globalAppSettings.beginGroup(preferences::keys::loggingGroup);
 
     QVariant enableLogViewerInternalLogsValue =
-        globalAppSettings.value(ENABLE_LOG_VIEWER_INTERNAL_LOGS);
+        globalAppSettings.value(preferences::keys::enableLogViewerInternalLogs);
 
     globalAppSettings.endGroup();
 
@@ -1205,41 +1262,44 @@ void PreferencesDialog::setupSystemTrayPreferences()
         return;
     }
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SYSTEM_TRAY_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    bool shouldShowSystemTrayIcon = DEFAULT_SHOW_SYSTEM_TRAY_ICON;
+    appSettings.beginGroup(preferences::keys::systemTrayGroup);
+
+    bool shouldShowSystemTrayIcon = preferences::defaults::showSystemTrayIcon;
 
     QVariant shouldShowSystemTrayIconData =
-        appSettings.value(SHOW_SYSTEM_TRAY_ICON_SETTINGS_KEY);
+        appSettings.value(preferences::keys::showSystemTrayIcon);
 
     if (shouldShowSystemTrayIconData.isValid()) {
         shouldShowSystemTrayIcon = shouldShowSystemTrayIconData.toBool();
     }
 
-    bool shouldCloseToTray = DEFAULT_CLOSE_TO_SYSTEM_TRAY;
+    bool shouldCloseToTray = preferences::defaults::closeToSystemTray;
 
     QVariant shouldCloseToTrayData =
-        appSettings.value(CLOSE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+        appSettings.value(preferences::keys::closeToSystemTray);
 
     if (shouldCloseToTrayData.isValid()) {
         shouldCloseToTray = shouldCloseToTrayData.toBool();
     }
 
-    bool shouldMinimizeToTray = DEFAULT_MINIMIZE_TO_SYSTEM_TRAY;
+    bool shouldMinimizeToTray = preferences::defaults::minimizeToSystemTray;
 
     QVariant shouldMinimizeToTrayData =
-        appSettings.value(MINIMIZE_TO_SYSTEM_TRAY_SETTINGS_KEY);
+        appSettings.value(preferences::keys::minimizeToSystemTray);
 
     if (shouldMinimizeToTrayData.isValid()) {
         shouldMinimizeToTray = shouldMinimizeToTrayData.toBool();
     }
 
-    bool shouldStartMinimizedToTray = DEFAULT_START_MINIMIZED_TO_SYSTEM_TRAY;
+    bool shouldStartMinimizedToTray =
+        preferences::defaults::startMinimizedToSystemTray;
 
     QVariant shouldStartMinimizedToTrayData =
-        appSettings.value(START_MINIMIZED_TO_SYSTEM_TRAY_SETTINGS_KEY);
+        appSettings.value(preferences::keys::startMinimizedToSystemTray);
 
     if (shouldStartMinimizedToTrayData.isValid()) {
         shouldStartMinimizedToTray = shouldStartMinimizedToTrayData.toBool();
@@ -1436,41 +1496,45 @@ void PreferencesDialog::setupFilteringPreferences()
 {
     QNDEBUG("preferences", "PreferencesDialog::setupFilteringPreferences");
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(SIDE_PANELS_FILTER_BY_SELECTION_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    bool filterByNotebook = DEFAULT_FILTER_BY_SELECTED_NOTEBOOK;
+    appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
-    const auto filterByNotebookValue =
-        appSettings.value(FILTER_BY_SELECTED_NOTEBOOK_SETTINGS_KEY);
+    bool filterByNotebook = preferences::defaults::filterBySelectedNotebooks;
+
+    const auto filterByNotebookValue = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedNotebook);
 
     if (filterByNotebookValue.isValid()) {
         filterByNotebook = filterByNotebookValue.toBool();
     }
 
-    bool filterByTag = DEFAULT_FILTER_BY_SELECTED_TAG;
+    bool filterByTag = preferences::defaults::filterBySelectedTags;
 
     const auto filterByTagValue =
-        appSettings.value(FILTER_BY_SELECTED_TAG_SETTINGS_KEY);
+        appSettings.value(preferences::keys::sidePanelsFilterBySelectedTag);
 
     if (filterByTagValue.isValid()) {
         filterByTag = filterByTagValue.toBool();
     }
 
-    bool filterBySavedSearch = DEFAULT_FILTER_BY_SELECTED_SAVED_SEARCH;
+    bool filterBySavedSearch =
+        preferences::defaults::filterBySelectedSavedSearch;
 
-    const auto filterBySavedSearchValue =
-        appSettings.value(FILTER_BY_SELECTED_SAVED_SEARCH_SETTINGS_KEY);
+    const auto filterBySavedSearchValue = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedSavedSearch);
 
     if (filterBySavedSearchValue.isValid()) {
         filterBySavedSearch = filterBySavedSearchValue.toBool();
     }
 
-    bool filterByFavoritedItems = DEFAULT_FILTER_BY_SELECTED_FAVORITED_ITEMS;
+    bool filterByFavoritedItems =
+        preferences::defaults::filterBySelectedFavoritedItems;
 
-    const auto filterByFavoritedItemsValue =
-        appSettings.value(FILTER_BY_SELECTED_FAVORITED_ITEM_SETTINGS_KEY);
+    const auto filterByFavoritedItemsValue = appSettings.value(
+        preferences::keys::sidePanelsFilterBySelectedFavoritedItems);
 
     if (filterByFavoritedItemsValue.isValid()) {
         filterByFavoritedItems = filterByFavoritedItemsValue.toBool();
@@ -1554,21 +1618,22 @@ void PreferencesDialog::setupAppearancePreferences(
 {
     QNDEBUG("preferences", "PreferencesDialog::setupAppearancePreferences");
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant showThumbnails = appSettings.value(
-        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
-        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+        preferences::keys::showNoteThumbnails,
+        QVariant::fromValue(preferences::defaults::showNoteThumbnails));
 
     QVariant disableNativeMenuBar = appSettings.value(
-        DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
-        QVariant::fromValue(defaultDisableNativeMenuBar()));
+        preferences::keys::disableNativeMenuBar,
+        QVariant::fromValue(preferences::defaults::disableNativeMenuBar()));
 
     QVariant iconTheme =
-        appSettings.value(ICON_THEME_SETTINGS_KEY, tr("Native"));
+        appSettings.value(preferences::keys::iconTheme, tr("Native"));
 
     appSettings.endGroup();
 
@@ -1678,23 +1743,30 @@ void PreferencesDialog::setupNoteEditorPreferences()
 {
     QNDEBUG("preferences", "PreferencesDialog::setupNoteEditorPreferences");
 
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    bool useLimitedFonts = appSettings.value(USE_LIMITED_SET_OF_FONTS).toBool();
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+
+    bool useLimitedFonts =
+        appSettings.value(preferences::keys::noteEditorUseLimitedSetOfFonts)
+            .toBool();
 
     QString fontColorCode =
-        appSettings.value(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorFontColor).toString();
 
     QString backgroundColorCode =
-        appSettings.value(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorBackgroundColor)
+            .toString();
 
     QString highlightColorCode =
-        appSettings.value(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorHighlightColor)
+            .toString();
 
     QString highlightedTextColorCode =
-        appSettings.value(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::noteEditorHighlightedTextColor)
+            .toString();
 
     appSettings.endGroup();
 
@@ -2111,7 +2183,7 @@ void PreferencesDialog::checkAndSetNetworkProxy()
 }
 
 bool PreferencesDialog::onNoteEditorColorEnteredImpl(
-    const QColor & color, const QColor & prevColor, const QString & settingKey,
+    const QColor & color, const QColor & prevColor, const char * key,
     QLineEdit & colorLineEdit, QFrame & demoFrame)
 {
     if (!color.isValid()) {
@@ -2125,7 +2197,7 @@ bool PreferencesDialog::onNoteEditorColorEnteredImpl(
     }
 
     setNoteEditorColorToDemoFrameImpl(color, demoFrame);
-    saveNoteEditorColorImpl(color, settingKey);
+    saveNoteEditorColorImpl(color, key);
     return true;
 }
 
@@ -2166,7 +2238,7 @@ void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(
 
 QColor PreferencesDialog::noteEditorFontColor() const
 {
-    QColor color = noteEditorColorImpl(NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
+    QColor color = noteEditorColorImpl(preferences::keys::noteEditorFontColor);
     if (color.isValid()) {
         return color;
     }
@@ -2177,7 +2249,7 @@ QColor PreferencesDialog::noteEditorFontColor() const
 QColor PreferencesDialog::noteEditorBackgroundColor() const
 {
     QColor color =
-        noteEditorColorImpl(NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
+        noteEditorColorImpl(preferences::keys::noteEditorBackgroundColor);
 
     if (color.isValid()) {
         return color;
@@ -2189,7 +2261,7 @@ QColor PreferencesDialog::noteEditorBackgroundColor() const
 QColor PreferencesDialog::noteEditorHighlightColor() const
 {
     QColor color =
-        noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
+        noteEditorColorImpl(preferences::keys::noteEditorHighlightColor);
 
     if (color.isValid()) {
         return color;
@@ -2201,7 +2273,7 @@ QColor PreferencesDialog::noteEditorHighlightColor() const
 QColor PreferencesDialog::noteEditorHighlightedTextColor() const
 {
     QColor color =
-        noteEditorColorImpl(NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+        noteEditorColorImpl(preferences::keys::noteEditorHighlightedTextColor);
 
     if (color.isValid()) {
         return color;
@@ -2210,13 +2282,14 @@ QColor PreferencesDialog::noteEditorHighlightedTextColor() const
     return palette().color(QPalette::HighlightedText);
 }
 
-QColor PreferencesDialog::noteEditorColorImpl(const QString & settingKey) const
+QColor PreferencesDialog::noteEditorColorImpl(const char * key) const
 {
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    QColor color(appSettings.value(settingKey).toString());
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    QColor color(appSettings.value(key).toString());
     appSettings.endGroup();
 
     return color;
@@ -2228,7 +2301,7 @@ void PreferencesDialog::saveNoteEditorFontColor(const QColor & color)
         "preferences",
         "PreferencesDialog::saveNoteEditorFontColor: " << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_FONT_COLOR_SETTINGS_KEY);
+    saveNoteEditorColorImpl(color, preferences::keys::noteEditorFontColor);
 }
 
 void PreferencesDialog::saveNoteEditorBackgroundColor(const QColor & color)
@@ -2237,7 +2310,8 @@ void PreferencesDialog::saveNoteEditorBackgroundColor(const QColor & color)
         "preferences",
         "PreferencesDialog::saveNoteEditorBackgroundColor: " << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_BACKGROUND_COLOR_SETTINGS_KEY);
+    saveNoteEditorColorImpl(
+        color, preferences::keys::noteEditorBackgroundColor);
 }
 
 void PreferencesDialog::saveNoteEditorHighlightColor(const QColor & color)
@@ -2246,7 +2320,7 @@ void PreferencesDialog::saveNoteEditorHighlightColor(const QColor & color)
         "preferences",
         "PreferencesDialog::saveNoteEditorHighlightColor: " << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_HIGHLIGHT_COLOR_SETTINGS_KEY);
+    saveNoteEditorColorImpl(color, preferences::keys::noteEditorHighlightColor);
 }
 
 void PreferencesDialog::saveNoteEditorHighlightedTextColor(const QColor & color)
@@ -2256,17 +2330,19 @@ void PreferencesDialog::saveNoteEditorHighlightedTextColor(const QColor & color)
         "PreferencesDialog::saveNoteEditorHighlightedTextColor: "
             << color.name());
 
-    saveNoteEditorColorImpl(color, NOTE_EDITOR_HIGHLIGHTED_TEXT_SETTINGS_KEY);
+    saveNoteEditorColorImpl(
+        color, preferences::keys::noteEditorHighlightedTextColor);
 }
 
 void PreferencesDialog::saveNoteEditorColorImpl(
-    const QColor & color, const QString & settingKey)
+    const QColor & color, const char * key)
 {
-    Account currentAccount = m_accountManager.currentAccount();
-    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::userInterface);
 
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
-    appSettings.setValue(settingKey, color.name());
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+    appSettings.setValue(key, color.name());
     appSettings.endGroup();
 }
 

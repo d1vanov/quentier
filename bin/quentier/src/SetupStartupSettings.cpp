@@ -19,8 +19,9 @@
 #include "SetupStartupSettings.h"
 
 #include <lib/account/AccountManager.h>
-#include <lib/preferences/DefaultDisableNativeMenuBar.h>
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/defaults/Appearance.h>
+#include <lib/preferences/keys/Appearance.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/utility/ApplicationSettings.h>
 
@@ -36,20 +37,23 @@ void setupStartupSettings()
     // Process disable native menu bar preference
     bool disableNativeMenuBar = false;
     if (!account.isEmpty()) {
-        ApplicationSettings appSettings(account, QUENTIER_UI_SETTINGS);
-        appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+        ApplicationSettings appSettings(
+            account, preferences::keys::files::userInterface);
+
+        appSettings.beginGroup(preferences::keys::appearanceGroup);
 
         disableNativeMenuBar =
             appSettings
                 .value(
-                    DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
-                    QVariant::fromValue(defaultDisableNativeMenuBar()))
+                    preferences::keys::disableNativeMenuBar,
+                    QVariant::fromValue(
+                        preferences::defaults::disableNativeMenuBar()))
                 .toBool();
 
         appSettings.endGroup();
     }
     else {
-        disableNativeMenuBar = defaultDisableNativeMenuBar();
+        disableNativeMenuBar = preferences::defaults::disableNativeMenuBar();
     }
 
     QCoreApplication::setAttribute(

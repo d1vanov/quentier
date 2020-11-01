@@ -20,7 +20,8 @@
 
 #include "ui_PanelColorsHandlerWidget.h"
 
-#include "../SettingsNames.h"
+#include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/PanelColors.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
@@ -78,7 +79,7 @@ void PanelColorsHandlerWidget::onFontColorEntered()
     QColor color(colorCode);
 
     bool res = onColorEnteredImpl(
-        color, prevColor, PANEL_COLORS_FONT_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::panelFontColor,
         *m_pUi->fontColorLineEdit, *m_pUi->fontColorDemoFrame);
 
     if (!res) {
@@ -146,7 +147,7 @@ void PanelColorsHandlerWidget::onBackgroundColorEntered()
     QColor color(colorCode);
 
     bool res = onColorEnteredImpl(
-        color, prevColor, PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::panelBackgroundColor,
         *m_pUi->backgroundColorLineEdit, *m_pUi->backgroundColorDemoFrame);
 
     if (!res) {
@@ -239,8 +240,7 @@ void PanelColorsHandlerWidget::onBackgroundGradientBaseColorEntered()
     QColor color(colorCode);
 
     Q_UNUSED(onColorEnteredImpl(
-        color, prevColor,
-        PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY,
+        color, prevColor, preferences::keys::panelBackgroundGradientBaseColor,
         *m_pUi->backgroundGradientBaseColorLineEdit,
         *m_pUi->backgroundGradientBaseColorDemoFrame))
 }
@@ -690,13 +690,15 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         return;
     }
 
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
 
     ApplicationSettings::GroupCloser groupCloser(settings);
 
     QString fontColorName =
-        settings.value(PANEL_COLORS_FONT_COLOR_SETTINGS_KEY).toString();
+        settings.value(preferences::keys::panelFontColor).toString();
 
     QColor fontColor(fontColorName);
     if (!fontColor.isValid()) {
@@ -707,7 +709,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
     setBackgroundColorToDemoFrame(fontColor, *m_pUi->fontColorDemoFrame);
 
     QString backgroundColorName =
-        settings.value(PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+        settings.value(preferences::keys::panelBackgroundColor).toString();
 
     QColor backgroundColor(backgroundColorName);
     if (!backgroundColor.isValid()) {
@@ -720,14 +722,13 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         backgroundColor, *m_pUi->backgroundColorDemoFrame);
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     m_pUi->useBackgroundGradientRadioButton->setChecked(useBackgroundGradient);
     m_pUi->useBackgroundColorRadioButton->setChecked(!useBackgroundGradient);
 
     QString backgroundGradientBaseColorName =
-        settings.value(PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY)
+        settings.value(preferences::keys::panelBackgroundGradientBaseColor)
             .toString();
 
     QColor backgroundGradientBaseColor(backgroundGradientBaseColorName);
@@ -743,7 +744,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         *m_pUi->backgroundGradientBaseColorDemoFrame);
 
     int numBackgroundGradientLines = settings.beginReadArray(
-        PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+        preferences::keys::panelBackgroundGradientLineCount);
 
     ApplicationSettings::ArrayCloser arrayCloser(settings);
 
@@ -760,8 +761,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         bool conversionResult = false;
 
         double value =
-            settings
-                .value(PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY)
+            settings.value(preferences::keys::panelBackgroundGradientLineSize)
                 .toDouble(&conversionResult);
 
         if (!conversionResult) {
@@ -774,9 +774,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         }
 
         QString colorName =
-            settings
-                .value(
-                    PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY)
+            settings.value(preferences::keys::panelBackgroundGradientLineColor)
                 .toString();
 
         QColor color(colorName);
@@ -1116,30 +1114,30 @@ void PanelColorsHandlerWidget::handleBackgroundGradientLinesUpdated()
 
 QColor PanelColorsHandlerWidget::fontColor()
 {
-    return colorFromSettingsImpl(
-        PANEL_COLORS_FONT_COLOR_SETTINGS_KEY, Qt::white);
+    return colorFromSettingsImpl(preferences::keys::panelFontColor, Qt::white);
 }
 
 QColor PanelColorsHandlerWidget::backgroundColor()
 {
     return colorFromSettingsImpl(
-        PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY, Qt::darkGray);
+        preferences::keys::panelBackgroundColor, Qt::darkGray);
 }
 
 QColor PanelColorsHandlerWidget::backgroundGradientBaseColor()
 {
     return colorFromSettingsImpl(
-        PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY, Qt::darkGray);
+        preferences::keys::panelBackgroundGradientBaseColor, Qt::darkGray);
 }
 
 bool PanelColorsHandlerWidget::useBackgroundGradient()
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     settings.endGroup();
 
@@ -1147,11 +1145,13 @@ bool PanelColorsHandlerWidget::useBackgroundGradient()
 }
 
 QColor PanelColorsHandlerWidget::colorFromSettingsImpl(
-    const QString & settingName, Qt::GlobalColor defaultColor)
+    const char * key, Qt::GlobalColor defaultColor)
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
-    QString colorName = settings.value(settingName).toString();
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
+    QString colorName = settings.value(key).toString();
     settings.endGroup();
 
     QColor color(colorName);
@@ -1163,8 +1163,8 @@ QColor PanelColorsHandlerWidget::colorFromSettingsImpl(
 }
 
 bool PanelColorsHandlerWidget::onColorEnteredImpl(
-    QColor color, QColor prevColor, const QString & settingName,
-    QLineEdit & colorLineEdit, QFrame & colorDemoFrame)
+    QColor color, QColor prevColor, const char * key, QLineEdit & colorLineEdit,
+    QFrame & colorDemoFrame)
 {
     if (!color.isValid()) {
         colorLineEdit.setText(prevColor.name());
@@ -1176,7 +1176,7 @@ bool PanelColorsHandlerWidget::onColorEnteredImpl(
         return false;
     }
 
-    saveSettingImpl(color.name(), settingName);
+    saveSettingImpl(color.name(), key);
     setBackgroundColorToDemoFrame(color, colorDemoFrame);
     return true;
 }
@@ -1205,57 +1205,59 @@ void PanelColorsHandlerWidget::onUseBackgroundGradientOptionChanged(
 
 void PanelColorsHandlerWidget::saveFontColor(const QColor & color)
 {
-    saveSettingImpl(color.name(), PANEL_COLORS_FONT_COLOR_SETTINGS_KEY);
+    saveSettingImpl(color.name(), preferences::keys::panelFontColor);
 }
 
 void PanelColorsHandlerWidget::saveBackgroundColor(const QColor & color)
 {
-    saveSettingImpl(color.name(), PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY);
+    saveSettingImpl(color.name(), preferences::keys::panelBackgroundColor);
 }
 
 void PanelColorsHandlerWidget::saveBackgroundGradientBaseColor(
     const QColor & color)
 {
     saveSettingImpl(
-        color.name(), PANEL_COLORS_BACKGROUND_GRADIENT_BASE_COLOR_SETTINGS_KEY);
+        color.name(), preferences::keys::panelBackgroundGradientBaseColor);
 }
 
 void PanelColorsHandlerWidget::saveUseBackgroundGradientSetting(
     bool useBackgroundGradient)
 {
     saveSettingImpl(
-        useBackgroundGradient,
-        PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY);
+        useBackgroundGradient, preferences::keys::panelUseBackgroundGradient);
 }
 
 void PanelColorsHandlerWidget::saveSettingImpl(
-    const QVariant & value, const QString & settingName)
+    const QVariant & value, const char * key)
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
-    settings.setValue(settingName, value);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
+    settings.setValue(key, value);
     settings.endGroup();
     settings.sync();
 }
 
 void PanelColorsHandlerWidget::saveBackgroundGradientLinesToSettings()
 {
-    ApplicationSettings settings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings settings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
 
     settings.beginWriteArray(
-        PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+        preferences::keys::panelBackgroundGradientLineCount);
 
     int i = 0;
     for (const auto & line: m_backgroundGradientLines) {
         settings.setArrayIndex(i);
 
         settings.setValue(
-            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY,
-            line.m_value);
+            preferences::keys::panelBackgroundGradientLineSize, line.m_value);
 
         settings.setValue(
-            PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY,
+            preferences::keys::panelBackgroundGradientLineColor,
             line.m_color.name());
 
         ++i;

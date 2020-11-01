@@ -16,37 +16,25 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Log.h"
+#ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_START_AT_LOGIN_H
+#define QUENTIER_LIB_PREFERENCES_DEFAULTS_START_AT_LOGIN_H
 
-#include <lib/preferences/keys/Logging.h>
-
-#include <quentier/utility/ApplicationSettings.h>
+#include <lib/utility/StartAtLogin.h>
 
 namespace quentier {
+namespace preferences {
+namespace defaults {
 
-QString restoreLogFilterByComponent()
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
+// Will set up Quentier to start automatically on logging into the system
+// by default
+constexpr bool startAtLogin = true;
 
-    QString filter =
-        appSettings.value(preferences::keys::loggingFilterByComponentRegex)
-            .toString();
+// Will set up Quentier to start at login being minimized to system tray
+// by default
+constexpr auto startAtLoginOption = StartQuentierAtLoginOption::MinimizedToTray;
 
-    appSettings.endGroup();
-
-    return filter;
-}
-
-void setLogFilterByComponent(const QString & filter)
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
-
-    appSettings.setValue(
-        preferences::keys::loggingFilterByComponentRegex, filter);
-
-    appSettings.endGroup();
-}
-
+} // namespace defaults
+} // namespace preferences
 } // namespace quentier
+
+#endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_START_AT_LOGIN_H

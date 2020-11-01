@@ -16,37 +16,27 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Log.h"
-
-#include <lib/preferences/keys/Logging.h>
-
-#include <quentier/utility/ApplicationSettings.h>
+#ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_SIDE_PANELS_FILTERING_H
+#define QUENTIER_LIB_PREFERENCES_DEFAULTS_SIDE_PANELS_FILTERING_H
 
 namespace quentier {
+namespace preferences {
+namespace defaults {
 
-QString restoreLogFilterByComponent()
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
+// Will filter by selected notebooks by default
+constexpr bool filterBySelectedNotebooks = true;
 
-    QString filter =
-        appSettings.value(preferences::keys::loggingFilterByComponentRegex)
-            .toString();
+// Will filter by selected tags by default
+constexpr bool filterBySelectedTags = true;
 
-    appSettings.endGroup();
+// Will filter by selected saved search by default
+constexpr bool filterBySelectedSavedSearch = true;
 
-    return filter;
-}
+// Will filter by selected favorited items by default
+constexpr bool filterBySelectedFavoritedItems = true;
 
-void setLogFilterByComponent(const QString & filter)
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
-
-    appSettings.setValue(
-        preferences::keys::loggingFilterByComponentRegex, filter);
-
-    appSettings.endGroup();
-}
-
+} // namespace defaults
+} // namespace preferences
 } // namespace quentier
+
+#endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_SIDE_PANELS_FILTERING_H

@@ -22,8 +22,9 @@
 #include "TabWidget.h"
 
 #include <lib/model/tag/TagModel.h>
-#include <lib/preferences/DefaultSettings.h>
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/defaults/NoteEditor.h>
+#include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/NoteEditor.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/note_editor/NoteEditor.h>
@@ -81,10 +82,14 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
     m_noteCache(noteCache), m_notebookCache(notebookCache),
     m_tagCache(tagCache), m_pTagModel(&tagModel), m_pTabWidget(tabWidget)
 {
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
+
     QVariant maxNumNoteTabsData =
         appSettings.value(QStringLiteral("MaxNumNoteTabs"));
+
     appSettings.endGroup();
 
     bool conversionResult = false;
@@ -2000,8 +2005,10 @@ void NoteEditorTabsAndWindowsCoordinator::persistNoteEditorWindowGeometry(
         return;
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     appSettings.setValue(
         NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX + noteLocalUid,
@@ -2023,8 +2030,10 @@ void NoteEditorTabsAndWindowsCoordinator::
         return;
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
     appSettings.remove(NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX + noteLocalUid);
     appSettings.endGroup();
 }
@@ -2064,8 +2073,10 @@ void NoteEditorTabsAndWindowsCoordinator::restoreNoteEditorWindowGeometry(
         return;
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QByteArray noteEditorWindowGeometry =
         appSettings.value(NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX + noteLocalUid)
@@ -2368,8 +2379,10 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
         openNotesLocalUids << noteLocalUid;
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     appSettings.setValue(
         OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY, openNotesLocalUids);
@@ -2399,8 +2412,10 @@ void NoteEditorTabsAndWindowsCoordinator::
         openNotesLocalUids << it.key();
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     appSettings.setValue(
         OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY, openNotesLocalUids);
@@ -2416,8 +2431,10 @@ void NoteEditorTabsAndWindowsCoordinator::persistLastCurrentTabNoteLocalUid()
         "persistLastCurrentTabNoteLocalUid: "
             << m_lastCurrentTabNoteLocalUid);
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     appSettings.setValue(
         LAST_CURRENT_TAB_NOTE_LOCAL_UID, m_lastCurrentTabNoteLocalUid);
@@ -2431,8 +2448,10 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
         "widget:note_editor_coord",
         "NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes");
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QStringList localUidsOfLastNotesInTabs =
         appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY)
@@ -2533,15 +2552,17 @@ bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(
         return false;
     }
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QVariant removeEmptyNotesData =
-        appSettings.value(REMOVE_EMPTY_UNEDITED_NOTES_SETTINGS_KEY);
+        appSettings.value(preferences::keys::removeEmptyUneditedNotes);
 
     appSettings.endGroup();
 
-    bool removeEmptyNotes = DEFAULT_REMOVE_EMPTY_UNEDITED_NOTES;
+    bool removeEmptyNotes = preferences::defaults::removeEmptyUneditedNotes;
     if (removeEmptyNotesData.isValid()) {
         removeEmptyNotes = removeEmptyNotesData.toBool();
         QNDEBUG(
@@ -2573,11 +2594,13 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
         "NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously: "
             << noteLocalUid);
 
-    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        m_currentAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QVariant expungeNoteTimeoutData =
-        appSettings.value(EXPUNGE_NOTE_TIMEOUT_SETTINGS_KEY);
+        appSettings.value(preferences::keys::noteEditorExpungeNoteTimeout);
 
     appSettings.endGroup();
 
@@ -2588,9 +2611,9 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
             "widget:note_editor_coord",
             "Can't read the timeout for note "
                 << "expunging from the local storage, fallback to the default "
-                << "value of " << DEFAULT_EXPUNGE_NOTE_TIMEOUT
+                << "value of " << preferences::defaults::expungeNoteTimeout
                 << " milliseconds");
-        expungeNoteTimeout = DEFAULT_EXPUNGE_NOTE_TIMEOUT;
+        expungeNoteTimeout = preferences::defaults::expungeNoteTimeout;
     }
     else {
         expungeNoteTimeout = std::max(expungeNoteTimeout, 100);

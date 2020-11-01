@@ -43,11 +43,17 @@
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/common/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
-#include <lib/preferences/DefaultDisableNativeMenuBar.h>
-#include <lib/preferences/DefaultSettings.h>
 #include <lib/preferences/PreferencesDialog.h>
-#include <lib/preferences/SettingsNames.h>
 #include <lib/preferences/UpdateSettings.h>
+#include <lib/preferences/defaults/Appearance.h>
+#include <lib/preferences/defaults/Synchronization.h>
+#include <lib/preferences/keys/Account.h>
+#include <lib/preferences/keys/Appearance.h>
+#include <lib/preferences/keys/Enex.h>
+#include <lib/preferences/keys/Files.h>
+#include <lib/preferences/keys/NoteEditor.h>
+#include <lib/preferences/keys/PanelColors.h>
+#include <lib/preferences/keys/Synchronization.h>
 #include <lib/tray/SystemTrayIconManager.h>
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
@@ -1539,9 +1545,11 @@ void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
         "quentier:main_window",
         "MainWindow::persistChosenIconTheme: " << iconThemeName);
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
-    appSettings.setValue(ICON_THEME_SETTINGS_KEY, iconThemeName);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
+    appSettings.setValue(preferences::keys::iconTheme, iconThemeName);
     appSettings.endGroup();
 }
 
@@ -1665,12 +1673,14 @@ void MainWindow::restorePanelColors()
         return;
     }
 
-    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings settings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
     ApplicationSettings::GroupCloser groupCloser(settings);
 
     QString fontColorName =
-        settings.value(PANEL_COLORS_FONT_COLOR_SETTINGS_KEY).toString();
+        settings.value(preferences::keys::panelFontColor).toString();
 
     QColor fontColor(fontColorName);
     if (!fontColor.isValid()) {
@@ -1678,7 +1688,7 @@ void MainWindow::restorePanelColors()
     }
 
     QString backgroundColorName =
-        settings.value(PANEL_COLORS_BACKGROUND_COLOR_SETTINGS_KEY).toString();
+        settings.value(preferences::keys::panelBackgroundColor).toString();
 
     QColor backgroundColor(backgroundColorName);
     if (!backgroundColor.isValid()) {
@@ -1688,40 +1698,36 @@ void MainWindow::restorePanelColors()
     QLinearGradient gradient(0, 0, 0, 1);
 
     int rowCount = settings.beginReadArray(
-        PANEL_COLORS_BACKGROUND_GRADIENT_LINES_SETTINGS_KEY);
+        preferences::keys::panelBackgroundGradientLineCount);
 
     for (int i = 0; i < rowCount; ++i) {
         settings.setArrayIndex(i);
         bool conversionResult = false;
 
         double value =
-            settings
-                .value(PANEL_COLORS_BACKGROUND_GRADIENT_LINE_VALUE_SETTINGS_KEY)
+            settings.value(preferences::keys::panelBackgroundGradientLineSize)
                 .toDouble(&conversionResult);
 
         if (Q_UNLIKELY(!conversionResult)) {
             QNWARNING(
                 "quentier:main_window",
-                "Failed to convert panel "
-                    << "background gradient row value to double");
+                "Failed to convert panel background gradient row value to "
+                    << "double");
 
             gradient = QLinearGradient(0, 0, 0, 1);
             break;
         }
 
         QString colorName =
-            settings
-                .value(
-                    PANEL_COLORS_BACKGROUND_GRADIENT_LINE_COLOR_SETTTINGS_KEY)
+            settings.value(preferences::keys::panelBackgroundGradientLineColor)
                 .toString();
 
         QColor color(colorName);
         if (!color.isValid()) {
             QNWARNING(
                 "quentier:main_window",
-                "Failed to convert panel "
-                    << "background gradient row color name to valid color: "
-                    << colorName);
+                "Failed to convert panel background gradient row color name to "
+                    << "valid color: " << colorName);
 
             gradient = QLinearGradient(0, 0, 0, 1);
             break;
@@ -1732,8 +1738,7 @@ void MainWindow::restorePanelColors()
     settings.endArray();
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     for (auto & pPanelStyleController: m_genericPanelStyleControllers) {
         if (useBackgroundGradient) {
@@ -2693,7 +2698,9 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
         foldFiltersView();
     }
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("FiltersView"));
 
     appSettings.setValue(
@@ -2810,7 +2817,7 @@ void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
         toggleShowNoteThumbnails();
     }
     else {
-        toggleHideNoteThumbnailFor(noteLocalUid);
+        toggleHideNoteThumbnail(noteLocalUid);
     }
 
     onShowNoteThumbnailsPreferenceChanged();
@@ -3063,11 +3070,13 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
         return;
     }
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(NOTE_EDITOR_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
     QString lastExportNoteToEnexPath =
-        appSettings.value(LAST_EXPORT_NOTE_TO_ENEX_PATH_SETTINGS_KEY)
+        appSettings.value(preferences::keys::lastExportNotesToEnexPath)
             .toString();
 
     appSettings.endGroup();
@@ -3303,7 +3312,7 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
     bool showNoteThumbnails = getShowNoteThumbnailsPreference();
 
     Q_EMIT showNoteThumbnailsStateChanged(
-        showNoteThumbnails, getHideNoteThumbnailsFor());
+        showNoteThumbnails, notesWithHiddenThumbnails());
 
     auto * pNoteItemDelegate =
         qobject_cast<NoteItemDelegate *>(m_pUI->noteListView->itemDelegate());
@@ -3377,12 +3386,13 @@ void MainWindow::onPanelBackgroundColorChanged(QColor color)
         return;
     }
 
-    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings settings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     settings.endGroup();
 
@@ -3426,12 +3436,13 @@ void MainWindow::onPanelBackgroundLinearGradientChanged(
         return;
     }
 
-    ApplicationSettings settings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    settings.beginGroup(PANEL_COLORS_SETTINGS_GROUP_NAME);
+    ApplicationSettings settings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    settings.beginGroup(preferences::keys::panelColorsGroup);
 
     bool useBackgroundGradient =
-        settings.value(PANEL_COLORS_USE_BACKGROUND_GRADIENT_SETTINGS_KEY)
-            .toBool();
+        settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     settings.endGroup();
 
@@ -3877,7 +3888,9 @@ void MainWindow::onShowSidePanelActionToggled(bool checked)
         "MainWindow::onShowSidePanelActionToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowSidePanel"), checked);
     appSettings.endGroup();
@@ -3897,7 +3910,9 @@ void MainWindow::onShowFavoritesActionToggled(bool checked)
         "MainWindow::onShowFavoritesActionToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowFavorites"), checked);
     appSettings.endGroup();
@@ -3917,7 +3932,9 @@ void MainWindow::onShowNotebooksActionToggled(bool checked)
         "MainWindow::onShowNotebooksActionToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowNotebooks"), checked);
     appSettings.endGroup();
@@ -3937,7 +3954,9 @@ void MainWindow::onShowTagsActionToggled(bool checked)
         "MainWindow::onShowTagsActionToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowTags"), checked);
     appSettings.endGroup();
@@ -3957,7 +3976,9 @@ void MainWindow::onShowSavedSearchesActionToggled(bool checked)
         "MainWindow::onShowSavedSearchesActionToggled: checked = "
             << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowSavedSearches"), checked);
     appSettings.endGroup();
@@ -3977,7 +3998,9 @@ void MainWindow::onShowDeletedNotesActionToggled(bool checked)
         "MainWindow::onShowDeletedNotesActionToggled: checked = "
             << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowDeletedNotes"), checked);
     appSettings.endGroup();
@@ -3997,7 +4020,9 @@ void MainWindow::onShowNoteListActionToggled(bool checked)
         "MainWindow::onShowNoteListActionToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowNotesList"), checked);
     appSettings.endGroup();
@@ -4019,7 +4044,9 @@ void MainWindow::onShowToolbarActionToggled(bool checked)
         "MainWindow::onShowToolbarActionToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowToolbar"), checked);
     appSettings.endGroup();
@@ -4039,7 +4066,9 @@ void MainWindow::onShowStatusBarActionToggled(bool checked)
         "MainWindow::onShowStatusBarActionToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowStatusBar"), checked);
     appSettings.endGroup();
@@ -4946,11 +4975,13 @@ void MainWindow::setupThemeIcons()
         m_nativeIconThemeName.clear();
     }
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QString lastUsedIconThemeName =
-        appSettings.value(ICON_THEME_SETTINGS_KEY).toString();
+        appSettings.value(preferences::keys::iconTheme).toString();
 
     appSettings.endGroup();
 
@@ -5232,7 +5263,9 @@ void MainWindow::setupShowHideStartupSettings()
 {
     QNDEBUG("quentier:main_window", "MainWindow::setupShowHideStartupSettings");
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
 
 #define CHECK_AND_SET_SHOW_SETTING(name, action, widget)                       \
@@ -5732,12 +5765,14 @@ void MainWindow::setupViews()
 
 bool MainWindow::getShowNoteThumbnailsPreference() const
 {
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant showThumbnails = appSettings.value(
-        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY,
-        QVariant::fromValue(DEFAULT_SHOW_NOTE_THUMBNAILS));
+        preferences::keys::showNoteThumbnails,
+        QVariant::fromValue(preferences::defaults::showNoteThumbnails));
 
     appSettings.endGroup();
 
@@ -5746,25 +5781,29 @@ bool MainWindow::getShowNoteThumbnailsPreference() const
 
 bool MainWindow::getDisableNativeMenuBarPreference() const
 {
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant disableNativeMenuBar = appSettings.value(
-        DISABLE_NATIVE_MENU_BAR_SETTINGS_KEY,
-        QVariant::fromValue(defaultDisableNativeMenuBar()));
+        preferences::keys::disableNativeMenuBar,
+        QVariant::fromValue(preferences::defaults::disableNativeMenuBar()));
 
     appSettings.endGroup();
 
     return disableNativeMenuBar.toBool();
 }
 
-QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
+QSet<QString> MainWindow::notesWithHiddenThumbnails() const
 {
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     QVariant hideThumbnailsFor = appSettings.value(
-        HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY, QLatin1String(""));
+        preferences::keys::notesWithHiddenThumbnails, QLatin1String(""));
 
     appSettings.endGroup();
 
@@ -5781,36 +5820,49 @@ QSet<QString> MainWindow::getHideNoteThumbnailsFor() const
 void MainWindow::toggleShowNoteThumbnails() const
 {
     bool newValue = !getShowNoteThumbnailsPreference();
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     appSettings.setValue(
-        SHOW_NOTE_THUMBNAILS_SETTINGS_KEY, QVariant::fromValue(newValue));
+        preferences::keys::showNoteThumbnails, QVariant::fromValue(newValue));
 
     appSettings.endGroup();
 }
 
-void MainWindow::toggleHideNoteThumbnailFor(QString noteLocalUid) const
+void MainWindow::toggleHideNoteThumbnail(const QString & noteLocalUid)
 {
-    auto hideThumbnailsForSet = getHideNoteThumbnailsFor();
-    if (hideThumbnailsForSet.contains(noteLocalUid)) {
-        hideThumbnailsForSet.remove(noteLocalUid);
+    auto noteLocalUids = notesWithHiddenThumbnails();
+    auto it = noteLocalUids.find(noteLocalUid);
+    if (it != noteLocalUids.end()) {
+        noteLocalUids.erase(it);
     }
     else {
-        // after max. count is reached we ignore further requests
-        if (hideThumbnailsForSet.size() <=
-            HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY_MAX_COUNT)
-        {
-            hideThumbnailsForSet.insert(noteLocalUid);
+        if (noteLocalUids.size() <=
+            preferences::keys::maxNotesWithHiddenThumbnails) {
+            noteLocalUids.insert(noteLocalUid);
+        }
+        else {
+            Q_UNUSED(informationMessageBox(
+                this, tr("Cannot disable thumbnail for note"),
+                tr("Too many notes with hidden thumbnails"),
+                tr("There are too many notes for which thumbnails are hidden "
+                   "already. Consider disabling note thumbnails globally if "
+                   "you don't want to see them.")))
+            return;
         }
     }
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
-    appSettings.beginGroup(LOOK_AND_FEEL_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
+    appSettings.beginGroup(preferences::keys::appearanceGroup);
 
     appSettings.setValue(
-        HIDE_NOTE_THUMBNAILS_FOR_SETTINGS_KEY,
-        QStringList(hideThumbnailsForSet.values()));
+        preferences::keys::notesWithHiddenThumbnails,
+        QStringList(noteLocalUids.values()));
 
     appSettings.endGroup();
 }
@@ -5926,7 +5978,9 @@ void MainWindow::setupNoteFilters()
 
     m_pNoteModel->start();
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("FiltersView"));
     m_filtersViewExpanded = appSettings.value(FILTERS_VIEW_STATUS_KEY).toBool();
     appSettings.endGroup();
@@ -6083,11 +6137,13 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
 bool MainWindow::onceDisplayedGreeterScreen() const
 {
     ApplicationSettings appSettings;
-    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+    appSettings.beginGroup(preferences::keys::accountGroup);
 
     bool result = false;
-    if (appSettings.contains(ONCE_DISPLAYED_GREETER_SCREEN)) {
-        result = appSettings.value(ONCE_DISPLAYED_GREETER_SCREEN).toBool();
+    if (appSettings.contains(preferences::keys::onceDisplayedWelcomeDialog)) {
+        result =
+            appSettings.value(preferences::keys::onceDisplayedWelcomeDialog)
+                .toBool();
     }
 
     appSettings.endGroup();
@@ -6100,8 +6156,8 @@ void MainWindow::setOnceDisplayedGreeterScreen()
         "quentier:main_window", "MainWindow::setOnceDisplayedGreeterScreen");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
-    appSettings.setValue(ONCE_DISPLAYED_GREETER_SCREEN, true);
+    appSettings.beginGroup(preferences::keys::accountGroup);
+    appSettings.setValue(preferences::keys::onceDisplayedWelcomeDialog, true);
     appSettings.endGroup();
 }
 
@@ -6229,20 +6285,22 @@ void MainWindow::setSynchronizationOptions(const Account & account)
         return;
     }
 
-    ApplicationSettings appSettings(account, QUENTIER_SYNC_SETTINGS);
-    appSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    ApplicationSettings appSettings(
+        account, preferences::keys::files::synchronization);
+
+    appSettings.beginGroup(preferences::keys::synchronizationGroup);
 
     bool downloadNoteThumbnailsOption =
-        (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
-             ? appSettings.value(SYNCHRONIZATION_DOWNLOAD_NOTE_THUMBNAILS)
+        (appSettings.contains(preferences::keys::downloadNoteThumbnails)
+             ? appSettings.value(preferences::keys::downloadNoteThumbnails)
                    .toBool()
-             : DEFAULT_DOWNLOAD_NOTE_THUMBNAILS);
+             : preferences::defaults::downloadNoteThumbnails);
 
     bool downloadInkNoteImagesOption =
-        (appSettings.contains(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)
-             ? appSettings.value(SYNCHRONIZATION_DOWNLOAD_INK_NOTE_IMAGES)
+        (appSettings.contains(preferences::keys::downloadInkNoteImages)
+             ? appSettings.value(preferences::keys::downloadInkNoteImages)
                    .toBool()
-             : DEFAULT_DOWNLOAD_INK_NOTE_IMAGES);
+             : preferences::defaults::downloadInkNoteImages);
 
     appSettings.endGroup();
 
@@ -6300,13 +6358,14 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
         return;
     }
 
-    ApplicationSettings syncSettings(*m_pAccount, QUENTIER_SYNC_SETTINGS);
-    syncSettings.beginGroup(SYNCHRONIZATION_SETTINGS_GROUP_NAME);
+    ApplicationSettings syncSettings(
+        *m_pAccount, preferences::keys::files::synchronization);
+
+    syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
     int runSyncEachNumMinutes = -1;
-    if (syncSettings.contains(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES)) {
-        auto data =
-            syncSettings.value(SYNCHRONIZATION_RUN_SYNC_EACH_NUM_MINUTES);
+    if (syncSettings.contains(preferences::keys::runSyncPeriodMinutes)) {
+        auto data = syncSettings.value(preferences::keys::runSyncPeriodMinutes);
 
         bool conversionResult = false;
         runSyncEachNumMinutes = data.toInt(&conversionResult);
@@ -6320,7 +6379,7 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
     }
 
     if (runSyncEachNumMinutes < 0) {
-        runSyncEachNumMinutes = DEFAULT_RUN_SYNC_EACH_NUM_MINUTES;
+        runSyncEachNumMinutes = preferences::defaults::runSyncPeriodMinutes;
     }
 
     syncSettings.endGroup();
@@ -6576,7 +6635,9 @@ void MainWindow::persistChosenNoteSortingMode(int index)
         "MainWindow::persistChosenNoteSortingMode: "
             << "index = " << index);
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("NoteListView"));
     appSettings.setValue(NOTE_SORTING_MODE_KEY, index);
     appSettings.endGroup();
@@ -6586,7 +6647,9 @@ NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
 {
     QNDEBUG("quentier:main_window", "MainWindow::restoreNoteSortingMode");
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("NoteListView"));
     if (!appSettings.contains(NOTE_SORTING_MODE_KEY)) {
         QNDEBUG(
@@ -6630,7 +6693,9 @@ void MainWindow::persistGeometryAndState()
 {
     QNDEBUG("quentier:main_window", "MainWindow::persistGeometryAndState");
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
 
     appSettings.setValue(MAIN_WINDOW_GEOMETRY_KEY, saveGeometry());
@@ -6754,7 +6819,9 @@ void MainWindow::restoreGeometryAndState()
 {
     QNDEBUG("quentier:main_window", "MainWindow::restoreGeometryAndState");
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
 
     QByteArray savedGeometry =
@@ -6781,7 +6848,9 @@ void MainWindow::restoreSplitterSizes()
 {
     QNDEBUG("quentier:main_window", "MainWindow::restoreSplitterSizes");
 
-    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        *m_pAccount, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(QStringLiteral("MainWindow"));
 
     QVariant sidePanelWidth =

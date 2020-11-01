@@ -28,7 +28,7 @@
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagModel.h>
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -996,7 +996,9 @@ void NoteFiltersManager::persistSearchQuery(const QString & query)
 {
     QNDEBUG("widget:note_filters", "NoteFiltersManager::persistSearchQuery");
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     appSettings.setValue(NOTE_SEARCH_QUERY_KEY, query);
     appSettings.endGroup();
@@ -1009,7 +1011,8 @@ void NoteFiltersManager::restoreSearchQuery()
 {
     QNDEBUG("widget:note_filters", "NoteFiltersManager::restoreSearchQuery");
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     auto lastSearchStringValue = appSettings.value(NOTE_SEARCH_QUERY_KEY);
@@ -1654,7 +1657,8 @@ void NoteFiltersManager::persistFilterByNotebookClearedState(const bool state)
         "NoteFiltersManager::persistFilterByNotebookClearedState: "
             << (state ? "true" : "false"));
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     appSettings.setValue(NOTEBOOK_FILTER_CLEARED, state);
@@ -1663,7 +1667,8 @@ void NoteFiltersManager::persistFilterByNotebookClearedState(const bool state)
 
 bool NoteFiltersManager::notebookFilterWasCleared() const
 {
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     auto notebookFilterWasCleared = appSettings.value(NOTEBOOK_FILTER_CLEARED);
@@ -1683,7 +1688,8 @@ void NoteFiltersManager::persistFilterByTagClearedState(const bool state)
         "NoteFiltersManager::persistFilterByTagClearedState: "
             << (state ? "true" : "false"));
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     appSettings.setValue(TAG_FILTER_CLEARED, state);
@@ -1692,7 +1698,8 @@ void NoteFiltersManager::persistFilterByTagClearedState(const bool state)
 
 bool NoteFiltersManager::tagFilterWasCleared() const
 {
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     auto tagFilterWasCleared = appSettings.value(TAG_FILTER_CLEARED);
@@ -1713,7 +1720,8 @@ void NoteFiltersManager::persistFilterBySavedSearchClearedState(
         "NoteFiltersManager::persistFilterBySavedSearchClearedState: "
             << (state ? "true" : "false"));
 
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
     appSettings.setValue(SAVED_SEARCH_FILTER_CLEARED, state);
@@ -1722,7 +1730,9 @@ void NoteFiltersManager::persistFilterBySavedSearchClearedState(
 
 bool NoteFiltersManager::savedSearchFilterWasCleared() const
 {
-    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    ApplicationSettings appSettings(
+        m_account, preferences::keys::files::userInterface);
+
     appSettings.beginGroup(NOTE_FILTERS_GROUP_KEY);
 
     auto savedSearchFilterWasCleared =

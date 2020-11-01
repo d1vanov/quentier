@@ -18,8 +18,8 @@
 
 #include "SetupStartAtLogin.h"
 
-#include <lib/preferences/DefaultSettings.h>
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/defaults/StartAtLogin.h>
+#include <lib/preferences/keys/StartAtLogin.h>
 #include <lib/utility/StartAtLogin.h>
 
 #include <quentier/logging/QuentierLogger.h>
@@ -33,36 +33,33 @@ void setupStartQuentierAtLogin()
     QNDEBUG("initialization", "setupStartQuentierAtLogin");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(START_AUTOMATICALLY_AT_LOGIN_SETTINGS_GROUP_NAME);
-    if (appSettings.contains(SHOULD_START_AUTOMATICALLY_AT_LOGIN)) {
+    appSettings.beginGroup(preferences::keys::startAtLoginGroup);
+    if (appSettings.contains(preferences::keys::shouldStartAtLogin)) {
         QNDEBUG(
             "initialization",
-            "Start automatically at login setting is "
-                << "present within settings, nothing to do");
+            "Start automatically at login setting is present within settings, "
+                << "nothing to do");
         appSettings.endGroup();
         return;
     }
 
     QNDEBUG(
         "initialization",
-        "Start automatically at login setting is not "
-            << "present, will set it to the default value");
+        "Start automatically at login setting is not present, will set it to "
+            << "the default value");
 
-    bool shouldStartAutomaticallyAtLogin =
-        DEFAULT_SHOULD_START_AUTOMATICALLY_AT_LOGIN_OPTION;
-
+    bool shouldStartAutomaticallyAtLogin = preferences::defaults::startAtLogin;
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG(
             "initialization",
-            "Should not start automatically at login by "
-                << "default");
+            "Should not start automatically at login by default");
         appSettings.endGroup();
         return;
     }
 
     appSettings.endGroup();
 
-    auto option = DEFAULT_START_AUTOMATICALLY_AT_LOGIN_OPTION;
+    auto option = preferences::defaults::startAtLoginOption;
 
     ErrorString errorDescription;
 

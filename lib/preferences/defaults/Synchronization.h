@@ -16,37 +16,24 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Log.h"
-
-#include <lib/preferences/keys/Logging.h>
-
-#include <quentier/utility/ApplicationSettings.h>
+#ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_SYNCHRONIZATION_H
+#define QUENTIER_LIB_PREFERENCES_DEFAULTS_SYNCHRONIZATION_H
 
 namespace quentier {
+namespace preferences {
+namespace defaults {
 
-QString restoreLogFilterByComponent()
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
+// Will download note thumbnails during the synchronization by default
+constexpr bool downloadNoteThumbnails = true;
 
-    QString filter =
-        appSettings.value(preferences::keys::loggingFilterByComponentRegex)
-            .toString();
+// Will download ink note images during the synchronization by default
+constexpr bool downloadInkNoteImages = true;
 
-    appSettings.endGroup();
+// Will run sync automatically each 15 minutes by default
+constexpr int runSyncPeriodMinutes = 15;
 
-    return filter;
-}
-
-void setLogFilterByComponent(const QString & filter)
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
-
-    appSettings.setValue(
-        preferences::keys::loggingFilterByComponentRegex, filter);
-
-    appSettings.endGroup();
-}
-
+} // namespace defaults
+} // namespace preferences
 } // namespace quentier
+
+#endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_SYNCHRONIZATION_H

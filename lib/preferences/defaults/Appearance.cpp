@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2020 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,16 +16,16 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "DefaultDisableNativeMenuBar.h"
-
-#include <quentier/utility/Macros.h>
+#include "Appearance.h"
 
 #include <QCoreApplication>
 #include <QtGlobal>
 
 namespace quentier {
+namespace preferences {
+namespace defaults {
 
-bool defaultDisableNativeMenuBar()
+bool disableNativeMenuBar()
 {
     if (QCoreApplication::testAttribute(Qt::AA_DontUseNativeMenuBar)) {
         return true;
@@ -37,8 +37,10 @@ bool defaultDisableNativeMenuBar()
     // the native menu bar to not work properly, see
     // https://bugreports.qt.io/browse/QTCREATORBUG-17519
     const char * currentDesktopEnvVar = "XDG_CURRENT_DESKTOP";
-    QString currentDesktop =
+
+    const auto currentDesktop =
         QString::fromUtf8(qgetenv(currentDesktopEnvVar)).toLower();
+
     if (currentDesktop.contains(QStringLiteral("unity"))) {
         return true;
     }
@@ -47,4 +49,6 @@ bool defaultDisableNativeMenuBar()
     return false;
 }
 
+} // namespace defaults
+} // namespace preferences
 } // namespace quentier

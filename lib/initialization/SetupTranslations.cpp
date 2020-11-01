@@ -18,7 +18,7 @@
 
 #include "SetupTranslations.h"
 
-#include <lib/preferences/SettingsNames.h>
+#include <lib/preferences/keys/Translations.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -32,12 +32,12 @@
 namespace quentier {
 
 void loadTranslations(
-    const QString & defaultSearchPath, const QString & searchPathSettingName,
+    const QString & defaultSearchPath, const char * searchPathKey,
     const QString & filter, QTranslator & translator)
 {
     ApplicationSettings appSettings;
-    appSettings.beginGroup(TRANSLATION_SETTINGS_GROUP_NAME);
-    QString searchPath = appSettings.value(searchPathSettingName).toString();
+    appSettings.beginGroup(preferences::keys::translationGroup);
+    QString searchPath = appSettings.value(searchPathKey).toString();
     appSettings.endGroup();
 
     QFileInfo searchPathInfo(searchPath);
@@ -156,15 +156,15 @@ void setupTranslations(QuentierApplication & app)
 
     loadTranslations(
         defaultLibquentierTranslationsSearchPath,
-        LIBQUENTIER_TRANSLATIONS_SEARCH_PATH,
+        preferences::keys::libquentierTranslationsSearchPath,
         QStringLiteral("libquentier_*.qm"), *pTranslator);
 
     QNDEBUG("initialization", "Loading translations for quentier");
 
     loadTranslations(
         defaultQuentierTranslationsSearchPath,
-        QUENTIER_TRANSLATIONS_SEARCH_PATH, QStringLiteral("quentier_*.qm"),
-        *pTranslator);
+        preferences::keys::quentierTranslationsSearchPath,
+        QStringLiteral("quentier_*.qm"), *pTranslator);
 
     app.installTranslator(pTranslator);
 }
