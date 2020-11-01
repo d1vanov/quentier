@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_DIALOG_WELCOME_TO_QUENTIER_DIALOG_H
 #define QUENTIER_LIB_DIALOG_WELCOME_TO_QUENTIER_DIALOG_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QDialog>
 
 namespace Ui {
@@ -29,7 +27,7 @@ class WelcomeToQuentierDialog;
 
 namespace quentier {
 
-class WelcomeToQuentierDialog : public QDialog
+class WelcomeToQuentierDialog final: public QDialog
 {
     Q_OBJECT
 public:

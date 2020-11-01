@@ -20,13 +20,12 @@
 #define QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_PRIVATE_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QObject>
 
 namespace quentier {
 
-class ThreadMover : public QObject
+class ThreadMover final: public QObject
 {
     Q_OBJECT
 public:

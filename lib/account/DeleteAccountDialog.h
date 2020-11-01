@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_ACCOUNT_DELETE_ACOUNT_DIALOG_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 #include <QPointer>
@@ -33,7 +32,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountModel)
 
-class DeleteAccountDialog : public QDialog
+class DeleteAccountDialog final: public QDialog
 {
     Q_OBJECT
 public:

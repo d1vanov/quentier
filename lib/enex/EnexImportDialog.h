@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_DIALOG_ENEX_IMPORT_DIALOG_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 #include <QPointer>
@@ -37,7 +36,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ErrorString)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EnexImportDialog : public QDialog
+class EnexImportDialog final: public QDialog
 {
     Q_OBJECT
 

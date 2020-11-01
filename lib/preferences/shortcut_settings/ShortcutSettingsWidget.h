@@ -27,7 +27,6 @@
 #define QUENTIER_DIALOGS_SHORTCUT_SETTINGS_WIDGET_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/Printable.h>
 
 #include <QHash>
@@ -46,7 +45,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 
-class ShortcutItem : public Printable
+class ShortcutItem final: public Printable
 {
 public:
     virtual QTextStream & print(QTextStream & strm) const override;

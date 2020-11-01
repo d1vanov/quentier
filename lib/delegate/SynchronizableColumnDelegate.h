@@ -19,12 +19,10 @@
 #ifndef QUENTIER_LIB_DELEGATE_SYNCHRONIZABLE_COLUMN_DELEGATE_H
 #define QUENTIER_LIB_DELEGATE_SYNCHRONIZABLE_COLUMN_DELEGATE_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QIcon>
 #include <QStyledItemDelegate>
 
-class SynchronizableColumnDelegate : public QStyledItemDelegate
+class SynchronizableColumnDelegate final: public QStyledItemDelegate
 {
     Q_OBJECT
 public:

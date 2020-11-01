@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_UTILITY_COLOR_CODE_VALIDATOR_H
 #define QUENTIER_LIB_UTILITY_COLOR_CODE_VALIDATOR_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QValidator>
 
 namespace quentier {
@@ -35,7 +33,7 @@ namespace quentier {
  * #RRRGGGBBB
  * #RRRRGGGGBBBB
  */
-class ColorCodeValidator : public QValidator
+class ColorCodeValidator final: public QValidator
 {
     Q_OBJECT
 public:

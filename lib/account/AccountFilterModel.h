@@ -20,14 +20,13 @@
 #define QUENTIER_LIB_ACCOUNT_ACCOUNT_FILTER_MODEL_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 
 #include <QSortFilterProxyModel>
 #include <QVector>
 
 namespace quentier {
 
-class AccountFilterModel : public QSortFilterProxyModel
+class AccountFilterModel final: public QSortFilterProxyModel
 {
     Q_OBJECT
 public:

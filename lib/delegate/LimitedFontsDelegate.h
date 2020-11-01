@@ -19,13 +19,11 @@
 #ifndef QUENTIER_LIB_DELEGATE_LIMITED_FONTS_DELEGATE_H
 #define QUENTIER_LIB_DELEGATE_LIMITED_FONTS_DELEGATE_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QStyledItemDelegate>
 
 namespace quentier {
 
-class LimitedFontsDelegate : public QStyledItemDelegate
+class LimitedFontsDelegate final: public QStyledItemDelegate
 {
     Q_OBJECT
 public:

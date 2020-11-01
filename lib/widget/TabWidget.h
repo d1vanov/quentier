@@ -19,13 +19,11 @@
 #ifndef QUENTIER_LIB_WIDGET_TAB_WIDGET_H
 #define QUENTIER_LIB_WIDGET_TAB_WIDGET_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QTabWidget>
 
 namespace quentier {
 
-class TabWidget : public QTabWidget
+class TabWidget final: public QTabWidget
 {
     Q_OBJECT
 public:

@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_MODEL_NEW_ITEM_NAME_GENERATOR_HPP
 #define QUENTIER_LIB_MODEL_NEW_ITEM_NAME_GENERATOR_HPP
 
-#include <quentier/utility/Macros.h>
-
 #include <QString>
 
 namespace quentier {

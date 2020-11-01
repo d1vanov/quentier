@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_WIDGET_NOTE_COUNT_LABEL_CONTROLLER_H
 #define QUENTIER_LIB_WIDGET_NOTE_COUNT_LABEL_CONTROLLER_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QObject>
 #include <QPointer>
 
@@ -30,7 +28,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 
-class NoteCountLabelController : public QObject
+class NoteCountLabelController final: public QObject
 {
     Q_OBJECT
 public:

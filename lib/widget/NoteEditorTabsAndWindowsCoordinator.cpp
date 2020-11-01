@@ -30,6 +30,7 @@
 #include <quentier/note_editor/NoteEditor.h>
 #include <quentier/note_editor/SpellChecker.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/Compat.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/FileIOProcessorAsync.h>
 #include <quentier/utility/MessageBox.h>

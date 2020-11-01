@@ -25,6 +25,7 @@
 #include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 
 #include <QContextMenuEvent>
 #include <QItemSelectionModel>

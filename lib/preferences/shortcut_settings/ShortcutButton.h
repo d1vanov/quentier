@@ -26,14 +26,12 @@
 #ifndef QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H
 #define QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QKeySequence>
 #include <QPushButton>
 
 namespace quentier {
 
-class ShortcutButton : public QPushButton
+class ShortcutButton final: public QPushButton
 {
     Q_OBJECT
 public:

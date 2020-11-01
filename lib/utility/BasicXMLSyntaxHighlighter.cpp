@@ -18,8 +18,6 @@
 
 #include "BasicXMLSyntaxHighlighter.h"
 
-#include <quentier/utility/Macros.h>
-
 namespace quentier {
 
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :

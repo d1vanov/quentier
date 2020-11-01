@@ -24,7 +24,6 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/FileSystemWatcher.h>
-#include <quentier/utility/Macros.h>
 
 #include <QBasicTimer>
 #include <QModelIndex>
@@ -39,7 +38,7 @@ QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
-class LogViewerWidget : public QWidget
+class LogViewerWidget final: public QWidget
 {
     Q_OBJECT
 public:

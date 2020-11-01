@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_VIEW_ITEM_SELECTION_MODEL_H
 #define QUENTIER_LIB_VIEW_ITEM_SELECTION_MODEL_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QItemSelectionModel>
 
 namespace quentier {
@@ -31,7 +29,7 @@ QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
  * @brief The ItemSelectionModel class represents a small customization
  * of the standard QItemSelectionModel
  */
-class ItemSelectionModel : public QItemSelectionModel
+class ItemSelectionModel final: public QItemSelectionModel
 {
     Q_OBJECT
 public:

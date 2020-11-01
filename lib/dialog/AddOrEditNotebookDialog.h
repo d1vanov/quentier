@@ -21,7 +21,6 @@
 
 #include <lib/model/notebook/NotebookModel.h>
 
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 
 #include <QDialog>
@@ -35,7 +34,7 @@ QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-class AddOrEditNotebookDialog : public QDialog
+class AddOrEditNotebookDialog final: public QDialog
 {
     Q_OBJECT
 public:

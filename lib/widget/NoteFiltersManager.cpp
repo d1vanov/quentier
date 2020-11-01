@@ -32,6 +32,7 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/Compat.h>
 
 #include <QComboBox>
 #include <QLineEdit>

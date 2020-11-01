@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_DIALOG_ENEX_EXPORT_DIALOG_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/Macros.h>
 
 #include <QDialog>
 
@@ -30,7 +29,7 @@ class EnexExportDialog;
 
 namespace quentier {
 
-class EnexExportDialog : public QDialog
+class EnexExportDialog final: public QDialog
 {
     Q_OBJECT
 public:

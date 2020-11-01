@@ -25,6 +25,7 @@
 #include <lib/model/tag/TagModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 
 #include <QApplication>
 #include <QKeyEvent>

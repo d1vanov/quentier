@@ -27,6 +27,7 @@
 
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 

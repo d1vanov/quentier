@@ -19,7 +19,6 @@
 #ifndef QUENTIER_LIB_DIALOG_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
 #define QUENTIER_LIB_DIALOG_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
 
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 
 #include <QDialog>
@@ -36,7 +35,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class AddOrEditSavedSearchDialog : public QDialog
+class AddOrEditSavedSearchDialog final: public QDialog
 {
     Q_OBJECT
 public:

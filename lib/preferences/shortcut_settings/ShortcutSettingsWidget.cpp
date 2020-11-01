@@ -33,6 +33,7 @@ using quentier::ShortcutButton;
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Compat.h>
 #include <quentier/utility/ShortcutManager.h>
 
 #include <QtAlgorithms>

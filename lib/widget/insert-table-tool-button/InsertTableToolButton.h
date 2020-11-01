@@ -19,13 +19,11 @@
 #ifndef QUENTIER_LIB_WIDGET_INSERT_TABLE_TOOL_BUTTON_H
 #define QUENTIER_LIB_WIDGET_INSERT_TABLE_TOOL_BUTTON_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QToolButton>
 
 namespace quentier {
 
-class InsertTableToolButton : public QToolButton
+class InsertTableToolButton final: public QToolButton
 {
     Q_OBJECT
 public:

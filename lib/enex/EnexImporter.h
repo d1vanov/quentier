@@ -23,7 +23,6 @@
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Tag.h>
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/SuppressWarnings.h>
 
 #include <QHash>
@@ -38,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EnexImporter : public QObject
+class EnexImporter final: public QObject
 {
     Q_OBJECT
 public:

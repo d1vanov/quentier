@@ -19,8 +19,6 @@
 #ifndef QUENTIER_CRASH_HANDLER_MAINWINDOW_H
 #define QUENTIER_CRASH_HANDLER_MAINWINDOW_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QMainWindow>
 #include <QProcess>
 #include <QString>
@@ -29,7 +27,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow final: public QMainWindow
 {
     Q_OBJECT
 public:

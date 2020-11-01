@@ -21,7 +21,6 @@
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/StringUtils.h>
 
 #include <QAbstractTableModel>
@@ -41,7 +40,7 @@ namespace quentier {
  * names of accounts it works on. The signal is emitted for anyone interested
  * in the change of account display name.
  */
-class AccountModel : public QAbstractTableModel
+class AccountModel final: public QAbstractTableModel
 {
     Q_OBJECT
 public:

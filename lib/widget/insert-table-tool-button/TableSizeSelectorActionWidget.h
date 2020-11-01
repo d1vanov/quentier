@@ -19,15 +19,13 @@
 #ifndef QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
 #define QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QWidgetAction>
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TableSizeSelector)
 
-class TableSizeSelectorActionWidget : public QWidgetAction
+class TableSizeSelectorActionWidget final: public QWidgetAction
 {
     Q_OBJECT
 public:

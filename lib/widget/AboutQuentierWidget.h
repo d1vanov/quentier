@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_WIDGET_ABOUT_QUENTIER_WIDGET_H
 #define QUENTIER_LIB_WIDGET_ABOUT_QUENTIER_WIDGET_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QWidget>
 
 namespace Ui {
@@ -29,7 +27,7 @@ class AboutQuentierWidget;
 
 namespace quentier {
 
-class AboutQuentierWidget : public QWidget
+class AboutQuentierWidget final: public QWidget
 {
     Q_OBJECT
 public:

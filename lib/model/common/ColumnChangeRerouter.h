@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_MODEL_COLUMN_CHANGE_REROUTER_H
 #define QUENTIER_LIB_MODEL_COLUMN_CHANGE_REROUTER_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QAbstractItemModel>
 
 /**

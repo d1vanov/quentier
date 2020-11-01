@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_UTILITY_ASYNC_FILE_WRITER_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QRunnable>
@@ -28,7 +27,7 @@
 
 namespace quentier {
 
-class AsyncFileWriter : public QObject, public QRunnable
+class AsyncFileWriter final: public QObject, public QRunnable
 {
     Q_OBJECT
 public:

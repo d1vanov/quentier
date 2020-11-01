@@ -20,14 +20,13 @@
 #define QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHING_TRACKER_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QObject>
 #include <QTextStream>
 
 namespace quentier {
 
-class WikiArticlesFetchingTracker : public QObject
+class WikiArticlesFetchingTracker final: public QObject
 {
     Q_OBJECT
 public:

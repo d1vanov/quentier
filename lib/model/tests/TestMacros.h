@@ -19,8 +19,6 @@
 #ifndef QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
 #define QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
 
-#include <quentier/utility/Macros.h>
-
 #include <QTextStream>
 
 #define FAIL(text)                                                             \

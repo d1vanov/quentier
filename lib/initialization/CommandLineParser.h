@@ -20,7 +20,6 @@
 #define QUENTIER_LIB_INITIALIZATION_COMMAND_LINE_PARSER_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Macros.h>
 
 #include <QHash>
 #include <QString>

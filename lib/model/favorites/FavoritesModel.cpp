@@ -19,6 +19,7 @@
 #include "FavoritesModel.h"
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 
 #include <algorithm>
 #include <utility>

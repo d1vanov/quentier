@@ -18,7 +18,6 @@
 
 #include "SetupApplicationIcon.h"
 
-#include <quentier/utility/Macros.h>
 #include <quentier/utility/QuentierApplication.h>
 
 #include <QIcon>

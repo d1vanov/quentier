@@ -22,6 +22,7 @@
 #include <lib/update/UpdateInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Compat.h>
 
 #include <QDateTime>
 #include <QJsonArray>
