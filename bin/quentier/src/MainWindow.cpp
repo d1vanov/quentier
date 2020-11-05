@@ -108,10 +108,10 @@ using quentier::LogViewerWidget;
 #include <quentier/types/Resource.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/Compat.h>
+#include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/StandardPaths.h>
-#include <quentier/utility/Utility.h>
 
 #include <qt5qevercloud/QEverCloud.h>
 
@@ -148,11 +148,11 @@ using quentier::LogViewerWidget;
 
 #define NOTIFY_ERROR(error)                                                    \
     QNWARNING("quentier:main_window", QString::fromUtf8(error));               \
-    onSetStatusBarText(QString::fromUtf8(error), SEC_TO_MSEC(30))
+    onSetStatusBarText(QString::fromUtf8(error), secondsToMilliseconds(30))
 
 #define NOTIFY_DEBUG(message)                                                  \
     QNDEBUG("quentier:main_window", QString::fromUtf8(message));               \
-    onSetStatusBarText(QString::fromUtf8(message), SEC_TO_MSEC(30))
+    onSetStatusBarText(QString::fromUtf8(message), secondsToMilliseconds(30))
 
 #define FILTERS_VIEW_STATUS_KEY QStringLiteral("ViewExpandedStatus")
 #define NOTE_SORTING_MODE_KEY   QStringLiteral("NoteSortingMode")
@@ -1035,7 +1035,7 @@ void MainWindow::setupInitialChildWidgetsWidths()
             "quentier:main_window",
             error << ", sizes count: " << splitterSizesCount);
 
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -1653,7 +1653,7 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
                        "within the splitter"));
 
         QNWARNING("quentier:main_window", error << "Sizes count: " << count);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -1805,7 +1805,7 @@ void MainWindow::setupSidePanelStyleControllers()
     }
 }
 
-void MainWindow::onSetStatusBarText(QString message, const int duration)
+void MainWindow::onSetStatusBarText(QString message, const int durationMsec)
 {
     auto * pStatusBar = m_pUI->statusBar;
     pStatusBar->clearMessage();
@@ -1815,12 +1815,12 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
         m_currentStatusBarChildWidget = nullptr;
     }
 
-    if (duration == 0) {
+    if (durationMsec == 0) {
         m_currentStatusBarChildWidget = new QLabel(message);
         pStatusBar->addWidget(m_currentStatusBarChildWidget);
     }
     else {
-        pStatusBar->showMessage(message, duration);
+        pStatusBar->showMessage(message, durationMsec);
     }
 }
 
@@ -1956,7 +1956,8 @@ void MainWindow::onImportEnexAction()
         QNDEBUG(
             "quentier:main_window", "Bad ENEX file path: " << errorDescription);
 
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -1971,7 +1972,8 @@ void MainWindow::onImportEnexAction()
         QNDEBUG(
             "quentier:main_window", "Bad notebook name: " << errorDescription);
 
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -2006,7 +2008,8 @@ void MainWindow::onSynchronizationStopped()
 
     if (m_syncInProgress) {
         m_syncInProgress = false;
-        onSetStatusBarText(tr("Synchronization was stopped"), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            tr("Synchronization was stopped"), secondsToMilliseconds(30));
         scheduleSyncButtonAnimationStop();
         setupRunSyncPeriodicallyTimer();
     }
@@ -2024,7 +2027,8 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
         "quentier:main_window",
         "MainWindow::onSynchronizationManagerFailure: " << errorDescription);
 
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(60));
+    onSetStatusBarText(
+        errorDescription.localizedString(), secondsToMilliseconds(60));
 
     m_syncInProgress = false;
     scheduleSyncButtonAnimationStop();
@@ -2042,12 +2046,13 @@ void MainWindow::onSynchronizationFinished(
         "MainWindow::onSynchronizationFinished: " << account.name());
 
     if (somethingDownloaded || somethingSent) {
-        onSetStatusBarText(tr("Synchronization finished!"), SEC_TO_MSEC(5));
+        onSetStatusBarText(
+            tr("Synchronization finished!"), secondsToMilliseconds(5));
     }
     else {
         onSetStatusBarText(
             tr("The account is already in sync with Evernote service"),
-            SEC_TO_MSEC(5));
+            secondsToMilliseconds(5));
     }
 
     m_syncInProgress = false;
@@ -2095,7 +2100,7 @@ void MainWindow::onAuthenticationFinished(
         onSetStatusBarText(
             tr("Couldn't authenticate the Evernote user") +
                 QStringLiteral(": ") + errorDescription.localizedString(),
-            SEC_TO_MSEC(30));
+            secondsToMilliseconds(30));
 
         return;
     }
@@ -2143,7 +2148,7 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
         tr("The synchronization has reached the Evernote API rate "
            "limit, it will continue automatically at approximately") +
             QStringLiteral(" ") + dateTimeToShow,
-        SEC_TO_MSEC(60));
+        secondsToMilliseconds(60));
 
     m_animatedSyncButtonIcon.setPaused(true);
 
@@ -2424,7 +2429,7 @@ void MainWindow::onNewNotebookCreationRequested()
             QT_TR_NOOP("Can't create a new notebook: no notebook model is set "
                        "up"));
         QNWARNING("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -2464,7 +2469,7 @@ void MainWindow::onNewTagCreationRequested()
         ErrorString error(
             QT_TR_NOOP("Can't create a new tag: no tag model is set up"));
         QNWARNING("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -2502,7 +2507,7 @@ void MainWindow::onNewSavedSearchCreationRequested()
             QT_TR_NOOP("Can't create a new saved search: no saved "
                        "search model is set up"));
         QNWARNING("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -2790,7 +2795,7 @@ void MainWindow::onNoteSortingModeChanged(int index)
             "quentier:main_window",
             error << ", sorting mode index = " << index);
 
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
 
         m_pNoteModel->sort(
             NoteModel::Columns::CreationTimestamp, Qt::AscendingOrder);
@@ -2936,7 +2941,8 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
                        "model"));
 
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -2945,7 +2951,8 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         ErrorString errorDescription(
             QT_TR_NOOP("Can't delete the current note: no note editor tabs"));
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -2961,7 +2968,8 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         errorDescription.appendBase(error.additionalBases());
         errorDescription.details() = error.details();
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 }
@@ -2975,7 +2983,8 @@ void MainWindow::onCurrentNoteInfoRequested()
         ErrorString errorDescription(
             QT_TR_NOOP("Can't show note info: no note editor tabs"));
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -2991,7 +3000,8 @@ void MainWindow::onCurrentNotePrintRequested()
         ErrorString errorDescription(
             QT_TR_NOOP("Can't print note: no note editor tabs"));
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -3003,7 +3013,8 @@ void MainWindow::onCurrentNotePrintRequested()
         }
 
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
     }
 }
 
@@ -3017,7 +3028,8 @@ void MainWindow::onCurrentNotePdfExportRequested()
         ErrorString errorDescription(
             QT_TR_NOOP("Can't export note to pdf: no note editor tabs"));
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -3029,7 +3041,8 @@ void MainWindow::onCurrentNotePdfExportRequested()
         }
 
         QNDEBUG("quentier:main_window", errorDescription);
-        onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(
+            errorDescription.localizedString(), secondsToMilliseconds(30));
     }
 }
 
@@ -3127,7 +3140,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
                     tr("Could not create the folder for the selected ENEX "
                        "file") +
                         QStringLiteral(": ") + enexFilePath,
-                    SEC_TO_MSEC(30));
+                    secondsToMilliseconds(30));
 
                 return;
             }
@@ -3163,7 +3176,7 @@ void MainWindow::onExportedNotesToEnex(QString enex)
             QT_TR_NOOP("Can't export notes to ENEX: internal error, "
                        "can't cast the slot invoker to EnexExporter"));
         QNWARNING("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -3173,7 +3186,7 @@ void MainWindow::onExportedNotesToEnex(QString enex)
             QT_TR_NOOP("Can't export notes to ENEX: internal error, "
                        "the selected ENEX file path was lost"));
         QNWARNING("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -3207,7 +3220,8 @@ void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
         pExporter->deleteLater();
     }
 
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+    onSetStatusBarText(
+        errorDescription.localizedString(), secondsToMilliseconds(30));
 }
 
 void MainWindow::onEnexFileWrittenSuccessfully(QString filePath)
@@ -3219,7 +3233,7 @@ void MainWindow::onEnexFileWrittenSuccessfully(QString filePath)
     onSetStatusBarText(
         tr("Successfully exported note(s) to ENEX: ") +
             QDir::toNativeSeparators(filePath),
-        SEC_TO_MSEC(5));
+        secondsToMilliseconds(5));
 }
 
 void MainWindow::onEnexFileWriteFailed(ErrorString errorDescription)
@@ -3231,7 +3245,7 @@ void MainWindow::onEnexFileWriteFailed(ErrorString errorDescription)
     onSetStatusBarText(
         tr("Can't export note(s) to ENEX, failed to write the ENEX to file") +
             QStringLiteral(": ") + errorDescription.localizedString(),
-        SEC_TO_MSEC(30));
+        secondsToMilliseconds(30));
 }
 
 void MainWindow::onEnexFileWriteIncomplete(
@@ -3247,7 +3261,7 @@ void MainWindow::onEnexFileWriteIncomplete(
         onSetStatusBarText(
             tr("Can't export note(s) to ENEX, failed to write the ENEX to "
                "file"),
-            SEC_TO_MSEC(30));
+            secondsToMilliseconds(30));
     }
     else {
         onSetStatusBarText(
@@ -3255,7 +3269,7 @@ void MainWindow::onEnexFileWriteIncomplete(
                "file, only a portion of data has been written") +
                 QStringLiteral(": ") + QString::number(bytesWritten) +
                 QStringLiteral("/") + QString::number(bytesTotal),
-            SEC_TO_MSEC(30));
+            secondsToMilliseconds(30));
     }
 }
 
@@ -3268,7 +3282,7 @@ void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
     onSetStatusBarText(
         tr("Successfully imported note(s) from ENEX file") +
             QStringLiteral(": ") + QDir::toNativeSeparators(enexFilePath),
-        SEC_TO_MSEC(5));
+        secondsToMilliseconds(5));
 
     auto * pImporter = qobject_cast<EnexImporter *>(sender());
     if (pImporter) {
@@ -3283,7 +3297,8 @@ void MainWindow::onEnexImportFailed(ErrorString errorDescription)
         "quentier:main_window",
         "MainWindow::onEnexImportFailed: " << errorDescription);
 
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+    onSetStatusBarText(
+        errorDescription.localizedString(), secondsToMilliseconds(30));
 
     auto * pImporter = qobject_cast<EnexImporter *>(sender());
     if (pImporter) {
@@ -3358,7 +3373,7 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(
     }
 
     m_runSyncPeriodicallyTimerId =
-        startTimer(SEC_TO_MSEC(runSyncEachNumMinutes * 60));
+        startTimer(secondsToMilliseconds(runSyncEachNumMinutes * 60));
 }
 
 void MainWindow::onPanelFontColorChanged(QColor color)
@@ -3505,7 +3520,8 @@ void MainWindow::onSystemTrayIconManagerError(ErrorString errorDescription)
         "quentier:main_window",
         "MainWindow::onSystemTrayIconManagerError: " << errorDescription);
 
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+    onSetStatusBarText(
+        errorDescription.localizedString(), secondsToMilliseconds(30));
 }
 
 void MainWindow::onShowRequestedFromTrayIcon()
@@ -3556,13 +3572,13 @@ void MainWindow::onShowInfoAboutQuentierActionTriggered()
 void MainWindow::onNoteEditorError(ErrorString error)
 {
     QNINFO("quentier:main_window", "MainWindow::onNoteEditorError: " << error);
-    onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+    onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
 }
 
 void MainWindow::onModelViewError(ErrorString error)
 {
     QNINFO("quentier:main_window", "MainWindow::onModelViewError: " << error);
-    onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+    onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
 }
 
 void MainWindow::onNoteEditorSpellCheckerNotReady()
@@ -3727,7 +3743,7 @@ void MainWindow::onAccountSwitched(Account account)
         onSetStatusBarText(
             tr("Could not switch account: ") + QStringLiteral(": ") +
                 errorDescription.localizedString(),
-            SEC_TO_MSEC(30));
+            secondsToMilliseconds(30));
         return;
     }
 
@@ -3739,7 +3755,7 @@ void MainWindow::onAccountSwitched(Account account)
         onSetStatusBarText(
             tr("Could not switch account: ") + QStringLiteral(": ") +
                 errorDescription.localizedString(),
-            SEC_TO_MSEC(30));
+            secondsToMilliseconds(30));
         return;
     }
 
@@ -3879,7 +3895,8 @@ void MainWindow::onAccountManagerError(ErrorString errorDescription)
         "quentier:main_window",
         "MainWindow::onAccountManagerError: " << errorDescription);
 
-    onSetStatusBarText(errorDescription.localizedString(), SEC_TO_MSEC(30));
+    onSetStatusBarText(
+        errorDescription.localizedString(), secondsToMilliseconds(30));
 }
 
 void MainWindow::onShowSidePanelActionToggled(bool checked)
@@ -4106,7 +4123,7 @@ void MainWindow::onSwitchIconTheme(const QString & iconTheme)
         ErrorString error(QT_TR_NOOP("Unknown icon theme selected"));
         error.details() = iconTheme;
         QNWARNING("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
     }
 }
 
@@ -4118,14 +4135,14 @@ void MainWindow::onSwitchIconThemeToNativeAction()
     if (m_nativeIconThemeName.isEmpty()) {
         ErrorString error(QT_TR_NOOP("No native icon theme is available"));
         QNDEBUG("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
     if (QIcon::themeName() == m_nativeIconThemeName) {
         ErrorString error(QT_TR_NOOP("Already using the native icon theme"));
         QNDEBUG("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -4144,7 +4161,7 @@ void MainWindow::onSwitchIconThemeToTangoAction()
     if (QIcon::themeName() == tango) {
         ErrorString error(QT_TR_NOOP("Already using tango icon theme"));
         QNDEBUG("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -4163,7 +4180,7 @@ void MainWindow::onSwitchIconThemeToOxygenAction()
     if (QIcon::themeName() == oxygen) {
         ErrorString error(QT_TR_NOOP("Already using oxygen icon theme"));
         QNDEBUG("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(10));
         return;
     }
 
@@ -4182,7 +4199,7 @@ void MainWindow::onSwitchIconThemeToBreezeAction()
     if (QIcon::themeName() == breeze) {
         ErrorString error(QT_TR_NOOP("Already using breeze icon theme"));
         QNDEBUG("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(10));
         return;
     }
 
@@ -4202,7 +4219,7 @@ void MainWindow::onSwitchIconThemeToBreezeDarkAction()
     if (QIcon::themeName() == breezeDark) {
         ErrorString error(QT_TR_NOOP("Already using breeze-dark icon theme"));
         QNDEBUG("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(10));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(10));
         return;
     }
 
@@ -4363,7 +4380,7 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(
     onSetStatusBarText(
         tr("Could not switch account") + QStringLiteral(": ") +
             errorDescription.localizedString(),
-        SEC_TO_MSEC(30));
+        secondsToMilliseconds(30));
 
     if (!m_pAccount) {
         // If there was no any account set previously, nothing to do
@@ -6177,7 +6194,8 @@ void MainWindow::setupSynchronizationManager(
             ErrorString error(
                 QT_TR_NOOP("Can't set up the synchronization: no account"));
             QNWARNING("quentier:main_window", error);
-            onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+            onSetStatusBarText(
+                error.localizedString(), secondsToMilliseconds(30));
             return;
         }
 
@@ -6189,7 +6207,8 @@ void MainWindow::setupSynchronizationManager(
             QNWARNING(
                 "quentier:main_window", error << "; account: " << *m_pAccount);
 
-            onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+            onSetStatusBarText(
+                error.localizedString(), secondsToMilliseconds(30));
             return;
         }
 
@@ -6202,7 +6221,8 @@ void MainWindow::setupSynchronizationManager(
             QNWARNING(
                 "quentier:main_window", error << "; account: " << *m_pAccount);
 
-            onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+            onSetStatusBarText(
+                error.localizedString(), secondsToMilliseconds(30));
             return;
         }
     }
@@ -6397,7 +6417,7 @@ void MainWindow::launchSynchronization()
             QT_TR_NOOP("Can't start synchronization: internal "
                        "error, no synchronization manager is set up"));
         QNWARNING("quentier:main_window", error);
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
@@ -6683,7 +6703,7 @@ NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
         QNWARNING(
             "quentier:main_window", error << ", persisted data: " << data);
 
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return NoteModel::NoteSortingMode::None;
     }
 
@@ -7007,7 +7027,7 @@ void MainWindow::restoreSplitterSizes()
             "quentier:main_window",
             error << ", sizes count: " << splitterSizesCount);
 
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
     }
 
     auto sidePanelSplitterSizes = m_pUI->sidePanelSplitter->sizes();
@@ -7170,7 +7190,7 @@ void MainWindow::restoreSplitterSizes()
             "quentier:main_window",
             error << ", sizes count: " << splitterSizesCount);
 
-        onSetStatusBarText(error.localizedString(), SEC_TO_MSEC(30));
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
     }
 }
 

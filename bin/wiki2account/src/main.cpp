@@ -30,8 +30,8 @@
 #include <lib/initialization/Initialize.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Initialize.h>
 #include <quentier/utility/StandardPaths.h>
-#include <quentier/utility/Utility.h>
 
 #include <QApplication>
 #include <QThread>

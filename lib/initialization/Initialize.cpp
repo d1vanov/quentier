@@ -30,10 +30,10 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/Initialize.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/StandardPaths.h>
-#include <quentier/utility/Utility.h>
 #include <quentier/utility/VersionInfo.h>
 
 #include <QFileInfo>

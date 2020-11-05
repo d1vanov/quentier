@@ -22,8 +22,9 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
-#include <quentier/utility/Utility.h>
+#include <quentier/utility/System.h>
 
 #include <QApplication>
 #include <QDateTime>

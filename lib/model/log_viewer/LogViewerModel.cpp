@@ -22,10 +22,11 @@
 #include <lib/preferences/keys/Logging.h>
 
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/DateTime.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/StandardPaths.h>
-#include <quentier/utility/Utility.h>
 
+#include <QColor>
 #include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
