@@ -29,7 +29,7 @@
 #include <quentier/utility/Compat.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/SuppressWarnings.h>
-#include <quentier/utility/Utility.h>
+#include <quentier/utility/System.h>
 
 #include <QDebug>
 #include <QXmlStreamWriter>

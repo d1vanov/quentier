@@ -21,7 +21,7 @@
 
 #include <VersionInfo.h>
 
-#include <quentier/utility/Utility.h>
+#include <quentier/utility/FileSystem.h>
 #include <quentier/utility/VersionInfo.h>
 
 #include <QDir>

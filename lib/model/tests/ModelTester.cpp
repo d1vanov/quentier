@@ -30,9 +30,9 @@
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
+#include <quentier/utility/Initialize.h>
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
-#include <quentier/utility/Utility.h>
 
 #include <QtGui/QtGui>
 #include <QtTest/QtTest>

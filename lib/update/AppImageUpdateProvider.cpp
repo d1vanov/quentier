@@ -19,7 +19,7 @@
 #include "AppImageUpdateProvider.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Utility.h>
+#include <quentier/utility/FileSystem.h>
 
 #include <QCoreApplication>
 #include <QFileInfo>

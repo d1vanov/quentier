@@ -20,7 +20,10 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/Compat.h>
-#include <quentier/utility/Utility.h>
+#include <quentier/utility/DateTime.h>
+#include <quentier/utility/Size.h>
+
+#include <QImage>
 
 #include <iterator>
 

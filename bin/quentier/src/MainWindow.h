@@ -98,7 +98,7 @@ public:
     const SystemTrayIconManager & systemTrayIconManager() const;
 
 public Q_SLOTS:
-    void onSetStatusBarText(QString message, const int duration = 0);
+    void onSetStatusBarText(QString message, int durationMsec = 0);
 
 Q_SIGNALS:
     void shown();
