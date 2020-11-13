@@ -70,11 +70,13 @@ sudo apt-get install quentier-qt5
 For users of other Linux distributions there are also prepared repositories with native packages:
 
  * Stable versions:
-   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier) for Fedora, OpenSUSE, and Arch Linux repositories
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier) for Fedora and OpenSUSE repositories
    * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier-qt5) for Debian repositories
+   * Use [this repository](https://download.opensuse.org/repositories/home:/d1vanov:/quentier-master/Arch_Community/x86_64/) for Arch Linux
  * Unstable versions:
-   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier) for Fedora, OpenSUSE and Arch Linux repositories
+   * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier) for Fedora and OpenSUSE repositories
    * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-development&package=quentier-qt5) for Debian repositories
+   * Use [this repository](https://download.opensuse.org/repositories/home:/d1vanov:/quentier-development/Arch_Community/x86_64/) for Arch Linux
 
 ## How to build from source
 
