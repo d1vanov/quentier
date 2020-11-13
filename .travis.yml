@@ -94,7 +94,7 @@ install:
         if [ "${QT_BASE}" = "5123" ] && [ "${COMPILER}" = "g++-5.4" ]; then
           git clone https://github.com/antony-jr/AppImageUpdaterBridge.git &&
           cd AppImageUpdaterBridge &&
-          git checkout master &&
+          git checkout v1.1.8 &&
           mkdir build &&
           cd build &&
           cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt512 .. &&
