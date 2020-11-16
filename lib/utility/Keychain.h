@@ -44,6 +44,10 @@ enum class KeychainKind
      */
     ObfuscatingKeychain,
     /**
+     * Create migrating keychain from QtKeychain to obfuscating keychain
+     */
+    MigratingKeychain,
+    /**
      * Create composite keychain using QtKeychain as a primary keychain and
      * obfuscating keychain as a secondary keychain
      */

@@ -18,6 +18,8 @@
 
 #include "Keychain.h"
 
+#include <lib/utility/VersionInfo.h>
+
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QDebug>
@@ -36,15 +38,20 @@ IKeychainServicePtr newDefaultKeychain(QObject * parent)
     // On macOS using the system keychain for sync tokens gets pretty annoying
     // as each read and write by default needs to be granted by the user, so
     // using obfuscating keychain by default
-    QNDEBUG("utility", "Creating new obfuscating keychain service");
-    return newObfuscatingKeychainService(parent);
-#else
+    QNDEBUG("utility", "Creating new migrating keychain service");
+    return newMigratingKeychainService(
+        newQtKeychainService(parent),
+        newObfuscatingKeychainService(parent));
+#elif QUENTIER_PACKAGED_AS_APP_IMAGE
     QNDEBUG("utility", "Creating new composite keychain service");
     return newCompositeKeychainService(
         QString::fromUtf8(compositeKeychainName),
         newQtKeychainService(parent),
         newObfuscatingKeychainService(parent),
         parent);
+#else
+    QNDEBUG("utility", "Creating new QtKeychain keychain service");
+    return newQtKeychainService(parent);
 #endif
 }
 
@@ -62,6 +69,10 @@ IKeychainServicePtr newKeychain(KeychainKind kind, QObject * parent)
         return newQtKeychainService(parent);
     case KeychainKind::ObfuscatingKeychain:
         return newObfuscatingKeychainService(parent);
+    case KeychainKind::MigratingKeychain:
+        return newMigratingKeychainService(
+            newQtKeychainService(parent),
+            newObfuscatingKeychainService(parent));
     case KeychainKind::CompositeKeychain:
     default:
         return newCompositeKeychainService(
@@ -84,6 +95,9 @@ QDebug & operator<<(QDebug & dbg, const KeychainKind kind)
         break;
     case KeychainKind::ObfuscatingKeychain:
         dbg << "obfuscating";
+        break;
+    case KeychainKind::MigratingKeychain:
+        dbg << "migrating";
         break;
     case KeychainKind::CompositeKeychain:
         dbg << "composite";
