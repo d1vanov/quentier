@@ -277,7 +277,16 @@ build_script:
   - if not "%APPVEYOR_REPO_BRANCH%" == "master" if not "%APPVEYOR_REPO_BRANCH%" == "development" cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="c:/dev/install" -DBUILD_WITH_WIKI_TOOLS=1 -DCMAKE_PREFIX_PATH="C:/Qt/5.13/%qt%" -DZLIB_LIBRARY="C:/dev/zlib/lib/libz.lib" -DBREAKPAD_ROOT="C:/dev/breakpad" -DNSIS_MAKE="c:/Program Files (x86)/NSIS/makensis.exe" -DOPENSSL_ROOT_DIR="c:/dev/openssl" -DBOOST_ROOT="c:/dev/boost" -DQEverCloud-qt5_DIR="c:\dev\qevercloud\build\installdir\CMake" -DLibquentier-qt5_DIR="c:\dev\libquentier\build\installdir\CMake"
   - cmake --build . --parallel --target all
   - if NOT ERRORLEVEL 0 exit 1
-  - cmake --build . --target check
+  - ps: >-
+      If($true) {
+        $env:Path += ";C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\;"
+        $env:Path += ";C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\;"
+        $SymPath = "C:\dev\quentier\build;SRV*C:\symbols*http://msdl.microsoft.com/download/symbols"
+        cmd /r mkdir C:\symbols
+        Write-Host "Running test executable"
+        cdb -y $SymPath -c "|;g;kv;q" -o C:\dev\quentier\build\lib\model\tests\quentier_model_test.exe
+        Write-Host "Exit code: " $lastExitCode
+      }
   - if NOT ERRORLEVEL 0 exit 1
   - cmake --build . --target lupdate
   - if NOT ERRORLEVEL 0 exit 1
