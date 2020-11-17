@@ -278,9 +278,9 @@ build_script:
   - cmake --build . --parallel --target all
   - if NOT ERRORLEVEL 0 exit 1
   - ps: >-
-      If($true) {
-        $env:Path += ";C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\;"
-        $env:Path += ";C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\;"
+      if($true) {
+        if($env:build_suite == msvc2017_64) { $env:Path += ";C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\;" }
+        else { $env:Path += ";C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\;" }
         $SymPath = "C:\dev\quentier\build;SRV*C:\symbols*http://msdl.microsoft.com/download/symbols"
         cmd /r mkdir C:\symbols
         Write-Host "Running test executable"
