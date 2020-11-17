@@ -58,6 +58,7 @@
 #include <lib/utility/ActionsInfo.h>
 #include <lib/utility/AsyncFileWriter.h>
 #include <lib/utility/ExitCodes.h>
+#include <lib/utility/Keychain.h>
 #include <lib/utility/QObjectThreadMover.h>
 #include <lib/view/DeletedNoteItemView.h>
 #include <lib/view/FavoriteItemView.h>
@@ -6245,7 +6246,8 @@ void MainWindow::setupSynchronizationManager(
 
     m_pSynchronizationManager = new SynchronizationManager(
         m_synchronizationManagerHost, *m_pLocalStorageManagerAsync,
-        *m_pAuthenticationManager);
+        *m_pAuthenticationManager, nullptr, nullptr, nullptr,
+        newKeychain());
 
     if (m_pAccount && (setAccountOption == SetAccountOption::Set)) {
         m_pSynchronizationManager->setAccount(*m_pAccount);

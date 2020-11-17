@@ -12,6 +12,7 @@ set(HEADERS
     ExitCodes.h
     HumanReadableVersionInfo.h
     IStartable.h
+    Keychain.h
     Log.h
     QObjectThreadMover.h
     QObjectThreadMover_p.h
@@ -24,6 +25,7 @@ set(SOURCES
     BasicXMLSyntaxHighlighter.cpp
     ColorCodeValidator.cpp
     HumanReadableVersionInfo.cpp
+    Keychain.cpp
     Log.cpp
     QObjectThreadMover.cpp
     QObjectThreadMover_p.cpp
