@@ -284,7 +284,7 @@ build_script:
         $SymPath = "C:\dev\quentier\build;SRV*C:\symbols*http://msdl.microsoft.com/download/symbols"
         cmd /r mkdir C:\symbols
         Write-Host "Running test executable"
-        cdb -y $SymPath -c "|;g;kv;q" -o C:\dev\quentier\build\lib\model\tests\quentier_model_test.exe
+        cdb -y $SymPath -c "|;g;kv;q" -o C:\dev\quentier\build\lib\model\tests\quentier_model_tests.exe
         Write-Host "Exit code: " $lastExitCode
       }
   - if NOT ERRORLEVEL 0 exit 1
