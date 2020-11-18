@@ -24,7 +24,7 @@
 #include <QRunnable>
 #include <QString>
 
-class SymbolsUnpacker final: public QObject, public QRunnable
+class SymbolsUnpacker final : public QObject, public QRunnable
 {
     Q_OBJECT
 public:

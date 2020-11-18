@@ -27,7 +27,7 @@
 
 namespace quentier {
 
-class LogViewerDelegate final: public QStyledItemDelegate
+class LogViewerDelegate final : public QStyledItemDelegate
 {
     Q_OBJECT
 public:

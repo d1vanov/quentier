@@ -32,7 +32,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
 
-class SystemTrayIconManager final: public QObject
+class SystemTrayIconManager final : public QObject
 {
     Q_OBJECT
 public:

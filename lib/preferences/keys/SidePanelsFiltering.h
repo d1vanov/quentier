@@ -35,8 +35,7 @@ constexpr const char * sidePanelsFilterBySelectedNotebook =
 
 // Name of preference specifying whether selecting a tag within a tags side
 // panel should trigger filtering of notes by the selected tag
-constexpr const char * sidePanelsFilterBySelectedTag =
-    "FilterBySelectedTag";
+constexpr const char * sidePanelsFilterBySelectedTag = "FilterBySelectedTag";
 
 // Name of preference specifying whether selecting a saved search within
 // a saved searches side panel should trigger filtering by the selected
@@ -50,8 +49,8 @@ constexpr const char * sidePanelsFilterBySelectedSavedSearch =
 constexpr const char * sidePanelsFilterBySelectedFavoritedItems =
     "FilterBySelectedFavoritesItem";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_SIDE_PANELS_FILTERING_H

@@ -35,8 +35,8 @@ constexpr const char * libquentierTranslationsSearchPath =
 constexpr const char * quentierTranslationsSearchPath =
     "QuentierTranslationsSearchPath";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_TRANSLATIONS_H

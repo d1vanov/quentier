@@ -28,7 +28,7 @@ class FindAndReplaceWidget;
 
 namespace quentier {
 
-class FindAndReplaceWidget final: public QWidget
+class FindAndReplaceWidget final : public QWidget
 {
     Q_OBJECT
 public:

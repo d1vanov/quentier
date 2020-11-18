@@ -31,7 +31,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchItem)
 
-class SavedSearchModelItemInfoWidget final: public QWidget
+class SavedSearchModelItemInfoWidget final : public QWidget
 {
     Q_OBJECT
 public:

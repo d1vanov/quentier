@@ -33,7 +33,7 @@ namespace quentier {
  * #RRRGGGBBB
  * #RRRRGGGGBBBB
  */
-class ColorCodeValidator final: public QValidator
+class ColorCodeValidator final : public QValidator
 {
     Q_OBJECT
 public:

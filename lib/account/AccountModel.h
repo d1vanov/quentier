@@ -40,7 +40,7 @@ namespace quentier {
  * names of accounts it works on. The signal is emitted for anyone interested
  * in the change of account display name.
  */
-class AccountModel final: public QAbstractTableModel
+class AccountModel final : public QAbstractTableModel
 {
     Q_OBJECT
 public:

@@ -65,8 +65,8 @@ constexpr const char * syncNetworkProxyUser = "SynchronizationNetworkProxyUser";
 constexpr const char * syncNetworkProxyPassword =
     "SynchronizationNetworkProxyPassword";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_SYNCHRONIZATION_H

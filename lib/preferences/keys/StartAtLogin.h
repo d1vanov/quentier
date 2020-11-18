@@ -35,8 +35,8 @@ constexpr const char * shouldStartAtLogin = "ShouldStartAutomaticallyAtLogin";
 // minimized, minimized to tray etc.
 constexpr const char * startAtLoginOption = "StartAutomaticallyAtLoginOption";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_START_AT_LOGIN_H

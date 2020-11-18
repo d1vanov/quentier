@@ -36,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(AccountModel)
 QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
 
-class LocalStorageVersionTooHighDialog final: public QDialog
+class LocalStorageVersionTooHighDialog final : public QDialog
 {
     Q_OBJECT
 public:

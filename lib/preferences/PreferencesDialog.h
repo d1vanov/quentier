@@ -43,7 +43,7 @@ QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
 
-class PreferencesDialog final: public QDialog
+class PreferencesDialog final : public QDialog
 {
     Q_OBJECT
 public:
@@ -185,9 +185,8 @@ private:
     void checkAndSetNetworkProxy();
 
     bool onNoteEditorColorEnteredImpl(
-        const QColor & color, const QColor & prevColor,
-        const char * key, QLineEdit & colorLineEdit,
-        QFrame & demoFrame);
+        const QColor & color, const QColor & prevColor, const char * key,
+        QLineEdit & colorLineEdit, QFrame & demoFrame);
 
     void setNoteEditorFontColorToDemoFrame(const QColor & color);
     void setNoteEditorBackgroundColorToDemoFrame(const QColor & color);

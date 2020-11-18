@@ -37,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class NoteFiltersManager final: public QObject
+class NoteFiltersManager final : public QObject
 {
     Q_OBJECT
 public:

@@ -36,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(NoteEditorTabsAndWindowsCoordinator)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class EnexExporter final: public QObject
+class EnexExporter final : public QObject
 {
     Q_OBJECT
 public:

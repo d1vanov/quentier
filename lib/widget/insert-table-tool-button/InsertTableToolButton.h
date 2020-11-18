@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class InsertTableToolButton final: public QToolButton
+class InsertTableToolButton final : public QToolButton
 {
     Q_OBJECT
 public:

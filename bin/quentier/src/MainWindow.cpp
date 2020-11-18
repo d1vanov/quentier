@@ -6246,8 +6246,7 @@ void MainWindow::setupSynchronizationManager(
 
     m_pSynchronizationManager = new SynchronizationManager(
         m_synchronizationManagerHost, *m_pLocalStorageManagerAsync,
-        *m_pAuthenticationManager, nullptr, nullptr, nullptr,
-        newKeychain());
+        *m_pAuthenticationManager, nullptr, nullptr, nullptr, newKeychain());
 
     if (m_pAccount && (setAccountOption == SetAccountOption::Set)) {
         m_pSynchronizationManager->setAccount(*m_pAccount);

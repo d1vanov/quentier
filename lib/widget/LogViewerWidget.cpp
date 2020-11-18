@@ -1137,9 +1137,12 @@ void LogViewerWidget::restoreFilterByComponentState()
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
 
-    auto presetIndex = appSettings.value(preferences::keys::loggingFilterByComponentPreset);
+    auto presetIndex =
+        appSettings.value(preferences::keys::loggingFilterByComponentPreset);
 
-    auto filter = appSettings.value(preferences::keys::loggingFilterByComponentRegex).toString();
+    auto filter =
+        appSettings.value(preferences::keys::loggingFilterByComponentRegex)
+            .toString();
 
     appSettings.endGroup();
 

@@ -36,7 +36,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EditNoteDialog final: public QDialog
+class EditNoteDialog final : public QDialog
 {
     Q_OBJECT
 public:

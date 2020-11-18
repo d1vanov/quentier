@@ -26,7 +26,7 @@
 
 namespace quentier {
 
-class WikiArticlesFetchingTracker final: public QObject
+class WikiArticlesFetchingTracker final : public QObject
 {
     Q_OBJECT
 public:

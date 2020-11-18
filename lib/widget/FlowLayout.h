@@ -55,7 +55,7 @@
 #include <QRect>
 #include <QStyle>
 
-class FlowLayout final: public QLayout
+class FlowLayout final : public QLayout
 {
     Q_OBJECT
 public:

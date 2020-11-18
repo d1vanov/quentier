@@ -57,8 +57,7 @@ enum class KeychainKind
 QDebug & operator<<(QDebug & dbg, const KeychainKind kind);
 
 IKeychainServicePtr newKeychain(
-    KeychainKind kind = KeychainKind::Default,
-    QObject * parent = nullptr);
+    KeychainKind kind = KeychainKind::Default, QObject * parent = nullptr);
 
 } // namespace quentier
 

@@ -26,7 +26,7 @@
 
 namespace quentier {
 
-class AccountFilterModel final: public QSortFilterProxyModel
+class AccountFilterModel final : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:

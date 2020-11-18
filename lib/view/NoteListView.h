@@ -36,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(NoteModel)
  * @brief The NoteListView is a simple subclass of QListView which adds some
  * bits of functionality specific to note list on top of it
  */
-class NoteListView final: public QListView
+class NoteListView final : public QListView
 {
     Q_OBJECT
 public:

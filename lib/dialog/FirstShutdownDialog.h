@@ -27,7 +27,7 @@ class FirstShutdownDialog;
 
 namespace quentier {
 
-class FirstShutdownDialog final: public QDialog
+class FirstShutdownDialog final : public QDialog
 {
     Q_OBJECT
 public:

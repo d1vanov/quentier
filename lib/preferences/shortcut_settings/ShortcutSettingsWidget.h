@@ -45,7 +45,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ActionsInfo)
 QT_FORWARD_DECLARE_CLASS(ShortcutManager)
 
-class ShortcutItem final: public Printable
+class ShortcutItem final : public Printable
 {
 public:
     virtual QTextStream & print(QTextStream & strm) const override;

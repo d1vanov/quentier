@@ -37,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
  * a couple of asynchronous events related to setting up the default notebook
  * and note for the newly created default account
  */
-class DefaultAccountFirstNotebookAndNoteCreator final: public QObject
+class DefaultAccountFirstNotebookAndNoteCreator final : public QObject
 {
     Q_OBJECT
 public:

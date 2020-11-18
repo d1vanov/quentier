@@ -38,7 +38,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
 
-class NewListItemLineEdit final: public QLineEdit
+class NewListItemLineEdit final : public QLineEdit
 {
     Q_OBJECT
 public:

@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class TabWidget final: public QTabWidget
+class TabWidget final : public QTabWidget
 {
     Q_OBJECT
 public:

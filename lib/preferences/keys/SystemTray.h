@@ -65,8 +65,8 @@ constexpr const char * doubleClickTrayAction = "DoubleClickTrayAction";
 constexpr const char * overrideSystemTrayAvailabilityEnvVar =
     "QUENTIER_OVERRIDE_SYSTEM_TRAY_AVAILABILITY";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_SYSTEM_TRAY_H

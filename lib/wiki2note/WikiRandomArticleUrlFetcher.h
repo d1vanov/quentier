@@ -32,7 +32,7 @@ QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
 
 namespace quentier {
 
-class WikiRandomArticleUrlFetcher final: public QObject
+class WikiRandomArticleUrlFetcher final : public QObject
 {
     Q_OBJECT
 public:

@@ -38,7 +38,7 @@ QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
-class LogViewerWidget final: public QWidget
+class LogViewerWidget final : public QWidget
 {
     Q_OBJECT
 public:

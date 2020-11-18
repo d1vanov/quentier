@@ -40,15 +40,12 @@ IKeychainServicePtr newDefaultKeychain(QObject * parent)
     // using obfuscating keychain by default
     QNDEBUG("utility", "Creating new migrating keychain service");
     return newMigratingKeychainService(
-        newQtKeychainService(parent),
-        newObfuscatingKeychainService(parent));
+        newQtKeychainService(parent), newObfuscatingKeychainService(parent));
 #elif QUENTIER_PACKAGED_AS_APP_IMAGE
     QNDEBUG("utility", "Creating new composite keychain service");
     return newCompositeKeychainService(
-        QString::fromUtf8(compositeKeychainName),
-        newQtKeychainService(parent),
-        newObfuscatingKeychainService(parent),
-        parent);
+        QString::fromUtf8(compositeKeychainName), newQtKeychainService(parent),
+        newObfuscatingKeychainService(parent), parent);
 #else
     QNDEBUG("utility", "Creating new QtKeychain keychain service");
     return newQtKeychainService(parent);
@@ -61,8 +58,7 @@ IKeychainServicePtr newKeychain(KeychainKind kind, QObject * parent)
 {
     QNDEBUG("utility", "newKeychain: kind = " << kind);
 
-    switch(kind)
-    {
+    switch (kind) {
     case KeychainKind::Default:
         return newDefaultKeychain(parent);
     case KeychainKind::QtKeychain:
@@ -77,16 +73,14 @@ IKeychainServicePtr newKeychain(KeychainKind kind, QObject * parent)
     default:
         return newCompositeKeychainService(
             QString::fromUtf8(compositeKeychainName),
-            newQtKeychainService(parent),
-            newObfuscatingKeychainService(parent),
+            newQtKeychainService(parent), newObfuscatingKeychainService(parent),
             parent);
     }
 }
 
 QDebug & operator<<(QDebug & dbg, const KeychainKind kind)
 {
-    switch(kind)
-    {
+    switch (kind) {
     case KeychainKind::Default:
         dbg << "default";
         break;

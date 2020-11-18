@@ -41,7 +41,7 @@ QT_FORWARD_DECLARE_CLASS(AccountModel)
 QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
 QT_FORWARD_DECLARE_CLASS(ILocalStoragePatch)
 
-class LocalStorageUpgradeDialog final: public QDialog
+class LocalStorageUpgradeDialog final : public QDialog
 {
     Q_OBJECT
 public:

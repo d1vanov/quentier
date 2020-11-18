@@ -54,8 +54,8 @@ constexpr const char * disableNativeMenuBar = "DisableNativeMenuBar";
 constexpr const char * onceDisplayedWelcomeDialog =
     "OnceDisplayedGreeterScreen";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_APPEARANCE_H

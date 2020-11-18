@@ -50,8 +50,8 @@ constexpr const char * lastEnexImportPath = "LastImportEnexPath";
 constexpr const char * lastImportEnexNotebookName =
     "LastImportEnexNotebookName";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_ENEX_H

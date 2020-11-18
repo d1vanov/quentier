@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class LimitedFontsDelegate final: public QStyledItemDelegate
+class LimitedFontsDelegate final : public QStyledItemDelegate
 {
     Q_OBJECT
 public:

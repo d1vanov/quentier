@@ -64,11 +64,10 @@ constexpr const char * noteEditorHighlightColor = "HighlightColor";
 
 // Name of preference specifying the default highlighted text color for the note
 // editor
-constexpr const char * noteEditorHighlightedTextColor =
-    "HighlightedTextColor";
+constexpr const char * noteEditorHighlightedTextColor = "HighlightedTextColor";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_NOTE_EDITOR_H

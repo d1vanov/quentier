@@ -27,7 +27,7 @@ class TableSettingsDialog;
 
 namespace quentier {
 
-class TableSettingsDialog final: public QDialog
+class TableSettingsDialog final : public QDialog
 {
     Q_OBJECT
 public:

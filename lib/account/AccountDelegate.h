@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class AccountDelegate final: public QStyledItemDelegate
+class AccountDelegate final : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
