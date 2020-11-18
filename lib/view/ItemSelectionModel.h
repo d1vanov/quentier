@@ -29,7 +29,7 @@ QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
  * @brief The ItemSelectionModel class represents a small customization
  * of the standard QItemSelectionModel
  */
-class ItemSelectionModel final: public QItemSelectionModel
+class ItemSelectionModel final : public QItemSelectionModel
 {
     Q_OBJECT
 public:

@@ -29,7 +29,7 @@ class EnexExportDialog;
 
 namespace quentier {
 
-class EnexExportDialog final: public QDialog
+class EnexExportDialog final : public QDialog
 {
     Q_OBJECT
 public:

@@ -34,7 +34,7 @@ QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-class AddOrEditNotebookDialog final: public QDialog
+class AddOrEditNotebookDialog final : public QDialog
 {
     Q_OBJECT
 public:

@@ -32,7 +32,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountModel)
 
-class DeleteAccountDialog final: public QDialog
+class DeleteAccountDialog final : public QDialog
 {
     Q_OBJECT
 public:

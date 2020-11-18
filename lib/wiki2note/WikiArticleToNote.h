@@ -35,7 +35,7 @@ QT_FORWARD_DECLARE_CLASS(ENMLConverter)
 /**
  * The WikiArticleToNote converts the contents of a wiki article to a note
  */
-class WikiArticleToNote final: public QObject
+class WikiArticleToNote final : public QObject
 {
     Q_OBJECT
 public:

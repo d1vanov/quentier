@@ -36,7 +36,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ErrorString)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EnexImportDialog final: public QDialog
+class EnexImportDialog final : public QDialog
 {
     Q_OBJECT
 

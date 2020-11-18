@@ -27,7 +27,7 @@ class WelcomeToQuentierDialog;
 
 namespace quentier {
 
-class WelcomeToQuentierDialog final: public QDialog
+class WelcomeToQuentierDialog final : public QDialog
 {
     Q_OBJECT
 public:

@@ -32,7 +32,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NotebookItem)
 QT_FORWARD_DECLARE_CLASS(StackItem)
 
-class NotebookModelItemInfoWidget final: public QWidget
+class NotebookModelItemInfoWidget final : public QWidget
 {
     Q_OBJECT
 public:

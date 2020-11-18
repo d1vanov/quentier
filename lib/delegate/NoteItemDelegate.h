@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-class NoteItemDelegate final: public QStyledItemDelegate
+class NoteItemDelegate final : public QStyledItemDelegate
 {
     Q_OBJECT
 public:

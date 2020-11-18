@@ -27,7 +27,7 @@ class AboutQuentierWidget;
 
 namespace quentier {
 
-class AboutQuentierWidget final: public QWidget
+class AboutQuentierWidget final : public QWidget
 {
     Q_OBJECT
 public:

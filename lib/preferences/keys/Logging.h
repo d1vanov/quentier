@@ -43,8 +43,8 @@ constexpr const char * loggingFilterByComponentRegex = "FilterByComponentRegex";
 constexpr const char * enableLogViewerInternalLogs =
     "EnableLogViewerInternalLogs";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_LOGGING_H

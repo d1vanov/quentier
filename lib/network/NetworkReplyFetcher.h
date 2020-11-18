@@ -34,7 +34,7 @@ QT_FORWARD_DECLARE_CLASS(QTimer)
 
 namespace quentier {
 
-class NetworkReplyFetcher final: public QObject
+class NetworkReplyFetcher final : public QObject
 {
     Q_OBJECT
 public:

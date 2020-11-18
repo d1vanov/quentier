@@ -22,7 +22,7 @@
 #include <QIcon>
 #include <QStyledItemDelegate>
 
-class SynchronizableColumnDelegate final: public QStyledItemDelegate
+class SynchronizableColumnDelegate final : public QStyledItemDelegate
 {
     Q_OBJECT
 public:

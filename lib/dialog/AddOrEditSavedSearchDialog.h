@@ -35,7 +35,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
 
-class AddOrEditSavedSearchDialog final: public QDialog
+class AddOrEditSavedSearchDialog final : public QDialog
 {
     Q_OBJECT
 public:

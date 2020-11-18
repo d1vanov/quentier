@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-class ThreadMover final: public QObject
+class ThreadMover final : public QObject
 {
     Q_OBJECT
 public:

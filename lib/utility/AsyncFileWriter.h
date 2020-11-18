@@ -27,7 +27,7 @@
 
 namespace quentier {
 
-class AsyncFileWriter final: public QObject, public QRunnable
+class AsyncFileWriter final : public QObject, public QRunnable
 {
     Q_OBJECT
 public:

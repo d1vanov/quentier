@@ -77,8 +77,8 @@ constexpr const char * startupAccountEvernoteAccountTypeEnvVar =
 constexpr const char * startupAccountEvernoteHostEnvVar =
     "QUENTIER_ACCOUNT_EVERNOTE_HOST";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_ACCOUNT_H

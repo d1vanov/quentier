@@ -57,8 +57,8 @@ constexpr const char * panelBackgroundGradientLineSize =
 constexpr const char * panelBackgroundGradientLineColor =
     "BackgroundGradientLineColor";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_PANEL_COLORS_H

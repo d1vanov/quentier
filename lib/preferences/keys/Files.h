@@ -30,9 +30,9 @@ constexpr const char * userInterface = "UserInterface";
 constexpr const char * auxiliary = "Auxiliary";
 constexpr const char * synchronization = "Synchronization";
 
-} // files
-} // keys
-} // preferences
+} // namespace files
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_FILES_H

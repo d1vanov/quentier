@@ -37,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
 
-class EnexImporter final: public QObject
+class EnexImporter final : public QObject
 {
     Q_OBJECT
 public:

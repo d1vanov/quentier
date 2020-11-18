@@ -25,7 +25,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TableSizeSelector)
 
-class TableSizeSelectorActionWidget final: public QWidgetAction
+class TableSizeSelectorActionWidget final : public QWidgetAction
 {
     Q_OBJECT
 public:

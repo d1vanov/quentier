@@ -28,7 +28,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NoteModel)
 
-class NoteCountLabelController final: public QObject
+class NoteCountLabelController final : public QObject
 {
     Q_OBJECT
 public:

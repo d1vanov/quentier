@@ -31,7 +31,7 @@
 
 namespace quentier {
 
-class ShortcutButton final: public QPushButton
+class ShortcutButton final : public QPushButton
 {
     Q_OBJECT
 public:

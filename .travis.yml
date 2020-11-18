@@ -332,7 +332,9 @@ script:
       if [ "${CLANG_FORMAT_CHECK}" = "1" ]; then
         echo "Building clang-format target" &&
         ninja clang-format &&
+        cd .. &&
         dirty=$(git ls-files --modified) &&
+        cd build &&
         if [ ! -z $dirty ]; then
           echo "Detected source code files not formatted with clang-format " &&
           echo $dirty &&

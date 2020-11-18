@@ -32,7 +32,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ITagModelItem)
 QT_FORWARD_DECLARE_CLASS(TagItem)
 
-class TagModelItemInfoWidget final: public QWidget
+class TagModelItemInfoWidget final : public QWidget
 {
     Q_OBJECT
 public:
