@@ -251,19 +251,12 @@ QString MainWindow::versionInfos() const
     QString result;
     QTextStream strm(&result);
 
-    strm << quentier::quentierVersion()
-        << ", " << quentier::quentierBuildInfo()
-        << "\nBuilt with QEverCloud "
-        << quentier::qevercloudBuildTimeInfo()
-        << "\nBuilt with libquentier "
-        << quentier::libquentierBuildTimeInfo()
-        << "\nBuilt with Qt "
-        << QT_VERSION_STR
-        << "\nUses QEverCloud "
-        << quentier::qevercloudRuntimeInfo()
-        << "\nUses libquentier "
-        << quentier::libquentierRuntimeInfo()
-        << "\nUses Qt " << qVersion();
+    strm << quentier::quentierVersion() << ", " << quentier::quentierBuildInfo()
+         << "\nBuilt with QEverCloud " << quentier::qevercloudBuildTimeInfo()
+         << "\nBuilt with libquentier " << quentier::libquentierBuildTimeInfo()
+         << "\nBuilt with Qt " << QT_VERSION_STR << "\nUses QEverCloud "
+         << quentier::qevercloudRuntimeInfo() << "\nUses libquentier "
+         << quentier::libquentierRuntimeInfo() << "\nUses Qt " << qVersion();
 
     return result;
 }

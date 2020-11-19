@@ -33,13 +33,12 @@ QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
  * @brief The IUpdateProvider class is a generic interface for classes capable
  * of downloading/installing updates from within Quentier app
  */
-class IUpdateProvider: public QObject
+class IUpdateProvider : public QObject
 {
     Q_OBJECT
 public:
     explicit IUpdateProvider(
-        IUpdateChecker * pChecker = nullptr,
-        QObject * parent = nullptr);
+        IUpdateChecker * pChecker = nullptr, QObject * parent = nullptr);
 
     virtual ~IUpdateProvider() override = default;
 
@@ -71,8 +70,8 @@ Q_SIGNALS:
      *                              to install updates
      */
     void finished(
-        bool status, ErrorString errorDescription,
-        bool needsRestart, UpdateProvider updateProviderKind);
+        bool status, ErrorString errorDescription, bool needsRestart,
+        UpdateProvider updateProviderKind);
 
     /**
      * @brief The progress signal is emitted to notify the client code about
@@ -115,7 +114,7 @@ public Q_SLOTS:
     virtual void cancel() = 0;
 
 protected:
-    QPointer<IUpdateChecker>    m_pUpdateChecker;
+    QPointer<IUpdateChecker> m_pUpdateChecker;
 
 private:
     Q_DISABLE_COPY(IUpdateProvider)

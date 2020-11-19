@@ -33,7 +33,7 @@ namespace quentier {
  * @brief The IUpdateChecker class is a generic interface for classes capable
  * of checking the availability of updates for Quentier
  */
-class IUpdateChecker: public QObject
+class IUpdateChecker : public QObject
 {
     Q_OBJECT
 public:
@@ -88,8 +88,8 @@ public Q_SLOTS:
     virtual void checkForUpdates() = 0;
 
 protected:
-    QString     m_updateChannel;
-    bool        m_useContinuousUpdateChannel = true;
+    QString m_updateChannel;
+    bool m_useContinuousUpdateChannel = true;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

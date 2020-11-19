@@ -52,8 +52,8 @@ constexpr const char * checkForUpdatesProvider = "CheckForUpdatesProvider";
 // unstable, etc.
 constexpr const char * checkForUpdatesChannel = "CheckForUpdatesChannel";
 
-} // keys
-} // preferences
+} // namespace keys
+} // namespace preferences
 } // namespace quentier
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_UPDATES_H

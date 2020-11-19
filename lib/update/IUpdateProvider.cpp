@@ -24,7 +24,7 @@
 namespace quentier {
 
 IUpdateProvider::IUpdateProvider(
-        IUpdateChecker * pUpdateChecker, QObject * parent) :
+    IUpdateChecker * pUpdateChecker, QObject * parent) :
     QObject(parent),
     m_pUpdateChecker(pUpdateChecker)
 {

@@ -33,8 +33,8 @@ QString quentierVersion()
     QString version;
     QTextStream strm(&version);
 
-    strm << "Quentier " << QUENTIER_MAJOR_VERSION
-        << "." << QUENTIER_MINOR_VERSION << "." << QUENTIER_PATCH_VERSION;
+    strm << "Quentier " << QUENTIER_MAJOR_VERSION << "."
+         << QUENTIER_MINOR_VERSION << "." << QUENTIER_PATCH_VERSION;
 
     return version;
 }
@@ -50,9 +50,9 @@ QString libquentierBuildTimeInfo()
     QTextStream strm(&info);
 
     strm << QUENTIER_LIBQUENTIER_BINARY_NAME << ", version "
-        << LIB_QUENTIER_VERSION_MAJOR << "." << LIB_QUENTIER_VERSION_MINOR
-        << "." << LIB_QUENTIER_VERSION_PATCH << ", build info: "
-        << LIB_QUENTIER_BUILD_INFO;
+         << LIB_QUENTIER_VERSION_MAJOR << "." << LIB_QUENTIER_VERSION_MINOR
+         << "." << LIB_QUENTIER_VERSION_PATCH
+         << ", build info: " << LIB_QUENTIER_BUILD_INFO;
 
 #if LIB_QUENTIER_USE_QT_WEB_ENGINE
     strm << "; uses QtWebEngine";
@@ -67,10 +67,10 @@ QString libquentierRuntimeInfo()
     QTextStream strm(&info);
 
     strm << "version " << quentier::libquentierVersionMajor() << "."
-        << quentier::libquentierVersionMinor() << "."
-        << quentier::libquentierVersionPatch() << ", build info: "
-        << quentier::libquentierBuildInfo() << ", built with Qt "
-        << quentier::libquentierBuiltWithQtVersion();
+         << quentier::libquentierVersionMinor() << "."
+         << quentier::libquentierVersionPatch()
+         << ", build info: " << quentier::libquentierBuildInfo()
+         << ", built with Qt " << quentier::libquentierBuiltWithQtVersion();
 
     if (quentier::libquentierUsesQtWebEngine()) {
         strm << "; uses QtWebEngine";
@@ -85,10 +85,9 @@ QString qevercloudBuildTimeInfo()
     QTextStream strm(&info);
 
     strm << QUENTIER_QEVERCLOUD_BINARY_NAME << "; version "
-        << QEVERCLOUD_VERSION_MAJOR << "."
-        << QEVERCLOUD_VERSION_MINOR << "."
-        << QEVERCLOUD_VERSION_PATCH << ", build info: "
-        << QEVERCLOUD_BUILD_INFO;
+         << QEVERCLOUD_VERSION_MAJOR << "." << QEVERCLOUD_VERSION_MINOR << "."
+         << QEVERCLOUD_VERSION_PATCH
+         << ", build info: " << QEVERCLOUD_BUILD_INFO;
 
 #if QEVERCLOUD_USE_QT_WEB_ENGINE
     strm << "; uses QtWebEngine";
@@ -106,14 +105,11 @@ QString qevercloudRuntimeInfo()
     QString info;
     QTextStream strm(&info);
 
-    strm << "version "
-        << qevercloud::qevercloudVersionMajor()
-        << "."
-        << qevercloud::qevercloudVersionMinor()
-        << "."
-        << qevercloud::qevercloudVersionPatch()
-        << ", build info: " << qevercloud::qevercloudBuildInfo()
-        << ", built with Qt " << qevercloud::qevercloudBuiltWithQtVersion();
+    strm << "version " << qevercloud::qevercloudVersionMajor() << "."
+         << qevercloud::qevercloudVersionMinor() << "."
+         << qevercloud::qevercloudVersionPatch()
+         << ", build info: " << qevercloud::qevercloudBuildInfo()
+         << ", built with Qt " << qevercloud::qevercloudBuiltWithQtVersion();
 
     if (qevercloud::qevercloudUsesQtWebEngine()) {
         strm << "; uses QtWebEngine";
@@ -121,7 +117,7 @@ QString qevercloudRuntimeInfo()
 
     if (qevercloud::qevercloudUsesQNamespace()) {
         strm << "; built with Q_NAMESPACE and Q_ENUM_NS support for error "
-            << "codes";
+             << "codes";
     }
 
     return info;

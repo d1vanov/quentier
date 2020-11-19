@@ -31,7 +31,7 @@ QT_FORWARD_DECLARE_CLASS(QJsonObject)
 
 namespace quentier {
 
-class GitHubUpdateChecker: public IUpdateChecker
+class GitHubUpdateChecker : public IUpdateChecker
 {
     Q_OBJECT
 public:
@@ -39,11 +39,23 @@ public:
 
     virtual ~GitHubUpdateChecker() override;
 
-    QString host() const { return m_host; }
-    void setHost(QString host) { m_host = std::move(host); }
+    QString host() const
+    {
+        return m_host;
+    }
+    void setHost(QString host)
+    {
+        m_host = std::move(host);
+    }
 
-    QString scheme() const { return m_scheme; }
-    void setScheme(QString scheme) { m_scheme = std::move(scheme); }
+    QString scheme() const
+    {
+        return m_scheme;
+    }
+    void setScheme(QString scheme)
+    {
+        m_scheme = std::move(scheme);
+    }
 
 public Q_SLOTS:
     virtual void checkForUpdates() override;
@@ -56,12 +68,11 @@ private:
     struct GitHubReleaseInfo
     {
         GitHubReleaseInfo(QUrl url, QDateTime createdAt) :
-            m_htmlUrl(std::move(url)),
-            m_createdAt(std::move(createdAt))
+            m_htmlUrl(std::move(url)), m_createdAt(std::move(createdAt))
         {}
 
-        QUrl        m_htmlUrl;
-        QDateTime   m_createdAt;
+        QUrl m_htmlUrl;
+        QDateTime m_createdAt;
     };
 
     void parseListedReleases(const QJsonDocument & jsonDoc);
@@ -69,14 +80,14 @@ private:
     bool checkReleaseAssets(const QJsonObject & releaseObject) const;
 
 private:
-    QString     m_host;
-    QString     m_scheme;
+    QString m_host;
+    QString m_scheme;
 
-    QDateTime   m_currentBuildCreationDateTime;
+    QDateTime m_currentBuildCreationDateTime;
 
-    bool        m_inProgress = false;
+    bool m_inProgress = false;
 
-    std::unique_ptr<GitHubReleaseInfo>  m_pLatestReleaseInfo;
+    std::unique_ptr<GitHubReleaseInfo> m_pLatestReleaseInfo;
 };
 
 } // namespace quentier

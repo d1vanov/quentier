@@ -41,7 +41,7 @@ enum class CheckForUpdatesInterval
 QTextStream & operator<<(
     QTextStream & strm, const CheckForUpdatesInterval interval);
 
-QDebug& operator<<(QDebug & dbg, const CheckForUpdatesInterval interval);
+QDebug & operator<<(QDebug & dbg, const CheckForUpdatesInterval interval);
 
 enum class UpdateProvider
 {
@@ -53,18 +53,14 @@ QTextStream & operator<<(QTextStream & strm, const UpdateProvider provider);
 QDebug & operator<<(QDebug & dbg, const UpdateProvider provider);
 
 void readPersistentUpdateSettings(
-    bool & checkForUpdatesEnabled,
-    bool & shouldCheckForUpdatesOnStartup,
-    bool & useContinuousUpdateChannel,
-    int & checkForUpdatesIntervalOption,
-    QString & updateChannel,
-    UpdateProvider & updateProvider);
+    bool & checkForUpdatesEnabled, bool & shouldCheckForUpdatesOnStartup,
+    bool & useContinuousUpdateChannel, int & checkForUpdatesIntervalOption,
+    QString & updateChannel, UpdateProvider & updateProvider);
 
 qint64 checkForUpdatesIntervalMsecFromOption(
     const CheckForUpdatesInterval option);
 
-QString updateProviderName(
-    const UpdateProvider updateProvider);
+QString updateProviderName(const UpdateProvider updateProvider);
 
 } // namespace quentier
 
