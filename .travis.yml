@@ -110,11 +110,12 @@ install:
           export PATH=/tmp/clang-format:$PATH
         fi
       else
+        export HOMEBREW_NO_INSTALL_CLEANUP=1 &&
         brew update &&
         brew unlink cmake &&
-        brew install cmake &&
+        brew install cmake --force-bottle &&
         brew link cmake &&
-        brew install qt5 &&
+        brew install qt5 --force-bottle &&
         brew install ninja &&
         chmod -R 755 /usr/local/opt/qt5/* &&
         brew install hunspell &&
