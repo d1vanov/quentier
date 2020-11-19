@@ -24,14 +24,12 @@
 
 #include <lib/utility/HumanReadableVersionInfo.h>
 
-#include <VersionInfo.h>
-
 #include <quentier/utility/FileSystem.h>
-#include <quentier/utility/VersionInfo.h>
 
 #include <QDesktopServices>
 #include <QDir>
 #include <QStandardPaths>
+#include <QTextStream>
 #include <QThreadPool>
 
 MainWindow::MainWindow(
@@ -250,19 +248,22 @@ QString MainWindow::readData(QProcess & process, const bool fromStdout)
 
 QString MainWindow::versionInfos() const
 {
-    QString result = QStringLiteral("libquentier: ");
+    QString result;
+    QTextStream strm(&result);
 
-    result += quentier::libquentierRuntimeInfo();
-    result += QStringLiteral("\n");
+    strm << quentier::quentierVersion()
+        << ", " << quentier::quentierBuildInfo()
+        << "\nBuilt with QEverCloud "
+        << quentier::qevercloudBuildTimeInfo()
+        << "\nBuilt with libquentier "
+        << quentier::libquentierBuildTimeInfo()
+        << "\nBuilt with Qt "
+        << QT_VERSION_STR
+        << "\nUses QEverCloud "
+        << quentier::qevercloudRuntimeInfo()
+        << "\nUses libquentier "
+        << quentier::libquentierRuntimeInfo()
+        << "\nUses Qt " << qVersion();
 
-    result += QStringLiteral("Quentier: ");
-    result += quentier::quentierVersion();
-    result += QStringLiteral(", build info: ");
-    result += quentier::quentierBuildInfo();
-
-    result += QStringLiteral("\n\nBuilt with Qt ");
-    result += QString::fromUtf8(QT_VERSION_STR);
-    result += QStringLiteral(", uses Qt ");
-    result += QString::fromUtf8(qVersion());
     return result;
 }

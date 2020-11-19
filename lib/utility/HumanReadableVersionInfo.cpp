@@ -22,14 +22,21 @@
 
 #include <quentier/utility/VersionInfo.h>
 
+#include <qt5qevercloud/VersionInfo.h>
+
+#include <QTextStream>
+
 namespace quentier {
 
 QString quentierVersion()
 {
-    return QStringLiteral("Quentier ") +
-        QStringLiteral(QUENTIER_MAJOR_VERSION) + QStringLiteral(".") +
-        QStringLiteral(QUENTIER_MINOR_VERSION) + QStringLiteral(".") +
-        QStringLiteral(QUENTIER_PATCH_VERSION);
+    QString version;
+    QTextStream strm(&version);
+
+    strm << "Quentier " << QUENTIER_MAJOR_VERSION
+        << "." << QUENTIER_MINOR_VERSION << "." << QUENTIER_PATCH_VERSION;
+
+    return version;
 }
 
 QString quentierBuildInfo()
@@ -39,18 +46,16 @@ QString quentierBuildInfo()
 
 QString libquentierBuildTimeInfo()
 {
-    QString info = QStringLiteral(QUENTIER_LIBQUENTIER_BINARY_NAME) +
-        QStringLiteral("; version ") +
-        QString::number(LIB_QUENTIER_VERSION_MAJOR) + QStringLiteral(".") +
-        QString::number(LIB_QUENTIER_VERSION_MINOR) + QStringLiteral(".") +
-        QString::number(LIB_QUENTIER_VERSION_PATCH) +
-        QStringLiteral(", build info: ") +
-        QStringLiteral(LIB_QUENTIER_BUILD_INFO) +
-        QStringLiteral(", built with Qt ") +
-        quentier::libquentierBuiltWithQtVersion();
+    QString info;
+    QTextStream strm(&info);
+
+    strm << QUENTIER_LIBQUENTIER_BINARY_NAME << ", version "
+        << LIB_QUENTIER_VERSION_MAJOR << "." << LIB_QUENTIER_VERSION_MINOR
+        << "." << LIB_QUENTIER_VERSION_PATCH << ", build info: "
+        << LIB_QUENTIER_BUILD_INFO;
 
 #if LIB_QUENTIER_USE_QT_WEB_ENGINE
-    info += QStringLiteral("; uses QtWebEngine");
+    strm << "; uses QtWebEngine";
 #endif
 
     return info;
@@ -58,18 +63,65 @@ QString libquentierBuildTimeInfo()
 
 QString libquentierRuntimeInfo()
 {
-    QString info = QStringLiteral("version ") +
-        QString::number(quentier::libquentierVersionMajor()) +
-        QStringLiteral(".") +
-        QString::number(quentier::libquentierVersionMinor()) +
-        QStringLiteral(".") +
-        QString::number(quentier::libquentierVersionPatch()) +
-        QStringLiteral(", build info: ") + quentier::libquentierBuildInfo() +
-        QStringLiteral(", built with Qt ") +
-        quentier::libquentierBuiltWithQtVersion();
+    QString info;
+    QTextStream strm(&info);
+
+    strm << "version " << quentier::libquentierVersionMajor() << "."
+        << quentier::libquentierVersionMinor() << "."
+        << quentier::libquentierVersionPatch() << ", build info: "
+        << quentier::libquentierBuildInfo() << ", built with Qt "
+        << quentier::libquentierBuiltWithQtVersion();
 
     if (quentier::libquentierUsesQtWebEngine()) {
-        info += QStringLiteral("; uses QtWebEngine");
+        strm << "; uses QtWebEngine";
+    }
+
+    return info;
+}
+
+QString qevercloudBuildTimeInfo()
+{
+    QString info;
+    QTextStream strm(&info);
+
+    strm << QUENTIER_QEVERCLOUD_BINARY_NAME << "; version "
+        << QEVERCLOUD_VERSION_MAJOR << "."
+        << QEVERCLOUD_VERSION_MINOR << "."
+        << QEVERCLOUD_VERSION_PATCH << ", build info: "
+        << QEVERCLOUD_BUILD_INFO;
+
+#if QEVERCLOUD_USE_QT_WEB_ENGINE
+    strm << "; uses QtWebEngine";
+#endif
+
+#if QEVERCLOUD_USES_Q_NAMESPACE
+    strm << "; built with Q_NAMESPACE and Q_ENUM_NS support for error codes";
+#endif
+
+    return info;
+}
+
+QString qevercloudRuntimeInfo()
+{
+    QString info;
+    QTextStream strm(&info);
+
+    strm << "version "
+        << qevercloud::qevercloudVersionMajor()
+        << "."
+        << qevercloud::qevercloudVersionMinor()
+        << "."
+        << qevercloud::qevercloudVersionPatch()
+        << ", build info: " << qevercloud::qevercloudBuildInfo()
+        << ", built with Qt " << qevercloud::qevercloudBuiltWithQtVersion();
+
+    if (qevercloud::qevercloudUsesQtWebEngine()) {
+        strm << "; uses QtWebEngine";
+    }
+
+    if (qevercloud::qevercloudUsesQNamespace()) {
+        strm << "; built with Q_NAMESPACE and Q_ENUM_NS support for error "
+            << "codes";
     }
 
     return info;
