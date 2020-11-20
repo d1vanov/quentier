@@ -25,6 +25,9 @@
 #include <lib/utility/HumanReadableVersionInfo.h>
 
 #include <quentier/utility/FileSystem.h>
+#include <quentier/utility/VersionInfo.h>
+
+#include <qt5qevercloud/VersionInfo.h>
 
 #include <QDesktopServices>
 #include <QDir>
@@ -252,11 +255,22 @@ QString MainWindow::versionInfos() const
     QTextStream strm(&result);
 
     strm << quentier::quentierVersion() << ", " << quentier::quentierBuildInfo()
-         << "\nBuilt with QEverCloud " << quentier::qevercloudBuildTimeInfo()
-         << "\nBuilt with libquentier " << quentier::libquentierBuildTimeInfo()
-         << "\nBuilt with Qt " << QT_VERSION_STR << "\nUses QEverCloud "
-         << quentier::qevercloudRuntimeInfo() << "\nUses libquentier "
-         << quentier::libquentierRuntimeInfo() << "\nUses Qt " << qVersion();
+         << "\n  Built against:"
+         << "\n    QEverCloud " << quentier::qevercloudBuildTimeInfo()
+         << "\n    libquentier " << quentier::libquentierBuildTimeInfo()
+         << "\n    Qt " << QT_VERSION_STR << "\n  Uses:"
+         << "\n    QEverCloud " << quentier::qevercloudRuntimeInfo()
+         << "\n      Built against: Qt "
+         << qevercloud::qevercloudBuiltWithQtVersion() << "\n    libquentier "
+         << quentier::libquentierRuntimeInfo() << "\n      Built against:"
+         << "\n        QEverCloud "
+         << quentier::libquentierBuiltWithQEverCloudVersionMajor() << "."
+         << quentier::libquentierBuiltWithQEverCloudVersionMinor() << "."
+         << quentier::libquentierBuiltWithQEverCloudVersionPatch()
+         << ", build info: "
+         << quentier::libquentierBuiltWithQEverCloudBuildInfo()
+         << "\n        Qt " << quentier::libquentierBuiltWithQtVersion()
+         << "\n    Qt " << qVersion();
 
     return result;
 }
