@@ -27,6 +27,7 @@ matrix:
         - os: osx
           env: CMAKE_BUILD_TYPE=RelWithDebInfo
           compiler: clang
+          osx_image: xcode11
 
 before_install:
     - |
