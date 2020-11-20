@@ -120,7 +120,6 @@ install:
         brew install ninja &&
         chmod -R 755 /usr/local/opt/qt5/* &&
         brew install hunspell &&
-        brew install libiconv &&
         brew install tidy-html5 &&
         brew install p7zip
       fi
