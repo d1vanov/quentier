@@ -29,6 +29,9 @@ QString quentierBuildInfo();
 QString libquentierBuildTimeInfo();
 QString libquentierRuntimeInfo();
 
+QString qevercloudBuildTimeInfo();
+QString qevercloudRuntimeInfo();
+
 } // namespace quentier
 
 #endif // QUENTIER_LIB_UTILITY_HUMAN_READABLE_VERSION_INFO_H

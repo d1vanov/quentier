@@ -35,6 +35,11 @@
 @QUENTIER_LIBQUENTIER_BINARY_NAME@
 
 /**
+ * This macro contains the name of QEverCloud binary found by CMake
+ */
+@QUENTIER_QEVERCLOUD_BINARY_NAME@
+
+/**
  * This macro denotes the major version number of Quentier
  */
 @QUENTIER_MAJOR_VERSION@

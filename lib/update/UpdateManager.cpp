@@ -45,23 +45,18 @@ namespace quentier {
 #define IDLE_STATE_POLL_INTERVAL 900000
 
 UpdateManager::UpdateManager(
-        IIdleStateInfoProviderPtr idleStateInfoProvider, QObject * parent) :
+    IIdleStateInfoProviderPtr idleStateInfoProvider, QObject * parent) :
     QObject(parent),
     m_pIdleStateInfoProvider(std::move(idleStateInfoProvider))
 {
     readPersistentSettings();
 
-    if (m_updateCheckEnabled)
-    {
-        if (m_checkForUpdatesOnStartup)
-        {
+    if (m_updateCheckEnabled) {
+        if (m_checkForUpdatesOnStartup) {
             QMetaObject::invokeMethod(
-                this,
-                "checkForUpdatesImpl",
-                Qt::QueuedConnection);
+                this, "checkForUpdatesImpl", Qt::QueuedConnection);
         }
-        else
-        {
+        else {
             // pretend we've just checked for update to ensure the check
             // won't run immediately
             m_lastCheckForUpdatesTimestamp =
@@ -76,8 +71,9 @@ UpdateManager::~UpdateManager() = default;
 
 void UpdateManager::setEnabled(const bool enabled)
 {
-    QNDEBUG("update", "UpdateManager::setEnabled: "
-        << (enabled ? "true" : "false"));
+    QNDEBUG(
+        "update",
+        "UpdateManager::setEnabled: " << (enabled ? "true" : "false"));
 
     if (m_updateCheckEnabled == enabled) {
         QNDEBUG("update", "Already " << (enabled ? "enabled" : "disabled"));
@@ -92,8 +88,10 @@ void UpdateManager::setEnabled(const bool enabled)
     }
 
     if (!clearCurrentUpdateProvider()) {
-        QNINFO("update", "UpdateManager was disabled but update provider "
-            << "has already been started, won't cancel it");
+        QNINFO(
+            "update",
+            "UpdateManager was disabled but update provider "
+                << "has already been started, won't cancel it");
         return;
     }
 
@@ -113,13 +111,16 @@ void UpdateManager::setEnabled(const bool enabled)
 
 void UpdateManager::setUseContinuousUpdateChannel(const bool continuous)
 {
-    QNDEBUG("update", "UpdateManager::setUseContinuousUpdateChannel: "
-        << (continuous ? "true" : "false"));
+    QNDEBUG(
+        "update",
+        "UpdateManager::setUseContinuousUpdateChannel: "
+            << (continuous ? "true" : "false"));
 
     if (m_useContinuousUpdateChannel == continuous) {
-        QNDEBUG("update", "Already using "
-            << (continuous ? "continuous" : "non-continuous")
-            << " update channel");
+        QNDEBUG(
+            "update",
+            "Already using " << (continuous ? "continuous" : "non-continuous")
+                             << " update channel");
         return;
     }
 
@@ -129,8 +130,9 @@ void UpdateManager::setUseContinuousUpdateChannel(const bool continuous)
 
 void UpdateManager::setCheckForUpdatesIntervalMsec(const qint64 interval)
 {
-    QNDEBUG("update", "UpdateManager::setCheckForUpdatesIntervalMsec: "
-        << interval);
+    QNDEBUG(
+        "update",
+        "UpdateManager::setCheckForUpdatesIntervalMsec: " << interval);
 
     if (m_checkForUpdatesIntervalMsec == interval) {
         return;
@@ -176,8 +178,10 @@ void UpdateManager::checkForUpdatesImpl()
     QNDEBUG("update", "UpdateManager::checkForUpdatesImpl");
 
     if (!clearCurrentUpdateProvider()) {
-        QNDEBUG("update", "Update provider is already in progress, won't "
-            << "check for updates right now");
+        QNDEBUG(
+            "update",
+            "Update provider is already in progress, won't "
+                << "check for updates right now");
         return;
     }
 
@@ -191,24 +195,19 @@ void UpdateManager::checkForUpdatesImpl()
         m_useContinuousUpdateChannel);
 
     QObject::connect(
-        m_pCurrentUpdateChecker,
-        &IUpdateChecker::failure,
-        this,
+        m_pCurrentUpdateChecker, &IUpdateChecker::failure, this,
         &UpdateManager::onCheckForUpdatesError,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
-        m_pCurrentUpdateChecker,
-        &IUpdateChecker::noUpdatesAvailable,
-        this,
+        m_pCurrentUpdateChecker, &IUpdateChecker::noUpdatesAvailable, this,
         &UpdateManager::onNoUpdatesAvailable,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_pCurrentUpdateChecker,
-        qOverload<QUrl>(&IUpdateChecker::updatesAvailable),
-        this,
+        qOverload<QUrl>(&IUpdateChecker::updatesAvailable), this,
         &UpdateManager::onUpdatesAvailableAtUrl,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
@@ -216,21 +215,17 @@ void UpdateManager::checkForUpdatesImpl()
         m_pCurrentUpdateChecker,
         qOverload<std::shared_ptr<IUpdateProvider>>(
             &IUpdateChecker::updatesAvailable),
-        this,
-        &UpdateManager::onUpdatesAvailable,
+        this, &UpdateManager::onUpdatesAvailable,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 #else
     QObject::connect(
-        m_pCurrentUpdateChecker,
-        SIGNAL(updatesAvailable(QUrl)),
-        this,
+        m_pCurrentUpdateChecker, SIGNAL(updatesAvailable(QUrl)), this,
         SLOT(onUpdatesAvailableAtUrl(QUrl)),
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
         m_pCurrentUpdateChecker,
-        SIGNAL(updatesAvailable(std::shared_ptr<IUpdateProvider>)),
-        this,
+        SIGNAL(updatesAvailable(std::shared_ptr<IUpdateProvider>)), this,
         SLOT(onUpdatesAvailable(std::shared_ptr<IUpdateProvider>)),
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 #endif
@@ -244,11 +239,8 @@ void UpdateManager::readPersistentSettings()
     int checkForUpdatesOption = -1;
 
     readPersistentUpdateSettings(
-        m_updateCheckEnabled,
-        m_checkForUpdatesOnStartup,
-        m_useContinuousUpdateChannel,
-        checkForUpdatesOption,
-        m_updateChannel,
+        m_updateCheckEnabled, m_checkForUpdatesOnStartup,
+        m_useContinuousUpdateChannel, checkForUpdatesOption, m_updateChannel,
         m_updateProvider);
 
     m_checkForUpdatesIntervalMsec = checkForUpdatesIntervalMsecFromOption(
@@ -260,50 +252,59 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
     QNDEBUG("update", "UpdateManager::setupNextCheckForUpdatesTimer");
 
     if (Q_UNLIKELY(m_checkForUpdatesIntervalMsec <= 0)) {
-        QNWARNING("update", "Won't set up next check for updates timer: wrong "
-            << "interval = " << m_checkForUpdatesIntervalMsec);
+        QNWARNING(
+            "update",
+            "Won't set up next check for updates timer: wrong "
+                << "interval = " << m_checkForUpdatesIntervalMsec);
         return;
     }
 
     if (Q_UNLIKELY(m_lastCheckForUpdatesTimestamp <= 0)) {
-        QNINFO("update", "No last check for updates timestamp, checking for "
-            << "updates now");
+        QNINFO(
+            "update",
+            "No last check for updates timestamp, checking for "
+                << "updates now");
         checkForUpdatesImpl();
         return;
     }
 
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     qint64 msecPassed = now - m_lastCheckForUpdatesTimestamp;
-    if (msecPassed >= m_checkForUpdatesIntervalMsec)
-    {
-        QNINFO("update", "Last check for updates was too long ago ("
-            << printableDateTimeFromTimestamp(m_lastCheckForUpdatesTimestamp)
-            << ", now is " << printableDateTimeFromTimestamp(now)
-            << "), checking for updates now");
+    if (msecPassed >= m_checkForUpdatesIntervalMsec) {
+        QNINFO(
+            "update",
+            "Last check for updates was too long ago ("
+                << printableDateTimeFromTimestamp(
+                       m_lastCheckForUpdatesTimestamp)
+                << ", now is " << printableDateTimeFromTimestamp(now)
+                << "), checking for updates now");
         checkForUpdatesImpl();
         return;
     }
 
-    int msecLeft = static_cast<int>(
-        std::min(
-            m_checkForUpdatesIntervalMsec - msecPassed,
-            qint64(std::numeric_limits<int>::max())));
+    int msecLeft = static_cast<int>(std::min(
+        m_checkForUpdatesIntervalMsec - msecPassed,
+        qint64(std::numeric_limits<int>::max())));
 
     if (m_nextUpdateCheckTimerId >= 0) {
-        QNDEBUG("update", "Next update check timer was active, killing it to "
-            << "relaunch");
+        QNDEBUG(
+            "update",
+            "Next update check timer was active, killing it to "
+                << "relaunch");
         killTimer(m_nextUpdateCheckTimerId);
         m_nextUpdateCheckTimerId = -1;
     }
 
     m_nextUpdateCheckTimerId = startTimer(msecLeft);
 
-    QNDEBUG("update", "Last check for updates was done at "
-        << printableDateTimeFromTimestamp(m_lastCheckForUpdatesTimestamp)
-        << ", now is " << printableDateTimeFromTimestamp(now)
-        << ", will check for updates in " << msecLeft << " milliseconds at "
-        << printableDateTimeFromTimestamp(now + msecLeft)
-        << ", timer id = " << m_nextUpdateCheckTimerId);
+    QNDEBUG(
+        "update",
+        "Last check for updates was done at "
+            << printableDateTimeFromTimestamp(m_lastCheckForUpdatesTimestamp)
+            << ", now is " << printableDateTimeFromTimestamp(now)
+            << ", will check for updates in " << msecLeft << " milliseconds at "
+            << printableDateTimeFromTimestamp(now + msecLeft)
+            << ", timer id = " << m_nextUpdateCheckTimerId);
 }
 
 void UpdateManager::recycleUpdateChecker()
@@ -343,8 +344,7 @@ void UpdateManager::askUserAndLaunchUpdate()
 {
     QNDEBUG("update", "UpdateManager::askUserAndLaunchUpdate");
 
-    if (m_pCurrentUpdateProvider)
-    {
+    if (m_pCurrentUpdateProvider) {
         if (m_updateProviderInProgress) {
             QNDEBUG("update", "Update provider has already been started");
             return;
@@ -352,15 +352,13 @@ void UpdateManager::askUserAndLaunchUpdate()
 
         QNDEBUG("update", "Update provider is ready, notifying user");
 
-        auto * parentWidget = qobject_cast<QWidget*>(parent());
+        auto * parentWidget = qobject_cast<QWidget *>(parent());
 
         int res = informationMessageBox(
-            parentWidget,
-            tr("Updates available"),
+            parentWidget, tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
                "download and install it?"),
-            {},
-            QMessageBox::Ok | QMessageBox::No);
+            {}, QMessageBox::Ok | QMessageBox::No);
 
         if (res != QMessageBox::Ok) {
             QNDEBUG("update", "User refused to download and install updates");
@@ -369,24 +367,15 @@ void UpdateManager::askUserAndLaunchUpdate()
         }
 
         QObject::connect(
-            m_pCurrentUpdateProvider.get(),
-            &IUpdateProvider::finished,
-            this,
+            m_pCurrentUpdateProvider.get(), &IUpdateProvider::finished, this,
             &UpdateManager::onUpdateProviderFinished);
 
         QObject::connect(
-            m_pCurrentUpdateProvider.get(),
-            &IUpdateProvider::progress,
-            this,
+            m_pCurrentUpdateProvider.get(), &IUpdateProvider::progress, this,
             &UpdateManager::onUpdateProviderProgress);
 
-
         m_pUpdateProgressDialog.reset(new QProgressDialog(
-            tr("Updating, please wait..."),
-            {},
-            0,
-            100,
-            parentWidget));
+            tr("Updating, please wait..."), {}, 0, 100, parentWidget));
 
         m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
 
@@ -403,16 +392,13 @@ void UpdateManager::askUserAndLaunchUpdate()
         m_pUpdateProgressDialog->setCancelButtonText(tr("Cancel"));
 
         QObject::connect(
-            pCancelButton,
-            &QPushButton::clicked,
-            this,
+            pCancelButton, &QPushButton::clicked, this,
             &UpdateManager::onCancelUpdateProvider);
 
         m_pCurrentUpdateProvider->run();
         m_updateProviderInProgress = true;
     }
-    else if (!m_currentUpdateUrl.isEmpty())
-    {
+    else if (!m_currentUpdateUrl.isEmpty()) {
         if (m_currentUpdateUrlOnceOpened) {
             QNDEBUG("update", "Update download URL has already been opened");
             return;
@@ -420,15 +406,13 @@ void UpdateManager::askUserAndLaunchUpdate()
 
         QNDEBUG("update", "Update download URL is ready, notifying user");
 
-        auto * parentWidget = qobject_cast<QWidget*>(parent());
+        auto * parentWidget = qobject_cast<QWidget *>(parent());
 
         int res = informationMessageBox(
-            parentWidget,
-            tr("Updates available"),
+            parentWidget, tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
                "download it?"),
-            {},
-            QMessageBox::Ok | QMessageBox::No);
+            {}, QMessageBox::Ok | QMessageBox::No);
 
         if (res != QMessageBox::Ok) {
             QNDEBUG("update", "User refused to download updates");
@@ -503,14 +487,10 @@ void UpdateManager::checkForUpdates()
     }
 
     m_currentUpdateCheckInvokedByUser = true;
-    auto * parentWidget = qobject_cast<QWidget*>(parent());
+    auto * parentWidget = qobject_cast<QWidget *>(parent());
 
     m_pCheckForUpdatesProgressDialog.reset(new QProgressDialog(
-        tr("Checking for updates, please wait..."),
-        {},
-        0,
-        100,
-        parentWidget));
+        tr("Checking for updates, please wait..."), {}, 0, 100, parentWidget));
 
     // Forbid cancelling the check for updates
     m_pCheckForUpdatesProgressDialog->setCancelButton(nullptr);
@@ -522,19 +502,18 @@ void UpdateManager::checkForUpdates()
 
 void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
 {
-    QNDEBUG("update", "UpdateManager::onCheckForUpdatesError: "
-        << errorDescription);
+    QNDEBUG(
+        "update",
+        "UpdateManager::onCheckForUpdatesError: " << errorDescription);
 
-    if (m_currentUpdateCheckInvokedByUser)
-    {
+    if (m_currentUpdateCheckInvokedByUser) {
         m_currentUpdateCheckInvokedByUser = false;
         closeCheckForUpdatesProgressDialog();
 
-        auto * parentWidget = qobject_cast<QWidget*>(parent());
+        auto * parentWidget = qobject_cast<QWidget *>(parent());
 
         Q_UNUSED(warningMessageBox(
-            parentWidget,
-            tr("Failed to check for updates"),
+            parentWidget, tr("Failed to check for updates"),
             tr("Error occurred during the attempt to check for updates"),
             errorDescription.localizedString()))
     }
@@ -549,18 +528,15 @@ void UpdateManager::onNoUpdatesAvailable()
 {
     QNDEBUG("update", "UpdateManager::onNoUpdatesAvailable");
 
-    if (m_currentUpdateCheckInvokedByUser)
-    {
+    if (m_currentUpdateCheckInvokedByUser) {
         m_currentUpdateCheckInvokedByUser = false;
         closeCheckForUpdatesProgressDialog();
 
-        auto * parentWidget = qobject_cast<QWidget*>(parent());
+        auto * parentWidget = qobject_cast<QWidget *>(parent());
 
         Q_UNUSED(informationMessageBox(
-            parentWidget,
-            tr("No updates"),
-            tr("No updates are available at this time"),
-            {}))
+            parentWidget, tr("No updates"),
+            tr("No updates are available at this time"), {}))
     }
 
     recycleUpdateChecker();
@@ -569,8 +545,8 @@ void UpdateManager::onNoUpdatesAvailable()
 
 void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
 {
-    QNDEBUG("update", "UpdateManager::onUpdatesAvailableAtUrl: "
-        << downloadUrl);
+    QNDEBUG(
+        "update", "UpdateManager::onUpdatesAvailableAtUrl: " << downloadUrl);
 
     if (m_currentUpdateCheckInvokedByUser) {
         m_currentUpdateCheckInvokedByUser = false;
@@ -626,11 +602,13 @@ void UpdateManager::onUpdateProviderFinished(
     bool status, ErrorString errorDescription, bool needsRestart,
     UpdateProvider updateProviderKind)
 {
-    QNDEBUG("update", "UpdateManager::onUpdateProviderFinished: status = "
-        << (status ? "true" : "false") << ", error description = "
-        << errorDescription << ", needs restart = "
-        << (needsRestart ? "true" : "false")
-        << ", update provider kind = " << updateProviderKind);
+    QNDEBUG(
+        "update",
+        "UpdateManager::onUpdateProviderFinished: status = "
+            << (status ? "true" : "false")
+            << ", error description = " << errorDescription
+            << ", needs restart = " << (needsRestart ? "true" : "false")
+            << ", update provider kind = " << updateProviderKind);
 
     closeUpdateProgressDialog();
     m_updateProviderInProgress = false;
@@ -651,8 +629,10 @@ void UpdateManager::onUpdateProviderFinished(
 
 void UpdateManager::onUpdateProviderProgress(double value, QString message)
 {
-    QNDEBUG("update", "UpdateManager::onUpdateProviderProgress: value = "
-        << value << ", message = " << message);
+    QNDEBUG(
+        "update",
+        "UpdateManager::onUpdateProviderProgress: value = "
+            << value << ", message = " << message);
 
     Q_ASSERT(m_pUpdateProgressDialog);
 
@@ -675,10 +655,7 @@ void UpdateManager::onCancelUpdateProvider()
     Q_ASSERT(m_pCurrentUpdateProvider);
 
     QObject::connect(
-        m_pCurrentUpdateProvider.get(),
-        &IUpdateProvider::cancelled,
-        this,
-        [&] {
+        m_pCurrentUpdateProvider.get(), &IUpdateProvider::cancelled, this, [&] {
             QNDEBUG("update", "Successfully cancelled the update");
 
             closeUpdateProgressDialog();
@@ -687,10 +664,8 @@ void UpdateManager::onCancelUpdateProvider()
         });
 
     QObject::connect(
-        m_pCurrentUpdateProvider.get(),
-        &IUpdateProvider::cannotCancelUpdate,
-        this,
-        [&] {
+        m_pCurrentUpdateProvider.get(), &IUpdateProvider::cannotCancelUpdate,
+        this, [&] {
             ErrorString error(QT_TR_NOOP("Failed to cancel the update"));
             QNWARNING("update", error);
             notifyError(error);
@@ -717,8 +692,7 @@ void UpdateManager::closeCheckForUpdatesProgressDialog()
 
 void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
 {
-    if (Q_UNLIKELY(!pTimerEvent))
-    {
+    if (Q_UNLIKELY(!pTimerEvent)) {
         ErrorString errorDescription(
             QT_TR_NOOP("Qt error: detected null pointer to QTimerEvent"));
         QNWARNING("update", errorDescription);
@@ -731,24 +705,26 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
 
     QNDEBUG("update", "Timer event for timer id " << timerId);
 
-    if (timerId == m_nextUpdateCheckTimerId)
-    {
+    if (timerId == m_nextUpdateCheckTimerId) {
         m_nextUpdateCheckTimerId = -1;
 
         if (m_updateProviderInProgress || m_currentUpdateUrlOnceOpened) {
-            QNDEBUG("update", "Will not check for updates on timer: update has "
-                << "already been launched");
+            QNDEBUG(
+                "update",
+                "Will not check for updates on timer: update has "
+                    << "already been launched");
         }
         else if (m_updateInstalledPendingRestart) {
-            QNDEBUG("update", "Update is already installed, pending app "
-                << "restart");
+            QNDEBUG(
+                "update",
+                "Update is already installed, pending app "
+                    << "restart");
         }
         else {
             checkForUpdatesImpl();
         }
     }
-    else if (timerId == m_nextIdleStatePollTimerId)
-    {
+    else if (timerId == m_nextIdleStatePollTimerId) {
         m_nextIdleStatePollTimerId = -1;
         askUserAndLaunchUpdate();
     }
@@ -758,15 +734,13 @@ void UpdateManager::offerUserToRestart()
 {
     QNDEBUG("update", "UpdateManager::offerUserToRestart");
 
-    auto * parentWidget = qobject_cast<QWidget*>(parent());
+    auto * parentWidget = qobject_cast<QWidget *>(parent());
 
     int res = questionMessageBox(
-        parentWidget,
-        tr("Restart is required"),
+        parentWidget, tr("Restart is required"),
         tr("Restart is required in order to complete the update. Would you "
            "like to restart now?"),
-        {},
-        QMessageBox::Ok | QMessageBox::No);
+        {}, QMessageBox::Ok | QMessageBox::No);
 
     if (res != QMessageBox::Ok) {
         QNDEBUG("update", "User refused to restart after update");

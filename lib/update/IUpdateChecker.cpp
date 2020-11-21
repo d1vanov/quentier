@@ -30,10 +30,9 @@
 
 namespace quentier {
 
-IUpdateChecker::IUpdateChecker(QObject * parent) :
-    QObject(parent)
+IUpdateChecker::IUpdateChecker(QObject * parent) : QObject(parent)
 {
-    qRegisterMetaType<std::shared_ptr<IUpdateProvider> >(
+    qRegisterMetaType<std::shared_ptr<IUpdateProvider>>(
         "std::shared_ptr<IUpdateProvider>");
 }
 
@@ -62,8 +61,7 @@ void IUpdateChecker::setUseContinuousUpdateChannel(const bool use)
 IUpdateChecker * newUpdateChecker(
     const UpdateProvider updateProvider, QObject * parent)
 {
-    switch(updateProvider)
-    {
+    switch (updateProvider) {
     case UpdateProvider::APPIMAGE:
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
         return new AppImageUpdateChecker(parent);

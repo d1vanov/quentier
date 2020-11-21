@@ -37,7 +37,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
 
-class UpdateManager: public QObject
+class UpdateManager : public QObject
 {
     Q_OBJECT
 public:
@@ -170,37 +170,37 @@ private:
     Q_DISABLE_COPY(UpdateManager)
 
 private:
-    IIdleStateInfoProviderPtr   m_pIdleStateInfoProvider;
+    IIdleStateInfoProviderPtr m_pIdleStateInfoProvider;
 
-    bool    m_updateCheckEnabled = false;
-    bool    m_checkForUpdatesOnStartup = false;
-    bool    m_useContinuousUpdateChannel = false;
+    bool m_updateCheckEnabled = false;
+    bool m_checkForUpdatesOnStartup = false;
+    bool m_useContinuousUpdateChannel = false;
 
-    qint64  m_checkForUpdatesIntervalMsec = 0;
+    qint64 m_checkForUpdatesIntervalMsec = 0;
     QString m_updateChannel;
 
-    UpdateProvider  m_updateProvider;
+    UpdateProvider m_updateProvider;
 
-    qint64  m_lastCheckForUpdatesTimestamp = 0;
+    qint64 m_lastCheckForUpdatesTimestamp = 0;
 
-    int     m_nextUpdateCheckTimerId = -1;
+    int m_nextUpdateCheckTimerId = -1;
 
-    int     m_nextIdleStatePollTimerId = -1;
+    int m_nextIdleStatePollTimerId = -1;
 
-    QUrl    m_currentUpdateUrl;
-    bool    m_currentUpdateUrlOnceOpened = false;
+    QUrl m_currentUpdateUrl;
+    bool m_currentUpdateUrlOnceOpened = false;
 
-    std::shared_ptr<IUpdateProvider>    m_pCurrentUpdateProvider;
-    bool    m_updateProviderInProgress = false;
-    int     m_lastUpdateProviderProgress = 0;
+    std::shared_ptr<IUpdateProvider> m_pCurrentUpdateProvider;
+    bool m_updateProviderInProgress = false;
+    int m_lastUpdateProviderProgress = 0;
 
-    bool    m_updateInstalledPendingRestart = false;
+    bool m_updateInstalledPendingRestart = false;
 
-    IUpdateChecker*     m_pCurrentUpdateChecker = nullptr;
-    bool    m_currentUpdateCheckInvokedByUser = false;
+    IUpdateChecker * m_pCurrentUpdateChecker = nullptr;
+    bool m_currentUpdateCheckInvokedByUser = false;
 
-    std::unique_ptr<QProgressDialog>    m_pCheckForUpdatesProgressDialog;
-    std::unique_ptr<QProgressDialog>    m_pUpdateProgressDialog;
+    std::unique_ptr<QProgressDialog> m_pCheckForUpdatesProgressDialog;
+    std::unique_ptr<QProgressDialog> m_pUpdateProgressDialog;
 };
 
 } // namespace quentier
