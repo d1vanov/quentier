@@ -1,0 +1,39 @@
+name: Trigger OpenSUSE build service
+
+on:
+  push:
+    paths-ignore:
+      - 'CONTRIBUTING.md'
+      - 'COPYING'
+      - 'CodingStyle.md'
+      - 'INSTALL.md'
+      - 'README.md'
+    branches:
+      - master
+      - development
+
+jobs:
+  trigger_service:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        id: install_deps
+        run: |
+          sudo apt install -qq curl
+
+      - name: Trigger service for master branch
+        id: trigger_service_master
+        env:
+          OSC_TOKEN: ${{ secrets.OSC_TOKEN_MASTER }}
+        run: |
+          curl -X POST -H "Authorization: Token $OSC_TOKEN" https://api.opensuse.org/trigger/runservice?project=home%3Ad1vanov%3Aquentier-master&package=quentier-master
+        if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Trigger service for development branch
+        id: trigger_service_development
+        env:
+          OSC_TOKEN: ${{ secrets.OSC_TOKEN_DEVELOPMENT }}
+        run: |
+          curl -X POST -H "Authorization: Token $OSC_TOKEN" https://api.opensuse.org/trigger/runservice?project=home%3Ad1vanov%3Aquentier-development&package=quentier-development
+        if: ${{ github.ref == 'refs/heads/development' }}
