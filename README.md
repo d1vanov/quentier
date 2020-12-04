@@ -5,9 +5,7 @@ Quentier
 
 **Cross-platform desktop Evernote client**
 
-Travis CI (Linux, OS X): [![Build Status](https://travis-ci.org/d1vanov/quentier.svg?branch=master)](https://travis-ci.org/d1vanov/quentier)
-
-AppVeyor CI (Windows): [![Build status](https://ci.appveyor.com/api/projects/status/0o2ro87sw1wm3ama/branch/master?svg=true)](https://ci.appveyor.com/project/d1vanov/quentier)
+![master](https://github.com/d1vanov/quentier/workflows/Build/badge.svg?branch=master)
 
 ## What's this
 
